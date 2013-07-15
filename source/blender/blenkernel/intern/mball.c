@@ -2445,6 +2445,7 @@ bool BKE_mball_center_median(MetaBall *mb, float r_cent[3])
 
 	for (ml = mb->elems.first; ml; ml = ml->next) {
 		add_v3_v3(r_cent, &ml->x);
+		total++;
 	}
 
 	if (total) {

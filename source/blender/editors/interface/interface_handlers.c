@@ -3721,7 +3721,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx,
 
 			break;
 		default:
-			assert(!"invalid hsv type");
+			BLI_assert(0);
 	}
 
 	hsv_to_rgb_v(hsv, rgb);
@@ -3791,6 +3791,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 			hsv[2] += ndof->rx * sensitivity;
 			
 			CLAMP(hsv[2], but->softmin, but->softmax);
+			break;
 		default:
 			assert(!"invalid hsv type");
 	}

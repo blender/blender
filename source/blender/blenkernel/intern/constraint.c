@@ -2518,7 +2518,7 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 	
 	/* only evaluate if there is a target */
 	if (VALID_CONS_TARGET(ct)) {
-		float dvec[3], dist = 0.0f, sfac = 1.0f;
+		float dvec[3], dist, sfac = 1.0f;
 		short clamp_surf = 0;
 		
 		/* calculate our current distance from the target */

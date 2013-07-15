@@ -28,12 +28,11 @@ set(INC
 	../SceneGraph
 	../../blender/blenlib
 	../../../intern/guardedalloc
-	../../../intern/moto/include
 	../../../intern/string
 )
 
 set(INC_SYS
-
+	../../../intern/moto/include
 )
 
 set(SRC

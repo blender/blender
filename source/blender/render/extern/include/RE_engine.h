@@ -107,7 +107,7 @@ typedef struct RenderEngine {
 
 	struct Render *re;
 	ListBase fullresult;
-	char *text;
+	char text[512]; /* IMA_MAX_RENDER_TEXT */
 
 	int resolution_x, resolution_y;
 

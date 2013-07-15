@@ -463,10 +463,7 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
 
 	/* create next folder element */
 	folder = (FolderList *)MEM_mallocN(sizeof(FolderList), "FolderList");
-	folder->foldername = (char *)MEM_mallocN(sizeof(char) * (strlen(dir) + 1), "foldername");
-	folder->foldername[0] = '\0';
-
-	BLI_strncpy(folder->foldername, dir, FILE_MAXDIR);
+	folder->foldername = BLI_strdup(dir);
 
 	/* add it to the end of the list */
 	BLI_addtail(folderlist, folder);
@@ -847,7 +844,7 @@ static void filelist_setfiletypes(struct FileList *filelist)
 		}
 		file->flags = file_extension_type(file->relname);
 		
-		if (filelist->filter_glob &&
+		if (filelist->filter_glob[0] &&
 		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
 		{
 			file->flags = OPERATORFILE;

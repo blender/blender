@@ -3111,8 +3111,18 @@ static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidat
 	Editing *ed = scene->ed;
 
 	/* invalidate cache for current sequence */
-	if (invalidate_self)
+	if (invalidate_self) {
+		if (seq->anim) {
+			/* Animation structure holds some buffers inside,
+			 * so for proper cache invalidation we need to
+			 * re-open the animation.
+			 */
+			IMB_free_anim(seq->anim);
+			seq->anim = NULL;
+		}
+
 		BKE_sequencer_cache_cleanup_sequence(seq);
+	}
 
 	/* if invalidation is invoked from sequence free routine, effectdata would be NULL here */
 	if (seq->effectdata && seq->type == SEQ_TYPE_SPEED)

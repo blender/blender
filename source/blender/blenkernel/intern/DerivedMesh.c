@@ -485,8 +485,6 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	Mesh tmp = *me;
 	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys = 0;
-	float *texloc, *texrot, *texsize;
-	short *texflag;
 	
 	CustomData_reset(&tmp.vdata);
 	CustomData_reset(&tmp.edata);
@@ -534,12 +532,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	}
 
 	/* copy texture space */
-	if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize, &texrot)) {
-		tmp.texflag = *texflag;
-		copy_v3_v3(tmp.loc, texloc);
-		copy_v3_v3(tmp.size, texsize);
-		copy_v3_v3(tmp.rot, texrot);
-	}
+	BKE_mesh_texspace_copy_from_object(&tmp, ob);
 	
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
 	 * we set them here in case they are missing */

@@ -681,7 +681,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	 * we want either a Mesh with no derived data, or derived data with
 	 * deformverts
 	 */
-	if (target && target->type == OB_MESH) {
+	if (target->type == OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
 		if (dm) {
 			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);

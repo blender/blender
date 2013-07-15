@@ -533,7 +533,7 @@ struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 
 	/* Create unicode string */
 	utf8len = BLI_strlen_utf8(cu->str);
-	mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
+	mem = MEM_mallocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 
 	BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
 

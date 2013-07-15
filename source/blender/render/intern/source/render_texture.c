@@ -409,7 +409,7 @@ static int marble(Tex *tex, const float texvec[3], TexResult *texres)
 
 static int magic(Tex *tex, const float texvec[3], TexResult *texres)
 {
-	float x, y, z, turb=1.0;
+	float x, y, z, turb;
 	int n;
 
 	n= tex->noisedepth;

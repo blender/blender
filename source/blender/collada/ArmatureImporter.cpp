@@ -166,7 +166,7 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 	}
 
 	bone->length = len_v3v3(bone->head, bone->tail);
-
+	joint_by_uid[node->getUniqueId()] = node;
 	finished_joints.push_back(node);
 }
 
@@ -517,16 +517,11 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 // root - if this joint is the top joint in hierarchy, if a joint
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
-void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce)
+void ArmatureImporter::add_root_joint(COLLADAFW::Node *node, Object *parent)
 {
-	joint_by_uid[node->getUniqueId()] = node;
-	if (root) {
-		root_joints.push_back(node);
-
-		if (parent) {
-					
-			joint_parent_map[node->getUniqueId()] = parent;
-		}
+	root_joints.push_back(node);
+	if (parent) {
+		joint_parent_map[node->getUniqueId()] = parent;
 	}
 }
 

@@ -28,10 +28,10 @@ set(INC
 	../container
 	../guardedalloc
 	../memutil
-	../moto/include
 )
 
 set(INC_SYS
+	../moto/include
 	../../extern/carve/include
 )
 

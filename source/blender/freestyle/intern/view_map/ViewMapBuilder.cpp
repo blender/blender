@@ -1364,6 +1364,9 @@ void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap, WingedEdge& w
 void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
                                             unsigned int sceneNumFaces, visibility_algo iAlgo, real epsilon)
 {
+#if 0
+	iAlgo = ray_casting; // for testing algorithms equivalence
+#endif
 	switch (iAlgo) {
 		case ray_casting:
 			if (_global.debug & G_DEBUG_FREESTYLE) {

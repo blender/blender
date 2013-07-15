@@ -530,7 +530,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 		if (1) {
 			/* now convert linknodes into arrays for faster per pixel access */
-			unsigned int  **buckets_face = MEM_mallocN(bucket_tot * sizeof(unsigned int **), __func__);
+			unsigned int  **buckets_face = MEM_mallocN(bucket_tot * sizeof(*buckets_face), __func__);
 			unsigned int bucket_index;
 
 			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {

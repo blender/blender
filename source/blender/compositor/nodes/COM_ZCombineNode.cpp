@@ -34,7 +34,7 @@
 
 void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
-	if (context->getRenderData()->scemode & R_FULL_SAMPLE) {
+	if ((context->getRenderData()->scemode & R_FULL_SAMPLE) || this->getbNode()->custom2) {
 		if (this->getOutputSocket(0)->isConnected()) {
 			ZCombineOperation *operation = NULL;
 			if (this->getbNode()->custom1) {

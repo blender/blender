@@ -98,6 +98,18 @@ void Mesh::clear()
 	transform_normal = transform_identity();
 }
 
+void Mesh::set_triangle(int i, int v0, int v1, int v2, int shader_, bool smooth_)
+{
+	Triangle tri;
+	tri.v[0] = v0;
+	tri.v[1] = v1;
+	tri.v[2] = v2;
+
+	triangles[i] = tri;
+	shader[i] = shader_;
+	smooth[i] = smooth_;
+}
+
 void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 {
 	Triangle tri;

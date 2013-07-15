@@ -3455,7 +3455,7 @@ static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
 		prev = i;
 	}
 
-	return count % 2 ? true : false;
+	return (count % 2) ? true : false;
 }
 
 /* Check whether point is inside any stroke of grease pencil layer. */

@@ -2053,8 +2053,10 @@ int do_version_tface(Main *main, int fileload)
 				printf("Warning: material \"%s\" skipped - to convert old game texface to material go to the Help menu.\n", ma->id.name + 2);
 				nowarning = 0;
 			}
-			else
-				convert_tfacematerial(main, ma); continue;
+			else {
+				convert_tfacematerial(main, ma);
+			}
+			continue;
 		}
 	
 		/* no conflicts in this material - 90% of cases
