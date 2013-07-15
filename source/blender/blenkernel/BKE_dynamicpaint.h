@@ -29,6 +29,7 @@
 
 struct bContext;
 struct wmOperator;
+struct Scene;
 
 /* Actual surface point	*/
 typedef struct PaintSurfaceData {
@@ -69,8 +70,8 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 
 int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);
 struct DynamicPaintSurface *dynamicPaint_createNewSurface(struct DynamicPaintCanvasSettings *canvas, struct Scene *scene);
-void dynamicPaint_clearSurface(struct DynamicPaintSurface *surface);
-int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
+void dynamicPaint_clearSurface(struct Scene *scene, struct DynamicPaintSurface *surface);
+int  dynamicPaint_resetSurface(struct Scene *scene, struct DynamicPaintSurface *surface);
 void dynamicPaint_freeSurface(struct DynamicPaintSurface *surface);
 void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
@@ -85,7 +86,7 @@ void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);
 struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
 
 /* image sequence baking */
-int dynamicPaint_createUVSurface(struct DynamicPaintSurface *surface);
+int dynamicPaint_createUVSurface(struct Scene *scene, struct DynamicPaintSurface *surface);
 int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface, struct Scene *scene, struct Object *cObject, int frame);
 void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface, char *filename, short output_layer);
 

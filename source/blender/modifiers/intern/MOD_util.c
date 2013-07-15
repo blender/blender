@@ -50,6 +50,7 @@
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
+#include "BKE_scene.h"
 
 #include "BKE_modifier.h"
 
@@ -69,12 +70,17 @@ void modifier_init_texture(Scene *scene, Tex *tex)
 		BKE_image_user_frame_calc(&tex->iuser, scene->r.cfra, 0);
 }
 
-void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
+void get_texture_value(Scene *scene, Tex *texture, float *tex_co, TexResult *texres, bool use_color_management)
 {
 	int result_type;
+	bool do_color_manage = false;
+
+	if (use_color_management) {
+		do_color_manage = BKE_scene_check_color_management_enabled(scene);
+	}
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL);
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.

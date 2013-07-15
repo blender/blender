@@ -34,11 +34,14 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	bNode *editorNode = this->getbNode();
 	Tex *texture = (Tex *)editorNode->id;
 	TextureOperation *operation = new TextureOperation();
+	const ColorManagedDisplaySettings *displaySettings = context->getDisplaySettings();
+	bool sceneColorManage = strcmp(displaySettings->display_device, "None") != 0;
 	this->getOutputSocket(1)->relinkConnections(operation->getOutputSocket());
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
 	operation->setTexture(texture);
 	operation->setRenderData(context->getRenderData());
+	operation->setSceneColorManage(sceneColorManage);
 	system->addOperation(operation);
 	addPreviewOperation(system, context, operation->getOutputSocket());
 
@@ -49,6 +52,7 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 		addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(1));
 		alphaOperation->setTexture(texture);
 		alphaOperation->setRenderData(context->getRenderData());
+		alphaOperation->setSceneColorManage(sceneColorManage);
 		system->addOperation(alphaOperation);
 	}
 }
