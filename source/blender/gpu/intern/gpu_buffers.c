@@ -77,6 +77,8 @@ static int useVBOs = -1;
 static GPUBufferState GLStates = 0;
 static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
+static ThreadMutex buffer_mutex = BLI_MUTEX_INITIALIZER;
+
 /* stores recently-deleted buffers so that new buffers won't have to
  * be recreated as often
  *
@@ -189,8 +191,11 @@ void GPU_global_buffer_pool_free(void)
 }
 
 /* get a GPUBuffer of at least `size' bytes; uses one from the buffer
- * pool if possible, otherwise creates a new one */
-GPUBuffer *GPU_buffer_alloc(int size)
+ * pool if possible, otherwise creates a new one
+ *
+ * Thread-unsafe version for internal usage only.
+ */
+static GPUBuffer *gpu_buffer_alloc_intern(int size)
 {
 	GPUBufferPool *pool;
 	GPUBuffer *buf;
@@ -270,10 +275,30 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	return buf;
 }
 
+/* Same as above, but safe for threading. */
+GPUBuffer *GPU_buffer_alloc(int size)
+{
+	GPUBuffer *buffer;
+
+	if (size == 0) {
+		/* Early out, no lock needed in this case. */
+		return NULL;
+	}
+
+	BLI_mutex_lock(&buffer_mutex);
+	buffer = gpu_buffer_alloc_intern(size);
+	BLI_mutex_unlock(&buffer_mutex);
+
+	return buffer;
+}
+
 /* release a GPUBuffer; does not free the actual buffer or its data,
  * but rather moves it to the pool of recently-freed buffers for
- * possible re-use*/
-void GPU_buffer_free(GPUBuffer *buffer)
+ * possible re-use
+ *
+ * Thread-unsafe version for internal usage only.
+ */
+static void gpu_buffer_free_intern(GPUBuffer *buffer)
 {
 	GPUBufferPool *pool;
 	int i;
@@ -310,6 +335,19 @@ void GPU_buffer_free(GPUBuffer *buffer)
 	/* insert the buffer into the beginning of the pool */
 	pool->buffers[0] = buffer;
 	pool->totbuf++;
+}
+
+/* Same as above, but safe for threading. */
+void GPU_buffer_free(GPUBuffer *buffer)
+{
+	if (!buffer) {
+		/* Early output, no need to lock in this case, */
+		return;
+	}
+
+	BLI_mutex_lock(&buffer_mutex);
+	gpu_buffer_free_intern(buffer);
+	BLI_mutex_unlock(&buffer_mutex);
 }
 
 typedef struct GPUVertPointLink {
@@ -496,13 +534,17 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 	pool = gpu_get_global_buffer_pool();
 
+	BLI_mutex_lock(&buffer_mutex);
+
 	/* alloc a GPUBuffer; fall back to legacy mode on failure */
-	if (!(buffer = GPU_buffer_alloc(size)))
+	if (!(buffer = gpu_buffer_alloc_intern(size)))
 		dm->drawObject->legacy = 1;
 
 	/* nothing to do for legacy mode */
-	if (dm->drawObject->legacy)
+	if (dm->drawObject->legacy) {
+		BLI_mutex_unlock(&buffer_mutex);
 		return NULL;
+	}
 
 	cur_index_per_mat = MEM_mallocN(sizeof(int) * object->totmaterial,
 	                                "GPU_buffer_setup.cur_index_per_mat");
@@ -527,7 +569,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 			/* attempt to map the buffer */
 			if (!(varray = glMapBufferARB(target, GL_WRITE_ONLY_ARB))) {
 				/* failed to map the buffer; delete it */
-				GPU_buffer_free(buffer);
+				gpu_buffer_free_intern(buffer);
 				gpu_buffer_pool_delete_last(pool);
 				buffer = NULL;
 
@@ -535,7 +577,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 				 * and reallocating the buffer */
 				if (pool->totbuf > 0) {
 					gpu_buffer_pool_delete_last(pool);
-					buffer = GPU_buffer_alloc(size);
+					buffer = gpu_buffer_alloc_intern(size);
 				}
 
 				/* allocation still failed; fall back
@@ -576,6 +618,8 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	}
 
 	MEM_freeN(cur_index_per_mat);
+
+	BLI_mutex_unlock(&buffer_mutex);
 
 	return buffer;
 }
