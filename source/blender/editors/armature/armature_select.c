@@ -597,38 +597,48 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
 		/* Determine if there are any selected bones
 		 * And therefore whether we are selecting or deselecting */
-		if (CTX_DATA_COUNT(C, selected_bones) > 0)
-			action = SEL_DESELECT;
+		action = SEL_SELECT;
+		CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
+		{
+			if (ebone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+		CTX_DATA_END;
 	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
 	{
 		/* ignore bone if selection can't change */
-		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
-			switch (action) {
-				case SEL_SELECT:
+		switch (action) {
+			case SEL_SELECT:
+				if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if (ebone->parent)
+					if (ebone->parent) {
 						ebone->parent->flag |= (BONE_TIPSEL);
-					break;
-				case SEL_DESELECT:
+					}
+				}
+				break;
+			case SEL_DESELECT:
+				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				break;
+			case SEL_INVERT:
+				if (ebone->flag & BONE_SELECTED) {
 					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					break;
-				case SEL_INVERT:
-					if (ebone->flag & BONE_SELECTED) {
-						ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					}
-					else {
+				}
+				else {
+					if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 						ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						if (ebone->parent)
+						if (ebone->parent) {
 							ebone->parent->flag |= (BONE_TIPSEL);
+						}
 					}
-					break;
-			}
+				}
+				break;
 		}
 	}
 	CTX_DATA_END;
