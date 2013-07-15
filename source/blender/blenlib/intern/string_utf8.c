@@ -45,6 +45,8 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+// #define DEBUG_STRSIZE
+
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).
  * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */
@@ -203,6 +205,10 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
 
 char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	while (*dst && maxncpy > 0) {
 		dst++;
 		maxncpy--;
@@ -223,6 +229,10 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict
 	size_t len = 0;
 
 	BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
 
 	while (*src && len < maxncpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode((unsigned int)*src++, dst + len);
@@ -301,6 +311,12 @@ size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__restrict src_c, const size_t maxncpy)
 {
 	size_t len = 0;
+
+	BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+	memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
+#endif
 
 	if (dst_w == NULL || src_c == NULL) {
 		return 0;
