@@ -2800,7 +2800,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			smokeModifier_reset_turbulence(pid->calldata);
 #endif
 		else if (pid->type == PTCACHE_TYPE_DYNAMICPAINT)
-			dynamicPaint_clearSurface((DynamicPaintSurface*)pid->calldata);
+			dynamicPaint_clearSurface(scene, (DynamicPaintSurface*)pid->calldata);
 	}
 	if (clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);

@@ -306,7 +306,7 @@ static void waveModifier_do(WaveModifierData *md,
 				if (wmd->texture) {
 					TexResult texres;
 					texres.nor = NULL;
-					get_texture_value(wmd->texture, tex_co[i], &texres);
+					get_texture_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
 					amplit *= texres.tin;
 				}
 

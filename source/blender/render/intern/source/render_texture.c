@@ -1212,9 +1212,9 @@ static int multitex(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int o
 	return retval;
 }
 
-/* this is called from the shader and texture nodes */
-int multitex_nodes(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres,
-                   const short thread, short which_output, ShadeInput *shi, MTex *mtex, struct ImagePool *pool)
+static int multitex_nodes_intern(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres,
+                                 const short thread, short which_output, ShadeInput *shi, MTex *mtex, struct ImagePool *pool,
+                                 bool scene_color_manage)
 {
 	if (tex==NULL) {
 		memset(texres, 0, sizeof(TexResult));
@@ -1236,7 +1236,7 @@ int multitex_nodes(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int os
 				ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 				
 				/* don't linearize float buffers, assumed to be linear */
-				if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
+				if (ibuf && !(ibuf->rect_float) && scene_color_manage)
 					IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
 
 				BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
@@ -1269,7 +1269,7 @@ int multitex_nodes(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int os
 				ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
 				/* don't linearize float buffers, assumed to be linear */
-				if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
+				if (ibuf && !(ibuf->rect_float) && scene_color_manage)
 					IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
 
 				BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
@@ -1281,6 +1281,16 @@ int multitex_nodes(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int os
 	else {
 		return multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output, pool);
 	}
+}
+
+/* this is called from the shader and texture nodes
+ * Use it from render pipeline only!
+ */
+int multitex_nodes(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres,
+                   const short thread, short which_output, ShadeInput *shi, MTex *mtex, struct ImagePool *pool)
+{
+	return multitex_nodes_intern(tex, texvec, dxt, dyt, osatex, texres,
+	                             thread, which_output, shi, mtex, pool, R.scene_color_manage);
 }
 
 /* this is called for surface shading */
@@ -1300,19 +1310,25 @@ static int multitex_mtex(ShadeInput *shi, MTex *mtex, float texvec[3], float dxt
 }
 
 /* Warning, if the texres's values are not declared zero, check the return value to be sure
- * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
-int multitex_ext(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres, struct ImagePool *pool)
+ * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell
+ *
+ * Use it for stuff which is out of render pipeline.
+ */
+int multitex_ext(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres, struct ImagePool *pool, bool scene_color_manage)
 {
-	return multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL, pool);
+	return multitex_nodes_intern(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL, pool, scene_color_manage);
 }
 
-/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on) */
-int multitex_ext_safe(Tex *tex, float texvec[3], TexResult *texres, struct ImagePool *pool)
+/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on)\
+ *
+ * Use it for stuff which is out of render pipeline.
+ */
+int multitex_ext_safe(Tex *tex, float texvec[3], TexResult *texres, struct ImagePool *pool, bool scene_color_manage)
 {
 	int use_nodes= tex->use_nodes, retval;
 	
 	tex->use_nodes = FALSE;
-	retval= multitex_nodes(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL, pool);
+	retval= multitex_nodes_intern(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL, pool, scene_color_manage);
 	tex->use_nodes= use_nodes;
 	
 	return retval;

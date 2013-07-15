@@ -196,12 +196,13 @@ struct ImBuf;
 struct ImagePool;
 
 /* this one uses nodes */
-int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool);
+int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage);
 /* nodes disabled */
-int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool);
+int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage);
 /* only for internal node usage */
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres,
-                   const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool);
+                   const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex,
+                   struct ImagePool *pool);
 
 /* shaded view and bake */
 struct Render;
