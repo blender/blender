@@ -139,7 +139,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	invert_m4_m4(ob->imat, ob->obmat);
 	
 	total_particles = psys->totpart+psys->totchild;
-	psys->lattice=psys_get_lattice(&sim);
+	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
 	alloc_point_data(pd, total_particles, data_used);
@@ -196,9 +196,9 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	BLI_bvhtree_balance(pd->point_tree);
 	dm->release(dm);
 	
-	if (psys->lattice) {
-		end_latt_deform(psys->lattice);
-		psys->lattice=0;
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 	}
 	
 	psys_render_restore(ob, psys);

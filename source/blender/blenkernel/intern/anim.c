@@ -1330,7 +1330,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 		psys_check_group_weights(part);
 
-		psys->lattice = psys_get_lattice(&sim);
+		psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
@@ -1567,9 +1567,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if (obcopylist)
 		MEM_freeN(obcopylist);
 
-	if (psys->lattice) {
-		end_latt_deform(psys->lattice);
-		psys->lattice = NULL;
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 	}
 }
 

@@ -869,7 +869,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	/* getting back to object space */
 	invert_m4_m4(imat, ob->obmat);
 
-	psmd->psys->lattice = psys_get_lattice(&sim);
+	psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 	/* duplicate & displace vertices */
 	ehi = BLI_edgehashIterator_new(vertpahash);
@@ -973,9 +973,9 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	CDDM_tessfaces_to_faces(explode);
 	explode->dirty |= DM_DIRTY_NORMALS;
 
-	if (psmd->psys->lattice) {
-		end_latt_deform(psmd->psys->lattice);
-		psmd->psys->lattice = NULL;
+	if (psmd->psys->lattice_deform_data) {
+		end_latt_deform(psmd->psys->lattice_deform_data);
+		psmd->psys->lattice_deform_data = NULL;
 	}
 
 	return explode;

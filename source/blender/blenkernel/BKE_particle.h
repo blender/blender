@@ -54,6 +54,7 @@ struct MCol;
 struct MFace;
 struct MVert;
 struct IpoCurve;
+struct LatticeDeformData;
 struct LinkNode;
 struct KDTree;
 struct RNG;
@@ -258,7 +259,7 @@ void psys_set_current_num(Object *ob, int index);
 /* UNUSED */
 // struct Object *psys_find_object(struct Scene *scene, struct ParticleSystem *psys);
 
-struct Object *psys_get_lattice(struct ParticleSimulationData *sim);
+struct LatticeDeformData *psys_create_lattice_deform_data(struct ParticleSimulationData *sim);
 
 int psys_in_edit_mode(struct Scene *scene, struct ParticleSystem *psys);
 int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);

@@ -1741,7 +1741,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if (path_nbr == 0)
-		psys->lattice = psys_get_lattice(&sim);
+		psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 /* 3. start creating renderable things */
 	for (a=0, pa=pars; a<totpart+totchild; a++, pa++, seed++) {
@@ -2085,9 +2085,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	psys->flag &= ~PSYS_DRAWING;
 
-	if (psys->lattice) {
-		end_latt_deform(psys->lattice);
-		psys->lattice= NULL;
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 	}
 
 	if (path_nbr && (ma->mode_l & MA_TANGENT_STR)==0)

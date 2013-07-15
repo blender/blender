@@ -272,7 +272,9 @@ typedef struct ParticleSystem {
 	struct DerivedMesh *hair_in_dm, *hair_out_dm;	/* input/output for cloth simulation */
 
 	struct Object *target_ob;
-	struct Object *lattice;
+
+	struct LatticeDeformData *lattice_deform_data;		/* run-time only lattice deformation data */
+
 	struct Object *parent;					/* particles from global space -> parent space */
 
 	struct ListBase targets;				/* used for keyed and boid physics */

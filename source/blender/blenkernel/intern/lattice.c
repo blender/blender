@@ -307,7 +307,13 @@ void BKE_lattice_make_local(Lattice *lt)
 	}
 }
 
-void init_latt_deform(Object *oblatt, Object *ob)
+typedef struct LatticeDeformData {
+	Object *object;
+	float *latticedata;
+	float latmat[4][4];
+} LatticeDeformData;
+
+LatticeDeformData *init_latt_deform(Object *oblatt, Object *ob)
 {
 	/* we make an array with all differences */
 	Lattice *lt = oblatt->data;
@@ -317,27 +323,30 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	float *fp, imat[4][4];
 	float fu, fv, fw;
 	int u, v, w;
+	float *latticedata;
+	float latmat[4][4];
+	LatticeDeformData *lattice_deform_data;
 
 	if (lt->editlatt) lt = lt->editlatt->latt;
 	bp = lt->def;
 	
-	fp = lt->latticedata = MEM_mallocN(sizeof(float) * 3 * lt->pntsu * lt->pntsv * lt->pntsw, "latticedata");
+	fp = latticedata = MEM_mallocN(sizeof(float) * 3 * lt->pntsu * lt->pntsv * lt->pntsw, "latticedata");
 	
 	/* for example with a particle system: (ob == NULL) */
 	if (ob == NULL) {
 		/* in deformspace, calc matrix  */
-		invert_m4_m4(lt->latmat, oblatt->obmat);
+		invert_m4_m4(latmat, oblatt->obmat);
 	
 		/* back: put in deform array */
-		invert_m4_m4(imat, lt->latmat);
+		invert_m4_m4(imat, latmat);
 	}
 	else {
 		/* in deformspace, calc matrix */
 		invert_m4_m4(imat, oblatt->obmat);
-		mul_m4_m4m4(lt->latmat, imat, ob->obmat);
+		mul_m4_m4m4(latmat, imat, ob->obmat);
 	
 		/* back: put in deform array */
-		invert_m4_m4(imat, lt->latmat);
+		invert_m4_m4(imat, latmat);
 	}
 	
 	for (w = 0, fw = lt->fw; w < lt->pntsw; w++, fw += lt->dw) {
@@ -358,10 +367,18 @@ void init_latt_deform(Object *oblatt, Object *ob)
 			}
 		}
 	}
+
+	lattice_deform_data = MEM_mallocN(sizeof(LatticeDeformData), "Lattice Deform Data");
+	lattice_deform_data->latticedata = latticedata;
+	lattice_deform_data->object = ob;
+	copy_m4_m4(lattice_deform_data->latmat, latmat);
+
+	return lattice_deform_data;
 }
 
-void calc_latt_deform(Object *ob, float co[3], float weight)
+void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float weight)
 {
+	Object *ob = lattice_deform_data->object;
 	Lattice *lt = ob->data;
 	float u, v, w, tu[4], tv[4], tw[4];
 	float vec[3];
@@ -375,7 +392,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 
 
 	if (lt->editlatt) lt = lt->editlatt->latt;
-	if (lt->latticedata == NULL) return;
+	if (lattice_deform_data->latticedata == NULL) return;
 
 	if (lt->vgroup[0] && dvert) {
 		defgrp_index = defgroup_name_index(ob, lt->vgroup);
@@ -383,7 +400,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 	}
 
 	/* co is in local coords, treat with latmat */
-	mul_v3_m4v3(vec, lt->latmat, co);
+	mul_v3_m4v3(vec, lattice_deform_data->latmat, co);
 
 	/* u v w coords */
 
@@ -456,7 +473,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 								idx_u = idx_v;
 							}
 
-							madd_v3_v3fl(co, &lt->latticedata[idx_u * 3], u);
+							madd_v3_v3fl(co, &lattice_deform_data->latticedata[idx_u * 3], u);
 
 							if (defgrp_index != -1)
 								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgrp_index));
@@ -472,15 +489,12 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 
 }
 
-void end_latt_deform(Object *ob)
+void end_latt_deform(LatticeDeformData *lattice_deform_data)
 {
-	Lattice *lt = ob->data;
-	
-	if (lt->editlatt) lt = lt->editlatt->latt;
-	
-	if (lt->latticedata)
-		MEM_freeN(lt->latticedata);
-	lt->latticedata = NULL;
+	if (lattice_deform_data->latticedata)
+		MEM_freeN(lattice_deform_data->latticedata);
+
+	MEM_freeN(lattice_deform_data);
 }
 
 /* calculations is in local space of deformed object
@@ -815,13 +829,14 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
                           float (*vertexCos)[3], int numVerts, const char *vgroup, float fac)
 {
+	LatticeDeformData *lattice_deform_data;
 	int a;
 	int use_vgroups;
 
 	if (laOb->type != OB_LATTICE)
 		return;
 
-	init_latt_deform(laOb, target);
+	lattice_deform_data = init_latt_deform(laOb, target);
 
 	/* check whether to use vertex groups (only possible if target is a Mesh)
 	 * we want either a Mesh with no derived data, or derived data with
@@ -855,16 +870,16 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 				weight = defvert_find_weight(dvert, defgrp_index);
 
 				if (weight > 0.0f)
-					calc_latt_deform(laOb, vertexCos[a], weight * fac);
+					calc_latt_deform(lattice_deform_data, vertexCos[a], weight * fac);
 			}
 		}
 	}
 	else {
 		for (a = 0; a < numVerts; a++) {
-			calc_latt_deform(laOb, vertexCos[a], fac);
+			calc_latt_deform(lattice_deform_data, vertexCos[a], fac);
 		}
 	}
-	end_latt_deform(laOb);
+	end_latt_deform(lattice_deform_data);
 }
 
 int object_deform_mball(Object *ob, ListBase *dispbase)
