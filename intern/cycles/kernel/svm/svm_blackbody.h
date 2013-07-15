@@ -47,9 +47,9 @@ __device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack
 		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
 	}
 	else if (temperature <= BB_MAX_TABLE_RANGE) {
-		/* This is the overall size of the table (317*3+3) */
-		const int lookuptablesize = 954;
-		const float lookuptablesizef = 954.0f;
+		/* This is the overall size of the table */
+		const int lookuptablesize = 956;
+		const float lookuptablesizef = 956.0f;
 
 		/* reconstruct a proper index for the table lookup, compared to OSL we don't look up two colors
 		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
@@ -60,21 +60,21 @@ __device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack
 		/* Retrieve colors from the lookup table */
 		float lutval = t/lookuptablesizef;
 		float R = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
-		lutval = (t + 317.0f*1.0f)/lookuptablesizef;
+		lutval = (t + 319.0f*1.0f)/lookuptablesizef;
 		float G = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
-		lutval = (t + 317.0f*2.0f)/lookuptablesizef;
+		lutval = (t + 319.0f*2.0f)/lookuptablesizef;
 		float B = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
 
 		R = powf(R, BB_TABLE_YPOWER);
 		G = powf(G, BB_TABLE_YPOWER);
 		B = powf(B, BB_TABLE_YPOWER);
 
-		/* Luminance */
-		float l = linear_rgb_to_gray(make_float3(R, G, B));
-
 		color_rgb = make_float3(R, G, B);
-		color_rgb /= l;
 	}
+	
+	/* Luminance */
+	float l = linear_rgb_to_gray(color_rgb);
+	color_rgb /= l;
 
 	if (stack_valid(col_offset))
 		stack_store_float3(stack, col_offset, color_rgb);

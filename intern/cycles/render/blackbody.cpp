@@ -93,8 +93,8 @@ vector<float> blackbody_table()
 								   // h is Planck's const, k is Boltzmann's
 	const float dlambda = 5.0f * 1e-9;  // in meters
 
-	/* Blackbody table from 800 to 12k Kelvin (317 entries) */
-	vector<float> blackbody_table(317*3+3);
+	/* Blackbody table from 800 to 12k Kelvin (319 entries (317+2 offset) * 3) */
+	vector<float> blackbody_table(956);
 
 	float X, Y, Z;
 
@@ -131,8 +131,8 @@ vector<float> blackbody_table()
 
 		/* Store in table in RRRGGGBBB format */
 		blackbody_table[i] = col.x;
-		blackbody_table[i+317*1] = col.y;
-		blackbody_table[i+317*2] = col.z;	
+		blackbody_table[i+319*1] = col.y;
+		blackbody_table[i+319*2] = col.z;	
 	}
 
 	return blackbody_table;
