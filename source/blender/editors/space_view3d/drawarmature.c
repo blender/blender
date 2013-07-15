@@ -34,6 +34,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -1109,12 +1110,14 @@ static void draw_b_bone_boxes(const short dt, bPoseChannel *pchan, float xwidth,
 	
 	if ((segments > 1) && (pchan)) {
 		float dlen = length / (float)segments;
-		Mat4 *bbone = b_bone_spline_setup(pchan, 0);
+		Mat4 bbone[MAX_BBONE_SUBDIV];
 		int a;
-		
-		for (a = 0; a < segments; a++, bbone++) {
+
+		b_bone_spline_setup(pchan, 0, bbone);
+
+		for (a = 0; a < segments; a++) {
 			glPushMatrix();
-			glMultMatrixf(bbone->mat);
+			glMultMatrixf(bbone[a].mat);
 			if (dt == OB_SOLID) drawsolidcube_size(xwidth, dlen, zwidth);
 			else drawcube_size(xwidth, dlen, zwidth);
 			glPopMatrix();
@@ -1245,6 +1248,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 static void draw_wire_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                            bPoseChannel *pchan, EditBone *ebone)
 {
+	Mat4 bbones_array[MAX_BBONE_SUBDIV];
 	Mat4 *bbones = NULL;
 	int segments = 0;
 	float length;
@@ -1253,8 +1257,10 @@ static void draw_wire_bone(const short dt, int armflag, int boneflag, short cons
 		segments = pchan->bone->segments;
 		length = pchan->bone->length;
 		
-		if (segments > 1)
-			bbones = b_bone_spline_setup(pchan, 0);
+		if (segments > 1) {
+			b_bone_spline_setup(pchan, 0, bbones_array);
+			bbones = bbones_array;
+		}
 	}
 	else 
 		length = ebone->length;

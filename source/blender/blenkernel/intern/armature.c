@@ -381,8 +381,6 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 
 /* ************* B-Bone support ******************* */
 
-#define MAX_BBONE_SUBDIV    32
-
 /* data has MAX_BBONE_SUBDIV+1 interpolated points, will become desired amount with equal distances */
 static void equalize_bezier(float *data, int desired)
 {
@@ -426,11 +424,8 @@ static void equalize_bezier(float *data, int desired)
 
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
 /* this calculation is done  within unit bone space */
-Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
+void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
-	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
-	static Mat4 bbone_rest_array[MAX_BBONE_SUBDIV];
-	Mat4 *result_array = (rest) ? bbone_rest_array : bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
 	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1 = 0.0f, roll2;
@@ -587,8 +582,6 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 			mul_serie_m4(result_array[a].mat, iscalemat, result_array[a].mat, scalemat, NULL, NULL, NULL, NULL, NULL);
 		}
 	}
-
-	return result_array;
 }
 
 /* ************ Armature Deform ******************* */
@@ -602,12 +595,14 @@ typedef struct bPoseChanDeform {
 static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info, int use_quaternion)
 {
 	Bone *bone = pchan->bone;
-	Mat4 *b_bone = b_bone_spline_setup(pchan, 0);
-	Mat4 *b_bone_rest = b_bone_spline_setup(pchan, 1);
+	Mat4 b_bone[MAX_BBONE_SUBDIV], b_bone_rest[MAX_BBONE_SUBDIV];
 	Mat4 *b_bone_mats;
 	DualQuat *b_bone_dual_quats = NULL;
 	float tmat[4][4] = MAT4_UNITY;
 	int a;
+
+	b_bone_spline_setup(pchan, 0, b_bone);
+	b_bone_spline_setup(pchan, 1, b_bone_rest);
 
 	/* allocate b_bone matrices and dual quats */
 	b_bone_mats = MEM_mallocN((1 + bone->segments) * sizeof(Mat4), "BBone defmats");
