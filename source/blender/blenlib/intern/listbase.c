@@ -557,14 +557,14 @@ void BLI_reverselist(ListBase *lb)
 /**
  * \param vlink Link to make first.
  */
-void BLI_rotatelist(ListBase *lb, LinkData *vlink)
+void BLI_rotatelist(ListBase *lb, void *vlink)
 {
 	/* make circular */
 	((LinkData *)lb->first)->prev = lb->last;
 	((LinkData *)lb->last)->next = lb->first;
 
 	lb->first = vlink;
-	lb->last = vlink->prev;
+	lb->last = ((LinkData *)vlink)->prev;
 
 	((LinkData *)lb->first)->prev = NULL;
 	((LinkData *)lb->last)->next = NULL;
