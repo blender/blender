@@ -918,25 +918,35 @@ static int getYUVtoRGBMatrix(float *matrix, LogImageElement logElement)
 	}
 }
 
-static void getLinToLogLut(float *lut, LogImageFile *logImage, LogImageElement logElement)
+static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
 {
+	float *lut;
 	float gain, negativeFilmGamma, offset, step;
+	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
+	
+	lut = MEM_mallocN(sizeof(float)*lutsize, "getLinToLogLut");
 
 	negativeFilmGamma = 0.6;
 	step = logElement.refHighQuantity / logElement.maxValue;
 	gain = logElement.maxValue / (1.0f - powf(10, (logImage->referenceBlack - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f));
 	offset = gain - logElement.maxValue;
 
-	for (i = 0; i < (int)(logElement.maxValue + 1); i++)
+	for (i = 0; i < lutsize; i++)
 		lut[i] = (logImage->referenceWhite + log10f(powf((i + offset) / gain, 1.7f / logImage->gamma)) / (step / negativeFilmGamma)) / logElement.maxValue;
+	
+	return lut;
 }
 
-static void getLogToLinLut(float *lut, LogImageFile *logImage, LogImageElement logElement)
+static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
 {
+	float *lut;
 	float breakPoint, gain, kneeGain, kneeOffset, negativeFilmGamma, offset, step, softClip;
 	/* float filmGamma; unused */
+	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
+	
+	lut = MEM_mallocN(sizeof(float)*lutsize, "getLogToLinLut");
 
 	/* Building the Log -> Lin LUT */
 	step = logElement.refHighQuantity / logElement.maxValue;
@@ -952,7 +962,7 @@ static void getLogToLinLut(float *lut, LogImageFile *logImage, LogImageElement l
 	kneeOffset = powf(10, (breakPoint - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f) * gain - offset;
 	kneeGain = (logElement.maxValue - kneeOffset) / powf(5 * softClip, softClip / 100);
 
-	for (i = 0; i < (int)(logElement.maxValue + 1); i++) {
+	for (i = 0; i < lutsize; i++) {
 		if (i < logImage->referenceBlack)
 			lut[i] = 0.0f;
 		else if (i > breakPoint)
@@ -960,61 +970,76 @@ static void getLogToLinLut(float *lut, LogImageFile *logImage, LogImageElement l
 		else
 			lut[i] = (powf(10, ((float)i - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f) * gain - offset) / logElement.maxValue;
 	}
+
+	return lut;
 }
 
-static void getLinToSrgbLut(float *lut, LogImageElement logElement)
+static float *getLinToSrgbLut(LogImageElement logElement)
 {
+	float col, *lut;
+	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
-	float col;
 
-	for (i = 0; i < (int)(logElement.maxValue + 1); i++) {
+	lut = MEM_mallocN(sizeof(float)*lutsize, "getLogToLinLut");
+
+	for (i = 0; i < lutsize; i++) {
 		col = (float)i / logElement.maxValue;
 		if (col < 0.0031308f)
 			lut[i] = (col < 0.0f) ? 0.0f : col * 12.92f;
 		else
 			lut[i] = 1.055f * powf(col, 1.0f / 2.4f) - 0.055f;
 	}
+
+	return lut;
 }
 
-static void getSrgbToLinLut(float *lut, LogImageElement logElement)
+static float *getSrgbToLinLut(LogImageElement logElement)
 {
+	float col, *lut;
+	unsigned int lutsize = (unsigned int)(logElement.maxValue + 1);
 	unsigned int i;
-	float col;
 
-	for (i = 0; i < (int)(logElement.maxValue + 1); i++) {
+	lut = MEM_mallocN(sizeof(float)*lutsize, "getLogToLinLut");
+
+	for (i = 0; i < lutsize; i++) {
 		col = (float)i / logElement.maxValue;
 		if (col < 0.04045f)
 			lut[i] = (col < 0.0f) ? 0.0f : col * (1.0f / 12.92f);
 		else
 			lut[i] = powf((col + 0.055f) * (1.0f / 1.055f), 2.4f);
 	}
+
+	return lut;
 }
 
 static int convertRGBA_RGB(float *src, float *dst, LogImageFile *logImage,
                            LogImageElement logElement, int elementIsSource)
 {
 	unsigned int i;
-	float lut[65536];
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
 		case transfer_UserDefined:
 		case transfer_Linear:
-		case transfer_Logarithmic:
+		case transfer_Logarithmic: {
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = *(src_ptr++);
 				*(dst_ptr++) = *(src_ptr++);
 				*(dst_ptr++) = *(src_ptr++);
 				src_ptr++;
 			}
-			return 0;
 
-		case transfer_PrintingDensity:
+			return 0;
+		}
+
+		case transfer_PrintingDensity: {
+			float *lut;
+
 			if (elementIsSource == 1)
-				getLogToLinLut((float *)&lut, logImage, logElement);
+				lut = getLogToLinLut(logImage, logElement);
 			else
-				getLinToLogLut((float *)&lut, logImage, logElement);
+				lut = getLinToLogLut(logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1022,7 +1047,11 @@ static int convertRGBA_RGB(float *src, float *dst, LogImageFile *logImage,
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 				src_ptr++;
 			}
+
+			MEM_freeN(lut);
+
 			return 0;
+		}
 
 		default:
 			return 1;
@@ -1033,27 +1062,30 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
                            LogImageElement logElement, int elementIsSource)
 {
 	unsigned int i;
-	float lut[65536];
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
 		case transfer_UserDefined:
 		case transfer_Linear:
-		case transfer_Logarithmic:
+		case transfer_Logarithmic: {
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = *(src_ptr++);
 				*(dst_ptr++) = *(src_ptr++);
 				*(dst_ptr++) = *(src_ptr++);
 				*(dst_ptr++) = 1.0f;
 			}
-			return 0;
 
-		case transfer_PrintingDensity:
+			return 0;
+		}
+
+		case transfer_PrintingDensity: {
+			float *lut;
+
 			if (elementIsSource == 1)
-				getLogToLinLut((float *)&lut, logImage, logElement);
+				lut = getLogToLinLut(logImage, logElement);
 			else
-				getLinToLogLut((float *)&lut, logImage, logElement);
+				lut = getLinToLogLut(logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1061,7 +1093,11 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 				*(dst_ptr++) = 1.0f;
 			}
+
+			MEM_freeN(lut);
+
 			return 0;
+		}
 
 		default:
 			return 1;
@@ -1072,22 +1108,24 @@ static int convertRGBA_RGBA(float *src, float *dst, LogImageFile *logImage,
                             LogImageElement logElement, int elementIsSource)
 {
 	unsigned int i;
-	float lut[65536];
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
 		case transfer_UserDefined:
 		case transfer_Linear:
-		case transfer_Logarithmic:
+		case transfer_Logarithmic: {
 			memcpy(dst, src, 4 * logImage->width * logImage->height * sizeof(float));
 			return 0;
+		}
 
-		case transfer_PrintingDensity:
+		case transfer_PrintingDensity: {
+			float *lut;
+
 			if (elementIsSource == 1)
-				getLogToLinLut((float *)&lut, logImage, logElement);
+				lut = getLogToLinLut(logImage, logElement);
 			else
-				getLinToLogLut((float *)&lut, logImage, logElement);
+				lut = getLinToLogLut(logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1095,7 +1133,11 @@ static int convertRGBA_RGBA(float *src, float *dst, LogImageFile *logImage,
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 				*(dst_ptr++) = *(src_ptr++);
 			}
+
+			MEM_freeN(lut);
+
 			return 0;
+		}
 
 		default:
 			return 1;
@@ -1106,14 +1148,13 @@ static int convertABGR_RGBA(float *src, float *dst, LogImageFile *logImage,
                             LogImageElement logElement, int elementIsSource)
 {
 	unsigned int i;
-	float lut[65536];
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
 		case transfer_UserDefined:
 		case transfer_Linear:
-		case transfer_Logarithmic:
+		case transfer_Logarithmic: {
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				src_ptr += 4;
 				*(dst_ptr++) = *(src_ptr--);
@@ -1123,12 +1164,15 @@ static int convertABGR_RGBA(float *src, float *dst, LogImageFile *logImage,
 				src_ptr += 4;
 			}
 			return 0;
+		}
 
-		case transfer_PrintingDensity:
+		case transfer_PrintingDensity: {
+			float *lut;
+
 			if (elementIsSource == 1)
-				getLogToLinLut((float *)&lut, logImage, logElement);
+				lut = getLogToLinLut(logImage, logElement);
 			else
-				getLinToLogLut((float *)&lut, logImage, logElement);
+				lut = getLinToLogLut(logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				src_ptr += 4;
@@ -1138,7 +1182,11 @@ static int convertABGR_RGBA(float *src, float *dst, LogImageFile *logImage,
 				*(dst_ptr++) = *(src_ptr--);
 				src_ptr += 4;
 			}
+
+			MEM_freeN(lut);
+
 			return 0;
+		}
 
 		default:
 			return 1;
@@ -1309,7 +1357,6 @@ static int convertLogElementToRGBA(float *src, float *dst, LogImageFile *logImag
 	unsigned int i;
 	float *src_ptr;
 	float *dst_ptr;
-	float lut[65536];
 
 	/* Convert data in src to linear RGBA in dst */
 	switch (logElement.descriptor) {
@@ -1357,7 +1404,7 @@ static int convertLogElementToRGBA(float *src, float *dst, LogImageFile *logImag
 		return 1;
 	else if (dstIsLinearRGB) {
 		/* convert data from sRGB to Linear RGB via lut */
-		getSrgbToLinLut((float *)&lut, logElement);
+		float *lut = getSrgbToLinLut(logElement);
 		src_ptr = dst; // no error here
 		dst_ptr = dst;
 		for (i = 0; i < logImage->width * logImage->height; i++) {
@@ -1366,6 +1413,7 @@ static int convertLogElementToRGBA(float *src, float *dst, LogImageFile *logImag
 			*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			dst_ptr++; src_ptr++;
 		}
+		MEM_freeN(lut);
 	}
 	return 0;
 }
@@ -1378,7 +1426,7 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 	float *srgbSrc;
 	float *srgbSrc_ptr;
 	float *src_ptr = src;
-	float lut[65536];
+	float *lut;
 
 	if (srcIsLinearRGB != 0) {
 		/* we need to convert src to sRGB */
@@ -1390,13 +1438,14 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 		srgbSrc_ptr = srgbSrc;
 
 		/* convert data from Linear RGB to sRGB via lut */
-		getLinToSrgbLut((float *)&lut, logElement);
+		lut = getLinToSrgbLut(logElement);
 		for (i = 0; i < logImage->width * logImage->height; i++) {
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			srgbSrc_ptr++; src_ptr++;
 		}
+		MEM_freeN(lut);
 	}
 	else
 		srgbSrc = src;
