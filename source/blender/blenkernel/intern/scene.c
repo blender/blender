@@ -87,6 +87,8 @@
 
 #include "RE_engine.h"
 
+#include "PIL_time.h"
+
 #include "IMB_colormanagement.h"
 
 //XXX #include "BIF_previewrender.h"
