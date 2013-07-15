@@ -434,7 +434,7 @@ void ED_armature_deselect_all_visible(Object *obedit)
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		/* first and foremost, bone must be visible and selected */
-		if (EBONE_SELECTABLE(arm, ebone)) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		}
 	}
