@@ -127,16 +127,18 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 {
 	const int type = layer->type;
 	CustomData *data;
-	int layer_index, tot;
+	int layer_index, tot, n;
 
 	data = mesh_customdata_get_type(me, (ELEM(type, CD_MLOOPUV, CD_MLOOPCOL)) ? BM_LOOP : BM_FACE, &tot);
 	layer_index = CustomData_get_layer_index(data, type);
+	n = (layer - &data->layers[layer_index]);
+	BLI_assert(n >= 0 && (n + layer_index) < data->totlayer);
 
 	if (me->edit_btmesh) {
-		BM_data_layer_free_n(me->edit_btmesh->bm, data, type, layer_index + (layer - &data->layers[layer_index]));
+		BM_data_layer_free_n(me->edit_btmesh->bm, data, type, n);
 	}
 	else {
-		CustomData_free_layer(data, type, tot, (layer - &data->layers[layer_index]));
+		CustomData_free_layer(data, type, tot, n);
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 }

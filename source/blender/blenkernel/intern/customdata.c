@@ -1732,12 +1732,15 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 	i = CustomData_get_layer_index__notypemap(data, type);
 
 	if (i != -1) {
+		/* don't decrement zero index */
+		const int index_nonzero = index ? index : 1;
 		CustomDataLayer *layer;
+
 		for (layer = &data->layers[i]; i < data->totlayer && layer->type == type; i++, layer++) {
-			if (layer->active >= index)			layer->active--;
-			if (layer->active_rnd >= index)		layer->active_rnd--;
-			if (layer->active_clone >= index)	layer->active_clone--;
-			if (layer->active_mask >= index)	layer->active_mask--;
+			if (layer->active       >= index_nonzero) layer->active--;
+			if (layer->active_rnd   >= index_nonzero) layer->active_rnd--;
+			if (layer->active_clone >= index_nonzero) layer->active_clone--;
+			if (layer->active_mask  >= index_nonzero) layer->active_mask--;
 		}
 	}
 
