@@ -209,14 +209,14 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
 
 char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
-#ifdef DEBUG_STRSIZE
-	memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
-
 	while (*dst && maxncpy > 0) {
 		dst++;
 		maxncpy--;
 	}
+
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
 
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
