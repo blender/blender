@@ -957,7 +957,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	else if (type == TSE_SEQ_STRIP) {
 		Strip *strip = (Strip *)idv;
 
-		if (strip->dir)
+		if (strip->dir[0] != '\0')
 			te->name = strip->dir;
 		else
 			te->name = IFACE_("Strip None");
@@ -1171,7 +1171,7 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 
 	p = seq;
 	while (p) {
-		if ((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+		if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
 			p = p->next;
 			continue;
 		}

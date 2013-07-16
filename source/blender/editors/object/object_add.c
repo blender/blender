@@ -226,7 +226,7 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 		return dia;
 	}
 
-	return 1.0f;
+	// return 1.0f;
 }
 
 /********************* Add Object Operator ********************/
