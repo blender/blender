@@ -40,6 +40,7 @@ class SpellChecker():
         "derivate",
         "doesn",  # doesn't
         "fader",
+        "globbing",
         "hasn",  # hasn't
         "hoc",  # ad-hoc
         "indices",
@@ -59,6 +60,7 @@ class SpellChecker():
         "autoclip",
         "autocomplete",
         "autoexec",
+        "autoexecution",
         "autoname",
         "autosave",
         "autoscale",
