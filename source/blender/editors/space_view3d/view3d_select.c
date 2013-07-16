@@ -625,8 +625,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBo
 			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, INT_MAX))
 			{
 				is_point_done = true;
-				if (data->select) ED_armature_ebone_selectflag_enable(ebone, BONE_ROOTSEL);
-				else              ED_armature_ebone_selectflag_disable(ebone, BONE_ROOTSEL);
+				if (data->select) ebone->flag |=  BONE_ROOTSEL;
+				else              ebone->flag &= ~BONE_ROOTSEL;
 			}
 		}
 
@@ -637,8 +637,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBo
 			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, INT_MAX))
 			{
 				is_point_done = true;
-				if (data->select) ED_armature_ebone_selectflag_enable(ebone, BONE_TIPSEL);
-				else              ED_armature_ebone_selectflag_disable(ebone, BONE_TIPSEL);
+				if (data->select) ebone->flag |=  BONE_TIPSEL;
+				else              ebone->flag &= ~BONE_TIPSEL;
 			}
 		}
 
@@ -646,7 +646,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBo
 		if ((is_point_done == false) && (points_proj_tot == 2) &&
 		    BLI_lasso_is_edge_inside(data->mcords, data->moves, x0, y0, x1, y1, INT_MAX))
 		{
-			ED_armature_ebone_select_set(ebone, data->select);
+			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			data->is_change = true;
 		}
 
@@ -1909,14 +1910,14 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 			if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 				if (index & BONESEL_TIP) {
 					ebone->flag |= BONE_DONE;
-					if (select) ED_armature_ebone_selectflag_enable(ebone, BONE_TIPSEL);
-					else        ED_armature_ebone_selectflag_disable(ebone, BONE_TIPSEL);
+					if (select) ebone->flag |= BONE_TIPSEL;
+					else ebone->flag &= ~BONE_TIPSEL;
 				}
 				
 				if (index & BONESEL_ROOT) {
 					ebone->flag |= BONE_DONE;
-					if (select) ED_armature_ebone_selectflag_enable(ebone, BONE_ROOTSEL);
-					else        ED_armature_ebone_selectflag_disable(ebone, BONE_ROOTSEL);
+					if (select) ebone->flag |= BONE_ROOTSEL;
+					else ebone->flag &= ~BONE_ROOTSEL;
 				}
 			}
 		}
@@ -1938,7 +1939,10 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 			if (index & BONESEL_BONE) {
 				if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 					if (!(ebone->flag & BONE_DONE)) {
-						ED_armature_ebone_select_set(ebone, select);
+						if (select)
+							ebone->flag |= (BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
+						else
+							ebone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
 					}
 				}
 			}
@@ -2598,12 +2602,16 @@ static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, cons
 
 	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (head) {
-			if (data->select) ED_armature_ebone_selectflag_enable(ebone, BONE_ROOTSEL);
-			else              ED_armature_ebone_selectflag_disable(ebone, BONE_ROOTSEL);
+			if (data->select)
+				ebone->flag |= BONE_ROOTSEL;
+			else 
+				ebone->flag &= ~BONE_ROOTSEL;
 		}
 		else {
-			if (data->select) ED_armature_ebone_selectflag_enable(ebone, BONE_TIPSEL);
-			else              ED_armature_ebone_selectflag_disable(ebone, BONE_TIPSEL);
+			if (data->select)
+				ebone->flag |= BONE_TIPSEL;
+			else 
+				ebone->flag &= ~BONE_TIPSEL;
 		}
 		return 1;
 	}
@@ -2644,7 +2652,8 @@ static void do_circle_select_armature__doSelectBone(void *userData, struct EditB
 		if ((is_point_done == false) && (points_proj_tot == 2) &&
 		    edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
 		{
-			ED_armature_ebone_select_set(ebone, data->select);
+			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			data->is_change = true;
 		}
 
