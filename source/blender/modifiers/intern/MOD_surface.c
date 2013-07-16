@@ -98,7 +98,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	/* if possible use/create DerivedMesh */
 	if (derivedData) surmd->dm = CDDM_copy(derivedData);
-	else surmd->dm = get_dm(ob, NULL, NULL, NULL, 0);
+	else surmd->dm = get_dm(ob, NULL, NULL, NULL, false, false);
 	
 	if (!ob->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");

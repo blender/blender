@@ -346,9 +346,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		dm = get_cddm(ob, NULL, dm, vertexCos);
+		dm = get_cddm(ob, NULL, dm, vertexCos, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		dm = get_dm(ob, NULL, dm, NULL, 0);
+		dm = get_dm(ob, NULL, dm, NULL, false, false);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
@@ -364,9 +364,9 @@ static void deformVertsEM(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		dm = get_cddm(ob, editData, dm, vertexCos);
+		dm = get_cddm(ob, editData, dm, vertexCos, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		dm = get_dm(ob, editData, dm, NULL, 0);
+		dm = get_dm(ob, editData, dm, NULL, false, false);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 

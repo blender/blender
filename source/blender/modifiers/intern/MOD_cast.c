@@ -453,7 +453,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	DerivedMesh *dm = NULL;
 	CastModifierData *cmd = (CastModifierData *)md;
 
-	dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -470,7 +470,7 @@ static void deformVertsEM(
         ModifierData *md, Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);
 	CastModifierData *cmd = (CastModifierData *)md;
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {

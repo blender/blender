@@ -327,7 +327,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	int use_dm = warp_needs_dm((WarpModifierData *)md);
 
 	if (use_dm) {
-		dm = get_cddm(ob, NULL, derivedData, vertexCos);
+		dm = get_cddm(ob, NULL, derivedData, vertexCos, false);
 	}
 
 	warpModifier_do((WarpModifierData *)md, ob, dm, vertexCos, numVerts);
