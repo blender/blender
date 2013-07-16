@@ -836,6 +836,7 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
 		default:
 			BLI_assert(0);
 	}
