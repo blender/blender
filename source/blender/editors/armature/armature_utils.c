@@ -337,18 +337,9 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		}
 		else {
 			/* if the bone is not selected, but connected to its parent
-			 *  copy the parents tip selection state */
+			 * always use the parents tip selection state */
 			if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
-				/* selecting with the mouse gives this behavior */
-				if (eBone->parent->flag & BONE_TIPSEL) {
-					eBone->flag |= BONE_ROOTSEL;
-				}
-				else {
-					eBone->flag &= ~BONE_ROOTSEL;
-				}
-				
-				/* probably not selected but just in case */
-				eBone->flag &= ~BONE_TIPSEL;
+				eBone->flag &= ~BONE_ROOTSEL;
 			}
 		}
 		
