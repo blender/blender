@@ -110,6 +110,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 	object_add_material_slot(ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -146,6 +147,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, ob);
 	
 	return OPERATOR_FINISHED;
 }
