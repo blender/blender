@@ -3537,7 +3537,14 @@ int sculpt_mode_poll(bContext *C)
 
 int sculpt_mode_poll_view3d(bContext *C)
 {
-	return (sculpt_mode_poll(C) && CTX_wm_region_view3d(C));
+	return (sculpt_mode_poll(C) &&
+	        CTX_wm_region_view3d(C));
+}
+
+int sculpt_poll_view3d(bContext *C)
+{
+	return (sculpt_poll(C) &&
+	        CTX_wm_region_view3d(C));
 }
 
 int sculpt_poll(bContext *C)
@@ -4954,7 +4961,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 
 		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 
-		paint_cursor_start(C, sculpt_mode_poll_view3d);
+		paint_cursor_start(C, sculpt_poll_view3d);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);

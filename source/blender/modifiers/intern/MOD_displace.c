@@ -265,7 +265,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos, dependsOnNormals(md));
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 	                    vertexCos, numVerts);
@@ -278,7 +278,7 @@ static void deformVertsEM(
         ModifierData *md, Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_cddm(ob, editData, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, editData, derivedData, vertexCos, dependsOnNormals(md));
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 	                    vertexCos, numVerts);

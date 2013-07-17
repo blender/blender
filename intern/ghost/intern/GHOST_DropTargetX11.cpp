@@ -84,6 +84,9 @@ void GHOST_DropTargetX11::Initialize(void)
 void GHOST_DropTargetX11::Uninitialize(void)
 {
 	xdnd_shut(&m_dndClass);
+
+	delete[] m_dndActions;
+	delete[] m_dndTypes;
 }
 
 GHOST_DropTargetX11::GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system)

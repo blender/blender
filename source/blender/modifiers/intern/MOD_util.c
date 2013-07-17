@@ -179,30 +179,33 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 }
 
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
-DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], bool use_normals)
 {
-	if (dm && dm->type == DM_TYPE_CDDM)
-		return dm;
+	if (dm) {
+		if (dm->type != DM_TYPE_CDDM) {
+			dm = CDDM_copy(dm);
+			CDDM_apply_vert_coords(dm, vertexCos);
+		}
 
-	if (!dm) {
-		dm = get_dm(ob, em, dm, vertexCos, 0);
+		if (use_normals) {
+			DM_ensure_normals(dm);
+		}
 	}
 	else {
-		dm = CDDM_copy(dm);
-		CDDM_apply_vert_coords(dm, vertexCos);
-		dm->dirty |= DM_DIRTY_NORMALS;
+		dm = get_dm(ob, em, dm, vertexCos, use_normals, false);
 	}
 
 	return dm;
 }
 
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
-DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
+DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm,
+                    float (*vertexCos)[3], bool use_normals, bool use_orco)
 {
-	if (dm)
-		return dm;
-
-	if (ob->type == OB_MESH) {
+	if (dm) {
+		/* pass */
+	}
+	else if (ob->type == OB_MESH) {
 		if (em) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data), ob);
 
@@ -211,11 +214,18 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 			dm->dirty |= DM_DIRTY_NORMALS;
 		}
 		
-		if (orco)
+		if (use_orco) {
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
+		}
 	}
 	else if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		dm = CDDM_from_curve(ob);
+	}
+
+	if (use_normals) {
+		if (LIKELY(dm)) {
+			DM_ensure_normals(dm);
+		}
 	}
 
 	return dm;

@@ -337,18 +337,9 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		}
 		else {
 			/* if the bone is not selected, but connected to its parent
-			 *  copy the parents tip selection state */
+			 * always use the parents tip selection state */
 			if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
-				/* selecting with the mouse gives this behavior */
-				if (eBone->parent->flag & BONE_TIPSEL) {
-					eBone->flag |= BONE_ROOTSEL;
-				}
-				else {
-					eBone->flag &= ~BONE_ROOTSEL;
-				}
-				
-				/* probably not selected but just in case */
-				eBone->flag &= ~BONE_TIPSEL;
+				eBone->flag &= ~BONE_ROOTSEL;
 			}
 		}
 		
@@ -712,4 +703,63 @@ void undo_push_armature(bContext *C, const char *name)
 {
 	// XXX solve getdata()
 	undo_editmode_push(C, name, get_armature_edit, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
+}
+
+/* *************************************************************** */
+/* Low level selection functions which hide connected-parent
+ * flag behavior which gets tricky to handle in selection operators.
+ * (no flushing in ED_armature_ebone_select.*, that should be explicit) */
+
+int ED_armature_ebone_selectflag_get(const EditBone *ebone)
+{
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		return ((ebone->flag & (BONE_SELECTED | BONE_TIPSEL)) |
+		        ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0));
+	}
+	else {
+		return (ebone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL));
+	}
+}
+
+void ED_armature_ebone_selectflag_set(EditBone *ebone, int flag)
+{
+	flag = flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		ebone->flag &= ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+		ebone->parent->flag &= ~BONE_TIPSEL;
+
+		ebone->flag |= flag;
+		ebone->parent->flag |= (flag & BONE_ROOTSEL) ? BONE_TIPSEL : 0;
+	}
+	else {
+		ebone->flag &= ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+		ebone->flag |= flag;
+	}
+}
+
+void ED_armature_ebone_selectflag_enable(EditBone *ebone, int flag)
+{
+	BLI_assert((flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) != 0);
+	ED_armature_ebone_selectflag_set(ebone, ebone->flag | flag);
+}
+
+void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag)
+{
+	BLI_assert((flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) != 0);
+	ED_armature_ebone_selectflag_set(ebone, ebone->flag & ~flag);
+}
+
+/* could be used in more places */
+void ED_armature_ebone_select_set(EditBone *ebone, bool select)
+{
+	int flag;
+	if (select) {
+		BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);
+		flag = (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	}
+	else {
+		flag = 0;
+	}
+	ED_armature_ebone_selectflag_set(ebone, flag);
 }

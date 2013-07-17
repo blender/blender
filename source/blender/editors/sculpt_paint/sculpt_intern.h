@@ -56,7 +56,9 @@ struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct 
 
 int sculpt_mode_poll(struct bContext *C);
 int sculpt_mode_poll_view3d(struct bContext *C);
+/* checks for a brush, not just sculpt mode */
 int sculpt_poll(struct bContext *C);
+int sculpt_poll_view3d(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
                                  int need_pmap, int need_mask);
 

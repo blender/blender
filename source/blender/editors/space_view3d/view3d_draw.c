@@ -3033,7 +3033,7 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 {
 	float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
 
-	if (!rv3d->render_engine || !rv3d->render_engine->text)
+	if (!rv3d->render_engine || !rv3d->render_engine->text[0])
 		return;
 	
 	if (render_border) {

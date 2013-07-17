@@ -2102,7 +2102,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 			/* sample subframes */
 			else {
 				int scene_frame = scene->r.cfra;
-				float scene_subframe = scene->r.subframe;
+				// float scene_subframe = scene->r.subframe;  // UNUSED
 				int subframe;
 				for (subframe = 0; subframe <= subframes; subframe++) {
 					EmissionMap em_temp = {0};

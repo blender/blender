@@ -862,9 +862,10 @@ static void render_view3d_renderinfo_cb(void *rjp, RenderStats *rs)
 	RenderPreview *rp = rjp;
 
 	/* during render, rv3d->engine can get freed */
-	if (rp->rv3d->render_engine == NULL)
+	if (rp->rv3d->render_engine == NULL) {
 		*rp->stop = 1;
-	else if (rp->engine->text) {
+	}
+	else {
 		make_renderinfo_string(rs, rp->scene, false, rp->engine->text);
 	
 		/* make jobs timer to send notifier */

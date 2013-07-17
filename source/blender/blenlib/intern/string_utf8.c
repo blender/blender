@@ -239,7 +239,7 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict
 	memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	while (*src && len != maxlen) { /* XXX can still run over the buffer because utf8 size isn't known :| */
+	while (*src && len < maxlen) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode((unsigned int)*src++, dst + len);
 	}
 

@@ -82,7 +82,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 			return;
 	}
 
-	dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 	if (dm == derivedData)
 		dm = CDDM_copy(dm);
 
