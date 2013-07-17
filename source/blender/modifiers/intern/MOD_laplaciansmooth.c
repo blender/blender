@@ -669,7 +669,7 @@ static void laplaciansmoothModifier_do(
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ob, dm,
 	                           vertexCos, numVerts);
@@ -682,7 +682,7 @@ static void deformVertsEM(
         ModifierData *md, Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);
 
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ob, dm,
 	                           vertexCos, numVerts);

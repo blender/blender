@@ -219,7 +219,7 @@ static void displaceModifier_do(
 
 		if (dmd->texture) {
 			texres.nor = NULL;
-			get_texture_value(dmd->texture, tex_co[i], &texres);
+			get_texture_value(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, false);
 			delta = texres.tin - dmd->midlevel;
 		}
 		else {
@@ -265,7 +265,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos, dependsOnNormals(md));
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 	                    vertexCos, numVerts);
@@ -278,7 +278,7 @@ static void deformVertsEM(
         ModifierData *md, Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_cddm(ob, editData, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, editData, derivedData, vertexCos, dependsOnNormals(md));
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 	                    vertexCos, numVerts);

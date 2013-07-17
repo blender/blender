@@ -33,11 +33,11 @@ set(INC
 	../../blender/blenkernel
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/moto/include
 	../../../intern/string
 )
 
 set(INC_SYS
+	../../../intern/moto/include
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )

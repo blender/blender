@@ -1687,6 +1687,18 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 	}
 }
 
+static void report_class_type_unsupported(const char *path, 
+                                         const COLLADAFW::AnimationList::AnimationClass animclass,
+                                         const COLLADAFW::Transformation::TransformationType type) 
+{
+	if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
+		fprintf(stderr, "%s: UNKNOWN animation class\n", path);
+	}
+	else {
+		fprintf(stderr, "%s: animation class %d is not supported yet for transformation type %d\n", path, animclass, type);
+	}
+}
+
 // return true to indicate that mat contains a sane value
 bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra, const char *node_id)
 {
@@ -1741,11 +1753,6 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 					break;
 			}
 
-			if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
-				fprintf(stderr, "%s: UNKNOWN animation class\n", path);
-				//continue;
-			}
-
 			if (type == COLLADAFW::Transformation::ROTATE) {
 				if (curves.size() != 1) {
 					fprintf(stderr, "expected 1 curve, got %d\n", (int)curves.size());
@@ -1754,7 +1761,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 				// TODO support other animclasses
 				if (animclass != COLLADAFW::AnimationList::ANGLE) {
-					fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
+					report_class_type_unsupported(path, animclass, type);
 					return false;
 				}
 
@@ -1793,7 +1800,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 						vec[2] = evaluate_fcurve(curves[2], fra);
 						break;
 					default:
-						fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
+						report_class_type_unsupported(path, animclass, type);
 						break;
 				}
 			}

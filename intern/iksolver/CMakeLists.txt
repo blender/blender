@@ -26,11 +26,10 @@
 set(INC
 	intern
 	../memutil
-	../moto/include
 )
 
 set(INC_SYS
-
+	../moto/include
 )
 
 set(SRC

@@ -45,6 +45,8 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+// #define DEBUG_STRSIZE
+
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).
  * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */
@@ -195,6 +197,10 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
 
 	BLI_assert(maxncpy != 0);
 
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	/* note: currently we don't attempt to deal with invalid utf8 chars */
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
@@ -208,6 +214,10 @@ char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t 
 		maxncpy--;
 	}
 
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
 	return dst;
@@ -220,11 +230,16 @@ char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t 
 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxncpy)
 {
+	const size_t maxlen = maxncpy - 1;
 	size_t len = 0;
 
 	BLI_assert(maxncpy != 0);
 
-	while (*src && len < maxncpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
+	while (*src && len < maxlen) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode((unsigned int)*src++, dst + len);
 	}
 
@@ -300,13 +315,16 @@ size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
 
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__restrict src_c, const size_t maxncpy)
 {
+	const size_t maxlen = maxncpy - 1;
 	size_t len = 0;
 
-	if (dst_w == NULL || src_c == NULL) {
-		return 0;
-	}
+	BLI_assert(maxncpy != 0);
 
-	while (*src_c && len < maxncpy) {
+#ifdef DEBUG_STRSIZE
+	memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
+#endif
+
+	while (*src_c && len != maxlen) {
 		size_t step = 0;
 		unsigned int unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
 		if (unicode != BLI_UTF8_ERR) {
@@ -320,6 +338,9 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__rest
 		dst_w++;
 		len++;
 	}
+
+	*dst_w = 0;
+
 	return len;
 }
 

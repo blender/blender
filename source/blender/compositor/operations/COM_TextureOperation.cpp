@@ -33,6 +33,8 @@ TextureBaseOperation::TextureBaseOperation() : SingleThreadedNodeOperation()
 	this->m_inputSize = NULL;
 	this->m_inputOffset = NULL;
 	this->m_rd = NULL;
+	this->m_pool = NULL;
+	this->m_sceneColorManage = false;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {
@@ -101,7 +103,7 @@ void TextureBaseOperation::executePixel(float output[4], float x, float y, Pixel
 	vec[1] = textureSize[1] * (v + textureOffset[1]);
 	vec[2] = textureSize[2] * textureOffset[2];
 
-	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres, m_pool);
+	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres, m_pool, m_sceneColorManage);
 
 	if (texres.talpha)
 		output[3] = texres.ta;

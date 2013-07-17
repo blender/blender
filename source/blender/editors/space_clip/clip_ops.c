@@ -50,6 +50,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_threads.h"
+#include "BLI_string.h"
 
 #include "BLF_translation.h"
 
@@ -250,13 +251,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 		clip = ED_space_clip_get_clip(sc);
 
 	if (clip) {
-		strncpy(path, clip->name, sizeof(path));
+		BLI_strncpy(path, clip->name, sizeof(path));
 
 		BLI_path_abs(path, G.main->name);
 		BLI_parent_dir(path);
 	}
 	else {
-		strncpy(path, U.textudir, sizeof(path));
+		BLI_strncpy(path, U.textudir, sizeof(path));
 	}
 
 	if (RNA_struct_property_is_set(op->ptr, "files"))

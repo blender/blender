@@ -93,14 +93,14 @@ __attribute__((nonnull))
 #endif
 ;
 
-size_t BLI_snprintf(char *__restrict buffer, size_t len, const char *__restrict format, ...)
+size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf, 3, 4)))
 __attribute__((nonnull))
 #endif
 ;
 
-size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restrict format, va_list arg)
+size_t BLI_vsnprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, va_list arg)
 #ifdef __GNUC__
 __attribute__ ((format(printf, 3, 0)))
 #endif

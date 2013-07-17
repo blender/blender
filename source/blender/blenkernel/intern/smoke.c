@@ -1413,12 +1413,14 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 	}
 }
 
+/* TODO(sergey): de-duplicate with get_texture_value from modifier utils */
+/* NOTE: Skips color management, because result is only used for value now, not for color. */
 static void get_texture_value(Tex *texture, float tex_co[3], TexResult *texres)
 {
 	int result_type;
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL);
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, false);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
@@ -2100,7 +2102,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 			/* sample subframes */
 			else {
 				int scene_frame = scene->r.cfra;
-				float scene_subframe = scene->r.subframe;
+				// float scene_subframe = scene->r.subframe;  // UNUSED
 				int subframe;
 				for (subframe = 0; subframe <= subframes; subframe++) {
 					EmissionMap em_temp = {0};

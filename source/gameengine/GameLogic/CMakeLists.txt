@@ -30,13 +30,12 @@ set(INC
 	../SceneGraph
 	../../blender/blenlib
 	../../../intern/container
-	../../../intern/moto/include
 	../../../intern/string
 	../../../intern/ghost
 )
 
 set(INC_SYS
-
+	../../../intern/moto/include
 )
 
 set(SRC

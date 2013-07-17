@@ -47,6 +47,8 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+// #define DEBUG_STRSIZE
+
 /**
  * Duplicates the first \a len bytes of cstring \a str
  * into a newly mallocN'd string and returns it. \a str
@@ -111,6 +113,10 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
 	size_t srclen = BLI_strnlen(src, maxncpy - 1);
 	BLI_assert(maxncpy != 0);
 
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	memcpy(dst, src, srclen);
 	dst[srclen] = '\0';
 	return dst;
@@ -134,6 +140,10 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
 	size_t srclen = BLI_strnlen(src, maxncpy - 1);
 	BLI_assert(maxncpy != 0);
 
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	memcpy(dst, src, srclen);
 	dst[srclen] = '\0';
 	return srclen;
@@ -149,21 +159,21 @@ size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
 /**
  * Portable replacement for #vsnprintf
  */
-size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restrict format, va_list arg)
+size_t BLI_vsnprintf(char *__restrict buffer, size_t maxncpy, const char *__restrict format, va_list arg)
 {
 	size_t n;
 
 	BLI_assert(buffer != NULL);
-	BLI_assert(count > 0);
+	BLI_assert(maxncpy > 0);
 	BLI_assert(format != NULL);
 
-	n = (size_t)vsnprintf(buffer, count, format, arg);
+	n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
 
-	if (n != -1 && n < count) {
+	if (n != -1 && n < maxncpy) {
 		buffer[n] = '\0';
 	}
 	else {
-		buffer[count - 1] = '\0';
+		buffer[maxncpy - 1] = '\0';
 	}
 
 	return n;
@@ -172,13 +182,17 @@ size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restri
 /**
  * Portable replacement for #snprintf
  */
-size_t BLI_snprintf(char *__restrict buffer, size_t count, const char *__restrict format, ...)
+size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {
 	size_t n;
 	va_list arg;
 
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
 	va_start(arg, format);
-	n = BLI_vsnprintf(buffer, count, format, arg);
+	n = BLI_vsnprintf(dst, maxncpy, format, arg);
 	va_end(arg);
 
 	return n;

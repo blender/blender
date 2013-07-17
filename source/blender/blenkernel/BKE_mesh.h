@@ -209,6 +209,7 @@ const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
 void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
+void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 /* if old, it converts mface->edcode to edge drawflags */
 void BKE_mesh_make_edges(struct Mesh *me, const bool use_old);

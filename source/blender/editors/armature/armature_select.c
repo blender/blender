@@ -434,7 +434,7 @@ void ED_armature_deselect_all_visible(Object *obedit)
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		/* first and foremost, bone must be visible and selected */
-		if (EBONE_SELECTABLE(arm, ebone)) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		}
 	}
@@ -597,38 +597,48 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
 		/* Determine if there are any selected bones
 		 * And therefore whether we are selecting or deselecting */
-		if (CTX_DATA_COUNT(C, selected_bones) > 0)
-			action = SEL_DESELECT;
+		action = SEL_SELECT;
+		CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
+		{
+			if (ebone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+		CTX_DATA_END;
 	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
 	{
 		/* ignore bone if selection can't change */
-		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
-			switch (action) {
-				case SEL_SELECT:
+		switch (action) {
+			case SEL_SELECT:
+				if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if (ebone->parent)
+					if (ebone->parent) {
 						ebone->parent->flag |= (BONE_TIPSEL);
-					break;
-				case SEL_DESELECT:
+					}
+				}
+				break;
+			case SEL_DESELECT:
+				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				break;
+			case SEL_INVERT:
+				if (ebone->flag & BONE_SELECTED) {
 					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					break;
-				case SEL_INVERT:
-					if (ebone->flag & BONE_SELECTED) {
-						ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					}
-					else {
+				}
+				else {
+					if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 						ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						if (ebone->parent)
+						if (ebone->parent) {
 							ebone->parent->flag |= (BONE_TIPSEL);
+						}
 					}
-					break;
-			}
+				}
+				break;
 		}
 	}
 	CTX_DATA_END;
@@ -672,16 +682,6 @@ static EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* could be used in more places */
-static void ED_armature_edit_bone_select(EditBone *ebone)
-{
-	BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);
-	ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-
-	if ((ebone->flag & BONE_CONNECTED) && (ebone->parent != NULL)) {
-		ebone->parent->flag |= BONE_TIPSEL;
-	}
-}
 
 static void select_similar_length(bArmature *arm, EditBone *ebone_act, const float thresh)
 {
@@ -696,7 +696,7 @@ static void select_similar_length(bArmature *arm, EditBone *ebone_act, const flo
 			if ((ebone->length >= len_min) &&
 			    (ebone->length <= len_max))
 			{
-				ED_armature_edit_bone_select(ebone);
+				ED_armature_ebone_select_set(ebone, true);
 			}
 		}
 	}
@@ -714,7 +714,7 @@ static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const 
 			sub_v3_v3v3(dir, ebone->head, ebone->tail);
 
 			if (angle_v3v3(dir_act, dir) / (float)M_PI < thresh) {
-				ED_armature_edit_bone_select(ebone);
+				ED_armature_ebone_select_set(ebone, true);
 			}
 		}
 	}
@@ -727,7 +727,7 @@ static void select_similar_layer(bArmature *arm, EditBone *ebone_act)
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
 			if (ebone->layer & ebone_act->layer) {
-				ED_armature_edit_bone_select(ebone);
+				ED_armature_ebone_select_set(ebone, true);
 			}
 		}
 	}
@@ -750,8 +750,8 @@ static void select_similar_prefix(bArmature *arm, EditBone *ebone_act)
 		if (EBONE_SELECTABLE(arm, ebone)) {
 			char prefix_other[MAX_VGROUP_NAME];
 			BKE_deform_split_prefix(ebone->name, prefix_other, body_tmp);
-			if (!strcmp(prefix_act, prefix_other)) {
-				ED_armature_edit_bone_select(ebone);
+			if (STREQ(prefix_act, prefix_other)) {
+				ED_armature_ebone_select_set(ebone, true);
 			}
 		}
 	}
@@ -774,8 +774,8 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 		if (EBONE_SELECTABLE(arm, ebone)) {
 			char suffix_other[MAX_VGROUP_NAME];
 			BKE_deform_split_suffix(ebone->name, body_tmp, suffix_other);
-			if (!strcmp(suffix_act, suffix_other)) {
-				ED_armature_edit_bone_select(ebone);
+			if (STREQ(suffix_act, suffix_other)) {
+				ED_armature_ebone_select_set(ebone, true);
 			}
 		}
 	}

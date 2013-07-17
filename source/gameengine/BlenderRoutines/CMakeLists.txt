@@ -25,11 +25,11 @@ set(INC
 	../../blender/windowmanager
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/moto/include
 	../../../intern/string
 )
 
 set(INC_SYS
+	../../../intern/moto/include
 	${PTHREADS_INCLUDE_DIRS}
 	${GLEW_INCLUDE_PATH}
 	${BOOST_INCLUDE_DIR}

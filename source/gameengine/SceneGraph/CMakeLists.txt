@@ -25,11 +25,10 @@
 
 set(INC
 	.
-	../../../intern/moto/include
 )
 
 set(INC_SYS
-
+	../../../intern/moto/include
 )
 
 set(SRC

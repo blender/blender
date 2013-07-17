@@ -282,7 +282,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 			if (tex_co) {
 				TexResult texres;
 				texres.nor = NULL;
-				get_texture_value(wmd->texture, tex_co[i], &texres);
+				get_texture_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
 				fac *= texres.tin;
 			}
 
@@ -327,7 +327,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	int use_dm = warp_needs_dm((WarpModifierData *)md);
 
 	if (use_dm) {
-		dm = get_cddm(ob, NULL, derivedData, vertexCos);
+		dm = get_cddm(ob, NULL, derivedData, vertexCos, false);
 	}
 
 	warpModifier_do((WarpModifierData *)md, ob, dm, vertexCos, numVerts);

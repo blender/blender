@@ -1898,6 +1898,8 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
 void IMAGE_OT_invert(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Invert Channels";
 	ot->idname = "IMAGE_OT_invert";
@@ -1908,10 +1910,14 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 	ot->poll = image_invert_poll;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
-	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
-	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
-	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -252,7 +252,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	DerivedMesh *dm = derivedData;
 	/* We need a valid dm for meshes when a vgroup is set... */
 	if (!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
-		dm = get_dm(ob, NULL, dm, NULL, 0);
+		dm = get_dm(ob, NULL, dm, NULL, false, false);
 
 	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 
@@ -267,7 +267,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 	DerivedMesh *dm = derivedData;
 	/* We need a valid dm for meshes when a vgroup is set... */
 	if (!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
-		dm = get_dm(ob, editData, dm, NULL, 0);
+		dm = get_dm(ob, editData, dm, NULL, false, false);
 
 	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 

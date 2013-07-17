@@ -333,17 +333,23 @@ void RNA_api_wm(StructRNA *srna)
 
 	/* Progress bar interface */
 	func = RNA_def_function(srna, "progress_begin", "rna_progress_begin");
+	RNA_def_function_ui_description(func, "Start Progress bar");
+
 	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "min", "any value in range [0,9999]");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	parm = RNA_def_property(func, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_ui_text(parm, "max", "any value in range [min+1,9998]");
 
 	func = RNA_def_function(srna, "progress_update", "rna_progress_update");
 	parm = RNA_def_property(func, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_property_ui_text(parm, "value", "any value between min and max as set in progress_init()");
+	RNA_def_property_ui_text(parm, "value", "any value between min and max as set in progress_begin()");
 
 	func = RNA_def_function(srna, "progress_end", "rna_progress_end");
+	RNA_def_function_ui_description(func, "Terminate Progress bar");
 
 	/* invoke functions, for use with python */
 	func = RNA_def_function(srna, "invoke_props_popup", "rna_Operator_props_popup");

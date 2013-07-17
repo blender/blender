@@ -212,7 +212,7 @@ static void meshdeformModifier_do(
 	/* if we don't have one computed, use derivedmesh from data
 	 * without any modifiers */
 	if (!cagedm) {
-		cagedm = get_dm(mmd->object, NULL, NULL, NULL, 0);
+		cagedm = get_dm(mmd->object, NULL, NULL, NULL, false, false);
 		if (cagedm)
 			cagedm->needsFree = 1;
 	}
@@ -343,7 +343,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
@@ -359,7 +359,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
