@@ -139,7 +139,7 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 		const float epsilon = 0.000001f;
 
 		// derive leaf bone length
-		float length = len_v3v3(parent->head, parent->tail);
+		float length = len_v3v3(parent->head, bone->head);
 		if ((length < leaf_bone_length || totbone == 0) && length > epsilon) {
 			leaf_bone_length = length;
 		}
