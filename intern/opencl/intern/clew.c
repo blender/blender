@@ -227,6 +227,11 @@ int clewInit(const char* path)
     __oclEnqueueWaitForEvents          = (PFNCLENQUEUEWAITFOREVENTS        )CLCC_DYNLIB_IMPORT(module, "clEnqueueWaitForEvents");
     __oclEnqueueBarrier                = (PFNCLENQUEUEBARRIER              )CLCC_DYNLIB_IMPORT(module, "clEnqueueBarrier");
     __oclGetExtensionFunctionAddress   = (PFNCLGETEXTENSIONFUNCTIONADDRESS )CLCC_DYNLIB_IMPORT(module, "clGetExtensionFunctionAddress");
+	
+	if(__oclGetPlatformIDs == NULL) return CLEW_ERROR_OPEN_FAILED;
+	if(__oclGetPlatformInfo == NULL) return CLEW_ERROR_OPEN_FAILED;
+	if(__oclGetDeviceIDs == NULL) return CLEW_ERROR_OPEN_FAILED;
+	if(__oclGetDeviceInfo == NULL) return CLEW_ERROR_OPEN_FAILED;
 
     return CLEW_SUCCESS;
 }
