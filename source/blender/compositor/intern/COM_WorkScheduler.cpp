@@ -304,7 +304,7 @@ void WorkScheduler::initialize(bool use_opencl)
 		g_context = NULL;
 		g_program = NULL;
 
-		if(!OCL_init()) /* this will check for errors and skip if already initialized */
+		if (!OCL_init()) /* this will check for errors and skip if already initialized */
 			return;
 
 		if (clCreateContextFromType) {
