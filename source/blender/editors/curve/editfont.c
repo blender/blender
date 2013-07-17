@@ -380,7 +380,7 @@ static int paste_file(bContext *C, ReportList *reports, const char *filename)
 
 	if (cu->len + filelen < MAXTEXT) {
 		int tmplen;
-		wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
+		wchar_t *mem = MEM_mallocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
 		tmplen = BLI_strncpy_wchar_from_utf8(mem, strp, filelen + 1);
 		wcscat(ef->textbuf, mem);
 		MEM_freeN(mem);
@@ -1273,7 +1273,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 				accentcode = 0;
 			}
 			else if (event->utf8_buf[0]) {
-				BLI_strncpy_wchar_from_utf8(inserted_text, event->utf8_buf, 1);
+				BLI_strncpy_wchar_from_utf8(inserted_text, event->utf8_buf, 2);
 				ascii = inserted_text[0];
 				insert_into_textbuf(obedit, ascii);
 				accentcode = 0;

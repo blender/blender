@@ -636,7 +636,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						 *
 						 * Use the edge order to make the subtraction, flip the normal the right way
 						 * edge should be there but check just in case... */
-						if (vc->e && vc->e[0]->v1 == i) {
+						if (vc->e[0]->v1 == i) {
 							sub_v3_v3(tmp_vec1, tmp_vec2);
 						}
 						else {
@@ -646,7 +646,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					else {
 						/* only 1 edge connected - same as above except
 						 * don't need to average edge direction */
-						if (vc->e && vc->e[0]->v2 == i) {
+						if (vc->e[0]->v2 == i) {
 							sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
 						}
 						else {

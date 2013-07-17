@@ -125,97 +125,21 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
 #define GET_CD_DATA(me, data) (me->edit_btmesh ? &me->edit_btmesh->bm->data : &me->data)
 static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 {
+	const int type = layer->type;
 	CustomData *data;
-	void *actlayerdata, *rndlayerdata, *clonelayerdata, *stencillayerdata, *layerdata = layer->data;
-	int type = layer->type;
-	int index;
-	int i, actindex, rndindex, cloneindex, stencilindex, tot;
+	int layer_index, tot, n;
 
-	if (layer->type == CD_MLOOPCOL || layer->type == CD_MLOOPUV) {
-		data = mesh_customdata_get_type(me, BM_LOOP, &tot);
-	}
-	else {
-		data = mesh_customdata_get_type(me, BM_FACE, &tot);
-	}
-	
-	index = CustomData_get_layer_index(data, type);
-
-	/* ok, deleting a non-active layer needs to preserve the active layer indices.
-	 * to do this, we store a pointer to the .data member of both layer and the active layer,
-	 * (to detect if we're deleting the active layer or not), then use the active
-	 * layer data pointer to find where the active layer has ended up.
-	 *
-	 * this is necessary because the deletion functions only support deleting the active
-	 * layer. */
-	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
-	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
-	clonelayerdata = data->layers[CustomData_get_clone_layer_index(data, type)].data;
-	stencillayerdata = data->layers[CustomData_get_stencil_layer_index(data, type)].data;
-	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
+	data = mesh_customdata_get_type(me, (ELEM(type, CD_MLOOPUV, CD_MLOOPCOL)) ? BM_LOOP : BM_FACE, &tot);
+	layer_index = CustomData_get_layer_index(data, type);
+	n = (layer - &data->layers[layer_index]);
+	BLI_assert(n >= 0 && (n + layer_index) < data->totlayer);
 
 	if (me->edit_btmesh) {
-		BM_data_layer_free(me->edit_btmesh->bm, data, type);
+		BM_data_layer_free_n(me->edit_btmesh->bm, data, type, n);
 	}
 	else {
-		CustomData_free_layer_active(data, type, tot);
+		CustomData_free_layer(data, type, tot, n);
 		BKE_mesh_update_customdata_pointers(me, true);
-	}
-
-	/* reconstruct active layer */
-	if (actlayerdata != layerdata) {
-		/* find index */
-		actindex = CustomData_get_layer_index(data, type);
-		for (i = actindex; i < data->totlayer; i++) {
-			if (data->layers[i].data == actlayerdata) {
-				actindex = i - actindex;
-				break;
-			}
-		}
-		
-		/* set index */
-		CustomData_set_layer_active(data, type, actindex);
-	}
-	
-	if (rndlayerdata != layerdata) {
-		/* find index */
-		rndindex = CustomData_get_layer_index(data, type);
-		for (i = rndindex; i < data->totlayer; i++) {
-			if (data->layers[i].data == rndlayerdata) {
-				rndindex = i - rndindex;
-				break;
-			}
-		}
-		
-		/* set index */
-		CustomData_set_layer_render(data, type, rndindex);
-	}
-	
-	if (clonelayerdata != layerdata) {
-		/* find index */
-		cloneindex = CustomData_get_layer_index(data, type);
-		for (i = cloneindex; i < data->totlayer; i++) {
-			if (data->layers[i].data == clonelayerdata) {
-				cloneindex = i - cloneindex;
-				break;
-			}
-		}
-		
-		/* set index */
-		CustomData_set_layer_clone(data, type, cloneindex);
-	}
-	
-	if (stencillayerdata != layerdata) {
-		/* find index */
-		stencilindex = CustomData_get_layer_index(data, type);
-		for (i = stencilindex; i < data->totlayer; i++) {
-			if (data->layers[i].data == stencillayerdata) {
-				stencilindex = i - stencilindex;
-				break;
-			}
-		}
-		
-		/* set index */
-		CustomData_set_layer_stencil(data, type, stencilindex);
 	}
 }
 

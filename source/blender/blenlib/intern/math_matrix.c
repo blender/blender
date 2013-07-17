@@ -790,6 +790,7 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[2]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
 		case 1:
 			if (dot_v3v3(mat[1], mat[0]) < 1) {
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
@@ -812,6 +813,7 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			}
+			break;
 		case 2:
 			if (dot_v3v3(mat[2], mat[0]) < 1) {
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
@@ -834,6 +836,9 @@ void orthogonalize_m3(float mat[3][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
+		default:
+			BLI_assert(0);
 	}
 	mul_v3_fl(mat[0], size[0]);
 	mul_v3_fl(mat[1], size[1]);
@@ -868,8 +873,8 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[2]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
 		case 1:
-			normalize_v3(mat[0]);
 			if (dot_v3v3(mat[1], mat[0]) < 1) {
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 				normalize_v3(mat[2]);
@@ -891,6 +896,7 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			}
+			break;
 		case 2:
 			if (dot_v3v3(mat[2], mat[0]) < 1) {
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
@@ -913,6 +919,9 @@ void orthogonalize_m4(float mat[4][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			}
+			break;
+		default:
+			BLI_assert(0);
 	}
 	mul_v3_fl(mat[0], size[0]);
 	mul_v3_fl(mat[1], size[1]);
@@ -1207,16 +1216,19 @@ void mat4_to_size(float size[3], float mat[4][4])
 float mat3_to_scale(float mat[3][3])
 {
 	/* unit length vector */
-	float unit_vec[3] = {0.577350269189626f, 0.577350269189626f, 0.577350269189626f};
+	float unit_vec[3];
+	copy_v3_fl(unit_vec, 0.577350269189626f);
 	mul_m3_v3(mat, unit_vec);
 	return len_v3(unit_vec);
 }
 
 float mat4_to_scale(float mat[4][4])
 {
-	float tmat[3][3];
-	copy_m3_m4(tmat, mat);
-	return mat3_to_scale(tmat);
+	/* unit length vector */
+	float unit_vec[3];
+	copy_v3_fl(unit_vec, 0.577350269189626f);
+	mul_mat3_m4_v3(mat, unit_vec);
+	return len_v3(unit_vec);
 }
 
 void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])

@@ -524,7 +524,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if (but->rnapoin.id.data) {
 			ID *id = but->rnapoin.id.data;
-			if (id->lib && id->lib->name) {
+			if (id->lib) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
 				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
@@ -2116,7 +2116,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	static char tip[50];
 	static char hexcol[128];
 	float rgb_gamma[3];
-	float min, max, step, precision;
+	float softmin, softmax, hardmin, hardmax, step, precision;
 	float *hsv = ui_block_hsv_get(block);
 	int yco;
 	
@@ -2142,7 +2142,8 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	/* sneaky way to check for alpha */
 	rgba[3] = FLT_MAX;
 
-	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
+	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
+	RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 	RNA_property_float_get_array(ptr, prop, rgba);
 
 	switch (U.color_picker_type) {
@@ -2196,7 +2197,8 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S "),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V "),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, max, 10, 3, TIP_("Value"));
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V "),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, softmax, 10, 3, TIP_("Value"));
+	bt->hardmax = hardmax;  /* not common but rgb  may be over 1.0 */
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 

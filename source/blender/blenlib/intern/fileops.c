@@ -199,7 +199,7 @@ bool BLI_file_touch(const char *file)
 {
 	FILE *f = BLI_fopen(file, "r+b");
 	if (f != NULL) {
-		char c = getc(f);
+		int c = getc(f);
 		rewind(f);
 		putc(c, f);
 	}

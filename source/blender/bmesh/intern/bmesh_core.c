@@ -210,7 +210,7 @@ static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge
 	return l;
 }
 
-BMFace *BM_face_copy(BMesh *bm, BMFace *f,
+BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f,
                      const bool copy_verts, const bool copy_edges)
 {
 	BMVert **verts = BLI_array_alloca(verts, f->len);
@@ -221,11 +221,13 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f,
 	BMFace *f_copy;
 	int i;
 
+	BLI_assert((bm_dst == bm_src) || (copy_verts && copy_edges));
+
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i = 0;
 	do {
 		if (copy_verts) {
-			verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v, 0);
+			verts[i] = BM_vert_create(bm_dst, l_iter->v->co, l_iter->v, 0);
 		}
 		else {
 			verts[i] = l_iter->v;
@@ -248,7 +250,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f,
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			edges[i] = BM_edge_create(bm,  v1, v2, l_iter->e, 0);
+			edges[i] = BM_edge_create(bm_dst,  v1, v2, l_iter->e, 0);
 		}
 		else {
 			edges[i] = l_iter->e;
@@ -256,14 +258,14 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f,
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	f_copy = BM_face_create(bm, verts, edges, f->len, BM_CREATE_SKIP_CD);
+	f_copy = BM_face_create(bm_dst, verts, edges, f->len, BM_CREATE_SKIP_CD);
 	
-	BM_elem_attrs_copy(bm, bm, f, f_copy);
+	BM_elem_attrs_copy(bm_src, bm_dst, f, f_copy);
 	
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	l_copy = BM_FACE_FIRST_LOOP(f_copy);
 	do {
-		BM_elem_attrs_copy(bm, bm, l_iter, l_copy);
+		BM_elem_attrs_copy(bm_src, bm_dst, l_iter, l_copy);
 		l_copy = l_copy->next;
 	} while ((l_iter = l_iter->next) != l_first);
 

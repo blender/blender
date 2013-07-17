@@ -495,7 +495,7 @@ void WM_operator_py_idname(char *to, const char *from)
 		BLI_ascii_strtolower(to, ofs);
 
 		to[ofs] = '.';
-		BLI_strncpy(to + (ofs + 1), sep + 4, OP_MAX_TYPENAME);
+		BLI_strncpy(to + (ofs + 1), sep + 4, OP_MAX_TYPENAME - (ofs + 1));
 	}
 	else {
 		/* should not happen but support just in case */
@@ -514,9 +514,8 @@ void WM_operator_bl_idname(char *to, const char *from)
 
 			memcpy(to, from, sizeof(char) * ofs);
 			BLI_ascii_strtoupper(to, ofs);
-
-			BLI_strncpy(to + ofs, "_OT_", OP_MAX_TYPENAME);
-			BLI_strncpy(to + (ofs + 4), sep + 1, OP_MAX_TYPENAME);
+			strcpy(to + ofs, "_OT_");
+			strcpy(to + (ofs + 4), sep + 1);
 		}
 		else {
 			/* should not happen but support just in case */

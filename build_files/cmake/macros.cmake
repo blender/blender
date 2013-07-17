@@ -530,7 +530,9 @@ macro(remove_strict_flags_file
 
 	foreach(_SOURCE ${ARGV})
 
-		if(CMAKE_COMPILER_IS_GNUCC)
+		if(CMAKE_COMPILER_IS_GNUCC OR
+		  (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
 					COMPILE_FLAGS "${CC_REMOVE_STRICT_FLAGS}"

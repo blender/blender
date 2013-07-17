@@ -33,6 +33,7 @@
 #include "DNA_tracking_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 /**
  * Class with implementation of green screen gradient rasterization
@@ -60,8 +61,8 @@ public:
 	TrackPositionOperation();
 
 	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
-	void setTrackingObject(char *object) {strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));}
-	void setTrackName(char *track) {strncpy(this->m_trackName, track, sizeof(this->m_trackName));}
+	void setTrackingObject(char *object) { BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName)); }
+	void setTrackName(char *track) { BLI_strncpy(this->m_trackName, track, sizeof(this->m_trackName)); }
 	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
 	void setAxis(int value) {this->m_axis = value;}
 	void setPosition(int value) {this->m_position = value;}

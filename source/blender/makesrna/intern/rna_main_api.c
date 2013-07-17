@@ -335,6 +335,8 @@ Mesh *rna_Main_meshes_new_from_object(
 				return NULL;
 			}
 
+			BKE_mesh_texspace_copy_from_object(tmpmesh, ob);
+
 			BKE_libblock_free_us(&bmain->object, tmpobj);
 			break;
 		}
@@ -361,6 +363,8 @@ Mesh *rna_Main_meshes_new_from_object(
 			}
 			else
 				BKE_mesh_from_metaball(&ob->disp, tmpmesh);
+
+			BKE_mesh_texspace_copy_from_object(tmpmesh, ob);
 
 			break;
 

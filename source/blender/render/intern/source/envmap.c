@@ -722,6 +722,10 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 					envmap_split_ima(env, ibuf_ima);
 				else
 					env->ok = 0;
+
+				if (env->type == ENV_PLANE)
+					tex->extend = TEX_EXTEND;
+
 				BKE_image_pool_release_ibuf(env->ima, ibuf_ima, pool);
 			}
 		}

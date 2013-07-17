@@ -140,11 +140,7 @@ public:
 	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce);
 	~ArmatureImporter();
 
-	void add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce);
-
-#if 0
-	void add_root_joint(COLLADAFW::Node *node);
-#endif
+	void add_root_joint(COLLADAFW::Node *node, Object *parent);
 
 	// here we add bones to armatures, having armatures previously created in write_controller
 	void make_armatures(bContext *C);

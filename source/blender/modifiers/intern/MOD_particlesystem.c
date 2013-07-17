@@ -142,7 +142,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		return;
 
 	if (dm == NULL) {
-		dm = get_dm(ob, NULL, NULL, vertexCos, 1);
+		dm = get_dm(ob, NULL, NULL, vertexCos, false, true);
 
 		if (!dm)
 			return;

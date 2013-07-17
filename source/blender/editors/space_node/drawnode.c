@@ -1379,6 +1379,7 @@ static void node_composit_buts_zcombine(uiLayout *layout, bContext *UNUSED(C), P
 	
 	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "use_alpha", 0, NULL, ICON_NONE);
+	uiItemR(col, ptr, "use_antialias_z", 0, NULL, ICON_NONE);
 }
 
 

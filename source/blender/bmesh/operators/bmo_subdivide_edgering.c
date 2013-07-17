@@ -893,7 +893,7 @@ static void bm_edgering_pair_order(BMesh *bm,
 	/* before going much further, get ourselves in order
 	 * - align loops (not strictly necessary but handy)
 	 * - ensure winding is set for both loops */
-	if (BM_edgeloop_is_closed(el_store_a) && BM_edgeloop_is_closed(el_store_a)) {
+	if (BM_edgeloop_is_closed(el_store_a) && BM_edgeloop_is_closed(el_store_b)) {
 		BMIter eiter;
 		BMEdge *e;
 		BMVert *v_other;

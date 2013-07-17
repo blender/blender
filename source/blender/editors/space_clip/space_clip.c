@@ -1019,7 +1019,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_channels && !(ar_channels->flag & RGN_FLAG_HIDDEN)) {
 			ar_channels->flag |= RGN_FLAG_HIDDEN;
 			ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
-			WM_event_remove_handlers((bContext *)C, &ar_tools->handlers);
+			WM_event_remove_handlers((bContext *)C, &ar_channels->handlers);
 			view_changed = TRUE;
 		}
 		if (ar_channels && ar_channels->alignment != RGN_ALIGN_NONE) {

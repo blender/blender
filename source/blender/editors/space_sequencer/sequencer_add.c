@@ -118,7 +118,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 		Scene *scene = CTX_data_scene(C);
 		Sequence *last_seq = BKE_sequencer_active_get(scene);
 		if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
-			char path[sizeof(last_seq->strip->dir)];
+			char path[FILE_MAX];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
 			BLI_path_abs(path, G.main->name);
 			RNA_string_set(op->ptr, identifier, path);
@@ -761,7 +761,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_sort(scene);
 
 	/* last active name */
-	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR - 1);
+	BLI_strncpy(ed->act_imagedir, strip->dir, sizeof(ed->act_imagedir));
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq))

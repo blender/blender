@@ -2646,7 +2646,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 						sub = uiLayoutRow(overlap, FALSE);
 
 						but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-						                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
+						                     active_dataptr, activeprop, 0, 0, i, 0, 0, NULL);
 						uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
 						sub = uiLayoutRow(overlap, FALSE);
@@ -2660,6 +2660,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 						if (i == activei) {
 							ui_layout_list_set_labels_active(sub);
 						}
+
+						uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
 					}
 					i++;
 				}
@@ -2734,7 +2736,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					sub = uiLayoutRow(overlap, FALSE);
 
 					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-					                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
+					                     active_dataptr, activeprop, 0, 0, i, 0, 0, NULL);
 					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
 					sub = uiLayoutRow(overlap, FALSE);
@@ -2746,6 +2748,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					if (i == activei) {
 						ui_layout_list_set_labels_active(sub);
 					}
+
+					uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
 
 					i++;
 				}

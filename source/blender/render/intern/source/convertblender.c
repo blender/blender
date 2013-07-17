@@ -3478,9 +3478,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				ma= give_render_material(re, ob, a1+1);
 				
 				/* test for 100% transparent */
-				ok= 1;
-				if (ma->alpha==0.0f && ma->spectra==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP) && (ma->mode & (MA_RAYTRANSP | MA_RAYMIRROR))==0 ) {
-					ok= 0;
+				ok = 1;
+				if ((ma->alpha == 0.0f) &&
+				    (ma->spectra == 0.0f) &&
+				    (ma->filter == 0.0f) &&
+				    (ma->mode & MA_TRANSP) &&
+				    (ma->mode & (MA_RAYTRANSP | MA_RAYMIRROR)) == 0)
+				{
+					ok = 0;
 					/* texture on transparency? */
 					for (a=0; a<MAX_MTEX; a++) {
 						if (ma->mtex[a] && ma->mtex[a]->tex) {
@@ -5403,12 +5408,10 @@ void RE_Database_Preprocess(Render *re)
 				volume_precache(re);
 	}
 	
-	if (re->test_break(re->tbh)) {
-		re->i.convertdone = TRUE;
+	re->i.convertdone = TRUE;
+
+	if (re->test_break(re->tbh))
 		RE_Database_Free(re);
-	}
-	else
-		re->i.convertdone = TRUE;
 	
 	re->i.infostr = NULL;
 	re->stats_draw(re->sdh, &re->i);
@@ -5858,6 +5861,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	/* free dbase and make the future one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
+	re->i.convertdone = TRUE;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
@@ -5873,6 +5877,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	/* free dbase and make the real one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
+	re->i.convertdone = TRUE;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
@@ -6081,4 +6086,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		if (re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 			if (re->r.mode & R_SHADOW)
 				make_occ_tree(re);
+
+	re->i.convertdone = true;
 }

@@ -940,6 +940,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 		}
 	}
 	else if (!IMB_ispic(filepath)) {
+		printf("%s: '%s' not an image file\n", __func__, filepath);
 		exit(1);
 	}
 
@@ -949,7 +950,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	}
 
 	if (ibuf == NULL) {
-		printf("couldn't open %s\n", filepath);
+		printf("%s: '%s' couldn't open\n", __func__, filepath);
 		exit(1);
 	}
 
@@ -1190,7 +1191,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 
 	/* early exit, IMB and BKE should be exited only in end */
-	if (ps.dropped_file) {
+	if (ps.dropped_file[0]) {
 		BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
 		return filepath;
 	}

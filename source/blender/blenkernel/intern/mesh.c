@@ -702,6 +702,19 @@ void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_siz
 	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
+void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
+{
+	float *texloc, *texrot, *texsize;
+	short *texflag;
+
+	if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize, &texrot)) {
+		me->texflag = *texflag;
+		copy_v3_v3(me->loc, texloc);
+		copy_v3_v3(me->size, texsize);
+		copy_v3_v3(me->rot, texrot);
+	}
+}
+
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
 	Mesh *me = ob->data;
@@ -2450,9 +2463,10 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
                                    int totvert, int totpoly, int totloop)
 {
 	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert poly map");
-	int *indices = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
-
+	int *indices, *index_iter;
 	int i, j;
+
+	indices = index_iter = MEM_mallocN(sizeof(int) * totloop, "vert poly map mem");
 
 	/* Count number of polys for each vertex */
 	for (i = 0; i < totpoly; i++) {
@@ -2464,8 +2478,8 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map, int **r_mem,
 
 	/* Assign indices mem */
 	for (i = 0; i < totvert; i++) {
-		map[i].indices = indices;
-		indices += map[i].count;
+		map[i].indices = index_iter;
+		index_iter += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
 		map[i].count = 0;
@@ -2495,6 +2509,7 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
 {
 	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
 	int *indices = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
+	int *i_pt = indices;
 
 	int i;
 
@@ -2506,8 +2521,8 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
 
 	/* Assign indices mem */
 	for (i = 0; i < totvert; i++) {
-		map[i].indices = indices;
-		indices += map[i].count;
+		map[i].indices = i_pt;
+		i_pt += map[i].count;
 
 		/* Reset 'count' for use as index in last loop */
 		map[i].count = 0;

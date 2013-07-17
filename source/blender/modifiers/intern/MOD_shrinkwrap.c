@@ -48,6 +48,8 @@
 
 #include "MOD_util.h"
 
+static bool dependsOnNormals(ModifierData *md);
+
 
 static void initData(ModifierData *md)
 {
@@ -120,8 +122,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* ensure we get a CDDM with applied vertex coords */
-	if (dataMask)
-		dm = get_cddm(ob, NULL, dm, vertexCos);
+	if (dataMask) {
+		dm = get_cddm(ob, NULL, dm, vertexCos, dependsOnNormals(md));
+	}
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ob, dm, vertexCos, numVerts);
 
@@ -136,8 +139,9 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 	CustomDataMask dataMask = requiredDataMask(ob, md);
 
 	/* ensure we get a CDDM with applied vertex coords */
-	if (dataMask)
-		dm = get_cddm(ob, editData, dm, vertexCos);
+	if (dataMask) {
+		dm = get_cddm(ob, editData, dm, vertexCos, dependsOnNormals(md));
+	}
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ob, dm, vertexCos, numVerts);
 

@@ -542,6 +542,16 @@ void print_v4(const char *str, const float v[4])
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
 }
 
+void print_vn(const char *str, const float v[], const int n)
+{
+	int i = 0;
+	printf("%s[%d]:", str, n);
+	while (i < n) {
+		printf(" %.3f", v[i++]);
+	}
+	printf("\n");
+}
+
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 {
 	if (min[0] > vec[0]) min[0] = vec[0];

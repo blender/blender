@@ -2429,6 +2429,11 @@ uiLayout *uiLayoutListBox(uiLayout *layout, uiList *ui_list, PointerRNA *ptr, Pr
 	but->rnapoin = *actptr;
 	but->rnaprop = actprop;
 
+	/* only for the undo string */
+	if (but->flag & UI_BUT_UNDO) {
+		but->tip = RNA_property_description(actprop);
+	}
+
 	return (uiLayout *)box;
 }
 
@@ -3077,12 +3082,14 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
 			/* no undo for buttons for operator redo panels */
 			uiButClearFlag(but, UI_BUT_UNDO);
 			
+#if 0		/* broken, causes freedback loop, see [#36109] */
 			/* if button is operator's default property, and a text-field, enable focus for it
 			 *	- this is used for allowing operators with popups to rename stuff with fewer clicks
 			 */
 			if ((but->rnaprop == op->type->prop) && (but->type == TEX)) {
 				uiButSetFocusOnEnter(CTX_wm_window(C), but);
 			}
+#endif
 		}
 	}
 }

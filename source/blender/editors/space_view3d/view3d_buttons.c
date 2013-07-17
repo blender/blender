@@ -915,7 +915,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Normalize",
 		                    0, yco, UI_UNIT_X * 5, UI_UNIT_Y,
-		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked"));
+		                    TIP_("Normalize weights of active vertex (if affected groups are unlocked)"));
 		if (lock_count) {
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		}
@@ -923,7 +923,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
 		but = uiDefButO_ptr(block, BUT, ot, WM_OP_EXEC_DEFAULT, "Copy",
 		                    UI_UNIT_X * 5, yco, UI_UNIT_X * 5, UI_UNIT_Y,
-		                    TIP_("Copy active vertex to other selected verts (if affected groups are unlocked)"));
+		                    TIP_("Copy active vertex to other selected vertices (if affected groups are unlocked)"));
 		if (lock_count) {
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		}

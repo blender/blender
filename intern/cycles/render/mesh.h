@@ -110,6 +110,7 @@ public:
 
 	void reserve(int numverts, int numfaces, int numcurves, int numcurvekeys);
 	void clear();
+	void set_triangle(int i, int v0, int v1, int v2, int shader, bool smooth);
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
 	void add_curve_key(float3 loc, float radius);
 	void add_curve(int first_key, int num_keys, int shader);

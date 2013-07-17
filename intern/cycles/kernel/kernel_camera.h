@@ -166,6 +166,12 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 
 	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
 
+	/* indicates ray should not receive any light, outside of the lens */
+	if(is_zero(ray->D)) {	
+		ray->t = 0.0f;
+		return;
+	}
+
 	/* modify ray for depth of field */
 	float aperturesize = kernel_data.cam.aperturesize;
 
@@ -184,12 +190,6 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 		/* update ray for effect of lens */
 		ray->P = U * lensuv.x + V * lensuv.y;
 		ray->D = normalize(Pfocus - ray->P);
-	}
-
-	/* indicates ray should not receive any light, outside of the lens */
-	if(is_zero(ray->D)) {	
-		ray->t = 0.0f;
-		return;
 	}
 
 	/* transform ray from camera to world */

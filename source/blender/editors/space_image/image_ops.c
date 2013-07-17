@@ -1204,7 +1204,8 @@ static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 	}
 }
 
-static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, Scene *scene, const short guess_path)
+static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, Scene *scene,
+                                   const bool guess_path, const bool save_as_render)
 {
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
@@ -1253,8 +1254,20 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* check for empty path */
 		if (guess_path && simopts->filepath[0] == 0) {
-			BLI_snprintf(simopts->filepath, sizeof(simopts->filepath), "//%s", ima->id.name + 2);
-			BLI_path_abs(simopts->filepath, STREQ(G.ima, "//") ? G.main->name : G.ima);
+			const bool is_prev_save = !STREQ(G.ima, "//");
+			if (save_as_render) {
+				if (is_prev_save) {
+					BLI_strncpy(simopts->filepath, G.ima, sizeof(simopts->filepath));
+				}
+				else {
+					BLI_strncpy(simopts->filepath, "//untitled", sizeof(simopts->filepath));
+					BLI_path_abs(simopts->filepath, G.main->name);
+				}
+			}
+			else {
+				BLI_snprintf(simopts->filepath, sizeof(simopts->filepath), "//%s", ima->id.name + 2);
+				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : G.main->name);
+			}
 		}
 
 		/* color management */
@@ -1425,7 +1438,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 	/* just in case to initialize values,
 	 * these should be set on invoke or by the caller. */
-	save_image_options_init(&simopts, sima, CTX_data_scene(C), 0);
+	save_image_options_init(&simopts, sima, CTX_data_scene(C), false, false);
 
 	save_image_options_from_op(&simopts, op);
 
@@ -1448,13 +1461,14 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	Image *ima = ED_space_image(sima);
 	Scene *scene = CTX_data_scene(C);
 	SaveImageOptions simopts;
+	const bool save_as_render = ((ima->source == IMA_SRC_VIEWER) || (ima->flag & IMA_VIEW_AS_RENDER));
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return image_save_as_exec(C, op);
 
 	save_image_options_defaults(&simopts);
 
-	if (save_image_options_init(&simopts, sima, scene, TRUE) == 0)
+	if (save_image_options_init(&simopts, sima, scene, true, save_as_render) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_to_op(&simopts, op);
 
@@ -1463,10 +1477,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 		RNA_boolean_set(op->ptr, "copy", TRUE);
 	}
 
-	if (ima->source == IMA_SRC_VIEWER || (ima->flag & IMA_VIEW_AS_RENDER))
-		RNA_boolean_set(op->ptr, "save_as_render", TRUE);
-	else
-		RNA_boolean_set(op->ptr, "save_as_render", FALSE);
+	RNA_boolean_set(op->ptr, "save_as_render", save_as_render);
 
 	op->customdata = MEM_mallocN(sizeof(simopts.im_format), __func__);
 	memcpy(op->customdata, &simopts.im_format, sizeof(simopts.im_format));
@@ -1565,7 +1576,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 	SaveImageOptions simopts;
 
 	save_image_options_defaults(&simopts);
-	if (save_image_options_init(&simopts, sima, scene, FALSE) == 0)
+	if (save_image_options_init(&simopts, sima, scene, false, false) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_from_op(&simopts, op);
 
@@ -1887,6 +1898,8 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
 void IMAGE_OT_invert(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Invert Channels";
 	ot->idname = "IMAGE_OT_invert";
@@ -1897,10 +1910,14 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 	ot->poll = image_invert_poll;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
-	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
-	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
-	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

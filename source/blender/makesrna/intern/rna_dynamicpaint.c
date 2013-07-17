@@ -107,7 +107,7 @@ static void rna_DynamicPaintSurfaces_updateFrames(Main *bmain, Scene *scene, Poi
 
 static void rna_DynamicPaintSurface_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	dynamicPaint_resetSurface((DynamicPaintSurface *)ptr->data);
+	dynamicPaint_resetSurface(scene, (DynamicPaintSurface *)ptr->data);
 	rna_DynamicPaint_redoModifier(bmain, scene, ptr);
 }
 
@@ -116,7 +116,7 @@ static void rna_DynamicPaintSurface_initialcolortype(Main *bmain, Scene *scene, 
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
 	surface->init_layername[0] = '\0';
-	dynamicPaint_clearSurface(surface);
+	dynamicPaint_clearSurface(scene, surface);
 	rna_DynamicPaint_redoModifier(bmain, scene, ptr);
 }
 
@@ -143,7 +143,7 @@ static void rna_DynamicPaintSurface_uniqueName(Main *bmain, Scene *scene, Pointe
 static void rna_DynamicPaintSurface_changeType(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	dynamicPaintSurface_updateType((DynamicPaintSurface *)ptr->data);
-	dynamicPaint_resetSurface((DynamicPaintSurface *)ptr->data);
+	dynamicPaint_resetSurface(scene, (DynamicPaintSurface *)ptr->data);
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
 

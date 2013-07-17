@@ -803,48 +803,63 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 }
 
 /* BMESH_TODO: Special handling for hide flags? */
+/* BMESH_TODO: swap src/dst args, everywhere else in bmesh does other way round */
 
 /**
  * Copies attributes, e.g. customdata, header flags, etc, from one element
  * to another of the same type.
  */
-void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
+void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
+                           const char hflag_mask)
 {
-	const BMHeader *sheader = source;
-	BMHeader *theader = target;
+	const BMHeader *ele_src = ele_src_v;
+	BMHeader *ele_dst = ele_dst_v;
 
-	BLI_assert(sheader->htype == theader->htype);
+	BLI_assert(ele_src->htype == ele_dst->htype);
 
-	if (sheader->htype != theader->htype) {
+	if (ele_src->htype != ele_dst->htype) {
 		BLI_assert(!"type mismatch");
 		return;
 	}
 
-	/* First we copy select */
-	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {
-		BM_elem_select_set(target_mesh, (BMElem *)target, true);
+	if ((hflag_mask & BM_ELEM_SELECT) == 0) {
+		/* First we copy select */
+		if (BM_elem_flag_test((BMElem *)ele_src, BM_ELEM_SELECT)) {
+			BM_elem_select_set(bm_dst, (BMElem *)ele_dst, true);
+		}
 	}
-	
+
 	/* Now we copy flags */
-	theader->hflag = sheader->hflag;
-	
+	if (hflag_mask == 0) {
+		ele_dst->hflag = ele_src->hflag;
+	}
+	else {
+		ele_dst->hflag = ((ele_dst->hflag & hflag_mask) | (ele_src->hflag & ~hflag_mask));
+	}
+
 	/* Copy specific attributes */
-	switch (theader->htype) {
+	switch (ele_dst->htype) {
 		case BM_VERT:
-			bm_vert_attrs_copy(source_mesh, target_mesh, (const BMVert *)source, (BMVert *)target);
+			bm_vert_attrs_copy(bm_src, bm_dst, (const BMVert *)ele_src, (BMVert *)ele_dst);
 			break;
 		case BM_EDGE:
-			bm_edge_attrs_copy(source_mesh, target_mesh, (const BMEdge *)source, (BMEdge *)target);
+			bm_edge_attrs_copy(bm_src, bm_dst, (const BMEdge *)ele_src, (BMEdge *)ele_dst);
 			break;
 		case BM_LOOP:
-			bm_loop_attrs_copy(source_mesh, target_mesh, (const BMLoop *)source, (BMLoop *)target);
+			bm_loop_attrs_copy(bm_src, bm_dst, (const BMLoop *)ele_src, (BMLoop *)ele_dst);
 			break;
 		case BM_FACE:
-			bm_face_attrs_copy(source_mesh, target_mesh, (const BMFace *)source, (BMFace *)target);
+			bm_face_attrs_copy(bm_src, bm_dst, (const BMFace *)ele_src, (BMFace *)ele_dst);
 			break;
 		default:
 			BLI_assert(0);
 	}
+}
+
+void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void *ele_dst)
+{
+	/* BMESH_TODO, default 'use_flags' to false */
+	BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, 0);
 }
 
 /* helper function for 'BM_mesh_copy' */
@@ -890,6 +905,24 @@ static BMFace *bm_mesh_copy_new_face(BMesh *bm_new, BMesh *bm_old,
 	return f_new;
 }
 
+void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTemplate *allocsize)
+{
+	if (allocsize == NULL) {
+		allocsize = &bm_mesh_allocsize_default;
+	}
+
+	CustomData_copy(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
+	CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
+	CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
+	CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
+}
+
+
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
 	BMesh *bm_new;
@@ -908,15 +941,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	/* allocate a bmesh */
 	bm_new = BM_mesh_create(&allocsize);
 
-	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm_old->pdata, &bm_new->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
-
-	CustomData_bmesh_init_pool(&bm_new->vdata, allocsize.totvert, BM_VERT);
-	CustomData_bmesh_init_pool(&bm_new->edata, allocsize.totedge, BM_EDGE);
-	CustomData_bmesh_init_pool(&bm_new->ldata, allocsize.totloop, BM_LOOP);
-	CustomData_bmesh_init_pool(&bm_new->pdata, allocsize.totface, BM_FACE);
+	BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
 
 	vtable = MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable");
 	etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");

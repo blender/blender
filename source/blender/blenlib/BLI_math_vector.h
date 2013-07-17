@@ -240,6 +240,7 @@ void rotate_normalized_v3_v3v3fl(float v[3], const float p[3], const float axis[
 void print_v2(const char *str, const float a[2]);
 void print_v3(const char *str, const float a[3]);
 void print_v4(const char *str, const float a[4]);
+void print_vn(const char *str, const float v[], const int n);
 
 MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
 MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);

@@ -1449,12 +1449,13 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 	MEM_freeN(temp_data);
 }
 
-static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
+static void dynamicPaint_setInitialColor(Scene *scene, DynamicPaintSurface *surface)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintPoint *pPoint = (PaintPoint *)sData->type_data;
 	DerivedMesh *dm = surface->canvas->dm;
 	int i;
+	bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
 	if (surface->type != MOD_DPAINT_SURFACE_T_PAINT)
 		return;
@@ -1503,7 +1504,7 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 					uv[0] = tface[i].uv[j][0] * 2.0f - 1.0f;
 					uv[1] = tface[i].uv[j][1] * 2.0f - 1.0f;
 
-					multitex_ext_safe(tex, uv, &texres, pool);
+					multitex_ext_safe(tex, uv, &texres, pool, scene_color_manage);
 
 					if (texres.tin > pPoint[*vert].alpha) {
 						copy_v3_v3(pPoint[*vert].color, &texres.tr);
@@ -1536,8 +1537,8 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 				/* remap to -1.0 to 1.0 */
 				uv_final[0] = uv_final[0] * 2.0f - 1.0f;
 				uv_final[1] = uv_final[1] * 2.0f - 1.0f;
-					
-				multitex_ext_safe(tex, uv_final, &texres, NULL);
+
+				multitex_ext_safe(tex, uv_final, &texres, NULL, scene_color_manage);
 
 				/* apply color */
 				copy_v3_v3(pPoint[i].color, &texres.tr);
@@ -1596,7 +1597,7 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 }
 
 /* clears surface data back to zero */
-void dynamicPaint_clearSurface(DynamicPaintSurface *surface)
+void dynamicPaint_clearSurface(Scene *scene, DynamicPaintSurface *surface)
 {
 	PaintSurfaceData *sData = surface->data;
 	if (sData && sData->type_data) {
@@ -1613,7 +1614,7 @@ void dynamicPaint_clearSurface(DynamicPaintSurface *surface)
 
 		/* set initial color */
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
-			dynamicPaint_setInitialColor(surface);
+			dynamicPaint_setInitialColor(scene, surface);
 
 		if (sData->bData)
 			sData->bData->clear = 1;
@@ -1621,7 +1622,7 @@ void dynamicPaint_clearSurface(DynamicPaintSurface *surface)
 }
 
 /* completely (re)initializes surface (only for point cache types)*/
-int dynamicPaint_resetSurface(DynamicPaintSurface *surface)
+int dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
 {
 	int numOfPoints = dynamicPaint_surfaceNumOfPoints(surface);
 	/* free existing data */
@@ -1642,16 +1643,16 @@ int dynamicPaint_resetSurface(DynamicPaintSurface *surface)
 
 	/* set initial color */
 	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
-		dynamicPaint_setInitialColor(surface);
+		dynamicPaint_setInitialColor(scene, surface);
 
 	return 1;
 }
 
 /* make sure allocated surface size matches current requirements */
-static int dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
+static int dynamicPaint_checkSurfaceData(Scene *scene, DynamicPaintSurface *surface)
 {
 	if (!surface->data || ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
-		return dynamicPaint_resetSurface(surface);
+		return dynamicPaint_resetSurface(scene, surface);
 	}
 	return 1;
 }
@@ -1942,6 +1943,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 		/* loop through surfaces */
 		for (; surface; surface = surface->next) {
 			int current_frame = (int)scene->r.cfra;
+			bool no_surface_data;
 
 			/* free bake data if not required anymore */
 			surface_freeUnusedData(surface);
@@ -1951,12 +1953,13 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
 
 			/* make sure surface is valid */
-			if (!dynamicPaint_checkSurfaceData(surface)) continue;
+			no_surface_data = surface->data == NULL;
+			if (!dynamicPaint_checkSurfaceData(scene, surface)) continue;
 
 			/* limit frame range */
 			CLAMP(current_frame, surface->start_frame, surface->end_frame);
 
-			if (current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
+			if (no_surface_data || current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
 				PointCache *cache = surface->pointcache;
 				PTCacheID pid;
 				surface->current_frame = current_frame;
@@ -2223,7 +2226,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 /*
  *	Create a surface for uv image sequence format
  */
-int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
+int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 {
 	/* Antialias jitter point relative coords	*/
 	float jitter5sample[10] =  {0.0f, 0.0f,
@@ -2674,7 +2677,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 		}
 
 #endif
-		dynamicPaint_setInitialColor(surface);
+		dynamicPaint_setInitialColor(scene, surface);
 	}
 
 	return (error == 0);

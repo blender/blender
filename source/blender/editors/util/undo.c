@@ -143,7 +143,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname) {
 				if (U.uiflag & USER_GLOBALUNDO) {
-					ED_viewport_render_kill_jobs(C);
+					ED_viewport_render_kill_jobs(C, true);
 					BKE_undo_name(C, undoname);
 				}
 			}
@@ -196,7 +196,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 			/* for example, texface stores image pointers */
 			undo_editmode_clear();
 			
-			ED_viewport_render_kill_jobs(C);
+			ED_viewport_render_kill_jobs(C, true);
 
 			if (undoname)
 				BKE_undo_name(C, undoname);
@@ -369,7 +369,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		{
 			int retval;
 
-			ED_viewport_render_kill_jobs(C);
+			ED_viewport_render_kill_jobs(C, true);
 
 			if (G.debug & G_DEBUG)
 				printf("redo_cb: operator redo %s\n", op->type->name);
@@ -537,7 +537,7 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}
 		else {
-			ED_viewport_render_kill_jobs(C);
+			ED_viewport_render_kill_jobs(C, true);
 			BKE_undo_number(C, item);
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 		}

@@ -704,7 +704,7 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 // XXX	select_single_seq(seq, 1);
 	p = ed->seqbasep->first;
 	while (p) {
-		if ((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+		if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
 			p = p->next;
 			continue;
 		}

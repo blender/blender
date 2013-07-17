@@ -429,6 +429,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = node_select_invoke;
+	ot->exec = node_select_exec;
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */

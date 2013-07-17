@@ -294,7 +294,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	ED_update_for_newframe(CTX_data_main(C), scene, 1);
 
 	/* Init surface	*/
-	if (!dynamicPaint_createUVSurface(surface)) return 0;
+	if (!dynamicPaint_createUVSurface(scene, surface)) return 0;
 
 	/* Loop through selected frames */
 	for (frame = surface->start_frame; frame <= surface->end_frame; frame++) {

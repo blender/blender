@@ -27,7 +27,7 @@
  *  \ingroup bmesh
  */
 
-BMFace *BM_face_copy(BMesh *bm, BMFace *f,
+BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f,
                      const bool copy_verts, const bool copy_edges);
 
 typedef enum eBMCreateFlag {

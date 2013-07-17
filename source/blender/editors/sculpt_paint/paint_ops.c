@@ -695,6 +695,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				return OPERATOR_CANCELLED;
 			}
+			break;
 		case XKEY:
 			if (event->val == KM_PRESS) {
 

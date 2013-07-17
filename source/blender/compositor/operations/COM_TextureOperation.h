@@ -46,6 +46,7 @@ private:
 	SocketReader *m_inputSize;
 	SocketReader *m_inputOffset;
 	struct ImagePool *m_pool;
+	bool m_sceneColorManage;
 
 protected:
 
@@ -67,6 +68,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
+	void setSceneColorManage(bool sceneColorManage) { this->m_sceneColorManage = sceneColorManage; }
 };
 
 class TextureOperation : public TextureBaseOperation {

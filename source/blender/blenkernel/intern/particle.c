@@ -3414,8 +3414,7 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 	OrigSpaceFace *osface;
 	float (*orcodata)[3];
 
-	int i = pa->num_dmcache == DMCACHE_NOTFOUND ? pa->num : pa->num_dmcache;
-	
+	int i = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num : pa->num_dmcache;
 	if (i == -1 || i >= dm->getNumTessFaces(dm)) { unit_m4(mat); return; }
 
 	mface = dm->getTessFaceData(dm, i, CD_MFACE);
@@ -4511,7 +4510,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 			num = DMCACHE_NOTFOUND;
 		}
 
-		if (mtface && num != DMCACHE_NOTFOUND) {
+		if (mtface && !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
 			mface = psmd->dm->getTessFaceData(psmd->dm, num, CD_MFACE);
 			mtface += num;
 			psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);

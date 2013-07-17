@@ -240,7 +240,7 @@ void BM_mesh_clear(BMesh *bm)
 	bm_mempool_init(bm, &bm_mesh_allocsize_default);
 
 	bm->stackdepth = 1;
-	bm->totflags = 1;
+	bm->totflags = 0;
 
 	CustomData_reset(&bm->vdata);
 	CustomData_reset(&bm->edata);

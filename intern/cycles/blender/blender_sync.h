@@ -127,6 +127,7 @@ private:
 		  use_surfaces(true),
 		  use_hair(true),
 		  use_viewport_visibility(false),
+		  use_localview(false),
 		  samples(0), bound_samples(false)
 		{}
 

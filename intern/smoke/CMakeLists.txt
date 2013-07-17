@@ -95,7 +95,7 @@ endif()
 
 if(WITH_FFTW3)
 	add_definitions(-DWITH_FFTW3)
-	list(APPEND INC
+	list(APPEND INC_SYS
 		${FFTW3_INCLUDE_DIRS}
 	)
 endif()

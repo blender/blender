@@ -381,7 +381,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	pc.v_b = ((BMVert **)op_verts_slot->data.p)[1];
 
 	/* fail! */
-	if (!(pc.v_a && pc.v_a)) {
+	if (!(pc.v_a && pc.v_b)) {
 		return;
 	}
 

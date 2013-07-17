@@ -3000,7 +3000,7 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 		return 0;
 	}
 
-	if (ob->actdef != -1) {
+	if (ob->actdef != 0) {
 		bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef - 1);
 		if (dg) {
 			return !(dg->flag & DG_LOCK_WEIGHT);
@@ -3073,7 +3073,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_remove";
-	ot->description = "Delete the active vertex group";
+	ot->description = "Delete the active or all vertex groups from the active object";
 	
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -3457,7 +3457,8 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "action", vgroup_lock_actions, VGROUP_TOGGLE, "Action", "Lock action to execute on vertex groups");
+	RNA_def_enum(ot->srna, "action", vgroup_lock_actions, VGROUP_TOGGLE, "Action",
+	             "Lock action to execute on vertex groups");
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
@@ -3593,7 +3594,7 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clean Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_clean";
-	ot->description = "Remove Vertex Group assignments which aren't required";
+	ot->description = "Remove vertex group assignments which are not required";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -3730,7 +3731,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Vertex Groups to Linked";
 	ot->idname = "OBJECT_OT_vertex_group_copy_to_linked";
-	ot->description = "Copy Vertex Groups to all users of the same Geometry data";
+	ot->description = "Copy vertex groups to all users of the same geometry data";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -3757,7 +3758,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 
 	if ((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy VGroups to Selected warning, %d done, %d failed (object data must have matching indices)",
+		            "Copy vertex groups to selected: %d done, %d failed (object data must have matching indices)",
 		            change, fail);
 	}
 
@@ -3769,7 +3770,7 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Vertex Group to Selected";
 	ot->idname = "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description = "Copy Vertex Groups to other selected objects with matching indices";
+	ot->description = "Copy vertex groups to other selected objects with matching indices";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -3887,7 +3888,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (op->reports->list.first == NULL) {
-			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found.");
+			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found");
 		}
 
 		return OPERATOR_FINISHED; /* to get the chance to make changes in the redo panel */
@@ -4107,7 +4108,7 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
 	ot->name = "Sort Vertex Groups";
 	ot->idname = "OBJECT_OT_vertex_group_sort";
-	ot->description = "Sorts vertex groups alphabetically";
+	ot->description = "Sort vertex groups alphabetically";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -4251,12 +4252,12 @@ static bool check_vertex_group_accessible(wmOperator *op, Object *ob, int def_nr
 	bDeformGroup *dg = BLI_findlink(&ob->defbase, def_nr);
 
 	if (!dg) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid Weight Group Index");
+		BKE_report(op->reports, RPT_ERROR, "Invalid vertex group index");
 		return false;
 	}
 
 	if (dg->flag & DG_LOCK_WEIGHT) {
-		BKE_report(op->reports, RPT_ERROR, "Weight Group is locked");
+		BKE_report(op->reports, RPT_ERROR, "Vertex group is locked");
 		return false;
 	}
 
@@ -4284,9 +4285,9 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	ot->name = "Paste weight to Selected";
+	ot->name = "Paste Weight to Selected";
 	ot->idname = "OBJECT_OT_vertex_weight_paste";
-	ot->description = "Copy this group's weight to other selected verts (disabled if vertex Group is locked)";
+	ot->description = "Copy this group's weight to other selected verts (disabled if vertex group is locked)";
 
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_mesh_poll;
@@ -4296,7 +4297,7 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	                   "Index of source weight in active vertex group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
@@ -4323,7 +4324,7 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 
 	ot->name = "Delete Weight";
 	ot->idname = "OBJECT_OT_vertex_weight_delete";
-	ot->description = "Delete this weight from the vertex (disabled if vertex Group is locked)";
+	ot->description = "Delete this weight from the vertex (disabled if vertex group is locked)";
 
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_mesh_poll;
@@ -4333,7 +4334,7 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	                   "Index of source weight in active vertex group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
@@ -4357,7 +4358,7 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 
 	ot->name = "Set Active Group";
 	ot->idname = "OBJECT_OT_vertex_weight_set_active";
-	ot->description = "Set as active Vertex Group";
+	ot->description = "Set as active vertex group";
 
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_mesh_poll;
@@ -4367,7 +4368,7 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_int(ot->srna, "weight_group", -1, -1, INT_MAX, "Weight Index",
-	                   "Index of source weight in active Weight Group", -1, INT_MAX);
+	                   "Index of source weight in active vertex group", -1, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
@@ -4390,7 +4391,7 @@ void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)
 
 	ot->name = "Normalize Active";
 	ot->idname = "OBJECT_OT_vertex_weight_normalize_active_vertex";
-	ot->description = "Normalize Active Vert Weights";
+	ot->description = "Normalize active vertex's weights";
 
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_mesh_poll;
@@ -4419,7 +4420,7 @@ void OBJECT_OT_vertex_weight_copy(wmOperatorType *ot)
 
 	ot->name = "Copy Active";
 	ot->idname = "OBJECT_OT_vertex_weight_copy";
-	ot->description = "Copy weights from Active to selected";
+	ot->description = "Copy weights from active to selected";
 
 	/* api callbacks */
 	ot->poll = vertex_group_vert_select_mesh_poll;

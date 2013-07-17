@@ -95,9 +95,11 @@ void paintface_flush_flags(Object *ob)
 		
 		/* loop over tessfaces */
 		for (i = 0; i < totface; i++) {
-			/* Copy flags onto the original tessface from its original poly */
-			mp_orig = me->mpoly + index_array[i];
-			faces[i].flag = mp_orig->flag;
+			if (index_array[i] != ORIGINDEX_NONE) {
+				/* Copy flags onto the original tessface from its original poly */
+				mp_orig = me->mpoly + index_array[i];
+				faces[i].flag = mp_orig->flag;
+			}
 		}
 	}
 
@@ -107,9 +109,11 @@ void paintface_flush_flags(Object *ob)
 
 		/* loop over final derived polys */
 		for (i = 0; i < totpoly; i++) {
-			/* Copy flags onto the final derived poly from the original mesh poly */
-			mp_orig = me->mpoly + index_array[i];
-			polys[i].flag = mp_orig->flag;
+			if (index_array[i] != ORIGINDEX_NONE) {
+				/* Copy flags onto the final derived poly from the original mesh poly */
+				mp_orig = me->mpoly + index_array[i];
+				polys[i].flag = mp_orig->flag;
+			}
 		}
 	}
 
@@ -120,9 +124,11 @@ void paintface_flush_flags(Object *ob)
 
 		/* loop over tessfaces */
 		for (i = 0; i < totface; i++) {
-			/* Copy flags onto the final tessface from its final poly */
-			mp_orig = polys + index_array[i];
-			faces[i].flag = mp_orig->flag;
+			if (index_array[i] != ORIGINDEX_NONE) {
+				/* Copy flags onto the final tessface from its final poly */
+				mp_orig = polys + index_array[i];
+				faces[i].flag = mp_orig->flag;
+			}
 		}
 	}
 }

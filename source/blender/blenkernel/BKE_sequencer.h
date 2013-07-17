@@ -334,7 +334,7 @@ typedef struct SeqLoadInfo {
 	int tot_success;
 	int tot_error;
 	int len;        /* only for image strips */
-	char path[512];
+	char path[1024]; /* 1024 = FILE_MAX */
 	char name[64];
 } SeqLoadInfo;
 

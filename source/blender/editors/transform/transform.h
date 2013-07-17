@@ -201,14 +201,14 @@ typedef struct EdgeSlideData {
 	TransDataEdgeSlideVert *sv;
 	int totsv;
 	
-	struct SmallHash vhash;
-	struct SmallHash origfaces;
+	struct GHash *origfaces;
 
 	int mval_start[2], mval_end[2];
 	struct BMEditMesh *em;
 
 	/* flag that is set when origfaces is initialized */
-	bool origfaces_init;
+	bool use_origfaces;
+	struct BMesh *bm_origfaces;
 
 	float perc;
 

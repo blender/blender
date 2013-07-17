@@ -100,24 +100,29 @@ public:
 	static void calculateQuickProscenium(const GridHelpers::Transform& transform, const BBox<Vec3r>& bbox,
 	                                     real proscenium[4])
 	{
-		real z;
-		// We want to use the z-coordinate closest to the camera to determine the proscenium face
-		if (::fabs(bbox.getMin()[2]) < ::fabs(bbox.getMax()[2])) {
-			z = bbox.getMin()[2];
-		}
-		else {
-			z = bbox.getMax()[2];
-		}
-		// Now calculate the proscenium according to the min and max values of the x and y coordinates
-		Vec3r minPoint = transform(Vec3r(bbox.getMin()[0], bbox.getMin()[1], z));
-		Vec3r maxPoint = transform(Vec3r(bbox.getMax()[0], bbox.getMax()[1], z));
-		proscenium[0] = std::min(minPoint[0], maxPoint[0]);
-		proscenium[1] = std::max(minPoint[0], maxPoint[0]);
-		proscenium[2] = std::min(minPoint[1], maxPoint[1]);
-		proscenium[3] = std::max(minPoint[1], maxPoint[1]);
+		// Transform the coordinates of the 8 corners of the 3D bounding box
+		real xm = bbox.getMin()[0], xM = bbox.getMax()[0];
+		real ym = bbox.getMin()[1], yM = bbox.getMax()[1];
+		real zm = bbox.getMin()[2], zM = bbox.getMax()[2];
+		Vec3r p1 = transform(Vec3r(xm, ym, zm));
+		Vec3r p2 = transform(Vec3r(xm, ym, zM));
+		Vec3r p3 = transform(Vec3r(xm, yM, zm));
+		Vec3r p4 = transform(Vec3r(xm, yM, zM));
+		Vec3r p5 = transform(Vec3r(xM, ym, zm));
+		Vec3r p6 = transform(Vec3r(xM, ym, zM));
+		Vec3r p7 = transform(Vec3r(xM, yM, zm));
+		Vec3r p8 = transform(Vec3r(xM, yM, zM));
+		// Determine the proscenium face according to the min and max values of the transformed x and y coordinates
+		proscenium[0] = std::min(std::min(std::min(p1.x(), p2.x()), std::min(p3.x(), p4.x())),
+		                         std::min(std::min(p5.x(), p6.x()), std::min(p7.x(), p8.x())));
+		proscenium[1] = std::max(std::max(std::max(p1.x(), p2.x()), std::max(p3.x(), p4.x())),
+		                         std::max(std::max(p5.x(), p6.x()), std::max(p7.x(), p8.x())));
+		proscenium[2] = std::min(std::min(std::min(p1.y(), p2.y()), std::min(p3.y(), p4.y())),
+		                         std::min(std::min(p5.y(), p6.y()), std::min(p7.y(), p8.y())));
+		proscenium[3] = std::max(std::max(std::max(p1.y(), p2.y()), std::max(p3.y(), p4.y())),
+		                         std::max(std::max(p5.y(), p6.y()), std::max(p7.y(), p8.y())));
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Bounding box: " << minPoint << " to " << maxPoint << endl;
-			cout << "Proscenium  : " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", " <<
+			cout << "Proscenium: " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", " <<
 			        proscenium[3] << endl;
 		}
 	}

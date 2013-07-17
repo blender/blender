@@ -51,11 +51,11 @@ set(INC
 	../../blender/windowmanager
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/moto/include
 	../../../intern/string
 )
 
 set(INC_SYS
+	../../../intern/moto/include
 	../../../extern/recastnavigation/Detour/Include
 	../../../extern/Eigen3
 	${PTHREADS_INCLUDE_DIRS}

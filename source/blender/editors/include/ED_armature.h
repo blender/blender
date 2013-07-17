@@ -153,6 +153,13 @@ void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const 
 
 void undo_push_armature(struct bContext *C, const char *name);
 
+/* low level selection functions which handle */
+int  ED_armature_ebone_selectflag_get(const EditBone *ebone);
+void ED_armature_ebone_selectflag_set(EditBone *ebone, int flag);
+void ED_armature_ebone_select_set(EditBone *ebone, bool select);
+void ED_armature_ebone_selectflag_enable(EditBone *ebone, int flag);
+void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag);
+
 /* poseobject.c */
 void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
