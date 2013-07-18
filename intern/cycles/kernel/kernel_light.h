@@ -271,7 +271,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			ls->pdf = invarea;
 
 			if(type == LIGHT_SPOT) {
-				/* spot light attentuation */
+				/* spot light attenuation */
 				float4 data2 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 2);
 				ls->eval_fac *= spot_light_attenuation(data1, data2, ls);
 			}

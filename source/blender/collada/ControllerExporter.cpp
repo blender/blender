@@ -123,7 +123,7 @@ void ControllerExporter::operator()(Object *ob)
 	if (ob_arm) {
 		export_skin_controller(ob, ob_arm);
 	}
-	if (key) {
+	if (key && this->export_settings->include_shapekeys) {
 		export_morph_controller(ob, key);
 	}
 }
