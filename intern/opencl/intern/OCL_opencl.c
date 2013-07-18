@@ -22,7 +22,7 @@
 
 #include "OCL_opencl.h"
 
-void OCL_init(void)
+int OCL_init(void)
 {
 #ifdef _WIN32
 	const char *path = "OpenCL.dll";
@@ -32,6 +32,6 @@ void OCL_init(void)
 	const char *path = "libOpenCL.so";
 #endif
 
-	clewInit(path);
+	return (clewInit(path) == CLEW_SUCCESS);
 }
 

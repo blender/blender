@@ -2362,6 +2362,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 			bl = MEM_callocN(sizeof(BevList) + 1 * sizeof(BevPoint), "makeBevelList1");
 			BLI_addtail(bev, bl);
 			bl->nr = 0;
+			bl->charidx = nu->charidx;
 		}
 		else {
 			if (for_render && cu->resolu_ren != 0)
@@ -2374,10 +2375,10 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList2");
 				BLI_addtail(bev, bl);
 
-				if (nu->flagu & CU_NURB_CYCLIC) bl->poly = 0;
-				else bl->poly = -1;
+				bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
 				bl->nr = len;
 				bl->dupe_nr = 0;
+				bl->charidx = nu->charidx;
 				bevp = (BevPoint *)(bl + 1);
 				bp = nu->bp;
 
@@ -2397,8 +2398,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelBPoints");
 				BLI_addtail(bev, bl);
 
-				if (nu->flagu & CU_NURB_CYCLIC) bl->poly = 0;
-				else bl->poly = -1;
+				bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
+				bl->charidx = nu->charidx;
 				bevp = (BevPoint *)(bl + 1);
 
 				a = nu->pntsu - 1;
@@ -2484,8 +2485,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					BLI_addtail(bev, bl);
 					bl->nr = len;
 					bl->dupe_nr = 0;
-					if (nu->flagu & CU_NURB_CYCLIC) bl->poly = 0;
-					else bl->poly = -1;
+					bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
+					bl->charidx = nu->charidx;
 					bevp = (BevPoint *)(bl + 1);
 
 					BKE_nurb_makeCurve(nu, &bevp->vec[0],
@@ -2611,9 +2612,11 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 			bl = sd->bl;     /* is bl a hole? */
 			sd1 = sortdata + (a - 1);
 			for (b = a - 1; b >= 0; b--, sd1--) { /* all polys to the left */
-				if (bevelinside(sd1->bl, bl)) {
-					bl->hole = 1 - sd1->bl->hole;
-					break;
+				if (sd1->bl->charidx == bl->charidx) { /* for text, only check matching char */
+					if (bevelinside(sd1->bl, bl)) {
+						bl->hole = 1 - sd1->bl->hole;
+						break;
+					}
 				}
 			}
 		}

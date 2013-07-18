@@ -231,11 +231,12 @@ void ACTION_OT_markers_make_local(wmOperatorType *ot)
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max keyframes*/
-static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
+static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	bool found = false;
 	
 	/* get data to filter, from Action or Dopesheet */
 	/* XXX: what is sel doing here?!
@@ -261,6 +262,7 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 					const float framenum = (float)gpf->framenum;
 					*min = min_ff(*min, framenum);
 					*max = max_ff(*max, framenum);
+					found = true;
 				}
 			}
 			else if (ale->datatype == ALE_MASKLAY) {
@@ -275,6 +277,7 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 					const float framenum = (float)masklay_shape->frame;
 					*min = min_ff(*min, framenum);
 					*max = max_ff(*max, framenum);
+					found = true;
 				}
 			}
 			else {
@@ -282,16 +285,18 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				float tmin, tmax;
 
 				/* get range and apply necessary scaling before processing */
-				calc_fcurve_range(fcu, &tmin, &tmax, onlySel, TRUE);
+				if (calc_fcurve_range(fcu, &tmin, &tmax, onlySel, TRUE)) {
 
-				if (adt) {
-					tmin = BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
-					tmax = BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
+					if (adt) {
+						tmin = BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
+						tmax = BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
+					}
+
+					/* try to set cur using these values, if they're more extreme than previously set values */
+					*min = min_ff(*min, tmin);
+					*max = max_ff(*max, tmax);
+					found = true;
 				}
-
-				/* try to set cur using these values, if they're more extreme than previously set values */
-				*min = min_ff(*min, tmin);
-				*max = max_ff(*max, tmax);
 			}
 		}
 		
@@ -309,6 +314,8 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 			*max = 100;
 		}
 	}
+
+	return found;
 }
 
 /* ****************** Automatic Preview-Range Operator ****************** */
@@ -357,11 +364,12 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall(bContext *C, const short onlySel)
+static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xaxis)
 {
 	bAnimContext ac;
 	View2D *v2d;
 	float extra;
+	bool found;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -369,15 +377,20 @@ static int actkeys_viewall(bContext *C, const short onlySel)
 	v2d = &ac.ar->v2d;
 	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, onlySel);
+	found = get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, only_sel);
+
+	if (only_sel && (found == false))
+		return OPERATOR_CANCELLED;
 	
 	extra = 0.1f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	
 	/* set vertical range */
-	v2d->cur.ymax = 0.0f;
-	v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
+	if (only_xaxis == false) {
+		v2d->cur.ymax = 0.0f;
+		v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
+	}
 	
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -393,13 +406,13 @@ static int actkeys_viewall(bContext *C, const short onlySel)
 static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {	
 	/* whole range */
-	return actkeys_viewall(C, FALSE);
+	return actkeys_viewall(C, false, false);
 }
 
 static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* only selected */
-	return actkeys_viewall(C, TRUE);
+	return actkeys_viewall(C, true, true);
 }
  
 void ACTION_OT_view_all(wmOperatorType *ot)

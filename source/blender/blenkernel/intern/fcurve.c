@@ -577,7 +577,7 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 }
 
 /* Calculate the extents of F-Curve's keyframes */
-void calc_fcurve_range(FCurve *fcu, float *start, float *end,
+bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
                        const short do_sel_only, const short do_min_length)
 {
 	float min = 999999999.0f, max = -999999999.0f;
@@ -621,6 +621,8 @@ void calc_fcurve_range(FCurve *fcu, float *start, float *end,
 
 	*start = min;
 	*end = max;
+
+	return foundvert;
 }
 
 /* ----------------- Status Checks -------------------------- */

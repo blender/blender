@@ -75,6 +75,7 @@ typedef struct BevList {
 	struct BevList *next, *prev;
 	int nr, dupe_nr;
 	int poly, hole;
+	int charidx;
 } BevList;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */

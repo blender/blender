@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "intern/clew.h"
-void OCL_init(void);
+int OCL_init(void);
 
 #ifdef __cplusplus
 }
