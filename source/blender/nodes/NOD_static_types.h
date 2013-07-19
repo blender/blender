@@ -69,7 +69,7 @@ DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    0,                      "OU
 DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,        0,                      "OUTPUT_LAMP",        OutputLamp,       "Lamp Output",       ""       )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,       0,                      "OUTPUT_WORLD",       OutputWorld,      "World Output",      ""       )
 DefNode( ShaderNode,     SH_NODE_FRESNEL,            0,                      "FRESNEL",            Fresnel,          "Fresnel",           ""       )
-DefNode( ShaderNode,     SH_NODE_LAYER_WEIGHT,       0,                      "LAYER_WEIGHT",       LayerWeight,      "LayerWeight",       ""       )
+DefNode( ShaderNode,     SH_NODE_LAYER_WEIGHT,       0,                      "LAYER_WEIGHT",       LayerWeight,      "Layer Weight",       ""       )
 DefNode( ShaderNode,     SH_NODE_MIX_SHADER,         0,                      "MIX_SHADER",         MixShader,        "Mix Shader",        ""       )
 DefNode( ShaderNode,     SH_NODE_ADD_SHADER,         0,                      "ADD_SHADER",         AddShader,        "Add Shader",        ""       )
 DefNode( ShaderNode,     SH_NODE_ATTRIBUTE,          def_sh_attribute,       "ATTRIBUTE",          Attribute,        "Attribute",         ""       )
