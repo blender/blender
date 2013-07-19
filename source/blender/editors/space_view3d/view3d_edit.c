@@ -1009,6 +1009,14 @@ static int view3d_camera_user_poll(bContext *C)
 	return 0;
 }
 
+static int view3d_lock_poll(bContext *C)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+	return ED_view3d_offset_lock_check(v3d, rv3d);
+}
+
 static int viewrotate_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
@@ -1537,7 +1545,11 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-	if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
+	if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
+		vod->rv3d->ofs_lock[0] -= ((vod->oldx - x) * 2.0f) / (float)vod->ar->winx;
+		vod->rv3d->ofs_lock[1] -= ((vod->oldy - y) * 2.0f) / (float)vod->ar->winy;
+	}
+	else if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 		const float zoomfac = BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x) / (vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y) / (vod->ar->winy * zoomfac);
@@ -1613,8 +1625,6 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
-
-	VIEW3D_OP_OFS_LOCK_TEST(C, op);
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
@@ -2787,6 +2797,32 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = view3d_center_camera_exec;
 	ot->poll = view3d_camera_user_poll;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+static int view3d_center_lock_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
+{
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+	zero_v2(rv3d->ofs_lock);
+
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_lock(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Lock Center";
+	ot->description = "Center the view lock offset";
+	ot->idname = "VIEW3D_OT_view_center_lock";
+
+	/* api callbacks */
+	ot->exec = view3d_center_lock_exec;
+	ot->poll = view3d_lock_poll;
 
 	/* flags */
 	ot->flag = 0;
