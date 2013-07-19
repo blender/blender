@@ -135,7 +135,7 @@ enum {
 	NDOF_BUTTON_C,
 	// the end
 	NDOF_LAST
-	};
+};
 
 
 /* SYSTEM : 0x01xx */

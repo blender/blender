@@ -576,8 +576,8 @@ bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 			if (sculpt_is_grab_tool(br))
 				return false;
 		default:
-			;
-		}
+			break;
+	}
 	return true;
 }
 

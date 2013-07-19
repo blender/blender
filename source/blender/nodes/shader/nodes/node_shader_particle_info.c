@@ -39,7 +39,7 @@ static bNodeSocketTemplate outputs[] = {
 	{ SOCK_VECTOR,  0, "Velocity" },
 	{ SOCK_VECTOR,  0, "Angular Velocity" },
 	{ -1, 0, "" }
-	};
+};
 
 /* node type definition */
 void register_node_type_sh_particle_info(void)
