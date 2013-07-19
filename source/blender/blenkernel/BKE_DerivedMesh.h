@@ -438,7 +438,7 @@ struct DerivedMesh {
 	 */
 	void (*drawMappedFacesMat)(DerivedMesh *dm,
 	                           void (*setMaterial)(void *userData, int, void *attribs),
-	                           int (*setFace)(void *userData, int index), void *userData);
+	                           bool (*setFace)(void *userData, int index), void *userData);
 
 	/** Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
