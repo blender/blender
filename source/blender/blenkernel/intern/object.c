@@ -2357,8 +2357,9 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 
 			/* Use the object bounding box so that modifier output
 			 * gets taken into account */
-			if (ob->bb)
+			if (ob->bb) {
 				bb = *(ob->bb);
+			}
 			else {
 				if (cu->bb == NULL)
 					BKE_curve_texspace_calc(cu);
@@ -2370,8 +2371,8 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 			}
 			change = TRUE;
+			break;
 		}
-		break;
 		case OB_LATTICE:
 		{
 			Lattice *lt = ob->data;
@@ -2387,9 +2388,10 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 			}
 			change = TRUE;
+			break;
 		}
-		break;
 		case OB_ARMATURE:
+		{
 			if (ob->pose) {
 				bArmature *arm = ob->data;
 				bPoseChannel *pchan;
@@ -2408,6 +2410,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 			}
 			break;
+		}
 		case OB_MESH:
 		{
 			Mesh *me = BKE_mesh_from_object(ob);
@@ -2421,8 +2424,8 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 				change = TRUE;
 			}
+			break;
 		}
-		break;
 		case OB_MBALL:
 		{
 			float ob_min[3], ob_max[3];
