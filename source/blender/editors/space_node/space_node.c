@@ -392,7 +392,8 @@ static void node_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn
 	switch (wmn->category) {
 		case NC_SCENE:
 			switch (wmn->data) {
-				case ND_NODES: {
+				case ND_NODES:
+				{
 					ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 					bNodeTreePath *path = snode->treepath.last;
 					/* shift view to node tree center */

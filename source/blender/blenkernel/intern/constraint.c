@@ -132,8 +132,8 @@ bConstraintOb *BKE_constraints_make_evalob(Scene *scene, Object *ob, void *subda
 				unit_m4(cob->matrix);
 			
 			copy_m4_m4(cob->startmat, cob->matrix);
+			break;
 		}
-		break;
 		case CONSTRAINT_OBTYPE_BONE:
 		{
 			/* only set if we have valid bone, otherwise default */
@@ -158,9 +158,8 @@ bConstraintOb *BKE_constraints_make_evalob(Scene *scene, Object *ob, void *subda
 				unit_m4(cob->matrix);
 				
 			copy_m4_m4(cob->startmat, cob->matrix);
+			break;
 		}
-		break;
-			
 		default: /* other types not yet handled */
 			unit_m4(cob->matrix);
 			unit_m4(cob->startmat);
@@ -195,8 +194,8 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 				/* copy inverse of delta back to owner */
 				invert_m4_m4(cob->ob->constinv, delta);
 			}
+			break;
 		}
-		break;
 		case CONSTRAINT_OBTYPE_BONE:
 		{
 			/* cob->ob or cob->pchan might not exist */
@@ -207,8 +206,8 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 				/* copy inverse of delta back to owner */
 				invert_m4_m4(cob->pchan->constinv, delta);
 			}
+			break;
 		}
-		break;
 	}
 	
 	/* free tempolary struct */
@@ -246,8 +245,8 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 					/* call self with slightly different values */
 					BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
+				break;
 			}
-			break;
 			case CONSTRAINT_SPACE_POSE: /* ---------- FROM POSESPACE ---------- */
 			{
 				/* pose to world */
@@ -267,8 +266,8 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 						mul_m4_m4m4(mat, imat, mat);
 					}
 				}
+				break;
 			}
-			break;
 			case CONSTRAINT_SPACE_LOCAL: /* ------------ FROM LOCALSPACE --------- */
 			{
 				/* local to pose - do inverse procedure that was done for pose to local */
@@ -282,8 +281,8 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 					/* call self with slightly different values */
 					BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
+				break;
 			}
-			break;
 			case CONSTRAINT_SPACE_PARLOCAL: /* -------------- FROM LOCAL WITH PARENT ---------- */
 			{
 				/* local + parent to pose */
@@ -297,8 +296,8 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 					/* call self with slightly different values */
 					BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
+				break;
 			}
-			break;
 		}
 	}
 	else {
@@ -2235,8 +2234,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[2], totmat[0], totmat[1]);
+						break;
 					}
-					break;
 					case TRACK_Z: /* LOCK X TRACK Z */
 					{
 						/* Projection of Vector on the plane */
@@ -2249,8 +2248,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[1], totmat[2], totmat[0]);
+						break;
 					}
-					break;
 					case TRACK_nY: /* LOCK X TRACK -Y */
 					{
 						/* Projection of Vector on the plane */
@@ -2264,8 +2263,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[2], totmat[0], totmat[1]);
+						break;
 					}
-					break;
 					case TRACK_nZ: /* LOCK X TRACK -Z */
 					{
 						/* Projection of Vector on the plane */
@@ -2279,16 +2278,16 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 						
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[1], totmat[2], totmat[0]);
+						break;
 					}
-					break;
 					default:
 					{
 						unit_m3(totmat);
+						break;
 					}
-					break;
 				}
+				break;
 			}
-			break;
 			case LOCK_Y: /* LOCK Y */
 			{
 				switch (data->trackflag) {
@@ -2304,8 +2303,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[2], totmat[0], totmat[1]);
+						break;
 					}
-					break;
 					case TRACK_Z: /* LOCK Y TRACK Z */
 					{
 						/* Projection of Vector on the plane */
@@ -2318,8 +2317,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[0], totmat[1], totmat[2]);
+						break;
 					}
-					break;
 					case TRACK_nX: /* LOCK Y TRACK -X */
 					{
 						/* Projection of Vector on the plane */
@@ -2333,8 +2332,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[2], totmat[0], totmat[1]);
+						break;
 					}
-					break;
 					case TRACK_nZ: /* LOCK Y TRACK -Z */
 					{
 						/* Projection of Vector on the plane */
@@ -2348,16 +2347,16 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the z axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[0], totmat[1], totmat[2]);
+						break;
 					}
-					break;
 					default:
 					{
 						unit_m3(totmat);
+						break;
 					}
-					break;
 				}
+				break;
 			}
-			break;
 			case LOCK_Z: /* LOCK Z */
 			{
 				switch (data->trackflag) {
@@ -2373,8 +2372,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the x axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[1], totmat[2], totmat[0]);
+						break;
 					}
-					break;
 					case TRACK_Y: /* LOCK Z TRACK Y */
 					{
 						/* Projection of Vector on the plane */
@@ -2387,8 +2386,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 						
 						/* the x axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[0], totmat[1], totmat[2]);
+						break;
 					}
-					break;
 					case TRACK_nX: /* LOCK Z TRACK -X */
 					{
 						/* Projection of Vector on the plane */
@@ -2402,8 +2401,8 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					
 						/* the x axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[1], totmat[2], totmat[0]);
+						break;
 					}
-					break;
 					case TRACK_nY: /* LOCK Z TRACK -Y */
 					{
 						/* Projection of Vector on the plane */
@@ -2417,21 +2416,21 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 						
 						/* the x axis gets mapped onto a third orthogonal vector */
 						cross_v3_v3v3(totmat[0], totmat[1], totmat[2]);
+						break;
 					}
-					break;
 					default:
 					{
 						unit_m3(totmat);
+						break;
 					}
-					break;
 				}
+				break;
 			}
-			break;
 			default:
 			{
 				unit_m3(totmat);
+				break;
 			}
-			break;
 		}
 		/* Block to keep matrix heading */
 		copy_m3_m4(tmpmat, cob->matrix);
@@ -4414,8 +4413,8 @@ static bConstraint *add_new_constraint(Object *ob, bPoseChannel *pchan, const ch
 				con->ownspace = CONSTRAINT_SPACE_POSE;
 				con->flag |= CONSTRAINT_SPACEONCE;
 			}
+			break;
 		}
-		break;
 	}
 	
 	return con;
@@ -4640,8 +4639,8 @@ void BKE_get_constraint_target_matrix(Scene *scene, bConstraint *con, int index,
 					unit_m4(cob->matrix);
 					unit_m4(cob->startmat);
 				}
+				break;
 			}
-			break;
 			case CONSTRAINT_OBTYPE_BONE: /* this may occur in some cases */
 			{
 				cob->ob = NULL; /* this might not work at all :/ */
@@ -4654,8 +4653,8 @@ void BKE_get_constraint_target_matrix(Scene *scene, bConstraint *con, int index,
 					unit_m4(cob->matrix);
 					unit_m4(cob->startmat);
 				}
+				break;
 			}
-			break;
 		}
 		
 		/* get targets - we only need the first one though (and there should only be one) */

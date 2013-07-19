@@ -494,23 +494,21 @@ void ED_object_parent_clear(Object *ob, int type)
 			
 			/* clear parenting relationship completely */
 			ob->parent = NULL;
+			break;
 		}
-		break;
-		
 		case CLEAR_PARENT_KEEP_TRANSFORM:
 		{
 			/* remove parent, and apply the parented transform result as object's local transforms */
 			ob->parent = NULL;
 			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+			break;
 		}
-		break;
-		
 		case CLEAR_PARENT_INVERSE:
 		{
 			/* object stays parented, but the parent inverse (i.e. offset from parent to retain binding state) is cleared */
 			unit_m4(ob->parentinv);
+			break;
 		}
-		break;
 	}
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);

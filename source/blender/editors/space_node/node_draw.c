@@ -91,18 +91,18 @@ static bNodeTree *node_tree_from_ID(ID *id)
 		short idtype = GS(id->name);
 	
 		switch (idtype) {
-		case ID_NT:
-			return (bNodeTree *)id;
-		case ID_MA:
-			return ((Material *)id)->nodetree;
-		case ID_LA:
-			return ((Lamp *)id)->nodetree;
-		case ID_WO:
-			return ((World *)id)->nodetree;
-		case ID_SCE:
-			return ((Scene *)id)->nodetree;
-		case ID_TE:
-			return ((Tex *)id)->nodetree;
+			case ID_NT:
+				return (bNodeTree *)id;
+			case ID_MA:
+				return ((Material *)id)->nodetree;
+			case ID_LA:
+				return ((Lamp *)id)->nodetree;
+			case ID_WO:
+				return ((World *)id)->nodetree;
+			case ID_SCE:
+				return ((Scene *)id)->nodetree;
+			case ID_TE:
+				return ((Tex *)id)->nodetree;
 		}
 	}
 	

@@ -112,9 +112,8 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 					if (ptr) RNA_id_pointer_create(&ob->id, ptr);
 					return &ob->gpd;
 				}
+				break;
 			}
-			break;
-			
 			case SPACE_NODE: /* Nodes Editor */
 			{
 				SpaceNode *snode = (SpaceNode *)CTX_wm_space_data(C);
@@ -125,13 +124,10 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 					if (ptr) RNA_id_pointer_create(&snode->nodetree->id, ptr);
 					return &snode->nodetree->gpd;
 				}
-				else {
-					/* even when there is no node-tree, don't allow this to flow to scene */
-					return NULL;
-				}
+
+				/* even when there is no node-tree, don't allow this to flow to scene */
+				return NULL;
 			}
-			break;
-				
 			case SPACE_SEQ: /* Sequencer */
 			{
 				SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
@@ -141,8 +137,6 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, ptr);
 				return &sseq->gpd;
 			}
-			break;
-			
 			case SPACE_IMAGE: /* Image/UV Editor */
 			{
 				SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
@@ -152,8 +146,6 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, ptr);
 				return &sima->gpd;
 			}
-			break;
-				
 			case SPACE_CLIP: /* Nodes Editor */
 			{
 				SpaceClip *sc = (SpaceClip *)CTX_wm_space_data(C);
@@ -178,9 +170,8 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 						return &clip->gpd;
 					}
 				}
+				break;
 			}
-			break;
-				
 			default: /* unsupported space */
 				return NULL;
 		}

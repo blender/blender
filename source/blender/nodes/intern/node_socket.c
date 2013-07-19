@@ -60,26 +60,30 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struc
 	
 	/* initialize default_value */
 	switch (stemp->type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			bNodeSocketValueFloat *dval = sock->default_value;
 			dval->value = stemp->val1;
 			dval->min = stemp->min;
 			dval->max = stemp->max;
 			break;
 		}
-		case SOCK_INT: {
+		case SOCK_INT:
+		{
 			bNodeSocketValueInt *dval = sock->default_value;
 			dval->value = (int)stemp->val1;
 			dval->min = (int)stemp->min;
 			dval->max = (int)stemp->max;
 			break;
 		}
-		case SOCK_BOOLEAN: {
+		case SOCK_BOOLEAN:
+		{
 			bNodeSocketValueBoolean *dval = sock->default_value;
 			dval->value = (int)stemp->val1;
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			bNodeSocketValueVector *dval = sock->default_value;
 			dval->value[0] = stemp->val1;
 			dval->value[1] = stemp->val2;
@@ -88,7 +92,8 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struc
 			dval->max = stemp->max;
 			break;
 		}
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			bNodeSocketValueRGBA *dval = sock->default_value;
 			dval->value[0] = stemp->val1;
 			dval->value[1] = stemp->val2;
@@ -202,7 +207,8 @@ void node_socket_init_default_value(bNodeSocket *sock)
 		return; /* already initialized */
 	
 	switch (type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			bNodeSocketValueFloat *dval = MEM_callocN(sizeof(bNodeSocketValueFloat), "node socket value float");
 			dval->subtype = subtype;
 			dval->value = 0.0f;
@@ -212,7 +218,8 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			sock->default_value = dval;
 			break;
 		}
-		case SOCK_INT: {
+		case SOCK_INT:
+		{
 			bNodeSocketValueInt *dval = MEM_callocN(sizeof(bNodeSocketValueInt), "node socket value int");
 			dval->subtype = subtype;
 			dval->value = 0;
@@ -222,14 +229,16 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			sock->default_value = dval;
 			break;
 		}
-		case SOCK_BOOLEAN: {
+		case SOCK_BOOLEAN:
+		{
 			bNodeSocketValueBoolean *dval = MEM_callocN(sizeof(bNodeSocketValueBoolean), "node socket value bool");
 			dval->value = false;
 		
 			sock->default_value = dval;
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			static float default_value[] = { 0.0f, 0.0f, 0.0f };
 			bNodeSocketValueVector *dval = MEM_callocN(sizeof(bNodeSocketValueVector), "node socket value vector");
 			dval->subtype = subtype;
@@ -240,7 +249,8 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			sock->default_value = dval;
 			break;
 		}
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			static float default_value[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 			bNodeSocketValueRGBA *dval = MEM_callocN(sizeof(bNodeSocketValueRGBA), "node socket value color");
 			copy_v4_v4(dval->value, default_value);
@@ -248,7 +258,8 @@ void node_socket_init_default_value(bNodeSocket *sock)
 			sock->default_value = dval;
 			break;
 		}
-		case SOCK_STRING: {
+		case SOCK_STRING:
+		{
 			bNodeSocketValueString *dval = MEM_callocN(sizeof(bNodeSocketValueString), "node socket value string");
 			dval->subtype = subtype;
 			dval->value[0] = '\0';
@@ -271,37 +282,43 @@ void node_socket_copy_default_value(bNodeSocket *to, bNodeSocket *from)
 	node_socket_init_default_value(to);
 	
 	switch (from->typeinfo->type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			bNodeSocketValueFloat *toval = to->default_value;
 			bNodeSocketValueFloat *fromval = from->default_value;
 			*toval = *fromval;
 			break;
 		}
-		case SOCK_INT: {
+		case SOCK_INT:
+		{
 			bNodeSocketValueInt *toval = to->default_value;
 			bNodeSocketValueInt *fromval = from->default_value;
 			*toval = *fromval;
 			break;
 		}
-		case SOCK_BOOLEAN: {
+		case SOCK_BOOLEAN:
+		{
 			bNodeSocketValueBoolean *toval = to->default_value;
 			bNodeSocketValueBoolean *fromval = from->default_value;
 			*toval = *fromval;
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			bNodeSocketValueVector *toval = to->default_value;
 			bNodeSocketValueVector *fromval = from->default_value;
 			*toval = *fromval;
 			break;
 		}
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			bNodeSocketValueRGBA *toval = to->default_value;
 			bNodeSocketValueRGBA *fromval = from->default_value;
 			*toval = *fromval;
 			break;
 		}
-		case SOCK_STRING: {
+		case SOCK_STRING:
+		{
 			bNodeSocketValueString *toval = to->default_value;
 			bNodeSocketValueString *fromval = from->default_value;
 			*toval = *fromval;
@@ -334,21 +351,24 @@ static void standard_node_socket_interface_verify_socket(bNodeTree *UNUSED(ntree
 	node_socket_init_default_value(sock);
 	
 	switch (stemp->typeinfo->type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			bNodeSocketValueFloat *toval = sock->default_value;
 			bNodeSocketValueFloat *fromval = stemp->default_value;
 			toval->min = fromval->min;
 			toval->max = fromval->max;
 			break;
 		}
-		case SOCK_INT: {
+		case SOCK_INT:
+		{
 			bNodeSocketValueInt *toval = sock->default_value;
 			bNodeSocketValueInt *fromval = stemp->default_value;
 			toval->min = fromval->min;
 			toval->max = fromval->max;
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			bNodeSocketValueVector *toval = sock->default_value;
 			bNodeSocketValueVector *fromval = stemp->default_value;
 			toval->min = fromval->min;

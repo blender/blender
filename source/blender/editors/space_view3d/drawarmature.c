@@ -186,8 +186,6 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 	
 			return true;
 		}
-		break;
-		
 		case PCHAN_COLOR_SOLID:
 		{
 			if (bcolor) {
@@ -198,8 +196,6 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 			
 			return true;
 		}
-		break;
-		
 		case PCHAN_COLOR_CONSTS:
 		{
 			if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
@@ -210,11 +206,8 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 			
 				return true;
 			}
-			else
-				return 0;
+			return false;
 		}
-		break;
-
 		case PCHAN_COLOR_SPHEREBONE_BASE:
 		{
 			if (bcolor) {
@@ -240,7 +233,6 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 			
 			return true;
 		}
-		break;
 		case PCHAN_COLOR_SPHEREBONE_END:
 		{
 			if (bcolor) {
@@ -266,9 +258,8 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 				else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, -30);
 				else UI_ThemeColorShade(TH_BONE_SOLID, -30);
 			}
+			break;
 		}
-		break;
-		
 		case PCHAN_COLOR_LINEBONE:
 		{
 			/* inner part in background color or constraint */
@@ -290,7 +281,6 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 		
 			return true;
 		}
-		break;
 	}
 	
 	return false;
@@ -1426,8 +1416,8 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 				
 				glEnd();
 				setlinestyle(0);
+				break;
 			}
-			break;
 			case CONSTRAINT_TYPE_SPLINEIK: 
 			{
 				bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
@@ -1451,8 +1441,8 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 
 				glEnd();
 				setlinestyle(0);
+				break;
 			}
-			break;
 		}
 	}
 }

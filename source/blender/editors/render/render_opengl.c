@@ -107,6 +107,10 @@ typedef struct OGLRender {
 	bMovieHandle *mh;
 	int cfrao, nfra;
 
+	/* wm vars for timer and progress cursor */
+	wmWindowManager *wm;
+	wmWindow *win;
+
 	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
 } OGLRender;
 
@@ -327,6 +331,9 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 static int screen_opengl_render_init(bContext *C, wmOperator *op)
 {
 	/* new render clears all callbacks */
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *prevsa = CTX_wm_area(C);
 	ARegion *prevar = CTX_wm_region(C);
@@ -353,7 +360,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	}
 
 	/* only one render job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
+	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
 		return 0;
 	
 	if (!is_view_context && scene->camera == NULL) {
@@ -367,7 +374,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	}
 
 	/* stop all running jobs, except screen one. currently previews frustrate Render */
-	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
+	WM_jobs_kill_all_except(wm, CTX_wm_screen(C));
 
 	/* create offscreen buffer */
 	sizex = (scene->r.size * scene->r.xsch) / 100;
@@ -380,9 +387,6 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
 		return 0;
 	}
-
-	/* handle UI stuff */
-	WM_cursor_wait(1);
 
 	/* allocate opengl render */
 	oglrender = MEM_callocN(sizeof(OGLRender), "OGLRender");
@@ -441,6 +445,10 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		rr->rectf = MEM_callocN(sizeof(float) * 4 * sizex * sizey, "screen_opengl_render_init rect");
 	RE_ReleaseResult(oglrender->re);
 
+	/* wm vars */
+	oglrender->wm = wm;
+	oglrender->win = win;
+
 	return 1;
 }
 
@@ -458,10 +466,13 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 		scene->r.cfra = oglrender->cfrao;
 		BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), oglrender->timer);
+		WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
 	}
 
-	WM_cursor_wait(0);
+	if (oglrender->win) {
+		WM_cursor_restore(oglrender->win);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
 
 	U.obcenter_dia = oglrender->obcenter_dia_back;
@@ -547,6 +558,10 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 			return 1;
 		}
+	}
+
+	if (oglrender->win) {
+		WM_cursor_time(oglrender->win, scene->r.cfra);
 	}
 
 	BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
@@ -714,7 +729,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
 	render_view_open(C, event->x, event->y);
 	
 	WM_event_add_modal_handler(C, op);
-	oglrender->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+	oglrender->timer = WM_event_add_timer(oglrender->wm, oglrender->win, TIMER, 0.01f);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

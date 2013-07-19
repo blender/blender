@@ -179,8 +179,10 @@ static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const int do_cache
 	if (seq->strip)
 		seq_free_strip(seq->strip);
 
-	if (seq->anim)
+	if (seq->anim) {
 		IMB_free_anim(seq->anim);
+		seq->anim = NULL;
+	}
 
 	if (seq->type & SEQ_TYPE_EFFECT) {
 		struct SeqEffectHandle sh = BKE_sequence_get_effect(seq);

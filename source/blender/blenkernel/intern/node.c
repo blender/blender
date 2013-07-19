@@ -525,60 +525,60 @@ bNodeSocket *nodeInsertSocket(bNodeTree *ntree, bNode *node, int in_out, const c
 const char *nodeStaticSocketType(int type, int subtype)
 {
 	switch (type) {
-	case SOCK_FLOAT:
-		switch (subtype) {
-		case PROP_UNSIGNED:
-			return "NodeSocketFloatUnsigned";
-		case PROP_PERCENTAGE:
-			return "NodeSocketFloatPercentage";
-		case PROP_FACTOR:
-			return "NodeSocketFloatFactor";
-		case PROP_ANGLE:
-			return "NodeSocketFloatAngle";
-		case PROP_TIME:
-			return "NodeSocketFloatTime";
-		case PROP_NONE:
-		default:
-			return "NodeSocketFloat";
-		}
-	case SOCK_INT:
-		switch (subtype) {
-		case PROP_UNSIGNED:
-			return "NodeSocketIntUnsigned";
-		case PROP_PERCENTAGE:
-			return "NodeSocketIntPercentage";
-		case PROP_FACTOR:
-			return "NodeSocketIntFactor";
-		case PROP_NONE:
-		default:
-			return "NodeSocketInt";
-		}
-	case SOCK_BOOLEAN:
-		return "NodeSocketBool";
-	case SOCK_VECTOR:
-		switch (subtype) {
-		case PROP_TRANSLATION:
-			return "NodeSocketVectorTranslation";
-		case PROP_DIRECTION:
-			return "NodeSocketVectorDirection";
-		case PROP_VELOCITY:
-			return "NodeSocketVectorVelocity";
-		case PROP_ACCELERATION:
-			return "NodeSocketVectorAcceleration";
-		case PROP_EULER:
-			return "NodeSocketVectorEuler";
-		case PROP_XYZ:
-			return "NodeSocketVectorXYZ";
-		case PROP_NONE:
-		default:
-			return "NodeSocketVector";
-		}
-	case SOCK_RGBA:
-		return "NodeSocketColor";
-	case SOCK_STRING:
-		return "NodeSocketString";
-	case SOCK_SHADER:
-		return "NodeSocketShader";
+		case SOCK_FLOAT:
+			switch (subtype) {
+				case PROP_UNSIGNED:
+					return "NodeSocketFloatUnsigned";
+				case PROP_PERCENTAGE:
+					return "NodeSocketFloatPercentage";
+				case PROP_FACTOR:
+					return "NodeSocketFloatFactor";
+				case PROP_ANGLE:
+					return "NodeSocketFloatAngle";
+				case PROP_TIME:
+					return "NodeSocketFloatTime";
+				case PROP_NONE:
+				default:
+					return "NodeSocketFloat";
+			}
+		case SOCK_INT:
+			switch (subtype) {
+				case PROP_UNSIGNED:
+					return "NodeSocketIntUnsigned";
+				case PROP_PERCENTAGE:
+					return "NodeSocketIntPercentage";
+				case PROP_FACTOR:
+					return "NodeSocketIntFactor";
+				case PROP_NONE:
+				default:
+					return "NodeSocketInt";
+			}
+		case SOCK_BOOLEAN:
+			return "NodeSocketBool";
+		case SOCK_VECTOR:
+			switch (subtype) {
+				case PROP_TRANSLATION:
+					return "NodeSocketVectorTranslation";
+				case PROP_DIRECTION:
+					return "NodeSocketVectorDirection";
+				case PROP_VELOCITY:
+					return "NodeSocketVectorVelocity";
+				case PROP_ACCELERATION:
+					return "NodeSocketVectorAcceleration";
+				case PROP_EULER:
+					return "NodeSocketVectorEuler";
+				case PROP_XYZ:
+					return "NodeSocketVectorXYZ";
+				case PROP_NONE:
+				default:
+					return "NodeSocketVector";
+			}
+		case SOCK_RGBA:
+			return "NodeSocketColor";
+		case SOCK_STRING:
+			return "NodeSocketString";
+		case SOCK_SHADER:
+			return "NodeSocketShader";
 	}
 	return NULL;
 }
@@ -586,60 +586,60 @@ const char *nodeStaticSocketType(int type, int subtype)
 const char *nodeStaticSocketInterfaceType(int type, int subtype)
 {
 	switch (type) {
-	case SOCK_FLOAT:
-		switch (subtype) {
-		case PROP_UNSIGNED:
-			return "NodeSocketInterfaceFloatUnsigned";
-		case PROP_PERCENTAGE:
-			return "NodeSocketInterfaceFloatPercentage";
-		case PROP_FACTOR:
-			return "NodeSocketInterfaceFloatFactor";
-		case PROP_ANGLE:
-			return "NodeSocketInterfaceFloatAngle";
-		case PROP_TIME:
-			return "NodeSocketInterfaceFloatTime";
-		case PROP_NONE:
-		default:
-			return "NodeSocketInterfaceFloat";
-		}
-	case SOCK_INT:
-		switch (subtype) {
-		case PROP_UNSIGNED:
-			return "NodeSocketInterfaceIntUnsigned";
-		case PROP_PERCENTAGE:
-			return "NodeSocketInterfaceIntPercentage";
-		case PROP_FACTOR:
-			return "NodeSocketInterfaceIntFactor";
-		case PROP_NONE:
-		default:
-			return "NodeSocketInterfaceInt";
-		}
-	case SOCK_BOOLEAN:
-		return "NodeSocketInterfaceBool";
-	case SOCK_VECTOR:
-		switch (subtype) {
-		case PROP_TRANSLATION:
-			return "NodeSocketInterfaceVectorTranslation";
-		case PROP_DIRECTION:
-			return "NodeSocketInterfaceVectorDirection";
-		case PROP_VELOCITY:
-			return "NodeSocketInterfaceVectorVelocity";
-		case PROP_ACCELERATION:
-			return "NodeSocketInterfaceVectorAcceleration";
-		case PROP_EULER:
-			return "NodeSocketInterfaceVectorEuler";
-		case PROP_XYZ:
-			return "NodeSocketInterfaceVectorXYZ";
-		case PROP_NONE:
-		default:
-			return "NodeSocketInterfaceVector";
-		}
-	case SOCK_RGBA:
-		return "NodeSocketInterfaceColor";
-	case SOCK_STRING:
-		return "NodeSocketInterfaceString";
-	case SOCK_SHADER:
-		return "NodeSocketInterfaceShader";
+		case SOCK_FLOAT:
+			switch (subtype) {
+				case PROP_UNSIGNED:
+					return "NodeSocketInterfaceFloatUnsigned";
+				case PROP_PERCENTAGE:
+					return "NodeSocketInterfaceFloatPercentage";
+				case PROP_FACTOR:
+					return "NodeSocketInterfaceFloatFactor";
+				case PROP_ANGLE:
+					return "NodeSocketInterfaceFloatAngle";
+				case PROP_TIME:
+					return "NodeSocketInterfaceFloatTime";
+				case PROP_NONE:
+				default:
+					return "NodeSocketInterfaceFloat";
+			}
+		case SOCK_INT:
+			switch (subtype) {
+				case PROP_UNSIGNED:
+					return "NodeSocketInterfaceIntUnsigned";
+				case PROP_PERCENTAGE:
+					return "NodeSocketInterfaceIntPercentage";
+				case PROP_FACTOR:
+					return "NodeSocketInterfaceIntFactor";
+				case PROP_NONE:
+				default:
+					return "NodeSocketInterfaceInt";
+			}
+		case SOCK_BOOLEAN:
+			return "NodeSocketInterfaceBool";
+		case SOCK_VECTOR:
+			switch (subtype) {
+				case PROP_TRANSLATION:
+					return "NodeSocketInterfaceVectorTranslation";
+				case PROP_DIRECTION:
+					return "NodeSocketInterfaceVectorDirection";
+				case PROP_VELOCITY:
+					return "NodeSocketInterfaceVectorVelocity";
+				case PROP_ACCELERATION:
+					return "NodeSocketInterfaceVectorAcceleration";
+				case PROP_EULER:
+					return "NodeSocketInterfaceVectorEuler";
+				case PROP_XYZ:
+					return "NodeSocketInterfaceVectorXYZ";
+				case PROP_NONE:
+				default:
+					return "NodeSocketInterfaceVector";
+			}
+		case SOCK_RGBA:
+			return "NodeSocketInterfaceColor";
+		case SOCK_STRING:
+			return "NodeSocketInterfaceString";
+		case SOCK_SHADER:
+			return "NodeSocketInterfaceShader";
 	}
 	return NULL;
 }

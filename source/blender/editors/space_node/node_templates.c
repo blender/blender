@@ -675,23 +675,23 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 		/* input not linked, show value */
 		if (!(input->flag & SOCK_HIDE_VALUE)) {
 			switch (input->type) {
-			case SOCK_FLOAT:
-			case SOCK_INT:
-			case SOCK_BOOLEAN:
-			case SOCK_RGBA:
-			case SOCK_STRING:
-				row = uiLayoutRow(split, TRUE);
-				uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
-				break;
-			case SOCK_VECTOR:
-				row = uiLayoutRow(split, FALSE);
-				col = uiLayoutColumn(row, FALSE);
-				uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
-				break;
-				
-			default:
-				row = uiLayoutRow(split, FALSE);
-				break;
+				case SOCK_FLOAT:
+				case SOCK_INT:
+				case SOCK_BOOLEAN:
+				case SOCK_RGBA:
+				case SOCK_STRING:
+					row = uiLayoutRow(split, TRUE);
+					uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
+					break;
+				case SOCK_VECTOR:
+					row = uiLayoutRow(split, FALSE);
+					col = uiLayoutColumn(row, FALSE);
+					uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
+					break;
+					
+				default:
+					row = uiLayoutRow(split, FALSE);
+					break;
 			}
 		}
 		else

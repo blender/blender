@@ -31,7 +31,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_buffer.h"
 
 #include "BKE_customdata.h"
@@ -54,83 +53,41 @@ enum {
 
 void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 {
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
-	BMEdge **edges = NULL;
-	BLI_array_declare(edges);
-
 	BMOIter siter;
-	BMIter liter, liter2;
-	BMFace *f, *f2, *f3;
-	BMLoop *l, *l2, *l3, *l4, *l_tmp;
-	BMEdge *e, *laste;
-	BMVert *v, *lastv, *firstv;
-	int i;
+	BMFace *f_org;
 
-	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		BLI_array_empty(verts);
-		BLI_array_empty(edges);
-		BLI_array_grow_items(verts, f->len);
-		BLI_array_grow_items(edges, f->len);
+	BMO_ITER (f_org, &siter, op->slots_in, "faces", BM_FACE) {
+		BMFace *f_new;
+		BMLoop *l_org, *l_org_first;
+		BMLoop *l_new;
 
-		i = 0;
-		firstv = lastv = NULL;
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			v = BM_vert_create(bm, l->v->co, l->v, 0);
-			/* skip on the first iteration */
-			if (lastv) {
-				e = BM_edge_create(bm, lastv, v, l->e, 0);
-				edges[i] = e;
-				verts[i] = lastv;
-				i++;
-			}
+		BMO_elem_flag_enable(bm, f_org, EXT_DEL);
 
-			lastv = v;
-			laste = l->e;
-			if (!firstv) firstv = v;
-		}
+		f_new = BM_face_copy(bm, bm, f_org, true, true);
+		BMO_elem_flag_enable(bm, f_new, EXT_KEEP);
 
-		/* this fits in the array because we skip one in the loop above */
-		e = BM_edge_create(bm, v, firstv, laste, 0);
-		edges[i] = e;
-		verts[i] = lastv;
-		i++;
+		l_org = l_org_first = BM_FACE_FIRST_LOOP(f_org);
+		l_new = BM_FACE_FIRST_LOOP(f_new);
 
-		BMO_elem_flag_enable(bm, f, EXT_DEL);
+		do {
+			BMFace *f_side;
+			BMLoop *l_side_iter;
 
-		f2 = BM_face_create(bm, verts, edges, f->len, 0);
-		if (UNLIKELY(f2 == NULL)) {
-			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed: could not create face");
-			BLI_array_free(edges);
-			return;
-		}
-		
-		BMO_elem_flag_enable(bm, f2, EXT_KEEP);
-		BM_elem_attrs_copy(bm, bm, f, f2);
+			BM_elem_attrs_copy(bm, bm, l_org, l_new);
 
-		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			BM_elem_attrs_copy(bm, bm, l, l2);
+			f_side = BM_face_create_quad_tri(bm,
+			                                 l_org->next->v, l_new->next->v, l_new->v, l_org->v,
+			                                 f_org, false);
 
-			l3 = l->next;
-			l4 = l2->next;
+			l_side_iter = BM_FACE_FIRST_LOOP(f_side);
 
-			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, false);
-			/* XXX, no error check here, why? - Campbell */
-
-			l_tmp = BM_FACE_FIRST_LOOP(f3);
-
-			BM_elem_attrs_copy(bm, bm, l->next, l_tmp);  l_tmp = l_tmp->next;
-			BM_elem_attrs_copy(bm, bm, l->next, l_tmp);  l_tmp = l_tmp->next;
-			BM_elem_attrs_copy(bm, bm, l, l_tmp);        l_tmp = l_tmp->next;
-			BM_elem_attrs_copy(bm, bm, l, l_tmp);
-
-			l2 = BM_iter_step(&liter2);
-		}
+			BM_elem_attrs_copy(bm, bm, l_org->next, l_side_iter);  l_side_iter = l_side_iter->next;
+			BM_elem_attrs_copy(bm, bm, l_org->next, l_side_iter);  l_side_iter = l_side_iter->next;
+			BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);        l_side_iter = l_side_iter->next;
+			BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);
+		} while (((l_new = l_new->next),
+		          (l_org = l_org->next)) != l_org_first);
 	}
-
-	BLI_array_free(verts);
-	BLI_array_free(edges);
 
 	BMO_op_callf(bm, op->flag,
 	             "delete geom=%ff context=%i",

@@ -723,6 +723,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.separator()
 
+        layout.operator("lattice.select_random")
         layout.operator("lattice.select_all").action = 'TOGGLE'
         layout.operator("lattice.select_all", text="Inverse").action = 'INVERT'
 
@@ -744,6 +745,11 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.operator("armature.select_all").action = 'TOGGLE'
         layout.operator("armature.select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("armature.select_more", text="More")
+        layout.operator("armature.select_less", text="Less")
 
         layout.separator()
 

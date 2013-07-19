@@ -1032,7 +1032,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 			[m_window zoom:nil];
 			break;
 		
-		case GHOST_kWindowStateFullScreen: {
+		case GHOST_kWindowStateFullScreen:
+		{
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 			NSUInteger masks = [m_window styleMask];
 

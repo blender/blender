@@ -494,6 +494,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 	float a1, a2, b1, b2, c1, c2, d;
 	float u, v;
 	const float eps = 0.000001f;
+	const float eps_sq = eps * eps;
 
 	a1 = v2[0] - v1[0];
 	b1 = v4[0] - v3[0];
@@ -510,8 +511,8 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			float a[2], b[2], c[2];
 			float u2;
 
-			if (len_v2v2(v1, v2) == 0.0f) {
-				if (len_v2v2(v3, v4) > eps) {
+			if (equals_v2v2(v1, v2)) {
+				if (len_squared_v2v2(v3, v4) > eps_sq) {
 					/* use non-point segment as basis */
 					SWAP(const float *, v1, v3);
 					SWAP(const float *, v2, v4);

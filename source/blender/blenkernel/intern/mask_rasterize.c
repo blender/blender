@@ -496,10 +496,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 					/* this should _almost_ never happen but since it can in extreme cases,
 					 * we have to clamp the values or we overrun the buffer and crash */
-					CLAMP(xi_min, 0, layer->buckets_x - 1);
-					CLAMP(xi_max, 0, layer->buckets_x - 1);
-					CLAMP(yi_min, 0, layer->buckets_y - 1);
-					CLAMP(yi_max, 0, layer->buckets_y - 1);
+					if (xi_min >= layer->buckets_x) xi_min = layer->buckets_x - 1;
+					if (xi_max >= layer->buckets_x) xi_max = layer->buckets_x - 1;
+					if (yi_min >= layer->buckets_y) yi_min = layer->buckets_y - 1;
+					if (yi_max >= layer->buckets_y) yi_max = layer->buckets_y - 1;
 
 					for (yi = yi_min; yi <= yi_max; yi++) {
 						unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;

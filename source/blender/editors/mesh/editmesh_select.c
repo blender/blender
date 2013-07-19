@@ -927,10 +927,11 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 		}
 		else if (em->selectmode & SCE_SELECT_FACE) {
 #ifdef WITH_FREESTYLE
-			for (a = SIMFACE_MATERIAL; a <= SIMFACE_FREESTYLE; a++) {
+			const int a_end = SIMFACE_FREESTYLE;
 #else
-			for (a = SIMFACE_MATERIAL; a <= SIMFACE_COPLANAR; a++) {
+			const int a_end = SIMFACE_COPLANAR;
 #endif
+			for (a = SIMFACE_MATERIAL; a <= a_end; a++) {
 				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
 			}
 		}

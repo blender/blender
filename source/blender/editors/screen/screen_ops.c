@@ -2463,8 +2463,8 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					WM_event_add_notifier(C, NC_WINDOW, NULL);
 				}
 			}
+			break;
 		}
-		break;
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
 				ED_area_tag_redraw(jd->sa1);

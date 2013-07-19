@@ -242,8 +242,8 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				else 
 					uiDefBut(block, LABEL, 1, ")  ", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 			}
+			break;
 		}
-		break;
 	}
 }
 

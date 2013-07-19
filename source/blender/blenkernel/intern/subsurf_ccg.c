@@ -1970,7 +1970,7 @@ static void ccgDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
 /* Only used by non-editmesh types */
 static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
                                      void (*setMaterial)(void *userData, int, void *attribs),
-                                     int (*setFace)(void *userData, int index), void *userData)
+                                     bool (*setFace)(void *userData, int index), void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;

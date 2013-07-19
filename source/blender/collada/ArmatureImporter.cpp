@@ -133,24 +133,28 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 	add_v3_v3v3(bone->tail, bone->head, vec);
 
 	// set parent tail
-	if (parent && totchild == 1) {
-		copy_v3_v3(parent->tail, bone->head);
-
-		// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
-		bone->flag |= BONE_CONNECTED;
+	if (parent) {
 
 		// XXX increase this to prevent "very" small bones?
 		const float epsilon = 0.000001f;
 
 		// derive leaf bone length
-		float length = len_v3v3(parent->head, parent->tail);
+		float length = len_v3v3(parent->head, bone->head);
 		if ((length < leaf_bone_length || totbone == 0) && length > epsilon) {
 			leaf_bone_length = length;
 		}
 
-		// treat zero-sized bone like a leaf bone
-		if (length <= epsilon) {
-			add_leaf_bone(parent_mat, parent, node);
+		if (totchild == 1) {
+			copy_v3_v3(parent->tail, bone->head);
+
+			// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
+			bone->flag |= BONE_CONNECTED;
+
+
+			// treat zero-sized bone like a leaf bone
+			if (length <= epsilon) {
+				add_leaf_bone(parent_mat, parent, node);
+			}
 		}
 
 	}

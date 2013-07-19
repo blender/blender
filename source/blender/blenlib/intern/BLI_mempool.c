@@ -437,19 +437,22 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
 	BLI_mempool_chunk *mpchunk = NULL;
+	BLI_mempool_chunk *mpchunk_next;
 
 	if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
-		for (mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
+		for (mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk_next) {
+			mpchunk_next = mpchunk->next;
 			free(mpchunk->data);
+			free(mpchunk);
 		}
-		BLI_freelist(&(pool->chunks));
 		free(pool);
 	}
 	else {
-		for (mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
+		for (mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk_next) {
+			mpchunk_next = mpchunk->next;
 			MEM_freeN(mpchunk->data);
+			MEM_freeN(mpchunk);
 		}
-		BLI_freelistN(&(pool->chunks));
 		MEM_freeN(pool);
 	}
 }

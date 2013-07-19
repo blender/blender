@@ -2921,9 +2921,8 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
+					break;
 				}
-				break;
-					
 				case sizeof(short): /* short pointer for setting */
 				{
 					short *val = (short *)ptr;
@@ -2932,9 +2931,8 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
+					break;
 				}
-				break;
-					
 				case sizeof(char):  /* char pointer for setting */
 				{
 					char *val = (char *)ptr;
@@ -2943,8 +2941,8 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
+					break;
 				}
-				break;
 			}
 		}
 	}
@@ -2994,22 +2992,20 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
 				{
 					int *val = (int *)ptr;
 					ACF_SETTING_SET(*val, flag, mode);
+					break;
 				}
-				break;
-					
 				case sizeof(short): /* short pointer for setting */
 				{
 					short *val = (short *)ptr;
 					ACF_SETTING_SET(*val, flag, mode);
+					break;
 				}
-				break;
-					
 				case sizeof(char):  /* char pointer for setting */
 				{
 					char *val = (char *)ptr;
 					ACF_SETTING_SET(*val, flag, mode);
+					break;
 				}
-				break;
 			}
 		}
 	}
@@ -3156,14 +3152,14 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				{
 					SpaceAction *saction = (SpaceAction *)ac->sl;
 					draw_sliders = (saction->flag & SACTION_SLIDERS);
+					break;
 				}
-				break;
 				case SPACE_IPO:
 				{
 					SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 					draw_sliders = (sipo->flag & SIPO_SLIDERS);
+					break;
 				}
-				break;
 			}
 		}
 
@@ -3546,14 +3542,14 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				{
 					SpaceAction *saction = (SpaceAction *)ac->sl;
 					draw_sliders = (saction->flag & SACTION_SLIDERS);
+					break;
 				}
-				break;
 				case SPACE_IPO:
 				{
 					SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 					draw_sliders = (sipo->flag & SIPO_SLIDERS);
+					break;
 				}
-				break;
 			}
 		}
 		

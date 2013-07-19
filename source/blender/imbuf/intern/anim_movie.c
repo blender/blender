@@ -429,10 +429,9 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 			}
 		}
 	}
-	else {
-#else
-	if (1) {
+	else
 #endif
+	{
 		ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
 
 		tmp = AVI_read_frame(anim->avi, AVI_FORMAT_RGB32, position,

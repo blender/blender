@@ -1004,8 +1004,8 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 				
 				// XXX: only object transforms?
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				break;
 			}
-			break;
 		}
 		
 		/* send notifiers for updates (this doesn't require context to work!) */

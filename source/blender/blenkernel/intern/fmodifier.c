@@ -213,9 +213,8 @@ static void fcm_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *c
 			/* cleanup */
 			if (powers) 
 				MEM_freeN(powers);
+			break;
 		}
-		break;
-			
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial */
 		{
 			float value = 1.0f, *cp = NULL;
@@ -232,8 +231,8 @@ static void fcm_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *c
 				else
 					*cvalue = value;
 			}
+			break;
 		}
-		break;
 	}
 }
 
@@ -316,8 +315,8 @@ static void fcm_fn_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float
 			}
 			else
 				fn = tan;
+			break;
 		}
-		break;
 		case FCM_GENERATOR_FN_LN: /* natural log */
 		{
 			/* check that value is greater than 1? */
@@ -328,8 +327,8 @@ static void fcm_fn_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float
 				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 					*cvalue = 0.0f;  /* no value possible here */
 			}
+			break;
 		}
-		break;
 		case FCM_GENERATOR_FN_SQRT: /* square root */
 		{
 			/* no negative numbers */
@@ -340,9 +339,8 @@ static void fcm_fn_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float
 				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 					*cvalue = 0.0f;  /* no value possible here */
 			}
+			break;
 		}
-		break;
-		
 		default:
 			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
 	}
