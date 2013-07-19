@@ -37,6 +37,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -168,6 +169,59 @@ void load_editLatt(Object *obedit)
 		lt->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
 		BKE_defvert_array_copy(lt->dvert, editlt->dvert, tot);
 	}
+}
+
+/************************** Select Random Operator **********************/
+
+static int lattice_select_random_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Lattice *lt = ((Lattice*)obedit->data)->editlatt->latt;
+	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+	int tot;
+	BPoint *bp;
+
+	if (!RNA_boolean_get(op->ptr, "extend")) {
+		ED_setflagsLatt(obedit, !SELECT);
+	}
+	else {
+		lt->actbp = LT_ACTBP_NONE;
+	}
+
+	tot = lt->pntsu * lt->pntsv * lt->pntsw;
+	bp = lt->def;
+	while (tot--) {
+		if (!bp->hide) {
+			if (BLI_frand() < randfac) {
+				bp->f1 |= SELECT;
+			}
+		}
+		bp++;
+	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void LATTICE_OT_select_random(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Random";
+	ot->description = "Randomly select UVW control points";
+	ot->idname = "LATTICE_OT_select_random";
+
+	/* api callbacks */
+	ot->exec = lattice_select_random_exec;
+	ot->poll = ED_operator_editlattice;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
+	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /************************** Select All Operator *************************/
