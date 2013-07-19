@@ -96,8 +96,7 @@ typedef struct uiWidgetBase {
 	float inner_v[WIDGET_SIZE_MAX][2];
 	float inner_uv[WIDGET_SIZE_MAX][2];
 	
-	short inner, outline, emboss; /* set on/off */
-	short shadedir;
+	bool inner, outline, emboss, shadedir;
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -2365,7 +2364,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, const rcti *rect, const rcti *slid
 	uiWidgetBase wtb;
 	int horizontal;
 	float rad;
-	short outline = 0;
+	bool outline = false;
 
 	widget_init(&wtb);
 
@@ -2409,8 +2408,9 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, const rcti *rect, const rcti *slid
 		wtb.emboss = 0; /* only emboss once */
 		
 		/* exception for progress bar */
-		if (state & UI_SCROLL_NO_OUTLINE)
-			SWAP(short, outline, wtb.outline);
+		if (state & UI_SCROLL_NO_OUTLINE) {
+			SWAP(bool, outline, wtb.outline);
+		}
 		
 		round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
 		
@@ -2431,8 +2431,9 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, const rcti *rect, const rcti *slid
 		}
 		widgetbase_draw(&wtb, wcol);
 		
-		if (state & UI_SCROLL_NO_OUTLINE)
-			SWAP(short, outline, wtb.outline);
+		if (state & UI_SCROLL_NO_OUTLINE) {
+			SWAP(bool, outline, wtb.outline);
+		}
 	}
 }
 
