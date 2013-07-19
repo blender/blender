@@ -74,9 +74,28 @@ std::vector<SCA_DebugProp*>& SCA_IScene::GetDebugProperties()
 void SCA_IScene::AddDebugProperty(class CValue* debugprop,
 								  const STR_String &name)
 {
-	SCA_DebugProp* dprop = new SCA_DebugProp();
-	dprop->m_obj = debugprop;
-	debugprop->AddRef();
-	dprop->m_name = name;
-	m_debugList.push_back(dprop);
+	if (m_debugList.size() < DEBUG_MAX_DISPLAY) {
+		SCA_DebugProp* dprop = new SCA_DebugProp();
+		dprop->m_obj = debugprop;
+		debugprop->AddRef();
+		dprop->m_name = name;
+		m_debugList.push_back(dprop);
+	}
 }
+
+
+void SCA_IScene::RemoveObjectDebugProperties(class CValue* gameobj)
+{	
+	vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
+	while(it != m_debugList.end()) {
+		CValue* debugobj = (*it)->m_obj;
+
+		if (debugobj == gameobj) {
+			delete (*it);
+			m_debugList.erase(it);
+			continue;
+		}
+		++it;
+	}
+}
+

@@ -53,6 +53,10 @@ class BL_Material;
 struct Main;
 struct Scene;
 struct ThreadInfo;
+struct Material;
+
+typedef map<KX_Scene*, map<Material*, BL_Material*> > MaterialCache;
+typedef map<KX_Scene*, map<Material*, RAS_IPolyMaterial*> > PolyMaterialCache;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
 {
@@ -66,8 +70,8 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	ThreadInfo	*m_threadinfo;
 
 	// Cached material conversions
-	map<struct Material*, BL_Material*> m_mat_cache;
-	map<struct Material*, RAS_IPolyMaterial*> m_polymat_cache;
+	MaterialCache m_mat_cache;
+	PolyMaterialCache m_polymat_cache;
 
 	// Saved KX_LibLoadStatus objects
 	map<char *, class KX_LibLoadStatus*> m_status_map;
@@ -126,12 +130,12 @@ public:
 	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh/*, unsigned int onlayer*/);
 
 	void RegisterPolyMaterial(RAS_IPolyMaterial *polymat);
-	void CachePolyMaterial(struct Material *mat, RAS_IPolyMaterial *polymat);
-	RAS_IPolyMaterial *FindCachedPolyMaterial(struct Material *mat);
+	void CachePolyMaterial(KX_Scene *scene, Material *mat, RAS_IPolyMaterial *polymat);
+	RAS_IPolyMaterial *FindCachedPolyMaterial(KX_Scene *scene, Material *mat);
 
 	void RegisterBlenderMaterial(BL_Material *mat);
-	void CacheBlenderMaterial(struct Material *mat, BL_Material *blmat);
-	BL_Material *FindCachedBlenderMaterial(struct Material *mat);
+	void CacheBlenderMaterial(KX_Scene *scene, Material *mat, BL_Material *blmat);
+	BL_Material *FindCachedBlenderMaterial(KX_Scene *scene, Material *mat);
 	
 	void RegisterInterpolatorList(BL_InterpolatorList *actList, struct bAction *for_act);
 	BL_InterpolatorList *FindInterpolatorList(struct bAction *for_act);
