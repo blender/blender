@@ -64,32 +64,32 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				out[0]->vec[0] = 0.0;
 			else
 				out[0]->vec[0] = in[0]->vec[0] / in[1]->vec[0];
+			break;
 		}
-		break;
 		case 4: /* Sine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0] = sin(in[0]->vec[0]);
 			else
 				out[0]->vec[0] = sin(in[1]->vec[0]);
+			break;
 		}
-		break;
 		case 5: /* Cosine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0] = cos(in[0]->vec[0]);
 			else
 				out[0]->vec[0] = cos(in[1]->vec[0]);
+			break;
 		}
-		break;
 		case 6: /* Tangent */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0] = tan(in[0]->vec[0]);
 			else
 				out[0]->vec[0] = tan(in[1]->vec[0]);
+			break;
 		}
-		break;
 		case 7: /* Arc-Sine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
@@ -106,8 +106,8 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				else
 					out[0]->vec[0] = 0.0;
 			}
+			break;
 		}
-		break;
 		case 8: /* Arc-Cosine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
@@ -124,16 +124,16 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				else
 					out[0]->vec[0] = 0.0;
 			}
+			break;
 		}
-		break;
 		case 9: /* Arc-Tangent */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0] = atan(in[0]->vec[0]);
 			else
 				out[0]->vec[0] = atan(in[1]->vec[0]);
+			break;
 		}
-		break;
 		case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
@@ -152,8 +152,8 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				}
 			}
 
+			break;
 		}
-		break;
 		case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
@@ -161,56 +161,56 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				out[0]->vec[0] = log(in[0]->vec[0]) / log(in[1]->vec[0]);
 			else
 				out[0]->vec[0] = 0.0;
+			break;
 		}
-		break;
 		case 12: /* Minimum */
 		{
 			if (in[0]->vec[0] < in[1]->vec[0])
 				out[0]->vec[0] = in[0]->vec[0];
 			else
 				out[0]->vec[0] = in[1]->vec[0];
+			break;
 		}
-		break;
 		case 13: /* Maximum */
 		{
 			if (in[0]->vec[0] > in[1]->vec[0])
 				out[0]->vec[0] = in[0]->vec[0];
 			else
 				out[0]->vec[0] = in[1]->vec[0];
+			break;
 		}
-		break;
 		case 14: /* Round */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0] = (in[0]->vec[0] < 0) ? (int)(in[0]->vec[0] - 0.5f) : (int)(in[0]->vec[0] + 0.5f);
 			else
 				out[0]->vec[0] = (in[1]->vec[0] < 0) ? (int)(in[1]->vec[0] - 0.5f) : (int)(in[1]->vec[0] + 0.5f);
+			break;
 		}
-		break;
 		case 15: /* Less Than */
 		{
 			if (in[0]->vec[0] < in[1]->vec[0])
 				out[0]->vec[0] = 1.0f;
 			else
 				out[0]->vec[0] = 0.0f;
+			break;
 		}
-		break;
 		case 16: /* Greater Than */
 		{
 			if (in[0]->vec[0] > in[1]->vec[0])
 				out[0]->vec[0] = 1.0f;
 			else
 				out[0]->vec[0] = 0.0f;
+			break;
 		}
-		break;
 		case 17: /* Modulo */
 		{
 			if (in[1]->vec[0] == 0.0f)
 				out[0]->vec[0] = 0.0f;
 			else
 				out[0]->vec[0] = fmod(in[0]->vec[0], in[1]->vec[0]);
+			break;
 		}
-		break;
 	}
 }
 

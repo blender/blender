@@ -1079,26 +1079,26 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 				{
 					Scene *scene = (Scene *)ale->key_data;
 					scene_to_keylist(ads, scene, &anim_keys, NULL);
+					break;
 				}
-				break;
 				case ALE_OB:
 				{
 					Object *ob = (Object *)ale->key_data;
 					ob_to_keylist(ads, ob, &anim_keys, NULL);
+					break;
 				}
-				break;
 				case ALE_ACT:
 				{
 					bAction *act = (bAction *)ale->key_data;
 					action_to_keylist(adt, act, &anim_keys, NULL);
+					break;
 				}
-				break;
 				case ALE_FCURVE:
 				{
 					FCurve *fcu = (FCurve *)ale->key_data;
 					fcurve_to_keylist(adt, fcu, &anim_keys, NULL);
+					break;
 				}
-				break;
 			}
 		}
 		else if (ale->type == ANIMTYPE_SUMMARY) {

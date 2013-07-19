@@ -1066,21 +1066,21 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (freestyle_get_modifier_type(&ptr)) {
-	case LS_MODIFIER_TYPE_COLOR:
-		BKE_remove_linestyle_color_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_ALPHA:
-		BKE_remove_linestyle_alpha_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_THICKNESS:
-		BKE_remove_linestyle_thickness_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_GEOMETRY:
-		BKE_remove_linestyle_geometry_modifier(lineset->linestyle, modifier);
-		break;
-	default:
-		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
-		return OPERATOR_CANCELLED;
+		case LS_MODIFIER_TYPE_COLOR:
+			BKE_remove_linestyle_color_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_ALPHA:
+			BKE_remove_linestyle_alpha_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_THICKNESS:
+			BKE_remove_linestyle_thickness_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_GEOMETRY:
+			BKE_remove_linestyle_geometry_modifier(lineset->linestyle, modifier);
+			break;
+		default:
+			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
+			return OPERATOR_CANCELLED;
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -1116,21 +1116,21 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (freestyle_get_modifier_type(&ptr)) {
-	case LS_MODIFIER_TYPE_COLOR:
-		BKE_copy_linestyle_color_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_ALPHA:
-		BKE_copy_linestyle_alpha_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_THICKNESS:
-		BKE_copy_linestyle_thickness_modifier(lineset->linestyle, modifier);
-		break;
-	case LS_MODIFIER_TYPE_GEOMETRY:
-		BKE_copy_linestyle_geometry_modifier(lineset->linestyle, modifier);
-		break;
-	default:
-		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
-		return OPERATOR_CANCELLED;
+		case LS_MODIFIER_TYPE_COLOR:
+			BKE_copy_linestyle_color_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_ALPHA:
+			BKE_copy_linestyle_alpha_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_THICKNESS:
+			BKE_copy_linestyle_thickness_modifier(lineset->linestyle, modifier);
+			break;
+		case LS_MODIFIER_TYPE_GEOMETRY:
+			BKE_copy_linestyle_geometry_modifier(lineset->linestyle, modifier);
+			break;
+		default:
+			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
+			return OPERATOR_CANCELLED;
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -1167,21 +1167,21 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (freestyle_get_modifier_type(&ptr)) {
-	case LS_MODIFIER_TYPE_COLOR:
-		BKE_move_linestyle_color_modifier(lineset->linestyle, modifier, dir);
-		break;
-	case LS_MODIFIER_TYPE_ALPHA:
-		BKE_move_linestyle_alpha_modifier(lineset->linestyle, modifier, dir);
-		break;
-	case LS_MODIFIER_TYPE_THICKNESS:
-		BKE_move_linestyle_thickness_modifier(lineset->linestyle, modifier, dir);
-		break;
-	case LS_MODIFIER_TYPE_GEOMETRY:
-		BKE_move_linestyle_geometry_modifier(lineset->linestyle, modifier, dir);
-		break;
-	default:
-		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
-		return OPERATOR_CANCELLED;
+		case LS_MODIFIER_TYPE_COLOR:
+			BKE_move_linestyle_color_modifier(lineset->linestyle, modifier, dir);
+			break;
+		case LS_MODIFIER_TYPE_ALPHA:
+			BKE_move_linestyle_alpha_modifier(lineset->linestyle, modifier, dir);
+			break;
+		case LS_MODIFIER_TYPE_THICKNESS:
+			BKE_move_linestyle_thickness_modifier(lineset->linestyle, modifier, dir);
+			break;
+		case LS_MODIFIER_TYPE_GEOMETRY:
+			BKE_move_linestyle_geometry_modifier(lineset->linestyle, modifier, dir);
+			break;
+		default:
+			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
+			return OPERATOR_CANCELLED;
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 

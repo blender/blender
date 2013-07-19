@@ -2002,8 +2002,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 				initBoneEnvelope(t);
 			else
 				initBoneSize(t);
+			break;
 		}
-		break;
 		case TFM_BONE_ENVELOPE:
 			initBoneEnvelope(t);
 			break;

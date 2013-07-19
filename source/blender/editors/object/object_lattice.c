@@ -670,8 +670,8 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
+			break;
 		}
-		break;
 		case LATTICE_FLIP_V:
 		{
 			int u, v, w;
@@ -691,8 +691,8 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
+			break;
 		}
-		break;
 		case LATTICE_FLIP_W:
 		{
 			int u, v, w;
@@ -711,9 +711,8 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
+			break;
 		}
-		break;
-		
 		default: /* shouldn't happen, but just in case */
 			break;
 	}

@@ -328,8 +328,8 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 				cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
 				cuma->curve[i].y = 0.5;
 			}
+			break;
 		}
-		break;
 		case CURVE_PRESET_ROUND:
 			cuma->curve[0].x = 0;
 			cuma->curve[0].y = 1;

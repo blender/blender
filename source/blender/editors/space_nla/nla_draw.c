@@ -563,9 +563,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 								nla_draw_strip_frames_text(nlt, strip, v2d, yminc, ymaxc);
 						}
 					}
+					break;
 				}
-				break;
-					
 				case ANIMTYPE_NLAACTION:
 				{
 					AnimData *adt = ale->adt;
@@ -603,8 +602,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					fdrawline(v2d->cur.xmin, ymaxc - NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc - NLACHANNEL_SKIP);
 					
 					glDisable(GL_BLEND);
+					break;
 				}
-				break;
 			}
 		}
 		
@@ -684,8 +683,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					
 					/* draw manually still */
 					do_draw = TRUE;
+					break;
 				}
-				break;
 				case ANIMTYPE_NLAACTION: /* NLA Action-Line */
 				{
 					bAction *act = (bAction *)ale->data;
@@ -698,9 +697,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 
 					/* draw manually still */
 					do_draw = TRUE;
+					break;
 				}
-				break;
-					
 				default: /* handled by standard channel-drawing API */
 					// draw backdrops only...
 					ANIM_channel_draw(ac, ale, yminc, ymaxc);
@@ -725,17 +723,15 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 								/* same as for textures */
 								offset = 0.7f * U.widget_unit;
 								indent = 1;
+								break;
 							}
-							break;
-								
 							case NTREE_TEXTURE:
 							{
 								/* even more */
 								offset = U.widget_unit;
 								indent = 1;
+								break;
 							}
-							break;
-								
 							default:
 								/* normal will do */
 								offset = 0.7f * U.widget_unit;

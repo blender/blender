@@ -1589,13 +1589,15 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 			normalize_qt_qt(dquat, ob->dquat);
 			invert_qt(dquat);
 			mul_qt_qtqt(ob->quat, dquat, ob->quat);
+			break;
 		}
-		break;
 		case ROT_MODE_AXISANGLE:
+		{
 			mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
 			sub_v3_v3(ob->rotAxis, ob->drotAxis);
 			ob->rotAngle -= ob->drotAngle;
 			break;
+		}
 		default: /* euler */
 		{
 			float quat[4];
@@ -2724,10 +2726,8 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 						makeDerivedMesh(scene, ob, NULL, data_mask, 0);
 					}
 #endif
-
+					break;
 				}
-				break;
-
 				case OB_ARMATURE:
 					if (ob->id.lib && ob->proxy_from) {
 						if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {

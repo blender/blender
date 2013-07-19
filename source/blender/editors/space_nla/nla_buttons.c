@@ -125,9 +125,8 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 				}
 				
 				found = 1;
+				break;
 			}
-			break;
-				
 			case ANIMTYPE_SCENE:    /* Top-Level Widgets doubling up as datablocks */
 			case ANIMTYPE_OBJECT:
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
@@ -167,8 +166,8 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 					 */
 					found = -1;
 				}
+				break;
 			}
-			break;
 		}
 		
 		if (found > 0)
