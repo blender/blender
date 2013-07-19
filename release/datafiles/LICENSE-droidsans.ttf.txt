@@ -5,6 +5,7 @@ Blender Main I18n font ("droidsans.ttf") includes glyphs imported from the follo
 3. Samyak-devanagari
 4. Droid Sans Hebrew Regular
 5. Droid Sans Ethiopic Regular
+6. Samyak-tamil
 
 These were merged using FontForge in (approximately) the above order. For each glyph,
 a license of the font from which it was imported is applied.
@@ -30,7 +31,7 @@ Copyright:
 License: Apache-2.0
  See Appendix A.
 
-(3) Samyak-devanagari
+(3) Samyak-devanagari and (6) Samyak-tamil
 Copyright: 2005-2006, Rahul Bhalerao <b.rahul.pm@gmail.com>
            2005-2006, Bageshri Salvi <sbageshri@gmail.com>
            2005-2006, Pravin Satpute <pravin.d.s@gmail.com>
