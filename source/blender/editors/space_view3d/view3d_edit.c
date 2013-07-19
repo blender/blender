@@ -2182,10 +2182,10 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 	}
 
 	if (delta < 0) {
-		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.2f);
+		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 0.2f);
 	}
 	else {
-		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 0.83333f);
+		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.8f);
 	}
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)
