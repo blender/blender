@@ -23,6 +23,14 @@ import bpy
 from bpy.types import Panel, Menu, Operator
 
 
+class CYCLES_MT_sampling_presets(Menu):
+    bl_label = "Sampling Presets"
+    preset_subdir = "cycles/sampling"
+    preset_operator = "script.execute_preset"
+    COMPAT_ENGINES = {'CYCLES'}
+    draw = Menu.draw_preset
+
+
 class CYCLES_MT_integrator_presets(Menu):
     bl_label = "Integrator Presets"
     preset_subdir = "cycles/integrator"
@@ -52,22 +60,30 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
         device_type = context.user_preferences.system.compute_device_type
+        
+        row = layout.row(align=True)
+        row.menu("CYCLES_MT_sampling_presets", text=bpy.types.CYCLES_MT_sampling_presets.bl_label)
+        row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMIN")
+        row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column()
+        row = layout.row()
+        sub = row.row()
         sub.active = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
-
+        row.prop(cscene, "squared_samples")
+        
+        split = layout.split()
+        
+        col = split.column()
         sub = col.column(align=True)
+        sub.label("Settings:")
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
         if cscene.progressive or (device_type != 'NONE' and cscene.device == 'GPU'):
             col = split.column()
-            col.label(text="Samples:")
             sub = col.column(align=True)
+            sub.label(text="Samples:")
             sub.prop(cscene, "samples", text="Render")
             sub.prop(cscene, "preview_samples", text="Preview")
         else:
@@ -76,16 +92,14 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "preview_aa_samples", text="Preview")
 
             col = split.column()
-            col.label(text="Samples:")
             sub = col.column(align=True)
+            sub.label(text="Samples:")
             sub.prop(cscene, "diffuse_samples", text="Diffuse")
             sub.prop(cscene, "glossy_samples", text="Glossy")
             sub.prop(cscene, "transmission_samples", text="Transmission")
             sub.prop(cscene, "ao_samples", text="AO")
             sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
-            
-        layout.prop(cscene, "squared_samples")
 
         if cscene.feature_set == 'EXPERIMENTAL' and (device_type == 'NONE' or cscene.device == 'CPU'):
             layout.row().prop(cscene, "sampling_pattern", text="Pattern")
