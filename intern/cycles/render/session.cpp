@@ -786,7 +786,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			substatus += string_printf(", Sample %d/%d", sample, num_samples);
 		}
 	}
-	else if(tile_manager.num_samples == 65536)
+	else if(tile_manager.num_samples == USHRT_MAX)
 		substatus = string_printf("Path Tracing Sample %d", sample+1);
 	else
 		substatus = string_printf("Path Tracing Sample %d/%d", sample+1, tile_manager.num_samples);
