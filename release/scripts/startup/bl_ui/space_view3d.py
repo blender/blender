@@ -748,6 +748,11 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
+        layout.operator("armature.select_more", text="More")
+        layout.operator("armature.select_less", text="Less")
+
+        layout.separator()
+
         layout.operator("armature.select_hierarchy", text="Parent").direction = 'PARENT'
         layout.operator("armature.select_hierarchy", text="Child").direction = 'CHILD'
 

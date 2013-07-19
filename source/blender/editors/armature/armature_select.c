@@ -665,6 +665,145 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+/**************** Select more/less **************/
+
+#define EBONE_PREV_FLAG_GET(ebone) ((void)0, (GET_INT_FROM_POINTER(ebone->temp)))
+#define EBONE_PREV_FLAG_SET(ebone, val) (ebone->temp = SET_INT_IN_POINTER(val))
+
+static void armature_select_more(bArmature *arm, EditBone *ebone)
+{
+	if ((EBONE_PREV_FLAG_GET(ebone) & (BONE_ROOTSEL | BONE_TIPSEL)) != 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
+			ED_armature_ebone_select_set(ebone, true);
+		}
+	}
+
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		/* to parent */
+		if ((EBONE_PREV_FLAG_GET(ebone) & BONE_ROOTSEL) != 0) {
+			if (EBONE_SELECTABLE(arm, ebone->parent)) {
+				ED_armature_ebone_selectflag_enable(ebone->parent, (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL));
+			}
+		}
+
+		/* from parent (difference from select less) */
+		if ((EBONE_PREV_FLAG_GET(ebone->parent) & BONE_TIPSEL) != 0) {
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				ED_armature_ebone_selectflag_enable(ebone, (BONE_SELECTED | BONE_ROOTSEL));
+			}
+		}
+	}
+}
+
+static void armature_select_less(bArmature *UNUSED(arm), EditBone *ebone)
+{
+	if ((EBONE_PREV_FLAG_GET(ebone) & (BONE_ROOTSEL | BONE_TIPSEL)) != (BONE_ROOTSEL | BONE_TIPSEL)) {
+		ED_armature_ebone_select_set(ebone, false);
+	}
+
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		/* to parent */
+		if ((EBONE_PREV_FLAG_GET(ebone) & BONE_SELECTED) == 0) {
+			ED_armature_ebone_selectflag_disable(ebone->parent, (BONE_SELECTED | BONE_TIPSEL));
+		}
+
+		/* from parent (difference from select more) */
+		if ((EBONE_PREV_FLAG_GET(ebone->parent) & BONE_SELECTED) == 0) {
+			ED_armature_ebone_selectflag_disable(ebone, (BONE_SELECTED | BONE_ROOTSEL));
+		}
+	}
+}
+
+static void armature_select_more_less(Object* ob, bool more)
+{
+	bArmature* arm = (bArmature *)ob->data;
+	EditBone* ebone;
+
+	/* XXX, eventually we shouldn't need this - campbell */
+	ED_armature_sync_selection(arm->edbo);
+
+	/* count bones & store selection state */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		EBONE_PREV_FLAG_SET(ebone, ED_armature_ebone_selectflag_get(ebone));
+	}
+
+	/* do selection */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone)) {
+			if (more) {
+				armature_select_more(arm, ebone);
+			}
+			else {
+				armature_select_less(arm, ebone);
+			}
+		}
+	}
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone)) {
+			if (more == false) {
+				if (ebone->flag & BONE_SELECTED) {
+					ED_armature_ebone_select_set(ebone, true);
+				}
+			}
+		}
+		ebone->temp = NULL;
+	}
+
+	ED_armature_sync_selection(arm->edbo);
+}
+
+#undef EBONE_PREV_FLAG_GET
+#undef EBONE_PREV_FLAG_SET
+
+static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	armature_select_more_less(obedit, true);
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_more(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select More";
+	ot->idname = "ARMATURE_OT_select_more";
+	ot->description = "Select those bones connected to the initial selection";
+
+	/* api callbacks */
+	ot->exec = armature_de_select_more_exec;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int armature_de_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	armature_select_more_less(obedit, false);
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_less(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Less";
+	ot->idname = "ARMATURE_OT_select_less";
+	ot->description = "Deselect those bones at the boundary of each selection region";
+
+	/* api callbacks */
+	ot->exec = armature_de_select_less_exec;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 enum {
 	SIMEDBONE_LENGTH = 1,
 	SIMEDBONE_DIRECTION,
