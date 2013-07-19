@@ -2262,24 +2262,26 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	switch (direction) {
-	case 1: {	/* up */
-		bNodeSocket *before = iosock->prev;
-		BLI_remlink(lb, iosock);
-		if (before)
-			BLI_insertlinkbefore(lb, before, iosock);
-		else
-			BLI_addhead(lb, iosock);
-		break;
-	}
-	case 2: {	/* down */
-		bNodeSocket *after = iosock->next;
-		BLI_remlink(lb, iosock);
-		if (after)
-			BLI_insertlinkafter(lb, after, iosock);
-		else
-			BLI_addtail(lb, iosock);
-		break;
-	}
+		case 1:
+		{	/* up */
+			bNodeSocket *before = iosock->prev;
+			BLI_remlink(lb, iosock);
+			if (before)
+				BLI_insertlinkbefore(lb, before, iosock);
+			else
+				BLI_addhead(lb, iosock);
+			break;
+		}
+		case 2:
+		{	/* down */
+			bNodeSocket *after = iosock->next;
+			BLI_remlink(lb, iosock);
+			if (after)
+				BLI_insertlinkafter(lb, after, iosock);
+			else
+				BLI_addtail(lb, iosock);
+			break;
+		}
 	}
 	
 	ntreeUpdateTree(CTX_data_main(C), ntree);

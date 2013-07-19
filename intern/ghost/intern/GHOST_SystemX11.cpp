@@ -1139,7 +1139,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			break;
 		}
 		
-		default: {
+		default:
+		{
 #ifdef WITH_X11_XINPUT
 			if (xe->type == m_xtablet.MotionEvent) {
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;

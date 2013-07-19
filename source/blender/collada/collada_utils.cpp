@@ -145,11 +145,13 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 	DerivedMesh *dm = NULL;
 	if (apply_modifiers) {
 		switch (export_mesh_type) {
-			case BC_MESH_TYPE_VIEW: {
+			case BC_MESH_TYPE_VIEW:
+			{
 				dm = mesh_create_derived_view(scene, ob, mask);
 				break;
 			}
-			case BC_MESH_TYPE_RENDER: {
+			case BC_MESH_TYPE_RENDER:
+			{
 				dm = mesh_create_derived_render(scene, ob, mask);
 				break;
 			}
