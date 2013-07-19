@@ -208,9 +208,9 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 
 	/* for each AA step */
 	for (j = 0; j < WIDGET_AA_JITTER; j++) {
-		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
+		glTranslatef(jit[j][0], jit[j][1], 0.0f);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
+		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -231,9 +231,9 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 	glColor4fv(color);
 	
 	for (j = 0; j < WIDGET_AA_JITTER; j++) {
-		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
+		glTranslatef(jit[j][0], jit[j][1], 0.0f);
 		uiDrawBox(mode, minx, miny, maxx, maxy, rad);
-		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
+		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 	}
 
 	glDisable(GL_BLEND);
@@ -777,7 +777,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		glEnableClientState(GL_VERTEX_ARRAY);
 
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
+			glTranslatef(jit[j][0], jit[j][1], 0.0f);
 			
 			/* outline */
 			glColor4ubv(tcol);
@@ -793,7 +793,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				glDrawArrays(GL_QUAD_STRIP, 0, wtb->halfwayvert * 2);
 			}
 			
-			glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
+			glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 		}
 
 		glDisableClientState(GL_VERTEX_ARRAY);
@@ -807,7 +807,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
 		/* for each AA step */
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
+			glTranslatef(jit[j][0], jit[j][1], 0.0f);
 
 			if (wtb->tria1.tot) {
 				glColor4ubv(tcol);
@@ -818,7 +818,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				widget_trias_draw(&wtb->tria2);
 			}
 		
-			glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
+			glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 		}
 	}
 
