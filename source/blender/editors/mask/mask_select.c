@@ -793,3 +793,115 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/**************** Select more/less **************/
+
+static int mask_select_more_less(bContext *C, bool more)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+			bool start_sel, end_sel, prev_sel, cur_sel, cyclic = spline->flag & MASK_SPLINE_CYCLIC;
+
+			// reselect point if any handle is selected to make the result more predictable
+			for (i = 0; i < spline->tot_point; i++) {
+				BKE_mask_point_select_set(spline->points + i, MASKPOINT_ISSEL_ANY(spline->points + i));
+			}
+
+			// select more/less does not affect empty/single point splines
+			if (spline->tot_point < 2) {
+				continue;
+			}
+
+			if (cyclic) {
+				start_sel = !!MASKPOINT_ISSEL_KNOT(spline->points);
+				end_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[spline->tot_point - 1]);
+			}
+
+			for (i = 0; i < spline->tot_point; i++) {
+				if (i == 0 && !cyclic) {
+					continue;
+				}
+
+				prev_sel = (i > 0) ? !!MASKPOINT_ISSEL_KNOT(&spline->points[i - 1]) : end_sel;
+				cur_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[i]);
+
+				if (cur_sel != more) {
+					if (prev_sel == more) {
+						BKE_mask_point_select_set(&spline->points[i], more);
+					}
+					i++;
+				}
+			}
+
+			for (i = spline->tot_point - 1; i >= 0; i--) {
+				if (i == spline->tot_point - 1 && !cyclic) {
+					continue;
+				}
+
+				prev_sel = (i < spline->tot_point - 1) ? !!MASKPOINT_ISSEL_KNOT(&spline->points[i + 1]) : start_sel;
+				cur_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[i]);
+
+				if (cur_sel != more) {
+					if (prev_sel == more) {
+						BKE_mask_point_select_set(&spline->points[i], more);
+					}
+					i--;
+				}
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+	return OPERATOR_FINISHED;
+}
+
+static int mask_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mask_select_more_less(C, true);
+}
+
+void MASK_OT_select_more(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select More";
+	ot->idname = "MASK_OT_select_more";
+	ot->description = "Select more spline points connected to initial selection";
+
+	/* api callbacks */
+	ot->exec = mask_select_more_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int mask_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mask_select_more_less(C, false);
+}
+
+void MASK_OT_select_less(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Less";
+	ot->idname = "MASK_OT_select_less";
+	ot->description = "Deselect spline points at the boundary of each selection region";
+
+	/* api callbacks */
+	ot->exec = mask_select_less_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}

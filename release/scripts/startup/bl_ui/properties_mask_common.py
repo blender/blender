@@ -339,6 +339,11 @@ class MASK_MT_select(Menu):
 
         layout.separator()
 
+        layout.operator("mask.select_more")
+        layout.operator("mask.select_less")
+
+        layout.separator()
+
         layout.operator("mask.select_all").action = 'TOGGLE'
         layout.operator("mask.select_all", text="Inverse").action = 'INVERT'
 
