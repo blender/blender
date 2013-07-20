@@ -470,7 +470,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Border Select";
-	ot->description = "Select markers using border selection";
+	ot->description = "Select curve points using border selection";
 	ot->idname = "MASK_OT_select_border";
 
 	/* api callbacks */
@@ -521,7 +521,7 @@ static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves,
 
 				float screen_co[2];
 
-				/* marker in screen coords */
+				/* point in screen coords */
 				ED_mask_point_pos__reverse(sa, ar,
 				                           point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1],
 				                           &screen_co[0], &screen_co[1]);
@@ -569,7 +569,7 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Lasso Select";
-	ot->description = "Select markers using lasso selection";
+	ot->description = "Select curve points using lasso selection";
 	ot->idname = "MASK_OT_select_lasso";
 
 	/* api callbacks */
@@ -670,7 +670,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Circle Select";
-	ot->description = "Select markers using circle selection";
+	ot->description = "Select curve points using circle selection";
 	ot->idname = "MASK_OT_select_circle";
 
 	/* api callbacks */
@@ -784,7 +784,7 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "MASK_OT_select_linked";
-	ot->description = "Select all vertices linked to the active mesh";
+	ot->description = "Select all curve points linked to already selected ones";
 
 	/* api callbacks */
 	ot->exec = mask_select_linked_exec;

@@ -362,7 +362,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, Panel):
 
         col = split.column(align=True)
         col.label(text="Spacing:")
-        col.prop(text, "space_character", text="Character")
+        col.prop(text, "space_character", text="Letter")
         col.prop(text, "space_word", text="Word")
         col.prop(text, "space_line", text="Line")
 
