@@ -71,6 +71,7 @@ incs = [
     ]
 
 incs.append(env['BF_PTHREADS_INC'])
+incs.append(env['BF_BOOST_INC'])
 
 defs = [
     'GLEW_STATIC',
