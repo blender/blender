@@ -2580,6 +2580,8 @@ class VIEW3D_PT_view3d_display(Panel):
             if view.use_matcap:
                 col.template_icon_view(view, "matcap_icon")
         col.prop(view, "show_backface_culling")
+        if ob.mode == 'EDIT' and view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
+            col.prop(view, "show_occlude_wire")
 
         layout.separator()
 

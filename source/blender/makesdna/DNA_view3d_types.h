@@ -279,6 +279,8 @@ typedef struct View3D {
 #define V3D_RENDER_BORDER		2048
 #define V3D_SOLID_MATCAP		4096	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	8192	/* runtime flag */
+#define V3D_OCCLUDE_WIRE		16384
+
 
 /* View3D->around */
 #define V3D_CENTER		 0
