@@ -770,10 +770,8 @@ static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
 	wmWindowManager *wm = ptr->data;
 	wmKeyConfig *kc;
 
-	for (kc = wm->keyconfigs.first; kc; kc = kc->next)
-		if (strcmp(kc->idname, U.keyconfigstr) == 0)
-			break;
-	
+	kc = BLI_findstring(&wm->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname));
+
 	if (!kc)
 		kc = wm->defaultconf;
 	

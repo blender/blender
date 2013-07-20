@@ -912,7 +912,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	}
 }
 
-static int tex_mat_set_face_mesh_cb(void *userData, int index)
+static bool tex_mat_set_face_mesh_cb(void *userData, int index)
 {
 	/* faceselect mode face hiding */
 	TexMatCallback *data = (TexMatCallback *)userData;
@@ -922,7 +922,7 @@ static int tex_mat_set_face_mesh_cb(void *userData, int index)
 	return !(mp->flag & ME_HIDE);
 }
 
-static int tex_mat_set_face_editmesh_cb(void *userData, int index)
+static bool tex_mat_set_face_editmesh_cb(void *userData, int index)
 {
 	/* editmode face hiding */
 	TexMatCallback *data = (TexMatCallback *)userData;
@@ -960,7 +960,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	{
 		Mesh *me = ob->data;
 		TexMatCallback data = {scene, ob, me, dm};
-		int (*set_face_cb)(void *, int);
+		bool (*set_face_cb)(void *, int);
 		int glsl, picking = (G.f & G_PICKSEL);
 		
 		/* face hiding callback depending on mode */

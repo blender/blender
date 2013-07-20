@@ -2778,7 +2778,8 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 		case SOCK_VECTOR:
 			uiTemplateComponentMenu(layout, ptr, "default_value", text);
 			break;
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			uiLayout *row = uiLayoutRow(layout, false);
 			uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 			/* draw the socket name right of the actual button */
@@ -2786,14 +2787,14 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 			uiItemL(row, text, 0);
 			break;
 		}
-		case SOCK_STRING: {
+		case SOCK_STRING:
+		{
 			uiLayout *row = uiLayoutRow(layout, true);
 			/* draw the socket name right of the actual button */
 			uiItemR(row, ptr, "default_value", 0, "", 0);
 			uiItemL(row, text, 0);
 			break;
 		}
-		
 		default:
 			node_socket_button_label(C, layout, ptr, node_ptr, text);
 			break;
@@ -2807,7 +2808,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 	/*int subtype = sock->typeinfo->subtype;*/
 	
 	switch (type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
@@ -2815,7 +2817,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
-		case SOCK_INT: {
+		case SOCK_INT:
+		{
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
@@ -2823,11 +2826,13 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
-		case SOCK_BOOLEAN: {
+		case SOCK_BOOLEAN:
+		{
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", UI_ITEM_R_EXPAND, NULL, 0);
 			row = uiLayoutRow(layout, true);
@@ -2835,11 +2840,13 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiItemR(row, ptr, "max_value", 0, "Max", 0);
 			break;
 		}
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			break;
 		}
-		case SOCK_STRING: {
+		case SOCK_STRING:
+		{
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			break;
 		}

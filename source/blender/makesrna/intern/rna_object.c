@@ -983,8 +983,8 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		case OB_BODY_TYPE_CHARACTER:
 			ob->gameflag |= OB_COLLISION | OB_GHOST | OB_CHARACTER;
 			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
-		                      OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
-		break;
+			                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
+			break;
 		case OB_BODY_TYPE_STATIC:
 			ob->gameflag |= OB_COLLISION;
 			ob->gameflag &= ~(OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);

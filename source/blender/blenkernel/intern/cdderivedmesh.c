@@ -1424,7 +1424,7 @@ static void cdDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
 
 static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
                                     void (*setMaterial)(void *userData, int, void *attribs),
-                                    int (*setFace)(void *userData, int index), void *userData)
+                                    bool (*setFace)(void *userData, int index), void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	GPUVertexAttribs gattribs;

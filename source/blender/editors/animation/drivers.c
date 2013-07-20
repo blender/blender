@@ -449,8 +449,8 @@ static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 						/* free old one */
 						MEM_freeN(basepath);
 					}
+					break;
 				}
-				break;
 			}
 			
 			/* fix RNA pointer, as we've now changed the ID root by changing the paths */

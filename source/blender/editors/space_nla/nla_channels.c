@@ -119,8 +119,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 			}
 			
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
+			break;
 		}
-		break;
 		case ANIMTYPE_OBJECT:
 		{
 			bDopeSheet *ads = (bDopeSheet *)ac->data;
@@ -161,9 +161,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				/* notifiers - channel was selected */
 				notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			}
+			break;
 		}
-		break;
-			
 		case ANIMTYPE_FILLACTD: /* Action Expander */
 		case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 		case ANIMTYPE_DSLAM:
@@ -200,9 +199,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 			}
 			
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
+			break;
 		}
-		break;
-			
 		case ANIMTYPE_NLATRACK:
 		{
 			NlaTrack *nlt = (NlaTrack *)ale->data;
@@ -260,8 +258,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				/* notifier flags - channel was selected */
 				notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			}
+			break;
 		}
-		break;
 		case ANIMTYPE_NLAACTION:
 		{
 			AnimData *adt = BKE_animdata_from_id(ale->id);
@@ -316,9 +314,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 					notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 				}
 			}
+			break;
 		}
-		break;
-			
 		default:
 			if (G.debug & G_DEBUG)
 				printf("Error: Invalid channel type in mouse_nla_channels()\n");

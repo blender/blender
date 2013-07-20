@@ -56,16 +56,13 @@ extern "C" {
 #include "IMB_imbuf_types.h"
 }
 
-GPC_Canvas::TBannerId GPC_Canvas::s_bannerId = 0;
-
 
 GPC_Canvas::GPC_Canvas(
 	int width,
 	int height
 ) : 
 	m_width(width),
-	m_height(height),
-	m_bannersEnabled(false)
+	m_height(height)
 {
 	// initialize area so that it's available for game logic on frame 1 (ImageViewport)
 	m_displayarea.m_x1 = 0;
@@ -79,27 +76,8 @@ GPC_Canvas::GPC_Canvas(
 
 GPC_Canvas::~GPC_Canvas()
 {
-	DisposeAllBanners();
 }
 
-
-//  void GPC_Canvas::InitPostRenderingContext(void)
-//  {
-//  	glViewport(0, 0, m_width, m_height);
-//  	glMatrixMode(GL_PROJECTION);
-//  	glLoadIdentity();
-	
-//  	glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);
-
-//  	glMatrixMode(GL_MODELVIEW);
-//  	glLoadIdentity();
-
-//  	glEnable(GL_DEPTH_TEST);
-
-//  	glDepthFunc(GL_LESS);
-
-//  	glShadeModel(GL_SMOOTH);
-//  }
 
 void GPC_Canvas::Resize(int width, int height)
 {
@@ -111,12 +89,6 @@ void GPC_Canvas::Resize(int width, int height)
 	m_displayarea.m_y1 = 0;
 	m_displayarea.m_x2 = width;
 	m_displayarea.m_y2 = height;
-}
-
-void GPC_Canvas::EndFrame()
-{
-	if (m_bannersEnabled)
-		DrawAllBanners();
 }
 
 
@@ -183,256 +155,6 @@ void GPC_Canvas::ClearBuffer(
 		ogltype |= GL_DEPTH_BUFFER_BIT;
 
 	::glClear(ogltype);
-}
-
-
-GPC_Canvas::TBannerId GPC_Canvas::AddBanner(
-	unsigned int bannerWidth, unsigned int bannerHeight,
-	unsigned int imageWidth, unsigned int imageHeight,
-	unsigned char* imageData, 
-	TBannerAlignment alignment, bool enabled)
-{
-	TBannerData banner;
-
-	banner.alignment = alignment;
-	banner.enabled = enabled;
-	banner.displayWidth = bannerWidth;
-	banner.displayHeight = bannerHeight;
-	banner.imageWidth = imageWidth;
-	banner.imageHeight = imageHeight;
-	unsigned int bannerDataSize = imageWidth*imageHeight*4;
-	banner.imageData = new unsigned char [bannerDataSize];
-	::memcpy(banner.imageData, imageData, bannerDataSize);
-	banner.textureName = 0;
-
-	m_banners.insert(TBannerMap::value_type(++s_bannerId, banner));
-	return s_bannerId;
-}
-
-
-void GPC_Canvas::DisposeBanner(TBannerId id)
-{
-	TBannerMap::iterator it = m_banners.find(id);
-	if (it != m_banners.end()) {
-		DisposeBanner(it->second);
-		m_banners.erase(it);
-	}
-}
-
-void GPC_Canvas::DisposeAllBanners()
-{
-	TBannerMap::iterator it = m_banners.begin();
-	while (it != m_banners.end()) {
-		DisposeBanner(it->second);
-		it++;
-	}
-}
-
-void GPC_Canvas::SetBannerEnabled(TBannerId id, bool enabled)
-{
-	TBannerMap::iterator it = m_banners.find(id);
-	if (it != m_banners.end()) {
-		it->second.enabled = enabled;
-	}
-}
-
-
-void GPC_Canvas::SetBannerDisplayEnabled(bool enabled)
-{
-	m_bannersEnabled = enabled;
-}
-
-
-void GPC_Canvas::DisposeBanner(TBannerData& banner)
-{
-	if (banner.imageData) {
-		delete [] banner.imageData;
-		banner.imageData = 0;
-	}
-	if (banner.textureName) {
-		::glDeleteTextures(1, (GLuint*)&banner.textureName);
-	}
-}
-
-void GPC_Canvas::DrawAllBanners(void)
-{
-	if (!m_bannersEnabled || (m_banners.size() < 1))
-		return;
-	
-	// Save the old rendering parameters.
-
-	CanvasRenderState render_state;
-	PushRenderState(render_state);
-
-	// Set up everything for banner display.
-	
-	// Set up OpenGL matrices 
-	SetOrthoProjection();
-	// Activate OpenGL settings needed for display of the texture
-	::glDisable(GL_LIGHTING);
-	::glDisable(GL_DEPTH_TEST);
-	::glDisable(GL_FOG);
-	::glEnable(GL_TEXTURE_2D);
-	::glEnable(GL_BLEND);
-	::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	TBannerMap::iterator it = m_banners.begin();
-	while (it != m_banners.end()) {
-		if (it->second.enabled) {
-			DrawBanner(it->second);
-		}
-		it++;
-	}
-
-	PopRenderState(render_state);
-}
-
-
-void GPC_Canvas::DrawBanner(TBannerData& banner)
-{
-	if (!banner.enabled)
-		return;
-
-	// Set up coordinates
-	int coords[4][2];
-	if (banner.alignment == alignTopLeft) {
-		// Upper left
-		coords[0][0] = 0;
-		coords[0][1] = ((int)m_height)-banner.displayHeight;
-		coords[1][0] = banner.displayWidth;
-		coords[1][1] = ((int)m_height)-banner.displayHeight;
-		coords[2][0] = banner.displayWidth;
-		coords[2][1] = ((int)m_height);
-		coords[3][0] = 0;
-		coords[3][1] = ((int)m_height);
-	}
-	else {
-		// Lower right
-		coords[0][0] = (int)m_width - banner.displayWidth;
-		coords[0][1] = 0;
-		coords[1][0] = m_width;
-		coords[1][1] = 0;
-		coords[2][0] = m_width;
-		coords[2][1] = banner.displayHeight;
-		coords[3][0] = (int)m_width - banner.displayWidth;
-		coords[3][1] = banner.displayHeight;
-	}
-	// Set up uvs
-	int uvs[4][2] = {
-		{ 0, 1},
-		{ 1, 1},
-		{ 1, 0},
-		{ 0, 0}
-	};
-
-	if (!banner.textureName) {
-		::glGenTextures(1, (GLuint*)&banner.textureName);
-		::glBindTexture(GL_TEXTURE_2D, banner.textureName);
-		::glTexImage2D(
-			GL_TEXTURE_2D,			// target
-			0,						// level
-			4,						// components
-			banner.imageWidth,		// width
-			banner.displayHeight,	// height
-			0,						// border
-			GL_RGBA,				// format
-			GL_UNSIGNED_BYTE,		// type
-			banner.imageData);		// image data
-		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-	else {
-		::glBindTexture(GL_TEXTURE_2D, banner.textureName);
-	}
-
-	// Draw the rectangle with the texture on it
-	::glBegin(GL_QUADS);
-	::glColor4f(1.f, 1.f, 1.f, 1.f);
-	::glTexCoord2iv((GLint*)uvs[0]);
-	::glVertex2iv((GLint*)coords[0]);
-	::glTexCoord2iv((GLint*)uvs[1]);
-	::glVertex2iv((GLint*)coords[1]);
-	::glTexCoord2iv((GLint*)uvs[2]);
-	::glVertex2iv((GLint*)coords[2]);
-	::glTexCoord2iv((GLint*)uvs[3]);
-	::glVertex2iv((GLint*)coords[3]);
-	::glEnd();
-}
-
-	void
-GPC_Canvas::
-PushRenderState(
-	CanvasRenderState & render_state
-) {
-#if 0
-
-	::glMatrixMode(GL_PROJECTION);
-	::glPushMatrix();
-	::glMatrixMode(GL_MODELVIEW);
-	::glPushMatrix();
-	::glMatrixMode(GL_TEXTURE);
-	::glPushMatrix();
-	// Save old OpenGL settings
-	::glGetIntegerv(GL_LIGHTING, (GLint*)&(render_state.oldLighting));
-	::glGetIntegerv(GL_DEPTH_TEST, (GLint*)&(render_state.oldDepthTest));
-	::glGetIntegerv(GL_FOG, (GLint*)&(render_state.oldFog));
-	::glGetIntegerv(GL_TEXTURE_2D, (GLint*)&(render_state.oldTexture2D));
-	::glGetIntegerv(GL_BLEND, (GLint*)&(render_state.oldBlend));
-	::glGetIntegerv(GL_BLEND_SRC, (GLint*)&(render_state.oldBlendSrc));
-	::glGetIntegerv(GL_BLEND_DST, (GLint*)&(render_state.oldBlendDst));
-	::glGetFloatv(GL_CURRENT_COLOR, render_state.oldColor);
-	::glGetIntegerv(GL_DEPTH_WRITEMASK,(GLint*)&(render_state.oldWriteMask));
-#else
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-#endif
-}
-
-	void
-GPC_Canvas::
-PopRenderState(
-	const CanvasRenderState & render_state
-) {
-#if 0
-	// Restore OpenGL settings
-	render_state.oldLighting ? ::glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-	render_state.oldDepthTest ? ::glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
-	render_state.oldFog ? ::glEnable(GL_FOG) : ::glDisable(GL_FOG);
-	render_state.oldTexture2D ? ::glEnable(GL_TEXTURE_2D) : glDisable(GL_TEXTURE_2D);
-	render_state.oldBlend ? glEnable(GL_BLEND) : ::glDisable(GL_BLEND);
-	::glBlendFunc((GLenum)render_state.oldBlendSrc, (GLenum)render_state.oldBlendDst);
-	render_state.oldWriteMask ? ::glEnable(GL_DEPTH_WRITEMASK) : glDisable(GL_DEPTH_WRITEMASK);
-
-	::glColor4fv(render_state.oldColor);
-	// Restore OpenGL matrices
-	::glMatrixMode(GL_TEXTURE);
-	::glPopMatrix();
-	::glMatrixMode(GL_PROJECTION);
-	::glPopMatrix();
-	::glMatrixMode(GL_MODELVIEW);
-	::glPopMatrix();
-
-#else
-
-	glPopAttrib();
-#endif
-}
-
-	void
-GPC_Canvas::
-SetOrthoProjection(
-) {
-	// Set up OpenGL matrices 
-	::glViewport(0, 0, m_width, m_height);
-	::glScissor(0, 0, m_width, m_height);
-	::glMatrixMode(GL_PROJECTION);
-	::glLoadIdentity();
-	::glOrtho(0, m_width, 0, m_height, -1, 1);
-	::glMatrixMode(GL_MODELVIEW);
-	::glLoadIdentity();
-	::glMatrixMode(GL_TEXTURE);
-	::glLoadIdentity();
 }
 
 	void

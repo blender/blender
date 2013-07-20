@@ -130,9 +130,11 @@ static BMFace *copy_face(BMOperator *op,
                          BMOpSlot *slot_facemap_out,
                          BMesh *source_mesh,
                          BMFace *source_face, BMesh *target_mesh,
-                         BMVert **vtar, BMEdge **edar, GHash *vhash, GHash *ehash)
+                         GHash *vhash, GHash *ehash)
 {
 	/* BMVert *target_vert1, *target_vert2; */ /* UNUSED */
+	BMVert **vtar = BLI_array_alloca(vtar, source_face->len);
+	BMEdge **edar = BLI_array_alloca(edar, source_face->len);
 	BMLoop *source_loop, *target_loop;
 	BMFace *target_face = NULL;
 	BMIter iter, iter2;
@@ -190,11 +192,6 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 	BMVert *v = NULL, *v2;
 	BMEdge *e = NULL;
 	BMFace *f = NULL;
-
-	BLI_array_declare(vtar);
-	BLI_array_declare(edar);
-	BMVert **vtar = NULL;
-	BMEdge **edar = NULL;
 	
 	BMIter viter, eiter, fiter;
 	GHash *vhash, *ehash;
@@ -280,14 +277,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 				}
 			}
 
-			/* ensure arrays are the right size */
-			BLI_array_empty(vtar);
-			BLI_array_empty(edar);
-
-			BLI_array_grow_items(vtar, f->len);
-			BLI_array_grow_items(edar, f->len);
-
-			copy_face(op, slot_face_map_out, bm_src, f, bm_dst, vtar, edar, vhash, ehash);
+			copy_face(op, slot_face_map_out, bm_src, f, bm_dst, vhash, ehash);
 			BMO_elem_flag_enable(bm_src, f, DUPE_DONE);
 		}
 	}
@@ -295,9 +285,6 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 	/* free pointer hashes */
 	BLI_ghash_free(vhash, NULL, NULL);
 	BLI_ghash_free(ehash, NULL, NULL);
-
-	BLI_array_free(vtar); /* free vert pointer array */
-	BLI_array_free(edar); /* free edge pointer array */
 }
 
 /**

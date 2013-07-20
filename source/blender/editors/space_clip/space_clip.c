@@ -1353,8 +1353,8 @@ static void clip_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 					// if (sc->mode == SC_MODE_MASKEDIT)
 				{
 					ED_region_tag_redraw(ar);
+					break;
 				}
-				break;
 			}
 			break;
 	}

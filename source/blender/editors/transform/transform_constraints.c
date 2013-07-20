@@ -621,8 +621,8 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 			float mtx[3][3] = MAT3_UNITY;
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("global"));
 			setConstraint(t, mtx, mode, text);
+			break;
 		}
-		break;
 		case V3D_MANIP_LOCAL:
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("local"));
 			setLocalConstraint(t, mode, text);

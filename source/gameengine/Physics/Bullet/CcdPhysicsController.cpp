@@ -1587,6 +1587,21 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				if (mf->v4 && vert_tag_array[mf->v4] == false) {vert_tag_array[mf->v4] = true; tot_bt_verts++;}
 			}
 		}
+		
+		/* Can happen with ngons */
+		if (!tot_bt_verts) {
+			m_shapeType = PHY_SHAPE_NONE;
+			m_meshObject = NULL;
+			m_vertexArray.clear();
+			m_polygonIndexArray.clear();
+			m_triFaceArray.clear();
+			m_triFaceUVcoArray.clear();
+			if (free_dm) {
+				dm->release(dm);
+				dm = NULL;
+			}
+			return false;
+		}
 
 		m_vertexArray.resize(tot_bt_verts*3);
 
@@ -1660,6 +1675,21 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 					{vert_tag_array[mf->v4] = true;vert_remap_array[mf->v4] = tot_bt_verts;tot_bt_verts++;}
 				tot_bt_tris += (mf->v4 ? 2:1); /* a quad or a tri */
 			}
+		}
+
+		/* Can happen with ngons */
+		if (!tot_bt_verts) {
+			m_shapeType = PHY_SHAPE_NONE;
+			m_meshObject = NULL;
+			m_vertexArray.clear();
+			m_polygonIndexArray.clear();
+			m_triFaceArray.clear();
+			m_triFaceUVcoArray.clear();
+			if (free_dm) {
+				dm->release(dm);
+				dm = NULL;
+			}
+			return false;
 		}
 
 		m_vertexArray.resize(tot_bt_verts*3);

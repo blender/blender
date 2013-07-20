@@ -525,6 +525,13 @@ static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 	data->r.cfra = value;
 }
 
+static float rna_Scene_frame_current_final_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->data;
+
+	return BKE_scene_frame_get_from_ctime(scene, (float)scene->r.cfra);
+}
+
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data = (Scene *)ptr->data;
@@ -5149,6 +5156,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	                         "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, NULL);
 	
+	prop = RNA_def_property(srna, "frame_current_final", PROP_FLOAT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_float_funcs(prop, "rna_Scene_frame_current_final_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Current Frame Final",
+	                         "Current frame with subframe and time remapping applied");
+
 	/* Preview Range (frame-range for UI playback) */
 	prop = RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

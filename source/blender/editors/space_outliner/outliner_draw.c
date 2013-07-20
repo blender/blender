@@ -464,8 +464,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 						ED_armature_bone_rename(obedit->data, oldname, newname);
 						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT);
 					}
+					break;
 				}
-				break;
 
 				case TSE_BONE:
 				{
@@ -482,8 +482,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BLI_strncpy(bone->name, oldname, sizeof(bone->name));
 					ED_armature_bone_rename(ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+					break;
 				}
-				break;
 				case TSE_POSE_CHANNEL:
 				{
 					bPoseChannel *pchan = te->directdata;
@@ -499,8 +499,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BLI_strncpy(pchan->name, oldname, sizeof(pchan->name));
 					ED_armature_bone_rename(ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+					break;
 				}
-				break;
 				case TSE_POSEGRP:
 				{
 					Object *ob = (Object *)tselem->id; // id = object
@@ -509,8 +509,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BLI_uniquename(&ob->pose->agroups, grp, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "Group"), '.',
 					               offsetof(bActionGroup, name), sizeof(grp->name));
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+					break;
 				}
-				break;
 				case TSE_R_LAYER:
 					break;
 			}

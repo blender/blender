@@ -89,6 +89,7 @@ void VIEW3D_OT_view_lock_to_active(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_cursor(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_pick(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_camera(struct wmOperatorType *ot);
+void VIEW3D_OT_view_center_lock(struct wmOperatorType *ot);
 void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
 void VIEW3D_OT_background_image_add(struct wmOperatorType *ot);

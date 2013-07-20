@@ -131,6 +131,7 @@ typedef struct RegionView3D {
 	char viewlock;
 	char viewlock_quad;			/* options for quadview (store while out of quad view) */
 	char pad[3];
+	float ofs_lock[2];			/* normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right */
 
 	short twdrawflag;
 	short rflag;

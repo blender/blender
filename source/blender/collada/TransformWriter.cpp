@@ -107,15 +107,18 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 	converter.mat4_to_dae_double(d_obmat, f_obmat);
 
 	switch (transformation_type) {
-		case BC_TRANSFORMATION_TYPE_MATRIX     : {
+		case BC_TRANSFORMATION_TYPE_MATRIX:
+		{
 			node.addMatrix("transform",d_obmat);
 			break;
 		}
-		case BC_TRANSFORMATION_TYPE_BOTH       : {
+		case BC_TRANSFORMATION_TYPE_BOTH:
+		{
 			node.addMatrix("transform",d_obmat);
-			/* intentional fall-through */
+			/* fall-through */
 		}
-		case BC_TRANSFORMATION_TYPE_TRANSROTLOC: {
+		case BC_TRANSFORMATION_TYPE_TRANSROTLOC:
+		{
 			float loc[3], rot[3], scale[3];
 			TransformBase::decompose(f_obmat, loc, rot, NULL, scale);
 			add_transform(node, loc, rot, scale); 

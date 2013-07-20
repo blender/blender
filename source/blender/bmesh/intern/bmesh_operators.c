@@ -561,8 +561,6 @@ static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
 	BMElemF *ele_f;
 	int i;
 
-	BLI_assert((unsigned int)test_for_enabled <= 1);
-
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
 			BM_ITER_MESH (ele_f, &iter, bm, iter_types[i]) {
@@ -937,7 +935,6 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op,
 	int totelement, i = 0;
 
 	BLI_assert(op->slots_in == slot_args || op->slots_out == slot_args);
-	BLI_assert((unsigned int)test_for_enabled <= 1);
 
 	if (test_for_enabled)
 		totelement = BMO_mesh_enabled_flag_count(bm, htype, oflag);

@@ -1342,7 +1342,8 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 }
 
 /* returns key coordinates (+ tilt) when key applied, NULL otherwise */
-float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
+float *BKE_key_evaluate_object_ex(Scene *scene, Object *ob, int *r_totelem,
+                                  float *arr, size_t arr_size)
 {
 	Key *key = BKE_key_from_object(ob);
 	KeyBlock *actkb = BKE_keyblock_from_object(ob);
@@ -1386,7 +1387,16 @@ float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
 		return NULL;
 	
 	/* allocate array */
-	out = MEM_callocN(size, "BKE_key_evaluate_object out");
+	if (arr == NULL) {
+		out = MEM_callocN(size, "BKE_key_evaluate_object out");
+	}
+	else {
+		if (arr_size != size) {
+			return NULL;
+		}
+
+		out = (char *)arr;
+	}
 
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	key->from = (ID *)ob->data;
@@ -1425,6 +1435,11 @@ float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
 		*r_totelem = tot;
 	}
 	return (float *)out;
+}
+
+float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
+{
+	return BKE_key_evaluate_object_ex(scene, ob, r_totelem, NULL, 0);
 }
 
 Key *BKE_key_from_object(Object *ob)

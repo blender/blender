@@ -858,7 +858,8 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 			break;
 			
 		case kEventMouseMoved:
-		case kEventMouseDragged: {
+		case kEventMouseDragged:
+		{
 			Point mousePos;
 
 			if (window) {

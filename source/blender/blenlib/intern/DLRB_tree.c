@@ -539,9 +539,8 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 				
 				parNode->left = node;
 				node->parent = parNode;
+				break;
 			}
-			break;
-			
 			case 1:  /* add new node as right child */
 			{
 				node = new_cb(data);
@@ -549,15 +548,14 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 				
 				parNode->right = node;
 				node->parent = parNode;
+				break;
 			}
-			break;
-			
 			default:  /* update the duplicate node as appropriate */
 			{
 				if (update_cb)
 					update_cb(parNode, data);
+				break;
 			}
-			break;
 		}
 	}
 	else {

@@ -854,17 +854,15 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 					break;
 			}
+			break;
 		}
-		break;
-			
 		case OUTLINER_IDOP_LOCAL:
 		{
 			/* make local */
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
 			ED_undo_push(C, "Localized Data");
+			break;
 		}
-		break;
-			
 		case OUTLINER_IDOP_SINGLE:
 		{
 			/* make single user */
@@ -887,9 +885,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 					break;
 			}
+			break;
 		}
-		break;
-			
 		case OUTLINER_IDOP_FAKE_ADD:
 		{
 			/* set fake user */
@@ -897,9 +894,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			
 			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
 			ED_undo_push(C, "Add Fake User");
+			break;
 		}
-		break;
-			
 		case OUTLINER_IDOP_FAKE_CLEAR:
 		{
 			/* clear fake user */
@@ -907,8 +903,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			
 			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
 			ED_undo_push(C, "Clear Fake User");
+			break;
 		}
-		break;
 		case OUTLINER_IDOP_RENAME:
 		{
 			/* rename */
@@ -916,9 +912,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			
 			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
 			ED_undo_push(C, "Rename");
+			break;
 		}
-		break;
-
 		case OUTLINER_IDOP_SELECT_LINKED:
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_select_linked_cb);
 			ED_undo_push(C, "Select");

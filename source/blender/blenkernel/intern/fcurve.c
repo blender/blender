@@ -577,7 +577,7 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 }
 
 /* Calculate the extents of F-Curve's keyframes */
-void calc_fcurve_range(FCurve *fcu, float *start, float *end,
+bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
                        const short do_sel_only, const short do_min_length)
 {
 	float min = 999999999.0f, max = -999999999.0f;
@@ -621,6 +621,8 @@ void calc_fcurve_range(FCurve *fcu, float *start, float *end,
 
 	*start = min;
 	*end = max;
+
+	return foundvert;
 }
 
 /* ----------------- Status Checks -------------------------- */
@@ -665,17 +667,16 @@ short fcurve_are_keyframes_usable(FCurve *fcu)
 					
 					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 						return 0;
+					break;
 				}
-				break;
 				case FMODIFIER_TYPE_FN_GENERATOR:
 				{
 					FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm->data;
 					
 					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
 						return 0;
+					break;
 				}
-				break;
-					
 				/* always harmful - cannot allow */
 				default:
 					return 0;
@@ -1701,9 +1702,8 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 				else
 					driver->curval = value;
 			}
+			break;
 		}
-		break;
-			
 		case DRIVER_TYPE_MIN: /* smallest value */
 		case DRIVER_TYPE_MAX: /* largest value */
 		{
@@ -1736,9 +1736,8 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 			
 			/* store value in driver */
 			driver->curval = value;
+			break;
 		}
-		break;
-			
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifdef WITH_PYTHON
@@ -1757,9 +1756,8 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 #else /* WITH_PYTHON*/
 			(void)evaltime;
 #endif /* WITH_PYTHON*/
+			break;
 		}
-		break;
-		
 		default:
 		{
 			/* special 'hack' - just use stored value 

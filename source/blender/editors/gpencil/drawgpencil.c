@@ -706,8 +706,8 @@ void draw_gpencil_2dimage(const bContext *C)
 			wmOrtho2(ar->v2d.cur.xmin, ar->v2d.cur.xmax, ar->v2d.cur.ymin, ar->v2d.cur.ymax);
 			
 			dflag |= GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_IEDITHACK;
+			break;
 		}
-		break;
 		case SPACE_SEQ: /* sequence */
 		{
 			/* just draw using standard scaling (settings here are currently ignored anyways) */
@@ -720,8 +720,8 @@ void draw_gpencil_2dimage(const bContext *C)
 			 * and everything moved to standard View2d 
 			 */
 			dflag |= GP_DRAWDATA_ONLYV2D;
+			break;
 		}
-		break;
 		default: /* for spacetype not yet handled */
 			offsx = 0;
 			offsy = 0;

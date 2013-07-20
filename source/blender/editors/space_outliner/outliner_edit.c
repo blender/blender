@@ -1181,14 +1181,14 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 						{
 							/* add a new driver with the information obtained (only if valid) */
 							ANIM_add_driver(reports, id, path, array_index, dflags, DRIVER_TYPE_PYTHON);
+							break;
 						}
-						break;
 						case DRIVERS_EDITMODE_REMOVE:
 						{
 							/* remove driver matching the information obtained (only if valid) */
 							ANIM_remove_driver(reports, id, path, array_index, dflags);
+							break;
 						}
-						break;
 					}
 				}
 				

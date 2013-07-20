@@ -148,6 +148,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
 	WM_operatortype_append(VIEW3D_OT_view_center_pick);
 	WM_operatortype_append(VIEW3D_OT_view_center_camera);
+	WM_operatortype_append(VIEW3D_OT_view_center_lock);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
 	WM_operatortype_append(VIEW3D_OT_clip_border);
@@ -232,7 +233,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/*numpad +/-*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADMINUS, KM_PRESS, 0, 0)->ptr, "delta", -1);
-
 	/*ctrl +/-*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", EQUALKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", MINUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
@@ -241,9 +241,18 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
 
+	/* ... and for dolly */
+	/*numpad +/-*/
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", PADMINUS, KM_PRESS, KM_SHIFT, 0)->ptr, "delta", -1);
+	/*ctrl +/-*/
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", EQUALKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_dolly", MINUSKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "delta", -1);
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_camera_1_to_1", PADENTER, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_lock", HOMEKEY, KM_PRESS, 0, 0); /* only with lock view */
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_cursor", HOMEKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_pick", FKEY, KM_PRESS, KM_ALT, 0);

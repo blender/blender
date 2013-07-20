@@ -247,8 +247,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			vpd->lasty = event->y;
 			
 			view_pan_apply(op);
+			break;
 		}
-		break;
 			/* XXX - Mode switching isn't implemented. See comments in 36818.
 			 * switch to zoom */
 #if 0
@@ -1674,9 +1674,8 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 			vsm->lasty = event->y;
 			
 			scroller_activate_apply(C, op);
+			break;
 		}
-		break;
-			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 			if (event->val == KM_RELEASE) {
