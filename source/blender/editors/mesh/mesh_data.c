@@ -138,7 +138,7 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 		BM_data_layer_free_n(me->edit_btmesh->bm, data, type, n);
 	}
 	else {
-		CustomData_free_layer(data, type, tot, n);
+		CustomData_free_layer(data, type, tot, layer_index + n);
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 }
