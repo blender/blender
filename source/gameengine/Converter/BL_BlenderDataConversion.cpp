@@ -2085,8 +2085,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 
 	case OB_FONT:
 	{
+		bool do_color_management = !(blenderscene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT);
 		/* font objects have no bounding box */
-		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob);
+		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob, do_color_management);
 
 		/* add to the list only the visible fonts */
 		if ((ob->lay & kxscene->GetBlenderScene()->lay) != 0)

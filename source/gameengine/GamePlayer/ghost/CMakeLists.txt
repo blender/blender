@@ -56,6 +56,7 @@ set(INC_SYS
 	../../../../intern/moto/include
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
+	${BOOST_INCLUDE_DIR}
 )
 
 set(SRC
@@ -79,6 +80,13 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 blender_add_lib_nolist(ge_player_ghost "${SRC}" "${INC}" "${INC_SYS}")

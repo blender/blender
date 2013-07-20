@@ -191,13 +191,32 @@ void BlenderSync::sync_integrator()
 	}
 #endif
 
-	integrator->diffuse_samples = get_int(cscene, "diffuse_samples");
-	integrator->glossy_samples = get_int(cscene, "glossy_samples");
-	integrator->transmission_samples = get_int(cscene, "transmission_samples");
-	integrator->ao_samples = get_int(cscene, "ao_samples");
-	integrator->mesh_light_samples = get_int(cscene, "mesh_light_samples");
-	integrator->subsurface_samples = get_int(cscene, "subsurface_samples");
 	integrator->progressive = get_boolean(cscene, "progressive");
+
+	int diffuse_samples = get_int(cscene, "diffuse_samples");
+	int glossy_samples = get_int(cscene, "glossy_samples");
+	int transmission_samples = get_int(cscene, "transmission_samples");
+	int ao_samples = get_int(cscene, "ao_samples");
+	int mesh_light_samples = get_int(cscene, "mesh_light_samples");
+	int subsurface_samples = get_int(cscene, "subsurface_samples");
+
+	if(get_boolean(cscene, "squared_samples")) {
+		integrator->diffuse_samples = diffuse_samples * diffuse_samples;
+		integrator->glossy_samples = glossy_samples * glossy_samples;
+		integrator->transmission_samples = transmission_samples * transmission_samples;
+		integrator->ao_samples = ao_samples * ao_samples;
+		integrator->mesh_light_samples = mesh_light_samples * mesh_light_samples;
+		integrator->subsurface_samples = subsurface_samples * subsurface_samples;
+	} 
+	else {
+		integrator->diffuse_samples = diffuse_samples;
+		integrator->glossy_samples = glossy_samples;
+		integrator->transmission_samples = transmission_samples;
+		integrator->ao_samples = ao_samples;
+		integrator->mesh_light_samples = mesh_light_samples;
+		integrator->subsurface_samples = subsurface_samples;
+	}
+	
 
 	if(experimental)
 		integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
@@ -300,8 +319,13 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.use_localview = false;
 
 			render_layer.bound_samples = (use_layer_samples == 1);
-			if(use_layer_samples != 2)
-				render_layer.samples = b_rlay->samples();
+			if(use_layer_samples != 2) {
+				int samples = b_rlay->samples();
+				if(get_boolean(cscene, "squared_samples"))
+					render_layer.samples = samples * samples;
+				else
+					render_layer.samples = samples;
+			}
 		}
 
 		first_layer = false;
@@ -385,24 +409,36 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	params.background = background;
 
 	/* samples */
+	int samples = get_int(cscene, "samples");
+	int aa_samples = get_int(cscene, "aa_samples");
+	int preview_samples = get_int(cscene, "preview_samples");
+	int preview_aa_samples = get_int(cscene, "preview_aa_samples");
+	
+	if(get_boolean(cscene, "squared_samples")) {
+		samples = samples * samples;
+		aa_samples = aa_samples * aa_samples;
+		preview_samples = preview_samples * preview_samples;
+		preview_aa_samples = preview_aa_samples * preview_aa_samples;
+	}
+
 	if(get_boolean(cscene, "progressive") == 0) {
 		if(background) {
-			params.samples = get_int(cscene, "aa_samples");
+			params.samples = aa_samples;
 		}
 		else {
-			params.samples = get_int(cscene, "preview_aa_samples");
+			params.samples = preview_aa_samples;
 			if(params.samples == 0)
-				params.samples = 65536;
+				params.samples = USHRT_MAX;
 		}
 	}
 	else {
 		if(background) {
-			params.samples = get_int(cscene, "samples");
+			params.samples = samples;
 		}
 		else {
-			params.samples = get_int(cscene, "preview_samples");
+			params.samples = preview_samples;
 			if(params.samples == 0)
-				params.samples = 65536;
+				params.samples = USHRT_MAX;
 		}
 	}
 

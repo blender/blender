@@ -42,7 +42,8 @@ public:
 	KX_FontObject(void* sgReplicationInfo,
 	              SG_Callbacks callbacks,
 	              RAS_IRenderTools* rendertools,
-	              Object *ob);
+	              Object *ob,
+				  bool do_color_management);
 
 	virtual ~KX_FontObject();
 
@@ -68,6 +69,8 @@ protected:
 	MT_Vector3		m_offset;
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
+
+	bool		m_do_color_management;
 
 #ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_text(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

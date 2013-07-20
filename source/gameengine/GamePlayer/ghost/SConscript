@@ -43,6 +43,7 @@ incs = [
     '#intern/guardedalloc',
     '#intern/moto/include',
     '#intern/container',
+    '#intern/audaspace/intern',
     '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
     '#source/gameengine/BlenderRoutines',
     '#source/gameengine/Converter',
@@ -70,6 +71,7 @@ incs = [
     ]
 
 incs.append(env['BF_PTHREADS_INC'])
+incs.append(env['BF_BOOST_INC'])
 
 defs = [
     'GLEW_STATIC',

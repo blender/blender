@@ -150,6 +150,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Use progressive sampling of lighting",
                 default=True,
                 )
+        cls.squared_samples = BoolProperty(
+                name="Squared Samples",
+                description="Square sampling values for easier artist control",
+                default=False,
+                )
 
         cls.samples = IntProperty(
                 name="Samples",

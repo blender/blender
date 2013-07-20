@@ -390,6 +390,8 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_select_circle);
 	WM_operatortype_append(MASK_OT_select_linked_pick);
 	WM_operatortype_append(MASK_OT_select_linked);
+	WM_operatortype_append(MASK_OT_select_more);
+	WM_operatortype_append(MASK_OT_select_less);
 
 	/* hide/reveal */
 	WM_operatortype_append(MASK_OT_hide_view_clear);
@@ -465,6 +467,9 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+
+	WM_keymap_add_item(keymap, "MASK_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 
 	/* hide/reveal */
 	WM_keymap_add_item(keymap, "MASK_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);

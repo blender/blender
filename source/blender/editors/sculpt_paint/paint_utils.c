@@ -333,7 +333,7 @@ int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, 
 	/* sample only on the exact position */
 	*index = view3d_sample_backbuf(vc, mval[0], mval[1]);
 
-	if ((*index) <= 0 || (*index) > (unsigned int)totface) {
+	if ((*index) == 0 || (*index) > (unsigned int)totface) {
 		return 0;
 	}
 
