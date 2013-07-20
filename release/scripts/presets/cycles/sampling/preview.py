@@ -3,8 +3,8 @@ cycles = bpy.context.scene.cycles
 
 cycles.squared_samples = True
 
-cycles.samples = 4
-cycles.preview_samples = 4
+cycles.samples = 12
+cycles.preview_samples = 12
 cycles.aa_samples = 4
 cycles.preview_aa_samples = 4
 
