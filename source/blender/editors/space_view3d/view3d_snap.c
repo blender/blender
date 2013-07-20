@@ -676,12 +676,15 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	TransVert *tv;
-	float *curs, imat[3][3], bmat[3][3], vec[3];
+	float imat[3][3], bmat[3][3];
+	const float *cursor_global;
 	int a;
 
-	curs = give_cursor(scene, v3d);
+	cursor_global = give_cursor(scene, v3d);
 
 	if (obedit) {
+		float cursor_local[3];
+
 		tottrans = 0;
 		
 		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
@@ -692,10 +695,10 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		invert_m3_m3(imat, bmat);
 		
 		tv = transvmain;
+		sub_v3_v3v3(cursor_local, cursor_global, obedit->obmat[3]);
+		mul_m3_v3(imat, cursor_local);
 		for (a = 0; a < tottrans; a++, tv++) {
-			sub_v3_v3v3(vec, curs, obedit->obmat[3]);
-			mul_m3_v3(imat, vec);
-			copy_v3_v3(tv->loc, vec);
+			copy_v3_v3(tv->loc, cursor_local);
 		}
 		
 		special_transvert_update(obedit);
@@ -711,25 +714,27 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
+				float cursor_local[3];
 				
 				invert_m4_m4(ob->imat, ob->obmat);
-				copy_v3_v3(vec, curs);
-				mul_m4_v3(ob->imat, vec);
+				copy_v3_v3(cursor_local, cursor_global);
+				mul_m4_v3(ob->imat, cursor_local);
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					if (pchan->bone->flag & BONE_SELECTED) {
 						if (pchan->bone->layer & arm->layer) {
 							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
 								/* Get position in pchan (pose) space. */
-								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
+								float cursor_pose[3];
+								BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
 
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
-									pchan->loc[0] = vec[0];
+									pchan->loc[0] = cursor_pose[0];
 								if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
-									pchan->loc[1] = vec[1];
+									pchan->loc[1] = cursor_pose[1];
 								if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
-									pchan->loc[2] = vec[2];
+									pchan->loc[2] = cursor_pose[2];
 
 								/* auto-keyframing */
 								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
@@ -745,23 +750,24 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
-				vec[0] = -ob->obmat[3][0] + curs[0];
-				vec[1] = -ob->obmat[3][1] + curs[1];
-				vec[2] = -ob->obmat[3][2] + curs[2];
+				float cursor_parent[3];  /* parent-relative */
+				cursor_parent[0] = -ob->obmat[3][0] + cursor_global[0];
+				cursor_parent[1] = -ob->obmat[3][1] + cursor_global[1];
+				cursor_parent[2] = -ob->obmat[3][2] + cursor_global[2];
 				
 				if (ob->parent) {
 					float originmat[3][3];
 					BKE_object_where_is_calc_ex(scene, NULL, ob, originmat);
 					
 					invert_m3_m3(imat, originmat);
-					mul_m3_v3(imat, vec);
+					mul_m3_v3(imat, cursor_parent);
 				}
 				if ((ob->protectflag & OB_LOCK_LOCX) == 0)
-					ob->loc[0] += vec[0];
+					ob->loc[0] += cursor_parent[0];
 				if ((ob->protectflag & OB_LOCK_LOCY) == 0)
-					ob->loc[1] += vec[1];
+					ob->loc[1] += cursor_parent[1];
 				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
-					ob->loc[2] += vec[2];
+					ob->loc[2] += cursor_parent[2];
 
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
