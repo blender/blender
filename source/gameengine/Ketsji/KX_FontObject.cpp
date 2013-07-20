@@ -178,19 +178,12 @@ void KX_FontObject::DrawText()
 
 	/* Font Objects don't use the glsl shader, this color management code is copied from gpu_shader_material.glsl */
 	float color[4];
-	for (int i = 0; i < 3; i++) {
-		if (m_do_color_management) {
-			float c = m_color[i];
-			if(c < 0.0031308)
-				c = (c < 0.0) ? 0.0: c * 12.92;
-			else
-				c = 1.055 * pow(c, 1.0f/2.4f) - 0.055;
-			color[i] = c;
-		}
-		else
-			color[i] = m_color[i];
+	if (m_do_color_management) {
+		linearrgb_to_srgb_v4(color, m_color);
 	}
-	color[3] = m_color[3];
+	else {
+		copy_v4_v4(color, m_color);
+	}
 
 	/* HARDCODED MULTIPLICATION FACTOR - this will affect the render resolution directly */
 	const float RES = BGE_FONT_RES * m_resolution;

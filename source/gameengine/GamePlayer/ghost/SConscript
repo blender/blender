@@ -43,7 +43,7 @@ incs = [
     '#intern/guardedalloc',
     '#intern/moto/include',
     '#intern/container',
-	'#intern/audaspace/intern',
+    '#intern/audaspace/intern',
     '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
     '#source/gameengine/BlenderRoutines',
     '#source/gameengine/Converter',
