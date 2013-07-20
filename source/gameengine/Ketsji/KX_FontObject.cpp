@@ -184,7 +184,7 @@ void KX_FontObject::DrawText()
 			if(c < 0.0031308)
 				c = (c < 0.0) ? 0.0: c * 12.92;
 			else
-				c = 1.055 * pow(c, 1.0/2.4) - 0.055;
+				c = 1.055 * pow(c, 1.0f/2.4f) - 0.055;
 			color[i] = c;
 		}
 		else
