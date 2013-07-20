@@ -94,8 +94,8 @@ public:
 	static void init(int num_threads = 0);
 	static void exit();
 
-	/* number of threads that can work on tasks, main thread counts too */
-	static int num_threads() { return threads.size() + 1; }
+	/* number of threads that can work on task */
+	static int num_threads() { return threads.size(); }
 
 	/* test if any session is using the scheduler */
 	static bool active() { return users != 0; }
