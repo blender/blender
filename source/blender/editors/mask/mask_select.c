@@ -812,12 +812,12 @@ static int mask_select_more_less(bContext *C, bool more)
 			int i;
 			bool start_sel, end_sel, prev_sel, cur_sel, cyclic = spline->flag & MASK_SPLINE_CYCLIC;
 
-			// reselect point if any handle is selected to make the result more predictable
+			/* reselect point if any handle is selected to make the result more predictable */
 			for (i = 0; i < spline->tot_point; i++) {
 				BKE_mask_point_select_set(spline->points + i, MASKPOINT_ISSEL_ANY(spline->points + i));
 			}
 
-			// select more/less does not affect empty/single point splines
+			/* select more/less does not affect empty/single point splines */
 			if (spline->tot_point < 2) {
 				continue;
 			}

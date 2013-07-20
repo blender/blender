@@ -460,7 +460,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const bool sel, c
 			                                   0, NULL, NULL);
 		}
 		
-		eve = BM_vert_at_index(vc->em->bm, index - 1);
+		eve = index ? BM_vert_at_index(vc->em->bm, index - 1) : NULL;
 		
 		if (eve && distance < *r_dist) {
 			*r_dist = distance;
@@ -552,7 +552,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 		
 		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
-		eed = BM_edge_at_index(vc->em->bm, index - 1);
+		eed = index ? BM_edge_at_index(vc->em->bm, index - 1) : NULL;
 		
 		if (eed && distance < *r_dist) {
 			*r_dist = distance;
@@ -625,7 +625,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 
 		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
-		efa = BM_face_at_index(vc->em->bm, index - 1);
+		efa = index ? BM_face_at_index(vc->em->bm, index - 1) : NULL;
 		
 		if (efa) {
 			struct { float mval_fl[2]; float dist; BMFace *toFace; } data;

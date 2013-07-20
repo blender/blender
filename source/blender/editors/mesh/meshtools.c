@@ -1200,7 +1200,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
 	}
 
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totpoly)
+	if ((*index) == 0 || (*index) > (unsigned int)me->totpoly)
 		return false;
 
 	(*index)--;
@@ -1321,7 +1321,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 			*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
 		}
 
-		if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
+		if ((*index) == 0 || (*index) > (unsigned int)me->totvert)
 			return false;
 
 		(*index)--;
