@@ -580,6 +580,7 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data,
 		default:
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			ret = -1;
+			break;
 	}
 
 	return ret;
@@ -605,6 +606,7 @@ int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, in
 		default:
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			ret = -1;
+			break;
 	}
 
 	return ret;
@@ -627,6 +629,7 @@ PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 		default:
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			item = NULL;
+			break;
 	}
 
 	return item;

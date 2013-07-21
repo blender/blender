@@ -929,6 +929,7 @@ static void keymap_type_cb(bContext *C, void *kmi_v, void *UNUSED(arg_v))
 			case OL_KM_SPECIALS:
 				kmi->type = AKEY;
 				kmi->val = KM_PRESS;
+				break;
 		}
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}

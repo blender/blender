@@ -116,6 +116,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
 			BLI_assert(0);
 			tot = 0;
 			data = NULL;
+			break;
 	}
 
 	*r_tot = tot;

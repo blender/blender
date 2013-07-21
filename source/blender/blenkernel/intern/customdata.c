@@ -2391,6 +2391,7 @@ bool CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 			BLI_assert(!"invalid type given");
 			iter_type = BM_VERTS_OF_MESH;
 			totelem = bm->totvert;
+			break;
 	}
 
 	dest->pool = NULL;

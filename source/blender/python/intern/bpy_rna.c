@@ -704,6 +704,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						ret = col_cb; /* return the color instead */
 					}
 				}
+				break;
 			default:
 				break;
 		}
@@ -776,7 +777,8 @@ static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)
 
 	switch (op) {
 		case Py_NE:
-			ok = !ok; /* pass through */
+			ok = !ok;
+			/* fall-through */
 		case Py_EQ:
 			res = ok ? Py_False : Py_True;
 			break;
@@ -805,7 +807,8 @@ static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 
 	switch (op) {
 		case Py_NE:
-			ok = !ok; /* pass through */
+			ok = !ok;
+			/* fall-through */
 		case Py_EQ:
 			res = ok ? Py_False : Py_True;
 			break;
@@ -2380,6 +2383,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 				PyErr_SetString(PyExc_TypeError, "not an array type");
 				Py_DECREF(tuple);
 				tuple = NULL;
+				break;
 		}
 	}
 	return tuple;
@@ -2719,6 +2723,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 		default:
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			ret = -1;
+			break;
 	}
 
 	Py_DECREF(value);
@@ -3588,6 +3593,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 						             "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context",
 						             newtype, name);
 						ret = NULL;
+						break;
 				}
 			}
 			else if (done == -1) { /* found but not set */
@@ -4863,13 +4869,13 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 							ret = Matrix_CreatePyObject(data, 3, 3, Py_NEW, NULL);
 							break;
 						}
-						/* pass through */
+						/* fall-through */
 #endif
 					default:
 						ret = PyTuple_New(len);
 						for (a = 0; a < len; a++)
 							PyTuple_SET_ITEM(ret, a, PyFloat_FromDouble(((float *)data)[a]));
-
+						break;
 				}
 				break;
 			default:
@@ -7001,21 +7007,23 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			/* Sneaky workaround to use the class name as the bl_idname */
 
 #define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
-	(STREQ(identifier, rna_attr)) {                                           \
-		item = PyObject_GetAttr(py_class, py_attr);                           \
-		if (item && item != Py_None) {                                        \
-			if (pyrna_py_to_prop(dummyptr, prop, NULL,                        \
-			                     item, "validating class:") != 0)             \
-			{                                                                 \
-				Py_DECREF(item);                                              \
-				return -1;                                                    \
-			}                                                                 \
-		}                                                                     \
-		Py_XDECREF(item);                                                     \
-	}  /* intentionally allow else here */
+			else if (STREQ(identifier, rna_attr)) {                           \
+				if ((item = PyObject_GetAttr(py_class, py_attr))) {           \
+					if (item != Py_None) {                                    \
+						if (pyrna_py_to_prop(dummyptr, prop, NULL,            \
+						                     item, "validating class:") != 0) \
+						{                                                     \
+							Py_DECREF(item);                                  \
+							return -1;                                        \
+						}                                                     \
+					}                                                         \
+					Py_DECREF(item);                                          \
+				}                                                             \
+			}  /* intentionally allow else here */
 
-			if      BPY_REPLACEMENT_STRING("bl_idname",      bpy_intern_str___name__)
-			else if BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
+			if (false) {}  /* needed for macro */
+			BPY_REPLACEMENT_STRING("bl_idname",      bpy_intern_str___name__)
+			BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
 
 #undef      BPY_REPLACEMENT_STRING
 

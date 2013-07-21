@@ -1432,6 +1432,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
+			/* fall-through */
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(offset, 0);
@@ -1442,10 +1443,12 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			glVertex2s(offset + length - size,  size);
 			glEnd();
 			break;
+
 		case DOWN:
 			offset = -offset;
 			length = -length;
 			size = -size;
+			/* fall-through */
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, offset);
@@ -1464,6 +1467,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 	switch (d) {
 		case LEFT:
 			size = -size;
+			/* fall-through */
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);
@@ -1472,8 +1476,10 @@ static void drawArrowHead(ArrowDirection d, short size)
 			glVertex2s(-size,  size);
 			glEnd();
 			break;
+
 		case DOWN:
 			size = -size;
+			/* fall-through */
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);
@@ -1747,6 +1753,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			break;
 		default:
 			proportional = PROP_EDIT_OFF;
+			break;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
@@ -2934,6 +2941,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 			case 2:
 				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale: %s : %s : %s%s %s"), &tvec[0],
 				                    &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+				break;
 		}
 	}
 	else {
@@ -3900,6 +3908,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "D: %s   D: %s  D: %s (%s)%s %s  %s",
 				                    &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], distvec,
 				                    t->con.text, t->proptext, autoik);
+				break;
 		}
 	}
 	else {
@@ -5690,6 +5699,7 @@ int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 							break;
 						}
 					}
+					break;
 				}
 				default:
 					break;
@@ -6222,6 +6232,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 						calcVertSlideMouseActiveEdges(t, event->mval);
 					}
 					calcVertSlideCustomPoints(t);
+					break;
 				}
 				default:
 					break;

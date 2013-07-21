@@ -1057,6 +1057,7 @@ void free_main(Main *mainvar)
 				case  32: BKE_libblock_free(lb, id); break;
 				default:
 					BLI_assert(0);
+					break;
 			}
 #endif
 		}

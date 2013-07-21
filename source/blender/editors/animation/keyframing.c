@@ -1962,10 +1962,11 @@ short id_frame_has_keyframe(ID *id, float frame, short filter)
 			return object_frame_has_keyframe((Object *)id, frame, filter);
 			break;
 			
-		case ID_SCE: /* scene */
+#if 0
 		// XXX TODO... for now, just use 'normal' behavior
-		//	break;
-		
+		case ID_SCE: /* scene */
+			break;
+#endif
 		default:  /* 'normal type' */
 		{
 			AnimData *adt = BKE_animdata_from_id(id);

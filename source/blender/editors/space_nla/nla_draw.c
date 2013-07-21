@@ -307,8 +307,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 					glVertex2f(strip->start, yminc);
 					glEnd();
 				}
-			/* no break needed... */
-				
+				/* fall-through */
+
 			/* this only draws after the strip */
 			case NLASTRIP_EXTEND_HOLD_FORWARD: 
 				/* only need to try and draw if the next strip doesn't occur immediately after */

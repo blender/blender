@@ -427,6 +427,7 @@ static void nla_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARe
 		default:
 			if (wmn->data == ND_KEYS)
 				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -457,10 +458,10 @@ static void nla_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
-
 		default:
 			if (wmn->data == ND_KEYS)
 				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

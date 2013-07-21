@@ -1607,6 +1607,7 @@ void txt_print_undo(Text *text)
 					c_len = BLI_str_utf8_from_unicode(uc, c);
 					c[c_len] = '\0';
 					puts(c);
+					break;
 				}
 			}
 		}
@@ -1850,6 +1851,7 @@ static unsigned int txt_undo_read_unicode(const char *undo_buf, int *undo_pos, s
 			/* should never happen */
 			BLI_assert(0);
 			unicode = 0;
+			break;
 	}
 	
 	return unicode;
@@ -1925,6 +1927,7 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 			/* should never happen */
 			BLI_assert(0);
 			unicode = 0;
+			break;
 	}
 	
 	return unicode;

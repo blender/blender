@@ -1890,6 +1890,7 @@ float bmesh_subd_falloff_calc(const int falloff, float val)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	return val;

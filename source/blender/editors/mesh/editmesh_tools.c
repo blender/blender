@@ -1622,6 +1622,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	if (!ok) {

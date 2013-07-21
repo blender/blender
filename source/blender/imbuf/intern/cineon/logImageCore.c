@@ -1470,6 +1470,7 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 		case descriptor_YA: /* this descriptor is for internal use only */
 		default:
 			rvalue = 1;
+			break;
 	}
 
 	if (srcIsLinearRGB != 0) {

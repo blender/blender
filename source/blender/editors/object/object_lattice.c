@@ -178,7 +178,7 @@ void load_editLatt(Object *obedit)
 static int lattice_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice*)obedit->data)->editlatt->latt;
+	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
 	int tot;
 	BPoint *bp;

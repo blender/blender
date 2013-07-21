@@ -1667,7 +1667,7 @@ void calculateCenter(TransInfo *t)
 					projectIntView(t, t->center, t->center2d);
 				}
 			}
-		
+			break;
 		}
 	}
 	
@@ -1803,6 +1803,7 @@ void calculatePropRatio(TransInfo *t)
 						break;
 					default:
 						td->factor = 1;
+						break;
 				}
 			}
 		}
@@ -1830,6 +1831,7 @@ void calculatePropRatio(TransInfo *t)
 				break;
 			default:
 				t->proptext[0] = '\0';
+				break;
 		}
 	}
 	else {

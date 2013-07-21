@@ -695,6 +695,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 			break;
 		default:
 			BKE_image_buf_fill_color(rect, rect_float, width, height, color);
+			break;
 	}
 
 	if (rect_float) {
@@ -1120,6 +1121,7 @@ char BKE_imtype_valid_channels(const char imtype)
 		case R_IMF_IMTYPE_QUICKTIME:
 		case R_IMF_IMTYPE_DPX:
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
+			break;
 	}
 
 	/* bw */
@@ -1131,6 +1133,7 @@ char BKE_imtype_valid_channels(const char imtype)
 		case R_IMF_IMTYPE_TIFF:
 		case R_IMF_IMTYPE_IRIS:
 			chan_flag |= IMA_CHAN_FLAG_BW;
+			break;
 	}
 
 	return chan_flag;

@@ -240,6 +240,7 @@ size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const siz
 				goto escape_finish;
 			case '\\':
 			case '"':
+				/* fall-through */
 
 			/* less common but should also be support */
 			case '\t':
@@ -253,9 +254,10 @@ size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const siz
 					/* not enough space to escape */
 					break;
 				}
-			/* intentionally pass through */
+				/* fall-through */
 			default:
 				*dst = *src;
+				break;
 		}
 		dst++;
 		src++;

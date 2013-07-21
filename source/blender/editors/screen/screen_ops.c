@@ -1154,7 +1154,7 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* execute the events */
 	switch (event->type) {
 		case MOUSEMOVE:
-			
+		{
 			x = RNA_int_get(op->ptr, "x");
 			y = RNA_int_get(op->ptr, "y");
 			
@@ -1164,9 +1164,9 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			area_move_apply(C, op);
 			break;
-			
+		}
 		case EVT_MODAL_MAP:
-			
+		{
 			switch (event->val) {
 				case KM_MODAL_APPLY:
 					area_move_exit(C, op);
@@ -1182,6 +1182,8 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					md->step = 0;
 					break;
 			}
+			break;
+		}
 	}
 	
 	return OPERATOR_RUNNING_MODAL;

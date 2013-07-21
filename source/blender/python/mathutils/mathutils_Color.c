@@ -170,7 +170,8 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 
 	switch (op) {
 		case Py_NE:
-			ok = !ok; /* pass through */
+			ok = !ok;
+			/* fall-through */
 		case Py_EQ:
 			res = ok ? Py_False : Py_True;
 			break;
