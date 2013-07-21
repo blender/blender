@@ -189,10 +189,6 @@ void TaskScheduler::init(int num_threads)
 			/* automatic number of threads */
 			num_threads = system_cpu_thread_count();
 		}
-		else {
-			/* manual number of threads */
-			num_threads;
-		}
 
 		/* launch threads that will be waiting for work */
 		threads.resize(num_threads);
