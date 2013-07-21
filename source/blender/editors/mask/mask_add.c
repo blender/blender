@@ -387,6 +387,7 @@ static int add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2]
 		/* TODO - we could pass the spline! */
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, TRUE, TRUE);
 
+		masklay->act_spline = spline;
 		masklay->act_point = new_point;
 
 		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
