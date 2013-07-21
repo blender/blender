@@ -50,7 +50,7 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
 		}
 		else if (origin == SEEK_CUR) {
 			uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
-			if (pos + offset > logFile->memBufferSize || pos < 0)
+			if (pos + offset > logFile->memBufferSize)
 				return 1;
 
 			logFile->memCursor += offset;

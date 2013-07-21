@@ -288,18 +288,18 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 			for (i = 0; (i < totface) && (mface) && (mvert); i++, mface++) {
 				/* add first triangle - verts 1,2,3 */
 				{
-					MVert *va = (IN_RANGE(mface->v1, 0, totvert)) ? (mvert + mface->v1) : (mvert);
-					MVert *vb = (IN_RANGE(mface->v2, 0, totvert)) ? (mvert + mface->v2) : (mvert);
-					MVert *vc = (IN_RANGE(mface->v3, 0, totvert)) ? (mvert + mface->v3) : (mvert);
+					MVert *va = (mface->v1 < totvert) ? (mvert + mface->v1) : (mvert);
+					MVert *vb = (mface->v2 < totvert) ? (mvert + mface->v2) : (mvert);
+					MVert *vc = (mface->v3 < totvert) ? (mvert + mface->v3) : (mvert);
 
 					RB_trimesh_add_triangle(mdata, va->co, vb->co, vc->co);
 				}
 
 				/* add second triangle if needed - verts 1,3,4 */
 				if (mface->v4) {
-					MVert *va = (IN_RANGE(mface->v1, 0, totvert)) ? (mvert + mface->v1) : (mvert);
-					MVert *vb = (IN_RANGE(mface->v3, 0, totvert)) ? (mvert + mface->v3) : (mvert);
-					MVert *vc = (IN_RANGE(mface->v4, 0, totvert)) ? (mvert + mface->v4) : (mvert);
+					MVert *va = (mface->v1 < totvert) ? (mvert + mface->v1) : (mvert);
+					MVert *vb = (mface->v3 < totvert) ? (mvert + mface->v3) : (mvert);
+					MVert *vc = (mface->v4 < totvert) ? (mvert + mface->v4) : (mvert);
 
 					RB_trimesh_add_triangle(mdata, va->co, vb->co, vc->co);
 				}
