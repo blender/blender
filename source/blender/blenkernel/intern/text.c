@@ -1496,6 +1496,7 @@ static int max_undo_test(Text *text, int x)
 	return 1;
 }
 
+#if 0  /* UNUSED */
 static void dump_buffer(Text *text) 
 {
 	int i = 0;
@@ -1660,6 +1661,7 @@ void txt_print_undo(Text *text)
 		i++;
 	}
 }
+#endif
 
 static void txt_undo_store_uint16(char *undo_buf, int *undo_pos, unsigned short value) 
 {
