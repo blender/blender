@@ -2016,10 +2016,7 @@ void txt_do_undo(Text *text)
 			buf[i] = 0;
 
 			/* skip over the length that was stored again */
-			text->undo_pos--;
-			text->undo_pos--;
-			text->undo_pos--; 
-			text->undo_pos--;
+			text->undo_pos -= 4;
 
 			/* Get the cursor positions */
 			txt_undo_read_cursors(text->undo_buf, &text->undo_pos, &curln, &curc, &selln, &selc);
@@ -2053,10 +2050,7 @@ void txt_do_undo(Text *text)
 			MEM_freeN(buf);
 			
 			/* skip over the length that was stored again */
-			text->undo_pos--;
-			text->undo_pos--;
-			text->undo_pos--;
-			text->undo_pos--;
+			text->undo_pos -= 4;
 
 			/* get and restore the cursors */
 			txt_undo_read_cursors(text->undo_buf, &text->undo_pos, &curln, &curc, &selln, &selc);
@@ -2207,10 +2201,7 @@ void txt_do_redo(Text *text)
 			text->undo_pos += linep;
 
 			/* skip over the length that was stored again */
-			text->undo_pos++;
-			text->undo_pos++;
-			text->undo_pos++; 
-			text->undo_pos++;
+			text->undo_pos += 4;
 			
 			txt_delete_sel(text);
 
@@ -2236,10 +2227,7 @@ void txt_do_redo(Text *text)
 			MEM_freeN(buf);
 
 			/* skip over the length that was stored again */
-			text->undo_pos++;
-			text->undo_pos++;
-			text->undo_pos++; 
-			text->undo_pos++;
+			text->undo_pos += 4;
 
 			break;
 			

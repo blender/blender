@@ -6867,8 +6867,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
 			{
 				drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
-				break;
 			}
+			break;
 		case OB_SPEAKER:
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
 				drawspeaker(scene, v3d, rv3d, ob, dflag);
