@@ -271,6 +271,7 @@ static void info_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegi
 		case NC_ID:
 			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
+			break;
 	}
 	
 }

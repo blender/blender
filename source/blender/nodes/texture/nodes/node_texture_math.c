@@ -184,9 +184,8 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		}
 		default:
 		{
-			fprintf(stderr,
-			        "%s:%d: unhandeld value in switch statement: %d\n",
-			        __FILE__, __LINE__, node->custom1);
+			BLI_assert(0);
+			break;
 		}
 	}
 }

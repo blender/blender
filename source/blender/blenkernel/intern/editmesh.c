@@ -373,5 +373,6 @@ void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 }

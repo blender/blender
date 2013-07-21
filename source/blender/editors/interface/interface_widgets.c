@@ -2060,6 +2060,7 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 			copy_v3_v3(col1[0], col1[2]);
 			copy_v3_v3(col1[1], col1[2]);
 			copy_v3_v3(col1[3], col1[2]);
+			break;
 	}
 	
 	/* old below */
@@ -2969,7 +2970,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
 		case UI_WTYPE_LISTLABEL:
 			wt.wcol_theme = &btheme->tui.wcol_list_item;
-			/* No break, we use usual label code too. */
+			/* fall-through */  /* we use usual label code too. */
 		case UI_WTYPE_LABEL:
 			wt.draw = NULL;
 			break;
@@ -3198,9 +3199,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case SEPR:
 				ui_draw_separator(rect, &tui->wcol_menu_item);
 				break;
-				
 			default:
 				wt = widget_type(UI_WTYPE_MENU_ITEM);
+				break;
 		}
 	}
 	else if (but->dt == UI_EMBOSSN) {
@@ -3385,6 +3386,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 			default:
 				wt = widget_type(UI_WTYPE_REGULAR);
+				break;
 		}
 	}
 	

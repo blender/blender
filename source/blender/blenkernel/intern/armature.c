@@ -1324,6 +1324,7 @@ void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, float mat[3][3], short use_compa
 				mat3_to_compatible_eulO(pchan->eul, pchan->eul, pchan->rotmode, mat);
 			else
 				mat3_to_eulO(pchan->eul, pchan->rotmode, mat);
+			break;
 	}
 }
 

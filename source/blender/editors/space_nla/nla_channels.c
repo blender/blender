@@ -319,6 +319,7 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 		default:
 			if (G.debug & G_DEBUG)
 				printf("Error: Invalid channel type in mouse_nla_channels()\n");
+			break;
 	}
 	
 	/* free channels */

@@ -507,6 +507,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 					return -1;
 				}
 			}
+			/* fall-through */
 		}
 		default:
 			/* TODO --- many others */

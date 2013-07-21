@@ -2151,7 +2151,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int viewdolly_exec(bContext *C, wmOperator *op)
 {
-	/* View3D *v3d; */
+	View3D *v3d;
 	RegionView3D *rv3d;
 	ScrArea *sa;
 	ARegion *ar;
@@ -2173,7 +2173,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		normalize_v3(mousevec);
 	}
 
-	/* v3d = sa->spacedata.first; */ /* UNUSED */
+	v3d = sa->spacedata.first;
 	rv3d = ar->regiondata;
 
 	/* overwrite the mouse vector with the view direction (zoom into the center) */
@@ -2192,6 +2192,9 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		view3d_boxview_sync(sa, ar);
 
 	ED_view3d_depth_tag_update(rv3d);
+
+	ED_view3d_camera_lock_sync(v3d, rv3d);
+
 	ED_region_tag_redraw(ar);
 
 	viewops_data_free(C, op);

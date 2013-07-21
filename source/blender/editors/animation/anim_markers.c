@@ -763,7 +763,6 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 	MarkerMove *mm = op->customdata;
 	View2D *v2d = UI_view2d_fromcontext(C);
 	TimeMarker *marker, *selmarker = NULL;
-	float dx, fac;
 	char str[256];
 		
 	switch (event->type) {
@@ -791,6 +790,9 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 			}
 			break;
 		case MOUSEMOVE:
+		{
+			float dx, fac;
+
 			if (hasNumInput(&mm->num))
 				break;
 			
@@ -863,6 +865,8 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 				
 				ED_area_headerprint(CTX_wm_area(C), str);
 			}
+			break;
+		}
 	}
 
 	if (event->val == KM_PRESS) {

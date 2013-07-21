@@ -290,9 +290,7 @@ static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_t
 
 					return true;
 				}
-				else {
-					return false;
-				}
+				return false;
 			}
 			case ID_LT:
 			{
@@ -320,9 +318,7 @@ static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_t
 
 					return true;
 				}
-				else {
-					return false;
-				}
+				return false;
 			}
 		}
 	}
@@ -1098,6 +1094,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 
 					/* we checked if the vertex was added before so no need to test again, simply add */
 					defvert_add_index_notest(dv, def_nr, weight);
+					break;
 			}
 		}
 	}

@@ -853,6 +853,7 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, 
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 }
 

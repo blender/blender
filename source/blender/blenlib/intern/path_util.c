@@ -1228,6 +1228,7 @@ const char *BLI_get_folder(int folder_id, const char *subfolder)
 
 		default:
 			BLI_assert(0);
+			break;
 	}
 	
 	return path;
@@ -1256,7 +1257,9 @@ const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
+
 	if ('\0' == path[0]) {
 		return NULL;
 	}
@@ -1306,6 +1309,7 @@ const char *BLI_get_folder_version(const int id, const int ver, const bool do_ch
 			path[0] = '\0'; /* in case do_check is false */
 			ok = false;
 			BLI_assert(!"incorrect ID");
+			break;
 	}
 
 	if (!ok && do_check) {

@@ -149,7 +149,7 @@ static void text_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					}
 
 					ED_area_tag_redraw(sa);
-				/* no break -- fall down to tag redraw */
+					/* fall-through */  /* fall down to tag redraw */
 				case NA_ADDED:
 				case NA_REMOVED:
 					ED_area_tag_redraw(sa);

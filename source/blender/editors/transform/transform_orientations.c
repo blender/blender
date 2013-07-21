@@ -466,14 +466,14 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 				strcpy(t->spacename, IFACE_("gimbal"));
 				break;
 			}
-		/* no gimbal fallthrough to normal */
+			/* fall-through */  /* no gimbal fallthrough to normal */
 		case V3D_MANIP_NORMAL:
 			if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
 				strcpy(t->spacename, IFACE_("normal"));
 				ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
 				break;
 			}
-		/* no break we define 'normal' as 'local' in Object mode */
+			/* fall-through */  /* we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
 			strcpy(t->spacename, IFACE_("local"));
 		

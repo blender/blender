@@ -4433,7 +4433,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			copy_m4_m4(imat, rv3d->viewinv);
 			normalize_v3(imat[0]);
 			normalize_v3(imat[1]);
-		/* no break! */
+			/* fall-through */
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
@@ -4607,6 +4607,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 								break;
 							default:
 								intensity = 1.0f; /* should never happen */
+								BLI_assert(0);
+								break;
 						}
 						CLAMP(intensity, 0.f, 1.f);
 						weight_to_rgb(ma_col, intensity);
@@ -6866,8 +6868,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
 			{
 				drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
-				break;
 			}
+			break;
 		case OB_SPEAKER:
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
 				drawspeaker(scene, v3d, rv3d, ob, dflag);
@@ -6906,6 +6908,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 				drawaxes(1.0, OB_ARROWS);
 			}
+			break;
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {

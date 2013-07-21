@@ -512,6 +512,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					}
 					break;
 			}
+			break;
 		}
 	}
 }

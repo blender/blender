@@ -1764,6 +1764,7 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 			 *	This is currently used as the mechanism which allows animated settings to be able
 			 *  to be changed via the UI.
 			 */
+			break;
 		}
 	}
 	

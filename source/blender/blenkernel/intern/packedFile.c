@@ -85,6 +85,7 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 				break;
 			default:
 				oldseek = -1;
+				break;
 		}
 		if (seek < 0) {
 			seek = 0;
@@ -448,7 +449,8 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 					temp = local_name;
 					break;
 				}
-			/* else fall through and create it */
+				/* else create it */
+				/* fall-through */
 			case PF_WRITE_LOCAL:
 				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
 					temp = local_name;
@@ -461,7 +463,8 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 					temp = abs_name;
 					break;
 				}
-			/* else fall through and create it */
+				/* else create it */
+				/* fall-through */
 			case PF_WRITE_ORIGINAL:
 				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;

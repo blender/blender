@@ -2213,6 +2213,7 @@ static void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
 			break;
 		default: /* CU_TWIST_Z_UP default, pre 2.49c */
 			make_bevel_list_3D_zup(bl);
+			break;
 	}
 
 	if (bl->poly == -1) /* check its not cyclic */

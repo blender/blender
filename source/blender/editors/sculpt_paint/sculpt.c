@@ -1180,6 +1180,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 
 		case SCULPT_DISP_DIR_AREA:
 			calc_area_normal(sd, ob, an, nodes, totnode);
+			break;
 
 		default:
 			break;
@@ -2460,6 +2461,7 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 
 			case SCULPT_DISP_DIR_AREA:
 				calc_area_normal_and_flatten_center(sd, ob, nodes, totnode, an, fc);
+				break;
 
 			default:
 				break;

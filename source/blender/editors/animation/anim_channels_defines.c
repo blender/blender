@@ -574,8 +574,7 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (scene->adt)
 				return GET_ACF_FLAG_PTR(scene->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 			
 		default: /* unsupported */
 			return NULL;
@@ -719,9 +718,8 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ob->adt)
 				return GET_ACF_FLAG_PTR(ob->adt->flag, type);
-			else
-				return NULL;
-			
+			return NULL;
+
 		default: /* unsupported */
 			return NULL;
 	}
@@ -1053,9 +1051,8 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 			if (adt) {
 				return GET_ACF_FLAG_PTR(adt->flag, type);
 			}
-			else
-				return NULL;
-			
+			return NULL;
+
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return GET_ACF_FLAG_PTR(act->flag, type);
 		
@@ -1213,9 +1210,8 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ma->adt)
 				return GET_ACF_FLAG_PTR(ma->adt->flag, type);
-			else
-				return NULL;
-		
+			return NULL;
+
 		default: /* unsupported */
 			return NULL;
 	}
@@ -1290,8 +1286,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (la->adt)
 				return GET_ACF_FLAG_PTR(la->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1374,8 +1369,7 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (tex->adt)
 				return GET_ACF_FLAG_PTR(tex->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1451,8 +1445,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ca->adt)
 				return GET_ACF_FLAG_PTR(ca->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1538,8 +1531,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (cu->adt)
 				return GET_ACF_FLAG_PTR(cu->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1615,8 +1607,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (key->adt)
 				return GET_ACF_FLAG_PTR(key->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1692,8 +1683,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (wo->adt)
 				return GET_ACF_FLAG_PTR(wo->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1769,8 +1759,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (part->adt)
 				return GET_ACF_FLAG_PTR(part->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1846,8 +1835,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (mb->adt)
 				return GET_ACF_FLAG_PTR(mb->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1923,8 +1911,7 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (arm->adt)
 				return GET_ACF_FLAG_PTR(arm->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -2011,8 +1998,7 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ntree->adt)
 				return GET_ACF_FLAG_PTR(ntree->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 			
 		default: /* unsupported */
 			return NULL;
@@ -2088,8 +2074,7 @@ static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, int setting, short 
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (linestyle->adt)
 				return GET_ACF_FLAG_PTR(linestyle->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 			
 		default: /* unsupported */
 			return NULL;
@@ -2165,8 +2150,7 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (me->adt)
 				return GET_ACF_FLAG_PTR(me->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 			
 		default: /* unsupported */
 			return NULL;
@@ -2242,8 +2226,7 @@ static void *acf_dslat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (lt->adt)
 				return GET_ACF_FLAG_PTR(lt->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 			
 		default: /* unsupported */
 			return NULL;
@@ -2319,8 +2302,7 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (spk->adt)
 				return GET_ACF_FLAG_PTR(spk->adt->flag, type);
-			else
-				return NULL;
+			return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -3439,6 +3421,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
 				default:
 					uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
+					break;
 			}
 		}
 	}

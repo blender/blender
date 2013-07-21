@@ -1502,36 +1502,38 @@ static const char *object_mode_op_string(int mode)
 
 /* checks the mode to be set is compatible with the object
  * should be made into a generic function */
-static int object_mode_set_compat(bContext *UNUSED(C), wmOperator *op, Object *ob)
+static bool object_mode_set_compat(bContext *UNUSED(C), wmOperator *op, Object *ob)
 {
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
-			return 1;
+			return true;
 
 		switch (ob->type) {
 			case OB_MESH:
 				if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT))
-					return 1;
-				return 0;
+					return true;
+				break;
 			case OB_CURVE:
 			case OB_SURF:
 			case OB_FONT:
 			case OB_MBALL:
 				if (mode & (OB_MODE_EDIT))
-					return 1;
-				return 0;
+					return true;
+				break;
 			case OB_LATTICE:
 				if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT))
-					return 1;
+					return true;
+				break;
 			case OB_ARMATURE:
 				if (mode & (OB_MODE_EDIT | OB_MODE_POSE))
-					return 1;
+					return true;
+				break;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 static int object_mode_set_exec(bContext *C, wmOperator *op)

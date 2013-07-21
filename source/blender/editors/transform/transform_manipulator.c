@@ -602,7 +602,7 @@ int calc_manipulator_stats(const bContext *C)
 					break;
 				}
 				/* if not gimbal, fall through to normal */
-				/* pass through */
+				/* fall-through */
 			}
 			case V3D_MANIP_NORMAL:
 			{
@@ -613,7 +613,7 @@ int calc_manipulator_stats(const bContext *C)
 					break;
 				}
 				/* no break we define 'normal' as 'local' in Object mode */
-				/* pass through */
+				/* fall-through */
 			}
 			case V3D_MANIP_LOCAL:
 			{
@@ -840,7 +840,8 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 				UI_GetThemeColor3ubv(TH_AXIS_Z, col);
 				break;
 			default:
-				BLI_assert(!"invalid axis arg");
+				BLI_assert(0);
+				break;
 		}
 	}
 

@@ -655,8 +655,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
 				data->accurate = (event->val == KM_PRESS);
 
-		/* no break! update CV position */
-
+			/* fall-through */  /* update CV position */
 		case MOUSEMOVE:
 		{
 			ScrArea *sa = CTX_wm_area(C);

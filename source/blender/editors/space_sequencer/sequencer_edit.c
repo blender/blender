@@ -558,6 +558,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				return 0;
 			}
 			if (seq3 == NULL) seq3 = seq2;
+			break;
 	}
 	
 	if (seq1 == NULL && seq2 == NULL && seq3 == NULL) {

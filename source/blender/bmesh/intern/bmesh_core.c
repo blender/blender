@@ -502,6 +502,7 @@ int bmesh_elem_check(void *element, const char htype)
 		}
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	BMESH_ASSERT(err == 0);

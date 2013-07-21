@@ -1706,6 +1706,7 @@ bool EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	switch (selectmode_new) {

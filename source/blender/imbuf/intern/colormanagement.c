@@ -1094,6 +1094,7 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 		default:
 			printf("Unknown role was passed to %s\n", __func__);
 			BLI_assert(0);
+			break;
 	}
 
 	return NULL;

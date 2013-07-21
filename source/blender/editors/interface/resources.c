@@ -1353,7 +1353,8 @@ void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3]
 			UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
 			break;
 		default:
-			BLI_assert(!"invalid axis arg");
+			BLI_assert(0);
+			break;
 	}
 }
 
