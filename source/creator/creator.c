@@ -499,7 +499,7 @@ static void blender_crash_handler_backtrace(FILE *fp)
 #undef SIZE
 }
 
-#elif defined(_MSV_VER)
+#elif defined(_MSC_VER)
 
 static void blender_crash_handler_backtrace(FILE *fp)
 {
