@@ -209,9 +209,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 			/* scrollers - should we have these by default? */
 			/* XXX for now, we don't override this, or set it either! */
+			break;
 		}
-		break;
-		
 		/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
 		case V2D_COMMONVIEW_LIST:
 		{
@@ -225,9 +224,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			tot_changed = do_init;
 			
 			/* scroller settings are currently not set here... that is left for regions... */
+			break;
 		}
-		break;
-			
 		/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
 		 *  zoom, aspect ratio, and alignment restrictions are set here */
 		case V2D_COMMONVIEW_STACK:
@@ -242,9 +240,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			tot_changed = do_init;
 			
 			/* scroller settings are currently not set here... that is left for regions... */
+			break;
 		}
-		break;
-			
 		/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
 		case V2D_COMMONVIEW_HEADER:
 		{
@@ -272,10 +269,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			
 			/* absolutely no scrollers allowed */
 			v2d->scroll = 0;
-			
+			break;
 		}
-		break;
-		
 		/* panels view, with horizontal/vertical align */
 		case V2D_COMMONVIEW_PANELS_UI:
 		{
@@ -308,9 +303,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->cur.ymax = 0.0f;
 				v2d->cur.ymin = (-winy) * panelzoom;
 			}
+			break;
 		}
-		break;
-			
 		/* other view types are completely defined using their own settings already */
 		default:
 			/* we don't do anything here, as settings should be fine, but just make sure that rect */
@@ -1739,9 +1733,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							fac2 = fac2 - time;
 							
 							scroll_printstr(scene, fac, h, time + (float)FPS * fac2 / 100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							break;
 						}
-						break;
-							
 						case V2D_UNIT_DEGREES:      /* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
 							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');

@@ -437,7 +437,6 @@ protected:
 	/**
 	 * This method is invoked when the scene lists have changed.
 	 */
-	void			SceneListsChanged(void);
 
 	void			RemoveScheduledScenes(void);
 	void			AddScheduledScenes(void);

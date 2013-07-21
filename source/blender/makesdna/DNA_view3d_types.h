@@ -131,6 +131,7 @@ typedef struct RegionView3D {
 	char viewlock;
 	char viewlock_quad;			/* options for quadview (store while out of quad view) */
 	char pad[3];
+	float ofs_lock[2];			/* normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right */
 
 	short twdrawflag;
 	short rflag;
@@ -278,6 +279,8 @@ typedef struct View3D {
 #define V3D_RENDER_BORDER		2048
 #define V3D_SOLID_MATCAP		4096	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	8192	/* runtime flag */
+#define V3D_OCCLUDE_WIRE		16384
+
 
 /* View3D->around */
 #define V3D_CENTER		 0

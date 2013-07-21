@@ -64,7 +64,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -78,6 +79,8 @@
 /* ********************* old transform stuff ******** */
 /* *********** will get replaced with new transform * */
 /* ************************************************** */
+
+static bool snap_curs_to_sel_ex(bContext *C, float cursor[3]);
 
 typedef struct TransVert {
 	float *loc;
@@ -670,18 +673,30 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
+static int snap_sel_to_curs(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	TransVert *tv;
-	float *curs, imat[3][3], bmat[3][3], vec[3];
+	float imat[3][3], bmat[3][3];
+	const float *cursor_global;
+	float center_global[3];
+	float offset_global[3];
 	int a;
 
-	curs = give_cursor(scene, v3d);
+	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+
+	cursor_global = give_cursor(scene, v3d);
+
+	if (use_offset) {
+		snap_curs_to_sel_ex(C, center_global);
+		sub_v3_v3v3(offset_global, cursor_global, center_global);
+	}
 
 	if (obedit) {
+		float cursor_local[3];
+
 		tottrans = 0;
 		
 		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
@@ -691,11 +706,25 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		copy_m3_m4(bmat, obedit->obmat);
 		invert_m3_m3(imat, bmat);
 		
-		tv = transvmain;
-		for (a = 0; a < tottrans; a++, tv++) {
-			sub_v3_v3v3(vec, curs, obedit->obmat[3]);
-			mul_m3_v3(imat, vec);
-			copy_v3_v3(tv->loc, vec);
+		/* get the cursor in object space */
+		sub_v3_v3v3(cursor_local, cursor_global, obedit->obmat[3]);
+		mul_m3_v3(imat, cursor_local);
+
+		if (use_offset) {
+			float offset_local[3];
+
+			mul_v3_m3v3(offset_local, imat, offset_global);
+
+			tv = transvmain;
+			for (a = 0; a < tottrans; a++, tv++) {
+				add_v3_v3(tv->loc, offset_local);
+			}
+		}
+		else {
+			tv = transvmain;
+			for (a = 0; a < tottrans; a++, tv++) {
+				copy_v3_v3(tv->loc, cursor_local);
+			}
 		}
 		
 		special_transvert_update(obedit);
@@ -711,25 +740,36 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
+				float cursor_local[3];
 				
 				invert_m4_m4(ob->imat, ob->obmat);
-				copy_v3_v3(vec, curs);
-				mul_m4_v3(ob->imat, vec);
-				
+				mul_v3_m4v3(cursor_local, ob->imat, cursor_global);
+
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					if (pchan->bone->flag & BONE_SELECTED) {
-						if (pchan->bone->layer & arm->layer) {
+						if (PBONE_VISIBLE(arm, pchan->bone)) {
 							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
 								/* Get position in pchan (pose) space. */
-								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
+								float cursor_pose[3];
+
+								if (use_offset) {
+									mul_v3_m4v3(cursor_pose, ob->obmat, pchan->pose_mat[3]);
+									add_v3_v3(cursor_pose, offset_global);
+
+									mul_m4_v3(ob->imat, cursor_pose);
+									BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
+								}
+								else {
+									BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
+								}
 
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
-									pchan->loc[0] = vec[0];
+									pchan->loc[0] = cursor_pose[0];
 								if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
-									pchan->loc[1] = vec[1];
+									pchan->loc[1] = cursor_pose[1];
 								if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
-									pchan->loc[2] = vec[2];
+									pchan->loc[2] = cursor_pose[2];
 
 								/* auto-keyframing */
 								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
@@ -745,23 +785,30 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
-				vec[0] = -ob->obmat[3][0] + curs[0];
-				vec[1] = -ob->obmat[3][1] + curs[1];
-				vec[2] = -ob->obmat[3][2] + curs[2];
+				float cursor_parent[3];  /* parent-relative */
+
+				if (use_offset) {
+					add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
+				}
+				else {
+					copy_v3_v3(cursor_parent, cursor_global);
+				}
+
+				sub_v3_v3(cursor_parent, ob->obmat[3]);
 				
 				if (ob->parent) {
 					float originmat[3][3];
 					BKE_object_where_is_calc_ex(scene, NULL, ob, originmat);
 					
 					invert_m3_m3(imat, originmat);
-					mul_m3_v3(imat, vec);
+					mul_m3_v3(imat, cursor_parent);
 				}
 				if ((ob->protectflag & OB_LOCK_LOCX) == 0)
-					ob->loc[0] += vec[0];
+					ob->loc[0] += cursor_parent[0];
 				if ((ob->protectflag & OB_LOCK_LOCY) == 0)
-					ob->loc[1] += vec[1];
+					ob->loc[1] += cursor_parent[1];
 				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
-					ob->loc[2] += vec[2];
+					ob->loc[2] += cursor_parent[2];
 
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
@@ -790,6 +837,9 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* rna */
+	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset", "");
 }
 
 /* *************************************************** */
@@ -882,16 +932,14 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 	}
 }
 
-static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
+static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	TransVert *tv;
-	float *curs, bmat[3][3], vec[3], min[3], max[3], centroid[3];
+	float bmat[3][3], vec[3], min[3], max[3], centroid[3];
 	int count, a;
-
-	curs = give_cursor(scene, v3d);
 
 	count = 0;
 	INIT_MINMAX(min, max);
@@ -899,11 +947,14 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 
 	if (obedit) {
 		tottrans = 0;
-		
+
 		if (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL))
 			make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS | TM_SKIP_HANDLES);
-		if (tottrans == 0) return OPERATOR_CANCELLED;
-		
+
+		if (tottrans == 0) {
+			return false;
+		}
+
 		copy_m3_m4(bmat, obedit->obmat);
 		
 		tv = transvmain;
@@ -917,10 +968,10 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		
 		if (v3d->around == V3D_CENTROID) {
 			mul_v3_fl(centroid, 1.0f / (float)tottrans);
-			copy_v3_v3(curs, centroid);
+			copy_v3_v3(cursor, centroid);
 		}
 		else {
-			mid_v3_v3v3(curs, min, max);
+			mid_v3_v3v3(cursor, min, max);
 		}
 		MEM_freeN(transvmain);
 		transvmain = NULL;
@@ -962,19 +1013,38 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			}
 			CTX_DATA_END;
 		}
-		if (count) {
-			if (v3d->around == V3D_CENTROID) {
-				mul_v3_fl(centroid, 1.0f / (float)count);
-				copy_v3_v3(curs, centroid);
-			}
-			else {
-				mid_v3_v3v3(curs, min, max);
-			}
+
+		if (count == 0) {
+			return false;
+		}
+
+		if (v3d->around == V3D_CENTROID) {
+			mul_v3_fl(centroid, 1.0f / (float)count);
+			copy_v3_v3(cursor, centroid);
+		}
+		else {
+			mid_v3_v3v3(cursor, min, max);
 		}
 	}
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	
-	return OPERATOR_FINISHED;
+	return true;
+}
+
+static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	float *curs;
+
+	curs = give_cursor(scene, v3d);
+
+	if (snap_curs_to_sel_ex(C, curs)) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)

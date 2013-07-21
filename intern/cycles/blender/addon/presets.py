@@ -46,6 +46,36 @@ class AddPresetIntegrator(AddPresetBase, Operator):
     preset_subdir = "cycles/integrator"
 
 
+class AddPresetSampling(AddPresetBase, Operator):
+    '''Add a Sampling Preset'''
+    bl_idname = "render.cycles_sampling_preset_add"
+    bl_label = "Add Sampling Preset"
+    preset_menu = "CYCLES_MT_sampling_presets"
+
+    preset_defines = [
+        "cycles = bpy.context.scene.cycles"
+    ]
+
+    preset_values = [
+        "cycles.samples",
+        "cycles.preview_samples",
+        "cycles.aa_samples",
+        "cycles.preview_aa_samples",
+        "cycles.diffuse_samples",
+        "cycles.glossy_samples",
+        "cycles.transmission_samples",
+        "cycles.ao_samples",
+        "cycles.mesh_light_samples",
+        "cycles.subsurface_samples",
+        "cycles.no_caustics",
+        "cycles.blur_glossy",
+        "cycles.squared_samples",
+        "cycles.progressive"
+    ]
+
+    preset_subdir = "cycles/sampling"
+
+
 def register():
     pass
 

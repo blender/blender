@@ -61,7 +61,7 @@
 /* the types are from the jpeg lib */
 static void jpeg_error(j_common_ptr cinfo)
 #ifdef __GNUC__
-__attribute__((noreturn));
+__attribute__((noreturn))
 #endif
 ;
 static void init_source(j_decompress_ptr cinfo);

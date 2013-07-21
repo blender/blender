@@ -930,9 +930,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 						if (fmd->flag & FCM_LIMIT_XMAX) {
 							max = max_ff(max, fmd->rect.xmax);
 						}
+						break;
 					}
-					break;
-						
 					case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
 					{
 						FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
@@ -941,9 +940,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 							min = MINAFRAMEF;
 						if (fmd->after_mode != FCM_EXTRAPOLATE_NONE)
 							max = MAXFRAMEF;
+						break;
 					}
-					break;
-						
 					/* TODO: function modifier may need some special limits */
 						
 					default: /* all other standard modifiers are on the infinite range... */

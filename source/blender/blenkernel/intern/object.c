@@ -1619,13 +1619,15 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 			normalize_qt_qt(dquat, ob->dquat);
 			invert_qt(dquat);
 			mul_qt_qtqt(ob->quat, dquat, ob->quat);
+			break;
 		}
-		break;
 		case ROT_MODE_AXISANGLE:
+		{
 			mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
 			sub_v3_v3(ob->rotAxis, ob->drotAxis);
 			ob->rotAngle -= ob->drotAngle;
 			break;
+		}
 		default: /* euler */
 		{
 			float quat[4];
@@ -2390,8 +2392,8 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 			}
 			change = TRUE;
+			break;
 		}
-		break;
 		case OB_LATTICE:
 		{
 			Lattice *lt = ob->data;
@@ -2407,9 +2409,10 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 			}
 			change = TRUE;
+			break;
 		}
-		break;
 		case OB_ARMATURE:
+		{
 			if (ob->pose) {
 				bArmature *arm = ob->data;
 				bPoseChannel *pchan;
@@ -2428,6 +2431,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 			}
 			break;
+		}
 		case OB_MESH:
 		{
 			Mesh *me = BKE_mesh_from_object(ob);
@@ -2441,8 +2445,8 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				}
 				change = TRUE;
 			}
+			break;
 		}
-		break;
 		case OB_MBALL:
 		{
 			float ob_min[3], ob_max[3];
@@ -2741,10 +2745,8 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 						makeDerivedMesh(scene, ob, NULL, data_mask, 0);
 					}
 #endif
-
+					break;
 				}
-				break;
-
 				case OB_ARMATURE:
 					if (ob->id.lib && ob->proxy_from) {
 						if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {

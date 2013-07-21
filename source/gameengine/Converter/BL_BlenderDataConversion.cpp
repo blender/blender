@@ -890,8 +890,8 @@ static bool ConvertMaterial(
 
 static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace *tface, MCol *mcol, MTF_localLayer *layers, int lightlayer, unsigned int *rgb, MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT], const char *tfaceName, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
-	RAS_IPolyMaterial* polymat = converter->FindCachedPolyMaterial(ma);
-	BL_Material* bl_mat = converter->FindCachedBlenderMaterial(ma);
+	RAS_IPolyMaterial* polymat = converter->FindCachedPolyMaterial(scene, ma);
+	BL_Material* bl_mat = converter->FindCachedBlenderMaterial(scene, ma);
 	KX_BlenderMaterial* kx_blmat = NULL;
 	KX_PolygonMaterial* kx_polymat = NULL;
 		
@@ -907,7 +907,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 				converter->GetGLSLMaterials());
 
 			if (ma && (ma->mode & MA_FACETEXTURE) == 0)
-				converter->CacheBlenderMaterial(ma, bl_mat);
+				converter->CacheBlenderMaterial(scene, ma, bl_mat);
 		}
 
 		const bool use_vcol = GetMaterialUseVColor(ma, bl_mat->glslmat);
@@ -923,7 +923,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 			kx_blmat->Initialize(scene, bl_mat, (ma?&ma->game:NULL), lightlayer);
 			polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
 			if (ma && (ma->mode & MA_FACETEXTURE) == 0)
-				converter->CachePolyMaterial(ma, polymat);
+				converter->CachePolyMaterial(scene, ma, polymat);
 		}
 	}
 	else {
@@ -1052,7 +1052,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 				polymat->m_shininess = 35.0;
 			}
 
-			converter->CachePolyMaterial(ma, polymat);
+			converter->CachePolyMaterial(scene, ma, polymat);
 		}
 	}
 	
@@ -2085,8 +2085,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 
 	case OB_FONT:
 	{
+		bool do_color_management = !(blenderscene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT);
 		/* font objects have no bounding box */
-		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob);
+		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob, do_color_management);
 
 		/* add to the list only the visible fonts */
 		if ((ob->lay & kxscene->GetBlenderScene()->lay) != 0)

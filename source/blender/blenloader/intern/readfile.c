@@ -7687,31 +7687,38 @@ static const char *node_get_static_idname(int type, int treetype)
 static const char *node_socket_get_static_idname(bNodeSocket *sock)
 {
 	switch (sock->type) {
-	case SOCK_FLOAT: {
-		bNodeSocketValueFloat *dval = sock->default_value;
-		return nodeStaticSocketType(SOCK_FLOAT, dval->subtype);
-	}
-	case SOCK_INT: {
-		bNodeSocketValueInt *dval = sock->default_value;
-		return nodeStaticSocketType(SOCK_INT, dval->subtype);
-	}
-	case SOCK_BOOLEAN: {
-		return nodeStaticSocketType(SOCK_BOOLEAN, PROP_NONE);
-	}
-	case SOCK_VECTOR: {
-		bNodeSocketValueVector *dval = sock->default_value;
-		return nodeStaticSocketType(SOCK_VECTOR, dval->subtype);
-	}
-	case SOCK_RGBA: {
-		return nodeStaticSocketType(SOCK_RGBA, PROP_NONE);
-	}
-	case SOCK_STRING: {
-		bNodeSocketValueString *dval = sock->default_value;
-		return nodeStaticSocketType(SOCK_STRING, dval->subtype);
-	}
-	case SOCK_SHADER: {
-		return nodeStaticSocketType(SOCK_SHADER, PROP_NONE);
-	}
+		case SOCK_FLOAT:
+		{
+			bNodeSocketValueFloat *dval = sock->default_value;
+			return nodeStaticSocketType(SOCK_FLOAT, dval->subtype);
+		}
+		case SOCK_INT:
+		{
+			bNodeSocketValueInt *dval = sock->default_value;
+			return nodeStaticSocketType(SOCK_INT, dval->subtype);
+		}
+		case SOCK_BOOLEAN:
+		{
+			return nodeStaticSocketType(SOCK_BOOLEAN, PROP_NONE);
+		}
+		case SOCK_VECTOR:
+		{
+			bNodeSocketValueVector *dval = sock->default_value;
+			return nodeStaticSocketType(SOCK_VECTOR, dval->subtype);
+		}
+		case SOCK_RGBA:
+		{
+			return nodeStaticSocketType(SOCK_RGBA, PROP_NONE);
+		}
+		case SOCK_STRING:
+		{
+			bNodeSocketValueString *dval = sock->default_value;
+			return nodeStaticSocketType(SOCK_STRING, dval->subtype);
+		}
+		case SOCK_SHADER:
+		{
+			return nodeStaticSocketType(SOCK_SHADER, PROP_NONE);
+		}
 	}
 	return "";
 }

@@ -347,10 +347,6 @@ void AUD_FFMPEGReader::seek(int position)
 		uint64_t st_time = m_formatCtx->start_time;
 		uint64_t seek_pos = ((uint64_t)position) * ((uint64_t)AV_TIME_BASE) / ((uint64_t)m_specs.rate);
 
-		if (seek_pos < 0) {
-			seek_pos = 0;
-		}
-
 		if (st_time != AV_NOPTS_VALUE) {
 			seek_pos += st_time;
 		}

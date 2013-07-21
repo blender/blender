@@ -610,9 +610,8 @@ bool BLI_parent_dir(char *path)
 {
 	static char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
 	char tmp[FILE_MAX + 4];
-	BLI_strncpy(tmp, path, sizeof(tmp) - 4);
-	BLI_add_slash(tmp);
-	strcat(tmp, parent_dir);
+
+	BLI_join_dirfile(tmp, sizeof(tmp), path, parent_dir);
 	BLI_cleanup_dir(NULL, tmp); /* does all the work of normalizing the path for us */
 
 	if (!BLI_testextensie(tmp, parent_dir)) {

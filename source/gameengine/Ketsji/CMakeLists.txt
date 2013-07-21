@@ -185,7 +185,6 @@ set(SRC
 	KX_OrientationInterpolator.h
 	KX_ParentActuator.h
 	KX_PhysicsEngineEnums.h
-	KX_PhysicsPropertiesobsolete.h
 	KX_PolyProxy.h
 	KX_PolygonMaterial.h
 	KX_PositionInterpolator.h

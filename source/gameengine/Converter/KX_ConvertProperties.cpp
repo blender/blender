@@ -131,7 +131,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 		
 		if (propval)
 		{
-			if (show_debug_info)
+			if (show_debug_info && isInActiveLayer)
 			{
 				scene->AddDebugProperty(gameobj,STR_String(prop->name));
 			}
@@ -159,7 +159,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 		prop = prop->next;
 	}
 	// check if state needs to be debugged
-	if (object->scaflag & OB_DEBUGSTATE)
+	if (object->scaflag & OB_DEBUGSTATE && isInActiveLayer)
 	{
 		//  reserve name for object state
 		scene->AddDebugProperty(gameobj,STR_String("__state__"));

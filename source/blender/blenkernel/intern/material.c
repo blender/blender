@@ -1432,8 +1432,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 				r_col[1] = facm * (r_col[1]) + fac * tmpg;
 				r_col[2] = facm * (r_col[2]) + fac * tmpb;
 			}
+			break;
 		}
-		break;
 		case MA_RAMP_SAT:
 		{
 			float rH, rS, rV;
@@ -1443,8 +1443,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 				rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
 				hsv_to_rgb(rH, (facm * rS + fac * colS), rV, r_col + 0, r_col + 1, r_col + 2);
 			}
+			break;
 		}
-		break;
 		case MA_RAMP_VAL:
 		{
 			float rH, rS, rV;
@@ -1452,8 +1452,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 			rgb_to_hsv(r_col[0], r_col[1], r_col[2], &rH, &rS, &rV);
 			rgb_to_hsv(col[0], col[1], col[2], &colH, &colS, &colV);
 			hsv_to_rgb(rH, rS, (facm * rV + fac * colV), r_col + 0, r_col + 1, r_col + 2);
+			break;
 		}
-		break;
 		case MA_RAMP_COLOR:
 		{
 			float rH, rS, rV;
@@ -1467,8 +1467,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 				r_col[1] = facm * (r_col[1]) + fac * tmpg;
 				r_col[2] = facm * (r_col[2]) + fac * tmpb;
 			}
+			break;
 		}
-		break;
 		case MA_RAMP_SOFT:
 		{
 			float scr, scg, scb;
@@ -1481,8 +1481,8 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 			r_col[0] = facm * (r_col[0]) + fac * (((1.0f - r_col[0]) * col[0] * (r_col[0])) + (r_col[0] * scr));
 			r_col[1] = facm * (r_col[1]) + fac * (((1.0f - r_col[1]) * col[1] * (r_col[1])) + (r_col[1] * scg));
 			r_col[2] = facm * (r_col[2]) + fac * (((1.0f - r_col[2]) * col[2] * (r_col[2])) + (r_col[2] * scb));
+			break;
 		}
-		break;
 		case MA_RAMP_LINEAR:
 			if (col[0] > 0.5f)
 				r_col[0] = r_col[0] + fac * (2.0f * (col[0] - 0.5f));

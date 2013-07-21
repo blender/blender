@@ -742,12 +742,16 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			}
 			
 			if (lamp->mode & LA_ONLYSHADOW) {
+				GPUNodeLink *rgb;
 				GPU_link(mat, "shade_only_shadow", i, shadfac,
 					GPU_dynamic_uniform(&lamp->dynenergy, GPU_DYNAMIC_LAMP_DYNENERGY, lamp->ob), &shadfac);
+
+				GPU_link(mat, "shade_mul", shi->rgb, GPU_uniform(lamp->shadow_color), &rgb);
+				GPU_link(mat, "mtex_rgb_invert", rgb, &rgb);
 				
 				if (!(lamp->mode & LA_NO_DIFF)) {
-					GPU_link(mat, "mix_mult", shadfac, shr->diff,
-						GPU_uniform(lamp->shadow_color), &shr->diff);
+					GPU_link(mat, "shade_only_shadow_diffuse", shadfac, rgb,
+						shr->diff, &shr->diff);
 				}
 
 				if (!(lamp->mode & LA_NO_SPEC))

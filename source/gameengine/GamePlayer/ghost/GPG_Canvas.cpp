@@ -55,9 +55,8 @@ void GPG_Canvas::Init()
 {
 	if (m_window)
 	{
-		GHOST_TSuccess success;
-		success = m_window->setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
-		assert(success == GHOST_kSuccess);
+		m_window->setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
+		assert(m_window->getDrawingContextType() == GHOST_kDrawingContextTypeOpenGL);
 	}
 }
 

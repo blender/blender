@@ -252,9 +252,8 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_spec, &ramp_ptr);
 					COLRAMP_GETPATH;
 				}
+				break;
 			}
-			break;
-				
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
@@ -266,9 +265,8 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 						COLRAMP_GETPATH;
 					}
 				}
+				break;
 			}
-			break;
-				
 			case ID_LS:
 			{
 				ListBase listbase;
@@ -312,8 +310,8 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				
 				DAG_id_tag_update(&ma->id, 0);
 				WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
+				break;
 			}
-			break;
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
@@ -324,16 +322,16 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 						ED_node_tag_update_nodetree(bmain, ntree);
 					}
 				}
+				break;
 			}
-			break;
 			case ID_TE:
 			{
 				Tex *tex = ptr->id.data;
 
 				DAG_id_tag_update(&tex->id, 0);
 				WM_main_add_notifier(NC_TEXTURE, tex);
+				break;
 			}
-			break;
 			case ID_LS:
 			{
 				FreestyleLineStyle *linestyle = ptr->id.data;

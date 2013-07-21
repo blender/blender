@@ -735,7 +735,7 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	if (dw_new)
 		return dw_new;
 
-	dw_new = MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "deformWeight");
+	dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "deformWeight");
 	if (dvert->dw) {
 		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
 		MEM_freeN(dvert->dw);

@@ -383,8 +383,8 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 		{
 			/* rebuild depsgraph for the new deps */
 			DAG_relations_tag_update(bmain);
+			break;
 		}
-		break;
 	}
 	
 	/* default for now */

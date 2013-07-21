@@ -186,12 +186,12 @@ void TaskScheduler::init(int num_threads)
 		do_exit = false;
 
 		if(num_threads == 0) {
-			/* automatic number of threads will be main thread + num cores */
+			/* automatic number of threads */
 			num_threads = system_cpu_thread_count();
 		}
 		else {
-			/* main thread will also work, for fixed threads we count it too */
-			num_threads -= 1;
+			/* manual number of threads */
+			num_threads;
 		}
 
 		/* launch threads that will be waiting for work */

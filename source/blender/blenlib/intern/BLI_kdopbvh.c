@@ -72,7 +72,7 @@ struct BVHTree {
 /* optimization, ensure we stay small */
 BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
                   (sizeof(void *) == 4 && sizeof(BVHTree) <= 32),
-                  "over sized");
+                  "over sized")
 
 typedef struct BVHOverlapData {
 	BVHTree *tree1, *tree2; 
@@ -603,6 +603,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 	data->branches_on_level[0] = 1;
 
 	/* We could stop the loop first (but I am lazy to find out when) */
+	/* note: this often causes integer overflow, may be worth avoiding? - campbell */
 	for (depth = 1; depth < 32; depth++) {
 		data->branches_on_level[depth] = data->branches_on_level[depth - 1] * data->tree_type;
 		data->leafs_per_child[depth] = data->leafs_per_child[depth - 1] / data->tree_type;

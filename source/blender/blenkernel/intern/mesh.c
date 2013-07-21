@@ -2203,9 +2203,12 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 				if (ld->disps)
 					MEM_freeN(ld->disps);
 
-				ld->disps = MEM_callocN(sizeof(float) * 3 * side * side, "converted loop mdisps");
+				ld->disps = MEM_mallocN(sizeof(float) * 3 * side * side, "converted loop mdisps");
 				if (fd->disps) {
 					memcpy(ld->disps, disps, sizeof(float) * 3 * side * side);
+				}
+				else {
+					memset(ld->disps, 0, sizeof(float) * 3 * side * side);
 				}
 			}
 		}

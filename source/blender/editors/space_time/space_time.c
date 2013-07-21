@@ -435,8 +435,8 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 							break;
 						}
 					}
+					break;
 				}
-				break;
 			}
 			break;
 		}

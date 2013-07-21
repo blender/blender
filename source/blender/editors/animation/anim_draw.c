@@ -126,17 +126,15 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 					if (hours) sprintf(str, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
 					else sprintf(str, "%s%02d:%02d", neg, minutes, seconds);
 				}
+				break;
 			}
-			break;
-				
 			case USER_TIMECODE_SMPTE_MSF:
 			{
 				/* reduced SMPTE format that always shows minutes, seconds, frames. Hours only shown as needed. */
 				if (hours) sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
 				else sprintf(str, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
+				break;
 			}
-			break;
-			
 			case USER_TIMECODE_MILLISECONDS:
 			{
 				/* reduced SMPTE. Instead of frames, milliseconds are shown */
@@ -145,25 +143,23 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 				
 				if (hours) sprintf(str, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, cfra);
 				else sprintf(str, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, cfra);
+				break;
 			}
-			break;
-				
 			case USER_TIMECODE_SECONDS_ONLY:
 			{
 				/* only show the original seconds display */
 				/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 				if (power <= 0) sprintf(str, "%.*f", 1 - power, raw_seconds);
 				else sprintf(str, "%d", (int)floor(raw_seconds + GLA_PIXEL_OFS));
+				break;
 			}
-			break;
-			
 			case USER_TIMECODE_SMPTE_FULL:
 			default:
 			{
 				/* full SMPTE format */
 				sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+				break;
 			}
-			break;
 		}
 	}
 	else {

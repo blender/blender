@@ -538,9 +538,6 @@ set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
 
-# disabled for now, not supported
-# option(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
-
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix:
 #   cmake ../blender \
@@ -1874,16 +1871,6 @@ if(WITH_IMAGE_REDCODE)
 	set(REDCODE_INC ${REDCODE})
 endif()
 
-#-----------------------------------------------------------------------------
-# Blender WebPlugin
-
-if(WITH_WEBPLUGIN)
-	set(GECKO_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
-	set(WEBPLUGIN_SANDBOX_MODE "apparmor" CACHE STRING "WEB Plugin sandbox mode, can be apparmor, privsep, none")
-
-	set(WITH_PLAYER ON)
-endif()
-
 
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
@@ -1977,6 +1964,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_NULL -Wnonnull)  # C only
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_TYPE_LIMITS -Wtype-limits)
 
 	# gcc 4.2 gives annoying warnings on every file with this
 	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
@@ -2003,6 +1991,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_TYPE_LIMITS -Wtype-limits)
 
 	# gcc 4.2 gives annoying warnings on every file with this
 	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")

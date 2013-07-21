@@ -1973,8 +1973,8 @@ short id_frame_has_keyframe(ID *id, float frame, short filter)
 			/* only check keyframes in active action */
 			if (adt)
 				return action_frame_has_keyframe(adt->action, frame, filter);
+			break;
 		}
-		break;
 	}
 	
 	

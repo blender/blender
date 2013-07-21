@@ -1139,7 +1139,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			break;
 		}
 		
-		default: {
+		default:
+		{
 #ifdef WITH_X11_XINPUT
 			if (xe->type == m_xtablet.MotionEvent) {
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
@@ -1505,7 +1506,7 @@ convertXKey(KeySym key)
 #define XCLIB_XCOUT_FALLBACK_TEXT   6
 
 /* Retrieves the contents of a selections. */
-void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
+void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
 		Atom sel, Atom target, unsigned char **txt,
 		unsigned long *len, unsigned int *context) const
 {
@@ -1535,18 +1536,18 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			return;
 
 		case XCLIB_XCOUT_SENTCONVSEL:
-			if (evt.type != SelectionNotify)
+			if (evt->type != SelectionNotify)
 				return;
 
-			if (target == m_atom.UTF8_STRING && evt.xselection.property == None) {
+			if (target == m_atom.UTF8_STRING && evt->xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_UTF8;
 				return;
 			}
-			else if (target == m_atom.COMPOUND_TEXT && evt.xselection.property == None) {
+			else if (target == m_atom.COMPOUND_TEXT && evt->xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_COMP;
 				return;
 			}
-			else if (target == m_atom.TEXT && evt.xselection.property == None) {
+			else if (target == m_atom.TEXT && evt->xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_TEXT;
 				return;
 			}
@@ -1604,11 +1605,11 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			 * then read it, delete it, etc. */
 
 			/* make sure that the event is relevant */
-			if (evt.type != PropertyNotify)
+			if (evt->type != PropertyNotify)
 				return;
 
 			/* skip unless the property has a new value */
-			if (evt.xproperty.state != PropertyNewValue)
+			if (evt->xproperty.state != PropertyNewValue)
 				return;
 
 			/* check size and format of the property */
@@ -1713,7 +1714,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 			XNextEvent(m_display, &evt);
 
 		/* fetch the selection, or part of it */
-		getClipboard_xcout(evt, sseln, target, &sel_buf, &sel_len, &context);
+		getClipboard_xcout(&evt, sseln, target, &sel_buf, &sel_len, &context);
 
 		/* fallback is needed. set XA_STRING to target and restart the loop. */
 		if (context == XCLIB_XCOUT_FALLBACK) {

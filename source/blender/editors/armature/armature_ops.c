@@ -59,6 +59,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(ARMATURE_OT_select_all);
 	WM_operatortype_append(ARMATURE_OT_select_inverse);
+	WM_operatortype_append(ARMATURE_OT_select_more);
+	WM_operatortype_append(ARMATURE_OT_select_less);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
 	WM_operatortype_append(ARMATURE_OT_select_linked);
 	WM_operatortype_append(ARMATURE_OT_select_similar);
@@ -257,6 +259,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 

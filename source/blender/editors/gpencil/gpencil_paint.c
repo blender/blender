@@ -1084,9 +1084,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable\n");
 				return 0;
 			}
+			break;
 		}
-		break;
-		
 		case SPACE_NODE:
 		{
 			/* SpaceNode *snode = curarea->spacedata.first; */
@@ -1095,8 +1094,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			break;
 		}
-		break;
 		case SPACE_SEQ:
 		{
 			SpaceSeq *sseq = curarea->spacedata.first;
@@ -1113,8 +1112,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
 				return 0;
 			}
+			break;
 		}
-		break;
 		case SPACE_IMAGE:
 		{
 			/* SpaceImage *sima = curarea->spacedata.first; */
@@ -1123,8 +1122,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			break;
 		}
-		break;
 		case SPACE_CLIP:
 		{
 			SpaceClip *sc = curarea->spacedata.first;
@@ -1151,9 +1150,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 				p->imat[3][0] -= marker->pos[0];
 				p->imat[3][1] -= marker->pos[1];
 			}
+			break;
 		}
-		break;
-		
 		/* unsupported views */
 		default:
 		{
@@ -1162,7 +1160,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 				printf("Error: Active view not appropriate for Grease Pencil drawing\n");
 			return 0;
 		}
-		break;
 	}
 	
 	/* get gp-data */
@@ -1295,21 +1292,18 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 			case SPACE_VIEW3D:
 			{
 				p->gpd->sbuffer_sflag |= GP_STROKE_3DSPACE;
+				break;
 			}
-			break;
-			
 			case SPACE_NODE:
 			{
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				break;
 			}
-			break;
-			
 			case SPACE_SEQ:
 			{
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				break;
 			}
-			break;
-			
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = (SpaceImage *)p->sa->spacedata.first;
@@ -1324,16 +1318,16 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
 					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
 				}
-				else
+				else {
 					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				}
+				break;
 			}
-			break;
-				
 			case SPACE_CLIP:
 			{
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				break;
 			}
-			break;
 		}
 	}
 }

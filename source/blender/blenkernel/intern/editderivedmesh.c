@@ -920,7 +920,7 @@ static void emdm_pass_attrib_vertex_mat(DMVertexAttribs *attribs, BMLoop *loop, 
 
 static void emDM_drawMappedFacesMat(DerivedMesh *dm,
                                     void (*setMaterial)(void *userData, int, void *attribs),
-                                    int (*setFace)(void *userData, int index), void *userData)
+                                    bool (*setFace)(void *userData, int index), void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;

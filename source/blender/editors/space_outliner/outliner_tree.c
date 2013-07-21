@@ -616,18 +616,18 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_LI:
 		{
 			te->name = ((Library *)id)->name;
+			break;
 		}
-		break;
 		case ID_SCE:
 		{
 			outliner_add_scene_contents(soops, &te->subtree, (Scene *)id, te);
+			break;
 		}
-		break;
 		case ID_OB:
 		{
 			outliner_add_object_contents(soops, te, tselem, (Object *)id);
+			break;
 		}
-		break;
 		case ID_ME:
 		{
 			Mesh *me = (Mesh *)id;
@@ -641,8 +641,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 				outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
 			/* could do tfaces with image links, but the images are not grouped nicely.
 			 * would require going over all tfaces, sort images in use. etc... */
+			break;
 		}
-		break;
 		case ID_CU:
 		{
 			Curve *cu = (Curve *)id;
@@ -653,8 +653,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			
 			for (a = 0; a < cu->totcol; a++)
 				outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
+			break;
 		}
-		break;
 		case ID_MB:
 		{
 			MetaBall *mb = (MetaBall *)id;
@@ -665,8 +665,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			
 			for (a = 0; a < mb->totcol; a++)
 				outliner_add_element(soops, &te->subtree, mb->mat[a], te, 0, a);
+			break;
 		}
-		break;
 		case ID_MA:
 		{
 			Material *ma = (Material *)id;
@@ -678,8 +678,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
 			}
+			break;
 		}
-		break;
 		case ID_TE:
 		{
 			Tex *tex = (Tex *)id;
@@ -688,16 +688,16 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 				outliner_add_element(soops, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
 			
 			outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
+			break;
 		}
-		break;
 		case ID_CA:
 		{
 			Camera *ca = (Camera *)id;
 			
 			if (outliner_animdata_test(ca->adt))
 				outliner_add_element(soops, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
+			break;
 		}
-		break;
 		case ID_LA:
 		{
 			Lamp *la = (Lamp *)id;
@@ -709,16 +709,16 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
 			}
+			break;
 		}
-		break;
 		case ID_SPK:
 		{
 			Speaker *spk = (Speaker *)id;
 
 			if (outliner_animdata_test(spk->adt))
 				outliner_add_element(soops, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
+			break;
 		}
-		break;
 		case ID_WO:
 		{
 			World *wrld = (World *)id;
@@ -730,22 +730,22 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
 			}
+			break;
 		}
-		break;
 		case ID_KE:
 		{
 			Key *key = (Key *)id;
 			
 			if (outliner_animdata_test(key->adt))
 				outliner_add_element(soops, &te->subtree, key, te, TSE_ANIM_DATA, 0);
+			break;
 		}
-		break;
 		case ID_AC:
 		{
 			// XXX do we want to be exposing the F-Curves here?
 			//bAction *act = (bAction *)id;
+			break;
 		}
-		break;
 		case ID_AR:
 		{
 			bArmature *arm = (bArmature *)id;
@@ -791,8 +791,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 					}
 				}
 			}
+			break;
 		}
-		break;
 	}
 }
 

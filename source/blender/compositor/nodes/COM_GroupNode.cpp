@@ -183,14 +183,16 @@ void GroupNode::addDefaultOutputOperation(ExecutionSystem &system, OutputSocket 
 	
 	NodeOperation *operation = NULL;
 	switch (iosock->typeinfo->type) {
-		case SOCK_FLOAT: {
+		case SOCK_FLOAT:
+		{
 			float value = RNA_float_get(&ptr, "default_value");
 			SetValueOperation *value_op = new SetValueOperation();
 			value_op->setValue(value);
 			operation = value_op;
 			break;
 		}
-		case SOCK_VECTOR: {
+		case SOCK_VECTOR:
+		{
 			float vector[3];
 			RNA_float_get_array(&ptr, "default_value", vector);
 			SetVectorOperation *vector_op = new SetVectorOperation();
@@ -198,7 +200,8 @@ void GroupNode::addDefaultOutputOperation(ExecutionSystem &system, OutputSocket 
 			operation = vector_op;
 			break;
 		}
-		case SOCK_RGBA: {
+		case SOCK_RGBA:
+		{
 			float color[4];
 			RNA_float_get_array(&ptr, "default_value", color);
 			SetColorOperation *color_op = new SetColorOperation();

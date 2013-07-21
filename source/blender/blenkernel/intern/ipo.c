@@ -1174,9 +1174,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 		{
 			/* just copy, as the new defines match the old ones... */
 			fcu->extend = icu->extrap;
+			break;
 		}
-		break;
-			
 		case IPO_CYCL: /* cyclic extrapolation */
 		case IPO_CYCLX: /* cyclic extrapolation + offset */
 		{
@@ -1191,8 +1190,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				data->before_mode = data->after_mode = FCM_EXTRAPOLATE_CYCLIC_OFFSET;
 			else
 				data->before_mode = data->after_mode = FCM_EXTRAPOLATE_CYCLIC;
+			break;
 		}
-		break;
 	}
 	
 	/* -------- */

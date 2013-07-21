@@ -4655,13 +4655,18 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		sculptsession_bm_to_me(ob, TRUE);
 	}
 
-	BM_mesh_free(ss->bm);
-
 	/* Clear data */
 	me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-	ss->bm = NULL;
-	BM_log_free(ss->bm_log);
-	ss->bm_log = NULL;
+
+	/* typically valid but with global-undo they can be NULL, [#36234] */
+	if (ss->bm) {
+		BM_mesh_free(ss->bm);
+		ss->bm = NULL;
+	}
+	if (ss->bm_log) {
+		BM_log_free(ss->bm_log);
+		ss->bm_log = NULL;
+	}
 
 	/* Refresh */
 	sculpt_update_after_dynamic_topology_toggle(C);

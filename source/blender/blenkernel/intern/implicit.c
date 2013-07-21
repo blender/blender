@@ -48,6 +48,10 @@
 #include "BKE_global.h"
 
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
+
 #ifdef _OPENMP
 #  define CLOTH_OPENMP_LIMIT 512
 #endif

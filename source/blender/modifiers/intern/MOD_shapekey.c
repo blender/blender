@@ -55,17 +55,12 @@ static void deformVerts(ModifierData *md, Object *ob,
                         ModifierApplyFlag UNUSED(flag))
 {
 	Key *key = BKE_key_from_object(ob);
-	float (*deformedVerts)[3];
 
 	if (key && key->block.first) {
 		int deformedVerts_tot;
-		deformedVerts = (float(*)[3])BKE_key_evaluate_object(md->scene, ob, &deformedVerts_tot);
-		if (deformedVerts) {
-			if (numVerts == deformedVerts_tot) {
-				memcpy(vertexCos, deformedVerts, sizeof(float) * 3 * numVerts);
-			}
-			MEM_freeN(deformedVerts);
-		}
+		BKE_key_evaluate_object_ex(md->scene, ob, &deformedVerts_tot,
+		                           (float *)vertexCos, sizeof(*vertexCos) * numVerts);
+
 	}
 }
 

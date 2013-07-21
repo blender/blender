@@ -499,7 +499,7 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
 	(objobjproc)bpy_bmdeformvert_contains,       /* sq_contains */
 	(binaryfunc) NULL,                           /* sq_inplace_concat */
 	(ssizeargfunc) NULL,                         /* sq_inplace_repeat */
-	};
+};
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
 	(lenfunc)bpy_bmdeformvert_len,

@@ -429,6 +429,11 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glActiveTextureARB(GL_TEXTURE0);
 	canvas->SetViewPort(0, 0, rect_width-1, rect_height-1);
 
+	// We do this to make side-by-side stereo rendering work correctly with 2D filters. It would probably be nicer to just set the viewport,
+	// but it can be easier for writing shaders to have the coordinates for the whole screen instead of just part of the screen. 
+	RAS_Rect scissor_rect = canvas->GetDisplayArea();
+	glScissor(scissor_rect.GetLeft()+viewport[0], scissor_rect.GetBottom()+viewport[1], scissor_rect.GetWidth()+1, scissor_rect.GetHeight()+1);
+
 	glDisable(GL_DEPTH_TEST);
 	// in case the previous material was wire
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

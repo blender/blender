@@ -974,7 +974,7 @@ static int rna_Mesh_polygon_string_layers_length(PointerRNA *ptr)
 }
 
 /* Skin vertices */
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(skin_vertice, vdata, CD_MVERT_SKIN);
+DEFINE_CUSTOMDATA_LAYER_COLLECTION(skin_vertice, vdata, CD_MVERT_SKIN)
 
 static char *rna_MeshSkinVertexLayer_path(PointerRNA *ptr)
 {

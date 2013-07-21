@@ -1661,8 +1661,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			ED_fileselect_set_params(sfile);
 				
 			action = WM_HANDLER_BREAK;
+			break;
 		}
-		break;
 			
 		case EVT_FILESELECT_EXEC:
 		case EVT_FILESELECT_CANCEL:
@@ -1757,8 +1757,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			wm_event_free_handler(handler);
 
 			action = WM_HANDLER_BREAK;
+			break;
 		}
-		break;
 	}
 	
 	return action;

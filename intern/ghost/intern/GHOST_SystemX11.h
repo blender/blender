@@ -238,7 +238,7 @@ public:
 #endif
 
 	/* Helped function for get data from the clipboard. */
-	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
+	void getClipboard_xcout(const XEvent *evt, Atom sel, Atom target,
 	                        unsigned char **txt, unsigned long *len,
 	                        unsigned int *context) const;
 

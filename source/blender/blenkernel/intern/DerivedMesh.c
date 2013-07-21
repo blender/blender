@@ -3107,7 +3107,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 		}
 	}
 	else {
-		printf("%s: Error during creation polygon infos\n", __func__);
+		printf("Navmesh: Unable to generate valid Navmesh");
 	}
 
 	/* clean up */

@@ -847,6 +847,9 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		}
 	}
 	else {
+		bool use_lock_ofs = false;
+
+
 		/* should be moved to better initialize later on XXX */
 		if (rv3d->viewlock)
 			ED_view3d_lock(rv3d);
@@ -866,15 +869,34 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 				}
 			}
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
+			use_lock_ofs = true;
 		}
 		else if (v3d->ob_centre_cursor) {
 			float vec[3];
 			copy_v3_v3(vec, give_cursor(scene, v3d));
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
+			use_lock_ofs = true;
 		}
 		else {
 			translate_m4(rv3d->viewmat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
 		}
+
+		/* lock offset */
+		if (use_lock_ofs) {
+			float persmat[4][4], persinv[4][4];
+			float vec[3];
+
+			/* we could calculate the real persmat/persinv here
+			 * but it would be unreliable so better to later */
+			mul_m4_m4m4(persmat, rv3d->winmat, rv3d->viewmat);
+			invert_m4_m4(persinv, persmat);
+
+			mul_v2_v2fl(vec, rv3d->ofs_lock, rv3d->is_persp ? rv3d->dist : 1.0f);
+			vec[2] = 0.0f;
+			mul_mat3_m4_v3(persinv, vec);
+			translate_m4(rv3d->viewmat, vec[0], vec[1], vec[2]);
+		}
+		/* end lock offset */
 	}
 }
 
