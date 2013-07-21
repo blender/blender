@@ -189,7 +189,7 @@ static GHash *id_weakref_pool_get(ID *id)
 }
 
 /* called from pyrna_struct_CreatePyObject() and pyrna_prop_CreatePyObject() */
-void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA *pyrna)
+static void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA *pyrna)
 {
 	PyObject *weakref;
 	PyObject *weakref_capsule;
