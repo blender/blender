@@ -3132,9 +3132,10 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	}
 	else if (dt > OB_WIRE) {
 		if (use_occlude_wire) {
+			/* use the cageDM since it always overlaps the editmesh faces */
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts,
-			                         GPU_enable_material, NULL, me->edit_btmesh, 0);
+			cageDM->drawMappedFaces(cageDM, draw_em_fancy__setFaceOpts,
+			                        GPU_enable_material, NULL, me->edit_btmesh, 0);
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
