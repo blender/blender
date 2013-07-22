@@ -1771,7 +1771,7 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
  * \return The number of groups found.
  */
 int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                             void *user_data, bool (*filter_fn)(BMEdge *, void *user_data))
+                             bool (*filter_fn)(BMElem *, void *user_data), void *user_data, const char htype)
 {
 #ifdef DEBUG
 	int group_index_len = 1;
@@ -1797,6 +1797,8 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 	int i;
 
 	STACK_INIT(group_array);
+
+	BLI_assert(((htype & ~(BM_VERT | BM_EDGE)) == 0) && (htype != 0));
 
 	/* init the array */
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
@@ -1846,17 +1848,40 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 			fg[1]++;
 			/* done */
 
-			/* search for other faces */
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				BMLoop *l_other = l_iter->radial_next;
-				if ((l_other != l_iter) && filter_fn(l_iter->e, user_data)) {
-					if (BM_elem_flag_test(l_other->f, BM_ELEM_TAG) == false) {
-						BM_elem_flag_enable(l_other->f, BM_ELEM_TAG);
-						STACK_PUSH(fstack, l_other->f);
+			if (htype & BM_EDGE) {
+				/* search for other faces */
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					BMLoop *l_radial_iter = l_iter->radial_next;
+					if ((l_radial_iter != l_iter) && filter_fn((BMElem *)l_iter->e, user_data)) {
+						do {
+							BMFace *f_other = l_radial_iter->f;
+							if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+								BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+								STACK_PUSH(fstack, f_other);
+							}
+						} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
 					}
-				}
-			} while ((l_iter = l_iter->next) != l_first);
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+
+			if (htype & BM_VERT) {
+				BMIter liter;
+				/* search for other faces */
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					if (filter_fn((BMElem *)l_iter->v, user_data)) {
+						BMLoop *l_other;
+						BM_ITER_ELEM (l_other, &liter, l_iter, BM_LOOPS_OF_LOOP) {
+							BMFace *f_other = l_other->f;
+							if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+								BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+								STACK_PUSH(fstack, f_other);
+							}
+						}
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+			}
 		}
 
 		group_curr++;
