@@ -476,7 +476,6 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 		BKE_ptcache_validate(cache, 0);
 		cache->last_exact= 0;
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
-		return;
 	}
 	
 	// unused in the moment, calculated separately in implicit.c
