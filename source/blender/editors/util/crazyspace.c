@@ -126,7 +126,7 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 
 	userData.vertexcos = vertexcos;
 	userData.flags = flags;
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData);
+	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
 
 	dm->release(dm);
 

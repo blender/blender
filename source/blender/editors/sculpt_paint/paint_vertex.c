@@ -3413,7 +3413,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
 
-	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data);
+	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data, DM_FOREACH_NOP);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

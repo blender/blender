@@ -86,7 +86,6 @@ static void emDM_ensurePolyNormals(EditDerivedBMesh *bmdm);
 
 static void emDM_ensureVertNormals(EditDerivedBMesh *bmdm)
 {
-
 	if (bmdm->vertexCos && (bmdm->vertexNos == NULL)) {
 
 		BMesh *bm = bmdm->em->bm;
@@ -196,9 +195,11 @@ static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 	/* do nothing */
 }
 
-static void emDM_foreachMappedVert(DerivedMesh *dm,
-                                   void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
-                                   void *userData)
+static void emDM_foreachMappedVert(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData,
+        DMForeachFlag flag)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -207,14 +208,26 @@ static void emDM_foreachMappedVert(DerivedMesh *dm,
 	int i;
 
 	if (bmdm->vertexCos) {
-		emDM_ensureVertNormals(bmdm);
+		const float (*vertexCos)[3] = bmdm->vertexCos;
+		const float (*vertexNos)[3];
+
+		if (flag & DM_FOREACH_USE_NORMAL) {
+			emDM_ensureVertNormals(bmdm);
+			vertexNos = bmdm->vertexNos;
+		}
+		else {
+			vertexNos = NULL;
+		}
+
 		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-			func(userData, i, bmdm->vertexCos[i], bmdm->vertexNos[i], NULL);
+			const float *no = (flag & DM_FOREACH_USE_NORMAL) ? vertexNos[i] : NULL;
+			func(userData, i, vertexCos[i], no, NULL);
 		}
 	}
 	else {
 		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-			func(userData, i, eve->co, eve->no, NULL);
+			const float *no = (flag & DM_FOREACH_USE_NORMAL) ? eve->no : NULL;
+			func(userData, i, eve->co, no, NULL);
 		}
 	}
 }
@@ -359,9 +372,11 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 	glEnd();
 }
 
-static void emDM_foreachMappedFaceCenter(DerivedMesh *dm,
-                                         void (*func)(void *userData, int index, const float co[3], const float no[3]),
-                                         void *userData)
+static void emDM_foreachMappedFaceCenter(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no[3]),
+        void *userData,
+        DMForeachFlag flag)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -371,13 +386,28 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm,
 	BMIter iter;
 	int i;
 
-	emDM_ensurePolyNormals(bmdm);
 	emDM_ensurePolyCenters(bmdm);
-	polyNos = bmdm->polyNos;  /* maybe NULL */
 	polyCos = bmdm->polyCos;  /* always set */
 
-	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-		func(userData, i, polyCos[i], polyNos ? polyNos[i] : efa->no);
+	if (flag & DM_FOREACH_USE_NORMAL) {
+		emDM_ensurePolyNormals(bmdm);
+		polyNos = bmdm->polyNos;  /* maybe NULL */
+	}
+	else {
+		polyNos = NULL;
+	}
+
+	if (polyNos) {
+		BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
+			const float *no = polyNos[i];
+			func(userData, i, polyCos[i], no);
+		}
+	}
+	else {
+		BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
+			const float *no = (flag & DM_FOREACH_USE_NORMAL) ? efa->no : NULL;
+			func(userData, i, polyCos[i], no);
+		}
 	}
 }
 
@@ -433,10 +463,16 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 		const float (*vertexNos)[3];
 		const float (*polyNos)[3];
 
-		emDM_ensureVertNormals(bmdm);
-		emDM_ensurePolyNormals(bmdm);
-		vertexNos = bmdm->vertexNos;
-		polyNos = bmdm->polyNos;
+		if (skip_normals) {
+			vertexNos = NULL;
+			polyNos = NULL;
+		}
+		else {
+			emDM_ensureVertNormals(bmdm);
+			emDM_ensurePolyNormals(bmdm);
+			vertexNos = bmdm->vertexNos;
+			polyNos = bmdm->polyNos;
+		}
 
 		BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
@@ -2186,7 +2222,7 @@ float (*BKE_editmesh_vertexCos_get(BMEditMesh *em, Scene *scene, int *r_numVerts
 	data.cos_cage = cos_cage;
 	data.visit_bitmap = visit_bitmap;
 
-	cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data);
+	cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data, DM_FOREACH_NOP);
 
 	MEM_freeN(visit_bitmap);
 

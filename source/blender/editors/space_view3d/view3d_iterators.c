@@ -124,7 +124,7 @@ void meshobject_foreachScreenVert(
 		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
 	}
 
-	dm->foreachMappedVert(dm, meshobject_foreachScreenVert__mapFunc, &data);
+	dm->foreachMappedVert(dm, meshobject_foreachScreenVert__mapFunc, &data, DM_FOREACH_NOP);
 
 	dm->release(dm);
 }
@@ -166,7 +166,7 @@ void mesh_foreachScreenVert(
 	}
 
 	EDBM_index_arrays_ensure(vc->em, BM_VERT);
-	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
+	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data, DM_FOREACH_NOP);
 
 	dm->release(dm);
 }
@@ -262,7 +262,7 @@ void mesh_foreachScreenFace(
 	data.clip_flag = clip_flag;
 
 	EDBM_index_arrays_ensure(vc->em, BM_FACE);
-	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
+	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data, DM_FOREACH_NOP);
 
 	dm->release(dm);
 }

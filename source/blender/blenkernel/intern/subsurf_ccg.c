@@ -1505,7 +1505,8 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3])
 static void ccgDM_foreachMappedVert(
         DerivedMesh *dm,
         void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
-        void *userData)
+        void *userData,
+        DMForeachFlag flag)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGVertIterator *vi;
@@ -1514,11 +1515,13 @@ static void ccgDM_foreachMappedVert(
 
 	for (vi = ccgSubSurf_getVertIterator(ccgdm->ss); !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
-		CCGElem *vd = ccgSubSurf_getVertData(ccgdm->ss, v);
-		int index = ccgDM_getVertMapIndex(ccgdm->ss, v);
+		const int index = ccgDM_getVertMapIndex(ccgdm->ss, v);
 
-		if (index != -1)
-			func(userData, index, CCG_elem_co(&key, vd), CCG_elem_no(&key, vd), NULL);
+		if (index != -1) {
+			CCGElem *vd = ccgSubSurf_getVertData(ccgdm->ss, v);
+			const float *no = (flag & DM_FOREACH_USE_NORMAL) ? CCG_elem_no(&key, vd) : NULL;
+			func(userData, index, CCG_elem_co(&key, vd), no, NULL);
+		}
 	}
 
 	ccgVertIterator_free(vi);
@@ -1539,12 +1542,13 @@ static void ccgDM_foreachMappedEdge(
 
 	for (ei = ccgSubSurf_getEdgeIterator(ss); !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
-		CCGElem *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
-		int index = ccgDM_getEdgeMapIndex(ss, e);
+		const int index = ccgDM_getEdgeMapIndex(ss, e);
 
 		if (index != -1) {
-			for (i = 0; i < edgeSize - 1; i++)
+			CCGElem *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
+			for (i = 0; i < edgeSize - 1; i++) {
 				func(userData, index, CCG_elem_offset_co(&key, edgeData, i), CCG_elem_offset_co(&key, edgeData, i + 1));
+			}
 		}
 	}
 
@@ -2530,7 +2534,8 @@ static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm,
 static void ccgDM_foreachMappedFaceCenter(
         DerivedMesh *dm,
         void (*func)(void *userData, int index, const float co[3], const float no[3]),
-        void *userData)
+        void *userData,
+        DMForeachFlag flag)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2541,13 +2546,13 @@ static void ccgDM_foreachMappedFaceCenter(
 
 	for (fi = ccgSubSurf_getFaceIterator(ss); !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		int index = ccgDM_getFaceMapIndex(ss, f);
+		const int index = ccgDM_getFaceMapIndex(ss, f);
 
 		if (index != -1) {
 			/* Face center data normal isn't updated atm. */
 			CCGElem *vd = ccgSubSurf_getFaceGridData(ss, f, 0, 0, 0);
-
-			func(userData, index, CCG_elem_co(&key, vd), CCG_elem_no(&key, vd));
+			const float *no = (flag & DM_FOREACH_USE_NORMAL) ? CCG_elem_no(&key, vd) : NULL;
+			func(userData, index, CCG_elem_co(&key, vd), no);
 		}
 	}
 
