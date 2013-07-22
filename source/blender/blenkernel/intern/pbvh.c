@@ -538,7 +538,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 
 /* Do a full rebuild with on Grids data structure */
 void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
-                          int totgrid, CCGKey *key, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
+                          int totgrid, CCGKey *key, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -1253,7 +1253,7 @@ void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3])
 	}
 }
 
-BLI_bitmap *BKE_pbvh_grid_hidden(const PBVH *bvh)
+BLI_bitmap **BKE_pbvh_grid_hidden(const PBVH *bvh)
 {
 	BLI_assert(bvh->type == PBVH_GRIDS);
 	return bvh->grid_hidden;
@@ -1469,7 +1469,7 @@ static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
 
 	for (i = 0; i < totgrid; ++i) {
 		CCGElem *grid = bvh->grids[node->prim_indices[i]];
-		BLI_bitmap gh;
+		BLI_bitmap *gh;
 
 		if (!grid)
 			continue;
@@ -1664,7 +1664,7 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 }
 
 void BKE_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces,
-                           DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
+                           DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
 {
 	int a;
 

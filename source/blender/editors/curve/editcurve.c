@@ -5174,7 +5174,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	/* may not be optimal always (example: end of NURBS sphere)   */
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
-			BLI_bitmap selbpoints;
+			BLI_bitmap *selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
 			selbpoints = BLI_BITMAP_NEW(a, "selectlist");
@@ -5260,7 +5260,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
-			BLI_bitmap selbpoints;
+			BLI_bitmap *selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
 			selbpoints = BLI_BITMAP_NEW(a, "selectlist");

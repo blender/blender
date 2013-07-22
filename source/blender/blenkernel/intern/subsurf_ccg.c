@@ -2930,7 +2930,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 	gridFaces = MEM_mallocN(sizeof(CCGFace *) * numGrids, "ccgdm.gridFaces");
 	gridFlagMats = MEM_mallocN(sizeof(DMFlagMat) * numGrids, "ccgdm.gridFlagMats");
 
-	ccgdm->gridHidden = MEM_callocN(sizeof(BLI_bitmap) * numGrids, "ccgdm.gridHidden");
+	ccgdm->gridHidden = MEM_callocN(sizeof(*ccgdm->gridHidden) * numGrids, "ccgdm.gridHidden");
 
 	for (gIndex = 0, index = 0; index < numFaces; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
@@ -3002,7 +3002,7 @@ static DMFlagMat *ccgDM_getGridFlagMats(DerivedMesh *dm)
 	return ccgdm->gridFlagMats;
 }
 
-static BLI_bitmap *ccgDM_getGridHidden(DerivedMesh *dm)
+static BLI_bitmap **ccgDM_getGridHidden(DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 	

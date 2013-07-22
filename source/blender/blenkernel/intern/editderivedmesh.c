@@ -2190,7 +2190,7 @@ void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
 struct CageUserData {
 	int totvert;
 	float (*cos_cage)[3];
-	BLI_bitmap visit_bitmap;
+	BLI_bitmap *visit_bitmap;
 };
 
 static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
@@ -2207,7 +2207,7 @@ static void cage_mapped_verts_callback(void *userData, int index, const float co
 float (*BKE_editmesh_vertexCos_get(BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
 {
 	DerivedMesh *cage, *final;
-	BLI_bitmap visit_bitmap;
+	BLI_bitmap *visit_bitmap;
 	struct CageUserData data;
 	float (*cos_cage)[3];
 
