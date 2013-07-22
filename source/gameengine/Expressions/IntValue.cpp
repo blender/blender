@@ -96,7 +96,7 @@ object and val
 		return new CIntValue (-m_int);
 		break;
 	case VALUE_NOT_OPERATOR:
-		return new CErrorValue (op2str(op) + "only allowed on booleans");
+		return new CBoolValue (m_int == 0);
 		break;
 	case VALUE_AND_OPERATOR:
 	case VALUE_OR_OPERATOR:
@@ -170,7 +170,11 @@ CValue* CIntValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *v
 				case VALUE_POS_OPERATOR:
 					ret = new CIntValue (m_int);
 					break;
+				case VALUE_NOT_OPERATOR:
+					ret = new CBoolValue(m_int == 0);
+					break;
 				default:
+					printf("Found op: %d\n", op);
 					ret = new CErrorValue("illegal operator. please send a bug report.");
 					break;
 			}
@@ -214,6 +218,9 @@ CValue* CIntValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *v
 					break;
 				case VALUE_LEQ_OPERATOR:
 					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() <= m_int);
+					break;
+				case VALUE_NOT_OPERATOR:
+					ret = new CBoolValue(m_int == 0);
 					break;
 				default:
 					ret = new CErrorValue("illegal operator. please send a bug report.");
