@@ -478,7 +478,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		ok = 1;
 		scene->obedit = ob;  /* context sees this */
 
-		EDBM_mesh_make(CTX_data_tool_settings(C), scene, ob);
+		EDBM_mesh_make(scene->toolsettings, ob);
 
 		em = BKE_editmesh_from_object(ob);
 		if (LIKELY(em)) {

@@ -1943,6 +1943,8 @@ static BMElem *bm_vert_single_select_edge(BMVert *eve)
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
                              BMEditMesh *em, BMVert *eve, float *bweight)
 {
+	BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
+
 	td->flag = 0;
 	//if (key)
 	//	td->loc = key->co;
@@ -2034,81 +2036,42 @@ static void createTransEditVerts(TransInfo *t)
 	int count = 0, countsel = 0, a, totleft;
 	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 	int mirror = 0;
-	char *selstate = NULL;
 	short selectmode = ts->selectmode;
 	int cd_vert_bweight_offset = -1;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
+	/* BMESH_TODO, writing into the index values is BAD!, means we cant
+	 * use the values for vertex mirror - campbell */
 
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
 		mirror = 1;
 	}
 
-	/* edge slide forces edge select */
-	if (t->mode == TFM_EDGE_SLIDE) {
-		selectmode = SCE_SELECT_EDGE;
-	}
-
-	/* BMESH_TODO, writing into the index values is BAD!, means we cant
-	 * use the values for vertex mirror - campbell */
-
-	// transform now requires awareness for select mode, so we tag the f1 flags in verts
+	/* quick check if we can transform */
+	/* note: in prop mode we need at least 1 selected */
 	if (selectmode & SCE_SELECT_VERTEX) {
-		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_set(eve, BM_ELEM_TAG, BM_elem_flag_test(eve, BM_ELEM_SELECT));
+		if (bm->totvertsel == 0) {
+			goto cleanup;
 		}
 	}
 	else if (selectmode & SCE_SELECT_EDGE) {
-		BMEdge *eed;
-
-		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for (; eve; eve = BM_iter_step(&iter)) BM_elem_flag_disable(eve, BM_ELEM_TAG);
-
-		eed = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		for (; eed; eed = BM_iter_step(&iter)) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				BM_elem_flag_enable(eed->v1, BM_ELEM_TAG);
-				BM_elem_flag_enable(eed->v2, BM_ELEM_TAG);
-			}
+		if (bm->totvertsel == 0 || bm->totedgesel == 0) {
+			goto cleanup;
+		}
+	}
+	else if (selectmode & SCE_SELECT_FACE) {
+		if (bm->totvertsel == 0 || bm->totfacesel == 0) {
+			goto cleanup;
 		}
 	}
 	else {
-		BMFace *efa;
-		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for (; eve; eve = BM_iter_step(&iter)) BM_elem_flag_disable(eve, BM_ELEM_TAG);
-
-		efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
-		for (; efa; efa = BM_iter_step(&iter)) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-				BMIter liter;
-				BMLoop *l;
-
-				l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l = BM_iter_step(&liter)) {
-					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-				}
-			}
-		}
+		BLI_assert(0);
 	}
 
-	/* now we can count. we store selection state in selstate, since
-	 * get_crazy_mapped_editverts messes up the index state of the
-	 * verts*/
-	selstate = MEM_callocN(sizeof(*selstate) * bm->totvert, __func__);
-	eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (a = 0; eve; eve = BM_iter_step(&iter), a++) {
-		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-			if (BM_elem_flag_test(eve, BM_ELEM_TAG)) {
-				selstate[a] = 1;
-				countsel++;
-			}
-			if (propmode) count++;
-		}
-	}
-
-	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) {
-		goto cleanup;
+	countsel = bm->totvertsel;
+	if (propmode) {
+		count = bm->totvert;
 	}
 
 	/* check active */
@@ -2174,9 +2137,8 @@ static void createTransEditVerts(TransInfo *t)
 
 	/* find out which half we do */
 	if (mirror) {
-		eve = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for (a = 0; eve; eve = BM_iter_step(&iter), a++) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && selstate[a] && eve->co[0] != 0.0f) {
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve->co[0] != 0.0f) {
 				if (eve->co[0] < 0.0f) {
 					t->mirror = -1;
 					mirror = -1;
@@ -2188,7 +2150,7 @@ static void createTransEditVerts(TransInfo *t)
 
 	BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-			if (propmode || selstate[a]) {
+			if (propmode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				float *bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) : NULL;
 				
 				VertsToTransData(t, tob, tx, em, eve, bweight);
@@ -2196,7 +2158,8 @@ static void createTransEditVerts(TransInfo *t)
 					tx++;
 
 				/* selected */
-				if (selstate[a]) tob->flag |= TD_SELECTED;
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
+					tob->flag |= TD_SELECTED;
 
 				/* active */
 				if (eve == eve_act) tob->flag |= TD_ACTIVE;
@@ -2267,8 +2230,6 @@ cleanup:
 		MEM_freeN(defmats);
 	if (dists)
 		MEM_freeN(dists);
-	
-	MEM_freeN(selstate);
 
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_end(em);

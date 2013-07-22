@@ -140,7 +140,7 @@ struct wmWindowManager;
 /*new render funcs */
 void EDBM_selectmode_set(struct BMEditMesh *em) {STUB_ASSERT(0);}
 void EDBM_mesh_load(struct Object *ob) {STUB_ASSERT(0);}
-void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {STUB_ASSERT(0);}
+void EDBM_mesh_make(struct ToolSettings *ts, struct Object *ob) {STUB_ASSERT(0);}
 void EDBM_mesh_normals_update(struct BMEditMesh *em) {STUB_ASSERT(0);}
 void *g_system;
 

@@ -136,7 +136,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em;
 
 		EDBM_mesh_load(obedit);
-		EDBM_mesh_make(scene->toolsettings, scene, obedit);
+		EDBM_mesh_make(scene->toolsettings, obedit);
 
 		em = me->edit_btmesh;
 
