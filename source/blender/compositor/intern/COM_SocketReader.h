@@ -91,13 +91,13 @@ protected:
 	virtual void executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler) {}
 
 public:
-	inline void read(float *result, float x, float y, PixelSampler sampler) {
+	inline void read(float result[4], float x, float y, PixelSampler sampler) {
 		executePixel(result, x, y, sampler);
 	}
-	inline void read(float *result, int x, int y, void *chunkData) {
+	inline void read(float result[4], int x, int y, void *chunkData) {
 		executePixel(result, x, y, chunkData);
 	}
-	inline void read(float *result, float x, float y, float dx, float dy, PixelSampler sampler) {
+	inline void read(float result[4], float x, float y, float dx, float dy, PixelSampler sampler) {
 		executePixel(result, x, y, dx, dy, sampler);
 	}
 
