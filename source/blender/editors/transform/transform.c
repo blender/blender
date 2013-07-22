@@ -111,9 +111,7 @@ static bool transdata_check_local_center(TransInfo *t)
 {
 	return ((t->around == V3D_LOCAL) && (
 	            (t->flag & (T_OBJECT | T_POSE)) ||
-	            (t->obedit && t->obedit->type == OB_MESH && (t->settings->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE))) ||
-	            (t->obedit && t->obedit->type == OB_MBALL) ||
-	            (t->obedit && t->obedit->type == OB_ARMATURE) ||
+	            (t->obedit && ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE)) ||
 	            (t->spacetype == SPACE_IPO))
 	        );
 }

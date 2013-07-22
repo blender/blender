@@ -146,14 +146,15 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 
 void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 {
-	int *groups_array = MEM_mallocN(sizeof(groups_array) * bm->totface, __func__);
+	int *groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totface, __func__);
 	int faces_len;
 	BMFace **faces_arr = BM_iter_as_arrayN(bm, BM_FACES_OF_MESH, NULL, &faces_len, NULL, 0);
-	BMFace **faces_grp = MEM_mallocN(sizeof(faces_grp) * bm->totface, __func__);
+	BMFace **faces_grp = MEM_mallocN(sizeof(*faces_grp) * bm->totface, __func__);
 
 	int (*group_index)[2];
 	const int group_tot = BM_mesh_calc_face_groups(bm, groups_array, &group_index,
-	                                               bmo_recalc_normal_edge_filter_cb, NULL, BM_EDGE);
+	                                               bmo_recalc_normal_edge_filter_cb, NULL,
+	                                               0, BM_EDGE);
 	int i;
 
 

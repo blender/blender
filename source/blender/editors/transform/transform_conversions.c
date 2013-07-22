@@ -124,6 +124,11 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
+/* when transforming islands */
+struct TransIslandData {
+	float co[3];
+	float axismtx[3][3];
+};
 
 /* local function prototype - for Object/Bone Constraints */
 static bool constraints_list_needinv(TransInfo *t, ListBase *list);
@@ -1914,34 +1919,124 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 	MEM_freeN(dists_prev);
 }
 
-static BMElem *bm_vert_single_select_face(BMVert *eve)
+static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r_island_tot, int **r_island_vert_map)
 {
-	BMElem *ele;
-	BMIter iter;
+	BMesh *bm = em->bm;
+	struct TransIslandData *trans_islands;
+	char htype;
+	char itype;
+	int i;
 
-	BM_ITER_ELEM (ele, &iter, eve, BM_FACES_OF_VERT) {
-		if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-			return ele;
+	/* group vars */
+	int *groups_array;
+	int (*group_index)[2];
+	int group_tot;
+	void **ele_array;
+
+	int *vert_map;
+
+	if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+		groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totedgesel, __func__);
+		group_tot = BM_mesh_calc_edge_groups(bm, groups_array, &group_index,
+		                                     NULL, NULL,
+		                                     BM_ELEM_SELECT);
+
+		htype = BM_EDGE;
+		itype = BM_VERTS_OF_EDGE;
+
+	}
+	else {  /* (bm->selectmode & SCE_SELECT_FACE) */
+		groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__);
+		group_tot = BM_mesh_calc_face_groups(bm, groups_array, &group_index,
+		                                     NULL, NULL,
+		                                     BM_ELEM_SELECT, BM_VERT);
+
+		htype = BM_FACE;
+		itype = BM_VERTS_OF_FACE;
+	}
+
+
+	trans_islands = MEM_mallocN(sizeof(*trans_islands) * group_tot, __func__);
+
+	vert_map = MEM_mallocN(sizeof(*vert_map) * bm->totvert, __func__);
+	/* we shouldn't need this, but with incorrect selection flushing
+	 * its possible we have a selected vertex thats not in a face, for now best not crash in that case. */
+	fill_vn_i(vert_map, bm->totvert, -1);
+
+	EDBM_index_arrays_ensure(em, htype);
+	ele_array = (htype == BM_FACE) ? (void **)em->face_index : (void **)em->edge_index;
+
+	BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+	/* may be an edge OR a face array */
+	for (i = 0; i < group_tot; i++) {
+		BMEditSelection ese = {0};
+
+		const int fg_sta = group_index[i][0];
+		const int fg_len = group_index[i][1];
+		float co[3], no[3], tangent[3];
+		int j;
+
+		zero_v3(co);
+		zero_v3(no);
+		zero_v3(tangent);
+
+		ese.htype = htype;
+
+		/* loop on each face in this group:
+		 * - assign r_vert_map
+		 * - calculate (co, no)
+		 */
+		for (j = 0; j < fg_len; j++) {
+			float tmp_co[3], tmp_no[3], tmp_tangent[3];
+
+			ese.ele = ele_array[groups_array[fg_sta + j]];
+
+			BM_editselection_center(&ese, tmp_co);
+			BM_editselection_normal(&ese, tmp_no);
+			BM_editselection_plane(&ese, tmp_tangent);
+
+			add_v3_v3(co, tmp_co);
+			add_v3_v3(no, tmp_no);
+			add_v3_v3(tangent, tmp_tangent);
+
+			{
+				/* setup vertex map */
+				BMIter iter;
+				BMVert *v;
+
+				/* connected edge-verts */
+				BM_ITER_ELEM (v, &iter, ese.ele, itype) {
+					vert_map[BM_elem_index_get(v)] = i;
+				}
+			}
+		}
+
+		mul_v3_v3fl(trans_islands[i].co, co, 1.0f / (float)fg_len);
+
+		if (createSpaceNormalTangent(trans_islands[i].axismtx, no, tangent)) {
+			/* pass */
+		}
+		else {
+			normalize_v3(no);
+			axis_dominant_v3_to_m3(trans_islands[i].axismtx, no);
+			invert_m3(trans_islands[i].axismtx);
 		}
 	}
-	return NULL;
-}
-static BMElem *bm_vert_single_select_edge(BMVert *eve)
-{
-	BMElem *ele;
-	BMIter iter;
 
-	BM_ITER_ELEM (ele, &iter, eve, BM_EDGES_OF_VERT) {
-		if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-			return ele;
-		}
-	}
-	return NULL;
+	MEM_freeN(groups_array);
+	MEM_freeN(group_index);
+
+	*r_island_tot = group_tot;
+	*r_island_vert_map = vert_map;
+
+	return trans_islands;
 }
 
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
-                             BMEditMesh *em, BMVert *eve, float *bweight)
+                             BMEditMesh *em, BMVert *eve, float *bweight,
+                             struct TransIslandData *v_island)
 {
 	BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
 
@@ -1951,40 +2046,20 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	//else
 	td->loc = eve->co;
 	copy_v3_v3(td->iloc, td->loc);
-	copy_v3_v3(td->center, td->loc);
 
-	if (t->around == V3D_LOCAL) {
-		BMElem *ele;
-		bool is_axismat_set = false;
+	if (v_island) {
+		copy_v3_v3(td->center, v_island->co);
+		copy_m3_m3(td->axismtx, v_island->axismtx);
+	}
+	else if (t->around == V3D_LOCAL) {
+		copy_v3_v3(td->center, td->loc);
 
-		if (em->selectmode & (SCE_SELECT_FACE | SCE_SELECT_EDGE) &&
-		    (ele = ((em->selectmode & SCE_SELECT_FACE) ?
-		            bm_vert_single_select_face(eve) :
-		            bm_vert_single_select_edge(eve))))
-		{
-			float normal[3], tangent[3];
-
-			BMEditSelection ese;
-			ese.next = ese.prev = NULL;
-			ese.ele = ele;
-			ese.htype = ele->head.htype;
-
-			BM_editselection_center(&ese, td->center);
-			BM_editselection_normal(&ese, normal);
-			BM_editselection_plane(&ese, tangent);
-
-			if (createSpaceNormalTangent(td->axismtx, normal, tangent)) {
-				is_axismat_set = true;
-			}
-		}
-
-		/* for verts or fallback when createSpaceNormalTangent fails */
-		if (is_axismat_set == false) {
-			axis_dominant_v3_to_m3(td->axismtx, eve->no);
-			invert_m3(td->axismtx);
-		}
+		axis_dominant_v3_to_m3(td->axismtx, eve->no);
+		invert_m3(td->axismtx);
 	}
 	else {
+		copy_v3_v3(td->center, td->loc);
+
 		/* Setting normals */
 		copy_v3_v3(td->axismtx[2], eve->no);
 		td->axismtx[0][0]        =
@@ -2021,7 +2096,6 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 
 static void createTransEditVerts(TransInfo *t)
 {
-	ToolSettings *ts = t->scene->toolsettings;
 	TransData *tob = NULL;
 	TransDataExtension *tx = NULL;
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
@@ -2036,12 +2110,12 @@ static void createTransEditVerts(TransInfo *t)
 	int count = 0, countsel = 0, a, totleft;
 	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 	int mirror = 0;
-	short selectmode = ts->selectmode;
 	int cd_vert_bweight_offset = -1;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-	/* BMESH_TODO, writing into the index values is BAD!, means we cant
-	 * use the values for vertex mirror - campbell */
+	struct TransIslandData *island_info = NULL;
+	int island_info_tot;
+	int *island_vert_map = NULL;
 
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
@@ -2050,17 +2124,17 @@ static void createTransEditVerts(TransInfo *t)
 
 	/* quick check if we can transform */
 	/* note: in prop mode we need at least 1 selected */
-	if (selectmode & SCE_SELECT_VERTEX) {
+	if (em->selectmode & SCE_SELECT_VERTEX) {
 		if (bm->totvertsel == 0) {
 			goto cleanup;
 		}
 	}
-	else if (selectmode & SCE_SELECT_EDGE) {
+	else if (em->selectmode & SCE_SELECT_EDGE) {
 		if (bm->totvertsel == 0 || bm->totedgesel == 0) {
 			goto cleanup;
 		}
 	}
-	else if (selectmode & SCE_SELECT_FACE) {
+	else if (em->selectmode & SCE_SELECT_FACE) {
 		if (bm->totvertsel == 0 || bm->totfacesel == 0) {
 			goto cleanup;
 		}
@@ -2112,6 +2186,13 @@ static void createTransEditVerts(TransInfo *t)
 		editmesh_set_connectivity_distance(em->bm, mtx, dists);
 	}
 
+	if (t->around == V3D_LOCAL) {
+		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map);
+	}
+
+	/* BMESH_TODO, crazy-space writing into the index values is BAD!, means we cant
+	 * use the values for vertex mirror - campbell */
+
 	/* detect CrazySpace [tm] */
 	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) >= 0) {
 		if (modifiers_isCorrectableDeformed(t->obedit)) {
@@ -2151,9 +2232,11 @@ static void createTransEditVerts(TransInfo *t)
 	BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if (propmode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+				struct TransIslandData *v_island = (island_info && island_vert_map[a] != -1) ?
+				                                   &island_info[island_vert_map[a]] : NULL;
 				float *bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) : NULL;
-				
-				VertsToTransData(t, tob, tx, em, eve, bweight);
+
+				VertsToTransData(t, tob, tx, em, eve, bweight, v_island);
 				if (tx)
 					tx++;
 
@@ -2213,6 +2296,11 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
+	if (island_info) {
+		MEM_freeN(island_info);
+		MEM_freeN(island_vert_map);
+	}
+
 	if (mirror != 0) {
 		tob = t->data;
 		for (a = 0; a < t->total; a++, tob++) {
@@ -2233,7 +2321,6 @@ cleanup:
 
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_end(em);
-		mirror = 1;
 	}
 }
 
