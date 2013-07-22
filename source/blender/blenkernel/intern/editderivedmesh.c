@@ -1420,18 +1420,20 @@ static void emDM_copyLoopArray(DerivedMesh *dm, MLoop *r_loop)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
-	BMIter iter, liter;
+	BMIter iter;
 	BMFace *efa;
 	BMLoop *l;
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE);
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+		do {
 			r_loop->v = BM_elem_index_get(l->v);
 			r_loop->e = BM_elem_index_get(l->e);
 			r_loop++;
-		}
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
 
