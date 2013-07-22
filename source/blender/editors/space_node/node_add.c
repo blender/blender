@@ -339,8 +339,6 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	node_deselect_all(snode);
-
 	switch (snode->nodetree->type) {
 		case NTREE_SHADER:
 			type = SH_NODE_TEX_IMAGE;
@@ -408,6 +406,69 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
+}
+
+/* ****************** Add Mask Node Operator  ******************* */
+
+static int node_add_mask_poll(bContext *C)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	return ED_operator_node_editable(C) && snode->nodetree->type == NTREE_COMPOSIT;
+}
+
+static int node_add_mask_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *node;
+	ID *mask = NULL;
+
+	/* check input variables */
+	char name[MAX_ID_NAME - 2];
+	RNA_string_get(op->ptr, "name", name);
+	mask = BKE_libblock_find_name(ID_MSK, name);
+	if (!mask) {
+		BKE_reportf(op->reports, RPT_ERROR, "Mask '%s' not found", name);
+		return OPERATOR_CANCELLED;
+	}
+
+	ED_preview_kill_jobs(C);
+
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
+							 &snode->cursor[0], &snode->cursor[1]);
+	node = node_add_node(C, NULL, CMP_NODE_MASK, snode->cursor[0], snode->cursor[1]);
+
+	if (!node) {
+		BKE_report(op->reports, RPT_WARNING, "Could not add an mask node");
+		return OPERATOR_CANCELLED;
+	}
+
+	node->id = mask;
+	id_us_plus(mask);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_add_mask(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Mask Node";
+	ot->description = "Add a mask node to the current node editor";
+	ot->idname = "NODE_OT_add_mask";
+
+	/* callbacks */
+	ot->invoke = node_add_mask_invoke;
+	ot->poll = node_add_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
 }
 
 /********************** New node tree operator *********************/
