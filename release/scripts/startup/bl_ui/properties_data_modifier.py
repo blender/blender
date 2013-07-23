@@ -715,9 +715,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Origin:")
         col.prop(md, "origin", text="")
-        sub = col.column()
-        sub.active = (md.origin is not None)
-        sub.prop(md, "use_relative")
+
+        if md.deform_method in {'TAPER', 'STRETCH', 'TWIST'}:
+            col.label(text="Lock:")
+            col.prop(md, "lock_x")
+            col.prop(md, "lock_y")
 
         col = split.column()
         col.label(text="Deform:")
@@ -726,9 +728,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         else:
             col.prop(md, "angle")
         col.prop(md, "limits", slider=True)
-        if md.deform_method in {'TAPER', 'STRETCH', 'TWIST'}:
-            col.prop(md, "lock_x")
-            col.prop(md, "lock_y")
 
     def SMOKE(self, layout, ob, md):
         layout.label(text="Settings can be found inside the Physics context")

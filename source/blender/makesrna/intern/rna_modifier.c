@@ -2581,11 +2581,6 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
-	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "originOpts", MOD_SIMPLEDEFORM_ORIGIN_LOCAL);
-	RNA_def_property_ui_text(prop, "Relative", "Set the origin of deform space to be relative to the object");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 1, 3);
