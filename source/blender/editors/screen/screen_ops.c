@@ -3184,7 +3184,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 			sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(CTX_data_main(C), scene, 1);
+		ED_update_for_newframe(bmain, scene, 1);
 
 		for (window = wm->windows.first; window; window = window->next) {
 			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
