@@ -2427,9 +2427,6 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 
 static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
 	BMIter iter;
 	BMElem *ele;
 
@@ -2440,7 +2437,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	EDBM_selectmode_flush(em);
 	ele = BM_mesh_active_elem_get(em->bm);
 
-	if (ele) {
+	if (ele && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 		switch (ele->head.htype) {
 			case BM_VERT:
 				*r_eve = (BMVert *)ele;
@@ -2455,6 +2452,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	}
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
+		BMVert *v;
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				*r_eve = v;
@@ -2463,6 +2461,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
+		BMEdge *e;
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				*r_eed = e;
@@ -2471,8 +2470,8 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		f = BM_mesh_active_face_get(em->bm, true, false);
-		if (f) {
+		BMFace *f = BM_mesh_active_face_get(em->bm, true, false);
+		if (f && BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 			*r_efa = f;
 			return;
 		}
