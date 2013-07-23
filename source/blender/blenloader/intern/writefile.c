@@ -1660,8 +1660,8 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			
 			if (cu->vfont) {
 				/* TODO, sort out 'cu->len', in editmode its character, object mode its bytes */
-				int len_bytes;
-				int len_chars = BLI_strlen_utf8_ex(cu->str, &len_bytes);
+				size_t len_bytes;
+				size_t len_chars = BLI_strlen_utf8_ex(cu->str, &len_bytes);
 
 				writedata(wd, DATA, len_bytes + 1, cu->str);
 				writestruct(wd, DATA, "CharInfo", len_chars + 1, cu->strinfo);

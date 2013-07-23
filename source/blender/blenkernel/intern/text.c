@@ -2359,7 +2359,7 @@ static void txt_delete_line(Text *text, TextLine *line)
 
 static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 {
-	char *tmp;
+	char *tmp, *s;
 
 	if (!text) return;
 	
@@ -2368,8 +2368,10 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 
 	tmp = MEM_mallocN(linea->len + lineb->len + 1, "textline_string");
 	
-	strcpy(tmp, linea->line);
-	strcat(tmp, lineb->line);
+	s = tmp;
+	s += BLI_strcpy_rlen(s, linea->line);
+	s += BLI_strcpy_rlen(s, lineb->line);
+	(void)s;
 
 	make_new_line(linea, tmp);
 	

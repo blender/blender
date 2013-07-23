@@ -695,8 +695,10 @@ bool BLI_path_frame(char *path, int frame, int digits)
 
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
 		char tmp[FILE_MAX];
-		sprintf(tmp, "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
-		strcpy(path, tmp);
+		BLI_snprintf(tmp, sizeof(tmp),
+		             "%.*s%.*d%s",
+		             ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
+		BLI_strncpy(path, tmp, FILE_MAX);
 		return true;
 	}
 	return false;

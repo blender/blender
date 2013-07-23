@@ -446,7 +446,9 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	Object *obedit;
 	Base *base;
 	struct TextLine *tmp;
-	int nchars = 0, a;
+	int nchars = 0, nbytes = 0;
+	char *s;
+	int a;
 	float rot[3] = {0.f, 0.f, 0.f};
 	
 	obedit = BKE_object_add(bmain, scene, OB_FONT);
@@ -463,26 +465,38 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	cu->vfont = BKE_vfont_builtin_get();
 	cu->vfont->id.us++;
 
-	for (tmp = firstline, a = 0; cu->len < MAXTEXT && a < totline; tmp = tmp->next, a++)
-		nchars += strlen(tmp->line) + 1;
+	for (tmp = firstline, a = 0; nbytes < MAXTEXT && a < totline; tmp = tmp->next, a++) {
+		size_t nchars_line, nbytes_line;
+		nchars_line = BLI_strlen_utf8_ex(tmp->line, &nbytes_line);
+		nchars += nchars_line + 1;
+		nbytes += nbytes_line + 1;
+	}
 
 	if (cu->str) MEM_freeN(cu->str);
 	if (cu->strinfo) MEM_freeN(cu->strinfo);
 
-	cu->str = MEM_callocN(nchars + 4, "str");
+	cu->str = MEM_mallocN(nbytes + 4, "str");
 	cu->strinfo = MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo");
 
-	cu->str[0] = '\0';
 	cu->len = 0;
 	cu->pos = 0;
-	
+
+	s = cu->str;
+	*s = '\0';
+
 	for (tmp = firstline, a = 0; cu->len < MAXTEXT && a < totline; tmp = tmp->next, a++) {
-		strcat(cu->str, tmp->line);
-		cu->len += strlen(tmp->line);
+		size_t nbytes_line;
+
+		nbytes_line = BLI_strcpy_rlen(s, tmp->line);
+
+		s += nbytes_line;
+		cu->len += nbytes_line;
 
 		if (tmp->next) {
-			strcat(cu->str, "\n");
-			cu->len++;
+			nbytes_line = BLI_strcpy_rlen(s, "\n");
+
+			s += nbytes_line;
+			cu->len += nbytes_line;
 		}
 
 		cu->pos = cu->len;

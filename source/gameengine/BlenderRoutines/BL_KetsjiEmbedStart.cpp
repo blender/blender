@@ -384,9 +384,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			if (!bfd)
 			{
 				// just add "//" in front of it
-				char temppath[242];
-				strcpy(temppath, "//");
-				strcat(temppath, basedpath);
+				char temppath[FILE_MAX] = "//";
+				BLI_strncpy(temppath + 2, basedpath, FILE_MAX - 2);
 				
 				BLI_path_abs(temppath, pathname);
 				bfd = load_game_data(temppath);
