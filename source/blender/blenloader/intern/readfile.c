@@ -9487,7 +9487,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-
+	if (!MAIN_VERSION_ATLEAST(main, 268, 1)) {
+		Brush *brush;
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->spacing = MAX2(1, brush->spacing);
+		}
+	}
+	
 	{
 		bScreen *sc;
 		Object *ob;
