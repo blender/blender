@@ -141,11 +141,13 @@ __device_inline void path_rng_2D(KernelGlobals *kg, RNG *rng, int sample, int nu
 		int p = *rng + dimension;
 		cmj_sample_2D(sample, num_samples, p, fx, fy);
 	}
+	else
 #endif
-
-	/* sobol */
-	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
-	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
+	{
+		/* sobol */
+		*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
+		*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
+	}
 }
 
 __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, int num_samples, RNG *rng, int x, int y, float *fx, float *fy)
