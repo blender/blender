@@ -441,7 +441,7 @@ static int node_add_mask_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	node = node_add_node(C, NULL, CMP_NODE_MASK, snode->cursor[0], snode->cursor[1]);
 
 	if (!node) {
-		BKE_report(op->reports, RPT_WARNING, "Could not add an mask node");
+		BKE_report(op->reports, RPT_WARNING, "Could not add a mask node");
 		return OPERATOR_CANCELLED;
 	}
 
