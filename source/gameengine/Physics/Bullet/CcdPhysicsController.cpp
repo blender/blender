@@ -1590,17 +1590,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		
 		/* Can happen with ngons */
 		if (!tot_bt_verts) {
-			m_shapeType = PHY_SHAPE_NONE;
-			m_meshObject = NULL;
-			m_vertexArray.clear();
-			m_polygonIndexArray.clear();
-			m_triFaceArray.clear();
-			m_triFaceUVcoArray.clear();
-			if (free_dm) {
-				dm->release(dm);
-				dm = NULL;
-			}
-			return false;
+			goto cleanup_empty_mesh;
 		}
 
 		m_vertexArray.resize(tot_bt_verts*3);
@@ -1679,17 +1669,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 
 		/* Can happen with ngons */
 		if (!tot_bt_verts) {
-			m_shapeType = PHY_SHAPE_NONE;
-			m_meshObject = NULL;
-			m_vertexArray.clear();
-			m_polygonIndexArray.clear();
-			m_triFaceArray.clear();
-			m_triFaceUVcoArray.clear();
-			if (free_dm) {
-				dm->release(dm);
-				dm = NULL;
-			}
-			return false;
+			goto cleanup_empty_mesh;
 		}
 
 		m_vertexArray.resize(tot_bt_verts*3);
@@ -1834,6 +1814,19 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		m_meshShapeMap.insert(std::pair<RAS_MeshObject*,CcdShapeConstructionInfo*>(meshobj,this));
 	}
 	return true;
+
+
+cleanup_empty_mesh:
+	m_shapeType = PHY_SHAPE_NONE;
+	m_meshObject = NULL;
+	m_vertexArray.clear();
+	m_polygonIndexArray.clear();
+	m_triFaceArray.clear();
+	m_triFaceUVcoArray.clear();
+	if (free_dm) {
+		dm->release(dm);
+	}
+	return false;
 }
 
 #include <cstdio>
