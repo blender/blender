@@ -72,6 +72,7 @@
 static int get_thumb_dir(char *dir, ThumbSize size)
 {
 	char *s = dir;
+	const char *subdir;
 #ifdef WIN32
 	wchar_t dir_16[MAX_PATH];
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
@@ -80,7 +81,6 @@ static int get_thumb_dir(char *dir, ThumbSize size)
 	s += strlen(dir);
 #else
 	const char *home = getenv("HOME");
-	const char *subdir;
 	if (!home) return 0;
 	s += BLI_strncpy_rlen(s, home, FILE_MAX);
 #endif
