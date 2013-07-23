@@ -1226,9 +1226,9 @@ static void track_markers_freejob(void *tmv)
 	BKE_tracking_context_sync(tmj->context);
 	BKE_tracking_context_free(tmj->context);
 
-	MEM_freeN(tmj);
-
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, tmj->scene);
+
+	MEM_freeN(tmj);
 }
 
 static int track_markers_exec(bContext *C, wmOperator *op)
