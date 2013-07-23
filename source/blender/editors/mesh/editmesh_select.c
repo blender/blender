@@ -2619,7 +2619,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMLoop *l, *l2;
 	const float angle_limit = RNA_float_get(op->ptr, "sharpness");
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
