@@ -373,7 +373,8 @@ void node_cmp_rlayers_force_hidden_passes(bNode *node)
 	bNodeSocket *sock;
 	
 	/* must always have valid scene pointer */
-	BLI_assert(scene != NULL);
+	if (!scene)
+		return;
 	
 	srl = BLI_findlink(&scene->r.layers, node->custom1);
 	if (!srl)
