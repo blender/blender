@@ -66,7 +66,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_bmesh.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"

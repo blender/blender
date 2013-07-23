@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	../blenfont
 	../blenkernel
@@ -50,7 +50,7 @@ set(SRC
 	operators/bmo_edgenet.c
 	operators/bmo_extrude.c
 	operators/bmo_fill_edgeloop.c
-	operators/bmo_fill_grid.c 
+	operators/bmo_fill_grid.c
 	operators/bmo_hull.c
 	operators/bmo_inset.c
 	operators/bmo_join_triangles.c
@@ -115,7 +115,6 @@ set(SRC
 	intern/bmesh_operator_api.h
 	intern/bmesh_error.h
 
-	tools/BME_bevel.c
 	tools/bmesh_bevel.c
 	tools/bmesh_bevel.h
 	tools/bmesh_decimate_collapse.c
