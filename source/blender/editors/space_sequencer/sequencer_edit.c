@@ -2721,7 +2721,6 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
 	}
 }
 
-/* TODO, validate scenes */
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2766,6 +2765,11 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
 			seq_copy_del_sound(scene, seq);
 		}
+
+		/* duplicate pointers */
+		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
+			BKE_sequence_clipboard_pointers_store(seq);
+		}
 	}
 
 	return OPERATOR_FINISHED;
@@ -2790,6 +2794,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 
 static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, TRUE); /* create if needed */
 	ListBase nseqbase = {NULL, NULL};
@@ -2805,8 +2810,15 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ofs) {
 		for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
 			BKE_sequence_translate(scene, iseq, ofs);
-			BKE_sequence_sound_init(scene, iseq);
 		}
+	}
+
+	for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
+		BKE_sequence_clipboard_pointers_restore(iseq, bmain);
+	}
+
+	for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
+		BKE_sequence_sound_init(scene, iseq);
 	}
 
 	iseq_first = nseqbase.first;

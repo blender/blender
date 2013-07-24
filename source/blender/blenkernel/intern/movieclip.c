@@ -1395,8 +1395,6 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip, ImBuf *ibuf, stru
 
 void BKE_movieclip_free(MovieClip *clip)
 {
-	BKE_sequencer_clear_movieclip_in_clipboard(clip);
-
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);
