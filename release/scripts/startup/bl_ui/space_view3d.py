@@ -2197,7 +2197,9 @@ class VIEW3D_MT_edit_curve_specials(Menu):
         layout.operator("curve.spline_weight_set")
         layout.operator("curve.radius_set")
         layout.operator("curve.smooth")
+        layout.operator("curve.smooth_weight")
         layout.operator("curve.smooth_radius")
+        layout.operator("curve.smooth_tilt")
 
 
 class VIEW3D_MT_edit_curve_showhide(ShowHideMenu, Menu):
