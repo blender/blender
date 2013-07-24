@@ -218,9 +218,16 @@ static void layerFree_bmesh_elem_py_ptr(void *data, int count, int size)
 static void layerInterp_mdeformvert(void **sources, const float *weights,
                                     const float *UNUSED(sub_weights), int count, void *dest)
 {
+	/* a single linked list of MDeformWeight's
+	 * use this to avoid double allocs (which LinkNode would do) */
+	struct MDeformWeight_Link {
+		struct MDeformWeight_Link *next;
+		MDeformWeight dw;
+	};
+
 	MDeformVert *dvert = dest;
-	LinkNode *dest_dw = NULL; /* a list of lists of MDeformWeight pointers */
-	LinkNode *node;
+	struct MDeformWeight_Link *dest_dwlink = NULL;
+	struct MDeformWeight_Link *node;
 	int i, j, totweight;
 
 	if (count <= 0) return;
@@ -238,8 +245,8 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 			if (weight == 0.0f)
 				continue;
 
-			for (node = dest_dw; node; node = node->next) {
-				MDeformWeight *tmp_dw = (MDeformWeight *)node->link;
+			for (node = dest_dwlink; node; node = node->next) {
+				MDeformWeight *tmp_dw = &node->dw;
 
 				if (tmp_dw->def_nr == dw->def_nr) {
 					tmp_dw->weight += weight;
@@ -249,11 +256,14 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 
 			/* if this def_nr is not in the list, add it */
 			if (!node) {
-				MDeformWeight *tmp_dw = MEM_callocN(sizeof(*tmp_dw),
-				                                    "layerInterp_mdeformvert tmp_dw");
-				tmp_dw->def_nr = dw->def_nr;
-				tmp_dw->weight = weight;
-				BLI_linklist_prepend(&dest_dw, tmp_dw);
+				struct MDeformWeight_Link *tmp_dwlink = MEM_mallocN(sizeof(*tmp_dwlink), __func__);
+				tmp_dwlink->dw.def_nr = dw->def_nr;
+				tmp_dwlink->dw.weight = weight;
+
+				/* inline linklist */
+				tmp_dwlink->next = dest_dwlink;
+				dest_dwlink = tmp_dwlink;
+
 				totweight++;
 			}
 		}
@@ -262,20 +272,31 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 	/* delay writing to the destination incase dest is in sources */
 
 	/* now we know how many unique deform weights there are, so realloc */
-	if (dvert->dw) MEM_freeN(dvert->dw);
+	if (dvert->dw && (dvert->totweight == totweight)) {
+		/* pass (fastpath if we don't need to realloc) */
+	}
+	else {
+		if (dvert->dw) {
+			MEM_freeN(dvert->dw);
+		}
+
+		if (totweight) {
+			dvert->dw = MEM_mallocN(sizeof(*dvert->dw) * totweight, __func__);
+		}
+	}
 
 	if (totweight) {
-		dvert->dw = MEM_mallocN(sizeof(*dvert->dw) * totweight,
-		                        "layerInterp_mdeformvert dvert->dw");
+		struct MDeformWeight_Link *node_next;
 		dvert->totweight = totweight;
-
-		for (i = 0, node = dest_dw; node; node = node->next, ++i)
-			dvert->dw[i] = *((MDeformWeight *)node->link);
+		for (i = 0, node = dest_dwlink; node; node = node_next, i++) {
+			node_next = node->next;
+			dvert->dw[i] = node->dw;
+			MEM_freeN(node);
+		}
 	}
-	else
+	else {
 		memset(dvert, 0, sizeof(*dvert));
-
-	BLI_linklist_free(dest_dw, MEM_freeN);
+	}
 }
 
 static void layerCopy_tface(const void *source, void *dest, int count)
@@ -2391,6 +2412,7 @@ bool CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 			BLI_assert(!"invalid type given");
 			iter_type = BM_VERTS_OF_MESH;
 			totelem = bm->totvert;
+			break;
 	}
 
 	dest->pool = NULL;

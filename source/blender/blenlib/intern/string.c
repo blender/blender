@@ -87,15 +87,18 @@ char *BLI_strdup(const char *str)
  */
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 {
-	size_t len;
-	char *n;
+	/* include the NULL terminator of str2 only */
+	const size_t str1_len = strlen(str1);
+	const size_t str2_len = strlen(str2) + 1;
+	char *str, *s;
 	
-	len = strlen(str1) + strlen(str2);
-	n = MEM_mallocN(len + 1, "strdupcat");
-	strcpy(n, str1);
-	strcat(n, str2);
-	
-	return n;
+	str = MEM_mallocN(str1_len + str2_len, "strdupcat");
+	s = str;
+
+	memcpy(s, str1, str1_len); s += str1_len;
+	memcpy(s, str2, str2_len);
+
+	return str;
 }
 
 /**
@@ -240,6 +243,7 @@ size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const siz
 				goto escape_finish;
 			case '\\':
 			case '"':
+				/* fall-through */
 
 			/* less common but should also be support */
 			case '\t':
@@ -253,9 +257,10 @@ size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const siz
 					/* not enough space to escape */
 					break;
 				}
-			/* intentionally pass through */
+				/* fall-through */
 			default:
 				*dst = *src;
+				break;
 		}
 		dst++;
 		src++;

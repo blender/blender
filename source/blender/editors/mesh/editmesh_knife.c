@@ -2623,15 +2623,15 @@ static bool knife_edge_in_face(KnifeTool_OpData *UNUSED(kcd), KnifeEdge *kfe, BM
 
 /* Split face f with KnifeEdges on chain.  f remains as one side, the face formed is put in *newface.
  * The new face will be on the left side of the chain as viewed from the normal-out side of f. */
-static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *chain, BMFace **newface)
+static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *chain, BMFace **r_f_new)
 {
 	BMesh *bm = kcd->em->bm;
 	KnifeEdge *kfe, *kfelast;
 	BMVert *v1, *v2;
-	BMFace *fnew;
+	BMFace *f_new;
 	Ref *ref;
 	KnifeVert *kfv, *kfvprev;
-	BMLoop *lnew, *l_iter;
+	BMLoop *l_new, *l_iter;
 	int i;
 	int nco = BLI_countlist(chain) - 1;
 	float (*cos)[3] = BLI_array_alloca(cos, nco);
@@ -2652,23 +2652,21 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 		kfvprev = kfv;
 	}
 	BLI_assert(i == nco);
-	lnew = NULL;
+	l_new = NULL;
 	if (nco == 0) {
 		/* Want to prevent creating two-sided polygons */
 		if (BM_edge_exists(v1, v2)) {
-			*newface = NULL;
+			f_new = NULL;
 		}
 		else {
-			*newface = BM_face_split(bm, f, v1, v2, &lnew, NULL, true);
+			f_new = BM_face_split(bm, f, v1, v2, &l_new, NULL, true);
 		}
 	}
 	else {
-		fnew = BM_face_split_n(bm, f, v1, v2, cos, nco, &lnew, NULL);
-		*newface = fnew;
-
-		if (fnew) {
+		f_new = BM_face_split_n(bm, f, v1, v2, cos, nco, &l_new, NULL);
+		if (f_new) {
 			/* Now go through lnew chain matching up chain kv's and assign real v's to them */
-			for (l_iter = lnew->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
+			for (l_iter = l_new->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
 				BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
 				if (kcd->select_result) {
 					BM_edge_select_set(bm, l_iter->e, true);
@@ -2680,10 +2678,15 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 
 	/* the select chain above doesnt account for the first loop */
 	if (kcd->select_result) {
-		if (lnew) {
-			BM_edge_select_set(bm, lnew->e, true);
+		if (l_new) {
+			BM_edge_select_set(bm, l_new->e, true);
 		}
 	}
+	else {
+		BM_elem_select_copy(bm, bm, f, f_new);
+	}
+
+	*r_f_new = f_new;
 }
 
 static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfedges)
@@ -2887,6 +2890,7 @@ static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 	knife_make_cuts(kcd);
 #endif
 
+	EDBM_selectmode_flush(kcd->em);
 	EDBM_mesh_normals_update(kcd->em);
 	EDBM_update_generic(kcd->em, true, true);
 }

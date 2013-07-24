@@ -166,14 +166,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	/* Calculate matrixs do convert between coordinate spaces */
 	if (smd->origin) {
 		transf = &tmp_transf;
-
-		if (smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL) {
-			space_transform_from_matrixs(transf, ob->obmat, smd->origin->obmat);
-		}
-		else {
-			copy_m4_m4(transf->local2target, smd->origin->obmat);
-			invert_m4_m4(transf->target2local, transf->local2target);
-		}
+		space_transform_from_matrixs(transf, ob->obmat, smd->origin->obmat);
 	}
 
 	/* Setup vars,
@@ -252,7 +245,6 @@ static void initData(ModifierData *md)
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
-	smd->originOpts = MOD_SIMPLEDEFORM_ORIGIN_LOCAL;
 	smd->axis = 0;
 
 	smd->origin   =  NULL;
@@ -269,7 +261,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->mode  = smd->mode;
 	tsmd->axis  = smd->axis;
 	tsmd->origin = smd->origin;
-	tsmd->originOpts = smd->originOpts;
 	tsmd->factor = smd->factor;
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));

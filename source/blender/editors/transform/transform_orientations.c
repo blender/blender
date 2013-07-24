@@ -166,6 +166,26 @@ static TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, c
 	return addMatrixSpace(C, mat, name, overwrite);
 }
 
+static TransformOrientation *createCurveSpace(bContext *C, ReportList *reports, char *name, int overwrite)
+{
+	float mat[3][3];
+	float normal[3], plane[3];
+
+	getTransformOrientation(C, normal, plane, 0);
+
+	if (createSpaceNormalTangent(mat, normal, plane) == 0) {
+		BKE_reports_prepend(reports, "Cannot use zero-length curve");
+		return NULL;
+	}
+
+	if (name[0] == 0) {
+		strcpy(name, "Curve");
+	}
+
+	return addMatrixSpace(C, mat, name, overwrite);
+}
+
+
 static TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *name, int overwrite)
 {
 	float mat[3][3];
@@ -236,26 +256,28 @@ bool createSpaceNormal(float mat[3][3], const float normal[3])
 	return true;
 }
 
-bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
+bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3])
 {
-	copy_v3_v3(mat[2], normal);
-	if (normalize_v3(mat[2]) == 0.0f) {
+	if (normalize_v3_v3(mat[2], normal) == 0.0f) {
 		return false;  /* error return */
 	}
-	
+
+	copy_v3_v3(mat[1], tangent);
 	/* preempt zero length tangent from causing trouble */
-	if (tangent[0] == 0 && tangent[1] == 0 && tangent[2] == 0) {
-		tangent[2] = 1;
+	if (is_zero_v3(mat[1])) {
+		mat[1][2] = 1.0f;
 	}
 
-	cross_v3_v3v3(mat[0], mat[2], tangent);
+	cross_v3_v3v3(mat[0], mat[2], mat[1]);
 	if (normalize_v3(mat[0]) == 0.0f) {
 		return false;  /* error return */
 	}
 	
 	cross_v3_v3v3(mat[1], mat[2], mat[0]);
+	normalize_v3(mat[1]);
 
-	normalize_m3(mat);
+	/* final matrix must be normalized, do inline */
+	// normalize_m3(mat);
 	
 	return true;
 }
@@ -276,6 +298,8 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name
 				ts = createMeshSpace(C, reports, name, overwrite);
 			else if (obedit->type == OB_ARMATURE)
 				ts = createBoneSpace(C, reports, name, overwrite);
+			else if (obedit->type == OB_CURVE)
+				ts = createCurveSpace(C, reports, name, overwrite);
 		}
 		else if (ob && (ob->mode & OB_MODE_POSE)) {
 			ts = createBoneSpace(C, reports, name, overwrite);
@@ -466,14 +490,14 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 				strcpy(t->spacename, IFACE_("gimbal"));
 				break;
 			}
-		/* no gimbal fallthrough to normal */
+			/* fall-through */  /* no gimbal fallthrough to normal */
 		case V3D_MANIP_NORMAL:
 			if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
 				strcpy(t->spacename, IFACE_("normal"));
 				ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
 				break;
 			}
-		/* no break we define 'normal' as 'local' in Object mode */
+			/* fall-through */  /* we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
 			strcpy(t->spacename, IFACE_("local"));
 		
@@ -675,34 +699,67 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			int a;
 			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-			for (nu = nurbs->first; nu; nu = nu->next) {
-				/* only bezier has a normal */
-				if (nu->type == CU_BEZIER) {
-					bezt = nu->bezt;
-					a = nu->pntsu;
-					while (a--) {
-						/* exception */
-						if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
-							sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
+			if (activeOnly && cu->lastsel) {
+				for (nu = nurbs->first; nu; nu = nu->next) {
+					if (nu->type == CU_BEZIER) {
+						if (ARRAY_HAS_ITEM((BezTriple *)cu->lastsel, nu->bezt, nu->pntsu)) {
+							bezt = cu->lastsel;
+							BKE_nurb_bezt_calc_normal(nu, bezt, normal);
+							BKE_nurb_bezt_calc_plane(nu, bezt, plane);
+							break;
 						}
-						else {
-							if (bezt->f1) {
-								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[1]);
-							}
-							if (bezt->f2) {
-								sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
-							}
-							if (bezt->f3) {
-								sub_v3_v3v3(normal, bezt->vec[1], bezt->vec[2]);
-							}
+					}
+					else {
+						if (ARRAY_HAS_ITEM((BPoint *)cu->lastsel, nu->bp, nu->pntsu)) {
+							/* do nothing */
+							break;
 						}
-						bezt++;
+					}
+				}
+			}
+			else {
+				for (nu = nurbs->first; nu; nu = nu->next) {
+					/* only bezier has a normal */
+					if (nu->type == CU_BEZIER) {
+						bezt = nu->bezt;
+						a = nu->pntsu;
+						while (a--) {
+							/* exception */
+							if ((bezt->f1 | bezt->f2 | bezt->f3) & SELECT) {
+								float tvec[3];
+								if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
+									BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
+									add_v3_v3(normal, tvec);
+								}
+								else {
+									if (bezt->f1 & SELECT) {
+										sub_v3_v3v3(tvec, bezt->vec[0], bezt->vec[1]);
+										normalize_v3(tvec);
+										add_v3_v3(normal, tvec);
+									}
+									if (bezt->f2 & SELECT) {
+										sub_v3_v3v3(tvec, bezt->vec[0], bezt->vec[2]);
+										normalize_v3(tvec);
+										add_v3_v3(normal, tvec);
+									}
+									if (bezt->f3 & SELECT) {
+										sub_v3_v3v3(tvec, bezt->vec[1], bezt->vec[2]);
+										normalize_v3(tvec);
+										add_v3_v3(normal, tvec);
+									}
+								}
+
+								BKE_nurb_bezt_calc_plane(nu, bezt, tvec);
+								add_v3_v3(plane, tvec);
+							}
+							bezt++;
+						}
 					}
 				}
 			}
 			
 			if (!is_zero_v3(normal)) {
-				result = ORIENTATION_NORMAL;
+				result = ORIENTATION_FACE;
 			}
 		}
 		else if (obedit->type == OB_MBALL) {

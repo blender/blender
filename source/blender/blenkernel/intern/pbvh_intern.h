@@ -139,11 +139,11 @@ struct PBVH {
 	void **gridfaces;
 	const DMFlagMat *grid_flag_mats;
 	int totgrid;
-	BLI_bitmap *grid_hidden;
+	BLI_bitmap **grid_hidden;
 
 	/* Only used during BVH build and update,
 	 * don't need to remain valid after */
-	BLI_bitmap vert_bitmap;
+	BLI_bitmap *vert_bitmap;
 
 #ifdef PERFCNTRS
 	int perf_modified;

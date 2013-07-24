@@ -2525,6 +2525,7 @@ void ui_check_but(uiBut *but)
 			break;
 		default:
 			BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+			break;
 		
 	}
 

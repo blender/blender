@@ -343,6 +343,8 @@ static void fcm_fn_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float
 		}
 		default:
 			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
+			break;
+
 	}
 	
 	/* execute function callback to set value if appropriate */

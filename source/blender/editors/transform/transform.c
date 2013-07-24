@@ -61,7 +61,6 @@
 #include "BLI_linklist.h"
 
 #include "BKE_nla.h"
-#include "BKE_bmesh.h"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
@@ -111,9 +110,7 @@ static bool transdata_check_local_center(TransInfo *t)
 {
 	return ((t->around == V3D_LOCAL) && (
 	            (t->flag & (T_OBJECT | T_POSE)) ||
-	            (t->obedit && t->obedit->type == OB_MESH && (t->settings->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE))) ||
-	            (t->obedit && t->obedit->type == OB_MBALL) ||
-	            (t->obedit && t->obedit->type == OB_ARMATURE) ||
+	            (t->obedit && ELEM4(t->obedit->type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE)) ||
 	            (t->spacetype == SPACE_IPO))
 	        );
 }
@@ -1432,6 +1429,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
+			/* fall-through */
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(offset, 0);
@@ -1442,10 +1440,12 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			glVertex2s(offset + length - size,  size);
 			glEnd();
 			break;
+
 		case DOWN:
 			offset = -offset;
 			length = -length;
 			size = -size;
+			/* fall-through */
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, offset);
@@ -1464,6 +1464,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 	switch (d) {
 		case LEFT:
 			size = -size;
+			/* fall-through */
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);
@@ -1472,8 +1473,10 @@ static void drawArrowHead(ArrowDirection d, short size)
 			glVertex2s(-size,  size);
 			glEnd();
 			break;
+
 		case DOWN:
 			size = -size;
+			/* fall-through */
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);
@@ -1747,6 +1750,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			break;
 		default:
 			proportional = PROP_EDIT_OFF;
+			break;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
@@ -2934,6 +2938,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 			case 2:
 				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Scale: %s : %s : %s%s %s"), &tvec[0],
 				                    &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+				break;
 		}
 	}
 	else {
@@ -3900,6 +3905,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 				ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "D: %s   D: %s  D: %s (%s)%s %s  %s",
 				                    &tvec[0], &tvec[NUM_STR_REP_LEN], &tvec[NUM_STR_REP_LEN * 2], distvec,
 				                    t->con.text, t->proptext, autoik);
+				break;
 		}
 	}
 	else {
@@ -5690,6 +5696,7 @@ int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 							break;
 						}
 					}
+					break;
 				}
 				default:
 					break;
@@ -6222,6 +6229,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 						calcVertSlideMouseActiveEdges(t, event->mval);
 					}
 					calcVertSlideCustomPoints(t);
+					break;
 				}
 				default:
 					break;
@@ -7347,7 +7355,7 @@ bool checkUseAxisMatrix(TransInfo *t)
 {
 	/* currenly only checks for editmode */
 	if (t->flag & T_EDIT) {
-		if ((t->around == V3D_LOCAL) && (ELEM3(t->obedit->type, OB_MESH, OB_MBALL, OB_ARMATURE))) {
+		if ((t->around == V3D_LOCAL) && (ELEM4(t->obedit->type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE))) {
 			/* not all editmode supports axis-matrix */
 			return true;
 		}

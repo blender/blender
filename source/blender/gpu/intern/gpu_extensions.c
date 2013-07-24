@@ -989,6 +989,8 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
+	glDisable(GL_DEPTH_TEST);
+
 	GPU_texture_bind(tex, 0);
 
 	/* Drawing quad */

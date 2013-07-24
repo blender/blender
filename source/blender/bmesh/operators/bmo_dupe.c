@@ -150,10 +150,7 @@ static BMFace *copy_face(BMOperator *op,
 #endif
 
 	/* lookup edge */
-	for (i = 0, source_loop = BM_iter_new(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face);
-	     source_loop;
-	     source_loop = BM_iter_step(&iter), i++)
-	{
+	BM_ITER_ELEM_INDEX (source_loop, &iter, source_face, BM_LOOPS_OF_FACE, i) {
 		vtar[i] = BLI_ghash_lookup(vhash, source_loop->v);
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 	}

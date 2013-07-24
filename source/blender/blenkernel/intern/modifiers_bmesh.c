@@ -37,7 +37,6 @@
 #include "BLI_array.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_bmesh.h"
 #include "BKE_editmesh.h"
 
 /* Static function for alloc */

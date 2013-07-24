@@ -388,17 +388,14 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 		 */
 		st_size = file->s.st_size;
 
-		/* FIXME: Either change decimal prefixes to binary ones
-		 * <http://en.wikipedia.org/wiki/Binary_prefix>, or change
-		 * divisor factors from 1024 to 1000. */
 		if (st_size > 1024 * 1024 * 1024) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.2f GB", ((double)st_size) / (1024 * 1024 * 1024));
+			BLI_snprintf(file->size, sizeof(file->size), "%.2f GiB", ((double)st_size) / (1024 * 1024 * 1024));
 		}
 		else if (st_size > 1024 * 1024) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.1f MB", ((double)st_size) / (1024 * 1024));
+			BLI_snprintf(file->size, sizeof(file->size), "%.1f MiB", ((double)st_size) / (1024 * 1024));
 		}
 		else if (st_size > 1024) {
-			BLI_snprintf(file->size, sizeof(file->size), "%d KB", (int)(st_size / 1024));
+			BLI_snprintf(file->size, sizeof(file->size), "%d KiB", (int)(st_size / 1024));
 		}
 		else {
 			BLI_snprintf(file->size, sizeof(file->size), "%d B", (int)st_size);

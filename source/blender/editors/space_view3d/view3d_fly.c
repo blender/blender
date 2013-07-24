@@ -518,7 +518,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 #ifdef NDOF_FLY_DEBUG
 				puts("start keeping track of 3D mouse position");
 #endif
-			/* fall through... */
+				/* fall-through */
 			case P_IN_PROGRESS:
 				/* update 3D mouse position */
 #ifdef NDOF_FLY_DEBUG

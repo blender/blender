@@ -112,7 +112,7 @@ AviError AVI_set_compress_option(AviMovie *movie, int option_type, int stream, A
 							awrite(movie, movie->streams[i].sf, 1, movie->streams[i].sf_size, movie->fp, AVI_BITMAPH);
 						}
 					}
-
+					break;
 			}
 
 			fseek(movie->fp, movie->offset_table[0], SEEK_SET);

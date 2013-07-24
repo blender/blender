@@ -1177,6 +1177,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 
 		case SCULPT_DISP_DIR_AREA:
 			calc_area_normal(sd, ob, an, nodes, totnode);
+			break;
 
 		default:
 			break;
@@ -1528,7 +1529,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
 	int thread_num;
-	BLI_bitmap *grid_hidden;
+	BLI_bitmap **grid_hidden;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
 	sculpt_brush_test_init(ss, &test);
@@ -1553,7 +1554,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 
 	for (i = 0; i < totgrid; ++i) {
 		int gi = grid_indices[i];
-		BLI_bitmap gh = grid_hidden[gi];
+		BLI_bitmap *gh = grid_hidden[gi];
 		data = griddata[gi];
 		adj = &gridadj[gi];
 
@@ -2457,6 +2458,7 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 
 			case SCULPT_DISP_DIR_AREA:
 				calc_area_normal_and_flatten_center(sd, ob, nodes, totnode, an, fc);
+				break;
 
 			default:
 				break;
@@ -4652,13 +4654,18 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		sculptsession_bm_to_me(ob, TRUE);
 	}
 
-	BM_mesh_free(ss->bm);
-
 	/* Clear data */
 	me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-	ss->bm = NULL;
-	BM_log_free(ss->bm_log);
-	ss->bm_log = NULL;
+
+	/* typically valid but with global-undo they can be NULL, [#36234] */
+	if (ss->bm) {
+		BM_mesh_free(ss->bm);
+		ss->bm = NULL;
+	}
+	if (ss->bm_log) {
+		BM_log_free(ss->bm_log);
+		ss->bm_log = NULL;
+	}
 
 	/* Refresh */
 	sculpt_update_after_dynamic_topology_toggle(C);

@@ -788,8 +788,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
 				data->accurate = event->val == KM_PRESS;
 
-		/* no break! update area size */
-
+			/* fall-through */
 		case MOUSEMOVE:
 			mdelta[0] = event->mval[0] - data->mval[0];
 			mdelta[1] = event->mval[1] - data->mval[1];
@@ -1227,9 +1226,9 @@ static void track_markers_freejob(void *tmv)
 	BKE_tracking_context_sync(tmj->context);
 	BKE_tracking_context_free(tmj->context);
 
-	MEM_freeN(tmj);
-
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, tmj->scene);
+
+	MEM_freeN(tmj);
 }
 
 static int track_markers_exec(bContext *C, wmOperator *op)

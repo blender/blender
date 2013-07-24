@@ -671,13 +671,14 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         layout.separator()
         layout.prop(strip, "filepath", text="")
 
-        row = layout.row()
-        if sound.packed_file:
-            row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
-        else:
-            row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
+        if sound is not None:
+            row = layout.row()
+            if sound.packed_file:
+                row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
+            else:
+                row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
-        row.prop(sound, "use_memory_cache")
+            row.prop(sound, "use_memory_cache")
 
         layout.prop(strip, "show_waveform")
         layout.prop(strip, "volume")

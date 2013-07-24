@@ -65,6 +65,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_mask.h"
+#include "BKE_library.h"
 
 #include "RNA_access.h"
 
@@ -265,6 +266,7 @@ static void seq_free_clipboard_recursive(Sequence *seq_parent)
 		seq_free_clipboard_recursive(seq);
 	}
 
+	BKE_sequence_clipboard_pointers_free(seq_parent);
 	BKE_sequence_free_ex(NULL, seq_parent, FALSE);
 }
 
@@ -278,6 +280,101 @@ void BKE_sequencer_free_clipboard(void)
 	}
 	seqbase_clipboard.first = seqbase_clipboard.last = NULL;
 }
+
+/* -------------------------------------------------------------------- */
+/* Manage pointers in the clipboard.
+ * note that these pointers should _never_ be access in the sequencer,
+ * they are only for storage while in the clipboard
+ * notice 'newid' is used for temp pointer storage here, validate on access.
+ */
+#define ID_PT (*id_pt)
+static void seqclipboard_ptr_free(ID **id_pt)
+{
+	if (ID_PT) {
+		BLI_assert(ID_PT->newid != NULL);
+		MEM_freeN(ID_PT);
+		ID_PT = NULL;
+	}
+}
+static void seqclipboard_ptr_store(ID **id_pt)
+{
+	if (ID_PT) {
+		ID *id_prev = ID_PT;
+		ID_PT = MEM_dupallocN(ID_PT);
+		ID_PT->newid = id_prev;
+	}
+}
+static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
+{
+	if (ID_PT) {
+		const ListBase *lb = which_libbase(bmain, GS(ID_PT->name));
+		void *id_restore;
+
+		BLI_assert(ID_PT->newid != NULL);
+		if (BLI_findindex(lb, (ID_PT)->newid) != -1) {
+			/* the pointer is still valid */
+			id_restore = (ID_PT)->newid;
+		}
+		else {
+			/* the pointer of the same name still exists  */
+			id_restore = BLI_findstring(lb, (ID_PT)->name + 2, offsetof(ID, name) + 2);
+		}
+
+		if (id_restore == NULL) {
+			/* check for a data with the same filename */
+			switch (GS(ID_PT->name)) {
+				case ID_SO:
+				{
+					id_restore = BLI_findstring(lb, ((bSound *)ID_PT)->name, offsetof(bSound, name));
+					if (id_restore == NULL) {
+						id_restore = sound_new_file(bmain, ((bSound *)ID_PT)->name);
+						(ID_PT)->newid = id_restore;  /* reuse next time */
+					}
+					break;
+				}
+				case ID_MC:
+				{
+					id_restore = BLI_findstring(lb, ((MovieClip *)ID_PT)->name, offsetof(MovieClip, name));
+					if (id_restore == NULL) {
+						id_restore = BKE_movieclip_file_add(bmain, ((MovieClip *)ID_PT)->name);
+						(ID_PT)->newid = id_restore;  /* reuse next time */
+					}
+					break;
+				}
+			}
+		}
+
+		ID_PT = id_restore;
+	}
+}
+#undef ID_PT
+
+void BKE_sequence_clipboard_pointers_free(Sequence *seq)
+{
+	seqclipboard_ptr_free((ID **)&seq->scene);
+	seqclipboard_ptr_free((ID **)&seq->scene_camera);
+	seqclipboard_ptr_free((ID **)&seq->clip);
+	seqclipboard_ptr_free((ID **)&seq->mask);
+	seqclipboard_ptr_free((ID **)&seq->sound);
+}
+void BKE_sequence_clipboard_pointers_store(Sequence *seq)
+{
+	seqclipboard_ptr_store((ID **)&seq->scene);
+	seqclipboard_ptr_store((ID **)&seq->scene_camera);
+	seqclipboard_ptr_store((ID **)&seq->clip);
+	seqclipboard_ptr_store((ID **)&seq->mask);
+	seqclipboard_ptr_store((ID **)&seq->sound);
+}
+void BKE_sequence_clipboard_pointers_restore(Sequence *seq, Main *bmain)
+{
+	seqclipboard_ptr_restore(bmain, (ID **)&seq->scene);
+	seqclipboard_ptr_restore(bmain, (ID **)&seq->scene_camera);
+	seqclipboard_ptr_restore(bmain, (ID **)&seq->clip);
+	seqclipboard_ptr_restore(bmain, (ID **)&seq->mask);
+	seqclipboard_ptr_restore(bmain, (ID **)&seq->sound);
+}
+/* end clipboard pointer mess */
+
 
 Editing *BKE_sequencer_editing_ensure(Scene *scene)
 {
@@ -818,33 +915,6 @@ void BKE_sequencer_clear_scene_in_allseqs(Main *bmain, Scene *scene)
 			BKE_sequencer_base_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
 	}
-
-	/* also clear clipboard */
-	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_scene_in_allseqs_cb, scene);
-}
-
-static int clear_movieclip_in_clipboard_cb(Sequence *seq, void *arg_pt)
-{
-	if (seq->clip == (MovieClip *)arg_pt)
-		seq->clip = NULL;
-	return 1;
-}
-
-void BKE_sequencer_clear_movieclip_in_clipboard(MovieClip *clip)
-{
-	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_movieclip_in_clipboard_cb, clip);
-}
-
-static int clear_mask_in_clipboard_cb(Sequence *seq, void *arg_pt)
-{
-	if (seq->mask == (Mask *)arg_pt)
-		seq->mask = NULL;
-	return 1;
-}
-
-void BKE_sequencer_clear_mask_in_clipboard(Mask *mask)
-{
-	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_mask_in_clipboard_cb, mask);
 }
 
 typedef struct SeqUniqueInfo {
@@ -4245,6 +4315,12 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		if (seq->scene_sound)
 			seqn->scene_sound = sound_scene_add_scene_sound_defaults(sce_audio, seqn);
 	}
+	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
+		/* avoid assert */
+	}
+	else if (seq->type == SEQ_TYPE_MASK) {
+		/* avoid assert */
+	}
 	else if (seq->type == SEQ_TYPE_MOVIE) {
 		seqn->strip->stripdata =
 		        MEM_dupallocN(seq->strip->stripdata);
@@ -4256,7 +4332,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		if (seq->scene_sound)
 			seqn->scene_sound = sound_add_scene_sound_defaults(sce_audio, seqn);
 
-		seqn->sound->id.us++;
+		id_us_plus((ID *)seqn->sound);
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
 		seqn->strip->stripdata =
@@ -4278,7 +4354,8 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 
 	}
 	else {
-		fprintf(stderr, "Aiiiiekkk! sequence type not handled in duplicate!\nExpect a crash now...\n");
+		/* sequence type not handled in duplicate! Expect a crash now... */
+		BLI_assert(0);
 	}
 
 	if (dupe_flag & SEQ_DUPE_UNIQUE_NAME)

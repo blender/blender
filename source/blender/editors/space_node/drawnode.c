@@ -790,6 +790,12 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
 }
 
+static void node_shader_buts_tex_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
+}
+
 static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
@@ -993,6 +999,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_IMAGE:
 			ntype->uifunc = node_shader_buts_tex_image;
+			ntype->uifuncbut = node_shader_buts_tex_image_details;
 			break;
 		case SH_NODE_TEX_ENVIRONMENT:
 			ntype->uifunc = node_shader_buts_tex_environment;
@@ -1062,19 +1069,10 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 static void node_composit_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
-	PointerRNA imaptr;
+	PointerRNA iuserptr;
 
-	node_composit_buts_image(layout, C, ptr);
-
-	uiItemR(layout, ptr, "use_straight_alpha_output", 0, NULL, 0);
-
-	if (!node->id)
-		return;
-
-	imaptr = RNA_pointer_get(ptr, "image");
-
-	uiTemplateColorspaceSettings(layout, &imaptr, "colorspace_settings");
-	uiItemR(layout, &imaptr, "alpha_mode", 0, NULL, 0);
+	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2549,6 +2547,15 @@ static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *p
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
+static void node_texture_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	PointerRNA iuserptr;
+
+	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
+}
+
 static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "filepath", 0, "", ICON_NONE);
@@ -2593,6 +2600,7 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
 			case TEX_NODE_IMAGE:
 				ntype->uifunc = node_texture_buts_image;
+				ntype->uifuncbut = node_texture_buts_image_details;
 				break;
 
 			case TEX_NODE_OUTPUT:

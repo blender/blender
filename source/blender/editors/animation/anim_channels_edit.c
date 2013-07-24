@@ -2576,6 +2576,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 		default:
 			if (G.debug & G_DEBUG)
 				printf("Error: Invalid channel type in mouse_anim_channels()\n");
+			break;
 	}
 	
 	/* free channels */

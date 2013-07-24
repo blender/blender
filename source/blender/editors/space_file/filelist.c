@@ -535,6 +535,7 @@ FileList *filelist_new(short type)
 		default:
 			p->readf = filelist_read_dir;
 			p->filterf = is_filtered_file;
+			break;
 
 	}
 	return p;
@@ -993,6 +994,7 @@ void filelist_sort(struct FileList *filelist, short sort)
 			break;
 		case FILE_SORT_EXTENSION:
 			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);
+			break;
 	}
 
 	filelist_filter(filelist);

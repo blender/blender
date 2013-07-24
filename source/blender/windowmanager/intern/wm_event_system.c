@@ -274,7 +274,7 @@ void wm_event_do_notifiers(bContext *C)
 			}
 
 			if (note->window == win ||
-			    (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C))))
+			    (note->window == NULL && (note->reference == NULL || note->reference == win->screen->scene)))
 			{
 				if (note->category == NC_SCENE) {
 					if (note->data == ND_FRAME)
@@ -282,7 +282,7 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 			if (ELEM5(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
-				ED_info_stats_clear(CTX_data_scene(C));
+				ED_info_stats_clear(win->screen->scene);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 			}
 		}
@@ -1116,6 +1116,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				break;
 			default:
 				event = NULL;
+				break;
 		}
 
 		switch (context) {
@@ -1362,40 +1363,17 @@ int WM_userdef_event_map(int kmitype)
 {
 	switch (kmitype) {
 		case SELECTMOUSE:
-			if (U.flag & USER_LMOUSESELECT)
-				return LEFTMOUSE;
-			else
-				return RIGHTMOUSE;
-			
+			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
 		case ACTIONMOUSE:
-			if (U.flag & USER_LMOUSESELECT)
-				return RIGHTMOUSE;
-			else
-				return LEFTMOUSE;
-			
-		case WHEELOUTMOUSE:
-			if (U.uiflag & USER_WHEELZOOMDIR)
-				return WHEELUPMOUSE;
-			else
-				return WHEELDOWNMOUSE;
-			
-		case WHEELINMOUSE:
-			if (U.uiflag & USER_WHEELZOOMDIR)
-				return WHEELDOWNMOUSE;
-			else
-				return WHEELUPMOUSE;
-			
+			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
 		case EVT_TWEAK_A:
-			if (U.flag & USER_LMOUSESELECT)
-				return EVT_TWEAK_R;
-			else
-				return EVT_TWEAK_L;
-			
+			return (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_R : EVT_TWEAK_L;
 		case EVT_TWEAK_S:
-			if (U.flag & USER_LMOUSESELECT)
-				return EVT_TWEAK_L;
-			else
-				return EVT_TWEAK_R;
+			return (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_L : EVT_TWEAK_R;
+		case WHEELOUTMOUSE:
+			return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
+		case WHEELINMOUSE:
+			return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELDOWNMOUSE : WHEELUPMOUSE;
 	}
 	
 	return kmitype;

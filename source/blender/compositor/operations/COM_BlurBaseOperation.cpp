@@ -121,10 +121,12 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad, int falloff)
 				val = val * val;
 				break;
 			case PROP_LIN:
+				/* fall-through */
 #ifndef NDEBUG
-			/* uninitialized! */
 			case -1:
+				/* uninitialized! */
 				BLI_assert(0);
+				break;
 #endif
 			default:
 				/* nothing */

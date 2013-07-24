@@ -492,6 +492,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 			break;
 		}
 		case NC_GEOM:
+		{
 			switch (wmn->data) {
 				case ND_DATA:
 				case ND_SELECT:
@@ -500,6 +501,8 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 			}
+			break;
+		}
 		case NC_OBJECT:
 		{
 			Object *ob = (Object *)wmn->reference;
@@ -512,6 +515,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					}
 					break;
 			}
+			break;
 		}
 	}
 }
@@ -872,7 +876,7 @@ static void image_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa),
 					ED_region_tag_redraw(ar);
 					break;
 			}
-			
+			break;
 	}
 }
 

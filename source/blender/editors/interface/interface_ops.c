@@ -917,7 +917,7 @@ static void edittranslation_find_po_file(const char *root, const char *uilng, ch
 	/* First, full lang code. */
 	BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
 	BLI_join_dirfile(path, maxlen, root, uilng);
-	BLI_join_dirfile(path, maxlen, path, tstr);
+	BLI_path_append(path, maxlen, tstr);
 	if (BLI_is_file(path))
 		return;
 
@@ -941,7 +941,7 @@ static void edittranslation_find_po_file(const char *root, const char *uilng, ch
 
 			BLI_join_dirfile(path, maxlen, root, tstr);
 			strcat(tstr, ".po");
-			BLI_join_dirfile(path, maxlen, path, tstr);
+			BLI_path_append(path, maxlen, tstr);
 			if (BLI_is_file(path))
 				return;
 		}

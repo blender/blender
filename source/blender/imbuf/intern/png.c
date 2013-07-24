@@ -567,6 +567,7 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 		default:
 			printf("PNG format not supported\n");
 			longjmp(png_jmpbuf(png_ptr), 1);
+			break;
 	}
 	
 	ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0);

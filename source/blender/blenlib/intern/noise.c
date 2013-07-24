@@ -1252,6 +1252,7 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 		case 0:
 		default:
 			distfunc = dist_Real;
+			break;
 	}
 
 	xi = (int)(floor(x));
@@ -1467,6 +1468,7 @@ float BLI_gNoise(float noisesize, float x, float y, float z, int hard, int noise
 			x += 1;
 			y += 1;
 			z += 1;
+			break;
 		}
 	}
 
@@ -1522,6 +1524,7 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
 			x += 1;
 			y += 1;
 			z += 1;
+			break;
 	}
 
 	if (noisesize != 0.0f) {
@@ -1596,6 +1599,7 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 		default:
 		{
 			noisefunc = orgBlenderNoiseS;
+			break;
 		}
 	}
 	
@@ -1667,6 +1671,7 @@ float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, floa
 		default:
 		{
 			noisefunc = orgBlenderNoiseS;
+			break;
 		}
 	}
 
@@ -1734,6 +1739,7 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 		default:
 		{
 			noisefunc = orgBlenderNoiseS;
+			break;
 		}
 	}
 
@@ -1808,6 +1814,7 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 		default:
 		{
 			noisefunc = orgBlenderNoiseS;
+			break;
 		}
 	}
 
@@ -1884,6 +1891,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 		default:
 		{
 			noisefunc = orgBlenderNoiseS;
+			break;
 		}
 	}
 
@@ -1950,6 +1958,7 @@ float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nba
 		default:
 		{
 			noisefunc1 = orgBlenderNoiseS;
+			break;
 		}
 	}
 
@@ -1985,6 +1994,7 @@ float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nba
 		default:
 		{
 			noisefunc2 = orgBlenderNoiseS;
+			break;
 		}
 	}
 

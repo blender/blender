@@ -154,7 +154,7 @@ static void partialvis_update_grids(Object *ob,
 {
 	CCGElem **grids;
 	CCGKey key;
-	BLI_bitmap *grid_hidden;
+	BLI_bitmap **grid_hidden;
 	int any_visible = 0;
 	int *grid_indices, totgrid, any_changed, i;
 
@@ -171,7 +171,7 @@ static void partialvis_update_grids(Object *ob,
 	for (i = 0; i < totgrid; i++) {
 		int any_hidden = 0;
 		int g = grid_indices[i], x, y;
-		BLI_bitmap gh = grid_hidden[g];
+		BLI_bitmap *gh = grid_hidden[g];
 
 		if (!gh) {
 			switch (action) {

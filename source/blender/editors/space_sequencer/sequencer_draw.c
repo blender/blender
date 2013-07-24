@@ -173,6 +173,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		
 		default:
 			col[0] = 10; col[1] = 255; col[2] = 40;
+			break;
 	}
 }
 

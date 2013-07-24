@@ -2260,29 +2260,33 @@ void CURVE_OT_smooth(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/**************** smooth curve radius operator *************/
+/* -------------------------------------------------------------------- */
+/* Smooth radius/weight/tilt
+ *
+ * TODO: make smoothing distance based
+ * TODO: support cyclic curves
+ */
 
-/* TODO, make smoothing distance based */
-static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
+static void curve_smooth_value(ListBase *editnurb,
+                               const int bezt_offsetof, const int bp_offset)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
-	
+
 	/* use for smoothing */
 	int last_sel;
 	int start_sel, end_sel; /* selection indices, inclusive */
 	float start_rad, end_rad, fac, range;
-	
+
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->bezt) {
-			
+#define BEZT_VALUE(bezt) (*((float *)((char *)bezt + bezt_offsetof)))
+
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {
 				/* loop over selection segments of a curve, smooth each */
-				
+
 				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
 				start_sel = -1;
 				for (bezt = &nu->bezt[last_sel], a = last_sel; a < nu->pntsu; a++, bezt++) {
@@ -2299,57 +2303,60 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 					end_sel = a;
 				}
-				
+
 				if (start_sel == -1) {
 					last_sel = nu->pntsu; /* next... */
 				}
 				else {
 					last_sel = end_sel; /* before we modify it */
-					
+
 					/* now blend between start and end sel */
-					start_rad = end_rad = -1.0;
-					
+					start_rad = end_rad = FLT_MAX;
+
 					if (start_sel == end_sel) {
 						/* simple, only 1 point selected */
-						if (start_sel > 0)                         start_rad = nu->bezt[start_sel - 1].radius;
-						if (end_sel != -1 && end_sel < nu->pntsu)  end_rad   = nu->bezt[start_sel + 1].radius;
-						
-						if      (start_rad >= 0.0f && end_rad >= 0.0f)  nu->bezt[start_sel].radius = (start_rad + end_rad) / 2.0f;
-						else if (start_rad >= 0.0f)                     nu->bezt[start_sel].radius = start_rad;
-						else if (end_rad >= 0.0f)                       nu->bezt[start_sel].radius = end_rad;
+						if (start_sel > 0)                         start_rad = BEZT_VALUE(&nu->bezt[start_sel - 1]);
+						if (end_sel != -1 && end_sel < nu->pntsu)  end_rad   = BEZT_VALUE(&nu->bezt[start_sel + 1]);
+
+						if      (start_rad != FLT_MAX && end_rad >= FLT_MAX) BEZT_VALUE(&nu->bezt[start_sel]) = (start_rad + end_rad) / 2.0f;
+						else if (start_rad != FLT_MAX)                       BEZT_VALUE(&nu->bezt[start_sel]) = start_rad;
+						else if (end_rad   != FLT_MAX)                       BEZT_VALUE(&nu->bezt[start_sel]) = end_rad;
 					}
 					else {
 						/* if endpoints selected, then use them */
 						if (start_sel == 0) {
-							start_rad = nu->bezt[start_sel].radius;
+							start_rad = BEZT_VALUE(&nu->bezt[start_sel]);
 							start_sel++; /* we don't want to edit the selected endpoint */
 						}
 						else {
-							start_rad = nu->bezt[start_sel - 1].radius;
+							start_rad = BEZT_VALUE(&nu->bezt[start_sel - 1]);
 						}
 						if (end_sel == nu->pntsu - 1) {
-							end_rad = nu->bezt[end_sel].radius;
+							end_rad = BEZT_VALUE(&nu->bezt[end_sel]);
 							end_sel--; /* we don't want to edit the selected endpoint */
 						}
 						else {
-							end_rad = nu->bezt[end_sel + 1].radius;
+							end_rad = BEZT_VALUE(&nu->bezt[end_sel + 1]);
 						}
-						
+
 						/* Now Blend between the points */
 						range = (float)(end_sel - start_sel) + 2.0f;
 						for (bezt = &nu->bezt[start_sel], a = start_sel; a <= end_sel; a++, bezt++) {
 							fac = (float)(1 + a - start_sel) / range;
-							bezt->radius = start_rad * (1.0f - fac) + end_rad * fac;
+							BEZT_VALUE(bezt) = start_rad * (1.0f - fac) + end_rad * fac;
 						}
 					}
 				}
 			}
+#undef BEZT_VALUE
 		}
 		else if (nu->bp) {
+#define BP_VALUE(bp) (*((float *)((char *)bp + bp_offset)))
+
 			/* Same as above, keep these the same! */
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {
 				/* loop over selection segments of a curve, smooth each */
-				
+
 				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
 				start_sel = -1;
 				for (bp = &nu->bp[last_sel], a = last_sel; a < nu->pntsu; a++, bp++) {
@@ -2366,53 +2373,90 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 					end_sel = a;
 				}
-				
+
 				if (start_sel == -1) {
 					last_sel = nu->pntsu; /* next... */
 				}
 				else {
 					last_sel = end_sel; /* before we modify it */
-					
+
 					/* now blend between start and end sel */
-					start_rad = end_rad = -1.0;
-					
+					start_rad = end_rad = FLT_MAX;
+
 					if (start_sel == end_sel) {
 						/* simple, only 1 point selected */
-						if (start_sel > 0) start_rad = nu->bp[start_sel - 1].radius;
-						if (end_sel != -1 && end_sel < nu->pntsu) end_rad = nu->bp[start_sel + 1].radius;
-						
-						if      (start_rad >= 0.0f && end_rad >= 0.0f)  nu->bp[start_sel].radius = (start_rad + end_rad) / 2;
-						else if (start_rad >= 0.0f)                     nu->bp[start_sel].radius = start_rad;
-						else if (end_rad >= 0.0f)                       nu->bp[start_sel].radius = end_rad;
+						if (start_sel > 0) start_rad = BP_VALUE(&nu->bp[start_sel - 1]);
+						if (end_sel != -1 && end_sel < nu->pntsu) end_rad = BP_VALUE(&nu->bp[start_sel + 1]);
+
+						if      (start_rad != FLT_MAX && end_rad != FLT_MAX) BP_VALUE(&nu->bp[start_sel]) = (start_rad + end_rad) / 2;
+						else if (start_rad != FLT_MAX)                       BP_VALUE(&nu->bp[start_sel]) = start_rad;
+						else if (end_rad   != FLT_MAX)                       BP_VALUE(&nu->bp[start_sel]) = end_rad;
 					}
 					else {
 						/* if endpoints selected, then use them */
 						if (start_sel == 0) {
-							start_rad = nu->bp[start_sel].radius;
+							start_rad = BP_VALUE(&nu->bp[start_sel]);
 							start_sel++; /* we don't want to edit the selected endpoint */
 						}
 						else {
-							start_rad = nu->bp[start_sel - 1].radius;
+							start_rad = BP_VALUE(&nu->bp[start_sel - 1]);
 						}
 						if (end_sel == nu->pntsu - 1) {
-							end_rad = nu->bp[end_sel].radius;
+							end_rad = BP_VALUE(&nu->bp[end_sel]);
 							end_sel--; /* we don't want to edit the selected endpoint */
 						}
 						else {
-							end_rad = nu->bp[end_sel + 1].radius;
+							end_rad = BP_VALUE(&nu->bp[end_sel + 1]);
 						}
-						
+
 						/* Now Blend between the points */
 						range = (float)(end_sel - start_sel) + 2.0f;
 						for (bp = &nu->bp[start_sel], a = start_sel; a <= end_sel; a++, bp++) {
 							fac = (float)(1 + a - start_sel) / range;
-							bp->radius = start_rad * (1.0f - fac) + end_rad * fac;
+							BP_VALUE(bp) = start_rad * (1.0f - fac) + end_rad * fac;
 						}
 					}
 				}
 			}
+#undef BP_VALUE
 		}
 	}
+}
+
+static int curve_smooth_weight_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	ListBase *editnurb = object_editcurve_get(obedit);
+
+	curve_smooth_value(editnurb, offsetof(BezTriple, weight), offsetof(BPoint, weight));
+
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	DAG_id_tag_update(obedit->data, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_smooth_weight(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Smooth Curve Weight";
+	ot->description = "Interpolate weight of selected points";
+	ot->idname = "CURVE_OT_smooth_weight";
+
+	/* api clastbacks */
+	ot->exec = curve_smooth_weight_exec;
+	ot->poll = ED_operator_editsurfcurve;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int curve_smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	ListBase *editnurb = object_editcurve_get(obedit);
+	
+	curve_smooth_value(editnurb, offsetof(BezTriple, radius), offsetof(BPoint, radius));
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	DAG_id_tag_update(obedit->data, 0);
@@ -2424,13 +2468,41 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth Curve Radius";
-	ot->description = "Flatten radii of selected points";
+	ot->description = "Interpolate radii of selected points";
 	ot->idname = "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
-	ot->exec = smooth_radius_exec;
+	ot->exec = curve_smooth_radius_exec;
 	ot->poll = ED_operator_editsurfcurve;
 	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int curve_smooth_tilt_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit = CTX_data_edit_object(C);
+	ListBase *editnurb = object_editcurve_get(obedit);
+
+	curve_smooth_value(editnurb, offsetof(BezTriple, alfa), offsetof(BPoint, alfa));
+
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	DAG_id_tag_update(obedit->data, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_smooth_tilt(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Smooth Curve Tilt";
+	ot->description = "Interpolate tilt of selected points";
+	ot->idname = "CURVE_OT_smooth_tilt";
+
+	/* api clastbacks */
+	ot->exec = curve_smooth_tilt_exec;
+	ot->poll = ED_operator_editsurfcurve;
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -2833,44 +2905,6 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** subdivide operator *********************/
 
-static BezTriple *next_spline_bezier_point_get(Nurb *nu, BezTriple *bezt)
-{
-	BezTriple *nextbezt;
-
-	if (bezt == nu->bezt + nu->pntsu - 1) {
-		if (nu->flagu & CU_NURB_CYCLIC) {
-			nextbezt = nu->bezt;
-		}
-		else {
-			nextbezt = NULL;
-		}
-	}
-	else {
-		nextbezt = bezt + 1;
-	}
-
-	return nextbezt;
-}
-
-static BPoint *next_spline_bpoint_get(Nurb *nu, BPoint *bp)
-{
-	BPoint *nextbp;
-
-	if (bp == nu->bp + nu->pntsu - 1) {
-		if (nu->flagu & CU_NURB_CYCLIC) {
-			nextbp = nu->bp;
-		}
-		else {
-			nextbp = NULL;
-		}
-	}
-	else {
-		nextbp = bp + 1;
-	}
-
-	return nextbp;
-}
-
 /** Divide the line segments associated with the currently selected
  * curve nodes (Bezier or NURB). If there are no valid segment
  * selections within the current selection, nothing happens.
@@ -2902,7 +2936,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			a = nu->pntsu;
 			bezt = nu->bezt;
 			while (a--) {
-				nextbezt = next_spline_bezier_point_get(nu, bezt);
+				nextbezt = BKE_nurb_bezt_get_next(nu, bezt);
 				if (nextbezt == NULL) {
 					break;
 				}
@@ -2924,7 +2958,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					keyIndex_updateBezt(editnurb, bezt, beztn, 1);
 					beztn++;
 
-					nextbezt = next_spline_bezier_point_get(nu, bezt);
+					nextbezt = BKE_nurb_bezt_get_next(nu, bezt);
 					if (nextbezt == NULL) {
 						break;
 					}
@@ -2988,7 +3022,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			a = nu->pntsu;
 			bp = nu->bp;
 			while (a--) {
-				nextbp = next_spline_bpoint_get(nu, bp);
+				nextbp = BKE_nurb_bpoint_get_next(nu, bp);
 				if (nextbp == NULL) {
 					break;
 				}
@@ -3013,7 +3047,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					keyIndex_updateBP(editnurb, bp, bpn, 1);
 					bpn++;
 
-					nextbp = next_spline_bpoint_get(nu, bp);
+					nextbp = BKE_nurb_bpoint_get_next(nu, bp);
 					if (nextbp == NULL) {
 						break;
 					}
@@ -5174,7 +5208,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	/* may not be optimal always (example: end of NURBS sphere)   */
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
-			BLI_bitmap selbpoints;
+			BLI_bitmap *selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
 			selbpoints = BLI_BITMAP_NEW(a, "selectlist");
@@ -5260,7 +5294,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
-			BLI_bitmap selbpoints;
+			BLI_bitmap *selbpoints;
 			a = nu->pntsu * nu->pntsv;
 			bp = nu->bp;
 			selbpoints = BLI_BITMAP_NEW(a, "selectlist");

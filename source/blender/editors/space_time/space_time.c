@@ -201,9 +201,10 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 				col[3] = 0.1;
 				break;
 			default:
-				BLI_assert(0);
 				col[0] = 1.0;   col[1] = 0.0;   col[2] = 1.0;
 				col[3] = 0.1;
+				BLI_assert(0);
+				break;
 		}
 		glColor4fv(col);
 		

@@ -293,7 +293,10 @@ class VIEW3D_MT_snap(Menu):
         layout = self.layout
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
+        props = layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
+        props.use_offset = False
+        props = layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)")
+        props.use_offset = True
 
         layout.separator()
 
@@ -2194,7 +2197,9 @@ class VIEW3D_MT_edit_curve_specials(Menu):
         layout.operator("curve.spline_weight_set")
         layout.operator("curve.radius_set")
         layout.operator("curve.smooth")
+        layout.operator("curve.smooth_weight")
         layout.operator("curve.smooth_radius")
+        layout.operator("curve.smooth_tilt")
 
 
 class VIEW3D_MT_edit_curve_showhide(ShowHideMenu, Menu):

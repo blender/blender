@@ -210,10 +210,10 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 		}
 	}
 	else if (unode->maxgrid && dm->getGridData) {
-		BLI_bitmap *grid_hidden = dm->getGridHidden(dm);
+		BLI_bitmap **grid_hidden = dm->getGridHidden(dm);
 		
 		for (i = 0; i < unode->totgrid; i++) {
-			SWAP(BLI_bitmap,
+			SWAP(BLI_bitmap *,
 			     unode->grid_hidden[i],
 			     grid_hidden[unode->grids[i]]);
 			
@@ -531,7 +531,7 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
                                                SculptUndoNode *unode)
 {
 	PBVHNode *node = unode->node;
-	BLI_bitmap *grid_hidden;
+	BLI_bitmap **grid_hidden;
 	int i, *grid_indices, totgrid;
 
 	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
@@ -539,7 +539,7 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
 	BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid,
 	                        NULL, NULL, NULL, NULL);
 			
-	unode->grid_hidden = MEM_mapallocN(sizeof(BLI_bitmap) * totgrid,
+	unode->grid_hidden = MEM_mapallocN(sizeof(*unode->grid_hidden) * totgrid,
 	                                   "unode->grid_hidden");
 		
 	for (i = 0; i < totgrid; i++) {

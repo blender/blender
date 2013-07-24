@@ -877,6 +877,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 			break;
 		case FFMPEG_MP3:
 			fmt->audio_codec = CODEC_ID_MP3;
+			/* fall-through */
 		case FFMPEG_WAV:
 			fmt->video_codec = CODEC_ID_NONE;
 			break;

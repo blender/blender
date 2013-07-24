@@ -1622,6 +1622,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	if (!ok) {
@@ -2276,7 +2277,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
 	slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
-	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
+	BM_ITER_MESH (be, &iter, bm, BM_EDGES_OF_MESH) {
 		bool is_cut = false;
 		if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
 			const float *sco_a = screen_vert_coords[BM_elem_index_get(be->v1)];

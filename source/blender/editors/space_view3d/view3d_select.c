@@ -856,6 +856,7 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc,
 				break;
 			default:
 				assert(!"lasso select on incorrect object type");
+				break;
 		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc->obedit->data);
@@ -2110,6 +2111,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				break;
 			default:
 				assert(!"border select on incorrect object type");
+				break;
 		}
 	}
 	else {  /* no editmode, unified for bones and objects */

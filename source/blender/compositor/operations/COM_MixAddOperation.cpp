@@ -37,7 +37,6 @@ void MixAddOperation::executePixel(float output[4], float x, float y, PixelSampl
 	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
 	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
 
-
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];

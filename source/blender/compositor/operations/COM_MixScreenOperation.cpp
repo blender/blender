@@ -31,13 +31,13 @@ void MixScreenOperation::executePixel(float output[4], float x, float y, PixelSa
 {
 	float inputColor1[4];
 	float inputColor2[4];
-	float valuev[4];
+	float inputValue[4];
 
-	this->m_inputValueOperation->read(valuev, x, y, sampler);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
+	this->m_inputValueOperation->read(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
 
-	float value = valuev[0];
+	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}

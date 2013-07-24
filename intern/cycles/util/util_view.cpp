@@ -136,7 +136,7 @@ static void view_keyboard(unsigned char key, int x, int y)
 	}
 }
 
-void view_idle()
+static void view_idle(void)
 {
 	if(V.redraw) {
 		V.redraw = false;

@@ -310,7 +310,7 @@ static bool object_hook_index_array(Scene *scene, Object *obedit, int *tot, int 
 			BMEditMesh *em;
 
 			EDBM_mesh_load(obedit);
-			EDBM_mesh_make(scene->toolsettings, scene, obedit);
+			EDBM_mesh_make(scene->toolsettings, obedit);
 
 			em = me->edit_btmesh;
 
@@ -318,12 +318,10 @@ static bool object_hook_index_array(Scene *scene, Object *obedit, int *tot, int 
 			BKE_editmesh_tessface_calc(em);
 
 			/* check selected vertices first */
-			if (return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				return true;
-			}
-			else {
+			if (return_editmesh_indexar(em, tot, indexar, cent_r) == 0) {
 				return return_editmesh_vgroup(obedit, em, name, cent_r);
 			}
+			return true;
 		}
 		case OB_CURVE:
 		case OB_SURF:

@@ -262,6 +262,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 #endif
 					default:
 						BLI_assert(0);
+						break;
 				}
 			}
 		}
@@ -495,6 +496,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 #endif
 					default:
 						BLI_assert(0);
+						break;
 				}
 			}
 		}
@@ -627,6 +629,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 						break;
 					default:
 						BLI_assert(0);
+						break;
 				}
 			}
 		}

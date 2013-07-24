@@ -558,6 +558,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				}
 				else
 					dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Parent");
+				break;
 		}
 		/* exception case: parent is duplivert */
 		if (ob->type == OB_MBALL && (ob->parent->transflag & OB_DUPLIVERTS)) {
@@ -619,8 +620,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				node2 = dag_get_node(dag, cam->dof_ob);
 				dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Camera DoF");
 			}
+			break;
 		}
-		break;
 		case OB_MBALL: 
 		{
 			Object *mom = BKE_mball_basis_find(scene, ob);
@@ -629,8 +630,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				node2 = dag_get_node(dag, mom);
 				dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Metaball");  /* mom depends on children! */
 			}
+			break;
 		}
-		break;
 		case OB_CURVE:
 		case OB_FONT:
 		{
@@ -650,8 +651,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Texture On Curve");
 				}
 			}
+			break;
 		}
-		break;
 	}
 	
 	/* material drivers */
