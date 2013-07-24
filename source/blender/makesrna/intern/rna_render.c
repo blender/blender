@@ -570,6 +570,9 @@ static void rna_def_render_pass(BlenderRNA *brna)
 		{SCE_PASS_TRANSM_DIRECT, "TRANSMISSION_DIRECT", 0, "Transmission Direct", ""},
 		{SCE_PASS_TRANSM_INDIRECT, "TRANSMISSION_INDIRECT", 0, "Transmission Indirect", ""},
 		{SCE_PASS_TRANSM_COLOR, "TRANSMISSION_COLOR", 0, "Transmission Color", ""},
+		{SCE_PASS_SUBS_DIRECT, "SUBSURFACE_DIRECT", 0, "Subsurface Direct", ""},
+		{SCE_PASS_SUBS_INDIRECT, "SUBSURFACE_INDIRECT", 0, "Subsurface Indirect", ""},
+		{SCE_PASS_SUBS_COLOR, "SUBSURFACE_COLOR", 0, "Subsurface Color", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

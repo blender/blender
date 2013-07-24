@@ -124,14 +124,17 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->color_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->color_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->color_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
@@ -337,10 +340,12 @@ __device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float c
 			L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 			L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
 			L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
+			L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 			L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 			L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
 			L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
+			L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 			L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		}
@@ -357,10 +362,12 @@ __device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float c
 			L->direct_diffuse *= scale;
 			L->direct_glossy *= scale;
 			L->direct_transmission *= scale;
+			L->direct_subsurface *= scale;
 
 			L->indirect_diffuse *= scale;
 			L->indirect_glossy *= scale;
 			L->indirect_transmission *= scale;
+			L->indirect_subsurface *= scale;
 
 			L->emission *= scale;
 		}

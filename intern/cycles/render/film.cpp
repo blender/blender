@@ -98,6 +98,9 @@ void Pass::add(PassType type, vector<Pass>& passes)
 		case PASS_TRANSMISSION_COLOR:
 			pass.components = 4;
 			break;
+		case PASS_SUBSURFACE_COLOR:
+			pass.components = 4;
+			break;
 		case PASS_DIFFUSE_INDIRECT:
 			pass.components = 4;
 			pass.exposure = true;
@@ -113,6 +116,11 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.exposure = true;
 			pass.divide_type = PASS_TRANSMISSION_COLOR;
 			break;
+		case PASS_SUBSURFACE_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_SUBSURFACE_COLOR;
+			break;
 		case PASS_DIFFUSE_DIRECT:
 			pass.components = 4;
 			pass.exposure = true;
@@ -127,6 +135,11 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.components = 4;
 			pass.exposure = true;
 			pass.divide_type = PASS_TRANSMISSION_COLOR;
+			break;
+		case PASS_SUBSURFACE_DIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_SUBSURFACE_COLOR;
 			break;
 
 		case PASS_EMISSION:
@@ -327,6 +340,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				kfilm->pass_transmission_color = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
 				break;
+			case PASS_SUBSURFACE_COLOR:
+				kfilm->pass_subsurface_color = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
+				break;
 			case PASS_DIFFUSE_INDIRECT:
 				kfilm->pass_diffuse_indirect = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
@@ -339,6 +356,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				kfilm->pass_transmission_indirect = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
 				break;
+			case PASS_SUBSURFACE_INDIRECT:
+				kfilm->pass_subsurface_indirect = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
+				break;
 			case PASS_DIFFUSE_DIRECT:
 				kfilm->pass_diffuse_direct = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
@@ -349,6 +370,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				break;
 			case PASS_TRANSMISSION_DIRECT:
 				kfilm->pass_transmission_direct = kfilm->pass_stride;
+				kfilm->use_light_pass = 1;
+				break;
+			case PASS_SUBSURFACE_DIRECT:
+				kfilm->pass_subsurface_direct = kfilm->pass_stride;
 				kfilm->use_light_pass = 1;
 				break;
 

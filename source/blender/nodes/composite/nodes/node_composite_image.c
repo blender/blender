@@ -72,6 +72,9 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
 	{	SOCK_RGBA, 0, N_("Transmission Direct"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Transmission Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Transmission Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Direct"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -152,6 +155,13 @@ static void cmp_node_image_add_render_pass_outputs(bNodeTree *ntree, bNode *node
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_TRANSM_INDIRECT, RRES_OUT_TRANSM_INDIRECT);
 	if (passflag & SCE_PASS_TRANSM_COLOR)
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_TRANSM_COLOR, RRES_OUT_TRANSM_COLOR);
+		
+	if (passflag & SCE_PASS_SUBS_DIRECT)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBS_DIRECT, RRES_OUT_SUBS_DIRECT);
+	if (passflag & SCE_PASS_SUBS_INDIRECT)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBS_INDIRECT, RRES_OUT_SUBS_INDIRECT);
+	if (passflag & SCE_PASS_SUBS_COLOR)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBS_COLOR, RRES_OUT_SUBS_COLOR);
 }
 
 static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node, RenderLayer *rl)
@@ -414,6 +424,9 @@ void node_cmp_rlayers_force_hidden_passes(bNode *node)
 	set_output_visible(node, passflag, RRES_OUT_TRANSM_DIRECT,    SCE_PASS_TRANSM_DIRECT);
 	set_output_visible(node, passflag, RRES_OUT_TRANSM_INDIRECT,  SCE_PASS_TRANSM_INDIRECT);
 	set_output_visible(node, passflag, RRES_OUT_TRANSM_COLOR,     SCE_PASS_TRANSM_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_SUBS_DIRECT,      SCE_PASS_SUBS_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_SUBS_INDIRECT,    SCE_PASS_SUBS_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_SUBS_COLOR,       SCE_PASS_SUBS_COLOR);
 }
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)

@@ -685,6 +685,27 @@ __device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
+__device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSSRDF(sc->type))
+			eval += sc->weight;
+	}
+
+	return eval;
+#else
+	if(CLOSURE_IS_BSSRDF(sd->closure.type))
+		return sd->closure.weight;
+	else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
 __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N)
 {
 #ifdef __MULTI_CLOSURE__

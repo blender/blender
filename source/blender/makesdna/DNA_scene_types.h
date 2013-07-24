@@ -237,6 +237,9 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_TRANSM_DIRECT		(1<<25)
 #define SCE_PASS_TRANSM_INDIRECT	(1<<26)
 #define SCE_PASS_TRANSM_COLOR		(1<<27)
+#define SCE_PASS_SUBS_DIRECT		(1<<28)
+#define SCE_PASS_SUBS_INDIRECT		(1<<29)
+#define SCE_PASS_SUBS_COLOR			(1<<30)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 

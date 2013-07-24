@@ -806,6 +806,9 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define RRES_OUT_TRANSM_DIRECT		25
 #define RRES_OUT_TRANSM_INDIRECT	26
 #define RRES_OUT_TRANSM_COLOR		27
+#define RRES_OUT_SUBS_DIRECT		28
+#define RRES_OUT_SUBS_INDIRECT		29
+#define RRES_OUT_SUBS_COLOR			30
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201

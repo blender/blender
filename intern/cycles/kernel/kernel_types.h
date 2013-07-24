@@ -269,7 +269,10 @@ typedef enum PassType {
 	PASS_SHADOW = 262144,
 	PASS_MOTION = 524288,
 	PASS_MOTION_WEIGHT = 1048576,
-	PASS_MIST = 2097152
+	PASS_MIST = 2097152,
+	PASS_SUBSURFACE_DIRECT = 4194304,
+	PASS_SUBSURFACE_INDIRECT = 8388608,
+	PASS_SUBSURFACE_COLOR = 16777216
 } PassType;
 
 #define PASS_ALL (~0)
@@ -292,14 +295,17 @@ typedef struct PathRadiance {
 	float3 color_diffuse;
 	float3 color_glossy;
 	float3 color_transmission;
+	float3 color_subsurface;
 
 	float3 direct_diffuse;
 	float3 direct_glossy;
 	float3 direct_transmission;
+	float3 direct_subsurface;
 
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
+	float3 indirect_subsurface;
 
 	float3 path_diffuse;
 	float3 path_glossy;
@@ -673,22 +679,27 @@ typedef struct KernelFilm {
 	int pass_diffuse_color;
 	int pass_glossy_color;
 	int pass_transmission_color;
+	int pass_subsurface_color;
+	
 	int pass_diffuse_indirect;
-
 	int pass_glossy_indirect;
 	int pass_transmission_indirect;
+	int pass_subsurface_indirect;
+	
 	int pass_diffuse_direct;
 	int pass_glossy_direct;
-
 	int pass_transmission_direct;
+	int pass_subsurface_direct;
+	
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
+	int pass_pad1;
 
 	int pass_shadow;
 	float pass_shadow_scale;
 	int filter_table_offset;
-	int pass_pad1;
+	int pass_pad2;
 
 	int pass_mist;
 	float mist_start;

@@ -369,7 +369,13 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
+        col.label(text="Subsurface:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_subsurface_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_subsurface_color", text="Color", toggle=True)
+        
+        col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
         col.prop(rl, "use_pass_ambient_occlusion")

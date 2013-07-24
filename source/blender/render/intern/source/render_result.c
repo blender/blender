@@ -279,6 +279,24 @@ static const char *get_pass_name(int passtype, int channel)
 		if (channel == 1) return "TransCol.G";
 		return "TransCol.B";
 	}
+	if (passtype == SCE_PASS_SUBS_DIRECT) {
+		if (channel == -1) return "SubsDir";
+		if (channel == 0) return "SubsDir.R";
+		if (channel == 1) return "SubsDir.G";
+		return "SubsDir.B";
+	}
+	if (passtype == SCE_PASS_SUBS_INDIRECT) {
+		if (channel == -1) return "SubsInd";
+		if (channel == 0) return "SubsInd.R";
+		if (channel == 1) return "SubsInd.G";
+		return "SubsInd.B";
+	}
+	if (passtype == SCE_PASS_SUBS_COLOR) {
+		if (channel == -1) return "SubsCol";
+		if (channel == 0) return "SubsCol.R";
+		if (channel == 1) return "SubsCol.G";
+		return "SubsCol.B";
+	}
 	return "Unknown";
 }
 
@@ -368,6 +386,15 @@ static int passtype_from_name(const char *str)
 
 	if (strcmp(str, "TransCol") == 0)
 		return SCE_PASS_TRANSM_COLOR;
+		
+	if (strcmp(str, "SubsDir") == 0)
+		return SCE_PASS_SUBS_DIRECT;
+
+	if (strcmp(str, "SubsInd") == 0)
+		return SCE_PASS_SUBS_INDIRECT;
+
+	if (strcmp(str, "SubsCol") == 0)
+		return SCE_PASS_SUBS_COLOR;
 
 	return 0;
 }
@@ -538,6 +565,12 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_INDIRECT);
 		if (srl->passflag  & SCE_PASS_TRANSM_COLOR)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_COLOR);
+		if (srl->passflag  & SCE_PASS_SUBS_DIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBS_DIRECT);
+		if (srl->passflag  & SCE_PASS_SUBS_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBS_INDIRECT);
+		if (srl->passflag  & SCE_PASS_SUBS_COLOR)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBS_COLOR);
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (rr->layers.first == NULL && !(layername && layername[0])) {

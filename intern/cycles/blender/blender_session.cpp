@@ -216,6 +216,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 			return PASS_GLOSSY_DIRECT;
 		case BL::RenderPass::type_TRANSMISSION_DIRECT:
 			return PASS_TRANSMISSION_DIRECT;
+		case BL::RenderPass::type_SUBSURFACE_DIRECT:
+			return PASS_SUBSURFACE_DIRECT;
 
 		case BL::RenderPass::type_DIFFUSE_INDIRECT:
 			return PASS_DIFFUSE_INDIRECT;
@@ -223,6 +225,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 			return PASS_GLOSSY_INDIRECT;
 		case BL::RenderPass::type_TRANSMISSION_INDIRECT:
 			return PASS_TRANSMISSION_INDIRECT;
+		case BL::RenderPass::type_SUBSURFACE_INDIRECT:
+			return PASS_SUBSURFACE_INDIRECT;
 
 		case BL::RenderPass::type_DIFFUSE_COLOR:
 			return PASS_DIFFUSE_COLOR;
@@ -230,6 +234,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 			return PASS_GLOSSY_COLOR;
 		case BL::RenderPass::type_TRANSMISSION_COLOR:
 			return PASS_TRANSMISSION_COLOR;
+		case BL::RenderPass::type_SUBSURFACE_COLOR:
+			return PASS_SUBSURFACE_COLOR;
 
 		case BL::RenderPass::type_EMIT:
 			return PASS_EMISSION;
