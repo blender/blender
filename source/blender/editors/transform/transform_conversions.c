@@ -1417,6 +1417,23 @@ static void createTransCurveVerts(TransInfo *t)
 			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 				if (bezt->hide == 0) {
 					TransDataCurveHandleFlags *hdata = NULL;
+					float axismtx[3][3];
+
+					if (t->around == V3D_LOCAL) {
+						float normal[3], plane[3];
+
+						BKE_nurb_bezt_calc_normal(nu, bezt, normal);
+						BKE_nurb_bezt_calc_plane(nu, bezt, plane);
+
+						if (createSpaceNormalTangent(axismtx, normal, plane)) {
+							/* pass */
+						}
+						else {
+							normalize_v3(normal);
+							axis_dominant_v3_to_m3(axismtx, normal);
+							invert_m3(axismtx);
+						}
+					}
 
 					if (propmode ||
 					    ((bezt->f2 & SELECT) && hide_handles) ||
@@ -1440,6 +1457,9 @@ static void createTransCurveVerts(TransInfo *t)
 
 						copy_m3_m3(td->smtx, smtx);
 						copy_m3_m3(td->mtx, mtx);
+						if (t->around == V3D_LOCAL) {
+							copy_m3_m3(td->axismtx, axismtx);
+						}
 
 						td++;
 						count++;
@@ -1469,6 +1489,9 @@ static void createTransCurveVerts(TransInfo *t)
 
 						copy_m3_m3(td->smtx, smtx);
 						copy_m3_m3(td->mtx, mtx);
+						if (t->around == V3D_LOCAL) {
+							copy_m3_m3(td->axismtx, axismtx);
+						}
 
 						if ((bezt->f1 & SELECT) == 0 && (bezt->f3 & SELECT) == 0)
 							/* If the middle is selected but the sides arnt, this is needed */
@@ -1504,6 +1527,9 @@ static void createTransCurveVerts(TransInfo *t)
 
 						copy_m3_m3(td->smtx, smtx);
 						copy_m3_m3(td->mtx, mtx);
+						if (t->around == V3D_LOCAL) {
+							copy_m3_m3(td->axismtx, axismtx);
+						}
 
 						td++;
 						count++;

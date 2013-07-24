@@ -2833,44 +2833,6 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** subdivide operator *********************/
 
-static BezTriple *next_spline_bezier_point_get(Nurb *nu, BezTriple *bezt)
-{
-	BezTriple *nextbezt;
-
-	if (bezt == nu->bezt + nu->pntsu - 1) {
-		if (nu->flagu & CU_NURB_CYCLIC) {
-			nextbezt = nu->bezt;
-		}
-		else {
-			nextbezt = NULL;
-		}
-	}
-	else {
-		nextbezt = bezt + 1;
-	}
-
-	return nextbezt;
-}
-
-static BPoint *next_spline_bpoint_get(Nurb *nu, BPoint *bp)
-{
-	BPoint *nextbp;
-
-	if (bp == nu->bp + nu->pntsu - 1) {
-		if (nu->flagu & CU_NURB_CYCLIC) {
-			nextbp = nu->bp;
-		}
-		else {
-			nextbp = NULL;
-		}
-	}
-	else {
-		nextbp = bp + 1;
-	}
-
-	return nextbp;
-}
-
 /** Divide the line segments associated with the currently selected
  * curve nodes (Bezier or NURB). If there are no valid segment
  * selections within the current selection, nothing happens.
@@ -2902,7 +2864,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			a = nu->pntsu;
 			bezt = nu->bezt;
 			while (a--) {
-				nextbezt = next_spline_bezier_point_get(nu, bezt);
+				nextbezt = BKE_nurb_bezt_get_next(nu, bezt);
 				if (nextbezt == NULL) {
 					break;
 				}
@@ -2924,7 +2886,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					keyIndex_updateBezt(editnurb, bezt, beztn, 1);
 					beztn++;
 
-					nextbezt = next_spline_bezier_point_get(nu, bezt);
+					nextbezt = BKE_nurb_bezt_get_next(nu, bezt);
 					if (nextbezt == NULL) {
 						break;
 					}
@@ -2988,7 +2950,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 			a = nu->pntsu;
 			bp = nu->bp;
 			while (a--) {
-				nextbp = next_spline_bpoint_get(nu, bp);
+				nextbp = BKE_nurb_bpoint_get_next(nu, bp);
 				if (nextbp == NULL) {
 					break;
 				}
@@ -3013,7 +2975,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					keyIndex_updateBP(editnurb, bp, bpn, 1);
 					bpn++;
 
-					nextbp = next_spline_bpoint_get(nu, bp);
+					nextbp = BKE_nurb_bpoint_get_next(nu, bp);
 					if (nextbp == NULL) {
 						break;
 					}

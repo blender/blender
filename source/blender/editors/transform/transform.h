@@ -725,7 +725,7 @@ void initTransformOrientation(struct bContext *C, TransInfo *t);
 
 /* Those two fill in mat and return non-zero on success */
 bool createSpaceNormal(float mat[3][3], const float normal[3]);
-bool createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3]);
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
 void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
