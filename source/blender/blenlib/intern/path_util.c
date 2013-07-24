@@ -1691,6 +1691,26 @@ void BLI_split_file_part(const char *string, char *file, const size_t filelen)
 }
 
 /**
+ * Append a filename to a dir, ensuring slash separates.
+ */
+void BLI_path_append(char *dst, const size_t maxlen, const char *file)
+{
+	size_t dirlen = BLI_strnlen(dst, maxlen);
+
+	/* inline BLI_add_slash */
+	if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+		dst[dirlen++] = SEP;
+		dst[dirlen] = '\0';
+	}
+
+	if (dirlen >= maxlen) {
+		return; /* fills the path */
+	}
+
+	BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
+}
+
+/**
  * Simple appending of filename to dir, does not check for valid path!
  * Puts result into *dst, which may be same area as *dir.
  */
@@ -1698,15 +1718,16 @@ void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const cha
 {
 	size_t dirlen = BLI_strnlen(dir, maxlen);
 
-	if (dst != dir) {
-		if (dirlen == maxlen) {
-			memcpy(dst, dir, dirlen);
-			dst[dirlen - 1] = '\0';
-			return; /* dir fills the path */
-		}
-		else {
-			memcpy(dst, dir, dirlen + 1);
-		}
+	/* args can't match */
+	BLI_assert(!ELEM(dst, dir, file));
+
+	if (dirlen == maxlen) {
+		memcpy(dst, dir, dirlen);
+		dst[dirlen - 1] = '\0';
+		return; /* dir fills the path */
+	}
+	else {
+		memcpy(dst, dir, dirlen + 1);
 	}
 
 	if (dirlen + 1 >= maxlen) {
@@ -1721,10 +1742,6 @@ void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const cha
 
 	if (dirlen >= maxlen) {
 		return; /* fills the path */
-	}
-
-	if (file == NULL) {
-		return;
 	}
 
 	BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
@@ -1842,7 +1859,7 @@ int BLI_rebase_path(char *abs, size_t abs_len,
 			/* subdirectories relative to blend_dir */
 			BLI_join_dirfile(dest_path, sizeof(dest_path), dest_dir, rel_dir);
 			/* same subdirectories relative to dest_dir */
-			BLI_join_dirfile(dest_path, sizeof(dest_path), dest_path, base);
+			BLI_path_append(dest_path, sizeof(dest_path), base);
 			/* keeping original item basename */
 		}
 
@@ -2063,7 +2080,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 					else {
 						strncpy(filename, path, sizeof(filename));
 					}
-					BLI_join_dirfile(fullname, maxlen, fullname, name);
+					BLI_path_append(fullname, maxlen, name);
 					if (add_win32_extension(filename)) {
 						BLI_strncpy(fullname, filename, maxlen);
 						break;
