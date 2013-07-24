@@ -4315,6 +4315,12 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		if (seq->scene_sound)
 			seqn->scene_sound = sound_scene_add_scene_sound_defaults(sce_audio, seqn);
 	}
+	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
+		/* avoid assert */
+	}
+	else if (seq->type == SEQ_TYPE_MASK) {
+		/* avoid assert */
+	}
 	else if (seq->type == SEQ_TYPE_MOVIE) {
 		seqn->strip->stripdata =
 		        MEM_dupallocN(seq->strip->stripdata);
@@ -4326,7 +4332,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		if (seq->scene_sound)
 			seqn->scene_sound = sound_add_scene_sound_defaults(sce_audio, seqn);
 
-		seqn->sound->id.us++;
+		id_us_plus((ID *)seqn->sound);
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
 		seqn->strip->stripdata =
@@ -4348,7 +4354,8 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 
 	}
 	else {
-		fprintf(stderr, "Aiiiiekkk! sequence type not handled in duplicate!\nExpect a crash now...\n");
+		/* sequence type not handled in duplicate! Expect a crash now... */
+		BLI_assert(0);
 	}
 
 	if (dupe_flag & SEQ_DUPE_UNIQUE_NAME)
