@@ -2794,7 +2794,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	Editing *ed = BKE_sequencer_editing_get(scene, TRUE); /* create if needed */
 	ListBase nseqbase = {NULL, NULL};
 	int ofs;
-	Sequence *iseq;
+	Sequence *iseq, *iseq_first;
 
 	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
@@ -2809,13 +2809,20 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	iseq = nseqbase.first;
+	iseq_first = nseqbase.first;
 
 	BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
 	/* make sure the pasted strips have unique names between them */
-	for (; iseq; iseq = iseq->next) {
+	for (iseq = iseq_first; iseq; iseq = iseq->next) {
 		BKE_sequencer_recursive_apply(iseq, apply_unique_name_cb, scene);
+	}
+
+	/* ensure pasted strips don't overlap */
+	for (iseq = iseq_first; iseq; iseq = iseq->next) {
+		if (BKE_sequence_test_overlap(ed->seqbasep, iseq)) {
+			BKE_sequence_base_shuffle(ed->seqbasep, iseq, scene);
+		}
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
