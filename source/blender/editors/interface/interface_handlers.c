@@ -6581,6 +6581,8 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 
 static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu, const int xy[2], const bool force)
 {
+	BLI_assert(((uiBlock *)menu->region->uiblocks.first)->flag & UI_BLOCK_MOVEMOUSE_QUIT);
+
 	if (!menu->dotowards || force) {
 		menu->dotowards = true;
 		menu->towards_xy[0] = xy[0];
@@ -6612,6 +6614,8 @@ static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *me
 	bool closer;
 	const float margin = MENU_TOWARDS_MARGIN;
 	rctf rect_px;
+
+	BLI_assert(block->flag & UI_BLOCK_MOVEMOUSE_QUIT);
 
 	if (!menu->dotowards) {
 		return false;
@@ -6837,10 +6841,12 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 	but = ui_but_find_activated(ar);
 
 	if (but && button_modal_state(but->active->state)) {
-		/* if a button is activated modal, always reset the start mouse
-		 * position of the towards mechanism to avoid loosing focus,
-		 * and don't handle events */
-		ui_mouse_motion_towards_reinit(menu, &event->x);
+		if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+			/* if a button is activated modal, always reset the start mouse
+			 * position of the towards mechanism to avoid loosing focus,
+			 * and don't handle events */
+			ui_mouse_motion_towards_reinit(menu, &event->x);
+		}
 	}
 	else if (event->type == TIMER) {
 		if (event->customdata == menu->scrolltimer)
@@ -6849,7 +6855,9 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 	else {
 		/* for ui_mouse_motion_towards_block */
 		if (event->type == MOUSEMOVE) {
-			ui_mouse_motion_towards_init(menu, &event->x);
+			if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+				ui_mouse_motion_towards_init(menu, &event->x);
+			}
 			
 			/* add menu scroll timer, if needed */
 			if (ui_menu_scroll_test(block, my))
@@ -7154,11 +7162,12 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 					menu->menuretval = UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
 			}
 			else {
-				ui_mouse_motion_towards_check(block, menu, &event->x, is_parent_inside == false);
 
 				/* check mouse moving outside of the menu */
 				if (inside == 0 && (block->flag & UI_BLOCK_MOVEMOUSE_QUIT)) {
 					uiSafetyRct *saferct;
+
+					ui_mouse_motion_towards_check(block, menu, &event->x, is_parent_inside == false);
 					
 					/* check for all parent rects, enables arrowkeys to be used */
 					for (saferct = block->saferct.first; saferct; saferct = saferct->next) {
@@ -7247,9 +7256,11 @@ static int ui_handle_menu_return_submenu(bContext *C, const wmEvent *event, uiPo
 			submenu->menuretval = 0;
 	}
 
-	/* for cases where close does not cascade, allow the user to
-	 * move the mouse back towards the menu without closing */
-	ui_mouse_motion_towards_reinit(menu, &event->x);
+	if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+		/* for cases where close does not cascade, allow the user to
+		 * move the mouse back towards the menu without closing */
+		ui_mouse_motion_towards_reinit(menu, &event->x);
+	}
 
 	if (menu->menuretval)
 		return WM_UI_HANDLER_CONTINUE;
@@ -7304,12 +7315,16 @@ static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupB
 		}
 
 		if (do_but_search) {
+			uiBlock *block = menu->region->uiblocks.first;
+
 			retval = ui_handle_menu_button(C, event, menu);
 
-			/* when there is a active search button and we close it,
-			 * we need to reinit the mouse coords [#35346] */
-			if (ui_but_find_activated(menu->region) != but) {
-				do_towards_reinit = true;
+			if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+				/* when there is a active search button and we close it,
+				 * we need to reinit the mouse coords [#35346] */
+				if (ui_but_find_activated(menu->region) != but) {
+					do_towards_reinit = true;
+				}
 			}
 		}
 		else {
