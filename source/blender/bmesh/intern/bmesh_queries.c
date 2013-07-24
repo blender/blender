@@ -338,16 +338,16 @@ bool BM_verts_in_face(BMFace *f, BMVert **varr, int len)
  */
 bool BM_edge_in_face(BMFace *f, BMEdge *e)
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	if (e->l) {
+		BMLoop *l_iter, *l_first;
 
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-
-	do {
-		if (l_iter->e == e) {
-			return true;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
+		l_iter = l_first = e->l;
+		do {
+			if (l_iter->f == f) {
+				return true;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
 
 	return false;
 }
