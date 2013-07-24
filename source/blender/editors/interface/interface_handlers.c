@@ -6617,6 +6617,23 @@ static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *me
 
 	BLI_assert(block->flag & UI_BLOCK_MOVEMOUSE_QUIT);
 
+
+	/* annoying fix for [#36269], this is a bit odd but in fact works quite well
+	 * don't mouse-out of a menu if another menu has been created after it.
+	 * if this causes problems we could remove it and check on a different fix - campbell */
+	if (menu->region->next) {
+		/* am I the last menu (test) */
+		ARegion *ar = menu->region->next;
+		do {
+			uiBlock *block = ar->uiblocks.first;
+			if (block && ui_block_is_menu(block)) {
+				return true;
+			}
+		} while ((ar = ar->next));
+	}
+	/* annoying fix end! */
+
+
 	if (!menu->dotowards) {
 		return false;
 	}
