@@ -3057,6 +3057,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
+	BMOperator bmop;
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 	const bool use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 	const int delimit = RNA_enum_get(op->ptr, "delimit");
@@ -3094,10 +3095,12 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 		dissolve_flag = BM_ELEM_SELECT;
 	}
 
-	if (!EDBM_op_callf(em, op,
-	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
-	                   dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit))
-	{
+	EDBM_op_init(em, &bmop, op,
+	             "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
+	             dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit);
+	BMO_op_exec(em->bm, &bmop);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "region.out", BM_FACE, BM_ELEM_SELECT, true);
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
 	}
 

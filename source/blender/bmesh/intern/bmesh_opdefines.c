@@ -947,7 +947,9 @@ static BMOpDefine bmo_dissolve_limit_def = {
 	 {"delimit", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
-	{{{'\0'}}},  /* no output */
+	/* slots_out */
+	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
+	 {{'\0'}}},
 	bmo_dissolve_limit_exec,
 	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
@@ -1044,7 +1046,7 @@ static BMOpDefine bmo_subdivide_edgering_def = {
 	 {{'\0'}},
 	},
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
-	 {{'\0'}}},  /* no output */
+	 {{'\0'}}},
 	bmo_subdivide_edgering_exec,
 	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
@@ -1224,7 +1226,6 @@ static BMOpDefine bmo_rotate_uvs_def = {
 	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, otherwise clockwise */
 	 {{'\0'}},
 	},
-	/* slots_out */
 	{{{'\0'}}},  /* no output */
 	bmo_rotate_uvs_exec,
 	BMO_OPTYPE_FLAG_NOP,
