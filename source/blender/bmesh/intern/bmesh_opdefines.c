@@ -518,6 +518,7 @@ static BMOpDefine bmo_bridge_loops_def = {
 	 {"use_cyclic",         BMO_OP_SLOT_BOOL},
 	 {"use_merge",          BMO_OP_SLOT_BOOL},
 	 {"merge_factor",       BMO_OP_SLOT_FLT},
+	 {"twist_offset",       BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	/* slots_out */

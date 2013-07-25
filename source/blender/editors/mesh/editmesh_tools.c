@@ -3978,6 +3978,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	const bool use_cyclic = (type == 1);
 	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
 	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
+	const int twist_offset = RNA_int_get(op->ptr, "twist_offset");
 	const bool use_faces = (em->bm->totfacesel != 0);
 	char edge_hflag;
 
@@ -4005,8 +4006,8 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	}
 
 	EDBM_op_init(em, &bmop, op,
-	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f",
-	             edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor);
+	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
+	             edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -4086,6 +4087,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_merge", false, "Merge", "Merge rather than creating faces");
 	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "twist_offset", 0, -1000, 1000, "Twist", "Twist offset for closed loops", -1000, 1000);
 
 	mesh_operator_edgering_props(ot, 0);
 }
