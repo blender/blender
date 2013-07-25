@@ -2426,35 +2426,37 @@ void ui_check_but(uiBut *but)
 		case NUM:
 		case NUMSLI:
 
-			UI_GET_BUT_VALUE_INIT(but, value);
+			if (!but->editstr) {
+				UI_GET_BUT_VALUE_INIT(but, value);
 
-			if (ui_is_but_float(but)) {
-				if (value == (double) FLT_MAX) {
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
-				}
-				else if (value == (double) -FLT_MAX) {
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
-				}
-				/* support length type buttons */
-				else if (ui_is_but_unit(but)) {
-					char new_str[sizeof(but->drawstr)];
-					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+				if (ui_is_but_float(but)) {
+					if (value == (double) FLT_MAX) {
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+					}
+					else if (value == (double) -FLT_MAX) {
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+					}
+					/* support length type buttons */
+					else if (ui_is_but_unit(but)) {
+						char new_str[sizeof(but->drawstr)];
+						ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+					}
+					else {
+						const int prec = ui_but_float_precision(but, value);
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+					}
 				}
 				else {
-					const int prec = ui_but_float_precision(but, value);
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
 				}
-			}
-			else {
-				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
-			}
-			
-			if (but->rnaprop) {
-				PropertySubType pstype = RNA_property_subtype(but->rnaprop);
-			
-				if (pstype == PROP_PERCENTAGE)
-					strcat(but->drawstr, "%");
+
+				if (but->rnaprop) {
+					PropertySubType pstype = RNA_property_subtype(but->rnaprop);
+
+					if (pstype == PROP_PERCENTAGE)
+						strcat(but->drawstr, "%");
+				}
 			}
 			break;
 
