@@ -266,6 +266,7 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 					break;
 				case ND_POSE:
 					buttons_area_redraw(sa, BCONTEXT_DATA);
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);
