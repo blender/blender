@@ -324,6 +324,7 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, c
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
 	unsigned int winding[2] = {0, 0};
 	int i, i_prev = len - 1;
+	BMVert *v_winding[2] = {vert_arr[i_prev], vert_arr[0]};
 
 	BLI_assert(len > 2);
 
@@ -375,8 +376,8 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, c
 	/* create the face */
 	return BM_face_create_ngon(
 	        bm,
-	        vert_arr[(len - 2) + winding[0]],
-	        vert_arr[(len - 1) + winding[1]],
+	        v_winding[winding[0]],
+	        v_winding[winding[1]],
 	        edge_arr, len, create_flag);
 }
 

@@ -2752,7 +2752,43 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int edbm_fill_holes_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const int sides = RNA_int_get(op->ptr, "sides");
 
+	if (!EDBM_op_call_and_selectf(
+	        em, op,
+	        "faces.out", true,
+	        "holes_fill edges=%he sides=%i",
+	        BM_ELEM_SELECT, sides))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+
+}
+
+void MESH_OT_fill_holes(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Fill Holes";
+	ot->idname = "MESH_OT_fill_holes";
+	ot->description = "Fill in holes (boundary edge loops)";
+
+	/* api callbacks */
+	ot->exec = edbm_fill_holes_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "sides", 4, 0, INT_MAX, "Sides", "Number of sides (zero disables)", 0, 100);
+}
 
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 {

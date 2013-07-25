@@ -552,6 +552,29 @@ static BMOpDefine bmo_grid_fill_def = {
 	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
 
+
+/*
+ * Fill Holes.
+ *
+ * Fill boundary edges with faces, copying surrounding customdata.
+ */
+static BMOpDefine bmo_holes_fill_def = {
+	"holes_fill",
+	/* slots_in */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
+	 {"sides",          BMO_OP_SLOT_INT},   /* number of face sides to fill */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	/* maps new faces to the group numbers they came from */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	 {{'\0'}},
+	},
+	bmo_holes_fill_exec,
+	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+};
+
+
 /*
  * Edge Loop Fill.
  *
@@ -1724,6 +1747,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_dissolve_limit_def,
 	&bmo_dissolve_verts_def,
 	&bmo_duplicate_def,
+	&bmo_holes_fill_def,
 	&bmo_edgeloop_fill_def,
 	&bmo_edgenet_fill_def,
 	&bmo_edgenet_prepare_def,

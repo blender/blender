@@ -51,6 +51,7 @@ set(SRC
 	operators/bmo_extrude.c
 	operators/bmo_fill_edgeloop.c
 	operators/bmo_fill_grid.c
+	operators/bmo_fill_holes.c
 	operators/bmo_hull.c
 	operators/bmo_inset.c
 	operators/bmo_join_triangles.c
