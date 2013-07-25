@@ -256,13 +256,19 @@ bool createSpaceNormal(float mat[3][3], const float normal[3])
 	return true;
 }
 
+/**
+ * \note To recreate an orientation from the matrix:
+ * - (plane  == mat[1])
+ * - (normal == mat[2])
+ */
 bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3])
 {
 	if (normalize_v3_v3(mat[2], normal) == 0.0f) {
 		return false;  /* error return */
 	}
 
-	copy_v3_v3(mat[1], tangent);
+	/* negate so we can use values from the matrix as input */
+	negate_v3_v3(mat[1], tangent);
 	/* preempt zero length tangent from causing trouble */
 	if (is_zero_v3(mat[1])) {
 		mat[1][2] = 1.0f;
@@ -691,6 +697,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					result = ORIENTATION_VERT;
 				}
 			}
+
+			/* not needed but this matches 2.68 and older behavior */
+			negate_v3(plane);
+
 		} /* end editmesh */
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
@@ -773,7 +783,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 				copy_v3_v3(normal, qmat[2]);
 
-				negate_v3_v3(plane, qmat[1]);
+				copy_v3_v3(plane, qmat[1]);
 				
 				result = ORIENTATION_FACE;
 			}
@@ -781,45 +791,33 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
 			EditBone *ebone;
-			int ok = FALSE;
-			
-			/* grr. but better then duplicate code */
-#define EBONE_CALC_NORMAL_PLANE  { \
-			float tmat[3][3]; \
-			float vec[3]; \
-			sub_v3_v3v3(vec, ebone->tail, ebone->head); \
-			normalize_v3(vec); \
-			add_v3_v3(normal, vec); \
-			\
-			vec_roll_to_mat3(vec, ebone->roll, tmat); \
-			add_v3_v3(plane, tmat[2]); \
-		} (void)0
-
+			bool ok = false;
+			float tmat[3][3];
 
 			if (activeOnly && (ebone = arm->act_edbone)) {
-				EBONE_CALC_NORMAL_PLANE;
-				ok = TRUE;
+				ED_armature_ebone_to_mat3(ebone, tmat);
+				add_v3_v3(normal, tmat[2]);
+				add_v3_v3(plane, tmat[1]);
+				ok = true;
 			}
 			else {
 				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 					if (arm->layer & ebone->layer) {
 						if (ebone->flag & BONE_SELECTED) {
-							EBONE_CALC_NORMAL_PLANE;
-							ok = TRUE;
+							ED_armature_ebone_to_mat3(ebone, tmat);
+							add_v3_v3(normal, tmat[2]);
+							add_v3_v3(plane, tmat[1]);
+							ok = true;
 						}
 					}
 				}
 			}
 			
 			if (ok) {
-				normalize_v3(normal);
-				normalize_v3(plane);
-
 				if (!is_zero_v3(plane)) {
 					result = ORIENTATION_EDGE;
 				}
 			}
-#undef EBONE_CALC_NORMAL_PLANE
 		}
 
 		/* Vectors from edges don't need the special transpose inverse multiplication */
@@ -861,8 +859,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 		/* use for both active & all */
 		if (ok) {
-			negate_v3(plane);
-			
 			/* we need the transpose of the inverse for a normal... */
 			copy_m3_m4(imat, ob->obmat);
 			
@@ -895,11 +891,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		}
 		
 		if (ob) {
-			/* note: negating the plane so when used with createSpaceNormalTangent(),
-			 * we want the normal and the plane to make the same orientation as
-			 * what we would get from 'ob->obmat' */
 			copy_v3_v3(normal, ob->obmat[2]);
-			negate_v3_v3(plane, ob->obmat[1]);
+			copy_v3_v3(plane, ob->obmat[1]);
 		}
 		result = ORIENTATION_NORMAL;
 	}

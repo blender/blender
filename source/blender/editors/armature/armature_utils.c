@@ -156,6 +156,25 @@ bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebon
 	return false;
 }
 
+void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3])
+{
+	float delta[3];
+
+	/* Find the current bone matrix */
+	sub_v3_v3v3(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, ebone->roll, mat);
+}
+
+void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4])
+{
+	float m3[3][3];
+
+	ED_armature_ebone_to_mat3(ebone, m3);
+
+	copy_m4_m3(mat, m3);
+	copy_v3_v3(mat[3], ebone->head);
+}
+
 /* *************************************************************** */
 /* Mirroring */
 
@@ -389,7 +408,6 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 	float postmat[3][3];
 	float difmat[3][3];
 	float imat[3][3];
-	float delta[3];
 	
 	for (curBone = bonelist->first; curBone; curBone = curBone->next) {
 		/* sets local matrix and arm_mat (restpos) */
@@ -402,8 +420,7 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 		
 		if (ebone) {
 			/* Get the ebone premat */
-			sub_v3_v3v3(delta, ebone->tail, ebone->head);
-			vec_roll_to_mat3(delta, ebone->roll, premat);
+			ED_armature_ebone_to_mat3(ebone, premat);
 			
 			/* Get the bone postmat */
 			copy_m3_m4(postmat, curBone->arm_mat);
@@ -503,11 +520,9 @@ void ED_armature_from_edit(Object *obedit)
 			{
 				float M_parentRest[3][3];
 				float iM_parentRest[3][3];
-				float delta[3];
 				
 				/* Get the parent's  matrix (rotation only) */
-				sub_v3_v3v3(delta, eBone->parent->tail, eBone->parent->head);
-				vec_roll_to_mat3(delta, eBone->parent->roll, M_parentRest);
+				ED_armature_ebone_to_mat3(eBone->parent, M_parentRest);
 				
 				/* Invert the parent matrix */
 				invert_m3_m3(iM_parentRest, M_parentRest);
