@@ -415,9 +415,9 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 
 		/* edge is manifold and can be rotated */
 		if (BM_edge_rotate_check(e) &&
-			/* faces are tagged */
-			BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
-			BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+		    /* faces are tagged */
+		    BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
+		    BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
 		{
 			BM_elem_index_set(e, edge_array_len);  /* set_dirty */
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
