@@ -2477,29 +2477,30 @@ void ui_check_but(uiBut *but)
 			if (!but->editstr) {
 				char str[UI_MAX_DRAW_STR];
 
-				ui_get_but_string(but, str, UI_MAX_DRAW_STR - strlen(but->str));
-
+				ui_get_but_string(but, str, UI_MAX_DRAW_STR);
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, str);
 			}
 			break;
 	
 		case KEYEVT:
-			BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		{
+			const char *str;
 			if (but->flag & UI_SELECT) {
-				strcat(but->drawstr, "Press a key");
+				str = "Press a key";
 			}
 			else {
 				UI_GET_BUT_VALUE_INIT(but, value);
-				strcat(but->drawstr, WM_key_event_string((short)value));
+				str = WM_key_event_string((short)value);
 			}
+			BLI_snprintf(but->drawstr, UI_MAX_DRAW_STR, "%s%s", but->str, str);
 			break;
-		
+		}
 		case HOTKEYEVT:
 			if (but->flag & UI_SELECT) {
-				but->drawstr[0] = '\0';
 
 				if (but->modifier_key) {
 					char *str = but->drawstr;
+					but->drawstr[0] = '\0';
 
 					if (but->modifier_key & KM_SHIFT)
 						str += BLI_strcpy_rlen(str, "Shift ");
@@ -2512,8 +2513,9 @@ void ui_check_but(uiBut *but)
 
 					(void)str; /* UNUSED */
 				}
-				else
-					strcat(but->drawstr, "Press a key  ");
+				else {
+					BLI_strncpy(but->drawstr, "Press a key", UI_MAX_DRAW_STR);
+				}
 			}
 			else
 				BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
