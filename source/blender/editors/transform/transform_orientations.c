@@ -895,8 +895,11 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		}
 		
 		if (ob) {
+			/* note: negating the plane so when used with createSpaceNormalTangent(),
+			 * we want the normal and the plane to make the same orientation as
+			 * what we would get from 'ob->obmat' */
 			copy_v3_v3(normal, ob->obmat[2]);
-			copy_v3_v3(plane, ob->obmat[1]);
+			negate_v3_v3(plane, ob->obmat[1]);
 		}
 		result = ORIENTATION_NORMAL;
 	}
