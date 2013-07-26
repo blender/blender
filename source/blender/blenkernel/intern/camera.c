@@ -408,26 +408,33 @@ void BKE_camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, cons
 	}
 	else {
 		/* that way it's always visible - clipsta+0.1 */
-		float fac;
-		float half_sensor = 0.5f * ((camera->sensor_fit == CAMERA_SENSOR_FIT_VERT) ? (camera->sensor_y) : (camera->sensor_x));
+		float fac, scale_x, scale_y;
+		float half_sensor = 0.5f * ((camera->sensor_fit == CAMERA_SENSOR_FIT_VERT) ?
+		                            (camera->sensor_y) : (camera->sensor_x));
 
-		*r_drawsize = drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 
 		if (do_clip) {
 			/* fixed depth, variable size (avoids exceeding clipping range) */
-			depth = -(camera->clipsta + 0.1f);
-			fac = depth / (camera->lens / (-half_sensor) * scale[2]);
+			/* r_drawsize shouldn't be used in this case, set to dummy value */
+			*r_drawsize = 1.0f;
+			depth = -(camera->clipsta + 0.1f) * scale[2];
+			fac = depth / (camera->lens / (-half_sensor));
+			scale_x = 1.0f;
+			scale_y = 1.0f;
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
+			*r_drawsize = drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 			depth = *r_drawsize * camera->lens / (-half_sensor) * scale[2];
 			fac = *r_drawsize;
+			scale_x = scale[0];
+			scale_y = scale[1];
 		}
 
-		facx = fac * r_asp[0] * scale[0];
-		facy = fac * r_asp[1] * scale[1];
-		r_shift[0] = camera->shiftx * fac * 2 * scale[0];
-		r_shift[1] = camera->shifty * fac * 2 * scale[1];
+		facx = fac * r_asp[0] * scale_x;
+		facy = fac * r_asp[1] * scale_y;
+		r_shift[0] = camera->shiftx * fac * 2.0f * scale_x;
+		r_shift[1] = camera->shifty * fac * 2.0f * scale_y;
 	}
 
 	r_vec[0][0] = r_shift[0] + facx; r_vec[0][1] = r_shift[1] + facy; r_vec[0][2] = depth;
