@@ -411,7 +411,7 @@ void BMO_slot_mat_set(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], cons
 	slot->data.p = BLI_memarena_alloc(op->arena, sizeof(float) * 4 * 4);
 	
 	if (size == 4) {
-		memcpy(slot->data.p, mat, sizeof(float) * 4 * 4);
+		copy_m4_m4(slot->data.p, (float (*)[4])mat);
 	}
 	else if (size == 3) {
 		copy_m4_m3(slot->data.p, (float (*)[3])mat);

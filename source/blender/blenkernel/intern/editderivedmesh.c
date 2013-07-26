@@ -1582,17 +1582,17 @@ static void emDM_release(DerivedMesh *dm)
 
 	if (DM_release(dm)) {
 		if (bmdm->vertexCos) {
-			MEM_freeN(bmdm->vertexCos);
+			MEM_freeN((void *)bmdm->vertexCos);
 			if (bmdm->vertexNos) {
-				MEM_freeN(bmdm->vertexNos);
+				MEM_freeN((void *)bmdm->vertexNos);
 			}
 			if (bmdm->polyNos) {
-				MEM_freeN(bmdm->polyNos);
+				MEM_freeN((void *)bmdm->polyNos);
 			}
 		}
 
 		if (bmdm->polyCos) {
-			MEM_freeN(bmdm->polyCos);
+			MEM_freeN((void *)bmdm->polyCos);
 		}
 
 		MEM_freeN(bmdm);
