@@ -53,7 +53,7 @@ enum {
 
 #define BLI_buffer_declare_static(type_, name_, flag_, static_count_) \
 	char name_ ## user;  /* warn for free only */ \
-	type_ *name_ ## _static_[static_count_]; \
+	type_ name_ ## _static_[static_count_]; \
 	BLI_Buffer name_ = { \
 	/* clear the static memory if this is a calloc'd array */ \
 	((void)((flag_ & BLI_BUFFER_USE_CALLOC) ? \
