@@ -1374,6 +1374,21 @@ void rotate_m2(float mat[2][2], const float angle)
 	mat[1][0] = -mat[0][1];
 }
 
+/* scale or rotate around a non zero pivot */
+void pivot_m4(float mat[4][4], const float pivot[3])
+{
+	float tmat[4][4];
+
+	unit_m4(tmat);
+
+	copy_v3_v3(tmat[3], pivot);
+	mul_m4_m4m4(mat, tmat, mat);
+
+	/* invert the matrix */
+	negate_v3(tmat[3]);
+	mul_m4_m4m4(mat, mat, tmat);
+}
+
 void blend_m3_m3m3(float out[3][3], float dst[3][3], float src[3][3], const float srcweight)
 {
 	float srot[3][3], drot[3][3];

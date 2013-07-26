@@ -92,20 +92,14 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 {
-	float vec[3];
-	
-	BMO_slot_vec_get(op->slots_in, "cent", vec);
-	
-	/* there has to be a proper matrix way to do this, but
-	 * this is how editmesh did it and I'm too tired to think
-	 * through the math right now. */
-	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
+	float center[3];
+	float mat[4][4];
 
-	BMO_op_callf(bm, op->flag, "transform matrix=%s verts=%s", op, "matrix", op, "verts");
+	BMO_slot_vec_get(op->slots_in, "cent", center);
+	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
+	pivot_m4(mat, center);
 
-	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
+	BMO_op_callf(bm, op->flag, "transform matrix=%m4 verts=%s", mat, op, "verts");
 }
 
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
