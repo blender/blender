@@ -133,12 +133,12 @@ void normalize_m4_m4(float R[4][4], float A[4][4]);
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);
 
-int is_orthogonal_m3(float mat[3][3]);
-int is_orthogonal_m4(float mat[4][4]);
-int is_orthonormal_m3(float mat[3][3]);
-int is_orthonormal_m4(float mat[4][4]);
+bool is_orthogonal_m3(float mat[3][3]);
+bool is_orthogonal_m4(float mat[4][4]);
+bool is_orthonormal_m3(float mat[3][3]);
+bool is_orthonormal_m4(float mat[4][4]);
 
-int is_uniform_scaled_m3(float mat[3][3]);
+bool is_uniform_scaled_m3(float mat[3][3]);
 
 void adjoint_m2_m2(float R[2][2], float A[2][2]);
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
@@ -194,8 +194,11 @@ void loc_axisangle_size_to_mat4(float R[4][4],
 void blend_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], const float t);
 void blend_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], const float t);
 
-int is_negative_m3(float mat[3][3]);
-int is_negative_m4(float mat[4][4]);
+bool is_negative_m3(float mat[3][3]);
+bool is_negative_m4(float mat[4][4]);
+
+bool is_zero_m3(float mat[3][3]);
+bool is_zero_m4(float mat[4][4]);
 
 /*********************************** Other ***********************************/
 

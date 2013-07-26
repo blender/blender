@@ -663,6 +663,7 @@ static BMOpDefine bmo_rotate_def = {
 	{{"cent",            BMO_OP_SLOT_VEC},  /* center of rotation */
 	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix defining rotation */
 	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+	 {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -679,6 +680,7 @@ static BMOpDefine bmo_translate_def = {
 	"translate",
 	/* slots_in */
 	{{"vec", BMO_OP_SLOT_VEC},  /* translation offset */
+	 {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -696,6 +698,7 @@ static BMOpDefine bmo_scale_def = {
 	"scale",
 	/* slots_in */
 	{{"vec", BMO_OP_SLOT_VEC},  /* scale factor */
+	 {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -715,6 +718,7 @@ static BMOpDefine bmo_transform_def = {
 	"transform",
 	/* slots_in */
 	{{"matrix",          BMO_OP_SLOT_MAT},  /* transform matrix */
+	 {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -1159,6 +1163,7 @@ static BMOpDefine bmo_spin_def = {
 	 {"axis", BMO_OP_SLOT_VEC},             /* rotation axis */
 	 {"dvec", BMO_OP_SLOT_VEC},             /* translation delta per step */
 	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (radians) */
+	 {"space", BMO_OP_SLOT_MAT},            /* matrix to define the space (typically object matrix) */
 	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
 	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
 	 {{'\0'}},
