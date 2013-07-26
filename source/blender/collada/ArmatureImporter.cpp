@@ -204,16 +204,21 @@ void ArmatureImporter::add_leaf_bone(float mat[4][4], EditBone *bone,  COLLADAFW
 
 void ArmatureImporter::fix_leaf_bones( )
 {
+	// Collada only knows Joints, Here we guess a reasonable
+	// leaf bone length
+	float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0:leaf_bone_length;
+
 	// just setting tail for leaf bones here
 	std::vector<LeafBone>::iterator it;
 	for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
+
 		LeafBone& leaf = *it;
 
 		// pointing up
 		float vec[3] = {0.0f, 0.0f, 0.1f};
 		
 		sub_v3_v3v3(vec, leaf.bone->tail , leaf.bone->head);
-		mul_v3_fl(vec, leaf_bone_length);
+		mul_v3_fl(vec, leaf_length);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head , vec);
 
 	}
