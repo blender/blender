@@ -34,7 +34,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "BKE_customdata.h"
 
@@ -197,10 +196,9 @@ static int fplcmp(const void *v1, const void *v2)
 {
 	const JoinEdge *e1 = (JoinEdge *)v1, *e2 = (JoinEdge *)v2;
 
-	if (e1->weight > e2->weight) return 1;
+	if      (e1->weight > e2->weight) return  1;
 	else if (e1->weight < e2->weight) return -1;
-
-	return 0;
+	else                              return  0;
 }
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
@@ -212,156 +210,138 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	const bool do_mat   = BMO_slot_bool_get(op->slots_in, "cmp_materials");
 	const float limit   = BMO_slot_float_get(op->slots_in, "limit");
 
-	BMIter iter, liter;
+	BMIter iter;
 	BMOIter siter;
-	BMFace *f, *f_new;
-	BMLoop *l;
+	BMFace *f;
 	BMEdge *e;
-	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int i, totedge;
+	unsigned i, totedge;
+	unsigned int totedge_tag = 0;
 
 	/* flag all edges of all input face */
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		BMO_elem_flag_enable(bm, f, FACE_INPUT);
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
-		}
 	}
 
-	/* unflag edges that are invalid; e.g. aren't surrounded by triangle */
+	/* flag edges surrounded by 2 flagged triangles */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		BMFace *f1, *f2;
-		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
-			continue;
-
-		if (!BM_edge_face_pair(e, &f1, &f2)) {
-			BMO_elem_flag_disable(bm, e, EDGE_MARK);
-			continue;
-		}
-
-		if (f1->len != 3 || f2->len != 3) {
-			BMO_elem_flag_disable(bm, e, EDGE_MARK);
-			continue;
-		}
-
-		if (!BMO_elem_flag_test(bm, f1, FACE_INPUT) || !BMO_elem_flag_test(bm, f2, FACE_INPUT)) {
-			BMO_elem_flag_disable(bm, e, EDGE_MARK);
-			continue;
+		BMFace *f_a, *f_b;
+		if (BM_edge_face_pair(e, &f_a, &f_b) &&
+		    (f_a->len == 3 && f_b->len == 3) &&
+		    (BMO_elem_flag_test(bm, f_a, FACE_INPUT) && BMO_elem_flag_test(bm, f_b, FACE_INPUT)))
+		{
+			BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			totedge_tag++;
 		}
 	}
-	
+
+	if (totedge_tag == 0) {
+		return;
+	}
+
+	/* over alloc, some of the edges will be delimited */
+	jedges = MEM_mallocN(sizeof(*jedges) * totedge_tag, __func__);
+
 	i = 0;
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMVert *v1, *v2, *v3, *v4;
-		BMFace *f1, *f2;
+		BMFace *f_a, *f_b;
 		float measure;
 
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
+		f_a = e->l->f;
+		f_b = e->l->radial_next->f;
+
+		if (do_sharp && !BM_elem_flag_test(e, BM_ELEM_SMOOTH))
+			continue;
+
+		if (do_mat && f_a->mat_nr != f_b->mat_nr)
+			continue;
+
+		if ((do_uv || do_tf || do_vcol) && (bm_edge_faces_cmp(bm, e, do_uv, do_tf, do_vcol) == false))
+			continue;
 
 		v1 = e->l->v;
 		v2 = e->l->prev->v;
 		v3 = e->l->next->v;
 		v4 = e->l->radial_next->prev->v;
 
-		if (do_sharp && !BM_elem_flag_test(e, BM_ELEM_SMOOTH))
-			continue;
-
-		if (do_mat && f1->mat_nr != f2->mat_nr)
-			continue;
-
-		if ((do_uv || do_tf || do_vcol) && (bm_edge_faces_cmp(bm, e, do_uv, do_tf, do_vcol) == false))
-			continue;
-
 		measure = measure_facepair(v1->co, v2->co, v3->co, v4->co, limit);
 		if (measure < limit) {
-			BLI_array_grow_one(jedges);
-
 			jedges[i].e = e;
 			jedges[i].weight = measure;
-
 			i++;
 		}
 	}
 
-	if (!jedges)
-		return;
+	totedge = i;
+	qsort(jedges, totedge, sizeof(JoinEdge), fplcmp);
 
-	qsort(jedges, BLI_array_count(jedges), sizeof(JoinEdge), fplcmp);
-
-	totedge = BLI_array_count(jedges);
 	for (i = 0; i < totedge; i++) {
-		BMFace *f1, *f2;
+		BMFace *f_a, *f_b;
 
 		e = jedges[i].e;
-		f1 = e->l->f;
-		f2 = e->l->radial_next->f;
+		f_a = e->l->f;
+		f_b = e->l->radial_next->f;
 
-		if (BMO_elem_flag_test(bm, f1, FACE_MARK) || BMO_elem_flag_test(bm, f2, FACE_MARK))
-			continue;
-
-		BMO_elem_flag_enable(bm, f1, FACE_MARK);
-		BMO_elem_flag_enable(bm, f2, FACE_MARK);
-		BMO_elem_flag_enable(bm, e, EDGE_CHOSEN);
+		/* check if another edge already claimed this face */
+		if ((BMO_elem_flag_test(bm, f_a, FACE_MARK) == false) ||
+		    (BMO_elem_flag_test(bm, f_b, FACE_MARK) == false))
+		{
+			BMO_elem_flag_enable(bm, f_a, FACE_MARK);
+			BMO_elem_flag_enable(bm, f_b, FACE_MARK);
+			BMO_elem_flag_enable(bm, e, EDGE_CHOSEN);
+		}
 	}
 
+	MEM_freeN(jedges);
+
+	/* join best weighted */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		BMFace *f1, *f2;
+		BMFace *f_new;
+		BMFace *f_a, *f_b;
 
 		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
-
-		BM_edge_face_pair(e, &f1, &f2); /* checked above */
-		f_new = BM_faces_join_pair(bm, f1, f2, e, true);
+		BM_edge_face_pair(e, &f_a, &f_b); /* checked above */
+		f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
 		if (f_new) {
 			BMO_elem_flag_enable(bm, f_new, FACE_OUT);
 		}
 	}
 
+	/* join 2-tri islands */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
-			BMFace *f1, *f2;
+			BMLoop *l_a, *l_b;
+			BMFace *f_a, *f_b;
 
 			/* ok, this edge wasn't merged, check if it's
-			 * in a 2-tri-pair island, and if so merg */
+			 * in a 2-tri-pair island, and if so merge */
+			l_a = e->l;
+			l_b = e->l->radial_next;
 
-			f1 = e->l->f;
-			f2 = e->l->radial_next->f;
+			f_a = l_a->f;
+			f_b = l_b->f;
 			
-			if (f1->len != 3 || f2->len != 3)
-				continue;
-
-			for (i = 0; i < 2; i++) {
-				BM_ITER_ELEM (l, &liter, i ? f2 : f1, BM_LOOPS_OF_FACE) {
-					if (l->e != e && BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
-						break;
-					}
+			/* check the other 2 edges in both tris are untagged */
+			if ((f_a->len == 3 && f_b->len == 3) &&
+			    (BMO_elem_flag_test(bm, l_a->next->e, EDGE_MARK) == false) &&
+			    (BMO_elem_flag_test(bm, l_a->prev->e, EDGE_MARK) == false) &&
+			    (BMO_elem_flag_test(bm, l_b->next->e, EDGE_MARK) == false) &&
+			    (BMO_elem_flag_test(bm, l_b->prev->e, EDGE_MARK) == false))
+			{
+				BMFace *f_new;
+				f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
+				if (f_new) {
+					BMO_elem_flag_enable(bm, f_new, FACE_OUT);
 				}
-				
-				/* if l isn't NULL, we broke out of the loop */
-				if (l) {
-					break;
-				}
-			}
-
-			/* if i isn't 2, we broke out of that loop */
-			if (i != 2) {
-				continue;
-			}
-
-			f_new = BM_faces_join_pair(bm, f1, f2, e, true);
-			if (f_new) {
-				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
 			}
 		}
 	}
-
-	BLI_array_free(jedges);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 }
