@@ -911,18 +911,15 @@ void BLI_dir_create_recursive(const char *dirname)
 	char static_buf[MAXPATHLEN];
 #endif
 	char *tmp;
-	int needs_free;
 
 	if (BLI_exists(dirname)) return;
 
 #ifdef MAXPATHLEN
 	size = MAXPATHLEN;
 	tmp = static_buf;
-	needs_free = 0;
 #else
 	size = strlen(dirname) + 1;
-	tmp = MEM_callocN(size, "BLI_dir_create_recursive tmp");
-	needs_free = 1;
+	tmp = MEM_callocN(size, __func__);
 #endif
 
 	BLI_strncpy(tmp, dirname, size);
@@ -934,8 +931,9 @@ void BLI_dir_create_recursive(const char *dirname)
 		BLI_dir_create_recursive(tmp);
 	}
 
-	if (needs_free)
-		MEM_freeN(tmp);
+#ifndef MAXPATHLEN
+	MEM_freeN(tmp);
+#endif
 
 	mkdir(dirname, 0777);
 }
