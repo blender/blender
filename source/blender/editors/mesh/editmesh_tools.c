@@ -4034,14 +4034,23 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 			mesh_operator_edgering_props_get(op, &op_props);
 
 			if (op_props.cuts) {
+				BMOperator bmop_subd;
 				/* we only need face normals updated */
 				EDBM_mesh_normals_update(em);
 
-				BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-				             "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
-				             "profile_shape=%i profile_shape_factor=%f",
-				             &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
-				             op_props.profile_shape, op_props.profile_shape_factor);
+				BMO_op_initf(
+				        em->bm, &bmop_subd, op->flag,
+				        "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
+				        "profile_shape=%i profile_shape_factor=%f",
+				        &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
+				        op_props.profile_shape, op_props.profile_shape_factor
+				        );
+				BMO_op_exec(em->bm, &bmop_subd);
+
+				BMO_slot_buffer_hflag_enable(em->bm, bmop_subd.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+				BMO_op_finish(em->bm, &bmop_subd);
+
 			}
 		}
 	}
