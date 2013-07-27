@@ -537,7 +537,7 @@ void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char body[MAX_V
 
 	body[0] = suf[0] = '\0';
 
-	for (i = len - 1; i > 1; i--) {
+	for (i = len; i > 0; i--) {
 		if (is_char_sep(string[i])) {
 			BLI_strncpy(body, string, i + 1);
 			BLI_strncpy(suf, string + i,  (len + 1) - i);
@@ -545,7 +545,7 @@ void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char body[MAX_V
 		}
 	}
 
-	BLI_strncpy(body, string, len);
+	memcpy(body, string, len + 1);
 }
 
 /* "a.b.c" -> ("a.", "b.c") */
