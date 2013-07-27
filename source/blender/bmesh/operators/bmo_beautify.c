@@ -276,7 +276,7 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 	}
 }
 
-/* we have rotated an edge, tag other egdes and clear this one */
+/* we have rotated an edge, tag other edges and clear this one */
 static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GHash **edge_state_arr,
                                        const int flag)
 {

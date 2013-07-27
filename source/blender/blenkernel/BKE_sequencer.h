@@ -265,7 +265,7 @@ void BKE_sequencer_preprocessed_cache_cleanup_sequence(struct Sequence *seq);
 /* **********************************************************************
  * seqeffects.c
  *
- * Sequencer effect strip managment functions
+ * Sequencer effect strip management functions
  *  **********************************************************************
  */
 
