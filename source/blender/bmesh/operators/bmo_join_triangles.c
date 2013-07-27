@@ -42,6 +42,8 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+#define FACE_OUT (1 << 0)
+
 /* assumes edges are validated before reaching this poin */
 static float measure_facepair(const float v1[3], const float v2[3],
                               const float v3[3], const float v4[3], float limit)
@@ -212,7 +214,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 	BMIter iter, liter;
 	BMOIter siter;
-	BMFace *f;
+	BMFace *f, *f_new;
 	BMLoop *l;
 	BMEdge *e;
 	BLI_array_declare(jedges);
@@ -315,7 +317,10 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 
 		BM_edge_face_pair(e, &f1, &f2); /* checked above */
-		BM_faces_join_pair(bm, f1, f2, e, true);
+		f_new = BM_faces_join_pair(bm, f1, f2, e, true);
+		if (f_new) {
+			BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+		}
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -349,9 +354,14 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BM_faces_join_pair(bm, f1, f2, e, true);
+			f_new = BM_faces_join_pair(bm, f1, f2, e, true);
+			if (f_new) {
+				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+			}
 		}
 	}
 
 	BLI_array_free(jedges);
+
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 }
