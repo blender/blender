@@ -4200,28 +4200,27 @@ float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float
  */
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist)
 {
+	float nmat[3][3];
+
+	/* dist depends on offset */
+	BLI_assert(dist == NULL || ofs != NULL);
+
+	copy_m3_m4(nmat, mat);
+	normalize_m3(nmat);
+
 	/* Offset */
 	if (ofs)
 		negate_v3_v3(ofs, mat[3]);
 
 	/* Quat */
 	if (quat) {
-		float imat[4][4];
-		normalize_m4_m4(imat, mat);
-		invert_m4(imat);
-		mat4_to_quat(quat, imat);
+		float imat[3][3];
+		invert_m3_m3(imat, nmat);
+		mat3_to_quat(quat, imat);
 	}
 
-	if (dist) {
-		float nmat[3][3];
-		float vec[3];
-
-		vec[0] = 0.0f;
-		vec[1] = 0.0f;
-		vec[2] = -(*dist);
-
-		copy_m3_m4(nmat, mat);
-		normalize_m3(nmat);
+	if (ofs && dist) {
+		float vec[3] = {0.0f, 0.0f, -(*dist)};
 
 		mul_m3_v3(nmat, vec);
 		sub_v3_v3(ofs, vec);
