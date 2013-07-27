@@ -559,19 +559,19 @@ static void ui_draw_links(uiBlock *block)
 /* ************** BLOCK ENDING FUNCTION ************* */
 
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
-static bool ui_but_equals_old(uiBut *but, uiBut *oldbut)
+static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
 	/* various properties are being compared here, hopefully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
 	if (but->retval != oldbut->retval) return false;
 	if (but->rnapoin.data != oldbut->rnapoin.data) return false;
-	if (but->rnaprop != oldbut->rnaprop)
-		if (but->rnaindex != oldbut->rnaindex) return false;
+	if (but->rnaprop != oldbut->rnaprop && but->rnaindex != oldbut->rnaindex) return false;
 	if (but->func != oldbut->func) return false;
 	if (but->funcN != oldbut->funcN) return false;
 	if (oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return false;
 	if (oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return false;
-	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return false;
+	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) ||
+	                    (but->pointype != oldbut->pointype))) return false;
 	if (but->optype != oldbut->optype) return false;
 
 	return true;
@@ -620,7 +620,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 		return found;
 
 	for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
-		if (ui_but_equals_old(oldbut, but)) {
+		if (ui_but_equals_old(but, oldbut)) {
 			if (oldbut->active) {
 #if 0
 //				but->flag = oldbut->flag;
