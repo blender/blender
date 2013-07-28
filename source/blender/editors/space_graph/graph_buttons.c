@@ -828,7 +828,7 @@ void graph_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int graph_properties(bContext *C, wmOperator *UNUSED(op))
+static int graph_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = graph_has_buttons_region(sa);
@@ -845,7 +845,7 @@ void GRAPH_OT_properties(wmOperatorType *ot)
 	ot->idname = "GRAPH_OT_properties";
 	ot->description = "Toggle display properties panel";
 	
-	ot->exec = graph_properties;
+	ot->exec = graph_properties_toggle_exec;
 	ot->poll = ED_operator_graphedit_active;
 
 	/* flags */

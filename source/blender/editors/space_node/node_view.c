@@ -295,7 +295,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 }
 
-static int backimage_zoom(bContext *C, wmOperator *op)
+static int backimage_zoom_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -317,7 +317,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	ot->description = "Zoom in/out the background image";
 
 	/* api callbacks */
-	ot->exec = backimage_zoom;
+	ot->exec = backimage_zoom_exec;
 	ot->poll = composite_node_active;
 
 	/* flags */

@@ -40,11 +40,11 @@
 #define _bli_array_totalsize_dynamic(arr)  (                                  \
 	((arr) == NULL) ?                                                         \
 	    0 :                                                                   \
-	    MEM_allocN_len(arr) / sizeof(*arr)                                    \
+	    MEM_allocN_len(arr) / sizeof(*(arr))                                  \
 )
 
 #define _bli_array_totalsize_static(arr)  \
-	(sizeof(_##arr##_static) / sizeof(*arr))
+	(sizeof(_##arr##_static) / sizeof(*(arr)))
 
 #define _bli_array_totalsize(arr)  (                                          \
 	(size_t)                                                                  \
@@ -66,9 +66,9 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 /* -------------------------------------------------------------------- */
 /* public defines */
 
-/* use sizeof(*arr) to ensure the array exists and is an array */
+/* use sizeof(*(arr)) to ensure the array exists and is an array */
 #define BLI_array_declare(arr)                                                \
-	int   _##arr##_count = ((void)(sizeof(*arr)), 0);                         \
+	int   _##arr##_count = ((void)(sizeof(*(arr))), 0);                       \
 	void *_##arr##_static = NULL
 
 /* this will use stack space, up to maxstatic array elements, before
@@ -96,7 +96,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	(LIKELY(_bli_array_totalsize(arr) >= _##arr##_count + num) ?              \
 	 (void)0 /* do nothing */ :                                               \
 	 _bli_array_grow_func((void **)&(arr), _##arr##_static,                   \
-	                       sizeof(*arr), _##arr##_count, num,                 \
+	                       sizeof(*(arr)), _##arr##_count, num,               \
 	                       "BLI_array." #arr),                                \
 	 (void)0)  /* msvc2008 needs this */                                      \
 	),                                                                        \

@@ -635,7 +635,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 
 /* ************************* SEAMS AND EDGES **************** */
 
-static int edbm_mark_seam(bContext *C, wmOperator *op)
+static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -681,7 +681,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	ot->description = "(Un)mark selected edges as a seam";
 	
 	/* api callbacks */
-	ot->exec = edbm_mark_seam;
+	ot->exec = edbm_mark_seam_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -690,7 +690,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 
-static int edbm_mark_sharp(bContext *C, wmOperator *op)
+static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = ((Mesh *)obedit->data);
@@ -735,7 +735,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	ot->description = "(Un)mark selected edges as sharp";
 	
 	/* api callbacks */
-	ot->exec = edbm_mark_sharp;
+	ot->exec = edbm_mark_sharp_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -745,7 +745,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 }
 
 
-static int edbm_vert_connect(bContext *C, wmOperator *op)
+static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -795,7 +795,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	ot->description = "Connect 2 vertices of a face by an edge, splitting the face in two";
 	
 	/* api callbacks */
-	ot->exec = edbm_vert_connect;
+	ot->exec = edbm_vert_connect_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -4437,7 +4437,7 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 
 #ifdef WITH_FREESTYLE
 
-static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
+static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = (Mesh *)obedit->data;
@@ -4490,7 +4490,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 	ot->idname = "MESH_OT_mark_freestyle_edge";
 
 	/* api callbacks */
-	ot->exec = edbm_mark_freestyle_edge;
+	ot->exec = edbm_mark_freestyle_edge_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */

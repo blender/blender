@@ -76,7 +76,7 @@ void sequencer_buttons_register(ARegionType *art)
 
 /* **************** operator to open/close properties view ************* */
 
-static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = sequencer_has_buttons_region(sa);
@@ -93,7 +93,7 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 	ot->idname = "SEQUENCER_OT_properties";
 	ot->description = "Open sequencer properties panel";
 	
-	ot->exec = sequencer_properties;
+	ot->exec = sequencer_properties_toggle_exec;
 	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */

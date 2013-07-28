@@ -271,7 +271,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
-	ot->exec = NULL;
+	/* leave 'exec' unset */
 	ot->invoke = pose_select_connected_invoke;
 	ot->poll = pose_select_linked_poll;
 	

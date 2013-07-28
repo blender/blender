@@ -4523,7 +4523,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
 
-static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
@@ -4544,7 +4544,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 	ot->description = "Reset the copy of the mesh that is being sculpted on";
 	
 	/* api callbacks */
-	ot->exec = sculpt_set_persistent_base;
+	ot->exec = sculpt_set_persistent_base_exec;
 	ot->poll = sculpt_mode_poll;
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4893,7 +4893,7 @@ int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	return ret;
 }
 
-static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4981,7 +4981,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->description = "Toggle sculpt mode in 3D view";
 	
 	/* api callbacks */
-	ot->exec = sculpt_toggle_mode;
+	ot->exec = sculpt_mode_toggle_exec;
 	ot->poll = ED_operator_object_active_editable_mesh;
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

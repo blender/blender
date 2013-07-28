@@ -50,7 +50,7 @@
 #include "interface_intern.h"
 #include "logic_intern.h"
 
-static int logic_properties(bContext *C, wmOperator *UNUSED(op))
+static int logic_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = logic_has_buttons_region(sa);
@@ -67,7 +67,7 @@ void LOGIC_OT_properties(wmOperatorType *ot)
 	ot->description = "Toggle display properties panel";
 	ot->idname = "LOGIC_OT_properties";
 	
-	ot->exec = logic_properties;
+	ot->exec = logic_properties_toggle_exec;
 	ot->poll = ED_operator_logic_active;
 	
 	/* flags */

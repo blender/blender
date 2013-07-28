@@ -1610,7 +1610,7 @@ void ED_object_toggle_modes(bContext *C, int mode)
 
 /************************ Game Properties ***********************/
 
-static int game_property_new(bContext *C, wmOperator *op)
+static int game_property_new_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	bProperty *prop;
@@ -1640,7 +1640,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_game_property_new";
 
 	/* api callbacks */
-	ot->exec = game_property_new;
+	ot->exec = game_property_new_exec;
 	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
@@ -1650,7 +1650,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the game property to add");
 }
 
-static int game_property_remove(bContext *C, wmOperator *op)
+static int game_property_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	bProperty *prop;
@@ -1681,7 +1681,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_game_property_remove";
 
 	/* api callbacks */
-	ot->exec = game_property_remove;
+	ot->exec = game_property_remove_exec;
 	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
