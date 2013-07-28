@@ -3478,6 +3478,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 		track = next;
 	}
 
+	BKE_tracking_dopesheet_tag_update(tracking);
+
 	WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, clip);
 
 	return OPERATOR_FINISHED;
