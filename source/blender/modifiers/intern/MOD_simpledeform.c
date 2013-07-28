@@ -262,7 +262,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->axis  = smd->axis;
 	tsmd->origin = smd->origin;
 	tsmd->factor = smd->factor;
-	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
+	copy_v2_v2(tsmd->limit, smd->limit);
 	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 }
 

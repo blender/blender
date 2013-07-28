@@ -690,7 +690,7 @@ static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
 	/* Add neighbors to stack */
 	for (i = 0; i < emap[v].count; i++) {
 		/* Add neighbors to stack */
-		memcpy(stack_elem.mat, emat[e].mat, sizeof(float) * 3 * 3);
+		copy_m3_m3(stack_elem.mat, emat[e].mat);
 		stack_elem.e = emap[v].indices[i];
 		stack_elem.parent_v = v;
 		BLI_stack_push(stack, &stack_elem);

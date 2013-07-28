@@ -2528,7 +2528,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	uiStyle *style = UI_GetStyleDraw();
 	uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
-	
+
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash = ui_popup_menu_hash(title);
@@ -2542,7 +2542,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	pup->block->handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 	
 	/* create title button */
-	if (title && title[0]) {
+	if (title[0]) {
 		char titlestr[256];
 		
 		if (icon) {

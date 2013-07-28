@@ -200,6 +200,8 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, c
 	ev1 = edges[0]->v1;
 	ev2 = edges[0]->v2;
 
+	BLI_assert(ELEM(v1, ev1, ev2) && ELEM(v2, ev1, ev2));
+
 	if (v1 == ev2) {
 		/* Swapping here improves performance and consistency of face
 		 * structure in the special case that the edges are already in
@@ -322,6 +324,7 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, c
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
 	unsigned int winding[2] = {0, 0};
 	int i, i_prev = len - 1;
+	BMVert *v_winding[2] = {vert_arr[i_prev], vert_arr[0]};
 
 	BLI_assert(len > 2);
 
@@ -344,6 +347,7 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, c
 				/* we want to use the reverse winding to the existing order */
 				BM_edge_ordered_verts(edge_arr[i], &test_v2, &test_v1);
 				winding[(vert_arr[i_prev] == test_v2)]++;
+				BLI_assert(vert_arr[i_prev] == test_v2 || vert_arr[i_prev] == test_v1);
 			}
 		}
 
@@ -370,7 +374,11 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, c
 	/* --- */
 
 	/* create the face */
-	return BM_face_create_ngon(bm, vert_arr[winding[0]], vert_arr[winding[1]], edge_arr, len, create_flag);
+	return BM_face_create_ngon(
+	        bm,
+	        v_winding[winding[0]],
+	        v_winding[winding[1]],
+	        edge_arr, len, create_flag);
 }
 
 

@@ -1047,7 +1047,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	bArmature *arm = t->obedit->data;
 	ListBase *edbo = arm->edbo;
 	TransData *td;
-	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
+	float mtx[3][3], smtx[3][3], bonemat[3][3];
 	
 	/* special hack for envelope drawmode and scaling:
 	 *  to allow scaling the size of the envelope around single points,
@@ -1139,8 +1139,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					td->flag = TD_SELECTED;
 
 					/* use local bone matrix */
-					sub_v3_v3v3(delta, ebo->tail, ebo->head);
-					vec_roll_to_mat3(delta, ebo->roll, bonemat);
+					ED_armature_ebone_to_mat3(ebo, bonemat);
 					mul_m3_m3m3(td->mtx, mtx, bonemat);
 					invert_m3_m3(td->smtx, td->mtx);
 
@@ -1180,8 +1179,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					copy_m3_m3(td->smtx, smtx);
 					copy_m3_m3(td->mtx, mtx);
 
-					sub_v3_v3v3(delta, ebo->tail, ebo->head);
-					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
+					ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
 					if ((ebo->flag & BONE_ROOTSEL) == 0) {
 						td->extra = ebo;
@@ -1204,8 +1202,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					copy_m3_m3(td->smtx, smtx);
 					copy_m3_m3(td->mtx, mtx);
 
-					sub_v3_v3v3(delta, ebo->tail, ebo->head);
-					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
+					ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
 					td->extra = ebo; /* to fix roll */
 

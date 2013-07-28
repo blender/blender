@@ -86,7 +86,7 @@ __attribute__((nonnull))
 #endif
 ;
 
-char *BLI_replacestr(char *__restrict str, const char *__restrict oldText, const char *__restrict newText)
+char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))

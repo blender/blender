@@ -1073,7 +1073,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	f_hflag_prev_1 = l1->f->head.hflag;
 	f_hflag_prev_2 = l2->f->head.hflag;
 
-	/* don't delete the edge, manually remove the egde after so we can copy its attributes */
+	/* don't delete the edge, manually remove the edge after so we can copy its attributes */
 	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL, true);
 
 	if (f == NULL) {

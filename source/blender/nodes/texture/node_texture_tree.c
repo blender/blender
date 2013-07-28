@@ -283,10 +283,12 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
 void ntreeTexEndExecTree(bNodeTreeExec *exec)
 {
 	if (exec) {
+		/* exec may get freed, so assign ntree */
+		bNodeTree *ntree = exec->nodetree;
 		ntreeTexEndExecTree_internal(exec);
 		
 		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-		exec->nodetree->execdata = NULL;
+		ntree->execdata = NULL;
 	}
 }
 

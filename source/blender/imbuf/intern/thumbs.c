@@ -67,7 +67,7 @@
 #  include <unistd.h>
 #endif
 
-#define URI_MAX FILE_MAX * 3 + 8
+#define URI_MAX (FILE_MAX * 3 + 8)
 
 static int get_thumb_dir(char *dir, ThumbSize size)
 {
@@ -200,20 +200,20 @@ static int uri_from_filename(const char *path, char *uri)
 		strcat(orig_uri, vol);
 		dirstart += 2;
 	}
-#else
-	BLI_strncpy(orig_uri, "file://", FILE_MAX);
-#endif
 	strcat(orig_uri, dirstart);
 	BLI_char_switch(orig_uri, '\\', '/');
+#else
+	BLI_snprintf(orig_uri, URI_MAX, "file://%s", dirstart);
+#endif
 	
 #ifdef WITH_ICONV
 	{
-		char uri_utf8[FILE_MAX * 3 + 8];
-		escape_uri_string(orig_uri, uri_utf8, FILE_MAX * 3 + 8, UNSAFE_PATH);
+		char uri_utf8[URI_MAX];
+		escape_uri_string(orig_uri, uri_utf8, URI_MAX, UNSAFE_PATH);
 		BLI_string_to_utf8(uri_utf8, uri, NULL);
 	}
 #else 
-	escape_uri_string(orig_uri, uri, FILE_MAX * 3 + 8, UNSAFE_PATH);
+	escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
 #endif
 	return 1;
 }
@@ -401,7 +401,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX * 3 + 8];
+	char uri[URI_MAX];
 	ImBuf *img = NULL;
 
 	if (!uri_from_filename(path, uri)) {
@@ -418,7 +418,7 @@ ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
 void IMB_thumb_delete(const char *path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX * 3 + 8];
+	char uri[URI_MAX];
 
 	if (!uri_from_filename(path, uri)) {
 		return;
@@ -438,7 +438,7 @@ void IMB_thumb_delete(const char *path, ThumbSize size)
 ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX * 3 + 8];
+	char uri[URI_MAX];
 	struct stat st;
 	ImBuf *img = NULL;
 	

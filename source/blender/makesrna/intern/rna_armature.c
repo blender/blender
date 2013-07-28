@@ -398,16 +398,7 @@ static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
 static void rna_EditBone_matrix_get(PointerRNA *ptr, float *values)
 {
 	EditBone *ebone = (EditBone *)(ptr->data);
-
-	float delta[3], tmat[3][3], mat[4][4];
-
-	/* Find the current bone matrix */
-	sub_v3_v3v3(delta, ebone->tail, ebone->head);
-	vec_roll_to_mat3(delta, ebone->roll, tmat);
-	copy_m4_m3(mat, tmat);
-	copy_v3_v3(mat[3], ebone->head);
-
-	memcpy(values, mat, 16 * sizeof(float));
+	ED_armature_ebone_to_mat4(ebone, (float(*)[4])values);
 }
 
 static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)

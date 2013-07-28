@@ -59,7 +59,8 @@ struct LinkNode;
 /* Calls a bmesh op, reporting errors to the user, etc */
 bool EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 bool EDBM_op_call_and_selectf(struct BMEditMesh *em, struct wmOperator *op,
-                              const char *selectslot, const char *fmt, ...);
+                              const char *select_slot, const bool select_replace,
+                              const char *fmt, ...);
 /* Same as above, but doesn't report errors.*/
 bool EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
 
@@ -195,6 +196,7 @@ void MESH_OT_knife_cut(struct wmOperatorType *ot);
 void MESH_OT_separate(struct wmOperatorType *ot);
 void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_fill_grid(struct wmOperatorType *ot);
+void MESH_OT_fill_holes(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);

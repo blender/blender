@@ -518,6 +518,7 @@ static BMOpDefine bmo_bridge_loops_def = {
 	 {"use_cyclic",         BMO_OP_SLOT_BOOL},
 	 {"use_merge",          BMO_OP_SLOT_BOOL},
 	 {"merge_factor",       BMO_OP_SLOT_FLT},
+	 {"twist_offset",       BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -551,6 +552,29 @@ static BMOpDefine bmo_grid_fill_def = {
 	bmo_grid_fill_exec,
 	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
+
+
+/*
+ * Fill Holes.
+ *
+ * Fill boundary edges with faces, copying surrounding customdata.
+ */
+static BMOpDefine bmo_holes_fill_def = {
+	"holes_fill",
+	/* slots_in */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
+	 {"sides",          BMO_OP_SLOT_INT},   /* number of face sides to fill */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	/* maps new faces to the group numbers they came from */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	 {{'\0'}},
+	},
+	bmo_holes_fill_exec,
+	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+};
+
 
 /*
  * Edge Loop Fill.
@@ -639,6 +663,7 @@ static BMOpDefine bmo_rotate_def = {
 	{{"cent",            BMO_OP_SLOT_VEC},  /* center of rotation */
 	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix defining rotation */
 	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+	 {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -655,6 +680,7 @@ static BMOpDefine bmo_translate_def = {
 	"translate",
 	/* slots_in */
 	{{"vec", BMO_OP_SLOT_VEC},  /* translation offset */
+	 {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -672,6 +698,7 @@ static BMOpDefine bmo_scale_def = {
 	"scale",
 	/* slots_in */
 	{{"vec", BMO_OP_SLOT_VEC},  /* scale factor */
+	 {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -691,6 +718,7 @@ static BMOpDefine bmo_transform_def = {
 	"transform",
 	/* slots_in */
 	{{"matrix",          BMO_OP_SLOT_MAT},  /* transform matrix */
+	 {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
 	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
@@ -947,7 +975,9 @@ static BMOpDefine bmo_dissolve_limit_def = {
 	 {"delimit", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
-	{{{'\0'}}},  /* no output */
+	/* slots_out */
+	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
+	 {{'\0'}}},
 	bmo_dissolve_limit_exec,
 	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
@@ -1044,7 +1074,7 @@ static BMOpDefine bmo_subdivide_edgering_def = {
 	 {{'\0'}},
 	},
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
-	 {{'\0'}}},  /* no output */
+	 {{'\0'}}},
 	bmo_subdivide_edgering_exec,
 	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
@@ -1133,6 +1163,7 @@ static BMOpDefine bmo_spin_def = {
 	 {"axis", BMO_OP_SLOT_VEC},             /* rotation axis */
 	 {"dvec", BMO_OP_SLOT_VEC},             /* translation delta per step */
 	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (radians) */
+	 {"space", BMO_OP_SLOT_MAT},            /* matrix to define the space (typically object matrix) */
 	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
 	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
 	 {{'\0'}},
@@ -1224,7 +1255,6 @@ static BMOpDefine bmo_rotate_uvs_def = {
 	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, otherwise clockwise */
 	 {{'\0'}},
 	},
-	/* slots_out */
 	{{{'\0'}}},  /* no output */
 	bmo_rotate_uvs_exec,
 	BMO_OPTYPE_FLAG_NOP,
@@ -1723,6 +1753,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_dissolve_limit_def,
 	&bmo_dissolve_verts_def,
 	&bmo_duplicate_def,
+	&bmo_holes_fill_def,
 	&bmo_edgeloop_fill_def,
 	&bmo_edgenet_fill_def,
 	&bmo_edgenet_prepare_def,

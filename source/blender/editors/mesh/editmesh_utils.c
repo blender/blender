@@ -270,7 +270,9 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 	return EDBM_op_finish(em, &bmop, op, true);
 }
 
-bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select_slot_out, const char *fmt, ...)
+bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op,
+                              const char *select_slot_out, const bool select_extend,
+                              const char *fmt, ...)
 {
 	BMOpSlot *slot_select_out;
 	BMesh *bm = em->bm;
@@ -294,8 +296,11 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select
 
 	slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
 	hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
+	BLI_assert(hflag != 0);
 
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+	if (select_extend == false) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+	}
 
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, select_slot_out, hflag, BM_ELEM_SELECT, true);
 

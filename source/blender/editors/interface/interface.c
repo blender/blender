@@ -559,19 +559,19 @@ static void ui_draw_links(uiBlock *block)
 /* ************** BLOCK ENDING FUNCTION ************* */
 
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
-static bool ui_but_equals_old(uiBut *but, uiBut *oldbut)
+static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
 	/* various properties are being compared here, hopefully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
 	if (but->retval != oldbut->retval) return false;
 	if (but->rnapoin.data != oldbut->rnapoin.data) return false;
-	if (but->rnaprop != oldbut->rnaprop)
-		if (but->rnaindex != oldbut->rnaindex) return false;
+	if (but->rnaprop != oldbut->rnaprop && but->rnaindex != oldbut->rnaindex) return false;
 	if (but->func != oldbut->func) return false;
 	if (but->funcN != oldbut->funcN) return false;
 	if (oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return false;
 	if (oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return false;
-	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return false;
+	if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) ||
+	                    (but->pointype != oldbut->pointype))) return false;
 	if (but->optype != oldbut->optype) return false;
 
 	return true;
@@ -620,7 +620,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 		return found;
 
 	for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
-		if (ui_but_equals_old(oldbut, but)) {
+		if (ui_but_equals_old(but, oldbut)) {
 			if (oldbut->active) {
 #if 0
 //				but->flag = oldbut->flag;
@@ -2426,35 +2426,37 @@ void ui_check_but(uiBut *but)
 		case NUM:
 		case NUMSLI:
 
-			UI_GET_BUT_VALUE_INIT(but, value);
+			if (!but->editstr) {
+				UI_GET_BUT_VALUE_INIT(but, value);
 
-			if (ui_is_but_float(but)) {
-				if (value == (double) FLT_MAX) {
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
-				}
-				else if (value == (double) -FLT_MAX) {
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
-				}
-				/* support length type buttons */
-				else if (ui_is_but_unit(but)) {
-					char new_str[sizeof(but->drawstr)];
-					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+				if (ui_is_but_float(but)) {
+					if (value == (double) FLT_MAX) {
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+					}
+					else if (value == (double) -FLT_MAX) {
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+					}
+					/* support length type buttons */
+					else if (ui_is_but_unit(but)) {
+						char new_str[sizeof(but->drawstr)];
+						ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+					}
+					else {
+						const int prec = ui_but_float_precision(but, value);
+						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+					}
 				}
 				else {
-					const int prec = ui_but_float_precision(but, value);
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
 				}
-			}
-			else {
-				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
-			}
-			
-			if (but->rnaprop) {
-				PropertySubType pstype = RNA_property_subtype(but->rnaprop);
-			
-				if (pstype == PROP_PERCENTAGE)
-					strcat(but->drawstr, "%");
+
+				if (but->rnaprop) {
+					PropertySubType pstype = RNA_property_subtype(but->rnaprop);
+
+					if (pstype == PROP_PERCENTAGE)
+						strcat(but->drawstr, "%");
+				}
 			}
 			break;
 
@@ -2477,29 +2479,30 @@ void ui_check_but(uiBut *but)
 			if (!but->editstr) {
 				char str[UI_MAX_DRAW_STR];
 
-				ui_get_but_string(but, str, UI_MAX_DRAW_STR - strlen(but->str));
-
+				ui_get_but_string(but, str, UI_MAX_DRAW_STR);
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, str);
 			}
 			break;
 	
 		case KEYEVT:
-			BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		{
+			const char *str;
 			if (but->flag & UI_SELECT) {
-				strcat(but->drawstr, "Press a key");
+				str = "Press a key";
 			}
 			else {
 				UI_GET_BUT_VALUE_INIT(but, value);
-				strcat(but->drawstr, WM_key_event_string((short)value));
+				str = WM_key_event_string((short)value);
 			}
+			BLI_snprintf(but->drawstr, UI_MAX_DRAW_STR, "%s%s", but->str, str);
 			break;
-		
+		}
 		case HOTKEYEVT:
 			if (but->flag & UI_SELECT) {
-				but->drawstr[0] = '\0';
 
 				if (but->modifier_key) {
 					char *str = but->drawstr;
+					but->drawstr[0] = '\0';
 
 					if (but->modifier_key & KM_SHIFT)
 						str += BLI_strcpy_rlen(str, "Shift ");
@@ -2512,8 +2515,9 @@ void ui_check_but(uiBut *but)
 
 					(void)str; /* UNUSED */
 				}
-				else
-					strcat(but->drawstr, "Press a key  ");
+				else {
+					BLI_strncpy(but->drawstr, "Press a key", UI_MAX_DRAW_STR);
+				}
 			}
 			else
 				BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);

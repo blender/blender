@@ -2624,10 +2624,6 @@ void txt_indent(Text *text)
 		return;
 	}
 
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
-
 	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES) {
 		add = tab_to_spaces;
@@ -2687,9 +2683,9 @@ void txt_unindent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
+	if (ELEM3(NULL, text, text->curl, text->sell)) {
+		return;
+	}
 
 	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES) {
