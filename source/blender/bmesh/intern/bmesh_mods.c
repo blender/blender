@@ -490,26 +490,22 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
 	BMEdge *e2;
 	BMVert *tv2;
 
-	BMIter iter;
-	BMLoop *l_iter = NULL, *kvloop = NULL, *tvloop = NULL;
-
-	void *src[2];
-	float w[2];
-
 	/* Only intended to be called for 2-valence vertices */
 	BLI_assert(bmesh_disk_count(v_kill) <= 2);
 
 
-	/* first modify the face loop data  */
-	w[0] = 1.0f - fac;
-	w[1] = fac;
+	/* first modify the face loop data */
 
 	if (e_kill->l) {
+		BMLoop *l_iter;
+		const float w[2] = {1.0f - fac, fac};
+
 		l_iter = e_kill->l;
 		do {
 			if (l_iter->v == tv && l_iter->next->v == v_kill) {
-				tvloop = l_iter;
-				kvloop = l_iter->next;
+				void *src[2];
+				BMLoop *tvloop = l_iter;
+				BMLoop *kvloop = l_iter->next;
 
 				src[0] = kvloop->head.data;
 				src[1] = tvloop->head.data;
@@ -525,11 +521,12 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
 	tv2 = BM_edge_other_vert(e2, v_kill);
 
 	if (join_faces) {
+		BMIter fiter;
 		BMFace **faces = NULL;
 		BMFace *f;
-		BLI_array_staticdeclare(faces, 8);
+		BLI_array_staticdeclare(faces, BM_DEFAULT_ITER_STACK_SIZE);
 
-		BM_ITER_ELEM (f, &iter, v_kill, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (f, &fiter, v_kill, BM_FACES_OF_VERT) {
 			BLI_array_append(faces, f);
 		}
 
@@ -543,6 +540,8 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
 			}
 		}
 
+		BLI_assert(BLI_array_count(faces) < 8);
+
 		BLI_array_free(faces);
 	}
 	else {
@@ -553,8 +552,8 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
 		/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
 
 		if (e_new && kill_degenerate_faces) {
-			BLI_array_declare(bad_faces);
 			BMFace **bad_faces = NULL;
+			BLI_array_staticdeclare(bad_faces, BM_DEFAULT_ITER_STACK_SIZE);
 
 			BMIter fiter;
 			BMFace *f;
