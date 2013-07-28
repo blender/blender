@@ -148,15 +148,16 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	PointerRNA fcu_ptr;
 	uiLayout *layout = pa->layout;
 	uiLayout *col, *row, *sub;
-	uiBlock *block;
+	// uiBlock *block;  // UNUSED
 	char name[256];
 	int icon = 0;
 
 	if (!graph_panel_context(C, &ale, &fcu))
 		return;
 	
-	block = uiLayoutGetBlock(layout);
-	/* uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL); */
+	// UNUSED
+	// block = uiLayoutGetBlock(layout);
+	// uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 	
 	/* F-Curve pointer */
 	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);

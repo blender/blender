@@ -2049,7 +2049,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 			if (adt) BKE_animdata_make_local(adt);
 			
 			/* tag indirect data direct */
-			matarar = (Material ***)give_matarar(ob);
+			matarar = give_matarar(ob);
 			if (matarar) {
 				for (a = 0; a < ob->totcol; a++) {
 					ma = (*matarar)[a];
