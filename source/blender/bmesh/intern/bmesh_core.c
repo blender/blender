@@ -30,6 +30,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_listbase.h"
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_smallhash.h"
 
 #include "BLF_translation.h"
@@ -594,7 +595,7 @@ static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
  */
 void BM_face_edges_kill(BMesh *bm, BMFace *f)
 {
-	BMEdge **edges = BLI_array_alloca_and_count(edges, f->len);
+	BMEdge **edges = BLI_array_alloca(edges, f->len);
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int i = 0;
@@ -604,7 +605,7 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
 		edges[i++] = l_iter->e;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	for (i = 0; i < BLI_array_count(edges); i++) {
+	for (i = 0; i < f->len; i++) {
 		BM_edge_kill(bm, edges[i]);
 	}
 }
@@ -615,7 +616,7 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
  */
 void BM_face_verts_kill(BMesh *bm, BMFace *f)
 {
-	BMVert **verts = BLI_array_alloca_and_count(verts, f->len);
+	BMVert **verts = BLI_array_alloca(verts, f->len);
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int i = 0;
@@ -625,7 +626,7 @@ void BM_face_verts_kill(BMesh *bm, BMFace *f)
 		verts[i++] = l_iter->v;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	for (i = 0; i < BLI_array_count(verts); i++) {
+	for (i = 0; i < f->len; i++) {
 		BM_vert_kill(bm, verts[i]);
 	}
 }

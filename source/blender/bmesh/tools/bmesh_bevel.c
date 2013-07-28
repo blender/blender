@@ -34,6 +34,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 

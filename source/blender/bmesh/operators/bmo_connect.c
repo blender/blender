@@ -29,8 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 
 #include "bmesh.h"
 

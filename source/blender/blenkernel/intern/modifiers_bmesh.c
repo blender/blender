@@ -28,13 +28,13 @@
  *  \ingroup bke
  */
 
-#include "BLI_math.h"
-
 #include "MEM_guardedalloc.h"
+
+#include "BLI_math.h"
+#include "BLI_alloca.h"
 
 #include "DNA_object_types.h"
 
-#include "BLI_array.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
