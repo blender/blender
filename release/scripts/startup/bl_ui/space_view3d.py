@@ -2092,6 +2092,7 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
         layout = self.layout
 
         layout.operator("mesh.fill_holes")
+        layout.operator("mesh.vert_connect_nonplanar")
 
 
 class VIEW3D_MT_edit_mesh_delete(Menu):
