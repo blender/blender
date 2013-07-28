@@ -3852,8 +3852,8 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					glEnd();
 
 					glEnable(GL_LIGHTING);
-					break;
 				}
+				break;
 			case DL_SURF:
 
 				if (dl->index) {
