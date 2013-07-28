@@ -225,7 +225,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		}
 
 		MT_Vector3 left = dir.normalized();
-		dir = (left.cross(up)).normalized();
+		dir = (up.cross(left)).normalized();
 
 		// we have calculated the row vectors, now we keep
 		// local scaling into account:
