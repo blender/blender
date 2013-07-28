@@ -203,31 +203,28 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         obj = context.object
         obj_type = obj.type
         is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'})
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
 
-        # start top half
         split = layout.split()
 
-        # left column checkboxes
         col = split.column()
         col.prop(obj, "show_name", text="Name")
         col.prop(obj, "show_axis", text="Axis")
         if is_geometry:
-            # Makes no sense for cameras, armtures, etc.!
+            # Makes no sense for cameras, armatures, etc.!
             col.prop(obj, "show_wire", text="Wire")
         if obj_type == 'MESH':
             col.prop(obj, "show_all_edges")
 
-        # right column checkboxes
         col = split.column()
-        if 1:  # for code nesting clarity
-            row = col.row()
-            row.prop(obj, "show_bounds", text="Bounds")
-            sub = row.row()
-            sub.active = obj.show_bounds
+        row = col.row()
+        row.prop(obj, "show_bounds", text="Bounds")
+        sub = row.row()
+        sub.active = obj.show_bounds
         sub.prop(obj, "draw_bounds_type", text="")
 
         if is_geometry:
@@ -236,16 +233,13 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         if obj_type == 'MESH' or is_empty_image:
             col.prop(obj, "show_transparent", text="Transparency")
 
-        # start bottom half
         split = layout.split()
 
-        # left
         col = split.column()
         if obj_type not in {'CAMERA', 'EMPTY'}:
             col.label(text="Maximum draw type:")
             col.prop(obj, "draw_type", text="")
 
-        # right
         col = split.column()
         if is_geometry or is_empty_image:
             # Only useful with object having faces/materials...
