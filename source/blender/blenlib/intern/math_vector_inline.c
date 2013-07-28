@@ -418,6 +418,18 @@ MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])
 	       (mat[2][3] * co[2]) + mat[3][3];
 }
 
+MINLINE float mul_m3_v3_single_x(float M[3][3], const float a[3])
+{
+	return M[0][0] * a[0] + M[1][0] * a[1] + M[2][0] * a[2];
+}
+MINLINE float mul_m3_v3_single_y(float M[3][3], const float a[3])
+{
+	return M[0][1] * a[0] + M[1][1] * a[1] + M[2][1] * a[2];
+}
+MINLINE float mul_m3_v3_single_z(float M[3][3], const float a[3])
+{
+	return M[0][2] * a[0] + M[1][2] * a[1] + M[2][2] * a[2];
+}
 
 MINLINE void madd_v2_v2fl(float r[2], const float a[2], float f)
 {
