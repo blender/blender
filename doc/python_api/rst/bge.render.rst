@@ -62,6 +62,18 @@ Constants
 .. data:: KX_BLENDER_GLSL_MATERIAL
 
    Materials approximating blender materials with GLSL.
+   
+.. DATA:: VSYNC_OFF
+
+   Disables vsync
+
+.. DATA:: VSYNC_ON
+
+   Enables vsync
+
+.. DATA:: VSYNC_ADAPTIVE
+
+   Enables adaptive vsync if supported. Adaptive vsync enables vsync if the framerate is above the monitors refresh rate. Otherwise, vsync is diabled if the framerate is too low.
 
 *********
 Functions
@@ -289,3 +301,15 @@ Functions
 
    Disable the motion blur effect.
 
+.. function:: setVsync(value)
+
+   Set the vsync value
+
+   :arg value: One of VSYNC_OFF, VSYNC_ON, VSYNC_ADAPTIVE
+   :type value: integer
+
+.. function:: getVsync()
+
+   Get the current vsync value
+
+   :rtype: One of VSYNC_OFF, VSYNC_ON, VSYNC_ADAPTIVE

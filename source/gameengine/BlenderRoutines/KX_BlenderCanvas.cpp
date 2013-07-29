@@ -66,6 +66,16 @@ void KX_BlenderCanvas::SwapBuffers()
 	BL_SwapBuffers(m_win);
 }
 
+void KX_BlenderCanvas::SetSwapInterval(int interval)
+{
+	BL_SetSwapInterval(m_win, interval);
+}
+
+int	KX_BlenderCanvas::GetSwapInterval()
+{
+	return BL_GetSwapInterval(m_win);
+}
+
 void KX_BlenderCanvas::ResizeWindow(int width, int height)
 {
 	// Not implemented for the embedded player

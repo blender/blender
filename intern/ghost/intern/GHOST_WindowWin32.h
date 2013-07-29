@@ -212,6 +212,19 @@ public:
 	virtual GHOST_TSuccess swapBuffers();
 
 	/**
+	 * Sets the swap interval for swapBuffers.
+	 * \param interval The swap interval to use.
+	 * \return A boolean success indicator.
+	 */
+	virtual GHOST_TSuccess setSwapInterval(int interval);
+
+	/**
+	 * Gets the current swap interval for swapBuffers.
+	 * \return An integer.
+	 */
+	virtual int getSwapInterval();
+
+	/**
 	 * Activates the drawing context of this window.
 	 * \return Indication of success.
 	 */
