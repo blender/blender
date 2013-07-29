@@ -72,7 +72,8 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
                                   const BMO_Delimit delimit,
                                   BMVert **vinput_arr, const int vinput_len,
-                                  BMEdge **einput_arr, const int einput_len)
+                                  BMEdge **einput_arr, const int einput_len,
+                                  const short oflag_out)
 {
 	const float angle_max = (float)M_PI / 2.0f;
 	DissolveElemWeight *weight_elems = MEM_mallocN(max_ii(einput_len, vinput_len) *
@@ -155,6 +156,9 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 				/* there may be some errors, we don't mind, just move on */
 				if (f_new) {
 					BM_face_normal_update(f_new);
+					if (oflag_out) {
+						BMO_elem_flag_enable(bm, f_new, oflag_out);
+					}
 				}
 				else {
 					BMO_error_clear(bm);
@@ -269,7 +273,8 @@ void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
 	                             delimit,
 	                             vinput_arr, vinput_len,
-	                             einput_arr, einput_len);
+	                             einput_arr, einput_len,
+	                             0);
 
 	MEM_freeN(vinput_arr);
 	MEM_freeN(einput_arr);

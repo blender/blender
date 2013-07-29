@@ -49,7 +49,6 @@
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 
-#include "BLI_array.h"
 #include "BLI_buffer.h"
 
 #include "BIF_gl.h"
@@ -65,6 +64,10 @@
 #include "UI_view2d.h"
 
 #include "uvedit_intern.h"
+
+/* use editmesh tessface */
+#define USE_EDBM_LOOPTRIS
+
 
 void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 {
@@ -257,6 +260,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						weight_to_rgb(col, areadiff);
 						glColor3fv(col);
 						
+						/* TODO: USE_EDBM_LOOPTRIS */
 						glBegin(GL_POLYGON);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -321,6 +325,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						ang[i] = angle_normalized_v3v3(av[i], av[(i + 1) % efa_len]);
 					}
 
+					/* TODO: USE_EDBM_LOOPTRIS */
 					glBegin(GL_POLYGON);
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -421,6 +426,23 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 	}
 }
 
+#ifdef USE_EDBM_LOOPTRIS
+static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const int cd_loop_uv_offset)
+{
+	unsigned int i = *r_loop_index;
+	BMFace *f = em->looptris[i][0]->f;
+	do {
+		unsigned int j;
+		for (j = 0; j < 3; j++) {
+			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(em->looptris[i][j], cd_loop_uv_offset);
+			glVertex2fv(luv->uv);
+		}
+		i++;
+	} while (i != em->tottri && (f == em->looptris[i][0]->f));
+	*r_loop_index = i - 1;
+}
+#endif
+
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
@@ -428,7 +450,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	Mesh *me = obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
 	BMesh *bm = em->bm;
-	BMFace *efa, *efa_act, *activef;
+	BMFace *efa, *efa_act;
+#ifndef USE_EDBM_LOOPTRIS
+	BMFace *activef;
+#endif
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf, *activetf = NULL;
@@ -443,7 +468,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
 	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
+#ifndef USE_EDBM_LOOPTRIS
 	activef = BM_mesh_active_face_get(bm, FALSE, FALSE);
+#endif
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);
@@ -490,9 +517,42 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
+#ifdef USE_EDBM_LOOPTRIS
+		{
+			unsigned int i;
+			for (i = 0; i < em->tottri; i++) {
+				efa = em->looptris[i][0]->f;
+				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
+				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+					const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
+
+					if (tf == activetf) {
+						/* only once */
+						glEnable(GL_POLYGON_STIPPLE);
+						glPolygonStipple(stipple_quarttone);
+						UI_ThemeColor4(TH_EDITMESH_ACTIVE);
+					}
+					else {
+						glColor4ubv((GLubyte *)(is_select ? col2 : col1));
+					}
+
+					glBegin(GL_TRIANGLES);
+					draw_uvs_looptri(em, &i, cd_loop_uv_offset);
+					glEnd();
+
+					if (tf == activetf) {
+						glDisable(GL_POLYGON_STIPPLE);
+					}
+				}
+				else {
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
+				}
+			}
+		}
+#else
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-			
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				if (tf == activetf) continue;  /* important the temp boolean is set above */
@@ -515,6 +575,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
+#endif
 		glDisable(GL_BLEND);
 	}
 	else {
@@ -536,7 +597,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	}
 
 	/* 3. draw active face stippled */
-
+#ifndef USE_EDBM_LOOPTRIS
 	if (activef) {
 		tf = BM_ELEM_CD_GET_VOID_P(activef, cd_poly_tex_offset);
 		if (uvedit_face_visible_test(scene, ima, activef, tf)) {
@@ -558,6 +619,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			glDisable(GL_BLEND);
 		}
 	}
+#endif
 	
 	/* 4. draw edges */
 

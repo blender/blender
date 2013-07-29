@@ -34,6 +34,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -255,22 +256,14 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
 	GHashIterator *ghi = MEM_mallocN(sizeof(*ghi), "ghash iterator");
-	ghi->gh = gh;
-	ghi->curEntry = NULL;
-	ghi->curBucket = (unsigned int)-1;
-	while (!ghi->curEntry) {
-		ghi->curBucket++;
-		if (ghi->curBucket == ghi->gh->nbuckets)
-			break;
-		ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
-	}
+	BLI_ghashIterator_init(ghi, gh);
 	return ghi;
 }
 void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 {
 	ghi->gh = gh;
 	ghi->curEntry = NULL;
-	ghi->curBucket = (unsigned int)-1;
+	ghi->curBucket = UINT_MAX;  /* wraps to zero */
 	while (!ghi->curEntry) {
 		ghi->curBucket++;
 		if (ghi->curBucket == ghi->gh->nbuckets)

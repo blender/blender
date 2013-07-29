@@ -6392,6 +6392,7 @@ bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool i
 				PointerRNA propptr_b = RNA_property_pointer_get(b, prop);
 				return RNA_struct_equals(&propptr_a, &propptr_b, is_strict);
 			}
+			break;
 		}
 
 		default:

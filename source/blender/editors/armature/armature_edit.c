@@ -78,11 +78,10 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 	
 	/* Do the rotations */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		float delta[3], tmat[3][3];
+		float tmat[3][3];
 		
 		/* find the current bone's roll matrix */
-		sub_v3_v3v3(delta, ebone->tail, ebone->head);
-		vec_roll_to_mat3(delta, ebone->roll, tmat);
+		ED_armature_ebone_to_mat3(ebone, tmat);
 		
 		/* transform the roll matrix */
 		mul_m3_m3m3(tmat, mat3, tmat);
@@ -282,15 +281,14 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			mul_m3_v3(imat, vec);
 		}
 		else if (type == CALC_ROLL_ACTIVE) {
-			float mat[3][3], nor[3];
+			float mat[3][3];
 			ebone = (EditBone *)arm->act_edbone;
 			if (ebone == NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No active bone set");
 				return OPERATOR_CANCELLED;
 			}
 			
-			sub_v3_v3v3(nor, ebone->tail, ebone->head);
-			vec_roll_to_mat3(nor, ebone->roll, mat);
+			ED_armature_ebone_to_mat3(ebone, mat);
 			copy_v3_v3(vec, mat[2]);
 		}
 		else { /* Axis */

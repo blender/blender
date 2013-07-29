@@ -34,16 +34,18 @@ int   BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*r_index)[3])
 #endif
 ;
 void  BM_face_calc_normal(BMFace *f, float r_no[3]);
+void  BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
+                               float const (*vertexCos)[3]);
 float BM_face_calc_area(BMFace *f);
 float BM_face_calc_perimeter(BMFace *f);
 void  BM_face_calc_plane(BMFace *f, float r_plane[3]);
 void  BM_face_calc_center_bounds(BMFace *f, float center[3]);
 void  BM_face_calc_center_mean(BMFace *f, float center[3]);
+void  BM_face_calc_center_mean_vcos(BMesh *bm, BMFace *f, float r_cent[3],
+                                    float const (*vertexCos)[3]);
 void  BM_face_calc_center_mean_weighted(BMFace *f, float center[3]);
 
 void  BM_face_normal_update(BMFace *f);
-void  BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
-                                 float const (*vertexCos)[3]);
 
 void  BM_edge_normals_update(BMEdge *e);
 

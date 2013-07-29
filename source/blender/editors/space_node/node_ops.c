@@ -101,6 +101,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_backimage_sample);
 	
 	WM_operatortype_append(NODE_OT_add_file);
+	WM_operatortype_append(NODE_OT_add_mask);
 	
 	WM_operatortype_append(NODE_OT_new_node_tree);
 	

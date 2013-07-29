@@ -288,6 +288,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 				if (RNA_path_resolve(&ramp_ptr, "color_ramp", &ramp_ptr, &prop)) {
 					COLRAMP_GETPATH;
 				}
+				break;
 			}
 		}
 	}

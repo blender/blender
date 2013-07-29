@@ -95,8 +95,6 @@ typedef struct {
 	float ob_dims[3];
 	short link_scale;
 	float ve_median[NBR_TRANSFORM_PROPERTIES];
-	int curdef;
-	float *defweightp;
 } TransformProperties;
 
 /* Helper function to compute a median changed value,
@@ -154,17 +152,14 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #define L_WEIGHT  4
 
 	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
-	MDeformVert *dvert = NULL;
 	TransformProperties *tfp;
 	float median[NBR_TRANSFORM_PROPERTIES], ve_median[NBR_TRANSFORM_PROPERTIES];
 	int tot, totedgedata, totcurvedata, totlattdata, totskinradius, totcurvebweight;
 	bool has_meshdata = false;
-	char defstr[320];
 	PointerRNA data_ptr;
 
 	fill_vn_fl(median, NBR_TRANSFORM_PROPERTIES, 0.0f);
 	tot = totedgedata = totcurvedata = totlattdata = totskinradius = totcurvebweight = 0;
-	defstr[0] = '\0';
 
 	/* make sure we got storage */
 	if (v3d->properties_storage == NULL)
@@ -175,7 +170,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		Mesh *me = ob->data;
 		BMEditMesh *em = me->edit_btmesh;
 		BMesh *bm = em->bm;
-		BMVert *eve, *evedef = NULL;
+		BMVert *eve;
 		BMEdge *eed;
 		BMIter iter;
 
@@ -187,7 +182,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		if (bm->totvertsel) {
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-					evedef = eve;
 					tot++;
 					add_v3_v3(&median[LOC_X], eve->co);
 
@@ -224,33 +218,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 		else {
 			totedgedata = bm->totedgesel;
-		}
-
-		/* check for defgroups */
-		if (evedef)
-			dvert = CustomData_bmesh_get(&bm->vdata, evedef->head.data, CD_MDEFORMVERT);
-		if (tot == 1 && dvert && dvert->totweight) {
-			bDeformGroup *dg;
-			int i, max = 1, init = 1;
-			char str[320];
-
-			for (i = 0; i < dvert->totweight; i++) {
-				dg = BLI_findlink(&ob->defbase, dvert->dw[i].def_nr);
-				if (dg) {
-					max += BLI_snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr);
-					if (max < sizeof(str)) strcat(defstr, str);
-				}
-
-				if (tfp->curdef == dvert->dw[i].def_nr) {
-					init = 0;
-					tfp->defweightp = &dvert->dw[i].weight;
-				}
-			}
-
-			if (init) { /* needs new initialized */
-				tfp->curdef = dvert->dw[0].def_nr;
-				tfp->defweightp = &dvert->dw[0].weight;
-			}
 		}
 
 		has_meshdata = (totedgedata || totskinradius);
@@ -1204,7 +1171,7 @@ void view3d_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int view3d_properties(bContext *C, wmOperator *UNUSED(op))
+static int view3d_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = view3d_has_buttons_region(sa);
@@ -1221,7 +1188,7 @@ void VIEW3D_OT_properties(wmOperatorType *ot)
 	ot->description = "Toggles the properties panel display";
 	ot->idname = "VIEW3D_OT_properties";
 
-	ot->exec = view3d_properties;
+	ot->exec = view3d_properties_toggle_exec;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */

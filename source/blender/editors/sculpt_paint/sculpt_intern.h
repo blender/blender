@@ -100,14 +100,14 @@ typedef struct SculptUndoNode {
 	/* non-multires */
 	int maxvert;                /* to verify if totvert it still the same */
 	int *index;                 /* to restore into right location */
-	BLI_bitmap vert_hidden;
+	BLI_bitmap *vert_hidden;
 
 	/* multires */
 	int maxgrid;                /* same for grid */
 	int gridsize;               /* same for grid */
 	int totgrid;                /* to restore into right location */
 	int *grids;                 /* to restore into right location */
-	BLI_bitmap *grid_hidden;
+	BLI_bitmap **grid_hidden;
 
 	/* bmesh */
 	struct BMLogEntry *bm_entry;

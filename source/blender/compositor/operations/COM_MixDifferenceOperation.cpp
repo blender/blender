@@ -32,12 +32,13 @@ void MixDifferenceOperation::executePixel(float output[4], float x, float y, Pix
 {
 	float inputColor1[4];
 	float inputColor2[4];
-	float value;
+	float inputValue[4];
 	
-	this->m_inputValueOperation->read(&value, x, y, sampler);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
-	
+	this->m_inputValueOperation->read(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+
+	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}

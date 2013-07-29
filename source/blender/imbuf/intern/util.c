@@ -253,11 +253,11 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
 {
 	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
 		size_t n;
-		va_list arg2;
+		va_list args_cpy;
 
-		va_copy(arg2, arg);
-
-		n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, arg2);
+		va_copy(args_cpy, arg);
+		n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, args_cpy);
+		va_end(args_cpy);
 
 		/* strip trailing \n */
 		ffmpeg_last_error[n - 1] = '\0';

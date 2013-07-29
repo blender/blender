@@ -2614,7 +2614,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
-static int wm_exit_blender_op(bContext *C, wmOperator *op)
+static int wm_exit_blender_exec(bContext *C, wmOperator *op)
 {
 	WM_operator_free(op);
 	
@@ -2630,7 +2630,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 	ot->description = "Quit Blender";
 
 	ot->invoke = WM_operator_confirm;
-	ot->exec = wm_exit_blender_op;
+	ot->exec = wm_exit_blender_exec;
 	ot->poll = WM_operator_winactive;
 }
 
@@ -2638,7 +2638,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 #if defined(WIN32)
 
-static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int wm_console_toggle_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	GHOST_toggleConsole(2);
 	return OPERATOR_FINISHED;
@@ -2651,7 +2651,7 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 	ot->idname = "WM_OT_console_toggle";
 	ot->description = N_("Toggle System Console");
 	
-	ot->exec = wm_console_toggle_op;
+	ot->exec = wm_console_toggle_exec;
 	ot->poll = WM_operator_winactive;
 }
 

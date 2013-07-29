@@ -55,7 +55,6 @@ void fdrawXORcirc(float xofs, float yofs, float rad);
 void fdrawcheckerboard(float x1, float y1, float x2, float y2);
 
 /* OpenGL stipple defines */
-/* OpenGL stipple defines */
 extern const unsigned char stipple_halftone[128];
 extern const unsigned char stipple_quarttone[128];
 extern const unsigned char stipple_diag_stripes_pos[128];

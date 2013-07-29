@@ -205,10 +205,20 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         layout = self.layout
 
         obj = context.object
+        obj_type = obj.type
+        is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'})
+        is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
 
         split = layout.split()
+
         col = split.column()
-        col.prop(obj, "draw_type", text="Type")
+        col.prop(obj, "show_name", text="Name")
+        col.prop(obj, "show_axis", text="Axis")
+        if is_geometry:
+            # Makes no sense for cameras, armatures, etc.!
+            col.prop(obj, "show_wire", text="Wire")
+        if obj_type == 'MESH':
+            col.prop(obj, "show_all_edges")
 
         col = split.column()
         row = col.row()
@@ -217,27 +227,24 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         sub.active = obj.show_bounds
         sub.prop(obj, "draw_bounds_type", text="")
 
+        if is_geometry:
+            col.prop(obj, "show_texture_space", text="Texture Space")
+        col.prop(obj, "show_x_ray", text="X-Ray")
+        if obj_type == 'MESH' or is_empty_image:
+            col.prop(obj, "show_transparent", text="Transparency")
+
         split = layout.split()
 
         col = split.column()
-        col.prop(obj, "show_name", text="Name")
-        col.prop(obj, "show_axis", text="Axis")
-
-        obj_type = obj.type
-
-        if obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'}:
-            # Makes no sense for cameras, armtures, etc.!
-            col.prop(obj, "show_wire", text="Wire")
-            # Only useful with object having faces/materials...
-            col.prop(obj, "color", text="Object Color")
+        if obj_type not in {'CAMERA', 'EMPTY'}:
+            col.label(text="Maximum draw type:")
+            col.prop(obj, "draw_type", text="")
 
         col = split.column()
-        col.prop(obj, "show_texture_space", text="Texture Space")
-        col.prop(obj, "show_x_ray", text="X-Ray")
-        if obj_type == 'MESH' or (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE'):
-            col.prop(obj, "show_transparent", text="Transparency")
-        if obj_type == 'MESH':
-            col.prop(obj, "show_all_edges")
+        if is_geometry or is_empty_image:
+            # Only useful with object having faces/materials...
+            col.label(text="Object Color:")
+            col.prop(obj, "color", text="")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):

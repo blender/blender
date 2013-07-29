@@ -60,7 +60,7 @@ void node_toolbar_register(ARegionType *UNUSED(art))
 
 /* ********** operator to open/close toolshelf region */
 
-static int node_toolbar(bContext *C, wmOperator *UNUSED(op))
+static int node_toolbar_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = node_has_tools_region(sa);
@@ -84,7 +84,7 @@ void NODE_OT_toolbar(wmOperatorType *ot)
 	ot->description = "Toggles tool shelf display";
 	ot->idname = "NODE_OT_toolbar";
 	
-	ot->exec = node_toolbar;
+	ot->exec = node_toolbar_toggle_exec;
 	ot->poll = node_toolbar_poll;
 	
 	/* flags */

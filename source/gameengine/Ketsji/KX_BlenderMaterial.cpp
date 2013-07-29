@@ -157,6 +157,11 @@ Material *KX_BlenderMaterial::GetBlenderMaterial() const
 	return mMaterial->material;
 }
 
+Image *KX_BlenderMaterial::GetBlenderImage() const
+{
+	return mMaterial->tface.tpage;
+}
+
 Scene* KX_BlenderMaterial::GetBlenderScene() const
 {
 	return mScene->GetBlenderScene();

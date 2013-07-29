@@ -722,6 +722,14 @@ void BKE_object_unlink(Object *ob)
 						sbuts->pinid = NULL;
 					}
 				}
+				else if (sl->spacetype == SPACE_NODE) {
+					SpaceNode *snode = (SpaceNode *)sl;
+
+					if (snode->from == (ID *)ob) {
+						snode->flag &= ~SNODE_PIN;
+						snode->from = NULL;
+					}
+				}
 			}
 
 			sa = sa->next;

@@ -40,6 +40,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_bitmap.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
@@ -51,7 +52,7 @@
 
 typedef struct {
 	float *vertexcos;
-	short *flags;
+	BLI_bitmap *vertex_visit;
 } MappedUserData;
 
 #define TAN_MAKE_VEC(a, b, c)   a[0] = b[0] + 0.2f * (b[0] - c[0]); a[1] = b[1] + 0.2f * (b[1] - c[1]); a[2] = b[2] + 0.2f * (b[2] - c[2])
@@ -79,11 +80,11 @@ static void make_vertexcos__mapFunc(void *userData, int index, const float co[3]
 	float *vec = mappedData->vertexcos;
 
 	vec += 3 * index;
-	if (!mappedData->flags[index]) {
+	if (BLI_BITMAP_GET(mappedData->vertex_visit, index) == 0) {
 		/* we need coord from prototype vertex, not it clones or images,
 		 * suppose they stored in the beginning of vertex array stored in DM */
 		copy_v3_v3(vec, co);
-		mappedData->flags[index] = 1;
+		BLI_BITMAP_SET(mappedData->vertex_visit, index);
 	}
 }
 
@@ -109,7 +110,7 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	DerivedMesh *dm;
 	float *vertexcos;
 	int nverts = me->edit_btmesh->bm->totvert;
-	short *flags;
+	BLI_bitmap *vertex_visit;
 	MappedUserData userData;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
@@ -122,18 +123,18 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	dm = editbmesh_get_derived_cage(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
 	vertexcos = MEM_callocN(3 * sizeof(float) * nverts, "vertexcos map");
-	flags = MEM_callocN(sizeof(short) * nverts, "vertexcos flags");
+	vertex_visit = BLI_BITMAP_NEW(nverts, "vertexcos flags");
 
 	userData.vertexcos = vertexcos;
-	userData.flags = flags;
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData);
+	userData.vertex_visit = vertex_visit;
+	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
 
 	dm->release(dm);
 
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
 
-	MEM_freeN(flags);
+	MEM_freeN(vertex_visit);
 
 	return vertexcos;
 }
@@ -279,7 +280,7 @@ int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em
 			if (!defmats) {
 				dm = getEditDerivedBMesh(em, ob, NULL);
 				deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
-				defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
+				defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 
 				for (a = 0; a < numVerts; a++)
 					unit_m3(defmats[a]);

@@ -51,6 +51,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_scanfill.h"
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"

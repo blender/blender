@@ -531,12 +531,12 @@ ListBase CTX_data_dir_get(const bContext *C)
 	return CTX_data_dir_get_ex(C, TRUE, FALSE, FALSE);
 }
 
-int CTX_data_equals(const char *member, const char *str)
+bool CTX_data_equals(const char *member, const char *str)
 {
 	return (strcmp(member, str) == 0);
 }
 
-int CTX_data_dir(const char *member)
+bool CTX_data_dir(const char *member)
 {
 	return member[0] == '\0';
 }

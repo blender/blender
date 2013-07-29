@@ -5801,21 +5801,23 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 	return NULL;
 }
 
+static void lib_link_seq_clipboard_pt_restore(ID *id, Main *newmain)
+{
+	if (id) {
+		/* clipboard must ensure this */
+		BLI_assert(id->newid != NULL);
+		id->newid = restore_pointer_by_name(newmain, (ID *)id->newid, 1);
+	}
+}
 static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 {
 	Main *newmain = (Main *)arg_pt;
-	
-	if (seq->sound) {
-		seq->sound = restore_pointer_by_name(newmain, (ID *)seq->sound, 0);
-		seq->sound->id.us++;
-	}
-	
-	if (seq->scene)
-		seq->scene = restore_pointer_by_name(newmain, (ID *)seq->scene, 1);
-	
-	if (seq->scene_camera)
-		seq->scene_camera = restore_pointer_by_name(newmain, (ID *)seq->scene_camera, 1);
-	
+
+	lib_link_seq_clipboard_pt_restore((ID *)seq->scene, newmain);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->scene_camera, newmain);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->clip, newmain);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->mask, newmain);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->sound, newmain);
 	return 1;
 }
 
@@ -9485,7 +9487,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-
+	if (!MAIN_VERSION_ATLEAST(main, 268, 1)) {
+		Brush *brush;
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->spacing = MAX2(1, brush->spacing);
+		}
+	}
+	
 	{
 		bScreen *sc;
 		Object *ob;

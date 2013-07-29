@@ -281,16 +281,23 @@ typedef struct BevelModifierData {
 	short val_flags;      /* flags used to interpret the bevel value */
 	short lim_flags;      /* flags to tell the tool how to limit the bevel */
 	short e_flags;        /* flags to direct how edge weights are applied to verts */
-	float bevel_angle;    /* if the BME_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
-	char defgrp_name[64]; /* if the BME_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
+	float bevel_angle;    /* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
+	char defgrp_name[64]; /* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
 } BevelModifierData;
 
-typedef struct BMeshModifierData {
-	ModifierData modifier;
-
-	float pad;
-	int type;
-} BMeshModifierData;
+#define MOD_BEVEL_VERT          (1 << 1)
+// #define MOD_BEVEL_RADIUS        (1 << 2)
+#define MOD_BEVEL_ANGLE         (1 << 3)
+#define MOD_BEVEL_WEIGHT        (1 << 4)
+#define MOD_BEVEL_VGROUP        (1 << 5)
+#define MOD_BEVEL_EMIN          (1 << 7)
+#define MOD_BEVEL_EMAX          (1 << 8)
+// #define MOD_BEVEL_RUNNING       (1 << 9)
+// #define MOD_BEVEL_RES           (1 << 10)
+// #define MOD_BEVEL_EVEN          (1 << 11) /* this is a new setting not related to old (trunk bmesh bevel code) but adding
+//                                               * here because they are mixed - campbell */
+// #define MOD_BEVEL_DIST          (1 << 12) /* same as above */
+#define MOD_BEVEL_OVERLAP_OK    (1 << 13)
 
 
 /* Smoke modifier flags */
@@ -713,8 +720,7 @@ typedef struct SimpleDeformModifierData {
 
 	char mode;				/* deform function */
 	char axis;				/* lock axis (for taper and strech) */
-	char originOpts;		/* originOptions */
-	char pad;
+	char pad[2];
 
 } SimpleDeformModifierData;
 
@@ -725,12 +731,6 @@ typedef struct SimpleDeformModifierData {
 
 #define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
 #define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
-
-/* indicates whether simple deform should use the local
- * coordinates or global coordinates of origin */
-/* XXX, this should have never been an option, all other modifiers work relatively
- * (so moving both objects makes no change!) - Campbell */
-#define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #define MOD_UVPROJECT_MAX				10
 

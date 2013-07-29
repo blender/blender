@@ -795,6 +795,7 @@ const char *WM_key_event_string(short type)
 int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len)
 {
 	char buf[128];
+	char *p = buf;
 
 	buf[0] = 0;
 
@@ -803,28 +804,28 @@ int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len)
 	    kmi->alt == KM_ANY &&
 	    kmi->oskey == KM_ANY)
 	{
-		strcat(buf, "Any ");
+		p += BLI_strcpy_rlen(p, "Any ");
 	}
 	else {
 		if (kmi->shift)
-			strcat(buf, "Shift ");
+			p += BLI_strcpy_rlen(p, "Shift ");
 
 		if (kmi->ctrl)
-			strcat(buf, "Ctrl ");
+			p += BLI_strcpy_rlen(p, "Ctrl ");
 
 		if (kmi->alt)
-			strcat(buf, "Alt ");
+			p += BLI_strcpy_rlen(p, "Alt ");
 
 		if (kmi->oskey)
-			strcat(buf, "Cmd ");
+			p += BLI_strcpy_rlen(p, "Cmd ");
 	}
 		
 	if (kmi->keymodifier) {
-		strcat(buf, WM_key_event_string(kmi->keymodifier));
-		strcat(buf, " ");
+		p += BLI_strcpy_rlen(p, WM_key_event_string(kmi->keymodifier));
+		p += BLI_strcpy_rlen(p, " ");
 	}
 
-	strcat(buf, WM_key_event_string(kmi->type));
+	p += BLI_strcpy_rlen(p, WM_key_event_string(kmi->type));
 	return BLI_strncpy_rlen(str, buf, len);
 }
 

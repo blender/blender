@@ -35,7 +35,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
+#include "BLI_alloca.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
@@ -270,7 +270,9 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 	return EDBM_op_finish(em, &bmop, op, true);
 }
 
-bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select_slot_out, const char *fmt, ...)
+bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op,
+                              const char *select_slot_out, const bool select_extend,
+                              const char *fmt, ...)
 {
 	BMOpSlot *slot_select_out;
 	BMesh *bm = em->bm;
@@ -294,8 +296,11 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select
 
 	slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
 	hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
+	BLI_assert(hflag != 0);
 
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+	if (select_extend == false) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+	}
 
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, select_slot_out, hflag, BM_ELEM_SELECT, true);
 
@@ -341,7 +346,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
 }
 
-void EDBM_mesh_make(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
+void EDBM_mesh_make(ToolSettings *ts, Object *ob)
 {
 	Mesh *me = ob->data;
 	BMesh *bm;
@@ -368,8 +373,10 @@ void EDBM_mesh_make(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 
 	me->edit_btmesh->selectmode = me->edit_btmesh->bm->selectmode = ts->selectmode;
 	me->edit_btmesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
-
 	me->edit_btmesh->ob = ob;
+
+	/* we need to flush selection because the mode may have changed from when last in editmode */
+	EDBM_selectmode_flush(me->edit_btmesh);
 }
 
 void EDBM_mesh_load(Object *ob)

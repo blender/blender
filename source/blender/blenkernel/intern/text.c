@@ -1496,6 +1496,7 @@ static int max_undo_test(Text *text, int x)
 	return 1;
 }
 
+#if 0  /* UNUSED */
 static void dump_buffer(Text *text) 
 {
 	int i = 0;
@@ -1660,6 +1661,7 @@ void txt_print_undo(Text *text)
 		i++;
 	}
 }
+#endif
 
 static void txt_undo_store_uint16(char *undo_buf, int *undo_pos, unsigned short value) 
 {
@@ -2357,7 +2359,7 @@ static void txt_delete_line(Text *text, TextLine *line)
 
 static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 {
-	char *tmp;
+	char *tmp, *s;
 
 	if (!text) return;
 	
@@ -2366,8 +2368,10 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 
 	tmp = MEM_mallocN(linea->len + lineb->len + 1, "textline_string");
 	
-	strcpy(tmp, linea->line);
-	strcat(tmp, lineb->line);
+	s = tmp;
+	s += BLI_strcpy_rlen(s, linea->line);
+	s += BLI_strcpy_rlen(s, lineb->line);
+	(void)s;
 
 	make_new_line(linea, tmp);
 	
@@ -2620,10 +2624,6 @@ void txt_indent(Text *text)
 		return;
 	}
 
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
-
 	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES) {
 		add = tab_to_spaces;
@@ -2683,9 +2683,9 @@ void txt_unindent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
+	if (ELEM3(NULL, text, text->curl, text->sell)) {
+		return;
+	}
 
 	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES) {

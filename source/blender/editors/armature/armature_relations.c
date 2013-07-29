@@ -242,21 +242,18 @@ int join_armature_exec(bContext *C, wmOperator *op)
 					float difmat[4][4];
 					float imat[4][4];
 					float temp[3][3];
-					float delta[3];
 					
 					/* Get the premat */
-					sub_v3_v3v3(delta, curbone->tail, curbone->head);
-					vec_roll_to_mat3(delta, curbone->roll, temp);
+					ED_armature_ebone_to_mat3(curbone, temp);
 					
-					unit_m4(premat); /* Mat4MulMat34 only sets 3x3 part */
+					unit_m4(premat); /* mul_m4_m3m4 only sets 3x3 part */
 					mul_m4_m3m4(premat, temp, mat);
 					
 					mul_m4_v3(mat, curbone->head);
 					mul_m4_v3(mat, curbone->tail);
 					
 					/* Get the postmat */
-					sub_v3_v3v3(delta, curbone->tail, curbone->head);
-					vec_roll_to_mat3(delta, curbone->roll, temp);
+					ED_armature_ebone_to_mat3(curbone, temp);
 					copy_m4_m3(postmat, temp);
 					
 					/* Find the roll */

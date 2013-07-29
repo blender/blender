@@ -232,6 +232,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
         layout.operator("uv.snap_selected", text="Selected to Pixels").target = 'PIXELS'
         layout.operator("uv.snap_selected", text="Selected to Cursor").target = 'CURSOR'
+        layout.operator("uv.snap_selected", text="Selected to Cursor (Offset)").target = 'CURSOR_OFFSET'
         layout.operator("uv.snap_selected", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
 
         layout.separator()

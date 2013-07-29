@@ -1431,7 +1431,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Base *basen = NULL, *basact = NULL, *basedel = NULL;
+	Base *basen = NULL, *basact = NULL;
 	Object *ob, *ob1, *newob, *obact = CTX_data_active_object(C);
 	DerivedMesh *dm;
 	Curve *cu;
@@ -1686,14 +1686,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 		if (!keep_original && (ob->flag & OB_DONE)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			((ID *)ob->data)->flag &= ~LIB_DOIT; /* flag not to convert this datablock again */
-		}
-
-		/* delete original if needed */
-		if (basedel) {
-			if (!keep_original)
-				ED_base_object_free_and_unlink(bmain, scene, basedel);
-
-			basedel = NULL;
 		}
 	}
 	CTX_DATA_END;

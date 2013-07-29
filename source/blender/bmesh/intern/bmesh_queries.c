@@ -33,8 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.h"
 #include "BLI_math.h"
+#include "BLI_alloca.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -338,16 +338,16 @@ bool BM_verts_in_face(BMFace *f, BMVert **varr, int len)
  */
 bool BM_edge_in_face(BMFace *f, BMEdge *e)
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	if (e->l) {
+		BMLoop *l_iter, *l_first;
 
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-
-	do {
-		if (l_iter->e == e) {
-			return true;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
+		l_iter = l_first = e->l;
+		do {
+			if (l_iter->f == f) {
+				return true;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
 
 	return false;
 }
@@ -1758,20 +1758,27 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 	return vol;
 }
 
-
+/* note, almost duplicate of BM_mesh_calc_edge_groups, keep in sync */
 /**
- * TODO (as we need)
- * - option to walk over faces by verts.
- * - option to walk over non manifold edges.
+ * Calculate isolated groups of faces with optional filtering.
  *
  * \param bm  the BMesh.
- * \param r_groups_array  Array of ints to fill in, length of bm->totface.
+ * \param r_groups_array  Array of ints to fill in, length of bm->totface
+ *        (or when hflag_test is set, the number of flagged faces).
  * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
- * int pairs: (array_start, array_length).
+ *        int pairs: (array_start, array_length).
+ * \param filter_fn  Filter the edges or verts we step over (depends on \a htype_step)
+ *        as to which types we deal with.
+ * \param user_data  Optional user data for \a filter_fn, can be NULL.
+ * \param hflag_test  Optional flag to test faces,
+ *        use to exclude faces from the calculation, 0 for all faces.
+ * \param htype_step  BM_VERT to walk over face-verts, BM_EDGE to walk over faces edges
+ *        (having both set is supported too).
  * \return The number of groups found.
  */
 int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                             void *user_data, bool (*filter_fn)(BMEdge *, void *user_data))
+                             BMElemFilterFunc filter_fn, void *user_data,
+                             const char hflag_test, const char htype_step)
 {
 #ifdef DEBUG
 	int group_index_len = 1;
@@ -1786,11 +1793,11 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 
 	int group_curr = 0;
 
-	const unsigned int tot_faces = bm->totface;
+	unsigned int tot_faces = 0;
 	unsigned int tot_touch = 0;
 
-	BMFace **fstack;
-	STACK_DECLARE(fstack);
+	BMFace **stack;
+	STACK_DECLARE(stack);
 
 	BMIter iter;
 	BMFace *f;
@@ -1798,28 +1805,38 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 
 	STACK_INIT(group_array);
 
+	BLI_assert(((htype_step & ~(BM_VERT | BM_EDGE)) == 0) && (htype_step != 0));
+
 	/* init the array */
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+		if ((hflag_test == 0) || BM_elem_flag_test(f, hflag_test)) {
+			tot_faces++;
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
+		}
+		else {
+			/* never walk over tagged */
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		}
+
 		BM_elem_index_set(f, i); /* set_inline */
-		BM_elem_flag_disable(f, BM_ELEM_TAG);
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
 
 	/* detect groups */
-	fstack = MEM_mallocN(sizeof(*fstack) * tot_faces, __func__);
+	stack = MEM_mallocN(sizeof(*stack) * tot_faces, __func__);
 
 	while (tot_touch != tot_faces) {
-		int *fg;
+		int *group_item;
 		bool ok = false;
 
 		BLI_assert(tot_touch < tot_faces);
 
-		STACK_INIT(fstack);
+		STACK_INIT(stack);
 
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_TAG) == false) {
 				BM_elem_flag_enable(f, BM_ELEM_TAG);
-				STACK_PUSH(fstack, f);
+				STACK_PUSH(stack, f);
 				ok = true;
 				break;
 			}
@@ -1833,36 +1850,193 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 			group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_index_len);
 		}
 
-		fg = group_index[group_curr];
-		fg[0] = STACK_SIZE(group_array);
-		fg[1] = 0;
+		group_item = group_index[group_curr];
+		group_item[0] = STACK_SIZE(group_array);
+		group_item[1] = 0;
 
-		while ((f = STACK_POP(fstack))) {
+		while ((f = STACK_POP(stack))) {
 			BMLoop *l_iter, *l_first;
 
 			/* add face */
 			STACK_PUSH(group_array, BM_elem_index_get(f));
 			tot_touch++;
-			fg[1]++;
+			group_item[1]++;
 			/* done */
 
-			/* search for other faces */
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				BMLoop *l_other = l_iter->radial_next;
-				if ((l_other != l_iter) && filter_fn(l_iter->e, user_data)) {
-					if (BM_elem_flag_test(l_other->f, BM_ELEM_TAG) == false) {
-						BM_elem_flag_enable(l_other->f, BM_ELEM_TAG);
-						STACK_PUSH(fstack, l_other->f);
+			if (htype_step & BM_EDGE) {
+				/* search for other faces */
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					BMLoop *l_radial_iter = l_iter->radial_next;
+					if ((l_radial_iter != l_iter) &&
+					    ((filter_fn == NULL) || filter_fn((BMElem *)l_iter->e, user_data)))
+					{
+						do {
+							BMFace *f_other = l_radial_iter->f;
+							if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+								BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+								STACK_PUSH(stack, f_other);
+							}
+						} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
 					}
-				}
-			} while ((l_iter = l_iter->next) != l_first);
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+
+			if (htype_step & BM_VERT) {
+				BMIter liter;
+				/* search for other faces */
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					if ((filter_fn == NULL) || filter_fn((BMElem *)l_iter->v, user_data)) {
+						BMLoop *l_other;
+						BM_ITER_ELEM (l_other, &liter, l_iter, BM_LOOPS_OF_LOOP) {
+							BMFace *f_other = l_other->f;
+							if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+								BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+								STACK_PUSH(stack, f_other);
+							}
+						}
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+			}
 		}
 
 		group_curr++;
 	}
 
-	MEM_freeN(fstack);
+	MEM_freeN(stack);
+
+	/* reduce alloc to required size */
+	group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+	*r_group_index = group_index;
+
+	return group_curr;
+}
+
+/* note, almost duplicate of BM_mesh_calc_face_groups, keep in sync */
+/**
+ * Calculate isolated groups of edges with optional filtering.
+ *
+ * \param bm  the BMesh.
+ * \param r_groups_array  Array of ints to fill in, length of bm->totedge
+ *        (or when hflag_test is set, the number of flagged edges).
+ * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
+ *        int pairs: (array_start, array_length).
+ * \param filter_fn  Filter the edges or verts we step over (depends on \a htype_step)
+ *        as to which types we deal with.
+ * \param user_data  Optional user data for \a filter_fn, can be NULL.
+ * \param hflag_test  Optional flag to test edges,
+ *        use to exclude edges from the calculation, 0 for all edges.
+ * \return The number of groups found.
+ *
+ * \note Unlike #BM_mesh_calc_face_groups there is no 'htype_step' argument,
+ *       since we always walk over verts.
+ */
+int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+                             BMElemFilterFunc filter_fn, void *user_data,
+                             const char hflag_test)
+{
+#ifdef DEBUG
+	int group_index_len = 1;
+#else
+	int group_index_len = 32;
+#endif
+
+	int (*group_index)[2] = MEM_mallocN(sizeof(*group_index) * group_index_len, __func__);
+
+	int *group_array = r_groups_array;
+	STACK_DECLARE(group_array);
+
+	int group_curr = 0;
+
+	unsigned int tot_edges = 0;
+	unsigned int tot_touch = 0;
+
+	BMEdge **stack;
+	STACK_DECLARE(stack);
+
+	BMIter iter;
+	BMEdge *e;
+	int i;
+
+	STACK_INIT(group_array);
+
+	/* init the array */
+	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+		if ((hflag_test == 0) || BM_elem_flag_test(e, hflag_test)) {
+			tot_edges++;
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
+		}
+		else {
+			/* never walk over tagged */
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
+		}
+
+		BM_elem_index_set(e, i); /* set_inline */
+	}
+	bm->elem_index_dirty &= ~BM_FACE;
+
+	/* detect groups */
+	stack = MEM_mallocN(sizeof(*stack) * tot_edges, __func__);
+
+	while (tot_touch != tot_edges) {
+		int *group_item;
+		bool ok = false;
+
+		BLI_assert(tot_touch < tot_edges);
+
+		STACK_INIT(stack);
+
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG) == false) {
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+				STACK_PUSH(stack, e);
+				ok = true;
+				break;
+			}
+		}
+
+		BLI_assert(ok == true);
+
+		/* manage arrays */
+		if (group_index_len == group_curr) {
+			group_index_len *= 2;
+			group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_index_len);
+		}
+
+		group_item = group_index[group_curr];
+		group_item[0] = STACK_SIZE(group_array);
+		group_item[1] = 0;
+
+		while ((e = STACK_POP(stack))) {
+			BMIter viter;
+			BMIter eiter;
+			BMVert *v;
+
+			/* add edge */
+			STACK_PUSH(group_array, BM_elem_index_get(e));
+			tot_touch++;
+			group_item[1]++;
+			/* done */
+
+			/* search for other edges */
+			BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
+				if ((filter_fn == NULL) || filter_fn((BMElem *)v, user_data)) {
+					BMEdge *e_other;
+					BM_ITER_ELEM (e_other, &eiter, v, BM_EDGES_OF_VERT) {
+						if (BM_elem_flag_test(e_other, BM_ELEM_TAG) == false) {
+							BM_elem_flag_enable(e_other, BM_ELEM_TAG);
+							STACK_PUSH(stack, e_other);
+						}
+					}
+				}
+			}
+		}
+
+		group_curr++;
+	}
+
+	MEM_freeN(stack);
 
 	/* reduce alloc to required size */
 	group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);

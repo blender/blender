@@ -26,7 +26,7 @@
 #ifndef __BLI_BITMAP_H__
 #define __BLI_BITMAP_H__
 
-typedef unsigned int *BLI_bitmap;
+typedef unsigned int BLI_bitmap;
 
 /* warning: the bitmap does not keep track of its own size or check
  * for out-of-bounds access */
@@ -48,7 +48,7 @@ typedef unsigned int *BLI_bitmap;
 /* allocate memory for a bitmap with '_tot' bits; free
  *  with MEM_freeN() */
 #define BLI_BITMAP_NEW(_tot, _alloc_string) \
-	((BLI_bitmap)MEM_callocN(BLI_BITMAP_SIZE(_tot), \
+	((BLI_bitmap *)MEM_callocN(BLI_BITMAP_SIZE(_tot), \
 	                         _alloc_string))
 
 /* get the value of a single bit at '_index' */

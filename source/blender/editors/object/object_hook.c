@@ -310,7 +310,7 @@ static bool object_hook_index_array(Scene *scene, Object *obedit, int *tot, int 
 			BMEditMesh *em;
 
 			EDBM_mesh_load(obedit);
-			EDBM_mesh_make(scene->toolsettings, scene, obedit);
+			EDBM_mesh_make(scene->toolsettings, obedit);
 
 			em = me->edit_btmesh;
 

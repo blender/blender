@@ -37,7 +37,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"

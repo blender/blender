@@ -815,9 +815,8 @@ int main(int argc, char** argv)
 
 						if (!bfd) {
 							// just add "//" in front of it
-							char temppath[242];
-							strcpy(temppath, "//");
-							strcat(temppath, basedpath);
+							char temppath[FILE_MAX] = "//";
+							BLI_strncpy(temppath + 2, basedpath, FILE_MAX - 2);
 
 							BLI_path_abs(temppath, pathname);
 							bfd = load_game_data(temppath);

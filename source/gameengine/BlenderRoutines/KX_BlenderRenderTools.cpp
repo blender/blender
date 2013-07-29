@@ -37,6 +37,7 @@
 #include "RAS_LightObject.h"
 #include "RAS_ICanvas.h"
 #include "RAS_GLExtensionManager.h"
+#include "RAS_MeshObject.h"
 
 #include "KX_GameObject.h"
 #include "KX_PolygonMaterial.h"
@@ -157,6 +158,11 @@ void KX_BlenderRenderTools::SetClientObject(RAS_IRasterizer *rasty, void* obj)
 bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
+
+	RAS_Polygon* poly = result->m_hitMesh->GetPolygon(result->m_hitPolygon);
+	if (!poly->IsVisible())
+		return false;
+
 	MT_Point3 resultpoint(result->m_hitPoint);
 	MT_Vector3 resultnormal(result->m_hitNormal);
 	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
@@ -219,7 +225,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		}
 
 		MT_Vector3 left = dir.normalized();
-		dir = (left.cross(up)).normalized();
+		dir = (up.cross(left)).normalized();
 
 		// we have calculated the row vectors, now we keep
 		// local scaling into account:

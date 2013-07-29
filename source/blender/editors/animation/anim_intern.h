@@ -54,14 +54,14 @@ void ANIM_OT_keyframe_insert_menu(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_delete_v3d(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_clear_v3d(struct wmOperatorType *ot);
 
-/* Keyframe managment operators for UI buttons (RMB menu). */
+/* Keyframe management operators for UI buttons (RMB menu). */
 void ANIM_OT_keyframe_insert_button(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_delete_button(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_clear_button(struct wmOperatorType *ot);
 
 /* .......... */
 
-/* KeyingSet managment operators for UI buttons (RMB menu) */
+/* KeyingSet management operators for UI buttons (RMB menu) */
 void ANIM_OT_keyingset_button_add(struct wmOperatorType *ot);
 void ANIM_OT_keyingset_button_remove(struct wmOperatorType *ot);
 

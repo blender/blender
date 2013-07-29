@@ -366,8 +366,8 @@ static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_l
 	if (!anim->index_dir[0]) {
 		char fname[FILE_MAXFILE];
 		BLI_split_dirfile(anim->name, index_dir, fname, index_dir_len, sizeof(fname));
-		BLI_join_dirfile(index_dir, index_dir_len, index_dir, "BL_proxy");
-		BLI_join_dirfile(index_dir, index_dir_len, index_dir, fname);
+		BLI_path_append(index_dir, index_dir_len, "BL_proxy");
+		BLI_path_append(index_dir, index_dir_len, fname);
 	}
 	else {
 		BLI_strncpy(index_dir, anim->index_dir, index_dir_len);

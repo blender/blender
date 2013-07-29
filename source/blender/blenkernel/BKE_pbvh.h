@@ -223,7 +223,7 @@ typedef struct PBVHVertexIter {
 	struct CCGElem **grids;
 	struct CCGElem *grid;
 	struct CCGKey *key;
-	BLI_bitmap *grid_hidden, gh;
+	BLI_bitmap **grid_hidden, *gh;
 	int *grid_indices;
 	int totgrid;
 	int gridsize;

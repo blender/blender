@@ -343,7 +343,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		
 		if (transvmain && em->derivedCage) {
 			EDBM_index_arrays_ensure(em, BM_VERT);
-			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
+			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata, DM_FOREACH_NOP);
 		}
 	}
 	else if (obedit->type == OB_ARMATURE) {
@@ -532,7 +532,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 
 /* *********************** operators ******************** */
 
-static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
+static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -664,7 +664,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
-	ot->exec = snap_sel_to_grid;
+	ot->exec = snap_sel_to_grid_exec;
 	ot->poll = ED_operator_region_view3d_active;
 	
 	/* flags */
@@ -673,7 +673,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_sel_to_curs(bContext *C, wmOperator *op)
+static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -832,7 +832,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
-	ot->exec = snap_sel_to_curs;
+	ot->exec = snap_sel_to_curs_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -844,7 +844,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	RegionView3D *rv3d = CTX_wm_region_data(C);
@@ -871,7 +871,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */
-	ot->exec = snap_curs_to_grid;
+	ot->exec = snap_curs_to_grid_exec;
 	ot->poll = ED_operator_region_view3d_active;
 	
 	/* flags */
@@ -1029,7 +1029,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 	return true;
 }
 
-static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1055,7 +1055,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
-	ot->exec = snap_curs_to_sel;
+	ot->exec = snap_curs_to_sel_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -1064,7 +1064,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
@@ -1113,7 +1113,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_cursor_to_active";
 	
 	/* api callbacks */
-	ot->exec = snap_curs_to_active;
+	ot->exec = snap_curs_to_active_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -1122,7 +1122,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 
 /* **************************************************** */
 /*New Code - Snap Cursor to Center -*/
-static int snap_curs_to_center(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1144,7 +1144,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 	
 	/* api callbacks */
-	ot->exec = snap_curs_to_center;
+	ot->exec = snap_curs_to_center_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */

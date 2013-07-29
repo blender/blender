@@ -112,7 +112,9 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_torus_add);
 	
 	WM_operatortype_append(CURVE_OT_smooth);
+	WM_operatortype_append(CURVE_OT_smooth_weight);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
+	WM_operatortype_append(CURVE_OT_smooth_tilt);
 
 	WM_operatortype_append(CURVE_OT_de_select_first);
 	WM_operatortype_append(CURVE_OT_de_select_last);

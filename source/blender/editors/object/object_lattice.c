@@ -228,7 +228,7 @@ void LATTICE_OT_select_random(wmOperatorType *ot)
 
 /************************** Select More/Less Operator *************************/
 
-static bool lattice_test_bitmap_uvw(Lattice *lt, BLI_bitmap selpoints, int u, int v, int w, const bool selected)
+static bool lattice_test_bitmap_uvw(Lattice *lt, BLI_bitmap *selpoints, int u, int v, int w, const bool selected)
 {
 	if ((u < 0 || u >= lt->pntsu) ||
 	    (v < 0 || v >= lt->pntsv) ||
@@ -252,7 +252,7 @@ static int lattice_select_more_less(bContext *C, const bool select)
 	BPoint *bp;
 	const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
 	int i, w, u, v;
-	BLI_bitmap selpoints;
+	BLI_bitmap *selpoints;
 
 	lt->actbp = LT_ACTBP_NONE;
 

@@ -107,7 +107,7 @@ static void vpaint_proj_dm_map_cosnos_init(Scene *scene, Object *ob,
 
 	if (dm->foreachMappedVert) {
 		memset(vp_handle->vcosnos, 0, sizeof(DMCoNo) * me->totvert);
-		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle);
+		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, DM_FOREACH_USE_NORMAL);
 	}
 	else {
 		DMCoNo *v_co_no = vp_handle->vcosnos;
@@ -183,7 +183,7 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 	if (LIKELY(dm->foreachMappedVert)) {
 		fill_vn_fl(vp_handle->dists, me->totvert, FLT_MAX);
 
-		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update);
+		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, DM_FOREACH_USE_NORMAL);
 	}
 
 	dm->release(dm);

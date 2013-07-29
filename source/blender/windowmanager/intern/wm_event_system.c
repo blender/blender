@@ -274,7 +274,7 @@ void wm_event_do_notifiers(bContext *C)
 			}
 
 			if (note->window == win ||
-			    (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C))))
+			    (note->window == NULL && (note->reference == NULL || note->reference == win->screen->scene)))
 			{
 				if (note->category == NC_SCENE) {
 					if (note->data == ND_FRAME)
@@ -282,7 +282,7 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 			if (ELEM5(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
-				ED_info_stats_clear(CTX_data_scene(C));
+				ED_info_stats_clear(win->screen->scene);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 			}
 		}

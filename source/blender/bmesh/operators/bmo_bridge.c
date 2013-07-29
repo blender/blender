@@ -142,7 +142,7 @@ static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 static void bridge_loop_pair(BMesh *bm,
                              struct BMEdgeLoopStore *el_store_a,
                              struct BMEdgeLoopStore *el_store_b,
-                             const bool use_merge, const float merge_factor)
+                             const bool use_merge, const float merge_factor, const int twist_offset)
 {
 	const float eps = 0.00001f;
 	LinkData *el_a_first, *el_b_first;
@@ -268,6 +268,15 @@ static void bridge_loop_pair(BMesh *bm,
 
 	if (is_closed) {
 		bm_bridge_best_rotation(el_store_a, el_store_b);
+
+		/* add twist */
+		if (twist_offset != 0) {
+			const int len_b = BM_edgeloop_length_get(el_store_b);
+			ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
+			const int offset = twist_offset % len_b;
+			LinkData *el_b = BLI_rfindlink(lb_b, (offset < 0) ? (offset + len_b) : offset);
+			BLI_rotatelist(lb_b, el_b);
+		}
 	}
 
 	/* Assign after flipping is finalized */
@@ -476,6 +485,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	const bool  use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
 	const float merge_factor = BMO_slot_float_get(op->slots_in, "merge_factor");
 	const bool  use_cyclic   = BMO_slot_bool_get(op->slots_in,  "use_cyclic") && (use_merge == false);
+	const int   twist_offset = BMO_slot_int_get(op->slots_in,   "twist_offset");
 	int count;
 	bool change = false;
 
@@ -535,7 +545,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		bridge_loop_pair(bm,
 		                 (struct BMEdgeLoopStore *)el_store,
 		                 (struct BMEdgeLoopStore *)el_store_next,
-		                 use_merge, merge_factor);
+		                 use_merge, merge_factor, twist_offset);
 		if (use_pairs) {
 			el_store = el_store->next;
 		}

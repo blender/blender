@@ -103,10 +103,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter oiter;
 	BMFace *f;
-	BLI_array_declare(faces);
-	BLI_array_declare(regions);
 	BMFace ***regions = NULL;
 	BMFace **faces = NULL;
+	BLI_array_declare(regions);
+	BLI_array_declare(faces);
 	BMFace *act_face = bm->act_face;
 	BMWalker regwalker;
 	int i;
@@ -430,5 +430,8 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries, delimit,
 	                             (BMVert **)BMO_SLOT_AS_BUFFER(vinput), vinput->len,
-	                             (BMEdge **)BMO_SLOT_AS_BUFFER(einput), einput->len);
+	                             (BMEdge **)BMO_SLOT_AS_BUFFER(einput), einput->len,
+	                             FACE_NEW);
+
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 }

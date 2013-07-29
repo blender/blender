@@ -198,8 +198,8 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 	bool do_it = true;
 	bool mark = false;
 
-	BLI_bitmap edge_tag = BLI_BITMAP_NEW(me->totedge, __func__);
-	BLI_bitmap poly_tag = BLI_BITMAP_NEW(me->totpoly, __func__);
+	BLI_bitmap *edge_tag = BLI_BITMAP_NEW(me->totedge, __func__);
+	BLI_bitmap *poly_tag = BLI_BITMAP_NEW(me->totpoly, __func__);
 
 	if (index != (unsigned int)-1) {
 		/* only put face under cursor in array */

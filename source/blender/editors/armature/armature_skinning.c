@@ -363,7 +363,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		
 		if (dm->foreachMappedVert) {
-			dm->foreachMappedVert(dm, add_vgroups__mapFunc, (void *)verts);
+			dm->foreachMappedVert(dm, add_vgroups__mapFunc, (void *)verts, DM_FOREACH_NOP);
 			vertsfilled = 1;
 		}
 		

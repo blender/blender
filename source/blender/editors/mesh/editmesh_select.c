@@ -1590,8 +1590,7 @@ void EDBM_selectmode_set(BMEditMesh *em)
 		}
 
 		if (em->bm->totfacesel) {
-			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa = BM_iter_step(&iter)) {
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_face_select_set(em->bm, efa, true);
 				}
@@ -2427,9 +2426,6 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 
 static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
 	BMIter iter;
 	BMElem *ele;
 
@@ -2440,7 +2436,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	EDBM_selectmode_flush(em);
 	ele = BM_mesh_active_elem_get(em->bm);
 
-	if (ele) {
+	if (ele && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
 		switch (ele->head.htype) {
 			case BM_VERT:
 				*r_eve = (BMVert *)ele;
@@ -2455,6 +2451,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	}
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
+		BMVert *v;
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				*r_eve = v;
@@ -2463,6 +2460,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
+		BMEdge *e;
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 				*r_eed = e;
@@ -2471,8 +2469,8 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		f = BM_mesh_active_face_get(em->bm, true, false);
-		if (f) {
+		BMFace *f = BM_mesh_active_face_get(em->bm, true, false);
+		if (f && BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 			*r_efa = f;
 			return;
 		}
@@ -2619,7 +2617,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMLoop *l, *l2;
 	const float angle_limit = RNA_float_get(op->ptr, "sharpness");
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -3076,10 +3074,10 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 static int loop_find_region(BMLoop *l, int flag,
                             SmallHash *fhash, BMFace ***region_out)
 {
-	BLI_array_declare(region);
-	BLI_array_declare(stack);
 	BMFace **region = NULL;
 	BMFace **stack = NULL;
+	BLI_array_declare(region);
+	BLI_array_declare(stack);
 	BMFace *f;
 	
 	BLI_array_append(stack, l->f);

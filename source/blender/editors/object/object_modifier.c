@@ -1671,7 +1671,7 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 static void skin_armature_bone_create(Object *skin_ob,
                                       MVert *mvert, MEdge *medge,
                                       bArmature *arm,
-                                      BLI_bitmap edges_visited,
+                                      BLI_bitmap *edges_visited,
                                       const MeshElemMap *emap,
                                       EditBone *parent_bone,
                                       int parent_v)
@@ -1720,7 +1720,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, Object *skin_ob)
 {
-	BLI_bitmap edges_visited;
+	BLI_bitmap *edges_visited;
 	DerivedMesh *deform_dm;
 	MVert *mvert;
 	Mesh *me = skin_ob->data;

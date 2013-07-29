@@ -46,11 +46,12 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_lasso.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -3226,7 +3227,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 
 /* ******************** snap selection operator **************** */
 
-static bool uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
+static bool uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, const float cursor[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
@@ -3247,7 +3248,37 @@ static bool uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, Spac
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				copy_v2_v2(luv->uv, sima->cursor);
+				copy_v2_v2 (luv->uv, cursor);
+				change = true;
+			}
+		}
+	}
+
+	return change;
+}
+
+static bool uv_snap_uvs_offset(Scene *scene, Image *ima, Object *obedit, const float offset[2])
+{
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MTexPoly *tface;
+	MLoopUV *luv;
+	bool change = false;
+
+	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
+
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		tface = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
+		if (!uvedit_face_visible_test(scene, ima, efa, tface))
+			continue;
+
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				add_v2_v2(luv->uv, offset);
 				change = true;
 			}
 		}
@@ -3365,9 +3396,19 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 			change = uv_snap_uvs_to_pixels(sima, scene, obedit);
 			break;
 		case 1:
-			change = uv_snap_uvs_to_cursor(scene, ima, obedit, sima);
+			change = uv_snap_uvs_to_cursor(scene, ima, obedit, sima->cursor);
 			break;
 		case 2:
+		{
+			float center[2];
+			if (uvedit_center(scene, ima, obedit, center, sima->around)) {
+				float offset[2];
+				sub_v2_v2v2(offset, sima->cursor, center);
+				change = uv_snap_uvs_offset(scene, ima, obedit, offset);
+			}
+			break;
+		}
+		case 3:
 			change = uv_snap_uvs_to_adjacent_unselected(scene, ima, obedit);
 			break;
 	}
@@ -3387,7 +3428,8 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
 		{1, "CURSOR", 0, "Cursor", ""},
-		{2, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
+		{2, "CURSOR_OFFSET", 0, "Cursor (Offset)", ""},
+		{3, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */

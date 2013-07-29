@@ -37,8 +37,8 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 #include "BLI_path_util.h"
-#include "BLI_array.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -567,7 +567,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	obedit = base->object;
 	me = obedit->data;
 	if (me->edit_btmesh == NULL) {
-		EDBM_mesh_make(scene->toolsettings, scene, obedit);
+		EDBM_mesh_make(scene->toolsettings, obedit);
 		exitmode = 1;
 	}
 	if (me->edit_btmesh == NULL)

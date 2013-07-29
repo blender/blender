@@ -97,7 +97,7 @@ ret: a new object containing the result of applying operator op to this
 		return new CFloatValue (-m_float);
 		break;
 	case VALUE_NOT_OPERATOR:
-		return new CErrorValue (op2str(op) + "only allowed on booleans");
+		return new CBoolValue (m_float == 0.f);
 		break;
 	case VALUE_AND_OPERATOR:
 	case VALUE_OR_OPERATOR:
@@ -160,6 +160,9 @@ ret: a new object containing the result of applying operator op to val and
 				case VALUE_LEQ_OPERATOR:
 					ret = new CBoolValue(((CIntValue *) val)->GetInt() <= m_float);
 					break;
+				case VALUE_NOT_OPERATOR:
+					ret = new CBoolValue(m_float == 0);
+					break;
 				default:
 					ret = new CErrorValue("illegal operator. please send a bug report.");
 					break;
@@ -212,7 +215,9 @@ ret: a new object containing the result of applying operator op to val and
 				case VALUE_POS_OPERATOR:
 					ret = new CFloatValue (m_float);
 					break;
-
+				case VALUE_NOT_OPERATOR:
+					ret = new CBoolValue(m_float == 0);
+					break;
 				default:
 					ret = new CErrorValue("illegal operator. please send a bug report.");
 					break;

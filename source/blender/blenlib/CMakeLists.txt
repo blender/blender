@@ -100,6 +100,7 @@ set(SRC
 	intern/winstuff.c
 
 	BLI_args.h
+	BLI_alloca.h
 	BLI_array.h
 	BLI_bitmap.h
 	BLI_blenlib.h

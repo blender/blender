@@ -847,7 +847,7 @@ static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
 }
 
 
-static int stencil_reset_transform(bContext *C, wmOperator *op)
+static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *br = BKE_paint_brush(paint);
@@ -889,7 +889,7 @@ static void BRUSH_OT_stencil_reset_transform(wmOperatorType *ot)
 	ot->idname = "BRUSH_OT_stencil_reset_transform";
 
 	/* api callbacks */
-	ot->exec = stencil_reset_transform;
+	ot->exec = stencil_reset_transform_exec;
 	ot->poll = stencil_control_poll;
 
 	/* flags */

@@ -420,7 +420,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
 	
-	UI_SetTheme(sa ? sa->spacetype : 0, ar->type ? ar->type->regionid : 0);
+	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 	
 	/* optional header info instead? */
 	if (ar->headerstr) {

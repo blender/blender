@@ -2025,7 +2025,7 @@ static void do_weight_paint_vertex(
 
 /* *************** set wpaint operator ****************** */
 
-static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
+static int wpaint_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 {		
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2096,7 +2096,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 	ot->description = "Toggle weight paint mode in 3D view";
 	
 	/* api callbacks */
-	ot->exec = set_wpaint;
+	ot->exec = wpaint_mode_toggle_exec;
 	ot->poll = paint_poll_test;
 	
 	/* flags */
@@ -2642,7 +2642,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 /* ************ set / clear vertex paint mode ********** */
 
 
-static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
+static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)  /* toggle */
 {	
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2673,7 +2673,7 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 		ob->mode |= OB_MODE_VERTEX_PAINT;
 		/* Turn off weight painting */
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
-			set_wpaint(C, op);
+			wpaint_mode_toggle_exec(C, op);
 		
 		if (vp == NULL)
 			vp = scene->toolsettings->vpaint = new_vpaint(0);
@@ -2700,7 +2700,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 	ot->description = "Toggle the vertex paint mode in 3D view";
 	
 	/* api callbacks */
-	ot->exec = set_vpaint;
+	ot->exec = vpaint_mode_toggle_exec;
 	ot->poll = paint_poll_test;
 	
 	/* flags */
@@ -3413,7 +3413,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
 
-	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data);
+	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data, DM_FOREACH_NOP);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

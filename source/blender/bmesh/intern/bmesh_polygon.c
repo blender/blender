@@ -32,8 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_scanfill.h"
 #include "BLI_listbase.h"
 
@@ -125,7 +125,7 @@ static void bm_face_calc_poly_normal(BMFace *f, float n[3])
  * Same as #calc_poly_normal and #bm_face_calc_poly_normal
  * but takes an array of vertex locations.
  */
-static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
+static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float r_no[3],
                                                 float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -133,20 +133,38 @@ static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float n[3],
 	float const *v_prev = vertexCos[BM_elem_index_get(l_first->prev->v)];
 	float const *v_curr = vertexCos[BM_elem_index_get(l_first->v)];
 
-	zero_v3(n);
+	zero_v3(r_no);
 
 	/* Newell's Method */
 	do {
-		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
+		add_newell_cross_v3_v3v3(r_no, v_prev, v_curr);
 
 		l_iter = l_iter->next;
 		v_prev = v_curr;
 		v_curr = vertexCos[BM_elem_index_get(l_iter->v)];
 	} while (l_iter != l_first);
 
-	if (UNLIKELY(normalize_v3(n) == 0.0f)) {
-		n[2] = 1.0f; /* other axis set to 0.0 */
+	if (UNLIKELY(normalize_v3(r_no) == 0.0f)) {
+		r_no[2] = 1.0f; /* other axis set to 0.0 */
 	}
+}
+
+/**
+ * \brief COMPUTE POLY CENTER (BMFace)
+ */
+static void bm_face_calc_poly_center_mean_vertex_cos(BMFace *f, float r_cent[3],
+                                                     float const (*vertexCos)[3])
+{
+	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+	BMLoop *l_iter  = l_first;
+
+	zero_v3(r_cent);
+
+	/* Newell's Method */
+	do {
+		add_v3_v3(r_cent, vertexCos[BM_elem_index_get(l_iter->v)]);
+	} while ((l_iter = l_iter->next) != l_first);
+	mul_v3_fl(r_cent, 1.0f / f->len);
 }
 
 /**
@@ -370,8 +388,7 @@ void BM_face_calc_center_bounds(BMFace *f, float r_cent[3])
  */
 void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	BMLoop *l_iter, *l_first;
 
 	zero_v3(r_cent);
 
@@ -379,9 +396,7 @@ void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
 	do {
 		add_v3_v3(r_cent, l_iter->v->co);
 	} while ((l_iter = l_iter->next) != l_first);
-
-	if (f->len)
-		mul_v3_fl(r_cent, 1.0f / (float) f->len);
+	mul_v3_fl(r_cent, 1.0f / (float) f->len);
 }
 
 /**
@@ -601,9 +616,9 @@ void BM_face_normal_update(BMFace *f)
 	BM_face_calc_normal(f, f->no);
 }
 
-/* exact same as 'bmesh_face_normal_update' but accepts vertex coords */
-void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
-                                float const (*vertexCos)[3])
+/* exact same as 'BM_face_calc_normal' but accepts vertex coords */
+void BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
+                              float const (*vertexCos)[3])
 {
 	BMLoop *l;
 
@@ -620,7 +635,7 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
 			const float *co3 = vertexCos[BM_elem_index_get((l = l->next)->v)];
 			const float *co4 = vertexCos[BM_elem_index_get((l->next)->v)];
 
-			normal_quad_v3(no, co1, co2, co3, co4);
+			normal_quad_v3(r_no, co1, co2, co3, co4);
 			break;
 		}
 		case 3:
@@ -629,20 +644,31 @@ void BM_face_normal_update_vcos(BMesh *bm, BMFace *f, float no[3],
 			const float *co2 = vertexCos[BM_elem_index_get((l = l->next)->v)];
 			const float *co3 = vertexCos[BM_elem_index_get((l->next)->v)];
 
-			normal_tri_v3(no, co1, co2, co3);
+			normal_tri_v3(r_no, co1, co2, co3);
 			break;
 		}
 		case 0:
 		{
-			zero_v3(no);
+			zero_v3(r_no);
 			break;
 		}
 		default:
 		{
-			bm_face_calc_poly_normal_vertex_cos(f, no, vertexCos);
+			bm_face_calc_poly_normal_vertex_cos(f, r_no, vertexCos);
 			break;
 		}
 	}
+}
+
+/* exact same as 'BM_face_calc_normal' but accepts vertex coords */
+void BM_face_calc_center_mean_vcos(BMesh *bm, BMFace *f, float r_cent[3],
+                                   float const (*vertexCos)[3])
+{
+	/* must have valid index data */
+	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+	(void)bm;
+
+	bm_face_calc_poly_center_mean_vertex_cos(f, r_cent, vertexCos);
 }
 
 /**

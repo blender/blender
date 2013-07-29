@@ -37,7 +37,7 @@ void ConvertColorToValueProg::initExecution()
 void ConvertColorToValueProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(&inputColor[0], x, y, sampler);
+	this->m_inputOperation->read(inputColor, x, y, sampler);
 	output[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
 }
 

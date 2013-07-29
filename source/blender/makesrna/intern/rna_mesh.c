@@ -37,7 +37,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_array.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"

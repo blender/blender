@@ -181,7 +181,7 @@ static void resize(int width, int height)
 		options.session->reset(session_buffer_params(), options.session_params.samples);
 }
 
-void keyboard(unsigned char key)
+static void keyboard(unsigned char key)
 {
 	if(key == 'r')
 		options.session->reset(session_buffer_params(), options.session_params.samples);

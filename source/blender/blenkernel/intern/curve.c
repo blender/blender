@@ -721,6 +721,143 @@ void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
 	nu->pntsu += number;
 }
 
+
+BezTriple *BKE_nurb_bezt_get_next(Nurb *nu, BezTriple *bezt)
+{
+	BezTriple *bezt_next;
+
+	BLI_assert(ARRAY_HAS_ITEM(bezt, nu->bezt, nu->pntsu));
+
+	if (bezt == &nu->bezt[nu->pntsu - 1]) {
+		if (nu->flagu & CU_NURB_CYCLIC) {
+			bezt_next = nu->bezt;
+		}
+		else {
+			bezt_next = NULL;
+		}
+	}
+	else {
+		bezt_next = bezt + 1;
+	}
+
+	return bezt_next;
+}
+
+BPoint *BKE_nurb_bpoint_get_next(Nurb *nu, BPoint *bp)
+{
+	BPoint *bp_next;
+
+	BLI_assert(ARRAY_HAS_ITEM(bp, nu->bp, nu->pntsu));
+
+	if (bp == &nu->bp[nu->pntsu - 1]) {
+		if (nu->flagu & CU_NURB_CYCLIC) {
+			bp_next = nu->bp;
+		}
+		else {
+			bp_next = NULL;
+		}
+	}
+	else {
+		bp_next = bp + 1;
+	}
+
+	return bp_next;
+}
+
+BezTriple *BKE_nurb_bezt_get_prev(Nurb *nu, BezTriple *bezt)
+{
+	BezTriple *bezt_prev;
+
+	BLI_assert(ARRAY_HAS_ITEM(bezt, nu->bezt, nu->pntsu));
+
+	if (bezt == nu->bezt) {
+		if (nu->flagu & CU_NURB_CYCLIC) {
+			bezt_prev = &nu->bezt[nu->pntsu - 1];
+		}
+		else {
+			bezt_prev = NULL;
+		}
+	}
+	else {
+		bezt_prev = bezt - 1;
+	}
+
+	return bezt_prev;
+}
+
+BPoint *BKE_nurb_bpoint_get_prev(Nurb *nu, BPoint *bp)
+{
+	BPoint *bp_prev;
+
+	BLI_assert(ARRAY_HAS_ITEM(bp, nu->bp, nu->pntsu));
+
+	if (bp == nu->bp) {
+		if (nu->flagu & CU_NURB_CYCLIC) {
+			bp_prev = &nu->bp[nu->pntsu - 1];
+		}
+		else {
+			bp_prev = NULL;
+		}
+	}
+	else {
+		bp_prev = bp - 1;
+	}
+
+	return bp_prev;
+}
+
+void BKE_nurb_bezt_calc_normal(struct Nurb *UNUSED(nu), struct BezTriple *bezt, float r_normal[3])
+{
+	/* calculate the axis matrix from the spline */
+	float dir_prev[3], dir_next[3];
+
+	sub_v3_v3v3(dir_prev, bezt->vec[0], bezt->vec[1]);
+	sub_v3_v3v3(dir_next, bezt->vec[1], bezt->vec[2]);
+
+	normalize_v3(dir_prev);
+	normalize_v3(dir_next);
+
+	add_v3_v3v3(r_normal, dir_prev, dir_next);
+	normalize_v3(r_normal);
+}
+
+void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_plane[3])
+{
+	float dir_prev[3], dir_next[3];
+
+	sub_v3_v3v3(dir_prev, bezt->vec[0], bezt->vec[1]);
+	sub_v3_v3v3(dir_next, bezt->vec[1], bezt->vec[2]);
+
+	normalize_v3(dir_prev);
+	normalize_v3(dir_next);
+
+	cross_v3_v3v3(r_plane, dir_prev, dir_next);
+	if (normalize_v3(r_plane) < FLT_EPSILON) {
+		BezTriple *bezt_prev = BKE_nurb_bezt_get_prev(nu, bezt);
+		BezTriple *bezt_next = BKE_nurb_bezt_get_next(nu, bezt);
+
+		if (bezt_prev) {
+			sub_v3_v3v3(dir_prev, bezt_prev->vec[1], bezt->vec[1]);
+			normalize_v3(dir_prev);
+		}
+		if (bezt_next) {
+			sub_v3_v3v3(dir_next, bezt->vec[1], bezt_next->vec[1]);
+			normalize_v3(dir_next);
+		}
+		cross_v3_v3v3(r_plane, dir_prev, dir_next);
+	}
+
+	/* matches with bones more closely */
+	{
+		float dir_mid[3], tvec[3];
+		add_v3_v3v3(dir_mid, dir_prev, dir_next);
+		cross_v3_v3v3(tvec, r_plane, dir_mid);
+		copy_v3_v3(r_plane, tvec);
+	}
+
+	normalize_v3(r_plane);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 

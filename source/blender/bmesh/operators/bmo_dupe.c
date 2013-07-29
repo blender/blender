@@ -28,8 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.h"
 #include "BLI_math.h"
+#include "BLI_alloca.h"
 
 #include "bmesh.h"
 
@@ -150,10 +150,7 @@ static BMFace *copy_face(BMOperator *op,
 #endif
 
 	/* lookup edge */
-	for (i = 0, source_loop = BM_iter_new(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face);
-	     source_loop;
-	     source_loop = BM_iter_step(&iter), i++)
-	{
+	BM_ITER_ELEM_INDEX (source_loop, &iter, source_face, BM_LOOPS_OF_FACE, i) {
 		vtar[i] = BLI_ghash_lookup(vhash, source_loop->v);
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 	}
@@ -492,8 +489,8 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%S", op, "geom_last.out");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v matrix=%m3 verts=%S",
-			             cent, rmat, &dupop, "geom.out");
+			             "rotate cent=%v matrix=%m3 space=%s verts=%S",
+			             cent, rmat, op, "space", &dupop, "geom.out");
 			BMO_slot_copy(&dupop, slots_out, "geom.out",
 			              op,     slots_out, "geom_last.out");
 			BMO_op_finish(bm, &dupop);
@@ -503,8 +500,8 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			             op, "geom_last.out");
 			BMO_op_exec(bm, &extop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v matrix=%m3 verts=%S",
-			             cent, rmat, &extop, "geom.out");
+			             "rotate cent=%v matrix=%m3 space=%s verts=%S",
+			             cent, rmat, op, "space", &extop, "geom.out");
 			BMO_slot_copy(&extop, slots_out, "geom.out",
 			              op,     slots_out, "geom_last.out");
 			BMO_op_finish(bm, &extop);
@@ -513,8 +510,8 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 		if (usedvec) {
 			mul_m3_v3(rmat, dvec);
 			BMO_op_callf(bm, op->flag,
-			             "translate vec=%v verts=%S",
-			             dvec, op, "geom_last.out");
+			             "translate vec=%v space=%s verts=%S",
+			             dvec, op, "space", op, "geom_last.out");
 		}
 	}
 }

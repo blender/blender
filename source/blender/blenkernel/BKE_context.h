@@ -200,8 +200,8 @@ void CTX_data_dir_set(bContextDataResult *result, const char **member);
 void CTX_data_type_set(struct bContextDataResult *result, short type);
 short CTX_data_type_get(struct bContextDataResult *result);
 
-int CTX_data_equals(const char *member, const char *str);
-int CTX_data_dir(const char *member);
+bool CTX_data_equals(const char *member, const char *str);
+bool CTX_data_dir(const char *member);
 
 #if 0
 void CTX_data_pointer_set(bContextDataResult *result, void *data);

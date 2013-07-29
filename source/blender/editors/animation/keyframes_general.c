@@ -628,9 +628,8 @@ static tAnimCopybufItem *pastebuf_match_path_property(FCurve *fcu, const short f
 				PropertyRNA *prop;
 				
 				RNA_id_pointer_create(aci->id, &id_ptr);
-				RNA_path_resolve(&id_ptr, aci->rna_path, &rptr, &prop);
 				
-				if (prop) {
+				if (RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
 					const char *identifier = RNA_property_identifier(prop);
 					int len_id = strlen(identifier);
 					int len_path = strlen(fcu->rna_path);

@@ -427,6 +427,8 @@ struct uiKeyNavLock {
 struct uiPopupBlockHandle {
 	/* internal */
 	struct ARegion *region;
+
+	/* use only for 'UI_BLOCK_MOVEMOUSE_QUIT' popups */
 	float towards_xy[2];
 	double towardstime;
 	bool dotowards;

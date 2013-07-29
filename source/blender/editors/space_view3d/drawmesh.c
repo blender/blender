@@ -77,7 +77,7 @@
 /* user data structures for derived mesh callbacks */
 typedef struct drawMeshFaceSelect_userData {
 	Mesh *me;
-	BLI_bitmap edge_flags; /* pairs of edge options (visible, select) */
+	BLI_bitmap *edge_flags; /* pairs of edge options (visible, select) */
 } drawMeshFaceSelect_userData;
 
 typedef struct drawEMTFMapped_userData {
@@ -100,9 +100,9 @@ typedef struct drawTFace_userData {
 BLI_INLINE int edge_vis_index(const int index) { return index * 2; }
 BLI_INLINE int edge_sel_index(const int index) { return index * 2 + 1; }
 
-static BLI_bitmap get_tface_mesh_marked_edge_info(Mesh *me)
+static BLI_bitmap *get_tface_mesh_marked_edge_info(Mesh *me)
 {
-	BLI_bitmap bitmap_edge_flags = BLI_BITMAP_NEW(me->totedge * 2, __func__);
+	BLI_bitmap *bitmap_edge_flags = BLI_BITMAP_NEW(me->totedge * 2, __func__);
 	MPoly *mp;
 	MLoop *ml;
 	int i, j;

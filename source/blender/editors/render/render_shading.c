@@ -1214,7 +1214,7 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 
 #endif /* WITH_FREESTYLE */
 
-static int texture_slot_move(bContext *C, wmOperator *op)
+static int texture_slot_move_exec(bContext *C, wmOperator *op)
 {
 	ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
@@ -1292,7 +1292,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	ot->description = "Move texture slots up and down";
 
 	/* api callbacks */
-	ot->exec = texture_slot_move;
+	ot->exec = texture_slot_move_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

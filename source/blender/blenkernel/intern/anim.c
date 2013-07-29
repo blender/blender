@@ -1034,7 +1034,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					if (ob->type != OB_MBALL) ob->flag |= OB_DONE;  /* doesnt render */
 
 					if (me->edit_btmesh) {
-						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void *) &vdd);
+						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void *) &vdd, DM_FOREACH_USE_NORMAL);
 					}
 					else {
 						for (a = 0; a < totvert; a++) {

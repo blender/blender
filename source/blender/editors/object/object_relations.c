@@ -136,7 +136,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em;
 
 		EDBM_mesh_load(obedit);
-		EDBM_mesh_make(scene->toolsettings, scene, obedit);
+		EDBM_mesh_make(scene->toolsettings, obedit);
 
 		em = me->edit_btmesh;
 
@@ -2049,7 +2049,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 			if (adt) BKE_animdata_make_local(adt);
 			
 			/* tag indirect data direct */
-			matarar = (Material ***)give_matarar(ob);
+			matarar = give_matarar(ob);
 			if (matarar) {
 				for (a = 0; a < ob->totcol; a++) {
 					ma = (*matarar)[a];

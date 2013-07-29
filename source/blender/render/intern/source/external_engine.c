@@ -311,7 +311,7 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	else if (info && info[0])
 		BLI_strncpy(engine->text, info, sizeof(engine->text));
 	else if (stats && stats[0])
-		BLI_strncpy(engine->text, info, sizeof(engine->text));
+		BLI_strncpy(engine->text, stats, sizeof(engine->text));
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)

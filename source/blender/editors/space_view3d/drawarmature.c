@@ -2066,20 +2066,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 }
 
 /* in editmode, we don't store the bone matrix... */
-static void get_matrix_editbone(EditBone *eBone, float bmat[4][4])
+static void get_matrix_editbone(EditBone *ebone, float bmat[4][4])
 {
-	float delta[3];
-	float mat[3][3];
-	
-	/* Compose the parent transforms (i.e. their translations) */
-	sub_v3_v3v3(delta, eBone->tail, eBone->head);
-	
-	eBone->length = (float)sqrt(delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]);
-	
-	vec_roll_to_mat3(delta, eBone->roll, mat);
-	copy_m4_m3(bmat, mat);
-
-	add_v3_v3(bmat[3], eBone->head);
+	ebone->length = len_v3v3(ebone->tail, ebone->head);
+	ED_armature_ebone_to_mat4(ebone, bmat);
 }
 
 static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)

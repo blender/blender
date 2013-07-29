@@ -811,12 +811,16 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 		movie->streams[i].sh.fcc = FCC("strh");
 		movie->streams[i].sh.size = 56;
 		movie->streams[i].sh.Type = avi_get_format_type(movie->streams[i].format);
-		if (movie->streams[i].sh.Type == 0)
+		if (movie->streams[i].sh.Type == 0) {
+			va_end(ap);
 			return AVI_ERROR_FORMAT;
+		}
 
 		movie->streams[i].sh.Handler = avi_get_format_fcc(movie->streams[i].format);
-		if (movie->streams[i].sh.Handler == 0)
+		if (movie->streams[i].sh.Handler == 0) {
+			va_end(ap);
 			return AVI_ERROR_FORMAT;
+		}
 
 		movie->streams[i].sh.Flags = 0;
 		movie->streams[i].sh.Priority = 0;
@@ -949,6 +953,8 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 	fseek(movie->fp, AVI_HDRL_SOFF, SEEK_SET);
 
 	PUT_FCCN((header_pos2 - header_pos1 + 4L), movie->fp);
+
+	va_end(ap);
 
 	return AVI_ERROR_NONE;
 }
