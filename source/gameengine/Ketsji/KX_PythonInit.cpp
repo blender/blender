@@ -2122,6 +2122,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 	                                        "'render':__import__('Rasterizer'), "
 	                                        "'events':__import__('GameKeys'), "
 	                                        "'constraints':__import__('PhysicsConstraints'), "
+	                                        "'physics':__import__('PhysicsConstraints'),"
 	                                        "'types':__import__('GameTypes'), "
 	                                        "'texture':__import__('VideoTexture')});"
 	                   /* so we can do 'import bge.foo as bar' */
@@ -2130,6 +2131,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 	                                       "'bge.render':bge.render, "
 	                                       "'bge.events':bge.events, "
 	                                       "'bge.constraints':bge.constraints, "
+	                                       "'bge.physics':bge.physics,"
 	                                       "'bge.types':bge.types, "
 	                                       "'bge.texture':bge.texture})"
 	                   );
