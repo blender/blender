@@ -1131,7 +1131,7 @@ static int need_add_seq_dup(Sequence *seq)
 {
 	Sequence *p;
 
-	if ((!seq->strip) || (!seq->strip->stripdata) || (!seq->strip->stripdata->name))
+	if ((!seq->strip) || (!seq->strip->stripdata))
 		return(1);
 
 	/*
