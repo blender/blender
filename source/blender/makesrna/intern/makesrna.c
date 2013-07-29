@@ -177,8 +177,8 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 
 
 	if (len_new != len_org) {
-		fclose(fp_new);
-		fclose(fp_org);
+		fclose(fp_new); fp_new = NULL;
+		fclose(fp_org); fp_org = NULL;
 		REN_IF_DIFF;
 	}
 
@@ -191,8 +191,8 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 	if (fread(arr_org, sizeof(char), len_org, fp_org) != len_org)
 		fprintf(stderr, "%s:%d, error reading file %s for comparison.\n", __FILE__, __LINE__, orgfile);
 
-	fclose(fp_new);
-	fclose(fp_org);
+	fclose(fp_new); fp_new = NULL;
+	fclose(fp_org); fp_org = NULL;
 
 	cmp = memcmp(arr_new, arr_org, len_new);
 
