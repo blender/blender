@@ -1006,6 +1006,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	float *abscoss = BLI_array_alloca(abscoss, f_len_orig);
 	float mat[3][3];
 
+	BLI_assert(BM_face_is_normal_valid(f));
+
 	axis_dominant_v3_to_m3(mat, f->no);
 
 	/* copy vertex coordinates to vertspace area */
