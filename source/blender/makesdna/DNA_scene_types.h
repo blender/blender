@@ -652,7 +652,8 @@ typedef struct GameData {
 	short mode, matmode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
-	short exitkey, pad;
+	short exitkey;
+	short vsync; /* Controls vsync: off, on, or adaptive (if supported) */
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation;
 	short raster_storage;
@@ -687,6 +688,11 @@ typedef struct GameData {
 #define RAS_STORE_IMMEDIATE	1
 #define RAS_STORE_VA		2
 #define RAS_STORE_VBO		3
+
+/* vsync */
+#define VSYNC_OFF	0
+#define VSYNC_ON	1
+#define VSYNC_ADAPTIVE	2
 
 /* GameData.flag */
 #define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)
