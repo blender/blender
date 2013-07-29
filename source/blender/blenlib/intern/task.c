@@ -72,10 +72,12 @@ typedef struct TaskThread {
 static void task_pool_num_decrease(TaskPool *pool, size_t done)
 {
 	BLI_mutex_lock(&pool->num_mutex);
+
+	BLI_assert(pool->num >= done);
+
 	pool->num -= done;
 	pool->done += done;
 
-	BLI_assert(pool->num >= 0);
 	if (pool->num == 0)
 		BLI_condition_notify_all(&pool->num_cond);
 
