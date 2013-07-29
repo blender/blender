@@ -808,7 +808,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				 * currently it seems to be common practice to generate new event for, but probably
 				 * we'll need utility function for this? (sergey)
 				 */
-				event = *(win->eventstate);
+				wm_event_init_from_window(win, &event);
 				event.type = MOUSEMOVE;
 				event.prevx = event.x;
 				event.prevy = event.y;
@@ -957,7 +957,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				win->eventstate->x = wx;
 				win->eventstate->y = wy;
 				
-				event = *(win->eventstate);  /* copy last state, like mouse coords */
+				wm_event_init_from_window(win, &event);  /* copy last state, like mouse coords */
 				
 				/* activate region */
 				event.type = MOUSEMOVE;
@@ -1065,7 +1065,8 @@ static int wm_window_timer(const bContext *C)
 				else if (wt->event_type == TIMERAUTOSAVE)
 					wm_autosave_timer(C, wm, wt);
 				else if (win) {
-					wmEvent event = *(win->eventstate);
+					wmEvent event;
+					wm_event_init_from_window(win, &event);
 					
 					event.type = wt->event_type;
 					event.val = 0;

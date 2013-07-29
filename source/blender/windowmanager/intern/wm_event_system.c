@@ -132,6 +132,14 @@ void wm_event_free_all(wmWindow *win)
 	}
 }
 
+void wm_event_init_from_window(wmWindow *win, wmEvent *event)
+{
+	/* make sure we don't copy any owned pointers */
+	BLI_assert(win->eventstate->tablet_data == NULL);
+
+	*event = *(win->eventstate);
+}
+
 /* ********************* notifiers, listeners *************** */
 
 static int wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
@@ -445,7 +453,9 @@ static void wm_handler_ui_cancel(bContext *C)
 		nexthandler = handler->next;
 
 		if (handler->ui_handle) {
-			wmEvent event = *(win->eventstate);
+			wmEvent event;
+
+			wm_event_init_from_window(win, &event);
 			event.type = EVT_BUT_CANCEL;
 			handler->ui_handle(C, &event, handler->ui_userdata);
 		}

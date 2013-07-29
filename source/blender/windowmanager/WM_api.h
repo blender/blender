@@ -187,6 +187,8 @@ __attribute__ ((format(printf, 3, 4)))
 ;
 
 void		wm_event_add(struct wmWindow *win, const struct wmEvent *event_to_add);
+void		wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
+
 
 			/* at maximum, every timestep seconds it triggers event_type events */
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep);
