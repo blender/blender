@@ -187,6 +187,8 @@ void DocumentImporter::finish()
 	Scene *sce = CTX_data_scene(mContext);
 	unit_converter.calculate_scale(*sce);
 
+	std::vector<Object *> *objects_to_scale = new std::vector<Object *>();
+
 	/** TODO Break up and put into 2-pass parsing of DAE */
 	std::vector<const COLLADAFW::VisualScene *>::iterator it;
 	for (it = vscenes.begin(); it != vscenes.end(); it++) {
@@ -222,11 +224,8 @@ void DocumentImporter::finish()
 		// Write nodes to scene
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
-			std::vector<Object *> *objects_done;
-			objects_done = write_node(roots[i], NULL, sce, NULL, false);
-			
-			// Match incoming scene with current unit settings
-			bc_match_scale(objects_done, unit_converter, !this->import_settings->import_units);
+			std::vector<Object *> *objects_done = write_node(roots[i], NULL, sce, NULL, false);
+			objects_to_scale->insert(objects_to_scale->end(), objects_done->begin(), objects_done->end());
 		}
 
 		// update scene
@@ -277,6 +276,8 @@ void DocumentImporter::finish()
 
 		DAG_relations_tag_update(bmain);
 	}
+	
+	bc_match_scale(objects_to_scale, unit_converter, !this->import_settings->import_units);
 }
 
 
@@ -460,6 +461,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 	std::string name = node->getName();
 
 	std::vector<Object *> *objects_done = new std::vector<Object *>();
+	std::vector<Object *> *root_objects = new std::vector<Object *>();
 
 	fprintf(stderr,
 			"Writing node id='%s', name='%s'\n",
@@ -472,6 +474,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			// Here we add the armature "on the fly":
 			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());
 			objects_done->push_back(par);
+			root_objects->push_back(par);
 			object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
 			node_map[node->getUniqueId()] = node;
 		}
@@ -482,7 +485,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if (parent_node == NULL) {
 			// for skeletons without root node all has been done above.
 			// Skeletons with root node are handled further down.
-			return objects_done;
+			return root_objects;
 		}
 	}
 	else {
@@ -511,6 +514,9 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			}
 			else {
 				objects_done->push_back(ob);
+				if (parent_node == NULL) {
+					root_objects->push_back(ob);
+				}
 			}
 			++geom_done;
 		}
@@ -521,19 +527,29 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 				std::string name = node->getName();
 				fprintf(stderr, "<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_camera.\n", id.c_str(), name.c_str());
 			}
-			else
+			else {
 				objects_done->push_back(ob);
+				if (parent_node == NULL) {
+					root_objects->push_back(ob);
+				}
+			}
 			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
 			ob = create_lamp_object(lamp[lamp_done], sce);
 			objects_done->push_back(ob);
+			if (parent_node == NULL) {
+				root_objects->push_back(ob);
+			}
 			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
 			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry *)controller[controller_done];
 			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
 			objects_done->push_back(ob);
+			if (parent_node == NULL) {
+				root_objects->push_back(ob);
+			}
 			++controller_done;
 		}
 		// XXX instance_node is not supported yet
@@ -551,7 +567,12 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
 				}
 			}
-			if (ob != NULL) objects_done->push_back(ob);
+			if (ob != NULL) {
+				objects_done->push_back(ob);
+				if (parent_node == NULL) {
+					root_objects->push_back(ob);
+				}
+			}
 			++inst_done;
 
 			read_transform = false;
@@ -568,12 +589,14 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 				ob = bc_add_object(sce, OB_EMPTY, NULL);
 			}
 			objects_done->push_back(ob);
-
+			if (parent_node == NULL) {
+				root_objects->push_back(ob);
+			}
 		}
 		
 		// XXX: if there're multiple instances, only one is stored
 
-		if (!ob) return objects_done;
+		if (!ob) return root_objects;
 
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
@@ -622,7 +645,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		write_node(child_nodes[i], node, sce, ob, is_library_node);
 	}
 
-	return objects_done;
+	return root_objects;
 }
 
 /** When this method is called, the writer must write the entire visual scene.
