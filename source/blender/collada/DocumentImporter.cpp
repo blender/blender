@@ -185,6 +185,7 @@ void DocumentImporter::finish()
 	Main *bmain = CTX_data_main(mContext);
 	// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
 	Scene *sce = CTX_data_scene(mContext);
+	unit_converter.calculate_scale(*sce);
 
 	/** TODO Break up and put into 2-pass parsing of DAE */
 	std::vector<const COLLADAFW::VisualScene *>::iterator it;
@@ -224,10 +225,8 @@ void DocumentImporter::finish()
 			std::vector<Object *> *objects_done;
 			objects_done = write_node(roots[i], NULL, sce, NULL, false);
 			
-			if (!this->import_settings->import_units) {
-				// Match incoming scene with current unit settings
-				bc_match_scale(objects_done, *sce, unit_converter);
-			}
+			// Match incoming scene with current unit settings
+			bc_match_scale(objects_done, unit_converter, !this->import_settings->import_units);
 		}
 
 		// update scene
