@@ -4588,14 +4588,21 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
+	const BMAllocTemplate allocsize = {me->totvert,
+	                                   me->totedge,
+	                                   me->totloop,
+	                                   me->totpoly};
 
 	sculpt_pbvh_clear(ob);
 
 	ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
 	                         SCULPT_DYNTOPO_SMOOTH_SHADING);
 
+	/* Dynamic topology doesn't ensure selection state is valid, so remove [#36280] */
+	BKE_mesh_mselect_clear(me);
+
 	/* Create triangles-only BMesh */
-	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	ss->bm = BM_mesh_create(&allocsize);
 
 	BM_mesh_bm_from_me(ss->bm, me, true, true, ob->shapenr);
 	sculpt_dynamic_topology_triangulate(ss->bm);
