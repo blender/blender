@@ -214,6 +214,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 		if (bm_face_split_by_angle(bm, f, f_pair, angle_limit)) {
 			int j;
 			for (j = 0; j < 2; j++) {
+				BM_face_normal_update(f_pair[j]);
 				if (f_pair[j]->len > 3) {
 					STACK_PUSH(fstack, f_pair[j]);
 				}

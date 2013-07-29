@@ -1061,7 +1061,7 @@ void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	const int len2 = len * 2;
 	BMLoop *l;
-	float v1[2], v2[2], v3[2] /*, v4[3 */, no[3], mid[2], *p1, *p2, *p3, *p4;
+	float v1[2], v2[2], v3[2], mid[2], *p1, *p2, *p3, *p4;
 	float out[2] = {-FLT_MAX, -FLT_MAX};
 	float axis_mat[3][3];
 	float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
@@ -1069,10 +1069,9 @@ void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
 
-	/* TODO, the face normal may already be correct */
-	BM_face_calc_normal(f, no);
+	BLI_assert(BM_face_is_normal_valid(f));
 
-	axis_dominant_v3_to_m3(axis_mat, no);
+	axis_dominant_v3_to_m3(axis_mat, f->no);
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		BM_elem_index_set(l, i); /* set_loop */
