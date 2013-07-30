@@ -1374,8 +1374,15 @@ void rotate_m2(float mat[2][2], const float angle)
 	mat[1][0] = -mat[0][1];
 }
 
-/* scale or rotate around a non zero pivot */
-void pivot_m4(float mat[4][4], const float pivot[3])
+/**
+ * Scale or rotate around a pivot point,
+ * a convenience function to avoid having to do inline.
+ *
+ * Since its common to make a scale/rotation matrix that pivots around an arbitrary point.
+ *
+ * Typical use case is to make 3x3 matrix, copy to 4x4, then pass to this function.
+ */
+void transform_pivot_set_m4(float mat[4][4], const float pivot[3])
 {
 	float tmat[4][4];
 

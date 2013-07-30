@@ -77,9 +77,9 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 
 	axis_dominant_v3_to_m3(axis_mat, no);
 
-	z_prev = mul_m3_v3_single_z(axis_mat, l_last->v->co);
+	z_prev = dot_m3_v3_row_z(axis_mat, l_last->v->co);
 	do {
-		z_curr = mul_m3_v3_single_z(axis_mat, l_iter->v->co);
+		z_curr = dot_m3_v3_row_z(axis_mat, l_iter->v->co);
 		delta_z += fabsf(z_curr - z_prev);
 		z_prev = z_curr;
 	} while ((l_iter = l_iter->next) != l_term);
