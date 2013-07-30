@@ -86,17 +86,15 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
                                    float parent_mat[4][4], bArmature *arm)
 {
+	float mat[4][4];
+	float joint_inv_bind_mat[4][4];
+
 	//Checking if bone is already made.
 	std::vector<COLLADAFW::Node *>::iterator it;
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
 	if (it != finished_joints.end()) return;
 
-	float joint_inv_bind_mat[4][4];
-
 	// JointData* jd = get_joint_data(node);
-
-	float mat[4][4];
-	float obmat[4][4];
 	
 	// TODO rename from Node "name" attrs later
 	EditBone *bone = ED_armature_edit_bone_add(arm, (char *)bc_get_joint_name(node));
@@ -105,9 +103,18 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 	if (skin && skin->get_joint_inv_bind_matrix(joint_inv_bind_mat, node)) {
 		// get original world-space matrix
 		invert_m4_m4(mat, joint_inv_bind_mat);
+
+		// And make local to armature
+		Object *ob_arm = skin->BKE_armature_from_object();
+		if (ob_arm) {
+			float invmat[4][4];
+			invert_m4_m4(invmat, ob_arm->obmat);
+			mul_m4_m4m4(mat, invmat, mat);
+		}
 	}
 	// create a bone even if there's no joint data for it (i.e. it has no influence)
 	else {
+		float obmat[4][4];
 		// bone-space
 		get_node_mat(obmat, node, NULL, NULL);
 

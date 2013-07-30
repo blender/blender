@@ -226,8 +226,6 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	ArmatureModifierData *amd = (ArmatureModifierData *)md;
 	amd->object = ob_arm;
 
-	copy_m4_m4(ob->obmat, bind_shape_matrix);
-	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 #if 1
 	bc_set_parent(ob, ob_arm, C);
 #else
@@ -243,6 +241,8 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 #endif
+	copy_m4_m4(ob->obmat, bind_shape_matrix);
+	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 
 	amd->deformflag = ARM_DEF_VGROUP;
 
