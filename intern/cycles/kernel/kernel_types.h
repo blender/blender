@@ -436,7 +436,7 @@ typedef enum AttributeStandard {
 
 /* Closure data */
 
-#define MAX_CLOSURE 16
+#define MAX_CLOSURE 64
 
 typedef struct ShaderClosure {
 	ClosureType type;

@@ -46,7 +46,7 @@ class Progress;
 
 struct PackedBVH {
 	/* BVH nodes storage, one node is 4x int4, and contains two bounding boxes,
-	 * and child, triangle or object indexes dependening on the node type */
+	 * and child, triangle or object indexes depending on the node type */
 	array<int4> nodes; 
 	/* object index to BVH node index mapping for instances */
 	array<int> object_node; 
