@@ -925,10 +925,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 			path_radiance_bsdf_bounce(L, &tp, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 			/* set labels */
-			float min_ray_pdf = FLT_MAX;
-
-			if(!(label & LABEL_TRANSPARENT))
-				min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
+			float min_ray_pdf = fminf(bsdf_pdf, FLT_MAX);
 
 			/* modify path state */
 			PathState ps = state;
