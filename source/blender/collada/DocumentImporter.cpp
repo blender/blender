@@ -565,12 +565,10 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 					Object *source_ob = (Object *)it2->second;
 					COLLADAFW::Node *source_node = node_map[node_id];
 					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
-				}
-			}
-			if (ob != NULL) {
-				objects_done->push_back(ob);
-				if (parent_node == NULL) {
-					root_objects->push_back(ob);
+					objects_done->push_back(ob);
+					if (parent_node == NULL) {
+						root_objects->push_back(ob);
+					}
 				}
 			}
 			++inst_done;
