@@ -582,7 +582,12 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_canvas = new GPG_Canvas(window);
 		if (!m_canvas)
 			return false;
-				
+
+		if (gm->vsync == VSYNC_ADAPTIVE)
+			m_canvas->SetSwapInterval(-1);
+		else
+			m_canvas->SetSwapInterval(gm->vsync); // VSYNC_OFF == 0, VSYNC_ON == 1, so this works
+
 		m_canvas->Init();
 		if (gm->flag & GAME_SHOW_MOUSE)
 			m_canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);

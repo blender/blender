@@ -1372,6 +1372,29 @@ static PyObject *gPyGetMipmapping(PyObject *)
 	return PyLong_FromLong(gp_Rasterizer->GetMipmapping());
 }
 
+static PyObject *gPySetVsync(PyObject *, PyObject *args)
+{
+	int interval;
+
+	if (!PyArg_ParseTuple(args, "i:setVsync", &interval))
+		return NULL;
+
+	if (interval < VSYNC_OFF || interval > VSYNC_ADAPTIVE) {
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setVsync(value): value must be VSYNC_OFF, VSYNC_ON, or VSYNC_ADAPTIVE");
+		return NULL;
+	}
+
+	if (interval == VSYNC_ADAPTIVE)
+		interval = -1;
+	gp_Canvas->SetSwapInterval(interval);
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyGetVsync(PyObject *)
+{
+	return PyLong_FromLong(gp_Canvas->GetSwapInterval());
+}
+
 static struct PyMethodDef rasterizer_methods[] = {
 	{"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
 	 METH_VARARGS, "getWindowWidth doc"},
@@ -1417,6 +1440,8 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"getFullScreen", (PyCFunction) gPyGetFullScreen, METH_NOARGS, ""},
 	{"setMipmapping", (PyCFunction) gPySetMipmapping, METH_VARARGS, ""},
 	{"getMipmapping", (PyCFunction) gPyGetMipmapping, METH_NOARGS, ""},
+	{"setVsync", (PyCFunction) gPySetVsync, METH_VARARGS, ""},
+	{"getVsync", (PyCFunction) gPyGetVsync, METH_NOARGS, ""},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -2122,6 +2147,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 	                                        "'render':__import__('Rasterizer'), "
 	                                        "'events':__import__('GameKeys'), "
 	                                        "'constraints':__import__('PhysicsConstraints'), "
+	                                        "'physics':__import__('PhysicsConstraints'),"
 	                                        "'types':__import__('GameTypes'), "
 	                                        "'texture':__import__('VideoTexture')});"
 	                   /* so we can do 'import bge.foo as bar' */
@@ -2130,6 +2156,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 	                                       "'bge.render':bge.render, "
 	                                       "'bge.events':bge.events, "
 	                                       "'bge.constraints':bge.constraints, "
+	                                       "'bge.physics':bge.physics,"
 	                                       "'bge.types':bge.types, "
 	                                       "'bge.texture':bge.texture})"
 	                   );
@@ -2186,6 +2213,11 @@ PyObject *initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_NONE, RAS_IRasterizer::RAS_MIPMAP_NONE);
 	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_NEAREST, RAS_IRasterizer::RAS_MIPMAP_NEAREST);
 	KX_MACRO_addTypesToDict(d, RAS_MIPMAP_LINEAR, RAS_IRasterizer::RAS_MIPMAP_LINEAR);
+
+	/* for get/setVsync */
+	KX_MACRO_addTypesToDict(d, VSYNC_OFF, VSYNC_OFF);
+	KX_MACRO_addTypesToDict(d, VSYNC_ON, VSYNC_ON);
+	KX_MACRO_addTypesToDict(d, VSYNC_ADAPTIVE, VSYNC_ADAPTIVE);
 
 	// XXXX Add constants here
 

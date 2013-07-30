@@ -649,7 +649,8 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 	
 	sad->modifier = RNA_int_get(op->ptr, "modifier");
 	
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
+
 	if (type == AZONE_AREA)
 		event.type = EVT_ACTIONZONE_AREA;
 	else

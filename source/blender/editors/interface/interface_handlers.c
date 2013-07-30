@@ -6193,7 +6193,7 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 	
 	button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 	
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;

@@ -691,6 +691,19 @@ GHOST_TSuccess GHOST_SwapWindowBuffers(GHOST_WindowHandle windowhandle)
 	return window->swapBuffers();
 }
 
+GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int interval)
+{
+	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
+
+	return window->setSwapInterval(interval);
+}
+
+int GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle)
+{
+	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
+
+	return window->getSwapInterval();
+}
 
 
 GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandle)

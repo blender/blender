@@ -80,6 +80,16 @@ public:
 		void 
 	SwapBuffers(
 	);
+
+		void
+	SetSwapInterval(
+		int interval
+	);
+
+		int
+	GetSwapInterval(
+	);
+
 		void 
 	ResizeWindow(
 		int width,

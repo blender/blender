@@ -77,9 +77,9 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 
 	axis_dominant_v3_to_m3(axis_mat, no);
 
-	z_prev = mul_m3_v3_single_z(axis_mat, l_last->v->co);
+	z_prev = dot_m3_v3_row_z(axis_mat, l_last->v->co);
 	do {
-		z_curr = mul_m3_v3_single_z(axis_mat, l_iter->v->co);
+		z_curr = dot_m3_v3_row_z(axis_mat, l_iter->v->co);
 		delta_z += fabsf(z_curr - z_prev);
 		z_prev = z_curr;
 	} while ((l_iter = l_iter->next) != l_term);
@@ -214,6 +214,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 		if (bm_face_split_by_angle(bm, f, f_pair, angle_limit)) {
 			int j;
 			for (j = 0; j < 2; j++) {
+				BM_face_normal_update(f_pair[j]);
 				if (f_pair[j]->len > 3) {
 					STACK_PUSH(fstack, f_pair[j]);
 				}

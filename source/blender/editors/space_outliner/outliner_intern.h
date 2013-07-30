@@ -48,7 +48,7 @@ struct Object;
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
 	ListBase subtree;
-	float xs, ys;       // do selection
+	int xs, ys;         // do selection
 	int store_index;    // offset in tree store
 	short flag;         // flag for non-saved stuff
 	short index;        // index for data arrays

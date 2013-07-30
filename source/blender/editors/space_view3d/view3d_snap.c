@@ -660,7 +660,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Selection to Grid";
-	ot->description = "Snap selected item(s) to nearest grid node";
+	ot->description = "Snap selected item(s) to nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
@@ -867,7 +867,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Grid";
-	ot->description = "Snap cursor to nearest grid node";
+	ot->description = "Snap cursor to nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */

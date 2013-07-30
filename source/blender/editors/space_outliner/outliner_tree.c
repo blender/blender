@@ -804,7 +804,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	ID *id = idv;
-	int a = 0;
 	
 	if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		id = ((PointerRNA *)idv)->id.data;
@@ -1084,7 +1083,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->name = km->idname;
 		
 		if (TSELEM_OPEN(tselem, soops)) {
-			a = 0;
+			int a = 0;
 			
 			for (kmi = km->items.first; kmi; kmi = kmi->next, a++) {
 				const char *key = WM_key_event_string(kmi->type);
@@ -1131,7 +1130,7 @@ static int need_add_seq_dup(Sequence *seq)
 {
 	Sequence *p;
 
-	if ((!seq->strip) || (!seq->strip->stripdata) || (!seq->strip->stripdata->name))
+	if ((!seq->strip) || (!seq->strip->stripdata))
 		return(1);
 
 	/*

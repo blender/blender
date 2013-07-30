@@ -1,5 +1,5 @@
 import bpy
-from bpy_types import NodeTree, Node, NodeSocket
+from bpy.types import NodeTree, Node, NodeSocket
 
 # Implementation of custom nodes from Python
 

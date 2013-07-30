@@ -284,6 +284,14 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 		else
 			canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
+
+		// Setup vsync
+		int previous_vsync = canvas->GetSwapInterval();
+		if (startscene->gm.vsync == VSYNC_ADAPTIVE)
+			canvas->SetSwapInterval(-1);
+		else
+			canvas->SetSwapInterval(startscene->gm.vsync); // VSYNC_OFF == 0, VSYNC_ON == 1, so this works
+
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 		//Don't use displaylists with VBOs
@@ -663,6 +671,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 		if (canvas)
 		{
+			canvas->SetSwapInterval(previous_vsync); // Set the swap interval back
 			delete canvas;
 			canvas = NULL;
 		}

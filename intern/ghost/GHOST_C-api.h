@@ -666,6 +666,19 @@ extern GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle,
 extern GHOST_TSuccess GHOST_SwapWindowBuffers(GHOST_WindowHandle windowhandle);
 
 /**
+ * Sets the swap interval for swapBuffers.
+ * \param interval The swap interval to use.
+ * \return A boolean success indicator.
+ */
+extern GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int interval);
+
+/**
+ * Gets the current swap interval for swapBuffers.
+ * \return An integer.
+ */
+extern int GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle);
+
+/**
  * Activates the drawing context of this window.
  * \param windowhandle The handle to the window
  * \return An intean success indicator.

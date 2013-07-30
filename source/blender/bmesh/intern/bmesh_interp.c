@@ -205,6 +205,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const b
 	int i;
 
 	/* convert the 3d coords into 2d for projection */
+	BLI_assert(BM_face_is_normal_valid(source));
 	axis_dominant_v3_to_m3(axis_mat, source->no);
 
 	i = 0;
@@ -638,6 +639,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	int i;
 
 	/* convert the 3d coords into 2d for projection */
+	BLI_assert(BM_face_is_normal_valid(source));
 	axis_dominant_v3_to_m3(axis_mat, source->no);
 
 	i = 0;
@@ -678,6 +680,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	int i;
 
 	/* convert the 3d coords into 2d for projection */
+	BLI_assert(BM_face_is_normal_valid(source));
 	axis_dominant_v3_to_m3(axis_mat, source->no);
 
 	i = 0;

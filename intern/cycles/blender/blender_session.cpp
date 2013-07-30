@@ -279,6 +279,11 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 
 	BL::RenderResult::layers_iterator b_single_rlay;
 	b_rr.layers.begin(b_single_rlay);
+
+	/* layer will be missing if it was disabled in the UI */
+	if(b_single_rlay == b_rr.layers.end())
+		return;
+
 	BL::RenderLayer b_rlay = *b_single_rlay;
 
 	if (do_update_only) {

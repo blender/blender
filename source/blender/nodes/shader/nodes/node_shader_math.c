@@ -232,6 +232,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 		case 13:
 		case 15:
 		case 16:
+		case 17:
 			GPU_stack_link(mat, names[node->custom1], in, out);
 			break;
 		case 4:

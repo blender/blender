@@ -414,6 +414,9 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         col.active = gs.raster_storage != 'VERTEX_BUFFER_OBJECT'
 
         row = layout.row()
+        row.prop(gs, "vsync")
+
+        row = layout.row()
         row.prop(gs, "raster_storage")
 
         row = layout.row()
