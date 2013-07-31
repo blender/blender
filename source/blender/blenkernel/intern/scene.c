@@ -1162,25 +1162,20 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
-#define ENABLE_THREAD_STATISTICS
-
-#ifdef ENABLE_THREAD_STATISTICS
 typedef struct StatisicsEntry {
 	struct StatisicsEntry *next, *prev;
 	Object *object;
 	double time;
 } StatisicsEntry;
-#endif
 
 typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
 	SpinLock lock;
 
-#ifdef ENABLE_THREAD_STATISTICS
-	ListBase statistics[64];
+	/* Execution statistics */
+	ListBase statistics[BLENDER_MAX_THREADS];
 	int num_updated_objects;
-#endif
 } ThreadedObjectUpdateState;
 
 static void scene_update_object_add_task(void *node, void *user_data);
@@ -1197,13 +1192,10 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 	Scene *scene_parent = state->scene_parent;
 
 	if (object) {
-#ifdef ENABLE_THREAD_STATISTICS
 		double start_time = 0.0;
-#endif
 
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
 
-#ifdef ENABLE_THREAD_STATISTICS
 		if (G.debug & G_DEBUG) {
 			start_time = PIL_check_seconds_timer();
 
@@ -1213,7 +1205,6 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 				BLI_spin_unlock(&state->lock);
 			}
 		}
-#endif
 
 		/* We only update object itself here, dupli-group will be updated
 		 * separately from main thread because of we've got no idea about
@@ -1221,7 +1212,6 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		 */
 		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
 
-#ifdef ENABLE_THREAD_STATISTICS
 		/* Calculate statistics. */
 		if (G.debug & G_DEBUG) {
 			StatisicsEntry *entry;
@@ -1232,7 +1222,6 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 			BLI_addtail(&state->statistics[threadid], entry);
 		}
-#endif
 	}
 	else {
 		PRINT("Threda %d: update node %s\n", threadid,
@@ -1254,11 +1243,15 @@ static void scene_update_object_add_task(void *node, void *user_data)
 	BLI_task_pool_push(task_pool, scene_update_object_func, node, false, TASK_PRIORITY_LOW);
 }
 
-#ifdef ENABLE_THREAD_STATISTICS
 static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
-	int i;
-	int tot_thread = BLI_system_thread_count();
+	int i, tot_thread;
+
+	if ((G.debug & G_DEBUG) == 0) {
+		return;
+	}
+
+	tot_thread = BLI_system_thread_count();
 
 	for (i = 0; i < tot_thread; i++) {
 		int total_objects = 0;
@@ -1280,15 +1273,14 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 			for (entry = state->statistics[i].first;
 			     entry;
 			     entry = entry->next)
-				{
-					printf("  %s in %f sec\n", entry->object->id.name + 2, entry->time);
-				}
+			{
+				printf("  %s in %f sec\n", entry->object->id.name + 2, entry->time);
+			}
 		}
 
 		BLI_freelistN(&state->statistics[i]);
 	}
 }
-#endif
 
 static void scene_update_objects(Scene *scene, Scene *scene_parent)
 {
@@ -1305,10 +1297,8 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 
 	state.scene = scene;
 	state.scene_parent = scene_parent;
-#ifdef ENABLE_THREAD_STATISTICS
 	memset(state.statistics, 0, sizeof(state.statistics));
 	state.num_updated_objects = 0;
-#endif
 	BLI_spin_init(&state.lock);
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
@@ -1345,11 +1335,9 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 
 	BLI_spin_end(&state.lock);
 
-#ifdef ENABLE_THREAD_STATISTICS
 	if (G.debug & G_DEBUG) {
 		print_threads_statistics(&state);
 	}
-#endif
 
 	/* XXX: Weak, very weak!
 	 *
