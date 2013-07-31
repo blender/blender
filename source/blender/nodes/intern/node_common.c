@@ -267,6 +267,7 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
 	bNodeSocket *output = node->outputs.first;
 	bNodeLink *link;
 	int type = SOCK_FLOAT;
+	const char *type_idname = nodeStaticSocketType(type, PROP_NONE);
 	
 	/* XXX it would be a little bit more efficient to restrict actual updates
 	 * to rerout nodes connected to an updated node, but there's no reliable flag
@@ -292,21 +293,37 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
 	}
 	
 	/* determine socket type from unambiguous input/output connection if possible */
-	if (input->limit == 1 && input->link)
+	if (input->limit == 1 && input->link) {
 		type = input->link->fromsock->type;
-	else if (output->limit == 1 && output->link)
-		type = output->link->tosock->type;
-	
-	/* arbitrary, could also test output->type, both are the same */
-	if (input->type != type) {
-		PointerRNA input_ptr, output_ptr;
-		/* same type for input/output */
-		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, input, &input_ptr);
-		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, output, &output_ptr);
-		
-		RNA_enum_set(&input_ptr, "type", type);
-		RNA_enum_set(&output_ptr, "type", type);
+		type_idname = nodeStaticSocketType(type, PROP_NONE);
 	}
+	else if (output->limit == 1 && output->link) {
+		type = output->link->tosock->type;
+		type_idname = nodeStaticSocketType(type, PROP_NONE);
+	}
+	
+	if (input->type != type) {
+		bNodeSocket *ninput = nodeAddSocket(ntree, node, SOCK_IN, type_idname, "input", "Input");
+		for (link = ntree->links.first; link; link = link->next) {
+			if (link->tosock == input) {
+				link->tosock = ninput;
+				ninput->link = link;
+			}
+		}
+		nodeRemoveSocket(ntree, node, input);
+	}
+	
+	if (output->type != type) {
+		bNodeSocket *noutput = nodeAddSocket(ntree, node, SOCK_OUT, type_idname, "output", "Output");
+		for (link = ntree->links.first; link; link = link->next) {
+			if (link->fromsock == output) {
+				link->fromsock = noutput;
+			}
+		}
+		nodeRemoveSocket(ntree, node, output);
+	}
+	
+	nodeUpdateInternalLinks(ntree, node);
 }
 
 /* Global update function for Reroute node types.
