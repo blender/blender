@@ -744,6 +744,8 @@ struct ShadeResult;
 #define SH_NODE_WAVELENGTH				180
 #define SH_NODE_BLACKBODY				181
 #define SH_NODE_VECT_TRANSFORM			182
+#define SH_NODE_SEPHSV					183
+#define SH_NODE_COMBHSV					184
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
