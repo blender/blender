@@ -280,6 +280,12 @@ static void mem_lock_thread(void)
 
 static void mem_unlock_thread(void)
 {
+#ifdef DEBUG_THREADS
+	if (!pthread_equal(pthread_self(), mainid) && thread_lock_callback == NULL) {
+		assert(!"Thread lock was removed while allocation from thread is in progress");
+	}
+#endif
+
 	if (thread_unlock_callback)
 		thread_unlock_callback();
 }
