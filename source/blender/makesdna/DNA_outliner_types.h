@@ -32,8 +32,6 @@
 #ifndef __DNA_OUTLINER_TYPES_H__
 #define __DNA_OUTLINER_TYPES_H__
 
-#include "DNA_listBase.h"
-
 struct ID;
 
 typedef struct TreeStoreElem {

@@ -33,7 +33,6 @@
 #define __DNA_MESH_TYPES_H__
 
 #include "DNA_defs.h"
-#include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 

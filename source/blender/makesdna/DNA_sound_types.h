@@ -33,7 +33,6 @@
 #ifndef __DNA_SOUND_TYPES_H__
 #define __DNA_SOUND_TYPES_H__
 
-#include "DNA_listBase.h"
 #include "DNA_ID.h"
 
 /* stupid... could easily be solved */
