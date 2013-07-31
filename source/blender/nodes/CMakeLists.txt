@@ -148,6 +148,7 @@ set(SRC
 	shader/nodes/node_shader_wavelength.c
 	shader/nodes/node_shader_blackbody.c
 	shader/nodes/node_shader_vectMath.c
+	shader/nodes/node_shader_vectTransform.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_ambient_occlusion.c
 	shader/nodes/node_shader_attribute.c

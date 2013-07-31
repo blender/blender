@@ -494,6 +494,18 @@ public:
 	static ShaderEnum type_enum;
 };
 
+class VectorTransformNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(VectorTransformNode)
+
+	ustring type;
+	ustring convert_from;
+	ustring convert_to;
+	
+	static ShaderEnum type_enum;
+	static ShaderEnum convert_space_enum;
+};
+
 class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)

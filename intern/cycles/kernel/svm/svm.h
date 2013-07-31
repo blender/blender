@@ -177,6 +177,7 @@ CCL_NAMESPACE_END
 #include "svm_voronoi.h"
 #include "svm_checker.h"
 #include "svm_brick.h"
+#include "svm_vector_transform.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -381,6 +382,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_VECTOR_MATH:
 				svm_node_vector_math(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_VECTOR_TRANSFORM:
+				svm_node_vector_transform(kg, sd, stack, node);
 				break;
 			case NODE_NORMAL:
 				svm_node_normal(kg, sd, stack, node.y, node.z, node.w, &offset);

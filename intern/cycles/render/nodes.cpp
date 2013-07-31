@@ -3169,6 +3169,65 @@ void VectorMathNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_vector_math");
 }
 
+/* VectorTransform */
+
+VectorTransformNode::VectorTransformNode()
+: ShaderNode("vector_transform")
+{
+	type = ustring("Vector");
+	convert_from = ustring("world");
+	convert_to = ustring("object");
+
+	add_input("Vector", SHADER_SOCKET_VECTOR);
+	add_output("Vector",  SHADER_SOCKET_VECTOR);
+}
+
+static ShaderEnum vector_transform_type_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Vector", NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
+	enm.insert("Point", NODE_VECTOR_TRANSFORM_TYPE_POINT);
+	enm.insert("Normal", NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+
+	return enm;
+}
+
+static ShaderEnum vector_transform_convert_space_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD);
+	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT);
+	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA);
+
+	return enm;
+}
+
+ShaderEnum VectorTransformNode::type_enum = vector_transform_type_init();
+ShaderEnum VectorTransformNode::convert_space_enum = vector_transform_convert_space_init();
+
+void VectorTransformNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *vector_out = output("Vector");
+
+	compiler.stack_assign(vector_in);
+	compiler.stack_assign(vector_out);
+
+	compiler.add_node(NODE_VECTOR_TRANSFORM,
+		compiler.encode_uchar4(type_enum[type], convert_space_enum[convert_from], convert_space_enum[convert_to]),
+		compiler.encode_uchar4(vector_in->stack_offset, vector_out->stack_offset));
+}
+
+void VectorTransformNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("type", type);
+	compiler.parameter("convert_from", convert_from);
+	compiler.parameter("convert_to", convert_to);
+	compiler.add(this, "node_vector_transform");
+}
+
 /* BumpNode */
 
 BumpNode::BumpNode()
