@@ -1179,7 +1179,6 @@ typedef struct ThreadedObjectUpdateState {
 
 #ifdef ENABLE_THREAD_STATISTICS
 	ListBase statistics[64];
-	int tot_thread;
 #endif
 } ThreadedObjectUpdateState;
 
@@ -1219,8 +1218,6 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		if (G.debug & G_DEBUG) {
 			StatisicsEntry *entry;
 
-			state->tot_thread = max_ii(state->tot_thread, threadid + 1);
-
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
 			entry->object = object;
 			entry->time = PIL_check_seconds_timer() - start_time;
@@ -1253,8 +1250,9 @@ static void scene_update_object_add_task(void *node, void *user_data)
 static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
 	int i;
+	int tot_thread = BLI_system_thread_count();
 
-	for (i = 0; i < state->tot_thread; i++) {
+	for (i = 0; i < tot_thread; i++) {
 		int total_objects = 0;
 		double total_time = 0.0;
 		StatisicsEntry *entry;
@@ -1298,7 +1296,6 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 	state.scene_parent = scene_parent;
 #ifdef ENABLE_THREAD_STATISTICS
 	memset(state.statistics, 0, sizeof(state.statistics));
-	state.tot_thread = 0;
 #endif
 	BLI_spin_init(&state.lock);
 
