@@ -649,7 +649,8 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 	
 	sad->modifier = RNA_int_get(op->ptr, "modifier");
 	
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
+
 	if (type == AZONE_AREA)
 		event.type = EVT_ACTIONZONE_AREA;
 	else
@@ -2564,7 +2565,7 @@ static void SCREEN_OT_area_options(wmOperatorType *ot)
 /* ******************************* */
 
 
-static int spacedata_cleanup(bContext *C, wmOperator *op)
+static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	bScreen *screen;
@@ -2596,7 +2597,7 @@ static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_spacedata_cleanup";
 	
 	/* api callbacks */
-	ot->exec = spacedata_cleanup;
+	ot->exec = spacedata_cleanup_exec;
 	ot->poll = WM_operator_winactive;
 	
 }
@@ -3369,7 +3370,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
  * poll()	has to be filled in by user for context
  */
 #if 0
-static int border_select_do(bContext *C, wmOperator *op)
+static int border_select_exec(bContext *C, wmOperator *op)
 {
 	int event_type = RNA_int_get(op->ptr, "event_type");
 	
@@ -3390,7 +3391,7 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_border_select";
 	
 	/* api callbacks */
-	ot->exec = border_select_do;
+	ot->exec = border_select_exec;
 	ot->invoke = WM_border_select_invoke;
 	ot->modal = WM_border_select_modal;
 	ot->cancel = WM_border_select_cancel;

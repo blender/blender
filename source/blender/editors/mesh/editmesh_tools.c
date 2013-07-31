@@ -635,7 +635,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 
 /* ************************* SEAMS AND EDGES **************** */
 
-static int edbm_mark_seam(bContext *C, wmOperator *op)
+static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -681,7 +681,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	ot->description = "(Un)mark selected edges as a seam";
 	
 	/* api callbacks */
-	ot->exec = edbm_mark_seam;
+	ot->exec = edbm_mark_seam_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -690,7 +690,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 
-static int edbm_mark_sharp(bContext *C, wmOperator *op)
+static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = ((Mesh *)obedit->data);
@@ -735,7 +735,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	ot->description = "(Un)mark selected edges as sharp";
 	
 	/* api callbacks */
-	ot->exec = edbm_mark_sharp;
+	ot->exec = edbm_mark_sharp_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
@@ -745,7 +745,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 }
 
 
-static int edbm_vert_connect(bContext *C, wmOperator *op)
+static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -795,12 +795,57 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	ot->description = "Connect 2 vertices of a face by an edge, splitting the face in two";
 	
 	/* api callbacks */
-	ot->exec = edbm_vert_connect;
+	ot->exec = edbm_vert_connect_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+
+static int edbm_vert_connect_nonplaner_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	if (!EDBM_op_call_and_selectf(
+	             em, op,
+	             "faces.out", true,
+	             "connect_verts_nonplanar faces=%hf angle_limit=%f",
+	             BM_ELEM_SELECT, angle_limit))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+
+	EDBM_update_generic(em, true, true);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Split Non-Planar Faces";
+	ot->idname = "MESH_OT_vert_connect_nonplanar";
+	ot->description = "Split non-planar faces that exceed the angle threshold";
+
+	/* api callbacks */
+	ot->exec = edbm_vert_connect_nonplaner_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(5.0f));
+}
+
 
 static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
@@ -4437,7 +4482,7 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 
 #ifdef WITH_FREESTYLE
 
-static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
+static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = (Mesh *)obedit->data;
@@ -4490,7 +4535,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 	ot->idname = "MESH_OT_mark_freestyle_edge";
 
 	/* api callbacks */
-	ot->exec = edbm_mark_freestyle_edge;
+	ot->exec = edbm_mark_freestyle_edge_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */

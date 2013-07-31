@@ -978,7 +978,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
@@ -1751,7 +1751,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 	
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
@@ -2614,7 +2614,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
-static int wm_exit_blender_op(bContext *C, wmOperator *op)
+static int wm_exit_blender_exec(bContext *C, wmOperator *op)
 {
 	WM_operator_free(op);
 	
@@ -2630,7 +2630,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 	ot->description = "Quit Blender";
 
 	ot->invoke = WM_operator_confirm;
-	ot->exec = wm_exit_blender_op;
+	ot->exec = wm_exit_blender_exec;
 	ot->poll = WM_operator_winactive;
 }
 
@@ -2638,7 +2638,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 #if defined(WIN32)
 
-static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int wm_console_toggle_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	GHOST_toggleConsole(2);
 	return OPERATOR_FINISHED;
@@ -2651,7 +2651,7 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 	ot->idname = "WM_OT_console_toggle";
 	ot->description = N_("Toggle System Console");
 	
-	ot->exec = wm_console_toggle_op;
+	ot->exec = wm_console_toggle_exec;
 	ot->poll = WM_operator_winactive;
 }
 
@@ -2988,7 +2988,7 @@ static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 			if ((val = wm_gesture_evaluate(gesture))) {
 				wmEvent tevent;
 
-				tevent = *(window->eventstate);
+				wm_event_init_from_window(window, &tevent);
 				if (gesture->event_type == LEFTMOUSE)
 					tevent.type = EVT_TWEAK_L;
 				else if (gesture->event_type == RIGHTMOUSE)

@@ -98,6 +98,10 @@ static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *inte
 		for (link = internal_links->first; link; link = link->next) {
 			if (link->tosock == sock) {
 				sock->stack_index = link->fromsock->stack_index;
+				/* set the link pointer to indicate that this socket
+				 * should not overwrite the stack value!
+				 */
+				sock->link = link;
 				break;
 			}
 		}

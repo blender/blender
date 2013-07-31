@@ -67,6 +67,8 @@ public:
 	 * virtual GHOST_TWindowOrder getOrder(void) = 0;
 	 * virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
 	 * virtual GHOST_TSuccess swapBuffers() = 0;
+	 * virtual GHOST_TSuccess setSwapInterval() = 0;
+	 * virtual int getSwapInterval() = 0;
 	 * virtual GHOST_TSuccess activateDrawingContext() = 0;
 	 * virtual GHOST_TSuccess invalidate() = 0;
 	 */
@@ -110,6 +112,8 @@ public:
 	 * virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
 	 * virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
 	 * virtual GHOST_TSuccess swapBuffers() = 0;
+	 * virtual GHOST_TSuccess setSwapInterval() = 0;
+	 * virtual int getSwapInterval() = 0;
 	 * virtual GHOST_TSuccess activateDrawingContext() = 0;
 	 * virtual GHOST_TSuccess invalidate() = 0;
 	 */
@@ -202,6 +206,23 @@ public:
 	 */
 	virtual GHOST_TSuccess endProgressBar() {
 		return GHOST_kFailure;
+	}
+	
+	/**
+	 * Sets the swap interval for swapBuffers.
+	 * \param interval The swap interval to use.
+	 * \return A boolean success indicator.
+	 */
+	virtual GHOST_TSuccess setSwapInterval(int interval) {
+		return GHOST_kFailure;
+	}
+	
+	/**
+	 * Gets the current swap interval for swapBuffers.
+	 * \return An integer.
+	 */
+	virtual int getSwapInterval() {
+		return 0;
 	}
 	
 	/**

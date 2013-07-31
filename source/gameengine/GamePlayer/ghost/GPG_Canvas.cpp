@@ -107,6 +107,20 @@ void GPG_Canvas::SwapBuffers()
 	}
 }
 
+void GPG_Canvas::SetSwapInterval(int interval)
+{
+	if (m_window)
+		m_window->setSwapInterval(interval);
+}
+
+int GPG_Canvas::GetSwapInterval()
+{
+	if (m_window)
+		return m_window->getSwapInterval();
+
+	return 0;
+}
+
 void GPG_Canvas::ResizeWindow(int width, int height)
 {
 	if (m_window->getState() == GHOST_kWindowStateFullScreen)

@@ -59,7 +59,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_array.h"
 #include "BLI_utildefines.h"
 #include "BLI_smallhash.h"
 
@@ -2129,7 +2128,7 @@ static void createTransEditVerts(TransInfo *t)
 	float *mappedcos = NULL, *quats = NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	float *dists = NULL;
-	int count = 0, countsel = 0, a, totleft;
+	int a;
 	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 	int mirror = 0;
 	int cd_vert_bweight_offset = -1;
@@ -2165,10 +2164,6 @@ static void createTransEditVerts(TransInfo *t)
 		BLI_assert(0);
 	}
 
-	countsel = bm->totvertsel;
-	if (propmode) {
-		count = bm->totvert;
-	}
 
 	/* check active */
 	eve_act = BM_mesh_active_vert_get(bm);
@@ -2179,6 +2174,13 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	if (propmode) {
+		unsigned int count = 0;
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+				count++;
+			}
+		}
+
 		t->total = count;
 
 		/* allocating scratch arrays */
@@ -2186,7 +2188,7 @@ static void createTransEditVerts(TransInfo *t)
 			dists = MEM_mallocN(em->bm->totvert * sizeof(float), "scratch nears");
 	}
 	else {
-		t->total = countsel;
+		t->total = bm->totvertsel;
 	}
 
 	tob = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mesh EditMode)");
@@ -2218,6 +2220,7 @@ static void createTransEditVerts(TransInfo *t)
 	/* detect CrazySpace [tm] */
 	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) >= 0) {
 		if (modifiers_isCorrectableDeformed(t->obedit)) {
+			int totleft;
 			/* check if we can use deform matrices for modifier from the
 			 * start up to stack, they are more accurate than quats */
 			totleft = editbmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);

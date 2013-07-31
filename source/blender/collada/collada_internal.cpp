@@ -27,7 +27,7 @@
 
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
-#include "collada_internal.h"
+#include "collada_utils.h"
 
 #include "BLI_linklist.h"
 
@@ -40,7 +40,7 @@ UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP)
 	rotate_m4(y_up_mat4, 'X', 0.5 * M_PI);
 
 	unit_m4(z_up_mat4);
-
+	unit_m4(scale_mat4);
 }
 
 void UnitConverter::read_asset(const COLLADAFW::FileInfo *asset)
@@ -122,6 +122,48 @@ float(&UnitConverter::get_rotation())[4][4]
 			return z_up_mat4;
 			break;
 	}
+}
+
+
+float(&UnitConverter::get_scale())[4][4]
+{
+	return scale_mat4;
+}
+
+void UnitConverter::calculate_scale(Scene &sce)
+{
+	PointerRNA scene_ptr, unit_settings;
+	PropertyRNA *system_ptr, *scale_ptr;
+	RNA_id_pointer_create(&sce.id, &scene_ptr);
+
+	unit_settings = RNA_pointer_get(&scene_ptr, "unit_settings");
+	system_ptr    = RNA_struct_find_property(&unit_settings, "system");
+	scale_ptr     = RNA_struct_find_property(&unit_settings, "scale_length");
+
+	int   type    = RNA_property_enum_get(&unit_settings, system_ptr);
+
+	float bl_scale;
+
+	switch (type) {
+		case USER_UNIT_NONE:
+			bl_scale = 1.0; // map 1 Blender unit to 1 Meter
+			break;
+
+		case USER_UNIT_METRIC:
+			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
+			break;
+
+		default :
+			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
+			// it looks like the conversion to Imperial is done implicitly.
+			// So nothing to do here.
+			break;
+	}
+
+	float rescale[3];
+	rescale[0] = rescale[1] = rescale[2] = getLinearMeter() / bl_scale;
+
+	size_to_mat4(scale_mat4, rescale);
 }
 
 void TransformBase::decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size)

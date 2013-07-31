@@ -3964,7 +3964,8 @@ void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
 {
 	wmEvent event;
 	
-	event = *(win->eventstate);
+	wm_event_init_from_window(win, &event);
+
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;

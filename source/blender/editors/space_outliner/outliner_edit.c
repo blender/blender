@@ -618,7 +618,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	te = outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if (te) {
 		/* make te->ys center of view */
-		ytop = (int)(te->ys + BLI_rcti_size_y(&v2d->mask) / 2);
+		ytop = te->ys + BLI_rcti_size_y(&v2d->mask) / 2;
 		if (ytop > 0) ytop = 0;
 		
 		v2d->cur.ymax = (float)ytop;

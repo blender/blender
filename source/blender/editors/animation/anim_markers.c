@@ -553,7 +553,7 @@ static int ed_markers_opwrap_invoke(bContext *C, wmOperator *op, const wmEvent *
 /* ************************** add markers *************************** */
 
 /* add TimeMarker at curent frame */
-static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
+static int ed_marker_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ListBase *markers = ED_context_get_markers(C);
 	TimeMarker *marker;
@@ -593,7 +593,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 	ot->idname = "MARKER_OT_add";
 	
 	/* api callbacks */
-	ot->exec = ed_marker_add;
+	ot->exec = ed_marker_add_exec;
 	ot->invoke = ed_markers_opwrap_invoke;
 	ot->poll = ED_operator_animview_active;
 	

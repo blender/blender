@@ -195,7 +195,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
-	event = *(win->eventstate);  /* XXX huh huh? make api call */
+	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
@@ -258,7 +258,7 @@ void view3d_tool_props_register(ARegionType *art)
 
 /* ********** operator to open/close toolshelf region */
 
-static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
+static int view3d_toolshelf_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = view3d_has_tools_region(sa);
@@ -275,7 +275,7 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 	ot->description = "Toggles tool shelf display";
 	ot->idname = "VIEW3D_OT_toolshelf";
 	
-	ot->exec = view3d_toolshelf;
+	ot->exec = view3d_toolshelf_toggle_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */

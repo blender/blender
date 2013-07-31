@@ -1176,7 +1176,9 @@ int object_remove_material_slot(Object *ob)
 	totcolp = give_totcolp(ob);
 	matarar = give_matarar(ob);
 
-	if (*matarar == NULL) return FALSE;
+	if (ELEM(NULL, matarar, *matarar)) {
+		return false;
+	}
 
 	/* can happen on face selection in editmode */
 	if (ob->actcol > ob->totcol) {

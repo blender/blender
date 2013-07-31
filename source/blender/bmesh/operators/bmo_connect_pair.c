@@ -84,17 +84,11 @@ typedef struct PathLinkState {
 	float co_prev[3];
 } PathLinkState;
 
-/* only the x axis */
-static float mul_v1_m3v3(float M[3][3], const float a[3])
-{
-	return M[0][0] * a[0] + M[1][0] * a[1] + M[2][0] * a[2];
-}
-
 static int state_isect_co_pair(const PathContext *pc,
                                const float co_a[3], const float co_b[3])
 {
-	const float diff_a = mul_v1_m3v3((float (*)[3])pc->matrix, co_a) - pc->axis_sep;
-	const float diff_b = mul_v1_m3v3((float (*)[3])pc->matrix, co_b) - pc->axis_sep;
+	const float diff_a = dot_m3_v3_row_x((float (*)[3])pc->matrix, co_a) - pc->axis_sep;
+	const float diff_b = dot_m3_v3_row_x((float (*)[3])pc->matrix, co_b) - pc->axis_sep;
 
 	const int test_a = (fabsf(diff_a) < CONNECT_EPS) ? 0 : (diff_a < 0.0f) ? -1 : 1;
 	const int test_b = (fabsf(diff_b) < CONNECT_EPS) ? 0 : (diff_b < 0.0f) ? -1 : 1;
@@ -110,7 +104,7 @@ static int state_isect_co_pair(const PathContext *pc,
 static int state_isect_co_exact(const PathContext *pc,
                                 const float co[3])
 {
-	const float diff = mul_v1_m3v3((float (*)[3])pc->matrix, co) - pc->axis_sep;
+	const float diff = dot_m3_v3_row_x((float (*)[3])pc->matrix, co) - pc->axis_sep;
 	return (fabsf(diff) <= CONNECT_EPS);
 }
 
@@ -119,8 +113,8 @@ static float state_calc_co_pair_fac(const PathContext *pc,
 {
 	float diff_a, diff_b, diff_tot;
 
-	diff_a = fabsf(mul_v1_m3v3((float (*)[3])pc->matrix, co_a) - pc->axis_sep);
-	diff_b = fabsf(mul_v1_m3v3((float (*)[3])pc->matrix, co_b) - pc->axis_sep);
+	diff_a = fabsf(dot_m3_v3_row_x((float (*)[3])pc->matrix, co_a) - pc->axis_sep);
+	diff_b = fabsf(dot_m3_v3_row_x((float (*)[3])pc->matrix, co_b) - pc->axis_sep);
 	diff_tot = (diff_a + diff_b);
 	return (diff_tot > FLT_EPSILON) ? (diff_a / diff_tot) : 0.5f;
 }
@@ -443,7 +437,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		normalize_v3_v3(pc.matrix[2], basis_nor);
 		invert_m3(pc.matrix);
 
-		pc.axis_sep = mul_v1_m3v3(pc.matrix, pc.v_a->co);
+		pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_a->co);
 	}
 
 	/* add first vertex */

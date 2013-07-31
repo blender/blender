@@ -29,7 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"

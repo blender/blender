@@ -1171,7 +1171,7 @@ void view3d_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int view3d_properties(bContext *C, wmOperator *UNUSED(op))
+static int view3d_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = view3d_has_buttons_region(sa);
@@ -1188,7 +1188,7 @@ void VIEW3D_OT_properties(wmOperatorType *ot)
 	ot->description = "Toggles the properties panel display";
 	ot->idname = "VIEW3D_OT_properties";
 
-	ot->exec = view3d_properties;
+	ot->exec = view3d_properties_toggle_exec;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */

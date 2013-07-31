@@ -277,6 +277,8 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
 	void *axis_mat     = iface->axis_mat;
 	int i;
 
+	BLI_assert(BM_face_is_normal_valid(f));
+
 	axis_dominant_v3_to_m3(axis_mat, f->no);
 
 	iface->f = f;

@@ -648,6 +648,20 @@ GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 	return ::SwapBuffers(hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
+GHOST_TSuccess GHOST_WindowWin32::setSwapInterval(int interval)
+{
+	if (!WGL_EXT_swap_control)
+		return GHOST_kFailure;
+	return wglSwapIntervalEXT(interval) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+}
+
+int GHOST_WindowWin32::getSwapInterval()
+{
+	if (WGL_EXT_swap_control)
+		return wglGetSwapIntervalEXT();
+
+	return 0;
+}
 
 GHOST_TSuccess GHOST_WindowWin32::activateDrawingContext()
 {

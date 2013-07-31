@@ -357,10 +357,9 @@ char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_
 		char *str_new;
 		
 		/* add what's left of the string to the assembly buffer 
-		 *	- we've been adjusting str to point at the end of the replaced segments
+		 * - we've been adjusting str to point at the end of the replaced segments
 		 */
-		if (str != NULL)
-			BLI_dynstr_append(ds, str);
+		BLI_dynstr_append(ds, str);
 		
 		/* convert to new c-string (MEM_malloc'd), and free the buffer */
 		str_new = BLI_dynstr_get_cstring(ds);

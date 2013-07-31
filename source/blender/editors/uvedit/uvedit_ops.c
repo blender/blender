@@ -46,11 +46,12 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_lasso.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"

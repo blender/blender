@@ -80,12 +80,13 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 static void unique_name(bNode *node)
 {
 	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
-	char *new_name = NULL;
+	char new_name[sizeof(tno->name)];
 	int new_len = 0;
 	int suffix;
 	bNode *i;
 	char *name = tno->name;
 	
+	new_name[0] = '\0';
 	i = node;
 	while (i->prev) i = i->prev;
 	for (; i; i = i->next) {
@@ -96,7 +97,7 @@ static void unique_name(bNode *node)
 			continue;
 		}
 
-		if (!new_name) {
+		if (new_name[0] == '\0') {
 			int len = strlen(name);
 			if (len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {
 				new_len = len;
@@ -107,17 +108,15 @@ static void unique_name(bNode *node)
 				if (new_len > (sizeof(tno->name) - 1))
 					new_len = (sizeof(tno->name) - 1);
 			}
-			
-			new_name = MEM_mallocN(new_len + 1, "new_name");
-			strcpy(new_name, name);
+
+			BLI_strncpy(new_name, name, sizeof(tno->name));
 			name = new_name;
 		}
 		sprintf(new_name + new_len - 4, ".%03d", ++suffix);
 	}
 	
-	if (new_name) {
-		strcpy(tno->name, new_name);
-		MEM_freeN(new_name);
+	if (new_name[0] != '\0') {
+		BLI_strncpy(tno->name, new_name, sizeof(tno->name));
 	}
 }
 

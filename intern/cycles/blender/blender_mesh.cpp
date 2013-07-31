@@ -462,7 +462,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
-	bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
@@ -479,6 +478,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 		if(preview)
 			b_ob.update_from_editmode();
 
+		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed);
 
 		if(b_mesh) {

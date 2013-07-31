@@ -103,10 +103,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter oiter;
 	BMFace *f;
-	BLI_array_declare(faces);
-	BLI_array_declare(regions);
 	BMFace ***regions = NULL;
 	BMFace **faces = NULL;
+	BLI_array_declare(regions);
+	BLI_array_declare(faces);
 	BMFace *act_face = bm->act_face;
 	BMWalker regwalker;
 	int i;

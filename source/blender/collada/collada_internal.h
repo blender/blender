@@ -50,7 +50,8 @@ private:
 	float x_up_mat4[4][4];
 	float y_up_mat4[4][4];
 	float z_up_mat4[4][4];
-
+	float scale_mat4[4][4];
+	
 public:
 
 	enum UnitSystem {
@@ -79,7 +80,8 @@ public:
 	void mat4_to_dae_double(double out[4][4], float in[4][4]);
 
 	float(&get_rotation())[4][4];
-
+	float(&get_scale())[4][4];
+	void calculate_scale(Scene &sce);
 
 };
 

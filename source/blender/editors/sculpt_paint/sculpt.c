@@ -4523,7 +4523,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
 
-static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
@@ -4544,7 +4544,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 	ot->description = "Reset the copy of the mesh that is being sculpted on";
 	
 	/* api callbacks */
-	ot->exec = sculpt_set_persistent_base;
+	ot->exec = sculpt_set_persistent_base_exec;
 	ot->poll = sculpt_mode_poll;
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4588,14 +4588,21 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
+	const BMAllocTemplate allocsize = {me->totvert,
+	                                   me->totedge,
+	                                   me->totloop,
+	                                   me->totpoly};
 
 	sculpt_pbvh_clear(ob);
 
 	ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
 	                         SCULPT_DYNTOPO_SMOOTH_SHADING);
 
+	/* Dynamic topology doesn't ensure selection state is valid, so remove [#36280] */
+	BKE_mesh_mselect_clear(me);
+
 	/* Create triangles-only BMesh */
-	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	ss->bm = BM_mesh_create(&allocsize);
 
 	BM_mesh_bm_from_me(ss->bm, me, true, true, ob->shapenr);
 	sculpt_dynamic_topology_triangulate(ss->bm);
@@ -4893,7 +4900,7 @@ int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	return ret;
 }
 
-static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -4981,7 +4988,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->description = "Toggle sculpt mode in 3D view";
 	
 	/* api callbacks */
-	ot->exec = sculpt_toggle_mode;
+	ot->exec = sculpt_mode_toggle_exec;
 	ot->poll = ED_operator_object_active_editable_mesh;
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -49,7 +49,6 @@
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 
-#include "BLI_array.h"
 #include "BLI_buffer.h"
 
 #include "BIF_gl.h"

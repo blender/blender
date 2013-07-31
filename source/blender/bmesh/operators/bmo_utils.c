@@ -32,8 +32,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_heap.h"
+#include "BLI_alloca.h"
 
 #include "BKE_customdata.h"
 
@@ -103,7 +103,7 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_vec_get(op->slots_in, "cent", center);
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
-	pivot_m4(mat, center);
+	transform_pivot_set_m4(mat, center);
 
 	BMO_op_callf(bm, op->flag, "transform matrix=%m4 space=%s verts=%s", mat, op, "space", op, "verts");
 }

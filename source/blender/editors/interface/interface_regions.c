@@ -590,7 +590,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			/* never fails */
 			id_path = RNA_path_full_ID_py(id);
 
-			if (ptr->id.data && ptr->data && prop) {
+			if (ptr->data && prop) {
 				data_path = RNA_path_from_ID_to_property(ptr, prop);
 			}
 
@@ -2268,10 +2268,8 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 	
 	block = uiBeginBlock(C, handle->region, __func__, UI_EMBOSS);
 	
-	if (but->rnaprop) {
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-			block->color_profile = FALSE;
-		}
+	if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+		block->color_profile = false;
 	}
 
 	if (but->block) {

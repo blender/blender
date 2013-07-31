@@ -38,6 +38,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_smallhash.h"

@@ -533,7 +533,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 
 			if (me->edit_btmesh && me->edit_btmesh->bm->totvert == kb->totelem) {
 				a = 0;
-				co = MEM_callocN(sizeof(float) * 3 * me->edit_btmesh->bm->totvert, "key_block_get_data");
+				co = MEM_mallocN(sizeof(float) * 3 * me->edit_btmesh->bm->totvert, "key_block_get_data");
 
 				BM_ITER_MESH (eve, &iter, me->edit_btmesh->bm, BM_VERTS_OF_MESH) {
 					copy_v3_v3(co[a], eve->co);
@@ -1091,7 +1091,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		float *weights;
 		int i;
 		
-		weights = MEM_callocN(totvert * sizeof(float), "weights");
+		weights = MEM_mallocN(totvert * sizeof(float), "weights");
 
 		if (em) {
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -1622,7 +1622,7 @@ void BKE_key_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 
 	if (kb->data) MEM_freeN(kb->data);
 
-	kb->data = MEM_callocN(lt->key->elemsize * tot, "kb->data");
+	kb->data = MEM_mallocN(lt->key->elemsize * tot, "kb->data");
 	kb->totelem = tot;
 
 	bp = lt->def;
@@ -1664,7 +1664,7 @@ void BKE_key_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
 
 	if (kb->data) MEM_freeN(kb->data);
 
-	kb->data = MEM_callocN(cu->key->elemsize * tot, "kb->data");
+	kb->data = MEM_mallocN(cu->key->elemsize * tot, "kb->data");
 	kb->totelem = tot;
 
 	nu = nurb->first;
@@ -1762,7 +1762,7 @@ void BKE_key_convert_from_mesh(Mesh *me, KeyBlock *kb)
 
 	if (kb->data) MEM_freeN(kb->data);
 
-	kb->data = MEM_callocN(me->key->elemsize * me->totvert, "kb->data");
+	kb->data = MEM_mallocN(me->key->elemsize * me->totvert, "kb->data");
 	kb->totelem = me->totvert;
 
 	mvert = me->mvert;
@@ -1812,7 +1812,7 @@ float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 
 	if (tot == 0) return NULL;
 
-	vertCos = MEM_callocN(tot * sizeof(*vertCos), "BKE_key_convert_to_vertcos vertCos");
+	vertCos = MEM_mallocN(tot * sizeof(*vertCos), "BKE_key_convert_to_vertcos vertCos");
 
 	/* Copy coords to array */
 	co = (float *)vertCos;
@@ -1895,7 +1895,7 @@ void BKE_key_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		return;
 	}
 
-	fp = kb->data = MEM_callocN(tot * elemsize, "BKE_key_convert_to_vertcos vertCos");
+	fp = kb->data = MEM_mallocN(tot * elemsize, "BKE_key_convert_to_vertcos vertCos");
 
 	/* Copy coords to keyblock */
 

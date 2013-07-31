@@ -98,6 +98,16 @@ void BL_MakeDrawable(wmWindowManager *wm, wmWindow *win)
 	wm_window_make_drawable(wm, win);
 }
 
+void BL_SetSwapInterval(struct wmWindow *win, int interval)
+{
+	wm_window_set_swap_interval(win, interval);
+}
+
+int BL_GetSwapInterval(struct wmWindow *win)
+{
+	return wm_window_get_swap_interval(win);
+}
+
 static void DisableForText()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
