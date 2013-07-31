@@ -159,16 +159,20 @@ bool BL_ShapeDeformer::Update(void)
 		/* the key coefficient have been set already, we just need to blend the keys */
 		Object* blendobj = m_gameobj->GetBlendObject();
 		
-		// make sure the vertex weight cache is in line with this object
-		m_pMeshObject->CheckWeightCache(blendobj);
-
 		/* we will blend the key directly in m_transverts array: it is used by armature as the start position */
 		/* m_key can be NULL in case of Modifier deformer */
 		if (m_key) {
+			WeightsArrayCache cache = {0, NULL};
+			float **per_keyblock_weights;
+
 			/* store verts locally */
 			VerifyStorage();
 
-			BKE_key_evaluate_relative(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_key, NULL, 0); /* last arg is ignored */
+			per_keyblock_weights = BKE_keyblock_get_per_block_weights(blendobj, m_key, &cache);
+			BKE_key_evaluate_relative(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts,
+			                          m_key, NULL, per_keyblock_weights, 0); /* last arg is ignored */
+			BKE_keyblock_free_per_block_weights(m_key, per_keyblock_weights, &cache);
+
 			m_bDynamic = true;
 		}
 

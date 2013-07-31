@@ -733,12 +733,13 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 	}
 }
 
-void BKE_key_evaluate_relative(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb, const int mode)
+void BKE_key_evaluate_relative(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb,
+                               float **per_keyblock_weights, const int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
-	int poinsize;
+	int poinsize, keyblock_index;
 
 	/* currently always 0, in future key_pointer_size may assign */
 	ofs[1] = 0;
@@ -762,14 +763,14 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
 	
 	/* step 2: do it */
 	
-	for (kb = key->block.first; kb; kb = kb->next) {
+	for (kb = key->block.first, keyblock_index = 0; kb; kb = kb->next, keyblock_index++) {
 		if (kb != key->refkey) {
 			float icuval = kb->curval;
 			
 			/* only with value, and no difference allowed */
 			if (!(kb->flag & KEYBLOCK_MUTE) && icuval != 0.0f && kb->totelem == tot) {
 				KeyBlock *refb;
-				float weight, *weights = kb->weights;
+				float weight, *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : NULL;
 				char *freefrom = NULL, *freereffrom = NULL;
 
 				/* reference now can be any block */
@@ -1057,7 +1058,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 	if (freek4) MEM_freeN(freek4);
 }
 
-static float *get_weights_array(Object *ob, char *vgroup)
+static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cache)
 {
 	MDeformVert *dvert = NULL;
 	BMEditMesh *em = NULL;
@@ -1090,7 +1091,21 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	if (defgrp_index != -1) {
 		float *weights;
 		int i;
-		
+
+		if (cache) {
+			if (cache->defgroup_weights == NULL) {
+				int num_defgroup = BLI_countlist(&ob->defbase);
+				cache->defgroup_weights =
+				    MEM_callocN(sizeof(*cache->defgroup_weights) * num_defgroup,
+				                "cached defgroup weights");
+				cache->num_defgroup_weights = num_defgroup;
+			}
+
+			if (cache->defgroup_weights[defgrp_index]) {
+				return cache->defgroup_weights[defgrp_index];
+			}
+		}
+
 		weights = MEM_mallocN(totvert * sizeof(float), "weights");
 
 		if (em) {
@@ -1106,9 +1121,59 @@ static float *get_weights_array(Object *ob, char *vgroup)
 			}
 		}
 
+		if (cache) {
+			cache->defgroup_weights[defgrp_index] = weights;
+		}
+
 		return weights;
 	}
 	return NULL;
+}
+
+float **BKE_keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArrayCache *cache)
+{
+	KeyBlock *keyblock;
+	float **per_keyblock_weights;
+	int keyblock_index;
+
+	per_keyblock_weights =
+		MEM_mallocN(sizeof(*per_keyblock_weights) * key->totkey,
+		            "per keyblock weights");
+
+	for (keyblock = key->block.first, keyblock_index = 0;
+	     keyblock;
+	     keyblock = keyblock->next, keyblock_index++)
+	{
+		per_keyblock_weights[keyblock_index] = get_weights_array(ob, keyblock->vgroup, cache);
+	}
+
+	return per_keyblock_weights;
+}
+
+void BKE_keyblock_free_per_block_weights(Key *key, float **per_keyblock_weights, WeightsArrayCache *cache)
+{
+	int a;
+
+	if (cache) {
+		if (cache->num_defgroup_weights) {
+			for (a = 0; a < cache->num_defgroup_weights; a++) {
+				if (cache->defgroup_weights[a]) {
+					MEM_freeN(cache->defgroup_weights[a]);
+				}
+			}
+			MEM_freeN(cache->defgroup_weights);
+		}
+		cache->defgroup_weights = NULL;
+	}
+	else {
+		for (a = 0; a < key->totkey; a++) {
+			if (per_keyblock_weights[a]) {
+				MEM_freeN(per_keyblock_weights[a]);
+			}
+		}
+	}
+
+	MEM_freeN(per_keyblock_weights);
 }
 
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
@@ -1143,17 +1208,11 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	}
 	else {
 		if (key->type == KEY_RELATIVE) {
-			KeyBlock *kb;
-			for (kb = key->block.first; kb; kb = kb->next) {
-				kb->weights = get_weights_array(ob, kb->vgroup);
-			}
-
-			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
-			
-			for (kb = key->block.first; kb; kb = kb->next) {
-				if (kb->weights) MEM_freeN(kb->weights);
-				kb->weights = NULL;
-			}
+			WeightsArrayCache cache = {0, NULL};
+			float **per_keyblock_weights;
+			per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, &cache);
+			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+			BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
 		}
 		else {
 			const float ctime_scaled = key->ctime / 100.0f;
@@ -1196,11 +1255,11 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 	for (a = 0, nu = cu->nurb.first; nu; nu = nu->next, a += step) {
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
-			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, KEY_MODE_BPOINT);
+			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BPOINT);
 		}
 		else if (nu->bezt) {
 			step = 3 * nu->pntsu;
-			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, KEY_MODE_BEZTRIPLE);
+			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BEZTRIPLE);
 		}
 		else {
 			step = 0;
@@ -1314,17 +1373,10 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	}
 	else {
 		if (key->type == KEY_RELATIVE) {
-			KeyBlock *kb;
-			
-			for (kb = key->block.first; kb; kb = kb->next)
-				kb->weights = get_weights_array(ob, kb->vgroup);
-			
-			BKE_key_evaluate_relative(0, tot, tot, out, key, actkb, KEY_MODE_DUMMY);
-			
-			for (kb = key->block.first; kb; kb = kb->next) {
-				if (kb->weights) MEM_freeN(kb->weights);
-				kb->weights = NULL;
-			}
+			float **per_keyblock_weights;
+			per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, NULL);
+			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+			BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, NULL);
 		}
 		else {
 			const float ctime_scaled = key->ctime / 100.0f;
@@ -1414,7 +1466,7 @@ float *BKE_key_evaluate_object_ex(Scene *scene, Object *ob, int *r_totelem,
 		}
 		
 		if (OB_TYPE_SUPPORT_VGROUP(ob->type)) {
-			float *weights = get_weights_array(ob, kb->vgroup);
+			float *weights = get_weights_array(ob, kb->vgroup, NULL);
 
 			cp_key(0, tot, tot, out, key, actkb, kb, weights, 0);
 
