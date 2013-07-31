@@ -1179,29 +1179,11 @@ typedef struct ThreadedObjectUpdateState {
 
 #ifdef ENABLE_THREAD_STATISTICS
 	ListBase statistics[64];
+	int tot_thread;
 #endif
 } ThreadedObjectUpdateState;
 
 static void scene_update_object_add_task(void *node, void *user_data);
-
-static void scene_update_all_bases(Scene *scene, Scene *scene_parent)
-{
-	Base *base;
-
-	for (base = scene->base.first; base; base = base->next) {
-		Object *object = base->object;
-
-		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
-
-		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
-			BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
-
-		/* always update layer, so that animating layers works (joshua july 2010) */
-		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
-		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
-		// base->lay = ob->lay;
-	}
-}
 
 static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
 {
@@ -1237,6 +1219,8 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		if (G.debug & G_DEBUG) {
 			StatisicsEntry *entry;
 
+			state->tot_thread = max_ii(state->tot_thread, threadid + 1);
+
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
 			entry->object = object;
 			entry->time = PIL_check_seconds_timer() - start_time;
@@ -1266,11 +1250,11 @@ static void scene_update_object_add_task(void *node, void *user_data)
 }
 
 #ifdef ENABLE_THREAD_STATISTICS
-static void print_threads_statistics(ThreadedObjectUpdateState *state, int tot_thread)
+static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
 	int i;
 
-	for (i = 0; i < tot_thread; i++) {
+	for (i = 0; i < state->tot_thread; i++) {
 		int total_objects = 0;
 		double total_time = 0.0;
 		StatisicsEntry *entry;
@@ -1297,25 +1281,11 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state, int tot_t
 }
 #endif
 
-static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
+static void scene_update_objects(Scene *scene, Scene *scene_parent)
 {
-	TaskScheduler *task_scheduler;
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool;
 	ThreadedObjectUpdateState state;
-	int tot_thread = BLI_system_thread_count();
-
-	if (tot_thread == 1) {
-		/* If only one thread is possible we don't bother self with
-		 * task pool, which would be an overhead in cas e of single
-		 * CPU core.
-		 */
-		scene_update_all_bases(scene, scene_parent);
-		return;
-	}
-
-	if (G.debug_value == 13666) {
-		tot_thread = 1;
-	}
 
 	/* Ensure malloc will go go fine from threads,
 	 * this is needed because we could be in main thread here
@@ -1328,10 +1298,10 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 	state.scene_parent = scene_parent;
 #ifdef ENABLE_THREAD_STATISTICS
 	memset(state.statistics, 0, sizeof(state.statistics));
+	state.tot_thread = 0;
 #endif
 	BLI_spin_init(&state.lock);
 
-	task_scheduler = BLI_task_scheduler_create(tot_thread);
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
 
 	/* Initialize run-time data in the graph needed for traversing it
@@ -1361,7 +1331,6 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 
 	/* free */
 	BLI_task_pool_free(task_pool);
-	BLI_task_scheduler_free(task_scheduler);
 
 	BLI_end_threaded_malloc();
 
@@ -1369,7 +1338,7 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 
 #ifdef ENABLE_THREAD_STATISTICS
 	if (G.debug & G_DEBUG) {
-		print_threads_statistics(&state, tot_thread);
+		print_threads_statistics(&state);
 	}
 #endif
 
@@ -1406,30 +1375,6 @@ static void scene_update_objects_threaded(Scene *scene, Scene *scene_parent)
 			if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
 				BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
 		}
-	}
-}
-
-static void scene_update_objects(Scene *scene, Scene *scene_parent)
-{
-	Base *base;
-	int update_count = 0;
-
-	/* Optimization thing: don't do threads if no modifier
-	 * stack need to be evaluated.
-	 */
-	for (base = scene->base.first; base; base = base->next) {
-		Object *ob = base->object;
-
-		if (ob->recalc & OB_RECALC_ALL) {
-			update_count++;
-		}
-	}
-
-	if (update_count > 1) {
-		scene_update_objects_threaded(scene, scene_parent);
-	}
-	else {
-		scene_update_all_bases(scene, scene_parent);
 	}
 }
 

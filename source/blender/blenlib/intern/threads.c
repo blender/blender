@@ -37,6 +37,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_gsqueue.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "PIL_time.h"
@@ -62,6 +63,9 @@
 extern pthread_key_t gomp_tls_key;
 static void *thread_tls_data;
 #endif
+
+/* We're using one global task scheduler for all kind of tasks. */
+static TaskScheduler *task_scheduler = NULL;
 
 /* ********** basic thread control API ************ 
  * 
@@ -144,7 +148,19 @@ static void BLI_unlock_malloc_thread(void)
 
 void BLI_threadapi_init(void)
 {
+	int tot_thread = BLI_system_thread_count();
 	mainid = pthread_self();
+	task_scheduler = BLI_task_scheduler_create(tot_thread);
+}
+
+void BLI_threadapi_exit(void)
+{
+	BLI_task_scheduler_free(task_scheduler);
+}
+
+TaskScheduler *BLI_task_scheduler_get(void)
+{
+	return task_scheduler;
 }
 
 /* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
@@ -871,4 +887,3 @@ void BLI_end_threaded_malloc(void)
 	if (thread_levels == 0)
 		MEM_set_lock_callback(NULL, NULL);
 }
-

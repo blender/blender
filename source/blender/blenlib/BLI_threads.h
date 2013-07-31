@@ -45,11 +45,15 @@ extern "C" {
 #define BLENDER_MAX_THREADS     64
 
 struct ListBase;
+struct TaskScheduler;
 
 /* Threading API */
 
 /*this is run once at startup*/
 void BLI_threadapi_init(void);
+void BLI_threadapi_exit(void);
+
+struct TaskScheduler *BLI_task_scheduler_get(void);
 
 void    BLI_init_threads(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int     BLI_available_threads(struct ListBase *threadbase);

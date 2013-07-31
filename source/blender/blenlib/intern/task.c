@@ -53,6 +53,7 @@ struct TaskPool {
 
 struct TaskScheduler {
 	pthread_t *threads;
+	struct TaskThread *task_threads;
 	int num_threads;
 
 	ListBase queue;
@@ -124,19 +125,19 @@ static void *task_scheduler_thread_run(void *thread_p)
 
 	/* keep popping off tasks */
 	while (task_scheduler_thread_wait_pop(scheduler, &task)) {
-		/* run task */
-		task->run(task->pool, task->taskdata, thread_id);
+		TaskPool *pool = task->pool;
 
-		/* notify pool task was done */
-		task_pool_num_decrease(task->pool, 1);
+		/* run task */
+		task->run(pool, task->taskdata, thread_id);
 
 		/* delete task */
 		if (task->free_taskdata)
 			MEM_freeN(task->taskdata);
 		MEM_freeN(task);
-	}
 
-	MEM_freeN(thread);
+		/* notify pool task was done */
+		task_pool_num_decrease(pool, 1);
+	}
 
 	return NULL;
 }
@@ -167,9 +168,10 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 
 		scheduler->num_threads = num_threads;
 		scheduler->threads = MEM_callocN(sizeof(pthread_t) * num_threads, "TaskScheduler threads");
+		scheduler->task_threads = MEM_callocN(sizeof(TaskThread) * num_threads, "TaskScheduler task threads");
 
 		for (i = 0; i < num_threads; i++) {
-			TaskThread *thread = MEM_callocN(sizeof(TaskThread), "TaskThread");
+			TaskThread *thread = &scheduler->task_threads[i];
 			thread->scheduler = scheduler;
 			thread->id = i + 1;
 
@@ -203,6 +205,11 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 		}
 
 		MEM_freeN(scheduler->threads);
+	}
+
+	/* Delete task thread data */
+	if (scheduler->task_threads) {
+		MEM_freeN(scheduler->task_threads);
 	}
 
 	/* delete leftover tasks */
