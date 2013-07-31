@@ -148,7 +148,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
 			if (sa->spacetype == SPACE_IMAGE) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
 					SpaceImage *sima = sa->spacedata.first;
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
@@ -160,7 +160,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 			}
 			else if (sa->spacetype == SPACE_NODE) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
 					SpaceNode *snode = sa->spacedata.first;
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
@@ -172,7 +172,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 			}
 			else if (sa->spacetype == SPACE_CLIP) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
 					SpaceClip *sc = sa->spacedata.first;
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};

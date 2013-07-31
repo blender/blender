@@ -263,7 +263,7 @@ static void restrictbutton_bone_visibility_cb(bContext *C, void *poin, void *poi
 {
 	bArmature *arm = (bArmature *)poin;
 	Bone *bone = (Bone *)poin2;
-	if (bone && (bone->flag & BONE_HIDDEN_P))
+	if (bone->flag & BONE_HIDDEN_P)
 		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
@@ -277,7 +277,7 @@ static void restrictbutton_bone_select_cb(bContext *C, void *poin, void *poin2)
 {
 	bArmature *arm = (bArmature *)poin;
 	Bone *bone = (Bone *)poin2;
-	if (bone && (bone->flag & BONE_UNSELECTABLE))
+	if (bone->flag & BONE_UNSELECTABLE)
 		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {

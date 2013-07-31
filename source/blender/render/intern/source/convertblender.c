@@ -803,7 +803,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], int 
 	totvert= obr->totvert;
 	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
 	for (a=0, asv=asverts; a<totvert; a++, asv++) {
-		if (asv && asv->totface>1) {
+		if (asv->totface > 1) {
 			ver= RE_findOrAddVert(obr, a);
 
 			asf= asv->faces.first;

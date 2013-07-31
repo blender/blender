@@ -1534,7 +1534,7 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking, 
 
 /*********************** Distortion/Undistortion *************************/
 
-static void cameraIntrinscisOptionsFromTracking(libmv_cameraIntrinsicsOptions *camera_intrinsics_options,
+static void cameraIntrinscisOptionsFromTracking(libmv_CameraIntrinsicsOptions *camera_intrinsics_options,
                                                 MovieTracking *tracking, int calibration_width, int calibration_height)
 {
 	MovieTrackingCamera *camera = &tracking->camera;
@@ -1559,7 +1559,7 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
 
-	distortion->intrinsics = libmv_CameraIntrinsicsNewEmpty();
+	distortion->intrinsics = libmv_cameraIntrinsicsNewEmpty();
 
 	return distortion;
 }
@@ -1567,17 +1567,17 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *tracking,
                                     int calibration_width, int calibration_height)
 {
-	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 
 	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
 	                                    calibration_width, calibration_height);
 
-	libmv_CameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
+	libmv_cameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
 }
 
 void BKE_tracking_distortion_set_threads(MovieDistortion *distortion, int threads)
 {
-	libmv_CameraIntrinsicsSetThreads(distortion->intrinsics, threads);
+	libmv_cameraIntrinsicsSetThreads(distortion->intrinsics, threads);
 }
 
 MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
@@ -1586,7 +1586,7 @@ MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
 
 	new_distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
 
-	new_distortion->intrinsics = libmv_CameraIntrinsicsCopy(distortion->intrinsics);
+	new_distortion->intrinsics = libmv_cameraIntrinsicsCopy(distortion->intrinsics);
 
 	return new_distortion;
 }
@@ -1602,12 +1602,12 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 
 	if (ibuf->rect_float) {
 		if (undistort) {
-			libmv_CameraIntrinsicsUndistortFloat(distortion->intrinsics,
+			libmv_cameraIntrinsicsUndistortFloat(distortion->intrinsics,
 			                                     ibuf->rect_float, resibuf->rect_float,
 			                                     ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 		else {
-			libmv_CameraIntrinsicsDistortFloat(distortion->intrinsics,
+			libmv_cameraIntrinsicsDistortFloat(distortion->intrinsics,
 			                                   ibuf->rect_float, resibuf->rect_float,
 			                                   ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
@@ -1617,12 +1617,12 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	}
 	else {
 		if (undistort) {
-			libmv_CameraIntrinsicsUndistortByte(distortion->intrinsics,
+			libmv_cameraIntrinsicsUndistortByte(distortion->intrinsics,
 			                                    (unsigned char *)ibuf->rect, (unsigned char *)resibuf->rect,
 			                                    ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 		else {
-			libmv_CameraIntrinsicsDistortByte(distortion->intrinsics,
+			libmv_cameraIntrinsicsDistortByte(distortion->intrinsics,
 			                                  (unsigned char *)ibuf->rect, (unsigned char *)resibuf->rect,
 			                                  ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
@@ -1633,7 +1633,7 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 
 void BKE_tracking_distortion_free(MovieDistortion *distortion)
 {
-	libmv_CameraIntrinsicsDestroy(distortion->intrinsics);
+	libmv_cameraIntrinsicsDestroy(distortion->intrinsics);
 
 	MEM_freeN(distortion);
 }
@@ -1642,7 +1642,7 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
-	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 	double x, y;
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
@@ -1652,7 +1652,7 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r
 	x = (co[0] - camera->principal[0]) / camera->focal;
 	y = (co[1] - camera->principal[1] * aspy) / camera->focal;
 
-	libmv_ApplyCameraIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
+	libmv_cameraIntrinsicsApply(&camera_intrinsics_options, x, y, &x, &y);
 
 	/* result is in image coords already */
 	r_co[0] = x;
@@ -1663,13 +1663,13 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
-	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 	double x = co[0], y = co[1];
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
 	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking, 0, 0);
 
-	libmv_InvertCameraIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
+	libmv_cameraIntrinsicsInvert(&camera_intrinsics_options, x, y, &x, &y);
 
 	r_co[0] = (float)x * camera->focal + camera->principal[0];
 	r_co[1] = (float)y * camera->focal + camera->principal[1] * aspy;
@@ -2529,7 +2529,7 @@ static bool track_context_update_reference(MovieTrackingContext *context, TrackC
 
 /* Fill in libmv tracker options structure with settings need to be used to perform track. */
 static void tracking_configure_tracker(MovieTrackingTrack *track, float *mask,
-                                       struct libmv_trackRegionOptions *options)
+                                       libmv_TrackRegionOptions *options)
 {
 	options->motion_model = track->motion_model;
 
@@ -2654,8 +2654,8 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrac
 	double src_pixel_x[5], src_pixel_y[5];
 
 	/* Settings for the tracker */
-	struct libmv_trackRegionOptions options = {0};
-	struct libmv_trackRegionResult result;
+	libmv_TrackRegionOptions options = {0};
+	libmv_TrackRegionResult result;
 
 	float *patch_new;
 
@@ -2930,17 +2930,17 @@ static struct libmv_Tracks *libmv_tracks_new(ListBase *tracksbase, int width, in
 }
 
 /* Retrieve refined camera intrinsics from libmv to blender. */
-static void reconstruct_retrieve_libmv_intrinscis(MovieReconstructContext *context, MovieTracking *tracking)
+static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *context, MovieTracking *tracking)
 {
 	struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
-	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
+	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(libmv_reconstruction);
 
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
 	double focal_length, principal_x, principal_y, k1, k2, k3;
 	int width, height;
 
-	libmv_CameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
+	libmv_cameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
 	                              &k1, &k2, &k3, &width, &height);
 
 	tracking->camera.focal = focal_length;
@@ -2987,13 +2987,13 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 	while (track) {
 		double pos[3];
 
-		if (libmv_reporojectionPointForTrack(libmv_reconstruction, tracknr, pos)) {
+		if (libmv_reprojectionPointForTrack(libmv_reconstruction, tracknr, pos)) {
 			track->bundle_pos[0] = pos[0];
 			track->bundle_pos[1] = pos[1];
 			track->bundle_pos[2] = pos[2];
 
 			track->flag |= TRACK_HAS_BUNDLE;
-			track->error = libmv_reporojectionErrorForTrack(libmv_reconstruction, tracknr);
+			track->error = libmv_reprojectionErrorForTrack(libmv_reconstruction, tracknr);
 		}
 		else {
 			track->flag &= ~TRACK_HAS_BUNDLE;
@@ -3017,10 +3017,10 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 	for (a = sfra; a <= efra; a++) {
 		double matd[4][4];
 
-		if (libmv_reporojectionCameraForImage(libmv_reconstruction, a, matd)) {
+		if (libmv_reprojectionCameraForImage(libmv_reconstruction, a, matd)) {
 			int i, j;
 			float mat[4][4];
-			float error = libmv_reporojectionErrorForImage(libmv_reconstruction, a);
+			float error = libmv_reprojectionErrorForImage(libmv_reconstruction, a);
 
 			for (i = 0; i < 4; i++) {
 				for (j = 0; j < 4; j++)
@@ -3081,8 +3081,8 @@ static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, M
 /* Retrieve all the libmv data from context to blender's side data blocks. */
 static int reconstruct_retrieve_libmv(MovieReconstructContext *context, MovieTracking *tracking)
 {
-	/* take the intrinscis back from libmv */
-	reconstruct_retrieve_libmv_intrinscis(context, tracking);
+	/* take the intrinsics back from libmv */
+	reconstruct_retrieve_libmv_intrinsics(context, tracking);
 
 	return reconstruct_retrieve_libmv_tracks(context, tracking);
 }
@@ -3243,7 +3243,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 {
 	if (context->reconstruction)
-		libmv_destroyReconstruction(context->reconstruction);
+		libmv_reconstructionDestroy(context->reconstruction);
 
 	libmv_tracksDestroy(context->tracks);
 
@@ -3266,7 +3266,7 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 }
 
 /* FIll in camera intrinsics structure from reconstruction context. */
-static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *camera_intrinsics_options,
+static void camraIntrincicsOptionsFromContext(libmv_CameraIntrinsicsOptions *camera_intrinsics_options,
                                               MovieReconstructContext *context)
 {
 	camera_intrinsics_options->focal_length = context->focal_length;
@@ -3283,7 +3283,7 @@ static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *cam
 }
 
 /* Fill in reconstruction options structure from reconstruction context. */
-static void reconstructionOptionsFromContext(libmv_reconstructionOptions *reconstruction_options,
+static void reconstructionOptionsFromContext(libmv_ReconstructionOptions *reconstruction_options,
                                              MovieReconstructContext *context)
 {
 	reconstruction_options->select_keyframes = context->select_keyframes;
@@ -3313,8 +3313,8 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 
 	ReconstructProgressData progressdata;
 
-	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
-	libmv_reconstructionOptions reconstruction_options;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_ReconstructionOptions reconstruction_options;
 
 	progressdata.stop = stop;
 	progressdata.do_update = do_update;
@@ -3558,7 +3558,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 	                               framenr, ibuf->x, ibuf->y, layer,
 	                               place_outside_layer ? true : false);
 
-	libmv_destroyFeatures(features);
+	libmv_featuresDestroy(features);
 }
 
 /*********************** 2D stabilization *************************/
