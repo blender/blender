@@ -148,9 +148,7 @@ static void BLI_unlock_malloc_thread(void)
 
 void BLI_threadapi_init(void)
 {
-	int tot_thread = BLI_system_thread_count();
 	mainid = pthread_self();
-	task_scheduler = BLI_task_scheduler_create(tot_thread);
 }
 
 void BLI_threadapi_exit(void)
@@ -160,6 +158,15 @@ void BLI_threadapi_exit(void)
 
 TaskScheduler *BLI_task_scheduler_get(void)
 {
+	if (task_scheduler == NULL) {
+		int tot_thread = BLI_system_thread_count();
+
+		/* Do a lazy initialization, so it happes after
+		 * command line arguments parsing
+		 */
+		task_scheduler = BLI_task_scheduler_create(tot_thread);
+	}
+
 	return task_scheduler;
 }
 
