@@ -26,6 +26,8 @@ shader node_blackbody(
 	
 	/* Scale by luminance */
 	float l = luminance(rgb);
-	Color = rgb /= l;
+	if (l != 0.0)
+		rgb /= l;
+	Color = rgb;
 }
 

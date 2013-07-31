@@ -265,7 +265,7 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	}
 
 	/* blackbody lookup table */
-	KernelBLACKBODY *kblackbody = &dscene->data.blackbody;
+	KernelBlackbody *kblackbody = &dscene->data.blackbody;
 	
 	if(has_converter_blackbody && blackbody_table_offset == TABLE_OFFSET_INVALID) {
 		vector<float> table = blackbody_table();

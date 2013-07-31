@@ -389,11 +389,6 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 		nodes_done = true;
 
 		foreach(ShaderNode *node, nodes) {
-
-			/* Detect if we have a blackbody converter, to prepare lookup table */
-			if(node->has_converter_blackbody())
-				current_shader->has_converter_blackbody = true;
-			
 			if(done.find(node) == done.end()) {
 				bool inputs_done = true;
 
@@ -403,6 +398,10 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 							inputs_done = false;
 
 				if(inputs_done) {
+					/* Detect if we have a blackbody converter, to prepare lookup table */
+					if(node->has_converter_blackbody())
+					current_shader->has_converter_blackbody = true;
+
 					node->compile(*this);
 					stack_clear_users(node, done);
 					stack_clear_temporary(node);
