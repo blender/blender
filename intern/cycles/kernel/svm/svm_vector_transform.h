@@ -31,23 +31,24 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	float3 in = stack_load_float3(stack, vector_in);
 	
 	NodeVectorTransformType type = (NodeVectorTransformType)itype;
-	NodeVectorTransformConvertFrom from = (NodeVectorTransformConvertFrom)ifrom;
-	NodeVectorTransformConvertTo to = (NodeVectorTransformConvertTo)ito;
+	NodeVectorTransformConvertSpace from = (NodeVectorTransformConvertSpace)ifrom;
+	NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
 	
 	Transform tfm;
 	int is_object = (sd->object != ~0);
+	int is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR || type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
 	
 	/* From world */
-	if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD) {
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+	if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
 			tfm = kernel_data.cam.worldtocamera;
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+			if(is_direction)
 				in = transform_direction(&tfm, in);
 			else
 				in = transform_point(&tfm, in);
 		}
-		else if (to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT && is_object) {
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+		else if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT && is_object) {
+			if(is_direction)
 				object_inverse_dir_transform(kg, sd, &in);
 			else
 				object_inverse_position_transform(kg, sd, &in);
@@ -55,16 +56,16 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	}
 	
 	/* From camera */
-	else if (from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA) {
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT) {
+	else if (from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
 			tfm = kernel_data.cam.cameratoworld;
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+			if(is_direction)
 				in = transform_direction(&tfm, in);
 			else
 				in = transform_point(&tfm, in);
 		}
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT && is_object) {
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT && is_object) {
+			if(is_direction)
 				object_inverse_dir_transform(kg, sd, &in);
 			else
 				object_inverse_position_transform(kg, sd, &in);
@@ -72,21 +73,25 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	}
 	
 	/* From object */
-	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT) {
-		if((to == NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) && is_object) {
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+	else if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
+		if((to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD || to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) && is_object) {
+			if(is_direction)
 				object_dir_transform(kg, sd, &in);
 			else
 				object_position_transform(kg, sd, &in);
 		}
-		if(to == NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA) {
+		if(to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
 			tfm = kernel_data.cam.worldtocamera;
-			if(type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR)
+			if(is_direction)
 				in = transform_direction(&tfm, in);
 			else
 				in = transform_point(&tfm, in);
 		}
 	}
+	
+	/* Normalize Normal */
+	if(type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL)
+		in = normalize(in);
 	
 	/* Output */	
 	if(stack_valid(vector_out)) {

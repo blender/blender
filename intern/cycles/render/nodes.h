@@ -513,8 +513,7 @@ public:
 	ustring convert_to;
 	
 	static ShaderEnum type_enum;
-	static ShaderEnum convert_from_enum;
-	static ShaderEnum convert_to_enum;
+	static ShaderEnum convert_space_enum;
 };
 
 class BumpNode : public ShaderNode {

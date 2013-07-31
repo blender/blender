@@ -3251,35 +3251,24 @@ static ShaderEnum vector_transform_type_init()
 
 	enm.insert("Vector", NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
 	enm.insert("Point", NODE_VECTOR_TRANSFORM_TYPE_POINT);
+	enm.insert("Normal", NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
 
 	return enm;
 }
 
-static ShaderEnum vector_transform_convert_from_init()
+static ShaderEnum vector_transform_convert_space_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_FROM_WORLD);
-	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_FROM_OBJECT);
-	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_FROM_CAMERA);
-
-	return enm;
-}
-
-static ShaderEnum vector_transform_convert_to_init()
-{
-	ShaderEnum enm;
-
-	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_TO_WORLD);
-	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_TO_OBJECT);
-	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_TO_CAMERA);
+	enm.insert("world", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD);
+	enm.insert("object", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT);
+	enm.insert("camera", NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA);
 
 	return enm;
 }
 
 ShaderEnum VectorTransformNode::type_enum = vector_transform_type_init();
-ShaderEnum VectorTransformNode::convert_from_enum = vector_transform_convert_from_init();
-ShaderEnum VectorTransformNode::convert_to_enum = vector_transform_convert_to_init();
+ShaderEnum VectorTransformNode::convert_space_enum = vector_transform_convert_space_init();
 
 void VectorTransformNode::compile(SVMCompiler& compiler)
 {
@@ -3290,7 +3279,7 @@ void VectorTransformNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(vector_out);
 
 	compiler.add_node(NODE_VECTOR_TRANSFORM,
-		compiler.encode_uchar4(type_enum[type], convert_from_enum[convert_from], convert_to_enum[convert_to]),
+		compiler.encode_uchar4(type_enum[type], convert_space_enum[convert_from], convert_space_enum[convert_to]),
 		compiler.encode_uchar4(vector_in->stack_offset, vector_out->stack_offset));
 }
 

@@ -20,16 +20,18 @@
 
 shader node_vector_transform(
 	string type = "Vector",
-	string convert_from = "World",
-	string convert_to = "Object",
+	string convert_from = "world",
+	string convert_to = "object",
 	vector VectorIn = vector(0.0, 0.0, 0.0),
 	output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-	if (type == "Vector") {
+	if (type == "Vector" || type == "Normal") {
 		VectorOut = transform(convert_from, convert_to, VectorIn);
+		if (type == "Normal")
+			VectorOut = normalize(VectorOut);
 	}
 	else if (type == "Point") {
-		point Point = point(VectorIn[0], VectorIn[1], VectorIn[2]);
+		point Point = (point)VectorIn;
 		VectorOut = transform(convert_from, convert_to, Point);
 	}
 }
