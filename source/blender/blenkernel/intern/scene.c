@@ -1179,6 +1179,7 @@ typedef struct ThreadedObjectUpdateState {
 
 #ifdef ENABLE_THREAD_STATISTICS
 	ListBase statistics[64];
+	int num_updated_objects;
 #endif
 } ThreadedObjectUpdateState;
 
@@ -1186,7 +1187,8 @@ static void scene_update_object_add_task(void *node, void *user_data);
 
 static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
 {
-#define PRINT if (G.debug & G_DEBUG) printf
+/* Disable print for now in favor of summary statistics at the end of update. */
+#define PRINT if (false) printf
 
 	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
 	void *node = taskdata;
@@ -1204,6 +1206,12 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 #ifdef ENABLE_THREAD_STATISTICS
 		if (G.debug & G_DEBUG) {
 			start_time = PIL_check_seconds_timer();
+
+			if (object->recalc & OB_RECALC_ALL) {
+				BLI_spin_lock(&state->lock);
+				state->num_updated_objects++;
+				BLI_spin_unlock(&state->lock);
+			}
 		}
 #endif
 
@@ -1257,21 +1265,24 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 		double total_time = 0.0;
 		StatisicsEntry *entry;
 
-		for (entry = state->statistics[i].first;
-		     entry;
-		     entry = entry->next)
-		{
-			total_objects++;
-			total_time += entry->time;
-		}
+		if (state->num_updated_objects > 0) {
+			/* Don't pollute output if no objects were updated. */
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+			{
+				total_objects++;
+				total_time += entry->time;
+			}
 
-		printf("Thread %d: total %d objects in %f sec.\n", i, total_objects, total_time);
+			printf("Thread %d: total %d objects in %f sec.\n", i, total_objects, total_time);
 
-		for (entry = state->statistics[i].first;
-		     entry;
-		     entry = entry->next)
-		{
-			printf("  %s in %f sec\n", entry->object->id.name + 2, entry->time);
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+				{
+					printf("  %s in %f sec\n", entry->object->id.name + 2, entry->time);
+				}
 		}
 
 		BLI_freelistN(&state->statistics[i]);
@@ -1296,6 +1307,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 	state.scene_parent = scene_parent;
 #ifdef ENABLE_THREAD_STATISTICS
 	memset(state.statistics, 0, sizeof(state.statistics));
+	state.num_updated_objects = 0;
 #endif
 	BLI_spin_init(&state.lock);
 
