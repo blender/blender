@@ -80,7 +80,7 @@ void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 	sd->ray_length = isect->t;
-	sd->ray_depth = (float)bounce;
+	sd->ray_depth = bounce;
 
 #ifdef __HAIR__
 	if(kernel_tex_fetch(__prim_segment, isect->prim) != ~0) {
@@ -301,7 +301,7 @@ void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	sd->v = v;
 #endif
 	sd->ray_length = t;
-	sd->ray_depth = (float)bounce;
+	sd->ray_depth = bounce;
 
 	/* detect instancing, for non-instanced the object index is -object-1 */
 #ifdef __INSTANCING__
@@ -428,7 +428,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	sd->time = ray->time;
 #endif
 	sd->ray_length = 0.0f;
-	sd->ray_depth = (float)bounce;
+	sd->ray_depth = bounce;
 
 #ifdef __INSTANCING__
 	sd->object = ~0;

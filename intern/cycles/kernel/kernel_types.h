@@ -555,7 +555,7 @@ typedef struct ShaderData {
 	float ray_length;
 	
 	/* ray bounce depth */
-	float ray_depth;
+	int ray_depth;
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */

@@ -38,6 +38,9 @@ shader node_light_path(
 	IsTransmissionRay = raytype("refraction");
 
 	getattribute("path:ray_length", RayLength);
-	getattribute("path:ray_depth", RayDepth);
+
+	int ray_depth;
+	getattribute("path:ray_depth", ray_depth);
+	RayDepth = (float)ray_depth;
 }
 

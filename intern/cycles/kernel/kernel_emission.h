@@ -41,7 +41,7 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 #ifdef __CAMERA_MOTION__
 		ray.time = time;
 #endif
-		shader_setup_from_background(kg, &sd, &ray, bounce);
+		shader_setup_from_background(kg, &sd, &ray, bounce+1);
 		eval = shader_eval_background(kg, &sd, 0, SHADER_CONTEXT_EMISSION);
 	}
 	else
@@ -49,10 +49,10 @@ __device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 	{
 #ifdef __HAIR__
 		if(ls->type == LIGHT_STRAND)
-			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, bounce, ls->prim);
+			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, bounce+1, ls->prim);
 		else
 #endif
-			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, bounce, ~0);
+			shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, u, v, t, time, bounce+1, ~0);
 
 		ls->Ng = sd.Ng;
 
@@ -240,7 +240,7 @@ __device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int pa
 
 	/* evaluate background closure */
 	ShaderData sd;
-	shader_setup_from_background(kg, &sd, ray, bounce);
+	shader_setup_from_background(kg, &sd, ray, bounce+1);
 
 	float3 L = shader_eval_background(kg, &sd, path_flag, SHADER_CONTEXT_EMISSION);
 

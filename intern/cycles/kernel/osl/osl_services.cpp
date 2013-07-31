@@ -662,9 +662,9 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_path_ray_depth) {
-		/* Ray Length */
-		float f = sd->ray_depth;
-		return set_attribute_float(f, type, derivatives, val);
+		/* Ray Depth */
+		int f = sd->ray_depth;
+		return set_attribute_int(f, type, derivatives, val);
 	}
 	else if (name == u_ndc) {
 		/* NDC coordinates with special exception for otho */
@@ -925,7 +925,10 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 
 				if(!tracedata->setup) {
 					/* lazy shader data setup */
-					shader_setup_from_ray(kg, sd, &tracedata->isect, &tracedata->ray, -1);
+					ShaderData *original_sd = (ShaderData *)(sg->renderstate);
+					int bounce = original_sd->ray_depth + 1;
+
+					shader_setup_from_ray(kg, sd, &tracedata->isect, &tracedata->ray, bounce);
 					tracedata->setup = true;
 				}
 

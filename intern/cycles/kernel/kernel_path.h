@@ -215,7 +215,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 					return true;
 
 				ShaderData sd;
-				shader_setup_from_ray(kg, &sd, &isect, ray, state->bounce);
+				shader_setup_from_ray(kg, &sd, &isect, ray, state->bounce+1);
 				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 
 				throughput *= shader_bsdf_transparency(kg, &sd);
