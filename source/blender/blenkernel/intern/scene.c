@@ -1175,7 +1175,7 @@ typedef struct ThreadedObjectUpdateState {
 
 	/* Execution statistics */
 	ListBase statistics[BLENDER_MAX_THREADS];
-	int num_updated_objects;
+	bool has_updated_objects;
 } ThreadedObjectUpdateState;
 
 static void scene_update_object_add_task(void *node, void *user_data);
@@ -1200,9 +1200,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 			start_time = PIL_check_seconds_timer();
 
 			if (object->recalc & OB_RECALC_ALL) {
-				BLI_spin_lock(&state->lock);
-				state->num_updated_objects++;
-				BLI_spin_unlock(&state->lock);
+				state->has_updated_objects = true;
 			}
 		}
 
@@ -1225,7 +1223,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 	}
 	else {
 		PRINT("Threda %d: update node %s\n", threadid,
-		        DAG_threaded_update_get_node_name(node));
+		      DAG_threaded_update_get_node_name(node));
 	}
 
 	BLI_spin_lock(&state->lock);
@@ -1258,7 +1256,7 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 		double total_time = 0.0;
 		StatisicsEntry *entry;
 
-		if (state->num_updated_objects > 0) {
+		if (state->has_updated_objects) {
 			/* Don't pollute output if no objects were updated. */
 			for (entry = state->statistics[i].first;
 			     entry;
@@ -1298,7 +1296,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 	state.scene = scene;
 	state.scene_parent = scene_parent;
 	memset(state.statistics, 0, sizeof(state.statistics));
-	state.num_updated_objects = 0;
+	state.has_updated_objects = false;
 	BLI_spin_init(&state.lock);
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
