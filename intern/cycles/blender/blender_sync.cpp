@@ -321,7 +321,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.bound_samples = (use_layer_samples == 1);
 			if(use_layer_samples != 2) {
 				int samples = b_rlay->samples();
-				if(get_boolean(cscene, "squared_samples"))
+				if(get_boolean(cscene, "squared_samples") && !(get_boolean(cscene, "progressive")))
 					render_layer.samples = samples * samples;
 				else
 					render_layer.samples = samples;
@@ -414,10 +414,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	int preview_samples = get_int(cscene, "preview_samples");
 	int preview_aa_samples = get_int(cscene, "preview_aa_samples");
 	
+	/* Squared samples for Non-Progressive only */
 	if(get_boolean(cscene, "squared_samples")) {
-		samples = samples * samples;
 		aa_samples = aa_samples * aa_samples;
-		preview_samples = preview_samples * preview_samples;
 		preview_aa_samples = preview_aa_samples * preview_aa_samples;
 	}
 

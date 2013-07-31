@@ -70,7 +70,9 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub = row.row()
         sub.active = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
-        row.prop(cscene, "squared_samples")
+        
+        if not cscene.progressive:
+            row.prop(cscene, "squared_samples")
         
         split = layout.split()
         
