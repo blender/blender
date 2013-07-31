@@ -81,6 +81,7 @@ void register_node_type_sh_object_info(void);
 void register_node_type_sh_fresnel(void);
 void register_node_type_sh_wireframe(void);
 void register_node_type_sh_wavelength(void);
+void register_node_type_sh_blackbody(void);
 void register_node_type_sh_layer_weight(void);
 void register_node_type_sh_tex_coord(void);
 void register_node_type_sh_particle_info(void);
