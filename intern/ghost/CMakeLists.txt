@@ -315,5 +315,7 @@ elseif(WIN32)
 
 endif()
 
+add_definitions(-DGLEW_STATIC)
+
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 
