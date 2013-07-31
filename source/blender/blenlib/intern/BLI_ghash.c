@@ -179,7 +179,8 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 	gh->nentries = 0;
 	gh->nbuckets = hashsizes[gh->cursize];
 
-	gh->buckets = MEM_recallocN(gh->buckets, gh->nbuckets * sizeof(*gh->buckets));
+	MEM_freeN(gh->buckets);
+	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 }
 
 /* same as above but return the value,
