@@ -35,8 +35,8 @@ __device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, float
 	NodeVectorTransformConvertSpace to = (NodeVectorTransformConvertSpace)ito;
 	
 	Transform tfm;
-	int is_object = (sd->object != ~0);
-	int is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR || type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+	bool is_object = (sd->object != ~0);
+	bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR || type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
 	
 	/* From world */
 	if(from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD) {
