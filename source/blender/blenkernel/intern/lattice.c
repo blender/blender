@@ -370,7 +370,7 @@ LatticeDeformData *init_latt_deform(Object *oblatt, Object *ob)
 
 	lattice_deform_data = MEM_mallocN(sizeof(LatticeDeformData), "Lattice Deform Data");
 	lattice_deform_data->latticedata = latticedata;
-	lattice_deform_data->object = ob;
+	lattice_deform_data->object = oblatt;
 	copy_m4_m4(lattice_deform_data->latmat, latmat);
 
 	return lattice_deform_data;
