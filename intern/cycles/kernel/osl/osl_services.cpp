@@ -84,6 +84,7 @@ ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
 ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 #endif
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
+ustring OSLRenderServices::u_path_ray_depth("path:ray_depth");
 ustring OSLRenderServices::u_trace("trace");
 ustring OSLRenderServices::u_hit("hit");
 ustring OSLRenderServices::u_hitdist("hitdist");
@@ -660,6 +661,11 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 		float f = sd->ray_length;
 		return set_attribute_float(f, type, derivatives, val);
 	}
+	else if (name == u_path_ray_depth) {
+		/* Ray Depth */
+		int f = sd->ray_depth;
+		return set_attribute_int(f, type, derivatives, val);
+	}
 	else if (name == u_ndc) {
 		/* NDC coordinates with special exception for otho */
 		OSLThreadData *tdata = kg->osl_tdata;
@@ -919,7 +925,10 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 
 				if(!tracedata->setup) {
 					/* lazy shader data setup */
-					shader_setup_from_ray(kg, sd, &tracedata->isect, &tracedata->ray);
+					ShaderData *original_sd = (ShaderData *)(sg->renderstate);
+					int bounce = original_sd->ray_depth + 1;
+
+					shader_setup_from_ray(kg, sd, &tracedata->isect, &tracedata->ray, bounce);
 					tracedata->setup = true;
 				}
 
