@@ -107,13 +107,14 @@ typedef struct {
 	int threads;
 } MultiresBakeJob;
 
-static int multiresbake_check(bContext *C, wmOperator *op)
+static bool multiresbake_check(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	Mesh *me;
 	MultiresModifierData *mmd;
-	int ok = 1, a;
+	bool ok = true;
+	int a;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -122,7 +123,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 		if (ob->type != OB_MESH) {
 			BKE_report(op->reports, RPT_ERROR, "Baking of multires data only works with an active mesh object");
 
-			ok = 0;
+			ok = false;
 			break;
 		}
 
@@ -137,12 +138,12 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 
 			for (md = (ModifierData *)mmd->modifier.next; md && ok; md = md->next) {
 				if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
-					ok = 0;
+					ok = false;
 				}
 			}
 		}
 		else {
-			ok = 0;
+			ok = false;
 		}
 
 		if (!ok) {
@@ -153,14 +154,14 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 
 		if (mmd->lvl == 0) {
 			BKE_report(op->reports, RPT_ERROR, "Multires data baking is not supported for preview subdivision level 0");
-
+			ok = false;
 			break;
 		}
 
 		if (!me->mtpoly) {
 			BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
-			ok = 0;
+			ok = false;
 		}
 		else {
 			a = me->totpoly;
@@ -170,7 +171,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 				if (!ima) {
 					BKE_report(op->reports, RPT_ERROR, "You should have active texture to use multires baker");
 
-					ok = 0;
+					ok = false;
 				}
 				else {
 					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
@@ -178,14 +179,14 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 					if (!ibuf) {
 						BKE_report(op->reports, RPT_ERROR, "Baking should happen to image with image buffer");
 
-						ok = 0;
+						ok = false;
 					}
 					else {
 						if (ibuf->rect == NULL && ibuf->rect_float == NULL)
-							ok = 0;
+							ok = false;
 
 						if (ibuf->rect_float && !(ibuf->channels == 0 || ibuf->channels == 4))
-							ok = 0;
+							ok = false;
 
 						if (!ok)
 							BKE_report(op->reports, RPT_ERROR, "Baking to unsupported image type");
