@@ -1180,6 +1180,25 @@ typedef struct ThreadedObjectUpdateState {
 
 static void scene_update_object_add_task(void *node, void *user_data);
 
+static void scene_update_all_bases(Scene *scene, Scene *scene_parent)
+{
+	Base *base;
+
+	for (base = scene->base.first; base; base = base->next) {
+		Object *object = base->object;
+
+		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
+
+		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
+			BKE_group_handle_recalc_and_update(scene_parent, object, object->dup_group);
+
+		/* always update layer, so that animating layers works (joshua july 2010) */
+		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
+		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
+		// base->lay = ob->lay;
+	}
+}
+
 static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
 {
 /* Disable print for now in favor of summary statistics at the end of update. */
@@ -1280,11 +1299,16 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 	}
 }
 
-static void scene_update_objects(Scene *scene, Scene *scene_parent)
+static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_threads)
 {
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool;
 	ThreadedObjectUpdateState state;
+
+	if (use_threads == false) {
+		scene_update_all_bases(scene, scene_parent);
+		return;
+	}
 
 	/* Ensure malloc will go go fine from threads,
 	 * this is needed because we could be in main thread here
@@ -1373,17 +1397,17 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent)
 	}
 }
 
-static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
+static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent, bool use_threads)
 {
 	scene->customdata_mask = scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
-		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
+		scene_update_tagged_recursive(bmain, scene->set, scene_parent, use_threads);
 
 	/* scene objects */
-	scene_update_objects(scene, scene_parent);
+	scene_update_objects(scene, scene_parent, use_threads);
 
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
@@ -1397,7 +1421,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
-void BKE_scene_update_tagged(Main *bmain, Scene *scene)
+void BKE_scene_update_tagged_ex(Main *bmain, Scene *scene, bool use_threads)
 {
 	Scene *sce_iter;
 	
@@ -1424,7 +1448,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	 *
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
-	scene_update_tagged_recursive(bmain, scene, scene);
+	scene_update_tagged_recursive(bmain, scene, scene, use_threads);
 
 	/* extra call here to recalc scene animation (for sequencer) */
 	{
@@ -1443,8 +1467,13 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	DAG_ids_clear_recalc(bmain);
 }
 
+void BKE_scene_update_tagged(Main *bmain, Scene *scene)
+{
+	BKE_scene_update_tagged_ex(bmain, scene, true);
+}
+
 /* applies changes right away, does all sets too */
-void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
+void BKE_scene_update_for_newframe_ex(Main *bmain, Scene *sce, unsigned int lay, bool use_threads)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
@@ -1502,7 +1531,7 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_do_rb_simulation_recursive(sce, ctime);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
-	scene_update_tagged_recursive(bmain, sce, sce);
+	scene_update_tagged_recursive(bmain, sce, sce, use_threads);
 
 	scene_depsgraph_hack(sce, sce);
 
@@ -1514,6 +1543,11 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 
 	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
+}
+
+void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
+{
+	BKE_scene_update_for_newframe_ex(bmain, sce, lay, true);
 }
 
 /* return default layer, also used to patch old files */

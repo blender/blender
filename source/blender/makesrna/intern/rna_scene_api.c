@@ -61,7 +61,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	CLAMP(cfra, MINAFRAME, MAXFRAME);
 	BKE_scene_frame_set(scene, cfra);
 
-	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);
+	BKE_scene_update_for_newframe_ex(G.main, scene, (1 << 20) - 1, false);
 	BKE_scene_camera_switch_update(scene);
 
 	/* don't do notifier when we're rendering, avoid some viewport crashes
@@ -78,7 +78,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 static void rna_Scene_update_tagged(Scene *scene)
 {
-	BKE_scene_update_tagged(G.main, scene);
+	BKE_scene_update_tagged_ex(G.main, scene, false);
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)
