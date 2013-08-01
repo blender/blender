@@ -375,13 +375,13 @@ static float paint_space_stroke_spacing(const Scene *scene, PaintStroke *stroke,
 
 	/* apply spacing pressure */
 	if (stroke->brush->flag & BRUSH_SPACING_PRESSURE)
-		spacing = max_ff(1.0f, spacing * (1.5f - spacing_pressure));
+		spacing = spacing * (1.5f - spacing_pressure);
 
 	/* stroke system is used for 2d paint too, so we need to account for
 	 * the fact that brush can be scaled there. */
 	spacing *= stroke->zoom_2d;
 
-	return (size_clamp * spacing / 50.0f);
+	return max_ff(1.0, size_clamp * spacing / 50.0f);
 }
 
 static float paint_space_stroke_spacing_variable(const Scene *scene, PaintStroke *stroke, float pressure, float dpressure, float length)
