@@ -385,33 +385,30 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 		BMEdge *e;
 		BMFace *f;
 		BMIter iter, iter2;
-		int found;
 
 		/* make sure to remove edges and verts we don't need */
-		for (e = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e = BM_iter_step(&iter)) {
-			found = 0;
-			f = BM_iter_new(&iter2, bm, BM_FACES_OF_EDGE, e);
-			for ( ; f; f = BM_iter_step(&iter2)) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			bool found = false;
+			BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
 				if (!BMO_elem_flag_test(bm, f, SPLIT_INPUT)) {
-					found = 1;
+					found = true;
 					break;
 				}
 			}
-			if (!found) {
+			if (found == false) {
 				BMO_elem_flag_enable(bm, e, SPLIT_INPUT);
 			}
 		}
 
-		for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
-			found = 0;
-			e = BM_iter_new(&iter2, bm, BM_EDGES_OF_VERT, v);
-			for ( ; e; e = BM_iter_step(&iter2)) {
+		BM_ITER_MESH (v, &iter, bm,  BM_VERTS_OF_MESH) {
+			bool found = false;
+			BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, SPLIT_INPUT)) {
-					found = 1;
+					found = true;
 					break;
 				}
 			}
-			if (!found) {
+			if (found == false) {
 				BMO_elem_flag_enable(bm, v, SPLIT_INPUT);
 			}
 		}
