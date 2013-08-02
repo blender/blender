@@ -683,6 +683,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		outliner_do_object_operation(C, scene, soops, &soops->tree, item_rename_cb);
 		str = "Rename Object";
 	}
+	else {
+		BLI_assert(0);
+		return OPERATOR_CANCELLED;
+	}
 
 	ED_undo_push(C, str);
 	
