@@ -99,6 +99,12 @@
 #include "SCA_IController.h"
 #include "KX_NavMeshObject.h"
 
+typedef vector<PyGetSetDef *> GetSetList;
+
+struct PyTypes_state {
+	GetSetList *getsets;
+};
+
 static void PyType_Attr_Set(PyGetSetDef *attr_getset, PyAttributeDef *attr)
 {
 	attr_getset->name= (char *)attr->m_name;
@@ -114,9 +120,11 @@ static void PyType_Attr_Set(PyGetSetDef *attr_getset, PyAttributeDef *attr)
 	attr_getset->closure= reinterpret_cast<void *>(attr);
 }
 
-static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *attributes, PyAttributeDef *attributesPtr, int init_getset)
+static void PyType_Ready_ADD(PyObject *mod, PyTypeObject *tp, PyAttributeDef *attributes, PyAttributeDef *attributesPtr, int init_getset)
 {
 	PyAttributeDef *attr;
+	PyObject *dict = PyModule_GetDict(mod);
+	GetSetList *getsets = reinterpret_cast<PyTypes_state*>(PyModule_GetState(mod))->getsets;
 
 	if (init_getset) {
 		/* we need to do this for all types before calling PyType_Ready
@@ -138,7 +146,9 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 					attr->m_usePtr = true;
 			}
 
-			tp->tp_getset = attr_getset = reinterpret_cast<PyGetSetDef *>(PyMem_Malloc((attr_tot+1) * sizeof(PyGetSetDef))); // XXX - Todo, free
+			tp->tp_getset = attr_getset = reinterpret_cast<PyGetSetDef *>(PyMem_Malloc((attr_tot+1) * sizeof(PyGetSetDef)));
+
+			getsets->push_back(attr_getset); // Save the pointer so we can free it later
 
 			if (attributes) {
 				for (attr= attributes; attr->m_name; attr++, attr_getset++) {
@@ -163,6 +173,32 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 #define PyType_Ready_Attr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, NULL, i)
 #define PyType_Ready_AttrPtr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, n::AttributesPtr, i)
 
+static void freePyTypes(void *ptr)
+{
+	PyObject *mod = reinterpret_cast<PyObject *>(ptr);
+	GetSetList *getsets = reinterpret_cast<PyTypes_state*>(PyModule_GetState(mod))->getsets;
+	GetSetList::iterator gsit;
+
+	for (gsit = getsets->begin(); gsit != getsets->end(); ++gsit) {
+		PyMem_Free(*gsit);
+	}
+
+	getsets->clear();
+	delete getsets;
+}
+
+static struct PyModuleDef typemodule = {
+    PyModuleDef_HEAD_INIT,
+    "GameTypes",
+    "BGE Python Types",
+    sizeof(PyTypes_state),
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    freePyTypes
+};
+
 void initPyTypes(void)
 {
 
@@ -172,90 +208,91 @@ void initPyTypes(void)
  */
 
 	/* For now just do PyType_Ready */
-	PyObject *mod = PyModule_New("GameTypes");
-	PyObject *dict = PyModule_GetDict(mod);
+	PyObject *mod = PyModule_Create(&typemodule);
+	PyTypes_state *state = reinterpret_cast<PyTypes_state*>(PyModule_GetState(mod));
+	state->getsets = new GetSetList();
+
 	PyDict_SetItemString(PySys_GetObject("modules"), "GameTypes", mod);
 	Py_DECREF(mod);
 	
-	
 	for (int init_getset= 1; init_getset > -1; init_getset--) { /* run twice, once to init the getsets another to run PyType_Ready */
-		PyType_Ready_Attr(dict, BL_ActionActuator, init_getset);
-		PyType_Ready_Attr(dict, BL_Shader, init_getset);
-		PyType_Ready_Attr(dict, BL_ShapeActionActuator, init_getset);
-		PyType_Ready_Attr(dict, BL_ArmatureObject, init_getset);
-		PyType_Ready_Attr(dict, BL_ArmatureActuator, init_getset);
-		PyType_Ready_Attr(dict, BL_ArmatureConstraint, init_getset);
-		PyType_Ready_AttrPtr(dict, BL_ArmatureBone, init_getset);
-		PyType_Ready_AttrPtr(dict, BL_ArmatureChannel, init_getset);
-		// PyType_Ready_Attr(dict, CPropValue, init_getset);  // doesn't use Py_Header
-		PyType_Ready_Attr(dict, CListValue, init_getset);
-		PyType_Ready_Attr(dict, CValue, init_getset);
-		PyType_Ready_Attr(dict, KX_ArmatureSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
-		PyType_Ready_Attr(dict, KX_Camera, init_getset);
-		PyType_Ready_Attr(dict, KX_CameraActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_CharacterWrapper, init_getset);
-		PyType_Ready_Attr(dict, KX_ConstraintActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_ConstraintWrapper, init_getset);
-		PyType_Ready_Attr(dict, KX_GameActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_GameObject, init_getset);
-		PyType_Ready_Attr(dict, KX_IpoActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_LibLoadStatus, init_getset);
-		PyType_Ready_Attr(dict, KX_LightObject, init_getset);
-		PyType_Ready_Attr(dict, KX_FontObject, init_getset);
-		PyType_Ready_Attr(dict, KX_MeshProxy, init_getset);
-		PyType_Ready_Attr(dict, KX_MouseFocusSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_NearSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_NetworkMessageActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_NetworkMessageSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_ObjectActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_ParentActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_PolyProxy, init_getset);
-		PyType_Ready_Attr(dict, KX_PolygonMaterial, init_getset);
-		PyType_Ready_Attr(dict, KX_RadarSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_RaySensor, init_getset);
-		PyType_Ready_Attr(dict, KX_SCA_AddObjectActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_SCA_DynamicActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_SCA_EndObjectActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_SCA_ReplaceMeshActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_Scene, init_getset);
-		PyType_Ready_Attr(dict, KX_NavMeshObject, init_getset);
-		PyType_Ready_Attr(dict, KX_SceneActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_SoundActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_StateActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_SteeringActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_TouchSensor, init_getset);
-		PyType_Ready_Attr(dict, KX_TrackToActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_VehicleWrapper, init_getset);
-		PyType_Ready_Attr(dict, KX_VertexProxy, init_getset);
-		PyType_Ready_Attr(dict, KX_VisibilityActuator, init_getset);
-		PyType_Ready_Attr(dict, PyObjectPlus, init_getset);
-		PyType_Ready_Attr(dict, SCA_2DFilterActuator, init_getset);
-		PyType_Ready_Attr(dict, SCA_ANDController, init_getset);
-		// PyType_Ready_Attr(dict, SCA_Actuator, init_getset);  // doesn't use Py_Header
-		PyType_Ready_Attr(dict, SCA_ActuatorSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_AlwaysSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_DelaySensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_ILogicBrick, init_getset);
-		PyType_Ready_Attr(dict, SCA_IObject, init_getset);
-		PyType_Ready_Attr(dict, SCA_ISensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_JoystickSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_KeyboardSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_MouseSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_NANDController, init_getset);
-		PyType_Ready_Attr(dict, SCA_NORController, init_getset);
-		PyType_Ready_Attr(dict, SCA_ORController, init_getset);
-		PyType_Ready_Attr(dict, SCA_PropertyActuator, init_getset);
-		PyType_Ready_Attr(dict, SCA_PropertySensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_PythonController, init_getset);
-		PyType_Ready_Attr(dict, SCA_RandomActuator, init_getset);
-		PyType_Ready_Attr(dict, SCA_RandomSensor, init_getset);
-		PyType_Ready_Attr(dict, SCA_XNORController, init_getset);
-		PyType_Ready_Attr(dict, SCA_XORController, init_getset);
-		PyType_Ready_Attr(dict, SCA_IController, init_getset);
-		PyType_Ready_Attr(dict, SCA_PythonJoystick, init_getset);
-		PyType_Ready_Attr(dict, SCA_PythonKeyboard, init_getset);
-		PyType_Ready_Attr(dict, SCA_PythonMouse, init_getset);
+		PyType_Ready_Attr(mod, BL_ActionActuator, init_getset);
+		PyType_Ready_Attr(mod, BL_Shader, init_getset);
+		PyType_Ready_Attr(mod, BL_ShapeActionActuator, init_getset);
+		PyType_Ready_Attr(mod, BL_ArmatureObject, init_getset);
+		PyType_Ready_Attr(mod, BL_ArmatureActuator, init_getset);
+		PyType_Ready_Attr(mod, BL_ArmatureConstraint, init_getset);
+		PyType_Ready_AttrPtr(mod, BL_ArmatureBone, init_getset);
+		PyType_Ready_AttrPtr(mod, BL_ArmatureChannel, init_getset);
+		// PyType_Ready_Attr(mod, CPropValue, init_getset);  // doesn't use Py_Header
+		PyType_Ready_Attr(mod, CListValue, init_getset);
+		PyType_Ready_Attr(mod, CValue, init_getset);
+		PyType_Ready_Attr(mod, KX_ArmatureSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_BlenderMaterial, init_getset);
+		PyType_Ready_Attr(mod, KX_Camera, init_getset);
+		PyType_Ready_Attr(mod, KX_CameraActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_CharacterWrapper, init_getset);
+		PyType_Ready_Attr(mod, KX_ConstraintActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_ConstraintWrapper, init_getset);
+		PyType_Ready_Attr(mod, KX_GameActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_GameObject, init_getset);
+		PyType_Ready_Attr(mod, KX_IpoActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_LibLoadStatus, init_getset);
+		PyType_Ready_Attr(mod, KX_LightObject, init_getset);
+		PyType_Ready_Attr(mod, KX_FontObject, init_getset);
+		PyType_Ready_Attr(mod, KX_MeshProxy, init_getset);
+		PyType_Ready_Attr(mod, KX_MouseFocusSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_NearSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_NetworkMessageActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_NetworkMessageSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_ObjectActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_ParentActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_PolyProxy, init_getset);
+		PyType_Ready_Attr(mod, KX_PolygonMaterial, init_getset);
+		PyType_Ready_Attr(mod, KX_RadarSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_RaySensor, init_getset);
+		PyType_Ready_Attr(mod, KX_SCA_AddObjectActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_SCA_DynamicActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_SCA_EndObjectActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_SCA_ReplaceMeshActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_Scene, init_getset);
+		PyType_Ready_Attr(mod, KX_NavMeshObject, init_getset);
+		PyType_Ready_Attr(mod, KX_SceneActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_SoundActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_StateActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_SteeringActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_TouchSensor, init_getset);
+		PyType_Ready_Attr(mod, KX_TrackToActuator, init_getset);
+		PyType_Ready_Attr(mod, KX_VehicleWrapper, init_getset);
+		PyType_Ready_Attr(mod, KX_VertexProxy, init_getset);
+		PyType_Ready_Attr(mod, KX_VisibilityActuator, init_getset);
+		PyType_Ready_Attr(mod, PyObjectPlus, init_getset);
+		PyType_Ready_Attr(mod, SCA_2DFilterActuator, init_getset);
+		PyType_Ready_Attr(mod, SCA_ANDController, init_getset);
+		// PyType_Ready_Attr(mod, SCA_Actuator, init_getset);  // doesn't use Py_Header
+		PyType_Ready_Attr(mod, SCA_ActuatorSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_AlwaysSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_DelaySensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_ILogicBrick, init_getset);
+		PyType_Ready_Attr(mod, SCA_IObject, init_getset);
+		PyType_Ready_Attr(mod, SCA_ISensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_JoystickSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_KeyboardSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_MouseSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_NANDController, init_getset);
+		PyType_Ready_Attr(mod, SCA_NORController, init_getset);
+		PyType_Ready_Attr(mod, SCA_ORController, init_getset);
+		PyType_Ready_Attr(mod, SCA_PropertyActuator, init_getset);
+		PyType_Ready_Attr(mod, SCA_PropertySensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_PythonController, init_getset);
+		PyType_Ready_Attr(mod, SCA_RandomActuator, init_getset);
+		PyType_Ready_Attr(mod, SCA_RandomSensor, init_getset);
+		PyType_Ready_Attr(mod, SCA_XNORController, init_getset);
+		PyType_Ready_Attr(mod, SCA_XORController, init_getset);
+		PyType_Ready_Attr(mod, SCA_IController, init_getset);
+		PyType_Ready_Attr(mod, SCA_PythonJoystick, init_getset);
+		PyType_Ready_Attr(mod, SCA_PythonKeyboard, init_getset);
+		PyType_Ready_Attr(mod, SCA_PythonMouse, init_getset);
 	}
 
 
