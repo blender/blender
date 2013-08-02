@@ -9495,6 +9495,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			brush->spacing = MAX2(1, brush->spacing);
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 268, 2)) {
+		Brush *brush;
+		#define BRUSH_FIXED (1 << 6)
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->flag &= ~BRUSH_FIXED;
+
+			if(brush->cursor_overlay_alpha < 2)
+				brush->cursor_overlay_alpha = 33;
+			if(brush->texture_overlay_alpha < 2)
+				brush->texture_overlay_alpha = 33;
+			if(brush->mask_overlay_alpha <2)
+				brush->mask_overlay_alpha = 33;
+		}
+		#undef BRUSH_FIXED
+	}
 	
 	{
 		bScreen *sc;
