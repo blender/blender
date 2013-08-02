@@ -3578,6 +3578,11 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
 	}
 
+	/* make sure all new frames are loaded */
+	if (cache->cached_frames) {
+		MEM_freeN(cache->cached_frames);
+		cache->cached_frames=NULL;
+	}
 	BKE_ptcache_update_info(pid);
 }
 
