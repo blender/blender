@@ -310,6 +310,7 @@ typedef struct PathRadiance {
 	float3 path_diffuse;
 	float3 path_glossy;
 	float3 path_transmission;
+	float3 path_subsurface;
 
 	float4 shadow;
 	float mist;
@@ -322,6 +323,7 @@ typedef struct BsdfEval {
 	float3 glossy;
 	float3 transmission;
 	float3 transparent;
+	float3 subsurface;
 } BsdfEval;
 
 #else

@@ -163,6 +163,10 @@ __device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weigh
 	sd->flag |= bsdf_diffuse_setup(sc);
 	sd->randb_closure = 0.0f;
 
+	/* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
+	 * can recognize it as not being a regular diffuse closure */
+	sc->type = CLOSURE_BSDF_BSSRDF_ID;
+
 	/* todo: evaluate shading to get blurred textures and bump mapping */
 	/* shader_eval_surface(kg, sd, 0.0f, state_flag, SHADER_CONTEXT_SSS); */
 }

@@ -33,6 +33,7 @@ __device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 val
 		eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
 		eval->transmission = make_float3(0.0f, 0.0f, 0.0f);
 		eval->transparent = make_float3(0.0f, 0.0f, 0.0f);
+		eval->subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		if(type == CLOSURE_BSDF_TRANSPARENT_ID)
 			eval->transparent = value;
@@ -40,8 +41,10 @@ __device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 val
 			eval->diffuse = value;
 		else if(CLOSURE_IS_BSDF_GLOSSY(type))
 			eval->glossy = value;
-		else
+		else if(CLOSURE_IS_BSDF_TRANSMISSION(type))
 			eval->transmission = value;
+		else if(CLOSURE_IS_BSDF_BSSRDF(type))
+			eval->subsurface = value;
 	}
 	else
 		eval->diffuse = value;
@@ -58,8 +61,10 @@ __device_inline void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 va
 			eval->diffuse += value;
 		else if(CLOSURE_IS_BSDF_GLOSSY(type))
 			eval->glossy += value;
-		else
+		else if(CLOSURE_IS_BSDF_TRANSMISSION(type))
 			eval->transmission += value;
+		else if(CLOSURE_IS_BSDF_BSSRDF(type))
+			eval->subsurface += value;
 
 		/* skipping transparent, this function is used by for eval(), will be zero then */
 	}
@@ -77,7 +82,8 @@ __device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
 		return is_zero(eval->diffuse)
 			&& is_zero(eval->glossy)
 			&& is_zero(eval->transmission)
-			&& is_zero(eval->transparent);
+			&& is_zero(eval->transparent)
+			&& is_zero(eval->subsurface);
 	}
 	else
 		return is_zero(eval->diffuse);
@@ -93,6 +99,7 @@ __device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 		eval->diffuse *= value;
 		eval->glossy *= value;
 		eval->transmission *= value;
+		eval->subsurface *= value;
 
 		/* skipping transparent, this function is used by for eval(), will be zero then */
 	}
@@ -139,6 +146,7 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
@@ -167,14 +175,15 @@ __device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughp
 			L->path_diffuse = bsdf_eval->diffuse*value;
 			L->path_glossy = bsdf_eval->glossy*value;
 			L->path_transmission = bsdf_eval->transmission*value;
+			L->path_subsurface = bsdf_eval->subsurface*value;
 
-			*throughput = L->path_diffuse + L->path_glossy + L->path_transmission;
+			*throughput = L->path_diffuse + L->path_glossy + L->path_transmission + L->path_subsurface;
 			
 			L->direct_throughput = *throughput;
 		}
 		else {
 			/* transparent bounce before first hit, or indirectly visible through BSDF */
-			float3 sum = (bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->transparent)*inverse_pdf;
+			float3 sum = (bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->transparent + bsdf_eval->subsurface)*inverse_pdf;
 			*throughput *= sum;
 		}
 	}
@@ -233,6 +242,7 @@ __device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughpu
 			L->direct_diffuse += throughput*bsdf_eval->diffuse*shadow;
 			L->direct_glossy += throughput*bsdf_eval->glossy*shadow;
 			L->direct_transmission += throughput*bsdf_eval->transmission*shadow;
+			L->direct_subsurface += throughput*bsdf_eval->subsurface*shadow;
 
 			if(is_lamp) {
 				L->shadow.x += shadow.x*shadow_fac;
@@ -242,7 +252,7 @@ __device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughpu
 		}
 		else {
 			/* indirectly visible lighting after BSDF bounce */
-			float3 sum = bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission;
+			float3 sum = bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->subsurface;
 			L->indirect += throughput*sum*shadow;
 		}
 	}
@@ -282,11 +292,13 @@ __device_inline void path_radiance_sum_indirect(PathRadiance *L)
 		L->direct_diffuse += L->path_diffuse*L->direct_emission;
 		L->direct_glossy += L->path_glossy*L->direct_emission;
 		L->direct_transmission += L->path_transmission*L->direct_emission;
+		L->direct_subsurface += L->path_subsurface*L->direct_emission;
 
 		L->indirect = safe_divide_color(L->indirect, L->direct_throughput);
 		L->indirect_diffuse += L->path_diffuse*L->indirect;
 		L->indirect_glossy += L->path_glossy*L->indirect;
 		L->indirect_transmission += L->path_transmission*L->indirect;
+		L->indirect_subsurface += L->path_subsurface*L->indirect;
 	}
 #endif
 }
@@ -298,6 +310,7 @@ __device_inline void path_radiance_reset_indirect(PathRadiance *L)
 		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
@@ -312,8 +325,8 @@ __device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 		path_radiance_sum_indirect(L);
 
 		float3 L_sum = L->emission
-			+ L->direct_diffuse + L->direct_glossy + L->direct_transmission
-			+ L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission;
+			+ L->direct_diffuse + L->direct_glossy + L->direct_transmission + L->direct_subsurface
+			+ L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission + L->indirect_subsurface;
 
 		if(!kernel_data.background.transparent)
 			L_sum += L->background;
