@@ -291,49 +291,37 @@ void paintface_deselect_all_visible(Object *ob, int action, bool flush_flags)
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
 	
-	if (action == SEL_INVERT) {
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
 		mpoly = me->mpoly;
 		a = me->totpoly;
 		while (a--) {
-			if ((mpoly->flag & ME_HIDE) == 0) {
-				mpoly->flag ^= ME_FACE_SEL;
+			if ((mpoly->flag & ME_HIDE) == 0 && mpoly->flag & ME_FACE_SEL) {
+				action = SEL_DESELECT;
+				break;
 			}
 			mpoly++;
 		}
 	}
-	else {
-		if (action == SEL_TOGGLE) {
-			action = SEL_SELECT;
 
-			mpoly = me->mpoly;
-			a = me->totpoly;
-			while (a--) {
-				if ((mpoly->flag & ME_HIDE) == 0 && mpoly->flag & ME_FACE_SEL) {
-					action = SEL_DESELECT;
+	mpoly = me->mpoly;
+	a = me->totpoly;
+	while (a--) {
+		if ((mpoly->flag & ME_HIDE) == 0) {
+			switch (action) {
+				case SEL_SELECT:
+					mpoly->flag |= ME_FACE_SEL;
 					break;
-				}
-				mpoly++;
+				case SEL_DESELECT:
+					mpoly->flag &= ~ME_FACE_SEL;
+					break;
+				case SEL_INVERT:
+					mpoly->flag ^= ME_FACE_SEL;
+					break;
 			}
 		}
-
-		mpoly = me->mpoly;
-		a = me->totpoly;
-		while (a--) {
-			if ((mpoly->flag & ME_HIDE) == 0) {
-				switch (action) {
-					case SEL_SELECT:
-						mpoly->flag |= ME_FACE_SEL;
-						break;
-					case SEL_DESELECT:
-						mpoly->flag &= ~ME_FACE_SEL;
-						break;
-					case SEL_INVERT:
-						mpoly->flag ^= ME_FACE_SEL;
-						break;
-				}
-			}
-			mpoly++;
-		}
+		mpoly++;
 	}
 
 	if (flush_flags) {
@@ -557,49 +545,37 @@ void paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
 	
-	if (action == SEL_INVERT) {
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
 		mvert = me->mvert;
 		a = me->totvert;
 		while (a--) {
-			if ((mvert->flag & ME_HIDE) == 0) {
-				mvert->flag ^= SELECT;
+			if ((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
+				action = SEL_DESELECT;
+				break;
 			}
 			mvert++;
 		}
 	}
-	else {
-		if (action == SEL_TOGGLE) {
-			action = SEL_SELECT;
 
-			mvert = me->mvert;
-			a = me->totvert;
-			while (a--) {
-				if ((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
-					action = SEL_DESELECT;
+	mvert = me->mvert;
+	a = me->totvert;
+	while (a--) {
+		if ((mvert->flag & ME_HIDE) == 0) {
+			switch (action) {
+				case SEL_SELECT:
+					mvert->flag |= SELECT;
 					break;
-				}
-				mvert++;
+				case SEL_DESELECT:
+					mvert->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					mvert->flag ^= SELECT;
+					break;
 			}
 		}
-
-		mvert = me->mvert;
-		a = me->totvert;
-		while (a--) {
-			if ((mvert->flag & ME_HIDE) == 0) {
-				switch (action) {
-					case SEL_SELECT:
-						mvert->flag |= SELECT;
-						break;
-					case SEL_DESELECT:
-						mvert->flag &= ~SELECT;
-						break;
-					case SEL_INVERT:
-						mvert->flag ^= SELECT;
-						break;
-				}
-			}
-			mvert++;
-		}
+		mvert++;
 	}
 
 	/* handle mselect */
