@@ -38,7 +38,7 @@ if window_system == 'darwin':
 
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager']
-defs=['_USE_MATH_DEFINES']
+defs=['_USE_MATH_DEFINES', 'GLEW_STATIC']
 
 incs = [
     '.',
@@ -141,7 +141,6 @@ else:
             sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.cpp')
     except ValueError:
         pass
-
 
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs

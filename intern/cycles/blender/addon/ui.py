@@ -68,7 +68,9 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         row.prop(cscene, "progressive")
-        row.prop(cscene, "squared_samples")
+        
+        if not cscene.progressive:
+            row.prop(cscene, "squared_samples")
         
         split = layout.split()
         

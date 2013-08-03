@@ -984,7 +984,7 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
  * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
  * this function does not do that yet 
  */
-static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, 
+static void tree_element_to_path(TreeElement *te, TreeStoreElem *tselem,
                                  ID **id, char **path, int *array_index, short *flag, short *UNUSED(groupmode))
 {
 	ListBase hierarchy = {NULL, NULL};
@@ -1152,7 +1152,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 			    RNA_property_animateable(&te->rnaptr, te->directdata))
 			{
 				/* get id + path + index info from the selected element */
-				tree_element_to_path(soops, te, tselem, 
+				tree_element_to_path(te, tselem,
 				                     &id, &path, &array_index, &flag, &groupmode);
 			}
 			
@@ -1333,7 +1333,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			    RNA_property_animateable(&te->rnaptr, te->directdata))
 			{
 				/* get id + path + index info from the selected element */
-				tree_element_to_path(soops, te, tselem, 
+				tree_element_to_path(te, tselem,
 				                     &id, &path, &array_index, &flag, &groupmode);
 			}
 			

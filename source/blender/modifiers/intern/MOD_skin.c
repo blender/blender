@@ -1039,7 +1039,7 @@ static int isect_ray_poly(const float ray_start[3],
 			v_first = v;
 		else if (v_prev != v_first) {
 			float dist;
-			int curhit;
+			bool curhit;
 			
 			curhit = isect_ray_tri_v3(ray_start, ray_dir,
 			                          v_first->co, v_prev->co, v->co,

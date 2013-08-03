@@ -111,6 +111,8 @@ Exception::Exception (ExceptionID & expID, RESULT rslt, const char *fil, int lin
 	// set file and line
 	if (fil[0] != '\0' || lin > 0)
 		setFileLine (fil, lin);
+	else
+		m_line = -1;
 }
 
 

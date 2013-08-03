@@ -710,6 +710,11 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Spring", "Spring force that pulls water level back to zero");
 
+	prop = RNA_def_property(srna, "wave_smoothness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 10.0);
+	RNA_def_property_ui_range(prop, 0.1, 5.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Smoothness", "Limit maximum steepness of wave slope between simulation points. Use higher values for smoother waves at expense of reduced detail");
+
 	prop = RNA_def_property(srna, "use_wave_open_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_WAVE_OPEN_BORDERS);
 	RNA_def_property_ui_text(prop, "Open Borders", "Pass waves through mesh edges");

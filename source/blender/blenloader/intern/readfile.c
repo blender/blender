@@ -108,6 +108,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_threads.h"
+#include "BLI_mempool.h"
 
 #include "BLF_translation.h"
 
@@ -5684,15 +5685,23 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if (sl->spacetype == SPACE_OUTLINER) {
 						SpaceOops *so= (SpaceOops *)sl;
-						TreeStoreElem *tselem;
-						int a;
-						
 						so->search_tse.id = newlibadr(fd, NULL, so->search_tse.id);
 						
 						if (so->treestore) {
-							tselem = so->treestore->data;
-							for (a=0; a < so->treestore->usedelem; a++, tselem++) {
+							TreeStoreElem *tselem;
+							BLI_mempool_iter iter;
+
+							BLI_mempool_iternew(so->treestore, &iter);
+							while ((tselem = BLI_mempool_iterstep(&iter))) {
 								tselem->id = newlibadr(fd, NULL, tselem->id);
+							}
+							if (so->treehash) {
+								/* update hash table, because it depends on ids too */
+								BLI_ghash_clear(so->treehash, NULL, NULL);
+								BLI_mempool_iternew(so->treestore, &iter);
+								while ((tselem = BLI_mempool_iterstep(&iter))) {
+									BLI_ghash_insert(so->treehash, tselem, tselem);
+								}
 							}
 						}
 					}
@@ -6016,15 +6025,24 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				}
 				else if (sl->spacetype == SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					int a;
 					
 					so->search_tse.id = restore_pointer_by_name(newmain, so->search_tse.id, 0);
 					
 					if (so->treestore) {
-						TreeStore *ts = so->treestore;
-						TreeStoreElem *tselem = ts->data;
-						for (a = 0; a < ts->usedelem; a++, tselem++) {
+						TreeStoreElem *tselem;
+						BLI_mempool_iter iter;
+
+						BLI_mempool_iternew(so->treestore, &iter);
+						while ((tselem = BLI_mempool_iterstep(&iter))) {
 							tselem->id = restore_pointer_by_name(newmain, tselem->id, 0);
+						}
+						if (so->treehash) {
+							/* update hash table, because it depends on ids too */
+							BLI_ghash_clear(so->treehash, NULL, NULL);
+							BLI_mempool_iternew(so->treestore, &iter);
+							while ((tselem = BLI_mempool_iterstep(&iter))) {
+								BLI_ghash_insert(so->treehash, tselem, tselem);
+							}
 						}
 					}
 				}
@@ -6283,13 +6301,27 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			else if (sl->spacetype == SPACE_OUTLINER) {
 				SpaceOops *soops = (SpaceOops *) sl;
 				
-				soops->treestore = newdataadr(fd, soops->treestore);
-				if (soops->treestore) {
-					soops->treestore->data = newdataadr(fd, soops->treestore->data);
+				TreeStore *ts = newdataadr(fd, soops->treestore);
+				soops->treestore = NULL;
+				if (ts) {
+					TreeStoreElem *elems = newdataadr(fd, ts->data);
+					
+					soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), ts->usedelem,
+					                                      512, BLI_MEMPOOL_ALLOW_ITER);
+					if (ts->usedelem && elems) {
+						int i;
+						for (i = 0; i < ts->usedelem; i++) {
+							TreeStoreElem *new_elem = BLI_mempool_alloc(soops->treestore);
+							*new_elem = elems[i];
+						}
+						MEM_freeN(elems);
+					}
 					/* we only saved what was used */
-					soops->treestore->totelem = soops->treestore->usedelem;
 					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
+					
+					MEM_freeN(ts);
 				}
+				soops->treehash = NULL;
 				soops->tree.first = soops->tree.last= NULL;
 			}
 			else if (sl->spacetype == SPACE_IMAGE) {
@@ -9494,6 +9526,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (brush = main->brush.first; brush; brush = brush->id.next) {
 			brush->spacing = MAX2(1, brush->spacing);
 		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 268, 2)) {
+		Brush *brush;
+		#define BRUSH_FIXED (1 << 6)
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->flag &= ~BRUSH_FIXED;
+
+			if(brush->cursor_overlay_alpha < 2)
+				brush->cursor_overlay_alpha = 33;
+			if(brush->texture_overlay_alpha < 2)
+				brush->texture_overlay_alpha = 33;
+			if(brush->mask_overlay_alpha <2)
+				brush->mask_overlay_alpha = 33;
+		}
+		#undef BRUSH_FIXED
 	}
 	
 	{

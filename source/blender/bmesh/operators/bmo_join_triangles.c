@@ -220,14 +220,15 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 	/* flag all edges of all input face */
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		BMO_elem_flag_enable(bm, f, FACE_INPUT);
+		if (f->len == 3) {
+			BMO_elem_flag_enable(bm, f, FACE_INPUT);
+		}
 	}
 
 	/* flag edges surrounded by 2 flagged triangles */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_a, *f_b;
 		if (BM_edge_face_pair(e, &f_a, &f_b) &&
-		    (f_a->len == 3 && f_b->len == 3) &&
 		    (BMO_elem_flag_test(bm, f_a, FACE_INPUT) && BMO_elem_flag_test(bm, f_b, FACE_INPUT)))
 		{
 			BMO_elem_flag_enable(bm, e, EDGE_MARK);
@@ -307,9 +308,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		BM_edge_face_pair(e, &f_a, &f_b); /* checked above */
-		f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
-		if (f_new) {
-			BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+		if ((f_a->len == 3 && f_b->len == 3)) {
+			f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
+			if (f_new) {
+				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+			}
 		}
 	}
 

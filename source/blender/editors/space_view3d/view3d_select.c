@@ -146,12 +146,13 @@ static void edbm_backbuf_check_and_select_verts(BMEditMesh *em, const bool selec
 	BMIter iter;
 	unsigned int index = bm_wireoffs;
 
-	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter), index++) {
+	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if (EDBM_backbuf_check(index)) {
 				BM_vert_select_set(em->bm, eve, select);
 			}
 		}
+		index++;
 	}
 }
 
@@ -161,13 +162,13 @@ static void edbm_backbuf_check_and_select_edges(BMEditMesh *em, const bool selec
 	BMIter iter;
 	int index = bm_solidoffs;
 
-	eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	for (; eed; eed = BM_iter_step(&iter), index++) {
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 			if (EDBM_backbuf_check(index)) {
 				BM_edge_select_set(em->bm, eed, select);
 			}
 		}
+		index++;
 	}
 }
 
@@ -177,13 +178,13 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, const bool selec
 	BMIter iter;
 	unsigned int index = 1;
 
-	efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-	for (; efa; efa = BM_iter_step(&iter), index++) {
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			if (EDBM_backbuf_check(index)) {
 				BM_face_select_set(em->bm, efa, select);
 			}
 		}
+		index++;
 	}
 }
 

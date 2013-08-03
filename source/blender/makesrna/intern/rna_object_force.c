@@ -184,6 +184,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 		BKE_ptcache_load_external(pid);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, ob);
 	}
 	else {
 		for (pid = pidlist.first; pid; pid = pid->next) {

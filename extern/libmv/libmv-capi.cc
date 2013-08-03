@@ -1014,6 +1014,7 @@ void libmv_cameraIntrinsicsExtract(const struct libmv_CameraIntrinsics *libmv_in
 	*principal_y = camera_intrinsics->principal_point_y();
 	*k1 = camera_intrinsics->k1();
 	*k2 = camera_intrinsics->k2();
+	*k3 = camera_intrinsics->k3();
 }
 
 void libmv_cameraIntrinsicsUndistortByte(const struct libmv_CameraIntrinsics *libmv_intrinsics,

@@ -354,8 +354,18 @@ void BLI_mempool_as_array(BLI_mempool *pool, void **data)
  */
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
-	void *data = MEM_mallocN((size_t)(BLI_mempool_count(pool) * pool->esize), allocstr);
-	BLI_mempool_as_array(pool, data);
+	char *data = MEM_mallocN((size_t)(pool->totused * pool->esize), allocstr);
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
+	if (data) {
+		BLI_mempool_iter iter;
+		char *elem, *p = data;
+		BLI_mempool_iternew(pool, &iter);
+		for (elem = BLI_mempool_iterstep(&iter); elem; elem = BLI_mempool_iterstep(&iter)) {
+			memcpy(p, elem, (size_t)pool->esize);
+			p += pool->esize;
+		}
+		BLI_assert((p - data) == pool->totused * pool->esize);
+	}
 	return data;
 }
 

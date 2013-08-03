@@ -695,60 +695,6 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 	}
 }
 
-/**
- * \return
- * -1: collinear
- *  1: intersection
- */
-static short IsectLLPt2Df(const float x0, const float y0, const float x1, const float y1,
-                          const float x2, const float y2, const float x3, const float y3, float *xi, float *yi)
-
-{
-	/*
-	 * this function computes the intersection of the sent lines
-	 * and returns the intersection point, note that the function assumes
-	 * the lines intersect. the function can handle vertical as well
-	 * as horizontal lines. note the function isn't very clever, it simply
-	 * applies the math, but we don't need speed since this is a
-	 * pre-processing step
-	 */
-	float c1, c2; /* constants of linear equations */
-	float det_inv; /* the inverse of the determinant of the coefficient */
-	float m1, m2; /* the slopes of each line */
-	/*
-	 * compute slopes, note the cludge for infinity, however, this will
-	 * be close enough
-	 */
-	if (fabsf(x1 - x0) > 0.000001f)
-		m1 = (y1 - y0) / (x1 - x0);
-	else
-		return -1; /*m1 = (float)1e+10;*/ /* close enough to infinity */
-
-	if (fabsf(x3 - x2) > 0.000001f)
-		m2 = (y3 - y2) / (x3 - x2);
-	else
-		return -1; /*m2 = (float)1e+10;*/ /* close enough to infinity */
-
-	if (fabsf(m1 - m2) < 0.000001f)
-		return -1;  /* parallel lines */
-
-	/* compute constants */
-
-	c1 = (y0 - m1 * x0);
-	c2 = (y2 - m2 * x2);
-
-	/* compute the inverse of the determinate */
-
-	det_inv = 1.0f / (-m1 + m2);
-
-	/* use Kramers rule to compute xi and yi */
-
-	*xi = ((-c2 + c1) * det_inv);
-	*yi = ((m2 * c1 - m1 * c2) * det_inv);
-
-	return 1;
-}
-
 /* point in polygon (keep float and int versions in sync) */
 bool isect_point_poly_v2(const float pt[2], const float verts[][2], const int nr)
 {
@@ -1718,193 +1664,6 @@ void limit_dist_v3(float v1[3], float v2[3], const float dist)
 	}
 }
 
-/* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
-void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2],
-                            const float pt[2], float r_uv[2])
-{
-	float x0, y0, x1, y1, wtot, v2d[2], w1, w2;
-
-	/* used for parallel lines */
-	float pt3d[3], l1[3], l2[3], pt_on_line[3];
-
-	/* compute 2 edges  of the quad  intersection point */
-	if (IsectLLPt2Df(v0[0], v0[1], v1[0], v1[1], v2[0], v2[1], v3[0], v3[1], &x0, &y0) == 1) {
-		/* the intersection point between the quad-edge intersection and the point in the quad we want the uv's for */
-		/* should never be paralle !! */
-		/*printf("\tnot parallel 1\n");*/
-		IsectLLPt2Df(pt[0], pt[1], x0, y0, v0[0], v0[1], v3[0], v3[1], &x1, &y1);
-
-		/* Get the weights from the new intersection point, to each edge */
-		v2d[0] = x1 - v0[0];
-		v2d[1] = y1 - v0[1];
-		w1 = len_v2(v2d);
-
-		v2d[0] = x1 - v3[0]; /* some but for the other vert */
-		v2d[1] = y1 - v3[1];
-		w2 = len_v2(v2d);
-		wtot = w1 + w2;
-		/*w1 = w1/wtot;*/
-		/*w2 = w2/wtot;*/
-		r_uv[0] = w1 / wtot;
-	}
-	else {
-		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparallel1\n");*/
-		pt3d[0] = pt[0];
-		pt3d[1] = pt[1];
-		pt3d[2] = l1[2] = l2[2] = 0.0f;
-
-		l1[0] = v0[0];
-		l1[1] = v0[1];
-		l2[0] = v1[0];
-		l2[1] = v1[1];
-		closest_to_line_v3(pt_on_line, pt3d, l1, l2);
-		v2d[0] = pt[0] - pt_on_line[0]; /* same, for the other vert */
-		v2d[1] = pt[1] - pt_on_line[1];
-		w1 = len_v2(v2d);
-
-		l1[0] = v2[0];
-		l1[1] = v2[1];
-		l2[0] = v3[0];
-		l2[1] = v3[1];
-		closest_to_line_v3(pt_on_line, pt3d, l1, l2);
-		v2d[0] = pt[0] - pt_on_line[0]; /* same, for the other vert */
-		v2d[1] = pt[1] - pt_on_line[1];
-		w2 = len_v2(v2d);
-		wtot = w1 + w2;
-		r_uv[0] = w1 / wtot;
-	}
-
-	/* Same as above to calc the uv[1] value, alternate calculation */
-
-	if (IsectLLPt2Df(v0[0], v0[1], v3[0], v3[1], v1[0], v1[1], v2[0], v2[1], &x0, &y0) == 1) { /* was v0,v1  v2,v3  now v0,v3  v1,v2*/
-		/* never paralle if above was not */
-		/*printf("\tnot parallel2\n");*/
-		IsectLLPt2Df(pt[0], pt[1], x0, y0, v0[0], v0[1], v1[0], v1[1], &x1, &y1); /* was v0,v3  now v0,v1*/
-
-		v2d[0] = x1 - v0[0];
-		v2d[1] = y1 - v0[1];
-		w1 = len_v2(v2d);
-
-		v2d[0] = x1 - v1[0];
-		v2d[1] = y1 - v1[1];
-		w2 = len_v2(v2d);
-		wtot = w1 + w2;
-		r_uv[1] = w1 / wtot;
-	}
-	else {
-		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparallel2\n");*/
-		pt3d[0] = pt[0];
-		pt3d[1] = pt[1];
-		pt3d[2] = l1[2] = l2[2] = 0.0f;
-
-
-		l1[0] = v0[0];
-		l1[1] = v0[1];
-		l2[0] = v3[0];
-		l2[1] = v3[1];
-		closest_to_line_v3(pt_on_line, pt3d, l1, l2);
-		v2d[0] = pt[0] - pt_on_line[0]; /* some but for the other vert */
-		v2d[1] = pt[1] - pt_on_line[1];
-		w1 = len_v2(v2d);
-
-		l1[0] = v1[0];
-		l1[1] = v1[1];
-		l2[0] = v2[0];
-		l2[1] = v2[1];
-		closest_to_line_v3(pt_on_line, pt3d, l1, l2);
-		v2d[0] = pt[0] - pt_on_line[0]; /* some but for the other vert */
-		v2d[1] = pt[1] - pt_on_line[1];
-		w2 = len_v2(v2d);
-		wtot = w1 + w2;
-		r_uv[1] = w1 / wtot;
-	}
-	/* may need to flip UV's here */
-}
-
-/* same as above but does tri's and quads, tri's are a bit of a hack */
-void isect_point_face_uv_v2(const int isquad,
-                            const float v0[2], const float v1[2], const float v2[2], const float v3[2],
-                            const float pt[2], float r_uv[2])
-{
-	if (isquad) {
-		isect_point_quad_uv_v2(v0, v1, v2, v3, pt, r_uv);
-	}
-	else {
-		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
-		float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3], lambda;
-
-		p1_3d[0] = p2_3d[0] = r_uv[0];
-		p1_3d[1] = p2_3d[1] = r_uv[1];
-		p1_3d[2] = 1.0f;
-		p2_3d[2] = -1.0f;
-		v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
-
-		/* generate a new fuv, (this is possibly a non optimal solution,
-		 * since we only need 2d calculation but use 3d func's)
-		 *
-		 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
-		 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
-		 * This means the new values will be correct in relation to the derived meshes face.
-		 */
-		copy_v2_v2(v0_3d, v0);
-		copy_v2_v2(v1_3d, v1);
-		copy_v2_v2(v2_3d, v2);
-
-		/* Doing this in 3D is not nice */
-		isect_line_tri_v3(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, r_uv);
-	}
-}
-
-#if 0  /* XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D */
-
-int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
-{
-	float inp1, inp2, inp3;
-
-	inp1 = (v2[0] - v1[0]) * (v1[1] - pt[1]) + (v1[1] - v2[1]) * (v1[0] - pt[0]);
-	inp2 = (v3[0] - v2[0]) * (v2[1] - pt[1]) + (v2[1] - v3[1]) * (v2[0] - pt[0]);
-	inp3 = (v1[0] - v3[0]) * (v3[1] - pt[1]) + (v3[1] - v1[1]) * (v3[0] - pt[0]);
-
-	if (inp1 <= 0.0f && inp2 <= 0.0f && inp3 <= 0.0f) return 1;
-	if (inp1 >= 0.0f && inp2 >= 0.0f && inp3 >= 0.0f) return 1;
-
-	return 0;
-}
-#endif
-
-#if 0
-
-int isect_point_tri_v2(float v0[2], float v1[2], float v2[2], float pt[2])
-{
-	/* not for quads, use for our abuse of LineIntersectsTriangleUV */
-	float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3];
-	/* not used */
-	float lambda, uv[3];
-
-	p1_3d[0] = p2_3d[0] = uv[0] = pt[0];
-	p1_3d[1] = p2_3d[1] = uv[1] = uv[2] = pt[1];
-	p1_3d[2] = 1.0f;
-	p2_3d[2] = -1.0f;
-	v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
-
-	/* generate a new fuv, (this is possibly a non optimal solution,
-	 * since we only need 2d calculation but use 3d func's)
-	 *
-	 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
-	 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
-	 * This means the new values will be correct in relation to the derived meshes face.
-	 */
-	copy_v2_v2(v0_3d, v0);
-	copy_v2_v2(v1_3d, v1);
-	copy_v2_v2(v2_3d, v2);
-
-	/* Doing this in 3D is not nice */
-	return isect_line_tri_v3(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
-}
-#endif
-
 /*
  *     x1,y2
  *     |  \
@@ -2326,7 +2085,7 @@ int barycentric_inside_triangle_v2(const float w[3])
 }
 
 /* returns 0 for degenerated triangles */
-int barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
+bool barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
 	float x = co[0], y = co[1];
 	float x1 = v1[0], y1 = v1[1];
@@ -2339,10 +2098,10 @@ int barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2
 		w[1] = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
 		w[2] = 1.0f - w[0] - w[1];
 
-	return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /* used by projection painting
@@ -3384,9 +3143,9 @@ static void vec_add_dir(float r[3], const float v1[3], const float v2[3], const 
 	r[2] = v1[2] + fac * (v2[2] - v1[2]);
 }
 
-int form_factor_visible_quad(const float p[3], const float n[3],
-                             const float v0[3], const float v1[3], const float v2[3],
-                             float q0[3], float q1[3], float q2[3], float q3[3])
+bool form_factor_visible_quad(const float p[3], const float n[3],
+                              const float v0[3], const float v1[3], const float v2[3],
+                              float q0[3], float q1[3], float q2[3], float q3[3])
 {
 	static const float epsilon = 1e-6f;
 	float c, sd[3];
@@ -3507,11 +3266,11 @@ int form_factor_visible_quad(const float p[3], const float n[3],
 			}
 			else if (sd[2] < 0) {
 				/* --- */
-				return 0;
+				return false;
 			}
 			else {
 				/* --0 */
-				return 0;
+				return false;
 			}
 		}
 		else {
@@ -3524,11 +3283,11 @@ int form_factor_visible_quad(const float p[3], const float n[3],
 			}
 			else if (sd[2] < 0) {
 				/* -0- */
-				return 0;
+				return false;
 			}
 			else {
 				/* -00 */
-				return 0;
+				return false;
 			}
 		}
 	}
@@ -3566,11 +3325,11 @@ int form_factor_visible_quad(const float p[3], const float n[3],
 			}
 			else if (sd[2] < 0) {
 				/* 0-- */
-				return 0;
+				return false;
 			}
 			else {
 				/* 0-0 */
-				return 0;
+				return false;
 			}
 		}
 		else {
@@ -3583,16 +3342,16 @@ int form_factor_visible_quad(const float p[3], const float n[3],
 			}
 			else if (sd[2] < 0) {
 				/* 00- */
-				return 0;
+				return false;
 			}
 			else {
 				/* 000 */
-				return 0;
+				return false;
 			}
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 /* altivec optimization, this works, but is unused */
