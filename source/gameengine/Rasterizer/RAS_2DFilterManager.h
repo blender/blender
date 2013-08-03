@@ -53,7 +53,7 @@ private:
 	void FreeTextures();
 
 	void UpdateOffsetMatrix(RAS_ICanvas* canvas);
-	void UpdateCanvasTextureCoord(unsigned int * viewport);
+	void UpdateCanvasTextureCoord(const int viewport[4]);
  
 	float			canvascoord[4];
 	float			textureoffsets[18];
