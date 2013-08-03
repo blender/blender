@@ -37,13 +37,19 @@
 #include "SG_Tree.h"
 #include "SG_Node.h"
 
-SG_Tree::SG_Tree()
+SG_Tree::SG_Tree() :
+		m_left(NULL),
+		m_right(NULL),
+		m_parent(NULL),
+		m_radius(0.0),
+		m_client_object(NULL)
 {
 }
 
 SG_Tree::SG_Tree(SG_Tree* left, SG_Tree* right) :
 		m_left(left),
 		m_right(right),
+		m_parent(NULL),
 		m_client_object(NULL)
 {
 	if (m_left)
@@ -63,6 +69,7 @@ SG_Tree::SG_Tree(SG_Tree* left, SG_Tree* right) :
 SG_Tree::SG_Tree(SG_Node* client) :
 		m_left(NULL),
 		m_right(NULL),
+		m_parent(NULL),
 		m_client_object(client)
 {
 	m_bbox = SG_BBox(client->BBox(), client->GetWorldTransform());
