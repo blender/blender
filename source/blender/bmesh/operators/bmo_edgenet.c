@@ -826,10 +826,8 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		}
 
 		if (!v2) {
-			if (path) {
-				edge_free_path(pathbase, path);
-				path = NULL;
-			}
+			edge_free_path(pathbase, path);
+			path = NULL;
 			continue;
 		}
 

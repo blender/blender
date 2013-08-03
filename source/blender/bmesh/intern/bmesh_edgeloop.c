@@ -56,7 +56,7 @@ static int bm_vert_other_tag(BMVert *v, BMVert *v_prev,
                              BMEdge **r_e)
 {
 	BMIter iter;
-	BMEdge *e, *e_next;
+	BMEdge *e, *e_next = NULL;
 	unsigned int count = 0;
 
 	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
