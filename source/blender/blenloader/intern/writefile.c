@@ -144,12 +144,13 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BKE_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_mempool.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
+#include "BKE_bpath.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
@@ -2393,6 +2394,31 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	}
 }
 
+static void write_soops(WriteData *wd, SpaceOops *so)
+{
+	BLI_mempool *ts = so->treestore;
+	
+	if (ts) {
+		int elems = BLI_mempool_count(ts);
+		/* linearize mempool to array */
+		TreeStoreElem *data = elems ? BLI_mempool_as_arrayN(ts, "TreeStoreElem") : NULL;
+		TreeStore ts_flat = {elems, elems, data};
+		
+		/* temporarily replace mempool-treestore by flat-treestore */
+		so->treestore = (BLI_mempool *)&ts_flat;
+		writestruct(wd, DATA, "SpaceOops", 1, so);
+		/* restore old treestore */
+		so->treestore = ts;
+		writestruct(wd, DATA, "TreeStore", 1, &ts_flat);
+		if (data) {
+			writestruct(wd, DATA, "TreeStoreElem", elems, data);
+			MEM_freeN(data);
+		}
+	} else {
+		writestruct(wd, DATA, "SpaceOops", 1, so);
+	}
+}
+
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
 	bScreen *sc;
@@ -2475,15 +2501,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if (sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					
-					writestruct(wd, DATA, "SpaceOops", 1, so);
-
-					/* outliner */
-					if (so->treestore) {
-						writestruct(wd, DATA, "TreeStore", 1, so->treestore);
-						if (so->treestore->data)
-							writestruct(wd, DATA, "TreeStoreElem", so->treestore->usedelem, so->treestore->data);
-					}
+					write_soops(wd, so);
 				}
 				else if (sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;

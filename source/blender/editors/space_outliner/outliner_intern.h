@@ -48,15 +48,15 @@ struct Object;
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
 	ListBase subtree;
-	int xs, ys;         // do selection
-	int store_index;    // offset in tree store
-	short flag;         // flag for non-saved stuff
-	short index;        // index for data arrays
-	short idcode;       // from TreeStore id
-	short xend;         // width of item display, for select
+	int xs, ys;                // do selection
+	TreeStoreElem *store_elem; // element in tree store
+	short flag;                // flag for non-saved stuff
+	short index;               // index for data arrays
+	short idcode;              // from TreeStore id
+	short xend;                // width of item display, for select
 	const char *name;
-	void *directdata;   // Armature Bones, Base, Sequence, Strip...
-	PointerRNA rnaptr;  // RNA Pointer
+	void *directdata;          // Armature Bones, Base, Sequence, Strip...
+	PointerRNA rnaptr;         // RNA Pointer
 }  TreeElement;
 
 /* TreeElement->flag */
@@ -111,7 +111,7 @@ typedef struct TreeElement {
 /* get TreeStoreElem associated with a TreeElement 
  * < a: (TreeElement) tree element to find stored element for
  */
-#define TREESTORE(a) (soops->treestore->data + (a)->store_index)
+#define TREESTORE(a) ((a)->store_elem)
 
 /* size constants */
 #define OL_Y_OFFSET 2
@@ -150,6 +150,7 @@ typedef struct TreeElement {
 
 /* outliner_tree.c ----------------------------------------------- */
 
+void outliner_rebuild_treehash(struct SpaceOops *soops);
 void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 

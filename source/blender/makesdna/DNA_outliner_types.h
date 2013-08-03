@@ -32,6 +32,8 @@
 #ifndef __DNA_OUTLINER_TYPES_H__
 #define __DNA_OUTLINER_TYPES_H__
 
+#include "DNA_defs.h"
+
 struct ID;
 
 typedef struct TreeStoreElem {
@@ -39,9 +41,12 @@ typedef struct TreeStoreElem {
 	struct ID *id;
 } TreeStoreElem;
 
+/* used only to store data in in blend files */
 typedef struct TreeStore {
-	int totelem, usedelem;
-	TreeStoreElem *data;
+	int totelem  DNA_DEPRECATED; /* was previously used for memory preallocation */
+	int usedelem;                /* number of elements in data array */
+	TreeStoreElem *data;         /* elements to be packed from mempool in writefile.c
+	                              * or extracted to mempool in readfile.c */
 } TreeStore;
 
 /* TreeStoreElem->flag */

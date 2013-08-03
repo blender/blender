@@ -678,9 +678,10 @@ void BKE_object_unlink(Object *ob)
 					SpaceOops *so = (SpaceOops *)sl;
 
 					if (so->treestore) {
-						TreeStoreElem *tselem = so->treestore->data;
-						int i;
-						for (i = 0; i < so->treestore->usedelem; i++, tselem++) {
+						TreeStoreElem *tselem;
+						BLI_mempool_iter iter;
+						BLI_mempool_iternew(so->treestore, &iter);
+						while ((tselem = BLI_mempool_iterstep(&iter))) {
 							if (tselem->id == (ID *)ob) tselem->id = NULL;
 						}
 					}

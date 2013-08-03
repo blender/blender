@@ -37,6 +37,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_mempool.h"
+#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -426,10 +428,11 @@ static void outliner_free(SpaceLink *sl)
 	
 	outliner_free_tree(&soutliner->tree);
 	if (soutliner->treestore) {
-		if (soutliner->treestore->data) MEM_freeN(soutliner->treestore->data);
-		MEM_freeN(soutliner->treestore);
+		BLI_mempool_destroy(soutliner->treestore);
 	}
-	
+	if (soutliner->treehash) {
+		BLI_ghash_free(soutliner->treehash, NULL, NULL);
+	}
 }
 
 /* spacetype; init callback */
