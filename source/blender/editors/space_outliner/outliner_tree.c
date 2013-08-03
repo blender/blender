@@ -438,7 +438,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	for (a = 0, srl = sce->r.layers.first; srl; srl = srl->next, a++) {
 		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
 		tenlay->name = srl->name;
-		tenlay->directdata = &srl->passflag;
+		tenlay->directdata = &srl->layflag;
 		
 		if (srl->light_override)
 			outliner_add_element(soops, &tenlay->subtree, srl->light_override, tenlay, TSE_LINKED_LAMP, 0);
