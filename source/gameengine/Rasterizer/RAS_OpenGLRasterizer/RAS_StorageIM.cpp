@@ -40,6 +40,7 @@ extern "C"{
 }
 
 RAS_StorageIM::RAS_StorageIM(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer) :
+	m_drawingmode(RAS_IRasterizer::KX_TEXTURED),
 	m_texco_num(texco_num),
 	m_attrib_num(attrib_num),
 	m_texco(texco),
