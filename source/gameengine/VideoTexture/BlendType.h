@@ -38,7 +38,7 @@ template <class PyObj> class BlendType
 {
 public:
 	/// constructor
-	BlendType (const char * name) : m_name(name) {}
+	BlendType (const char * name) : m_name(name), m_objType(NULL) {}
 
 	/// check blender type and return pointer to contained object or NULL (if type is not valid)
 	PyObj *checkType(PyObject *obj)
