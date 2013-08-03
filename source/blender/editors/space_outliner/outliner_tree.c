@@ -86,11 +86,6 @@
 #include "outliner_intern.h"
 
 /* ********************************************************* */
-/* Defines */
-
-#define TS_CHUNK  128
-
-/* ********************************************************* */
 /* Persistent Data */
 
 static void outliner_storage_cleanup(SpaceOops *soops)
