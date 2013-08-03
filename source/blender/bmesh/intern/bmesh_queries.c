@@ -644,7 +644,7 @@ int BM_vert_face_count(BMVert *v)
  * Tests whether or not the vertex is part of a wire edge.
  * (ie: has no faces attached to it)
  */
-bool BM_vert_is_wire(BMVert *v)
+bool BM_vert_is_wire(const BMVert *v)
 {
 	if (v->e) {
 		BMEdge *e_first, *e_iter;
@@ -667,7 +667,7 @@ bool BM_vert_is_wire(BMVert *v)
  * Tests whether or not the edge is part of a wire.
  * (ie: has no faces attached to it)
  */
-bool BM_edge_is_wire(BMEdge *e)
+bool BM_edge_is_wire(const BMEdge *e)
 {
 	return (e->l == NULL);
 }
@@ -679,7 +679,7 @@ bool BM_edge_is_wire(BMEdge *e)
  * 3: Is part of a an edge with more than 2 faces.
  * 4: Is part of a wire edge.
  */
-bool BM_vert_is_manifold(BMVert *v)
+bool BM_vert_is_manifold(const BMVert *v)
 {
 	BMEdge *e, *e_old;
 	BMLoop *l;
@@ -744,7 +744,7 @@ bool BM_vert_is_manifold(BMVert *v)
  */
 
 #if 1 /* fast path for checking manifold */
-bool BM_edge_is_manifold(BMEdge *e)
+bool BM_edge_is_manifold(const BMEdge *e)
 {
 	const BMLoop *l = e->l;
 	return (l && (l->radial_next != l) &&             /* not 0 or 1 face users */
@@ -767,7 +767,7 @@ int BM_edge_is_manifold(BMEdge *e)
  * Tests that the edge is manifold and
  * that both its faces point the same way.
  */
-bool BM_edge_is_contiguous(BMEdge *e)
+bool BM_edge_is_contiguous(const BMEdge *e)
 {
 	const BMLoop *l = e->l;
 	const BMLoop *l_other;
@@ -780,7 +780,7 @@ bool BM_edge_is_contiguous(BMEdge *e)
  * Check if the edge is convex or concave
  * (depends on face winding)
  */
-bool BM_edge_is_convex(BMEdge *e)
+bool BM_edge_is_convex(const BMEdge *e)
 {
 	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
@@ -803,7 +803,7 @@ bool BM_edge_is_convex(BMEdge *e)
  */
 
 #if 1 /* fast path for checking boundary */
-bool BM_edge_is_boundary(BMEdge *e)
+bool BM_edge_is_boundary(const BMEdge *e)
 {
 	const BMLoop *l = e->l;
 	return (l && (l->radial_next == l));
@@ -821,7 +821,7 @@ int BM_edge_is_boundary(BMEdge *e)
 }
 #endif
 
-bool BM_vert_is_boundary(BMVert *v)
+bool BM_vert_is_boundary(const BMVert *v)
 {
 	if (v->e) {
 		BMEdge *e_first, *e_iter;
@@ -1047,8 +1047,8 @@ BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
  * \note This is in fact quite a simple check, mainly include this function so the intent is more obvious.
  * We know these 2 verts will _always_ make up the loops edge
  */
-void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
-                              BMLoop *edge_loop)
+void BM_edge_ordered_verts_ex(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
+                              const BMLoop *edge_loop)
 {
 	BLI_assert(edge_loop->e == edge);
 	(void)edge; /* quiet warning in release build */
@@ -1056,7 +1056,7 @@ void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
 	*r_v2 = edge_loop->next->v;
 }
 
-void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+void BM_edge_ordered_verts(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 {
 	BM_edge_ordered_verts_ex(edge, r_v1, r_v2, edge->l);
 }
@@ -1065,7 +1065,7 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
  * Check if the loop is convex or concave
  * (depends on face normal)
  */
-bool BM_loop_is_convex(BMLoop *l)
+bool BM_loop_is_convex(const BMLoop *l)
 {
 	float e_dir_prev[3];
 	float e_dir_next[3];
@@ -1182,11 +1182,11 @@ void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
  *
  * \return angle in radians
  */
-float BM_edge_calc_face_angle(BMEdge *e)
+float BM_edge_calc_face_angle(const BMEdge *e)
 {
 	if (BM_edge_is_manifold(e)) {
-		BMLoop *l1 = e->l;
-		BMLoop *l2 = e->l->radial_next;
+		const BMLoop *l1 = e->l;
+		const BMLoop *l2 = e->l->radial_next;
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);
 	}
 	else {
@@ -1202,7 +1202,7 @@ float BM_edge_calc_face_angle(BMEdge *e)
  *
  * \return angle in radians
  */
-float BM_edge_calc_face_angle_signed(BMEdge *e)
+float BM_edge_calc_face_angle_signed(const BMEdge *e)
 {
 	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
@@ -1228,7 +1228,7 @@ float BM_edge_calc_face_angle_signed(BMEdge *e)
  * \param r_tangent The loop corner tangent to set
  */
 
-void BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
+void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3])
 {
 	float tvec[3];
 	BMVert *v1, *v2;
@@ -1685,13 +1685,13 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 }
 
 /* convenience functions for checking flags */
-bool BM_edge_is_any_vert_flag_test(BMEdge *e, const char hflag)
+bool BM_edge_is_any_vert_flag_test(const BMEdge *e, const char hflag)
 {
 	return (BM_elem_flag_test(e->v1, hflag) ||
 	        BM_elem_flag_test(e->v2, hflag));
 }
 
-bool BM_face_is_any_vert_flag_test(BMFace *f, const char hflag)
+bool BM_face_is_any_vert_flag_test(const BMFace *f, const char hflag)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -1705,7 +1705,7 @@ bool BM_face_is_any_vert_flag_test(BMFace *f, const char hflag)
 	return false;
 }
 
-bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag)
+bool BM_face_is_any_edge_flag_test(const BMFace *f, const char hflag)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -1722,7 +1722,7 @@ bool BM_face_is_any_edge_flag_test(BMFace *f, const char hflag)
 /**
  * Use within assert's to check normals are valid.
  */
-bool BM_face_is_normal_valid(BMFace *f)
+bool BM_face_is_normal_valid(const BMFace *f)
 {
 	const float eps = 0.0001f;
 	float no[3];
@@ -1731,7 +1731,7 @@ bool BM_face_is_normal_valid(BMFace *f)
 	return len_squared_v3v3(no, f->no) < (eps * eps);
 }
 
-static void bm_mesh_calc_volume_face(BMFace *f, float *r_vol)
+static void bm_mesh_calc_volume_face(const BMFace *f, float *r_vol)
 {
 	int tottri = f->len - 2;
 	BMLoop **loops     = BLI_array_alloca(loops, f->len);

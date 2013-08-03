@@ -428,8 +428,9 @@ static int edbm_add_edge_face__smooth_get(BMesh *bm)
  * Function used to get a fixed number of edges linked to a vertex that passes a test function.
  * This is used so we can request all boundary edges connected to a vertex for eg.
  */
-static int edbm_add_edge_face_exec__vert_edge_lookup(BMVert *v, BMEdge *e_used, BMEdge **e_arr, const int e_arr_len,
-                                                     bool (* func)(BMEdge *))
+static int edbm_add_edge_face_exec__vert_edge_lookup(
+        BMVert *v, BMEdge *e_used, BMEdge **e_arr, const int e_arr_len,
+        bool (* func)(const BMEdge *))
 {
 	BMIter iter;
 	BMEdge *e_iter;
