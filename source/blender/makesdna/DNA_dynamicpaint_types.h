@@ -125,7 +125,8 @@ typedef struct DynamicPaintSurface {
 	float influence_scale, radius_scale;
 
 	/* wave settings */
-	float wave_damping, wave_speed, wave_timescale, wave_spring;
+	float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
+	int pad2;
 
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	char image_output_path[1024];  /* 1024 = FILE_MAX */

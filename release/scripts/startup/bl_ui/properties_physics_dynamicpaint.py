@@ -201,6 +201,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
             col = split.column(align=True)
             col.prop(surface, "wave_damping")
             col.prop(surface, "wave_spring")
+            col.prop(surface, "wave_smoothness")
 
         layout.separator()
         layout.prop(surface, "brush_group")
