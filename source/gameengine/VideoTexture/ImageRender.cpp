@@ -70,7 +70,9 @@ ImageRender::ImageRender (KX_Scene *scene, KX_Camera * camera) :
     m_owncamera(false),
     m_observer(NULL),
     m_mirror(NULL),
-    m_clip(100.f)
+    m_clip(100.f),
+    m_mirrorHalfWidth(0.f),
+    m_mirrorHalfHeight(0.f)
 {
 	// initialize background color
 	setBackground(0, 0, 255, 255);
