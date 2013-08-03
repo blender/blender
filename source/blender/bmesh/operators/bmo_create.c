@@ -278,7 +278,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		 * this connectivity could be used rather then treating
 		 * them as a bunch of isolated verts. */
 
-		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert **) * totv, __func__);
+		BMVert **vert_arr = MEM_mallocN(sizeof(BMVert *) * totv, __func__);
 		BMFace *f;
 
 		BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)vert_arr, totv);

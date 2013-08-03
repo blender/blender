@@ -250,7 +250,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 	}
 
-	verts_loop = MEM_mallocN(sizeof(BMVert **) * verts_loop_tot, __func__);
+	verts_loop = MEM_mallocN(sizeof(BMVert *) * verts_loop_tot, __func__);
 	verts_loop_tot = 0; /* count up again */
 
 	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
