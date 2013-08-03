@@ -1763,10 +1763,10 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate that for each face, each vertex has another edge in its disk cycle that is
 	 * not e, and not shared. */
-	if (bmesh_radial_face_find(l_f1->next->e, f2) ||
-	    bmesh_radial_face_find(l_f1->prev->e, f2) ||
-	    bmesh_radial_face_find(l_f2->next->e, f1) ||
-	    bmesh_radial_face_find(l_f2->prev->e, f1) )
+	if (BM_edge_in_face(l_f1->next->e, f2) ||
+	    BM_edge_in_face(l_f1->prev->e, f2) ||
+	    BM_edge_in_face(l_f2->next->e, f1) ||
+	    BM_edge_in_face(l_f2->prev->e, f1) )
 	{
 		return NULL;
 	}

@@ -33,7 +33,7 @@ bool    BM_vert_in_face(BMFace *f, BMVert *v);
 int     BM_verts_in_face_count(BMFace *f, BMVert **varr, int len);
 bool    BM_verts_in_face(BMFace *f, BMVert **varr, int len);
 
-bool    BM_edge_in_face(BMFace *f, BMEdge *e);
+bool    BM_edge_in_face(BMEdge *e, BMFace *f);
 bool    BM_edge_in_loop(BMEdge *e, BMLoop *l);
 
 bool    BM_vert_in_edge(const BMEdge *e, const BMVert *v);
@@ -95,7 +95,7 @@ bool    BM_face_exists(BMVert **varr, int len, BMFace **r_existface);
 bool    BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len);
 bool    BM_face_exists_multi_edge(BMEdge **earr, int len);
 
-int     BM_face_share_face_count(BMFace *f1, BMFace *f2);
+int     BM_face_share_face_count(BMFace *f_a, BMFace *f_b);
 int     BM_face_share_edge_count(BMFace *f1, BMFace *f2);
 
 bool    BM_face_share_face_check(BMFace *f1, BMFace *f2);

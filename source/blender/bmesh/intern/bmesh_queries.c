@@ -336,7 +336,7 @@ bool BM_verts_in_face(BMFace *f, BMVert **varr, int len)
 /**
  * Returns whether or not a given edge is is part of a given face.
  */
-bool BM_edge_in_face(BMFace *f, BMEdge *e)
+bool BM_edge_in_face(BMEdge *e, BMFace *f)
 {
 	if (e->l) {
 		BMLoop *l_iter, *l_first;
@@ -884,15 +884,15 @@ bool BM_face_share_face_check(BMFace *f1, BMFace *f2)
 /**
  *  Counts the number of edges two faces share (if any)
  */
-int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
+int BM_face_share_edge_count(BMFace *f_a, BMFace *f_b)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	int count = 0;
 	
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
 	do {
-		if (bmesh_radial_face_find(l_iter->e, f2)) {
+		if (BM_edge_in_face(l_iter->e, f_b)) {
 			count++;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -910,7 +910,7 @@ bool BM_face_share_edge_check(BMFace *f1, BMFace *f2)
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
 	do {
-		if (bmesh_radial_face_find(l_iter->e, f2)) {
+		if (BM_edge_in_face(l_iter->e, f2)) {
 			return true;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -930,7 +930,7 @@ bool BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
 		l = e1->l;
 		do {
 			f = l->f;
-			if (bmesh_radial_face_find(e2, f)) {
+			if (BM_edge_in_face(e2, f)) {
 				return true;
 			}
 			l = l->radial_next;
@@ -952,7 +952,7 @@ bool BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2)
 		do {
 			f = l->f;
 			if (f->len == 4) {
-				if (bmesh_radial_face_find(e2, f)) {
+				if (BM_edge_in_face(e2, f)) {
 					return true;
 				}
 			}

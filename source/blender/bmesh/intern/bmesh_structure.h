@@ -60,7 +60,6 @@ void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
 
-bool    bmesh_radial_face_find(BMEdge *e, BMFace *f);
 int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);

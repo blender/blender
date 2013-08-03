@@ -130,7 +130,6 @@ bool bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new)
  * Functions relating to this cycle:
  * - #bmesh_radial_append
  * - #bmesh_radial_loop_remove
- * - #bmesh_radial_face_find
  * - #bmesh_radial_facevert_count
  * - #bmesh_radial_faceloop_find_first
  * - #bmesh_radial_faceloop_find_next
@@ -507,19 +506,6 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l)
 	}
 	
 	l->e = e;
-}
-
-bool bmesh_radial_face_find(BMEdge *e, BMFace *f)
-{
-	BMLoop *l_iter;
-	int i, len;
-
-	len = bmesh_radial_length(e->l);
-	for (i = 0, l_iter = e->l; i < len; i++, l_iter = l_iter->radial_next) {
-		if (l_iter->f == f)
-			return true;
-	}
-	return false;
 }
 
 /**
