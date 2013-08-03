@@ -753,7 +753,7 @@ void BKE_pbvh_search_gather(PBVH *bvh,
                             PBVHNode ***r_array, int *r_tot)
 {
 	PBVHIter iter;
-	PBVHNode **array = NULL, **newarray, *node;
+	PBVHNode **array = NULL, *node;
 	int tot = 0, space = 0;
 
 	pbvh_iter_begin(&iter, bvh, scb, search_data);
@@ -763,14 +763,7 @@ void BKE_pbvh_search_gather(PBVH *bvh,
 			if (tot == space) {
 				/* resize array if needed */
 				space = (tot == 0) ? 32 : space * 2;
-				newarray = MEM_callocN(sizeof(PBVHNode) * space, "PBVHNodeSearch");
-
-				if (array) {
-					memcpy(newarray, array, sizeof(PBVHNode) * tot);
-					MEM_freeN(array);
-				}
-
-				array = newarray;
+				array = MEM_recallocN_id(array, sizeof(PBVHNode *) * space, __func__);
 			}
 
 			array[tot] = node;
@@ -1807,7 +1800,7 @@ void BKE_pbvh_node_free_proxies(PBVHNode *node)
 
 void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array,  int *r_tot)
 {
-	PBVHNode **array = NULL, **newarray, *node;
+	PBVHNode **array = NULL, *node;
 	int tot = 0, space = 0;
 	int n;
 
@@ -1818,14 +1811,7 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array,  int *r_tot)
 			if (tot == space) {
 				/* resize array if needed */
 				space = (tot == 0) ? 32 : space * 2;
-				newarray = MEM_callocN(sizeof(PBVHNode) * space, "BKE_pbvh_gather_proxies");
-
-				if (array) {
-					memcpy(newarray, array, sizeof(PBVHNode) * tot);
-					MEM_freeN(array);
-				}
-
-				array = newarray;
+				array = MEM_recallocN_id(array, sizeof(PBVHNode *) * space, __func__);
 			}
 
 			array[tot] = node;
