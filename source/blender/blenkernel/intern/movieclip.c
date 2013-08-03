@@ -1439,21 +1439,19 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 		bConstraint *con;
 
 		for (con = ob->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
-
-			if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+			if (con->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data = (bFollowTrackConstraint *) con->data;
 
 				if (data->clip == clip)
 					data->clip = NULL;
 			}
-			else if (cti->type == CONSTRAINT_TYPE_CAMERASOLVER) {
+			else if (con->type == CONSTRAINT_TYPE_CAMERASOLVER) {
 				bCameraSolverConstraint *data = (bCameraSolverConstraint *) con->data;
 
 				if (data->clip == clip)
 					data->clip = NULL;
 			}
-			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+			else if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 				bObjectSolverConstraint *data = (bObjectSolverConstraint *) con->data;
 
 				if (data->clip == clip)

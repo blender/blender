@@ -875,7 +875,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int mode_orig = ob ? ob->mode : 0;
 	
-	if (!ob || !md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
+	if (!md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -919,7 +919,7 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if (!ob || !md || !ED_object_modifier_move_up(op->reports, ob, md))
+	if (!md || !ED_object_modifier_move_up(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -958,7 +958,7 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if (!ob || !md || !ED_object_modifier_move_down(op->reports, ob, md))
+	if (!md || !ED_object_modifier_move_down(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -999,7 +999,7 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int apply_as = RNA_enum_get(op->ptr, "apply_as");
 
-	if (!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
+	if (!md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1049,7 +1049,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	
-	if (!ob || !md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
+	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1088,7 +1088,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if (!ob || !md || !ED_object_modifier_copy(op->reports, ob, md))
+	if (!md || !ED_object_modifier_copy(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
