@@ -283,19 +283,19 @@ static const char *get_pass_name(int passtype, int channel)
 		if (channel == -1) return "SubsurfaceDir";
 		if (channel == 0) return "SubsurfaceDir.R";
 		if (channel == 1) return "SubsurfaceDir.G";
-		return "SubsDir.B";
+		return "SubsurfaceDir.B";
 	}
 	if (passtype == SCE_PASS_SUBSURFACE_INDIRECT) {
 		if (channel == -1) return "SubsurfaceInd";
 		if (channel == 0) return "SubsurfaceInd.R";
 		if (channel == 1) return "SubsurfaceInd.G";
-		return "SubsInd.B";
+		return "SubsurfaceInd.B";
 	}
 	if (passtype == SCE_PASS_SUBSURFACE_COLOR) {
 		if (channel == -1) return "SubsurfaceCol";
 		if (channel == 0) return "SubsurfaceCol.R";
 		if (channel == 1) return "SubsurfaceCol.G";
-		return "SubsCol.B";
+		return "SubsurfaceCol.B";
 	}
 	return "Unknown";
 }
