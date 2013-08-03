@@ -892,7 +892,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 
 		int num_samples;
 
-		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
+		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSDF_BSSRDF(sc->type))
 			num_samples = kernel_data.integrator.diffuse_samples;
 		else if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
 			num_samples = kernel_data.integrator.glossy_samples;
