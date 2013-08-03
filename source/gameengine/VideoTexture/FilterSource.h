@@ -164,7 +164,7 @@ class FilterYV12 : public FilterBase
 {
 public:
 	/// constructor
-	FilterYV12 (void) {}
+	FilterYV12 (void): m_buffV(NULL), m_buffU(NULL), m_pitchUV(0) {}
 	/// destructor
 	virtual ~FilterYV12 (void) {}
 
