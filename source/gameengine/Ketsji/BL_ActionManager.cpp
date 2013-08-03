@@ -41,8 +41,6 @@ BL_ActionManager::~BL_ActionManager()
 float BL_ActionManager::GetActionFrame(short layer)
 {
 	return m_layers[layer]->GetFrame();
-
-	return 0.f;
 }
 
 void BL_ActionManager::SetActionFrame(short layer, float frame)
@@ -53,8 +51,6 @@ void BL_ActionManager::SetActionFrame(short layer, float frame)
 struct bAction *BL_ActionManager::GetCurrentAction(short layer)
 {
 	return m_layers[layer]->GetAction();
-	
-	return 0;
 }
 
 void BL_ActionManager::SetPlayMode(short layer, short mode)
@@ -92,8 +88,6 @@ void BL_ActionManager::StopAction(short layer)
 bool BL_ActionManager::IsActionDone(short layer)
 {
 	return m_layers[layer]->IsDone();
-
-	return true;
 }
 
 void BL_ActionManager::Update(float curtime)
