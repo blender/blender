@@ -832,7 +832,7 @@ typedef struct KernelBSSRDF {
 typedef struct KernelBlackbody {
 	int table_offset;
 	int pad1, pad2, pad3;
-} KernelBLACKBODY;
+} KernelBlackbody;
 
 
 typedef struct KernelData {
