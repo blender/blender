@@ -189,7 +189,7 @@ void BL_ArmatureConstraint::UpdateTarget()
 		if (m_blendsubtarget && m_subtarget) {
 			m_subtarget->UpdateBlenderObjectMatrix(m_blendsubtarget);
 			if (m_subpose && m_subtarget->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
-				m_blendsubtarget->pose = ((BL_ArmatureObject*)m_target)->GetOrigPose();
+				m_blendsubtarget->pose = ((BL_ArmatureObject*)m_subtarget)->GetOrigPose();
 		}
 	}
 }
