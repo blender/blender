@@ -42,9 +42,13 @@ namespace
 	inline void vset(float v[2], float x, float y) { v[0] = x; v[1] = y; }
 }
 
-static int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
-					  const MT_Vector3& pos1, const MT_Scalar r1,
-					  float& tmin, float& tmax)
+/* grr, seems moto provides no nice way to do this */
+#define MT_3D_AS_2D(v) MT_Vector2((v)[0], (v)[1])
+
+static int sweepCircleCircle(
+        const MT_Vector2 &pos0, const MT_Scalar r0, const MT_Vector2 &v,
+        const MT_Vector2 &pos1, const MT_Scalar r1,
+        float& tmin, float& tmax)
 {
 	static const float EPS = 0.0001f;
 	MT_Vector2 c0(pos0.x(), pos0.y());
@@ -64,9 +68,10 @@ static int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const M
 	return 1;
 }
 
-static int sweepCircleSegment(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
-					   const MT_Vector3& pa, const MT_Vector3& pb, const MT_Scalar sr,
-					   float& tmin, float &tmax)
+static int sweepCircleSegment(
+        const MT_Vector2 &pos0, const MT_Scalar r0, const MT_Vector2 &v,
+        const MT_Vector2& pa, const MT_Vector2 &pb, const MT_Scalar sr,
+        float& tmin, float &tmax)
 {
 	// equation parameters
 	MT_Vector2 c0(pos0.x(), pos0.y());
@@ -484,9 +489,11 @@ void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMes
 					vab = 2*svel - vel - ob->vel;
 				}
 
-				if (!sweepCircleCircle(activeObst->m_pos, activeObst->m_rad, 
-					vab, ob->m_pos, ob->m_rad, htmin, htmax))
+				if (!sweepCircleCircle(MT_3D_AS_2D(activeObst->m_pos), activeObst->m_rad,
+				                       vab, MT_3D_AS_2D(ob->m_pos), ob->m_rad, htmin, htmax))
+				{
 					continue;
+				}
 			}
 			else if (ob->m_shape == KX_OBSTACLE_SEGMENT)
 			{
@@ -499,9 +506,12 @@ void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMes
 					p1 = navmeshobj->TransformToWorldCoords(p1);
 					p2 = navmeshobj->TransformToWorldCoords(p2);
 				}
-				if (!sweepCircleSegment(activeObst->m_pos, activeObst->m_rad, svel, 
-					p1, p2, ob->m_rad, htmin, htmax))
+
+				if (!sweepCircleSegment(MT_3D_AS_2D(activeObst->m_pos), activeObst->m_rad, svel,
+				                        MT_3D_AS_2D(p1), MT_3D_AS_2D(p2), ob->m_rad, htmin, htmax))
+				{
 					continue;
+				}
 			}
 			else {
 				continue;
@@ -644,9 +654,11 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 				                  dot_v2v2(np, vab)) * 2.0f, 0.0f, 1.0f);
 				nside++;
 
-				if (!sweepCircleCircle(activeObst->m_pos, activeObst->m_rad, vab, ob->m_pos, ob->m_rad, 
-					htmin, htmax))
+				if (!sweepCircleCircle(MT_3D_AS_2D(activeObst->m_pos), activeObst->m_rad,
+				                       vab, MT_3D_AS_2D(ob->m_pos), ob->m_rad, htmin, htmax))
+				{
 					continue;
+				}
 
 				// Handle overlapping obstacles.
 				if (htmin < 0.0f && htmax > 0.0f)
