@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef GEOCOMMON_H
-#define GEOCOMMON_H
+#ifndef __GEOCOMMON_H__
+#define __GEOCOMMON_H__
 
 #define UCHAR unsigned char
 #define USHORT unsigned short
@@ -61,4 +61,4 @@ typedef struct {
 } BoundingBoxf;
 
 
-#endif
+#endif  /* __GEOCOMMON_H__ */

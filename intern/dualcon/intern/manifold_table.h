@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef MANIFOLD_TABLE_H
-#define MANIFOLD_TABLE_H
+#ifndef __MANIFOLD_TABLE_H__
+#define __MANIFOLD_TABLE_H__
 
 typedef struct {
 	int comps;
@@ -30,4 +30,4 @@ typedef struct {
 
 extern const ManifoldIndices manifold_table[256];
 
-#endif
+#endif  /* __MANIFOLD_TABLE_H__ */
