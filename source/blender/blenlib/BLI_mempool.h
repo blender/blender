@@ -86,13 +86,26 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
 #endif
 ;
-void        BLI_mempool_as_array(BLI_mempool *pool, void **data)
+void        BLI_mempool_as_table(BLI_mempool *pool, void **data)
 #ifdef __GNUC__
-__attribute__((nonnull(1)))
+__attribute__((nonnull(1, 2)))
 #endif
 ;
 
-void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
+void      **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1, 2)))
+#endif
+;
+
+void        BLI_mempool_as_array(BLI_mempool *pool, void *data)
+#ifdef __GNUC__
+__attribute__((nonnull(1, 2)))
+#endif
+;
+
+void       *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1, 2)))
