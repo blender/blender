@@ -646,13 +646,14 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					if (prop->flag & PROP_DYNAMIC) {
 						char *lenfunc = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier),
 						                                        "get_length");
-						fprintf(f, "	int i, arraylen[RNA_MAX_ARRAY_DIMENSION];\n");
-						fprintf(f, "	int len = %s(ptr, arraylen);\n\n", lenfunc);
+						fprintf(f, "	unsigned int arraylen[RNA_MAX_ARRAY_DIMENSION];\n");
+						fprintf(f, "	unsigned int i;\n");
+						fprintf(f, "	unsigned int len = %s(ptr, arraylen);\n\n", lenfunc);
 						fprintf(f, "	for (i = 0; i < len; i++) {\n");
 						MEM_freeN(lenfunc);
 					}
 					else {
-						fprintf(f, "	int i;\n\n");
+						fprintf(f, "	unsigned int i;\n\n");
 						fprintf(f, "	for (i = 0; i < %u; i++) {\n", prop->totarraylength);
 					}
 
