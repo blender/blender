@@ -812,6 +812,8 @@ void KX_ObstacleSimulationTOI_cells::sampleRVO(KX_Obstacle* activeObst, KX_NavMe
 		}
 		copy_v2_v2(activeObst->nvel, res);
 	}
+
+	delete [] spos;
 }
 
 KX_ObstacleSimulationTOI_cells::KX_ObstacleSimulationTOI_cells(MT_Scalar levelHeight, bool enableVisualization)
