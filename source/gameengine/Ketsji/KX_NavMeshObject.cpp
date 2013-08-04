@@ -49,7 +49,7 @@ extern "C" {
 #include "DetourStatNavMeshBuilder.h"
 #include "KX_ObstacleSimulation.h"
 
-static const int MAX_PATH_LEN = 256;
+#define MAX_PATH_LEN 256
 static const float polyPickExt[3] = {2, 4, 2};
 
 static void calcMeshBounds(const float* vert, int nverts, float* bmin, float* bmax)
@@ -214,7 +214,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 			}
 		}
 
-		MEM_freeN(allVerts);
+		MEM_SAFE_FREE(allVerts);
 	}
 	else
 	{
