@@ -113,7 +113,6 @@ protected:
 	unsigned int _defaultTextureId;
 	
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TextureManager")
 #endif
 };

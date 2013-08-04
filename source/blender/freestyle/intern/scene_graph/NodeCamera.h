@@ -83,6 +83,11 @@ protected:
 	double projection_matrix_[16];
 
 	CameraType camera_type_;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:NodeCamera")
+#endif
+
 };
 
 class LIB_SCENE_GRAPH_EXPORT NodeOrthographicCamera : public NodeCamera
@@ -145,6 +150,11 @@ private:
 	double top_;
 	double zNear_;
 	double zFar_;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:NodeOrthographicCamera")
+#endif
+
 };
 
 class LIB_SCENE_GRAPH_EXPORT NodePerspectiveCamera : public NodeCamera
@@ -205,6 +215,11 @@ public:
 	 *           zFar-zNear
 	 */
 	NodePerspectiveCamera(double left, double right, double bottom, double top, double zNear, double zFar);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:NodePerspectiveCamera")
+#endif
+
 };
 
 } /* namespace Freestyle */

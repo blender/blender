@@ -136,7 +136,6 @@ private:
 	bool _empty;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BBox")
 #endif
 };

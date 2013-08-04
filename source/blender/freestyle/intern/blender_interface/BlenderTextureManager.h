@@ -43,6 +43,11 @@ protected:
 
 protected:
 	virtual void loadStandardBrushes();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderTextureManager")
+#endif
+
 };
 
 } /* namespace Freestyle */

@@ -104,7 +104,6 @@ private:
 	bool _overloadFrsMaterial;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator")
 #endif
 };
@@ -121,6 +120,11 @@ protected:
 	{
 		iLine->AddVertex(v->point2D());
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator2D")
+#endif
+
 };
 
 /*! Class to tesselate the 3D silhouette */
@@ -135,6 +139,11 @@ protected:
 	{
 		iLine->AddVertex(v->point3D());
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewMapTesselator3D")
+#endif
+
 };
 
 //

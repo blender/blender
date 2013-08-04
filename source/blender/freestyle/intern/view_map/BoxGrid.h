@@ -72,7 +72,6 @@ public:
 		WFace *face;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	public:
 		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid:OccluderData")
 #endif
 	};
@@ -137,7 +136,6 @@ public:
 		vector<OccluderData*>::iterator _current, _occludeeCandidate;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	public:
 		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid:Iterator")
 #endif
 	};
@@ -192,7 +190,6 @@ private:
 	bool _enableQI;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BoxGrid")
 #endif
 };

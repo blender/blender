@@ -106,7 +106,6 @@ private:
 	bool LightingEnabled;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:DrawingStyle")
 #endif
 };

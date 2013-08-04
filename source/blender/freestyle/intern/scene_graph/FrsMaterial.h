@@ -259,7 +259,6 @@ private:
 	float Shininess;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsMaterial")
 #endif
 };
