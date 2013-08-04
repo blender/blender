@@ -411,7 +411,7 @@ static Frame **collect_hull_frames(int v, SkinNode *frames,
 	int nbr, i;
 
 	(*tothullframe) = emap[v].count;
-	hull_frames = MEM_callocN(sizeof(Frame * *) * (*tothullframe),
+	hull_frames = MEM_callocN(sizeof(Frame *) * (*tothullframe),
 	                          "hull_from_frames.hull_frames");
 	i = 0;
 	for (nbr = 0; nbr < emap[v].count; nbr++) {

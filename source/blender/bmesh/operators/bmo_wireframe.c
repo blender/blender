@@ -177,7 +177,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 
 	/* will over-alloc, but makes for easy lookups by index to keep aligned  */
 	BMVert **verts_boundary = use_boundary ?
-	                          MEM_mallocN(sizeof(BMVert **) * totvert_orig, __func__) : NULL;
+	                          MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__) : NULL;
 
 	float  *verts_relfac    = use_relative_offset ?
 	                          MEM_mallocN(sizeof(float) * totvert_orig, __func__) : NULL;

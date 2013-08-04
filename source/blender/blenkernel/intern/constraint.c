@@ -2080,6 +2080,8 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			axis = data->type - 20;
 		}
 		
+		BLI_assert((unsigned int)axis < 3);
+
 		/* Target defines the animation */
 		s = (vec[axis] - data->min) / (data->max - data->min);
 		CLAMP(s, 0, 1);

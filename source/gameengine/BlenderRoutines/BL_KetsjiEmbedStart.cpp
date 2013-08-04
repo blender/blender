@@ -379,7 +379,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			// to the original file working directory
 
 			if (exitstring != "")
-				strcpy(basedpath, exitstring.Ptr());
+				BLI_strncpy(basedpath, exitstring.ReadPtr(), sizeof(basedpath));
 
 			// load relative to the last loaded file, this used to be relative
 			// to the first file but that makes no sense, relative paths in
