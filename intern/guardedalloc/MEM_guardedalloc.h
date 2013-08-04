@@ -102,25 +102,12 @@ extern "C" {
 #endif
 	;
 
-	void *MEM_reallocN_id(void *vmemh, size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((warn_unused_result))
-	__attribute__((alloc_size(2)))
-#endif
-	;
-	void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((warn_unused_result))
-	__attribute__((alloc_size(2)))
-#endif
-	;
-
 	/**
 	 * Reallocates a block of memory, and returns pointer to the newly
 	 * allocated block, the old one is freed. this is not as optimized
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len)
+	void *MEM_reallocN_id(void *vmemh, size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((alloc_size(2)))
@@ -130,12 +117,15 @@ extern "C" {
 	/**
 	 * A variant of realloc which zeros new bytes
 	 */
-	void *MEM_recallocN(void *vmemh, size_t len)
+	void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((alloc_size(2)))
 #endif
 	;
+
+#define MEM_reallocN(vmemh, len) MEM_reallocN_id(vmemh, len, __func__)
+#define MEM_recallocN(vmemh, len) MEM_recallocN_id(vmemh, len, __func__)
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
@@ -222,6 +212,8 @@ extern "C" {
 	__attribute__((warn_unused_result))
 #endif
 	;
+
+#define MEM_SAFE_FREE(v) if (v) { MEM_freeN(v); v = NULL; } (void)0
 
 #ifndef NDEBUG
 const char *MEM_name_ptr(void *vmemh);

@@ -144,9 +144,8 @@ static void fcm_generator_verify(FModifier *fcm)
 			const int arraysize_new = data->poly_order + 1;
 			/* arraysize needs to be order+1, so resize if not */
 			if (data->arraysize != arraysize_new) {
-				data->coefficients = MEM_recallocN_id(data->coefficients,
-				                                      sizeof(float) * arraysize_new,
-				                                      "FMod_Generator_Coefs");
+				data->coefficients = MEM_recallocN(data->coefficients,
+				                                   sizeof(float) * arraysize_new);
 				data->arraysize = arraysize_new;
 			}
 			break;
@@ -156,9 +155,8 @@ static void fcm_generator_verify(FModifier *fcm)
 			const int arraysize_new = data->poly_order * 2;
 			/* arraysize needs to be (2 * order), so resize if not */
 			if (data->arraysize != arraysize_new) {
-				data->coefficients = MEM_recallocN_id(data->coefficients,
-				                                      sizeof(float) * arraysize_new,
-				                                      "FMod_Generator_Coefs");
+				data->coefficients = MEM_recallocN(data->coefficients,
+				                                   sizeof(float) * arraysize_new);
 				data->arraysize = arraysize_new;
 			}
 			break;

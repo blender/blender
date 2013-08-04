@@ -434,17 +434,6 @@ void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
 	return newp;
 }
 
-
-void *MEM_reallocN(void *vmemh, size_t len)
-{
-	return MEM_reallocN_id(vmemh, len, __func__);
-}
-void *MEM_recallocN(void *vmemh, size_t len)
-{
-	return MEM_recallocN_id(vmemh, len, __func__);
-}
-
-
 #ifdef DEBUG_BACKTRACE
 #  if defined(__linux__) || defined(__APPLE__)
 static void make_memhead_backtrace(MemHead *memh)
