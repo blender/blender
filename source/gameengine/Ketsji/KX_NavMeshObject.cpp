@@ -120,14 +120,14 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		int nAllVerts = 0;
 		float *allVerts = NULL;
 		buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nAllVerts, &allVerts, &ndtris, &dtris,
-			&npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap, &trisToFacesMap);
+		                              &npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap, &trisToFacesMap);
 
-		MEM_freeN(dtrisToPolysMap);
-		MEM_freeN(dtrisToTrisMap);
-		MEM_freeN(trisToFacesMap);
+		MEM_SAFE_FREE(dtrisToPolysMap);
+		MEM_SAFE_FREE(dtrisToTrisMap);
+		MEM_SAFE_FREE(trisToFacesMap);
 
 		unsigned short *verticesMap = new unsigned short[nAllVerts];
-		memset(verticesMap, 0xffff, sizeof(unsigned short)*nAllVerts);
+		memset(verticesMap, 0xff, sizeof(*verticesMap) * nAllVerts);
 		int curIdx = 0;
 		//vertices - mesh verts
 		//iterate over all polys and create map for their vertices first...
