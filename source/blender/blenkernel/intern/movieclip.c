@@ -625,7 +625,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 
 	/* exists? */
 	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
-	if (file == -1)
+	if (file < 0)
 		return NULL;
 	close(file);
 
