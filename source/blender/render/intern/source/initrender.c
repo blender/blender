@@ -541,8 +541,8 @@ void RE_parts_free(Render *re)
 void RE_parts_clamp(Render *re)
 {
 	/* part size */
-	re->partx = min_ii(re->r.tilex, re->rectx);
-	re->party = min_ii(re->r.tiley, re->recty);
+	re->partx = max_ii(1, min_ii(re->r.tilex, re->rectx));
+	re->party = max_ii(1, min_ii(re->r.tiley, re->recty));
 }
 
 void RE_parts_init(Render *re, int do_crop)
