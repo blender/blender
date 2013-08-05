@@ -517,7 +517,6 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 	for(size_t i = 0; i < scene->lights.size(); i++) {
 		Light *light = scene->lights[i];
 		float3 co = light->co;
-		float3 dir = normalize(light->dir);
 		int shader_id = scene->shader_manager->get_shader_id(scene->lights[i]->shader);
 		float samples = __int_as_float(light->samples);
 
@@ -559,6 +558,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float cosangle = cosf(angle);
 			float area = M_PI_F*radius*radius;
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
+			float3 dir = light->dir;
+			
+			if(len(dir) > 0.0f)
+				dir = normalize(dir);
 
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
@@ -597,6 +600,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float3 axisv = light->axisv*(light->sizev*light->size);
 			float area = len(axisu)*len(axisv);
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
+			float3 dir = light->dir;
+			
+			if(len(dir) > 0.0f)
+				dir = normalize(dir);
 
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
@@ -613,6 +620,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float invarea = (radius > 0.0f)? 1.0f/(M_PI_F*radius*radius): 1.0f;
 			float spot_angle = cosf(light->spot_angle*0.5f);
 			float spot_smooth = (1.0f - spot_angle)*light->spot_smooth;
+			float3 dir = light->dir;
+			
+			if(len(dir) > 0.0f)
+				dir = normalize(dir);
 
 			if(light->use_mis && radius > 0.0f)
 				shader_id |= SHADER_USE_MIS;
