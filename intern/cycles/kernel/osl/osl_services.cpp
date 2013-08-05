@@ -775,7 +775,15 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
                                 float dsdy, float dtdy, float *result)
 {
 	OSL::TextureSystem *ts = osl_ts;
-	bool status = ts->texture(filename, options, s, t, dsdx, dtdx, dsdy, dtdy, result);
+	ShaderData *sd = (ShaderData *)(sg->renderstate);
+	KernelGlobals *kg = sd->osl_globals;
+	OSLThreadData *tdata = kg->osl_tdata;
+	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+
+	OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
+
+	bool status = ts->texture(th, thread_info,
+	                          options, s, t, dsdx, dtdx, dsdy, dtdy, result);
 
 	if(!status) {
 		if(options.nchannels == 3 || options.nchannels == 4) {
@@ -797,7 +805,15 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
                                   const OSL::Vec3 &dPdz, float *result)
 {
 	OSL::TextureSystem *ts = osl_ts;
-	bool status = ts->texture3d(filename, options, P, dPdx, dPdy, dPdz, result);
+	ShaderData *sd = (ShaderData *)(sg->renderstate);
+	KernelGlobals *kg = sd->osl_globals;
+	OSLThreadData *tdata = kg->osl_tdata;
+	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+
+	OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
+
+	bool status = ts->texture3d(th, thread_info,
+	                            options, P, dPdx, dPdy, dPdz, result);
 
 	if(!status) {
 		if(options.nchannels == 3 || options.nchannels == 4) {
@@ -819,7 +835,14 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
                                     const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result)
 {
 	OSL::TextureSystem *ts = osl_ts;
-	bool status = ts->environment(filename, options, R, dRdx, dRdy, result);
+	ShaderData *sd = (ShaderData *)(sg->renderstate);
+	KernelGlobals *kg = sd->osl_globals;
+	OSLThreadData *tdata = kg->osl_tdata;
+	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+
+	OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
+	bool status = ts->environment(th, thread_info,
+	                              options, R, dRdx, dRdy, result);
 
 	if(!status) {
 		if(options.nchannels == 3 || options.nchannels == 4) {
