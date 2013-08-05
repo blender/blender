@@ -1120,7 +1120,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 				glEnable(GL_BLEND);
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_FLOAT,
-				                 GL_LINEAR, rres.rectf);
+				                 GL_NEAREST, rres.rectf);
 				glDisable(GL_BLEND);
 
 				IMB_colormanagement_finish_glsl_draw();
@@ -1139,7 +1139,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 			glEnable(GL_BLEND);
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glaDrawPixelsAuto(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE,
-			                  GL_LINEAR, display_buffer);
+			                  GL_NEAREST, display_buffer);
 			glDisable(GL_BLEND);
 
 			MEM_freeN(display_buffer);
