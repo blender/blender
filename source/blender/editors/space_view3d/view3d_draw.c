@@ -2953,10 +2953,8 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 		rect->ymax = v3d->render_border.ymax * ar->winy;
 	}
 
-	rect->xmin = CLAMPIS(ar->winrct.xmin + rect->xmin, ar->winrct.xmin, ar->winrct.xmax);
-	rect->ymin = CLAMPIS(ar->winrct.ymin + rect->ymin, ar->winrct.ymin, ar->winrct.ymax);
-	rect->xmax = CLAMPIS(ar->winrct.xmin + rect->xmax, ar->winrct.xmin, ar->winrct.xmax);
-	rect->ymax = CLAMPIS(ar->winrct.ymin + rect->ymax, ar->winrct.ymin, ar->winrct.ymax);
+	BLI_rcti_translate(rect, ar->winrct.xmin, ar->winrct.ymin);
+	BLI_rcti_isect(&ar->winrct, rect, rect);
 
 	return true;
 }

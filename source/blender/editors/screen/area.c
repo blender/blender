@@ -410,11 +410,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	if (ar->drawrct.xmin == ar->drawrct.xmax)
 		ar->drawrct = ar->winrct;
 	else {
-		/* extra clip for safety (intersect the rects, could use API func) */
-		ar->drawrct.xmin = max_ii(ar->winrct.xmin, ar->drawrct.xmin);
-		ar->drawrct.ymin = max_ii(ar->winrct.ymin, ar->drawrct.ymin);
-		ar->drawrct.xmax = min_ii(ar->winrct.xmax, ar->drawrct.xmax);
-		ar->drawrct.ymax = min_ii(ar->winrct.ymax, ar->drawrct.ymax);
+		/* extra clip for safety */
+		BLI_rcti_isect(&ar->winrct, &ar->drawrct, &ar->drawrct);
 	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
