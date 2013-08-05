@@ -50,17 +50,20 @@ typedef struct BLI_mempool BLI_mempool;
 
 BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 #endif
 ;
 void        *BLI_mempool_alloc(BLI_mempool *pool)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
 #endif
 ;
 void        *BLI_mempool_calloc(BLI_mempool *pool)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
 #endif
@@ -94,6 +97,7 @@ __attribute__((nonnull(1, 2)))
 
 void      **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1, 2)))
 #endif
@@ -107,6 +111,7 @@ __attribute__((nonnull(1, 2)))
 
 void       *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1, 2)))
 #endif

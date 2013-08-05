@@ -98,6 +98,7 @@ extern "C" {
 	 * newly allocated block.  */
 	void *MEM_dupallocN(const void *vmemh)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 #endif
 	;
@@ -109,6 +110,7 @@ extern "C" {
 	 * over from existing memory. */
 	void *MEM_reallocN_id(void *vmemh, size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 	__attribute__((alloc_size(2)))
 #endif
@@ -119,6 +121,7 @@ extern "C" {
 	 */
 	void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 	__attribute__((alloc_size(2)))
 #endif
@@ -133,6 +136,7 @@ extern "C" {
 	 * pointer to it is stored ! */
 	void *MEM_callocN(size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
@@ -145,6 +149,7 @@ extern "C" {
 	 * */
 	void *MEM_mallocN(size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
@@ -157,6 +162,7 @@ extern "C" {
 	 * */
 	void *MEM_mapallocN(size_t len, const char *str)
 #if MEM_GNU_ATTRIBUTES
+	__attribute__((malloc))
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
