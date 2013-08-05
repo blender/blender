@@ -1189,7 +1189,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		y4 = y1 + scene->r.border.ymax * (y2 - y1);
 		
 		cpack(0x4040FF);
-		glRectf(x3,  y3,  x4,  y4); 
+		glRecti(x3,  y3,  x4,  y4);
 	}
 
 	/* safety border */
@@ -3420,7 +3420,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		setlinestyle(3);
 		cpack(0x4040FF);
 
-		glRectf(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+		glRecti(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
 		        v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
 
 		setlinestyle(0);
