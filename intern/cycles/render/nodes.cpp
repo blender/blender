@@ -2136,7 +2136,7 @@ void LightPathNode::compile(OSLCompiler& compiler)
 /* Light Falloff */
 
 LightFalloffNode::LightFalloffNode()
-: ShaderNode("light_path")
+: ShaderNode("light_fallof")
 {
 	add_input("Strength", SHADER_SOCKET_FLOAT, 100.0f);
 	add_input("Smooth", SHADER_SOCKET_FLOAT, 0.0f);
@@ -2777,7 +2777,7 @@ void SeparateRGBNode::compile(OSLCompiler& compiler)
 
 /* Separate HSV */
 SeparateHSVNode::SeparateHSVNode()
-: ShaderNode("separate_rgb")
+: ShaderNode("separate_hsv")
 {
 	add_input("Color", SHADER_SOCKET_COLOR);
 	add_output("H", SHADER_SOCKET_FLOAT);
@@ -2944,7 +2944,7 @@ void CameraNode::compile(OSLCompiler& compiler)
 /* Fresnel */
 
 FresnelNode::FresnelNode()
-: ShaderNode("Fresnel")
+: ShaderNode("fresnel")
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("IOR", SHADER_SOCKET_FLOAT, 1.45f);
@@ -2966,10 +2966,10 @@ void FresnelNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_fresnel");
 }
 
-/* Blend Weight */
+/* Layer Weight */
 
 LayerWeightNode::LayerWeightNode()
-: ShaderNode("LayerWeight")
+: ShaderNode("layer_weight")
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("Blend", SHADER_SOCKET_FLOAT, 0.5f);
@@ -3008,7 +3008,7 @@ void LayerWeightNode::compile(OSLCompiler& compiler)
 /* Wireframe */
 
 WireframeNode::WireframeNode()
-: ShaderNode("Wireframe")
+: ShaderNode("wireframe")
 {
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.01f);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
@@ -3035,7 +3035,7 @@ void WireframeNode::compile(OSLCompiler& compiler)
 /* Wavelength */
 
 WavelengthNode::WavelengthNode()
-: ShaderNode("Wavelength")
+: ShaderNode("wavelength")
 {
 	add_input("Wavelength", SHADER_SOCKET_FLOAT, 500.0f);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -3059,7 +3059,7 @@ void WavelengthNode::compile(OSLCompiler& compiler)
 /* Blackbody */
 
 BlackbodyNode::BlackbodyNode()
-: ShaderNode("Blackbody")
+: ShaderNode("blackbody")
 {
 	add_input("Temperature", SHADER_SOCKET_FLOAT, 1200.0f);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -3387,7 +3387,7 @@ void RGBCurvesNode::compile(OSLCompiler& compiler)
 /* VectorCurvesNode */
 
 VectorCurvesNode::VectorCurvesNode()
-: ShaderNode("rgb_curves")
+: ShaderNode("vector_curves")
 {
 	add_input("Fac", SHADER_SOCKET_FLOAT);
 	add_input("Vector", SHADER_SOCKET_VECTOR);
@@ -3645,7 +3645,7 @@ ShaderEnum TangentNode::direction_type_enum = tangent_direction_type_init();
 ShaderEnum TangentNode::axis_enum = tangent_axis_init();
 
 TangentNode::TangentNode()
-: ShaderNode("normal_map")
+: ShaderNode("tangent")
 {
 	direction_type = ustring("Radial");
 	axis = ustring("X");
