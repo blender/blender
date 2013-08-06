@@ -437,7 +437,7 @@ static int node_add_mask_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-							 &snode->cursor[0], &snode->cursor[1]);
+	                         &snode->cursor[0], &snode->cursor[1]);
 	node = node_add_node(C, NULL, CMP_NODE_MASK, snode->cursor[0], snode->cursor[1]);
 
 	if (!node) {

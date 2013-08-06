@@ -428,7 +428,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
 	/* Create a bvh-tree of the given target */
-	TIMEIT_BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6), bvhtree_faces);
+	bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;

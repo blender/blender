@@ -531,8 +531,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		}
 
 		glDisableClientState(GL_VERTEX_ARRAY);
-
-		GPU_print_error("sdsd");
 	}
 	
 	/* draw the Z axis line */
