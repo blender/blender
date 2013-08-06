@@ -3145,14 +3145,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem vsync_items[] = {
-		{VSYNC_OFF, "OFF", 0, "Off", "Disables vsync"},
-		{VSYNC_ON, "ON", 0, "On", "Enables vsync"},
-		{VSYNC_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", "Enables adaptive vsync (if supported)"},
+		{VSYNC_OFF, "OFF", 0, "Off", "Disable vsync"},
+		{VSYNC_ON, "ON", 0, "On", "Enable vsync"},
+		{VSYNC_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", "Enable adaptive vsync (if supported)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem storage_items[] = {
-		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Chooses the best supported mode"},
+		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Choose the best supported mode"},
 		{RAS_STORE_IMMEDIATE, "IMMEDIATE", 0, "Immediate Mode", "Slowest performance, requires OpenGL (any version)"},
 		{RAS_STORE_VA, "VERTEX_ARRAY", 0, "Vertex Arrays", "Better performance, requires at least OpenGL 1.1"},
 #if 0  /* XXX VBOS are currently disabled since they cannot beat vertex array with display lists in performance. */
