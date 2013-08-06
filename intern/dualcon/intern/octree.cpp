@@ -2182,7 +2182,7 @@ static void minimize(float rvalue[3], float mp[3], const float pts[12][3],
 			ata[4] += (float)(norm[1] * norm[2]);
 			ata[5] += (float)(norm[2] * norm[2]);
 
-			double pn = p[0] * norm[0] + p[1] * norm[1] + p[2] * norm[2];
+			const float pn = p[0] * norm[0] + p[1] * norm[1] + p[2] * norm[2];
 
 			atb[0] += (float)(norm[0] * pn);
 			atb[1] += (float)(norm[1] * pn);
