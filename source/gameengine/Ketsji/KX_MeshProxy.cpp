@@ -303,7 +303,7 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 		             "mesh.transformUV(...): invalid uv_index %d", uvindex);
 		return NULL;
 	}
-	if (uvindex_from < -1 || uvindex_from > 1 || uvindex == -1) {
+	if (uvindex_from < -1 || uvindex_from > 1) {
 		PyErr_Format(PyExc_ValueError,
 		             "mesh.transformUV(...): invalid uv_index_from %d", uvindex);
 		return NULL;
