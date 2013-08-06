@@ -3127,8 +3127,14 @@ static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
 
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
 
-	if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+	if (!EDBM_op_call_and_selectf(
+	        em, op,
+	        "region.out", true,
+	        "dissolve_faces faces=%hf use_verts=%b",
+	        BM_ELEM_SELECT, use_verts))
+	{
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
