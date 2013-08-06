@@ -33,7 +33,6 @@ private:
 	float *m_depthBuffer;
 	Image *m_image;
 	ImageUser *m_imageUser;
-	void *m_lock;
 	bool m_active;
 	float m_centerX;
 	float m_centerY;

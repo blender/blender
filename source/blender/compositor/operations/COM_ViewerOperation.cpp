@@ -130,8 +130,9 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 void ViewerOperation::initImage()
 {
-	Image *anImage = this->m_image;
-	ImBuf *ibuf = BKE_image_acquire_ibuf(anImage, this->m_imageUser, &this->m_lock);
+	Image *ima = this->m_image;
+	void *lock;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, this->m_imageUser, &lock);
 
 	if (!ibuf) return;
 	BLI_lock_thread(LOCK_DRAW_IMAGE);
@@ -143,7 +144,7 @@ void ViewerOperation::initImage()
 		ibuf->x = getWidth();
 		ibuf->y = getHeight();
 		imb_addrectfloatImBuf(ibuf);
-		anImage->ok = IMA_OK_LOADED;
+		ima->ok = IMA_OK_LOADED;
 
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
@@ -165,7 +166,7 @@ void ViewerOperation::initImage()
 		this->m_depthBuffer = ibuf->zbuf_float;
 	}
 
-	BKE_image_release_ibuf(this->m_image, this->m_ibuf, this->m_lock);
+	BKE_image_release_ibuf(this->m_image, this->m_ibuf, lock);
 }
 
 void ViewerOperation::updateImage(rcti *rect)
