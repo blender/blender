@@ -42,18 +42,18 @@ __device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack
 	/* Input */
 	float temperature = stack_load_float(stack, temperature_offset);
 
-	if (temperature < BB_DRAPPER) {
+	if (temperature < (float)BB_DRAPPER) {
 		/* just return very very dim red */
 		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
 	}
-	else if (temperature <= BB_MAX_TABLE_RANGE) {
+	else if (temperature <= (float)BB_MAX_TABLE_RANGE) {
 		/* This is the overall size of the table */
 		const int lookuptablesize = 956;
 		const float lookuptablenormalize = 1.0f/956.0f;
 
 		/* reconstruct a proper index for the table lookup, compared to OSL we don't look up two colors
 		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
-		float t = powf((temperature - BB_DRAPPER) * (1.0f / BB_TABLE_SPACING), 1.0f/BB_TABLE_XPOWER);
+		float t = powf((temperature - (float)BB_DRAPPER) * (float)(1.0 / BB_TABLE_SPACING), (float)(1.0 / BB_TABLE_XPOWER));
 
 		int blackbody_table_offset = kernel_data.blackbody.table_offset;
 
