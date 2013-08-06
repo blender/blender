@@ -350,18 +350,19 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		}
 	}
 	else {
-		short sublines = v3d->gridsubdiv;
+		const double sublines    = v3d->gridsubdiv;
+		const float  sublines_fl = v3d->gridsubdiv;
 
 		if (dx < GRID_MIN_PX_D) {
-			rv3d->gridview *= sublines;
+			rv3d->gridview *= sublines_fl;
 			dx *= sublines;
 
 			if (dx < GRID_MIN_PX_D) {
-				rv3d->gridview *= sublines;
+				rv3d->gridview *= sublines_fl;
 				dx *= sublines;
 
 				if (dx < GRID_MIN_PX_D) {
-					rv3d->gridview *= sublines;
+					rv3d->gridview *= sublines_fl;
 					dx *= sublines;
 					if (dx < GRID_MIN_PX_D) {
 						/* pass */
@@ -389,10 +390,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		}
 		else {
 			if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
-				rv3d->gridview /= sublines;
+				rv3d->gridview /= sublines_fl;
 				dx /= sublines;
 				if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
-					rv3d->gridview /= sublines;
+					rv3d->gridview /= sublines_fl;
 					dx /= sublines;
 					if (dx > (GRID_MIN_PX_D * 10.0)) {
 						UI_ThemeColor(TH_GRID);
@@ -494,6 +495,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 	/* draw the Y axis and/or grid lines */
 	if (v3d->gridflag & V3D_SHOW_FLOOR) {
+		const int sublines = v3d->gridsubdiv;
 		float vert[4][3] = {{0.0f}};
 		unsigned char col_bg[3];
 		unsigned char col_grid_emphasise[3], col_grid_light[3];
@@ -517,7 +519,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 		for (a = -gridlines; a <= gridlines; a++) {
 			const float line = a * grid_scale;
-			const int is_emphasise = (a % 10) == 0;
+			const int is_emphasise = (a % sublines) == 0;
 
 			if (is_emphasise != prev_emphasise) {
 				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
