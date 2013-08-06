@@ -3039,6 +3039,17 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /* Dissolve */
 
+static void edbm_dissolve_prop__use_verts(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
+	                "Dissolve remaining vertices");
+}
+static void edbm_dissolve_prop__use_face_split(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
+	                "Split off face corners to maintain surrounding geometry");
+}
+
 static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -3068,8 +3079,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
-	                "Split off face corners to maintain surrounding geometry");
+	edbm_dissolve_prop__use_face_split(ot);
 }
 
 static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
@@ -3106,9 +3116,8 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
-	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
-	                "Split off face corners to maintain surrounding geometry");
+	edbm_dissolve_prop__use_verts(ot);
+	edbm_dissolve_prop__use_face_split(ot);
 }
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
@@ -3140,9 +3149,43 @@ void MESH_OT_dissolve_faces(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
+	edbm_dissolve_prop__use_verts(ot);
 }
 
+
+static int edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		return edbm_dissolve_verts_exec(C, op);
+	}
+	else if (em->selectmode & SCE_SELECT_EDGE) {
+		return edbm_dissolve_edges_exec(C, op);
+	}
+	else {
+		return edbm_dissolve_faces_exec(C, op);
+	}
+}
+
+void MESH_OT_dissolve_mode(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve Selection";
+	ot->description = "Dissolve geometry based on the selection mode";
+	ot->idname = "MESH_OT_dissolve_mode";
+
+	/* api callbacks */
+	ot->exec = edbm_dissolve_mode_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	edbm_dissolve_prop__use_verts(ot);
+	edbm_dissolve_prop__use_face_split(ot);
+}
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {

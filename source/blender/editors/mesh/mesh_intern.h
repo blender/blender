@@ -204,6 +204,7 @@ void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
 void MESH_OT_dissolve_verts(struct wmOperatorType *ot);
 void MESH_OT_dissolve_edges(struct wmOperatorType *ot);
 void MESH_OT_dissolve_faces(struct wmOperatorType *ot);
+void MESH_OT_dissolve_mode(struct wmOperatorType *ot);
 void MESH_OT_dissolve_limited(struct wmOperatorType *ot);
 void MESH_OT_delete_edgeloop(struct wmOperatorType *ot);
 void MESH_OT_edge_face_add(struct wmOperatorType *ot);
