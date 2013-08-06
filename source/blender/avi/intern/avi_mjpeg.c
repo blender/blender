@@ -44,8 +44,6 @@
 
 #include "avi_mjpeg.h"
 
-#define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
-
 static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, int bufsize);
 static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, int bufsize);
 

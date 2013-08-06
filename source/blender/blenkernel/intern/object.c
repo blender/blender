@@ -2038,15 +2038,13 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 				}
 			}
 			
-			if (ok) mul_serie_m4(totmat, par->obmat, tmat,
-				                 NULL, NULL, NULL, NULL, NULL, NULL);
+			if (ok) mul_m4_m4m4(totmat, par->obmat, tmat);
 			else copy_m4_m4(totmat, par->obmat);
 			
 			break;
 		case PARBONE:
 			ob_parbone(ob, par, tmat);
-			mul_serie_m4(totmat, par->obmat, tmat,
-			             NULL, NULL, NULL, NULL, NULL, NULL);
+			mul_m4_m4m4(totmat, par->obmat, tmat);
 			break;
 		
 		case PARVERT1:
@@ -2062,8 +2060,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 		case PARVERT3:
 			ob_parvert3(ob, par, tmat);
 			
-			mul_serie_m4(totmat, par->obmat, tmat,
-			             NULL, NULL, NULL, NULL, NULL, NULL);
+			mul_m4_m4m4(totmat, par->obmat, tmat);
 			break;
 		
 		case PARSKEL:
@@ -2072,10 +2069,8 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 	}
 	
 	/* total */
-	mul_serie_m4(tmat, totmat, ob->parentinv,
-	             NULL, NULL, NULL, NULL, NULL, NULL);
-	mul_serie_m4(obmat, tmat, locmat,         
-	             NULL, NULL, NULL, NULL, NULL, NULL);
+	mul_m4_m4m4(tmat, totmat, ob->parentinv);
+	mul_m4_m4m4(obmat, tmat, locmat);
 	
 	if (simul) {
 

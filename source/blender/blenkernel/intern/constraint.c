@@ -1227,7 +1227,7 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 				
 				copy_v3_v3(totmat[3], vec);
 				
-				mul_serie_m4(ct->matrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+				mul_m4_m4m4(ct->matrix, ct->tar->obmat, totmat);
 			}
 		}
 	}
@@ -1253,7 +1253,7 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 		mat4_to_size(size, cob->matrix);
 		
 		/* apply targetmat - containing location on path, and rotation */
-		mul_serie_m4(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		mul_m4_m4m4(cob->matrix, ct->matrix, obmat);
 		
 		/* un-apply scaling caused by path */
 		if ((data->followflag & FOLLOWPATH_RADIUS) == 0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
@@ -3122,7 +3122,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 				unit_m4(totmat);
 				copy_v3_v3(totmat[3], vec);
 				
-				mul_serie_m4(targetMatrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+				mul_m4_m4m4(targetMatrix, ct->tar->obmat, totmat);
 			}
 		}
 		
