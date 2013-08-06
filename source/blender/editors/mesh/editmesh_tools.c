@@ -3286,7 +3286,7 @@ static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l) {
 				BMLoop *l_iter = e->l;
 				do {
 					BM_elem_flag_enable(l_iter->f, BM_ELEM_TAG);
