@@ -280,11 +280,6 @@ blender_include_dirs(
 	../../../../intern/smoke/extern
 )
 
-if(WITH_FREESTYLE)
-	# TO BE REMOVED when the trunk merger is done
-	add_definitions(-DWITH_FREESTYLE)
-endif()
-
 blender_include_dirs_sys(
 	${GLEW_INCLUDE_PATH}
 )
