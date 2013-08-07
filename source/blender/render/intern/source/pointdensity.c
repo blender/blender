@@ -198,7 +198,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	
 	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
-		psys->lattice=0;
+		psys->lattice = NULL;
 	}
 	
 	psys_render_restore(ob, psys);
