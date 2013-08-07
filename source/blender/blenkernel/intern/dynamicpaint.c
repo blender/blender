@@ -3290,7 +3290,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 	if (!brush->dm) return 0;
 	{
-		BVHTreeFromMesh treeData = {0};
+		BVHTreeFromMesh treeData = {NULL};
 		float avg_brushNor[3] = {0.0f};
 		float brush_radius = brush->paint_distance * surface->radius_scale;
 		int numOfVerts;
@@ -4977,7 +4977,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 				/* make sure we're dealing with a brush	*/
 				if (pmd2->brush) {
 					DynamicPaintBrushSettings *brush = pmd2->brush;
-					BrushMaterials bMats = {0};
+					BrushMaterials bMats = {NULL};
 
 					/* calculate brush speed vectors if required */
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {

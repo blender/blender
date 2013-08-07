@@ -379,10 +379,10 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillContext *sf_ctx, ScanFillEdge
 	sc = (ScanFillVertLink *)bsearch(&scsearch, sf_ctx->_scdata, len,
 	                                 sizeof(ScanFillVertLink), vergscdata);
 
-	if (sc == 0) printf("Error in search edge: %p\n", (void *)eed);
+	if (sc == NULL) printf("Error in search edge: %p\n", (void *)eed);
 	else if (addedgetoscanvert(sc, eed) == 0) return sc;
 
-	return 0;
+	return NULL;
 }
 
 static short boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
@@ -669,7 +669,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				a = verts;
 				break;
 			}
-			if (ed2 == 0) {
+			if (ed2 == NULL) {
 				sc->edge_first = sc->edge_last = NULL;
 				/* printf("just 1 edge to vert\n"); */
 				BLI_addtail(&sf_ctx->filledgebase, ed1);
@@ -1051,7 +1051,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 			eed = nexted;
 		}
 	}
-	if (sf_ctx->filledgebase.first == 0) {
+	if (sf_ctx->filledgebase.first == NULL) {
 		/* printf("All edges removed\n"); */
 		return 0;
 	}

@@ -722,7 +722,7 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 		DerivedMesh *dm = NULL;
 		MVert *mvert = NULL;
 		MFace *mface = NULL;
-		BVHTreeFromMesh treeData = {0};
+		BVHTreeFromMesh treeData = {NULL};
 		int numverts, i, z;
 
 		float surface_distance = 0.6;
@@ -1573,7 +1573,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		MVert *mvert_orig = NULL;
 		MFace *mface = NULL;
 		MTFace *tface = NULL;
-		BVHTreeFromMesh treeData = {0};
+		BVHTreeFromMesh treeData = {NULL};
 		int numOfVerts, i, z;
 		float flow_center[3] = {0};
 
@@ -2108,7 +2108,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 				// float scene_subframe = scene->r.subframe;  // UNUSED
 				int subframe;
 				for (subframe = 0; subframe <= subframes; subframe++) {
-					EmissionMap em_temp = {0};
+					EmissionMap em_temp = {NULL};
 					float sample_size = 1.0f / (float)(subframes+1);
 					float prev_frame_pos = sample_size * (float)(subframe+1);
 					float sdt = dt * sample_size;
