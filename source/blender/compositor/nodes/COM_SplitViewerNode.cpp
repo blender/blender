@@ -66,8 +66,7 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 
 	addLink(graph, splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
 
-	if (is_active)
-		addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
+	addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
 
 	graph->addOperation(splitViewerOperation);
 	graph->addOperation(viewerOperation);
