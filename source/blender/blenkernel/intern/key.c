@@ -190,7 +190,8 @@ Key *BKE_key_copy_nolib(Key *key)
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
-	if (key == 0) return 0;
+	if (key == NULL)
+		return NULL;
 	
 	keyn = MEM_dupallocN(key);
 

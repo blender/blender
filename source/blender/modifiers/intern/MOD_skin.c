@@ -1751,7 +1751,7 @@ static void skin_set_orig_indices(DerivedMesh *dm)
 
 	totpoly = dm->getNumPolys(dm);
 	orig = CustomData_add_layer(&dm->polyData, CD_ORIGINDEX,
-	                            CD_CALLOC, 0, totpoly);
+	                            CD_CALLOC, NULL, totpoly);
 	for (i = 0; i < totpoly; i++)
 		orig[i] = ORIGINDEX_NONE;
 }

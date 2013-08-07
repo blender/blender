@@ -2635,9 +2635,9 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	
 	/* new computation method */
 	{
-		SGLSLMeshToTangent mesh2tangent = {0};
-		SMikkTSpaceContext sContext = {0};
-		SMikkTSpaceInterface sInterface = {0};
+		SGLSLMeshToTangent mesh2tangent = {NULL};
+		SMikkTSpaceContext sContext = {NULL};
+		SMikkTSpaceInterface sInterface = {NULL};
 
 		mesh2tangent.precomputedFaceNormals = nors;
 		mesh2tangent.mtface = mtface;
