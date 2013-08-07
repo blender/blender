@@ -119,6 +119,7 @@ kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.move', 'EVT_TWEAK_S', 'ANY')
 kmi = km.keymap_items.new('marker.duplicate', 'D', 'PRESS', shift=True)
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS')
+kmi.properties.extend = False
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
@@ -721,6 +722,7 @@ kmi.properties.data_path = 'space_data.show_floor'
 km = kc.keymaps.new('Animation Channels', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS')
+kmi.properties.extend = False
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
