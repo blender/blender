@@ -881,8 +881,8 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 					/* screen was changed, need to update used layers due to NC_SCENE|ND_LAYER_CONTENT */
 					/* updates used layers only for View3D in active screen */
 					if (wmn->reference) {
-						bScreen *sc = wmn->reference;
-						view3d_recalc_used_layers(ar, wmn, sc->scene);
+						bScreen *sc_ref = wmn->reference;
+						view3d_recalc_used_layers(ar, wmn, sc_ref->scene);
 					}
 					ED_region_tag_redraw(ar);
 					break;

@@ -4719,11 +4719,8 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 		             NULL, NULL, NULL, NULL);
 	}
 
-	if (dob) {
-		copy_v3_v3(obi->dupliorco, dob->orco);
-		obi->dupliuv[0]= dob->uv[0];
-		obi->dupliuv[1]= dob->uv[1];
-	}
+	copy_v3_v3(obi->dupliorco, dob->orco);
+	copy_v2_v2(obi->dupliuv, dob->uv);
 }
 
 static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
