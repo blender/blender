@@ -1264,16 +1264,12 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
-	int nr = 0, nrtest, a, left_len;
+	int nr = 0, a, left_len;
 #define MAX_IN_USE 64
 	bool in_use[MAX_IN_USE];
 	/* to speed up finding unused numbers within [1 .. MAX_IN_USE - 1] */
 
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
-
-	/* make sure input name is terminated properly */
-	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3] = 0; */
-	/* removed since this is only ever called from one place - campbell */
 
 	while (true) {
 
@@ -1301,6 +1297,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 		}
 
 		for (idtest = lb->first; idtest; idtest = idtest->next) {
+			int nrtest;
 			if ( (id != idtest) &&
 			     (idtest->lib == NULL) &&
 			     (*name == *(idtest->name + 2)) &&
@@ -1315,8 +1312,8 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 					nr = nrtest + 1;    /* track largest unused */
 			}
 		}
-		/* At this point, nr will be at least 1. */
-		BLI_assert(nr >= 1);
+		/* At this point, 'nr' will typically be at least 1. (but not always) */
+		// BLI_assert(nr >= 1);
 
 		/* decide which value of nr to use */
 		for (a = 0; a < MAX_IN_USE; a++) {
