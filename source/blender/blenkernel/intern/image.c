@@ -653,7 +653,7 @@ Image *BKE_image_load_exists(const char *filepath)
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,
-                            float color[4], ColorManagedColorspaceSettings *colorspace_settings)
+                            const float color[4], ColorManagedColorspaceSettings *colorspace_settings)
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -710,7 +710,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_image_add_generated(Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
+Image *BKE_image_add_generated(Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, const float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima = image_alloc(bmain, name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);

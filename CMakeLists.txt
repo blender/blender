@@ -416,6 +416,10 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
+if(NOT WITH_PYTHON)
+	set(WITH_CYCLES OFF)
+endif()
+
 # enable boost for cycles, booleans, audaspace or i18n
 # otherwise if the user disabled
 if(NOT WITH_BOOST)
