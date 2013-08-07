@@ -61,6 +61,49 @@
 
 /********************* 3d view operators ***********************/
 
+static bool group_link_early_exit_check(Group *group, Object *object)
+{
+	GroupObject *group_object;
+
+	for (group_object = group->gobject.first; group_object; group_object = group_object->next) {
+		if (group_object->ob == object) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool check_group_contains_object_recursive(Group *group, Object *object)
+{
+	GroupObject *group_object;
+
+	if ((group->id.flag & LIB_DOIT) == 0) {
+		/* Cycle already exists in groups, let's prevent further crappyness */
+		return true;
+	}
+
+	group->id.flag &= ~LIB_DOIT;
+
+	for (group_object = group->gobject.first; group_object; group_object = group_object->next) {
+		Object *current_object = group_object->ob;
+
+		if (current_object == object) {
+			return true;
+		}
+
+		if (current_object->dup_group) {
+			if (check_group_contains_object_recursive(current_object->dup_group, object)) {
+				return true;
+			}
+		}
+	}
+
+	group->id.flag |= LIB_DOIT;
+
+	return false;
+}
+
 /* can be called with C == NULL */
 static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
@@ -123,9 +166,15 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 		/* now add all selected objects from the group */
 		if (group) {
 
+			/* for recursive check */
+			tag_main_lb(&bmain->group, TRUE);
+
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
-				if (base->object->dup_group != group) {
+				if (group_link_early_exit_check(group, base->object))
+					continue;
+
+				if (base->object->dup_group != group && !check_group_contains_object_recursive(group, base->object)) {
 					BKE_group_object_add(group, base->object, scene, base);
 				}
 				else {
@@ -376,47 +425,6 @@ void OBJECT_OT_group_add(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static bool group_link_early_exit_check(Group *group, Object *object)
-{
-	GroupObject *group_object;
-
-	for (group_object = group->gobject.first; group_object; group_object = group_object->next) {
-		if (group_object->ob == object) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static bool check_group_contains_object_recursive(Group *group, Object *object)
-{
-	GroupObject *group_object;
-
-	if ((group->id.flag & LIB_DOIT) == 0) {
-		/* Cycle already exists in groups, let's prevent further crappyness */
-		return true;
-	}
-
-	group->id.flag &= ~LIB_DOIT;
-
-	for (group_object = group->gobject.first; group_object; group_object = group_object->next) {
-		Object *current_object = group_object->ob;
-
-		if (current_object == object) {
-			return true;
-		}
-
-		if (current_object->dup_group) {
-			if (check_group_contains_object_recursive(current_object->dup_group, object)) {
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 static int group_link_exec(bContext *C, wmOperator *op)
