@@ -303,7 +303,7 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 		             "mesh.transformUV(...): invalid uv_index %d", uvindex);
 		return NULL;
 	}
-	if (uvindex_from < -1 || uvindex_from > 1 || uvindex == -1) {
+	if (uvindex_from < -1 || uvindex_from > 1) {
 		PyErr_Format(PyExc_ValueError,
 		             "mesh.transformUV(...): invalid uv_index_from %d", uvindex);
 		return NULL;
@@ -387,16 +387,13 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 	
 	
 	for (i=0; i<tot; mit++, i++) {
-		RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial(); 	 
-		
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
-		if (polymat->GetFlag() & RAS_BLENDERMAT) 	 
-		{ 	 
-			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
+		RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial();
+		if (polymat->GetFlag() & RAS_BLENDERMAT) {
+			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(polymat);
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
 		else {
-			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
+			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial *>(polymat);
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
 	}

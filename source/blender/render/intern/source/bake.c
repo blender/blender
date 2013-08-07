@@ -577,7 +577,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if (bs->type == RE_BAKE_NORMALS && R.r.bake_normal_space == R_BAKE_SPACE_TANGENT)
 		bake_shade(handle, ob, shi, quad, x, y, u, v, tvn, ttang);
 	else
-		bake_shade(handle, ob, shi, quad, x, y, u, v, 0, 0);
+		bake_shade(handle, ob, shi, quad, x, y, u, v, NULL, NULL);
 }
 
 static int get_next_bake_face(BakeShade *bs)

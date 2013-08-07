@@ -91,7 +91,7 @@ vector<float> blackbody_table()
 	const double c1 = 3.74183e-16; // 2*pi*h*c^2, W*m^2
 	const double c2 = 1.4388e-2;   // h*c/k, m*K
 								   // h is Planck's const, k is Boltzmann's
-	const float dlambda = 5.0f * 1e-9;  // in meters
+	const float dlambda = 5.0f * 1e-9f;  // in meters
 
 	/* Blackbody table from 800 to 12k Kelvin (319 entries (317+2 offset) * 3) */
 	vector<float> blackbody_table(956);
@@ -100,7 +100,7 @@ vector<float> blackbody_table()
 
 	/* ToDo: bring this back to what OSL does with the lastTemperature limit ? */
 	for (int i = 0;  i <= 317;  ++i) {
-		float Temperature = powf (float(i), BB_TABLE_XPOWER) * BB_TABLE_SPACING + BB_DRAPPER;
+		double Temperature = pow((double)i, (double)BB_TABLE_XPOWER) * (double)BB_TABLE_SPACING + (double)BB_DRAPPER;
 		X = 0;
 		Y = 0;
 		Z = 0;
@@ -108,10 +108,10 @@ vector<float> blackbody_table()
 		/* from OSL "spectrum_to_XYZ" */
 		for (int n = 0; n < 81; ++n) {
 			float lambda = 380.0f + 5.0f * n;
-			double wlm = lambda * 1e-9;   // Wavelength in meters
+			double wlm = lambda * 1e-9f;   // Wavelength in meters
 			// N.B. spec_intens returns result in W/m^2 but it's a differential,
 			// needs to be scaled by dlambda!
-			float spec_intens = float((c1 * powf(wlm,-5.0)) / (expf(c2 / (wlm * Temperature)) -1.0f));
+			float spec_intens = float((c1 * pow(wlm, -5.0)) / (exp(c2 / (wlm * Temperature)) -1.0));
 			float Me = spec_intens * dlambda;
 
 			X += Me * cie_colour_match[n][0];

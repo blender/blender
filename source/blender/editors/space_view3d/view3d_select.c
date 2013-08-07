@@ -2554,7 +2554,7 @@ static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChan
 		/* project tail location to screenspace */
 		if (screen_co_b[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
+			if (pchan_circle_doSelectJoint(data, pchan, screen_co_b)) {
 				is_point_done = true;
 			}
 		}

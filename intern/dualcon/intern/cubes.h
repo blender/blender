@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef CUBES_H
-#define CUBES_H
+#ifndef __CUBES_H__
+#define __CUBES_H__
 
 #include "marching_cubes_table.h"
 
@@ -41,6 +41,11 @@ void getTriangle(int mask, int index, int indices[3])
 	for (int i = 0; i < 3; i++)
 		indices[i] = marching_cubes_tris[mask][index][i];
 }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
+#endif
+
 };
 
-#endif
+#endif  /* __CUBES_H__ */

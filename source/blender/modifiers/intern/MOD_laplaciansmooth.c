@@ -366,7 +366,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 		v1 = sys->vertexCos[idv1];
 		v2 = sys->vertexCos[idv2];
 		v3 = sys->vertexCos[idv3];
-		v4 = has_4_vert ? sys->vertexCos[idv4] : 0;
+		v4 = has_4_vert ? sys->vertexCos[idv4] : NULL;
 
 		if (has_4_vert) {
 			areaf = area_quad_v3(v1, v2, v3, sys->vertexCos[sys->mfaces[i].v4]);

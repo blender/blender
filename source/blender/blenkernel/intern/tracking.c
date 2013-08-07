@@ -654,7 +654,7 @@ void BKE_tracking_track_flag_clear(MovieTrackingTrack *track, int area, int flag
  */
 int BKE_tracking_track_has_marker_at_frame(MovieTrackingTrack *track, int framenr)
 {
-	return BKE_tracking_marker_get_exact(track, framenr) != 0;
+	return BKE_tracking_marker_get_exact(track, framenr) != NULL;
 }
 
 /* Check whether track has got enabled marker at specified frame.

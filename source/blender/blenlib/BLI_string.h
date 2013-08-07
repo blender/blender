@@ -40,6 +40,7 @@ extern "C" {
 
 char *BLI_strdupn(const char *str, const size_t len)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
@@ -47,6 +48,7 @@ __attribute__((nonnull))
 
 char *BLI_strdup(const char *str)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
@@ -54,6 +56,7 @@ __attribute__((nonnull))
 
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
@@ -81,6 +84,7 @@ __attribute__((nonnull))
 
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
@@ -88,6 +92,7 @@ __attribute__((nonnull))
 
 char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
@@ -108,6 +113,7 @@ __attribute__ ((format(printf, 3, 0)))
 
 char *BLI_sprintfN(const char *__restrict format, ...)
 #ifdef __GNUC__
+__attribute__((malloc))
 __attribute__ ((format(printf, 1, 2)))
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
@@ -183,4 +189,4 @@ __attribute__((nonnull))
 }
 #endif
 
-#endif
+#endif  /* __BLI_STRING_H__ */

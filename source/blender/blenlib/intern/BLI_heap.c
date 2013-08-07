@@ -163,7 +163,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
 	HeapNode *node;
 
-	if (UNLIKELY((heap->size + 1) > heap->bufsize)) {
+	if (UNLIKELY(heap->size >= heap->bufsize)) {
 		heap->bufsize *= 2;
 		heap->tree = MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree));
 	}
@@ -184,7 +184,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 
 	heap->size++;
 
-	heap_up(heap, heap->size - 1);
+	heap_up(heap, node->index);
 
 	return node;
 }
@@ -229,6 +229,8 @@ void *BLI_heap_popmin(Heap *heap)
 void BLI_heap_remove(Heap *heap, HeapNode *node)
 {
 	unsigned int i = node->index;
+
+	BLI_assert(heap->size != 0);
 
 	while (i > 0) {
 		unsigned int p = HEAP_PARENT(i);

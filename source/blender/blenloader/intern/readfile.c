@@ -7278,7 +7278,7 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 	}
 }
 
-void convert_tface_mt(FileData *fd, Main *main)
+static void convert_tface_mt(FileData *fd, Main *main)
 {
 	Main *gmain;
 	
@@ -8174,12 +8174,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (ob = main->object.first; ob; ob = ob->id.next) {
 				bConstraint *con;
 				for (con = ob->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
-					
-					if (!cti)
-						continue;
-					
-					if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+					if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 						bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
 						
 						if (data->invmat[3][3] == 0.0f)

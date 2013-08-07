@@ -92,10 +92,11 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 
 	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
-		        "Invalid walker type in BMW_init; type: %d, "
+		        "%s: Invalid walker type in BMW_init; type: %d, "
 		        "searchmask: (v:%d, e:%d, f:%d), flag: %d, layer: %d\n",
-		        type, mask_vert, mask_edge, mask_face, flag, layer);
-		BMESH_ASSERT(0);
+		        __func__, type, mask_vert, mask_edge, mask_face, flag, layer);
+		BLI_assert(0);
+		return;
 	}
 	
 	if (type != BMW_CUSTOM) {

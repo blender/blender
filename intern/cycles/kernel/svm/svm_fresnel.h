@@ -31,7 +31,7 @@ __device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, ui
 	stack_store_float(stack, out_offset, f);
 }
 
-/* Blend Weight Node */
+/* Layer Weight Node */
 
 __device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 {

@@ -68,14 +68,14 @@
 
 /* -------------- */
 
-static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int event)
+static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int UNUSED(event))
 {
 	//Scene *scene = CTX_data_scene(C);
-	
+#if 0
 	switch (event) {
 
 	}
-	
+#endif
 	/* default for now */
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM, NULL);

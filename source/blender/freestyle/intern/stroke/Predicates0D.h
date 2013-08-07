@@ -82,7 +82,6 @@ public:
 	}
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate0D")
 #endif
 };
@@ -133,7 +132,6 @@ public:
 	}
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate0D")
 #endif
 };

@@ -286,7 +286,7 @@ __device_inline void path_radiance_sum_indirect(PathRadiance *L)
 #ifdef __PASSES__
 	/* this division is a bit ugly, but means we only have to keep track of
 	 * only a single throughput further along the path, here we recover just
-	 * the indirect parth that is not influenced by any particular BSDF type */
+	 * the indirect path that is not influenced by any particular BSDF type */
 	if(L->use_light_pass) {
 		L->direct_emission = safe_divide_color(L->direct_emission, L->direct_throughput);
 		L->direct_diffuse += L->path_diffuse*L->direct_emission;

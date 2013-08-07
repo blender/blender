@@ -53,8 +53,8 @@ int bmesh_elem_check(void *element, const char htype);
 	} (void)0
 #endif
 
-int bmesh_radial_length(BMLoop *l);
-int bmesh_disk_count(BMVert *v);
+int bmesh_radial_length(const BMLoop *l);
+int bmesh_disk_count(const BMVert *v);
 
 /**
  * Internal BMHeader.api_flag

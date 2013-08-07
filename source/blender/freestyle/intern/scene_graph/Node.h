@@ -106,6 +106,11 @@ protected:
 
 private: 
 	BBox<Vec3r> _BBox;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Node")
+#endif
+
 };
 
 } /* namespace Freestyle */

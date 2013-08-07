@@ -186,8 +186,11 @@ kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.move', 'EVT_TWEAK_S', 'ANY')
 kmi = km.keymap_items.new('marker.duplicate', 'D', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS')
+kmi.properties.extend = False
+kmi.properties.camera = False
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
+kmi.properties.camera = False
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.camera = True
@@ -352,6 +355,7 @@ kmi = km.keymap_items.new('object.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('object.select_mirror', 'M', 'PRESS', shift=True, ctrl=True)
 kmi = km.keymap_items.new('object.select_hierarchy', 'LEFT_BRACKET', 'PRESS')
 kmi.properties.direction = 'PARENT'
+kmi.properties.extend = False
 kmi = km.keymap_items.new('object.select_hierarchy', 'LEFT_BRACKET', 'PRESS', shift=True)
 kmi.properties.direction = 'PARENT'
 kmi.properties.extend = True
@@ -601,11 +605,23 @@ km = kc.keymaps.new('Mesh', space_type='EMPTY', region_type='WINDOW', modal=Fals
 
 kmi = km.keymap_items.new('mesh.loopcut_slide', 'R', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi.properties.extend = False
+kmi.properties.deselect = False
+kmi.properties.toggle = False
+kmi.properties.ring = False
 kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
 kmi.properties.extend = True
+kmi.properties.deselect = False
+kmi.properties.toggle = False
+kmi.properties.ring = False
 kmi = km.keymap_items.new('mesh.edgering_select', 'RIGHTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi.properties.extend = False
+kmi.properties.deselect = False
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('mesh.edgering_select', 'RIGHTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
+kmi.properties.deselect = False
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('mesh.select_all', 'A', 'PRESS', ctrl=True)
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('mesh.select_more', 'PERIOD', 'PRESS', shift=True)
@@ -615,6 +631,7 @@ kmi.properties.action = 'INVERT'
 kmi = km.keymap_items.new('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
 kmi = km.keymap_items.new('mesh.select_linked', 'L', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'PRESS')
+kmi.properties.deselect = False
 kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'PRESS', shift=True)
 kmi.properties.deselect = True
 kmi = km.keymap_items.new('mesh.faces_select_linked_flat', 'F', 'PRESS', shift=True, ctrl=True, alt=True)
@@ -623,6 +640,7 @@ kmi = km.keymap_items.new('mesh.select_similar', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS')
 kmi.properties.name = 'VIEW3D_MT_edit_mesh_select_mode'
 kmi = km.keymap_items.new('mesh.hide', 'H', 'PRESS', ctrl=True)
+kmi.properties.unselected = False
 kmi = km.keymap_items.new('mesh.hide', 'H', 'PRESS', alt=True)
 kmi.properties.unselected = True
 kmi = km.keymap_items.new('mesh.reveal', 'H', 'PRESS', shift=True, ctrl=True)
@@ -1049,6 +1067,7 @@ kmi.properties.value = 'VERTEX'
 km = kc.keymaps.new('Animation Channels', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS')
+kmi.properties.extend = False
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
@@ -1436,6 +1455,7 @@ km = kc.keymaps.new('File Browser Main', space_type='FILE_BROWSER', region_type=
 kmi = km.keymap_items.new('file.execute', 'LEFTMOUSE', 'DOUBLE_CLICK')
 kmi.properties.need_active = True
 kmi = km.keymap_items.new('file.select', 'LEFTMOUSE', 'CLICK')
+kmi.properties.extend = False
 kmi = km.keymap_items.new('file.select', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('file.select', 'LEFTMOUSE', 'CLICK', alt=True)

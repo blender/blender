@@ -310,7 +310,7 @@ static int mathutils_bmloopcol_set_index(BaseMathObject *bmo, int subtype, int i
 	return mathutils_bmloopcol_set(bmo, subtype);
 }
 
-Mathutils_Callback mathutils_bmloopcol_cb = {
+static Mathutils_Callback mathutils_bmloopcol_cb = {
 	mathutils_bmloopcol_check,
 	mathutils_bmloopcol_get,
 	mathutils_bmloopcol_set,

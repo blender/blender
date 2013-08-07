@@ -783,7 +783,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
 	ZSpan zspan;
-	StrandRen *strand=0;
+	StrandRen *strand = NULL;
 	StrandVert *svert;
 	StrandBound *sbound;
 	StrandPart spart;

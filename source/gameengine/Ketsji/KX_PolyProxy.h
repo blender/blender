@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_POLYROXY
-#define __KX_POLYPROXY
+#ifndef __KX_POLYPROXY_H__
+#define __KX_POLYPROXY_H__
 
 #ifdef WITH_PYTHON
 
@@ -82,4 +82,4 @@ public:
 
 #endif  /* WITH_PYTHON */
 
-#endif  /* __KX_POLYPROXY */
+#endif  /* __KX_POLYPROXY_H__ */

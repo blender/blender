@@ -3094,8 +3094,8 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	BMVert *eve_act = NULL;
 	bool use_occlude_wire = (v3d->flag2 & V3D_OCCLUDE_WIRE) && (dt > OB_WIRE);
 	
-	// if (cageDM)  BLI_assert(!(cageDM->dirty & DM_DIRTY_NORMALS));
-	if (finalDM) BLI_assert(!(finalDM->dirty & DM_DIRTY_NORMALS));
+	// BLI_assert(!cageDM || !(cageDM->dirty & DM_DIRTY_NORMALS));
+	BLI_assert(!finalDM || !(finalDM->dirty & DM_DIRTY_NORMALS));
 
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
@@ -7056,12 +7056,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				/* set dynamic boundaries to draw the volume
 				 * also scale cube to global space to equalize volume slicing on all axises
 				 *  (its scaled back before drawing) */
-				p0[0] = (sds->p0[0] + sds->cell_size[0] * sds->res_min[0] + sds->obj_shift_f[0]) * fabs(ob->size[0]);
-				p0[1] = (sds->p0[1] + sds->cell_size[1] * sds->res_min[1] + sds->obj_shift_f[1]) * fabs(ob->size[1]);
-				p0[2] = (sds->p0[2] + sds->cell_size[2] * sds->res_min[2] + sds->obj_shift_f[2]) * fabs(ob->size[2]);
-				p1[0] = (sds->p0[0] + sds->cell_size[0] * sds->res_max[0] + sds->obj_shift_f[0]) * fabs(ob->size[0]);
-				p1[1] = (sds->p0[1] + sds->cell_size[1] * sds->res_max[1] + sds->obj_shift_f[1]) * fabs(ob->size[1]);
-				p1[2] = (sds->p0[2] + sds->cell_size[2] * sds->res_max[2] + sds->obj_shift_f[2]) * fabs(ob->size[2]);
+				p0[0] = (sds->p0[0] + sds->cell_size[0] * sds->res_min[0] + sds->obj_shift_f[0]) * fabsf(ob->size[0]);
+				p0[1] = (sds->p0[1] + sds->cell_size[1] * sds->res_min[1] + sds->obj_shift_f[1]) * fabsf(ob->size[1]);
+				p0[2] = (sds->p0[2] + sds->cell_size[2] * sds->res_min[2] + sds->obj_shift_f[2]) * fabsf(ob->size[2]);
+				p1[0] = (sds->p0[0] + sds->cell_size[0] * sds->res_max[0] + sds->obj_shift_f[0]) * fabsf(ob->size[0]);
+				p1[1] = (sds->p0[1] + sds->cell_size[1] * sds->res_max[1] + sds->obj_shift_f[1]) * fabsf(ob->size[1]);
+				p1[2] = (sds->p0[2] + sds->cell_size[2] * sds->res_max[2] + sds->obj_shift_f[2]) * fabsf(ob->size[2]);
 
 				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					smd->domain->tex = NULL;
@@ -7253,23 +7253,19 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 			
 			for (curcon = list->first; curcon; curcon = curcon->next) {
-				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
-				ListBase targets = {NULL, NULL};
-				bConstraintTarget *ct;
-				
-				if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+				if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
 					/* special case for object solver and follow track constraints because they don't fill
 					 * constraint targets properly (design limitation -- scene is needed for their target
 					 * but it can't be accessed from get_targets callvack) */
 
 					Object *camob = NULL;
 
-					if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+					if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
 						bFollowTrackConstraint *data = (bFollowTrackConstraint *)curcon->data;
 
 						camob = data->camera ? data->camera : scene->camera;
 					}
-					else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+					else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 						bObjectSolverConstraint *data = (bObjectSolverConstraint *)curcon->data;
 
 						camob = data->camera ? data->camera : scene->camera;
@@ -7284,26 +7280,33 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						setlinestyle(0);
 					}
 				}
-				else if ((curcon->flag & CONSTRAINT_EXPAND) && (cti->get_constraint_targets)) {
-					cti->get_constraint_targets(curcon, &targets);
-					
-					for (ct = targets.first; ct; ct = ct->next) {
-						/* calculate target's matrix */
-						if (cti->get_target_matrix)
-							cti->get_target_matrix(curcon, cob, ct, BKE_scene_frame_get(scene));
-						else
-							unit_m4(ct->matrix);
-						
-						setlinestyle(3);
-						glBegin(GL_LINES);
-						glVertex3fv(ct->matrix[3]);
-						glVertex3fv(ob->obmat[3]);
-						glEnd();
-						setlinestyle(0);
+				else {
+					bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
+
+					if ((cti && cti->get_constraint_targets) && (curcon->flag & CONSTRAINT_EXPAND)) {
+						ListBase targets = {NULL, NULL};
+						bConstraintTarget *ct;
+
+						cti->get_constraint_targets(curcon, &targets);
+
+						for (ct = targets.first; ct; ct = ct->next) {
+							/* calculate target's matrix */
+							if (cti->get_target_matrix)
+								cti->get_target_matrix(curcon, cob, ct, BKE_scene_frame_get(scene));
+							else
+								unit_m4(ct->matrix);
+
+							setlinestyle(3);
+							glBegin(GL_LINES);
+							glVertex3fv(ct->matrix[3]);
+							glVertex3fv(ob->obmat[3]);
+							glEnd();
+							setlinestyle(0);
+						}
+
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(curcon, &targets, 1);
 					}
-					
-					if (cti->flush_constraint_targets)
-						cti->flush_constraint_targets(curcon, &targets, 1);
 				}
 			}
 			

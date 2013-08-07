@@ -50,7 +50,7 @@
 
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
-PyTypeObject bmesh_op_Type;
+static PyTypeObject bmesh_op_Type;
 
 static PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
 {
@@ -140,7 +140,7 @@ static PyGetSetDef bpy_bmesh_op_getseters[] = {
 /* Types
  * ===== */
 
-PyTypeObject bmesh_op_Type = {
+static PyTypeObject bmesh_op_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"BMeshOpFunc",              /* tp_name */
 	sizeof(BPy_BMeshOpFunc),    /* tp_basicsize */

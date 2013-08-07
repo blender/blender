@@ -134,7 +134,6 @@ protected:
 	float _cellOrigin[2];
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridDensityProvider")
 #endif
 };

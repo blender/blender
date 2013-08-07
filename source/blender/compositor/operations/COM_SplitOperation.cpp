@@ -20,7 +20,7 @@
  *		Monique Dewanchand
  */
 
-#include "COM_SplitViewerOperation.h"
+#include "COM_SplitOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
@@ -35,58 +35,47 @@ extern "C" {
 }
 
 
-SplitViewerOperation::SplitViewerOperation() : ViewerBaseOperation()
+SplitOperation::SplitOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_COLOR);
 	this->m_image1Input = NULL;
 	this->m_image2Input = NULL;
 }
 
-void SplitViewerOperation::initExecution()
+void SplitOperation::initExecution()
 {
 	// When initializing the tree during initial load the width and height can be zero.
 	this->m_image1Input = getInputSocketReader(0);
 	this->m_image2Input = getInputSocketReader(1);
-	ViewerBaseOperation::initExecution();
 }
 
-void SplitViewerOperation::deinitExecution()
+void SplitOperation::deinitExecution()
 {
 	this->m_image1Input = NULL;
 	this->m_image2Input = NULL;
-	ViewerBaseOperation::deinitExecution();
 }
 
-
-void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
+void SplitOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	float *buffer = this->m_outputBuffer;
-	
-	if (!buffer) return;
-	int x1 = rect->xmin;
-	int y1 = rect->ymin;
-	int x2 = rect->xmax;
-	int y2 = rect->ymax;
-	int offset = (y1 * this->getWidth() + x1) * 4;
-	int x;
-	int y;
 	int perc = this->m_xSplit ? this->m_splitPercentage * this->getWidth() / 100.0f : this->m_splitPercentage * this->getHeight() / 100.0f;
-	for (y = y1; y < y2; y++) {
-		for (x = x1; x < x2; x++) {
-			bool image1;
-			image1 = this->m_xSplit ? x > perc : y > perc;
-			if (image1) {
-				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST);
-			}
-			else {
-				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST);
-			}
-
-			offset += 4;
-		}
-		offset += (this->getWidth() - (x2 - x1)) * 4;
+	bool image1 = this->m_xSplit ? x > perc : y > perc;
+	if (image1) {
+		this->m_image1Input->read(output, x, y, COM_PS_NEAREST);
 	}
-	updateImage(rect);
+	else {
+		this->m_image2Input->read(output, x, y, COM_PS_NEAREST);
+	}
 }
 
+void SplitOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+{
+	unsigned int tempPreferredResolution[2] = {0, 0};
+	unsigned int tempResolution[2];
+
+	this->getInputSocket(0)->determineResolution(tempResolution, tempPreferredResolution);
+	this->setResolutionInputSocketIndex((tempResolution[0] && tempResolution[1]) ? 0 : 1);
+
+	NodeOperation::determineResolution(resolution, preferredResolution);
+}

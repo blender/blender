@@ -107,7 +107,7 @@ extern "C" {
  *  - [@ref ChunkExecutionState.COM_ES_EXECUTED]: Chunk is finished
  *
  * @see ExecutionGroup.execute
- * @see ViewerBaseOperation.getChunkOrder
+ * @see ViewerOperation.getChunkOrder
  * @see OrderOfChunks
  *
  * @section interest Area of interest

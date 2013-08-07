@@ -726,7 +726,7 @@ static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float 
 	float inp;
 	int a;
 	
-	if (vlr==0) return 0;
+	if (vlr == NULL) return 0;
 	
 	asf= asv->faces.first;
 	while (asf) {
@@ -1289,7 +1289,7 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd,
                            const float loc[3], const float loc1[3], int seed, float *pa_co)
 {
-	HaloRen *har=0;
+	HaloRen *har = NULL;
 
 	if (ma->material_type == MA_TYPE_WIRE)
 		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
@@ -1466,7 +1466,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 
 		default:
 		{
-			HaloRen *har=0;
+			HaloRen *har = NULL;
 
 			har = RE_inithalo_particle(re, obr, dm, ma, loc, NULL, sd->orco, sd->uvco, hasize, 0.0, seed, pa_co);
 			
@@ -1516,22 +1516,22 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 {
 	Object *ob= obr->ob;
 //	Object *tob=0;
-	Material *ma=0;
+	Material *ma = NULL;
 	ParticleSystemModifierData *psmd;
-	ParticleSystem *tpsys=0;
-	ParticleSettings *part, *tpart=0;
-	ParticleData *pars, *pa=0, *tpa=0;
-	ParticleKey *states=0;
+	ParticleSystem *tpsys = NULL;
+	ParticleSettings *part, *tpart = NULL;
+	ParticleData *pars, *pa = NULL, *tpa = NULL;
+	ParticleKey *states = NULL;
 	ParticleKey state;
-	ParticleCacheKey *cache=0;
+	ParticleCacheKey *cache = NULL;
 	ParticleBillboardData bb;
-	ParticleSimulationData sim = {0};
+	ParticleSimulationData sim = {NULL};
 	ParticleStrandData sd;
-	StrandBuffer *strandbuf=0;
-	StrandVert *svert=0;
-	StrandBound *sbound= 0;
-	StrandRen *strand=0;
-	RNG *rng= 0;
+	StrandBuffer *strandbuf = NULL;
+	StrandVert *svert = NULL;
+	StrandBound *sbound = NULL;
+	StrandRen *strand = NULL;
+	RNG *rng = NULL;
 	float loc[3], loc1[3], loc0[3], mat[4][4], nmat[3][3], co[3], nor[3], duplimat[4][4];
 	float strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, r_tilt, r_length;
@@ -1542,7 +1542,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	int totchild=0, step_nbr;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface;
-	char **uv_name=0;
+	char **uv_name = NULL;
 
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
@@ -1735,7 +1735,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		}
 	}
 
-	if (sd.orco == 0) {
+	if (sd.orco == NULL) {
 		sd.orco = MEM_mallocN(3 * sizeof(float), "particle orco");
 		orco1 = 1;
 	}
@@ -1760,10 +1760,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if (tpsys && part->phystype == PART_PHYS_NO) {
 				tpa = tpsys->particles + pa->num;
-				psys_particle_on_emitter(psmd, tpart->from, tpa->num, pa->num_dmcache, tpa->fuv, tpa->foffset, co, nor, 0, 0, sd.orco, 0);
+				psys_particle_on_emitter(
+				        psmd,
+				        tpart->from, tpa->num, pa->num_dmcache, tpa->fuv,
+				        tpa->foffset, co, nor, NULL, NULL, sd.orco, NULL);
 			}
-			else
-				psys_particle_on_emitter(psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, sd.orco, 0);
+			else {
+				psys_particle_on_emitter(
+				        psmd,
+				        part->from, pa->num, pa->num_dmcache,
+				        pa->fuv, pa->foffset, co, nor, NULL, NULL, sd.orco, NULL);
+			}
 
 			/* get uvco & mcol */
 			num= pa->num_dmcache;
@@ -1808,15 +1815,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			/* get orco */
 			if (part->childtype == PART_CHILD_FACES) {
-				psys_particle_on_emitter(psmd,
-					PART_FROM_FACE, cpa->num, DMCACHE_ISCHILD,
-					cpa->fuv, cpa->foffset, co, nor, 0, 0, sd.orco, 0);
+				psys_particle_on_emitter(
+				        psmd,
+				        PART_FROM_FACE, cpa->num, DMCACHE_ISCHILD,
+				        cpa->fuv, cpa->foffset, co, nor, NULL, NULL, sd.orco, NULL);
 			}
 			else {
 				ParticleData *par = psys->particles + cpa->parent;
-				psys_particle_on_emitter(psmd, part->from,
-					par->num, DMCACHE_ISCHILD, par->fuv,
-					par->foffset, co, nor, 0, 0, sd.orco, 0);
+				psys_particle_on_emitter(
+				        psmd,
+				        part->from, par->num, DMCACHE_ISCHILD, par->fuv,
+				        par->foffset, co, nor, NULL, NULL, sd.orco, NULL);
 			}
 
 			/* get uvco & mcol */
@@ -2419,7 +2428,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 	BKE_displist_make_mball_forRender(re->scene, ob, &dispbase);
 	dl= dispbase.first;
-	if (dl==0) return;
+	if (dl == NULL) return;
 
 	data= dl->verts;
 	nors= dl->nors;
@@ -2464,7 +2473,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		vlr->v1= RE_findOrAddVert(obr, index[0]);
 		vlr->v2= RE_findOrAddVert(obr, index[1]);
 		vlr->v3= RE_findOrAddVert(obr, index[2]);
-		vlr->v4= 0;
+		vlr->v4 = NULL;
 
 		if (negative_scale)
 			normal_tri_v3(vlr->n, vlr->v1->co, vlr->v2->co, vlr->v3->co);
@@ -2729,7 +2738,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					vlr->v2= RE_findOrAddVert(obr, vertofs+v2);
 					vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
 					if (v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
-					else vlr->v4= 0;
+					else vlr->v4 = NULL;
 
 					/* render normals are inverted in render */
 					if (vlr->v4)
@@ -2787,7 +2796,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
-	Nurb *nu=0;
+	Nurb *nu = NULL;
 	Curve *cu;
 	ListBase displist= {NULL, NULL};
 	DispList *dl;
@@ -2798,7 +2807,7 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	cu= ob->data;
 	nu= cu->nurb.first;
-	if (nu==0) return;
+	if (nu == NULL) return;
 
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
@@ -3311,7 +3320,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	DerivedMesh *dm;
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
-	float *orco=0;
+	float *orco = NULL;
 	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0, need_origindex=0;
 	int a, a1, ok, vertofs;
 	int end, do_autosmooth = FALSE, totvert = 0;
@@ -3526,8 +3535,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
 							vlr->v2= RE_findOrAddVert(obr, vertofs+v2);
 							vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
-							if (v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
-							else vlr->v4= 0;
+							if (v4) vlr->v4 = RE_findOrAddVert(obr, vertofs+v4);
+							else vlr->v4 = NULL;
 
 #ifdef WITH_FREESTYLE
 							/* Freestyle edge/face marks */
@@ -4706,14 +4715,12 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 
 		obi->duplitexmat= BLI_memarena_alloc(re->memArena, sizeof(float)*4*4);
 		invert_m4_m4(imat, dob->mat);
-		mul_serie_m4(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv, 0, 0, 0, 0);
+		mul_serie_m4(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv,
+		             NULL, NULL, NULL, NULL);
 	}
 
-	if (dob) {
-		copy_v3_v3(obi->dupliorco, dob->orco);
-		obi->dupliuv[0]= dob->uv[0];
-		obi->dupliuv[1]= dob->uv[1];
-	}
+	copy_v3_v3(obi->dupliorco, dob->orco);
+	copy_v2_v2(obi->dupliuv, dob->uv);
 }
 
 static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
@@ -5068,7 +5075,7 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 		if (ob->flag & OB_DONE) {
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset);
+					init_render_object(re, ob, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
 					if (ob->dup_group)
@@ -5128,7 +5135,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 			 * it still needs to create the ObjectRen containing the data */
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset);
+					init_render_object(re, ob, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
 			}
@@ -5236,10 +5243,10 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				free_object_duplilist(lb);
 
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, timeoffset);
+					init_render_object(re, ob, NULL, NULL, timeoffset);
 			}
 			else if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, timeoffset);
+				init_render_object(re, ob, NULL, NULL, timeoffset);
 		}
 
 		if (re->test_break(re->tbh)) break;
@@ -5327,7 +5334,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, 0, 0, 0, 0);
+	database_init_objects(re, lay, 0, 0, NULL, 0);
 	
 	if (!re->test_break(re->tbh)) {
 		set_material_lightgroups(re);
@@ -5486,7 +5493,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	}
 	
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, 0, 0, 0, timeoffset);
+	database_init_objects(re, lay, 0, 0, NULL, timeoffset);
 	
 	if (!re->test_break(re->tbh))
 		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);

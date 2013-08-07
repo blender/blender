@@ -44,8 +44,6 @@
 
 #include "avi_mjpeg.h"
 
-#define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
-
 static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, int bufsize);
 static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, int bufsize);
 
@@ -294,56 +292,13 @@ static void deinterlace(int odd, unsigned char *to, unsigned char *from, int wid
 
 static int check_and_decode_jpeg(unsigned char *inbuf, unsigned char *outbuf, int width, int height, int bufsize)
 {
-	/* JPEG's are always multiples of 16, extra is cropped out AVI's */
-	if ((width & 0xF) || (height & 0xF)) {
-		int i, rrowstride, jrowstride;
-		int jwidth = PADUP(width, 16);
-		int jheight = PADUP(height, 16);
-		unsigned char *tmpbuf = MEM_mallocN(jwidth * jheight * 3, "avi.check_and_decode_jpeg");
-		int ret = Decode_JPEG(inbuf, tmpbuf, jwidth, jheight, bufsize);
-
-		/* crop the tmpbuf into the real buffer */
-		rrowstride = width * 3;
-		jrowstride = jwidth * 3;
-		for (i = 0; i < height; i++)
-			memcpy(&outbuf[i * rrowstride], &tmpbuf[i * jrowstride], rrowstride);
-		MEM_freeN(tmpbuf);
-		
-		return ret;
-	}
-	else {
-		return Decode_JPEG(inbuf, outbuf, width, height, bufsize);
-	}
+	return Decode_JPEG(inbuf, outbuf, width, height, bufsize);
 }
 
 static void check_and_compress_jpeg(int quality, unsigned char *outbuf, const unsigned char *inbuf,
                                     int width, int height, int bufsize)
 {
-	/* JPEG's are always multiples of 16, extra is ignored in AVI's */
-	if ((width & 0xF) || (height & 0xF)) {
-		int i, rrowstride, jrowstride;
-		int jwidth = PADUP(width, 16);
-		int jheight = PADUP(height, 16);
-		unsigned char *tmpbuf = MEM_mallocN(jwidth * jheight * 3, "avi.check_and_compress_jpeg");
-
-		/* resize the realbuf into the tmpbuf */
-		rrowstride = width * 3;
-		jrowstride = jwidth * 3;
-		for (i = 0; i < jheight; i++) {
-			if (i < height)
-				memcpy(&tmpbuf[i * jrowstride], &inbuf[i * rrowstride], rrowstride);
-			else
-				memset(&tmpbuf[i * jrowstride], 0, rrowstride);
-			memset(&tmpbuf[i * jrowstride + rrowstride], 0, jrowstride - rrowstride);
-		}
-
-		Compress_JPEG(quality, outbuf, tmpbuf, jwidth, jheight, bufsize);
-
-		MEM_freeN(tmpbuf);
-	}
-	else {
-		Compress_JPEG(quality, outbuf, inbuf, width, height, bufsize);
-	}
+	Compress_JPEG(quality, outbuf, inbuf, width, height, bufsize);
 }
 
 void *avi_converter_from_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, int *size)

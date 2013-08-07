@@ -34,9 +34,12 @@ static void *buffer_alloc(BLI_Buffer *buffer, int len)
 
 static void *buffer_realloc(BLI_Buffer *buffer, int len)
 {
-	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
-	        MEM_recallocN : MEM_reallocN)
-	        (buffer->data, (buffer->elem_size * len));
+	if (buffer->flag & BLI_BUFFER_USE_CALLOC) {
+		return MEM_recallocN(buffer->data, buffer->elem_size * len);
+	}
+	else {
+		return MEM_reallocN(buffer->data, buffer->elem_size * len);
+	}
 }
 
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)

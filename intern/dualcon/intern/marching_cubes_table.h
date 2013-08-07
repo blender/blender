@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef MARCHING_CUBES_TABLE_H
-#define MARCHING_CUBES_TABLE_H
+#ifndef __MARCHING_CUBES_TABLE_H__
+#define __MARCHING_CUBES_TABLE_H__
 
 /* number of configurations */
 #define TOTCONF 256

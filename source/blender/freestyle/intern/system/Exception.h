@@ -66,7 +66,6 @@ private:
 	static exception_type _exception;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Exception")
 #endif
 };

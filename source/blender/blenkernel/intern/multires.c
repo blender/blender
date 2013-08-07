@@ -245,7 +245,7 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
 static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 {
 	MDisps *mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS,
-	                                      CD_CALLOC, 0, me->totloop);
+	                                      CD_CALLOC, NULL, me->totloop);
 	int gridsize = ccg_gridsize(level);
 	int gridarea = gridsize * gridsize;
 	int i, j, k;

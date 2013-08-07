@@ -36,7 +36,7 @@
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
-#include "COM_ViewerBaseOperation.h"
+#include "COM_ViewerOperation.h"
 
 extern "C" {
 #include "BKE_node.h"
@@ -212,7 +212,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 			printf("|");
 		}
 		if (operation->isViewerOperation()) {
-			ViewerBaseOperation *viewer = (ViewerBaseOperation *)operation;
+			ViewerOperation *viewer = (ViewerOperation *)operation;
 			if (viewer->isActiveViewerOutput()) {
 				printf("Active viewer");
 			}

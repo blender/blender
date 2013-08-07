@@ -510,13 +510,9 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 	
 	out = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_COMPOSITE);
 	out->locx = 300.0f; out->locy = 400.0f;
-	out->id = &sce->id;
-	id_us_plus(out->id);
 	
 	in = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_R_LAYERS);
 	in->locx = 10.0f; in->locy = 400.0f;
-	in->id = &sce->id;
-	id_us_plus(in->id);
 	nodeSetActive(sce->nodetree, in);
 	
 	/* links from color to color */

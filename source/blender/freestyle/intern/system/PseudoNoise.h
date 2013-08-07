@@ -57,7 +57,6 @@ protected:
 	static real _values[NB_VALUE_NOISE];
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:PseudoNoise")
 #endif
 };

@@ -57,6 +57,7 @@ subject to the following restrictions:
  */
 
 #include <stdio.h>
+#include <errno.h>
 
 #include "RBI_api.h"
 
@@ -218,8 +219,13 @@ void RB_dworld_export(rbDynamicsWorld *world, const char *filename)
 	world->dynamicsWorld->serialize(serializer);
 	
 	FILE *file = fopen(filename, "wb");
-	fwrite(serializer->getBufferPointer(), serializer->getCurrentBufferSize(), 1, file);
-	fclose(file);
+	if (file) {
+		fwrite(serializer->getBufferPointer(), serializer->getCurrentBufferSize(), 1, file);
+		fclose(file);
+	}
+	else {
+		 fprintf(stderr, "RB_dworld_export: %s\n", strerror(errno));
+	}
 }
 
 /* ********************************** */

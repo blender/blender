@@ -1927,6 +1927,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		do_render_fields_blur_3d(re);
 	}
 	else {
+		re->i.cfra = re->r.cfra;
+
 		/* ensure new result gets added, like for regular renders */
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		

@@ -89,7 +89,6 @@ private:
 	OccludersSet _occluders;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Cell")
 #endif
 };
@@ -372,7 +371,6 @@ protected:
 	OccludersSet _occluders;  // List of all occluders inserted in the grid
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Grid")
 #endif
 };
@@ -395,7 +393,6 @@ private:
 	OccludersSet::iterator it, end;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VirtualOccludersSet")
 #endif
 };

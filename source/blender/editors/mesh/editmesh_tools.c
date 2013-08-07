@@ -428,8 +428,9 @@ static int edbm_add_edge_face__smooth_get(BMesh *bm)
  * Function used to get a fixed number of edges linked to a vertex that passes a test function.
  * This is used so we can request all boundary edges connected to a vertex for eg.
  */
-static int edbm_add_edge_face_exec__vert_edge_lookup(BMVert *v, BMEdge *e_used, BMEdge **e_arr, const int e_arr_len,
-                                                     bool (* func)(BMEdge *))
+static int edbm_add_edge_face_exec__vert_edge_lookup(
+        BMVert *v, BMEdge *e_used, BMEdge **e_arr, const int e_arr_len,
+        bool (* func)(const BMEdge *))
 {
 	BMIter iter;
 	BMEdge *e_iter;
@@ -3038,6 +3039,17 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /* Dissolve */
 
+static void edbm_dissolve_prop__use_verts(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts",
+	                "Dissolve remaining vertices");
+}
+static void edbm_dissolve_prop__use_face_split(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
+	                "Split off face corners to maintain surrounding geometry");
+}
+
 static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -3067,8 +3079,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
-	                "Split off face corners to maintain surrounding geometry");
+	edbm_dissolve_prop__use_face_split(ot);
 }
 
 static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
@@ -3105,9 +3116,8 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
-	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
-	                "Split off face corners to maintain surrounding geometry");
+	edbm_dissolve_prop__use_verts(ot);
+	edbm_dissolve_prop__use_face_split(ot);
 }
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
@@ -3117,8 +3127,14 @@ static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
 
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
 
-	if (!EDBM_op_callf(em, op, "dissolve_faces faces=%hf use_verts=%b", BM_ELEM_SELECT, use_verts))
+	if (!EDBM_op_call_and_selectf(
+	        em, op,
+	        "region.out", true,
+	        "dissolve_faces faces=%hf use_verts=%b",
+	        BM_ELEM_SELECT, use_verts))
+	{
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
@@ -3139,9 +3155,43 @@ void MESH_OT_dissolve_faces(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_verts", 0, "Dissolve Verts", "Dissolve remaining vertices");
+	edbm_dissolve_prop__use_verts(ot);
 }
 
+
+static int edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		return edbm_dissolve_verts_exec(C, op);
+	}
+	else if (em->selectmode & SCE_SELECT_EDGE) {
+		return edbm_dissolve_edges_exec(C, op);
+	}
+	else {
+		return edbm_dissolve_faces_exec(C, op);
+	}
+}
+
+void MESH_OT_dissolve_mode(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve Selection";
+	ot->description = "Dissolve geometry based on the selection mode";
+	ot->idname = "MESH_OT_dissolve_mode";
+
+	/* api callbacks */
+	ot->exec = edbm_dissolve_mode_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	edbm_dissolve_prop__use_verts(ot);
+	edbm_dissolve_prop__use_face_split(ot);
+}
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
@@ -3236,7 +3286,7 @@ static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l) {
 				BMLoop *l_iter = e->l;
 				do {
 					BM_elem_flag_enable(l_iter->f, BM_ELEM_TAG);

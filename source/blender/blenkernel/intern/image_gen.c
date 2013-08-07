@@ -336,7 +336,7 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 	}
 
 	/* cleanup the buffer. */
-	BLF_buffer(mono, NULL, NULL, 0, 0, 0, FALSE);
+	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
 }
 
 void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int width, int height)

@@ -245,7 +245,6 @@ public:
 		virtual void increment();
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	public:
 		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WVertex:incoming_edge_iterator")
 #endif
 	};
@@ -330,7 +329,6 @@ public:
 		}
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	public:
 		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WVertex:face_iterator")
 #endif
 	};
@@ -1282,7 +1280,6 @@ protected:
 	                        WFace *face);
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WShape")
 #endif
 };
@@ -1327,7 +1324,6 @@ private:
 	vector<WShape *> _wshapes;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdge")
 #endif
 };

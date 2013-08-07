@@ -355,7 +355,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 	PropertyType type;
 	PropertySubType subtype;
 	uiLayout *sub;
-	int a, b;
+	unsigned int a, b;
 
 	/* retrieve type and subtype */
 	type = RNA_property_type(prop);
@@ -373,8 +373,8 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		/* special check for layer layout */
 		int butw, buth, unit;
 		int cols = (len >= 20) ? 2 : 1;
-		int colbuts = len / (2 * cols);
-		int layer_used = 0;
+		const unsigned int colbuts = len / (2 * cols);
+		unsigned int layer_used = 0;
 
 		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, FALSE));
 

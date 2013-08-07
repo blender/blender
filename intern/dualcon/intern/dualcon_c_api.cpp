@@ -185,6 +185,11 @@ void printInfo() {
 int getMemory() {
 	return sizeof(DualConInputReader);
 }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:DualConInputReader")
+#endif
+
 };
 
 void *dualcon(const DualConInput *input_mesh,

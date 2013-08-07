@@ -121,7 +121,7 @@ static VoronoiParabola *voronoiParabola_new(void)
 	parabola->is_leaf = FALSE;
 	parabola->event = NULL;
 	parabola->edge = NULL;
-	parabola->parent = 0;
+	parabola->parent = NULL;
 
 	return parabola;
 }
@@ -134,7 +134,7 @@ static VoronoiParabola *voronoiParabola_newSite(float site[2])
 	parabola->is_leaf = TRUE;
 	parabola->event = NULL;
 	parabola->edge = NULL;
-	parabola->parent = 0;
+	parabola->parent = NULL;
 
 	return parabola;
 }

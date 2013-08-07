@@ -319,26 +319,20 @@ void BL_ConvertActuators(const char* maggiename,
 				/* Get the name of the properties that objects must own that
 				 * we're sending to, if present
 				 */
-				STR_String toPropName = (msgAct->toPropName
-					? (char*) msgAct->toPropName
-					: "");
+				STR_String toPropName = msgAct->toPropName;
 				
 				/* Get the Message Subject to send.
 				 */
-				STR_String subject = (msgAct->subject
-					? (char*) msgAct->subject
-					: "");
+				STR_String subject = msgAct->subject;
 				
 				/* Get the bodyType
 				 */
 				int bodyType = msgAct->bodyType;
-				
+
 				/* Get the body (text message or property name whose value
 				 * we'll be sending, might be empty
 				 */
-				STR_String body = (msgAct->body
-					? (char*) msgAct->body
-					: "");
+				const STR_String body = msgAct->body;
 				
 				KX_NetworkMessageActuator *tmpmsgact = new KX_NetworkMessageActuator(
 				            gameobj,					// actuator controlling object

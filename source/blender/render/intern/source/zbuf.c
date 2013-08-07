@@ -504,7 +504,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 							if (apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
 							if (apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
 							if (apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
-							if (apn->next==0) apn->next= addpsA(zspan);
+							if (apn->next == NULL) apn->next = addpsA(zspan);
 							apn= apn->next;
 						}
 					}
@@ -575,7 +575,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 							if (apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
 							if (apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
 							if (apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
-							if (apn->next==0) apn->next= addpsA(zspan);
+							if (apn->next == NULL) apn->next = addpsA(zspan);
 							apn= apn->next;
 						}
 					}
@@ -2068,7 +2068,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *
 	ZSpan zspans[16], *zspan; /* 16 = RE_MAX_OSA */
 	VlakRen *vlr= NULL;
 	VertRen *v1, *v2, *v3, *v4;
-	Material *ma=0;
+	Material *ma = NULL;
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
 	float obwinmat[4][4], winmat[4][4], bounds[4];
@@ -2238,7 +2238,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *
 								if (v4)
 									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
 								else
-									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, 0, c1, c2, c3, 0);
+									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, NULL, c1, c2, c3, 0);
 							}
 							else {
 								/* strands allow to be filled in as quad */
@@ -2375,7 +2375,7 @@ void zbuffer_shadow(Render *re, float winmat[4][4], LampRen *lar, int *rectz, in
 						zbufclipwire(&zspan, 0, a+1, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
 					}
 					else
-						zbufclipwire(&zspan, 0, a+1, vlr->ec, ho1, ho2, ho3, 0, c1, c2, c3, 0);
+						zbufclipwire(&zspan, 0, a+1, vlr->ec, ho1, ho2, ho3, NULL, c1, c2, c3, 0);
 				}
 				else {
 					if (vlr->v4) {
@@ -2539,7 +2539,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 	ObjectRen *obr;
 	VlakRen *vlr= NULL;
 	VertRen *v1, *v2, *v3, *v4;
-	Material *ma=0, *sss_ma= R.sss_mat;
+	Material *ma = NULL, *sss_ma = R.sss_mat;
 	float obwinmat[4][4], winmat[4][4], bounds[4];
 	float ho1[4], ho2[4], ho3[4], ho4[4]={0};
 	int i, v, zvlnr, c1, c2, c3, c4=0;
@@ -3399,7 +3399,7 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 								if (v4)
 									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
 								else
-									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, 0, c1, c2, c3, 0);
+									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, NULL, c1, c2, c3, 0);
 							}
 							else {
 								if (v4 && (vlr->flag & R_STRAND)) {

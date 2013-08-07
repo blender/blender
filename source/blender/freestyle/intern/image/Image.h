@@ -173,7 +173,6 @@ protected:
 	unsigned _Oy; // origin of the stored part
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsImage")
 #endif
 };

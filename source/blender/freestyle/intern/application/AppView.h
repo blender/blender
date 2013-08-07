@@ -234,7 +234,6 @@ protected:
 	NodeDrawingStyle *_p2DSelectionNode;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:AppView")
 #endif
 };

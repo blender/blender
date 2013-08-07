@@ -352,7 +352,7 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 	}
 }
 
-void RAS_2DFilterManager::UpdateCanvasTextureCoord(unsigned int * viewport)
+void RAS_2DFilterManager::UpdateCanvasTextureCoord(const int viewport[4])
 {
 	/*
 	 * This function update canvascoord[].
@@ -360,12 +360,10 @@ void RAS_2DFilterManager::UpdateCanvasTextureCoord(unsigned int * viewport)
 	 * That way we can access the texcoord relative to the canvas:
 	 * (0.0,0.0) bottom left, (1.0,1.0) top right, (0.5,0.5) center
 	 */
-	canvascoord[0] = (GLfloat) viewport[0] / viewport[2];
-	canvascoord[0] *= -1;
+	canvascoord[0] = (GLfloat) viewport[0] / -viewport[2];
 	canvascoord[1] = (GLfloat) (texturewidth - viewport[0]) / viewport[2];
  
-	canvascoord[2] = (GLfloat) viewport[1] / viewport[3];
-	canvascoord[2] *= -1;
+	canvascoord[2] = (GLfloat) viewport[1] / -viewport[3];
 	canvascoord[3] = (GLfloat)(textureheight - viewport[1]) / viewport[3];
 }
 
@@ -396,14 +394,14 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if (num_filters <= 0)
 		return;
 
-	const GLint *viewport = canvas->GetViewPort();
+	const int *viewport = canvas->GetViewPort();
 	RAS_Rect rect = canvas->GetWindowArea();
 	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 
 	if (texturewidth != rect_width || textureheight != rect_height)
 	{
 		UpdateOffsetMatrix(canvas);
-		UpdateCanvasTextureCoord((unsigned int*)viewport);
+		UpdateCanvasTextureCoord(viewport);
 		need_tex_update = true;
 	}
 	
@@ -432,7 +430,10 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	// We do this to make side-by-side stereo rendering work correctly with 2D filters. It would probably be nicer to just set the viewport,
 	// but it can be easier for writing shaders to have the coordinates for the whole screen instead of just part of the screen. 
 	RAS_Rect scissor_rect = canvas->GetDisplayArea();
-	glScissor(scissor_rect.GetLeft()+viewport[0], scissor_rect.GetBottom()+viewport[1], scissor_rect.GetWidth()+1, scissor_rect.GetHeight()+1);
+	glScissor(scissor_rect.GetLeft() + viewport[0],
+	          scissor_rect.GetBottom() + viewport[1],
+	          scissor_rect.GetWidth() + 1,
+	          scissor_rect.GetHeight() + 1);
 
 	glDisable(GL_DEPTH_TEST);
 	// in case the previous material was wire

@@ -177,9 +177,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					bTouchPulse = (blendertouchsensor->mode & SENS_COLLISION_PULSE);
 					
 					
-					STR_String touchPropOrMatName = ( bFindMaterial ? 
-						blendertouchsensor->materialName:
-					(blendertouchsensor->name ? blendertouchsensor->name: ""));
+					const STR_String touchPropOrMatName = bFindMaterial ?
+					                                      blendertouchsensor->materialName : blendertouchsensor->name;
 					
 					
 					if (gameobj->GetPhysicsController())
@@ -229,9 +228,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					/* Get our NetworkScene */
 					NG_NetworkScene *NetworkScene = kxscene->GetNetworkScene();
 					/* filter on the incoming subjects, might be empty */
-					STR_String subject = (msgSens->subject
-						? (char*)msgSens->subject
-						: "");
+					const STR_String subject = msgSens->subject;
 					
 					gamesensor = new KX_NetworkMessageSensor(
 						eventmgr,		// our eventmanager
@@ -247,14 +244,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
 				if (eventmgr)
 				{
-					STR_String nearpropertyname;
 					bNearSensor* blendernearsensor = (bNearSensor*)sens->data;
-					if (blendernearsensor->name)
-					{
-						// only objects that own this property will be taken into account
-						nearpropertyname = (char*) blendernearsensor->name;
-					}
-					
+					const STR_String nearpropertyname = (char *)blendernearsensor->name;
+
 					//DT_ShapeHandle shape	=	DT_Sphere(0.0);
 					
 					// this sumoObject is not deleted by a gameobj, so delete it ourself
@@ -453,17 +445,10 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
 				if (eventmgr)
 				{
-					STR_String radarpropertyname;
-					STR_String touchpropertyname;
 					bRadarSensor* blenderradarsensor = (bRadarSensor*) sens->data;
+					const STR_String radarpropertyname = blenderradarsensor->name;
 					
 					int radaraxis = blenderradarsensor->axis;
-					
-					if (blenderradarsensor->name)
-					{
-						// only objects that own this property will be taken into account
-						radarpropertyname = (char*) blenderradarsensor->name;
-					}
 					
 					MT_Scalar coneheight = blenderradarsensor->range;
 					

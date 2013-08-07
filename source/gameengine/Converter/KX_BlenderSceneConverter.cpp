@@ -1143,7 +1143,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 	
 	/* needed for lookups*/
 	GetMainDynamic().push_back(main_newlib);
-	strncpy(main_newlib->name, path, sizeof(main_newlib->name));
+	BLI_strncpy(main_newlib->name, path, sizeof(main_newlib->name));
 	
 	
 	status = new KX_LibLoadStatus(this, m_ketsjiEngine, scene_merge, path);

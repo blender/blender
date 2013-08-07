@@ -226,7 +226,6 @@ protected:
 	unsigned _timeStamp;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interface1D")
 #endif
 };

@@ -714,10 +714,10 @@ static void armature_select_less(bArmature *UNUSED(arm), EditBone *ebone)
 	}
 }
 
-static void armature_select_more_less(Object* ob, bool more)
+static void armature_select_more_less(Object *ob, bool more)
 {
-	bArmature* arm = (bArmature *)ob->data;
-	EditBone* ebone;
+	bArmature *arm = (bArmature *)ob->data;
+	EditBone *ebone;
 
 	/* XXX, eventually we shouldn't need this - campbell */
 	ED_armature_sync_selection(arm->edbo);

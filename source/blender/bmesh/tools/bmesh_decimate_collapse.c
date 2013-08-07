@@ -345,7 +345,7 @@ static bool bm_decim_triangulate_begin(BMesh *bm)
 			}
 
 #ifdef USE_SAFETY_CHECKS
-			if (BM_edge_exists(l_a->v, l_b->v) == false)
+			if (BM_edge_exists(l_a->v, l_b->v) == NULL)
 #endif
 			{
 				BMFace *f_new;

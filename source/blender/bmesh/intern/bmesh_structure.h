@@ -47,11 +47,11 @@ bool    bmesh_loop_validate(BMFace *f);
 /* DISK CYCLE MANAGMENT */
 void    bmesh_disk_edge_append(BMEdge *e, BMVert *v);
 void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
-BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v);
-BMEdge *bmesh_disk_edge_prev(BMEdge *e, BMVert *v);
-int     bmesh_disk_facevert_count(BMVert *v);
-BMEdge *bmesh_disk_faceedge_find_first(BMEdge *e, BMVert *v);
-BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v);
+BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v);
+int     bmesh_disk_facevert_count(const BMVert *v);
+BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v);
+BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v);
 
 /* RADIAL CYCLE MANAGMENT */
 void    bmesh_radial_append(BMEdge *e, BMLoop *l);
@@ -60,19 +60,18 @@ void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
 
-bool    bmesh_radial_face_find(BMEdge *e, BMFace *f);
-int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v);
+int     bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_first(const BMLoop *l, const BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_next(const BMLoop *l, const BMVert *v);
+BMLoop *bmesh_radial_faceloop_find_vert(const BMFace *f, const BMVert *v);
 bool    bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */
 bool    bmesh_vert_in_edge(const BMEdge *e, const BMVert *v);
-bool    bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
+bool    bmesh_verts_in_edge(const BMVert *v1, const BMVert *v2, const BMEdge *e);
 bool    bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv);  /* relink edge */
 BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v);
-BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2);
+BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2);
 bool    bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
 
 #endif /* __BMESH_STRUCTURE_H__ */

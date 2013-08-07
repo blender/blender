@@ -303,7 +303,6 @@ private:
 	Vec3fMap *_userAttributesVec3f;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeAttribute")
 #endif
 };

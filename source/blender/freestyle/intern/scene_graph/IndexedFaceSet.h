@@ -312,6 +312,11 @@ protected:
 	unsigned _TISize;
 
 	unsigned int _displayList;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IndexedFaceSet")
+#endif
+
 };
 
 } /* namespace Freestyle */
