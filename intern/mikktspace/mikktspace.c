@@ -426,7 +426,7 @@ typedef struct {
 	int index;
 } STmpVert;
 
-const int g_iCells = 2048;
+static const int g_iCells = 2048;
 
 #ifdef _MSC_VER
 	#define NOINLINE __declspec(noinline)

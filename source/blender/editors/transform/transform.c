@@ -5706,7 +5706,7 @@ int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 	return 0;
 }
 
-void drawEdgeSlide(const struct bContext *C, TransInfo *t)
+static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
 		EdgeSlideData *sld = (EdgeSlideData *)t->customData;

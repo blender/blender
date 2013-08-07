@@ -7278,7 +7278,7 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 	}
 }
 
-void convert_tface_mt(FileData *fd, Main *main)
+static void convert_tface_mt(FileData *fd, Main *main)
 {
 	Main *gmain;
 	

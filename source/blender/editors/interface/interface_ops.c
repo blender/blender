@@ -704,12 +704,12 @@ static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 /* EditSource Utility funcs and operator,
  * note, this includes utility functions and button matching checks */
 
-struct uiEditSourceStore {
+typedef struct uiEditSourceStore {
 	uiBut but_orig;
 	GHash *hash;
 } uiEditSourceStore;
 
-struct uiEditSourceButStore {
+typedef struct uiEditSourceButStore {
 	char py_dbg_fn[FILE_MAX];
 	int py_dbg_ln;
 } uiEditSourceButStore;
