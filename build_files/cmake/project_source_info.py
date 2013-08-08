@@ -171,6 +171,26 @@ def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
     return source
 
 
+def build_defines_as_source():
+    """
+    Returns a string formatted as an include:
+        '#defines A=B\n#define....'
+    """
+    import subprocess
+    # works for both gcc and clang
+    cmd = (cmake_cache_var("CMAKE_C_COMPILER"), "-dM", "-E", "-")
+    return subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stdin=subprocess.DEVNULL,
+                            ).stdout.read().strip().decode('ascii')
+
+
+def build_defines_as_args():
+    return [("-D" + "=".join(l.split(maxsplit=2)[1:]))
+            for l in build_defines_as_source().split("\n")
+            if l.startswith('#define')]
+
+
 # could be moved elsewhere!, this just happens to be used by scripts that also
 # use this module.
 def queue_processes(process_funcs, job_total=-1):
