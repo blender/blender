@@ -10172,6 +10172,7 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 {
 	expand_doit(fd, mainvar, brush->mtex.tex);
+	expand_doit(fd, mainvar, brush->mask_mtex.tex);
 	expand_doit(fd, mainvar, brush->clone.image);
 }
 
