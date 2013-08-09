@@ -35,6 +35,7 @@ extern "C" __global__ void kernel_cuda_path_trace_progressive(float *buffer, uin
 		kernel_path_trace_progressive(NULL, buffer, rng_state, sample, x, y, offset, stride);
 }
 
+#ifdef __NON_PROGRESSIVE__
 extern "C" __global__ void kernel_cuda_path_trace_non_progressive(float *buffer, uint *rng_state, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
@@ -43,6 +44,7 @@ extern "C" __global__ void kernel_cuda_path_trace_non_progressive(float *buffer,
 	if(x < sx + sw && y < sy + sh)
 		kernel_path_trace_non_progressive(NULL, buffer, rng_state, sample, x, y, offset, stride);
 }
+#endif
 
 extern "C" __global__ void kernel_cuda_tonemap(uchar4 *rgba, float *buffer, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
 {

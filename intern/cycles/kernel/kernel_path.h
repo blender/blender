@@ -1194,6 +1194,7 @@ __device void kernel_path_trace_progressive(KernelGlobals *kg,
 	path_rng_end(kg, rng_state, rng);
 }
 
+#ifdef __NON_PROGRESSIVE__
 __device void kernel_path_trace_non_progressive(KernelGlobals *kg,
 	__global float *buffer, __global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
@@ -1215,11 +1216,7 @@ __device void kernel_path_trace_non_progressive(KernelGlobals *kg,
 	float4 L;
 
 	if (ray.t != 0.0f)
-#ifdef __NON_PROGRESSIVE__
 		L = kernel_path_non_progressive(kg, &rng, sample, ray, buffer);
-#else
-		L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
-#endif
 	else
 		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -1228,6 +1225,7 @@ __device void kernel_path_trace_non_progressive(KernelGlobals *kg,
 
 	path_rng_end(kg, rng_state, rng);
 }
+#endif
 
 CCL_NAMESPACE_END
 

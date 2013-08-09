@@ -572,8 +572,11 @@ public:
 		/* get kernel function */
 		if(progressive)
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace_progressive"))
-		else
+		else {
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace_non_progressive"))
+			if(have_error())
+				return;
+		}
 		
 		/* pass in parameters */
 		int offset = 0;
