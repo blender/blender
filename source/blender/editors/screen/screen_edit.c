@@ -1378,10 +1378,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	if (id == NULL)
 		return;
 	
-	/* check for valid winid */
-	if (sc->winid != 0 && sc->winid != win->winid)
-		return;
-	
+
 	if (sc->full) {             /* find associated full */
 		bScreen *sc1;
 		for (sc1 = bmain->screen.first; sc1; sc1 = sc1->id.next) {
@@ -1392,6 +1389,10 @@ void ED_screen_set(bContext *C, bScreen *sc)
 			}
 		}
 	}
+
+	/* check for valid winid */
+	if (sc->winid != 0 && sc->winid != win->winid)
+		return;
 	
 	if (oldscreen != sc) {
 		wmTimer *wt = oldscreen->animtimer;

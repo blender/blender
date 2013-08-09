@@ -348,32 +348,41 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 
 	bool hair_present = false;
 	bool show_emitter = false;
-	bool hide = false;
+	bool hide_as_dupli_parent = false;
+	bool hide_as_dupli_child_original = false;
 
 	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
 		if((b_psys->settings().render_type() == BL::ParticleSettings::render_type_PATH) &&
 		   (b_psys->settings().type()==BL::ParticleSettings::type_HAIR))
 			hair_present = true;
 
-		if(b_psys->settings().use_render_emitter()) {
-			hide = false;
+		if(b_psys->settings().use_render_emitter())
 			show_emitter = true;
-		}
 	}
 
 	/* duplicators hidden by default, except dupliframes which duplicate self */
 	if(b_ob.is_duplicator())
 		if(top_level || b_ob.dupli_type() != BL::Object::dupli_type_FRAMES)
-			hide = true;
+			hide_as_dupli_parent = true;
 
 	/* hide original object for duplis */
 	BL::Object parent = b_ob.parent();
 	if(parent && object_render_hide_original(b_ob.type(), parent.dupli_type()))
 		if(parent_hide)
-			hide = true;
-
-	hide_triangles = (hair_present && !show_emitter);
-	return hide && !show_emitter;
+			hide_as_dupli_child_original = true;
+	
+	if(show_emitter) {
+		hide_triangles = false;
+		return (hide_as_dupli_parent || hide_as_dupli_child_original);
+	}
+	else if(hair_present) {
+		hide_triangles = true;
+		return hide_as_dupli_child_original;
+	}
+	else {
+		hide_triangles = false;
+		return (hide_as_dupli_parent || hide_as_dupli_child_original);
+	}
 }
 
 static bool object_render_hide_duplis(BL::Object b_ob)

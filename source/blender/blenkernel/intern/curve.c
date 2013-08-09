@@ -1990,36 +1990,35 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 /* make_bevel_list_3D_* funcs, at a minimum these must
  * fill in the bezp->quat and bezp->dir values */
 
-/* correct non-cyclic cases by copying direction and rotation
- * values onto the first & last end-points */
-static void bevel_list_cyclic_fix_3D(BevList *bl)
-{
-	BevPoint *bevp, *bevp1;
-
-	bevp = (BevPoint *)(bl + 1);
-	bevp1 = bevp + 1;
-	copy_qt_qt(bevp->quat, bevp1->quat);
-	copy_v3_v3(bevp->dir, bevp1->dir);
-	copy_v3_v3(bevp->tan, bevp1->tan);
-	bevp = (BevPoint *)(bl + 1);
-	bevp += (bl->nr - 1);
-	bevp1 = bevp - 1;
-	copy_qt_qt(bevp->quat, bevp1->quat);
-	copy_v3_v3(bevp->dir, bevp1->dir);
-	copy_v3_v3(bevp->tan, bevp1->tan);
-}
-
 /* utility for make_bevel_list_3D_* funcs */
 static void bevel_list_calc_bisect(BevList *bl)
 {
 	BevPoint *bevp2, *bevp1, *bevp0;
 	int nr;
+	bool is_cyclic = bl->poly != -1;
 
-	bevp2 = (BevPoint *)(bl + 1);
-	bevp1 = bevp2 + (bl->nr - 1);
-	bevp0 = bevp1 - 1;
+	if (is_cyclic) {
+		bevp2 = (BevPoint *)(bl + 1);
+		bevp1 = bevp2 + (bl->nr - 1);
+		bevp0 = bevp1 - 1;
+		nr = bl->nr;
+	}
+	else {
+		/* If spline is not cyclic, direction of first and
+		 * last bevel points matches direction of CV handle.
+		 *
+		 * This is getting calculated earlier when we know
+		 * CV's handles and here we might simply skip evaluation
+		 * of direction for this guys.
+		 */
 
-	nr = bl->nr;
+		bevp0 = (BevPoint *)(bl + 1);
+		bevp1 = bevp0 + 1;
+		bevp2 = bevp1 + 1;
+
+		nr = bl->nr - 2;
+	}
+
 	while (nr--) {
 		/* totally simple */
 		bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
@@ -2125,22 +2124,30 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
 
 static void make_bevel_list_3D_zup(BevList *bl)
 {
-	BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
-	int nr;
+	BevPoint *bevp = (BevPoint *)(bl + 1);
+	int nr = bl->nr;
 
-	bevp2 = (BevPoint *)(bl + 1);
-	bevp1 = bevp2 + (bl->nr - 1);
-	bevp0 = bevp1 - 1;
+	bevel_list_calc_bisect(bl);
 
-	nr = bl->nr;
 	while (nr--) {
-		/* totally simple */
-		bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
-		vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
+		vec_to_quat(bevp->quat, bevp->dir, 5, 1);
+		bevp++;
+	}
+}
 
-		bevp0 = bevp1;
-		bevp1 = bevp2;
-		bevp2++;
+static void minimum_twist_between_two_points(BevPoint *current_point, BevPoint *previous_point)
+{
+	float angle = angle_normalized_v3v3(previous_point->dir, current_point->dir);
+	float q[4];
+
+	if (angle > 0.0f) { /* otherwise we can keep as is */
+		float cross_tmp[3];
+		cross_v3_v3v3(cross_tmp, previous_point->dir, current_point->dir);
+		axis_angle_to_quat(q, cross_tmp, angle);
+		mul_qt_qtqt(current_point->quat, q, previous_point->quat);
+	}
+	else {
+		copy_qt_qt(current_point->quat, previous_point->quat);
 	}
 }
 
@@ -2163,17 +2170,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 			vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
 		}
 		else {
-			float angle = angle_normalized_v3v3(bevp0->dir, bevp1->dir);
-
-			if (angle > 0.0f) { /* otherwise we can keep as is */
-				float cross_tmp[3];
-				cross_v3_v3v3(cross_tmp, bevp0->dir, bevp1->dir);
-				axis_angle_to_quat(q, cross_tmp, angle);
-				mul_qt_qtqt(bevp1->quat, q, bevp0->quat);
-			}
-			else {
-				copy_qt_qt(bevp1->quat, bevp0->quat);
-			}
+			minimum_twist_between_two_points(bevp1, bevp0);
 		}
 
 		bevp0 = bevp1;
@@ -2244,6 +2241,18 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 			bevp2++;
 		}
 	}
+	else {
+		/* Need to correct quat for the last point,
+		 * this is so because previously it was only calculated
+		 * using it's own direction, which might not correspond
+		 * the twist of previous point.
+		 */
+		bevp2 = (BevPoint *)(bl + 1);
+		bevp1 = bevp2 + (bl->nr - 1);
+		bevp0 = bevp1 - 1;
+
+		minimum_twist_between_two_points(bevp1, bevp0);
+	}
 }
 
 static void make_bevel_list_3D_tangent(BevList *bl)
@@ -2254,8 +2263,6 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 	float bevp0_tan[3];
 
 	bevel_list_calc_bisect(bl);
-	if (bl->poly == -1) /* check its not cyclic */
-		bevel_list_cyclic_fix_3D(bl);  // XXX - run this now so tangents will be right before doing the flipping
 	bevel_list_flip_tangents(bl);
 
 	/* correct the tangents */
@@ -2312,9 +2319,6 @@ static void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
 			make_bevel_list_3D_zup(bl);
 			break;
 	}
-
-	if (bl->poly == -1) /* check its not cyclic */
-		bevel_list_cyclic_fix_3D(bl);
 
 	if (smooth_iter)
 		bevel_list_smooth(bl, smooth_iter);
@@ -2401,9 +2405,6 @@ static void make_bevel_list_2D(BevList *bl)
 		bevp1 = bevp - 1;
 		bevp->sina = bevp1->sina;
 		bevp->cosa = bevp1->cosa;
-
-		/* correct for the dir/quat, see above why its needed */
-		bevel_list_cyclic_fix_3D(bl);
 	}
 }
 
@@ -2512,6 +2513,9 @@ void BKE_curve_bevelList_make(Object *ob)
 					bezt++;
 				}
 
+				sub_v3_v3v3(bevp->dir, prevbezt->vec[2], prevbezt->vec[1]);
+				normalize_v3(bevp->dir);
+
 				while (a--) {
 					if (prevbezt->h2 == HD_VECT && bezt->h1 == HD_VECT) {
 
@@ -2573,6 +2577,10 @@ void BKE_curve_bevelList_make(Object *ob)
 					bevp->alfa = prevbezt->alfa;
 					bevp->radius = prevbezt->radius;
 					bevp->weight = prevbezt->weight;
+
+					sub_v3_v3v3(bevp->dir, prevbezt->vec[1], prevbezt->vec[0]);
+					normalize_v3(bevp->dir);
+
 					bl->nr++;
 				}
 			}

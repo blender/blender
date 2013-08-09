@@ -121,7 +121,7 @@ static void zbuf_init_span(ZSpan *zspan)
 	zspan->minp1= zspan->maxp1= zspan->minp2= zspan->maxp2= NULL;
 }
 
-static void zbuf_add_to_span(ZSpan *zspan, const float *v1, const float *v2)
+static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 {
 	const float *minv, *maxv;
 	float *span;
@@ -909,7 +909,9 @@ void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4])
 	zco[2]= 0x7FFFFFFF *(hoco[2]*div);
 }
 
-void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4)
+void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec,
+                  const float ho1[4], const float ho2[4], const float ho3[4], const float ho4[4],
+                  int c1, int c2, int c3, int c4)
 {
 	float vez[20];
 	int and, or;
@@ -1845,7 +1847,9 @@ void zbuf_make_winmat(Render *re, float winmat[4][4])
 
 /* do zbuffering and clip, f1 f2 f3 are hocos, c1 c2 c3 are clipping flags */
 
-void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3)
+void zbufclip(ZSpan *zspan, int obi, int zvlnr,
+              const float f1[4], const float f2[4], const float f3[4],
+              const int c1, const int c2, const int c3)
 {
 	float *vlzp[32][3], lambda[3][2];
 	float vez[400], *trias[40];
@@ -1856,6 +1860,7 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 		}
 		else {	/* clipping */
 			int arg, v, b, clipflag[3], b1, b2, b3, c4, clve=3, clvlo, clvl=1;
+			float *fp;
 
 			vez[0]= f1[0]; vez[1]= f1[1]; vez[2]= f1[2]; vez[3]= f1[3];
 			vez[4]= f2[0]; vez[5]= f2[1]; vez[6]= f2[2]; vez[7]= f2[3];
@@ -1936,16 +1941,16 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 				}
 			}
 
-			/* warning, this should never happen! */
-			if (clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n", clve, clvl);
+			/* warning, clip overflow, this should never happen! */
+			BLI_assert(!(clve > 38 || clvl > 31));
 
 			/* perspective division */
-			f1=vez;
-			for (c1=0;c1<clve;c1++) {
-				hoco_to_zco(zspan, f1, f1);
-				f1+=4;
+			fp = vez;
+			for (b = 0; b < clve; b++) {
+				hoco_to_zco(zspan, fp, fp);
+				fp += 4;
 			}
-			for (b=1;b<clvl;b++) {
+			for (b = 1; b < clvl; b++) {
 				if (vlzp[b][0]) {
 					zspan->zbuffunc(zspan, obi, zvlnr, vlzp[b][0], vlzp[b][1], vlzp[b][2], NULL);
 				}
@@ -1961,7 +1966,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 	zspan->zbuffunc(zspan, obi, zvlnr, vez, vez+4, vez+8, NULL);
 }
 
-void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4)
+void zbufclip4(ZSpan *zspan, int obi, int zvlnr,
+               const float f1[4], const float f2[4], const float f3[4], const float f4[4],
+               const int c1, const int c2, const int c3, const int c4)
 {
 	float vez[16];
 	

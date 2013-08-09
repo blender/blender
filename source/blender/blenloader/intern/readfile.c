@@ -328,7 +328,7 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newad
 	oldnewmap_insert(onm, oldaddr, newaddr, nr);
 }
 
-static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr) 
+static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr, bool increase_users) 
 {
 	int i;
 	
@@ -338,7 +338,8 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 		OldNew *entry = &onm->entries[++onm->lasthit];
 		
 		if (entry->old == addr) {
-			entry->nr++;
+			if (increase_users)
+				entry->nr++;
 			return entry->newp;
 		}
 	}
@@ -349,7 +350,8 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 		if (entry->old == addr) {
 			onm->lasthit = i;
 			
-			entry->nr++;
+			if (increase_users)
+				entry->nr++;
 			return entry->newp;
 		}
 	}
@@ -1201,34 +1203,39 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 
 static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
 {
-	return oldnewmap_lookup_and_inc(fd->datamap, adr);
+	return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
+}
+
+static void *newdataadr_no_us(FileData *fd, void *adr)		/* only direct databocks */
+{
+	return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
 static void *newglobadr(FileData *fd, void *adr)	    /* direct datablocks with global linking */
 {
-	return oldnewmap_lookup_and_inc(fd->globmap, adr);
+	return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
 static void *newimaadr(FileData *fd, void *adr)		    /* used to restore image data after undo */
 {
 	if (fd->imamap && adr)
-		return oldnewmap_lookup_and_inc(fd->imamap, adr);
+		return oldnewmap_lookup_and_inc(fd->imamap, adr, true);
 	return NULL;
 }
 
 static void *newmclipadr(FileData *fd, void *adr)      /* used to restore movie clip data after undo */
 {
 	if (fd->movieclipmap && adr)
-		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr);
+		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr, true);
 	return NULL;
 }
 
 static void *newpackedadr(FileData *fd, void *adr)      /* used to restore packed data after undo */
 {
 	if (fd->packedmap && adr)
-		return oldnewmap_lookup_and_inc(fd->packedmap, adr);
+		return oldnewmap_lookup_and_inc(fd->packedmap, adr, true);
 	
-	return oldnewmap_lookup_and_inc(fd->datamap, adr);
+	return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
 
@@ -6301,10 +6308,14 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			else if (sl->spacetype == SPACE_OUTLINER) {
 				SpaceOops *soops = (SpaceOops *) sl;
 				
-				TreeStore *ts = newdataadr(fd, soops->treestore);
+				/* use newdataadr_no_us and do not free old memory avoidign double
+				 * frees and use of freed memory. this could happen because of a
+				 * bug fixed in revision 58959 where the treestore memory address
+				 * was not unique */
+				TreeStore *ts = newdataadr_no_us(fd, soops->treestore);
 				soops->treestore = NULL;
 				if (ts) {
-					TreeStoreElem *elems = newdataadr(fd, ts->data);
+					TreeStoreElem *elems = newdataadr_no_us(fd, ts->data);
 					
 					soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), ts->usedelem,
 					                                      512, BLI_MEMPOOL_ALLOW_ITER);
@@ -6314,12 +6325,9 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 							TreeStoreElem *new_elem = BLI_mempool_alloc(soops->treestore);
 							*new_elem = elems[i];
 						}
-						MEM_freeN(elems);
 					}
 					/* we only saved what was used */
 					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
-					
-					MEM_freeN(ts);
 				}
 				soops->treehash = NULL;
 				soops->tree.first = soops->tree.last= NULL;
@@ -10164,6 +10172,7 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 {
 	expand_doit(fd, mainvar, brush->mtex.tex);
+	expand_doit(fd, mainvar, brush->mask_mtex.tex);
 	expand_doit(fd, mainvar, brush->clone.image);
 }
 

@@ -120,8 +120,9 @@ typedef struct ZSpan {
 } ZSpan;
 
 /* exported to shadbuf.c */
-void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4,
-               int c1, int c2, int c3, int c4);
+void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr,
+               const float f1[4], const float f2[4], const float f3[4], const float f4[4],
+               const int c1, const int c2, const int c3, const int c4);
 void zbuf_free_span(struct ZSpan *zspan);
 void freepsA(struct ListBase *lb);
 
@@ -130,10 +131,13 @@ void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, f
                        void (*func)(void *, int, int, float, float) );
 
 /* exported to edge render... */
-void zbufclip(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+void zbufclip(struct ZSpan *zspan, int obi, int zvlnr,
+              const float f1[4], const float f2[4], const float f3[4],
+              const int c1, const int c2, const int c3);
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty, float clipcrop);
 void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec,
-                  float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
+                  const float ho1[4], const float ho2[4], const float ho3[4], const float ho4[4],
+                  const int c1, const int c2, const int c3, const int c4);
 
 /* exported to shadeinput.c */
 void zbuf_make_winmat(Render *re, float winmat[4][4]);
