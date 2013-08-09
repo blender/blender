@@ -122,6 +122,7 @@ typedef struct GPUAttrib {
 } GPUAttrib;
 
 void GPU_global_buffer_pool_free(void);
+void GPU_global_buffer_pool_free_unused(void);
 
 GPUBuffer *GPU_buffer_alloc(int size);
 void GPU_buffer_free(GPUBuffer *buffer);
