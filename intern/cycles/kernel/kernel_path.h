@@ -1134,7 +1134,36 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 #endif
 
-__device void kernel_path_trace(KernelGlobals *kg,
+__device_inline void kernel_path_trace_setup(KernelGlobals *kg, __global uint *rng_state, int sample, int x, int y, RNG *rng, Ray *ray)
+{
+	float filter_u;
+	float filter_v;
+#ifdef __CMJ__
+	int num_samples = kernel_data.integrator.aa_samples;
+#else
+	int num_samples = 0;
+#endif
+
+	path_rng_init(kg, rng_state, sample, num_samples, rng, x, y, &filter_u, &filter_v);
+
+	/* sample camera ray */
+
+	float lens_u = 0.0f, lens_v = 0.0f;
+
+	if(kernel_data.cam.aperturesize > 0.0f)
+		path_rng_2D(kg, rng, sample, num_samples, PRNG_LENS_U, &lens_u, &lens_v);
+
+	float time = 0.0f;
+
+#ifdef __CAMERA_MOTION__
+	if(kernel_data.cam.shuttertime != -1.0f)
+		time = path_rng_1D(kg, rng, sample, num_samples, PRNG_TIME);
+#endif
+
+	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
+}
+
+__device void kernel_path_trace_progressive(KernelGlobals *kg,
 	__global float *buffer, __global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
 {
@@ -1145,49 +1174,52 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	rng_state += index;
 	buffer += index*pass_stride;
 
-	/* initialize random numbers */
+	/* initialize random numbers and ray */
 	RNG rng;
-
-	float filter_u;
-	float filter_v;
-#ifdef __CMJ__
-	int num_samples = kernel_data.integrator.aa_samples;
-#else
-	int num_samples = 0;
-#endif
-
-	path_rng_init(kg, rng_state, sample, num_samples, &rng, x, y, &filter_u, &filter_v);
-
-	/* sample camera ray */
 	Ray ray;
 
-	float lens_u = 0.0f, lens_v = 0.0f;
-
-	if(kernel_data.cam.aperturesize > 0.0f)
-		path_rng_2D(kg, &rng, sample, num_samples, PRNG_LENS_U, &lens_u, &lens_v);
-
-	float time = 0.0f;
-
-#ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.shuttertime != -1.0f)
-		time = path_rng_1D(kg, &rng, sample, num_samples, PRNG_TIME);
-#endif
-
-	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);
+	kernel_path_trace_setup(kg, rng_state, sample, x, y, &rng, &ray);
 
 	/* integrate */
 	float4 L;
 
-	if (ray.t != 0.0f) {
+	if (ray.t != 0.0f)
+		L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
+	else
+		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	/* accumulate result in output buffer */
+	kernel_write_pass_float4(buffer, sample, L);
+
+	path_rng_end(kg, rng_state, rng);
+}
+
+__device void kernel_path_trace_non_progressive(KernelGlobals *kg,
+	__global float *buffer, __global uint *rng_state,
+	int sample, int x, int y, int offset, int stride)
+{
+	/* buffer offset */
+	int index = offset + x + y*stride;
+	int pass_stride = kernel_data.film.pass_stride;
+
+	rng_state += index;
+	buffer += index*pass_stride;
+
+	/* initialize random numbers and ray */
+	RNG rng;
+	Ray ray;
+
+	kernel_path_trace_setup(kg, rng_state, sample, x, y, &rng, &ray);
+
+	/* integrate */
+	float4 L;
+
+	if (ray.t != 0.0f)
 #ifdef __NON_PROGRESSIVE__
-		if(kernel_data.integrator.progressive)
+		L = kernel_path_non_progressive(kg, &rng, sample, ray, buffer);
+#else
+		L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
 #endif
-			L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
-#ifdef __NON_PROGRESSIVE__
-		else
-			L = kernel_path_non_progressive(kg, &rng, sample, ray, buffer);
-#endif
-	}
 	else
 		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 

@@ -65,6 +65,7 @@ public:
 	boost::function<bool(void)> get_cancel;
 
 	bool need_finish_queue;
+	bool integrator_progressive;
 protected:
 	double last_update_time;
 };
