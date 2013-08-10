@@ -87,6 +87,31 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     bl_label = "Add Torus"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
+    def mode_update_callback(self, context):
+        if self.mode == 'EXT_INT':
+            self.abso_major_rad = self.major_radius + self.minor_radius
+            self.abso_minor_rad = self.major_radius - self.minor_radius
+
+    major_segments = IntProperty(
+            name="Major Segments",
+            description="Number of segments for the main ring of the torus",
+            min=3, max=256,
+            default=48,
+            )
+    minor_segments = IntProperty(
+            name="Minor Segments",
+            description="Number of segments for the minor ring of the torus",
+            min=3, max=256,
+            default=12,
+            )
+    mode = bpy.props.EnumProperty(
+            name="Torus Dimentions",
+            items=(("MAJOR_MINOR", "Major/Minor", 
+                    "Use the major/minor radiuses for torus dimensions"),
+                   ("EXT_INT", "Exterior/Interior", 
+                    "Use the exterior/interior radiuses for torus dimensions")),
+            update=mode_update_callback,
+            )
     major_radius = FloatProperty(
             name="Major Radius",
             description=("Radius from the origin to the "
@@ -104,39 +129,61 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             subtype='DISTANCE',
             unit='LENGTH',
             )
-    major_segments = IntProperty(
-            name="Major Segments",
-            description="Number of segments for the main ring of the torus",
-            min=3, max=256,
-            default=48,
-            )
-    minor_segments = IntProperty(
-            name="Minor Segments",
-            description="Number of segments for the minor ring of the torus",
-            min=3, max=256,
-            default=12,
-            )
-    use_abso = BoolProperty(
-            name="Use Int+Ext Controls",
-            description="Use the Int / Ext controls for torus dimensions",
-            default=False,
-            )
     abso_major_rad = FloatProperty(
             name="Exterior Radius",
             description="Total Exterior Radius of the torus",
             min=0.01, max=100.0,
-            default=1.0,
+            default=1.25,
             subtype='DISTANCE',
             unit='LENGTH',
             )
     abso_minor_rad = FloatProperty(
-            name="Inside Radius",
+            name="Interior Radius",
             description="Total Interior Radius of the torus",
             min=0.01, max=100.0,
-            default=0.5,
+            default=0.75,
             subtype='DISTANCE',
             unit='LENGTH',
             )
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.prop(self, 'view_align')
+        col = layout.column(align=True)
+
+        col.label(text="Location")
+        col.prop(self, 'location', text="")
+        col = layout.column(align=True)
+
+        col.label(text="Rotation")
+        col.prop(self, 'rotation', text="")
+
+        col = layout.column(align=True)
+        col.label(text="Major Segments")
+        col.prop(self, 'major_segments', text="")
+        col = layout.column(align=True)
+        col.label(text="Minor Segments")
+        col.prop(self, 'minor_segments', text="")
+
+        col = layout.column(align=True)
+        col.label(text="Torus Dimentions")
+        col.row().prop(self, 'mode', expand=True)
+
+        if self.mode == 'MAJOR_MINOR':
+            col = layout.column(align=True)
+            col.label(text="Major Radius")
+            col.prop(self, 'major_radius', text="")
+            col = layout.column(align=True)
+            col.label(text="Minor Radius")
+            col.prop(self, 'minor_radius', text="")
+        else:
+            col = layout.column(align=True)
+            col.label(text="Exterior Radius")
+            col.prop(self, 'abso_major_rad', text="")
+            col = layout.column(align=True)
+            col.label(text="Interior Radius")
+            col.prop(self, 'abso_minor_rad', text="")
 
     def invoke(self, context, event):
         object_utils.object_add_grid_scale_apply_operator(self, context)
@@ -144,7 +191,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
 
     def execute(self, context):
 
-        if self.use_abso is True:
+        if self.mode == 'EXT_INT':
             extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
             self.major_radius = self.abso_minor_rad + extra_helper
             self.minor_radius = extra_helper
