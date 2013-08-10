@@ -52,6 +52,7 @@ if USE_QUIET:
 
 def main():
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
+    source_defines = project_source_info.build_defines_as_args()
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
@@ -59,7 +60,8 @@ def main():
                CHECKER_ARGS +
                [c] +
                [("-I%s" % i) for i in inc_dirs] +
-               [("-D%s" % d) for d in defs]
+               [("-D%s" % d) for d in defs] +
+               source_defines
                )
 
         check_commands.append((c, cmd))

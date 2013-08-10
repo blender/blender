@@ -228,9 +228,9 @@ typedef struct uiAfterFunc {
 	bContextStore *context;
 
 	char undostr[BKE_UNDO_STR_MAX];
-
-	int autokey;
 } uiAfterFunc;
+
+
 
 static bool ui_but_contains_pt(uiBut *but, int mx, int my);
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
