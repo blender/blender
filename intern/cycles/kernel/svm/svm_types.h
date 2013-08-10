@@ -274,12 +274,6 @@ typedef enum NodeNoiseBasis {
 	NODE_NOISE_CELL_NOISE
 } NodeNoiseBasis;
 
-typedef enum NodeWaveBasis {
-	NODE_WAVE_SINE,
-	NODE_WAVE_SAW,
-	NODE_WAVE_TRI
-} NodeWaveBasis;
-
 typedef enum NodeMusgraveType {
 	NODE_MUSGRAVE_MULTIFRACTAL,
 	NODE_MUSGRAVE_FBM,

@@ -198,31 +198,6 @@ float noise_basis_hard(point p, string basis, int hard)
 	return (hard) ? fabs(2.0 * t - 1.0) : t;
 }
 
-/* Waves */
-
-float noise_wave(string wave, float a)
-{
-	if (wave == "Sine") {
-		return 0.5 + 0.5 * sin(a);
-	}
-	if (wave == "Saw") {
-		float b = 2 * M_PI;
-		int n = (int)(a / b);
-		a -= n * b;
-		if (a < 0) a += b;
-
-		return a / b;
-	}
-	if (wave == "Tri") {
-		float b = 2 * M_PI;
-		float rmax = 1.0;
-
-		return rmax - 2.0 * fabs(floor((a * (1.0 / b)) + 0.5) - (a * (1.0 / b)));
-	}
-
-	return 0.0;
-}
-
 /* Turbulence */
 
 float noise_turbulence(point p, string basis, float details, int hard)

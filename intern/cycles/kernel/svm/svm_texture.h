@@ -177,31 +177,6 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 	return (hard)? fabsf(2.0f*t - 1.0f): t;
 }
 
-/* Waves */
-
-__device float noise_wave(NodeWaveBasis wave, float a)
-{
-	if(wave == NODE_WAVE_SINE) {
-		return 0.5f + 0.5f * sinf(a);
-	}
-	else if(wave == NODE_WAVE_SAW) {
-		float b = M_2PI_F;
-		int n = float_to_int(a / b);
-		a -= n*b;
-		if(a < 0.0f) a += b;
-
-		return a / b;
-	}
-	else if(wave == NODE_WAVE_TRI) {
-		float b = M_2PI_F;
-		float rmax = 1.0f;
-
-		return rmax - 2.0f*fabsf(floorf((a*(1.0f/b))+0.5f) - (a*(1.0f/b)));
-	}
-
-	return 0.0f;
-}
-
 /* Turbulence */
 
 __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float octaves, int hard)
