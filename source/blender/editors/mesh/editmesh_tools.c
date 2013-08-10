@@ -852,22 +852,23 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMOperator bmop;
-	int len = 0;
-	
-	if (!EDBM_op_init(em, &bmop, op, "split_edges edges=%he", BM_ELEM_SELECT)) {
-		return OPERATOR_CANCELLED;
-	}
-	BMO_op_exec(bm, &bmop);
-	len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
+
+	if (!EDBM_op_call_and_selectf(
+	        em, op,
+	        "edges.out", false,
+	        "split_edges edges=%he",
+	        BM_ELEM_SELECT))
+	{
 		return OPERATOR_CANCELLED;
 	}
 	
+	if (em->selectmode == SCE_SELECT_FACE) {
+		EDBM_select_flush(em);
+	}
+
 	EDBM_update_generic(em, true, true);
 
-	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_edge_split(wmOperatorType *ot)
