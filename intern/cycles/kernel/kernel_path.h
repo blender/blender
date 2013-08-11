@@ -271,10 +271,10 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
 				float3 pixdiff = ray.dD.dx + ray.dD.dy;
 				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
-				difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+				difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
 			}
 
-			extmax = kernel_data.curve_kernel_data.maximum_width;
+			extmax = kernel_data.curve.maximum_width;
 			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
 
@@ -990,10 +990,10 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
 				float3 pixdiff = ray.dD.dx + ray.dD.dy;
 				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
-				difl = kernel_data.curve_kernel_data.minimum_width * len(pixdiff) * 0.5f;
+				difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
 			}
 
-			extmax = kernel_data.curve_kernel_data.maximum_width;
+			extmax = kernel_data.curve.maximum_width;
 			lcg_state = lcg_init(*rng + rng_offset + sample*0x51633e2d);
 		}
 

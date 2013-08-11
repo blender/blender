@@ -215,12 +215,12 @@ __device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state, float difl, float extmax)
 {
 	float epsilon = 0.0f;
-	int depth = kernel_data.curve_kernel_data.subdivisions;
+	int depth = kernel_data.curve.subdivisions;
 
 	/* curve Intersection check */
 	float3 dir = 1.0f/idir;
 	
-	int flags = kernel_data.curve_kernel_data.curveflags;
+	int flags = kernel_data.curve.curveflags;
 
 	int prim = kernel_tex_fetch(__prim_index, curveAddr);
 
@@ -525,7 +525,7 @@ __device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment, uint *lcg_state, float difl, float extmax)
 {
 	/* curve Intersection check */
-	int flags = kernel_data.curve_kernel_data.curveflags;
+	int flags = kernel_data.curve.curveflags;
 
 	int prim = kernel_tex_fetch(__prim_index, curveAddr);
 	float4 v00 = kernel_tex_fetch(__curves, prim);
@@ -649,7 +649,7 @@ __device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 
 			if (flags & CURVE_KN_ENCLOSEFILTER) {
 
-				float enc_ratio = kernel_data.curve_kernel_data.encasing_ratio;
+				float enc_ratio = kernel_data.curve.encasing_ratio;
 				if((dot(P - p1, tg) > -r1 * enc_ratio) && (dot(P - p2, tg) < r2 * enc_ratio)) {
 					float a2 = 1.0f - (dirz*dirz*(1 + gd*gd*enc_ratio*enc_ratio));
 					float c2 = dot(dif,dif) - difz * difz * (1 + gd*gd*enc_ratio*enc_ratio) - r1*r1*enc_ratio*enc_ratio - 2*r1*difz*gd*enc_ratio;
@@ -1009,7 +1009,7 @@ __device_inline float3 curvepoint(float t, float3 p0, float3 p1, float3 p2, floa
 
 __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float t)
 {
-	int flag = kernel_data.curve_kernel_data.curveflags;
+	int flag = kernel_data.curve.curveflags;
 	float3 P = ray->P;
 	float3 D = ray->D;
 
@@ -1062,7 +1062,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 		sd->v = 0.0f;
 #endif
 
-		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_RIBBONS)
+		if(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)
 			sd->Ng = normalize(-(D - tg * (dot(tg,D))));
 		else {
 			sd->Ng = normalize(P - p_curr);
@@ -1080,7 +1080,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 #endif
 
 		if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
-			sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
+			sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve.normalmix));
 			sd->Ng = normalize(sd->Ng);
 			if (flag & CURVE_KN_NORMALCORRECTION) {
 				sd->Ng = sd->Ng - gd * tg;
@@ -1098,7 +1098,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 		sd->N = sd->Ng;
 
 		if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
-			sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
+			sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve.normalmix));
 			sd->N = normalize(sd->N);
 			if (flag & CURVE_KN_NORMALCORRECTION) {
 				sd->N = sd->N - gd * tg;

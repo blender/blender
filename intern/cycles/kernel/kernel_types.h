@@ -843,7 +843,7 @@ typedef struct KernelData {
 	KernelSunSky sunsky;
 	KernelIntegrator integrator;
 	KernelBVH bvh;
-	KernelCurves curve_kernel_data;
+	KernelCurves curve;
 	KernelBSSRDF bssrdf;
 	KernelBlackbody blackbody;
 } KernelData;
