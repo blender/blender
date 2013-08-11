@@ -222,7 +222,7 @@ enum PathRayFlag {
 	PATH_RAY_CURVE = 1024,
 
 	/* this gives collisions with localview bits
-	 * see: CYCLES_LOCAL_LAYER_HACK(), grr - Campbell */
+	 * see: blender_util.h, grr - Campbell */
 	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
@@ -279,8 +279,6 @@ typedef enum PassType {
 
 #ifdef __PASSES__
 
-typedef float3 PathThroughput;
-
 typedef struct PathRadiance {
 	int use_light_pass;
 
@@ -328,7 +326,6 @@ typedef struct BsdfEval {
 
 #else
 
-typedef float3 PathThroughput;
 typedef float3 PathRadiance;
 typedef float3 BsdfEval;
 
@@ -600,7 +597,7 @@ typedef struct ShaderData {
 #endif
 } ShaderData;
 
-/* Constrant Kernel Data
+/* Constant Kernel Data
  *
  * These structs are passed from CPU to various devices, and the struct layout
  * must match exactly. Structs are padded to ensure 16 byte alignment, and we
@@ -774,8 +771,10 @@ typedef struct KernelIntegrator {
 	int transmission_samples;
 	int ao_samples;
 	int mesh_light_samples;
-	int use_lamp_mis;
 	int subsurface_samples;
+	
+	/* mis */
+	int use_lamp_mis;
 
 	/* sampler */
 	int sampling_pattern;
@@ -821,7 +820,6 @@ typedef struct KernelCurves {
 	float maximum_width;
 	float curve_epsilon;
 	int pad1;
-
 } KernelCurves;
 
 typedef struct KernelBSSRDF {

@@ -18,8 +18,11 @@
 
 float voronoi_distance(string distance_metric, vector d, float e)
 {
+#if 0
 	if (distance_metric == "Distance Squared")
+#endif
 		return dot(d, d);
+#if 0
 	if (distance_metric == "Actual Distance")
 		return length(d);
 	if (distance_metric == "Manhattan")
@@ -34,6 +37,7 @@ float voronoi_distance(string distance_metric, vector d, float e)
 		return pow(pow(fabs(d[0]), e) + pow(fabs(d[1]), e) + pow(fabs(d[2]), e), 1.0 / e);
 	
 	return 0.0;
+#endif
 }
 
 /* Voronoi / Worley like */

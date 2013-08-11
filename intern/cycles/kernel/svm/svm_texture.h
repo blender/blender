@@ -22,8 +22,11 @@ CCL_NAMESPACE_BEGIN
 
 __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, float e)
 {
+#if 0
 	if(distance_metric == NODE_VORONOI_DISTANCE_SQUARED)
+#endif
 		return dot(d, d);
+#if 0
 	if(distance_metric == NODE_VORONOI_ACTUAL_DISTANCE)
 		return len(d);
 	if(distance_metric == NODE_VORONOI_MANHATTAN)
@@ -38,6 +41,7 @@ __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, fl
 		return powf(powf(fabsf(d.x), e) + powf(fabsf(d.y), e) + powf(fabsf(d.z), e), 1.0f/e);
 	
 	return 0.0f;
+#endif
 }
 
 /* Voronoi / Worley like */
