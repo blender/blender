@@ -3039,13 +3039,13 @@ void RNA_def_function_ui_description(FunctionRNA *func, const char *description)
 int rna_parameter_size(PropertyRNA *parm)
 {
 	PropertyType ptype = parm->type;
-	int len = parm->totarraylength; /* only supports fixed length at the moment */
+	int len = parm->totarraylength;
+
+	/* XXX in other parts is mentioned that strings can be dynamic as well */
+	if (parm->flag & PROP_DYNAMIC)
+		return sizeof(ParameterDynAlloc);
 
 	if (len > 0) {
-		/* XXX in other parts is mentioned that strings can be dynamic as well */
-		if (parm->flag & PROP_DYNAMIC)
-			return sizeof(void *);
-
 		switch (ptype) {
 			case PROP_BOOLEAN:
 			case PROP_INT:
@@ -3104,18 +3104,6 @@ int rna_parameter_size(PropertyRNA *parm)
 	}
 
 	return sizeof(void *);
-}
-
-/* this function returns the size of the memory allocated for the parameter,
- * useful for instance for memory alignment or for storing additional information */
-int rna_parameter_size_alloc(PropertyRNA *parm)
-{
-	int size = rna_parameter_size(parm);
-
-	if (parm->flag & PROP_DYNAMIC)
-		size += sizeof(((ParameterDynAlloc *)NULL)->array_tot);
-
-	return size;
 }
 
 /* Dynamic Enums */
