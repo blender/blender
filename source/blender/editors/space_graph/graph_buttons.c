@@ -50,6 +50,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
@@ -620,8 +621,12 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiItemR(col, &driver_ptr, "expression", 0, IFACE_("Expr"), ICON_NONE);
 		
 		/* errors? */
-		if (driver->flag & DRIVER_FLAG_INVALID)
+		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
+			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_ERROR);
+		}
+		else if (driver->flag & DRIVER_FLAG_INVALID) {
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_ERROR);
+		}
 	}
 	else {
 		/* errors? */
