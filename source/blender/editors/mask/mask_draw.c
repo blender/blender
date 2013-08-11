@@ -165,7 +165,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 
 		int j;
 
-		for (j = 0; j < point->tot_uw + 1; j++) {
+		for (j = 0; j <= point->tot_uw; j++) {
 			float feather_point[2];
 			int sel = FALSE;
 

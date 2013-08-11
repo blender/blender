@@ -6780,7 +6780,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 					cpack(0xffffff);
 					set_inverted_drawing(1);
-					for (i = 0; i < (selend - selstart + 1); i++) {
+					for (i = 0; i <= (selend - selstart); i++) {
 						SelBox *sb = &(cu->selboxes[i]);
 
 						if (i < (selend - selstart)) {

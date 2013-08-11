@@ -318,8 +318,8 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 
 	/* create vertices */
 	#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
-	for (y = 0; y < res_y + 1; y++) {
-		for (x = 0; x < res_x + 1; x++) {
+	for (y = 0; y <= res_y; y++) {
+		for (x = 0; x <= res_x; x++) {
 			const int i = y * (res_x + 1) + x;
 			float *co = mverts[i].co;
 			co[0] = ox + (x * sx);

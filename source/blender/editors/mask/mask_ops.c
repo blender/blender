@@ -197,7 +197,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 				int j;
 				MaskSplinePoint *cur_point = &spline->points[i];
 
-				for (j = 0; j < cur_point->tot_uw + 1; j++) {
+				for (j = 0; j <= cur_point->tot_uw; j++) {
 					float cur_len, vec[2];
 
 					vec[0] = (*fp)[0] * scalex;

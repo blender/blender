@@ -74,7 +74,7 @@ SteerableViewMap::SteerableViewMap(const SteerableViewMap& iBrother)
 	_directions = iBrother._directions;
 	_mapping = iBrother._mapping;
 	_imagesPyramids = new ImagePyramid *[_nbOrientations + 1]; // one more map to store the complete visible VM
-	for (i = 0; i < _nbOrientations + 1; ++i)
+	for (i = 0; i <= _nbOrientations; ++i)
 		_imagesPyramids[i] = new GaussianPyramid(*(dynamic_cast<GaussianPyramid*>(iBrother._imagesPyramids[i])));
 }
 

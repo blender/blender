@@ -826,6 +826,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 					if (rv3d->persp == RV3D_CAMOB) {
 						ED_region_tag_redraw(ar);
 					}
+					break;
 				}
 			}
 			break;
