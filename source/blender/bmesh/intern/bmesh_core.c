@@ -2114,18 +2114,19 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
  * \note Does nothing if \a l_sep is already the only loop in the
  * edge radial.
  */
-bool bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
+void bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 {
 	BMEdge *e_new;
-	int radlen;
+#ifndef NDEBUG
+	const int radlen = bmesh_radial_length(e->l);
+#endif
 
 	BLI_assert(l_sep->e == e);
 	BLI_assert(e->l);
 	
-	radlen = bmesh_radial_length(e->l);
-	if (radlen < 2) {
+	if (BM_edge_is_boundary(e)) {
 		/* no cut required */
-		return true;
+		return;
 	}
 
 	if (l_sep == e->l) {
@@ -2142,8 +2143,6 @@ bool bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 
 	BM_CHECK_ELEMENT(e_new);
 	BM_CHECK_ELEMENT(e);
-
-	return true;
 }
 
 /**
