@@ -2408,6 +2408,23 @@ static void make_bevel_list_2D(BevList *bl)
 	}
 }
 
+static void bevlist_firstlast_direction_calc_from_bpoint(Nurb *nu, BevList *bl)
+{
+	if (nu->pntsu > 1) {
+		BPoint *first_bp = nu->bp, *last_bp = nu->bp + (nu->pntsu - 1);
+		BevPoint *first_bevp, *last_bevp;
+
+		first_bevp = (BevPoint *)(bl + 1);
+		last_bevp = first_bevp + (bl->nr - 1);
+
+		sub_v3_v3v3(first_bevp->dir, (first_bp + 1)->vec, first_bp->vec);
+		normalize_v3(first_bevp->dir);
+
+		sub_v3_v3v3(last_bevp->dir, last_bp->vec, (last_bp - 1)->vec);
+		normalize_v3(last_bevp->dir);
+	}
+}
+
 void BKE_curve_bevelList_make(Object *ob)
 {
 	/*
@@ -2490,6 +2507,10 @@ void BKE_curve_bevelList_make(Object *ob)
 					bevp->split_tag = TRUE;
 					bevp++;
 					bp++;
+				}
+
+				if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
+					bevlist_firstlast_direction_calc_from_bpoint(nu, bl);
 				}
 			}
 			else if (nu->type == CU_BEZIER) {
@@ -2601,6 +2622,10 @@ void BKE_curve_bevelList_make(Object *ob)
 					                   do_radius    ? &bevp->radius : NULL,
 					                   do_weight    ? &bevp->weight : NULL,
 					                   resolu, sizeof(BevPoint));
+
+					if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
+						bevlist_firstlast_direction_calc_from_bpoint(nu, bl);
+					}
 				}
 			}
 		}
