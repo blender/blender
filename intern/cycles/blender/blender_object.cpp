@@ -373,7 +373,7 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 	
 	if(show_emitter) {
 		hide_triangles = false;
-		return (hide_as_dupli_parent || hide_as_dupli_child_original);
+		return false;
 	}
 	else if(hair_present) {
 		hide_triangles = true;
