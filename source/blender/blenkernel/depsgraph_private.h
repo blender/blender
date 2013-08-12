@@ -94,11 +94,11 @@ typedef struct DagNode {
 	struct DagNode *next;
 
 	/* Threaded evaluation routines */
-	int valency;        /* valency of the node is a number of parents which are not updated yet
-	                     * this node has got.
-	                     * Used by threaded update for faster detect whether node could be
-	                     * updated aready.
-	                     */
+	uint32_t valency;  /* valency of the node is a number of parents which are not updated yet
+	                    * this node has got.
+	                    * Used by threaded update for faster detect whether node could be
+	                    * updated aready.
+	                    */
 } DagNode;
 
 typedef struct DagNodeQueueElem {

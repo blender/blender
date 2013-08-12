@@ -78,6 +78,8 @@
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
 
+#include "atomic_ops.h"
+
 #include "depsgraph_private.h"
  
 /* Queue and stack operations for dag traversal 
@@ -2737,7 +2739,7 @@ void DAG_threaded_update_handle_node_updated(void *node_v,
 
 	for (itA = node->child; itA; itA = itA->next) {
 		if (itA->node != node) {
-			itA->node->valency--;
+			atomic_sub_uint32(&itA->node->valency, 1);
 
 			if (itA->node->valency == 0) {
 				func(itA->node, user_data);

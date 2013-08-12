@@ -1171,7 +1171,6 @@ typedef struct StatisicsEntry {
 typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
-	SpinLock lock;
 
 	/* Execution statistics */
 	ListBase statistics[BLENDER_MAX_THREADS];
@@ -1245,10 +1244,8 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		      DAG_threaded_update_get_node_name(node));
 	}
 
-	BLI_spin_lock(&state->lock);
 	/* Update will decrease child's valency and schedule child with zero valency. */
 	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
-	BLI_spin_unlock(&state->lock);
 
 #undef PRINT
 }
@@ -1321,7 +1318,6 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 	state.scene_parent = scene_parent;
 	memset(state.statistics, 0, sizeof(state.statistics));
 	state.has_updated_objects = false;
-	BLI_spin_init(&state.lock);
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
 
@@ -1343,9 +1339,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 	 * to run into situations when the same task is adding twice to the
 	 * queue due to non-safe nature of function below.
 	 */
-	BLI_spin_lock(&state.lock);
 	DAG_threaded_update_foreach_ready_node(scene, scene_update_object_add_task, task_pool);
-	BLI_spin_unlock(&state.lock);
 
 	/* work and wait until tasks are done */
 	BLI_task_pool_work_and_wait(task_pool);
@@ -1354,8 +1348,6 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 	BLI_task_pool_free(task_pool);
 
 	BLI_end_threaded_malloc();
-
-	BLI_spin_end(&state.lock);
 
 	if (G.debug & G_DEBUG) {
 		print_threads_statistics(&state);
