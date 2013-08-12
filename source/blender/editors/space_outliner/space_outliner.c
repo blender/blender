@@ -448,6 +448,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 
 	soutlinern->tree.first = soutlinern->tree.last = NULL;
 	soutlinern->treestore = NULL;
+	soutlinern->treehash = NULL;
 	
 	return (SpaceLink *)soutlinern;
 }
