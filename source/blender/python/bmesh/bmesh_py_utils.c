@@ -245,14 +245,10 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *ar
 		return NULL;
 	}
 
-	if (BM_vert_separate(bm, py_vert->v, &elem, &elem_len, edge_array, edge_array_len)) {
-		/* return collected verts */
-		ret = BPy_BMElem_Array_As_Tuple(bm, (BMHeader **)elem, elem_len);
-		MEM_freeN(elem);
-	}
-	else {
-		ret = PyTuple_New(0);
-	}
+	BM_vert_separate(bm, py_vert->v, &elem, &elem_len, edge_array, edge_array_len);
+	/* return collected verts */
+	ret = BPy_BMElem_Array_As_Tuple(bm, (BMHeader **)elem, elem_len);
+	MEM_freeN(elem);
 
 	PyMem_FREE(edge_array);
 

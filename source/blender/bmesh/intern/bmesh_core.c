@@ -1915,7 +1915,7 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
  *
  * \return Success
  */
-bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
+void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 {
 	const int v_edgetot = BM_vert_face_count(v);
 	BMEdge **stack = BLI_array_alloca(stack, v_edgetot);
@@ -2039,14 +2039,12 @@ bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 	if (r_vout != NULL) {
 		*r_vout = verts;
 	}
-
-	return true;
 }
 
 /**
  * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
-bool BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+void BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                      BMEdge **e_in, int e_in_len)
 {
 	int i;
@@ -2058,7 +2056,7 @@ bool BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
 		}
 	}
 
-	return bmesh_vert_separate(bm, v, r_vout, r_vout_len);
+	bmesh_vert_separate(bm, v, r_vout, r_vout_len);
 }
 
 /**
