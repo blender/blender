@@ -118,11 +118,9 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)
 {
 	if (count > 0) {
-		if (stroke->points == NULL)
-			stroke->points = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points");
-		else
-			stroke->points = MEM_recallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
-
+		stroke->points = MEM_recallocN_id(stroke->points,
+		                                  sizeof(bGPDspoint) * (stroke->totpoints + count),
+		                                  "gp_stroke_points");
 		stroke->totpoints += count;
 	}
 }

@@ -91,7 +91,7 @@ void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		sd->segment = isect->segment;
 
 		float tcorr = isect->t;
-		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
+		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
 			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
 			sd->ray_length = tcorr;
 		}
@@ -193,7 +193,7 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 		sd->segment = isect->segment;
 
 		float tcorr = isect->t;
-		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_POSTINTERSECTCORRECTION)
+		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION)
 			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
 
 		sd->P = bvh_curve_refine(kg, sd, isect, ray, tcorr);
@@ -685,6 +685,27 @@ __device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
+__device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSSRDF(sc->type))
+			eval += sc->weight;
+	}
+
+	return eval;
+#else
+	if(CLOSURE_IS_BSSRDF(sd->closure.type))
+		return sd->closure.weight;
+	else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
 __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N)
 {
 #ifdef __MULTI_CLOSURE__
@@ -934,8 +955,11 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 				sci->sample_weight += scj->sample_weight;
 
 				int size = sd->num_closure - (j+1);
-				if(size > 0)
-					memmove(scj, scj+1, size*sizeof(ShaderClosure));
+				if(size > 0) {
+					for(int k = 0; k < size; k++) {
+						scj[k] = scj[k+1];
+					}
+				}
 
 				sd->num_closure--;
 				j--;

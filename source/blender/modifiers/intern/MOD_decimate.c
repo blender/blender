@@ -127,6 +127,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			calc_face_normal = true;
 			break;
+		default:
+			return dm;
 	}
 
 	if (dmd->face_count <= 3) {

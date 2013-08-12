@@ -239,7 +239,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 static wmWindow *_curwindow = NULL;
 static wmSubWindow *_curswin = NULL;
 
-void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
+void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool srct_pad)
 {
 	int width, height;
 	_curswin = swin_from_swinid(win, swinid);
@@ -257,8 +257,16 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
 	if (srct) {
-		int scissor_width  = BLI_rcti_size_x(srct) + 1; /* only here */
-		int scissor_height = BLI_rcti_size_y(srct) + 1;
+		int scissor_width  = BLI_rcti_size_x(srct);
+		int scissor_height = BLI_rcti_size_y(srct);
+
+		/* typically a single pixel doesn't matter,
+		 * but one pixel offset is noticable with viewport border render */
+		if (srct_pad) {
+			scissor_width  += 1;
+			scissor_height += 1;
+		}
+
 		glScissor(srct->xmin, srct->ymin, scissor_width, scissor_height);
 	}
 	else
@@ -273,7 +281,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 /* enable the WM versions of opengl calls */
 void wmSubWindowSet(wmWindow *win, int swinid)
 {
-	wmSubWindowScissorSet(win, swinid, NULL);
+	wmSubWindowScissorSet(win, swinid, NULL, true);
 }
 
 void wmFrustum(float x1, float x2, float y1, float y2, float n, float f)

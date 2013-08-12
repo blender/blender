@@ -135,7 +135,6 @@ public:
 		vector<OccluderData*>::iterator _current, _occludeeCandidate;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	public:
 		MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SphericalGrid:Iterator")
 #endif
 
@@ -191,7 +190,6 @@ private:
 	bool _enableQI;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SphericalGrid")
 #endif
 };

@@ -120,7 +120,6 @@ protected:
 	float _alpha;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeVertexRep")
 #endif
 };

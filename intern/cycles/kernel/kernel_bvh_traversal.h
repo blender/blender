@@ -258,7 +258,7 @@ __device bool BVH_FUNCTION_NAME
 #if !FEATURE(BVH_SUBSURFACE)
 							if(segment != ~0) {
 
-								if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_INTERPOLATE) 
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
 								else

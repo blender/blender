@@ -815,7 +815,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 		 * just pose values should change, so this should be fine 
 		 */
 		bPose *dummyPose = NULL;
-		Object workob = {{0}};
+		Object workob = {{NULL}};
 		bPoseChannel *pchan;
 		
 		/* execute animation step for current frame using a dummy copy of the pose */

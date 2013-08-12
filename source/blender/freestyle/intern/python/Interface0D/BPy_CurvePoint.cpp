@@ -135,7 +135,7 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(CurvePoint_first_svertex_doc,
 "The first SVertex upon which the CurvePoint is built.\n"
 "\n"
-":type: int");
+":type: :class:`SVertex`");
 
 static PyObject *CurvePoint_first_svertex_get(BPy_CurvePoint *self, void *UNUSED(closure))
 {
@@ -158,7 +158,7 @@ static int CurvePoint_first_svertex_set(BPy_CurvePoint *self, PyObject *value, v
 PyDoc_STRVAR(CurvePoint_second_svertex_doc,
 "The second SVertex upon which the CurvePoint is built.\n"
 "\n"
-":type: int");
+":type: :class:`SVertex`");
 
 static PyObject *CurvePoint_second_svertex_get(BPy_CurvePoint *self, void *UNUSED(closure))
 {

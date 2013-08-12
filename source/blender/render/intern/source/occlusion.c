@@ -371,7 +371,7 @@ static void occ_sum_occlusion(OcclusionTree *tree, OccNode *node)
 	for (b = 0; b < TOTCHILD; b++) {
 		if (node->childflag & (1 << b)) {
 			a = node->child[b].face;
-			occ_face(&tree->face[a], 0, 0, &area);
+			occ_face(&tree->face[a], NULL, NULL, &area);
 			occ += area * tree->occlusion[a];
 			if (indirect) madd_v3_v3fl(rad, tree->rad[a], area);
 			totarea += area;
@@ -521,7 +521,7 @@ static void *exec_occ_build(void *data)
 
 	occ_build_recursive(othread->tree, othread->node, othread->begin, othread->end, othread->depth);
 
-	return 0;
+	return NULL;
 }
 
 static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, int end, int depth)
@@ -567,7 +567,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 				node->child[b].node = child;
 
 				/* keep track of maximum depth for stack */
-				if (depth + 1 > tree->maxdepth)
+				if (depth >= tree->maxdepth)
 					tree->maxdepth = depth + 1;
 
 				if (tree->dothreadedbuild)
@@ -1244,7 +1244,7 @@ static void *exec_strandsurface_sample(void *data)
 		copy_v3_v3(othread->faceindirect[a], indirect);
 	}
 
-	return 0;
+	return NULL;
 }
 
 void make_occ_tree(Render *re)

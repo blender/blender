@@ -23,6 +23,10 @@
 #ifndef __DUALCON_H__
 #define __DUALCON_H__
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

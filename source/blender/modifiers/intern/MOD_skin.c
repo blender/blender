@@ -411,7 +411,7 @@ static Frame **collect_hull_frames(int v, SkinNode *frames,
 	int nbr, i;
 
 	(*tothullframe) = emap[v].count;
-	hull_frames = MEM_callocN(sizeof(Frame * *) * (*tothullframe),
+	hull_frames = MEM_callocN(sizeof(Frame *) * (*tothullframe),
 	                          "hull_from_frames.hull_frames");
 	i = 0;
 	for (nbr = 0; nbr < emap[v].count; nbr++) {
@@ -1039,7 +1039,7 @@ static int isect_ray_poly(const float ray_start[3],
 			v_first = v;
 		else if (v_prev != v_first) {
 			float dist;
-			int curhit;
+			bool curhit;
 			
 			curhit = isect_ray_tri_v3(ray_start, ray_dir,
 			                          v_first->co, v_prev->co, v->co,
@@ -1751,7 +1751,7 @@ static void skin_set_orig_indices(DerivedMesh *dm)
 
 	totpoly = dm->getNumPolys(dm);
 	orig = CustomData_add_layer(&dm->polyData, CD_ORIGINDEX,
-	                            CD_CALLOC, 0, totpoly);
+	                            CD_CALLOC, NULL, totpoly);
 	for (i = 0; i < totpoly; i++)
 		orig[i] = ORIGINDEX_NONE;
 }

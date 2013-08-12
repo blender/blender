@@ -140,13 +140,16 @@ set(SRC
 	shader/nodes/node_shader_output.c
 	shader/nodes/node_shader_rgb.c
 	shader/nodes/node_shader_sepcombRGB.c
+	shader/nodes/node_shader_sepcombHSV.c
 	shader/nodes/node_shader_squeeze.c
 	shader/nodes/node_shader_texture.c
 	shader/nodes/node_shader_valToRgb.c
 	shader/nodes/node_shader_value.c
 	shader/nodes/node_shader_wireframe.c
 	shader/nodes/node_shader_wavelength.c
+	shader/nodes/node_shader_blackbody.c
 	shader/nodes/node_shader_vectMath.c
+	shader/nodes/node_shader_vectTransform.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_ambient_occlusion.c
 	shader/nodes/node_shader_attribute.c

@@ -1026,7 +1026,7 @@ static float readdeepshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, 
 
 	if (biast != 0.0f) {
 		/* in soft bias area */
-		biasv= readdeepvisibility(shsample->deepbuf[ofs], tot, zs, 0, 0);
+		biasv = readdeepvisibility(shsample->deepbuf[ofs], tot, zs, 0, NULL);
 
 		biast= biast*biast;
 		return (1.0f-biast)*v + biast*biasv;
@@ -2045,7 +2045,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 						if (vlr->v4)
 							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
 						else
-							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], 0, c1, c2, c3, 0);
+							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], NULL, c1, c2, c3, 0);
 					}
 					else if (vlr->v4) {
 						if (vlr->flag & R_STRAND)

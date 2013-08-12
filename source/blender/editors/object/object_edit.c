@@ -1347,7 +1347,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
 static int shade_poll(bContext *C)
 {
-	return (ED_operator_object_active_editable(C) && !ED_operator_editmesh(C));
+	return (CTX_data_edit_object(C) == NULL);
 }
 
 void OBJECT_OT_shade_flat(wmOperatorType *ot)

@@ -253,7 +253,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		RNG *rng = NULL;
 
 		if (wmd->falloff_type == MOD_WVG_MAPPING_RANDOM)
-			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name));
+			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name + 2));
 
 		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve, rng);
 

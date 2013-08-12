@@ -63,6 +63,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_ghash.h"
+#include "BLI_mempool.h"
 
 #include "BLF_translation.h"
 
@@ -84,114 +86,131 @@
 #include "outliner_intern.h"
 
 /* ********************************************************* */
-/* Defines */
-
-#define TS_CHUNK  128
-
-/* ********************************************************* */
 /* Persistent Data */
 
 static void outliner_storage_cleanup(SpaceOops *soops)
 {
-	TreeStore *ts = soops->treestore;
+	BLI_mempool *ts = soops->treestore;
 	
 	if (ts) {
 		TreeStoreElem *tselem;
-		int a, unused = 0;
+		int unused = 0;
 		
 		/* each element used once, for ID blocks with more users to have each a treestore */
-		for (a = 0, tselem = ts->data; a < ts->usedelem; a++, tselem++) tselem->used = 0;
+		BLI_mempool_iter iter;
+
+		BLI_mempool_iternew(ts, &iter);
+		while ((tselem = BLI_mempool_iterstep(&iter))) {
+			tselem->used = 0;
+		}
 		
 		/* cleanup only after reading file or undo step, and always for
 		 * RNA datablocks view in order to save memory */
 		if (soops->storeflag & SO_TREESTORE_CLEANUP) {
-			
-			for (a = 0, tselem = ts->data; a < ts->usedelem; a++, tselem++) {
+			BLI_mempool_iternew(ts, &iter);
+			while ((tselem = BLI_mempool_iterstep(&iter))) {
 				if (tselem->id == NULL) unused++;
 			}
 			
 			if (unused) {
-				if (ts->usedelem == unused) {
-					MEM_freeN(ts->data);
-					ts->data = NULL;
-					ts->usedelem = ts->totelem = 0;
+				if (BLI_mempool_count(ts) == unused) {
+					BLI_mempool_destroy(ts);
+					soops->treestore = NULL;
+
+					if (soops->treehash) {
+						BLI_ghash_free(soops->treehash, NULL, NULL);
+						soops->treehash = NULL;
+					}
 				}
 				else {
-					TreeStoreElem *tsnewar, *tsnew;
-					
-					tsnew = tsnewar = MEM_mallocN((ts->usedelem - unused) * sizeof(TreeStoreElem), "new tselem");
-					for (a = 0, tselem = ts->data; a < ts->usedelem; a++, tselem++) {
+					TreeStoreElem *tsenew;
+					BLI_mempool *new_ts = BLI_mempool_create(sizeof(TreeStoreElem), BLI_mempool_count(ts) - unused,
+					                                         512, BLI_MEMPOOL_ALLOW_ITER);
+					BLI_mempool_iternew(ts, &iter);
+					while ((tselem = BLI_mempool_iterstep(&iter))) {
 						if (tselem->id) {
-							*tsnew = *tselem;
-							tsnew++;
+							tsenew = BLI_mempool_alloc(new_ts);
+							*tsenew = *tselem;
 						}
 					}
-					MEM_freeN(ts->data);
-					ts->data = tsnewar;
-					ts->usedelem -= unused;
-					ts->totelem = ts->usedelem;
+					BLI_mempool_destroy(ts);
+					soops->treestore = new_ts;
+
+					if (soops->treehash) {
+						/* update hash table to fix broken pointers */
+						BLI_ghash_clear(soops->treehash, NULL, NULL);
+						BLI_mempool_iternew(soops->treestore, &iter);
+						while ((tselem = BLI_mempool_iterstep(&iter))) {
+							BLI_ghash_insert(soops->treehash, tselem, tselem);
+						}
+					}
 				}
 			}
 		}
 	}
 }
 
-/* XXX - THIS FUNCTION IS INCREDIBLY SLOW
- * ... it can bring blenders tools and viewport to a grinding halt because of searching
- * for duplicate items every times they are added.
- *
- * TODO (possible speedups)
- * - use a hash for duplicate (could even store a hash per type)
- * - use mempool for TreeElements
- * */
+static unsigned int tse_hash(const void *ptr)
+{
+	const TreeStoreElem *tse = (const TreeStoreElem *)ptr;
+	unsigned int hash;
+	BLI_assert(tse->type || !tse->nr);
+	hash = BLI_ghashutil_inthash(SET_INT_IN_POINTER((tse->nr << 16) + tse->type));
+	hash ^= BLI_ghashutil_inthash(tse->id);
+	return hash;
+}
+
+static int tse_cmp(const void *a, const void *b)
+{
+	const TreeStoreElem *tse_a = (const TreeStoreElem *)a;
+	const TreeStoreElem *tse_b = (const TreeStoreElem *)b;
+	return tse_a->type != tse_b->type || tse_a->nr != tse_b->nr || tse_a->id != tse_b->id;
+}
+
 static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
 {
-	TreeStore *ts;
-	TreeStoreElem *tselem;
-	int a;
+	/* When treestore comes directly from readfile.c, treehash is empty;
+	 * In this case we don't want to get TSE_CLOSED while adding elements one by one,
+     * that is why this function restores treehash */
+	bool restore_treehash = (soops->treestore && !soops->treehash);
+	TreeStoreElem *tselem, elem_template;
 	
-	/* case 1; no TreeStore */
 	if (soops->treestore == NULL) {
-		soops->treestore = MEM_callocN(sizeof(TreeStore), "treestore");
+		/* if treestore was not created in readfile.c, create it here */
+		soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
 	}
-	ts = soops->treestore;
+	if (soops->treehash == NULL) {
+		soops->treehash = BLI_ghash_new(tse_hash, tse_cmp, "treehash");
+	}
 	
+	if (restore_treehash) {
+		BLI_mempool_iter iter;
+		BLI_mempool_iternew(soops->treestore, &iter);
+		while ((tselem = BLI_mempool_iterstep(&iter))) {
+			BLI_ghash_insert(soops->treehash, tselem, tselem);
+		}
+	}
+
 	/* check if 'te' is in treestore */
-	tselem = ts->data;
-	for (a = 0; a < ts->usedelem; a++, tselem++) {
-		if ((tselem->used == 0) && (tselem->type == type) && (tselem->id == id)) {
-			if ((type == 0) || (tselem->nr == nr)) {
-				te->store_index = a;
-				tselem->used = 1;
-				return;
-			}
-		}
+	elem_template.type = type;
+	elem_template.nr = type ? nr : 0;  // we're picky! :)
+	elem_template.id = id;
+	tselem = BLI_ghash_lookup(soops->treehash, &elem_template);
+	if (tselem && !tselem->used) {
+		te->store_elem = tselem;
+		tselem->used = 1;
+		return;
 	}
-	
+
 	/* add 1 element to treestore */
-	if (ts->usedelem == ts->totelem) {
-		TreeStoreElem *tsnew;
-		
-		tsnew = MEM_mallocN((ts->totelem + TS_CHUNK) * sizeof(TreeStoreElem), "treestore data");
-		if (ts->data) {
-			memcpy(tsnew, ts->data, ts->totelem * sizeof(TreeStoreElem));
-			MEM_freeN(ts->data);
-		}
-		ts->data = tsnew;
-		ts->totelem += TS_CHUNK;
-	}
-	
-	tselem = ts->data + ts->usedelem;
-	
+	tselem = BLI_mempool_alloc(soops->treestore);
 	tselem->type = type;
-	if (type) tselem->nr = nr;  // we're picky! :)
-	else tselem->nr = 0;
+	tselem->nr = type ? nr : 0;
 	tselem->id = id;
 	tselem->used = 0;
 	tselem->flag = TSE_CLOSED;
-	te->store_index = ts->usedelem;
-	
-	ts->usedelem++;
+	te->store_elem = tselem;
+	BLI_ghash_insert(soops->treehash, tselem, tselem);
 }
 
 /* ********************************************************* */
@@ -216,15 +235,14 @@ void outliner_cleanup_tree(SpaceOops *soops)
 	outliner_storage_cleanup(soops);
 }
 
-/* Find ith item from the treestore */
-static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
+/* Find specific item from the treestore */
+static TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *store_elem)
 {
-	TreeElement *te = lb->first, *tes;
-	while (te) {
-		if (te->store_index == store_index) return te;
-		tes = outliner_find_tree_element(&te->subtree, store_index);
+	TreeElement *te, *tes;
+	for (te = lb->first; te; te = te->next) {
+		if (te->store_elem == store_elem) return te;
+		tes = outliner_find_tree_element(&te->subtree, store_elem);
 		if (tes) return tes;
-		te = te->next;
 	}
 	return NULL;
 }
@@ -232,23 +250,18 @@ static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
 /* tse is not in the treestore, we use its contents to find a match */
 TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
 {
-	TreeStore *ts = soops->treestore;
-	TreeStoreElem *tselem;
-	int a;
-	
+	GHash *th = soops->treehash;
+	TreeStoreElem *tselem, tselem_template;
+
 	if (tse->id == NULL) return NULL;
 	
 	/* check if 'tse' is in treestore */
-	tselem = ts->data;
-	for (a = 0; a < ts->usedelem; a++, tselem++) {
-		if ((tse->type == 0 && tselem->type == 0) || (tselem->type == tse->type && tselem->nr == tse->nr)) {
-			if (tselem->id == tse->id) {
-				break;
-			}
-		}
-	}
+	tselem_template.id = tse->id;
+	tselem_template.type = tse->type;
+	tselem_template.nr = tse->type ? tse->nr : 0;
+	tselem = BLI_ghash_lookup(th, &tselem_template);
 	if (tselem) 
-		return outliner_find_tree_element(&soops->tree, a);
+		return outliner_find_tree_element(&soops->tree, tselem);
 	
 	return NULL;
 }
@@ -274,7 +287,7 @@ TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 }
 
 
-ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
+ID *outliner_search_back(SpaceOops *UNUSED(soops), TreeElement *te, short idcode)
 {
 	TreeStoreElem *tselem;
 	te = te->parent;
@@ -420,7 +433,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	for (a = 0, srl = sce->r.layers.first; srl; srl = srl->next, a++) {
 		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
 		tenlay->name = srl->name;
-		tenlay->directdata = &srl->passflag;
+		tenlay->directdata = &srl->layflag;
 		
 		if (srl->light_override)
 			outliner_add_element(soops, &tenlay->subtree, srl->light_override, tenlay, TSE_LINKED_LAMP, 0);
@@ -1187,7 +1200,7 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 /* Hierarchy --------------------------------------------- */
 
 /* make sure elements are correctly nested */
-static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
+static void outliner_make_hierarchy(ListBase *lb)
 {
 	TreeElement *te, *ten, *tep;
 	TreeStoreElem *tselem;
@@ -1489,7 +1502,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	Object *ob;
 	TreeElement *te = NULL, *ten;
 	TreeStoreElem *tselem;
-	int show_opened = (soops->treestore == NULL); /* on first view, we open scenes */
+	int show_opened = !soops->treestore || !BLI_mempool_count(soops->treestore); /* on first view, we open scenes */
 
 	/* Are we looking for something - we want to tag parents to filter child matches
 	 * - NOT in datablocks view - searching all datablocks takes way too long to be useful
@@ -1561,7 +1574,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 				ten = outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
 				ten->directdata = base;
 			}
-			outliner_make_hierarchy(soops, &te->subtree);
+			outliner_make_hierarchy(&te->subtree);
 			/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
 			for (base = sce->base.first; base; base = base->next) base->object->id.newid = NULL;
 		}
@@ -1574,14 +1587,14 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			ten = outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 			ten->directdata = base;
 		}
-		outliner_make_hierarchy(soops, &soops->tree);
+		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_VISIBLE) {
 		for (base = scene->base.first; base; base = base->next) {
 			if (base->lay & scene->lay)
 				outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 		}
-		outliner_make_hierarchy(soops, &soops->tree);
+		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_GROUPS) {
 		Group *group;
@@ -1595,7 +1608,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 					ten = outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
 					ten->directdata = NULL; /* eh, why? */
 				}
-				outliner_make_hierarchy(soops, &te->subtree);
+				outliner_make_hierarchy(&te->subtree);
 				/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
 				for (go = group->gobject.first; go; go = go->next) go->ob->id.newid = NULL;
 			}
@@ -1610,7 +1623,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 					ten->directdata = base;
 				}
 			}
-			outliner_make_hierarchy(soops, &soops->tree);
+			outliner_make_hierarchy(&soops->tree);
 		}
 	}
 	else if (soops->outlinevis == SO_SELECTED) {
@@ -1622,7 +1635,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 				}
 			}
 		}
-		outliner_make_hierarchy(soops, &soops->tree);
+		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_SEQUENCE) {
 		Sequence *seq;

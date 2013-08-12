@@ -282,7 +282,7 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	return 0;
 }
 
-static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
+static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *UNUSED(soops), TreeElement *te, int set)
 {
 	TreeElement *tep;
 	TreeStoreElem /* *tselem,*/ *tselemp;
@@ -384,7 +384,7 @@ static int tree_element_active_camera(bContext *UNUSED(C), Scene *scene, SpaceOo
 	return scene->camera == ob;
 }
 
-static int tree_element_active_world(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
+static int tree_element_active_world(bContext *C, Scene *scene, SpaceOops *UNUSED(soops), TreeElement *te, int set)
 {
 	TreeElement *tep;
 	TreeStoreElem *tselem = NULL;

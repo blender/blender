@@ -377,7 +377,7 @@ void *MEM_dupallocN(const void *vmemh)
 	return newp;
 }
 
-void *MEM_reallocN(void *vmemh, size_t len)
+void *MEM_reallocN_id(void *vmemh, size_t len, const char *str)
 {
 	void *newp = NULL;
 	
@@ -400,13 +400,13 @@ void *MEM_reallocN(void *vmemh, size_t len)
 		MEM_freeN(vmemh);
 	}
 	else {
-		newp = MEM_mallocN(len, __func__);
+		newp = MEM_mallocN(len, str);
 	}
 
 	return newp;
 }
 
-void *MEM_recallocN(void *vmemh, size_t len)
+void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
 {
 	void *newp = NULL;
 
@@ -434,7 +434,7 @@ void *MEM_recallocN(void *vmemh, size_t len)
 		MEM_freeN(vmemh);
 	}
 	else {
-		newp = MEM_callocN(len, __func__);
+		newp = MEM_callocN(len, str);
 	}
 
 	return newp;

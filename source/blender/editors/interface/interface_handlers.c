@@ -228,9 +228,9 @@ typedef struct uiAfterFunc {
 	bContextStore *context;
 
 	char undostr[BKE_UNDO_STR_MAX];
-
-	int autokey;
 } uiAfterFunc;
+
+
 
 static bool ui_but_contains_pt(uiBut *but, int mx, int my);
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
@@ -6623,8 +6623,8 @@ static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *me
 		/* am I the last menu (test) */
 		ARegion *ar = menu->region->next;
 		do {
-			uiBlock *block = ar->uiblocks.first;
-			if (block && ui_block_is_menu(block)) {
+			uiBlock *block_iter = ar->uiblocks.first;
+			if (block_iter && ui_block_is_menu(block_iter)) {
 				return true;
 			}
 		} while ((ar = ar->next));

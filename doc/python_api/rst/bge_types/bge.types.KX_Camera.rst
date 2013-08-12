@@ -27,6 +27,12 @@ base class --- :class:`KX_GameObject`
 
       :type: float
 
+   .. attribute:: fov
+
+      The camera's field of view value.
+
+      :type: float
+
    .. attribute:: ortho_scale
 
       The camera's view scale when in orthographic mode.

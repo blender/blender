@@ -248,7 +248,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	OrderOfChunks chunkorder = COM_ORDER_OF_CHUNKS_DEFAULT;
 
 	if (operation->isViewerOperation()) {
-		ViewerBaseOperation *viewer = (ViewerBaseOperation *)operation;
+		ViewerOperation *viewer = (ViewerOperation *)operation;
 		centerX = viewer->getCenterX();
 		centerY = viewer->getCenterY();
 		chunkorder = viewer->getChunkOrder();

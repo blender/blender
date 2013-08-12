@@ -147,6 +147,11 @@ private:
 	WingedEdge *_winged_edge;
 	Matrix44r *_current_matrix;
 	vector<Matrix44r *> _matrices_stack;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdgeBuilder")
+#endif
+
 };
 
 } /* namespace Freestyle */

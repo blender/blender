@@ -72,6 +72,7 @@ set(SRC_CLOSURE_HEADERS
 set(SRC_SVM_HEADERS
 	svm/svm.h
 	svm/svm_attribute.h
+	svm/svm_blackbody.h
 	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h
@@ -99,11 +100,13 @@ set(SRC_SVM_HEADERS
 	svm/svm_normal.h
 	svm/svm_ramp.h
 	svm/svm_sepcomb_rgb.h
+	svm/svm_sepcomb_hsv.h
 	svm/svm_sky.h
 	svm/svm_tex_coord.h
 	svm/svm_texture.h
 	svm/svm_types.h
 	svm/svm_value.h
+	svm/svm_vector_transform.h
 	svm/svm_voronoi.h
 	svm/svm_wave.h
 )

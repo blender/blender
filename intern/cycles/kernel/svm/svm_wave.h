@@ -22,21 +22,19 @@ CCL_NAMESPACE_BEGIN
 
 __device_noinline float svm_wave(NodeWaveType type, float3 p, float scale, float detail, float distortion, float dscale)
 {
-	float w, n;
+	float n;
 
 	p *= scale;
 
 	if(type == NODE_WAVE_BANDS)
 		n = (p.x + p.y + p.z) * 10.0f;
-	else /* if(type == NODE_WAVE_RINGS) */
+	else /* NODE_WAVE_RINGS */
 		n = len(p) * 20.0f;
 	
 	if(distortion != 0.0f)
 		n += distortion * noise_turbulence(p*dscale, NODE_NOISE_PERLIN, detail, 0);
 
-	w = noise_wave(NODE_WAVE_SINE, n);
-
-	return w;
+	return 0.5f + 0.5f * sinf(n);
 }
 
 __device void svm_node_tex_wave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)

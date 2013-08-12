@@ -77,6 +77,7 @@ public:
 	bool has_volume;
 	bool has_displacement;
 	bool has_surface_bssrdf;
+	bool has_converter_blackbody;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;
@@ -142,6 +143,7 @@ protected:
 	AttributeIDMap unique_attribute_id;
 
 	size_t bssrdf_table_offset;
+	size_t blackbody_table_offset;
 };
 
 CCL_NAMESPACE_END

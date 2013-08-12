@@ -27,13 +27,13 @@
  *  \ingroup bmesh
  */
 
-int   BM_face_calc_tessellation(BMFace *f, BMLoop **r_loops, int (*r_index)[3])
+int   BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, int (*r_index)[3])
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull))
 #endif
 ;
-void  BM_face_calc_normal(BMFace *f, float r_no[3]);
+void  BM_face_calc_normal(const BMFace *f, float r_no[3]);
 void  BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
                                float const (*vertexCos)[3]);
 float BM_face_calc_area(BMFace *f);

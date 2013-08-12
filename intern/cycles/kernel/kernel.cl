@@ -51,7 +51,7 @@ __kernel void kernel_ocl_path_trace(
 	int y = sy + get_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_path_trace_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
 __kernel void kernel_ocl_tonemap(

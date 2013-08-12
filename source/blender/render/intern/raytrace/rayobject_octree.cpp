@@ -521,7 +521,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 	copy_v3_v3(co1, face->v1);
 	copy_v3_v3(co2, face->v2);
 	copy_v3_v3(co3, face->v3);
-	if (face->v4)
+	if (RE_rayface_isQuad(face))
 		copy_v3_v3(co4, face->v4);
 
 	for (c = 0; c < 3; c++) {

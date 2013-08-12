@@ -809,8 +809,9 @@ static int mask_select_more_less(bContext *C, bool more)
 		}
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			const bool cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
+			bool start_sel, end_sel, prev_sel, cur_sel;
 			int i;
-			bool start_sel, end_sel, prev_sel, cur_sel, cyclic = spline->flag & MASK_SPLINE_CYCLIC;
 
 			/* reselect point if any handle is selected to make the result more predictable */
 			for (i = 0; i < spline->tot_point; i++) {
@@ -825,6 +826,10 @@ static int mask_select_more_less(bContext *C, bool more)
 			if (cyclic) {
 				start_sel = !!MASKPOINT_ISSEL_KNOT(spline->points);
 				end_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[spline->tot_point - 1]);
+			}
+			else {
+				start_sel = false;
+				end_sel = false;
 			}
 
 			for (i = 0; i < spline->tot_point; i++) {

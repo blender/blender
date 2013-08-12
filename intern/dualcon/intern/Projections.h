@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef PROJECTIONS_H
-#define PROJECTIONS_H
+#ifndef __PROJECTIONS_H__
+#define __PROJECTIONS_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,6 +125,11 @@ public:
 	int isIntersectingPrimary(int edgeInd) const;
 
 	float getIntersectionPrimary(int edgeInd) const;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:CubeTriangleIsect")
+#endif
+
 };
 
-#endif
+#endif  /* __PROJECTIONS_H__ */

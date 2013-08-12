@@ -3836,7 +3836,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 
 	for (m = 0; m < MAX_MTEX; m++, mtexp++) {
 		mtex = *mtexp;
-		if (mtex && mtex->mapto) {
+		if (mtex && mtex->tex && mtex->mapto) {
 			float def = mtex->def_var;
 			short blend = mtex->blendtype;
 			short texco = mtex->texco;
@@ -3904,7 +3904,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 
 	for (m = 0; m < MAX_MTEX; m++, mtexp++) {
 		mtex = *mtexp;
-		if (mtex && mtex->mapto) {
+		if (mtex && mtex->tex && mtex->mapto) {
 			float def = mtex->def_var;
 			short blend = mtex->blendtype;
 			short texco = mtex->texco;

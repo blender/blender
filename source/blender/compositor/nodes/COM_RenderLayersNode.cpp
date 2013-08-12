@@ -114,4 +114,7 @@ void RenderLayersNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	testSocketConnection(graph, context, 25, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_DIRECT));
 	testSocketConnection(graph, context, 26, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_INDIRECT));
 	testSocketConnection(graph, context, 27, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_COLOR));
+	testSocketConnection(graph, context, 28, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_DIRECT));
+	testSocketConnection(graph, context, 29, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_INDIRECT));
+	testSocketConnection(graph, context, 30, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_COLOR));
 }

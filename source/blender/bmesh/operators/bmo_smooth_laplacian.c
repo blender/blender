@@ -220,7 +220,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 			v1 = vf[0]->co;
 			v2 = vf[1]->co;
 			v3 = vf[2]->co;
-			v4 = has_4_vert ? vf[3]->co : 0;
+			v4 = has_4_vert ? vf[3]->co : NULL;
 
 			if (has_4_vert) {
 				areaf = area_quad_v3(v1, v2, v3, v4);

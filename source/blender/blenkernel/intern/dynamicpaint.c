@@ -1078,6 +1078,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 	surface->wave_speed = 1.0f;
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20f;
+	surface->wave_smoothness = 1.0f;
 
 	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
@@ -1253,6 +1254,7 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 			t_surface->wave_speed = surface->wave_speed;
 			t_surface->wave_timescale = surface->wave_timescale;
 			t_surface->wave_spring = surface->wave_spring;
+			t_surface->wave_smoothness = surface->wave_smoothness;
 
 			BLI_strncpy(t_surface->uvlayer_name, surface->uvlayer_name, sizeof(t_surface->uvlayer_name));
 			BLI_strncpy(t_surface->image_output_path, surface->image_output_path, sizeof(t_surface->image_output_path));
@@ -3288,7 +3290,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 	if (!brush->dm) return 0;
 	{
-		BVHTreeFromMesh treeData = {0};
+		BVHTreeFromMesh treeData = {NULL};
 		float avg_brushNor[3] = {0.0f};
 		float brush_radius = brush->paint_distance * surface->radius_scale;
 		int numOfVerts;
@@ -4465,6 +4467,7 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 	int steps, ss;
 	float dt, min_dist, damp_factor;
 	float wave_speed = surface->wave_speed;
+	float wave_max_slope = (surface->wave_smoothness >= 0.01f) ? (0.5f / surface->wave_smoothness) : 0.0f;
 	double average_dist = 0.0f;
 	const float canvas_size = getSurfaceDimension(sData);
 	float wave_scale = CANVAS_REL_SIZE / canvas_size;
@@ -4503,7 +4506,7 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 		for (index = 0; index < sData->total_points; index++) {
 			PaintWavePoint *wPoint = &((PaintWavePoint *)sData->type_data)[index];
 			int numOfNeighs = sData->adj_data->n_num[index];
-			float force = 0.0f, avg_dist = 0.0f, avg_height = 0.0f;
+			float force = 0.0f, avg_dist = 0.0f, avg_height = 0.0f, avg_n_height = 0.0f;
 			int numOfN = 0, numOfRN = 0;
 			int i;
 
@@ -4522,11 +4525,12 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 
 				/* count average height for edge points for open borders */
 				if (!(sData->adj_data->flags[sData->adj_data->n_target[n_index]] & ADJ_ON_MESH_EDGE)) {
-					avg_height += tPoint->height;
+					avg_n_height += tPoint->height;
 					numOfRN++;
 				}
 
 				force += (tPoint->height - wPoint->height) / (dist * dist);
+				avg_height += tPoint->height;
 			}
 			avg_dist = (numOfN) ? avg_dist / numOfN : 0.0f;
 
@@ -4534,8 +4538,8 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 			    sData->adj_data->flags[index] & ADJ_ON_MESH_EDGE)
 			{
 				/* if open borders, apply a fake height to keep waves going on */
-				avg_height = (numOfRN) ? avg_height / numOfRN : 0.0f;
-				wPoint->height = (dt * wave_speed * avg_height + wPoint->height * avg_dist) / (avg_dist + dt * wave_speed);
+				avg_n_height = (numOfRN) ? avg_n_height / numOfRN : 0.0f;
+				wPoint->height = (dt * wave_speed * avg_n_height + wPoint->height * avg_dist) / (avg_dist + dt * wave_speed);
 			}
 			/* else do wave eq */
 			else {
@@ -4549,6 +4553,14 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 				wPoint->velocity *= damp_factor;
 				/* and new height */
 				wPoint->height += wPoint->velocity * dt;
+
+				/* limit wave slope steepness */
+				if (wave_max_slope && avg_dist) {
+					float max_offset = wave_max_slope * avg_dist;
+					float offset = (numOfN) ? (avg_height / numOfN - wPoint->height) : 0.0f;
+					if (offset > max_offset) wPoint->height += offset - max_offset;
+					if (offset < -max_offset) wPoint->height += offset + max_offset;
+				}
 			}
 		}
 	}
@@ -4965,7 +4977,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 				/* make sure we're dealing with a brush	*/
 				if (pmd2->brush) {
 					DynamicPaintBrushSettings *brush = pmd2->brush;
-					BrushMaterials bMats = {0};
+					BrushMaterials bMats = {NULL};
 
 					/* calculate brush speed vectors if required */
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {

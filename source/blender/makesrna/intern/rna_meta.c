@@ -164,6 +164,22 @@ static int rna_Meta_is_editmode_get(PointerRNA *ptr)
 	return (mb->editelems != NULL);
 }
 
+static char *rna_MetaElement_path(PointerRNA *ptr)
+{
+	MetaBall *mb = ptr->id.data;
+	MetaElem *ml = ptr->data;
+	int index = -1;
+
+	if (mb->editelems)
+		index = BLI_findindex(mb->editelems, ml);
+	if (index == -1)
+		index = BLI_findindex(&mb->elems, ml);
+	if (index == -1)
+		return NULL;
+
+	return BLI_sprintfN("elements[%d]", index);
+}
+
 #else
 
 static void rna_def_metaelement(BlenderRNA *brna)
@@ -174,6 +190,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MetaElement", NULL);
 	RNA_def_struct_sdna(srna, "MetaElem");
 	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a Metaball datablock");
+	RNA_def_struct_path_func(srna, "rna_MetaElement_path");
 	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
 
 	/* enums */

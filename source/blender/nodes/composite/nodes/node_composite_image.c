@@ -72,6 +72,9 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
 	{	SOCK_RGBA, 0, N_("Transmission Direct"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Transmission Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Transmission Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Direct"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Subsurface Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -152,6 +155,13 @@ static void cmp_node_image_add_render_pass_outputs(bNodeTree *ntree, bNode *node
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_TRANSM_INDIRECT, RRES_OUT_TRANSM_INDIRECT);
 	if (passflag & SCE_PASS_TRANSM_COLOR)
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_TRANSM_COLOR, RRES_OUT_TRANSM_COLOR);
+		
+	if (passflag & SCE_PASS_SUBSURFACE_DIRECT)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBSURFACE_DIRECT, RRES_OUT_SUBSURFACE_DIRECT);
+	if (passflag & SCE_PASS_SUBSURFACE_INDIRECT)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBSURFACE_INDIRECT, RRES_OUT_SUBSURFACE_INDIRECT);
+	if (passflag & SCE_PASS_SUBSURFACE_COLOR)
+		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBSURFACE_COLOR, RRES_OUT_SUBSURFACE_COLOR);
 }
 
 static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node, RenderLayer *rl)
@@ -385,35 +395,38 @@ void node_cmp_rlayers_force_hidden_passes(bNode *node)
 	for (sock = node->outputs.first; sock; sock = sock->next)
 		sock->flag &= ~SOCK_UNAVAIL;
 	
-	set_output_visible(node, passflag, RRES_OUT_IMAGE,            SCE_PASS_COMBINED);
-	set_output_visible(node, passflag, RRES_OUT_ALPHA,            SCE_PASS_COMBINED);
-	
-	set_output_visible(node, passflag, RRES_OUT_Z,                SCE_PASS_Z);
-	set_output_visible(node, passflag, RRES_OUT_NORMAL,           SCE_PASS_NORMAL);
-	set_output_visible(node, passflag, RRES_OUT_VEC,              SCE_PASS_VECTOR);
-	set_output_visible(node, passflag, RRES_OUT_UV,               SCE_PASS_UV);
-	set_output_visible(node, passflag, RRES_OUT_RGBA,             SCE_PASS_RGBA);
-	set_output_visible(node, passflag, RRES_OUT_DIFF,             SCE_PASS_DIFFUSE);
-	set_output_visible(node, passflag, RRES_OUT_SPEC,             SCE_PASS_SPEC);
-	set_output_visible(node, passflag, RRES_OUT_SHADOW,           SCE_PASS_SHADOW);
-	set_output_visible(node, passflag, RRES_OUT_AO,               SCE_PASS_AO);
-	set_output_visible(node, passflag, RRES_OUT_REFLECT,          SCE_PASS_REFLECT);
-	set_output_visible(node, passflag, RRES_OUT_REFRACT,          SCE_PASS_REFRACT);
-	set_output_visible(node, passflag, RRES_OUT_INDIRECT,         SCE_PASS_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_INDEXOB,          SCE_PASS_INDEXOB);
-	set_output_visible(node, passflag, RRES_OUT_INDEXMA,          SCE_PASS_INDEXMA);
-	set_output_visible(node, passflag, RRES_OUT_MIST,             SCE_PASS_MIST);
-	set_output_visible(node, passflag, RRES_OUT_EMIT,             SCE_PASS_EMIT);
-	set_output_visible(node, passflag, RRES_OUT_ENV,              SCE_PASS_ENVIRONMENT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_DIRECT,      SCE_PASS_DIFFUSE_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_INDIRECT,    SCE_PASS_DIFFUSE_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_DIFF_COLOR,       SCE_PASS_DIFFUSE_COLOR);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_DIRECT,    SCE_PASS_GLOSSY_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_INDIRECT,  SCE_PASS_GLOSSY_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_GLOSSY_COLOR,     SCE_PASS_GLOSSY_COLOR);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_DIRECT,    SCE_PASS_TRANSM_DIRECT);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_INDIRECT,  SCE_PASS_TRANSM_INDIRECT);
-	set_output_visible(node, passflag, RRES_OUT_TRANSM_COLOR,     SCE_PASS_TRANSM_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_IMAGE,                  SCE_PASS_COMBINED);
+	set_output_visible(node, passflag, RRES_OUT_ALPHA,                  SCE_PASS_COMBINED);
+	                                                                    
+	set_output_visible(node, passflag, RRES_OUT_Z,                      SCE_PASS_Z);
+	set_output_visible(node, passflag, RRES_OUT_NORMAL,                 SCE_PASS_NORMAL);
+	set_output_visible(node, passflag, RRES_OUT_VEC,                    SCE_PASS_VECTOR);
+	set_output_visible(node, passflag, RRES_OUT_UV,                     SCE_PASS_UV);
+	set_output_visible(node, passflag, RRES_OUT_RGBA,                   SCE_PASS_RGBA);
+	set_output_visible(node, passflag, RRES_OUT_DIFF,                   SCE_PASS_DIFFUSE);
+	set_output_visible(node, passflag, RRES_OUT_SPEC,                   SCE_PASS_SPEC);
+	set_output_visible(node, passflag, RRES_OUT_SHADOW,                 SCE_PASS_SHADOW);
+	set_output_visible(node, passflag, RRES_OUT_AO,                     SCE_PASS_AO);
+	set_output_visible(node, passflag, RRES_OUT_REFLECT,                SCE_PASS_REFLECT);
+	set_output_visible(node, passflag, RRES_OUT_REFRACT,                SCE_PASS_REFRACT);
+	set_output_visible(node, passflag, RRES_OUT_INDIRECT,               SCE_PASS_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_INDEXOB,                SCE_PASS_INDEXOB);
+	set_output_visible(node, passflag, RRES_OUT_INDEXMA,                SCE_PASS_INDEXMA);
+	set_output_visible(node, passflag, RRES_OUT_MIST,                   SCE_PASS_MIST);
+	set_output_visible(node, passflag, RRES_OUT_EMIT,                   SCE_PASS_EMIT);
+	set_output_visible(node, passflag, RRES_OUT_ENV,                    SCE_PASS_ENVIRONMENT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_DIRECT,            SCE_PASS_DIFFUSE_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_INDIRECT,          SCE_PASS_DIFFUSE_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_COLOR,             SCE_PASS_DIFFUSE_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_DIRECT,          SCE_PASS_GLOSSY_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_INDIRECT,        SCE_PASS_GLOSSY_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_COLOR,           SCE_PASS_GLOSSY_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_DIRECT,          SCE_PASS_TRANSM_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_INDIRECT,        SCE_PASS_TRANSM_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_COLOR,           SCE_PASS_TRANSM_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_DIRECT,      SCE_PASS_SUBSURFACE_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_INDIRECT,    SCE_PASS_SUBSURFACE_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_COLOR,       SCE_PASS_SUBSURFACE_COLOR);
 }
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)

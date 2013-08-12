@@ -975,7 +975,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
 	/* Allocate the new memory for the index entry */
 
-	if (frame_num + 1 > movie->index_entries) {
+	if (frame_num >= movie->index_entries) {
 		const size_t entry_size = (movie->header->Streams + 1) * sizeof(AviIndexEntry);
 		movie->entries = (AviIndexEntry *)MEM_recallocN(movie->entries, (frame_num + 1) * entry_size);
 		movie->index_entries = frame_num + 1;

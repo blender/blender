@@ -16,6 +16,7 @@ set(INC_SYS
 set(SRC
 	attribute.cpp
 	background.cpp
+	blackbody.cpp
 	buffers.cpp
 	bssrdf.cpp
 	camera.cpp
@@ -43,6 +44,7 @@ set(SRC
 set(SRC_HEADERS
 	attribute.h
 	background.h
+	blackbody.h
 	buffers.h
 	bssrdf.h
 	camera.h

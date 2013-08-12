@@ -523,7 +523,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, const 
 	/* --- */
 
 	/* create edges and find the winding (if faces are attached to any existing edges) */
-	vert_arr_map = MEM_mallocN(sizeof(BMVert **) * len, __func__);
+	vert_arr_map = MEM_mallocN(sizeof(BMVert *) * len, __func__);
 
 	for (i = 0; i < len; i++) {
 		vert_arr_map[i] = vert_arr[vang[i].index];

@@ -174,6 +174,15 @@ static void gpu_buffer_pool_free(GPUBufferPool *pool)
 	MEM_freeN(pool);
 }
 
+static void gpu_buffer_pool_free_unused(GPUBufferPool *pool)
+{
+	if (!pool)
+		return;
+	
+	while (pool->totbuf)
+		gpu_buffer_pool_delete_last(pool);
+}
+
 static GPUBufferPool *gpu_buffer_pool = NULL;
 static GPUBufferPool *gpu_get_global_buffer_pool(void)
 {
@@ -188,6 +197,11 @@ void GPU_global_buffer_pool_free(void)
 {
 	gpu_buffer_pool_free(gpu_buffer_pool);
 	gpu_buffer_pool = NULL;
+}
+
+void GPU_global_buffer_pool_free_unused(void)
+{
+	gpu_buffer_pool_free_unused(gpu_buffer_pool);
 }
 
 /* get a GPUBuffer of at least `size' bytes; uses one from the buffer

@@ -519,8 +519,8 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 
 	DerivedMesh *result = NULL;
 
-	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) return 0;
+	if (dm == NULL || dm_select == NULL) return NULL;
+	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) return NULL;
 
 	/* we map the final object back into ob's local coordinate space. For this
 	 * we need to compute the inverse transform from global to ob (inv_mat),

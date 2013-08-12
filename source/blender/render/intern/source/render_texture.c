@@ -2163,7 +2163,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			mtex= shi->mat->mtex[tex_nr];
 			
 			tex= mtex->tex;
-			if (tex==0) continue;
+			if (tex == NULL) continue;
 
 			found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
 			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP);
@@ -2686,7 +2686,7 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 		if (shi->mat->mtex[tex_nr]) {
 			mtex= shi->mat->mtex[tex_nr];
 			tex= mtex->tex;
-			if (tex==0) continue;
+			if (tex == NULL) continue;
 			
 			/* only process if this texture is mapped 
 			 * to one that we're interested in */
@@ -3028,7 +3028,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			mtex= R.wrld.mtex[tex_nr];
 			
 			tex= mtex->tex;
-			if (tex==0) continue;
+			if (tex == NULL) continue;
 			/* if (mtex->mapto==0) continue; */
 			
 			/* which coords */
@@ -3609,7 +3609,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			}
 			if (tex->type==TEX_POINTDENSITY) {
 				/* set dummy values for render and do cache */
-				Render dummy_re = {0};
+				Render dummy_re = {NULL};
 				dummy_re.scene = scene;
 				unit_m4(dummy_re.viewinv);
 				unit_m4(dummy_re.viewmat);
@@ -3668,8 +3668,8 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 	int v1, v2, v3;
 	MVert *mvert;
 	float uv[3], normal[3];
-	ShadeInput shi = {0};
-	Render re = {0};
+	ShadeInput shi = {NULL};
+	Render re = {NULL};
 
 	/* Get face data	*/
 	mvert = orcoDm->getVertArray(orcoDm);
@@ -3752,7 +3752,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 		*alpha = shi.alpha;
 	}
 	else if (mat->material_type == MA_TYPE_VOLUME) {
-		ObjectInstanceRen obi = {0};
+		ObjectInstanceRen obi = {NULL};
 		obi.ob = ob;
 		shi.obi = &obi;
 		unit_m4(re.viewinv);

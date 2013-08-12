@@ -70,6 +70,8 @@ void register_node_type_sh_material_ext(void);
 void register_node_type_sh_invert(void);
 void register_node_type_sh_seprgb(void);
 void register_node_type_sh_combrgb(void);
+void register_node_type_sh_sephsv(void);
+void register_node_type_sh_combhsv(void);
 void register_node_type_sh_hue_sat(void);
 void register_node_type_sh_tex_brick(void);
 
@@ -81,6 +83,7 @@ void register_node_type_sh_object_info(void);
 void register_node_type_sh_fresnel(void);
 void register_node_type_sh_wireframe(void);
 void register_node_type_sh_wavelength(void);
+void register_node_type_sh_blackbody(void);
 void register_node_type_sh_layer_weight(void);
 void register_node_type_sh_tex_coord(void);
 void register_node_type_sh_particle_info(void);
@@ -88,6 +91,7 @@ void register_node_type_sh_hair_info(void);
 void register_node_type_sh_script(void);
 void register_node_type_sh_normal_map(void);
 void register_node_type_sh_tangent(void);
+void register_node_type_sh_vect_transform(void);
 
 void register_node_type_sh_ambient_occlusion(void);
 void register_node_type_sh_background(void);

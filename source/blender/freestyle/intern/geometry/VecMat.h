@@ -278,7 +278,6 @@ protected:
 	};
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VecMat:Vec")
 #endif
 };
@@ -766,7 +765,6 @@ protected:
 	value_type _coord[_SIZE];
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:VecMat:Matrix")
 #endif
 };

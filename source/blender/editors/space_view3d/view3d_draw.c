@@ -350,18 +350,19 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		}
 	}
 	else {
-		short sublines = v3d->gridsubdiv;
+		const double sublines    = v3d->gridsubdiv;
+		const float  sublines_fl = v3d->gridsubdiv;
 
 		if (dx < GRID_MIN_PX_D) {
-			rv3d->gridview *= sublines;
+			rv3d->gridview *= sublines_fl;
 			dx *= sublines;
 
 			if (dx < GRID_MIN_PX_D) {
-				rv3d->gridview *= sublines;
+				rv3d->gridview *= sublines_fl;
 				dx *= sublines;
 
 				if (dx < GRID_MIN_PX_D) {
-					rv3d->gridview *= sublines;
+					rv3d->gridview *= sublines_fl;
 					dx *= sublines;
 					if (dx < GRID_MIN_PX_D) {
 						/* pass */
@@ -389,10 +390,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		}
 		else {
 			if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
-				rv3d->gridview /= sublines;
+				rv3d->gridview /= sublines_fl;
 				dx /= sublines;
 				if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
-					rv3d->gridview /= sublines;
+					rv3d->gridview /= sublines_fl;
 					dx /= sublines;
 					if (dx > (GRID_MIN_PX_D * 10.0)) {
 						UI_ThemeColor(TH_GRID);
@@ -494,6 +495,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 	/* draw the Y axis and/or grid lines */
 	if (v3d->gridflag & V3D_SHOW_FLOOR) {
+		const int sublines = v3d->gridsubdiv;
 		float vert[4][3] = {{0.0f}};
 		unsigned char col_bg[3];
 		unsigned char col_grid_emphasise[3], col_grid_light[3];
@@ -517,7 +519,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 		for (a = -gridlines; a <= gridlines; a++) {
 			const float line = a * grid_scale;
-			const int is_emphasise = (a % 10) == 0;
+			const int is_emphasise = (a % sublines) == 0;
 
 			if (is_emphasise != prev_emphasise) {
 				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
@@ -531,8 +533,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		}
 
 		glDisableClientState(GL_VERTEX_ARRAY);
-
-		GPU_print_error("sdsd");
 	}
 	
 	/* draw the Z axis line */
@@ -1189,7 +1189,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		y4 = y1 + scene->r.border.ymax * (y2 - y1);
 		
 		cpack(0x4040FF);
-		glRectf(x3,  y3,  x4,  y4); 
+		glRecti(x3,  y3,  x4,  y4);
 	}
 
 	/* safety border */
@@ -2953,10 +2953,8 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 		rect->ymax = v3d->render_border.ymax * ar->winy;
 	}
 
-	rect->xmin = CLAMPIS(ar->winrct.xmin + rect->xmin, ar->winrct.xmin, ar->winrct.xmax);
-	rect->ymin = CLAMPIS(ar->winrct.ymin + rect->ymin, ar->winrct.ymin, ar->winrct.ymax);
-	rect->xmax = CLAMPIS(ar->winrct.xmin + rect->xmax, ar->winrct.xmin, ar->winrct.xmax);
-	rect->ymax = CLAMPIS(ar->winrct.ymin + rect->ymax, ar->winrct.ymin, ar->winrct.ymax);
+	BLI_rcti_translate(rect, ar->winrct.xmin, ar->winrct.ymin);
+	BLI_rcti_isect(&ar->winrct, rect, rect);
 
 	return true;
 }
@@ -3422,7 +3420,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		setlinestyle(3);
 		cpack(0x4040FF);
 
-		glRectf(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+		glRecti(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
 		        v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
 
 		setlinestyle(0);

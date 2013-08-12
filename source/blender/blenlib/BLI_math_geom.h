@@ -147,10 +147,6 @@ int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], 
 int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
-void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2],
-                            const float pt[2], float r_uv[2]);
-void isect_point_face_uv_v2(const int isquad, const float v0[2], const float v1[2], const float v2[2],
-                            const float v3[2], const float pt[2], float r_uv[2]);
 
 /* axis-aligned bounding box */
 bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
@@ -198,7 +194,7 @@ void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3
 void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const float v3[2], const float v4[2],
                                  const float co[2], float w[4]);
 
-int barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3]);
+bool barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3]);
 int barycentric_inside_triangle_v2(const float w[3]);
 
 void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
@@ -273,9 +269,9 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 
 float form_factor_quad(const float p[3], const float n[3],
                        const float q0[3], const float q1[3], const float q2[3], const float q3[3]);
-int form_factor_visible_quad(const float p[3], const float n[3],
-                             const float v0[3], const float v1[3], const float v2[3],
-                             float q0[3], float q1[3], float q2[3], float q3[3]);
+bool form_factor_visible_quad(const float p[3], const float n[3],
+                              const float v0[3], const float v1[3], const float v2[3],
+                              float q0[3], float q1[3], float q2[3], float q3[3]);
 float form_factor_hemi_poly(float p[3], float n[3],
                             float v1[3], float v2[3], float v3[3], float v4[3]);
 

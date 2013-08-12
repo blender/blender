@@ -788,6 +788,12 @@ typedef struct NodeShaderAttribute {
 	char name[64];
 } NodeShaderAttribute;
 
+typedef struct NodeShaderVectTransform {
+	int type;
+	int convert_from, convert_to;
+	int pad;
+} NodeShaderVectTransform;
+
 /* TEX_output */
 typedef struct TexNodeOutput {
 	char name[64];
@@ -868,6 +874,15 @@ typedef struct NodeShaderNormalMap {
 #define SHD_GLOSSY_BECKMANN	0
 #define SHD_GLOSSY_SHARP	1
 #define SHD_GLOSSY_GGX		2
+
+/* vector transform */
+#define SHD_VECT_TRANSFORM_TYPE_VECTOR	0
+#define SHD_VECT_TRANSFORM_TYPE_POINT	1
+#define SHD_VECT_TRANSFORM_TYPE_NORMAL	2
+
+#define SHD_VECT_TRANSFORM_SPACE_WORLD	0
+#define SHD_VECT_TRANSFORM_SPACE_OBJECT	1
+#define SHD_VECT_TRANSFORM_SPACE_CAMERA	2
 
 /* toon modes */
 #define SHD_TOON_DIFFUSE	0

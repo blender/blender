@@ -342,7 +342,7 @@ ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set a subwindow active in pixelspace view, with optional scissor subset */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
-void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, struct rcti *srct);
+void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, const struct rcti *srct, bool srct_pad);
 
 			/* OpenGL utilities with safety check + working in modelview matrix mode */
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);

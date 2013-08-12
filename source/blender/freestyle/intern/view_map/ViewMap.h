@@ -365,6 +365,11 @@ public:
 
 	/*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
 	virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge) = 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewVertex")
+#endif
+
 };
 
 /**********************************/
@@ -633,6 +638,11 @@ public:
 
 	/*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
 	virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TVertex")
+#endif
+
 };
 
 
@@ -845,6 +855,11 @@ public:
 
 	/*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
 	virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:NonTVertex")
+#endif
+
 };
 
 /**********************************/
@@ -1360,6 +1375,11 @@ public:
 	 *    the sampling value.
 	 */
 	virtual Interface0DIterator pointsEnd(float t = 0.0f);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewEdge")
+#endif
+
 };
 
 

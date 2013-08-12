@@ -1420,7 +1420,9 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	e->l = NULL;
 	if (l_next) {
 		BMLoop *l_new, *l;
+#ifndef NDEBUG
 		int radlen = bmesh_radial_length(l_next);
+#endif
 		int first1 = 0, first2 = 0;
 
 		/* Take the next loop. Remove it from radial. Split it. Append to appropriate radials */
@@ -1763,10 +1765,10 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/* validate that for each face, each vertex has another edge in its disk cycle that is
 	 * not e, and not shared. */
-	if (bmesh_radial_face_find(l_f1->next->e, f2) ||
-	    bmesh_radial_face_find(l_f1->prev->e, f2) ||
-	    bmesh_radial_face_find(l_f2->next->e, f1) ||
-	    bmesh_radial_face_find(l_f2->prev->e, f1) )
+	if (BM_edge_in_face(l_f1->next->e, f2) ||
+	    BM_edge_in_face(l_f1->prev->e, f2) ||
+	    BM_edge_in_face(l_f2->next->e, f1) ||
+	    BM_edge_in_face(l_f2->prev->e, f1) )
 	{
 		return NULL;
 	}

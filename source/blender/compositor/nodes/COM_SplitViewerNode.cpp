@@ -23,7 +23,8 @@
 #include "COM_SplitViewerNode.h"
 #include "BKE_global.h"
 
-#include "COM_SplitViewerOperation.h"
+#include "COM_SplitOperation.h"
+#include "COM_ViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
 SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
@@ -42,29 +43,31 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	InputSocket *image2Socket = this->getInputSocket(1);
 	Image *image = (Image *)this->getbNode()->id;
 	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
-	if (image1Socket->isConnected() && image2Socket->isConnected()) {
-		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();
-		splitViewerOperation->setImage(image);
-		splitViewerOperation->setImageUser(imageUser);
-		splitViewerOperation->setActive(is_active);
-		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
 
-		splitViewerOperation->setViewSettings(context->getViewSettings());
-		splitViewerOperation->setDisplaySettings(context->getDisplaySettings());
+	SplitOperation *splitViewerOperation = new SplitOperation();
+	splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
+	splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 
-		/* defaults - the viewer node has these options but not exposed for split view
-		 * we could use the split to define an area of interest on one axis at least */
-		splitViewerOperation->setChunkOrder(COM_ORDER_OF_CHUNKS_DEFAULT);
-		splitViewerOperation->setCenterX(0.5f);
-		splitViewerOperation->setCenterY(0.5f);
+	image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
+	image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
 
-		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
-		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
-		image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
+	ViewerOperation *viewerOperation = new ViewerOperation();
+	viewerOperation->setImage(image);
+	viewerOperation->setImageUser(imageUser);
+	viewerOperation->setActive(is_active);
+	viewerOperation->setViewSettings(context->getViewSettings());
+	viewerOperation->setDisplaySettings(context->getDisplaySettings());
 
-		if (is_active)
-			addPreviewOperation(graph, context, splitViewerOperation->getInputSocket(0));
+	/* defaults - the viewer node has these options but not exposed for split view
+	 * we could use the split to define an area of interest on one axis at least */
+	viewerOperation->setChunkOrder(COM_ORDER_OF_CHUNKS_DEFAULT);
+	viewerOperation->setCenterX(0.5f);
+	viewerOperation->setCenterY(0.5f);
 
-		graph->addOperation(splitViewerOperation);
-	}
+	addLink(graph, splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
+
+	addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
+
+	graph->addOperation(splitViewerOperation);
+	graph->addOperation(viewerOperation);
 }

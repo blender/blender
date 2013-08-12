@@ -231,6 +231,12 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeCombineRGB)) {
 		node = new CombineRGBNode();
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeSeparateHSV)) {
+		node = new SeparateHSVNode();
+	}
+	else if (b_node.is_a(&RNA_ShaderNodeCombineHSV)) {
+		node = new CombineHSVNode();
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeHueSaturation)) {
 		node = new HSVNode();
 	}
@@ -249,6 +255,14 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		VectorMathNode *vmath = new VectorMathNode();
 		vmath->type = VectorMathNode::type_enum[b_vector_math_node.operation()];
 		node = vmath;
+	}
+	else if (b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
+		BL::ShaderNodeVectorTransform b_vector_transform_node(b_node);
+		VectorTransformNode *vtransform = new VectorTransformNode();
+		vtransform->type = VectorTransformNode::type_enum[b_vector_transform_node.type()];
+		vtransform->convert_from = VectorTransformNode::convert_space_enum[b_vector_transform_node.convert_from()];
+		vtransform->convert_to = VectorTransformNode::convert_space_enum[b_vector_transform_node.convert_to()];
+		node = vtransform;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeNormal)) {
 		BL::Node::outputs_iterator out_it;
@@ -399,6 +413,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeWavelength)) {
 		node = new WavelengthNode();
+	}
+	else if (b_node.is_a(&RNA_ShaderNodeBlackbody)) {
+		node = new BlackbodyNode();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeLightPath)) {
 		node = new LightPathNode();

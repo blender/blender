@@ -387,7 +387,7 @@ void ED_region_set(const bContext *C, ARegion *ar)
 	ar->drawrct = ar->winrct;
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
-	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct, true);
 	
 	UI_SetTheme(sa ? sa->spacetype : 0, ar->type ? ar->type->regionid : 0);
 	
@@ -401,24 +401,25 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegionType *at = ar->type;
-	
+	bool scissor_pad;
+
 	/* see BKE_spacedata_draw_locks() */
 	if (at->do_lock)
 		return;
 	
 	/* if no partial draw rect set, full rect */
-	if (ar->drawrct.xmin == ar->drawrct.xmax)
+	if (ar->drawrct.xmin == ar->drawrct.xmax) {
 		ar->drawrct = ar->winrct;
+		scissor_pad = true;
+	}
 	else {
-		/* extra clip for safety (intersect the rects, could use API func) */
-		ar->drawrct.xmin = max_ii(ar->winrct.xmin, ar->drawrct.xmin);
-		ar->drawrct.ymin = max_ii(ar->winrct.ymin, ar->drawrct.ymin);
-		ar->drawrct.xmax = min_ii(ar->winrct.xmax, ar->drawrct.xmax);
-		ar->drawrct.ymax = min_ii(ar->winrct.ymax, ar->drawrct.ymax);
+		/* extra clip for safety */
+		BLI_rcti_isect(&ar->winrct, &ar->drawrct, &ar->drawrct);
+		scissor_pad = false;
 	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
-	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct, scissor_pad);
 	
 	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 	

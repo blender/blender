@@ -190,7 +190,6 @@ private:
 	bool _order; // true if A and B are in the same order than _edge.A and _edge.B. false otherwise.
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Segment")
 #endif
 };
@@ -337,7 +336,6 @@ private:
 	std::vector<Intersection<Segment<T, Point> > *> _Intersections; // the list of all intersections.
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SweepLine")
 #endif
 };

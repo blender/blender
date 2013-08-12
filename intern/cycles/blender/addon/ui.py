@@ -67,10 +67,10 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         row = layout.row()
-        sub = row.row()
-        sub.active = (device_type == 'NONE' or cscene.device == 'CPU')
-        sub.prop(cscene, "progressive")
-        row.prop(cscene, "squared_samples")
+        row.prop(cscene, "progressive")
+        
+        if not cscene.progressive:
+            row.prop(cscene, "squared_samples")
         
         split = layout.split()
         
@@ -80,7 +80,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.progressive or (device_type != 'NONE' and cscene.device == 'GPU'):
+        if cscene.progressive:
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
@@ -353,7 +353,9 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_object_index")
         col.prop(rl, "use_pass_material_index")
+        col.separator()
         col.prop(rl, "use_pass_shadow")
+        col.prop(rl, "use_pass_ambient_occlusion")
 
         col = split.column()
         col.label(text="Diffuse:")
@@ -371,10 +373,15 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
+        col.label(text="Subsurface:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_subsurface_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_subsurface_color", text="Color", toggle=True)
+        
+        col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
-        col.prop(rl, "use_pass_ambient_occlusion")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -648,7 +655,6 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         lamp = context.lamp
         clamp = lamp.cycles
         cscene = context.scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
         layout.prop(lamp, "type", expand=True)
 
@@ -667,7 +673,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
+        if not cscene.progressive:
             col.prop(clamp, "samples")
 
         col = split.column()
@@ -856,7 +862,6 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         world = context.world
         cworld = world.cycles
         cscene = context.scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
         col = layout.column()
 
@@ -864,7 +869,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.row(align=True)
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
-        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
+        if not cscene.progressive:
             sub.prop(cworld, "samples")
 
 

@@ -5948,7 +5948,7 @@ PyTypeObject pyrna_func_Type = {
 static void pyrna_prop_collection_iter_dealloc(BPy_PropertyCollectionIterRNA *self);
 static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *self);
 
-PyTypeObject pyrna_prop_collection_iter_Type = {
+static PyTypeObject pyrna_prop_collection_iter_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop_collection_iter", /* tp_name */
 	sizeof(BPy_PropertyCollectionIterRNA), /* tp_basicsize */

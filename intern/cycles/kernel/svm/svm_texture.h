@@ -22,8 +22,11 @@ CCL_NAMESPACE_BEGIN
 
 __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, float e)
 {
+#if 0
 	if(distance_metric == NODE_VORONOI_DISTANCE_SQUARED)
+#endif
 		return dot(d, d);
+#if 0
 	if(distance_metric == NODE_VORONOI_ACTUAL_DISTANCE)
 		return len(d);
 	if(distance_metric == NODE_VORONOI_MANHATTAN)
@@ -38,6 +41,7 @@ __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, fl
 		return powf(powf(fabsf(d.x), e) + powf(fabsf(d.y), e) + powf(fabsf(d.z), e), 1.0f/e);
 	
 	return 0.0f;
+#endif
 }
 
 /* Voronoi / Worley like */
@@ -175,31 +179,6 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 {
 	float t = noise_basis(p, basis);
 	return (hard)? fabsf(2.0f*t - 1.0f): t;
-}
-
-/* Waves */
-
-__device float noise_wave(NodeWaveBasis wave, float a)
-{
-	if(wave == NODE_WAVE_SINE) {
-		return 0.5f + 0.5f * sinf(a);
-	}
-	else if(wave == NODE_WAVE_SAW) {
-		float b = M_2PI_F;
-		int n = float_to_int(a / b);
-		a -= n*b;
-		if(a < 0.0f) a += b;
-
-		return a / b;
-	}
-	else if(wave == NODE_WAVE_TRI) {
-		float b = M_2PI_F;
-		float rmax = 1.0f;
-
-		return rmax - 2.0f*fabsf(floorf((a*(1.0f/b))+0.5f) - (a*(1.0f/b)));
-	}
-
-	return 0.0f;
 }
 
 /* Turbulence */

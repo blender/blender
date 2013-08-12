@@ -558,7 +558,7 @@ public:
 		}
 	}
 
-	void path_trace(RenderTile& rtile, int sample)
+	void path_trace(RenderTile& rtile, int sample, bool progressive)
 	{
 		if(have_error())
 			return;
@@ -570,7 +570,13 @@ public:
 		CUdeviceptr d_rng_state = cuda_device_ptr(rtile.rng_state);
 
 		/* get kernel function */
-		cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"))
+		if(progressive)
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace_progressive"))
+		else {
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace_non_progressive"))
+			if(have_error())
+				return;
+		}
 		
 		/* pass in parameters */
 		int offset = 0;
@@ -914,6 +920,8 @@ public:
 		if(task->type == DeviceTask::PATH_TRACE) {
 			RenderTile tile;
 			
+			bool progressive = task->integrator_progressive;
+			
 			/* keep rendering tiles until done */
 			while(task->acquire_tile(this, tile)) {
 				int start_sample = tile.start_sample;
@@ -925,7 +933,7 @@ public:
 							break;
 					}
 
-					path_trace(tile, sample);
+					path_trace(tile, sample, progressive);
 
 					tile.sample = sample + 1;
 

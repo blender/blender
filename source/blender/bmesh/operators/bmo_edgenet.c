@@ -302,8 +302,7 @@ static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 		BMVert *startv = NULL;
 		float dis;
 
-		v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for (i = 0; i < bm->totvert; i++, BM_iter_step(&iter)) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			vd = vdata + BM_elem_index_get(v);
 
 			if (vd->tag)
@@ -827,10 +826,8 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 		}
 
 		if (!v2) {
-			if (path) {
-				edge_free_path(pathbase, path);
-				path = NULL;
-			}
+			edge_free_path(pathbase, path);
+			path = NULL;
 			continue;
 		}
 

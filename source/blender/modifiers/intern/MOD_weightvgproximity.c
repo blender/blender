@@ -216,7 +216,7 @@ static void do_map(Object *ob, float *weights, const int nidx, const float min_d
 		RNG *rng = NULL;
 
 		if (mode == MOD_WVG_MAPPING_RANDOM)
-			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name));
+			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name + 2));
 
 		weightvg_do_map(nidx, weights, mode, NULL, rng);
 

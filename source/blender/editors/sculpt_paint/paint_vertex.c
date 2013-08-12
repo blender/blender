@@ -3364,7 +3364,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	const bool is_interactive = (gesture != NULL);
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
-	DMGradient_userData data = {0};
+	DMGradient_userData data = {NULL};
 
 	if (is_interactive) {
 		if (gesture->userdata == NULL) {

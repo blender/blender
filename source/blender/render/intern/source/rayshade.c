@@ -731,7 +731,7 @@ static void ray_fadeout(Isect *is, ShadeInput *shi, float col[3], const float bl
  * note: 'col' must be initialized */
 static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, const float start[3], const float dir[3], float col[4], ObjectInstanceRen *obi, VlakRen *vlr, int traflag)
 {
-	ShadeInput shi= {0};
+	ShadeInput shi = {NULL};
 	Isect isec;
 	float dist_mir = origshi->mat->dist_mir;
 	
@@ -741,7 +741,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 	isec.mode= RE_RAY_MIRROR;
 	isec.check = RE_CHECK_VLR_RENDER;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-	isec.hint = 0;
+	isec.hint = NULL;
 
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;
@@ -1866,10 +1866,10 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 	isec.orig.face = shi->vlr;
 	isec.check = RE_CHECK_VLR_NON_SOLID_MATERIAL;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-	isec.hint = 0;
+	isec.hint = NULL;
 
-	isec.hit.ob   = 0;
-	isec.hit.face = 0;
+	isec.hit.ob   = NULL;
+	isec.hit.face = NULL;
 
 	isec.last_hit = NULL;
 	
@@ -2013,10 +2013,10 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 	isec.orig.face = shi->vlr;
 	isec.check = RE_CHECK_VLR_RENDER;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-	isec.hint = 0;
+	isec.hint = NULL;
 
-	isec.hit.ob   = 0;
-	isec.hit.face = 0;
+	isec.hit.ob   = NULL;
+	isec.hit.face = NULL;
 	
 	isec.last_hit = NULL;
 	
@@ -2468,7 +2468,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4])
 	RE_RC_INIT(isec, *shi);
 	if (shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
-	isec.hint = 0;
+	isec.hint = NULL;
 	
 	if (lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 		isec.lay= lar->lay;

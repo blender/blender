@@ -43,7 +43,7 @@ class ImageSourceMix : public ImageSource
 {
 public:
 	/// constructor
-	ImageSourceMix (const char *id) : ImageSource(id), m_weight(0x100) {}
+	ImageSourceMix (const char *id) : ImageSource(id), m_offset(0), m_weight(0x100) {}
 	/// destructor
 	virtual ~ImageSourceMix (void) {}
 

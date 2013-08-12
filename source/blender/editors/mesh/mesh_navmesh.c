@@ -461,7 +461,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 		unsigned int lay = 0;
 
 		int nverts = 0, ntris = 0;
-		int *tris = 0;
+		int *tris = NULL;
 		float *verts = NULL;
 
 		createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris, &lay);

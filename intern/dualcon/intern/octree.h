@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef OCTREE_H
-#define OCTREE_H
+#ifndef __OCTREE_H__
+#define __OCTREE_H__
 
 #include <cassert>
 #include <cstring>
@@ -1388,6 +1388,10 @@ class Octree
 		removeInternal(num - 1, par);
 		return npar;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Octree")
+#endif
 };
 
-#endif
+#endif  /* __OCTREE_H__ */

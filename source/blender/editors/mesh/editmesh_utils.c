@@ -1483,7 +1483,7 @@ static BMFace *edge_ray_cast(struct BMBVHTree *tree, const float co[3], const fl
 {
 	BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, NULL, r_hitout, NULL);
 
-	if (f && BM_edge_in_face(f, e))
+	if (f && BM_edge_in_face(e, f))
 		return NULL;
 
 	return f;

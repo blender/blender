@@ -95,6 +95,11 @@ public:
 	{
 		return _curvatures;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXVertex")
+#endif
+
 };
 
 
@@ -197,6 +202,11 @@ public:
 	{
 		_order = i;
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdge")
+#endif
+
 };
 
 /**********************************
@@ -686,6 +696,11 @@ public:
 			(*wxf)->userdata = NULL;
 		}
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFace")
+#endif
+
 };
 
 
@@ -782,6 +797,11 @@ public:
 		}
 	}
 	/*! accessors */
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXShape")
+#endif
+
 };
 
 /*

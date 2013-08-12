@@ -793,7 +793,7 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
-	short locked = (act && act->id.lib != 0);
+	short locked = (act && act->id.lib != NULL);
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -887,7 +887,7 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 	bAnimListElem *ale;
 	int filter;
 	
-	bAnimListElem dummychan = {0};
+	bAnimListElem dummychan = {NULL};
 	
 	if (sce == NULL)
 		return;
@@ -920,8 +920,8 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	bAnimListElem *ale;
 	int filter;
 	
-	bAnimListElem dummychan = {0};
-	Base dummybase = {0};
+	bAnimListElem dummychan = {NULL};
+	Base dummybase = {NULL};
 	
 	if (ob == NULL)
 		return;

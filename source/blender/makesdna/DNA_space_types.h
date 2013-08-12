@@ -72,6 +72,8 @@ struct wmTimer;
 struct MovieClip;
 struct MovieClipScopes;
 struct Mask;
+struct GHash;
+struct BLI_mempool;
 
 
 /* SpaceLink (Base) ==================================== */
@@ -244,13 +246,14 @@ typedef struct SpaceOops {
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 	
 	ListBase tree;
-	struct TreeStore *treestore;
+	struct BLI_mempool *treestore;
 	
 	/* search stuff */
 	char search_string[32];
 	struct TreeStoreElem search_tse;
 
 	short flag, outlinevis, storeflag, search_flags;
+	struct GHash *treehash;
 } SpaceOops;
 
 

@@ -713,11 +713,11 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 			mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
 			
 			invert_m4_m4(imat, mat);
-			mul_serie_m4(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+			mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
 		}
 		else {
 			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-			mul_serie_m4(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+			mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
 		}
 	}
 	

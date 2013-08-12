@@ -440,9 +440,6 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
 	int ntris = 0, *recastData = NULL;
 	unsigned short *tris = NULL;
 
-	/* Don't bother converting if there is nothing to convert */
-	if (!*nverts) return 0;
-
 	res = buildRawVertIndicesData(dm, nverts, verts, &ntris, &tris, trisToFacesMap, &recastData);
 	if (!res) {
 		printf("Converting navmesh: Error! Can't get vertices and indices from mesh\n");

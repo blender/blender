@@ -144,12 +144,13 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BKE_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_mempool.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
+#include "BKE_bpath.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
@@ -2393,12 +2394,55 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	}
 }
 
+static void write_soops(WriteData *wd, SpaceOops *so, LinkNode **tmp_mem_list)
+{
+	BLI_mempool *ts = so->treestore;
+	
+	if (ts) {
+		int elems = BLI_mempool_count(ts);
+		/* linearize mempool to array */
+		TreeStoreElem *data = elems ? BLI_mempool_as_arrayN(ts, "TreeStoreElem") : NULL;
+
+		if (data) {
+			TreeStore *ts_flat = MEM_callocN(sizeof(TreeStore), "TreeStore");
+
+			ts_flat->usedelem = elems;
+			ts_flat->totelem = elems;
+			ts_flat->data = data;
+			
+			/* temporarily replace mempool-treestore by flat-treestore */
+			so->treestore = (BLI_mempool *)ts_flat;
+			writestruct(wd, DATA, "SpaceOops", 1, so);
+
+			writestruct(wd, DATA, "TreeStore", 1, ts_flat);
+			writestruct(wd, DATA, "TreeStoreElem", elems, data);
+
+			/* we do not free the pointers immediately, because if we have multiple
+			 * outliners in a screen we might get the same address on the next
+			 * malloc, which makes the address no longer unique and so invalid for
+			 * lookups on file read, causing crashes or double frees */
+			BLI_linklist_append(tmp_mem_list, ts_flat);
+			BLI_linklist_append(tmp_mem_list, data);
+		}
+		else {
+			so->treestore = NULL;
+			writestruct(wd, DATA, "SpaceOops", 1, so);
+		}
+
+		/* restore old treestore */
+		so->treestore = ts;
+	} else {
+		writestruct(wd, DATA, "SpaceOops", 1, so);
+	}
+}
+
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
 	bScreen *sc;
 	ScrArea *sa;
 	ScrVert *sv;
 	ScrEdge *se;
+	LinkNode *tmp_mem_list = NULL;
 
 	sc= scrbase->first;
 	while (sc) {
@@ -2475,15 +2519,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if (sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					
-					writestruct(wd, DATA, "SpaceOops", 1, so);
-
-					/* outliner */
-					if (so->treestore) {
-						writestruct(wd, DATA, "TreeStore", 1, so->treestore);
-						if (so->treestore->data)
-							writestruct(wd, DATA, "TreeStoreElem", so->treestore->usedelem, so->treestore->data);
-					}
+					write_soops(wd, so, &tmp_mem_list);
 				}
 				else if (sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
@@ -2548,6 +2584,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 		sc= sc->id.next;
 	}
+
+	BLI_linklist_freeN(tmp_mem_list);
 	
 	/* flush helps the compression for undo-save */
 	mywrite(wd, MYWRITE_FLUSH, 0);
@@ -3378,7 +3416,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
-	if (file == -1) {
+	if (file < 0) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}

@@ -44,6 +44,12 @@ CCL_NAMESPACE_BEGIN
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_ATTEMPTS			8
 
+#define BB_DRAPPER				800.0f
+#define BB_MAX_TABLE_RANGE		12000.0f
+#define BB_TABLE_XPOWER			1.5f
+#define BB_TABLE_YPOWER			5.0f
+#define BB_TABLE_SPACING		2.0f
+
 #define TEX_NUM_FLOAT_IMAGES	5
 
 /* device capabilities */
@@ -62,6 +68,7 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #if __CUDA_ARCH__ >= 200
 #define __KERNEL_ADV_SHADING__
+#define __NON_PROGRESSIVE__
 #endif
 #endif
 
@@ -215,7 +222,7 @@ enum PathRayFlag {
 	PATH_RAY_CURVE = 1024,
 
 	/* this gives collisions with localview bits
-	 * see: CYCLES_LOCAL_LAYER_HACK(), grr - Campbell */
+	 * see: blender_util.h, grr - Campbell */
 	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
@@ -262,14 +269,15 @@ typedef enum PassType {
 	PASS_SHADOW = 262144,
 	PASS_MOTION = 524288,
 	PASS_MOTION_WEIGHT = 1048576,
-	PASS_MIST = 2097152
+	PASS_MIST = 2097152,
+	PASS_SUBSURFACE_DIRECT = 4194304,
+	PASS_SUBSURFACE_INDIRECT = 8388608,
+	PASS_SUBSURFACE_COLOR = 16777216
 } PassType;
 
 #define PASS_ALL (~0)
 
 #ifdef __PASSES__
-
-typedef float3 PathThroughput;
 
 typedef struct PathRadiance {
 	int use_light_pass;
@@ -285,18 +293,22 @@ typedef struct PathRadiance {
 	float3 color_diffuse;
 	float3 color_glossy;
 	float3 color_transmission;
+	float3 color_subsurface;
 
 	float3 direct_diffuse;
 	float3 direct_glossy;
 	float3 direct_transmission;
+	float3 direct_subsurface;
 
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
+	float3 indirect_subsurface;
 
 	float3 path_diffuse;
 	float3 path_glossy;
 	float3 path_transmission;
+	float3 path_subsurface;
 
 	float4 shadow;
 	float mist;
@@ -309,11 +321,11 @@ typedef struct BsdfEval {
 	float3 glossy;
 	float3 transmission;
 	float3 transparent;
+	float3 subsurface;
 } BsdfEval;
 
 #else
 
-typedef float3 PathThroughput;
 typedef float3 PathRadiance;
 typedef float3 BsdfEval;
 
@@ -585,7 +597,7 @@ typedef struct ShaderData {
 #endif
 } ShaderData;
 
-/* Constrant Kernel Data
+/* Constant Kernel Data
  *
  * These structs are passed from CPU to various devices, and the struct layout
  * must match exactly. Structs are padded to ensure 16 byte alignment, and we
@@ -666,22 +678,27 @@ typedef struct KernelFilm {
 	int pass_diffuse_color;
 	int pass_glossy_color;
 	int pass_transmission_color;
+	int pass_subsurface_color;
+	
 	int pass_diffuse_indirect;
-
 	int pass_glossy_indirect;
 	int pass_transmission_indirect;
+	int pass_subsurface_indirect;
+	
 	int pass_diffuse_direct;
 	int pass_glossy_direct;
-
 	int pass_transmission_direct;
+	int pass_subsurface_direct;
+	
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
+	int pass_pad1;
 
 	int pass_shadow;
 	float pass_shadow_scale;
 	int filter_table_offset;
-	int pass_pad1;
+	int pass_pad2;
 
 	int pass_mist;
 	float mist_start;
@@ -754,8 +771,10 @@ typedef struct KernelIntegrator {
 	int transmission_samples;
 	int ao_samples;
 	int mesh_light_samples;
-	int use_lamp_mis;
 	int subsurface_samples;
+	
+	/* mis */
+	int use_lamp_mis;
 
 	/* sampler */
 	int sampling_pattern;
@@ -801,7 +820,6 @@ typedef struct KernelCurves {
 	float maximum_width;
 	float curve_epsilon;
 	int pad1;
-
 } KernelCurves;
 
 typedef struct KernelBSSRDF {
@@ -810,6 +828,12 @@ typedef struct KernelBSSRDF {
 	int pad1, pad2;
 } KernelBSSRDF;
 
+typedef struct KernelBlackbody {
+	int table_offset;
+	int pad1, pad2, pad3;
+} KernelBlackbody;
+
+
 typedef struct KernelData {
 	KernelCamera cam;
 	KernelFilm film;
@@ -817,8 +841,9 @@ typedef struct KernelData {
 	KernelSunSky sunsky;
 	KernelIntegrator integrator;
 	KernelBVH bvh;
-	KernelCurves curve_kernel_data;
+	KernelCurves curve;
 	KernelBSSRDF bssrdf;
+	KernelBlackbody blackbody;
 } KernelData;
 
 CCL_NAMESPACE_END

@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef MEMORYALLOCATOR_H
-#define MEMORYALLOCATOR_H
+#ifndef __MEMORYALLOCATOR_H__
+#define __MEMORYALLOCATOR_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +53,11 @@ virtual void printInfo( ) = 0;
 virtual int getAllocated( ) = 0;
 virtual int getAll( ) = 0;
 virtual int getBytes( ) = 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:VirtualMemoryAllocator")
+#endif
+
 };
 
 /**
@@ -216,6 +221,11 @@ int getBytes( )
 {
 	return N;
 };
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:MemoryAllocator")
+#endif
+
 };
 
-#endif
+#endif  /* __MEMORYALLOCATOR_H__ */

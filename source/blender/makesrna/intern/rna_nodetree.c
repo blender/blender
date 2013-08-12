@@ -3509,6 +3509,42 @@ static void def_sh_tex_coord(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_vect_transform(StructRNA *srna)
+{
+	static EnumPropertyItem prop_vect_type_items[] = {
+		{SHD_VECT_TRANSFORM_TYPE_VECTOR, "VECTOR",  0, "Vector",   ""},
+		{SHD_VECT_TRANSFORM_TYPE_POINT,  "POINT",   0, "Point",    ""},
+		{SHD_VECT_TRANSFORM_TYPE_NORMAL, "NORMAL",  0, "Normal",   ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_vect_space_items[] = {
+		{SHD_VECT_TRANSFORM_SPACE_WORLD,  "WORLD",   0, "World",    ""},
+		{SHD_VECT_TRANSFORM_SPACE_OBJECT, "OBJECT",  0, "Object",   ""},
+		{SHD_VECT_TRANSFORM_SPACE_CAMERA, "CAMERA",  0, "Camera",   ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeShaderVectTransform", "storage");
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_vect_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "convert_from", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_vect_space_items);
+	RNA_def_property_ui_text(prop, "Convert From", "Space to convert from");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "convert_to", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_vect_space_items);
+	RNA_def_property_ui_text(prop, "Convert To", "Space to convert to");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
 static void def_sh_tex_wireframe(StructRNA *srna)
 {
 	PropertyRNA *prop;

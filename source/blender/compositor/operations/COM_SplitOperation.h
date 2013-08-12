@@ -20,13 +20,11 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SplitViewerOperation_h
-#define _COM_SplitViewerOperation_h
-#include "COM_ViewerBaseOperation.h"
-#include "DNA_image_types.h"
-#include "BLI_rect.h"
+#ifndef _COM_SplitOperation_h
+#define _COM_SplitOperation_h
+#include "COM_NodeOperation.h"
 
-class SplitViewerOperation : public ViewerBaseOperation {
+class SplitOperation : public NodeOperation {
 private:
 	SocketReader *m_image1Input;
 	SocketReader *m_image2Input;
@@ -34,10 +32,11 @@ private:
 	float m_splitPercentage;
 	bool m_xSplit;
 public:
-	SplitViewerOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber);
+	SplitOperation();
 	void initExecution();
 	void deinitExecution();
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setSplitPercentage(float splitPercentage) { this->m_splitPercentage = splitPercentage; }
 	void setXSplit(bool xsplit) { this->m_xSplit = xsplit; }
 };

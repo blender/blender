@@ -237,7 +237,6 @@ protected:
 	RenderMonitor *_pRenderMonitor;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FEdgeXDetector")
 #endif
 };

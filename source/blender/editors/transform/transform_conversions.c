@@ -1991,7 +1991,7 @@ static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r
 
 	/* may be an edge OR a face array */
 	for (i = 0; i < group_tot; i++) {
-		BMEditSelection ese = {0};
+		BMEditSelection ese = {NULL};
 
 		const int fg_sta = group_index[i][0];
 		const int fg_len = group_index[i][1];
@@ -6421,7 +6421,7 @@ void flushTransTracking(TransInfo *t)
 				}
 			}
 
-			if (tdt->area != TRACK_AREA_POINT || tdt->relative == 0) {
+			if (tdt->area != TRACK_AREA_POINT || tdt->relative == NULL) {
 				td2d->loc2d[0] = loc2d[0];
 				td2d->loc2d[1] = loc2d[1];
 

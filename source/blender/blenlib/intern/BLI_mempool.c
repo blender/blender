@@ -350,27 +350,56 @@ void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 }
 
 /**
+ * Fill in \a data with pointers to each element of the mempool,
+ * to create lookup table.
+ *
  * \param data array of pointers at least the size of 'pool->totused'
  */
-void BLI_mempool_as_array(BLI_mempool *pool, void **data)
+void BLI_mempool_as_table(BLI_mempool *pool, void **data)
 {
 	BLI_mempool_iter iter;
 	void *elem;
 	void **p = data;
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 	BLI_mempool_iternew(pool, &iter);
-	for (elem = BLI_mempool_iterstep(&iter); elem; elem = BLI_mempool_iterstep(&iter)) {
+	while ((elem = BLI_mempool_iterstep(&iter))) {
 		*p++ = elem;
 	}
 	BLI_assert((p - data) == pool->totused);
 }
 
 /**
- * Allocate an array from the mempool.
+ * A version of #BLI_mempool_as_table that allocates and returns the data.
+ */
+void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
+{
+	void **data = MEM_mallocN((size_t)pool->totused * sizeof(void *), allocstr);
+	BLI_mempool_as_table(pool, data);
+	return data;
+}
+
+/**
+ * Fill in \a data with the contents of the mempool.
+ */
+void BLI_mempool_as_array(BLI_mempool *pool, void *data)
+{
+	BLI_mempool_iter iter;
+	char *elem, *p = data;
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
+	BLI_mempool_iternew(pool, &iter);
+	while ((elem = BLI_mempool_iterstep(&iter))) {
+		memcpy(p, elem, (size_t)pool->esize);
+		p += pool->esize;
+	}
+	BLI_assert((p - (char *)data) == pool->totused * pool->esize);
+}
+
+/**
+ * A version of #BLI_mempool_as_array that allocates and returns the data.
  */
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
-	void *data = MEM_mallocN((size_t)(BLI_mempool_count(pool) * pool->esize), allocstr);
+	char *data = MEM_mallocN((size_t)(pool->totused * pool->esize), allocstr);
 	BLI_mempool_as_array(pool, data);
 	return data;
 }

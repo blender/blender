@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef MODELREADER_H
-#define MODELREADER_H
+#ifndef __MODELREADER_H__
+#define __MODELREADER_H__
 
 #include "GeoCommon.h"
 
@@ -59,7 +59,11 @@ virtual int getNumVertices( ) = 0;
 virtual void getNextVertex(float v[3]) = 0;
 
 virtual void printInfo( ) = 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:ModelReader")
+#endif
+
 };
 
-
-#endif
+#endif  /* __MODELREADER_H__ */

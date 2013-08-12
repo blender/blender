@@ -44,6 +44,11 @@ public:
 
 protected:
 	virtual void buildWVertices(WShape& shape, const real *vertices, unsigned vsize);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdgeBuilder")
+#endif
+
 };
 
 } /* namespace Freestyle */

@@ -500,12 +500,14 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void file_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *wmn)
+static void file_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
+#if 0
 	/* context changes */
 	switch (wmn->category) {
 		
 	}
+#endif
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

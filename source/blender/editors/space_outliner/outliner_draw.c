@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_mempool.h"
 
 #include "BLF_translation.h"
 
@@ -407,7 +408,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	TreeStore *ts = soops->treestore;
+	BLI_mempool *ts = soops->treestore;
 	TreeStoreElem *tselem = tsep;
 	
 	if (ts && tselem) {

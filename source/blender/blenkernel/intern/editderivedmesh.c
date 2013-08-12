@@ -1064,7 +1064,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 	const float (*vertexNos)[3];
 	const float (*polyNos)[3];
 	BMFace *efa;
-	DMVertexAttribs attribs = {{{0}}};
+	DMVertexAttribs attribs = {{{NULL}}};
 	GPUVertexAttribs gattribs;
 	int i, matnr, new_matnr;
 

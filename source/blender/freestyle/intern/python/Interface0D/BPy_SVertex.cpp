@@ -371,6 +371,7 @@ static PyObject *SVertex_normals_size_get(BPy_SVertex *self, void *UNUSED(closur
 PyDoc_STRVAR(SVertex_viewvertex_doc,
 "If this SVertex is also a ViewVertex, this property refers to the\n"
 "ViewVertex, and None otherwise.\n"
+"\n"
 ":type: :class:`ViewVertex`");
 
 static PyObject *SVertex_viewvertex_get(BPy_SVertex *self, void *UNUSED(closure))

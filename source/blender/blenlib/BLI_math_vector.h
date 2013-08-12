@@ -36,15 +36,17 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-#if BLI_MATH_DO_INLINE
-#include "intern/math_vector_inline.c"
-#endif
-
 /************************************* Init ***********************************/
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
+#ifdef __GNUC__
+#  define UNUSED_RESULT_ATTR __attribute__((warn_unused_result))
+#else
+#  define UNUSED_RESULT_ATTR
 #endif
 
 MINLINE void zero_v2(float r[2]);
@@ -115,10 +117,10 @@ MINLINE void mul_v3_v3(float r[3], const float a[3]);
 MINLINE void mul_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void mul_v4_fl(float r[4], float f);
 MINLINE void mul_v4_v4fl(float r[3], const float a[3], float f);
-MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3]);
-MINLINE float dot_m3_v3_row_x(float M[3][3], const float a[3]);
-MINLINE float dot_m3_v3_row_y(float M[3][3], const float a[3]);
-MINLINE float dot_m3_v3_row_z(float M[3][3], const float a[3]);
+MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])  UNUSED_RESULT_ATTR;
+MINLINE float dot_m3_v3_row_x(float M[3][3], const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE float dot_m3_v3_row_y(float M[3][3], const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE float dot_m3_v3_row_z(float M[3][3], const float a[3])  UNUSED_RESULT_ATTR;
 
 MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
@@ -137,10 +139,10 @@ MINLINE void negate_v4_v4(float r[4], const float a[3]);
 
 MINLINE void negate_v3_short(short r[3]);
 
-MINLINE float dot_v2v2(const float a[2], const float b[2]);
-MINLINE float dot_v3v3(const float a[3], const float b[3]);
+MINLINE float dot_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+MINLINE float dot_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
 
-MINLINE float cross_v2v2(const float a[2], const float b[2]);
+MINLINE float cross_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3]);
@@ -149,20 +151,20 @@ MINLINE void star_m3_v3(float rmat[3][3], float a[3]);
 
 /*********************************** Length **********************************/
 
-MINLINE float len_squared_v2(const float v[2]);
-MINLINE float len_squared_v3(const float v[3]);
-MINLINE float len_manhattan_v2(const float v[2]);
-MINLINE int   len_manhattan_v2_int(const int v[2]);
-MINLINE float len_manhattan_v3(const float v[3]);
-MINLINE float len_v2(const float a[2]);
-MINLINE float len_v2v2(const float a[2], const float b[2]);
-MINLINE float len_squared_v2v2(const float a[2], const float b[2]);
-MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
-MINLINE float len_manhattan_v2v2(const float a[2], const float b[2]);
-MINLINE int   len_manhattan_v2v2_int(const int a[2], const int b[2]);
-MINLINE float len_manhattan_v3v3(const float a[3], const float b[3]);
-MINLINE float len_v3(const float a[3]);
-MINLINE float len_v3v3(const float a[3], const float b[3]);
+MINLINE float len_squared_v2(const float v[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_squared_v3(const float v[3])  UNUSED_RESULT_ATTR;
+MINLINE float len_manhattan_v2(const float v[2])  UNUSED_RESULT_ATTR;
+MINLINE int   len_manhattan_v2_int(const int v[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_manhattan_v3(const float v[3])  UNUSED_RESULT_ATTR;
+MINLINE float len_v2(const float a[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_squared_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_squared_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
+MINLINE float len_manhattan_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+MINLINE int   len_manhattan_v2v2_int(const int a[2], const int b[2])  UNUSED_RESULT_ATTR;
+MINLINE float len_manhattan_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
+MINLINE float len_v3(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE float len_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
@@ -194,35 +196,35 @@ void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
 
 /********************************* Comparison ********************************/
 
-MINLINE int is_zero_v3(const float a[3]);
-MINLINE int is_zero_v4(const float a[4]);
-MINLINE int is_one_v3(const float a[3]);
+MINLINE int is_zero_v3(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE int is_zero_v4(const float a[4])  UNUSED_RESULT_ATTR;
+MINLINE int is_one_v3(const float a[3])  UNUSED_RESULT_ATTR;
 
-MINLINE int equals_v2v2(const float v1[2], const float v2[2]);
-MINLINE int equals_v3v3(const float a[3], const float b[3]);
-MINLINE int compare_v2v2(const float a[2], const float b[2], const float limit);
-MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
-MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
+MINLINE int equals_v2v2(const float v1[2], const float v2[2])  UNUSED_RESULT_ATTR;
+MINLINE int equals_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
+MINLINE int compare_v2v2(const float a[2], const float b[2], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
 
-MINLINE int compare_v4v4(const float a[4], const float b[4], const float limit);
-MINLINE int equals_v4v4(const float a[4], const float b[4]);
+MINLINE int compare_v4v4(const float a[4], const float b[4], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE int equals_v4v4(const float a[4], const float b[4])  UNUSED_RESULT_ATTR;
 
-MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2]);
+MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])  UNUSED_RESULT_ATTR;
 
 /********************************** Angles ***********************************/
 /* - angle with 2 arguments is angle between vector                          */
 /* - angle with 3 arguments is angle between 3 points at the middle point    */
 /* - angle_normalized_* is faster equivalent if vectors are normalized       */
 
-float angle_v2v2(const float a[2], const float b[2]);
-float angle_signed_v2v2(const float v1[2], const float v2[2]);
-float angle_v2v2v2(const float a[2], const float b[2], const float c[2]);
-float angle_normalized_v2v2(const float a[2], const float b[2]);
-float angle_v3v3(const float a[3], const float b[3]);
-float angle_v3v3v3(const float a[3], const float b[3], const float c[3]);
-float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3]);
-float angle_normalized_v3v3(const float v1[3], const float v2[3]);
-float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3]);
+float angle_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+float angle_signed_v2v2(const float v1[2], const float v2[2])  UNUSED_RESULT_ATTR;
+float angle_v2v2v2(const float a[2], const float b[2], const float c[2])  UNUSED_RESULT_ATTR;
+float angle_normalized_v2v2(const float a[2], const float b[2])  UNUSED_RESULT_ATTR;
+float angle_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
+float angle_v3v3v3(const float a[3], const float b[3], const float c[3])  UNUSED_RESULT_ATTR;
+float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3])  UNUSED_RESULT_ATTR;
+float angle_normalized_v3v3(const float v1[3], const float v2[3])  UNUSED_RESULT_ATTR;
+float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3])  UNUSED_RESULT_ATTR;
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 void angle_poly_v3(float *angles, const float *verts[3], int len);
@@ -258,7 +260,7 @@ void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
 
 /***************************** Array Functions *******************************/
 /* attempted to follow fixed length vertex functions. names could be improved*/
-double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size);
+double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size)  UNUSED_RESULT_ATTR;
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
 float normalize_vn(float *array_tar, const int size);
 void range_vn_i(int *array_tar, const int size, const int start);
@@ -280,9 +282,16 @@ void fill_vn_i(int *array_tar, const int size, const int val);
 void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);
 
+/**************************** Inline Definitions ******************************/
+
+#if BLI_MATH_DO_INLINE
+#include "intern/math_vector_inline.c"
+#endif
+
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop
 #endif
+#undef UNUSED_RESULT_ATTR
 
 #ifdef __cplusplus
 }

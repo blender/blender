@@ -507,13 +507,13 @@ bool BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, int *len)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
-	void *ret;
+	void **ret;
 
 	/* could add support for mapping type */
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-	ret = MEM_mallocN(sizeof(void **) * slot->len, __func__);
-	memcpy(ret, slot->data.buf, sizeof(void **) * slot->len);
+	ret = MEM_mallocN(sizeof(void *) * slot->len, __func__);
+	memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
 	*len = slot->len;
 	return ret;
 }

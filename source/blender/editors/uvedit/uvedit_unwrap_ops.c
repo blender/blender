@@ -362,7 +362,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	ModifierData *md;
 	SubsurfModifierData *smd_real;
 	/* modifier initialization data, will  control what type of subdivision will happen*/
-	SubsurfModifierData smd = {{0}};
+	SubsurfModifierData smd = {{NULL}};
 	/* Used to hold subsurfed Mesh */
 	DerivedMesh *derivedMesh, *initialDerived;
 	/* holds original indices for subsurfed mesh */

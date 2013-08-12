@@ -1149,7 +1149,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* name */
-	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco + 10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco + 0.5f*UI_UNIT_X, yco, 5 * UI_UNIT_X, 0.9f*UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
 	if (con->flag & CONSTRAINT_DISABLE)
 		uiLayoutSetRedAlert(row, TRUE);
@@ -1167,9 +1167,9 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* draw a ghost icon (for proxy) and also a lock beside it, to show that constraint is "proxy locked" */
-		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_GHOST, xco + 244, yco, 19, 19,
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_GHOST, xco + 12.2f * UI_UNIT_X, yco, 0.95f * UI_UNIT_X, 0.95f * UI_UNIT_Y,
 		             NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Proxy Protected"));
-		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_LOCKED, xco + 262, yco, 19, 19,
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_LOCKED, xco + 13.1f * UI_UNIT_X, yco, 0.95f * UI_UNIT_X, 0.95f * UI_UNIT_Y,
 		             NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Proxy Protected"));
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -1228,7 +1228,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* Draw constraint data */
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
-		(yco) -= 21;
+		(yco) -= 10.5f * UI_UNIT_Y;
 	}
 	else {
 		box = uiLayoutBox(col);

@@ -35,11 +35,22 @@ extern "C" {
 	#include "MEM_guardedalloc.h"
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
+	#include "IMB_colormanagement.h"
 }
 
 
-ViewerOperation::ViewerOperation() : ViewerBaseOperation()
+ViewerOperation::ViewerOperation() : NodeOperation()
 {
+	this->setImage(NULL);
+	this->setImageUser(NULL);
+	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
+	this->m_active = false;
+	this->m_doDepthBuffer = false;
+	this->m_viewSettings = NULL;
+	this->m_displaySettings = NULL;
+	this->m_ignoreAlpha = false;
+	
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
@@ -56,7 +67,10 @@ void ViewerOperation::initExecution()
 	this->m_alphaInput = getInputSocketReader(1);
 	this->m_depthInput = getInputSocketReader(2);
 	this->m_doDepthBuffer = (this->m_depthInput != NULL);
-	ViewerBaseOperation::initExecution();
+	
+	if (isActiveViewerOutput()) {
+		initImage();
+	}
 }
 
 void ViewerOperation::deinitExecution()
@@ -64,9 +78,8 @@ void ViewerOperation::deinitExecution()
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
 	this->m_depthInput = NULL;
-	ViewerBaseOperation::deinitExecution();
+	this->m_outputBuffer = NULL;
 }
-
 
 void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
@@ -113,4 +126,64 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		offset4 += offsetadd4;
 	}
 	updateImage(rect);
+}
+
+void ViewerOperation::initImage()
+{
+	Image *ima = this->m_image;
+	void *lock;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, this->m_imageUser, &lock);
+
+	if (!ibuf) return;
+	BLI_lock_thread(LOCK_DRAW_IMAGE);
+	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
+
+		imb_freerectImBuf(ibuf);
+		imb_freerectfloatImBuf(ibuf);
+		IMB_freezbuffloatImBuf(ibuf);
+		ibuf->x = getWidth();
+		ibuf->y = getHeight();
+		imb_addrectfloatImBuf(ibuf);
+		ima->ok = IMA_OK_LOADED;
+
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
+	}
+
+	if (m_doDepthBuffer) {
+		addzbuffloatImBuf(ibuf);
+	}
+	BLI_unlock_thread(LOCK_DRAW_IMAGE);
+
+	/* now we combine the input with ibuf */
+	this->m_outputBuffer = ibuf->rect_float;
+
+	/* needed for display buffer update */
+	this->m_ibuf = ibuf;
+
+	if (m_doDepthBuffer) {
+		this->m_depthBuffer = ibuf->zbuf_float;
+	}
+
+	BKE_image_release_ibuf(this->m_image, this->m_ibuf, lock);
+}
+
+void ViewerOperation::updateImage(rcti *rect)
+{
+	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, NULL, getWidth(), 0, 0,
+	                                  this->m_viewSettings, this->m_displaySettings,
+	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax, FALSE);
+
+	this->updateDraw();
+}
+
+const CompositorPriority ViewerOperation::getRenderPriority() const
+{
+	if (this->isActiveViewerOutput()) {
+		return COM_PRIORITY_HIGH;
+	}
+	else {
+		return COM_PRIORITY_LOW;
+	}
 }
