@@ -50,8 +50,6 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "tools/bmesh_edgesplit.h"
-
 #include "mesh_intern.h"  /* own include */
 
 /**
@@ -941,6 +939,9 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 	                            ar, projectMat, fmval);
 	MEM_freeN(eloop_pairs);
 
+	/* deselect loose verts */
+	BM_mesh_select_mode_clean_ex(bm, SCE_SELECT_EDGE);
+
 	if (do_fill && fill_uloop_pairs) {
 		edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
 		MEM_freeN(fill_uloop_pairs);
@@ -950,8 +951,6 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
 		return OPERATOR_CANCELLED;
 	}
-
-	EDBM_selectmode_flush(em);
 
 	return OPERATOR_FINISHED;
 }

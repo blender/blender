@@ -70,6 +70,79 @@ static void recount_totsels(BMesh *bm)
 }
 
 /**
+ * \brief Select Mode Clean
+ *
+ * Remove isolated selected elements when in a mode doesn't support them.
+ * eg: in edge-mode a selected vertex must be connected to a selected edge.
+ *
+ * \note this could be made apart of #BM_mesh_select_mode_flush_ex
+ */
+void BM_mesh_select_mode_clean_ex(BMesh *bm, const short selectmode)
+{
+	if (selectmode & SCE_SELECT_VERTEX) {
+		/* pass */
+	}
+	else if (selectmode & SCE_SELECT_EDGE) {
+		BMIter iter;
+
+		if (bm->totvertsel) {
+			BMVert *v;
+			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+				BM_elem_flag_disable(v, BM_ELEM_SELECT);
+			}
+			bm->totvertsel = 0;
+		}
+
+		if (bm->totedgesel) {
+			BMEdge *e;
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+					BM_vert_select_set(bm, e->v1, true);
+					BM_vert_select_set(bm, e->v2, true);
+				}
+			}
+		}
+	}
+	else if (selectmode & SCE_SELECT_FACE) {
+		BMIter iter;
+
+		if (bm->totvertsel) {
+			BMVert *v;
+			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+				BM_elem_flag_disable(v, BM_ELEM_SELECT);
+			}
+			bm->totvertsel = 0;
+		}
+
+		if (bm->totedgesel) {
+			BMEdge *e;
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_disable(e, BM_ELEM_SELECT);
+			}
+			bm->totedgesel = 0;
+		}
+
+		if (bm->totfacesel) {
+			BMFace *f;
+			BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					BMLoop *l_iter, *l_first;
+					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+					do {
+						BM_edge_select_set(bm, l_iter->e, true);
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+			}
+		}
+	}
+}
+
+void BM_mesh_select_mode_clean(BMesh *bm)
+{
+	BM_mesh_select_mode_clean_ex(bm, bm->selectmode);
+}
+
+/**
  * \brief Select Mode Flush
  *
  * Makes sure to flush selections 'upwards'

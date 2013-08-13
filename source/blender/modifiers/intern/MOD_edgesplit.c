@@ -44,7 +44,6 @@
 #include "BKE_modifier.h"
 
 #include "bmesh.h"
-#include "tools/bmesh_edgesplit.h"
 
 #include "DNA_object_types.h"
 
