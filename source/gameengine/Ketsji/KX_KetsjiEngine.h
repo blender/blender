@@ -158,9 +158,10 @@ private:
 		tc_network,
 		tc_scenegraph,
 		tc_rasterizer,
-		tc_services,	// time spend in miscelaneous activities
+		tc_services,	// time spent in miscelaneous activities
 		tc_overhead,	// profile info drawing overhead
-		tc_outside,		// time spend outside main loop
+		tc_outside,		// time spent outside main loop
+		tc_latency,		// time spent waiting on the gpu
 		tc_numCategories
 	} KX_TimeCategory;
 
