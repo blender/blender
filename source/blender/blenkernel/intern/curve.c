@@ -2242,15 +2242,18 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 		}
 	}
 	else {
-		/* Need to correct quat for the last point,
+		/* Need to correct quat for the first/last point,
 		 * this is so because previously it was only calculated
 		 * using it's own direction, which might not correspond
-		 * the twist of previous point.
+		 * the twist of neighbor point.
 		 */
+		bevp1 = (BevPoint *)(bl + 1);
+		bevp0 = bevp1 + 1;
+		minimum_twist_between_two_points(bevp1, bevp0);
+
 		bevp2 = (BevPoint *)(bl + 1);
 		bevp1 = bevp2 + (bl->nr - 1);
 		bevp0 = bevp1 - 1;
-
 		minimum_twist_between_two_points(bevp1, bevp0);
 	}
 }
