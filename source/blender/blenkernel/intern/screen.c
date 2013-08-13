@@ -136,6 +136,11 @@ void BKE_spacetype_register(SpaceType *st)
 	BLI_addtail(&spacetypes, st);
 }
 
+int BKE_spacetype_exists(int spaceid)
+{
+	return BKE_spacetype_from_id(spaceid) != NULL;
+}
+
 /* ***************** Space handling ********************** */
 
 void BKE_spacedata_freelist(ListBase *lb)

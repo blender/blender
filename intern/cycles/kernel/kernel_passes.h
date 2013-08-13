@@ -48,7 +48,7 @@ __device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float 
 	if(!(flag & PASS_ALL))
 		return;
 	
-	/* todo: add alpha treshold */
+	/* todo: add alpha threshold */
 	if(!(path_flag & PATH_RAY_TRANSPARENT)) {
 		if(sample == 0) {
 			if(flag & PASS_DEPTH) {

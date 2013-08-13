@@ -457,7 +457,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 
 		/* run the separate arg */
-		bmesh_edge_separate(bm, es->e_old, es->l);
+		bmesh_edge_separate(bm, es->e_old, es->l, false);
 
 		/* calc edge-split info */
 		es->e_new = es->l->e;
@@ -535,7 +535,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 				/* disable touching twice, this _will_ happen if the flags not disabled */
 				BM_elem_flag_disable(v, BM_ELEM_TAG);
 
-				bmesh_vert_separate(bm, v, &vout, &r_vout_len);
+				bmesh_vert_separate(bm, v, &vout, &r_vout_len, false);
 				v = NULL; /* don't use again */
 
 				/* in some cases the edge doesn't split off */

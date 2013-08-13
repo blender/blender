@@ -255,7 +255,7 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl, bool do_multi_transform)
 
 void ShaderGraph::find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input)
 {
-	/* find all nodes that this input dependes on directly and indirectly */
+	/* find all nodes that this input depends on directly and indirectly */
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
 
 	if(node) {

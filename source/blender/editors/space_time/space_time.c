@@ -562,6 +562,7 @@ static void time_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), AR
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 	}
 }
 

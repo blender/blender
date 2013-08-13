@@ -478,7 +478,7 @@ FitCurveWrapper::~FitCurveWrapper()
 
 void FitCurveWrapper::DrawBezierCurve(int n, Vector2 *curve)
 {
-	for (int i = 0; i < n + 1; ++i)
+	for (int i = 0; i <= n; ++i)
 		_vertices.push_back(curve[i]);
 }
 

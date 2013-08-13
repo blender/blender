@@ -353,7 +353,9 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_object_index")
         col.prop(rl, "use_pass_material_index")
+        col.separator()
         col.prop(rl, "use_pass_shadow")
+        col.prop(rl, "use_pass_ambient_occlusion")
 
         col = split.column()
         col.label(text="Diffuse:")
@@ -380,7 +382,6 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
-        col.prop(rl, "use_pass_ambient_occlusion")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):

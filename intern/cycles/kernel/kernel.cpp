@@ -90,10 +90,12 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 
 void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
 {
-	if(kernel_data.integrator.progressive)
-		kernel_path_trace_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
-	else
+#ifdef __NON_PROGRESSIVE__
+	if(!kernel_data.integrator.progressive)
 		kernel_path_trace_non_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
+	else
+#endif
+		kernel_path_trace_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
 /* Tonemapping */

@@ -119,7 +119,7 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 
 	progress.set_status("Updating Hair settings", "Copying Hair settings to device");
 
-	KernelCurves *kcurve= &dscene->data.curve_kernel_data;
+	KernelCurves *kcurve= &dscene->data.curve;
 
 	kcurve->curveflags = 0;
 

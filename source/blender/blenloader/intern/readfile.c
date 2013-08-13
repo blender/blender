@@ -6138,20 +6138,26 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		ui_list->type = NULL;
 	}
 
-	ar->regiondata = newdataadr(fd, ar->regiondata);
-	if (ar->regiondata) {
-		if (spacetype == SPACE_VIEW3D) {
-			RegionView3D *rv3d = ar->regiondata;
-			
-			rv3d->localvd = newdataadr(fd, rv3d->localvd);
-			rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
-			
-			rv3d->depths = NULL;
-			rv3d->gpuoffscreen = NULL;
-			rv3d->ri = NULL;
-			rv3d->render_engine = NULL;
-			rv3d->sms = NULL;
-			rv3d->smooth_timer = NULL;
+	if (spacetype == SPACE_EMPTY) {
+		/* unkown space type, don't leak regiondata */
+		ar->regiondata = NULL;
+	}
+	else {
+		ar->regiondata = newdataadr(fd, ar->regiondata);
+		if (ar->regiondata) {
+			if (spacetype == SPACE_VIEW3D) {
+				RegionView3D *rv3d = ar->regiondata;
+
+				rv3d->localvd = newdataadr(fd, rv3d->localvd);
+				rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
+
+				rv3d->depths = NULL;
+				rv3d->gpuoffscreen = NULL;
+				rv3d->ri = NULL;
+				rv3d->render_engine = NULL;
+				rv3d->sms = NULL;
+				rv3d->smooth_timer = NULL;
+			}
 		}
 	}
 	
@@ -6238,6 +6244,11 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 		sa->handlers.first = sa->handlers.last = NULL;
 		sa->type = NULL;	/* spacetype callbacks */
 		sa->region_active_win = -1;
+
+		/* if we do not have the spacetype registered (game player), we cannot
+		 * free it, so don't allocate any new memory for such spacetypes. */
+		if (!BKE_spacetype_exists(sa->spacetype))
+			sa->spacetype = SPACE_EMPTY;
 		
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
 			direct_link_region(fd, ar, sa->spacetype);
@@ -6255,7 +6266,12 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 		
 		for (sl = sa->spacedata.first; sl; sl = sl->next) {
 			link_list(fd, &(sl->regionbase));
-			
+
+			/* if we do not have the spacetype registered (game player), we cannot
+			 * free it, so don't allocate any new memory for such spacetypes. */
+			if (!BKE_spacetype_exists(sl->spacetype))
+				sl->spacetype = SPACE_EMPTY;
+
 			for (ar = sl->regionbase.first; ar; ar = ar->next)
 				direct_link_region(fd, ar, sl->spacetype);
 			

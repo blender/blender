@@ -189,7 +189,7 @@ list<Tile>::iterator TileManager::next_background_tile(int device, int tile_orde
 
 	int64_t cordx = max(1, params.width/resolution);
 	int64_t cordy = max(1, params.height/resolution);
-	int64_t mindist = cordx * cordy;
+	int64_t mindist = INT_MAX;
 	
 	int64_t centx = cordx / 2, centy = cordy / 2;
 

@@ -50,16 +50,18 @@ void    BM_face_kill(BMesh *bm, BMFace *f);
 void    BM_edge_kill(BMesh *bm, BMEdge *e);
 void    BM_vert_kill(BMesh *bm, BMVert *v);
 
-bool    bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep);
+void    bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep,
+                            const bool copy_select);
 bool    BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target);
 bool    BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target);
 
-bool    bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len);
+void    bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+                            const bool copy_select);
 
 bool    bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del);
-bool    BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+void    BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                          BMEdge **e_in, int e_in_len);
 
 /* EULER API - For modifying structure */

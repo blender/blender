@@ -487,6 +487,9 @@ static void pose_copy_menu(Scene *scene)
 					break;
 					case 8: /* Custom Bone Shape */
 						pchan->custom = pchanact->custom;
+						if (pchan->custom) {
+							id_us_plus(&pchan->custom->id);
+						}
 						break;
 					case 9: /* Visual Location */
 						BKE_armature_loc_pose_to_bone(pchan, pchanact->pose_mat[3], pchan->loc);

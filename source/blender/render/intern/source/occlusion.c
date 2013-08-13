@@ -567,7 +567,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 				node->child[b].node = child;
 
 				/* keep track of maximum depth for stack */
-				if (depth + 1 > tree->maxdepth)
+				if (depth >= tree->maxdepth)
 					tree->maxdepth = depth + 1;
 
 				if (tree->dothreadedbuild)

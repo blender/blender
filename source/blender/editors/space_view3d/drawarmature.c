@@ -1485,7 +1485,7 @@ static void draw_dof_ellipse(float ax, float az)
 		z = staticSine[i];
 		
 		px = 0.0f;
-		for (j = 1; j < n - i + 1; j++) {
+		for (j = 1; j <= (n - i); j++) {
 			x = staticSine[j];
 			
 			if (j == n - i) {

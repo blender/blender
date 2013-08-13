@@ -91,7 +91,7 @@ void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		sd->segment = isect->segment;
 
 		float tcorr = isect->t;
-		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
+		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
 			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
 			sd->ray_length = tcorr;
 		}
@@ -193,7 +193,7 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 		sd->segment = isect->segment;
 
 		float tcorr = isect->t;
-		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_POSTINTERSECTCORRECTION)
+		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION)
 			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
 
 		sd->P = bvh_curve_refine(kg, sd, isect, ray, tcorr);

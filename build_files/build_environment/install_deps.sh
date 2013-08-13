@@ -237,6 +237,7 @@ OSL_SKIP=false
 # Version??
 OPENCOLLADA_VERSION="1.3"
 OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
+OPENCOLLADA_REPO_UID="828b60384552b83e55d2af7055f07d2c40b4d3f4"
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
@@ -1632,7 +1633,7 @@ clean_OpenCOLLADA() {
 
 compile_OpenCOLLADA() {
   # To be changed each time we make edits that would modify the compiled results!
-  opencollada_magic=6
+  opencollada_magic=7
   _init_opencollada
 
   # Clean install if needed!
@@ -1657,7 +1658,7 @@ compile_OpenCOLLADA() {
     git pull origin master
 
     # Stick to same rev as windows' libs...
-    git checkout e886e196673222f2f4bc32b936dc96419fff815f
+    git checkout $OPENCOLLADA_REPO_UID
     git reset --hard
 
     # Always refresh the whole build!

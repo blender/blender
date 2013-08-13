@@ -254,6 +254,7 @@ struct SpaceType *BKE_spacetype_from_id(int spaceid);
 struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
+int BKE_spacetype_exists(int spaceid);
 void BKE_spacetypes_free(void); /* only for quitting blender */
 
 /* spacedata */

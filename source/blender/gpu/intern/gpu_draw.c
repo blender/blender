@@ -1243,8 +1243,7 @@ void GPU_free_unused_buffers(void)
 	image_free_queue = NULL;
 
 	/* vbo buffers */
-	/* it's probably not necessary to free all buffers every frame */
-	/* GPU_buffer_pool_free_unused(0); */
+	GPU_global_buffer_pool_free_unused();
 
 	BLI_unlock_thread(LOCK_OPENGL);
 }

@@ -510,24 +510,6 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 
 /* --- end 'face-fill' code --- */
 
-
-static bool edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
-{
-	BMOperator bmop;
-
-	if (!EDBM_op_init(em, &bmop, op, "split_edges edges=%he verts=%hv use_verts=%b",
-	                  BM_ELEM_TAG, BM_ELEM_SELECT, true))
-	{
-		return false;
-	}
-	BMO_op_exec(em->bm, &bmop);
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return false;
-	}
-
-	return true;
-}
-
 /**
  * This is the main vert ripping function (rip when one vertex is selected)
  */
@@ -648,11 +630,9 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 
 		BM_vert_select_set(bm, v, false);
 
-		if (bmesh_vert_separate(bm, v, &vout, &vout_len) == false) {
-			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
-			return OPERATOR_CANCELLED;
-		}
-		else if (vout_len < 2) {
+		bmesh_vert_separate(bm, v, &vout, &vout_len, true);
+
+		if (vout_len < 2) {
 			MEM_freeN(vout);
 			/* set selection back to avoid active-unselected vertex */
 			BM_vert_select_set(bm, v, true);
@@ -786,10 +766,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
 		}
 
-		if (!edbm_rip_call_edgesplit(em, op)) {
-			if (fill_uloop_pairs) MEM_freeN(fill_uloop_pairs);
-			return OPERATOR_CANCELLED;
-		}
+		BM_mesh_edgesplit(em->bm, true, true, true);
 	}
 
 	dist = FLT_MAX;
@@ -951,10 +928,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
 	}
 
-	if (!edbm_rip_call_edgesplit(em, op)) {
-		if (fill_uloop_pairs) MEM_freeN(fill_uloop_pairs);
-		return OPERATOR_CANCELLED;
-	}
+	BM_mesh_edgesplit(em->bm, true, true, true);
 
 	/* note: the output of the bmesh operator is ignored, since we built
 	 * the contiguous loop pairs to split already, its possible that some
@@ -965,6 +939,9 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 	                            ar, projectMat, fmval);
 	MEM_freeN(eloop_pairs);
 
+	/* deselect loose verts */
+	BM_mesh_select_mode_clean_ex(bm, SCE_SELECT_EDGE);
+
 	if (do_fill && fill_uloop_pairs) {
 		edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
 		MEM_freeN(fill_uloop_pairs);
@@ -974,8 +951,6 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
 		return OPERATOR_CANCELLED;
 	}
-
-	EDBM_selectmode_flush(em);
 
 	return OPERATOR_FINISHED;
 }

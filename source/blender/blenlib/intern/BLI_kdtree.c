@@ -349,7 +349,7 @@ static void add_in_range(KDTreeNearest **ptn, int found, int *totfoundstack, int
 {
 	KDTreeNearest *to;
 
-	if (found + 1 > *totfoundstack) {
+	if (found >= *totfoundstack) {
 		KDTreeNearest *temp = MEM_callocN((*totfoundstack + 50) * sizeof(KDTreeNode), "psys_treefoundstack");
 		memcpy(temp, *ptn, *totfoundstack * sizeof(KDTreeNearest));
 		if (*ptn)
