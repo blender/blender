@@ -88,7 +88,7 @@ int object_remove_material_slot(struct Object *ob);
 
 /* rna api */
 void material_append_id(struct ID *id, struct Material *ma);
-struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot); /* index is an int because of RNA */
+struct Material *material_pop_id(struct ID *id, int index, bool remove_material_slot); /* index is an int because of RNA */
 
 /* rendering */
 

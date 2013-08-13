@@ -353,9 +353,26 @@ static void rna_IDMaterials_append_id(ID *id, Material *ma)
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 }
 
-static Material *rna_IDMaterials_pop_id(ID *id, int index_i, int remove_material_slot)
+static Material *rna_IDMaterials_pop_id(ID *id, ReportList *reports, int index_i, int remove_material_slot)
 {
-	Material *ma = material_pop_id(id, index_i, remove_material_slot);
+	Material *ma;
+	short *totcol = give_totcolp_id(id);
+	const short totcol_orig = *totcol;
+	if (index_i < 0) {
+		index_i += (*totcol);
+	}
+
+	if ((index_i < 0) || (index_i >= (*totcol))) {
+		BKE_report(reports, RPT_ERROR, "Index out of range");
+		return NULL;
+	}
+
+	ma = material_pop_id(id, index_i, remove_material_slot);
+
+	if (*totcol == totcol_orig) {
+		BKE_report(reports, RPT_ERROR, "No material to removed");
+		return NULL;
+	}
 
 	DAG_id_tag_update(id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
@@ -476,9 +493,9 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "pop", "rna_IDMaterials_pop_id");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a material from the data block");
-	parm = RNA_def_int(func, "index", 0, 0, MAXMAT, "", "Index of material to remove", 0, MAXMAT);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "index", -1, -MAXMAT, MAXMAT, "", "Index of material to remove", 0, MAXMAT);
 	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
 	parm = RNA_def_pointer(func, "material", "Material", "", "Material to remove");
 	RNA_def_function_return(func, parm);

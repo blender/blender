@@ -144,6 +144,10 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
+	if (!ELEM4(soops->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_GROUPS)) {
+		return FALSE;
+	}
+
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {

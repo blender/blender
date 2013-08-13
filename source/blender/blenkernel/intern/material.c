@@ -572,7 +572,7 @@ void material_append_id(ID *id, Material *ma)
 	}
 }
 
-Material *material_pop_id(ID *id, int index_i, int remove_material_slot)
+Material *material_pop_id(ID *id, int index_i, bool remove_material_slot)
 {
 	short index = (short)index_i;
 	Material *ret = NULL;
@@ -583,34 +583,24 @@ Material *material_pop_id(ID *id, int index_i, int remove_material_slot)
 			ret = (*matar)[index];
 			id_us_min((ID *)ret);
 
+			if (*totcol <= 1) {
+				*totcol = 0;
+				MEM_freeN(*matar);
+				*matar = NULL;
+			}
+			else {
+				if (index + 1 != (*totcol))
+					memmove((*matar) + index, (*matar) + (index + 1), sizeof(void *) * ((*totcol) - (index + 1)));
+
+				(*totcol)--;
+				*matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
+				test_object_materials(G.main, id);
+			}
+
 			if (remove_material_slot) {
-				if (*totcol <= 1) {
-					*totcol = 0;
-					MEM_freeN(*matar);
-					*matar = NULL;
-				}
-				else {
-					Material **mat;
-					if (index + 1 != (*totcol))
-						memmove((*matar) + index, (*matar) + (index + 1), sizeof(void *) * ((*totcol) - (index + 1)));
-
-					(*totcol)--;
-					
-					mat = MEM_callocN(sizeof(void *) * (*totcol), "newmatar");
-					memcpy(mat, *matar, sizeof(void *) * (*totcol));
-					MEM_freeN(*matar);
-
-					*matar = mat;
-					test_object_materials(G.main, id);
-				}
-
 				/* decrease mat_nr index */
 				data_delete_material_index_id(id, index);
 			}
-
-			/* don't remove material slot, only clear it*/
-			else
-				(*matar)[index] = NULL;
 		}
 	}
 	
@@ -1842,8 +1832,14 @@ static void convert_tfacematerial(Main *main, Material *ma)
 			mf->mat_nr = mat_nr;
 		}
 		/* remove material from mesh */
-		for (a = 0; a < me->totcol; )
-			if (me->mat[a] == ma) material_pop_id(&me->id, a, 1); else a++;
+		for (a = 0; a < me->totcol; ) {
+			if (me->mat[a] == ma) {
+				material_pop_id(&me->id, a, true);
+			}
+			else {
+				a++;
+			}
+		}
 	}
 }
 
