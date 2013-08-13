@@ -100,11 +100,11 @@ static int checkbmp(unsigned char *mem)
 		memcpy(&bmi, mem, sizeof(bmi));
 
 		u = LITTLE_LONG(bmi.biSize);
-		/* we only support uncompressed 24 or 32 bits images for now */
+		/* we only support uncompressed images for now. */
 		if (u >= sizeof(BMPINFOHEADER)) {
-			if ((bmi.biCompression == 0) && (bmi.biClrUsed == 0)) {
+			if (bmi.biCompression == 0) {
 				u = LITTLE_SHORT(bmi.biBitCount);
-				if (u >= 16) {
+				if (u >= 8) {
 					ret_val = 1;
 				}
 			}
@@ -125,7 +125,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 {
 	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
-	int x, y, depth, skip, i;
+	int x, y, depth, ibuf_depth, skip, i;
 	unsigned char *bmp, *rect;
 	unsigned short col;
 	double xppm, yppm;
@@ -151,6 +151,13 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	xppm = LITTLE_LONG(bmi.biXPelsPerMeter);
 	yppm = LITTLE_LONG(bmi.biYPelsPerMeter);
 
+	if (depth <= 8) {
+		ibuf_depth = 24;
+	}
+	else {
+		ibuf_depth = depth;
+	}
+
 #if 0
 	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
 	       depth, bmi.biBitCount);
@@ -159,14 +166,33 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 #endif
 
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(x, y, depth, 0);
+		ibuf = IMB_allocImBuf(x, y, ibuf_depth, 0);
 	}
 	else {
-		ibuf = IMB_allocImBuf(x, y, depth, IB_rect);
+		ibuf = IMB_allocImBuf(x, y, ibuf_depth, IB_rect);
 		bmp = mem + skip;
 		rect = (unsigned char *) ibuf->rect;
 
-		if (depth == 16) {
+		if (depth == 8) {
+			const int x_pad = (4 - (x % 4)) % 4;
+			const char (*palette)[4] = (void *)bmp;
+			bmp += bmi.biClrUsed * 4;
+			for (i = y; i > 0; i--) {
+				int j;
+				for (j = x; j > 0; j--) {
+					const char *pcol = palette[bmp[0]];
+					rect[0] = pcol[0];
+					rect[1] = pcol[1];
+					rect[2] = pcol[2];
+
+					rect[3] = 255;
+					rect += 4; bmp += 1;
+				}
+				/* rows are padded to multiples of 4 */
+				bmp += x_pad;
+			}
+		}
+		else if (depth == 16) {
 			for (i = x * y; i > 0; i--) {
 				col = bmp[0] + (bmp[1] << 8);
 				rect[0] = ((col >> 10) & 0x1f) << 3;
@@ -179,6 +205,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 
 		}
 		else if (depth == 24) {
+			const int x_pad = x % 4;
 			for (i = y; i > 0; i--) {
 				int j;
 				for (j = x; j > 0; j--) {
@@ -190,7 +217,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 					rect += 4; bmp += 3;
 				}
 				/* for 24-bit images, rows are padded to multiples of 4 */
-				bmp += x % 4;
+				bmp += x_pad;
 			}
 		}
 		else if (depth == 32) {
