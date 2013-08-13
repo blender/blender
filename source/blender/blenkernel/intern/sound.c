@@ -60,10 +60,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_scene.h"
 
-// evil quiet NaN definition
-static const int NAN_INT = 0x7FC00000;
-#define NAN_FLT *((float *)(&NAN_INT))
-
 #ifdef WITH_AUDASPACE
 // evil global ;-)
 static int sound_cfra;

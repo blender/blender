@@ -80,6 +80,10 @@
 #define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
+/* evil quiet NaN definition */
+static const int NAN_INT = 0x7FC00000;
+#define NAN_FLT *((float *)(&NAN_INT))
+
 /* do not redefine functions from C99 or POSIX.1-2001 */
 #if !(defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L))
 
