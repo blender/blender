@@ -4817,6 +4817,9 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	if (ob->particlesystem.first) {
 		psysindex= 1;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
+			if (!psys_check_enabled(ob, psys))
+				continue;
+			
 			obr= RE_addRenderObject(re, ob, par, index, psysindex, ob->lay);
 			if ((dob && !dob->animated) || (ob->transflag & OB_RENDER_DUPLI)) {
 				obr->flag |= R_INSTANCEABLE;

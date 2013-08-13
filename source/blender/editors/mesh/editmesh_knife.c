@@ -2684,7 +2684,7 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 		}
 	}
 	else {
-		BM_elem_select_copy(bm, bm, f, f_new);
+		BM_elem_select_copy(bm, bm, f_new, f);
 	}
 
 	*r_f_new = f_new;

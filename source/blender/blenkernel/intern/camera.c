@@ -462,7 +462,7 @@ typedef struct CameraViewFrameData {
 	unsigned int tot;
 } CameraViewFrameData;
 
-static void BKE_camera_to_frame_view_cb(const float co[3], void *user_data)
+static void camera_to_frame_view_cb(const float co[3], void *user_data)
 {
 	CameraViewFrameData *data = (CameraViewFrameData *)user_data;
 	unsigned int i;
@@ -526,7 +526,7 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 	data_cb.tot = 0;
 	/* run callback on all visible points */
 	BKE_scene_foreach_display_point(scene, v3d, BA_SELECT,
-	                                BKE_camera_to_frame_view_cb, &data_cb);
+	                                camera_to_frame_view_cb, &data_cb);
 
 	if (data_cb.tot <= 1) {
 		return FALSE;

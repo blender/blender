@@ -27,6 +27,6 @@
  *  \ingroup bmesh
  */
 
-void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only);
+void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, const bool copy_select);
 
 #endif /* __BMESH_EDGESPLIT_H__ */

@@ -1915,7 +1915,8 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
  *
  * \return Success
  */
-bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
+void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+                         const bool copy_select)
 {
 	const int v_edgetot = BM_vert_face_count(v);
 	BMEdge **stack = BLI_array_alloca(stack, v_edgetot);
@@ -1970,6 +1971,9 @@ bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 	verts[0] = v;
 	for (i = 1; i < maxindex; i++) {
 		verts[i] = BM_vert_create(bm, v->co, v, 0);
+		if (copy_select) {
+			BM_elem_select_copy(bm, bm, verts[i], v);
+		}
 	}
 
 	/* Replace v with the new verts in each group */
@@ -2039,14 +2043,12 @@ bool bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 	if (r_vout != NULL) {
 		*r_vout = verts;
 	}
-
-	return true;
 }
 
 /**
  * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
-bool BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+void BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                      BMEdge **e_in, int e_in_len)
 {
 	int i;
@@ -2054,11 +2056,11 @@ bool BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
 	for (i = 0; i < e_in_len; i++) {
 		BMEdge *e = e_in[i];
 		if (e->l && BM_vert_in_edge(e, v)) {
-			bmesh_edge_separate(bm, e, e->l);
+			bmesh_edge_separate(bm, e, e->l, false);
 		}
 	}
 
-	return bmesh_vert_separate(bm, v, r_vout, r_vout_len);
+	bmesh_vert_separate(bm, v, r_vout, r_vout_len, false);
 }
 
 /**
@@ -2114,18 +2116,20 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
  * \note Does nothing if \a l_sep is already the only loop in the
  * edge radial.
  */
-bool bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
+void bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep,
+                         const bool copy_select)
 {
 	BMEdge *e_new;
-	int radlen;
+#ifndef NDEBUG
+	const int radlen = bmesh_radial_length(e->l);
+#endif
 
 	BLI_assert(l_sep->e == e);
 	BLI_assert(e->l);
 	
-	radlen = bmesh_radial_length(e->l);
-	if (radlen < 2) {
+	if (BM_edge_is_boundary(e)) {
 		/* no cut required */
-		return true;
+		return;
 	}
 
 	if (l_sep == e->l) {
@@ -2137,13 +2141,15 @@ bool bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 	bmesh_radial_append(e_new, l_sep);
 	l_sep->e = e_new;
 
+	if (copy_select) {
+		BM_elem_select_copy(bm, bm, e_new, e);
+	}
+
 	BLI_assert(bmesh_radial_length(e->l) == radlen - 1);
 	BLI_assert(bmesh_radial_length(e_new->l) == 1);
 
 	BM_CHECK_ELEMENT(e_new);
 	BM_CHECK_ELEMENT(e);
-
-	return true;
 }
 
 /**
@@ -2162,8 +2168,8 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 
 	/* peel the face from the edge radials on both sides of the
 	 * loop vert, disconnecting the face from its fan */
-	bmesh_edge_separate(bm, l_sep->e, l_sep);
-	bmesh_edge_separate(bm, l_sep->prev->e, l_sep->prev);
+	bmesh_edge_separate(bm, l_sep->e, l_sep, false);
+	bmesh_edge_separate(bm, l_sep->prev->e, l_sep->prev, false);
 
 	if (bmesh_disk_count(v_sep) == 2) {
 		/* If there are still only two edges out of v_sep, then
@@ -2181,7 +2187,7 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 
 	/* Split all fans connected to the vert, duplicating it for
 	 * each fans. */
-	bmesh_vert_separate(bm, v_sep, &vtar, &len);
+	bmesh_vert_separate(bm, v_sep, &vtar, &len, false);
 
 	/* There should have been at least two fans cut apart here,
 	 * otherwise the early exit would have kicked in. */

@@ -98,7 +98,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 	MEM_freeN(vtouch);
 }
 
-void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only)
+void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, const bool copy_select)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -136,7 +136,7 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only)
 
 			/* keep splitting until each loop has its own edge */
 			do {
-				bmesh_edge_separate(bm, e, e->l);
+				bmesh_edge_separate(bm, e, e->l, copy_select);
 			} while (!BM_edge_is_boundary(e));
 
 			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
@@ -159,11 +159,11 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only)
 		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG)) {
 				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-				bmesh_vert_separate(bm, e->v1, NULL, NULL);
+				bmesh_vert_separate(bm, e->v1, NULL, NULL, copy_select);
 			}
 			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG)) {
 				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
-				bmesh_vert_separate(bm, e->v2, NULL, NULL);
+				bmesh_vert_separate(bm, e->v2, NULL, NULL, copy_select);
 			}
 		}
 	}

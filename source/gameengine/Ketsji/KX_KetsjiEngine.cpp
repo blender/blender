@@ -99,7 +99,8 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Rasterizer:",	// tc_rasterizer
 	"Services:",	// tc_services
 	"Overhead:",	// tc_overhead
-	"Outside:"		// tc_outside
+	"Outside:",		// tc_outside
+	"GPU Latency:"	// tc_latency
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
@@ -542,7 +543,10 @@ void KX_KetsjiEngine::EndFrame()
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	m_rasterizer->EndFrame();
 	// swap backbuffer (drawing into this buffer) <-> front/visible buffer
+	m_logger->StartLog(tc_latency, m_kxsystem->GetTimeInSeconds(), true);
 	m_rasterizer->SwapBuffers();
+	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
+
 	m_rendertools->EndFrame(m_rasterizer);
 
 	

@@ -47,7 +47,6 @@
 #include "BKE_curve.h"
 
 #include "bmesh.h"
-#include "tools/bmesh_edgesplit.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 

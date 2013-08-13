@@ -2562,7 +2562,7 @@ void BKE_scene_foreach_display_point(
 	Object *ob;
 
 	for (base = FIRSTBASE; base; base = base->next) {
-		if (BASE_VISIBLE(v3d, base) && (base->flag & flag) == flag) {
+		if (BASE_VISIBLE_BGMODE(v3d, scene, base) && (base->flag & flag) == flag) {
 			ob = base->object;
 
 			if ((ob->transflag & OB_DUPLI) == 0) {

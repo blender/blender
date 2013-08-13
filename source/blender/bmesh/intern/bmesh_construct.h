@@ -53,7 +53,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
 void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
                            const char hflag_mask);
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
-void BM_elem_select_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
+void BM_elem_select_copy(BMesh *bm_dst, BMesh *bm_src, void *ele_dst_v, const void *ele_src_v);
 
 void   BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);

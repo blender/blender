@@ -44,7 +44,6 @@
 #include "BKE_modifier.h"
 
 #include "bmesh.h"
-#include "tools/bmesh_edgesplit.h"
 
 #include "DNA_object_types.h"
 
@@ -91,7 +90,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 		}
 	}
 	
-	BM_mesh_edgesplit(bm, FALSE, TRUE);
+	BM_mesh_edgesplit(bm, false, true, false);
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 
