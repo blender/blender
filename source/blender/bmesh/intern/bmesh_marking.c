@@ -329,18 +329,15 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
 		BM_elem_flag_disable(e, BM_ELEM_SELECT);
 
-		if (bm->selectmode == SCE_SELECT_EDGE ||
-		    bm->selectmode == SCE_SELECT_FACE ||
-		    bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE))
-		{
-
+		if ((bm->selectmode & SCE_SELECT_VERTEX) == 0) {
 			BMIter iter;
 			BMVert *verts[2] = {e->v1, e->v2};
 			BMEdge *e2;
 			int i;
 
+			/* check if the vert is used by a selected edge */
 			for (i = 0; i < 2; i++) {
-				int deselect = 1;
+				bool deselect = true;
 
 				for (e2 = BM_iter_new(&iter, bm, BM_EDGES_OF_VERT, verts[i]); e2; e2 = BM_iter_step(&iter)) {
 					if (e2 == e) {
@@ -348,7 +345,7 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 					}
 
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT)) {
-						deselect = 0;
+						deselect = false;
 						break;
 					}
 				}
