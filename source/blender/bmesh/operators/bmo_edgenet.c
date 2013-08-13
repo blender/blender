@@ -891,8 +891,6 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMFace *f;
 	BMEdge *e;
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
 	EPath *path;
 	EPathNode *node;
 	EdgeData *edata;
@@ -904,7 +902,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	const bool use_fill_check = BMO_slot_bool_get(op->slots_in, "use_fill_check");
 	const short mat_nr        = BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth     = BMO_slot_bool_get(op->slots_in, "use_smooth");
-	int i, j;
+	int i;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 	BMOpSlot *slot_restrict          = BMO_slot_get(op->slots_in, "restrict");
 	BMOpSlot *slot_face_groupmap_out = BMO_slot_get(op->slots_out, "face_groupmap.out");
@@ -984,17 +982,16 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		winding[0] = winding[1] = 0;
 
 		BLI_array_empty(edges);
-		BLI_array_empty(verts);
 		i = 0;
 		for (node = path->nodes.first; node; node = node->next) {
-			if (!node->next)
-				continue;
+			e = BM_edge_exists(node->v, node->next ?
+			                            node->next->v :
+			                            ((EPathNode *)path->nodes.first)->v);
 
-			e = BM_edge_exists(node->v, node->next->v);
-
-			/* this should never happe */
-			if (!e)
+			if (count_edge_faces(bm, e) >= 2) {
+				edge_free_path(pathbase, path);
 				break;
+			}
 
 			/* check on the winding */
 			if (e->l) {
@@ -1004,45 +1001,26 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			edata[BM_elem_index_get(e)].ftag++;
 			BLI_array_grow_one(edges);
 			edges[i++] = e;
-
-			BLI_array_append(verts, node->v);
 		}
 
-		if (edge->l) {
-			vote_on_winding(edge, path->nodes.last, winding);
-		}
-
-		BLI_array_grow_one(edges);
-		edges[i++] = edge;
-		edata[BM_elem_index_get(edge)].ftag++;
-
-		for (j = 0; j < i; j++) {
-			if (count_edge_faces(bm, edges[j]) >= 2) {
-				edge_free_path(pathbase, path);
-				break;
-			}
-		}
-
-		if (j != i) {
+		/* above loop quit early */
+		if (node) {
 			continue;
 		}
 
 		if (i) {
 			BMVert *v1, *v2;
 
-			/* to define the winding order must select first edge,
-			 * otherwise we could leave this as-is */
-			edge = edges[0];
-
 			/* if these are even it doesn't really matter what to do,
 			 * with consistent geometry one will be zero, the choice is clear */
+			node = path->nodes.first;
 			if (winding[0] < winding[1]) {
-				v1 = verts[0];
-				v2 = verts[1];
+				v1 = node->v;
+				v2 = node->next->v;
 			}
 			else {
-				v1 = verts[1];
-				v2 = verts[0];
+				v1 = node->next->v;
+				v2 = node->v;
 			}
 
 			if ((use_fill_check == false) ||
@@ -1070,7 +1048,6 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_NEW);
 
 	BLI_array_free(edges);
-	BLI_array_free(verts);
 	edge_pathbase_free(pathbase);
 	MEM_freeN(edata);
 	MEM_freeN(vdata);
