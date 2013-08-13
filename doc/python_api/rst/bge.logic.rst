@@ -362,9 +362,9 @@ Utility functions
 
    Use / as directory separator in path
    You can use '//' at the start of the string to define a relative path;
-   Blender replaces that string by the directory of the startup .blend or runtime file
-   to make a full path name (doesn't change during the game, even if you load other .blend).
-   The function also converts the directory separator to the local file system format.
+   Blender replaces that string by the directory of the current .blend or runtime file
+   to make a full path name. The function also converts the directory separator to
+   the local file system format.
 
    :arg path: The path string to be converted/expanded.
    :type path: string
