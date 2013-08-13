@@ -31,6 +31,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 #include "BLI_smallhash.h"
 #include "BLI_rand.h"
 #include "BLI_heap.h"
@@ -885,6 +886,67 @@ BLI_INLINE void vote_on_winding(BMEdge *edge, EPathNode *node, unsigned int wind
 	winding[(test_v1 == node->v)]++;
 }
 
+static BMFace *bm_face_from_path(BMesh *bm, EPath *path,
+                                 EdgeData *edata,
+                                 const bool use_fill_check)
+{
+	/* accumulte winding directions for each edge which has a face */
+	const unsigned int path_len = BLI_countlist(&path->nodes);
+	unsigned int winding[2] = {0, 0};
+	unsigned int i;
+
+	EPathNode *node;
+
+	BMVert **verts = BLI_array_alloca(verts, path_len);
+	BMEdge **edges = BLI_array_alloca(edges, path_len);
+	BMEdge *e;
+	BMVert *v;
+
+	for (node = path->nodes.first, i = 0; node; node = node->next, i++) {
+
+		v = node->v;
+		e = BM_edge_exists(v, node->next ?
+		                      node->next->v :
+		                      ((EPathNode *)path->nodes.first)->v);
+
+		/* check on the winding */
+		if (e->l) {
+			if (UNLIKELY(count_edge_faces(bm, e) >= 2)) {
+				return NULL;
+			}
+
+			vote_on_winding(e, node, winding);
+		}
+
+		verts[i] = v;
+		edges[i] = e;
+	}
+
+	/* do after incase we bail early, above */
+	for (i = 0; i < path_len; i++) {
+		edata[BM_elem_index_get(edges[i])].ftag++;
+	}
+
+
+	/* if these are even it doesn't really matter what to do,
+	 * with consistent geometry one will be zero, the choice is clear */
+	if (winding[0] > winding[1]) {
+		BLI_array_wrap(verts, path_len, -1);
+		BLI_array_reverse(verts, path_len);
+		BLI_array_reverse(edges, path_len);
+	}
+
+	if ((use_fill_check == false) ||
+	    /* fairly expensive check - see if there are already faces filling this area */
+	    (BM_face_exists_multi(verts, edges, path_len) == false))
+	{
+		return BM_face_create(bm, verts, edges, path_len, BM_CREATE_NO_DOUBLE);
+	}
+	else {
+		return NULL;
+	}
+}
+
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
@@ -892,18 +954,14 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	BMEdge *e;
 	EPath *path;
-	EPathNode *node;
 	EdgeData *edata;
 	VertData *vdata;
-	BMEdge **edges = NULL;
 	PathBase *pathbase;
-	BLI_array_declare(edges);
 	const bool use_restrict   = BMO_slot_bool_get(op->slots_in, "use_restrict");
 	const bool use_fill_check = BMO_slot_bool_get(op->slots_in, "use_fill_check");
 	const short mat_nr        = BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth     = BMO_slot_bool_get(op->slots_in, "use_smooth");
 	int i;
-	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 	BMOpSlot *slot_restrict          = BMO_slot_get(op->slots_in, "restrict");
 	BMOpSlot *slot_face_groupmap_out = BMO_slot_get(op->slots_out, "face_groupmap.out");
 
@@ -976,78 +1034,28 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edata[BM_elem_index_get(edge)].tag += 1;
 
 		path = edge_find_shortest_path(bm, op, edge, edata, vdata, pathbase, group);
-		if (!path)
-			continue;
+		if (path && path->nodes.first) {
+			BMFace *f = bm_face_from_path(bm, path, edata,
+			                              use_fill_check);
 
-		winding[0] = winding[1] = 0;
-
-		BLI_array_empty(edges);
-		i = 0;
-		for (node = path->nodes.first; node; node = node->next) {
-			e = BM_edge_exists(node->v, node->next ?
-			                            node->next->v :
-			                            ((EPathNode *)path->nodes.first)->v);
-
-			if (count_edge_faces(bm, e) >= 2) {
-				edge_free_path(pathbase, path);
-				break;
-			}
-
-			/* check on the winding */
-			if (e->l) {
-				vote_on_winding(e, node, winding);
-			}
-
-			edata[BM_elem_index_get(e)].ftag++;
-			BLI_array_grow_one(edges);
-			edges[i++] = e;
-		}
-
-		/* above loop quit early */
-		if (node) {
-			continue;
-		}
-
-		if (i) {
-			BMVert *v1, *v2;
-
-			/* if these are even it doesn't really matter what to do,
-			 * with consistent geometry one will be zero, the choice is clear */
-			node = path->nodes.first;
-			if (winding[0] < winding[1]) {
-				v1 = node->v;
-				v2 = node->next->v;
-			}
-			else {
-				v1 = node->next->v;
-				v2 = node->v;
-			}
-
-			if ((use_fill_check == false) ||
-			    /* fairly expensive check - see if there are already faces filling this area */
-			    (BM_face_exists_multi_edge(edges, i) == false))
-			{
-				f = BM_face_create_ngon(bm, v1, v2, edges, i, BM_CREATE_NO_DOUBLE);
-				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
-					BMO_elem_flag_enable(bm, f, FACE_NEW);
-					f->mat_nr = mat_nr;
-					if (use_smooth) {
-						BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
-					}
-				}
-
-				if (use_restrict) {
-					BMO_slot_map_int_insert(op, slot_face_groupmap_out, f, path->group);
+			if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
+				BMO_elem_flag_enable(bm, f, FACE_NEW);
+				f->mat_nr = mat_nr;
+				if (use_smooth) {
+					BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 				}
 			}
-		}
 
-		edge_free_path(pathbase, path);
+			if (use_restrict) {
+				BMO_slot_map_int_insert(op, slot_face_groupmap_out, f, path->group);
+			}
+
+			edge_free_path(pathbase, path);
+		}
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_NEW);
 
-	BLI_array_free(edges);
 	edge_pathbase_free(pathbase);
 	MEM_freeN(edata);
 	MEM_freeN(vdata);
