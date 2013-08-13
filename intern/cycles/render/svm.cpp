@@ -504,7 +504,7 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 
 void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
 {
-	/* todo: the weaks point here is that unlike the single closure sampling 
+	/* todo: the weak point here is that unlike the single closure sampling 
 	 * we will evaluate all nodes even if they are used as input for closures
 	 * that are unused. it's not clear what would be the best way to skip such
 	 * nodes at runtime, especially if they are tangled up  */
