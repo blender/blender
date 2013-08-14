@@ -2399,7 +2399,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
-static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
+static Base *mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	Base *base_new;
 	Object *obedit = base_old->object;
@@ -2441,7 +2441,7 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BM_mesh_free(bm_new);
 	((Mesh *)base_new->object->data)->edit_btmesh = NULL;
 	
-	return true;
+	return base_new;
 }
 
 static bool mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
@@ -2452,7 +2452,7 @@ static bool mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BM
 	/* sel -> tag */
 	BM_mesh_elem_hflag_enable_test(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, true, BM_ELEM_SELECT);
 
-	return mesh_separate_tagged(bmain, scene, base_old, bm_old);
+	return (mesh_separate_tagged(bmain, scene, base_old, bm_old) != NULL);
 }
 
 /* flush a hflag to from verts to edges/faces */
@@ -2492,6 +2492,63 @@ static void bm_mesh_hflag_flush_vert(BMesh *bm, const char hflag)
 	}
 }
 
+/**
+ * Sets an object to a single material. from one of its slots.
+ *
+ * \note This could be used for split-by-material for non mesh types.
+ * \note This could take material data from another object or args.
+ */
+static void mesh_separate_material_assign_mat_nr(Object *ob, const short mat_nr)
+{
+	ID *obdata = ob->data;
+
+	Material ***matarar;
+	short *totcolp;
+
+	totcolp = give_totcolp_id(obdata);
+	matarar = give_matarar_id(obdata);
+
+	if ((totcolp && matarar) == 0) {
+		BLI_assert(0);
+		return;
+	}
+
+	if (*totcolp) {
+		Material *ma_ob;
+		Material *ma_obdata;
+		char matbit;
+
+		if (mat_nr < ob->totcol) {
+			ma_ob = ob->mat[mat_nr];
+			matbit = ob->matbits[mat_nr];
+		}
+		else {
+			ma_ob = NULL;
+			matbit = 0;
+		}
+
+		if (mat_nr < *totcolp) {
+			 ma_obdata = (*matarar)[mat_nr];
+		}
+		else {
+			ma_obdata = NULL;
+		}
+
+		BKE_material_clear_id(obdata, true);
+		BKE_material_resize_object(ob, 1, true);
+		BKE_material_resize_id(obdata, 1, true);
+
+		ob->mat[0] = ma_ob;
+		ob->matbits[0] = matbit;
+		(*matarar)[0] = ma_obdata;
+	}
+	else {
+		BKE_material_clear_id(obdata, true);
+		BKE_material_resize_object(ob, 0, true);
+		BKE_material_resize_id(obdata, 0, true);
+	}
+}
+
 static bool mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	BMFace *f_cmp, *f;
@@ -2499,6 +2556,7 @@ static bool mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BM
 	bool result = false;
 
 	while ((f_cmp = BM_iter_at_index(bm_old, BM_FACES_OF_MESH, NULL, 0))) {
+		Base *base_new;
 		const short mat_nr = f_cmp->mat_nr;
 		int tot = 0;
 
@@ -2522,11 +2580,22 @@ static bool mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BM
 
 		/* leave the current object with some materials */
 		if (tot == bm_old->totface) {
+			mesh_separate_material_assign_mat_nr(base_old->object, mat_nr);
+
+			/* since we're in editmode, must set faces here */
+			BM_ITER_MESH (f, &iter, bm_old, BM_FACES_OF_MESH) {
+				f->mat_nr = 0;
+			}
 			break;
 		}
 
 		/* Move selection into a separate object */
-		result |= mesh_separate_tagged(bmain, scene, base_old, bm_old);
+		base_new = mesh_separate_tagged(bmain, scene, base_old, bm_old);
+		if (base_new) {
+			mesh_separate_material_assign_mat_nr(base_new->object, mat_nr);
+		}
+
+		result |= (base_new != NULL);
 	}
 
 	return result;
@@ -2585,7 +2654,7 @@ static bool mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh
 		bm_mesh_hflag_flush_vert(bm_old, BM_ELEM_TAG);
 
 		/* Move selection into a separate object */
-		result |= mesh_separate_tagged(bmain, scene, base_old, bm_old);
+		result |= (mesh_separate_tagged(bmain, scene, base_old, bm_old) != NULL);
 	}
 
 	return result;

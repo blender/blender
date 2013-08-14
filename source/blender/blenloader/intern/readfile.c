@@ -4345,7 +4345,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				/* Only expand so as not to loose any object materials that might be set. */
 				if (totcol_data && (*totcol_data > ob->totcol)) {
 					/* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
-					resize_object_material(ob, *totcol_data);
+					BKE_material_resize_object(ob, *totcol_data, false);
 				}
 			}
 			

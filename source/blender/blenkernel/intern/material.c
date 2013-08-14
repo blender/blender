@@ -573,6 +573,34 @@ static void material_data_index_clear_id(ID *id)
 	}
 }
 
+void BKE_material_resize_id(struct ID *id, short totcol, bool do_id_user)
+{
+	Material ***matar = give_matarar_id(id);
+	short *totcolp = give_totcolp_id(id);
+
+	if (matar == NULL) {
+		return;
+	}
+
+	if (do_id_user && totcol < (*totcolp)) {
+		short i;
+		for (i = totcol; i < (*totcolp); i++) {
+			id_us_min((ID *)(*matar)[i]);
+		}
+	}
+
+	if (totcol == 0) {
+		if (*totcolp) {
+			MEM_freeN(*matar);
+			*matar = NULL;
+		}
+	}
+	else {
+		*matar = MEM_recallocN(*matar, sizeof(void *) * totcol);
+	}
+	*totcolp = totcol;
+}
+
 void BKE_material_append_id(ID *id, Material *ma)
 {
 	Material ***matar;
@@ -708,10 +736,17 @@ Material *give_node_material(Material *ma)
 	return NULL;
 }
 
-void resize_object_material(Object *ob, const short totcol)
+void BKE_material_resize_object(Object *ob, const short totcol, bool do_id_user)
 {
 	Material **newmatar;
 	char *newmatbits;
+
+	if (do_id_user && totcol < ob->totcol) {
+		short i;
+		for (i = totcol; i < ob->totcol; i++) {
+			id_us_min((ID *)ob->mat[i]);
+		}
+	}
 
 	if (totcol == 0) {
 		if (ob->totcol) {
@@ -733,6 +768,8 @@ void resize_object_material(Object *ob, const short totcol)
 		ob->mat = newmatar;
 		ob->matbits = newmatbits;
 	}
+	/* XXX, why not realloc on shrink? - campbell */
+
 	ob->totcol = totcol;
 	if (ob->totcol && ob->actcol == 0) ob->actcol = 1;
 	if (ob->actcol > ob->totcol) ob->actcol = ob->totcol;
@@ -750,7 +787,7 @@ void test_object_materials(Main *bmain, ID *id)
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == id) {
-			resize_object_material(ob, *totcol);
+			BKE_material_resize_object(ob, *totcol, false);
 		}
 	}
 }
