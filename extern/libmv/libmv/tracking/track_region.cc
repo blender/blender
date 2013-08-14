@@ -796,7 +796,7 @@ struct TranslationRotationWarp {
     parameters[1] = t[1];
 
     // Obtain the rotation via orthorgonal procrustes.
-    Mat2 correlation_matrix;
+    Mat2 correlation_matrix = Mat2::Zero();
     for (int i = 0; i < 4; ++i) {
       correlation_matrix += q1.CornerRelativeToCentroid(i) *
                             q2.CornerRelativeToCentroid(i).transpose();
@@ -864,7 +864,7 @@ struct TranslationRotationScaleWarp {
     parameters[2] = 1.0 - q2.Scale() / q1.Scale();
 
     // Obtain the rotation via orthorgonal procrustes.
-    Mat2 correlation_matrix;
+    Mat2 correlation_matrix = Mat2::Zero();
     for (int i = 0; i < 4; ++i) {
       correlation_matrix += q1.CornerRelativeToCentroid(i) *
                             q2.CornerRelativeToCentroid(i).transpose();
