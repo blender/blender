@@ -952,6 +952,8 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		return OPERATOR_CANCELLED;
 	}
 
+	BM_select_history_validate(bm);
+
 	return OPERATOR_FINISHED;
 }
 
