@@ -67,6 +67,35 @@ static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
 static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
 									  "filled with data.";
 
+bool AUD_OpenALDevice::AUD_OpenALHandle::pause(bool keep)
+{
+	if(m_status)
+	{
+		AUD_MutexLock lock(*m_device);
+
+		if(m_status == AUD_STATUS_PLAYING)
+		{
+			for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
+			{
+				if(it->get() == this)
+				{
+					boost::shared_ptr<AUD_OpenALHandle> This = *it;
+
+					m_device->m_playingSounds.erase(it);
+					m_device->m_pausedSounds.push_back(This);
+
+					alSourcePause(m_source);
+
+					m_status = keep ? AUD_STATUS_STOPPED : AUD_STATUS_PAUSED;
+
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;}
+
 AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, boost::shared_ptr<AUD_IReader> reader, bool keep) :
 	m_isBuffered(false), m_reader(reader), m_keep(keep), m_format(format), m_current(0),
 	m_eos(false), m_loopcount(0), m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING),
@@ -124,32 +153,7 @@ AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, A
 
 bool AUD_OpenALDevice::AUD_OpenALHandle::pause()
 {
-	if(m_status)
-	{
-		AUD_MutexLock lock(*m_device);
-
-		if(m_status == AUD_STATUS_PLAYING)
-		{
-			for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
-			{
-				if(it->get() == this)
-				{
-					boost::shared_ptr<AUD_OpenALHandle> This = *it;
-
-					m_device->m_playingSounds.erase(it);
-					m_device->m_pausedSounds.push_back(This);
-
-					alSourcePause(m_source);
-
-					m_status = AUD_STATUS_PAUSED;
-
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+	return pause(false);
 }
 
 bool AUD_OpenALDevice::AUD_OpenALHandle::resume()
@@ -302,6 +306,9 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::seek(float position)
 		}
 	}
 
+	if(m_status == AUD_STATUS_STOPPED)
+		m_status = AUD_STATUS_PAUSED;
+
 	return true;
 }
 
@@ -409,7 +416,12 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::setLoopCount(int count)
 {
 	if(!m_status)
 		return false;
+
+	if(m_status == AUD_STATUS_STOPPED && (count > m_loopcount || count < 0))
+		m_status = AUD_STATUS_PAUSED;
+
 	m_loopcount = count;
+
 	return true;
 }
 
@@ -987,7 +999,7 @@ void AUD_OpenALDevice::updateStreams()
 			}
 
 			for(it = pauseSounds.begin(); it != pauseSounds.end(); it++)
-				(*it)->pause();
+				(*it)->pause(true);
 
 			for(it = stopSounds.begin(); it != stopSounds.end(); it++)
 				(*it)->stop();

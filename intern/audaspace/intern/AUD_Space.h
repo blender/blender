@@ -125,7 +125,8 @@ typedef enum
 {
 	AUD_STATUS_INVALID = 0,			/// Invalid handle. Maybe due to stopping.
 	AUD_STATUS_PLAYING,				/// Sound is playing.
-	AUD_STATUS_PAUSED				/// Sound is being paused.
+	AUD_STATUS_PAUSED,				/// Sound is being paused.
+	AUD_STATUS_STOPPED				/// Sound is stopped but kept in the device.
 } AUD_Status;
 
 /// Error codes for exceptions (C++ library) or for return values (C API).

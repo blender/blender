@@ -109,7 +109,7 @@ void KX_SoundActuator::play()
 
 	try
 	{
-		m_handle = AUD_getDevice()->play(sound, 0);
+		m_handle = AUD_getDevice()->play(sound);
 	}
 	catch(AUD_Exception&)
 	{
