@@ -498,7 +498,7 @@ __device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
 #ifdef __MULTI_CLOSURE__
 	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
 
-	return _shader_bsdf_multi_eval(kg, sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
+	_shader_bsdf_multi_eval(kg, sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
 #else
 	const ShaderClosure *sc = &sd->closure;
 
@@ -720,7 +720,7 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 			eval += sc->weight*ao_factor;
 			*N += sc->N*average(sc->weight);
 		}
-		if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type)) {
+		else if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type)) {
 			eval += sc->weight;
 			*N += sd->N*average(sc->weight);
 		}
