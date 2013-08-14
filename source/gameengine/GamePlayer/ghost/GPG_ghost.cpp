@@ -458,6 +458,7 @@ int main(int argc, char** argv)
 	IMB_init();
 	BKE_images_init();
 	BKE_modifier_init();
+	DAG_threaded_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();
@@ -1081,6 +1082,7 @@ int main(int argc, char** argv)
 
 	IMB_exit();
 	BKE_images_exit();
+	DAG_threaded_exit();
 
 	SYS_DeleteSystem(syshandle);
 

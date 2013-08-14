@@ -42,6 +42,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_threads.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
@@ -2658,6 +2659,18 @@ void DAG_pose_sort(Object *ob)
 
 /* ************************  DAG FOR THREADED UPDATE  ********************* */
 
+static SpinLock threaded_update_lock;
+
+void DAG_threaded_init(void)
+{
+	BLI_spin_init(&threaded_update_lock);
+}
+
+void DAG_threaded_exit(void)
+{
+	BLI_spin_end(&threaded_update_lock);
+}
+
 /* Initialize the DAG for threaded update.
  *
  * Sets up all the data needed for faster check whether DAG node is
@@ -2670,6 +2683,7 @@ void DAG_threaded_update_begin(Scene *scene)
 	/* We reset valency to zero first... */
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
 		node->valency = 0;
+		node->color = DAG_WHITE;
 	}
 
 	/* ... and then iterate over all the nodes and
@@ -2698,7 +2712,16 @@ void DAG_threaded_update_foreach_ready_node(Scene *scene,
 
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
 		if (node->valency == 0) {
-			func(node, user_data);
+			bool need_schedule;
+
+			BLI_spin_lock(&threaded_update_lock);
+			need_schedule = node->color == DAG_WHITE;
+			node->color = DAG_BLACK;
+			BLI_spin_unlock(&threaded_update_lock);
+
+			if (need_schedule) {
+				func(node, user_data);
+			}
 		}
 	}
 }
@@ -2738,11 +2761,21 @@ void DAG_threaded_update_handle_node_updated(void *node_v,
 	DagAdjList *itA;
 
 	for (itA = node->child; itA; itA = itA->next) {
-		if (itA->node != node) {
-			atomic_sub_uint32(&itA->node->valency, 1);
+		DagNode *child_node = itA->node;
+		if (child_node != node) {
+			atomic_sub_uint32(&child_node->valency, 1);
 
-			if (itA->node->valency == 0) {
-				func(itA->node, user_data);
+			if (child_node->valency == 0) {
+				bool need_schedule;
+
+				BLI_spin_lock(&threaded_update_lock);
+				need_schedule = child_node->color == DAG_WHITE;
+				child_node->color = DAG_BLACK;
+				BLI_spin_unlock(&threaded_update_lock);
+
+				if (need_schedule) {
+					func(child_node, user_data);
+				}
 			}
 		}
 	}

@@ -120,6 +120,7 @@ void free_blender(void)
 	
 	IMB_exit();
 	BKE_images_exit();
+	DAG_threaded_exit();
 
 	BKE_brush_system_exit();
 
