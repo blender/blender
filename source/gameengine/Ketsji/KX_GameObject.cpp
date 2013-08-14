@@ -73,6 +73,7 @@ typedef unsigned long uint_ptr;
 #include "KX_ObstacleSimulation.h"
 
 #include "BL_ActionManager.h"
+#include "BL_Action.h"
 
 #include "PyObjectPlus.h" /* python stuff */
 
@@ -429,9 +430,10 @@ bool KX_GameObject::PlayAction(const char* name,
 								short play_mode,
 								float layer_weight,
 								short ipo_flags,
-								float playback_speed)
+								float playback_speed,
+								short blend_mode)
 {
-	return GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed);
+	return GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed, blend_mode);
 }
 
 void KX_GameObject::StopAction(short layer)
@@ -3311,11 +3313,12 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 	short layer=0, priority=0;
 	short ipo_flags=0;
 	short play_mode=0;
+	short blend_mode=0;
 
-	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "priority", "blendin", "play_mode", "layer_weight", "ipo_flags", "speed", NULL};
+	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "priority", "blendin", "play_mode", "layer_weight", "ipo_flags", "speed", "blend_mode", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhfhf:playAction", const_cast<char**>(kwlist),
-									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &layer_weight, &ipo_flags, &speed))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhfhfh:playAction", const_cast<char**>(kwlist),
+									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &layer_weight, &ipo_flags, &speed, &blend_mode))
 		return NULL;
 
 	layer_check(layer, "playAction");
@@ -3323,7 +3326,13 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 	if (play_mode < 0 || play_mode > BL_Action::ACT_MODE_MAX)
 	{
 		printf("KX_GameObject.playAction(): given play_mode (%d) is out of range (0 - %d), setting to ACT_MODE_PLAY", play_mode, BL_Action::ACT_MODE_MAX-1);
-		play_mode = BL_Action::ACT_MODE_MAX;
+		play_mode = BL_Action::ACT_MODE_PLAY;
+	}
+
+	if (blend_mode < 0 || blend_mode > BL_Action::ACT_BLEND_MAX)
+	{
+		printf("KX_GameObject.playAction(): given blend_mode (%d) is out of range (0 - %d), setting to ACT_BLEND_BLEND", blend_mode, BL_Action::ACT_BLEND_MAX-1);
+		blend_mode = BL_Action::ACT_BLEND_BLEND;
 	}
 
 	if (layer_weight < 0.f || layer_weight > 1.f)
@@ -3332,7 +3341,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 		layer_weight = 0.f;
 	}
 
-	PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, speed);
+	PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, speed, blend_mode);
 
 	Py_RETURN_NONE;
 }
