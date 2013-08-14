@@ -188,7 +188,8 @@ void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, 
 void BKE_mesh_from_nurbs(struct Object *ob);
 void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
 void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
-void BKE_mesh_delete_material_index(struct Mesh *me, short index);
+void BKE_mesh_material_index_remove(struct Mesh *me, short index);
+void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(struct Mesh *mesh);

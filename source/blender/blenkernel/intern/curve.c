@@ -3819,7 +3819,7 @@ void BKE_curve_translate(Curve *cu, float offset[3], int do_keys)
 	}
 }
 
-void BKE_curve_delete_material_index(Curve *cu, int index)
+void BKE_curve_material_index_remove(Curve *cu, int index)
 {
 	const int curvetype = BKE_curve_type_get(cu);
 
@@ -3838,8 +3838,32 @@ void BKE_curve_delete_material_index(Curve *cu, int index)
 		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->mat_nr && nu->mat_nr >= index) {
 				nu->mat_nr--;
-				if (curvetype == OB_CURVE)
+				if (curvetype == OB_CURVE) {
 					nu->charidx--;
+				}
+			}
+		}
+	}
+}
+
+void BKE_curve_material_index_clear(Curve *cu)
+{
+	const int curvetype = BKE_curve_type_get(cu);
+
+	if (curvetype == OB_FONT) {
+		struct CharInfo *info = cu->strinfo;
+		int i;
+		for (i = cu->len - 1; i >= 0; i--, info++) {
+			info->mat_nr = 0;
+		}
+	}
+	else {
+		Nurb *nu;
+
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
+			nu->mat_nr = 0;
+			if (curvetype == OB_CURVE) {
+				nu->charidx = 0;
 			}
 		}
 	}
