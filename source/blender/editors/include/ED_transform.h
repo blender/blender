@@ -90,16 +90,14 @@ enum TfmMode {
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE            0
-#define CTX_TEXTURE         1
-#define CTX_EDGE            2
-#define CTX_NO_PET          4
-#define CTX_TWEAK           8
-#define CTX_NO_MIRROR       16
-#define CTX_AUTOCONFIRM     32
-#define CTX_BMESH           64
-#define CTX_NDOF            128
-#define CTX_MOVIECLIP       256
-#define CTX_MASK            512
+#define CTX_TEXTURE         (1 << 0)
+#define CTX_EDGE            (1 << 1)
+#define CTX_NO_PET          (1 << 2)
+#define CTX_NO_MIRROR       (1 << 3)
+#define CTX_AUTOCONFIRM     (1 << 4)
+#define CTX_NDOF            (1 << 5)
+#define CTX_MOVIECLIP       (1 << 6)
+#define CTX_MASK            (1 << 7)
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
