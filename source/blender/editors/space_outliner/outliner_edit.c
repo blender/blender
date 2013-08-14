@@ -1662,17 +1662,15 @@ static int outliner_parenting_poll(bContext *C)
 static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = NULL;
 	Object *ob = NULL;
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te;
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
 
 	/* search forwards to find the object */
-	te = outliner_find_id(soops, &soops->tree, (ID *)ob);
+	outliner_find_id(soops, &soops->tree, (ID *)ob);
 
 	ED_object_parent_clear(ob, RNA_enum_get(op->ptr, "type"));
 
