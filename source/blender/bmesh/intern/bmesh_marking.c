@@ -816,6 +816,13 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 	}
 }
 
+static BMEditSelection *bm_select_history_create(BMHeader *ele)
+{
+	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
+	ese->htype = ele->htype;
+	ese->ele = (BMElem *)ele;
+	return ese;
+}
 
 /* --- macro wrapped funcs --- */
 bool _bm_select_history_check(BMesh *bm, const BMHeader *ele)
@@ -837,9 +844,7 @@ bool _bm_select_history_remove(BMesh *bm, BMHeader *ele)
 
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)
 {
-	BMEditSelection *ese = (BMEditSelection *) MEM_callocN(sizeof(BMEditSelection), "BMEdit Selection");
-	ese->htype = ele->htype;
-	ese->ele = (BMElem *)ele;
+	BMEditSelection *ese = bm_select_history_create(ele);
 	BLI_addtail(&(bm->selected), ese);
 }
 
@@ -847,6 +852,20 @@ void _bm_select_history_store(BMesh *bm, BMHeader *ele)
 {
 	if (!BM_select_history_check(bm, (BMElem *)ele)) {
 		BM_select_history_store_notest(bm, (BMElem *)ele);
+	}
+}
+
+
+void _bm_select_history_store_after_notest(BMesh *bm, BMEditSelection *ese_ref, BMHeader *ele)
+{
+	BMEditSelection *ese = bm_select_history_create(ele);
+	BLI_insertlinkafter(&(bm->selected), ese_ref, ese);
+}
+
+void _bm_select_history_store_after(BMesh *bm, BMEditSelection *ese_ref, BMHeader *ele)
+{
+	if (!BM_select_history_check(bm, (BMElem *)ele)) {
+		BM_select_history_store_after_notest(bm, ese_ref, (BMElem *)ele);
 	}
 }
 /* --- end macro wrapped funcs --- */
@@ -861,16 +880,13 @@ void BM_select_history_clear(BMesh *bm)
 
 void BM_select_history_validate(BMesh *bm)
 {
-	BMEditSelection *ese, *nextese;
+	BMEditSelection *ese, *ese_next;
 
-	ese = bm->selected.first;
-
-	while (ese) {
-		nextese = ese->next;
+	for (ese = bm->selected.first; ese; ese = ese_next) {
+		ese_next = ese->next;
 		if (!BM_elem_flag_test(ese->ele, BM_ELEM_SELECT)) {
 			BLI_freelinkN(&(bm->selected), ese);
 		}
-		ese = nextese;
 	}
 }
 

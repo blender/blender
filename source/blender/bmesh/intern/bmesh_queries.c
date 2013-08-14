@@ -1986,7 +1986,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 
 		BM_elem_index_set(e, i); /* set_inline */
 	}
-	bm->elem_index_dirty &= ~BM_FACE;
+	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* detect groups */
 	stack = MEM_mallocN(sizeof(*stack) * tot_edges, __func__);

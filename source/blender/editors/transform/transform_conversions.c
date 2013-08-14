@@ -6668,10 +6668,6 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (t->options == CTX_BMESH) {
-		// TRANSFORM_FIX_ME
-		//createTransBMeshVerts(t, G.editBMesh->bm, G.editBMesh->td);
-	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		t->flag |= T_POINTS | T_2D_EDIT;
 		if (t->options & CTX_MASK) {
