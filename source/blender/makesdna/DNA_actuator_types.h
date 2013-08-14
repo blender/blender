@@ -59,7 +59,7 @@ typedef struct bActionActuator {
 	short   layer;          /* Animation layer */
 	short   end_reset;      /* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short   strideaxis;     /* Displacement axis */
-	short   pad;
+	short   blend_mode;		/* Layer blending mode */
 	float   stridelength;   /* Displacement incurred by cycle */ // not in use
 	float   layer_weight;   /* How much of the previous layer to use for blending. (<0 = disable, 0 = add mode) */
 } bActionActuator;
@@ -340,6 +340,10 @@ typedef struct bActuator {
 #define ACT_ACTION_KEY2KEY		5
 #define ACT_ACTION_FROM_PROP	6
 #define ACT_ACTION_MOTION		7
+
+/* actionactuator->blend_mode */
+#define ACT_ACTION_BLEND		0
+#define ACT_ACTION_ADD			1
 
 /* ipoactuator->type */
 #define ACT_IPO_PLAY		0

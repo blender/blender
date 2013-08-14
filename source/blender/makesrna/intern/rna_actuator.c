@@ -593,6 +593,12 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_blend_items[] = {
+	    {ACT_ACTION_BLEND, "BLEND", 0, "Blend", ""},
+	    {ACT_ACTION_ADD, "ADD", 0, "Add", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Action Actuator", "Actuator to control the object movement");
 	RNA_def_struct_sdna_from(srna, "bActionActuator", "data");
@@ -656,7 +662,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "layer_weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Layer Weight",
-	                         "How much of the previous layer to blend into this one (0 = add mode)");
+	                         "How much of the previous layer to blend into this one");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
@@ -689,6 +695,12 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "apply_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
 	RNA_def_property_ui_text(prop, "Child", "Update Action on all children Objects as well");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "blend_mode");
+	RNA_def_property_enum_items(prop, prop_blend_items);
+	RNA_def_property_ui_text(prop, "Blend Mode", "Determines how this layer is blended with previous layers");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR

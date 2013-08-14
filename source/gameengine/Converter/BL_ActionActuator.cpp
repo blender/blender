@@ -66,6 +66,7 @@ BL_ActionActuator::BL_ActionActuator(SCA_IObject *gameobj,
 					float endtime,
 					struct bAction *action,
 					short	playtype,
+					short	blend_mode,
 					short	blendin,
 					short	priority,
 					short	layer,
@@ -88,6 +89,7 @@ BL_ActionActuator::BL_ActionActuator(SCA_IObject *gameobj,
 	m_stridelength(stride),
 	m_layer_weight(layer_weight),
 	m_playtype(playtype),
+    m_blendmode(blend_mode),
 	m_priority(priority),
 	m_layer(layer),
 	m_ipo_flags(ipo_flags),
@@ -187,6 +189,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	bool bUseContinue = false;
 	KX_GameObject *obj = (KX_GameObject*)GetParent();
 	short playtype = BL_Action::ACT_MODE_PLAY;
+	short blendmode = (m_blendmode == ACT_ACTION_ADD) ? BL_Action::ACT_BLEND_ADD : BL_Action::ACT_BLEND_BLEND;
 	float start = m_startframe;
 	float end = m_endframe;
 
@@ -283,7 +286,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			ResetStartTime(curtime);
 		}
 
-		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags))
+		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags, 1.f, blendmode))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
 			if (bUseContinue)
@@ -328,7 +331,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				// Convert into a play action and play back to the beginning
 				end = start;
 				start = obj->GetActionFrame(m_layer);
-				obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+				obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags, 1.f, blendmode);
 
 				m_flag |= ACT_FLAG_PLAY_END;
 				break;
