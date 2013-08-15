@@ -1211,6 +1211,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 	if (object) {
 		double start_time = 0.0;
+		bool add_to_stats = false;
 
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
 
@@ -1219,6 +1220,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 			if (object->recalc & OB_RECALC_ALL) {
 				state->has_updated_objects = true;
+				add_to_stats = true;
 			}
 		}
 
@@ -1229,7 +1231,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		BKE_object_handle_update_ex(scene_parent, object, scene->rigidbody_world);
 
 		/* Calculate statistics. */
-		if (G.debug & G_DEBUG) {
+		if (add_to_stats) {
 			StatisicsEntry *entry;
 
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
