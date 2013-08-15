@@ -25,6 +25,7 @@
 
 set(INC
 	.
+	../atomic
 )
 
 set(INC_SYS

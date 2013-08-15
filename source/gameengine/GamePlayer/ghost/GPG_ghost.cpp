@@ -58,6 +58,7 @@ extern "C"
 #endif  // __cplusplus
 #include "MEM_guardedalloc.h"
 #include "BKE_blender.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"

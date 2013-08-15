@@ -111,7 +111,7 @@ static TaskScheduler *task_scheduler = NULL;
  *     BLI_end_threads(&lb);
  *
  ************************************************ */
-static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
+static SpinLock _malloc_lock;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_draw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -138,22 +138,25 @@ typedef struct ThreadSlot {
 
 static void BLI_lock_malloc_thread(void)
 {
-	pthread_mutex_lock(&_malloc_lock);
+	BLI_spin_lock(&_malloc_lock);
 }
 
 static void BLI_unlock_malloc_thread(void)
 {
-	pthread_mutex_unlock(&_malloc_lock);
+	BLI_spin_unlock(&_malloc_lock);
 }
 
 void BLI_threadapi_init(void)
 {
 	mainid = pthread_self();
+
+	BLI_spin_init(&_malloc_lock);
 }
 
 void BLI_threadapi_exit(void)
 {
 	BLI_task_scheduler_free(task_scheduler);
+	BLI_spin_end(&_malloc_lock);
 }
 
 TaskScheduler *BLI_task_scheduler_get(void)
