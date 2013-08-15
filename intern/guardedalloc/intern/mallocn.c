@@ -50,10 +50,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "atomic_ops.h"
-
 /* should always be defined except for experimental cases */
 #ifdef WITH_GUARDEDALLOC
+
+#include "atomic_ops.h"
 
 /* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
 #if defined(WIN64)
