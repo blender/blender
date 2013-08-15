@@ -258,10 +258,10 @@ atomic_sub_z(size_t *p, size_t x)
 {
 #if (LG_SIZEOF_PTR == 3)
 	return ((size_t)atomic_add_uint64((uint64_t *)p,
-	    (uint64_t)-((int64_t)x)));
+	    (uint64_t) - ((int64_t)x)));
 #elif (LG_SIZEOF_PTR == 2)
 	return ((size_t)atomic_add_uint32((uint32_t *)p,
-	    (uint32_t)-((int32_t)x)));
+	    (uint32_t) - ((int32_t)x)));
 #endif
 }
 
@@ -282,10 +282,10 @@ atomic_sub_u(unsigned *p, unsigned x)
 {
 #if (LG_SIZEOF_INT == 3)
 	return ((unsigned)atomic_add_uint64((uint64_t *)p,
-	    (uint64_t)-((int64_t)x)));
+	    (uint64_t) - ((int64_t)x)));
 #elif (LG_SIZEOF_INT == 2)
 	return ((unsigned)atomic_add_uint32((uint32_t *)p,
-	    (uint32_t)-((int32_t)x)));
+	    (uint32_t) - ((int32_t)x)));
 #endif
 }
 
