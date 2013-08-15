@@ -1162,15 +1162,23 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
+/* Used to visualize CPU threads activity during threaded object update,
+ * would pollute STDERR with whole bunch of timing information which then
+ * could be parsed and nicely visualized.
+ */
+#undef DETAILED_ANALYSIS_OUTPUT
+
 typedef struct StatisicsEntry {
 	struct StatisicsEntry *next, *prev;
 	Object *object;
-	double time;
+	double start_time;
+	double duration;
 } StatisicsEntry;
 
 typedef struct ThreadedObjectUpdateState {
 	Scene *scene;
 	Scene *scene_parent;
+	double base_time;
 
 	/* Execution statistics */
 	ListBase statistics[BLENDER_MAX_THREADS];
@@ -1215,7 +1223,17 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
 
+		if ((object->id.flag & LIB_DOIT) == 0) {
+			if (object->recalc & OB_RECALC_ALL) {
+				printf("Unneeded update %s\n", object->id.name + 2);
+			}
+		}
+
+#ifdef DETAILED_ANALYSIS_OUTPUT
+		{
+#else
 		if (G.debug & G_DEBUG) {
+#endif
 			start_time = PIL_check_seconds_timer();
 
 			if (object->recalc & OB_RECALC_ALL) {
@@ -1236,7 +1254,8 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
 			entry->object = object;
-			entry->time = PIL_check_seconds_timer() - start_time;
+			entry->start_time = start_time;
+			entry->duration = PIL_check_seconds_timer() - start_time;
 
 			BLI_addtail(&state->statistics[threadid], entry);
 		}
@@ -1259,6 +1278,29 @@ static void scene_update_object_add_task(void *node, void *user_data)
 	BLI_task_pool_push(task_pool, scene_update_object_func, node, false, TASK_PRIORITY_LOW);
 }
 
+#ifdef DETAILED_ANALYSIS_OUTPUT
+static void print_thread_statistics_for_analysis(ThreadedObjectUpdateState *state)
+{
+	if (state->has_updated_objects) {
+		int i, tot_thread = BLI_system_thread_count();
+
+		fprintf(stderr, "objects update base time %f\n", state->base_time);
+
+		for (i = 0; i < tot_thread; i++) {
+			StatisicsEntry *entry;
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+			{
+				fprintf(stderr, "thread %d object %s start_time %f duration %f\n",
+				        i, entry->object->id.name + 2,
+				        entry->start_time, entry->duration);
+			}
+			BLI_freelistN(&state->statistics[i]);
+		}
+	}
+}
+#else
 static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
 	int i, tot_thread;
@@ -1281,7 +1323,7 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 			     entry = entry->next)
 			{
 				total_objects++;
-				total_time += entry->time;
+				total_time += entry->duration;
 			}
 
 			printf("Thread %d: total %d objects in %f sec.\n", i, total_objects, total_time);
@@ -1290,15 +1332,16 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 			     entry;
 			     entry = entry->next)
 			{
-				printf("  %s in %f sec\n", entry->object->id.name + 2, entry->time);
+				printf("  %s in %f sec\n", entry->object->id.name + 2, entry->duration);
 			}
 		}
 
 		BLI_freelistN(&state->statistics[i]);
 	}
 }
+#endif
 
-static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_threads)
+static void scene_update_objects(Main *bmain, Scene *scene, Scene *scene_parent, bool use_threads)
 {
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool;
@@ -1320,6 +1363,7 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 	state.scene_parent = scene_parent;
 	memset(state.statistics, 0, sizeof(state.statistics));
 	state.has_updated_objects = false;
+	state.base_time = PIL_check_seconds_timer();
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
 
@@ -1332,6 +1376,29 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 	 * already or not).
 	 */
 	DAG_threaded_update_begin(scene);
+
+	{
+		Base *base;
+		Object *object;
+
+		for (object = bmain->object.first; object; object = object->id.next) {
+			object->id.flag &= ~LIB_DOIT;
+		}
+
+		for (base = scene->base.first; base; base = base->next) {
+			object = base->object;
+			object->id.flag |= LIB_DOIT;
+
+			if (object->dup_group && (object->transflag & OB_DUPLIGROUP)) {
+				GroupObject *go;
+				for (go = object->dup_group->gobject.first; go; go = go->next) {
+					if (go->ob) {
+						go->ob->id.flag |= LIB_DOIT;
+					}
+				}
+			}
+		}
+	}
 
 	/* Put all nodes which are already ready for schedule to the task pool.
 	 * usually its just a Scene node.
@@ -1351,9 +1418,13 @@ static void scene_update_objects(Scene *scene, Scene *scene_parent, bool use_thr
 
 	BLI_end_threaded_malloc();
 
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	print_thread_statistics_for_analysis(&state);
+#else
 	if (G.debug & G_DEBUG) {
 		print_threads_statistics(&state);
 	}
+#endif
 
 	/* XXX: Weak, very weak!
 	 *
@@ -1401,7 +1472,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent, use_threads);
 
 	/* scene objects */
-	scene_update_objects(scene, scene_parent, use_threads);
+	scene_update_objects(bmain, scene, scene_parent, use_threads);
 
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
@@ -1471,6 +1542,9 @@ void BKE_scene_update_for_newframe_ex(Main *bmain, Scene *sce, unsigned int lay,
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	double start_time = PIL_check_seconds_timer();
+#endif
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
@@ -1537,6 +1611,10 @@ void BKE_scene_update_for_newframe_ex(Main *bmain, Scene *sce, unsigned int lay,
 
 	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
+
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	fprintf(stderr, "frame update start_time %f duration %f\n", start_time, PIL_check_seconds_timer() - start_time);
+#endif
 }
 
 void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
