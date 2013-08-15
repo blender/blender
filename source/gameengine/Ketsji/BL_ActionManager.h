@@ -27,9 +27,9 @@
 #ifndef __BL_ACTIONMANAGER_H__
 #define __BL_ACTIONMANAGER_H__
 
-#include "BL_Action.h"
-
 #define MAX_ACTION_LAYERS 8
+
+class BL_Action;
 
 /**
  * BL_ActionManager is responsible for handling a KX_GameObject's actions.
@@ -52,7 +52,8 @@ public:
 					short play_mode=0,
 					float layer_weight=0.f,
 					short ipo_flags=0,
-					float playback_speed=1.f);
+					float playback_speed=1.f,
+					short blend_mode=0);
 	/**
 	 * Gets the current frame of an action
 	 */

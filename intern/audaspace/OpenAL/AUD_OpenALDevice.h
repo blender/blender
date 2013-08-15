@@ -96,6 +96,8 @@ private:
 		/// Own device.
 		AUD_OpenALDevice* m_device;
 
+		bool pause(bool keep);
+
 	public:
 
 		/**

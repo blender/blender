@@ -1866,20 +1866,37 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 	}
 }
 
-void BKE_mesh_delete_material_index(Mesh *me, short index)
+void BKE_mesh_material_index_remove(Mesh *me, short index)
 {
+	MPoly *mp;
+	MFace *mf;
 	int i;
 
-	for (i = 0; i < me->totpoly; i++) {
-		MPoly *mp = &((MPoly *) me->mpoly)[i];
-		if (mp->mat_nr && mp->mat_nr >= index)
+	for (mp = me->mpoly, i = 0; i < me->totpoly; i++, mp++) {
+		if (mp->mat_nr && mp->mat_nr >= index) {
 			mp->mat_nr--;
+		}
 	}
-	
-	for (i = 0; i < me->totface; i++) {
-		MFace *mf = &((MFace *) me->mface)[i];
-		if (mf->mat_nr && mf->mat_nr >= index)
+
+	for (mf = me->mface, i = 0; i < me->totface; i++, mf++) {
+		if (mf->mat_nr && mf->mat_nr >= index) {
 			mf->mat_nr--;
+		}
+	}
+}
+
+void BKE_mesh_material_index_clear(Mesh *me)
+{
+	MPoly *mp;
+	MFace *mf;
+	int i;
+
+	for (mp = me->mpoly, i = 0; i < me->totpoly; i++, mp++) {
+		mp->mat_nr = 0;
+	}
+
+	for (mf = me->mface, i = 0; i < me->totface; i++, mf++) {
+		mf->mat_nr = 0;
 	}
 }
 

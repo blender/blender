@@ -32,6 +32,7 @@
 
 #include "BL_ArmatureObject.h"
 #include "BL_ActionActuator.h"
+#include "BL_Action.h"
 #include "KX_BlenderSceneConverter.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -50,7 +51,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_nla_types.h"
 #include "DNA_constraint_types.h"
 #include "KX_PythonSeq.h"
 #include "KX_PythonInit.h"
@@ -137,25 +137,22 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 
 
 /* Only allowed for Poses with identical channels */
-void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
+void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 {
-	short mode= ACTSTRIPMODE_BLEND;
-	
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
 	bConstraint *dcon, *scon;
 	float dstweight;
 	int i;
 
-	switch (mode) {
-	case ACTSTRIPMODE_BLEND:
-		dstweight = 1.0F - srcweight;
-		break;
-	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
-	default :
-		dstweight = 1.0F;
+	if (mode == BL_Action::ACT_BLEND_BLEND)
+	{
+		dstweight = 1.0f - srcweight;
+	} else if (mode == BL_Action::ACT_BLEND_ADD)
+	{
+		dstweight = 1.0f;
+	} else {
+		dstweight = 1.0f;
 	}
 	
 	schan= (bPoseChannel *)src->chanbase.first;
@@ -167,7 +164,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 			
 			copy_qt_qt(dquat, dchan->quat);
 			copy_qt_qt(squat, schan->quat);
-			if (mode==ACTSTRIPMODE_BLEND)
+			if (mode==BL_Action::ACT_BLEND_BLEND)
 				interp_qt_qtqt(dchan->quat, dquat, squat, srcweight);
 			else {
 				mul_fac_qt_fl(squat, srcweight);

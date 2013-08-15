@@ -347,7 +347,7 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 
 static void rna_IDMaterials_append_id(ID *id, Material *ma)
 {
-	material_append_id(id, ma);
+	BKE_material_append_id(id, ma);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
@@ -367,7 +367,7 @@ static Material *rna_IDMaterials_pop_id(ID *id, ReportList *reports, int index_i
 		return NULL;
 	}
 
-	ma = material_pop_id(id, index_i, remove_material_slot);
+	ma = BKE_material_pop_id(id, index_i, remove_material_slot);
 
 	if (*totcol == totcol_orig) {
 		BKE_report(reports, RPT_ERROR, "No material to removed");
@@ -379,6 +379,15 @@ static Material *rna_IDMaterials_pop_id(ID *id, ReportList *reports, int index_i
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 
 	return ma;
+}
+
+static void rna_IDMaterials_clear_id(ID *id, int remove_material_slot)
+{
+	BKE_material_clear_id(id, remove_material_slot);
+
+	DAG_id_tag_update(id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
+	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 }
 
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
@@ -499,6 +508,10 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
 	parm = RNA_def_pointer(func, "material", "Material", "", "Material to remove");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "clear", "rna_IDMaterials_clear_id");
+	RNA_def_function_ui_description(func, "Remove all materials from the data block");
+	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
 }
 
 static void rna_def_ID(BlenderRNA *brna)

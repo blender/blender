@@ -48,6 +48,7 @@ public:
 						float endtime,
 						struct bAction *action,
 						short	playtype,
+						short	blend_mode,
 						short	blendin,
 						short	priority,
 						short	layer,
@@ -129,6 +130,7 @@ protected:
 	float	m_stridelength;
 	float	m_layer_weight;
 	short	m_playtype;
+	short   m_blendmode;
 	short	m_priority;
 	short	m_layer;
 	short	m_ipo_flags;
