@@ -33,6 +33,10 @@ enum ResectionMethod {
   // The "EPnP" algorithm by Lepetit et al.
   // http://cvlab.epfl.ch/~lepetit/papers/lepetit_ijcv08.pdf
   RESECTION_EPNP,
+  
+  // The Procrustes PNP algorithm ("PPnP")
+  // http://www.diegm.uniud.it/fusiello/papers/3dimpvt12-b.pdf
+  RESECTION_PPNP
 };
 
 /**
