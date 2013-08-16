@@ -190,16 +190,21 @@ class MASK_PT_point():
             clip = parent.id
             tracking = clip.tracking
 
+            row = col.row()
+            row.prop(parent, "type", expand=True)
+
             col.prop_search(parent, "parent", tracking,
                             "objects", icon='OBJECT_DATA', text="Object:")
+
+            tracks_list = "tracks" if parent.type == 'POINT_TRACK' else 'plane_tracks'
 
             if parent.parent in tracking.objects:
                 object = tracking.objects[parent.parent]
                 col.prop_search(parent, "sub_parent", object,
-                                "tracks", icon='ANIM_DATA', text="Track:")
+                                tracks_list, icon='ANIM_DATA', text="Track:")
             else:
                 col.prop_search(parent, "sub_parent", tracking,
-                                "tracks", icon='ANIM_DATA', text="Track:")
+                                tracks_list, icon='ANIM_DATA', text="Track:")
 
 
 class MASK_PT_display():

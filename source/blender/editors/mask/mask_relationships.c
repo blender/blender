@@ -102,32 +102,53 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	MaskLayer *masklay;
 
 	/* parent info */
-	SpaceClip *sc;
-	MovieClip *clip;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking;
 	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
+	MovieTrackingPlaneTrack *plane_track;
 	MovieTrackingObject *tracking_object;
 	/* done */
 
-	int framenr;
+	int framenr, parent_type;
+	float parmask_pos[2], orig_corners[4][2];
+	char *sub_parent_name;
 
-	float marker_pos_ofs[2];
-	float parmask_pos[2];
-
-	if ((NULL == (sc = CTX_wm_space_clip(C))) ||
-	    (NULL == (clip = sc->clip)) ||
-	    (NULL == (track = clip->tracking.act_track)) ||
-	    (NULL == (tracking_object = BKE_tracking_object_get_active(&clip->tracking))))
-	{
+	if (ELEM(NULL, sc, clip)) {
 		return OPERATOR_CANCELLED;
 	}
 
 	framenr = ED_space_clip_get_clip_frame_number(sc);
-	marker = BKE_tracking_marker_get(track, framenr);
 
-	add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
+	tracking = &clip->tracking;
+	tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-	BKE_mask_coord_from_movieclip(clip, &sc->user, parmask_pos, marker_pos_ofs);
+	if (tracking_object == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	if ((track = BKE_tracking_track_get_active(tracking)) != NULL) {
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+		float marker_pos_ofs[2];
+
+		add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
+
+		BKE_mask_coord_from_movieclip(clip, &sc->user, parmask_pos, marker_pos_ofs);
+
+		sub_parent_name = track->name;
+		parent_type = MASK_PARENT_POINT_TRACK;
+	}
+	else if ((plane_track = BKE_tracking_plane_track_get_active(tracking)) != NULL) {
+		MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+
+		zero_v2(parmask_pos);
+		sub_parent_name = plane_track->name;
+		parent_type = MASK_PARENT_PLANE_TRACK;
+		memcpy(orig_corners, plane_marker->corners, sizeof(orig_corners));
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
@@ -144,10 +165,12 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 				if (MASKPOINT_ISSEL_ANY(point)) {
 					point->parent.id_type = ID_MC;
 					point->parent.id = &clip->id;
+					point->parent.type = parent_type;
 					BLI_strncpy(point->parent.parent, tracking_object->name, sizeof(point->parent.parent));
-					BLI_strncpy(point->parent.sub_parent, track->name, sizeof(point->parent.sub_parent));
+					BLI_strncpy(point->parent.sub_parent, sub_parent_name, sizeof(point->parent.sub_parent));
 
 					copy_v2_v2(point->parent.parent_orig, parmask_pos);
+					memcpy(point->parent.parent_corners_orig, orig_corners, sizeof(point->parent.parent_corners_orig));
 				}
 			}
 		}

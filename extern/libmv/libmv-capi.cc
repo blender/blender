@@ -58,6 +58,8 @@
 #include "libmv/simple_pipeline/reconstruction_scale.h"
 #include "libmv/simple_pipeline/keyframe_selection.h"
 
+#include "libmv/multiview/homography.h"
+
 #ifdef _MSC_VER
 #  define snprintf _snprintf
 #endif
@@ -1078,6 +1080,30 @@ void libmv_cameraIntrinsicsInvert(const libmv_CameraIntrinsicsOptions *libmv_cam
 
 		camera_intrinsics.InvertIntrinsics(x, y, x1, y1);
 	}
+}
+
+void libmv_homography2DFromCorrespondencesLinear(double (*x1)[2], double (*x2)[2], int num_points,
+                                                 double H[3][3], double expected_precision)
+{
+	libmv::Mat x1_mat, x2_mat;
+	libmv::Mat3 H_mat;
+
+	x1_mat.resize(2, num_points);
+	x2_mat.resize(2, num_points);
+
+	for (int i = 0; i < num_points; i++) {
+		x1_mat.col(i) = libmv::Vec2(x1[i][0], x1[i][1]);
+		x2_mat.col(i) = libmv::Vec2(x2[i][0], x2[i][1]);
+	}
+
+	LG << "x1: " << x1_mat;
+	LG << "x2: " << x2_mat;
+
+	libmv::Homography2DFromCorrespondencesLinear(x1_mat, x2_mat, &H_mat, expected_precision);
+
+	LG << "H: " << H_mat;
+
+	memcpy(H, H_mat.data(), 9 * sizeof(double));
 }
 
 #endif

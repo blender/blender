@@ -3005,7 +3005,12 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		copy_v3_v3(center, td->center);
 	}
 	else if (t->options & CTX_MOVIECLIP) {
-		copy_v3_v3(center, td->center);
+		if (td->flag & TD_INDIVIDUAL_SCALE) {
+			copy_v3_v3(center, td->center);
+		}
+		else {
+			copy_v3_v3(center, t->center);
+		}
 	}
 	else {
 		copy_v3_v3(center, t->center);

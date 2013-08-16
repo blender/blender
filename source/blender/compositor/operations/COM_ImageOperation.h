@@ -42,7 +42,8 @@ protected:
 	ImBuf *m_buffer;
 	Image *m_image;
 	ImageUser *m_imageUser;
-	float *m_imageBuffer;
+	float *m_imageFloatBuffer;
+	unsigned int *m_imageByteBuffer;
 	float *m_depthBuffer;
 	int m_imageheight;
 	int m_imagewidth;
