@@ -2421,8 +2421,8 @@ static void write_soops(WriteData *wd, SpaceOops *so, LinkNode **tmp_mem_list)
 			 * outliners in a screen we might get the same address on the next
 			 * malloc, which makes the address no longer unique and so invalid for
 			 * lookups on file read, causing crashes or double frees */
-			BLI_linklist_append(tmp_mem_list, ts_flat);
-			BLI_linklist_append(tmp_mem_list, data);
+			BLI_linklist_prepend(tmp_mem_list, ts_flat);
+			BLI_linklist_prepend(tmp_mem_list, data);
 		}
 		else {
 			so->treestore = NULL;
