@@ -71,6 +71,7 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 
 	dy = 0.5f * (uv_u + uv_d);
 
+#if 0
 	/* more adaptive sampling, red and green (UV) channels */
 	this->m_inputUVProgram->read(uv_a, x - 1, y - 1, COM_PS_NEAREST);
 	this->m_inputUVProgram->read(uv_b, x - 1, y + 1, COM_PS_NEAREST);
@@ -91,6 +92,7 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 
 	dx += 0.25f * (uv_l + uv_r);
 	dy += 0.25f * (uv_u + uv_d);
+#endif
 
 	/* UV to alpha threshold */
 	const float threshold = this->m_alpha * 0.05f;
@@ -98,10 +100,11 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 	if (alpha < 0.f) alpha = 0.f;
 	else alpha *= inputUV[2];
 
+#if 0
 	/* should use mipmap */
 	dx = min(dx, 0.2f);
 	dy = min(dy, 0.2f);
-
+#endif
 
 	/* EWA filtering */
 	u = inputUV[0] * this->m_inputColorProgram->getWidth();
