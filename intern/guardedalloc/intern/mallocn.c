@@ -212,20 +212,8 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 	
 
-/* TODO(sergey): need smarter check for 64bit platform. */
-#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
-typedef uint64_t mem_uintptr_t;
-#  define mem_atomic_uint_sub atomic_sub_uint64
-#  define mem_atomic_uint_add atomic_add_uint64
-#else
-typedef int32_t mem_int_t;
-typedef uint32_t mem_uintptr_t;
-#  define mem_atomic_uint_sub atomic_sub_uint32
-#  define mem_atomic_uint_add atomic_add_uint32
-#endif
-
-static mem_uintptr_t totblock = 0;
-static mem_uintptr_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
+static unsigned int totblock = 0;
+static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -508,8 +496,8 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
 	memt->tag3 = MEMTAG3;
 
-	mem_atomic_uint_add(&totblock, 1);
-	mem_atomic_uint_add(&mem_in_use, len);
+	atomic_add_u(&totblock, 1);
+	atomic_add_z(&mem_in_use, len);
 
 	mem_lock_thread();
 	addtail(membase, &memh->next);
@@ -580,7 +568,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 	if (memh != (MemHead *)-1) {
 		make_memhead_header(memh, len, str);
 		memh->mmap = 1;
-		mem_atomic_uint_add(&mmap_in_use, len);
+		atomic_add_z(&mmap_in_use, len);
 		mem_lock_thread();
 		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
 		mem_unlock_thread();
@@ -939,8 +927,8 @@ static void rem_memblock(MemHead *memh)
 	}
 	mem_unlock_thread();
 
-	mem_atomic_uint_sub(&totblock, 1);
-	mem_atomic_uint_sub(&mem_in_use, memh->len);
+	atomic_sub_u(&totblock, 1);
+	atomic_sub_z(&mem_in_use, memh->len);
 
 #ifdef DEBUG_MEMDUPLINAME
 	if (memh->need_free_name)
@@ -948,7 +936,7 @@ static void rem_memblock(MemHead *memh)
 #endif
 
 	if (memh->mmap) {
-		mem_atomic_uint_sub(&mmap_in_use, memh->len);
+		atomic_sub_z(&mmap_in_use, memh->len);
 		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
 			printf("Couldn't unmap memory %s\n", memh->name);
 	}

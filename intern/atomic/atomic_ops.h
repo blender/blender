@@ -45,7 +45,7 @@
 #endif
 
 /* TODO(sergey): check on other 64bit platforms. */
-#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__x86_64__)
 #  define LG_SIZEOF_PTR 3
 #  define LG_SIZEOF_INT 3
 #else
