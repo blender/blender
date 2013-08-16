@@ -145,6 +145,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* EdgeNet Create */
 	if (tote != 0) {
 		/* call edgenet prepare op so additional face creation cases work */
+
 		BMOperator op_sub;
 		BMO_op_initf(bm, &op_sub, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
 		BMO_op_exec(bm, &op_sub);

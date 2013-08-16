@@ -77,6 +77,7 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 		madd_v3_v3fl(cent, f_cent, cent_fac);
 
 		BLI_assert(BMO_elem_flag_test(bm, faces[i], FACE_TEMP) == 0);
+		BLI_assert(BM_face_is_normal_valid(faces[i]));
 	}
 
 	f_len_best = -FLT_MAX;
