@@ -89,18 +89,39 @@ void BLI_linklist_reverse(LinkNode **listp)
 	*listp = rhead;
 }
 
-void BLI_linklist_prepend(LinkNode **listp, void *ptr)
+/**
+ * A version of prepend that takes the allocated link.
+ */
+void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 {
-	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), "nlink");
 	nlink->link = ptr;
-	
 	nlink->next = *listp;
 	*listp = nlink;
 }
 
-void BLI_linklist_append(LinkNode **listp, void *ptr)
+void BLI_linklist_prepend(LinkNode **listp, void *ptr)
 {
 	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), "nlink");
+	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+}
+
+void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma)
+{
+	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
+	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+}
+
+void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool)
+{
+	LinkNode *nlink = BLI_mempool_alloc(mempool);
+	BLI_linklist_prepend_nlink(listp, ptr, nlink);
+}
+
+/**
+ * A version of append that takes the allocated link.
+ */
+void BLI_linklist_append_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
+{
 	LinkNode *node = *listp;
 	
 	nlink->link = ptr;
@@ -117,22 +138,22 @@ void BLI_linklist_append(LinkNode **listp, void *ptr)
 	}
 }
 
-void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma)
+void BLI_linklist_append(LinkNode **listp, void *ptr)
 {
-	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
-	nlink->link = ptr;
-	
-	nlink->next = *listp;
-	*listp = nlink;
+	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), "nlink");
+	BLI_linklist_append_nlink(listp, ptr, nlink);
 }
 
-void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool)
+void BLI_linklist_append_arena(LinkNode **listp, void *ptr, MemArena *ma)
+{
+	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
+	BLI_linklist_append_nlink(listp, ptr, nlink);
+}
+
+void BLI_linklist_append_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool)
 {
 	LinkNode *nlink = BLI_mempool_alloc(mempool);
-	nlink->link = ptr;
-
-	nlink->next = *listp;
-	*listp = nlink;
+	BLI_linklist_append_nlink(listp, ptr, nlink);
 }
 
 void *BLI_linklist_pop(struct LinkNode **listp)

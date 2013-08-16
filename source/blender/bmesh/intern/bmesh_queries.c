@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_alloca.h"
+#include "BLI_linklist.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -1683,6 +1684,129 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 
 	return ok;
 }
+
+
+/**
+ * Given a set of vertices (varr), find out if
+ * all those vertices overlap an existing face.
+ *
+ * \return Success
+ *
+ * \param varr  Array of unordered verts.
+ * \param len  \a varr array length.
+ * \param r_f_overlap  The overlapping face to return.
+ */
+
+bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
+{
+	BMIter viter;
+	BMFace *f;
+	int i;
+	bool is_overlap = false;
+	LinkNode *f_lnk = NULL;
+
+	if (r_f_overlap) {
+		*r_f_overlap = NULL;
+	}
+
+#ifdef DEBUG
+	/* check flag isn't already set */
+	for(i = 0; i < len; i++) {
+		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
+			BLI_assert(BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0);
+		}
+	}
+#endif
+
+	for(i = 0; i < len; i++) {
+		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
+			if (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0) {
+				if (len <= BM_verts_in_face(f, varr, len)) {
+					if (r_f_overlap)
+						*r_f_overlap = f;
+
+					is_overlap = true;
+					break;
+				}
+
+				BM_ELEM_API_FLAG_ENABLE(f, _FLAG_OVERLAP);
+				BLI_linklist_prepend_alloca(&f_lnk, f);
+			}
+		}
+	}
+
+	for (; f_lnk; f_lnk = f_lnk->next) {
+		BM_ELEM_API_FLAG_DISABLE((BMFace *)f_lnk->link, _FLAG_OVERLAP);
+	}
+
+	return is_overlap;
+}
+
+/**
+ * Given a set of vertices (varr), find out if
+ * there is a face that uses vertices only from this list
+ * (that the face is a subset or made from the vertices given).
+ *
+ * \param varr  Array of unordered verts.
+ * \param len  varr array length.
+ */
+bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
+{
+	BMIter viter;
+	BMFace *f;
+	int i;
+	bool is_overlap = false;
+	LinkNode *f_lnk = NULL;
+
+#ifdef DEBUG
+	/* check flag isn't already set */
+	for(i = 0; i < len; i++) {
+		BLI_assert(BM_ELEM_API_FLAG_TEST(varr[i], _FLAG_OVERLAP) == 0);
+		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
+			BLI_assert(BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0);
+		}
+	}
+#endif
+
+	for(i = 0; i < len; i++) {
+		BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
+	}
+
+	for(i = 0; i < len; i++) {
+		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
+			if (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0) {
+				/* check if all vers in this face are flagged*/
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				is_overlap = true;
+				do {
+					if (BM_ELEM_API_FLAG_TEST(l_iter->v, _FLAG_OVERLAP) == 0) {
+						is_overlap = false;
+						break;
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+
+				if (is_overlap) {
+					break;
+				}
+
+				BM_ELEM_API_FLAG_ENABLE(f, _FLAG_OVERLAP);
+				BLI_linklist_prepend_alloca(&f_lnk, f);
+			}
+		}
+	}
+
+	for(i = 0; i < len; i++) {
+		BM_ELEM_API_FLAG_DISABLE(varr[i], _FLAG_OVERLAP);
+	}
+
+	for (; f_lnk; f_lnk = f_lnk->next) {
+		BM_ELEM_API_FLAG_DISABLE((BMFace *)f_lnk->link, _FLAG_OVERLAP);
+	}
+
+	return is_overlap;
+}
+
 
 /* convenience functions for checking flags */
 bool BM_edge_is_any_vert_flag_test(const BMEdge *e, const char hflag)

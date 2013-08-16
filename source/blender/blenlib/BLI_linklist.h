@@ -54,10 +54,16 @@ struct LinkNode *BLI_linklist_find(struct LinkNode *list, int index);
 
 void    BLI_linklist_reverse(struct LinkNode **listp);
 
+void    BLI_linklist_prepend_nlink(struct LinkNode **listp, void *ptr, struct LinkNode *nlink);
 void    BLI_linklist_prepend(struct LinkNode **listp, void *ptr);
-void    BLI_linklist_append(struct LinkNode **listp, void *ptr);
 void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct MemArena *ma);
 void    BLI_linklist_prepend_pool(struct LinkNode **listp, void *ptr, struct BLI_mempool *mempool);
+
+void    BLI_linklist_append_nlink(LinkNode **listp, void *ptr, LinkNode *nlink);
+void    BLI_linklist_append(struct LinkNode **listp, void *ptr);
+void    BLI_linklist_append_arena(LinkNode **listp, void *ptr, struct MemArena *ma);
+void    BLI_linklist_append_pool(LinkNode **listp, void *ptr, struct BLI_mempool *mempool);
+
 void   *BLI_linklist_pop(struct LinkNode **listp);
 void   *BLI_linklist_pop_pool(struct LinkNode **listp, struct BLI_mempool *mempool);
 void    BLI_linklist_insert_after(struct LinkNode **listp, void *ptr);
@@ -67,4 +73,7 @@ void    BLI_linklist_freeN(struct LinkNode *list);
 void    BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool);
 void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
 
-#endif
+#define BLI_linklist_prepend_alloca(listp, ptr) \
+	BLI_linklist_prepend_nlink(listp, ptr, alloca(sizeof(LinkNode)))
+
+#endif  /* __BLI_LINKLIST_H__ */
