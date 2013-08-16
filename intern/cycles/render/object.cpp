@@ -47,6 +47,7 @@ Object::Object()
 	use_motion = false;
 	use_holdout = false;
 	curverender = false;
+	motion_multiplier = 1.0f;
 }
 
 Object::~Object()

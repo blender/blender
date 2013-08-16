@@ -572,6 +572,26 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
             flow.prop(visibility, "shadow")
 
 
+class CyclesObject_PT_settings(CyclesButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return CyclesButtonsPanel.poll(context) and ob and ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        settings = ob.cycles_settings
+        
+        layout.prop(settings, "use_motion")
+        #layout.prop(settings, "motion_multiplier")
+
+
 class CYCLES_OT_use_shading_nodes(Operator):
     """Enable nodes on a material, world or lamp"""
     bl_idname = "cycles.use_shading_nodes"

@@ -591,6 +591,31 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
         del bpy.types.World.cycles
 
 
+class CyclesObjectSettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.Object.cycles_settings = PointerProperty(
+                name="Cycles Object Settings",
+                description="Cycles object settings",
+                type=cls,
+                ) 
+        cls.use_motion = BoolProperty(
+                name="Motion Blur",
+                description="Enable or disable motion blur for this object",
+                default=True,
+                )
+        cls.motion_multiplier = FloatProperty(
+                name="Motion Multiplier",
+                description="Multiplier for Object motion blur shutter time",
+                min=0.0, soft_max=10.0, max=100.0,
+                default=1.0,
+                )
+
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Object.cycles_settings
+
 class CyclesVisibilitySettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
