@@ -311,6 +311,16 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         layout.operator("clip.join_tracks", text="Join")
 
 
+class CLIP_PT_tools_plane_tracking(CLIP_PT_tracking_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Plane Track"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("clip.create_plane_track")
+
+
 class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -577,6 +587,26 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         if act_track.has_bundle:
             label_text = "Average Error: %.4f" % (act_track.average_error)
             layout.label(text=label_text)
+
+
+class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Plane Track"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        clip = context.space_data.clip
+        active_track = clip.tracking.plane_tracks.active
+
+        if not active_track:
+            layout.active = False
+            layout.label(text="No active plane track")
+            return
+
+        layout.prop(active_track, "name")
 
 
 class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):

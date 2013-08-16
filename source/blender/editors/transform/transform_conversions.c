@@ -5959,7 +5959,8 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 enum transDataTracking_Mode {
 	transDataTracking_ModeTracks = 0,
-	transDataTracking_ModeCurves = 1
+	transDataTracking_ModeCurves = 1,
+	transDataTracking_ModePlaneTracks = 2,
 };
 
 typedef struct TransDataTracking {
@@ -5978,6 +5979,9 @@ typedef struct TransDataTracking {
 	/* marker transformation from curves editor */
 	float *prev_pos, scale;
 	short coord;
+
+	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 } TransDataTracking;
 
 static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
@@ -6008,6 +6012,7 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 
 	tdt->markersnr = track->markersnr;
 	tdt->markers = track->markers;
+	tdt->track = track;
 
 	if (rel) {
 		if (!anchor) {
@@ -6026,6 +6031,7 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 	copy_v3_v3(td->iloc, td->loc);
 
 	//copy_v3_v3(td->center, td->loc);
+	td->flag |= TD_INDIVIDUAL_SCALE;
 	td->center[0] = marker->pos[0] * aspx;
 	td->center[1] = marker->pos[1] * aspy;
 
@@ -6076,6 +6082,52 @@ static void trackToTransData(const int framenr, TransData *td, TransData2D *td2d
 	}
 }
 
+static void planeMarkerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
+                                       MovieTrackingPlaneTrack *plane_track, float corner[2],
+                                       float aspx, float aspy)
+{
+	tdt->mode = transDataTracking_ModePlaneTracks;
+	tdt->plane_track = plane_track;
+
+	td2d->loc[0] = corner[0] * aspx; /* hold original location */
+	td2d->loc[1] = corner[1] * aspy;
+
+	td2d->loc2d = corner; /* current location */
+	td2d->loc[2] = 0.0f;
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	copy_v3_v3(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext = NULL;
+	td->val = NULL;
+
+	td->flag |= TD_SELECTED;
+	td->dist = 0.0;
+
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
+}
+
+static void planeTrackToTransData(const int framenr, TransData *td, TransData2D *td2d,
+                                  TransDataTracking *tdt, MovieTrackingPlaneTrack *plane_track,
+                                  float aspx, float aspy)
+{
+	MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
+	int i;
+
+	tdt->flag = plane_marker->flag;
+	plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+
+	for (i = 0; i < 4; i++) {
+		planeMarkerToTransDataInit(td++, td2d++, tdt++, plane_track, plane_marker->corners[i], aspx, aspy);
+	}
+}
+
 static void transDataTrackingFree(TransInfo *t)
 {
 	TransDataTracking *tdt = t->customData;
@@ -6096,7 +6148,9 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 	TransDataTracking *tdt;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	float aspx, aspy;
@@ -6120,6 +6174,15 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 		}
 
 		track = track->next;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if (plane_track->flag & SELECT) {
+			t->total += 4;
+		}
 	}
 
 	if (t->total == 0)
@@ -6165,11 +6228,23 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
 		track = track->next;
 	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if (plane_track->flag & SELECT) {
+			planeTrackToTransData(framenr, td, td2d, tdt, plane_track, aspx, aspy);
+			td += 4;
+			td2d += 4;
+			tdt += 4;
+		}
+	}
 }
 
 static void markerToTransCurveDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
-                                       MovieTrackingMarker *marker, MovieTrackingMarker *prev_marker,
-                                       short coord, float size)
+                                       MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                       MovieTrackingMarker *prev_marker, short coord, float size)
 {
 	float frames_delta = (marker->framenr - prev_marker->framenr);
 
@@ -6180,6 +6255,7 @@ static void markerToTransCurveDataInit(TransData *td, TransData2D *td2d, TransDa
 	tdt->coord = coord;
 	tdt->scale = 1.0f / size * frames_delta;
 	tdt->prev_pos = prev_marker->pos;
+	tdt->track = track;
 
 	/* calculate values depending on marker's speed */
 	td2d->loc[0] = marker->framenr;
@@ -6265,14 +6341,14 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 					continue;
 
 				if (marker->flag & MARKER_GRAPH_SEL_X) {
-					markerToTransCurveDataInit(td, td2d, tdt, marker, &track->markers[i - 1], 0, width);
+					markerToTransCurveDataInit(td, td2d, tdt, track, marker, &track->markers[i - 1], 0, width);
 					td += 1;
 					td2d += 1;
 					tdt += 1;
 				}
 
 				if (marker->flag & MARKER_GRAPH_SEL_Y) {
-					markerToTransCurveDataInit(td, td2d, tdt, marker, &track->markers[i - 1], 1, height);
+					markerToTransCurveDataInit(td, td2d, tdt, track, marker, &track->markers[i - 1], 1, height);
 
 					td += 1;
 					td2d += 1;
@@ -6313,57 +6389,54 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 static void cancelTransTracking(TransInfo *t)
 {
-	TransDataTracking *tdt = t->customData;
 	SpaceClip *sc = t->sa->spacedata.first;
-	MovieClip *clip = ED_space_clip_get_clip(sc);
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	int a, framenr = ED_space_clip_get_clip_frame_number(sc);
+	int i, framenr = ED_space_clip_get_clip_frame_number(sc);
 
-	if (tdt->mode == transDataTracking_ModeTracks) {
-		track = tracksbase->first;
-		while (track) {
-			if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-				marker = BKE_tracking_marker_get(track, framenr);
-				marker->flag = tdt->flag;
+	i = 0;
+	while (i < t->total) {
+		TransDataTracking *tdt = (TransDataTracking *) t->customData + i;
 
-				tdt++;
+		if (tdt->mode == transDataTracking_ModeTracks) {
+			MovieTrackingTrack *track = tdt->track;
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-				if (track->flag & SELECT)
-					tdt++;
+			marker->flag = tdt->flag;
 
-				if (track->pat_flag & SELECT)
-					tdt += 2;
+			if (track->flag & SELECT)
+				i++;
 
-				if (track->search_flag & SELECT)
-					tdt += 2;
-			}
+			if (track->pat_flag & SELECT)
+				i += 4;
 
-			track = track->next;
+			if (track->search_flag & SELECT)
+				i += 2;
 		}
-	}
-	else if (tdt->mode == transDataTracking_ModeCurves) {
-		MovieTrackingMarker *prev_marker;
+		else if (tdt->mode == transDataTracking_ModeCurves) {
+			MovieTrackingTrack *track = tdt->track;
+			MovieTrackingMarker *marker, *prev_marker;
+			int a;
 
-		track = tracksbase->first;
-		while (track) {
-			if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-				for (a = 1; a < track->markersnr; a++) {
-					marker = &track->markers[a];
-					prev_marker = &track->markers[a - 1];
+			for (a = 1; a < track->markersnr; a++) {
+				marker = &track->markers[a];
+				prev_marker = &track->markers[a - 1];
 
-					if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED))
-						continue;
+				if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED))
+					continue;
 
-					if (marker->flag & (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y)) {
-						marker->flag = tdt->flag;
-					}
+				if (marker->flag & (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y)) {
+					marker->flag = tdt->flag;
 				}
 			}
-
-			track = track->next;
 		}
+		else if (tdt->mode == transDataTracking_ModePlaneTracks) {
+			MovieTrackingPlaneTrack *plane_track = tdt->plane_track;
+			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+
+			plane_marker->flag = tdt->flag;
+			i += 3;
+		}
+
+		i++;
 	}
 }
 
@@ -6431,6 +6504,10 @@ void flushTransTracking(TransInfo *t)
 		}
 		else if (tdt->mode == transDataTracking_ModeCurves) {
 			td2d->loc2d[tdt->coord] = tdt->prev_pos[tdt->coord] + td2d->loc[1] * tdt->scale;
+		}
+		else if (tdt->mode == transDataTracking_ModePlaneTracks) {
+			td2d->loc2d[0] = td2d->loc[0] / aspx;
+			td2d->loc2d[1] = td2d->loc[1] / aspy;
 		}
 	}
 }

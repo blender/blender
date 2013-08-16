@@ -466,11 +466,10 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
 	if (act_track)
-		clip_delete_track(C, clip, tracksbase, act_track);
+		clip_delete_track(C, clip, act_track);
 
 	return OPERATOR_FINISHED;
 }
@@ -498,7 +497,6 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
 	if (act_track) {
@@ -508,7 +506,7 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 			MovieTrackingMarker *marker = &act_track->markers[a];
 
 			if (marker->flag & MARKER_GRAPH_SEL)
-				clip_delete_marker(C, clip, tracksbase, act_track, marker);
+				clip_delete_marker(C, clip, act_track, marker);
 			else
 				a++;
 		}

@@ -2225,6 +2225,39 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 	}
 }
 
+static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if (node->id) {
+		MovieClip *clip = (MovieClip *) node->id;
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *object;
+		uiLayout *col;
+		PointerRNA tracking_ptr;
+		NodeTrackPosData *data = node->storage;
+
+		RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+
+		col = uiLayoutColumn(layout, FALSE);
+		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+
+		object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+		if (object) {
+			PointerRNA object_ptr;
+
+			RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+
+			uiItemPointerR(col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
+		}
+		else {
+			uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
+		}
+	}
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2443,6 +2476,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_TRACKPOS:
 			ntype->uifunc = node_composit_buts_trackpos;
+			break;
+		case CMP_NODE_PLANETRACKDEFORM:
+			ntype->uifunc = node_composit_buts_planetrackdeform;
 			break;
 	}
 }

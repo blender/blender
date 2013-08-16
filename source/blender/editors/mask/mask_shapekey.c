@@ -38,6 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
+#include "BKE_report.h"
 
 #include "DNA_object_types.h"
 #include "DNA_mask_types.h"

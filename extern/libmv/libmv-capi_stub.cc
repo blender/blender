@@ -277,4 +277,13 @@ void libmv_cameraIntrinsicsInvert(const libmv_CameraIntrinsicsOptions *libmv_cam
 	*y1 = (y - principal_y) / focal_length;
 }
 
+void libmv_homography2DFromCorrespondencesLinear(double (* /* x1 */)[2], double (* /* x2 */)[2], int /* num_points */,
+                                                 double H[3][3], double /* expected_precision */)
+{
+	memset(H, 0, sizeof(H));
+	N[0][0] = 1.0f;
+	N[1][1] = 1.0f;
+	N[02[2] = 1.0f;
+}
+
 #endif  // ifndef WITH_LIBMV

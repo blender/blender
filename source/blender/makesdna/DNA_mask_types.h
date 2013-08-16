@@ -58,15 +58,18 @@ typedef struct Mask {
 
 typedef struct MaskParent {
 	// int flag;             /* parenting flags */ /* not used */
-	int pad;
 	int id_type;          /* type of parenting */
+	int type;             /* type of parenting */
 	ID *id;               /* ID block of entity to which mask/spline is parented to
 	                       * in case of parenting to movie tracking data set to MovieClip datablock */
 	char parent[64];      /* entity of parent to which parenting happened
 	                       * in case of parenting to movie tracking data contains name of layer */
 	char sub_parent[64];  /* sub-entity of parent to which parenting happened
 	                       * in case of parenting to movie tracking data contains name of track */
-	float parent_orig[2]; /* track location at the moment of parenting */
+	float parent_orig[2]; /* track location at the moment of parenting,
+	                         stored in mask space*/
+
+	float parent_corners_orig[4][2]; /* Original corners of plane track at the moment of parenting */
 } MaskParent;
 
 typedef struct MaskSplinePointUW {
@@ -140,6 +143,12 @@ typedef struct MaskLayer {
 
 /* MaskParent->flag */
 /* #define MASK_PARENT_ACTIVE  (1 << 0) */ /* UNUSED */
+
+/* MaskParent->type */
+enum {
+	MASK_PARENT_POINT_TRACK = 0, /* parenting happens to point track */
+	MASK_PARENT_PLANE_TRACK = 1, /* parenting happens to plane track */
+};
 
 /* MaskSpline->flag */
 /* reserve (1 << 0) for SELECT */
