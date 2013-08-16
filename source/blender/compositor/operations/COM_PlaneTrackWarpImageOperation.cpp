@@ -93,35 +93,8 @@ BLI_INLINE void resolveUVAndDxDy(const float x, const float y, const float corne
 
 	dy = 0.5f * (uv_u + uv_d);
 
-#if 0
-	/* more adaptive sampling, red and green (UV) channels */
-	ok1 = resolveUV(x - 1, y - 1, corners, uv_a);
-	ok2 = resolveUV(x - 1, y + 1, corners, uv_b);
-	uv_l = ok1 ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = ok2 ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = ok1 ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = ok2 ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
-	ok1 = resolveUV(x + 1, y - 1, corners, uv_a);
-	ok2 = resolveUV(x + 1, y + 1, corners, uv_b);
-	uv_l = ok1 ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = ok2 ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = ok1 ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = ok2 ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
-	/* should use mipmap */
-	*dx_r = min(dx, 0.2f);
-	*dy_r = min(dy, 0.2f);
-#else
 	*dx_r = dx;
 	*dy_r = dy;
-#endif
 
 	*u_r = inputUV[0];
 	*v_r = inputUV[1];
