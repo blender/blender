@@ -173,4 +173,14 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 		MEM_freeN(arr);                                                       \
 	} (void)0
 
+
+void _bli_array_reverse(void *arr, unsigned int arr_len, size_t arr_stride);
+#define BLI_array_reverse(arr, arr_len) \
+	_bli_array_reverse(arr, arr_len, sizeof(*(arr)))
+
+void _bli_array_wrap(void *arr, unsigned int arr_len, size_t arr_stride, int dir);
+#define BLI_array_wrap(arr, arr_len, dir) \
+	_bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
+
+
 #endif  /* __BLI_ARRAY_H__ */

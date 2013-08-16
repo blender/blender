@@ -1114,6 +1114,19 @@ See :class:`bge.types.KX_GameObject.playAction`
    
    :value: 2
 
+.. _gameobject-playaction-blend:
+
+.. data:: KX_ACTION_BLEND_BLEND
+
+   Blend layers using linear interpolation
+
+   :value: 0
+
+.. data:: KX_ACTION_BLEND_ADD
+
+   Adds the layers together
+
+   :value: 1
 
 -------------
 Mouse Buttons

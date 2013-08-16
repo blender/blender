@@ -103,6 +103,18 @@ static void tracking_tracks_free(ListBase *tracks)
 	BLI_freelistN(tracks);
 }
 
+/* Free the whole list of plane tracks, list's head and tail are set to NULL. */
+static void tracking_plane_tracks_free(ListBase *plane_tracks)
+{
+	MovieTrackingPlaneTrack *plane_track;
+
+	for (plane_track = plane_tracks->first; plane_track; plane_track = plane_track->next) {
+		BKE_tracking_plane_track_free(plane_track);
+	}
+
+	BLI_freelistN(plane_tracks);
+}
+
 /* Free reconstruction structures, only frees contents of a structure,
  * (if structure is allocated in heap, it shall be handled outside).
  *
@@ -122,6 +134,7 @@ static void tracking_reconstruction_free(MovieTrackingReconstruction *reconstruc
 static void tracking_object_free(MovieTrackingObject *object)
 {
 	tracking_tracks_free(&object->tracks);
+	tracking_plane_tracks_free(&object->plane_tracks);
 	tracking_reconstruction_free(&object->reconstruction);
 }
 
@@ -173,6 +186,7 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
 void BKE_tracking_free(MovieTracking *tracking)
 {
 	tracking_tracks_free(&tracking->tracks);
+	tracking_plane_tracks_free(&tracking->plane_tracks);
 	tracking_reconstruction_free(&tracking->reconstruction);
 	tracking_objects_free(&tracking->objects);
 
@@ -219,6 +233,18 @@ ListBase *BKE_tracking_get_active_tracks(MovieTracking *tracking)
 	}
 
 	return &tracking->tracks;
+}
+
+/* Get list base of active object's plane tracks. */
+ListBase *BKE_tracking_get_active_plane_tracks(MovieTracking *tracking)
+{
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+
+	if (object && (object->flag & TRACKING_OBJECT_CAMERA) == 0) {
+		return &object->plane_tracks;
+	}
+
+	return &tracking->plane_tracks;
 }
 
 /* Get reconstruction data of active object. */
@@ -1025,6 +1051,17 @@ void BKE_tracking_track_deselect(MovieTrackingTrack *track, int area)
 	BKE_tracking_track_flag_clear(track, area, SELECT);
 }
 
+void BKE_tracking_tracks_deselect_all(ListBase *tracksbase)
+{
+	MovieTrackingTrack *track;
+
+	for (track = tracksbase->first; track; track = track->next) {
+		if ((track->flag & TRACK_HIDDEN) == 0) {
+			BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
+		}
+	}
+}
+
 /*********************** Marker *************************/
 
 MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track, MovieTrackingMarker *marker)
@@ -1264,6 +1301,296 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track, float 
 	add_v2_v2(pos, track->offset);
 }
 
+/*********************** Plane Track *************************/
+
+/* Creates new plane track out of selected point tracks */
+MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking, ListBase *plane_tracks_base,
+                                                      ListBase *tracks, int framenr)
+{
+	MovieTrackingPlaneTrack *plane_track;
+	MovieTrackingPlaneMarker plane_marker;
+	MovieTrackingTrack *track;
+	float tracks_min[2], tracks_max[2];
+	int track_index, num_selected_tracks = 0;
+
+	(void) tracking;  /* Ignored. */
+
+	/* Use bounding box of selected markers as an initial size of plane. */
+	INIT_MINMAX2(tracks_min, tracks_max);
+	for (track = tracks->first; track; track = track->next) {
+		if (TRACK_SELECTED(track)) {
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+			float pattern_min[2], pattern_max[2];
+			BKE_tracking_marker_pattern_minmax(marker, pattern_min, pattern_max);
+			add_v2_v2(pattern_min, marker->pos);
+			add_v2_v2(pattern_max, marker->pos);
+			minmax_v2v2_v2(tracks_min, tracks_max, pattern_min);
+			minmax_v2v2_v2(tracks_min, tracks_max, pattern_max);
+			num_selected_tracks++;
+		}
+	}
+
+	if (num_selected_tracks < 4) {
+		return NULL;
+	}
+
+	/* Allocate new plane track. */
+	plane_track = MEM_callocN(sizeof(MovieTrackingPlaneTrack), "new plane track");
+
+	/* Use some default name. */
+	strcpy(plane_track->name, "Plane Track");
+
+	/* Use selected tracks from given list as a plane. */
+	plane_track->point_tracks = MEM_mallocN(sizeof(MovieTrackingTrack *) * num_selected_tracks, "new plane tracks array");
+	for (track = tracks->first, track_index = 0; track; track = track->next) {
+		if (TRACK_SELECTED(track)) {
+			plane_track->point_tracks[track_index] = track;
+			track_index++;
+		}
+	}
+	plane_track->point_tracksnr = num_selected_tracks;
+
+	/* Setup new plane marker and add it to the track. */
+	plane_marker.framenr = framenr;
+	plane_marker.flag = 0;
+
+	copy_v2_v2(plane_marker.corners[0], tracks_min);
+	copy_v2_v2(plane_marker.corners[2], tracks_max);
+
+	plane_marker.corners[1][0] = tracks_max[0];
+	plane_marker.corners[1][1] = tracks_min[1];
+	plane_marker.corners[3][0] = tracks_min[0];
+	plane_marker.corners[3][1] = tracks_max[1];
+
+	BKE_tracking_plane_marker_insert(plane_track, &plane_marker);
+
+	/* Put new plane track to the list, ensure it's name is unique. */
+	BLI_addtail(plane_tracks_base, plane_track);
+	BKE_tracking_plane_track_unique_name(plane_tracks_base, plane_track);
+
+	return plane_track;
+}
+
+void BKE_tracking_plane_track_unique_name(ListBase *plane_tracks_base, MovieTrackingPlaneTrack *plane_track)
+{
+	BLI_uniquename(plane_tracks_base, plane_track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Plane Track"), '.',
+	               offsetof(MovieTrackingPlaneTrack, name), sizeof(plane_track->name));
+}
+
+/* Free specified plane track, only frees contents of a structure
+ * (if track is allocated in heap, it shall be handled outside).
+ *
+ * All the pointers inside track becomes invalid after this call.
+ */
+void BKE_tracking_plane_track_free(MovieTrackingPlaneTrack *plane_track)
+{
+	if (plane_track->markers) {
+		MEM_freeN(plane_track->markers);
+	}
+
+	MEM_freeN(plane_track->point_tracks);
+}
+
+MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_named(MovieTracking *tracking,
+                                                            MovieTrackingObject *object,
+                                                            const char *name)
+{
+	ListBase *plane_tracks_base = BKE_tracking_object_get_plane_tracks(tracking, object);
+	MovieTrackingPlaneTrack *plane_track;
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if (!strcmp(plane_track->name, name)) {
+			return plane_track;
+		}
+	}
+
+	return NULL;
+}
+
+MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(struct MovieTracking *tracking)
+{
+	ListBase *plane_tracks_base;
+
+	if (tracking->act_plane_track == NULL) {
+		return NULL;
+	}
+
+	plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+
+	/* Check that active track is in current plane tracks list */
+	if (BLI_findindex(plane_tracks_base, tracking->act_plane_track) >= 0) {
+		return tracking->act_plane_track;
+	}
+
+	return NULL;
+}
+
+void BKE_tracking_plane_tracks_deselect_all(ListBase *plane_tracks_base)
+{
+	MovieTrackingPlaneTrack *plane_track;
+
+	for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
+		plane_track->flag &= ~SELECT;
+	}
+}
+
+/*********************** Plane Marker *************************/
+
+MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTrack *plane_track,
+                                                           MovieTrackingPlaneMarker *plane_marker)
+{
+	MovieTrackingPlaneMarker *old_plane_marker = NULL;
+
+	if (plane_track->markersnr)
+		old_plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, plane_marker->framenr);
+
+	if (old_plane_marker) {
+		/* Simply replace settings in existing marker. */
+		*old_plane_marker = *plane_marker;
+
+		return old_plane_marker;
+	}
+	else {
+		int a = plane_track->markersnr;
+
+		/* Find position in array where to add new marker. */
+		/* TODO(sergey): we coud use bisect to speed things up. */
+		while (a--) {
+			if (plane_track->markers[a].framenr < plane_marker->framenr) {
+				break;
+			}
+		}
+
+		plane_track->markersnr++;
+		plane_track->markers = MEM_reallocN(plane_track->markers,
+		                                    sizeof(MovieTrackingPlaneMarker) * plane_track->markersnr);
+
+		/* Shift array to "free" space for new marker. */
+		memmove(plane_track->markers + a + 2, plane_track->markers + a + 1,
+		        (plane_track->markersnr - a - 2) * sizeof(MovieTrackingPlaneMarker));
+
+		/* Put new marker to an array. */
+		plane_track->markers[a + 1] = *plane_marker;
+		plane_track->last_marker = a + 1;
+
+		return &plane_track->markers[a + 1];
+	}
+}
+
+void BKE_tracking_plane_marker_delete(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	int a = 0;
+
+	while (a < plane_track->markersnr) {
+		if (plane_track->markers[a].framenr == framenr) {
+			if (plane_track->markersnr > 1) {
+				memmove(plane_track->markers + a, plane_track->markers + a + 1,
+				        (plane_track->markersnr - a - 1) * sizeof(MovieTrackingPlaneMarker));
+				plane_track->markersnr--;
+				plane_track->markers = MEM_reallocN(plane_track->markers,
+				                                    sizeof(MovieTrackingMarker) * plane_track->markersnr);
+			}
+			else {
+				MEM_freeN(plane_track->markers);
+				plane_track->markers = NULL;
+				plane_track->markersnr = 0;
+			}
+
+			break;
+		}
+
+		a++;
+	}
+}
+
+/* TODO(sergey): The next couple of functions are really quite the same as point marker version,
+ *               would be nice to de-duplicate them somehow..
+ */
+
+/* Get a plane marker at given frame,
+ * If there's no such marker, closest one from the left side will be returned.
+ */
+MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	int a = plane_track->markersnr - 1;
+
+	if (!plane_track->markersnr)
+		return NULL;
+
+	/* Approximate pre-first framenr marker with first marker. */
+	if (framenr < plane_track->markers[0].framenr) {
+		return &plane_track->markers[0];
+	}
+
+	if (plane_track->last_marker < plane_track->markersnr) {
+		a = plane_track->last_marker;
+	}
+
+	if (plane_track->markers[a].framenr <= framenr) {
+		while (a < plane_track->markersnr && plane_track->markers[a].framenr <= framenr) {
+			if (plane_track->markers[a].framenr == framenr) {
+				plane_track->last_marker = a;
+
+				return &plane_track->markers[a];
+			}
+			a++;
+		}
+
+		/* If there's no marker for exact position, use nearest marker from left side. */
+		return &plane_track->markers[a - 1];
+	}
+	else {
+		while (a >= 0 && plane_track->markers[a].framenr >= framenr) {
+			if (plane_track->markers[a].framenr == framenr) {
+				plane_track->last_marker = a;
+
+				return &plane_track->markers[a];
+			}
+
+			a--;
+		}
+
+		/* If there's no marker for exact position, use nearest marker from left side. */
+		return &plane_track->markers[a];
+	}
+
+	return NULL;
+}
+
+/* Get a plane marker at exact given frame, if there's no marker at the frame,
+ * NULL will be returned.
+ */
+MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get_exact(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+
+	if (plane_marker->framenr != framenr) {
+		return NULL;
+	}
+
+	return plane_marker;
+}
+
+/* Ensure there's a marker for the given frame. */
+MovieTrackingPlaneMarker *BKE_tracking_plane_marker_ensure(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+
+	if (plane_marker->framenr != framenr) {
+		MovieTrackingPlaneMarker plane_marker_new;
+
+		plane_marker_new = *plane_marker;
+		plane_marker_new.framenr = framenr;
+
+		plane_marker = BKE_tracking_plane_marker_insert(plane_track, &plane_marker_new);
+	}
+
+	return plane_marker;
+}
+
 /*********************** Object *************************/
 
 MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char *name)
@@ -1377,6 +1704,15 @@ ListBase *BKE_tracking_object_get_tracks(MovieTracking *tracking, MovieTrackingO
 	}
 
 	return &object->tracks;
+}
+
+ListBase *BKE_tracking_object_get_plane_tracks(MovieTracking *tracking, MovieTrackingObject *object)
+{
+	if (object->flag & TRACKING_OBJECT_CAMERA) {
+		return &tracking->plane_tracks;
+	}
+
+	return &object->plane_tracks;
 }
 
 MovieTrackingReconstruction *BKE_tracking_object_get_reconstruction(MovieTracking *tracking,
@@ -2528,7 +2864,7 @@ static bool track_context_update_reference(MovieTrackingContext *context, TrackC
 }
 
 /* Fill in libmv tracker options structure with settings need to be used to perform track. */
-static void tracking_configure_tracker(MovieTrackingTrack *track, float *mask,
+static void tracking_configure_tracker(const MovieTrackingTrack *track, float *mask,
                                        libmv_TrackRegionOptions *options)
 {
 	options->motion_model = track->motion_model;
@@ -2861,6 +3197,147 @@ void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, Movi
 		MEM_freeN(mask);
 	IMB_freeImBuf(reference_ibuf);
 	IMB_freeImBuf(destination_ibuf);
+}
+
+/*********************** Plane tracking *************************/
+
+typedef double Vec2[2];
+
+static int point_markers_correspondences_on_both_image(MovieTrackingPlaneTrack *plane_track, int frame1, int frame2,
+                                                       Vec2 **x1_r, Vec2 **x2_r)
+{
+	int i, correspondence_index;
+	Vec2 *x1, *x2;
+
+	*x1_r = x1 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x1");
+	*x2_r = x2 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x2");
+
+	for (i = 0, correspondence_index = 0; i < plane_track->point_tracksnr; i++) {
+		MovieTrackingTrack *point_track = plane_track->point_tracks[i];
+		MovieTrackingMarker *point_marker1, *point_marker2;
+
+		point_marker1 = BKE_tracking_marker_get_exact(point_track, frame1);
+		point_marker2 = BKE_tracking_marker_get_exact(point_track, frame2);
+
+		if (point_marker1 != NULL && point_marker2 != NULL) {
+			/* Here conversion from float to double happens. */
+			x1[correspondence_index][0] = point_marker1->pos[0];
+			x1[correspondence_index][1] = point_marker1->pos[1];
+
+			x2[correspondence_index][0] = point_marker2->pos[0];
+			x2[correspondence_index][1] = point_marker2->pos[1];
+
+			correspondence_index++;
+		}
+	}
+
+	return correspondence_index;
+}
+
+/* TODO(sergey): Make it generic function available for everyone. */
+BLI_INLINE void mat3f_from_mat3d(float mat_float[3][3], double mat_double[3][3])
+{
+	/* Keep it stupid simple for better data flow in CPU. */
+	mat_float[0][0] = mat_double[0][0];
+	mat_float[0][1] = mat_double[0][1];
+	mat_float[0][2] = mat_double[0][2];
+
+	mat_float[1][0] = mat_double[1][0];
+	mat_float[1][1] = mat_double[1][1];
+	mat_float[1][2] = mat_double[1][2];
+
+	mat_float[2][0] = mat_double[2][0];
+	mat_float[2][1] = mat_double[2][1];
+	mat_float[2][2] = mat_double[2][2];
+}
+
+/* NOTE: frame number should be in clip space, not scene space */
+static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_track, int start_frame, int direction)
+{
+	MovieTrackingPlaneMarker *start_plane_marker = BKE_tracking_plane_marker_get(plane_track, start_frame);
+	MovieTrackingPlaneMarker new_plane_marker;
+	int current_frame, frame_delta = direction > 0 ? 1 : -1;
+
+	new_plane_marker = *start_plane_marker;
+	new_plane_marker.flag |= PLANE_MARKER_TRACKED;
+
+	for (current_frame = start_frame; ; current_frame += frame_delta) {
+		MovieTrackingPlaneMarker *next_plane_marker =
+			BKE_tracking_plane_marker_get_exact(plane_track, current_frame + frame_delta);
+		Vec2 *x1, *x2;
+		int i, num_correspondences;
+		double H_double[3][3];
+		float H[3][3];
+
+		/* As soon as we meet keyframed plane, we stop updating the sequence. */
+		if (next_plane_marker && (next_plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
+			break;
+		}
+
+		num_correspondences =
+			point_markers_correspondences_on_both_image(plane_track, current_frame, current_frame + frame_delta,
+			                                            &x1, &x2);
+
+		if (num_correspondences < 4) {
+			MEM_freeN(x1);
+			MEM_freeN(x2);
+
+			break;
+		}
+
+		libmv_homography2DFromCorrespondencesLinear(x1, x2, num_correspondences, H_double, 1e-8);
+
+		mat3f_from_mat3d(H, H_double);
+
+		for (i = 0; i < 4; i++) {
+			float vec[3] = {0.0f, 0.0f, 1.0f}, vec2[3];
+			copy_v2_v2(vec, new_plane_marker.corners[i]);
+
+			/* Apply homography */
+			mul_v3_m3v3(vec2, H, vec);
+
+			/* Normalize. */
+			vec2[0] /= vec2[2];
+			vec2[1] /= vec2[2];
+
+			copy_v2_v2(new_plane_marker.corners[i], vec2);
+		}
+
+		new_plane_marker.framenr = current_frame + frame_delta;
+
+		BKE_tracking_plane_marker_insert(plane_track, &new_plane_marker);
+
+		MEM_freeN(x1);
+		MEM_freeN(x2);
+	}
+}
+
+/* NOTE: frame number should be in clip space, not scene space */
+void BKE_tracking_track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_track, int start_frame)
+{
+	track_plane_from_existing_motion(plane_track, start_frame, 1);
+	track_plane_from_existing_motion(plane_track, start_frame, -1);
+}
+
+BLI_INLINE void float_corners_to_double(/*const*/ float corners[4][2], double double_corners[4][2])
+{
+	copy_v2db_v2fl(double_corners[0], corners[0]);
+	copy_v2db_v2fl(double_corners[1], corners[1]);
+	copy_v2db_v2fl(double_corners[2], corners[2]);
+	copy_v2db_v2fl(double_corners[3], corners[3]);
+}
+
+void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners[4][2], /*const*/ float corners[4][2], float H[3][3])
+{
+	Vec2 x1[4], x2[4];
+	double H_double[3][3];
+
+	float_corners_to_double(reference_corners, x1);
+	float_corners_to_double(corners, x2);
+
+	libmv_homography2DFromCorrespondencesLinear(x1, x2, 4, H_double, 1e-8);
+
+	mat3f_from_mat3d(H, H_double);
 }
 
 /*********************** Camera solving *************************/
@@ -3264,7 +3741,6 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);
 }
-
 /* FIll in camera intrinsics structure from reconstruction context. */
 static void camraIntrincicsOptionsFromContext(libmv_CameraIntrinsicsOptions *camera_intrinsics_options,
                                               MovieReconstructContext *context)

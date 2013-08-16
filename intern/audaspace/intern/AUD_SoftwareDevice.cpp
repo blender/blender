@@ -57,6 +57,37 @@ typedef enum
 /********************** AUD_SoftwareHandle Handle Code ************************/
 /******************************************************************************/
 
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause(bool keep)
+{
+	if(m_status)
+	{
+		AUD_MutexLock lock(*m_device);
+
+		if(m_status == AUD_STATUS_PLAYING)
+		{
+			for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
+			{
+				if(it->get() == this)
+				{
+					boost::shared_ptr<AUD_SoftwareHandle> This = *it;
+
+					m_device->m_playingSounds.erase(it);
+					m_device->m_pausedSounds.push_back(This);
+
+					if(m_device->m_playingSounds.empty())
+						m_device->playing(m_device->m_playback = false);
+
+					m_status = keep ? AUD_STATUS_STOPPED : AUD_STATUS_PAUSED;
+
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, boost::shared_ptr<AUD_IReader> reader, boost::shared_ptr<AUD_PitchReader> pitch, boost::shared_ptr<AUD_ResampleReader> resampler, boost::shared_ptr<AUD_ChannelMapperReader> mapper, bool keep) :
 	m_reader(reader), m_pitch(pitch), m_resampler(resampler), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_user_pan(0.0f), m_volume(1.0f), m_loopcount(0),
 	m_relative(true), m_volume_max(1.0f), m_volume_min(0), m_distance_max(std::numeric_limits<float>::max()),
@@ -225,33 +256,7 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::setSpecs(AUD_Specs specs)
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause()
 {
-	if(m_status)
-	{
-		AUD_MutexLock lock(*m_device);
-
-		if(m_status == AUD_STATUS_PLAYING)
-		{
-			for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
-			{
-				if(it->get() == this)
-				{
-					boost::shared_ptr<AUD_SoftwareHandle> This = *it;
-
-					m_device->m_playingSounds.erase(it);
-					m_device->m_pausedSounds.push_back(This);
-
-					if(m_device->m_playingSounds.empty())
-						m_device->playing(m_device->m_playback = false);
-
-					m_status = AUD_STATUS_PAUSED;
-
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+	return pause(false);
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::resume()
@@ -360,6 +365,9 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::seek(float position)
 
 	m_reader->seek((int)(position * m_reader->getSpecs().rate));
 
+	if(m_status == AUD_STATUS_STOPPED)
+		m_status = AUD_STATUS_PAUSED;
+
 	return true;
 }
 
@@ -429,7 +437,12 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setLoopCount(int count)
 {
 	if(!m_status)
 		return false;
+
+	if(m_status == AUD_STATUS_STOPPED && (count > m_loopcount || count < 0))
+		m_status = AUD_STATUS_PAUSED;
+
 	m_loopcount = count;
+
 	return true;
 }
 
@@ -793,19 +806,14 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		m_mixer->read(buffer, m_volume);
 
 		// cleanup
-		while(!stopSounds.empty())
-		{
-			sound = stopSounds.front();
-			stopSounds.pop_front();
-			sound->stop();
-		}
+		for(it = pauseSounds.begin(); it != pauseSounds.end(); it++)
+			(*it)->pause(true);
 
-		while(!pauseSounds.empty())
-		{
-			sound = pauseSounds.front();
-			pauseSounds.pop_front();
-			sound->pause();
-		}
+		for(it = stopSounds.begin(); it != stopSounds.end(); it++)
+			(*it)->stop();
+
+		pauseSounds.clear();
+		stopSounds.clear();
 	}
 }
 

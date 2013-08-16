@@ -25,6 +25,7 @@
  */
 
 #include "BL_ActionManager.h"
+#include "BL_Action.h"
 
 BL_ActionManager::BL_ActionManager(class KX_GameObject *obj)
 {
@@ -72,12 +73,13 @@ bool BL_ActionManager::PlayAction(const char* name,
 								short play_mode,
 								float layer_weight,
 								short ipo_flags,
-								float playback_speed)
+								float playback_speed,
+								short blend_mode)
 {
 	// Disable layer blending on the first layer
 	if (layer == 0) layer_weight = -1.f;
 
-	return m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed);
+	return m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed, blend_mode);
 }
 
 void BL_ActionManager::StopAction(short layer)

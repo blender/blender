@@ -65,7 +65,8 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendstart(0.f),
 	m_speed(0.f),
 	m_priority(0),
-	m_playmode(0),
+	m_playmode(ACT_MODE_PLAY),
+	m_blendmode(ACT_BLEND_BLEND),
 	m_ipo_flags(0),
 	m_done(true),
 	m_calc_localtime(true)
@@ -104,7 +105,8 @@ bool BL_Action::Play(const char* name,
 					short play_mode,
 					float layer_weight,
 					short ipo_flags,
-					float playback_speed)
+					float playback_speed,
+					short blend_mode)
 {
 
 	// Only start playing a new action if we're done, or if
@@ -229,6 +231,7 @@ bool BL_Action::Play(const char* name,
 	m_endframe = end;
 	m_blendin = blendin;
 	m_playmode = play_mode;
+	m_blendmode = blend_mode;
 	m_endtime = 0.f;
 	m_blendframe = 0.f;
 	m_blendstart = 0.f;
@@ -423,7 +426,7 @@ void BL_Action::Update(float curtime)
 			float weight = 1.f - (m_blendframe/m_blendin);
 
 			// Blend the poses
-			game_blend_poses(m_pose, m_blendinpose, weight);
+			game_blend_poses(m_pose, m_blendinpose, weight, ACT_BLEND_BLEND);
 		}
 
 
@@ -431,7 +434,7 @@ void BL_Action::Update(float curtime)
 		if (m_layer_weight >= 0)
 		{
 			obj->GetMRDPose(&m_blendpose);
-			game_blend_poses(m_pose, m_blendpose, m_layer_weight);
+			game_blend_poses(m_pose, m_blendpose, m_layer_weight, m_blendmode);
 		}
 
 		obj->SetPose(m_pose);

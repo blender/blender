@@ -36,6 +36,7 @@
  */
 
 struct MemArena;
+struct BLI_mempool;
 
 typedef void (*LinkNodeFreeFP)(void *link);
 typedef void (*LinkNodeApplyFP)(void *link, void *userdata);
@@ -56,10 +57,14 @@ void    BLI_linklist_reverse(struct LinkNode **listp);
 void    BLI_linklist_prepend(struct LinkNode **listp, void *ptr);
 void    BLI_linklist_append(struct LinkNode **listp, void *ptr);
 void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct MemArena *ma);
+void    BLI_linklist_prepend_pool(struct LinkNode **listp, void *ptr, struct BLI_mempool *mempool);
+void   *BLI_linklist_pop(struct LinkNode **listp);
+void   *BLI_linklist_pop_pool(struct LinkNode **listp, struct BLI_mempool *mempool);
 void    BLI_linklist_insert_after(struct LinkNode **listp, void *ptr);
 
 void    BLI_linklist_free(struct LinkNode *list, LinkNodeFreeFP freefunc);
 void    BLI_linklist_freeN(struct LinkNode *list);
+void    BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool);
 void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
 
 #endif

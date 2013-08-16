@@ -568,6 +568,10 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 	nu->resolu = nu->resolv = 12;
 	nu->flag = CU_SMOOTH;
 
+	if ((cu->flag & CU_3D) == 0) {
+		nu->flag |= CU_2D;
+	}
+
 	BLI_addtail(BKE_curve_nurbs_get(cu), nu);
 
 	return nu;

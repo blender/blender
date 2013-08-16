@@ -169,6 +169,7 @@ static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
 	return sqrtf(min_ffff(d1, d2, d3, d4));
 }
 
+/* Distance to quad defined by it's corners, corners are relative to pos */
 static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 {
 	float d1, d2, d3, d4;
@@ -184,7 +185,22 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 	return sqrtf(min_ffff(d1, d2, d3, d4));
 }
 
-static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2])
+/* Same as above, but all the coordinates are absolute */
+static float dist_to_crns_abs(float co[2], float corners[4][2])
+{
+	float d1, d2, d3, d4;
+	float *v1 = corners[0], *v2 = corners[1];
+	float *v3 = corners[2], *v4 = corners[3];
+
+	d1 = dist_squared_to_line_segment_v2(co, v1, v2);
+	d2 = dist_squared_to_line_segment_v2(co, v2, v3);
+	d3 = dist_squared_to_line_segment_v2(co, v3, v4);
+	d4 = dist_squared_to_line_segment_v2(co, v4, v1);
+
+	return sqrtf(min_ffff(d1, d2, d3, d4));
+}
+
+static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2], float *distance_r)
 {
 	MovieTrackingTrack *track = NULL, *cur;
 	float mindist = 0.0f;
@@ -221,7 +237,58 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 		cur = cur->next;
 	}
 
+	*distance_r = mindist;
+
 	return track;
+}
+
+static MovieTrackingPlaneTrack *find_nearest_plane_track(SpaceClip *sc, ListBase *plane_tracks_base,
+                                                         float co[2], float *distance_r)
+{
+	MovieTrackingPlaneTrack *plane_track = NULL, *current_plane_track;
+	float min_distance = 0.0f;
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+	for (current_plane_track = plane_tracks_base->first;
+	     current_plane_track;
+	     current_plane_track = current_plane_track->next)
+	{
+		MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(current_plane_track, framenr);
+
+		if ((current_plane_track->flag & TRACK_HIDDEN) == 0) {
+			float distance = dist_to_crns_abs(co, plane_marker->corners);
+			if (plane_track == NULL || distance < min_distance) {
+				plane_track = current_plane_track;
+				min_distance = distance;
+			}
+		}
+	}
+
+	*distance_r = min_distance;
+
+	return plane_track;
+}
+
+static void delect_all_tracks(ListBase *tracks_base)
+{
+	MovieTrackingTrack *track;
+	for (track = tracks_base->first;
+	     track;
+	     track = track->next)
+	{
+		BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
+	}
+}
+
+static void delect_all_plane_tracks(ListBase *plane_tracks_base)
+{
+	MovieTrackingPlaneTrack *plane_track;
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		plane_track->flag &= ~SELECT;
+	}
 }
 
 static int mouse_select(bContext *C, float co[2], int extend)
@@ -230,10 +297,28 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-	MovieTrackingTrack *track = NULL;   /* selected marker */
+	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
+	float distance_to_track, distance_to_plane_track;
 
-	track = find_nearest_track(sc, tracksbase, co);
+	track = find_nearest_track(sc, tracksbase, co, &distance_to_track);
+	plane_track = find_nearest_plane_track(sc, plane_tracks_base, co, &distance_to_plane_track);
+
+	/* Between track and plane we choose closest to the mouse for selection here. */
+	if (track && plane_track) {
+		if (distance_to_track < distance_to_plane_track) {
+			plane_track = NULL;
+		}
+		else {
+			track = NULL;
+		}
+	}
+
+	if (!extend) {
+		delect_all_plane_tracks(plane_tracks_base);
+	}
 
 	if (track) {
 		int area = track_mouse_area(C, co, track);
@@ -242,10 +327,13 @@ static int mouse_select(bContext *C, float co[2], int extend)
 			area = TRACK_AREA_ALL;
 
 		if (extend && TRACK_AREA_SELECTED(track, area)) {
-			if (track == act_track)
+			if (track == act_track) {
 				BKE_tracking_track_deselect(track, area);
-			else
+			}
+			else {
 				clip->tracking.act_track = track;
+				clip->tracking.act_plane_track = NULL;
+			}
 		}
 		else {
 			if (area == TRACK_AREA_POINT)
@@ -253,7 +341,25 @@ static int mouse_select(bContext *C, float co[2], int extend)
 
 			BKE_tracking_track_select(tracksbase, track, area, extend);
 			clip->tracking.act_track = track;
+			clip->tracking.act_plane_track = NULL;
 		}
+	}
+	else if (plane_track) {
+		if (!extend) {
+			delect_all_tracks(tracksbase);
+		}
+
+		if (plane_track->flag & SELECT) {
+			if (extend) {
+				plane_track->flag &= ~SELECT;
+			}
+		}
+		else {
+			plane_track->flag |= SELECT;
+		}
+
+		clip->tracking.act_track = NULL;
+		clip->tracking.act_plane_track = plane_track;
 	}
 
 	if (!extend) {
@@ -350,7 +456,9 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
 	rctf rectf;
 	int change = FALSE, mode, extend;
@@ -387,6 +495,33 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		track = track->next;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+			MovieTrackingPlaneMarker *plane_marker =
+				BKE_tracking_plane_marker_get(plane_track, framenr);
+			int i;
+
+			for (i = 0; i < 4; i++) {
+				if (BLI_rctf_isect_pt_v(&rectf, plane_marker->corners[i])) {
+					if (mode == GESTURE_MODAL_SELECT) {
+						plane_track->flag |= SELECT;
+					}
+					else {
+						plane_track->flag &= ~SELECT;
+					}
+				}
+				else if (!extend) {
+					plane_track->flag &= ~SELECT;
+				}
+			}
+
+			change = TRUE;
+		}
 	}
 
 	if (change) {
@@ -430,7 +565,9 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
 	int change = FALSE;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
@@ -464,6 +601,37 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 		}
 
 		track = track->next;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+			MovieTrackingPlaneMarker *plane_marker =
+				BKE_tracking_plane_marker_get(plane_track, framenr);
+			int i;
+
+			for (i = 0; i < 4; i++) {
+				float screen_co[2];
+
+				/* marker in screen coords */
+				ED_clip_point_stable_pos__reverse(sc, ar, plane_marker->corners[i], screen_co);
+
+				if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
+				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
+				{
+					if (select) {
+						plane_track->flag |= SELECT;
+					}
+					else {
+						plane_track->flag &= ~SELECT;
+					}
+				}
+			}
+
+			change = TRUE;
+		}
 	}
 
 	if (change) {
@@ -518,15 +686,20 @@ void CLIP_OT_select_lasso(wmOperatorType *ot)
 
 /********************** circle select operator *********************/
 
-static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], float ellipse[2])
+static int point_inside_ellipse(float point[2], float offset[2], float ellipse[2])
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
 
-	x = (marker->pos[0] - offset[0]) * ellipse[0];
-	y = (marker->pos[1] - offset[1]) * ellipse[1];
+	x = (point[0] - offset[0]) * ellipse[0];
+	y = (point[1] - offset[1]) * ellipse[1];
 
 	return x * x + y * y < 1.0f;
+}
+
+static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], float ellipse[2])
+{
+	return point_inside_ellipse(marker->pos, offset, ellipse);
 }
 
 static int circle_select_exec(bContext *C, wmOperator *op)
@@ -537,7 +710,9 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
@@ -575,6 +750,30 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		}
 
 		track = track->next;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+			MovieTrackingPlaneMarker *plane_marker =
+				BKE_tracking_plane_marker_get(plane_track, framenr);
+			int i;
+
+			for (i = 0; i < 4; i++) {
+				if (point_inside_ellipse(plane_marker->corners[i], offset, ellipse)) {
+					if (mode == GESTURE_MODAL_SELECT) {
+						plane_track->flag |= SELECT;
+					}
+					else {
+						plane_track->flag &= ~SELECT;
+					}
+				}
+			}
+
+			change = TRUE;
+		}
 	}
 
 	if (change) {
@@ -619,16 +818,18 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track = NULL;   /* selected track */
+	MovieTrackingPlaneTrack *plane_track = NULL;   /* selected plane track */
 	MovieTrackingMarker *marker;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int has_selection = FALSE;
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		track = tracksbase->first;
-		while (track) {
+
+		for (track = tracksbase->first; track; track = track->next) {
 			if (TRACK_VIEW_SELECTED(sc, track)) {
 				marker = BKE_tracking_marker_get(track, framenr);
 
@@ -637,13 +838,20 @@ static int select_all_exec(bContext *C, wmOperator *op)
 					break;
 				}
 			}
+		}
 
-			track = track->next;
+		for (plane_track = plane_tracks_base->first;
+		     plane_track;
+		     plane_track = plane_track->next)
+		{
+			if (plane_track->flag & SELECT) {
+				action = SEL_DESELECT;
+				break;
+			}
 		}
 	}
 
-	track = tracksbase->first;
-	while (track) {
+	for (track = tracksbase->first; track; track = track->next) {
 		if ((track->flag & TRACK_HIDDEN) == 0) {
 			marker = BKE_tracking_marker_get(track, framenr);
 
@@ -670,8 +878,29 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 		if (TRACK_VIEW_SELECTED(sc, track))
 			has_selection = TRUE;
+	}
 
-		track = track->next;
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+			switch (action) {
+				case SEL_SELECT:
+					plane_track->flag |= SELECT;
+					break;
+				case SEL_DESELECT:
+					plane_track->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					plane_track->flag ^= SELECT;
+					break;
+			}
+		}
+
+		if (plane_track->flag & SELECT) {
+			has_selection = TRUE;
+		}
 	}
 
 	if (!has_selection)

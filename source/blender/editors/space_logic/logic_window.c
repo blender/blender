@@ -1465,6 +1465,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "layer", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "layer_weight", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "blend_mode", 0, "", ICON_NONE);
 
 	uiItemPointerR(layout, ptr, "frame_property", &settings_ptr, "properties", NULL, ICON_NONE);
 

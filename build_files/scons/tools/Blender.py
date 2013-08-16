@@ -151,12 +151,6 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_JACK_LIBPATH'])
     if lenv['WITH_BF_SNDFILE']:
         libincs += Split(lenv['BF_SNDFILE_LIBPATH'])
-    if lenv['WITH_BF_OPENEXR']:
-        libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
-        if lenv['WITH_BF_STATICOPENEXR']:
-            statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
-    if lenv['WITH_BF_ZLIB'] and lenv['WITH_BF_STATICZLIB']:
-        statlibs += Split(lenv['BF_ZLIB_LIB_STATIC'])
     if lenv['WITH_BF_TIFF']:
         libincs += Split(lenv['BF_TIFF_LIBPATH'])
         if lenv['WITH_BF_STATICTIFF']:
@@ -212,6 +206,12 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_OIIO_LIBPATH'])
         if lenv['WITH_BF_STATICOIIO']:
             statlibs += Split(lenv['BF_OIIO_LIB_STATIC'])
+    if lenv['WITH_BF_OPENEXR']:
+        libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
+        if lenv['WITH_BF_STATICOPENEXR']:
+            statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
+    if lenv['WITH_BF_ZLIB'] and lenv['WITH_BF_STATICZLIB']:
+        statlibs += Split(lenv['BF_ZLIB_LIB_STATIC'])
 
     if lenv['WITH_BF_OCIO']:
         libincs += Split(lenv['BF_OCIO_LIBPATH'])

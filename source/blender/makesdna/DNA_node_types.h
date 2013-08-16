@@ -827,6 +827,10 @@ typedef struct NodeTranslateData {
 	char pad[6];
 } NodeTranslateData;
 
+typedef struct NodePlaneTrackDeformData {
+	char tracking_object[64];
+	char plane_track_name[64];
+} NodePlaneTrackDeformData;
 
 typedef struct NodeShaderScript {
 	int mode;

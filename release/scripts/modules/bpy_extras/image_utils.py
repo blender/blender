@@ -105,7 +105,15 @@ def load_image(imagepath,
             if relpath is not None:
                 # make relative
                 from bpy.path import relpath as relpath_fn
-                image.filepath_raw = relpath_fn(path, start=relpath)
+                # can't always find the relative path
+                # (between drive letters on windows)
+                try:
+                    filepath_rel = relpath_fn(path, start=relpath)
+                except ValueError:
+                    filepath_rel = None
+
+                if filepath_rel is not None:
+                    image.filepath_raw = filepath_rel
 
         return image
 

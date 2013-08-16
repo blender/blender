@@ -33,13 +33,12 @@
 #ifndef __OSL_CLOSURES_H__
 #define __OSL_CLOSURES_H__
 
+#include "util_types.h"
+#include "kernel_types.h"
+
 #include <OSL/oslclosure.h>
 #include <OSL/oslexec.h>
 #include <OSL/genclosure.h>
-
-#include "kernel_types.h"
-
-#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

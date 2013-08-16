@@ -139,6 +139,8 @@ protected:
 		/// Own device.
 		AUD_SoftwareDevice* m_device;
 
+		bool pause(bool keep);
+
 	public:
 
 		/**

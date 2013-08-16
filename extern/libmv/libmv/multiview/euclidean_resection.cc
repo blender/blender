@@ -34,6 +34,11 @@ namespace libmv {
 namespace euclidean_resection {
 
 typedef unsigned int uint;
+  
+bool EuclideanResectionPPnP(const Mat2X &x_camera,
+                            const Mat3X &X_world,
+                            Mat3 *R, Vec3 *t,
+                            double tolerance);
 
 bool EuclideanResection(const Mat2X &x_camera,
                         const Mat3X &X_world,
@@ -46,6 +51,9 @@ bool EuclideanResection(const Mat2X &x_camera,
       break;
     case RESECTION_EPNP:
       return EuclideanResectionEPnP(x_camera, X_world, R, t, success_threshold);
+      break;
+    case RESECTION_PPNP:
+      return EuclideanResectionPPnP(x_camera, X_world, R, t, success_threshold);
       break;
     default:
       LOG(FATAL) << "Unknown resection method.";
@@ -674,6 +682,107 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   // TODO(julien): Improve the solutions with non-linear refinement.
   return true;
 }
+  
+/*
+ 
+ Straight from the paper:
+ http://www.diegm.uniud.it/fusiello/papers/3dimpvt12-b.pdf
+ 
+ function [R T] = ppnp(P,S,tol)
+ % input
+ % P  : matrix (nx3) image coordinates in camera reference [u v 1]
+ % S  : matrix (nx3) coordinates in world reference [X Y Z]
+ % tol: exit threshold
+ %
+ % output
+ % R : matrix (3x3) rotation (world-to-camera)
+ % T : vector (3x1) translation (world-to-camera)
+ %
+ n = size(P,1);
+ Z = zeros(n);
+ e = ones(n,1);
+ A = eye(n)-((e*e’)./n);
+ II = e./n;
+ err = +Inf;
+ E_old = 1000*ones(n,3);
+ while err>tol
+   [U,˜,V] = svd(P’*Z*A*S);
+   VT = V’;
+   R=U*[1 0 0; 0 1 0; 0 0 det(U*VT)]*VT;
+   PR = P*R;
+   c = (S-Z*PR)’*II;
+   Y = S-e*c’;
+   Zmindiag = diag(PR*Y’)./(sum(P.*P,2));
+   Zmindiag(Zmindiag<0)=0;
+   Z = diag(Zmindiag);
+   E = Y-Z*PR;
+   err = norm(E-E_old,’fro’);
+   E_old = E;
+ end
+ T = -R*c;
+ end
+ 
+ */
+// TODO(keir): Re-do all the variable names and add comments matching the paper.
+// This implementation has too much of the terseness of the original. On the
+// other hand, it did work on the first try.
+bool EuclideanResectionPPnP(const Mat2X &x_camera,
+                            const Mat3X &X_world,
+                            Mat3 *R, Vec3 *t,
+                            double tolerance) {
+  int n = x_camera.cols();
+  Mat Z = Mat::Zero(n, n);
+  Vec e = Vec::Ones(n);
+  Mat A = Mat::Identity(n, n) - (e * e.transpose() / n);
+  Vec II = e / n;
+  
+  Mat P(n, 3);
+  P.col(0) = x_camera.row(0);
+  P.col(1) = x_camera.row(1);
+  P.col(2).setConstant(1.0);
+  
+  Mat S = X_world.transpose();
+  
+  double error = std::numeric_limits<double>::infinity();
+  Mat E_old = 1000 * Mat::Ones(n, 3);
+  
+  Vec3 c;
+  Mat E(n, 3);
+  
+  int iteration = 0;
+  tolerance = 1e-5;
+  // TODO(keir): The limit of 100 can probably be reduced, but this will require
+  // some investigation.
+  while (error > tolerance && iteration < 100) {
+    Mat3 tmp = P.transpose() * Z * A * S;
+    Eigen::JacobiSVD<Mat3> svd(tmp, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Mat3 U = svd.matrixU();
+    Mat3 VT = svd.matrixV().transpose();
+    Vec3 s;
+    s << 1, 1, (U * VT).determinant();
+    *R = U * s.asDiagonal() * VT;
+    Mat PR = P * *R;  // n x 3
+    c = (S - Z*PR).transpose() * II;
+    Mat Y = S - e*c.transpose();  // n x 3
+    Vec Zmindiag = (PR * Y.transpose()).diagonal()
+        .cwiseQuotient(P.rowwise().squaredNorm());
+    for (int i = 0; i < n; ++i) {
+      Zmindiag[i] = std::max(Zmindiag[i], 0.0);
+    }
+    Z = Zmindiag.asDiagonal();
+    E = Y - Z*PR;
+    error = (E - E_old).norm();
+    LOG(INFO) << "PPnP error(" << (iteration++) << "): " << error;
+    E_old = E;
+  }
+  *t = -*R*c;
+
+  // TODO(keir): Figure out what the failure cases are. Is it too many
+  // iterations? Spend some time going through the math figuring out if there
+  // is some way to detect that the algorithm is going crazy, and return false.
+  return true;
+}
+
 
 }  // namespace resection
 }  // namespace libmv

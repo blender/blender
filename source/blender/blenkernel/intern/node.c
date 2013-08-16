@@ -3391,6 +3391,7 @@ static void registerCompositNodes(void)
 
 	register_node_type_cmp_mask();
 	register_node_type_cmp_trackpos();
+	register_node_type_cmp_planetrackdeform();
 }
 
 static void registerShaderNodes(void) 

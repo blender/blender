@@ -132,8 +132,8 @@ void clip_graph_tracking_values_iterate(struct SpaceClip *sc, int selected_only,
 void clip_graph_tracking_iterate(struct SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                  void (*func)(void *userdata, struct MovieTrackingMarker *marker));
 
-void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);
-void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
+void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
@@ -192,6 +192,9 @@ void CLIP_OT_tracking_object_remove(struct wmOperatorType *ot);
 
 void CLIP_OT_copy_tracks(struct wmOperatorType *ot);
 void CLIP_OT_paste_tracks(struct wmOperatorType *ot);
+
+void CLIP_OT_create_plane_track(struct wmOperatorType *ot);
+void CLIP_OT_slide_plane_marker(struct wmOperatorType *ot);
 
 /* tracking_select.c */
 void CLIP_OT_select(struct wmOperatorType *ot);

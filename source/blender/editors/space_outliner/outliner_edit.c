@@ -1648,26 +1648,29 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
+static int outliner_parenting_poll(bContext *C)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
+	if (soops) {
+		return ELEM4(soops->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_GROUPS);
+	}
+
+	return FALSE;
+}
+
 static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = NULL;
 	Object *ob = NULL;
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te;
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
 
 	/* search forwards to find the object */
-	te = outliner_find_id(soops, &soops->tree, (ID *)ob);
-	/* then search backwards to get the scene */
-	scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
-
-	if (scene == NULL) {
-		return OPERATOR_CANCELLED;
-	}
+	outliner_find_id(soops, &soops->tree, (ID *)ob);
 
 	ED_object_parent_clear(ob, RNA_enum_get(op->ptr, "type"));
 
@@ -1687,7 +1690,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = parent_clear_invoke;
 
-	ot->poll = ED_operator_outliner_active;
+	ot->poll = outliner_parenting_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

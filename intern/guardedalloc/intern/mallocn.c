@@ -1142,12 +1142,12 @@ void *MEM_dupallocN(const void *vmemh)
 	return newp;
 }
 
-void *MEM_reallocN(void *vmemh, size_t len)
+void *MEM_reallocN_id(void *vmemh, size_t len, const char *UNUSED(str))
 {
 	return realloc(vmemh, len);
 }
 
-void *MEM_recallocN(void *vmemh, size_t len)
+void *MEM_recallocN_id(void *vmemh, size_t len, const char *UNUSED(str))
 {
 	void *newp = NULL;
 

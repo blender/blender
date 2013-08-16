@@ -898,6 +898,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_NODE_PIXELATE       318
 
 #define CMP_NODE_MAP_RANGE	319
+#define CMP_NODE_PLANETRACKDEFORM	320
 
 /* channel toggles */
 #define CMP_CHAN_RGB		1

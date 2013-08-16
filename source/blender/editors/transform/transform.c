@@ -1324,12 +1324,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				break;
-//		case LEFTMOUSE:
-//		case RIGHTMOUSE:
-//			if (WM_modal_tweak_exit(event, t->event_type))
-////			if (t->options & CTX_TWEAK)
-//				t->state = TRANS_CONFIRM;
-//			break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
 				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
@@ -1374,7 +1368,7 @@ int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int c
 	t->state = TRANS_RUNNING;
 
 	/* avoid calculating PET */
-	t->options = CTX_NONE | CTX_NO_PET;
+	t->options = CTX_NO_PET;
 
 	t->mode = TFM_DUMMY;
 
@@ -3011,7 +3005,12 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		copy_v3_v3(center, td->center);
 	}
 	else if (t->options & CTX_MOVIECLIP) {
-		copy_v3_v3(center, td->center);
+		if (td->flag & TD_INDIVIDUAL_SCALE) {
+			copy_v3_v3(center, td->center);
+		}
+		else {
+			copy_v3_v3(center, t->center);
+		}
 	}
 	else {
 		copy_v3_v3(center, t->center);

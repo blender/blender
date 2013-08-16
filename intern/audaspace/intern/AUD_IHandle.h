@@ -113,6 +113,8 @@ public:
 	 *.         invalid
 	 *        - AUD_STATUS_PLAYING if the sound is currently played back.
 	 *        - AUD_STATUS_PAUSED if the sound is currently paused.
+	 *        - AUD_STATUS_STOPPED if the sound finished playing and is still
+	 *          kept in the device.
 	 * \see AUD_Status
 	 */
 	virtual AUD_Status getStatus()=0;

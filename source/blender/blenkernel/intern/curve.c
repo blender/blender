@@ -2242,15 +2242,18 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 		}
 	}
 	else {
-		/* Need to correct quat for the last point,
+		/* Need to correct quat for the first/last point,
 		 * this is so because previously it was only calculated
 		 * using it's own direction, which might not correspond
-		 * the twist of previous point.
+		 * the twist of neighbor point.
 		 */
+		bevp1 = (BevPoint *)(bl + 1);
+		bevp0 = bevp1 + 1;
+		minimum_twist_between_two_points(bevp1, bevp0);
+
 		bevp2 = (BevPoint *)(bl + 1);
 		bevp1 = bevp2 + (bl->nr - 1);
 		bevp0 = bevp1 - 1;
-
 		minimum_twist_between_two_points(bevp1, bevp0);
 	}
 }
@@ -2369,12 +2372,23 @@ static void make_bevel_list_2D(BevList *bl)
 	/* note: bevp->dir and bevp->quat are not needed for beveling but are
 	 * used when making a path from a 2D curve, therefor they need to be set - Campbell */
 
-	BevPoint *bevp2 = (BevPoint *)(bl + 1);
-	BevPoint *bevp1 = bevp2 + (bl->nr - 1);
-	BevPoint *bevp0 = bevp1 - 1;
+	BevPoint *bevp0, *bevp1, *bevp2;
 	int nr;
 
-	nr = bl->nr;
+	if (bl->poly != -1) {
+		bevp2 = (BevPoint *)(bl + 1);
+		bevp1 = bevp2 + (bl->nr - 1);
+		bevp0 = bevp1 - 1;
+		nr = bl->nr;
+	}
+	else {
+		bevp0 = (BevPoint *)(bl + 1);
+		bevp1 = bevp0 + 1;
+		bevp2 = bevp1 + 1;
+
+		nr = bl->nr - 2;
+	}
+
 	while (nr--) {
 		const float x1 = bevp1->vec[0] - bevp0->vec[0];
 		const float x2 = bevp1->vec[0] - bevp2->vec[0];
@@ -2396,15 +2410,23 @@ static void make_bevel_list_2D(BevList *bl)
 
 	/* correct non-cyclic cases */
 	if (bl->poly == -1) {
-		BevPoint *bevp = (BevPoint *)(bl + 1);
-		bevp1 = bevp + 1;
-		bevp->sina = bevp1->sina;
-		bevp->cosa = bevp1->cosa;
+		BevPoint *bevp;
+		float angle;
+
+		/* first */
+		bevp = (BevPoint *)(bl + 1);
+		angle = atan2(bevp->dir[0], bevp->dir[1]) - M_PI / 2.0;
+		bevp->sina = sinf(angle);
+		bevp->cosa = cosf(angle);
+		vec_to_quat(bevp->quat, bevp->dir, 5, 1);
+
+		/* last */
 		bevp = (BevPoint *)(bl + 1);
 		bevp += (bl->nr - 1);
-		bevp1 = bevp - 1;
-		bevp->sina = bevp1->sina;
-		bevp->cosa = bevp1->cosa;
+		angle = atan2(bevp->dir[0], bevp->dir[1]) - M_PI / 2.0;
+		bevp->sina = sinf(angle);
+		bevp->cosa = cosf(angle);
+		vec_to_quat(bevp->quat, bevp->dir, 5, 1);
 	}
 }
 
@@ -3816,7 +3838,7 @@ void BKE_curve_translate(Curve *cu, float offset[3], int do_keys)
 	}
 }
 
-void BKE_curve_delete_material_index(Curve *cu, int index)
+void BKE_curve_material_index_remove(Curve *cu, int index)
 {
 	const int curvetype = BKE_curve_type_get(cu);
 
@@ -3835,8 +3857,32 @@ void BKE_curve_delete_material_index(Curve *cu, int index)
 		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->mat_nr && nu->mat_nr >= index) {
 				nu->mat_nr--;
-				if (curvetype == OB_CURVE)
+				if (curvetype == OB_CURVE) {
 					nu->charidx--;
+				}
+			}
+		}
+	}
+}
+
+void BKE_curve_material_index_clear(Curve *cu)
+{
+	const int curvetype = BKE_curve_type_get(cu);
+
+	if (curvetype == OB_FONT) {
+		struct CharInfo *info = cu->strinfo;
+		int i;
+		for (i = cu->len - 1; i >= 0; i--, info++) {
+			info->mat_nr = 0;
+		}
+	}
+	else {
+		Nurb *nu;
+
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
+			nu->mat_nr = 0;
+			if (curvetype == OB_CURVE) {
+				nu->charidx = 0;
 			}
 		}
 	}

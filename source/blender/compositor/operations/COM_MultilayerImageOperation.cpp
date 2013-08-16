@@ -47,7 +47,7 @@ void MultilayerColorOperation::executePixel(float output[4], float x, float y, P
 {
 	int yi = y;
 	int xi = x;
-	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		zero_v4(output);
 	}
 	else {
@@ -66,7 +66,7 @@ void MultilayerColorOperation::executePixel(float output[4], float x, float y, P
 		}
 		else {
 			int offset = (yi * this->getWidth() + xi) * 3;
-			copy_v3_v3(output, &this->m_imageBuffer[offset]);
+			copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
 		}
 	}
 }
@@ -75,11 +75,11 @@ void MultilayerValueOperation::executePixel(float output[4], float x, float y, P
 {
 	int yi = y;
 	int xi = x;
-	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		output[0] = 0.0f;
 	}
 	else {
-		float result = this->m_imageBuffer[yi * this->getWidth() + xi];
+		float result = this->m_imageFloatBuffer[yi * this->getWidth() + xi];
 		output[0] = result;
 	}
 }
@@ -88,11 +88,11 @@ void MultilayerVectorOperation::executePixel(float output[4], float x, float y, 
 {
 	int yi = y;
 	int xi = x;
-	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		output[0] = 0.0f;
 	}
 	else {
 		int offset = (yi * this->getWidth() + xi) * 3;
-		copy_v3_v3(output, &this->m_imageBuffer[offset]);
+		copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
 	}
 }

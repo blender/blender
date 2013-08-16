@@ -50,7 +50,7 @@ void init_def_material(void);
 void BKE_material_free(struct Material *sc); 
 void BKE_material_free_ex(struct Material *ma, int do_id_user);
 void test_object_materials(struct Main *bmain, struct ID *id);
-void resize_object_material(struct Object *ob, const short totcol);
+void BKE_material_resize_object(struct Object *ob, const short totcol, bool do_id_user);
 void init_material(struct Material *ma);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_material_copy(struct Material *ma);
@@ -87,9 +87,10 @@ int object_add_material_slot(struct Object *ob);
 int object_remove_material_slot(struct Object *ob);
 
 /* rna api */
-void material_append_id(struct ID *id, struct Material *ma);
-struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot); /* index is an int because of RNA */
-
+void BKE_material_resize_id(struct ID *id, short totcol, bool do_id_user);
+void BKE_material_append_id(struct ID *id, struct Material *ma);
+struct Material *BKE_material_pop_id(struct ID *id, int index, bool update_data); /* index is an int because of RNA */
+void BKE_material_clear_id(struct ID *id, bool update_data);
 /* rendering */
 
 void init_render_material(struct Material *, int, float *);

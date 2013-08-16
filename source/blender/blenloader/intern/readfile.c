@@ -4345,7 +4345,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				/* Only expand so as not to loose any object materials that might be set. */
 				if (totcol_data && (*totcol_data > ob->totcol)) {
 					/* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
-					resize_object_material(ob, *totcol_data);
+					BKE_material_resize_object(ob, *totcol_data, false);
 				}
 			}
 			
@@ -6687,6 +6687,28 @@ static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 	}
 }
 
+static void direct_link_moviePlaneTracks(FileData *fd, ListBase *plane_tracks_base)
+{
+	MovieTrackingPlaneTrack *plane_track;
+
+	link_list(fd, plane_tracks_base);
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		int i;
+
+		plane_track->point_tracks = newdataadr(fd, plane_track->point_tracks);
+
+		for (i = 0; i < plane_track->point_tracksnr; i++) {
+			plane_track->point_tracks[i] = newdataadr(fd, plane_track->point_tracks[i]);
+		}
+
+		plane_track->markers = newdataadr(fd, plane_track->markers);
+	}
+}
+
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
 	MovieTracking *tracking = &clip->tracking;
@@ -6701,9 +6723,11 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	else clip->tracking.camera.intrinsics = NULL;
 
 	direct_link_movieTracks(fd, &tracking->tracks);
+	direct_link_moviePlaneTracks(fd, &tracking->plane_tracks);
 	direct_link_movieReconstruction(fd, &tracking->reconstruction);
 
 	clip->tracking.act_track = newdataadr(fd, clip->tracking.act_track);
+	clip->tracking.act_plane_track = newdataadr(fd, clip->tracking.act_plane_track);
 
 	clip->anim = NULL;
 	clip->tracking_context = NULL;
@@ -6720,6 +6744,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	
 	for (object = tracking->objects.first; object; object = object->next) {
 		direct_link_movieTracks(fd, &object->tracks);
+		direct_link_moviePlaneTracks(fd, &object->plane_tracks);
 		direct_link_movieReconstruction(fd, &object->reconstruction);
 	}
 }
