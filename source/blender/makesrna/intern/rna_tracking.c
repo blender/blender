@@ -1331,43 +1331,11 @@ static void rna_def_trackingPlaneMarker(BlenderRNA *brna)
 static void rna_def_trackingPlaneMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-	//FunctionRNA *func;
-	//PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MovieTrackingPlaneMarkers");
 	srna = RNA_def_struct(brna, "MovieTrackingPlaneMarkers", NULL);
 	RNA_def_struct_sdna(srna, "MovieTrackingPlaneTrack");
 	RNA_def_struct_ui_text(srna, "Movie Tracking Plane Markers", "Collection of markers for movie tracking plane track");
-
-	/*
-	func = RNA_def_function(srna, "find_frame", "rna_trackingMarkers_find_frame");
-	RNA_def_function_ui_description(func, "Get marker for specified frame");
-	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
-	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "exact", TRUE, "Exact",
-	                "Get marker at exact frame number rather than get estimated marker");
-	parm = RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "insert_frame", "rna_trackingMarkers_insert_frame");
-	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
-	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
-	                   "Frame number to insert marker to", MINFRAME, MAXFRAME);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_float_vector(func, "co", 2, 0, -1.0, 1.0, "Coordinate",
-	                     "Place new marker at the given frame using specified in normalized space coordinates",
-	                     -1.0, 1.0);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Newly created marker");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "delete_frame", "rna_trackingMarkers_delete_frame");
-	RNA_def_function_ui_description(func, "Delete marker at specified frame");
-	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
-	                   "Frame number to delete marker from", MINFRAME, MAXFRAME);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	*/
 }
 
 static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
@@ -1592,25 +1560,11 @@ static void rna_def_trackingTracks(BlenderRNA *brna)
 static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	//FunctionRNA *func;
 	PropertyRNA *prop;
-	//PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "MovieTrackingPlaneTracks", NULL);
 	RNA_def_struct_sdna(srna, "MovieTracking");
 	RNA_def_struct_ui_text(srna, "Movie Plane Tracks", "Collection of movie tracking plane tracks");
-
-	/* TODO(sergey): Need to support tracks API. */
-
-#if 0
-	func = RNA_def_function(srna, "new", "rna_trackingTracks_new");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Create new motion track in this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new track");
-	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add track on", MINFRAME, MAXFRAME);
-	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
-	RNA_def_function_return(func, parm);
-#endif
 
 	/* active plane track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -1650,23 +1604,11 @@ static void rna_def_trackingObjectTracks(BlenderRNA *brna)
 static void rna_def_trackingObjectPlaneTracks(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	//FunctionRNA *func;
 	PropertyRNA *prop;
-	//PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "MovieTrackingObjectPlaneTracks", NULL);
 	RNA_def_struct_sdna(srna, "MovieTrackingObject");
 	RNA_def_struct_ui_text(srna, "Plane Tracks", "Collection of tracking plane tracks");
-
-#if 0
-	func = RNA_def_function(srna, "new", "rna_trackingObject_tracks_new");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "create new motion track in this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new track");
-	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
-	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
-	RNA_def_function_return(func, parm);
-#endif
 
 	/* active track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
