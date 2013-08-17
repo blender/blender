@@ -19,8 +19,8 @@
 CCL_NAMESPACE_BEGIN
 
 /*
- * "A Practical Analytic Model for Daylight"
- * A. J. Preetham, Peter Shirley, Brian Smits
+ * "An Analytic Model for Full Spectral Sky-Dome Radiance"
+ * Lukas Hosek, Alexander Wilkie
  */
 
 __device float sky_angle_between(float thetav, float phiv, float theta, float phi)
@@ -29,12 +29,16 @@ __device float sky_angle_between(float thetav, float phiv, float theta, float ph
 	return safe_acosf(cospsi);
 }
 
-__device float sky_perez_function(__constant float *lam, float theta, float gamma)
+/* ArHosekSkyModel_GetRadianceInternal */
+__device float sky_radiance_internal(__constant float *configuration, float theta, float gamma)
 {
-	float ctheta = cosf(theta);
-	float cgamma = cosf(gamma);
+    const float expM = expf(configuration[4] * gamma);
+    const float rayM = cosf(gamma)*cosf(gamma);
+    const float mieM = (1.0f + cosf(gamma)*cosf(gamma)) / powf((1.0f + configuration[8]*configuration[8] - 2.0f*configuration[8]*cosf(gamma)), 1.5f);
+    const float zenith = sqrt(cosf(theta));
 
-	return (1.0f + lam[0]*expf(lam[1]/ctheta)) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cgamma*cgamma);
+    return (1.0f + configuration[0] * expf(configuration[1] / (cosf(theta) + 0.01f))) *
+            (configuration[2] + configuration[3] * expM + configuration[5] * rayM + configuration[6] * mieM + configuration[7] * zenith);
 }
 
 __device float3 sky_radiance(KernelGlobals *kg, float3 dir)
@@ -50,14 +54,13 @@ __device float3 sky_radiance(KernelGlobals *kg, float3 dir)
 	/* clamp theta to horizon */
 	theta = min(theta, M_PI_2_F - 0.001f);
 
-	/* compute xyY color space values */
-	float x = kernel_data.sunsky.zenith_x * sky_perez_function(kernel_data.sunsky.perez_x, theta, gamma);
-	float y = kernel_data.sunsky.zenith_y * sky_perez_function(kernel_data.sunsky.perez_y, theta, gamma);
-	float Y = kernel_data.sunsky.zenith_Y * sky_perez_function(kernel_data.sunsky.perez_Y, theta, gamma);
+	/* compute xyz color space values */
+	float x = sky_radiance_internal(kernel_data.sunsky.config_x, theta, gamma) * kernel_data.sunsky.radiance_x;
+	float y = sky_radiance_internal(kernel_data.sunsky.config_y, theta, gamma) * kernel_data.sunsky.radiance_y;
+	float z = sky_radiance_internal(kernel_data.sunsky.config_z, theta, gamma) * kernel_data.sunsky.radiance_z;
 
 	/* convert to RGB */
-	float3 xyz = xyY_to_xyz(x, y, Y);
-	return xyz_to_rgb(xyz.x, xyz.y, xyz.z);
+	return xyz_to_rgb(x, y, z);
 }
 
 __device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint dir_offset, uint out_offset)

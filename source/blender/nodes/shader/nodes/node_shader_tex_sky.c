@@ -48,6 +48,7 @@ static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
 	tex->sun_direction[1] = 0.0f;
 	tex->sun_direction[2] = 1.0f;
 	tex->turbidity = 2.2f;
+	tex->albedo = 0.3f;
 
 	node->storage = tex;
 }

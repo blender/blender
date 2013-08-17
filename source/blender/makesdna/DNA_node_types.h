@@ -722,6 +722,7 @@ typedef struct NodeTexSky {
 	NodeTexBase base;
 	float sun_direction[3];
 	float turbidity;
+	float albedo;
 } NodeTexSky;
 
 typedef struct NodeTexImage {

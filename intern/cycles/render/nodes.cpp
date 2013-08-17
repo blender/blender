@@ -20,6 +20,7 @@
 #include "nodes.h"
 #include "svm.h"
 #include "osl.h"
+#include "sky_model.h"
 
 #include "util_transform.h"
 
@@ -386,13 +387,9 @@ static float2 sky_spherical_coordinates(float3 dir)
 	return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
 }
 
-static float sky_perez_function(float lam[6], float theta, float gamma)
+static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turbidity, float albedo)
 {
-	return (1.0f + lam[0]*expf(lam[1]/cosf(theta))) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cosf(gamma)*cosf(gamma));
-}
-
-static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turbidity)
-{
+	/* Calculate Sun Direction and save coordinates */
 	float2 spherical = sky_spherical_coordinates(dir);
 	float theta = spherical.x;
 	float phi = spherical.y;
@@ -400,46 +397,49 @@ static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turb
 	ksunsky->theta = theta;
 	ksunsky->phi = phi;
 
-	float theta2 = theta*theta;
-	float theta3 = theta2*theta;
-	float T = turbidity;
-	float T2 = T * T;
+	double solarElevation = M_PI_2_F - theta;
 
-	float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
-	ksunsky->zenith_Y = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
-	ksunsky->zenith_Y *= 0.06f;
+	/* Initialize Sky Model */
+	ArHosekSkyModelState *sky_state;
+	sky_state = arhosek_xyz_skymodelstate_alloc_init(turbidity, albedo, solarElevation);
 
-	ksunsky->zenith_x =
-	(0.00166f * theta3 - 0.00375f * theta2 + 0.00209f * theta) * T2 +
-	(-0.02903f * theta3 + 0.06377f * theta2 - 0.03202f * theta + 0.00394f) * T +
-	(0.11693f * theta3 - 0.21196f * theta2 + 0.06052f * theta + 0.25886f);
+	/* Copy values from sky_state to kernel_data */
+	ksunsky->config_x[0] = sky_state->configs[0][0];
+	ksunsky->config_x[1] = sky_state->configs[0][1];
+	ksunsky->config_x[2] = sky_state->configs[0][2];
+	ksunsky->config_x[3] = sky_state->configs[0][3];
+	ksunsky->config_x[4] = sky_state->configs[0][4];
+	ksunsky->config_x[5] = sky_state->configs[0][5];
+	ksunsky->config_x[6] = sky_state->configs[0][6];
+	ksunsky->config_x[7] = sky_state->configs[0][7];
+	ksunsky->config_x[8] = sky_state->configs[0][8];
 
-	ksunsky->zenith_y =
-	(0.00275f * theta3 - 0.00610f * theta2 + 0.00317f * theta) * T2 +
-	(-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * theta  + 0.00516f) * T +
-	(0.15346f * theta3 - 0.26756f * theta2 + 0.06670f * theta  + 0.26688f);
+	ksunsky->config_y[0] = sky_state->configs[1][0];
+	ksunsky->config_y[1] = sky_state->configs[1][1];
+	ksunsky->config_y[2] = sky_state->configs[1][2];
+	ksunsky->config_y[3] = sky_state->configs[1][3];
+	ksunsky->config_y[4] = sky_state->configs[1][4];
+	ksunsky->config_y[5] = sky_state->configs[1][5];
+	ksunsky->config_y[6] = sky_state->configs[1][6];
+	ksunsky->config_y[7] = sky_state->configs[1][7];
+	ksunsky->config_y[8] = sky_state->configs[1][8];
 
-	ksunsky->perez_Y[0] = (0.1787f * T  - 1.4630f);
-	ksunsky->perez_Y[1] = (-0.3554f * T  + 0.4275f);
-	ksunsky->perez_Y[2] = (-0.0227f * T  + 5.3251f);
-	ksunsky->perez_Y[3] = (0.1206f * T  - 2.5771f);
-	ksunsky->perez_Y[4] = (-0.0670f * T  + 0.3703f);
+	ksunsky->config_z[0] = sky_state->configs[2][0];
+	ksunsky->config_z[1] = sky_state->configs[2][1];
+	ksunsky->config_z[2] = sky_state->configs[2][2];
+	ksunsky->config_z[3] = sky_state->configs[2][3];
+	ksunsky->config_z[4] = sky_state->configs[2][4];
+	ksunsky->config_z[5] = sky_state->configs[2][5];
+	ksunsky->config_z[6] = sky_state->configs[2][6];
+	ksunsky->config_z[7] = sky_state->configs[2][7];
+	ksunsky->config_z[8] = sky_state->configs[2][8];
 
-	ksunsky->perez_x[0] = (-0.0193f * T  - 0.2592f);
-	ksunsky->perez_x[1] = (-0.0665f * T  + 0.0008f);
-	ksunsky->perez_x[2] = (-0.0004f * T  + 0.2125f);
-	ksunsky->perez_x[3] = (-0.0641f * T  - 0.8989f);
-	ksunsky->perez_x[4] = (-0.0033f * T  + 0.0452f);
+	ksunsky->radiance_x = sky_state->radiances[0];
+	ksunsky->radiance_y = sky_state->radiances[1];
+	ksunsky->radiance_z = sky_state->radiances[2];
 
-	ksunsky->perez_y[0] = (-0.0167f * T  - 0.2608f);
-	ksunsky->perez_y[1] = (-0.0950f * T  + 0.0092f);
-	ksunsky->perez_y[2] = (-0.0079f * T  + 0.2102f);
-	ksunsky->perez_y[3] = (-0.0441f * T  - 1.6537f);
-	ksunsky->perez_y[4] = (-0.0109f * T  + 0.0529f);
-
-	ksunsky->zenith_Y /= sky_perez_function(ksunsky->perez_Y, 0, theta);
-	ksunsky->zenith_x /= sky_perez_function(ksunsky->perez_x, 0, theta);
-	ksunsky->zenith_y /= sky_perez_function(ksunsky->perez_y, 0, theta);
+	/* Free sky_state */
+	arhosekskymodelstate_free(sky_state);
 }
 
 SkyTextureNode::SkyTextureNode()
@@ -447,6 +447,7 @@ SkyTextureNode::SkyTextureNode()
 {
 	sun_direction = make_float3(0.0f, 0.0f, 1.0f);
 	turbidity = 2.2f;
+	albedo = 0.3f;
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -458,7 +459,7 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 	ShaderOutput *color_out = output("Color");
 
 	if(compiler.sunsky) {
-		sky_texture_precompute(compiler.sunsky, sun_direction, turbidity);
+		sky_texture_precompute(compiler.sunsky, sun_direction, turbidity, albedo);
 		compiler.sunsky = NULL;
 	}
 

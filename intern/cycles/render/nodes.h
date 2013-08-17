@@ -107,6 +107,7 @@ public:
 
 	float3 sun_direction;
 	float turbidity;
+	float albedo;
 };
 
 class OutputNode : public ShaderNode {

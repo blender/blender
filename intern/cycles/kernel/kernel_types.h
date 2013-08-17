@@ -718,12 +718,11 @@ typedef struct KernelBackground {
 
 typedef struct KernelSunSky {
 	/* sun direction in spherical and cartesian */
-	float theta, phi, pad3, pad4;
+	float theta, phi;
 
 	/* perez function parameters */
-	float zenith_Y, zenith_x, zenith_y, pad2;
-	float perez_Y[5], perez_x[5], perez_y[5];
-	float pad5;
+	float radiance_x, radiance_y, radiance_z;
+	float config_x[9], config_y[9], config_z[9];
 } KernelSunSky;
 
 typedef struct KernelIntegrator {

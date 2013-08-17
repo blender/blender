@@ -812,6 +812,7 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), Poin
 {
 	uiItemR(layout, ptr, "sun_direction", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "turbidity", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "albedo", 0, NULL, ICON_NONE);
 }
 
 static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
