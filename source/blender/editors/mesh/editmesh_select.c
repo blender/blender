@@ -1234,7 +1234,7 @@ static void mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-				BM_ITER_ELEM(f, &iterf, eed, BM_FACES_OF_EDGE) {
+				BM_ITER_ELEM (f, &iterf, eed, BM_FACES_OF_EDGE) {
 					if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 						float cent[3];
 						float co[2], tdist;

@@ -150,7 +150,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 	BMOIter oiter;
 	BMEdge *e;
 
-	symm->edge_split_map = BLI_ghash_ptr_new(AT);
+	symm->edge_split_map = BLI_ghash_ptr_new(__func__);
 
 	BMO_ITER (e, &oiter, symm->op->slots_in, "input", BM_EDGE) {
 		float flipped[3];

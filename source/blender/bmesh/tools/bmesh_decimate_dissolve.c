@@ -293,7 +293,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 					}
 
 					/* re-calculate costs */
-					BM_ITER_ELEM(v_iter, &iter, e_new, BM_VERTS_OF_EDGE) {
+					BM_ITER_ELEM (v_iter, &iter, e_new, BM_VERTS_OF_EDGE) {
 						const int j = BM_elem_index_get(v_iter);
 						if (j != -1 && vheap_table[j]) {
 							const float cost = bm_vert_edge_face_angle(v_iter);

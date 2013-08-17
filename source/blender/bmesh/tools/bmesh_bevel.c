@@ -428,14 +428,14 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v)
 
 	n = 0;
 	zero_v2(uv);
-	BM_ITER_ELEM(l, &iter, v, BM_LOOPS_OF_VERT) {
+	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 		luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 		add_v2_v2(uv, luv->uv);
 		n++;
 	}
 	if (n > 1) {
 		mul_v2_fl(uv, 1.0f / (float)n);
-		BM_ITER_ELEM(l, &iter, v, BM_LOOPS_OF_VERT) {
+		BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			copy_v2_v2(luv->uv, uv);
 		}
@@ -2333,14 +2333,14 @@ static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
 	bool vbeveled;
 
 	limited_offset = bp->offset;
-	BM_ITER_MESH(v, &v_iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			if (bp->vertex_only) {
 				vbeveled = true;
 			}
 			else {
 				vbeveled = false;
-				BM_ITER_ELEM(e, &e_iter, v, BM_EDGES_OF_VERT) {
+				BM_ITER_ELEM (e, &e_iter, v, BM_EDGES_OF_VERT) {
 					if (BM_elem_flag_test(BM_edge_other_vert(e, v), BM_ELEM_TAG)) {
 						vbeveled = true;
 						break;
@@ -2348,7 +2348,7 @@ static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
 				}
 			}
 			if (vbeveled) {
-				BM_ITER_ELEM(e, &e_iter, v, BM_EDGES_OF_VERT) {
+				BM_ITER_ELEM (e, &e_iter, v, BM_EDGES_OF_VERT) {
 					half_elen = 0.5f * BM_edge_calc_length(e);
 					if (half_elen < limited_offset)
 						limited_offset = half_elen;

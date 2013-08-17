@@ -68,7 +68,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 			break;
 	}
 
-	BMO_ITER(f, &oiter, op->slots_in, "faces", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_new;
 		float f_center[3];
 		BMVert *v_center = NULL;

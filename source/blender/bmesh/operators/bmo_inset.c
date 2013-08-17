@@ -84,7 +84,7 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 
-	BMO_ITER(f, &oiter, op->slots_in, "faces", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_new_inner;
 		BMLoop *l_iter, *l_first;
 		BMLoop *l_iter_inner = NULL;

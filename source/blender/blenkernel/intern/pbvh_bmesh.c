@@ -1264,14 +1264,14 @@ void bmesh_print(BMesh *bm)
 	        bm->totloop, bm->totface);
 
 	fprintf(stderr, "vertices:\n");
-	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		fprintf(stderr, "  %d co=(%.3f %.3f %.3f) oflag=%x\n",
 		        BM_elem_index_get(v), v->co[0], v->co[1], v->co[2],
 		        v->oflags[bm->stackdepth - 1].f);
 	}
 
 	fprintf(stderr, "edges:\n");
-	BM_ITER_MESH(e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		fprintf(stderr, "  %d v1=%d, v2=%d, oflag=%x\n",
 		        BM_elem_index_get(e),
 		        BM_elem_index_get(e->v1),
@@ -1280,7 +1280,7 @@ void bmesh_print(BMesh *bm)
 	}
 
 	fprintf(stderr, "faces:\n");
-	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		fprintf(stderr, "  %d len=%d, oflag=%x\n",
 		        BM_elem_index_get(f), f->len,
 		        f->oflags[bm->stackdepth - 1].f);

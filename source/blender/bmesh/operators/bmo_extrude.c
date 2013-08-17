@@ -163,7 +163,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 	/* disable root flag on all new skin nodes */
 	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
 		BMVert *v;
-		BMO_ITER(v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
+		BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
 			bm_extrude_disable_skin_root(bm, v);
 		}
 	}
@@ -319,7 +319,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* disable root flag on all new skin nodes */
 	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
-		BMO_ITER(v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
+		BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
 			bm_extrude_disable_skin_root(bm, v);
 		}
 	}
