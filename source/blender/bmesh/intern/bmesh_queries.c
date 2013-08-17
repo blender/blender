@@ -1454,8 +1454,7 @@ BMEdge *BM_edge_find_double(BMEdge *e)
  * there is a face with exactly those vertices
  * (and only those vertices).
  *
- * \note there used to be a BM_face_exists_overlap function that checked for partial overlap,
- * however this is no longer used, simple to add back.
+ * \note there used to be a BM_face_exists_overlap function that checks for partial overlap.
  */
 bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 {
@@ -1690,11 +1689,15 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
  * Given a set of vertices (varr), find out if
  * all those vertices overlap an existing face.
  *
- * \return Success
+ * \note The face may contain other verts \b not in \a varr.
+ *
+ * \note Its possible there are more then one overlapping faces,
+ * in this case the first one found will be assigned to \a r_f_overlap.
  *
  * \param varr  Array of unordered verts.
  * \param len  \a varr array length.
  * \param r_f_overlap  The overlapping face to return.
+ * \return Success
  */
 
 bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
@@ -1721,7 +1724,7 @@ bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
 	for(i = 0; i < len; i++) {
 		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
 			if (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0) {
-				if (len <= BM_verts_in_face(f, varr, len)) {
+				if (len <= BM_verts_in_face_count(f, varr, len)) {
 					if (r_f_overlap)
 						*r_f_overlap = f;
 
@@ -1755,6 +1758,7 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
 	BMIter viter;
 	BMFace *f;
 	int i;
+	bool is_init = false;
 	bool is_overlap = false;
 	LinkNode *f_lnk = NULL;
 
@@ -1769,14 +1773,18 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
 #endif
 
 	for(i = 0; i < len; i++) {
-		BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
-	}
-
-	for(i = 0; i < len; i++) {
 		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
-			if (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0) {
+			if ((f->len <= len) && (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0)) {
 				/* check if all vers in this face are flagged*/
 				BMLoop *l_iter, *l_first;
+
+				if (is_init == false) {
+					is_init = true;
+					for(i = 0; i < len; i++) {
+						BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
+					}
+				}
+
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 				is_overlap = true;
 				do {
@@ -1796,8 +1804,10 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
 		}
 	}
 
-	for(i = 0; i < len; i++) {
-		BM_ELEM_API_FLAG_DISABLE(varr[i], _FLAG_OVERLAP);
+	if (is_init == true) {
+		for(i = 0; i < len; i++) {
+			BM_ELEM_API_FLAG_DISABLE(varr[i], _FLAG_OVERLAP);
+		}
 	}
 
 	for (; f_lnk; f_lnk = f_lnk->next) {
