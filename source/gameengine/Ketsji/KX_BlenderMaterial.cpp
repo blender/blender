@@ -808,9 +808,7 @@ void KX_BlenderMaterial::UpdateIPO(
 void KX_BlenderMaterial::Replace_IScene(SCA_IScene *val)
 {
 	mScene= static_cast<KX_Scene *>(val);
-	if (mBlenderShader)
-		mBlenderShader->SetScene(mScene);
-	
+
 	OnConstruction();
 }
 

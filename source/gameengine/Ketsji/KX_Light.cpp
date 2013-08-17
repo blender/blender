@@ -48,6 +48,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_lamp_types.h"
 #include "GPU_material.h"
+
+#include "BKE_scene.h"
+#include "MEM_guardedalloc.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
                                class RAS_IRenderTools* rendertools,
@@ -62,6 +65,7 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_rendertools->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
+	m_base = NULL;
 };
 
 
@@ -78,6 +82,11 @@ KX_LightObject::~KX_LightObject()
 	}
 
 	m_rendertools->RemoveLight(&m_lightobj);
+
+	if (m_base) {
+		BKE_scene_base_unlink(m_blenderscene, m_base);
+		MEM_freeN(m_base);
+	}
 }
 
 
@@ -214,6 +223,13 @@ void KX_LightObject::Update()
 		GPU_lamp_update_distance(lamp, m_lightobj.m_distance, m_lightobj.m_att1, m_lightobj.m_att2);
 		GPU_lamp_update_spot(lamp, m_lightobj.m_spotsize, m_lightobj.m_spotblend);
 	}
+}
+
+void KX_LightObject::UpdateScene(KX_Scene *kxscene)
+{
+	m_lightobj.m_scene = (void*)kxscene;
+	m_blenderscene = kxscene->GetBlenderScene();
+	m_base = BKE_scene_base_add(m_blenderscene, GetBlenderObject());
 }
 
 bool KX_LightObject::HasShadowBuffer()

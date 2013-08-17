@@ -86,13 +86,6 @@ public:
 	void ReloadMaterial();
 	int GetAlphaBlend();
 
-	void SetScene(KX_Scene *scene)
-	{
-		mScene = scene;
-		mBlenderScene = scene->GetBlenderScene();
-		ReloadMaterial();
-	}
-
 	bool Equals(BL_BlenderShader *blshader);
 	
 	

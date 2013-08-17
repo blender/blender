@@ -1953,8 +1953,6 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 
 	GetBucketManager()->MergeBucketManager(other->GetBucketManager(), this);
 
-	/* move materials across, assume they both use the same scene-converters */
-	GetSceneConverter()->MergeScene(this, other);
 
 	/* active + inactive == all ??? - lets hope so */
 	for (int i = 0; i < other->GetObjectList()->GetCount(); i++)
@@ -1991,7 +1989,12 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	if (env) /* bullet scene? - dummy scenes don't need touching */
 		env->MergeEnvironment(env_other);
 #endif
-	
+
+	/* move materials across, assume they both use the same scene-converters
+	 * Do this after lights are merged so materials can use the lights in shaders
+	 */
+	GetSceneConverter()->MergeScene(this, other);
+
 	/* merge logic */
 	{
 		SCA_LogicManager *logicmgr=			GetLogicManager();
