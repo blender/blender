@@ -609,19 +609,13 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	"edgenet_fill",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
-	/* restricts edges to groups.  maps edges to integer */
-	 {"restrict",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_BOOL}},
-	 {"use_restrict",        BMO_OP_SLOT_BOOL},
-	 {"use_fill_check",        BMO_OP_SLOT_BOOL},
-	 {"exclude_faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* list of faces to ignore for manifold check */
 	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
 	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* smooth state to use */
 	 {{'\0'}},
 	},
 	/* slots_out */
 	/* maps new faces to the group numbers they came from */
-	{{"face_groupmap.out",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},  /* new faces */
 	 {{'\0'}},
 	},
 	bmo_edgenet_fill_exec,

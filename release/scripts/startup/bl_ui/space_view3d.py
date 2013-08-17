@@ -2088,7 +2088,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
 
 class VIEW3D_MT_edit_mesh_clean(Menu):
-    bl_label = "Clean"
+    bl_label = "Clean up"
 
     def draw(self, context):
         layout = self.layout

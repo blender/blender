@@ -153,8 +153,8 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_op_finish(bm, &op_sub);
 
 		BMO_op_initf(bm, &op_sub, op->flag,
-		             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
-		             ELE_NEW, true, mat_nr, use_smooth);
+		             "edgenet_fill edges=%fe mat_nr=%i use_smooth=%b",
+		             ELE_NEW, mat_nr, use_smooth);
 
 		BMO_op_exec(bm, &op_sub);
 
