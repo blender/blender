@@ -58,9 +58,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_smallhash.h"
+#include "BLI_listbase.h"
+#include "BLI_linklist_stack.h"
+#include "BLI_string.h"
+#include "BLI_rect.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
@@ -119,8 +122,6 @@
 
 #include "transform.h"
 #include "bmesh.h"
-
-#include "BLI_sys_types.h" // for intptr_t support
 
 /* when transforming islands */
 struct TransIslandData {
@@ -1848,15 +1849,13 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 	/* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
 	float *dists_prev = MEM_mallocN(bm->totvert * sizeof(float), __func__);
 
-	BMVert **queue = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
-	STACK_DECLARE(queue);
+	BLI_LINKSTACK_DECLARE(queue, BMVert *);
 
 	/* any BM_ELEM_TAG'd vertex is in 'queue_next', so we don't add in twice */
-	BMVert **queue_next = MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__);
-	STACK_DECLARE(queue_next);
+	BLI_LINKSTACK_DECLARE(queue_next, BMVert *);
 
-	STACK_INIT(queue);
-	STACK_INIT(queue_next);
+	BLI_LINKSTACK_INIT(queue);
+	BLI_LINKSTACK_INIT(queue_next);
 
 	{
 		BMIter viter;
@@ -1871,7 +1870,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 				dists[i] = FLT_MAX;
 			}
 			else {
-				STACK_PUSH(queue, v);
+				BLI_LINKSTACK_PUSH(queue, v);
 
 				dists[i] = 0.0f;
 			}
@@ -1880,11 +1879,11 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 
 	do {
 		BMVert *v;
-		unsigned int i;
+		LinkNode *lnk;
 
 		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
 
-		while ((v = STACK_POP(queue))) {
+		while ((v = BLI_LINKSTACK_POP(queue))) {
 			BMIter iter;
 			BMEdge *e;
 			BMLoop *l;
@@ -1896,7 +1895,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
 						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
 							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-							STACK_PUSH(queue_next, v_other);
+							BLI_LINKSTACK_PUSH(queue_next, v_other);
 						}
 					}
 				}
@@ -1912,7 +1911,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
 							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
 								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-								STACK_PUSH(queue_next, v_other);
+								BLI_LINKSTACK_PUSH(queue_next, v_other);
 							}
 						}
 					} while ((l = l->next) != l_end);
@@ -1921,22 +1920,20 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 		}
 
 		/* clear for the next loop */
-		for (i = 0; i < STACK_SIZE(queue_next); i++) {
-			BM_elem_flag_disable(queue_next[i], BM_ELEM_TAG);
+		for (lnk = queue_next; lnk; lnk = lnk->next) {
+			BM_elem_flag_disable((BMVert *)lnk->link, BM_ELEM_TAG);
 		}
 
-		STACK_SWAP(queue, queue_next);
+		BLI_LINKSTACK_SWAP(queue, queue_next);
 
 		/* none should be tagged now since 'queue_next' is empty */
 		BLI_assert(BM_iter_mesh_count_flag(BM_VERTS_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
 
-	} while (STACK_SIZE(queue));
+	} while (BLI_LINKSTACK_SIZE(queue));
 
-	STACK_FREE(queue);
-	STACK_FREE(queue_next);
+	BLI_LINKSTACK_FREE(queue);
+	BLI_LINKSTACK_FREE(queue_next);
 
-	MEM_freeN(queue);
-	MEM_freeN(queue_next);
 	MEM_freeN(dists_prev);
 }
 

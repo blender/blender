@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
+#include "BLI_linklist_stack.h"
 
 #include "bmesh.h"
 
@@ -117,10 +118,9 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMVert *v;
 	BMFace *f;
-	BMFace **faces = MEM_mallocN(sizeof(BMFace *) * bm->totface, __func__);
-	STACK_DECLARE(faces);
+	BLI_LINKSTACK_DECLARE(faces, BMFace *);
 
-	STACK_INIT(faces);
+	BLI_LINKSTACK_INIT(faces);
 
 	/* add all faces connected to verts */
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
@@ -129,20 +129,20 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_elem_flag_test(bm, f, FACE_TAG)) {
 				BMO_elem_flag_enable(bm, f, FACE_TAG);
 				if (f->len > 3) {
-					STACK_PUSH(faces, f);
+					BLI_LINKSTACK_PUSH(faces, f);
 				}
 			}
 		}
 	}
 
 	/* connect faces */
-	while ((f = STACK_POP(faces))) {
+	while ((f = BLI_LINKSTACK_POP(faces))) {
 		if (bm_face_connect_verts(bm, f) == -1) {
 			BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
 		}
 	}
 
-	MEM_freeN(faces);
+	BLI_LINKSTACK_FREE(faces);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 }

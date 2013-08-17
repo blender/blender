@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
+#include "BLI_linklist_stack.h"
 
 #include "bmesh.h"
 
@@ -179,9 +180,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMFace *f;
 	int totface = 0, totloop = 0;
-	int tottris;
-	BMFace **fstack;
-	STACK_DECLARE(fstack);
+	BLI_LINKSTACK_DECLARE(fstack, BMFace *);
 
 	const float angle_limit = BMO_slot_float_get(op->slots_in, "angle_limit");
 
@@ -197,32 +196,28 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 		return;
 	}
 
-	/* over alloc, if we split every face */
-	tottris = poly_to_tri_count(totface, totloop);
-	fstack = MEM_mallocN(sizeof(BMFace *) * tottris, __func__);
-
-	STACK_INIT(fstack);
+	BLI_LINKSTACK_INIT(fstack);
 
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		if (f->len > 3) {
-			STACK_PUSH(fstack, f);
+			BLI_LINKSTACK_PUSH(fstack, f);
 		}
 	}
 
-	while ((f = STACK_POP(fstack))) {
+	while ((f = BLI_LINKSTACK_POP(fstack))) {
 		BMFace *f_pair[2];
 		if (bm_face_split_by_angle(bm, f, f_pair, angle_limit)) {
 			int j;
 			for (j = 0; j < 2; j++) {
 				BM_face_normal_update(f_pair[j]);
 				if (f_pair[j]->len > 3) {
-					STACK_PUSH(fstack, f_pair[j]);
+					BLI_LINKSTACK_PUSH(fstack, f_pair[j]);
 				}
 			}
 		}
 	}
 
-	MEM_freeN(fstack);
+	BLI_LINKSTACK_FREE(fstack);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);

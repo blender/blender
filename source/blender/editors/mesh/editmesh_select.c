@@ -33,6 +33,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
@@ -2609,8 +2610,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
-	BMFace **stack = MEM_mallocN(sizeof(BMFace *) * bm->totface, __func__);
-	STACK_DECLARE(stack);
+	BLI_LINKSTACK_DECLARE(stack, BMFace *);
 
 	BMIter iter, liter, liter2;
 	BMFace *f;
@@ -2628,7 +2628,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		STACK_INIT(stack);
+		BLI_LINKSTACK_INIT(stack);
 
 		do {
 			BM_face_select_set(bm, f, true);
@@ -2648,16 +2648,14 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 					angle = angle_normalized_v3v3(f->no, l2->f->no);
 
 					if (angle < angle_limit) {
-						STACK_PUSH(stack, l2->f);
+						BLI_LINKSTACK_PUSH(stack, l2->f);
 					}
 				}
 			}
-		} while ((f = STACK_POP(stack)));
+		} while ((f = BLI_LINKSTACK_POP(stack)));
 	}
 
-	STACK_FREE(stack);
-
-	MEM_freeN(stack);
+	BLI_LINKSTACK_FREE(stack);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
