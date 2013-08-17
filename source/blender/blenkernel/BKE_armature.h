@@ -132,8 +132,8 @@ Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 /* like EBONE_VISIBLE */
 #define PBONE_VISIBLE(arm, bone) ( \
-	CHECK_TYPE_INLINE(arm, bArmature), \
-	CHECK_TYPE_INLINE(bone, Bone), \
+	CHECK_TYPE_INLINE(arm, bArmature *), \
+	CHECK_TYPE_INLINE(bone, Bone *), \
 	(((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P)) \
 	)
 

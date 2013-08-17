@@ -113,7 +113,7 @@
 
 /* can be used in simple macros */
 #define CHECK_TYPE_INLINE(val, type) \
-	((void)(((type *)0) != (val)))
+	((void)(((type)0) != (val)))
 
 #define SWAP(type, a, b)  {    \
 	type sw_ap;                \
