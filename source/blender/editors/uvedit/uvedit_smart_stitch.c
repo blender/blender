@@ -1718,6 +1718,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 			UvElement *element = ED_uv_element_get(state->element_map, efa, l);
 			int offset1, itmp1 = element - state->element_map->buf;
 			int offset2, itmp2 = ED_uv_element_get(state->element_map, efa, l->next) - state->element_map->buf;
+			UvEdge *edge;
 
 			offset1 = map[itmp1];
 			offset2 = map[itmp2];
@@ -1737,8 +1738,8 @@ static int stitch_init(bContext *C, wmOperator *op)
 				all_edges[counter].uv2 = offset1;
 			}
 
-			if (BLI_ghash_haskey(edge_hash, &all_edges[counter])) {
-				UvEdge *edge = BLI_ghash_lookup(edge_hash, &all_edges[counter]);
+			edge = BLI_ghash_lookup(edge_hash, &all_edges[counter]);
+			if (edge) {
 				edge->flag = 0;
 			}
 			else {

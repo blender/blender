@@ -662,6 +662,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				int offset1, itmp1 = uv_element_offset_from_face_get(data->elementMap, efa, l, island_index, do_island_optimization);
 				int offset2, itmp2 = uv_element_offset_from_face_get(data->elementMap, efa, l->next, island_index, do_island_optimization);
+				char *flag;
 
 				/* Skip edge if not found(unlikely) or not on valid island */
 				if (itmp1 == -1 || itmp2 == -1)
@@ -682,8 +683,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 					edges[counter].uv2 = offset1;
 				}
 				/* Hack! Set the value of the key to its flag. Now we can set the flag when an edge exists twice :) */
-				if (BLI_ghash_haskey(edgeHash, &edges[counter])) {
-					char *flag = BLI_ghash_lookup(edgeHash, &edges[counter]);
+				flag = BLI_ghash_lookup(edgeHash, &edges[counter]);
+				if (flag) {
 					*flag = 1;
 				}
 				else {
