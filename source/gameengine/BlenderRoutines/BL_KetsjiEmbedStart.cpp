@@ -290,7 +290,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		if (startscene->gm.vsync == VSYNC_ADAPTIVE)
 			canvas->SetSwapInterval(-1);
 		else
-			canvas->SetSwapInterval(startscene->gm.vsync); // VSYNC_OFF == 0, VSYNC_ON == 1, so this works
+			canvas->SetSwapInterval(!startscene->gm.vsync); // VSYNC_OFF == 1, VSYNC_ON == 0, so this works
 
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
