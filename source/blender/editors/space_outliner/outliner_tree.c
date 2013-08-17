@@ -150,6 +150,8 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 	}
 }
 
+/* This function hashes only by type, nr and id, while cmp function also compares 'used' flag;
+ * This is done to skip full treehash rebuild in outliner_storage_cleanup */
 static unsigned int tse_hash(const void *ptr)
 {
 	const TreeStoreElem *tse = (const TreeStoreElem *)ptr;
@@ -164,16 +166,27 @@ static int tse_cmp(const void *a, const void *b)
 {
 	const TreeStoreElem *tse_a = (const TreeStoreElem *)a;
 	const TreeStoreElem *tse_b = (const TreeStoreElem *)b;
-	return tse_a->type != tse_b->type || tse_a->nr != tse_b->nr || tse_a->id != tse_b->id;
+	return tse_a->type != tse_b->type || tse_a->nr != tse_b->nr ||
+	       tse_a->id != tse_b->id || tse_a->used != tse_b->used;
+}
+
+static TreeStoreElem *lookup_treehash(GHash *th, short type, short nr, short used, ID *id)
+{
+	TreeStoreElem tse_template;
+	tse_template.type = type;
+	tse_template.nr = type ? nr : 0;  // we're picky! :)
+	tse_template.id = id;
+	tse_template.used = used;
+	return BLI_ghash_lookup(th, &tse_template);
 }
 
 static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
 {
 	/* When treestore comes directly from readfile.c, treehash is empty;
 	 * In this case we don't want to get TSE_CLOSED while adding elements one by one,
-     * that is why this function restores treehash */
+	 * that is why this function restores treehash */
 	bool restore_treehash = (soops->treestore && !soops->treehash);
-	TreeStoreElem *tselem, elem_template;
+	TreeStoreElem *tselem;
 	
 	if (soops->treestore == NULL) {
 		/* if treestore was not created in readfile.c, create it here */
@@ -191,12 +204,9 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 		}
 	}
 
-	/* check if 'te' is in treestore */
-	elem_template.type = type;
-	elem_template.nr = type ? nr : 0;  // we're picky! :)
-	elem_template.id = id;
-	tselem = BLI_ghash_lookup(soops->treehash, &elem_template);
-	if (tselem && !tselem->used) {
+	/* check for unused tree elements is in treestore */
+	tselem = lookup_treehash(soops->treehash, type, nr, 0, id);
+	if (tselem) {
 		te->store_elem = tselem;
 		tselem->used = 1;
 		return;
@@ -250,16 +260,12 @@ static TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *stor
 /* tse is not in the treestore, we use its contents to find a match */
 TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
 {
-	GHash *th = soops->treehash;
-	TreeStoreElem *tselem, tselem_template;
+	TreeStoreElem *tselem;
 
 	if (tse->id == NULL) return NULL;
 	
 	/* check if 'tse' is in treestore */
-	tselem_template.id = tse->id;
-	tselem_template.type = tse->type;
-	tselem_template.nr = tse->type ? tse->nr : 0;
-	tselem = BLI_ghash_lookup(th, &tselem_template);
+	tselem = lookup_treehash(soops->treehash, tse->type, tse->nr, tse->used, tse->id);
 	if (tselem) 
 		return outliner_find_tree_element(&soops->tree, tselem);
 	
