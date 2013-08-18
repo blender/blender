@@ -36,7 +36,8 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm,
 BMFace *BM_face_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
                                 const BMFace *example, const bool no_double);
 
-void BM_face_copy_shared(BMesh *bm, BMFace *f);
+void BM_face_copy_shared(BMesh *bm, BMFace *f,
+                         BMElemFilterFunc filter_fn, void *user_data);
 
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, const int len, const int create_flag);
 BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len, const int create_flag,

@@ -796,7 +796,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 #if 0
 		/* don't use this because face boundaries have no adjacent loops and won't be filled in.
 		 * instead copy from the opposite side with the code below */
-		BM_face_copy_shared(bm, f);
+		BM_face_copy_shared(bm, f, NULL, NULL);
 #else
 		{
 			/* 2 inner loops on the edge between the new face and the original */

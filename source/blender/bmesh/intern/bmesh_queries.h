@@ -27,8 +27,6 @@
  *  \ingroup bmesh
  */
 
-typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
-
 bool    BM_vert_in_face(BMFace *f, BMVert *v);
 int     BM_verts_in_face_count(BMFace *f, BMVert **varr, int len);
 bool    BM_verts_in_face(BMFace *f, BMVert **varr, int len);
