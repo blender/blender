@@ -573,7 +573,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 	/* texture coords still needed */
 }
 
-static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
+void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 {
 	int num_keys = 0;
 	int num_curves = 0;
