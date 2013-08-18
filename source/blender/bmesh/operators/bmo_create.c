@@ -153,8 +153,8 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_op_finish(bm, &op_sub);
 
 		BMO_op_initf(bm, &op_sub, op->flag,
-		             "edgenet_fill edges=%fe mat_nr=%i use_smooth=%b",
-		             ELE_NEW, mat_nr, use_smooth);
+		             "edgenet_fill edges=%fe mat_nr=%i use_smooth=%b sides=%i",
+		             ELE_NEW, mat_nr, use_smooth, 10000);
 
 		BMO_op_exec(bm, &op_sub);
 
@@ -182,7 +182,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* if we dissolved anything, then return */
 		if (BMO_slot_buffer_count(op_sub.slots_out, "region.out")) {
 			BMO_slot_copy(&op_sub, slots_out, "region.out",
-			              op,   slots_out,  "faces.out");
+			              op,      slots_out, "faces.out");
 			BMO_op_finish(bm, &op_sub);
 			return;
 		}

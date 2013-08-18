@@ -50,19 +50,23 @@
 
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
+	BMOperator op_attr;
 	BMOIter siter;
 	BMFace *f;
 	const short mat_nr        = BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth     = BMO_slot_bool_get(op->slots_in, "use_smooth");
+//	const int sides           = BMO_slot_int_get(op->slots_in,  "sides");
 
 	if (!bm->totvert || !bm->totedge)
 		return;
 
+	BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, false);
 	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, false);
 
-	BM_mesh_edgenet(bm, true, FACE_NEW);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+	BM_mesh_edgenet(bm, true, true); // TODO, sides
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 
 	BMO_ITER (f, &siter, op->slots_out, "faces.out", BM_FACE) {
 		f->mat_nr = mat_nr;
@@ -73,13 +77,20 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		BM_face_normal_update(f);
 	}
 
-	/* recalc normals,
-	 * TODO, could do checks to make normals consistent */
-	{
-		BMO_op_callf(bm, op->flag,
-		             "recalc_face_normals faces=%S",
-		             op, "faces.out");
+	/* --- Attribute Fill --- */
+	/* may as well since we have the faces already in a buffer */
+	BMO_op_initf(bm, &op_attr, op->flag,
+	             "face_attribute_fill faces=%S use_normals=%b",
+	             op, "faces.out", true);
+
+	BMO_op_exec(bm, &op_attr);
+
+	/* check if some faces couldn't be touched */
+	if (BMO_slot_buffer_count(op_attr.slots_out, "faces_fail.out")) {
+		BMO_op_callf(bm, op->flag, "recalc_face_normals faces=%S", &op_attr, "faces_fail.out");
 	}
+	BMO_op_finish(bm, &op_attr);
+
 }
 
 static BMEdge *edge_next(BMesh *bm, BMEdge *e)

@@ -50,6 +50,7 @@ set(SRC
 	operators/bmo_dupe.c
 	operators/bmo_edgenet.c
 	operators/bmo_extrude.c
+	operators/bmo_fill_attribute.c
 	operators/bmo_fill_edgeloop.c
 	operators/bmo_fill_grid.c
 	operators/bmo_fill_holes.c
