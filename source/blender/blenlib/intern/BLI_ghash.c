@@ -62,6 +62,27 @@ const unsigned int hashsizes[] = {
 
 /***/
 
+typedef struct Entry {
+	struct Entry *next;
+
+	void *key, *val;
+} Entry;
+
+typedef struct GHash {
+	GHashHashFP hashfp;
+	GHashCmpFP cmpfp;
+
+	Entry **buckets;
+	struct BLI_mempool *entrypool;
+	unsigned int nbuckets;
+	unsigned int nentries;
+	unsigned short cursize, flag;
+} GHash;
+
+
+/* -------------------------------------------------------------------- */
+/* GHash API */
+
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
@@ -87,6 +108,8 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
+
+	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
 
 	e->next = gh->buckets[hash];
 	e->key = key;
@@ -252,7 +275,19 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 	MEM_freeN(gh);
 }
 
-/***/
+void BLI_ghash_flag_set(GHash *gh, unsigned short flag)
+{
+	gh->flag |= flag;
+}
+
+void BLI_ghash_flag_clear(GHash *gh, unsigned short flag)
+{
+	gh->flag &= (unsigned short)~flag;
+}
+
+
+/* -------------------------------------------------------------------- */
+/* GHash Iterator API */
 
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {

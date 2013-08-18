@@ -36,6 +36,10 @@ typedef struct EdgeHashIterator EdgeHashIterator;
 
 typedef void (*EdgeHashFreeFP)(void *key);
 
+enum {
+	EDGEHASH_FLAG_ALLOW_DUPES = (1 << 0),  /* only checked for in debug mode */
+};
+
 EdgeHash       *BLI_edgehash_new(void);
 void            BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp);
 
@@ -64,6 +68,9 @@ int             BLI_edgehash_size(EdgeHash *eh);
 
 /* Remove all edges from hash. */
 void            BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp);
+
+void            BLI_edgehash_flag_set(EdgeHash *eh, unsigned short flag);
+void            BLI_edgehash_flag_clear(EdgeHash *eh, unsigned short flag);
 
 /***/
 

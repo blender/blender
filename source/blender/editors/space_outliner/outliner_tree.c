@@ -194,6 +194,7 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	}
 	if (soops->treehash == NULL) {
 		soops->treehash = BLI_ghash_new(tse_hash, tse_cmp, "treehash");
+		BLI_ghash_flag_set(soops->treehash, GHASH_FLAG_ALLOW_DUPES);
 	}
 	
 	if (restore_treehash) {

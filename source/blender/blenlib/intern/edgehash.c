@@ -76,7 +76,8 @@ struct EdgeEntry {
 struct EdgeHash {
 	EdgeEntry **buckets;
 	BLI_mempool *epool;
-	unsigned int nbuckets, nentries, cursize;
+	unsigned int nbuckets, nentries;
+	unsigned short cursize, flag;
 };
 
 /***/
@@ -99,6 +100,8 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 {
 	unsigned int hash;
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
+
+	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
 
 	/* this helps to track down errors with bad edge data */
 	BLI_assert(v0 != v1);
@@ -198,6 +201,16 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 	MEM_freeN(eh);
 }
 
+
+void BLI_edgehash_flag_set(EdgeHash *eh, unsigned short flag)
+{
+	eh->flag |= flag;
+}
+
+void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned short flag)
+{
+	eh->flag &= (unsigned short)~flag;
+}
 
 /***/
 

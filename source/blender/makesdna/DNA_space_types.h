@@ -253,7 +253,7 @@ typedef struct SpaceOops {
 	struct TreeStoreElem search_tse;
 
 	short flag, outlinevis, storeflag, search_flags;
-	struct GHash *treehash;
+	struct GHash *treehash;  /* note, allows duplicates */
 } SpaceOops;
 
 
