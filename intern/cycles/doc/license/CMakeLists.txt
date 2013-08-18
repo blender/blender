@@ -1,8 +1,6 @@
 
 set(LICENSES
 	Apache_2.0.txt
-	Blender.txt
-	GPL.txt
 	ILM.txt
 	NVidia.txt
 	OSL.txt

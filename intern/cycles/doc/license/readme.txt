@@ -1,12 +1,16 @@
 
-This program uses code from various sources. These are the licenses:
+This program uses code from various sources, the default license is Apache 2.0
+for all code, with the following exceptions.
 
-* New code is licensed under the GPL license v2 or later. 
-* BVH building and traversal code is licensed under Apache License v2.
-* Approximate Catmull Clark subdivision code is licensed under the MIT license.
-* Open Shading Language code on GPU is licensed under the Modified BSD license.
-* Sobol direction vectors are licensed under the Modified BSD license.
-* Matrix code adapted from OpenEXR under the Modified BSD license.
-* Procedural texture functions from Blender are licensed under GPL v2 or later.
-* Boost and OpenCL dynamic loading under Boost License.
+Modified BSD License
+* Code adapated from Open Shading Language
+* Sobol direction vectors
+* Matrix inversion code from OpenEXR
+* MD5 Hash code
+
+MIT license
+* Approximate Catmull Clark subdivision code
+
+Boost License
+* Boost and OpenCL dynamic loading
 
