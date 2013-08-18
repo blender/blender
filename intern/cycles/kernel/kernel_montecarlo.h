@@ -108,9 +108,24 @@ __device float3 sample_uniform_sphere(float u1, float u2)
 	return make_float3(x, y, z);
 }
 
+__device float balance_heuristic(float a, float b)
+{
+	return (a)/(a + b);
+}
+
+__device float balance_heuristic_3(float a, float b, float c)
+{
+	return (a)/(a + b + c);
+}
+
 __device float power_heuristic(float a, float b)
 {
 	return (a*a)/(a*a + b*b);
+}
+
+__device float power_heuristic_3(float a, float b, float c)
+{
+	return (a*a)/(a*a + b*b + c*c);
 }
 
 __device float2 concentric_sample_disk(float u1, float u2)

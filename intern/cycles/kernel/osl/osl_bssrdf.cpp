@@ -47,18 +47,19 @@ CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
 
-class BSSRDFClosure : public CBSSRDFClosure {
+/* Cubic */
+
+class CubicBSSRDFClosure : public CBSSRDFClosure {
 public:
 	size_t memsize() const { return sizeof(*this); }
 	const char *name() const { return "bssrdf_cubic"; }
 
 	void setup()
 	{
+		sc.type = CLOSURE_BSSRDF_COMPATIBLE_ID;
 		sc.prim = NULL;
 		sc.data0 = fabsf(average(radius));
-		sc.data1 = 1.3f;
-
-		m_shaderdata_flag = bssrdf_setup(&sc);
+		sc.data1 = 0.0f; // XXX texture blur
 	}
 
 	bool mergeable(const ClosurePrimitive *other) const
@@ -72,19 +73,59 @@ public:
 	}
 };
 
-ClosureParam *closure_bssrdf_params()
+ClosureParam *closure_bssrdf_cubic_params()
 {
 	static ClosureParam params[] = {
-		CLOSURE_FLOAT3_PARAM(BSSRDFClosure, sc.N),
-		CLOSURE_FLOAT3_PARAM(BSSRDFClosure, radius),
-		//CLOSURE_FLOAT_PARAM(BSSRDFClosure, sc.data1),
+		CLOSURE_FLOAT3_PARAM(CubicBSSRDFClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(CubicBSSRDFClosure, radius),
+		//CLOSURE_FLOAT_PARAM(CubicBSSRDFClosure, sc.data1),
 	    CLOSURE_STRING_KEYPARAM("label"),
-	    CLOSURE_FINISH_PARAM(BSSRDFClosure)
+	    CLOSURE_FINISH_PARAM(CubicBSSRDFClosure)
 	};
 	return params;
 }
 
-CLOSURE_PREPARE(closure_bssrdf_prepare, BSSRDFClosure)
+CLOSURE_PREPARE(closure_bssrdf_cubic_prepare, CubicBSSRDFClosure)
+
+/* Gaussian */
+
+class GaussianBSSRDFClosure : public CBSSRDFClosure {
+public:
+	size_t memsize() const { return sizeof(*this); }
+	const char *name() const { return "bssrdf_gaussian"; }
+
+	void setup()
+	{
+		sc.type = CLOSURE_BSSRDF_GAUSSIAN_ID;
+		sc.prim = NULL;
+		sc.data0 = fabsf(average(radius));
+		sc.data1 = 0.0f; // XXX texture blurring!
+	}
+
+	bool mergeable(const ClosurePrimitive *other) const
+	{
+		return false;
+	}
+
+	void print_on(std::ostream &out) const
+	{
+		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))";
+	}
+};
+
+ClosureParam *closure_bssrdf_gaussian_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, radius),
+		//CLOSURE_FLOAT_PARAM(GaussianBSSRDFClosure, sc.data1),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(GaussianBSSRDFClosure)
+	};
+	return params;
+}
+
+CLOSURE_PREPARE(closure_bssrdf_gaussian_prepare, GaussianBSSRDFClosure)
 
 CCL_NAMESPACE_END
 

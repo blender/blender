@@ -17,25 +17,19 @@
  * limitations under the License.
  */
 
-/* This is a template BVH traversal function, where various features can be
- * enabled/disabled. This way we can compile optimized versions for each case
- * without new features slowing things down.
+/* This is a template BVH traversal function for subsurface scattering, where
+ * various features can be enabled/disabled. This way we can compile optimized
+ * versions for each case without new features slowing things down.
  *
  * BVH_INSTANCING: object instancing
- * BVH_HAIR: hair curve rendering
- * BVH_HAIR_MINIMUM_WIDTH: hair curve rendering with minimum width
  * BVH_MOTION: motion blur rendering
  *
  */
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-__device bool BVH_FUNCTION_NAME
-(KernelGlobals *kg, const Ray *ray, Intersection *isect, const uint visibility
-#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-, uint *lcg_state, float difl, float extmax
-#endif
-)
+__device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection *isect_array,
+	int subsurface_object, uint *lcg_state, int max_hits)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -59,17 +53,14 @@ __device bool BVH_FUNCTION_NAME
 	float3 idir = bvh_inverse_direction(ray->D);
 	int object = ~0;
 
+	const uint visibility = ~0;
+	uint num_hits = 0;
+
 #if FEATURE(BVH_MOTION)
 	Transform ob_tfm;
 #endif
 
-	isect->t = tmax;
-	isect->object = ~0;
-	isect->prim = ~0;
-	isect->u = 0.0f;
-	isect->v = 0.0f;
-
-#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
 	const shuffle_swap_t shuf_swap = shuffle_swap_swap();
 	
@@ -84,7 +75,7 @@ __device bool BVH_FUNCTION_NAME
 	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
 	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
 
-	__m128 tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
+	__m128 tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
 
 	shuffle_swap_t shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
 	shuffle_swap_t shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
@@ -101,9 +92,9 @@ __device bool BVH_FUNCTION_NAME
 				bool traverseChild0, traverseChild1;
 				int nodeAddrChild1;
 
-#if !defined(__KERNEL_SSE2__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSE2__)
 				/* Intersect two child bounding boxes, non-SSE version */
-				float t = isect->t;
+				float t = tmax;
 
 				/* fetch node data */
 				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
@@ -129,21 +120,6 @@ __device bool BVH_FUNCTION_NAME
 				NO_EXTENDED_PRECISION float c1hiz = (node2.w - P.z) * idir.z;
 				NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
 				NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
-
-#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-				if(difl != 0.0f) {
-					float hdiff = 1.0f + difl;
-					float ldiff = 1.0f - difl;
-					if(__float_as_int(cnodes.z) & PATH_RAY_CURVE) {
-						c0min = max(ldiff * c0min, c0min - extmax);
-						c0max = min(hdiff * c0max, c0max + extmax);
-					}
-					if(__float_as_int(cnodes.w) & PATH_RAY_CURVE) {
-						c1min = max(ldiff * c1min, c1min - extmax);
-						c1max = min(hdiff * c1max, c1max + extmax);
-					}
-				}
-#endif
 
 				/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
@@ -186,7 +162,7 @@ __device bool BVH_FUNCTION_NAME
 
 				if(traverseChild0 && traverseChild1) {
 					/* both children were intersected, push the farther one */
-#if !defined(__KERNEL_SSE2__) || FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if !defined(__KERNEL_SSE2__)
 					bool closestChild1 = (c1min < c0min);
 #else
 					union { __m128 m128; float v[4]; } uminmax;
@@ -232,40 +208,14 @@ __device bool BVH_FUNCTION_NAME
 
 					/* primitive intersection */
 					while(primAddr < primAddr2) {
-						bool hit;
+						/* only primitives from the same object */
+						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
 
-						/* intersect ray against primitive */
-#if FEATURE(BVH_HAIR)
-						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-						if(segment != ~0) {
+						if(tri_object == subsurface_object) {
 
-							if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
-#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
-							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
-#else
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
-							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
-#endif
+							/* intersect ray against primitive */
+							bvh_triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, tmax, &num_hits, lcg_state, max_hits);
 						}
-						else
-#endif
-							hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
-
-						/* shadow ray early termination */
-#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-						if(hit) {
-							if(visibility == PATH_RAY_SHADOW_OPAQUE)
-								return true;
-
-							tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
-						}
-#else
-						if(hit && visibility == PATH_RAY_SHADOW_OPAQUE)
-							return true;
-#endif
 
 						primAddr++;
 					}
@@ -273,34 +223,42 @@ __device bool BVH_FUNCTION_NAME
 #if FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
-					object = kernel_tex_fetch(__prim_object, -primAddr-1);
+					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
+						object = subsurface_object;
 
+						float t_ignore = FLT_MAX;
 #if FEATURE(BVH_MOTION)
-					bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+						bvh_instance_motion_push(kg, object, ray, &P, &idir, &t_ignore, &ob_tfm, tmax);
 #else
-					bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
+						bvh_instance_push(kg, object, ray, &P, &idir, &t_ignore, tmax);
 #endif
 
-#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-					Psplat[0] = _mm_set_ps1(P.x);
-					Psplat[1] = _mm_set_ps1(P.y);
-					Psplat[2] = _mm_set_ps1(P.z);
+#if defined(__KERNEL_SSE2__)
+						Psplat[0] = _mm_set_ps1(P.x);
+						Psplat[1] = _mm_set_ps1(P.y);
+						Psplat[2] = _mm_set_ps1(P.z);
 
-					idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
-					idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
-					idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
+						idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
+						idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
+						idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
 
-					tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
+						tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
 
-					shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
-					shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
-					shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
+						shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
+						shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
+						shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
 #endif
 
-					++stackPtr;
-					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+						++stackPtr;
+						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
 
-					nodeAddr = kernel_tex_fetch(__object_node, object);
+						nodeAddr = kernel_tex_fetch(__object_node, object);
+					}
+					else {
+						/* pop */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
 				}
 			}
 #endif
@@ -311,13 +269,14 @@ __device bool BVH_FUNCTION_NAME
 			kernel_assert(object != ~0);
 
 			/* instance pop */
+			float t_ignore = FLT_MAX;
 #if FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &t_ignore, &ob_tfm, tmax);
 #else
-			bvh_instance_pop(kg, object, ray, &P, &idir, &isect->t, tmax);
+			bvh_instance_pop(kg, object, ray, &P, &idir, &t_ignore, tmax);
 #endif
 
-#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+#if defined(__KERNEL_SSE2__)
 			Psplat[0] = _mm_set_ps1(P.x);
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
@@ -326,7 +285,7 @@ __device bool BVH_FUNCTION_NAME
 			idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
 			idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
 
-			tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
+			tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
 
 			shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
 			shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
@@ -340,7 +299,7 @@ __device bool BVH_FUNCTION_NAME
 #endif
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-	return (isect->prim != ~0);
+	return num_hits;
 }
 
 #undef FEATURE

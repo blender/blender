@@ -1276,16 +1276,18 @@ void ProxyNode::compile(OSLCompiler& compiler)
 BsdfNode::BsdfNode(bool scattering_)
 : ShaderNode("bsdf"), scattering(scattering_)
 {
-	closure = ccl::CLOSURE_BSSRDF_ID;
-
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
 	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
 
-	if(scattering)
+	if(scattering) {
+		closure = CLOSURE_BSSRDF_CUBIC_ID;
 		add_output("BSSRDF", SHADER_SOCKET_CLOSURE);
-	else
+	}
+	else {
+		closure = CLOSURE_BSDF_DIFFUSE_ID;
 		add_output("BSDF", SHADER_SOCKET_CLOSURE);
+	}
 }
 
 void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3)
@@ -1600,25 +1602,45 @@ void TransparentBsdfNode::compile(OSLCompiler& compiler)
 
 /* Subsurface Scattering Closure */
 
+static ShaderEnum subsurface_falloff_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Cubic", CLOSURE_BSSRDF_CUBIC_ID);
+	enm.insert("Gaussian", CLOSURE_BSSRDF_GAUSSIAN_ID);
+
+	return enm;
+}
+
+ShaderEnum SubsurfaceScatteringNode::falloff_enum = subsurface_falloff_init();
+
 SubsurfaceScatteringNode::SubsurfaceScatteringNode()
 : BsdfNode(true)
 {
 	name = "subsurface_scattering";
-	closure = CLOSURE_BSSRDF_ID;
+	closure = CLOSURE_BSSRDF_CUBIC_ID;
 
 	add_input("Scale", SHADER_SOCKET_FLOAT, 0.01f);
 	add_input("Radius", SHADER_SOCKET_VECTOR, make_float3(0.1f, 0.1f, 0.1f));
-	add_input("IOR", SHADER_SOCKET_FLOAT, 1.3f);
+	add_input("Texture Blur", SHADER_SOCKET_FLOAT, 1.0f);
 }
 
 void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
 {
-	BsdfNode::compile(compiler, input("Scale"), input("IOR"), input("Radius"));
+	BsdfNode::compile(compiler, input("Scale"), input("Texture Blur"), input("Radius"));
 }
 
 void SubsurfaceScatteringNode::compile(OSLCompiler& compiler)
 {
+	compiler.parameter("Falloff", falloff_enum[closure]);
 	compiler.add(this, "node_subsurface_scattering");
+}
+
+bool SubsurfaceScatteringNode::has_bssrdf_bump()
+{
+	/* detect if anything is plugged into the normal input besides the default */
+	ShaderInput *normal_in = input("Normal");
+	return (normal_in->link && normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
 }
 
 /* Emissive Closure */
@@ -1835,6 +1857,8 @@ void IsotropicVolumeNode::compile(OSLCompiler& compiler)
 GeometryNode::GeometryNode()
 : ShaderNode("geometry")
 {
+	special_type = SHADER_SPECIAL_TYPE_GEOMETRY;
+
 	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_output("Position", SHADER_SOCKET_POINT);
 	add_output("Normal", SHADER_SOCKET_NORMAL);

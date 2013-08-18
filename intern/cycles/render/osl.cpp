@@ -201,11 +201,16 @@ void OSLShaderManager::shading_system_init()
 			"reflection",	/* PATH_RAY_REFLECT */
 			"refraction",	/* PATH_RAY_TRANSMIT */
 			"diffuse",		/* PATH_RAY_DIFFUSE */
-			"gloss_sharedy",		/* PATH_RAY_GLOSSY */
+			"glossy",		/* PATH_RAY_GLOSSY */
 			"singular",		/* PATH_RAY_SINGULAR */
 			"transparent",	/* PATH_RAY_TRANSPARENT */
 			"shadow",		/* PATH_RAY_SHADOW_OPAQUE */
 			"shadow",		/* PATH_RAY_SHADOW_TRANSPARENT */
+
+			"__unused__",
+			"__unused__",
+			"diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
+			"glossy_ancestor",  /* PATH_RAY_GLOSSY_ANCESTOR */
 		};
 
 		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
@@ -543,8 +548,10 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 			current_shader->has_surface_emission = true;
 		if(info->has_surface_transparent)
 			current_shader->has_surface_transparent = true;
-		if(info->has_surface_bssrdf)
+		if(info->has_surface_bssrdf) {
 			current_shader->has_surface_bssrdf = true;
+			current_shader->has_bssrdf_bump = true; /* can't detect yet */
+		}
 	}
 }
 
@@ -705,8 +712,11 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 						current_shader->has_surface_emission = true;
 					if(node->has_surface_transparent())
 						current_shader->has_surface_transparent = true;
-					if(node->has_surface_bssrdf())
+					if(node->has_surface_bssrdf()) {
 						current_shader->has_surface_bssrdf = true;
+						if(node->has_bssrdf_bump())
+							current_shader->has_bssrdf_bump = true;
+					}
 				}
 				else
 					nodes_done = false;
@@ -773,6 +783,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 		shader->has_surface_emission = false;
 		shader->has_surface_transparent = false;
 		shader->has_surface_bssrdf = false;
+		shader->has_bssrdf_bump = false;
 		shader->has_volume = false;
 		shader->has_displacement = false;
 

@@ -495,8 +495,11 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 			current_shader->has_surface_emission = true;
 		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
-		if(node->has_surface_bssrdf())
+		if(node->has_surface_bssrdf()) {
 			current_shader->has_surface_bssrdf = true;
+			if(node->has_bssrdf_bump())
+				current_shader->has_bssrdf_bump = true;
+		}
 
 		/* end node is added outside of this */
 	}
@@ -557,8 +560,11 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			current_shader->has_surface_emission = true;
 		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
-		if(node->has_surface_bssrdf())
+		if(node->has_surface_bssrdf()) {
 			current_shader->has_surface_bssrdf = true;
+			if(node->has_bssrdf_bump())
+				current_shader->has_bssrdf_bump = true;
+		}
 	}
 
 	done.insert(node);
@@ -676,6 +682,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	shader->has_surface_emission = false;
 	shader->has_surface_transparent = false;
 	shader->has_surface_bssrdf = false;
+	shader->has_bssrdf_bump = false;
 	shader->has_converter_blackbody = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;

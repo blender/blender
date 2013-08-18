@@ -37,11 +37,6 @@ CCL_NAMESPACE_BEGIN
 
 /* GGX */
 
-__device_inline float safe_sqrtf(float f)
-{
-	return sqrtf(max(f, 0.0f));
-}
-
 __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ag */

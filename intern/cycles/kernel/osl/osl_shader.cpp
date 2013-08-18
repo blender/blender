@@ -17,9 +17,13 @@
  */
 
 #include "kernel_compat_cpu.h"
+#include "kernel_montecarlo.h"
 #include "kernel_types.h"
 #include "kernel_globals.h"
 #include "kernel_object.h"
+
+#include "closure/bsdf_diffuse.h"
+#include "closure/bssrdf.h"
 
 #include "osl_bssrdf.h"
 #include "osl_closures.h"
@@ -136,7 +140,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 
 /* Surface */
 
-static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
+static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
                                          const OSL::ClosureColor *closure, float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
 	/* OSL gives us a closure tree, we flatten it into arrays per
@@ -156,8 +160,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					int scattering = bsdf->scattering();
 
 					/* no caustics option */
-					if (no_glossy && scattering == LABEL_GLOSSY)
-						return;
+					if(scattering == LABEL_GLOSSY && (path_flag & PATH_RAY_DIFFUSE)) {
+						KernelGlobals *kg = sd->osl_globals;
+						if(kernel_data.integrator.no_caustics)
+							return;
+					}
 
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
@@ -230,26 +237,32 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 						sc.data1 = bssrdf->sc.data1;
 						sc.prim = NULL;
 
+						/* disable in case of diffuse ancestor, can't see it well then and
+						 * adds considerably noise due to probabilities of continuing path
+						 * getting lower and lower */
+						if(sc.type != CLOSURE_BSSRDF_COMPATIBLE_ID && (path_flag & PATH_RAY_DIFFUSE_ANCESTOR))
+							bssrdf->radius = make_float3(0.0f, 0.0f, 0.0f);
+
 						/* create one closure for each color channel */
 						if(fabsf(weight.x) > 0.0f) {
 							sc.weight = make_float3(weight.x, 0.0f, 0.0f);
 							sc.data0 = bssrdf->radius.x;
+							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
-							sd->flag |= bssrdf->shaderdata_flag();
 						}
 
 						if(fabsf(weight.y) > 0.0f) {
 							sc.weight = make_float3(0.0f, weight.y, 0.0f);
 							sc.data0 = bssrdf->radius.y;
+							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
-							sd->flag |= bssrdf->shaderdata_flag();
 						}
 
 						if(fabsf(weight.z) > 0.0f) {
 							sc.weight = make_float3(0.0f, 0.0f, weight.z);
 							sc.data0 = bssrdf->radius.z;
+							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
-							sd->flag |= bssrdf->shaderdata_flag();
 						}
 					}
 					break;
@@ -264,12 +277,12 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 	}
 	else if (closure->type == OSL::ClosureColor::MUL) {
 		OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
-		flatten_surface_closure_tree(sd, no_glossy, mul->closure, TO_FLOAT3(mul->weight) * weight);
+		flatten_surface_closure_tree(sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
 	}
 	else if (closure->type == OSL::ClosureColor::ADD) {
 		OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
-		flatten_surface_closure_tree(sd, no_glossy, add->closureA, weight);
-		flatten_surface_closure_tree(sd, no_glossy, add->closureB, weight);
+		flatten_surface_closure_tree(sd, path_flag, add->closureA, weight);
+		flatten_surface_closure_tree(sd, path_flag, add->closureB, weight);
 	}
 }
 
@@ -292,10 +305,8 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	sd->num_closure = 0;
 	sd->randb_closure = randb;
 
-	if (globals->Ci) {
-		bool no_glossy = (path_flag & PATH_RAY_DIFFUSE) && kernel_data.integrator.no_caustics;
-		flatten_surface_closure_tree(sd, no_glossy, globals->Ci);
-	}
+	if (globals->Ci)
+		flatten_surface_closure_tree(sd, path_flag, globals->Ci);
 }
 
 /* Background */

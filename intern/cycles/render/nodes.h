@@ -271,6 +271,9 @@ class SubsurfaceScatteringNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(SubsurfaceScatteringNode)
 	bool has_surface_bssrdf() { return true; }
+	bool has_bssrdf_bump();
+
+	static ShaderEnum falloff_enum;
 };
 
 class EmissionNode : public ShaderNode {

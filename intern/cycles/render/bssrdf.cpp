@@ -25,10 +25,15 @@
 #include "kernel_types.h"
 #include "kernel_montecarlo.h"
 
-#include "closure/bsdf_diffuse.h"
-#include "closure/bssrdf.h"
-
 CCL_NAMESPACE_BEGIN
+
+static float bssrdf_cubic(float ld, float r)
+{
+	if(ld == 0.0f)
+		return (r == 0.0f)? 1.0f: 0.0f;
+
+	return powf(ld - min(r, ld), 3.0f) * 4.0f/powf(ld, 4.0f);
+}
 
 /* Cumulative density function utilities */
 
@@ -61,25 +66,19 @@ static void cdf_invert(vector<float>& to, float2 to_range, const vector<float>& 
 
 /* BSSRDF */
 
-static float bssrdf_lookup_table_max_radius(const BSSRDFParams *ss)
-{
-	/* todo: adjust when we use the real BSSRDF */
-	return ss->ld;
-}
-
-static void bssrdf_lookup_table_create(const BSSRDFParams *ss, vector<float>& sample_table, vector<float>& pdf_table)
+static void bssrdf_lookup_table_create(float ld, vector<float>& sample_table, vector<float>& pdf_table)
 {
 	const int size = BSSRDF_RADIUS_TABLE_SIZE;
 	vector<float> cdf(size);
 	vector<float> pdf(size);
 	float step = 1.0f/(float)(size - 1);
-	float max_radius = bssrdf_lookup_table_max_radius(ss);
+	float max_radius = ld;
 	float pdf_sum = 0.0f;
 
 	/* compute the probability density function */
 	for(int i = 0; i < pdf.size(); i++) {
 		float x = (i*step)*max_radius;
-		pdf[i] = bssrdf_cubic(ss->ld, x);
+		pdf[i] = bssrdf_cubic(ld, x);
 		pdf_sum += pdf[i];
 	}
 
@@ -124,13 +123,9 @@ void bssrdf_table_build(vector<float>& table)
 
 	/* create a 2D lookup table, for reflection x sample radius */
 	for(int i = 0; i < BSSRDF_REFL_TABLE_SIZE; i++) {
-		float refl = (float)i/(float)(BSSRDF_REFL_TABLE_SIZE-1);
-		float ior = 1.3f;
 		float radius = 1.0f;
 
-		BSSRDFParams ss;
-		bssrdf_setup_params(&ss, refl, radius, ior);
-		bssrdf_lookup_table_create(&ss, sample_table, pdf_table);
+		bssrdf_lookup_table_create(radius, sample_table, pdf_table);
 
 		memcpy(&table[i*BSSRDF_RADIUS_TABLE_SIZE], &sample_table[0], BSSRDF_RADIUS_TABLE_SIZE*sizeof(float));
 		memcpy(&table[BSSRDF_PDF_TABLE_OFFSET + i*BSSRDF_RADIUS_TABLE_SIZE], &pdf_table[0], BSSRDF_RADIUS_TABLE_SIZE*sizeof(float));

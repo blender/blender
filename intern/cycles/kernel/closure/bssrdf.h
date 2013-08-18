@@ -21,130 +21,187 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device int bssrdf_setup(ShaderClosure *sc)
+__device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 {
 	if(sc->data0 < BSSRDF_MIN_RADIUS) {
 		/* revert to diffuse BSDF if radius too small */
 		sc->data0 = 0.0f;
 		sc->data1 = 0.0f;
-		return bsdf_diffuse_setup(sc);
+		int flag = bsdf_diffuse_setup(sc);
+		sc->type = CLOSURE_BSDF_BSSRDF_ID;
+		return flag;
 	}
 	else {
-		/* IOR param */
-		sc->data1 = max(sc->data1, 1.0f);
-		sc->type = CLOSURE_BSSRDF_ID;
+		sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* texture blur */
+		sc->type = type;
 
 		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
 	}
 }
 
-/* Simple Cubic BSSRDF falloff */
+/* Planar Truncated Gaussian
+ *
+ * Note how this is different from the typical gaussian, this one integrates
+ * to 1 over the plane (where you get an extra 2*pi*x factor). We are lucky
+ * that integrating x*exp(-x) gives a nice closed form solution. */
 
-__device float bssrdf_cubic(float ld, float r)
+/* paper suggests 1/12.46 which is much too small, suspect it's *12.46 */
+#define GAUSS_TRUNCATE 12.46f
+
+__device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
 {
-	if(ld == 0.0f)
-		return (r == 0.0f)? 1.0f: 0.0f;
+	/* integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) from 0 to Rm
+	 * = 1 - exp(-Rm*Rm/(2*v)) */
+	const float v = sc->data0;
+	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
 
-	return powf(ld - min(r, ld), 3.0f) * 4.0f/powf(ld, 4.0f);
+	if(r >= Rm)
+		return 0.0f;
+
+	return expf(-r*r/(2.0f*v))/(2.0f*M_PI_F*v);
 }
 
-/* Original BSSRDF fallof function */
-
-typedef struct BSSRDFParams {
-	float eta;		/* index of refraction */
-	float sigma_t_; /* reduced extinction coefficient */
-	float sigma_tr;	/* effective extinction coefficient */
-	float Fdr;		/* diffuse fresnel reflectance */
-	float D;		/* diffusion constant */
-	float A;
-	float alpha_;	/* reduced albedo */
-	float zr;		/* distance of virtual lightsource above surface */
-	float zv;		/* distance of virtual lightsource below surface */
-	float ld;		/* mean free path */
-	float ro;		/* diffuse reflectance */
-} BSSRDFParams;
-
-__device float bssrdf_reduced_albedo_Rd(float alpha_, float A, float ro)
+__device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
 {
-	float sq;
+	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
+	const float area_truncated = 1.0f - expf(-0.5f*GAUSS_TRUNCATE);
 
-	sq = sqrtf(3.0f*(1.0f - alpha_));
-	return (alpha_/2.0f)*(1.0f + expf((-4.0f/3.0f)*A*sq))*expf(-sq) - ro;
+	return bssrdf_gaussian_eval(sc, r) * (1.0f/(area_truncated));
 }
 
-__device float bssrdf_compute_reduced_albedo(float A, float ro)
+__device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
-	const float tolerance = 1e-8f;
-	const int max_iteration_count = 20;
-	float d, fsub, xn_1 = 0.0f, xn = 1.0f, fxn, fxn_1;
+	/* xi = integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) = -exp(-r^2/(2*v))
+	 * r = sqrt(-2*v*logf(xi)) */
+
+	const float v = sc->data0;
+	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
+
+	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
+	const float area_truncated = 1.0f - expf(-0.5f*GAUSS_TRUNCATE);
+
+	/* r(xi) */
+	const float r_squared = -2.0f*v*logf(1.0f - xi*area_truncated);
+	*r = sqrtf(r_squared);
+
+	 /* h^2 + r^2 = Rm^2 */
+	 *h = sqrtf(Rm*Rm - r_squared);
+}
+
+/* Planar Cubic BSSRDF falloff
+ *
+ * This is basically (Rm - x)^3, with some factors to normalize it. For sampling
+ * we integrate 2*pi*x * (Rm - x)^3, which gives us a quintic equation that as
+ * far as I can tell has no closed form solution. So we get an iterative solution
+ * instead with newton-raphson. */
+
+__device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
+{
+	const float Rm = sc->data0;
+
+	if(r >= Rm)
+		return 0.0f;
+	
+	/* integrate (2*pi*r * 10*(R - r)^3)/(pi * R^5) from 0 to R = 1 */
+	const float Rm5 = (Rm*Rm) * (Rm*Rm) * Rm;
+	const float f = Rm - min(r, Rm);
+	const float f3 = f*f*f;
+
+	return (f3 * 10.0f) / (Rm5 * M_PI_F);
+}
+
+__device float bssrdf_cubic_pdf(ShaderClosure *sc, float r)
+{
+	return bssrdf_cubic_eval(sc, r);
+}
+
+/* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
+__device float bssrdf_cubic_quintic_root_find(float xi)
+{
+	/* newton-raphson iteration, usually succeeds in 2-4 iterations, except
+	 * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
+	 * should not be too bad */
+	const float tolerance = 1e-6f;
+	const int max_iteration_count = 10;
+	float x = 0.25f;
 	int i;
 
-	/* use secant method to compute reduced albedo using Rd function inverse
-	 * with a given reflectance */
-	fxn = bssrdf_reduced_albedo_Rd(xn, A, ro);
-	fxn_1 = bssrdf_reduced_albedo_Rd(xn_1, A, ro);
+	for (i = 0; i < max_iteration_count; i++) {
+		float x2 = x*x;
+		float x3 = x2*x;
+		float nx = (1.0f - x);
 
-	for (i= 0; i < max_iteration_count; i++) {
-		fsub = (fxn - fxn_1);
-		if (fabsf(fsub) < tolerance)
-			break;
-		d = ((xn - xn_1)/fsub)*fxn;
-		if (fabsf(d) < tolerance)
+		float f = 10.0f*x2 - 20.0f*x3 + 15.0f*x2*x2 - 4.0f*x2*x3 - xi;
+		float f_ = 20.0f*(x*nx)*(nx*nx);
+
+		if(fabsf(f) < tolerance || f_ == 0.0f)
 			break;
 
-		xn_1 = xn;
-		fxn_1 = fxn;
-		xn = xn - d;
-
-		if (xn > 1.0f) xn = 1.0f;
-		if (xn_1 > 1.0f) xn_1 = 1.0f;
-		
-		fxn = bssrdf_reduced_albedo_Rd(xn, A, ro);
+		x = clamp(x - f/f_, 0.0f, 1.0f);
 	}
 
-	/* avoid division by zero later */
-	if (xn <= 0.0f)
-		xn = 0.00001f;
-
-	return xn;
+	return x;
 }
 
-__device void bssrdf_setup_params(BSSRDFParams *ss, float refl, float radius, float ior)
+__device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
-	ss->eta = ior;
-	ss->Fdr = -1.440f/ior*ior + 0.710f/ior + 0.668f + 0.0636f*ior;
-	ss->A = (1.0f + ss->Fdr)/(1.0f - ss->Fdr);
-	ss->ld = radius;
-	ss->ro = min(refl, 0.999f);
+	const float Rm = sc->data0;
+	const float r_ = bssrdf_cubic_quintic_root_find(xi) * Rm;
 
-	ss->alpha_ = bssrdf_compute_reduced_albedo(ss->A, ss->ro);
+	*r = r_;
 
-	ss->sigma_tr = 1.0f/ss->ld;
-	ss->sigma_t_ = ss->sigma_tr/sqrtf(3.0f*(1.0f - ss->alpha_));
-
-	ss->D = 1.0f/(3.0f*ss->sigma_t_);
-
-	ss->zr = 1.0f/ss->sigma_t_;
-	ss->zv = ss->zr + 4.0f*ss->A*ss->D;
+	/* h^2 + r^2 = Rm^2 */
+	*h = sqrtf(Rm*Rm - r_*r_);
 }
 
-/* exponential falloff function */
+/* None BSSRDF falloff
+ * 
+ * Samples distributed over disk with no falloff, for reference. */
 
-__device float bssrdf_original(const BSSRDFParams *ss, float r)
+__device float bssrdf_none_eval(ShaderClosure *sc, float r)
 {
-	if(ss->ld == 0.0f)
-		return (r == 0.0f)? 1.0f: 0.0f;
+	const float Rm = sc->data0;
+	return (r < Rm)? 1.0f: 0.0f;
+}
 
-	float rr = r*r;
-	float sr, sv, Rdr, Rdv;
+__device float bssrdf_none_pdf(ShaderClosure *sc, float r)
+{
+	/* integrate (2*pi*r)/(pi*Rm*Rm) from 0 to Rm = 1 */
+	const float Rm = sc->data0;
+	const float area = (M_PI_F*Rm*Rm);
 
-	sr = sqrtf(rr + ss->zr*ss->zr);
-	sv = sqrtf(rr + ss->zv*ss->zv);
+	return bssrdf_none_eval(sc, r) / area;
+}
 
-	Rdr = ss->zr*(1.0f + ss->sigma_tr*sr)*expf(-ss->sigma_tr*sr)/(sr*sr*sr);
-	Rdv = ss->zv*(1.0f + ss->sigma_tr*sv)*expf(-ss->sigma_tr*sv)/(sv*sv*sv);
+__device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float *h)
+{
+	/* xi = integrate (2*pi*r)/(pi*Rm*Rm) = r^2/Rm^2
+	 * r = sqrt(xi)*Rm */
+	const float Rm = sc->data0;
+	const float r_ = sqrtf(xi)*Rm;
 
-	return ss->alpha_*(1.0f/M_4PI_F)*(Rdr + Rdv);
+	*r = r_;
+
+	/* h^2 + r^2 = Rm^2 */
+	*h = sqrtf(Rm*Rm - r_*r_);
+}
+
+/* Generic */
+
+__device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
+{
+	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
+		bssrdf_cubic_sample(sc, xi, r, h);
+	else
+		bssrdf_gaussian_sample(sc, xi, r, h);
+}
+
+__device float bssrdf_pdf(ShaderClosure *sc, float r)
+{
+	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
+		return bssrdf_cubic_pdf(sc, r);
+	else
+		return bssrdf_gaussian_pdf(sc, r);
 }
 
 CCL_NAMESPACE_END

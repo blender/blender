@@ -463,7 +463,10 @@ closure color emission() BUILTIN;
 closure color background() BUILTIN;
 closure color holdout() BUILTIN;
 closure color ambient_occlusion() BUILTIN;
+
+// BSSRDF
 closure color bssrdf_cubic(normal N, vector radius) BUILTIN;
+closure color bssrdf_gaussian(normal N, vector radius) BUILTIN;
 
 // Backwards compatibility
 

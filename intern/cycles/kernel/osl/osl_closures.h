@@ -50,7 +50,8 @@ OSL::ClosureParam *closure_bsdf_diffuse_ramp_params();
 OSL::ClosureParam *closure_bsdf_phong_ramp_params();
 OSL::ClosureParam *closure_westin_backscatter_params();
 OSL::ClosureParam *closure_westin_sheen_params();
-OSL::ClosureParam *closure_bssrdf_params();
+OSL::ClosureParam *closure_bssrdf_cubic_params();
+OSL::ClosureParam *closure_bssrdf_gaussian_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
@@ -60,7 +61,8 @@ void closure_bsdf_diffuse_ramp_prepare(OSL::RendererServices *, int id, void *da
 void closure_bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
 void closure_westin_backscatter_prepare(OSL::RendererServices *, int id, void *data);
 void closure_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);
-void closure_bssrdf_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bssrdf_gaussian_prepare(OSL::RendererServices *, int id, void *data);
 
 enum {
 	AmbientOcclusion = 100
@@ -89,7 +91,8 @@ public:
 	ShaderClosure sc;
 
 	CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
-	  m_scattering_label(scattering), m_shaderdata_flag(0) { }
+	  m_scattering_label(scattering), m_shaderdata_flag(0)
+	{ memset(&sc, 0, sizeof(sc)); }
 	~CBSDFClosure() { }
 
 	int scattering() const { return m_scattering_label; }

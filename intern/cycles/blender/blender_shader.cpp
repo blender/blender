@@ -317,7 +317,23 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		node = new DiffuseBsdfNode();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeSubsurfaceScattering)) {
-		node = new SubsurfaceScatteringNode();
+		BL::ShaderNodeSubsurfaceScattering b_subsurface_node(b_node);
+
+		SubsurfaceScatteringNode *subsurface = new SubsurfaceScatteringNode();
+
+		switch(b_subsurface_node.falloff()) {
+		case BL::ShaderNodeSubsurfaceScattering::falloff_COMPATIBLE:
+			subsurface->closure = CLOSURE_BSSRDF_COMPATIBLE_ID;
+			break;
+		case BL::ShaderNodeSubsurfaceScattering::falloff_CUBIC:
+			subsurface->closure = CLOSURE_BSSRDF_CUBIC_ID;
+			break;
+		case BL::ShaderNodeSubsurfaceScattering::falloff_GAUSSIAN:
+			subsurface->closure = CLOSURE_BSSRDF_GAUSSIAN_ID;
+			break;
+		}
+
+		node = subsurface;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeBsdfGlossy)) {
 		BL::ShaderNodeBsdfGlossy b_glossy_node(b_node);

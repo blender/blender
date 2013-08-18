@@ -30,11 +30,11 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
-	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Scale"),		1.0, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_VECTOR, 1, N_("Radius"),	1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f},
-	//{	SOCK_FLOAT, 1, N_("IOR"),		1.3f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
-	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+	{	SOCK_RGBA, 1, N_("Color"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Scale"),			1.0, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_VECTOR, 1, N_("Radius"),		1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f},
+	{	SOCK_FLOAT, 1, N_("Texture Blur"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, N_("Normal"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 

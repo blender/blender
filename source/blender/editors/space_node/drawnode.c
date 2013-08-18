@@ -907,6 +907,11 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "falloff", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_toon(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "component", 0, "", ICON_NONE);
@@ -1038,6 +1043,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_BSDF_GLASS:
 		case SH_NODE_BSDF_REFRACTION:
 			ntype->uifunc = node_shader_buts_glossy;
+			break;
+		case SH_NODE_SUBSURFACE_SCATTERING:
+			ntype->uifunc = node_shader_buts_subsurface;
 			break;
 		case SH_NODE_BSDF_TOON:
 			ntype->uifunc = node_shader_buts_toon;

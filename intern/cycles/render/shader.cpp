@@ -55,6 +55,7 @@ Shader::Shader()
 	has_converter_blackbody = false;
 	has_volume = false;
 	has_displacement = false;
+	has_bssrdf_bump = false;
 
 	used = false;
 
@@ -236,11 +237,19 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HOMOGENEOUS_VOLUME;
 		if(shader->has_surface_bssrdf)
 			has_surface_bssrdf = true;
+		if(shader->has_bssrdf_bump)
+			flag |= SD_HAS_BSSRDF_BUMP;
 		if(shader->has_converter_blackbody)
 			has_converter_blackbody = true;
 
+		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+
+		/* shader with bump mapping */
+		if(shader->graph_bump)
+			flag |= SD_HAS_BSSRDF_BUMP;
+
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
 	}

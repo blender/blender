@@ -78,6 +78,7 @@ public:
 	bool has_displacement;
 	bool has_surface_bssrdf;
 	bool has_converter_blackbody;
+	bool has_bssrdf_bump;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;

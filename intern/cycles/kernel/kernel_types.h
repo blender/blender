@@ -43,6 +43,7 @@ CCL_NAMESPACE_BEGIN
 #define BSSRDF_LOOKUP_TABLE_SIZE	(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE*2)
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_ATTEMPTS			8
+#define BSSRDF_MAX_HITS				4
 
 #define BB_DRAPPER				800.0f
 #define BB_MAX_TABLE_RANGE		12000.0f
@@ -214,12 +215,13 @@ enum PathRayFlag {
 	PATH_RAY_SHADOW_TRANSPARENT = 256,
 	PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE|PATH_RAY_SHADOW_TRANSPARENT),
 
-	PATH_RAY_MIS_SKIP = 512,
+	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments*/
 
-	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
+	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512),
 
-	/* visibility flag to define curve segments*/
-	PATH_RAY_CURVE = 1024,
+	PATH_RAY_MIS_SKIP = 1024,
+	PATH_RAY_DIFFUSE_ANCESTOR = 2048,
+	PATH_RAY_GLOSSY_ANCESTOR = 4096,
 
 	/* this gives collisions with localview bits
 	 * see: blender_util.h, grr - Campbell */
@@ -507,11 +509,12 @@ enum ShaderDataFlag {
 	SD_HAS_TRANSPARENT_SHADOW = 1024,	/* has transparent shadow */
 	SD_HAS_VOLUME = 2048,				/* has volume shader */
 	SD_HOMOGENEOUS_VOLUME = 4096,		/* has homogeneous volume */
+	SD_HAS_BSSRDF_BUMP = 8192,			/* bssrdf normal uses bump */
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 8192,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 16384,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 32768 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 16384,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 32768,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 65536 		/* vertices have transform applied */
 };
 
 struct KernelGlobals;

@@ -298,7 +298,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 			object->random_id = hash_int_2d(object->random_id, 0);
 
 		/* visibility flags for both parent */
-		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;
+		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 		if(b_parent.ptr.data != b_ob.ptr.data) {
 			object->visibility &= object_ray_visibility(b_parent);
 			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
@@ -306,7 +306,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 
 		/* make holdout objects on excluded layer invisible for non-camera rays */
 		if(use_holdout && (layer_flag & render_layer.exclude_layer))
-			object->visibility &= ~(PATH_RAY_ALL - PATH_RAY_CAMERA);
+			object->visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
 
 		/* camera flag is not actually used, instead is tested
 		 * against render layer flags */
