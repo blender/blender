@@ -2619,6 +2619,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
+	BLI_LINKSTACK_INIT(stack);
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if ((BM_elem_flag_test(f, BM_ELEM_HIDDEN) != 0) ||
@@ -2628,7 +2629,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		BLI_LINKSTACK_INIT(stack);
+		BLI_assert(BLI_LINKSTACK_SIZE(stack) == 0);
 
 		do {
 			BM_face_select_set(bm, f, true);
