@@ -804,19 +804,20 @@ typedef enum CurveFlag {
 	CURVE_KN_POSTINTERSECTCORRECTION = 32,	/* correct for width after intersect? */
 	CURVE_KN_TRUETANGENTGNORMAL = 64,		/* use tangent normal for geometry? */
 	CURVE_KN_TANGENTGNORMAL = 128,			/* use tangent normal for shader? */
-	CURVE_KN_RIBBONS = 256,				/* use flat curve ribbons */
+	CURVE_KN_RIBBONS = 256,					/* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {
-	/* strand intersect and normal parameters - many can be changed to flags*/
+	/* strand intersect and normal parameters - many can be changed to flags */
 	float encasing_ratio;
 	int curveflags;
 	int subdivisions;
+	int pad1;
 
 	float minimum_width;
 	float maximum_width;
 	float curve_epsilon;
-	int pad1;
+	int pad2;
 } KernelCurves;
 
 typedef struct KernelBSSRDF {
