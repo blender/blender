@@ -151,7 +151,8 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 }
 
 /* This function hashes only by type, nr and id, while cmp function also compares 'used' flag;
- * This is done to skip full treehash rebuild in outliner_storage_cleanup */
+ * This is done to skip full treehash rebuild in outliner_storage_cleanup;
+ * In general hashing by type, nr and id should be enough to distribute elements in buckets uniformly */
 static unsigned int tse_hash(const void *ptr)
 {
 	const TreeStoreElem *tse = (const TreeStoreElem *)ptr;
@@ -194,6 +195,8 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	}
 	if (soops->treehash == NULL) {
 		soops->treehash = BLI_ghash_new(tse_hash, tse_cmp, "treehash");
+		
+		/* treehash elements are not required to be unique; see soops->treehash comment */
 		BLI_ghash_flag_set(soops->treehash, GHASH_FLAG_ALLOW_DUPES);
 	}
 	
@@ -205,7 +208,8 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 		}
 	}
 
-	/* check for unused tree elements is in treestore */
+	/* find any unused tree element in treestore and mark it as used
+	 * (note that there may be multiple unused elements in case of linked objects) */
 	tselem = lookup_treehash(soops->treehash, type, nr, 0, id);
 	if (tselem) {
 		te->store_elem = tselem;
