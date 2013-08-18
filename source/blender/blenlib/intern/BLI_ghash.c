@@ -23,11 +23,12 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * A general (pointer -> pointer) hash table ADT
  */
 
 /** \file blender/blenlib/intern/BLI_ghash.c
  *  \ingroup bli
+ *
+ * A general (pointer -> pointer) hash table ADT
  *
  * \note edgehash.c is based on this, make sure they stay in sync.
  */
@@ -138,17 +139,29 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 	}
 }
 
-void *BLI_ghash_lookup(GHash *gh, const void *key)
+BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
 {
 	const unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e;
 
 	for (e = gh->buckets[hash]; e; e = e->next) {
 		if (gh->cmpfp(key, e->key) == 0) {
-			return e->val;
+			return e;
 		}
 	}
 	return NULL;
+}
+
+void *BLI_ghash_lookup(GHash *gh, const void *key)
+{
+	Entry *e = ghash_lookup_entry(gh, key);
+	return e ? e->val : NULL;
+}
+
+void **BLI_ghash_lookup_p(GHash *gh, const void *key)
+{
+	Entry *e = ghash_lookup_entry(gh, key);
+	return e ? &e->val : NULL;
 }
 
 bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
@@ -177,33 +190,6 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 	}
 
 	return false;
-}
-
-void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
-{
-	unsigned int i;
-
-	if (keyfreefp || valfreefp) {
-		for (i = 0; i < gh->nbuckets; i++) {
-			Entry *e;
-
-			for (e = gh->buckets[i]; e; ) {
-				Entry *n = e->next;
-
-				if (keyfreefp) keyfreefp(e->key);
-				if (valfreefp) valfreefp(e->val);
-
-				e = n;
-			}
-		}
-	}
-
-	gh->cursize = 0;
-	gh->nentries = 0;
-	gh->nbuckets = hashsizes[gh->cursize];
-
-	MEM_freeN(gh->buckets);
-	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 }
 
 /* same as above but return the value,
@@ -238,14 +224,34 @@ void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 
 bool BLI_ghash_haskey(GHash *gh, const void *key)
 {
-	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-	Entry *e;
+	return (ghash_lookup_entry(gh, key) != NULL);
+}
 
-	for (e = gh->buckets[hash]; e; e = e->next)
-		if (gh->cmpfp(key, e->key) == 0)
-			return true;
+void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	unsigned int i;
 
-	return false;
+	if (keyfreefp || valfreefp) {
+		for (i = 0; i < gh->nbuckets; i++) {
+			Entry *e;
+
+			for (e = gh->buckets[i]; e; ) {
+				Entry *n = e->next;
+
+				if (keyfreefp) keyfreefp(e->key);
+				if (valfreefp) valfreefp(e->val);
+
+				e = n;
+			}
+		}
+	}
+
+	gh->cursize = 0;
+	gh->nentries = 0;
+	gh->nbuckets = hashsizes[gh->cursize];
+
+	MEM_freeN(gh->buckets);
+	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 }
 
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
