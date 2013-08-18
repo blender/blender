@@ -117,7 +117,7 @@ static unsigned int bm_edgenet_path_from_pass(
 		v_ls_tot += 1;
 		v = vn->prev;
 		vn = &vnet_info[BM_elem_index_get(v)];
-	} while ((vn->pass == pass));
+	} while (vn->pass == pass);
 
 	return v_ls_tot;
 }
@@ -145,7 +145,7 @@ static bool bm_edgenet_path_check_overlap(
 			v_ls_tot += 1;
 			v = vn->prev;
 			vn = &vnet_info[BM_elem_index_get(v)];
-		} while ((vn->pass == pass));
+		} while (vn->pass == pass);
 	}
 
 	if (v_ls_tot) {

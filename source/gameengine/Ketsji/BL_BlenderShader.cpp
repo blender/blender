@@ -44,7 +44,6 @@
  
 BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lightlayer)
 :
-	mScene(scene),
 	mMat(ma),
 	mLightLayer(lightlayer),
 	mGPUMat(NULL)

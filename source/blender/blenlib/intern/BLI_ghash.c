@@ -69,7 +69,7 @@ typedef struct Entry {
 	void *key, *val;
 } Entry;
 
-typedef struct GHash {
+struct GHash {
 	GHashHashFP hashfp;
 	GHashCmpFP cmpfp;
 
@@ -78,7 +78,7 @@ typedef struct GHash {
 	unsigned int nbuckets;
 	unsigned int nentries;
 	unsigned short cursize, flag;
-} GHash;
+};
 
 
 /* -------------------------------------------------------------------- */

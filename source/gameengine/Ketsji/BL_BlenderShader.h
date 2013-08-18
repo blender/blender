@@ -57,7 +57,6 @@ class BL_Material;
 class BL_BlenderShader
 {
 private:
-	KX_Scene		*mScene;
 	struct Scene	*mBlenderScene;
 	struct Material	*mMat;
 	int				mLightLayer;
