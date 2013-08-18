@@ -84,6 +84,69 @@ typedef struct GHash {
 /* -------------------------------------------------------------------- */
 /* GHash API */
 
+/* internal utility API */
+
+BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
+{
+	return gh->hashfp(key) % gh->nbuckets;
+}
+
+BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key,
+                                        const unsigned int hash)
+{
+	Entry *e;
+
+	for (e = gh->buckets[hash]; e; e = e->next) {
+		if (gh->cmpfp(key, e->key) == 0) {
+			return e;
+		}
+	}
+	return NULL;
+}
+
+BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
+{
+	const unsigned int hash = ghash_keyhash(gh, key);
+	return ghash_lookup_entry_ex(gh, key, hash);
+}
+
+static void ghash_insert_ex(GHash *gh, void *key, void *val,
+                            unsigned int hash)
+{
+	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
+
+	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
+
+	e->next = gh->buckets[hash];
+	e->key = key;
+	e->val = val;
+	gh->buckets[hash] = e;
+
+	if (UNLIKELY(++gh->nentries > gh->nbuckets / 2)) {
+		Entry **old = gh->buckets;
+		const unsigned nold = gh->nbuckets;
+		unsigned int i;
+
+		gh->nbuckets = hashsizes[++gh->cursize];
+		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+
+		for (i = 0; i < nold; i++) {
+			Entry *e_next;
+			for (e = old[i]; e; e = e_next) {
+				e_next = e->next;
+				hash = ghash_keyhash(gh, e->key);
+				e->next = gh->buckets[hash];
+				gh->buckets[hash] = e;
+			}
+		}
+
+		MEM_freeN(old);
+	}
+}
+
+
+/* Public API */
+
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
@@ -107,49 +170,31 @@ int BLI_ghash_size(GHash *gh)
 
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
-	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
-
-	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
-
-	e->next = gh->buckets[hash];
-	e->key = key;
-	e->val = val;
-	gh->buckets[hash] = e;
-
-	if (UNLIKELY(++gh->nentries > gh->nbuckets / 2)) {
-		Entry **old = gh->buckets;
-		const unsigned nold = gh->nbuckets;
-		unsigned int i;
-
-		gh->nbuckets = hashsizes[++gh->cursize];
-		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-
-		for (i = 0; i < nold; i++) {
-			Entry *e_next;
-			for (e = old[i]; e; e = e_next) {
-				e_next = e->next;
-				hash = gh->hashfp(e->key) % gh->nbuckets;
-				e->next = gh->buckets[hash];
-				gh->buckets[hash] = e;
-			}
-		}
-
-		MEM_freeN(old);
-	}
+	const unsigned int hash = ghash_keyhash(gh, key);
+	ghash_insert_ex(gh, key, val, hash);
 }
 
-BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
+/**
+ * Assign a new value to a key that may already be in ghash.
+ * Avoids #BLI_ghash_remove, #BLI_ghash_insert calls (double lookups)
+ *
+ * \note We may want to have 'BLI_ghash_assign_ex' function that takes
+ * GHashKeyFreeFP & GHashValFreeFP args. for now aren't needed.
+ */
+void BLI_ghash_assign(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	const unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-	Entry *e;
+	const unsigned int hash = ghash_keyhash(gh, key);
+	Entry *e = ghash_lookup_entry_ex(gh, key, hash);
+	if (e) {
+		if (keyfreefp) keyfreefp(e->key);
+		if (valfreefp) valfreefp(e->val);
 
-	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (gh->cmpfp(key, e->key) == 0) {
-			return e;
-		}
+		e->key = key;
+		e->val = val;
 	}
-	return NULL;
+	else {
+		ghash_insert_ex(gh, key, val, hash);
+	}
 }
 
 void *BLI_ghash_lookup(GHash *gh, const void *key)
@@ -166,7 +211,7 @@ void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 
 bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
+	const unsigned int hash = ghash_keyhash(gh, key);
 	Entry *e;
 	Entry *p = NULL;
 
@@ -196,7 +241,7 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
  * no free value argument since it will be returned */
 void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 {
-	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
+	const unsigned int hash = ghash_keyhash(gh, key);
 	Entry *e;
 	Entry *p = NULL;
 

@@ -100,11 +100,13 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 				bPoseChannel *chan;
 
 				for (chan = pose->chanbase.first; chan; chan = chan->next) {
+					void **val_p;
 					if (chan->bone->flag & BONE_NO_DEFORM)
 						continue;
 
-					if (BLI_ghash_remove(gh, chan->name, NULL, NULL)) {
-						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+					val_p = BLI_ghash_lookup_p(gh, chan->name);
+					if (val_p) {
+						*val_p = SET_INT_IN_POINTER(1);
 					}
 				}
 			}

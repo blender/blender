@@ -43,6 +43,7 @@ enum {
 EdgeHash       *BLI_edgehash_new(void);
 void            BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp);
 void            BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
+void            BLI_edgehash_assign(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
 void           *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1);
 void          **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1);
 bool            BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1);

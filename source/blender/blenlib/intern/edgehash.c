@@ -55,8 +55,6 @@ static const unsigned int _ehash_hashsizes[] = {
 	268435459
 };
 
-#define EDGE_HASH(v0, v1)  ((v0 * 39) ^ (v1 * 31))
-
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
 	if (v0 > v1) {       \
@@ -84,36 +82,47 @@ struct EdgeHash {
 /* -------------------------------------------------------------------- */
 /* EdgeHash API */
 
-EdgeHash *BLI_edgehash_new(void)
-{
-	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
-	eh->cursize = 0;
-	eh->nentries = 0;
-	eh->nbuckets = _ehash_hashsizes[eh->cursize];
-	
-	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
-	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);
+/* internal utility API */
 
-	return eh;
+#define EDGE_HASH(v0, v1)  ((v0 * 39) ^ (v1 * 31))
+
+BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
+{
+	BLI_assert(v0 < v1);
+	return EDGE_HASH(v0, v1) % eh->nbuckets;
 }
 
-/**
- * Insert edge (\a v0, \a v1) into hash with given value, does
- * not check for duplicates.
- */
-void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
+                                               const unsigned int hash)
+{
+	EdgeEntry *e;
+	BLI_assert(v0 < v1);
+	for (e = eh->buckets[hash]; e; e = e->next) {
+		if (v0 == e->v0 && v1 == e->v1) {
+			return e;
+		}
+	}
+	return NULL;
+}
+
+BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	unsigned int hash;
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	return edgehash_lookup_entry_ex(eh, v0, v1, hash);
+}
+
+static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val,
+                               unsigned int hash)
+{
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
 	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
 
 	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 < v1);
 	BLI_assert(v0 != v1);
-
-	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
-
-	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
 
 	e->next = eh->buckets[hash];
 	e->v0 = v0;
@@ -133,7 +142,7 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 			EdgeEntry *e_next;
 			for (e = old[i]; e; e = e_next) {
 				e_next = e->next;
-				hash = EDGE_HASH(e->v0, e->v1) % eh->nbuckets;
+				hash = edgehash_keyhash(eh, e->v0, e->v1);
 				e->next = eh->buckets[hash];
 				eh->buckets[hash] = e;
 			}
@@ -143,20 +152,54 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 	}
 }
 
-BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsigned int v1)
+#undef EDGE_HASH
+
+
+/* Public API */
+
+EdgeHash *BLI_edgehash_new(void)
+{
+	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
+	eh->cursize = 0;
+	eh->nentries = 0;
+	eh->nbuckets = _ehash_hashsizes[eh->cursize];
+
+	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
+	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);
+
+	return eh;
+}
+
+/**
+ * Insert edge (\a v0, \a v1) into hash with given value, does
+ * not check for duplicates.
+ */
+void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+{
+	unsigned int hash;
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	edgehash_insert_ex(eh, v0, v1, val, hash);
+}
+
+/**
+ * Assign a new value to a key that may already be in edgehash.
+ */
+void BLI_edgehash_assign(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
 {
 	unsigned int hash;
 	EdgeEntry *e;
 
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
 
-	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
-	for (e = eh->buckets[hash]; e; e = e->next) {
-		if (v0 == e->v0 && v1 == e->v1) {
-			return e;
-		}
+	e = edgehash_lookup_entry_ex(eh, v0, v1, hash);
+	if (e) {
+		e->val = val;
 	}
-	return NULL;
+	else {
+		edgehash_insert_ex(eh, v0, v1, val, hash);
+	}
 }
 
 /**

@@ -367,12 +367,12 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 	BLI_assert(current_owner != new_owner);
 
 	/* Remove current ownership */
-	BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);
+	// BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);  // assign handles below
 	BLI_ghash_remove(current_owner->bm_unique_verts, v, NULL, NULL);
 
 	/* Set new ownership */
-	BLI_ghash_insert(bvh->bm_vert_to_node, v,
-	                 SET_INT_IN_POINTER(new_owner - bvh->nodes));
+	BLI_ghash_assign(bvh->bm_vert_to_node, v,
+	                 SET_INT_IN_POINTER(new_owner - bvh->nodes), NULL, NULL);
 	BLI_ghash_insert(new_owner->bm_unique_verts, v, NULL);
 	BLI_ghash_remove(new_owner->bm_other_verts, v, NULL, NULL);
 	BLI_assert(!BLI_ghash_haskey(new_owner->bm_other_verts, v));
