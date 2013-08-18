@@ -147,8 +147,6 @@ const char *Attribute::standard_name(AttributeStandard std)
 		return "motion_post";
 	else if(std == ATTR_STD_PARTICLE)
 		return "particle";
-	else if(std == ATTR_STD_CURVE_TANGENT)
-		return "curve_tangent";
 	else if(std == ATTR_STD_CURVE_INTERCEPT)
 		return "curve_intercept";
 	
@@ -276,9 +274,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				break;
 			case ATTR_STD_MOTION_POST:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
-				break;
-			case ATTR_STD_CURVE_TANGENT:
-				attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CURVE_KEY);
 				break;
 			case ATTR_STD_CURVE_INTERCEPT:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);

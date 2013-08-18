@@ -295,16 +295,8 @@ void BVH::pack_curve_segment(int idx, float4 woop[3])
 	*	extra curve data <3>    , StrID,
 	*	nextkey, flags/tip?,    0, 0);
 	*/
-	Attribute *attr_tangent = mesh->curve_attributes.find(ATTR_STD_CURVE_TANGENT);
 	float3 tg0 = make_float3(1.0f, 0.0f, 0.0f);
 	float3 tg1 = make_float3(1.0f, 0.0f, 0.0f);
-
-	if(attr_tangent) {
-		const float3 *data_tangent = attr_tangent->data_float3();
-
-		tg0 = data_tangent[k0];
-		tg1 = data_tangent[k1];
-	}
 	
 	Transform tfm = make_transform(
 		tg0.x, tg0.y, tg0.z, l,

@@ -64,40 +64,20 @@ enum_panorama_types = (
                           "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
     )
 
-enum_curve_presets = (
-    ('CUSTOM', "Custom", "Set general parameters"),
-    ('FAST_PLANES', "Fast Planes", "Use camera facing triangles (fast but memory intensive)"),
-    ('TANGENT_SHADING', "Tangent Normal", "Use planar line segments and tangent normals"),
-    ('TRUE_NORMAL', "True Normal", "Use true normals with line segments(good for thin strands)"),
-    ('ACCURATE_PRESET', "Accurate", "Use best line segment settings (suitable for glass materials)"),
-    ('SMOOTH_CURVES', "Smooth Curves", "Use smooth cardinal curves (slowest)"),
-    ('SMOOTH_RIBBONS', "Ribbons", "Use smooth cardinal curves without thickness"),
-    )
-
 enum_curve_primitives = (
     ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
     ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
     ('CURVE_SEGMENTS', "Curve Segments", "Use segmented cardinal curve primitives"),
-    ('CURVE_RIBBONS', "Curve Ribbons", "Use smooth cardinal curve ribbon primitives"),
     )
 
 enum_triangle_curves = (
     ('CAMERA_TRIANGLES', "Planes", "Create individual triangles forming planes that face camera"),
-    ('RIBBON_TRIANGLES', "Ribbons", "Create individual triangles forming ribbon"),
     ('TESSELLATED_TRIANGLES', "Tessellated", "Create mesh surrounding each strand"),
     )
 
-enum_line_curves = (
-    ('ACCURATE', "Accurate", "Always take into consideration strand width for intersections"),
-    ('QT_CORRECTED', "Corrected", "Ignore width for initial intersection and correct later"),
-    ('ENDCORRECTED', "Correct found", "Ignore width for all intersections and only correct closest"),
-    ('QT_UNCORRECTED', "Uncorrected", "Calculate intersections without considering width"),
-    )
-
-enum_curves_interpolation = (
-    ('LINEAR', "Linear interpolation", "Use Linear interpolation between segments"),
-    ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
-    ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
+enum_curve_shape = (
+    ('RIBBONS', "Ribbons", "Ignore thickness of each strand"),
+    ('THICK', "Thick", "Use thickness of strand when rendering"),
     )
 
 enum_tile_order = (
@@ -689,104 +669,33 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 description="Cycles hair rendering settings",
                 type=cls,
                 )
-        cls.preset = EnumProperty(
-                name="Mode",
-                description="Hair rendering mode",
-                items=enum_curve_presets,
-                default='TRUE_NORMAL',
-                )
         cls.primitive = EnumProperty(
                 name="Primitive",
                 description="Type of primitive used for hair rendering",
                 items=enum_curve_primitives,
                 default='LINE_SEGMENTS',
                 )
-        cls.triangle_method = EnumProperty(
-                name="Mesh Geometry",
-                description="Method for creating triangle geometry",
-                items=enum_triangle_curves,
-                default='CAMERA_TRIANGLES',
+        cls.shape = EnumProperty(
+                name="Shape",
+                description="Form of hair",
+                items=enum_curve_shape,
+                default='THICK',
                 )
-        cls.line_method = EnumProperty(
-                name="Intersection Method",
-                description="Method for line segment intersection",
-                items=enum_line_curves,
-                default='ACCURATE',
-                )
-        cls.interpolation = EnumProperty(
-                name="Interpolation",
-                description="Interpolation method",
-                items=enum_curves_interpolation,
-                default='BSPLINE',
-                )
-        cls.use_backfacing = BoolProperty(
-                name="Check back-faces",
-                description="Test back-faces of strands",
-                default=False,
-                )
-        cls.use_encasing = BoolProperty(
-                name="Exclude encasing",
-                description="Ignore strands encasing a ray's initial location",
+        cls.cull_backfacing = BoolProperty(
+                name="Cull back-faces",
+                description="Do not test the back-face of each strand",
                 default=True,
-                )
-        cls.use_tangent_normal_geometry = BoolProperty(
-                name="Tangent normal geometry",
-                description="Use the tangent normal for actual normal",
-                default=False,
-                )
-        cls.use_tangent_normal = BoolProperty(
-                name="Tangent normal default",
-                description="Use the tangent normal for all normals",
-                default=False,
-                )
-        cls.use_tangent_normal_correction = BoolProperty(
-                name="Strand slope correction",
-                description="Correct the tangent normal for the strand's slope",
-                default=False,
-                )
-        cls.use_parents = BoolProperty(
-                name="Use parent strands",
-                description="Use parents with children",
-                default=False,
-                )
-        cls.use_smooth = BoolProperty(
-                name="Smooth Strands",
-                description="Use vertex normals",
-                default=True,
-                )
-        cls.use_joined = BoolProperty(
-                name="Join",
-                description="Fill gaps between segments (requires more memory)",
-                default=False,
                 )
         cls.use_curves = BoolProperty(
                 name="Use Cycles Hair Rendering",
                 description="Activate Cycles hair rendering for particle system",
                 default=True,
                 )
-        cls.segments = IntProperty(
-                name="Segments",
-                description="Number of segments between path keys (note that this combines with the 'draw step' value)",
-                min=1, max=64,
-                default=1,
-                )
         cls.resolution = IntProperty(
                 name="Resolution",
                 description="Resolution of generated mesh",
                 min=3, max=64,
                 default=3,
-                )
-        cls.normalmix = FloatProperty(
-                name="Normal mix",
-                description="Scale factor for tangent normal removal (zero gives ray normal)",
-                min=0, max=2.0,
-                default=1,
-                )
-        cls.encasing_ratio = FloatProperty(
-                name="Encasing ratio",
-                description="Scale factor for encasing strand width",
-                min=0.0, max=100.0,
-                default=1.01,
                 )
         cls.minimum_width = FloatProperty(
                 name="Minimal width",

@@ -1080,12 +1080,8 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 #endif
 
 		if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
-			sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve.normalmix));
+			sd->Ng = -(D - tg * dot(tg,D));
 			sd->Ng = normalize(sd->Ng);
-			if (flag & CURVE_KN_NORMALCORRECTION) {
-				sd->Ng = sd->Ng - gd * tg;
-				sd->Ng = normalize(sd->Ng);
-			}
 		}
 		else {
 			sd->Ng = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
@@ -1098,12 +1094,8 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 		sd->N = sd->Ng;
 
 		if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
-			sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve.normalmix));
+			sd->N = -(D - tg * dot(tg,D));
 			sd->N = normalize(sd->N);
-			if (flag & CURVE_KN_NORMALCORRECTION) {
-				sd->N = sd->N - gd * tg;
-				sd->N = normalize(sd->N);
-			}
 		}
 		if (!(flag & CURVE_KN_TANGENTGNORMAL) && flag & CURVE_KN_TRUETANGENTGNORMAL) {
 			sd->N = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);

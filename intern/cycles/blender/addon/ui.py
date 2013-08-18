@@ -1152,44 +1152,17 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
 
         layout.active = ccscene.use_curves
 
-        layout.prop(ccscene, "preset", text="Mode")
+        layout.prop(ccscene, "primitive", text="Primitive")
+        layout.prop(ccscene, "shape", text="Shape")
 
-        if ccscene.preset == 'CUSTOM':
-            layout.prop(ccscene, "primitive", text="Primitive")
-
-            if ccscene.primitive == 'TRIANGLES':
-                layout.prop(ccscene, "triangle_method", text="Method")
-                if ccscene.triangle_method == 'TESSELLATED_TRIANGLES':
-                    layout.prop(ccscene, "resolution", text="Resolution")
-                layout.prop(ccscene, "use_smooth", text="Smooth")
-            elif ccscene.primitive == 'LINE_SEGMENTS':
-                layout.prop(ccscene, "use_backfacing", text="Check back-faces")
-
-                row = layout.row()
-                row.prop(ccscene, "use_encasing", text="Exclude encasing")
-                sub = row.row()
-                sub.active = ccscene.use_encasing
-                sub.prop(ccscene, "encasing_ratio", text="Ratio for encasing")
-
-                layout.prop(ccscene, "line_method", text="Method")
-                layout.prop(ccscene, "use_tangent_normal", text="Use tangent normal as default")
-                layout.prop(ccscene, "use_tangent_normal_geometry", text="Use tangent normal geometry")
-                layout.prop(ccscene, "use_tangent_normal_correction", text="Correct tangent normal for slope")
-                layout.prop(ccscene, "interpolation", text="Interpolation")
-
-                row = layout.row()
-                row.prop(ccscene, "segments", text="Segments")
-                row.prop(ccscene, "normalmix", text="Ray Mix")
-            elif ccscene.primitive in {'CURVE_SEGMENTS', 'CURVE_RIBBONS'}:
-                layout.prop(ccscene, "subdivisions", text="Curve subdivisions")
-                layout.prop(ccscene, "use_backfacing", text="Check back-faces")
-
-                layout.prop(ccscene, "interpolation", text="Interpolation")
-                row = layout.row()
-                row.prop(ccscene, "segments", text="Segments")
-
-            row = layout.row()
-            row.prop(ccscene, "use_parents", text="Include parents")
+        if ccscene.primitive == 'TRIANGLES':
+            if ccscene.shape == 'THICK':
+                layout.prop(ccscene, "resolution", text="Resolution")
+        elif ccscene.primitive == 'LINE_SEGMENTS':
+            layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
+        elif ccscene.primitive in {'CURVE_SEGMENTS', 'CURVE_RIBBONS'}:
+            layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
+            layout.prop(ccscene, "subdivisions", text="Curve subdivisions")
 
         row = layout.row()
         row.prop(ccscene, "minimum_width", text="Min Pixels")

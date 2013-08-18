@@ -80,27 +80,21 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim)
 CurveSystemManager::CurveSystemManager()
 {
 	primitive = CURVE_LINE_SEGMENTS;
+	curve_shape = CURVE_THICK;
 	line_method = CURVE_CORRECTED;
-	interpolation = CURVE_CARDINAL;
 	triangle_method = CURVE_CAMERA_TRIANGLES;
 	resolution = 3;
-	segments = 1;
 	subdivisions = 3;
 
-	normalmix = 1.0f;
 	encasing_ratio = 1.01f;
 	minimum_width = 0.0f;
 	maximum_width = 0.0f;
 
 	use_curves = true;
-	use_smooth = true;
-	use_parents = false;
 	use_encasing = true;
 	use_backfacing = false;
-	use_joined = false;
 	use_tangent_normal = false;
 	use_tangent_normal_geometry = false;
-	use_tangent_normal_correction = false;
 
 	need_update = true;
 	need_mesh_update = false;
@@ -138,18 +132,13 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 
 		if(use_tangent_normal)
 			kcurve->curveflags |= CURVE_KN_TANGENTGNORMAL;
-		if(use_tangent_normal_correction)
-			kcurve->curveflags |= CURVE_KN_NORMALCORRECTION;
 		if(use_tangent_normal_geometry)
 			kcurve->curveflags |= CURVE_KN_TRUETANGENTGNORMAL;
-		if(use_joined)
-			kcurve->curveflags |= CURVE_KN_CURVEDATA;
 		if(use_backfacing)
 			kcurve->curveflags |= CURVE_KN_BACKFACING;
 		if(use_encasing)
 			kcurve->curveflags |= CURVE_KN_ENCLOSEFILTER;
 
-		kcurve->normalmix = normalmix;
 		kcurve->encasing_ratio = encasing_ratio;
 		kcurve->minimum_width = minimum_width;
 		kcurve->maximum_width = maximum_width;
@@ -168,39 +157,29 @@ void CurveSystemManager::device_free(Device *device, DeviceScene *dscene)
 
 bool CurveSystemManager::modified(const CurveSystemManager& CurveSystemManager)
 {
-	return !(line_method == CurveSystemManager.line_method &&
-		interpolation == CurveSystemManager.interpolation &&
+	return !(curve_shape == CurveSystemManager.curve_shape &&
+		line_method == CurveSystemManager.line_method &&
 		primitive == CurveSystemManager.primitive &&
 		use_encasing == CurveSystemManager.use_encasing &&
 		use_tangent_normal == CurveSystemManager.use_tangent_normal &&
-		use_tangent_normal_correction == CurveSystemManager.use_tangent_normal_correction &&
 		use_tangent_normal_geometry == CurveSystemManager.use_tangent_normal_geometry &&
 		encasing_ratio == CurveSystemManager.encasing_ratio &&
 		minimum_width == CurveSystemManager.minimum_width &&
 		maximum_width == CurveSystemManager.maximum_width &&
 		use_backfacing == CurveSystemManager.use_backfacing &&
-		normalmix == CurveSystemManager.normalmix &&
-		use_smooth == CurveSystemManager.use_smooth &&
 		triangle_method == CurveSystemManager.triangle_method &&
 		resolution == CurveSystemManager.resolution &&
 		use_curves == CurveSystemManager.use_curves &&
-		use_joined == CurveSystemManager.use_joined &&
-		segments == CurveSystemManager.segments &&
-		use_parents == CurveSystemManager.use_parents &&
 		subdivisions == CurveSystemManager.subdivisions);
 }
 
 bool CurveSystemManager::modified_mesh(const CurveSystemManager& CurveSystemManager)
 {
 	return !(primitive == CurveSystemManager.primitive &&
-		interpolation == CurveSystemManager.interpolation &&
-		use_parents == CurveSystemManager.use_parents &&
-		use_smooth == CurveSystemManager.use_smooth &&
+		curve_shape == CurveSystemManager.curve_shape &&
 		triangle_method == CurveSystemManager.triangle_method &&
 		resolution == CurveSystemManager.resolution &&
-		use_curves == CurveSystemManager.use_curves &&
-		use_joined == CurveSystemManager.use_joined &&
-		segments == CurveSystemManager.segments);
+		use_curves == CurveSystemManager.use_curves);
 }
 
 void CurveSystemManager::tag_update(Scene *scene)

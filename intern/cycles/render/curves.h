@@ -48,9 +48,13 @@ typedef enum curve_primitives {
 	CURVE_RIBBONS
 } curve_primitives;
 
+typedef enum curve_shape {
+	CURVE_RIBBON,
+	CURVE_THICK
+} curve_shape;
+
 typedef enum curve_triangles {
 	CURVE_CAMERA_TRIANGLES,
-	CURVE_RIBBON_TRIANGLES,
 	CURVE_TESSELATED_TRIANGLES
 } curve_triangles;
 
@@ -99,27 +103,21 @@ class CurveSystemManager {
 public:
 
 	int primitive;
+	int curve_shape;
 	int line_method;
-	int interpolation;
 	int triangle_method;
 	int resolution;
-	int segments;
 	int subdivisions;
 
-	float normalmix;
 	float encasing_ratio;
 	float minimum_width;
 	float maximum_width;
 
 	bool use_curves;
-	bool use_smooth;
-	bool use_parents;
 	bool use_encasing;
 	bool use_backfacing;
 	bool use_tangent_normal;
-	bool use_tangent_normal_correction;
 	bool use_tangent_normal_geometry;
-	bool use_joined;
 
 	bool need_update;
 	bool need_mesh_update;
