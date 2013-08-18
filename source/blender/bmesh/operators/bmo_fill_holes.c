@@ -77,7 +77,7 @@ static BMFace *bm_face_from_eloop(BMesh *bm, struct BMEdgeLoopStore *el_store)
 	} while ((node = node->next));
 
 	f = BM_face_create_ngon_verts(bm, f_verts, len, 0, true, false);
-	BM_face_copy_shared(bm, f);
+	BM_face_copy_shared(bm, f, NULL, NULL);
 
 	l = bm_face_find_longest_loop_manifold(f);
 	if (l) {
