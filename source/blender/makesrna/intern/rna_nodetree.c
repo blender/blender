@@ -159,7 +159,6 @@ EnumPropertyItem node_sampler_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-
 EnumPropertyItem prop_noise_basis_items[] = {
 	{SHD_NOISE_PERLIN, "PERLIN", 0, "Perlin", ""},
 	{SHD_NOISE_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
@@ -177,15 +176,6 @@ EnumPropertyItem prop_noise_type_items[] = {
 	{SHD_NOISE_HARD, "HARD", 0, "Hard", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-
-#if 0
-EnumPropertyItem prop_wave_items[] = {
-	{SHD_WAVE_SINE, "SINE", 0, "Sine", "Use a sine wave to produce bands"},
-	{SHD_WAVE_SAW, "SAW", 0, "Saw", "Use a saw wave to produce bands"},
-	{SHD_WAVE_TRI, "TRI", 0, "Tri", "Use a triangle wave to produce bands"},
-	{0, NULL, 0, NULL, NULL}
-};
-#endif
 
 #ifdef RNA_RUNTIME
 

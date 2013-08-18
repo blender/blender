@@ -937,10 +937,6 @@ typedef struct NodeShaderNormalMap {
 #define SHD_WAVE_BANDS		0
 #define SHD_WAVE_RINGS		1
 
-#define SHD_WAVE_SINE	0
-#define SHD_WAVE_SAW	1
-#define SHD_WAVE_TRI	2
-
 /* image/environment texture */
 #define SHD_COLORSPACE_NONE		0
 #define SHD_COLORSPACE_COLOR	1
