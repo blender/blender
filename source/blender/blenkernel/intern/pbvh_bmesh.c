@@ -1026,6 +1026,9 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 		GHASH_ITER (gh_iter, node->bm_unique_verts) {
 			BM_vert_normal_update(BLI_ghashIterator_getKey(&gh_iter));
 		}
+		GHASH_ITER (gh_iter, node->bm_other_verts) {
+			BM_vert_normal_update(BLI_ghashIterator_getKey(&gh_iter));
+		}
 	}
 }
 
