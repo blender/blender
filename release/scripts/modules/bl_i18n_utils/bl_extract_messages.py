@@ -410,9 +410,15 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     def make_rel(path):
         for rp in root_paths:
             if path.startswith(rp):
-                return os.path.relpath(path, rp)
+                try:  # can't always find the relative path (between drive letters on windows)
+                    return os.path.relpath(path, rp)
+                except ValueError:
+                    return path
         # Use binary's dir as fallback...
-        return os.path.relpath(path, os.path.dirname(bpy.app.binary_path))
+        try:  # can't always find the relative path (between drive letters on windows)
+            return os.path.relpath(path, os.path.dirname(bpy.app.binary_path))
+        except ValueError:
+            return path
 
     # Helper function
     def extract_strings_ex(node, is_split=False):
@@ -768,7 +774,10 @@ def dump_src_messages(msgs, reports, settings):
             if os.path.splitext(fname)[1] not in settings.PYGETTEXT_ALLOWED_EXTS:
                 continue
             path = os.path.join(root, fname)
-            rel_path = os.path.relpath(path, settings.SOURCE_DIR)
+            try:  # can't always find the relative path (between drive letters on windows)
+                rel_path = os.path.relpath(path, settings.SOURCE_DIR)
+            except ValueError:
+                rel_path = path
             if rel_path in forbidden:
                 continue
             elif rel_path not in forced:

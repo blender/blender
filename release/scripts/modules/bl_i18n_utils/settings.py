@@ -467,9 +467,12 @@ def _do_set(ref, path):
     path = os.path.normpath(path)
     # If given path is absolute, make it relative to current ref one (else we consider it is already the case!)
     if os.path.isabs(path):
-        return os.path.relpath(path, ref)
-    else:
-        return path
+        # can't always find the relative path (between drive letters on windows)
+        try:
+            return os.path.relpath(path, ref)
+        except ValueError:
+            pass
+    return path
 
 def _gen_get_set_path(ref, name):
     def _get(self):
