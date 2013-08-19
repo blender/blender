@@ -4279,9 +4279,6 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 		return ps;
 	}
 
-	/* needed so multiple threads don't try to initialize the brush at once (can leak memory) */
-	curvemapping_initialize(ps->brush->curve);
-
 	paint_brush_init_tex(ps->brush);
 
 	ps->source = PROJ_SRC_VIEW;

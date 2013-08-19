@@ -951,7 +951,6 @@ float BKE_brush_curve_strength_clamp(Brush *br, float p, const float len)
 	if (p >= len) return 0;
 	else p = p / len;
 
-	curvemapping_initialize(br->curve);
 	strength = curvemapping_evaluateF(br->curve, 0, p);
 
 	CLAMP(strength, 0.0f, 1.0f);
@@ -967,7 +966,6 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 	else
 		p = p / len;
 
-	curvemapping_initialize(br->curve);
 	return curvemapping_evaluateF(br->curve, 0, p);
 }
 
