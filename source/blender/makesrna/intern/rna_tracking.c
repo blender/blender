@@ -511,7 +511,8 @@ static void rna_trackingDopesheet_tagUpdate(Main *UNUSED(bmain), Scene *scene, P
 
 /* API */
 
-static MovieTrackingTrack *add_track_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, const char *name, int frame)
+static MovieTrackingTrack *add_track_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase,
+                                             const char *name, int frame)
 {
 	int width, height;
 	MovieClipUser user = {0};
@@ -1317,7 +1318,7 @@ static void rna_def_trackingPlaneMarker(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x2);
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Corners",
-	                         "Array of coordinates which represents UI rectange corners in "
+	                         "Array of coordinates which represents UI rectangle corners in "
 	                         "frame normalized coordinates");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, NULL);
 
@@ -1335,7 +1336,8 @@ static void rna_def_trackingPlaneMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "MovieTrackingPlaneMarkers");
 	srna = RNA_def_struct(brna, "MovieTrackingPlaneMarkers", NULL);
 	RNA_def_struct_sdna(srna, "MovieTrackingPlaneTrack");
-	RNA_def_struct_ui_text(srna, "Movie Tracking Plane Markers", "Collection of markers for movie tracking plane track");
+	RNA_def_struct_ui_text(srna, "Movie Tracking Plane Markers",
+	                       "Collection of markers for movie tracking plane track");
 }
 
 static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
@@ -1569,7 +1571,8 @@ static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
 	/* active plane track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingPlaneTrack");
-	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_plane_track_get", "rna_tracking_active_plane_track_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_plane_track_get", "rna_tracking_active_plane_track_set",
+	                               NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Plane Track", "Active plane track in this tracking data object");
 }
@@ -1613,7 +1616,8 @@ static void rna_def_trackingObjectPlaneTracks(BlenderRNA *brna)
 	/* active track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
-	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_plane_track_get", "rna_tracking_active_plane_track_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_plane_track_get", "rna_tracking_active_plane_track_set",
+	                               NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 }
