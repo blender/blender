@@ -106,6 +106,9 @@ PlaneTrackWarpImageOperation::PlaneTrackWarpImageOperation() : PlaneTrackCommonO
 	this->addOutputSocket(COM_DT_COLOR);
 	this->m_pixelReader = NULL;
 	this->setComplex(true);
+
+	/* Currently hardcoded to 8 samples. */
+	this->m_osa = 8;
 }
 
 void PlaneTrackWarpImageOperation::initExecution()
@@ -114,9 +117,7 @@ void PlaneTrackWarpImageOperation::initExecution()
 
 	this->m_pixelReader = this->getInputSocketReader(0);
 
-	const int osa = 8;
-	this->m_osa = osa;
-	BLI_jitter_init(this->m_jitter[0], osa);
+	BLI_jitter_init(this->m_jitter[0], this->m_osa);
 }
 
 void PlaneTrackWarpImageOperation::deinitExecution()

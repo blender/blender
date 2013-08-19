@@ -38,15 +38,16 @@ extern "C" {
 PlaneTrackMaskOperation::PlaneTrackMaskOperation() : PlaneTrackCommonOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
+
+	/* Currently hardcoded to 8 samples. */
+	this->m_osa = 8;
 }
 
 void PlaneTrackMaskOperation::initExecution()
 {
 	PlaneTrackCommonOperation::initExecution();
 
-	const int osa = 8;
-	this->m_osa = osa;
-	BLI_jitter_init(this->m_jitter[0], osa);
+	BLI_jitter_init(this->m_jitter[0], this->m_osa);
 }
 
 void PlaneTrackMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
