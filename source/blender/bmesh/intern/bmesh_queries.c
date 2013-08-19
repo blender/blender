@@ -992,6 +992,25 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 }
 
 /**
+ * \brief Return the Loop Shared by Edge and Vert
+ *
+ * Finds the loop used which uses \a  in face loop \a l
+ *
+ * \note this function takes a loop rather then an edge
+ * so we can select the face that the loop should be from.
+ */
+BMLoop *BM_edge_vert_share_loop(BMLoop *l, BMVert *v)
+{
+	BLI_assert(BM_vert_in_edge(l->e, v));
+	if (l->v == v) {
+		return l;
+	}
+	else {
+		return l->next;
+	}
+}
+
+/**
  * \brief Return the Loop Shared by Face and Vertex
  *
  * Finds the loop used which uses \a v in face loop \a l

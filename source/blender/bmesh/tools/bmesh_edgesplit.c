@@ -193,11 +193,13 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, con
 
 						bmesh_vert_separate(bm, v, &vtar, &vtar_len, copy_select);
 
-						if (vtar_len) {
+						/* first value is always in 'v' */
+						if (vtar_len > 1) {
 							BMEditSelection *ese = BLI_ghash_lookup(ese_gh, v);
+							BLI_assert(v == vtar[0]);
 							if (UNLIKELY(ese)) {
 								int j;
-								for (j = 0; j < vtar_len; j++) {
+								for (j = 1; j < vtar_len; j++) {
 									BLI_assert(v != vtar[j]);
 									BM_select_history_store_after_notest(bm, ese, vtar[j]);
 								}

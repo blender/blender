@@ -106,6 +106,7 @@ bool    BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2);
 bool    BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2);
 
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2);
+BMLoop *BM_edge_vert_share_loop(BMLoop *l, BMVert *v);
 BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v);
 BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e);
 
