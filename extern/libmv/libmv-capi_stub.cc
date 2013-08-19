@@ -281,9 +281,9 @@ void libmv_homography2DFromCorrespondencesLinear(double (* /* x1 */)[2], double 
                                                  double H[3][3], double /* expected_precision */)
 {
 	memset(H, 0, sizeof(H));
-	N[0][0] = 1.0f;
-	N[1][1] = 1.0f;
-	N[02[2] = 1.0f;
+	H[0][0] = 1.0f;
+	H[1][1] = 1.0f;
+	H[2][2] = 1.0f;
 }
 
 #endif  // ifndef WITH_LIBMV

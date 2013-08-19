@@ -378,16 +378,9 @@ void RAS_BucketManager::MergeBucketManager(RAS_BucketManager *other, SCA_IScene 
 {
 	/* concatinate lists */
 	// printf("BEFORE %d %d\n", GetSolidBuckets().size(), GetAlphaBuckets().size());
-	BucketList::iterator it;
-
-	for (it = other->GetSolidBuckets().begin(); it != other->GetSolidBuckets().end(); ++it)
-		(*it)->GetPolyMaterial()->Replace_IScene(scene);
 
 	GetSolidBuckets().insert( GetSolidBuckets().end(), other->GetSolidBuckets().begin(), other->GetSolidBuckets().end() );
 	other->GetSolidBuckets().clear();
-
-	for (it = other->GetAlphaBuckets().begin(); it != other->GetAlphaBuckets().end(); ++it)
-		(*it)->GetPolyMaterial()->Replace_IScene(scene);
 
 	GetAlphaBuckets().insert( GetAlphaBuckets().end(), other->GetAlphaBuckets().begin(), other->GetAlphaBuckets().end() );
 	other->GetAlphaBuckets().clear();

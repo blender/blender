@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 /*
@@ -184,52 +182,32 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 	sd->flag = kernel_tex_fetch(__object_flag, sd->object);
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 
-#ifdef __HAIR__
-	if(kernel_tex_fetch(__prim_segment, isect->prim) != ~0) {
-		/* Strand Shader setting*/
-		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-
-		sd->shader = __float_as_int(curvedata.z);
-		sd->segment = isect->segment;
-
-		float tcorr = isect->t;
-		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION)
-			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
-
-		sd->P = bvh_curve_refine(kg, sd, isect, ray, tcorr);
-	}
-	else {
-#endif
-		/* fetch triangle data */
-		float4 Ns = kernel_tex_fetch(__tri_normal, sd->prim);
-		float3 Ng = make_float3(Ns.x, Ns.y, Ns.z);
-		sd->shader = __float_as_int(Ns.w);
+	/* fetch triangle data */
+	float4 Ns = kernel_tex_fetch(__tri_normal, sd->prim);
+	float3 Ng = make_float3(Ns.x, Ns.y, Ns.z);
+	sd->shader = __float_as_int(Ns.w);
 
 #ifdef __HAIR__
-		sd->segment = ~0;
+	sd->segment = ~0;
 #endif
 
 #ifdef __UV__
-		sd->u = isect->u;
-		sd->v = isect->v;
+	sd->u = isect->u;
+	sd->v = isect->v;
 #endif
 
-		/* vectors */
-		sd->P = bvh_triangle_refine(kg, sd, isect, ray);
-		sd->Ng = Ng;
-		sd->N = Ng;
-		
-		/* smooth normal */
-		if(sd->shader & SHADER_SMOOTH_NORMAL)
-			sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
+	/* vectors */
+	sd->P = bvh_triangle_refine_subsurface(kg, sd, isect, ray);
+	sd->Ng = Ng;
+	sd->N = Ng;
+	
+	/* smooth normal */
+	if(sd->shader & SHADER_SMOOTH_NORMAL)
+		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
 
 #ifdef __DPDU__
-		/* dPdu/dPdv */
-		triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
-#endif
-
-#ifdef __HAIR__
-	}
+	/* dPdu/dPdv */
+	triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
 #endif
 
 	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
@@ -468,6 +446,8 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 __device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderData *sd, const float3 omega_in, float *pdf,
 	int skip_bsdf, BsdfEval *result_eval, float sum_pdf, float sum_sample_weight)
 {
+	/* this is the veach one-sample model with balance heuristic, some pdf
+	 * factors drop out when using balance heuristic weighting */
 	for(int i = 0; i< sd->num_closure; i++) {
 		if(i == skip_bsdf)
 			continue;
@@ -706,34 +686,34 @@ __device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N)
+__device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N_)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	*N = make_float3(0.0f, 0.0f, 0.0f);
+	float3 N = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
 		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
 			eval += sc->weight*ao_factor;
-			*N += sc->N*average(sc->weight);
+			N += sc->N*average(sc->weight);
 		}
 		else if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type)) {
 			eval += sc->weight;
-			*N += sd->N*average(sc->weight);
+			N += sd->N*average(sc->weight);
 		}
 	}
 
-	if(is_zero(*N))
-		*N = sd->N;
+	if(is_zero(N))
+		N = sd->N;
 	else
-		*N = normalize(*N);
+		N = normalize(N);
 
+	*N_ = N;
 	return eval;
 #else
-	*N = sd->N;
+	*N_ = sd->N;
 
 	if(CLOSURE_IS_BSDF_DIFFUSE(sd->closure.type))
 		return sd->closure.weight*ao_factor;
@@ -741,6 +721,49 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 		return sd->closure.weight;
 	else
 		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+}
+
+__device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_blur_)
+{
+#ifdef __MULTI_CLOSURE__
+	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+	float3 N = make_float3(0.0f, 0.0f, 0.0f);
+	float texture_blur = 0.0f, weight_sum = 0.0f;
+
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(CLOSURE_IS_BSSRDF(sc->type)) {
+			float avg_weight = fabsf(average(sc->weight));
+
+			N += sc->N*avg_weight;
+			eval += sc->weight;
+			texture_blur += sc->data1*avg_weight;
+			weight_sum += avg_weight;
+		}
+	}
+
+	if(N_)
+		*N_ = (is_zero(N))? sd->N: normalize(N);
+
+	if(texture_blur_)
+		*texture_blur_ = texture_blur/weight_sum;
+	
+	return eval;
+#else
+	if(CLOSURE_IS_BSSRDF(sd->closure.type)) {
+		if(N_) *N_ = sd->closure.N;
+		if(texture_blur_) *texture_blur_ = sd->closure.data1;
+
+		return sd->closure.weight;
+	}
+	else {
+		if(N_) *N_ = sd->N;
+		if(texture_blur_) *texture_blur_ = 0.0f;
+
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 #endif
 }
 

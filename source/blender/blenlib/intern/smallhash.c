@@ -53,8 +53,8 @@
 
 /* typically this re-assigns 'h' */
 #define SMHASH_NEXT(h, hoff)  ( \
-	CHECK_TYPE_INLINE(&(h),    unsigned int), \
-	CHECK_TYPE_INLINE(&(hoff), unsigned int), \
+	CHECK_TYPE_INLINE(&(h),    unsigned int *), \
+	CHECK_TYPE_INLINE(&(hoff), unsigned int *), \
 	((h) + (((hoff) = ((hoff) * 2) + 1), (hoff))) \
 	)
 

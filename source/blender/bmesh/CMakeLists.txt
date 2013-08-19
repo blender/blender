@@ -50,6 +50,7 @@ set(SRC
 	operators/bmo_dupe.c
 	operators/bmo_edgenet.c
 	operators/bmo_extrude.c
+	operators/bmo_fill_attribute.c
 	operators/bmo_fill_edgeloop.c
 	operators/bmo_fill_grid.c
 	operators/bmo_fill_holes.c
@@ -123,6 +124,8 @@ set(SRC
 	tools/bmesh_decimate_dissolve.c
 	tools/bmesh_decimate_unsubdivide.c
 	tools/bmesh_decimate.h
+	tools/bmesh_edgenet.c
+	tools/bmesh_edgenet.h
 	tools/bmesh_edgesplit.c
 	tools/bmesh_edgesplit.h
 	tools/bmesh_path.c

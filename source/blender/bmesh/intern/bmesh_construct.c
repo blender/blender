@@ -127,32 +127,60 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 
 /**
  * \brief copies face loop data from shared adjacent faces.
+ *
+ * \param filter_fn  A function that filters the source loops before copying (don't always want to copy all)
+ *
  * \note when a matching edge is found, both loops of that edge are copied
  * this is done since the face may not be completely surrounded by faces,
- * this way: a quad with 2 connected quads on either side will still get all 4 loops updated */
-void BM_face_copy_shared(BMesh *bm, BMFace *f)
+ * this way: a quad with 2 connected quads on either side will still get all 4 loops updated
+ */
+void BM_face_copy_shared(BMesh *bm, BMFace *f,
+                         BMElemFilterFunc filter_fn, void *user_data)
 {
 	BMLoop *l_first;
 	BMLoop *l_iter;
+
+#ifdef DEBUG
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BLI_assert(BM_ELEM_API_FLAG_TEST(l_iter, _FLAG_OVERLAP) == 0);
+	} while ((l_iter = l_iter->next) != l_first);
+#endif
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		BMLoop *l_other = l_iter->radial_next;
 
 		if (l_other && l_other != l_iter) {
+			BMLoop *l_src[2];
+			BMLoop *l_dst[2] = {l_iter, l_iter->next};
+			unsigned int j;
+
 			if (l_other->v == l_iter->v) {
-				bm_loop_attrs_copy(bm, bm, l_other, l_iter);
-				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter->next);
+				l_src[0] = l_other;
+				l_src[1] = l_other->next;
 			}
 			else {
-				bm_loop_attrs_copy(bm, bm, l_other->next, l_iter);
-				bm_loop_attrs_copy(bm, bm, l_other, l_iter->next);
+				l_src[0] = l_other->next;
+				l_src[1] = l_other;
 			}
-			/* since we copy both loops of the shared edge, step over the next loop here */
-			if ((l_iter = l_iter->next) == l_first) {
-				break;
+
+			for (j = 0; j < 2; j++) {
+				BLI_assert(l_dst[j]->v == l_src[j]->v);
+				if (BM_ELEM_API_FLAG_TEST(l_dst[j], _FLAG_OVERLAP) == 0) {
+					if ((filter_fn == NULL) || filter_fn((BMElem *)l_src[j], user_data)) {
+						bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j]);
+						BM_ELEM_API_FLAG_ENABLE(l_dst[j], _FLAG_OVERLAP);
+					}
+				}
 			}
 		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		BM_ELEM_API_FLAG_DISABLE(l_iter, _FLAG_OVERLAP);
 	} while ((l_iter = l_iter->next) != l_first);
 }
 

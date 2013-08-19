@@ -246,6 +246,13 @@ typedef struct SpaceOops {
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
 	
 	ListBase tree;
+	
+	/* treestore is an ordered list of TreeStoreElem's from outliner tree;
+	 * Note that treestore may contain duplicate elements if element
+	 * is used multiple times in outliner tree (e. g. linked objects)
+	 * Also note that BLI_mempool can not be read/written in DNA directly,
+	 * therefore readfile.c/writefile.c linearize treestore into TreeStore structure
+	 */
 	struct BLI_mempool *treestore;
 	
 	/* search stuff */
@@ -253,6 +260,11 @@ typedef struct SpaceOops {
 	struct TreeStoreElem search_tse;
 
 	short flag, outlinevis, storeflag, search_flags;
+	
+	/* search index for every element in treestore;
+	 * It is ok for treehash to contain duplicates, because the semantics of its usage
+	 * allows duplicates (see check_persistent)
+	 */
 	struct GHash *treehash;
 } SpaceOops;
 

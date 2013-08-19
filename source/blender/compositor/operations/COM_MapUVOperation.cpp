@@ -71,37 +71,11 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 
 	dy = 0.5f * (uv_u + uv_d);
 
-	/* more adaptive sampling, red and green (UV) channels */
-	this->m_inputUVProgram->read(uv_a, x - 1, y - 1, COM_PS_NEAREST);
-	this->m_inputUVProgram->read(uv_b, x - 1, y + 1, COM_PS_NEAREST);
-	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
-	this->m_inputUVProgram->read(uv_a, x + 1, y - 1, COM_PS_NEAREST);
-	this->m_inputUVProgram->read(uv_b, x + 1, y + 1, COM_PS_NEAREST);
-	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
 	/* UV to alpha threshold */
 	const float threshold = this->m_alpha * 0.05f;
 	float alpha = 1.0f - threshold * (dx + dy);
 	if (alpha < 0.f) alpha = 0.f;
 	else alpha *= inputUV[2];
-
-	/* should use mipmap */
-	dx = min(dx, 0.2f);
-	dy = min(dy, 0.2f);
-
 
 	/* EWA filtering */
 	u = inputUV[0] * this->m_inputColorProgram->getWidth();

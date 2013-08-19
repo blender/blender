@@ -25,7 +25,7 @@
 
 # XXX allowing blenkernel and RNA includes in blenlib is a hack,
 # but needed in a few places atm (bpath.c for instance)
-set(INC 
+set(INC
 	.
 	# ../blenkernel  # dont add this back!
 	../makesdna
@@ -127,6 +127,7 @@ set(SRC
 	BLI_kdtree.h
 	BLI_lasso.h
 	BLI_linklist.h
+	BLI_linklist_stack.h
 	BLI_listbase.h
 	BLI_math.h
 	BLI_math_base.h

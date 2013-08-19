@@ -137,6 +137,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 
 		sub_parent_name = track->name;
 		parent_type = MASK_PARENT_POINT_TRACK;
+		memset(orig_corners, 0, sizeof(orig_corners));
 	}
 	else if ((plane_track = BKE_tracking_plane_track_get_active(tracking)) != NULL) {
 		MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);

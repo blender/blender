@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 #ifdef __OSL__
@@ -100,11 +98,11 @@ __device_inline void path_state_next(KernelGlobals *kg, PathState *state, int la
 
 	/* diffuse/glossy/singular */
 	if(label & LABEL_DIFFUSE) {
-		state->flag |= PATH_RAY_DIFFUSE;
+		state->flag |= PATH_RAY_DIFFUSE|PATH_RAY_DIFFUSE_ANCESTOR;
 		state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 	}
 	else if(label & LABEL_GLOSSY) {
-		state->flag |= PATH_RAY_GLOSSY;
+		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_GLOSSY_ANCESTOR;
 		state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 	}
 	else {
@@ -117,7 +115,7 @@ __device_inline void path_state_next(KernelGlobals *kg, PathState *state, int la
 
 __device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)
 {
-	uint flag = state->flag;
+	uint flag = state->flag & PATH_RAY_ALL_VISIBILITY;
 
 	/* for visibility, diffuse/glossy are for reflection only */
 	if(flag & PATH_RAY_TRANSMIT)
@@ -404,7 +402,15 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
 				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
-				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+
+				if(old_subsurface_scatter_use(&sd)) {
+					old_subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+				}
+				else {
+					float bssrdf_u, bssrdf_v;
+					path_rng_2D(kg, rng, sample, num_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+					subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+				}
 			}
 		}
 #endif
@@ -646,7 +652,15 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
 				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
-				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+
+				if(old_subsurface_scatter_use(&sd)) {
+					old_subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
+				}
+				else {
+					float bssrdf_u, bssrdf_v;
+					path_rng_2D(kg, rng, sample, num_total_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+					subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+				}
 			}
 		}
 #endif
@@ -1090,17 +1104,32 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 				int num_samples = kernel_data.integrator.subsurface_samples;
 				float num_samples_inv = 1.0f/num_samples;
+				RNG bssrdf_rng = cmj_hash(*rng, i);
 
 				/* do subsurface scatter step with copy of shader data, this will
 				 * replace the BSSRDF with a diffuse BSDF closure */
 				for(int j = 0; j < num_samples; j++) {
-					ShaderData bssrdf_sd = sd;
-					subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
+					if(old_subsurface_scatter_use(&sd)) {
+						ShaderData bssrdf_sd = sd;
+						old_subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
 
-					/* compute lighting with the BSDF closure */
-					kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
-						&bssrdf_sd, throughput, num_samples_inv,
-						ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
+						/* compute lighting with the BSDF closure */
+						kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
+							&bssrdf_sd, throughput, num_samples_inv,
+							ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
+					}
+					else {
+						ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+						float bssrdf_u, bssrdf_v;
+						path_rng_2D(kg, &bssrdf_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+						int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
+
+						/* compute lighting with the BSDF closure */
+						for(int hit = 0; hit < num_hits; hit++)
+							kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
+								&bssrdf_sd[hit], throughput, num_samples_inv,
+								ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
+					}
 				}
 			}
 		}

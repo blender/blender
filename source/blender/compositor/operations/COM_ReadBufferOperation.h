@@ -29,6 +29,7 @@
 class ReadBufferOperation : public NodeOperation {
 private:
 	MemoryProxy *m_memoryProxy;
+	bool m_single_value; /* single value stored in buffer, copied from associated write operation */
 	unsigned int m_offset;
 	MemoryBuffer *m_buffer;
 public:

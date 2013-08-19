@@ -35,8 +35,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/// Given values x and y on [0,1], convert them in place to values on
-/// [-1,1] uniformly distributed over a unit sphere.
+/* distribute uniform xy on [0,1] over unit disk [-1,1] */
 __device void to_unit_disk(float *x, float *y)
 {
 	float phi = M_2PI_F * (*x);
@@ -46,17 +45,18 @@ __device void to_unit_disk(float *x, float *y)
 	*y = r * sinf(phi);
 }
 
+/* return an orthogonal tangent and bitangent given a normal and tangent that
+ * may not be exactly orthogonal */
 __device void make_orthonormals_tangent(const float3 N, const float3 T, float3 *a, float3 *b)
 {
 	*b = normalize(cross(N, T));
 	*a = cross(*b, N);
 }
 
+/* sample direction with cosine weighted distributed in hemisphere */
 __device_inline void sample_cos_hemisphere(const float3 N,
 	float randu, float randv, float3 *omega_in, float *pdf)
 {
-	// Default closure BSDF implementation: uniformly sample
-	// cosine-weighted hemisphere above the point.
 	to_unit_disk(&randu, &randv);
 	float costheta = sqrtf(max(1.0f - randu * randu - randv * randv, 0.0f));
 	float3 T, B;
@@ -65,6 +65,7 @@ __device_inline void sample_cos_hemisphere(const float3 N,
 	*pdf = costheta *M_1_PI_F;
 }
 
+/* sample direction uniformly distributed in hemisphere */
 __device_inline void sample_uniform_hemisphere(const float3 N,
                                                float randu, float randv,
                                                float3 *omega_in, float *pdf)
@@ -81,6 +82,7 @@ __device_inline void sample_uniform_hemisphere(const float3 N,
 	*pdf = 0.5f * M_1_PI_F;
 }
 
+/* sample direction uniformly distributed in cone */
 __device_inline void sample_uniform_cone(const float3 N, float angle,
                                          float randu, float randv,
                                          float3 *omega_in, float *pdf)
@@ -97,6 +99,7 @@ __device_inline void sample_uniform_cone(const float3 N, float angle,
 	*pdf = 0.5f * M_1_PI_F / (1.0f - cosf(angle));
 }
 
+/* sample uniform point on the surface of a sphere */
 __device float3 sample_uniform_sphere(float u1, float u2)
 {
 	float z = 1.0f - 2.0f*u1;
@@ -108,54 +111,50 @@ __device float3 sample_uniform_sphere(float u1, float u2)
 	return make_float3(x, y, z);
 }
 
+__device float balance_heuristic(float a, float b)
+{
+	return (a)/(a + b);
+}
+
+__device float balance_heuristic_3(float a, float b, float c)
+{
+	return (a)/(a + b + c);
+}
+
 __device float power_heuristic(float a, float b)
 {
 	return (a*a)/(a*a + b*b);
 }
 
-__device float2 concentric_sample_disk(float u1, float u2)
+__device float power_heuristic_3(float a, float b, float c)
 {
-	float r, theta;
-	// Map uniform random numbers to $[-1,1]^2$
-	float sx = 2 * u1 - 1;
-	float sy = 2 * u2 - 1;
-
-	// Map square to $(r,\theta)$
-
-	// Handle degeneracy at the origin
-	if(sx == 0.0f && sy == 0.0f) {
-		return make_float2(0.0f, 0.0f);
-	}
-	if(sx >= -sy) {
-		if(sx > sy) {
-			// Handle first region of disk
-			r = sx;
-			if(sy > 0.0f) theta = sy/r;
-			else		  theta = 8.0f + sy/r;
-		}
-		else {
-			// Handle second region of disk
-			r = sy;
-			theta = 2.0f - sx/r;
-		}
-	}
-	else {
-		if(sx <= sy) {
-			// Handle third region of disk
-			r = -sx;
-			theta = 4.0f - sy/r;
-		}
-		else {
-			// Handle fourth region of disk
-			r = -sy;
-			theta = 6.0f + sx/r;
-		}
-	}
-
-	theta *= M_PI_4_F;
-	return make_float2(r * cosf(theta), r * sinf(theta));
+	return (a*a)/(a*a + b*b + c*c);
 }
 
+/* distribute uniform xy on [0,1] over unit disk [-1,1], with concentric mapping
+ * to better preserve stratification for some RNG sequences */
+__device float2 concentric_sample_disk(float u1, float u2)
+{
+	float phi, r;
+	float a = 2.0f*u1 - 1.0f;
+	float b = 2.0f*u2 - 1.0f;
+
+	if(a == 0.0f && b == 0.0f) {
+		return make_float2(0.0f, 0.0f);
+	}
+	else if(a*a > b*b) {
+		r = a;
+		phi = M_PI_4_F * (b/a);
+	}
+	else {
+		r = b;
+		phi = M_PI_2_F - M_PI_4_F * (a/b);
+	}
+
+	return make_float2(r*cosf(phi), r*sinf(phi));
+}
+
+/* sample point in unit polygon with given number of corners and rotation */
 __device float2 regular_polygon_sample(float corners, float rotation, float u, float v)
 {
 	/* sample corner number and reuse u */

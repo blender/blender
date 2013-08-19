@@ -37,6 +37,7 @@
 
 struct GPULamp;
 struct Scene;
+struct Base;
 class KX_Camera;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
@@ -50,6 +51,7 @@ protected:
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
 	bool				m_glsl;
 	Scene*				m_blenderscene;
+	Base*				m_base;
 
 public:
 	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl);
@@ -69,7 +71,7 @@ public:
 	struct Image *GetTextureImage(short texslot);
 	void Update();
 	
-	void UpdateScene(class KX_Scene *kxscene) {m_lightobj.m_scene = (void*)kxscene;}
+	void UpdateScene(class KX_Scene *kxscene);
 
 	virtual int GetGameObjectType() { return OBJ_LIGHT; }
 

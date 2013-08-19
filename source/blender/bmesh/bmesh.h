@@ -271,6 +271,7 @@ extern "C" {
 
 #include "tools/bmesh_bevel.h"
 #include "tools/bmesh_decimate.h"
+#include "tools/bmesh_edgenet.h"
 #include "tools/bmesh_edgesplit.h"
 #include "tools/bmesh_path.h"
 #include "tools/bmesh_triangulate.h"

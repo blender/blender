@@ -48,15 +48,10 @@ public:
 	ShaderClosure sc;
 	float3 radius;
 
-	CBSSRDFClosure() : OSL::ClosurePrimitive(BSSRDF),
-	  m_shaderdata_flag(0) { }
+	CBSSRDFClosure() : OSL::ClosurePrimitive(BSSRDF) { }
 	~CBSSRDFClosure() { }
 
 	int scattering() const { return LABEL_DIFFUSE; }
-	int shaderdata_flag() const { return m_shaderdata_flag; }
-
-protected:
-	int m_shaderdata_flag;
 };
 
 CCL_NAMESPACE_END

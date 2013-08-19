@@ -71,32 +71,6 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 #define EDGE_COL	2
 #define FACE_MARK	2
 
-#if 0
-int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
-                             int len, BMFace *exclude,
-                             BMFace **overlapface)
-{
-	BMIter vertfaces;
-	BMFace *f;
-	int i, amount;
-
-	if (overlapface) *overlapface = NULL;
-
-	for (i = 0; i < len; i++) {
-		f = BM_iter_new(&vertfaces, bm, BM_FACES_OF_VERT, varr[i]);
-		while (f) {
-			amount = BM_verts_in_face(bm, f, varr, len);
-			if (amount >= len) {
-				if (overlapface) *overlapface = f;
-				return true;
-			}
-			f = BM_iter_step(&vertfaces);
-		}
-	}
-	return false;
-}
-#endif
-
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;

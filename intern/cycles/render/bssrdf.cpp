@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 #include "bssrdf.h"
@@ -25,10 +23,15 @@
 #include "kernel_types.h"
 #include "kernel_montecarlo.h"
 
-#include "closure/bsdf_diffuse.h"
-#include "closure/bssrdf.h"
-
 CCL_NAMESPACE_BEGIN
+
+static float bssrdf_cubic(float ld, float r)
+{
+	if(ld == 0.0f)
+		return (r == 0.0f)? 1.0f: 0.0f;
+
+	return powf(ld - min(r, ld), 3.0f) * 4.0f/powf(ld, 4.0f);
+}
 
 /* Cumulative density function utilities */
 
@@ -61,25 +64,19 @@ static void cdf_invert(vector<float>& to, float2 to_range, const vector<float>& 
 
 /* BSSRDF */
 
-static float bssrdf_lookup_table_max_radius(const BSSRDFParams *ss)
-{
-	/* todo: adjust when we use the real BSSRDF */
-	return ss->ld;
-}
-
-static void bssrdf_lookup_table_create(const BSSRDFParams *ss, vector<float>& sample_table, vector<float>& pdf_table)
+static void bssrdf_lookup_table_create(float ld, vector<float>& sample_table, vector<float>& pdf_table)
 {
 	const int size = BSSRDF_RADIUS_TABLE_SIZE;
 	vector<float> cdf(size);
 	vector<float> pdf(size);
 	float step = 1.0f/(float)(size - 1);
-	float max_radius = bssrdf_lookup_table_max_radius(ss);
+	float max_radius = ld;
 	float pdf_sum = 0.0f;
 
 	/* compute the probability density function */
 	for(int i = 0; i < pdf.size(); i++) {
 		float x = (i*step)*max_radius;
-		pdf[i] = bssrdf_cubic(ss->ld, x);
+		pdf[i] = bssrdf_cubic(ld, x);
 		pdf_sum += pdf[i];
 	}
 
@@ -124,13 +121,9 @@ void bssrdf_table_build(vector<float>& table)
 
 	/* create a 2D lookup table, for reflection x sample radius */
 	for(int i = 0; i < BSSRDF_REFL_TABLE_SIZE; i++) {
-		float refl = (float)i/(float)(BSSRDF_REFL_TABLE_SIZE-1);
-		float ior = 1.3f;
 		float radius = 1.0f;
 
-		BSSRDFParams ss;
-		bssrdf_setup_params(&ss, refl, radius, ior);
-		bssrdf_lookup_table_create(&ss, sample_table, pdf_table);
+		bssrdf_lookup_table_create(radius, sample_table, pdf_table);
 
 		memcpy(&table[i*BSSRDF_RADIUS_TABLE_SIZE], &sample_table[0], BSSRDF_RADIUS_TABLE_SIZE*sizeof(float));
 		memcpy(&table[BSSRDF_PDF_TABLE_OFFSET + i*BSSRDF_RADIUS_TABLE_SIZE], &pdf_table[0], BSSRDF_RADIUS_TABLE_SIZE*sizeof(float));

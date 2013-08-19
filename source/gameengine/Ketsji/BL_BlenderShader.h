@@ -57,7 +57,6 @@ class BL_Material;
 class BL_BlenderShader
 {
 private:
-	KX_Scene		*mScene;
 	struct Scene	*mBlenderScene;
 	struct Material	*mMat;
 	int				mLightLayer;
@@ -85,13 +84,6 @@ public:
 	void Update(const class RAS_MeshSlot & ms, class RAS_IRasterizer* rasty);
 	void ReloadMaterial();
 	int GetAlphaBlend();
-
-	void SetScene(KX_Scene *scene)
-	{
-		mScene = scene;
-		mBlenderScene = scene->GetBlenderScene();
-		ReloadMaterial();
-	}
 
 	bool Equals(BL_BlenderShader *blshader);
 	

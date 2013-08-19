@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,35 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __UTIL_MEMARENA_H__
-#define __UTIL_MEMARENA_H__
+#ifndef __BMESH_EDGENET_H__
+#define __BMESH_EDGENET_H__
 
-#include <stdlib.h>
+/** \file blender/bmesh/tools/bmesh_edgenet.h
+ *  \ingroup bmesh
+ */
 
-#include "util_list.h"
-#include "util_types.h"
+void BM_mesh_edgenet(BMesh *bm,
+                     const bool use_edge_tag, const bool use_new_face_tag);
 
-CCL_NAMESPACE_BEGIN
-
-class MemArena {
-public:
-	MemArena(bool use_calloc = true, size_t buffer_size = (1<<14));
-	~MemArena();
-
-	void *alloc(size_t size);
-
-protected:
-	bool use_calloc;
-	size_t buffer_size;
-
-	list<uint8_t*> buffers;
-	uint8_t *last_buffer;
-	size_t last_left;
-};
-
-CCL_NAMESPACE_END
-
-#endif /* __UTIL_MEMARENA_H__ */
-
+#endif /* __BMESH_EDGENET_H__ */

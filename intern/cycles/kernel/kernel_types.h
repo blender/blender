@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 #ifndef __KERNEL_TYPES_H__
@@ -43,6 +41,7 @@ CCL_NAMESPACE_BEGIN
 #define BSSRDF_LOOKUP_TABLE_SIZE	(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE*2)
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_ATTEMPTS			8
+#define BSSRDF_MAX_HITS				4
 
 #define BB_DRAPPER				800.0f
 #define BB_MAX_TABLE_RANGE		12000.0f
@@ -214,12 +213,13 @@ enum PathRayFlag {
 	PATH_RAY_SHADOW_TRANSPARENT = 256,
 	PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE|PATH_RAY_SHADOW_TRANSPARENT),
 
-	PATH_RAY_MIS_SKIP = 512,
+	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments*/
 
-	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
+	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512),
 
-	/* visibility flag to define curve segments*/
-	PATH_RAY_CURVE = 1024,
+	PATH_RAY_MIS_SKIP = 1024,
+	PATH_RAY_DIFFUSE_ANCESTOR = 2048,
+	PATH_RAY_GLOSSY_ANCESTOR = 4096,
 
 	/* this gives collisions with localview bits
 	 * see: blender_util.h, grr - Campbell */
@@ -439,7 +439,6 @@ typedef enum AttributeStandard {
 	ATTR_STD_MOTION_PRE,
 	ATTR_STD_MOTION_POST,
 	ATTR_STD_PARTICLE,
-	ATTR_STD_CURVE_TANGENT,
 	ATTR_STD_CURVE_INTERCEPT,
 	ATTR_STD_NUM,
 
@@ -508,11 +507,12 @@ enum ShaderDataFlag {
 	SD_HAS_TRANSPARENT_SHADOW = 1024,	/* has transparent shadow */
 	SD_HAS_VOLUME = 2048,				/* has volume shader */
 	SD_HOMOGENEOUS_VOLUME = 4096,		/* has homogeneous volume */
+	SD_HAS_BSSRDF_BUMP = 8192,			/* bssrdf normal uses bump */
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 8192,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 16384,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 32768 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 16384,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 32768,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 65536 		/* vertices have transform applied */
 };
 
 struct KernelGlobals;
@@ -798,28 +798,26 @@ typedef enum CurveFlag {
 	/* runtime flags */
 	CURVE_KN_BACKFACING = 1,				/* backside of cylinder? */
 	CURVE_KN_ENCLOSEFILTER = 2,				/* don't consider strands surrounding start point? */
-	CURVE_KN_CURVEDATA = 4,					/* curve data available? */
-	CURVE_KN_INTERPOLATE = 8,				/* render as a curve? */
-	CURVE_KN_ACCURATE = 16,					/* use accurate intersections test? */
-	CURVE_KN_INTERSECTCORRECTION = 32,		/* correct for width after determing closest midpoint? */
-	CURVE_KN_POSTINTERSECTCORRECTION = 64,	/* correct for width after intersect? */
-	CURVE_KN_NORMALCORRECTION = 128,		/* correct tangent normal for slope? */
-	CURVE_KN_TRUETANGENTGNORMAL = 256,		/* use tangent normal for geometry? */
-	CURVE_KN_TANGENTGNORMAL = 512,			/* use tangent normal for shader? */
-	CURVE_KN_RIBBONS = 1024,				/* use flat curve ribbons */
+	CURVE_KN_INTERPOLATE = 4,				/* render as a curve? */
+	CURVE_KN_ACCURATE = 8,					/* use accurate intersections test? */
+	CURVE_KN_INTERSECTCORRECTION = 16,		/* correct for width after determing closest midpoint? */
+	CURVE_KN_POSTINTERSECTCORRECTION = 32,	/* correct for width after intersect? */
+	CURVE_KN_TRUETANGENTGNORMAL = 64,		/* use tangent normal for geometry? */
+	CURVE_KN_TANGENTGNORMAL = 128,			/* use tangent normal for shader? */
+	CURVE_KN_RIBBONS = 256,					/* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {
-	/* strand intersect and normal parameters - many can be changed to flags*/
-	float normalmix;
+	/* strand intersect and normal parameters - many can be changed to flags */
 	float encasing_ratio;
 	int curveflags;
 	int subdivisions;
+	int pad1;
 
 	float minimum_width;
 	float maximum_width;
 	float curve_epsilon;
-	int pad1;
+	int pad2;
 } KernelCurves;
 
 typedef struct KernelBSSRDF {

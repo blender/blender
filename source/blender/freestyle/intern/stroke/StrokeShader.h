@@ -63,7 +63,7 @@ class Stroke;
  *  \endcode
  *  Here is a C++ code example of such an iteration:
  *  \code
- *  for(StrokeInternal::StrokeVertexIterator v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd();
+ *  for (StrokeInternal::StrokeVertexIterator v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd();
  *      v != vend;
  *      ++v)
  *  {

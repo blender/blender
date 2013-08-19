@@ -248,7 +248,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 			BMIter iter;
 			int untag_count = 0;
-			BM_ITER_ELEM(e, &iter, v, BM_EDGES_OF_VERT) {
+			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, EDGE_TAG)) {
 					untag_count++;
 				}
@@ -310,21 +310,21 @@ static bool test_extra_verts(BMesh *bm, BMVert *v)
 
 	/* test faces around verts for verts that would be wrongly killed
 	 * by dissolve faces. */
-	BM_ITER_ELEM(f, &fiter, v, BM_FACES_OF_VERT) {
-		BM_ITER_ELEM(l, &liter, f, BM_LOOPS_OF_FACE) {
+	BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			if (!BMO_elem_flag_test(bm, l->v, VERT_MARK)) {
 				/* if an edge around a vert is a boundary edge,
 				 * then dissolve faces won't destroy it.
 				 * also if it forms a boundary with one
 				 * of the face region */
 				bool found = false;
-				BM_ITER_ELEM(e, &eiter, l->v, BM_EDGES_OF_VERT) {
+				BM_ITER_ELEM (e, &eiter, l->v, BM_EDGES_OF_VERT) {
 					BMFace *f_iter;
 					if (BM_edge_is_boundary(e)) {
 						found = true;
 					}
 					else {
-						BM_ITER_ELEM(f_iter, &fiter_sub, e, BM_FACES_OF_EDGE) {
+						BM_ITER_ELEM (f_iter, &fiter_sub, e, BM_FACES_OF_EDGE) {
 							if (!BMO_elem_flag_test(bm, f_iter, FACE_MARK)) {
 								found = true;
 								break;

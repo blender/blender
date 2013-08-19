@@ -1378,14 +1378,14 @@ static PyObject *gPySetVsync(PyObject *, PyObject *args)
 	if (!PyArg_ParseTuple(args, "i:setVsync", &interval))
 		return NULL;
 
-	if (interval < VSYNC_OFF || interval > VSYNC_ADAPTIVE) {
+	if (interval < 0 || interval > VSYNC_ADAPTIVE) {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setVsync(value): value must be VSYNC_OFF, VSYNC_ON, or VSYNC_ADAPTIVE");
 		return NULL;
 	}
 
 	if (interval == VSYNC_ADAPTIVE)
 		interval = -1;
-	gp_Canvas->SetSwapInterval(interval);
+	gp_Canvas->SetSwapInterval(!interval); // VSYNC_OFF == 1, VSYNC_ON == 0, so this works
 	Py_RETURN_NONE;
 }
 

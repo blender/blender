@@ -28,110 +28,57 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_alloca.h"
-#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#define EDGE_MARK	2
-#define ELE_OUT		4
-
-/**
- * Clone of BM_face_find_longest_loop that ensures the loop has an adjacent face
- */
-static BMLoop *bm_face_find_longest_loop_manifold(BMFace *f)
-{
-	BMLoop *longest_loop = NULL;
-	float longest_len = 0.0f;
-	BMLoop *l_iter, *l_first;
-
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-
-	do {
-		if (BM_edge_is_wire(l_iter->e) == false) {
-			const float len = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
-			if (len >= longest_len) {
-				longest_loop = l_iter;
-				longest_len = len;
-			}
-		}
-	} while ((l_iter = l_iter->next) != l_first);
-
-	return longest_loop;
-}
-
-static BMFace *bm_face_from_eloop(BMesh *bm, struct BMEdgeLoopStore *el_store)
-{
-	LinkData *node = BM_edgeloop_verts_get(el_store)->first;
-	const int len = BM_edgeloop_length_get(el_store);
-	BMVert **f_verts = BLI_array_alloca(f_verts, len);
-	BMFace *f;
-	BMLoop *l;
-	unsigned int i = 0;
-
-	do {
-		f_verts[i++] = node->data;
-	} while ((node = node->next));
-
-	f = BM_face_create_ngon_verts(bm, f_verts, len, 0, true, false);
-	BM_face_copy_shared(bm, f);
-
-	l = bm_face_find_longest_loop_manifold(f);
-	if (l) {
-		BMFace *f_other = l->radial_next->f;
-		BLI_assert(l->radial_next != l);
-		BM_elem_attrs_copy(bm, bm, f_other, f);
-	}
-
-	return f;
-}
-
-static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
-{
-	return BMO_elem_flag_test((BMesh *)bm_v, e, EDGE_MARK);
-}
-
 void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
 {
-	ListBase eloops = {NULL, NULL};
-	LinkData *el_store;
+	BMOperator op_attr;
+	const unsigned int sides = BMO_slot_int_get(op->slots_in,  "sides");
 
-	BMEdge *e;
-	int count;
 
-	BMOIter siter;
+	BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, false);
 
-	const int  sides    = BMO_slot_int_get(op->slots_in,  "sides");
+	BM_mesh_edgenet(bm, true, true);  // TODO, sides
 
-	/* clear tags */
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+	/* bad - remove faces after as a workaround */
+	if (sides != 0) {
+		BMOIter siter;
+		BMFace *f;
 
-	/* tag edges that may be apart of loops */
-	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		BMO_elem_flag_set(bm, e, EDGE_MARK, BM_edge_is_boundary(e));
-	}
-
-	count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, (void *)bm);
-
-	for (el_store = eloops.first; el_store; el_store = el_store->next) {
-		if (BM_edgeloop_is_closed((struct BMEdgeLoopStore *)el_store)) {
-			const int len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store);
-			if ((sides == 0) || (len <= sides)) {
-				BMFace *f;
-
-				f = bm_face_from_eloop(bm, (struct BMEdgeLoopStore *)el_store);
-				BMO_elem_flag_enable(bm, f, ELE_OUT);
+		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
+		BMO_ITER (f, &siter, op->slots_out, "faces.out", BM_FACE) {
+			if (f->len > sides) {
+				BM_face_kill(bm, f);
 			}
 		}
 	}
 
-	(void)count;
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 
-	BM_mesh_edgeloops_free(&eloops);
+	/* --- Attribute Fill --- */
+	/* may as well since we have the faces already in a buffer */
+	BMO_op_initf(bm, &op_attr, op->flag,
+	             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
+	             op, "faces.out", true, true);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_OUT);
+	BMO_op_exec(bm, &op_attr);
+
+	/* check if some faces couldn't be touched */
+	if (BMO_slot_buffer_count(op_attr.slots_out, "faces_fail.out")) {
+		BMOIter siter;
+		BMFace *f;
+
+		BMO_ITER (f, &siter, op_attr.slots_out, "faces_fail.out", BM_FACE) {
+			BM_face_normal_update(f);  /* normals are zero'd */
+		}
+
+		BMO_op_callf(bm, op->flag, "recalc_face_normals faces=%S", &op_attr, "faces_fail.out");
+	}
+	BMO_op_finish(bm, &op_attr);
 }

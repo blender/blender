@@ -93,30 +93,8 @@ BLI_INLINE void resolveUVAndDxDy(const float x, const float y, const float corne
 
 	dy = 0.5f * (uv_u + uv_d);
 
-	/* more adaptive sampling, red and green (UV) channels */
-	ok1 = resolveUV(x - 1, y - 1, corners, uv_a);
-	ok2 = resolveUV(x - 1, y + 1, corners, uv_b);
-	uv_l = ok1 ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = ok2 ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = ok1 ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = ok2 ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
-	ok1 = resolveUV(x + 1, y - 1, corners, uv_a);
-	ok2 = resolveUV(x + 1, y + 1, corners, uv_b);
-	uv_l = ok1 ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = ok2 ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = ok1 ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = ok2 ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dx += 0.25f * (uv_l + uv_r);
-	dy += 0.25f * (uv_u + uv_d);
-
-	/* should use mipmap */
-	*dx_r = min(dx, 0.2f);
-	*dy_r = min(dy, 0.2f);
+	*dx_r = dx;
+	*dy_r = dy;
 
 	*u_r = inputUV[0];
 	*v_r = inputUV[1];
@@ -128,6 +106,9 @@ PlaneTrackWarpImageOperation::PlaneTrackWarpImageOperation() : PlaneTrackCommonO
 	this->addOutputSocket(COM_DT_COLOR);
 	this->m_pixelReader = NULL;
 	this->setComplex(true);
+
+	/* Currently hardcoded to 8 samples. */
+	this->m_osa = 8;
 }
 
 void PlaneTrackWarpImageOperation::initExecution()
@@ -136,9 +117,7 @@ void PlaneTrackWarpImageOperation::initExecution()
 
 	this->m_pixelReader = this->getInputSocketReader(0);
 
-	const int osa = 8;
-	this->m_osa = osa;
-	BLI_jitter_init(this->m_jitter[0], osa);
+	BLI_jitter_init(this->m_jitter[0], this->m_osa);
 }
 
 void PlaneTrackWarpImageOperation::deinitExecution()
@@ -163,7 +142,7 @@ void PlaneTrackWarpImageOperation::executePixel(float output[4], float x, float 
 			u *= this->m_pixelReader->getWidth();
 			v *= this->m_pixelReader->getHeight();
 
-			this->m_pixelReader->read(current_color, u, v, dx, dy, COM_PS_BICUBIC);
+			this->m_pixelReader->read(current_color, u, v, dx, dy, COM_PS_NEAREST);
 			premul_to_straight_v4(current_color);
 			add_v4_v4(color_accum, current_color);
 		}

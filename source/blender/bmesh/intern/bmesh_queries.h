@@ -27,8 +27,6 @@
  *  \ingroup bmesh
  */
 
-typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
-
 bool    BM_vert_in_face(BMFace *f, BMVert *v);
 int     BM_verts_in_face_count(BMFace *f, BMVert **varr, int len);
 bool    BM_verts_in_face(BMFace *f, BMVert **varr, int len);
@@ -94,6 +92,9 @@ bool    BM_face_exists(BMVert **varr, int len, BMFace **r_existface);
 
 bool    BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len);
 bool    BM_face_exists_multi_edge(BMEdge **earr, int len);
+
+bool    BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap);
+bool    BM_face_exists_overlap_subset(BMVert **varr, const int len);
 
 int     BM_face_share_face_count(BMFace *f_a, BMFace *f_b);
 int     BM_face_share_edge_count(BMFace *f1, BMFace *f2);

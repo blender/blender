@@ -407,16 +407,17 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         split.label(text="Type:")
         split.prop(strip, "type", text="")
 
-        split = layout.split(percentage=0.3)
-        split.label(text="Blend:")
-        split.prop(strip, "blend_type", text="")
+        if strip.type not in {'SOUND'}:
+            split = layout.split(percentage=0.3)
+            split.label(text="Blend:")
+            split.prop(strip, "blend_type", text="")
 
-        row = layout.row(align=True)
-        sub = row.row()
-        sub.active = (not strip.mute)
-        sub.prop(strip, "blend_alpha", text="Opacity", slider=True)
-        row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
-        row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
+            row = layout.row(align=True)
+            sub = row.row()
+            sub.active = (not strip.mute)
+            sub.prop(strip, "blend_alpha", text="Opacity", slider=True)
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
+            row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
         col = layout.column()
         sub = col.column()

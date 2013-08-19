@@ -1,19 +1,17 @@
 #
-# Copyright 2011, Blender Foundation.
+# Copyright 2011-2013 Blender Foundation
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
 #
 
 # <pep8 compliant>
@@ -1152,44 +1150,17 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
 
         layout.active = ccscene.use_curves
 
-        layout.prop(ccscene, "preset", text="Mode")
+        layout.prop(ccscene, "primitive", text="Primitive")
+        layout.prop(ccscene, "shape", text="Shape")
 
-        if ccscene.preset == 'CUSTOM':
-            layout.prop(ccscene, "primitive", text="Primitive")
-
-            if ccscene.primitive == 'TRIANGLES':
-                layout.prop(ccscene, "triangle_method", text="Method")
-                if ccscene.triangle_method == 'TESSELLATED_TRIANGLES':
-                    layout.prop(ccscene, "resolution", text="Resolution")
-                layout.prop(ccscene, "use_smooth", text="Smooth")
-            elif ccscene.primitive == 'LINE_SEGMENTS':
-                layout.prop(ccscene, "use_backfacing", text="Check back-faces")
-
-                row = layout.row()
-                row.prop(ccscene, "use_encasing", text="Exclude encasing")
-                sub = row.row()
-                sub.active = ccscene.use_encasing
-                sub.prop(ccscene, "encasing_ratio", text="Ratio for encasing")
-
-                layout.prop(ccscene, "line_method", text="Method")
-                layout.prop(ccscene, "use_tangent_normal", text="Use tangent normal as default")
-                layout.prop(ccscene, "use_tangent_normal_geometry", text="Use tangent normal geometry")
-                layout.prop(ccscene, "use_tangent_normal_correction", text="Correct tangent normal for slope")
-                layout.prop(ccscene, "interpolation", text="Interpolation")
-
-                row = layout.row()
-                row.prop(ccscene, "segments", text="Segments")
-                row.prop(ccscene, "normalmix", text="Ray Mix")
-            elif ccscene.primitive in {'CURVE_SEGMENTS', 'CURVE_RIBBONS'}:
-                layout.prop(ccscene, "subdivisions", text="Curve subdivisions")
-                layout.prop(ccscene, "use_backfacing", text="Check back-faces")
-
-                layout.prop(ccscene, "interpolation", text="Interpolation")
-                row = layout.row()
-                row.prop(ccscene, "segments", text="Segments")
-
-            row = layout.row()
-            row.prop(ccscene, "use_parents", text="Include parents")
+        if ccscene.primitive == 'TRIANGLES':
+            if ccscene.shape == 'THICK':
+                layout.prop(ccscene, "resolution", text="Resolution")
+        elif ccscene.primitive == 'LINE_SEGMENTS':
+            layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
+        elif ccscene.primitive in {'CURVE_SEGMENTS', 'CURVE_RIBBONS'}:
+            layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
+            layout.prop(ccscene, "subdivisions", text="Curve subdivisions")
 
         row = layout.row()
         row.prop(ccscene, "minimum_width", text="Min Pixels")

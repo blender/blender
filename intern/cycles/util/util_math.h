@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 #ifndef __UTIL_MATH_H__
@@ -1078,6 +1076,19 @@ __device_inline float triangle_area(const float3 v1, const float3 v2, const floa
 
 __device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
 {
+#if 0
+	if(fabsf(N.y) >= 0.999f) {
+		*a = make_float3(1, 0, 0);
+		*b = make_float3(0, 0, 1);
+		return;
+	}
+	if(fabsf(N.z) >= 0.999f) {
+		*a = make_float3(1, 0, 0);
+		*b = make_float3(0, 1, 0);
+		return;
+	}
+#endif
+
 	if(N.x != N.y || N.x != N.z)
 		*a = make_float3(N.z-N.y, N.x-N.z, N.y-N.x);  //(1,1,1)x N
 	else
@@ -1160,6 +1171,11 @@ __device_inline float3 rotate_around_axis(float3 p, float3 axis, float angle)
 }
 
 /* NaN-safe math ops */
+
+__device_inline float safe_sqrtf(float f)
+{
+	return sqrtf(max(f, 0.0f));
+}
 
 __device float safe_asinf(float a)
 {

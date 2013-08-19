@@ -24,7 +24,6 @@
  * BVH_INSTANCING: object instancing
  * BVH_HAIR: hair curve rendering
  * BVH_HAIR_MINIMUM_WIDTH: hair curve rendering with minimum width
- * BVH_SUBSURFACE: subsurface same object, random triangle intersection
  * BVH_MOTION: motion blur rendering
  *
  */
@@ -32,13 +31,8 @@
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
 __device bool BVH_FUNCTION_NAME
-(KernelGlobals *kg, const Ray *ray, Intersection *isect
-#if FEATURE(BVH_SUBSURFACE)
-, int subsurface_object, float subsurface_random
-#else
-, const uint visibility
-#endif
-#if FEATURE(BVH_HAIR_MINIMUM_WIDTH) && !FEATURE(BVH_SUBSURFACE)
+(KernelGlobals *kg, const Ray *ray, Intersection *isect, const uint visibility
+#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 , uint *lcg_state, float difl, float extmax
 #endif
 )
@@ -64,11 +58,6 @@ __device bool BVH_FUNCTION_NAME
 	float3 P = ray->P;
 	float3 idir = bvh_inverse_direction(ray->D);
 	int object = ~0;
-
-#if FEATURE(BVH_SUBSURFACE)
-	const uint visibility = ~0;
-	int num_hits = 0;
-#endif
 
 #if FEATURE(BVH_MOTION)
 	Transform ob_tfm;
@@ -141,7 +130,7 @@ __device bool BVH_FUNCTION_NAME
 				NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
 				NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
-#if FEATURE(BVH_HAIR_MINIMUM_WIDTH) && !FEATURE(BVH_SUBSURFACE)
+#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				if(difl != 0.0f) {
 					float hdiff = 1.0f + difl;
 					float ldiff = 1.0f - difl;
@@ -245,59 +234,37 @@ __device bool BVH_FUNCTION_NAME
 					while(primAddr < primAddr2) {
 						bool hit;
 
-#if FEATURE(BVH_SUBSURFACE)
-						/* only primitives from the same object */
-						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
-
-						if(tri_object == subsurface_object) {
-#endif
-
-							/* intersect ray against primitive */
+						/* intersect ray against primitive */
 #if FEATURE(BVH_HAIR)
-							uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-#if !FEATURE(BVH_SUBSURFACE)
-							if(segment != ~0) {
+						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+						if(segment != ~0) {
 
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+							if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
-								else
-									hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
-#else
-									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
-								else
-									hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
-#endif
-							}
+								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
 							else
+								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
+#else
+								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+							else
+								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
 #endif
+						}
+						else
 #endif
-#if FEATURE(BVH_SUBSURFACE)
-#if FEATURE(BVH_HAIR)
-							if(segment == ~0)
-#endif
-							{
-								hit = bvh_triangle_intersect_subsurface(kg, isect, P, idir, object, primAddr, tmax, &num_hits, subsurface_random);
-								(void)hit;
-							}
+							hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
+						/* shadow ray early termination */
+#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+						if(hit) {
+							if(visibility == PATH_RAY_SHADOW_OPAQUE)
+								return true;
+
+							tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 						}
 #else
-								hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
-
-							/* shadow ray early termination */
-#if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-							if(hit) {
-								if(visibility == PATH_RAY_SHADOW_OPAQUE)
-									return true;
-
-								tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
-							}
-#else
-							if(hit && visibility == PATH_RAY_SHADOW_OPAQUE)
-								return true;
-#endif
-
+						if(hit && visibility == PATH_RAY_SHADOW_OPAQUE)
+							return true;
 #endif
 
 						primAddr++;
@@ -306,47 +273,34 @@ __device bool BVH_FUNCTION_NAME
 #if FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
-#if FEATURE(BVH_SUBSURFACE)
-					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
-						object = subsurface_object;
-#else
-						object = kernel_tex_fetch(__prim_object, -primAddr-1);
-#endif
+					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
 #if FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+					bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
 #else
-						bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
+					bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
 #endif
 
 #if defined(__KERNEL_SSE2__) && !FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-						Psplat[0] = _mm_set_ps1(P.x);
-						Psplat[1] = _mm_set_ps1(P.y);
-						Psplat[2] = _mm_set_ps1(P.z);
+					Psplat[0] = _mm_set_ps1(P.x);
+					Psplat[1] = _mm_set_ps1(P.y);
+					Psplat[2] = _mm_set_ps1(P.z);
 
-						idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
-						idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
-						idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
+					idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
+					idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
+					idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
 
-						tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
+					tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-						shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
-						shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
-						shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
+					shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
+					shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
+					shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
 #endif
 
-						++stackPtr;
-						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+					++stackPtr;
+					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
 
-						nodeAddr = kernel_tex_fetch(__object_node, object);
-#if FEATURE(BVH_SUBSURFACE)
-					}
-					else {
-						/* pop */
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
-					}
-#endif
+					nodeAddr = kernel_tex_fetch(__object_node, object);
 				}
 			}
 #endif
@@ -386,11 +340,7 @@ __device bool BVH_FUNCTION_NAME
 #endif
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-#if FEATURE(BVH_SUBSURFACE)
-	return (num_hits != 0);
-#else
 	return (isect->prim != ~0);
-#endif
 }
 
 #undef FEATURE

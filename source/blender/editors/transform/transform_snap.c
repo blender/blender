@@ -1147,7 +1147,7 @@ static void TargetSnapClosest(TransInfo *t)
 	}
 }
 
-static bool snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float obmat[4][4], float timat[3][3],
+static bool snapEdge(ARegion *ar, const float v1co[3], const short v1no[3], const float v2co[3], const short v2no[3], float obmat[4][4], float timat[3][3],
                      const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval_fl[2],
                      float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
 {
@@ -1234,7 +1234,7 @@ static bool snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], s
 	return retval;
 }
 
-static bool snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4], float timat[3][3],
+static bool snapVertex(ARegion *ar, const float vco[3], const short vno[3], float obmat[4][4], float timat[3][3],
                        const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval_fl[2],
                        float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
 {
@@ -1518,6 +1518,45 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 	return retval;
 } 
 
+/* may extend later (for now just snaps to empty center) */
+static bool snapEmpty(short snap_mode, ARegion *ar, Object *ob, float obmat[4][4],
+                      const float ray_start[3], const float ray_normal[3], const float mval[2],
+                      float r_loc[3], float *UNUSED(r_no), float *r_dist_px, float *r_depth)
+{
+	float imat[4][4];
+	float ray_start_local[3], ray_normal_local[3];
+	bool retval = false;
+
+	if (ob->transflag & OB_DUPLI) {
+		return retval;
+	}
+	/* for now only vertex supported */
+	if (snap_mode != SCE_SNAP_MODE_VERTEX) {
+		return retval;
+	}
+
+	invert_m4_m4(imat, obmat);
+
+	copy_v3_v3(ray_start_local, ray_start);
+	copy_v3_v3(ray_normal_local, ray_normal);
+
+	mul_m4_v3(imat, ray_start_local);
+	mul_mat3_m4_v3(imat, ray_normal_local);
+
+	switch (snap_mode) {
+		case SCE_SNAP_MODE_VERTEX:
+		{
+			const float zero_co[3] = {0.0f};
+			retval |= snapVertex(ar, zero_co, NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+			break;
+		}
+		default:
+			break;
+	}
+
+	return retval;
+}
+
 static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, float obmat[4][4], bool use_obedit,
                        Object **r_ob, float r_obmat[4][4],
                        const float ray_start[3], const float ray_normal[3], const float mval[2],
@@ -1544,6 +1583,9 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 	}
 	else if (ob->type == OB_ARMATURE) {
 		retval = snapArmature(snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
+	}
+	else if (ob->type == OB_EMPTY) {
+		retval = snapEmpty(snap_mode, ar, ob, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
 	}
 	
 	if (retval) {

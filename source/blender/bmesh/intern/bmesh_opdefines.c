@@ -577,6 +577,28 @@ static BMOpDefine bmo_holes_fill_def = {
 
 
 /*
+ * Face Attribute Fill.
+ *
+ * Fill in faces with data from adjacent faces.
+ */
+static BMOpDefine bmo_face_attribute_fill_def = {
+	"face_attribute_fill",
+	/* slots_in */
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* input faces */
+	 {"use_normals",        BMO_OP_SLOT_BOOL},  /* copy face winding */
+	 {"use_data",           BMO_OP_SLOT_BOOL},  /* copy face data */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	/* maps new faces to the group numbers they came from */
+	{{"faces_fail.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* faces that could not be handled */
+	 {{'\0'}},
+	},
+	bmo_face_attribute_fill_exec,
+	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+};
+
+/*
  * Edge Loop Fill.
  *
  * Create faces defined by one or more non overlapping edge loops.
@@ -609,19 +631,14 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	"edgenet_fill",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
-	/* restricts edges to groups.  maps edges to integer */
-	 {"restrict",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_BOOL}},
-	 {"use_restrict",        BMO_OP_SLOT_BOOL},
-	 {"use_fill_check",        BMO_OP_SLOT_BOOL},
-	 {"exclude_faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* list of faces to ignore for manifold check */
-	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
-	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* smooth state to use */
+	 {"mat_nr",          BMO_OP_SLOT_INT},  /* material to use */
+	 {"use_smooth",      BMO_OP_SLOT_BOOL}, /* smooth state to use */
+	 {"sides",           BMO_OP_SLOT_INT},  /* number of sides */
 	 {{'\0'}},
 	},
 	/* slots_out */
 	/* maps new faces to the group numbers they came from */
-	{{"face_groupmap.out",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},  /* new faces */
 	 {{'\0'}},
 	},
 	bmo_edgenet_fill_exec,
@@ -1776,6 +1793,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_dissolve_verts_def,
 	&bmo_duplicate_def,
 	&bmo_holes_fill_def,
+	&bmo_face_attribute_fill_def,
 	&bmo_edgeloop_fill_def,
 	&bmo_edgenet_fill_def,
 	&bmo_edgenet_prepare_def,

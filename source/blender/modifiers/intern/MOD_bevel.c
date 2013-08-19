@@ -116,7 +116,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0]) {
 			modifier_get_vgroup(ob, dm, bmd->defgrp_name, &dvert, &vgroup);
 		}
-		BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_vert_is_manifold(v))
 				continue;
 			if (vgroup != -1) {

@@ -937,10 +937,6 @@ typedef struct NodeShaderNormalMap {
 #define SHD_WAVE_BANDS		0
 #define SHD_WAVE_RINGS		1
 
-#define SHD_WAVE_SINE	0
-#define SHD_WAVE_SAW	1
-#define SHD_WAVE_TRI	2
-
 /* image/environment texture */
 #define SHD_COLORSPACE_NONE		0
 #define SHD_COLORSPACE_COLOR	1
@@ -968,6 +964,11 @@ typedef struct NodeShaderNormalMap {
 #define SHD_NORMAL_MAP_WORLD			2
 #define SHD_NORMAL_MAP_BLENDER_OBJECT	3
 #define SHD_NORMAL_MAP_BLENDER_WORLD	4
+
+/* tangent */
+#define SHD_SUBSURFACE_COMPATIBLE		0
+#define SHD_SUBSURFACE_CUBIC			1
+#define SHD_SUBSURFACE_GAUSSIAN			2
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

@@ -101,7 +101,7 @@ static void symm_verts_mirror(Symm *symm)
 	BMOIter oiter;
 	BMVert *src_v, *dst_v;
 
-	symm->vert_symm_map = BLI_ghash_ptr_new(AT);
+	symm->vert_symm_map = BLI_ghash_ptr_new(__func__);
 
 	BMO_ITER (src_v, &oiter, symm->op->slots_in, "input", BM_VERT) {
 		SymmSide side = symm_co_side(symm, src_v->co);
@@ -150,7 +150,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 	BMOIter oiter;
 	BMEdge *e;
 
-	symm->edge_split_map = BLI_ghash_ptr_new(AT);
+	symm->edge_split_map = BLI_ghash_ptr_new(__func__);
 
 	BMO_ITER (e, &oiter, symm->op->slots_in, "input", BM_EDGE) {
 		float flipped[3];
@@ -214,9 +214,8 @@ static void symm_mirror_edges(Symm *symm)
 			BMO_elem_flag_enable(symm->bm, e_new, SYMM_OUTPUT_GEOM);
 		}
 		else if (v1 || v2) {
-			if (BLI_ghash_haskey(symm->edge_split_map, e)) {
-				BMVert *v_split = BLI_ghash_lookup(symm->edge_split_map, e);
-
+			BMVert *v_split = BLI_ghash_lookup(symm->edge_split_map, e);
+			if (v_split) {
 				/* Output the keep side of the split edge */
 				if (!v1) {
 					e_new = BM_edge_create(symm->bm, v_split, e->v2, e, BM_CREATE_NO_DOUBLE);
@@ -330,8 +329,9 @@ static BMVert *symm_poly_mirror_dst(const Symm *symm,
 	if (sp->edge_verts[v])
 		return sp->edge_verts[v];
 	else if (sp->src_verts[v]) {
-		if (BLI_ghash_haskey(symm->vert_symm_map, sp->src_verts[v]))
-			return BLI_ghash_lookup(symm->vert_symm_map, sp->src_verts[v]);
+		BMVert *v_src = BLI_ghash_lookup(symm->vert_symm_map, sp->src_verts[v]);
+		if (v_src)
+			return v_src;
 		else
 			return sp->src_verts[v];
 	}

@@ -1,19 +1,17 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011-2013 Blender Foundation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 
 CCL_NAMESPACE_BEGIN
@@ -340,28 +338,36 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			break;
 		}
 #ifdef __SUBSURFACE__
-		case CLOSURE_BSSRDF_ID: {
+		case CLOSURE_BSSRDF_COMPATIBLE_ID:
+		case CLOSURE_BSSRDF_CUBIC_ID:
+		case CLOSURE_BSSRDF_GAUSSIAN_ID: {
 			ShaderClosure *sc = &sd->closure[sd->num_closure];
 			float3 weight = sc->weight * mix_weight;
 			float sample_weight = fabsf(average(weight));
+			
+			/* disable in case of diffuse ancestor, can't see it well then and
+			 * adds considerably noise due to probabilities of continuing path
+			 * getting lower and lower */
+			if(type != CLOSURE_BSSRDF_COMPATIBLE_ID && (path_flag & PATH_RAY_DIFFUSE_ANCESTOR))
+				param1 = 0.0f;
 
 			if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
 				/* radius * scale */
 				float3 radius = stack_load_float3(stack, data_node.w)*param1;
-				/* index of refraction */
-				float eta = fmaxf(param2, 1.0f + 1e-5f);
+				/* texture color blur */
+				float texture_blur = param2;
 
 				/* create one closure per color channel */
 				if(fabsf(weight.x) > 0.0f) {
 					sc->weight = make_float3(weight.x, 0.0f, 0.0f);
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.x;
-					sc->data1 = eta;
+					sc->data1 = texture_blur;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif
 					sc->N = N;
-					sd->flag |= bssrdf_setup(sc);
+					sd->flag |= bssrdf_setup(sc, (ClosureType)type);
 
 					sd->num_closure++;
 					sc++;
@@ -371,12 +377,12 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->weight = make_float3(0.0f, weight.y, 0.0f);
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.y;
-					sc->data1 = eta;
+					sc->data1 = texture_blur;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif
 					sc->N = N;
-					sd->flag |= bssrdf_setup(sc);
+					sd->flag |= bssrdf_setup(sc, (ClosureType)type);
 
 					sd->num_closure++;
 					sc++;
@@ -386,12 +392,12 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->weight = make_float3(0.0f, 0.0f, weight.z);
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.z;
-					sc->data1 = eta;
+					sc->data1 = texture_blur;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif
 					sc->N = N;
-					sd->flag |= bssrdf_setup(sc);
+					sd->flag |= bssrdf_setup(sc, (ClosureType)type);
 
 					sd->num_closure++;
 					sc++;

@@ -70,7 +70,7 @@ bool                BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a
 	(elink)->next ? elink->next : (BM_edgeloop_is_closed(el_store) ? BM_edgeloop_verts_get(el_store)->first : NULL)
 
 #define BM_EDGELOOP_NEXT(el_store) \
-	(CHECK_TYPE_INLINE(el_store, struct BMEdgeLoopStore), \
+	(CHECK_TYPE_INLINE(el_store, struct BMEdgeLoopStore *), \
 	 (struct BMEdgeLoopStore *)((LinkData *)el_store)->next)
 
 #endif  /* __BMESH_EDGELOOP_H__ */
