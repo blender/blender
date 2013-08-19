@@ -30,6 +30,8 @@
  *  \ingroup bli
  */
 
+#include <stdlib.h>
+
 #include "BLI_utildefines.h"
 
 #include "BLI_sort.h"
