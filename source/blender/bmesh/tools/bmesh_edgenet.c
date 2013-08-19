@@ -132,7 +132,7 @@ static bool bm_edgenet_path_check_overlap(
 {
 	/* vert order doesn't matter */
 	unsigned int v_ls_tot = 0;
-	LinkNode *v_ls;
+	LinkNode *v_ls = NULL;
 	BMVert *v_pair[2] = {v1, v2};
 	unsigned int i;
 
