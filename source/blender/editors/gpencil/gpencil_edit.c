@@ -192,7 +192,16 @@ bGPdata *gpencil_data_get_active(const bContext *C)
 /* needed for offscreen rendering */
 bGPdata *gpencil_data_get_active_v3d(Scene *scene)
 {
-	bGPdata *gpd = scene->basact ? scene->basact->object->gpd : NULL;
+	Base *base = scene->basact;
+	bGPdata *gpd = base ? base->object->gpd : NULL;
+	if (base && gpd) {
+		/* We have to make sure active object is actually visible, else we must use default scene gpd,
+		 * to be consistent with gpencil_data_get_active's behavior.
+		 */
+		if ((scene->lay & base->lay) == 0) {
+			gpd = NULL;
+		}
+	}
 	return gpd ? gpd : scene->gpd;
 }
 
