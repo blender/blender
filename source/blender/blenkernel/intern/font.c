@@ -1,4 +1,5 @@
 /*
+
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +42,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 #include "BLI_vfontdata.h"
 #include "BLI_utildefines.h"
 
@@ -59,6 +61,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
+static ThreadMutex vfont_mutex = BLI_MUTEX_INITIALIZER;
 
 /* The vfont code */
 void BKE_vfont_free_data(struct VFont *vfont)
@@ -138,6 +141,18 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 
+		BLI_mutex_lock(&vfont_mutex);
+
+		if (vfont->data) {
+			/* Check data again, since it might have been already
+			 * initialized from other thread (previous check is
+			 * not accurate or threading, just prevents unneeded
+			 * lock if all the data is here for sure).
+			 */
+			BLI_mutex_unlock(&vfont_mutex);
+			return vfont->data;
+		}
+
 		if (BKE_vfont_is_builtin(vfont)) {
 			pf = get_builtin_packedfile();
 		}
@@ -175,8 +190,10 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 				freePackedFile(pf);
 			}
 		}
+
+		BLI_mutex_unlock(&vfont_mutex);
 	}
-	
+
 	return vfont->data;
 }
 
