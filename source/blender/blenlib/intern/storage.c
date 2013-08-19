@@ -288,7 +288,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					dir_ctx->nrfiles++;
 					file++;
 					dlink = dlink->next;
-#ifndef MAXPATHLEN
+#ifndef PATH_MAX
 					MEM_freeN(fullname);
 #endif
 				}
