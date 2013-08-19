@@ -124,11 +124,13 @@ void BKE_pchan_to_pose_mat(struct bPoseChannel *pchan, float rotscale_mat[4][4],
 void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode);
 
 /* B-Bone support */
+#define MAX_BBONE_SUBDIV    32
+
 typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
-Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
+void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
 /* like EBONE_VISIBLE */
 #define PBONE_VISIBLE(arm, bone) ( \
