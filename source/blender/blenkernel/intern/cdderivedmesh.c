@@ -1814,7 +1814,13 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_displist(ob, &ob->disp);
+	ListBase disp = {NULL};
+
+	if (ob->curve_cache) {
+		disp = ob->curve_cache->disp;
+	}
+
+	return CDDM_from_curve_displist(ob, &disp);
 }
 
 DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)

@@ -167,6 +167,19 @@ void BKE_object_free_bulletsoftbody(Object *ob)
 	}
 }
 
+void BKE_object_free_curve_cache(Object *ob)
+{
+	if (ob->curve_cache) {
+		BKE_displist_free(&ob->curve_cache->disp);
+		BLI_freelistN(&ob->curve_cache->bev);
+		if (ob->curve_cache->path) {
+			free_path(ob->curve_cache->path);
+		}
+		MEM_freeN(ob->curve_cache);
+		ob->curve_cache = NULL;
+	}
+}
+
 void BKE_object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -267,7 +280,9 @@ void BKE_object_free_derived_caches(Object *ob)
 		ob->derivedDeform = NULL;
 	}
 	
-	BKE_displist_free(&ob->disp);
+	if (ob->curve_cache) {
+		BKE_displist_free(&ob->curve_cache->disp);
+	}
 }
 
 /* do not free object itself */
@@ -337,6 +352,14 @@ void BKE_object_free(Object *ob)
 	free_sculptsession(ob);
 
 	if (ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
+
+	/* Free runtime curves data. */
+	if (ob->curve_cache) {
+		BLI_freelistN(&ob->curve_cache->bev);
+		if (ob->curve_cache->path)
+			free_path(ob->curve_cache->path);
+		MEM_freeN(ob->curve_cache);
+	}
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -1256,8 +1279,6 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 
 	for (a = 0; a < obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
-	obn->disp.first = obn->disp.last = NULL;
-	
 	if (ob->pd) {
 		obn->pd = MEM_dupallocN(ob->pd);
 		if (obn->pd->tex)
@@ -1279,7 +1300,10 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 	obn->pc_ids.first = obn->pc_ids.last = NULL;
 
 	obn->mpath = NULL;
-	
+
+	/* Copy runtime surve data. */
+	obn->curve_cache = NULL;
+
 	return obn;
 }
 
@@ -1772,9 +1796,9 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	unit_m4(mat);
 	
 	cu = par->data;
-	if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+	if (ELEM3(NULL, par->curve_cache, par->curve_cache->path, par->curve_cache->path->data)) /* only happens on reload file, but violates depsgraph still... fix! */
 		BKE_displist_make_curveTypes(scene, par, 0);
-	if (cu->path == NULL) return;
+	if (par->curve_cache->path == NULL) return;
 	
 	/* catch exceptions: feature for nla stride editing */
 	if (ob->ipoflag & OB_DISABLE_PATH) {
@@ -1805,7 +1829,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	
 	/* time calculus is correct, now apply distance offset */
 	if (cu->flag & CU_OFFS_PATHDIST) {
-		ctime += timeoffs / cu->path->totdist;
+		ctime += timeoffs / par->curve_cache->path->totdist;
 
 		/* restore */
 		SWAP(float, sf_orig, ob->sf);
@@ -1962,7 +1986,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	}
 	else if (par->type == OB_LATTICE) {
 		Lattice *latt  = par->data;
-		DispList *dl   = BKE_displist_find(&par->disp, DL_VERTS);
+		DispList *dl   = par->curve_cache ? BKE_displist_find(&par->curve_cache->disp, DL_VERTS) : NULL;
 		float (*co)[3] = dl ? (float (*)[3])dl->verts : NULL;
 		int tot;
 
@@ -2519,10 +2543,10 @@ void BKE_object_foreach_display_point(
 			func_cb(co, user_data);
 		}
 	}
-	else if (ob->disp.first) {
+	else if (ob->curve_cache && ob->curve_cache->disp.first) {
 		DispList *dl;
 
-		for (dl = ob->disp.first; dl; dl = dl->next) {
+		for (dl = ob->curve_cache->disp.first; dl; dl = dl->next) {
 			float *v3 = dl->verts;
 			int totvert = dl->nr;
 			int i;

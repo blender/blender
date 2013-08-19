@@ -51,6 +51,7 @@
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -164,7 +165,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 		lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
 		/* prevent using deformed locations */
-		BKE_displist_free(&ltOb->disp);
+		BKE_displist_free(&ltOb->curve_cache->disp);
 
 		copy_m4_m4(mat, ltOb->obmat);
 		unit_m4(ltOb->obmat);
@@ -311,7 +312,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	/* we make an array with all differences */
 	Lattice *lt = oblatt->data;
 	BPoint *bp;
-	DispList *dl = BKE_displist_find(&oblatt->disp, DL_VERTS);
+	DispList *dl = oblatt->curve_cache ? BKE_displist_find(&oblatt->curve_cache->disp, DL_VERTS) : NULL;
 	float *co = dl ? dl->verts : NULL;
 	float *fp, imat[4][4];
 	float fu, fv, fw;
@@ -506,13 +507,12 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
  */
 static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
-	Curve *cu = ob->data;
 	BevList *bl;
 	float ctime1;
 	int cycl = 0;
 	
 	/* test for cyclic */
-	bl = cu->bev.first;
+	bl = ob->curve_cache->bev.first;
 	if (!bl->nr) return 0;
 	if (bl->poly > -1) cycl = 1;
 
@@ -527,7 +527,7 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 	if (where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
 		
 		if (cycl == 0) {
-			Path *path = cu->path;
+			Path *path = ob->curve_cache->path;
 			float dvec[3];
 			
 			if (ctime < 0.0f) {
@@ -565,9 +565,9 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 	const int is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
-	if (cu->path == NULL) {
+	if (ELEM(NULL, par->curve_cache, par->curve_cache->path)) {
 		BKE_displist_make_curveTypes(scene, par, 0);
-		if (cu->path == NULL) return 0;  // happens on append...
+		if (par->curve_cache->path == NULL) return 0;  // happens on append...
 	}
 	
 	/* options */
@@ -576,14 +576,14 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 		if (cu->flag & CU_STRETCH)
 			fac = (-co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
-			fac = -(co[index] - cd->dmax[index]) / (cu->path->totdist);
+			fac = -(co[index] - cd->dmax[index]) / (par->curve_cache->path->totdist);
 	}
 	else {
 		index = axis;
 		if (cu->flag & CU_STRETCH)
 			fac = (co[index] - cd->dmin[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
-			fac = +(co[index] - cd->dmin[index]) / (cu->path->totdist);
+			fac = +(co[index] - cd->dmin[index]) / (par->curve_cache->path->totdist);
 	}
 	
 	if (where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) {  /* returns OK */
@@ -996,7 +996,12 @@ void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 	float (*vertexCos)[3] = NULL;
 	int numVerts, editmode = (lt->editlatt != NULL);
 
-	BKE_displist_free(&ob->disp);
+	if (ob->curve_cache) {
+		BKE_displist_free(&ob->curve_cache->disp);
+	}
+	else {
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for lattice");
+	}
 
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1022,7 +1027,7 @@ void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 		dl->nr = numVerts;
 		dl->verts = (float *) vertexCos;
 		
-		BLI_addtail(&ob->disp, dl);
+		BLI_addtail(&ob->curve_cache->disp, dl);
 	}
 }
 

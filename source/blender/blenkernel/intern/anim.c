@@ -509,11 +509,11 @@ void calc_curvepath(Object *ob)
 	}
 	cu = ob->data;
 
-	if (cu->path) free_path(cu->path);
-	cu->path = NULL;
+	if (ob->curve_cache->path) free_path(ob->curve_cache->path);
+	ob->curve_cache->path = NULL;
 	
 	/* weak! can only use first curve */
-	bl = cu->bev.first;
+	bl = ob->curve_cache->bev.first;
 	if (bl == NULL || !bl->nr) {
 		return;
 	}
@@ -521,7 +521,7 @@ void calc_curvepath(Object *ob)
 	nurbs = BKE_curve_nurbs_get(cu);
 	nu = nurbs->first;
 
-	cu->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
+	ob->curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
 	
 	/* if POLY: last vertice != first vertice */
 	cycl = (bl->poly != -1);
@@ -630,15 +630,15 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 
 	if (ob == NULL || ob->type != OB_CURVE) return 0;
 	cu = ob->data;
-	if (cu->path == NULL || cu->path->data == NULL) {
+	if (ob->curve_cache == NULL || ob->curve_cache->path == NULL || ob->curve_cache->path->data == NULL) {
 		printf("no path!\n");
 		return 0;
 	}
-	path = cu->path;
+	path = ob->curve_cache->path;
 	pp = path->data;
 	
 	/* test for cyclic */
-	bl = cu->bev.first;
+	bl = ob->curve_cache->bev.first;
 	if (!bl) return 0;
 	if (!bl->nr) return 0;
 	if (bl->poly > -1) cycl = 1;

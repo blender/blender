@@ -1243,7 +1243,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 		ob->parent = NULL;
 		ob->constraints.first = ob->constraints.last = NULL;
-		ob->disp.first = ob->disp.last = NULL;
+		ob->curve_cache = NULL;
 		ob->transflag &= ~OB_DUPLI;
 		ob->lay = base->lay;
 
@@ -1385,7 +1385,7 @@ static EnumPropertyItem convert_target_items[] = {
 
 static void curvetomesh(Scene *scene, Object *ob) 
 {
-	if (ob->disp.first == NULL)
+	if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first))
 		BKE_displist_make_curveTypes(scene, ob, 0);  /* force creation */
 
 	BKE_mesh_from_nurbs(ob); /* also does users */
@@ -1553,7 +1553,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			cu = newob->data;
 
-			if (!newob->disp.first)
+			if ( !newob->curve_cache || !newob->curve_cache->disp.first)
 				BKE_displist_make_curveTypes(scene, newob, 0);
 
 			newob->type = OB_CURVE;
@@ -1595,7 +1595,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				curvetomesh(scene, newob);
 
 				/* meshes doesn't use displist */
-				BKE_displist_free(&newob->disp);
+				BKE_object_free_curve_cache(newob);
 			}
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -1616,7 +1616,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = ob;
 
 					/* meshes doesn't use displist */
-					BKE_displist_free(&newob->disp);
+					BKE_object_free_curve_cache(newob);
 				}
 
 				curvetomesh(scene, newob);
@@ -1635,7 +1635,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				ob->flag |= OB_DONE;
 			}
 
-			if (!baseob->disp.first) {
+			if (!baseob->curve_cache || !baseob->curve_cache->disp.first) {
 				BKE_displist_make_mball(scene, baseob);
 			}
 
@@ -1658,7 +1658,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (a = 0; a < newob->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
 
-				BKE_mesh_from_metaball(&baseob->disp, newob->data);
+				BKE_mesh_from_metaball(&baseob->curve_cache->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {
 					basact = basen;

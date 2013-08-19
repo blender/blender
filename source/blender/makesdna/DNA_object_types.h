@@ -130,7 +130,6 @@ typedef struct Object {
 	
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX deprecated... old animation system
 	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
-	ListBase disp;      /* list of DispList, used by lattice, metaballs curve & surfaces */
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
 
@@ -276,6 +275,9 @@ typedef struct Object {
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
+
+	/* Runtime valuated curve-specific data, not stored in the file */
+	struct CurveCache *curve_cache;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

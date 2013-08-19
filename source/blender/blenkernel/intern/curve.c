@@ -145,7 +145,6 @@ void BKE_curve_editNurb_free(Curve *cu)
 void BKE_curve_free(Curve *cu)
 {
 	BKE_nurbList_free(&cu->nurb);
-	BLI_freelistN(&cu->bev);
 	BKE_curve_editfont_free(cu);
 
 	BKE_curve_editNurb_free(cu);
@@ -160,8 +159,6 @@ void BKE_curve_free(Curve *cu)
 		MEM_freeN(cu->strinfo);
 	if (cu->bb)
 		MEM_freeN(cu->bb);
-	if (cu->path)
-		free_path(cu->path);
 	if (cu->tb)
 		MEM_freeN(cu->tb);
 }
@@ -226,9 +223,6 @@ Curve *BKE_curve_copy(Curve *cu)
 
 	cun->key = BKE_key_copy(cu->key);
 	if (cun->key) cun->key->from = (ID *)cun;
-
-	cun->bev.first = cun->bev.last = NULL;
-	cun->path = NULL;
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
@@ -1562,10 +1556,10 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 				dl = bevdisp.first;
 			}
 			else {
-				dl = cu->bevobj->disp.first;
+				dl = cu->bevobj->curve_cache ? cu->bevobj->curve_cache->disp.first : NULL;
 				if (dl == NULL) {
 					BKE_displist_make_curveTypes(scene, cu->bevobj, 0);
-					dl = cu->bevobj->disp.first;
+					dl = cu->bevobj->curve_cache->disp.first;
 				}
 			}
 
@@ -2442,16 +2436,19 @@ void BKE_curve_bevelList_make(Object *ob)
 	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius, do_weight;
 	int is_editmode = 0;
+	ListBase *bev;
 
 	/* this function needs an object, because of tflag and upflag */
 	cu = ob->data;
+
+	bev = &ob->curve_cache->bev;
 
 	/* do we need to calculate the radius for each point? */
 	/* do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1; */
 
 	/* STEP 1: MAKE POLYS  */
 
-	BLI_freelistN(&(cu->bev));
+	BLI_freelistN(&(ob->curve_cache->bev));
 	if (cu->editnurb && ob->type != OB_FONT) {
 		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 		nu = nurbs->first;
@@ -2475,7 +2472,7 @@ void BKE_curve_bevelList_make(Object *ob)
 		 * enforced in the UI but can go wrong possibly */
 		if (!BKE_nurb_check_valid_u(nu)) {
 			bl = MEM_callocN(sizeof(BevList) + 1 * sizeof(BevPoint), "makeBevelList1");
-			BLI_addtail(&(cu->bev), bl);
+			BLI_addtail(bev, bl);
 			bl->nr = 0;
 			bl->charidx = nu->charidx;
 		}
@@ -2488,7 +2485,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			if (nu->type == CU_POLY) {
 				len = nu->pntsu;
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList2");
-				BLI_addtail(&(cu->bev), bl);
+				BLI_addtail(bev, bl);
 
 				bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
 				bl->nr = len;
@@ -2515,7 +2512,7 @@ void BKE_curve_bevelList_make(Object *ob)
 				/* in case last point is not cyclic */
 				len = resolu * (nu->pntsu + (nu->flagu & CU_NURB_CYCLIC) - 1) + 1;
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelBPoints");
-				BLI_addtail(&(cu->bev), bl);
+				BLI_addtail(bev, bl);
 
 				bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
 				bl->charidx = nu->charidx;
@@ -2608,7 +2605,7 @@ void BKE_curve_bevelList_make(Object *ob)
 					len = (resolu * SEGMENTSU(nu));
 
 					bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList3");
-					BLI_addtail(&(cu->bev), bl);
+					BLI_addtail(bev, bl);
 					bl->nr = len;
 					bl->dupe_nr = 0;
 					bl->poly = (nu->flagu & CU_NURB_CYCLIC) ? 0 : -1;
@@ -2630,7 +2627,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	}
 
 	/* STEP 2: DOUBLE POINTS AND AUTOMATIC RESOLUTION, REDUCE DATABLOCKS */
-	bl = cu->bev.first;
+	bl = bev->first;
 	while (bl) {
 		if (bl->nr) { /* null bevel items come from single points */
 			nr = bl->nr;
@@ -2652,7 +2649,7 @@ void BKE_curve_bevelList_make(Object *ob)
 		}
 		bl = bl->next;
 	}
-	bl = cu->bev.first;
+	bl = bev->first;
 	while (bl) {
 		blnext = bl->next;
 		if (bl->nr && bl->dupe_nr) {
@@ -2660,8 +2657,8 @@ void BKE_curve_bevelList_make(Object *ob)
 			blnew = MEM_mallocN(sizeof(BevList) + nr * sizeof(BevPoint), "makeBevelList4");
 			memcpy(blnew, bl, sizeof(BevList));
 			blnew->nr = 0;
-			BLI_remlink(&(cu->bev), bl);
-			BLI_insertlinkbefore(&(cu->bev), blnext, blnew);    /* to make sure bevlijst is tuned with nurblist */
+			BLI_remlink(bev, bl);
+			BLI_insertlinkbefore(bev, blnext, blnew);    /* to make sure bevlijst is tuned with nurblist */
 			bevp0 = (BevPoint *)(bl + 1);
 			bevp1 = (BevPoint *)(blnew + 1);
 			nr = bl->nr;
@@ -2680,7 +2677,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	}
 
 	/* STEP 3: POLYS COUNT AND AUTOHOLE */
-	bl = cu->bev.first;
+	bl = bev->first;
 	poly = 0;
 	while (bl) {
 		if (bl->nr && bl->poly >= 0) {
@@ -2694,7 +2691,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	/* find extreme left points, also test (turning) direction */
 	if (poly > 0) {
 		sd = sortdata = MEM_mallocN(sizeof(struct bevelsort) * poly, "makeBevelList5");
-		bl = cu->bev.first;
+		bl = bev->first;
 		while (bl) {
 			if (bl->poly > 0) {
 
@@ -2774,7 +2771,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	/* STEP 4: 2D-COSINES or 3D ORIENTATION */
 	if ((cu->flag & CU_3D) == 0) {
 		/* 2D Curves */
-		for (bl = cu->bev.first; bl; bl = bl->next) {
+		for (bl = bev->first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
 				/* do nothing */
 			}
@@ -2788,7 +2785,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	}
 	else {
 		/* 3D Curves */
-		for (bl = cu->bev.first; bl; bl = bl->next) {
+		for (bl = bev->first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
 				/* do nothing */
 			}

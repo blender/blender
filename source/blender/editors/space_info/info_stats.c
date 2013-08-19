@@ -115,8 +115,8 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		{
 			int totv = 0, totf = 0, tottri = 0;
 
-			if (ob->disp.first)
-				BKE_displist_count(&ob->disp, &totv, &totf, &tottri);
+			if (ob->curve_cache && ob->curve_cache->disp.first)
+				BKE_displist_count(&ob->curve_cache->disp, &totv, &totf, &tottri);
 
 			totv   *= totob;
 			totf   *= totob;

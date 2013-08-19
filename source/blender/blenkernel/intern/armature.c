@@ -1826,18 +1826,16 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 	 *     - this is a workaround for a depsgraph bug...
 	 */
 	if (ikData->tar) {
-		Curve *cu = ikData->tar->data;
-
 		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
 		 *       currently for paths to work it needs to go through the bevlist/displist system (ton)
 		 */
 
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ELEM(NULL, cu->path, cu->path->data)) {
+		if (ELEM3(NULL,  ikData->tar->curve_cache, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 			BKE_displist_make_curveTypes(scene, ikData->tar, 0);
 			
 			/* path building may fail in EditMode after removing verts [#33268]*/
-			if (ELEM(NULL, cu->path, cu->path->data)) {
+			if (ELEM(NULL, ikData->tar->curve_cache->path, ikData->tar->curve_cache->path->data)) {
 				/* BLI_assert(cu->path != NULL); */
 				return;
 			}
@@ -1901,7 +1899,6 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 	 * since it's easier to determine the positions of all the joints beforehand this way
 	 */
 	if ((ikData->flag & CONSTRAINT_SPLINEIK_SCALE_LIMITED) && (totLength != 0.0f)) {
-		Curve *cu = (Curve *)ikData->tar->data;
 		float splineLen, maxScale;
 		int i;
 
@@ -1914,7 +1911,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 
 		/* get the current length of the curve */
 		/* NOTE: this is assumed to be correct even after the curve was resized */
-		splineLen = cu->path->totdist;
+		splineLen = ikData->tar->curve_cache->path->totdist;
 
 		/* calculate the scale factor to multiply all the path values by so that the
 		 * bone chain retains its current length, such that

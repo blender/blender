@@ -1900,9 +1900,9 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	const bool is_edit = (lt->editlatt != NULL);
 
 	/* now we default make displist, this will modifiers work for non animated case */
-	if (ob->disp.first == NULL)
+	if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first))
 		BKE_lattice_modifiers_calc(scene, ob);
-	dl = BKE_displist_find(&ob->disp, DL_VERTS);
+	dl = BKE_displist_find(&ob->curve_cache->disp, DL_VERTS);
 	
 	if (is_edit) {
 		lt = lt->editlatt->latt;
@@ -3971,7 +3971,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 		case OB_CURVE:
 			cu = ob->data;
 
-			lb = &ob->disp;
+			lb = &ob->curve_cache->disp;
 
 			if (solid) {
 				dl = lb->first;
@@ -4021,7 +4021,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 			break;
 		case OB_SURF:
 
-			lb = &ob->disp;
+			lb = &ob->curve_cache->disp;
 
 			if (solid) {
 				dl = lb->first;
@@ -4049,8 +4049,11 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 		case OB_MBALL:
 
 			if (BKE_mball_is_basis(ob)) {
-				lb = &ob->disp;
-				if (lb->first == NULL) BKE_displist_make_mball(scene, ob);
+				lb = ob->curve_cache ? &ob->curve_cache->disp : NULL;
+				if (lb->first == NULL) {
+					BKE_displist_make_mball(scene, ob);
+					lb = &ob->curve_cache->disp;
+				}
 				if (lb->first == NULL) {
 					return true;
 				}
@@ -5642,7 +5645,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
 
 		UI_ThemeColor(TH_WIRE_EDIT);
-		for (bl = cu->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
+		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			BevPoint *bevp = (BevPoint *)(bl + 1);
 			int nr = bl->nr;
 			int skip = nu->resolu / 16;
@@ -6065,7 +6068,7 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type == OB_CURVE) {
 		Curve *cu = ob->data;
-		if ((cu->flag & CU_PATH) && cu->path && cu->path->data) {
+		if ((cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
 			float mindist, guidevec1[4], guidevec2[3];
 
 			//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
@@ -6330,7 +6333,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			has_faces = dm->getNumTessFaces(dm);
 		}
 		else {
-			has_faces = BKE_displist_has_faces(&ob->disp);
+			has_faces = BKE_displist_has_faces(&ob->curve_cache->disp);
 		}
 
 		if (has_faces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
@@ -6339,7 +6342,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 			else {
-				drawDispListwire(&ob->disp);
+				drawDispListwire(&ob->curve_cache->disp);
 			}
 			draw_index_wire = true;
 		}
@@ -6347,7 +6350,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	else if (ob->type == OB_MBALL) {
 		if (BKE_mball_is_basis(ob)) {
 			if ((base->flag & OB_FROMDUPLI) == 0)
-				drawDispListwire(&ob->disp);
+				drawDispListwire(&ob->curve_cache->disp);
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
@@ -6382,7 +6385,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 					drawCurveDMWired(ob);
 				}
 				else {
-					drawDispListwire(&ob->disp);
+					drawDispListwire(&ob->curve_cache->disp);
 				}
 
 				if (ob->type == OB_CURVE)
@@ -6391,7 +6394,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 		}
 		else if (ob->type == OB_MBALL) {
 			if (BKE_mball_is_basis(ob)) {
-				drawDispListwire(&ob->disp);
+				drawDispListwire(&ob->curve_cache->disp);
 			}
 		}
 
@@ -6701,7 +6704,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* bad exception, solve this! otherwise outline shows too late */
 	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (ob->disp.first == NULL) BKE_displist_make_curveTypes(scene, ob, 0);
+		if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first)) {
+			BKE_displist_make_curveTypes(scene, ob, 0);
+		}
 	}
 	
 	/* draw outline for selected objects, mesh does itself */

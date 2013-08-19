@@ -56,6 +56,7 @@
 
 /*  #include "BKE_object.h" */
 #include "BKE_animsys.h"
+#include "BKE_curve.h"
 #include "BKE_scene.h"
 #include "BKE_library.h"
 #include "BKE_displist.h"
@@ -366,7 +367,7 @@ void BKE_mball_texspace_calc(Object *ob)
 	(min)[0] = (min)[1] = (min)[2] = 1.0e30f;
 	(max)[0] = (max)[1] = (max)[2] = -1.0e30f;
 
-	dl = ob->disp.first;
+	dl = ob->curve_cache->disp.first;
 	while (dl) {
 		tot = dl->nr;
 		if (tot) do_it = TRUE;

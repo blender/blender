@@ -183,11 +183,8 @@ typedef struct Curve {
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo    DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
-	Path *path;
 	struct Key *key;
 	struct Material **mat;
-	
-	ListBase bev;
 	
 	/* texture space, copied as one block in editobject.c */
 	float loc[3];
