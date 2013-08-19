@@ -300,13 +300,14 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         props = row.operator("clip.refine_markers", text="Forwards")
         props.backwards = False
 
-        col = layout.column(align=True)
-        props = col.operator("clip.clear_track_path", text="Clear After")
-        props.action = 'REMAINED'
-
-        props = col.operator("clip.clear_track_path", text="Clear Before")
+        col = layout.column()
+        col.label(text="Clear:")
+        row = col.row(align=True)
+        props = row.operator("clip.clear_track_path", text="Before")
         props.action = 'UPTO'
-        col.operator("clip.clear_track_path", text="Clear").action = 'ALL'
+
+        props = row.operator("clip.clear_track_path", text="After")
+        props.action = 'REMAINED'
 
         layout.operator("clip.join_tracks", text="Join")
 
