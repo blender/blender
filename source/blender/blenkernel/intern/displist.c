@@ -1628,11 +1628,19 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *dispbase,
                                       DerivedMesh **derivedFinal, int forOrco, int renderResolution)
 {
+	if (ob->curve_cache == NULL) {
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+	}
+
 	do_makeDispListCurveTypes(scene, ob, dispbase, derivedFinal, 1, forOrco, renderResolution);
 }
 
 void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase)
 {
+	if (ob->curve_cache == NULL) {
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+	}
+
 	do_makeDispListCurveTypes(scene, ob, dispbase, NULL, 1, 1, 1);
 }
 
