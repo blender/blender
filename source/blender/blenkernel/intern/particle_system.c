@@ -70,6 +70,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_sort.h"
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 
@@ -1010,12 +1011,11 @@ static void *distribute_threads_exec_cb(void *data)
 	return 0;
 }
 
-/* not thread safe, but qsort doesn't take userdata argument */
-static int *COMPARE_ORIG_INDEX = NULL;
-static int distribute_compare_orig_index(const void *p1, const void *p2)
+static int distribute_compare_orig_index(void *user_data, const void *p1, const void *p2)
 {
-	int index1 = COMPARE_ORIG_INDEX[*(const int *)p1];
-	int index2 = COMPARE_ORIG_INDEX[*(const int *)p2];
+	int *orig_index = (int *) user_data;
+	int index1 = orig_index[*(const int *)p1];
+	int index2 = orig_index[*(const int *)p2];
 
 	if (index1 < index2)
 		return -1;
@@ -1332,20 +1332,19 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	/* For hair, sort by origindex (allows optimization's in rendering), */
 	/* however with virtual parents the children need to be in random order. */
 	if (part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0f)) {
-		COMPARE_ORIG_INDEX = NULL;
+		int *orig_index = NULL;
 
 		if (from == PART_FROM_VERT) {
 			if (dm->numVertData)
-				COMPARE_ORIG_INDEX= dm->getVertDataArray(dm, CD_ORIGINDEX);
+				orig_index = dm->getVertDataArray(dm, CD_ORIGINDEX);
 		}
 		else {
 			if (dm->numTessFaceData)
-				COMPARE_ORIG_INDEX= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+				orig_index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 
-		if (COMPARE_ORIG_INDEX) {
-			qsort(particle_element, totpart, sizeof(int), distribute_compare_orig_index);
-			COMPARE_ORIG_INDEX = NULL;
+		if (orig_index) {
+			BLI_qsort_r(particle_element, totpart, sizeof(int), orig_index, distribute_compare_orig_index);
 		}
 	}
 

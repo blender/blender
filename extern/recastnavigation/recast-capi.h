@@ -127,11 +127,6 @@ unsigned char *recast_polyMeshDetailGetTris(struct recast_polyMeshDetail *mesh, 
 
 unsigned int *recast_polyMeshDetailGetMeshes(struct recast_polyMeshDetail *mesh, int *nmeshes);
 
-/* utility function: quick sort reentrant */
-typedef int	recast_cmp_t(void *ctx, const void *a, const void *b);
-
-void recast_qsort(void *a, size_t n, size_t es, void *thunk, recast_cmp_t *cmp);
-
 #ifdef __cplusplus
 }
 #endif
