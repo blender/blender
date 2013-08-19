@@ -1514,9 +1514,9 @@ void psys_threads_free(ParticleThread *threads)
 	if (ctx->vg_roughe)
 		MEM_freeN(ctx->vg_roughe);
 
-	if (ctx->sim.psys->lattice) {
-		end_latt_deform(ctx->sim.psys->lattice);
-		ctx->sim.psys->lattice= NULL;
+	if (ctx->sim.psys->lattice_deform_data) {
+		end_latt_deform(ctx->sim.psys->lattice_deform_data);
+		ctx->sim.psys->lattice_deform_data = NULL;
 	}
 
 	/* distribution */
@@ -4108,7 +4108,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
 	invert_m4_m4(ob->imat, ob->obmat);
 	
-	psys->lattice= psys_get_lattice(sim);
+	psys->lattice_deform_data= psys_create_lattice_deform_data(sim);
 
 	if (psys->totpart==0) return;
 	
@@ -4479,7 +4479,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 		if (part->randsize > 0.0f)
 			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
-		psys->lattice= psys_get_lattice(sim);
+		psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
 
 		dietime = pa->dietime;
 
@@ -4494,9 +4494,9 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 		else
 			pa->alive = PARS_ALIVE;
 
-		if (psys->lattice) {
-			end_latt_deform(psys->lattice);
-			psys->lattice= NULL;
+		if (psys->lattice_deform_data) {
+			end_latt_deform(psys->lattice_deform_data);
+			psys->lattice_deform_data = NULL;
 		}
 
 		if (PSYS_FRAND(p) > disp)
@@ -4777,9 +4777,9 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	update_children(sim);
 
 /* cleanup */
-	if (psys->lattice) {
-		end_latt_deform(psys->lattice);
-		psys->lattice= NULL;
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 	}
 }
 

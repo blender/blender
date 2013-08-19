@@ -68,10 +68,6 @@ typedef struct Lattice {
 	struct MDeformVert *dvert;
 	char vgroup[64]; /* multiply the influence, MAX_VGROUP_NAME */
 	
-	/* used while deforming, always free and NULL after use */
-	float *latticedata;
-	float latmat[4][4];
-	
 	struct EditLatt *editlatt;
 } Lattice;
 

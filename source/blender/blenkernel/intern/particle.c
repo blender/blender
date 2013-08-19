@@ -221,12 +221,12 @@ Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 }
 #endif
 
-Object *psys_get_lattice(ParticleSimulationData *sim)
+struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData *sim)
 {
-	Object *lattice = NULL;
-	
-	if (psys_in_edit_mode(sim->scene, sim->psys) == 0) {
+	struct LatticeDeformData *lattice_deform_data = NULL;
 
+	if (psys_in_edit_mode(sim->scene, sim->psys) == 0) {
+		Object *lattice = NULL;
 		ModifierData *md = (ModifierData *)psys_get_modifier(sim->ob, sim->psys);
 
 		for (; md; md = md->next) {
@@ -237,10 +237,10 @@ Object *psys_get_lattice(ParticleSimulationData *sim)
 			}
 		}
 		if (lattice)
-			init_latt_deform(lattice, NULL);
+			lattice_deform_data = init_latt_deform(lattice, NULL);
 	}
 
-	return lattice;
+	return lattice_deform_data;
 }
 void psys_disable_all(Object *ob)
 {
@@ -2513,7 +2513,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	ctx->cfra = cfra;
 	ctx->editupdate = editupdate;
 
-	psys->lattice = psys_get_lattice(&ctx->sim);
+	psys->lattice_deform_data = psys_create_lattice_deform_data(&ctx->sim);
 
 	/* cache all relevant vertex groups if they exist */
 	ctx->vg_length = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_LENGTH);
@@ -2974,7 +2974,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	psys_free_path_cache(psys, psys->edit);
 	cache = psys->pathcache = psys_alloc_path_cache_buffers(&psys->pathcachebufs, totpart, steps + 1);
 
-	psys->lattice = psys_get_lattice(sim);
+	psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
 	ma = give_current_material(sim->ob, psys->part->omat);
 	if (ma && (psys->part->draw_col == PART_DRAW_COL_MAT))
 		copy_v3_v3(col, &ma->r);
@@ -3079,9 +3079,9 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			}
 
 			/* lattices have to be calculated separately to avoid mixups between effector calculations */
-			if (psys->lattice) {
+			if (psys->lattice_deform_data) {
 				for (k = 0, ca = cache[p]; k <= steps; k++, ca++)
-					calc_latt_deform(psys->lattice, ca->co, 1.0f);
+					calc_latt_deform(psys->lattice_deform_data, ca->co, 1.0f);
 			}
 		}
 
@@ -3112,9 +3112,9 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 	psys->totcached = totpart;
 
-	if (psys->lattice) {
-		end_latt_deform(psys->lattice);
-		psys->lattice = NULL;
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 	}
 
 	if (vg_effector)
@@ -4166,8 +4166,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 						/* TODO: proper velocity handling */
 					}
 
-					if (psys->lattice && edit == 0)
-						calc_latt_deform(psys->lattice, state->co, 1.0f);
+					if (psys->lattice_deform_data && edit == 0)
+						calc_latt_deform(psys->lattice_deform_data, state->co, 1.0f);
 				}
 			}
 		}
@@ -4402,8 +4402,8 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			unit_m4(mat);
 			do_child_modifiers(sim, NULL, key1, key1->rot, cpa, cpa->fuv, mat, state, t);
 
-			if (psys->lattice)
-				calc_latt_deform(sim->psys->lattice, state->co, 1.0f);
+			if (psys->lattice_deform_data)
+				calc_latt_deform(psys->lattice_deform_data, state->co, 1.0f);
 		}
 		else {
 			if (pa->state.time == cfra || ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
@@ -4461,8 +4461,8 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 				}
 			}
 
-			if (sim->psys->lattice)
-				calc_latt_deform(sim->psys->lattice, state->co, 1.0f);
+			if (sim->psys->lattice_deform_data)
+				calc_latt_deform(sim->psys->lattice_deform_data, state->co, 1.0f);
 		}
 		
 		return 1;
@@ -4678,9 +4678,9 @@ void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 	sim.psys = psys;
 	sim.psmd = psys_get_modifier(ob, psys);
 
-	psys->lattice = psys_get_lattice(&sim);
+	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
-	if (psys->lattice) {
+	if (psys->lattice_deform_data) {
 		ParticleData *pa = psys->particles;
 		HairKey *hkey;
 		int p, h;
@@ -4693,13 +4693,13 @@ void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 			hkey = pa->hair;
 			for (h = 0; h < pa->totkey; h++, hkey++) {
 				mul_m4_v3(hairmat, hkey->co);
-				calc_latt_deform(psys->lattice, hkey->co, 1.0f);
+				calc_latt_deform(psys->lattice_deform_data, hkey->co, 1.0f);
 				mul_m4_v3(imat, hkey->co);
 			}
 		}
 		
-		end_latt_deform(psys->lattice);
-		psys->lattice = NULL;
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
 
 		/* protect the applied shape */
 		psys->flag |= PSYS_EDITED;
