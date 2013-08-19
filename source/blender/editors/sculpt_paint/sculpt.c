@@ -330,7 +330,7 @@ typedef struct {
 	/* Original coordinate, normal, and mask */
 	const float *co;
 	float mask;
-	short no[3];
+	const short *no;
 } SculptOrigVertData;
 
 
@@ -381,11 +381,10 @@ static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
 		}
 
 		if (orig_data->normals) {
-			copy_v3_v3_short(orig_data->no, orig_data->normals[iter->i]);
+			orig_data->no = orig_data->normals[iter->i];
 		}
 		else {
-			/* TODO: log doesn't store normals yet */
-			normal_float_to_short_v3(orig_data->no, iter->bm_vert->no);
+			orig_data->no = BM_log_original_vert_no(orig_data->bm_log, iter->bm_vert);
 		}
 	}
 	else if (orig_data->unode->type == SCULPT_UNDO_MASK) {
