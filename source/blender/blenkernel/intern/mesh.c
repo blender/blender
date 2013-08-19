@@ -1307,7 +1307,7 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
                             MEdge **alledge, int *totedge, MLoop **allloop, MPoly **allpoly,
                             int *totloop, int *totpoly)
 {
-	ListBase disp = {NULL};
+	ListBase disp = {NULL, NULL};
 
 	if (ob->curve_cache) {
 		disp = ob->curve_cache->disp;
@@ -1659,7 +1659,7 @@ void BKE_mesh_from_nurbs(Object *ob)
 {
 	Curve *cu = (Curve *) ob->data;
 	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
-	ListBase disp = {NULL};
+	ListBase disp = {NULL, NULL};
 
 	if (ob->curve_cache) {
 		disp = ob->curve_cache->disp;

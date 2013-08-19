@@ -1814,7 +1814,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	ListBase disp = {NULL};
+	ListBase disp = {NULL, NULL};
 
 	if (ob->curve_cache) {
 		disp = ob->curve_cache->disp;

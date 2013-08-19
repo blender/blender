@@ -2417,7 +2417,7 @@ static void bevlist_firstlast_direction_calc_from_bpoint(Nurb *nu, BevList *bl)
 	}
 }
 
-void BKE_curve_bevelList_make(Object *ob)
+void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 {
 	/*
 	 * - convert all curves to polys, with indication of resol and flags for double-vertices
@@ -2449,13 +2449,9 @@ void BKE_curve_bevelList_make(Object *ob)
 	/* STEP 1: MAKE POLYS  */
 
 	BLI_freelistN(&(ob->curve_cache->bev));
+	nu = nurbs->first;
 	if (cu->editnurb && ob->type != OB_FONT) {
-		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-		nu = nurbs->first;
 		is_editmode = 1;
-	}
-	else {
-		nu = cu->nurb.first;
 	}
 
 	for (; nu; nu = nu->next) {
@@ -2477,7 +2473,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			bl->charidx = nu->charidx;
 		}
 		else {
-			if (G.is_rendering && cu->resolu_ren != 0)
+			if (for_render && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
 				resolu = nu->resolu;

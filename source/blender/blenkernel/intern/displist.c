@@ -786,19 +786,16 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int re
 	return pretessellatePoint;
 }
 
-static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, int renderResolution,
-                                     float (**originalVerts_r)[3],
-                                     float (**deformedVerts_r)[3], int *numVerts_r)
+static void curve_calc_modifiers_pre(Scene *scene, Object *ob, ListBase *nurb,
+                                     int forRender, int renderResolution)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
-	ListBase *nurb = BKE_curve_nurbs_get(cu);
 	int numVerts = 0;
 	const int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	ModifierApplyFlag app_flag = 0;
-	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
 	float *keyVerts = NULL;
 	int required_mode;
@@ -826,7 +823,6 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 			 * this is also the reason curves do not use a virtual
 			 * shape key modifier yet. */
 			deformedVerts = BKE_curve_nurbs_keyVertexCos_get(nurb, keyVerts);
-			originalVerts = MEM_dupallocN(deformedVerts);
 			BLI_assert(BKE_nurbList_verts_count(nurb) == numVerts);
 		}
 	}
@@ -844,7 +840,6 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 
 			if (!deformedVerts) {
 				deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
-				originalVerts = MEM_dupallocN(deformedVerts);
 			}
 
 			mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, app_flag);
@@ -854,17 +849,15 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
 		}
 	}
 
-	if (deformedVerts)
+	if (deformedVerts) {
 		BK_curve_nurbs_vertexCos_apply(nurb, deformedVerts);
+		MEM_freeN(deformedVerts);
+	}
 	if (keyVerts) /* these are not passed through modifier stack */
 		BKE_curve_nurbs_keyVertexTilts_apply(nurb, keyVerts);
 
 	if (keyVerts)
 		MEM_freeN(keyVerts);
-
-	*originalVerts_r = originalVerts;
-	*deformedVerts_r = deformedVerts;
-	*numVerts_r = numVerts;
 }
 
 static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
@@ -901,15 +894,14 @@ static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
 	}
 }
 
-static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispbase, DerivedMesh **derivedFinal,
-                                      int forRender, int renderResolution,
-                                      float (*originalVerts)[3], float (*deformedVerts)[3])
+static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *nurb,
+                                      ListBase *dispbase, DerivedMesh **derivedFinal,
+                                      int forRender, int renderResolution)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
-	ListBase *nurb = BKE_curve_nurbs_get(cu);
 	int required_mode = 0, totvert = 0;
 	int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	DerivedMesh *dm = NULL, *ndm;
@@ -1053,12 +1045,6 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 			}
 		}
 		(*derivedFinal) = dm;
-	}
-
-	if (deformedVerts) {
-		BK_curve_nurbs_vertexCos_apply(nurb, originalVerts);
-		MEM_freeN(originalVerts);
-		MEM_freeN(deformedVerts);
 	}
 }
 
@@ -1209,25 +1195,24 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
                             DerivedMesh **derivedFinal, int forRender, int forOrco, int renderResolution)
 {
-	ListBase *nubase;
+	ListBase nubase = {NULL, NULL};
 	Nurb *nu;
 	Curve *cu = ob->data;
 	DispList *dl;
 	float *data;
 	int len;
-	int numVerts;
-	float (*originalVerts)[3];
-	float (*deformedVerts)[3];
 
-	if (!forRender && cu->editnurb)
-		nubase = BKE_curve_editNurbs_get(cu);
-	else
-		nubase = &cu->nurb;
+	if (!forRender && cu->editnurb) {
+		BKE_nurbList_duplicate(&nubase, BKE_curve_editNurbs_get(cu));
+	}
+	else {
+		BKE_nurbList_duplicate(&nubase, &cu->nurb);
+	}
 
 	if (!forOrco)
-		curve_calc_modifiers_pre(scene, ob, forRender, renderResolution, &originalVerts, &deformedVerts, &numVerts);
+		curve_calc_modifiers_pre(scene, ob, &nubase, forRender, renderResolution);
 
-	for (nu = nubase->first; nu; nu = nu->next) {
+	for (nu = nubase.first; nu; nu = nu->next) {
 		if (forRender || nu->hide == 0) {
 			int resolu = nu->resolu, resolv = nu->resolv;
 
@@ -1291,6 +1276,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 
 	/* Calculate curve's boundig box from non-modified display list. */
+	/* TODO(sergey): not thread-safe. */
 	if (cu->bb == NULL) {
 		cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 	}
@@ -1301,10 +1287,11 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 
 	if (!forOrco) {
-		curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal,
-		                          forRender, renderResolution,
-		                          originalVerts, deformedVerts);
+		curve_calc_modifiers_post(scene, ob, &nubase, dispbase, derivedFinal,
+		                          forRender, renderResolution);
 	}
+
+	BKE_nurbList_free(&nubase);
 }
 
 static void rotateBevelPiece(Curve *cu, BevPoint *bevp, BevPoint *nbevp, DispList *dlb, float bev_blend, float widfac, float fac, float **data_r)
@@ -1398,12 +1385,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 		ListBase dlbev;
-		ListBase *nubase;
-		float (*originalVerts)[3];
-		float (*deformedVerts)[3];
-		int numVerts;
+		ListBase nubase = {NULL, NULL};
 
-		nubase = BKE_curve_nurbs_get(cu);
+		BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
 
 		BLI_freelistN(&(ob->curve_cache->bev));
 
@@ -1414,21 +1398,21 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			BKE_vfont_to_curve(G.main, scene, ob, 0);
 
 		if (!forOrco)
-			curve_calc_modifiers_pre(scene, ob, forRender, renderResolution, &originalVerts, &deformedVerts, &numVerts);
+			curve_calc_modifiers_pre(scene, ob, &nubase, forRender, renderResolution);
 
-		BKE_curve_bevelList_make(ob);
+		BKE_curve_bevelList_make(ob, &nubase, forRender != FALSE);
 
 		/* If curve has no bevel will return nothing */
 		BKE_curve_bevel_make(scene, ob, &dlbev, forRender, renderResolution);
 
 		/* no bevel or extrude, and no width correction? */
 		if (!dlbev.first && cu->width == 1.0f) {
-			curve_to_displist(cu, nubase, dispbase, forRender, renderResolution);
+			curve_to_displist(cu, &nubase, dispbase, forRender, renderResolution);
 		}
 		else {
 			float widfac = cu->width - 1.0f;
 			BevList *bl = ob->curve_cache->bev.first;
-			Nurb *nu = nubase->first;
+			Nurb *nu = nubase.first;
 
 			for (; bl && nu; bl = bl->next, nu = nu->next) {
 				DispList *dl;
@@ -1595,13 +1579,14 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		}
 
 		if (!(cu->flag & CU_DEFORM_FILL)) {
-			curve_to_filledpoly(cu, nubase, dispbase);
+			curve_to_filledpoly(cu, &nubase, dispbase);
 		}
 
 		if ((cu->flag & CU_PATH) && !forOrco)
-			calc_curvepath(ob);
+			calc_curvepath(ob, &nubase);
 
 		/* Calculate curve's boundig box from non-modified display list. */
+		/* TODO(sergey): not thread-safe. */
 		if (cu->bb == NULL) {
 			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 		}
@@ -1612,11 +1597,13 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		}
 
 		if (!forOrco)
-			curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, renderResolution, originalVerts, deformedVerts);
+			curve_calc_modifiers_post(scene, ob, &nubase, dispbase, derivedFinal, forRender, renderResolution);
 
 		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
-			curve_to_filledpoly(cu, nubase, dispbase);
+			curve_to_filledpoly(cu, &nubase, dispbase);
 		}
+
+		BKE_nurbList_free(&nubase);
 	}
 }
 

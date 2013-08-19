@@ -488,7 +488,7 @@ void free_path(Path *path)
 /* calculate a curve-deform path for a curve 
  *  - only called from displist.c -> do_makeDispListCurveTypes
  */
-void calc_curvepath(Object *ob)
+void calc_curvepath(Object *ob, ListBase *nurbs)
 {
 	BevList *bl;
 	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
@@ -499,7 +499,6 @@ void calc_curvepath(Object *ob)
 	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d = 0, fac1, fac2;
 	int a, tot, cycl = 0;
-	ListBase *nurbs;
 	
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
@@ -518,7 +517,6 @@ void calc_curvepath(Object *ob)
 		return;
 	}
 
-	nurbs = BKE_curve_nurbs_get(cu);
 	nu = nurbs->first;
 
 	ob->curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
