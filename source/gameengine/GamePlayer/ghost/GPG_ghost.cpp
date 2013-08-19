@@ -64,6 +64,7 @@ extern "C"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
+#include "BKE_modifier.h"
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
@@ -456,6 +457,7 @@ int main(int argc, char** argv)
 
 	IMB_init();
 	BKE_images_init();
+	BKE_modifier_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();

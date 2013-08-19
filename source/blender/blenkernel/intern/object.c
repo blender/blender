@@ -3158,8 +3158,9 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
 	}
 	else {
 		ModifierData *md;
+		VirtualModifierData virtualModifierData;
 		/* cloth */
-		for (md = modifiers_getVirtualModifierList(ob);
+		for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 		     md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
 		     md = md->next)
 		{
@@ -3180,10 +3181,11 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
 int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	VirtualModifierData virtualModifierData;
 	int flag = 0;
 
 	/* cloth */
-	for (md = modifiers_getVirtualModifierList(ob);
+	for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	     md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
 	     md = md->next)
 	{
@@ -3205,8 +3207,9 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 bool BKE_object_is_animated(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	VirtualModifierData virtualModifierData;
 
-	for (md = modifiers_getVirtualModifierList(ob); md; md = md->next)
+	for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData); md; md = md->next)
 		if (modifier_dependsOnTime(md) &&
 		    (modifier_isEnabled(scene, md, eModifierMode_Realtime) ||
 		     modifier_isEnabled(scene, md, eModifierMode_Render)))

@@ -991,7 +991,8 @@ void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 {
 	Lattice *lt = ob->data;
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	VirtualModifierData virtualModifierData;
+	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	float (*vertexCos)[3] = NULL;
 	int numVerts, editmode = (lt->editlatt != NULL);
 

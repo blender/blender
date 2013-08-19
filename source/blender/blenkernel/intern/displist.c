@@ -742,7 +742,8 @@ void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispb
 
 static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int renderResolution, int editmode)
 {
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	VirtualModifierData virtualModifierData;
+	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	int required_mode;
 
@@ -784,7 +785,8 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, in
                                      float (**originalVerts_r)[3],
                                      float (**deformedVerts_r)[3], int *numVerts_r)
 {
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	VirtualModifierData virtualModifierData;
+	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
 	ListBase *nurb = BKE_curve_nurbs_get(cu);
@@ -898,7 +900,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
                                       int forRender, int renderResolution,
                                       float (*originalVerts)[3], float (*deformedVerts)[3])
 {
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	VirtualModifierData virtualModifierData;
+	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
 	ListBase *nurb = BKE_curve_nurbs_get(cu);
@@ -1142,8 +1145,8 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	/* this function represents logic of mesh's orcodm calculation
 	 * for displist-based objects
 	 */
-
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	VirtualModifierData virtualModifierData;
+	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
 	int required_mode;
