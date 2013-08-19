@@ -721,7 +721,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 	if (ob->type == OB_MBALL) {
 		if (ob == BKE_mball_basis_find(scene, ob)) {
-			BKE_mball_polygonize(scene, ob, &ob->curve_cache->disp);
+			BKE_mball_polygonize(scene, ob, &ob->curve_cache->disp, false);
 			BKE_mball_texspace_calc(ob);
 
 			object_deform_mball(ob, &ob->curve_cache->disp);
@@ -733,7 +733,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispbase)
 {
-	BKE_mball_polygonize(scene, ob, dispbase);
+	BKE_mball_polygonize(scene, ob, dispbase, true);
 	BKE_mball_texspace_calc(ob);
 
 	object_deform_mball(ob, dispbase);

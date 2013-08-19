@@ -2280,7 +2280,7 @@ static void mball_count(PROCESS *process, Scene *scene, Object *basis)
 	}
 }
 
-void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase, bool for_render)
 {
 	MetaBall *mb;
 	DispList *dl;
@@ -2293,7 +2293,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	mball_count(&process, scene, ob);
 
 	if (process.totelem == 0) return;
-	if ((G.is_rendering == FALSE) && (mb->flag == MB_UPDATE_NEVER)) return;
+	if ((for_render == false) && (mb->flag == MB_UPDATE_NEVER)) return;
 	if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) return;
 
 	process.thresh = mb->thresh;
@@ -2331,7 +2331,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	}
 
 	/* width is size per polygonize cube */
-	if (G.is_rendering) {
+	if (for_render) {
 		width = mb->rendersize;
 	}
 	else {
