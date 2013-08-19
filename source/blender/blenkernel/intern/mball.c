@@ -200,7 +200,6 @@ void BKE_mball_free(MetaBall *mb)
 		mb->adt = NULL;
 	}
 	if (mb->mat) MEM_freeN(mb->mat);
-	if (mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);
 	if (mb->disp.first) BKE_displist_free(&mb->disp);
 }
@@ -234,7 +233,6 @@ MetaBall *BKE_mball_copy(MetaBall *mb)
 	for (a = 0; a < mbn->totcol; a++) {
 		id_us_plus((ID *)mbn->mat[a]);
 	}
-	mbn->bb = MEM_dupallocN(mb->bb);
 
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
