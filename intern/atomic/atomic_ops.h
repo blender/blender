@@ -29,6 +29,12 @@
 #ifndef ATOMIC_OPS_H__
 #define ATOMIC_OPS_H__
 
+#if defined (__APPLE__)
+#  include <libkern/OSAtomic.h>
+#elif defined(_MSC_VER)
+#  include <windows.h>
+#endif
+
 /* needed for int types */
 #include "../../source/blender/blenlib/BLI_sys_types.h"
 
@@ -44,8 +50,7 @@
 #  endif
 #endif
 
-/* TODO(sergey): check on other 64bit platforms. */
-#if defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__x86_64__)
+#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
 #  define LG_SIZEOF_PTR 3
 #  define LG_SIZEOF_INT 3
 #else
@@ -80,7 +85,7 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
 	return (InterlockedExchangeAdd64(p, -((int64_t)x)));
 }
-#elif (defined(JEMALLOC_OSATOMIC))
+#elif (defined(__APPLE__))
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
@@ -178,7 +183,7 @@ atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
 	return (InterlockedExchangeAdd(p, -((int32_t)x)));
 }
-#elif (defined(JEMALLOC_OSATOMIC))
+#elif (defined(__APPLE__))
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
