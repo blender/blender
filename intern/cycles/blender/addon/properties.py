@@ -385,6 +385,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Tile order for rendering",
                 items=enum_tile_order,
                 default='CENTER',
+                options=set(),  # Not animatable!
                 )
         cls.use_progressive_refine = BoolProperty(
                 name="Progressive Refine",
