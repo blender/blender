@@ -335,8 +335,7 @@ void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float 
 				float tc[4];
 				const float wt = EWA_WTS[(Q < 0.f) ? 0 : (unsigned int)Q];
 				read(tc, clipuv(u, width), clipuv(v, height));
-				madd_v3_v3fl(result, tc, wt);
-				result[3] += result[3] ? tc[3] * wt : 0.f;
+				madd_v4_v4fl(result, tc, wt);
 				d += wt;
 			}
 			Q += DQ;
@@ -346,9 +345,5 @@ void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float 
 	
 	// d should hopefully never be zero anymore
 	d = 1.f / d;
-	result[0] *= d;
-	result[1] *= d;
-	result[2] *= d;
-	// clipping can be ignored if alpha used, texr->ta already includes filtered edge
-	result[3] = result[3] ? result[3] * d : 1.f;
+	mul_v4_fl(result, d);
 }
