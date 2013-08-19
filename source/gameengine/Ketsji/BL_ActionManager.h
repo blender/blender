@@ -27,6 +27,10 @@
 #ifndef __BL_ACTIONMANAGER_H__
 #define __BL_ACTIONMANAGER_H__
 
+#ifdef WITH_CXX_GUARDEDALLOC
+	#include "MEM_guardedalloc.h"
+#endif
+
 #define MAX_ACTION_LAYERS 8
 
 class BL_Action;
