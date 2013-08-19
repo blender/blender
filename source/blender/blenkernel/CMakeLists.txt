@@ -45,6 +45,7 @@ set(INC
 	../../../intern/raskter
 	../../../intern/smoke/extern
 	../../../extern/libmv
+	../../../intern/atomic
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
