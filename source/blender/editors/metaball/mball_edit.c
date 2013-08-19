@@ -112,6 +112,8 @@ MetaElem *add_metaball_primitive(bContext *UNUSED(C), Object *obedit, float mat[
 	
 	ml = BKE_mball_element_add(mball, type);
 	ml->rad *= dia;
+	mball->wiresize *= dia;
+	mball->rendersize *= dia;
 	copy_v3_v3(&ml->x, mat[3]);
 
 	ml->flag |= SELECT;
