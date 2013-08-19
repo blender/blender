@@ -29,6 +29,8 @@
 #ifndef ATOMIC_OPS_H__
 #define ATOMIC_OPS_H__
 
+#include <assert.h>
+
 #if defined (__APPLE__)
 #  include <libkern/OSAtomic.h>
 #elif defined(_MSC_VER)
@@ -52,7 +54,7 @@
 
 #if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__)
 #  define LG_SIZEOF_PTR 3
-#  define LG_SIZEOF_INT 3
+#  define LG_SIZEOF_INT 2
 #else
 #  define LG_SIZEOF_PTR 2
 #  define LG_SIZEOF_INT 2
@@ -251,6 +253,8 @@ atomic_sub_uint32(uint32_t *p, uint32_t x)
 ATOMIC_INLINE size_t
 atomic_add_z(size_t *p, size_t x)
 {
+	assert(sizeof(size_t) == 1 << LG_SIZEOF_PTR);
+
 #if (LG_SIZEOF_PTR == 3)
 	return ((size_t)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
 #elif (LG_SIZEOF_PTR == 2)
@@ -261,6 +265,8 @@ atomic_add_z(size_t *p, size_t x)
 ATOMIC_INLINE size_t
 atomic_sub_z(size_t *p, size_t x)
 {
+	assert(sizeof(size_t) == 1 << LG_SIZEOF_PTR);
+
 #if (LG_SIZEOF_PTR == 3)
 	return ((size_t)atomic_add_uint64((uint64_t *)p,
 	    (uint64_t)-((int64_t)x)));
@@ -275,6 +281,8 @@ atomic_sub_z(size_t *p, size_t x)
 ATOMIC_INLINE unsigned
 atomic_add_u(unsigned *p, unsigned x)
 {
+	assert(sizeof(unsigned) == 1 << LG_SIZEOF_INT);
+
 #if (LG_SIZEOF_INT == 3)
 	return ((unsigned)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
 #elif (LG_SIZEOF_INT == 2)
@@ -285,6 +293,8 @@ atomic_add_u(unsigned *p, unsigned x)
 ATOMIC_INLINE unsigned
 atomic_sub_u(unsigned *p, unsigned x)
 {
+	assert(sizeof(unsigned) == 1 << LG_SIZEOF_INT);
+
 #if (LG_SIZEOF_INT == 3)
 	return ((unsigned)atomic_add_uint64((uint64_t *)p,
 	    (uint64_t)-((int64_t)x)));
