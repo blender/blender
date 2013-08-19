@@ -70,6 +70,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
+#include "BKE_colortools.h"
 
 #include "BIF_glutil.h"
 
@@ -3771,6 +3772,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 				brush = br;
 				cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
 				BKE_brush_size_set(scene, brush, size);
+				curvemapping_initialize(brush->curve);
 			}
 		}
 	}

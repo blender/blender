@@ -1022,6 +1022,7 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)
 	int half = side / 2;
 	int i, j;
 
+	curvemapping_initialize(br->curve);
 	texcache = BKE_brush_gen_texture_cache(br, half);
 	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
 	im->x = im->y = side;
