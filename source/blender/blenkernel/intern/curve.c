@@ -394,8 +394,34 @@ void BKE_curve_texspace_calc(Curve *cu)
 		if (cu->size[2] == 0.0f) cu->size[2] = 1.0f;
 		else if (cu->size[2] > 0.0f && cu->size[2] < 0.00001f) cu->size[2] = 0.00001f;
 		else if (cu->size[2] < 0.0f && cu->size[2] > -0.00001f) cu->size[2] = -0.00001f;
-
 	}
+
+	cu->bb->flag &= ~BOUNDBOX_DIRTY;
+}
+
+BoundBox *BKE_curve_boundbox_get(Object *ob)
+{
+	Curve *cu = ob->data;
+
+	if (ob->bb)
+		return ob->bb;
+
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+		BKE_curve_texspace_calc(cu);
+	}
+
+	return cu->bb;
+}
+
+void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+{
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+		BKE_curve_texspace_calc(cu);
+	}
+
+	if (r_loc) copy_v3_v3(r_loc,  cu->loc);
+	if (r_rot) copy_v3_v3(r_rot,  cu->rot);
+	if (r_size) copy_v3_v3(r_size, cu->size);
 }
 
 int BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])

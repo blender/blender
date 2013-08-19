@@ -2073,7 +2073,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				bb = *bb_tmp; /* must make a copy  */
 
 				/* disable boundbox check for list creation */
-				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+				BKE_object_boundbox_flag(dob->ob, BOUNDBOX_DISABLED, 1);
 				/* need this for next part of code */
 				unit_m4(dob->ob->obmat);    /* obmat gets restored */
 
@@ -2083,7 +2083,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				glEndList();
 
 				use_displist = true;
-				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				BKE_object_boundbox_flag(dob->ob, BOUNDBOX_DISABLED, 0);
 			}
 		}
 		if (use_displist) {
