@@ -658,7 +658,7 @@ void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
 	
 	BKE_boundbox_init_from_minmax(bb, min, max);
 
-	bb->flag &= ~BOUNDBOX_INVALID;
+	bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 void BKE_mesh_texspace_calc(Mesh *me)
@@ -688,7 +688,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 	if (ob->bb)
 		return ob->bb;
 
-	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_INVALID)) {
+	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(me);
 	}
 
@@ -697,7 +697,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 
 void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
 {
-	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_INVALID)) {
+	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(me);
 	}
 

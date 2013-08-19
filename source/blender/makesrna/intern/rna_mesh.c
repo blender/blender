@@ -575,7 +575,7 @@ static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
 {
 	Mesh *me = (Mesh *)ptr->data;
 
-	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_INVALID)) {
+	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(me);
 	}
 
@@ -586,7 +586,7 @@ static void rna_Mesh_texspace_loc_get(PointerRNA *ptr, float values[3])
 {
 	Mesh *me = (Mesh *)ptr->data;
 
-	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_INVALID)) {
+	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(me);
 	}
 

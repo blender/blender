@@ -391,7 +391,7 @@ void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
 
 	BKE_boundbox_init_from_minmax(bb, min, max);
 
-	bb->flag &= ~BOUNDBOX_INVALID;
+	bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 BoundBox *BKE_curve_boundbox_get(Object *ob)
@@ -401,7 +401,7 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
 	if (ob->bb)
 		return ob->bb;
 
-	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_INVALID)) {
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_curve_texspace_calc(cu);
 	}
 
@@ -430,7 +430,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 
 void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
 {
-	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_INVALID)) {
+	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_curve_texspace_calc(cu);
 	}
 
