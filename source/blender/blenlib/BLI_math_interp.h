@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef BLI_MATH_INTERP
-#define BLI_MATH_INTERP
+#ifndef __BLI_MATH_INTERP__
+#define __BLI_MATH_INTERP__
 
 void BLI_bicubic_interpolation_fl(const float *buffer, float *output, int width, int height,
                                   int components, float u, float v);
@@ -41,4 +41,4 @@ void BLI_bilinear_interpolation_fl(const float *buffer, float *output, int width
 void BLI_bilinear_interpolation_char(const unsigned char *buffer, unsigned char *output, int width, int height,
                                      int components, float u, float v);
 
-#endif
+#endif  /* __BLI_MATH_INTERP__ */

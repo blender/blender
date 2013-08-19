@@ -26,8 +26,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_OPS_H__
-#define ATOMIC_OPS_H__
+#ifndef __ATOMIC_OPS_H__
+#define __ATOMIC_OPS_H__
 
 #include <assert.h>
 
@@ -304,4 +304,4 @@ atomic_sub_u(unsigned *p, unsigned x)
 #endif
 }
 
-#endif /* ATOMIC_OPS_H__ */
+#endif /* __ATOMIC_OPS_H__ */

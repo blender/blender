@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef IMB_COLORMANAGEMENT_INTERN_H
-#define IMB_COLORMANAGEMENT_INTERN_H
+#ifndef __IMB_COLORMANAGEMENT_INTERN_H__
+#define __IMB_COLORMANAGEMENT_INTERN_H__
 
 #include "DNA_listBase.h"
 
@@ -97,4 +97,4 @@ void colorspace_set_default_role(char *colorspace, int size, int role);
 void colormanage_imbuf_set_default_spaces(struct ImBuf *ibuf);
 void colormanage_imbuf_make_linear(struct ImBuf *ibuf, const char *from_colorspace);
 
-#endif  /* IMB_COLORMANAGEMENT_INTERN_H */
+#endif  /* __IMB_COLORMANAGEMENT_INTERN_H__ */
