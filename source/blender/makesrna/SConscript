@@ -36,6 +36,7 @@ incs = [
     '.',
     './intern',
     '#/intern/guardedalloc',
+    '#/intern/atomic',
     '#/intern/memutil',
     '#/extern/glew/include',
     '#/intern/audaspace/intern',

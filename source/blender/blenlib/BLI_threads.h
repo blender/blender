@@ -50,6 +50,7 @@ struct ListBase;
 
 /*this is run once at startup*/
 void BLI_threadapi_init(void);
+void BLI_threadapi_exit(void);
 
 void    BLI_init_threads(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int     BLI_available_threads(struct ListBase *threadbase);

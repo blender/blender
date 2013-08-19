@@ -46,6 +46,7 @@ dna = env.Clone()
 makesdna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
+                                 '#/intern/atomic',
                                  '../../makesdna', '../../bmesh'])
 
 if env['OURPLATFORM'] == 'linuxcross':

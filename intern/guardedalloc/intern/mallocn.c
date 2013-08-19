@@ -53,6 +53,8 @@
 /* should always be defined except for experimental cases */
 #ifdef WITH_GUARDEDALLOC
 
+#include "atomic_ops.h"
+
 /* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
 #if defined(WIN64)
 #  define SIZET_FORMAT "%I64u"
@@ -210,8 +212,8 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 	
 
-static volatile int totblock = 0;
-static volatile uintptr_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
+static unsigned int totblock = 0;
+static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -493,23 +495,22 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 
 	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
 	memt->tag3 = MEMTAG3;
-	
+
+	atomic_add_u(&totblock, 1);
+	atomic_add_z(&mem_in_use, len);
+
+	mem_lock_thread();
 	addtail(membase, &memh->next);
 	if (memh->next) {
 		memh->nextname = MEMNEXT(memh->next)->name;
 	}
-	
-	totblock++;
-	mem_in_use += len;
-
 	peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
+	mem_unlock_thread();
 }
 
 void *MEM_mallocN(size_t len, const char *str)
 {
 	MemHead *memh;
-
-	mem_lock_thread();
 
 	len = (len + 3) & ~3;   /* allocate in units of 4 */
 	
@@ -517,7 +518,6 @@ void *MEM_mallocN(size_t len, const char *str)
 
 	if (memh) {
 		make_memhead_header(memh, len, str);
-		mem_unlock_thread();
 		if (malloc_debug_memset && len)
 			memset(memh + 1, 255, len);
 
@@ -528,7 +528,6 @@ void *MEM_mallocN(size_t len, const char *str)
 #endif
 		return (++memh);
 	}
-	mem_unlock_thread();
 	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
 	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
@@ -538,15 +537,12 @@ void *MEM_callocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
-	mem_lock_thread();
-
 	len = (len + 3) & ~3;   /* allocate in units of 4 */
 
 	memh = (MemHead *)calloc(len + sizeof(MemHead) + sizeof(MemTail), 1);
 
 	if (memh) {
 		make_memhead_header(memh, len, str);
-		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
 		if (_mallocn_count == DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise(__func__);
@@ -554,7 +550,6 @@ void *MEM_callocN(size_t len, const char *str)
 #endif
 		return (++memh);
 	}
-	mem_unlock_thread();
 	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
 	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
@@ -565,8 +560,6 @@ void *MEM_mapallocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
-	mem_lock_thread();
-	
 	len = (len + 3) & ~3;   /* allocate in units of 4 */
 
 	memh = mmap(NULL, len + sizeof(MemHead) + sizeof(MemTail),
@@ -575,7 +568,8 @@ void *MEM_mapallocN(size_t len, const char *str)
 	if (memh != (MemHead *)-1) {
 		make_memhead_header(memh, len, str);
 		memh->mmap = 1;
-		mmap_in_use += len;
+		atomic_add_z(&mmap_in_use, len);
+		mem_lock_thread();
 		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
@@ -586,7 +580,6 @@ void *MEM_mapallocN(size_t len, const char *str)
 		return (++memh);
 	}
 	else {
-		mem_unlock_thread();
 		print_error("Mapalloc returns null, fallback to regular malloc: "
 		            "len=" SIZET_FORMAT " in %s, total %u\n",
 		            SIZET_ARG(len), str, (unsigned int) mmap_in_use);
@@ -844,7 +837,6 @@ void MEM_freeN(void *vmemh)
 		return;
 	}
 
-	mem_lock_thread();
 	if ((memh->tag1 == MEMTAG1) &&
 	    (memh->tag2 == MEMTAG2) &&
 	    ((memh->len & 0x3) == 0))
@@ -858,8 +850,6 @@ void MEM_freeN(void *vmemh)
 			/* after tags !!! */
 			rem_memblock(memh);
 
-			mem_unlock_thread();
-
 			return;
 		}
 		MemorY_ErroR(memh->name, "end corrupt");
@@ -869,7 +859,9 @@ void MEM_freeN(void *vmemh)
 		}
 	}
 	else {
+		mem_lock_thread();
 		name = check_memlist(memh);
+		mem_unlock_thread();
 		if (name == NULL)
 			MemorY_ErroR("free", "pointer not in memlist");
 		else
@@ -878,8 +870,6 @@ void MEM_freeN(void *vmemh)
 
 	totblock--;
 	/* here a DUMP should happen */
-
-	mem_unlock_thread();
 
 	return;
 }
@@ -927,6 +917,7 @@ static void remlink(volatile localListBase *listbase, void *vlink)
 
 static void rem_memblock(MemHead *memh)
 {
+	mem_lock_thread();
 	remlink(membase, &memh->next);
 	if (memh->prev) {
 		if (memh->next)
@@ -934,9 +925,10 @@ static void rem_memblock(MemHead *memh)
 		else
 			MEMNEXT(memh->prev)->nextname = NULL;
 	}
+	mem_unlock_thread();
 
-	totblock--;
-	mem_in_use -= memh->len;
+	atomic_sub_u(&totblock, 1);
+	atomic_sub_z(&mem_in_use, memh->len);
 
 #ifdef DEBUG_MEMDUPLINAME
 	if (memh->need_free_name)
@@ -944,7 +936,7 @@ static void rem_memblock(MemHead *memh)
 #endif
 
 	if (memh->mmap) {
-		mmap_in_use -= memh->len;
+		atomic_sub_z(&mmap_in_use, memh->len);
 		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
 			printf("Couldn't unmap memory %s\n", memh->name);
 	}

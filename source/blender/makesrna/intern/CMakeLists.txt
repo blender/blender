@@ -276,6 +276,7 @@ blender_include_dirs(
 	../../../../intern/audaspace/intern
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
+	../../../../intern/atomic
 	../../../../intern/memutil
 	../../../../intern/smoke/extern
 )

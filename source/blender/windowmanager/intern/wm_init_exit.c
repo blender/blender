@@ -51,6 +51,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
@@ -509,6 +510,8 @@ void WM_exit_ext(bContext *C, const short do_python)
 #endif
 	
 	GHOST_DisposeSystemPaths();
+
+	BLI_threadapi_exit();
 
 	if (MEM_get_memory_blocks_in_use() != 0) {
 		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
