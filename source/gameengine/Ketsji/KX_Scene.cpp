@@ -445,7 +445,7 @@ void KX_Scene::AddObjectDebugProperties(class KX_GameObject* gameobj)
 	Object* blenderobject = gameobj->GetBlenderObject();
 	bProperty* prop = (bProperty*)blenderobject->prop.first;
 
-	while(prop) {
+	while (prop) {
 		if (prop->flag & PROP_DEBUG)
 			AddDebugProperty(gameobj,STR_String(prop->name));
 		prop = prop->next;

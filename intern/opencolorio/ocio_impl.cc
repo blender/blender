@@ -56,7 +56,7 @@ using namespace OCIO_NAMESPACE;
 #endif
 
 #define MEM_NEW(type) new(MEM_mallocN(sizeof(type), __func__)) type()
-#define MEM_DELETE(what, type) if(what) { ((type*)(what))->~type(); MEM_freeN(what); } (void)0
+#define MEM_DELETE(what, type) if (what) { ((type*)(what))->~type(); MEM_freeN(what); } (void)0
 
 static const int LUT3D_EDGE_SIZE = 32;
 

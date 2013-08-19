@@ -87,7 +87,7 @@ void SCA_IScene::AddDebugProperty(class CValue* debugprop,
 void SCA_IScene::RemoveObjectDebugProperties(class CValue* gameobj)
 {	
 	vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
-	while(it != m_debugList.end()) {
+	while (it != m_debugList.end()) {
 		CValue* debugobj = (*it)->m_obj;
 
 		if (debugobj == gameobj) {
