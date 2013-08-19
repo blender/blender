@@ -1527,6 +1527,14 @@ static bool snapEmpty(short snap_mode, ARegion *ar, Object *ob, float obmat[4][4
 	float ray_start_local[3], ray_normal_local[3];
 	bool retval = false;
 
+	if (ob->transflag & OB_DUPLI) {
+		return retval;
+	}
+	/* for now only vertex supported */
+	if (snap_mode != SCE_SNAP_MODE_VERTEX) {
+		return retval;
+	}
+
 	invert_m4_m4(imat, obmat);
 
 	copy_v3_v3(ray_start_local, ray_start);
@@ -1534,10 +1542,6 @@ static bool snapEmpty(short snap_mode, ARegion *ar, Object *ob, float obmat[4][4
 
 	mul_m4_v3(imat, ray_start_local);
 	mul_mat3_m4_v3(imat, ray_normal_local);
-
-	if (ob->transflag & OB_DUPLI) {
-		return retval;
-	}
 
 	switch (snap_mode) {
 		case SCE_SNAP_MODE_VERTEX:
