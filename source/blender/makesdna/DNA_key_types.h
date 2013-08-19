@@ -60,7 +60,6 @@ typedef struct KeyBlock {
 	int uid;           /* for meshes only, match the unique number with the customdata layer */
 	
 	void  *data;       /* array of shape key values, size is (Key->elemsize * KeyBlock->totelem) */
-	float *weights;    /* store an aligned array of weights from 'vgroup' */
 	char   name[64];   /* MAX_NAME (unique name, user assigned) */
 	char   vgroup[64]; /* MAX_VGROUP_NAME (optional vertex group), array gets allocated into 'weights' when set */
 

@@ -83,9 +83,6 @@ public:
 	virtual ~RAS_MeshObject();
 
 
-	// for shape keys, 
-	void CheckWeightCache(struct Object* obj);
-	
 	/* materials */
 	int					NumMaterials();
 	const STR_String&	GetMaterialName(unsigned int matid);

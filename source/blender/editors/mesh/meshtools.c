@@ -178,7 +178,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			if (kb->data) MEM_freeN(kb->data);
 			kb->data = MEM_callocN(sizeof(float) * 3 * totvert, "join_shapekey");
 			kb->totelem = totvert;
-			kb->weights = NULL;
 		}
 	}
 	else if (haskey) {
