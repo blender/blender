@@ -242,11 +242,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 		glColor4ub(255, 0, 0, 96);
 
 		for (i = sfra, a = 0; i <= efra; i++) {
-			int ok = FALSE;
+			bool ok = false;
 
 			while (a < n) {
 				if (cameras[a].framenr == i) {
-					ok = TRUE;
+					ok = true;
 					break;
 				}
 				else if (cameras[a].framenr > i) {
@@ -287,11 +287,11 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	char str[256] = {0};
-	int block = FALSE;
+	bool block = false;
 
 	if (tracking->stats) {
 		BLI_strncpy(str, tracking->stats->message, sizeof(str));
-		block = TRUE;
+		block = true;
 	}
 	else {
 		if (sc->flag & SC_LOCK_SELECTION)
