@@ -87,6 +87,26 @@ void    PIL_sleep_ms(int ms);
 		TIMEIT_END(id);                                                       \
 	} (void)0
 
+#define TIMEIT_BLOCK_INIT(what) \
+	double _timeit_var_##what = 0; \
+	(void) 0
+
+#define TIMEIT_BLOCK_BEGIN(what) \
+	{ \
+		double _timeit_block_start_##what = PIL_check_seconds_timer();  \
+		{ (void)0
+
+#define TIMEIT_BLOCK_END(what) \
+		} \
+		_timeit_var_##what += PIL_check_seconds_timer() - _timeit_block_start_##what; \
+	} (void)0
+
+#define TIMEIT_BLOCK_STATS(what) \
+	{ \
+		printf("%s time (in seconds): %f\n", #what, _timeit_var_##what); \
+		fflush(stdout); \
+	} (void)0
+
 #ifdef __cplusplus
 }
 #endif
