@@ -318,6 +318,8 @@ void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq
 void BKE_sequencer_update_muting(struct Editing *ed);
 void BKE_sequencer_update_sound(struct Scene *scene, struct bSound *sound);
 
+void BKE_sequencer_refresh_sound_length(struct Scene *scene);
+
 void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void BKE_sequence_base_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
 bool BKE_sequence_is_valid_check(struct Sequence *seq);

@@ -427,6 +427,8 @@ void sound_update_fps(struct Scene *scene)
 {
 	if (scene->sound_scene)
 		AUD_setSequencerFPS(scene->sound_scene, FPS);
+
+	BKE_sequencer_refresh_sound_length(scene);
 }
 
 void sound_update_scene_listener(struct Scene *scene)
