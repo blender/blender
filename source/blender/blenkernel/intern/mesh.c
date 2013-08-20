@@ -3667,7 +3667,7 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
 
 
 /* basic vertex data functions */
-int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
+bool BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 {
 	int i = me->totvert;
 	MVert *mvert;
@@ -3678,7 +3678,7 @@ int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 	return (me->totvert != 0);
 }
 
-int BKE_mesh_center_median(Mesh *me, float cent[3])
+bool BKE_mesh_center_median(Mesh *me, float cent[3])
 {
 	int i = me->totvert;
 	MVert *mvert;
@@ -3694,19 +3694,19 @@ int BKE_mesh_center_median(Mesh *me, float cent[3])
 	return (me->totvert != 0);
 }
 
-int BKE_mesh_center_bounds(Mesh *me, float cent[3])
+bool BKE_mesh_center_bounds(Mesh *me, float cent[3])
 {
 	float min[3], max[3];
 	INIT_MINMAX(min, max);
 	if (BKE_mesh_minmax(me, min, max)) {
 		mid_v3_v3v3(cent, min, max);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
-int BKE_mesh_center_centroid(Mesh *me, float cent[3])
+bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
 {
 	int i = me->totpoly;
 	MPoly *mpoly;
@@ -3726,6 +3726,11 @@ int BKE_mesh_center_centroid(Mesh *me, float cent[3])
 	/* otherwise we get NAN for 0 polys */
 	if (me->totpoly) {
 		mul_v3_fl(cent, 1.0f / total_area);
+	}
+
+	/* zero area faces cause this, fallback to median */
+	if (UNLIKELY(!is_finite_v3(cent))) {
+		return BKE_mesh_center_median(me, cent);
 	}
 
 	return (me->totpoly != 0);

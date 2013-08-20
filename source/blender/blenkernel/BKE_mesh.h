@@ -332,10 +332,10 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map, int **r_mem,
 
 /* vertex level transformations & checks (no derived mesh) */
 
-int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
-int BKE_mesh_center_median(struct Mesh *me, float cent[3]);
-int BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
-int BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
+bool BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
+bool BKE_mesh_center_median(struct Mesh *me, float cent[3]);
+bool BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
+bool BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 void BKE_mesh_translate(struct Mesh *me, const float offset[3], const bool do_keys);
 
 /* mesh_validate.c */
