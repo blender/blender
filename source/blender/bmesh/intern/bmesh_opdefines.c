@@ -1624,7 +1624,7 @@ static BMOpDefine bmo_inset_individual_def = {
 	 {{'\0'}},
 	},
 	bmo_inset_individual_exec,
-	BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+	BMO_OPTYPE_FLAG_NORMALS_CALC,  /* caller needs to handle BMO_OPTYPE_FLAG_SELECT_FLUSH */
 };
 
 /*
