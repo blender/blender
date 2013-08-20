@@ -70,7 +70,6 @@
 #ifdef WIN32
 #  include <io.h>
 #  include <direct.h>
-#  include <limits.h>  /* PATH_MAX */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
 #else
@@ -255,18 +254,11 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 				struct dirlink * dlink = (struct dirlink *) dirbase.first;
 				struct direntry *file = &dir_ctx->files[dir_ctx->nrfiles];
 				while (dlink) {
-#ifdef PATH_MAX
-					char static_fullname[PATH_MAX];
-					char *fullname = static_fullname;
-					size_t fullname_size = PATH_MAX;
-#else
-					size_t fullname_size = strlen(dirname) + strlen(dlink->name) + 2;
-					char *fullname = MEM_mallocN(fullname_size, "bli_builddir fullname");
-#endif
+					char fullname[PATH_MAX];
 					memset(file, 0, sizeof(struct direntry));
 					file->relname = dlink->name;
 					file->path = BLI_strdupcat(dirname, dlink->name);
-					BLI_join_dirfile(fullname, fullname_size, dirname, dlink->name);
+					BLI_join_dirfile(fullname, sizeof(fullname), dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test
 #ifdef WIN32
@@ -288,9 +280,6 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					dir_ctx->nrfiles++;
 					file++;
 					dlink = dlink->next;
-#ifndef PATH_MAX
-					MEM_freeN(fullname);
-#endif
 				}
 			}
 			else {

@@ -43,6 +43,12 @@ extern "C" {
 /* for size_t (needed on windows) */
 #include <stddef.h>
 
+#include <limits.h>  /* for PATH_MAX */
+
+#ifndef PATH_MAX
+#  define PATH_MAX 4096
+#endif
+
 struct gzFile;
 
 /* Common */

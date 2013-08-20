@@ -100,7 +100,6 @@ extern "C" {
 // not accepted by access() on windows
 //#  define	X_OK	1
 #  define	F_OK	0
-#  define	PATH_MAX 4096
 #endif
 
 #ifndef FREE_WINDOWS

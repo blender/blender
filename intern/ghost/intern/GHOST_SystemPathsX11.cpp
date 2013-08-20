@@ -42,7 +42,9 @@
 #include <cstdlib>   /* for exit */
 
 #include <pwd.h>     /* for get home without use getenv() */
-#include <limits.h>  /* for PATH_MAX */
+#include <string>
+
+using std::string;
 
 #ifdef PREFIX
 static const char *static_path = PREFIX "/share";
@@ -62,9 +64,8 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionst
 {
 	/* no prefix assumes a portable build which only uses bundled scripts */
 	if (static_path) {
-		static char system_path[PATH_MAX];
-		snprintf(system_path, sizeof(system_path), "%s/blender/%s", static_path, versionstr);
-		return (GHOST_TUns8 *)system_path;
+		static string system_path = string(static_path) + "/blender/" + versionstr;
+		return (GHOST_TUns8 *)system_path.c_str();
 	}
 
 	return NULL;
@@ -72,36 +73,41 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionst
 
 const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir(int version, const char *versionstr) const
 {
-	static char user_path[PATH_MAX];
+	static string user_path = "";
 
 	/* in blender 2.64, we migrate to XDG. to ensure the copy previous settings
 	 * operator works we give a different path depending on the requested version */
 	if (version < 264) {
-		const char *home = getenv("HOME");
+		if (user_path.empty()) {
+			const char *home = getenv("HOME");
 
-		if (home) {
-			snprintf(user_path, sizeof(user_path), "%s/.blender/%s", home, versionstr);
-			return (GHOST_TUns8 *)user_path;
+			if (home) {
+				user_path = string(home) + "/.blender/" + versionstr;
+			}
+			else {
+				return NULL;
+			}
 		}
-
-		return NULL;
+		return (GHOST_TUns8 *)user_path.c_str();
 	}
 	else {
-		const char *home = getenv("XDG_CONFIG_HOME");
+		if (user_path.empty()) {
+			const char *home = getenv("XDG_CONFIG_HOME");
 
-		if (home) {
-			snprintf(user_path, sizeof(user_path), "%s/blender/%s", home, versionstr);
+			if (home) {
+				user_path = string(home) + "/blender/" + versionstr;
+			}
+			else {
+				home = getenv("HOME");
+
+				if (home == NULL)
+					home = getpwuid(getuid())->pw_dir;
+
+				user_path = string(home) + "/.config/blender/" + versionstr;
+			}
 		}
-		else {
-			home = getenv("HOME");
 
-			if (home == NULL)
-				home = getpwuid(getuid())->pw_dir;
-
-			snprintf(user_path, sizeof(user_path), "%s/.config/blender/%s", home, versionstr);
-		}
-
-		return (const GHOST_TUns8 *)user_path;
+		return (const GHOST_TUns8 *)user_path.c_str();
 	}
 }
 
