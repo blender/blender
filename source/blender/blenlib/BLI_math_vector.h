@@ -196,18 +196,24 @@ void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
 
 /********************************* Comparison ********************************/
 
-MINLINE int is_zero_v3(const float a[3])  UNUSED_RESULT_ATTR;
-MINLINE int is_zero_v4(const float a[4])  UNUSED_RESULT_ATTR;
-MINLINE int is_one_v3(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE bool is_zero_v2(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE bool is_zero_v3(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE bool is_zero_v4(const float a[4])  UNUSED_RESULT_ATTR;
 
-MINLINE int equals_v2v2(const float v1[2], const float v2[2])  UNUSED_RESULT_ATTR;
-MINLINE int equals_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
-MINLINE int compare_v2v2(const float a[2], const float b[2], const float limit)  UNUSED_RESULT_ATTR;
-MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
-MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE bool is_finite_v2(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE bool is_finite_v3(const float a[3])  UNUSED_RESULT_ATTR;
+MINLINE bool is_finite_v4(const float a[4])  UNUSED_RESULT_ATTR;
 
-MINLINE int compare_v4v4(const float a[4], const float b[4], const float limit)  UNUSED_RESULT_ATTR;
-MINLINE int equals_v4v4(const float a[4], const float b[4])  UNUSED_RESULT_ATTR;
+MINLINE bool is_one_v3(const float a[3])  UNUSED_RESULT_ATTR;
+
+MINLINE bool equals_v2v2(const float v1[2], const float v2[2])  UNUSED_RESULT_ATTR;
+MINLINE bool equals_v3v3(const float a[3], const float b[3])  UNUSED_RESULT_ATTR;
+MINLINE bool compare_v2v2(const float a[2], const float b[2], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE bool compare_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE bool compare_len_v3v3(const float a[3], const float b[3], const float limit)  UNUSED_RESULT_ATTR;
+
+MINLINE bool compare_v4v4(const float a[4], const float b[4], const float limit)  UNUSED_RESULT_ATTR;
+MINLINE bool equals_v4v4(const float a[4], const float b[4])  UNUSED_RESULT_ATTR;
 
 MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])  UNUSED_RESULT_ATTR;
 
