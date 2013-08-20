@@ -875,7 +875,7 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 			i++;
 		} while ((l_iter = l_iter->next) != l_first);
 
-		/* pick 0/1 based on best lenth */
+		/* pick 0/1 based on best length */
 		/* XXX Can't only rely on such test, also must check we do not get (too much) degenerated triangles!!! */
 		i = (((len_squared_v3v3(larr[0]->v->co, larr[2]->v->co) >
 		     len_squared_v3v3(larr[1]->v->co, larr[3]->v->co) * bias)) != use_beauty);

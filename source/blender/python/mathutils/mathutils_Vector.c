@@ -1165,7 +1165,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(Vector_rotate_doc,
 ".. function:: rotate(other)\n"
 "\n"
-"   Return vector by a rotation value.\n"
+"   Rotate the vector by a rotation value.\n"
 "\n"
 "   :arg other: rotation component of mathutils value\n"
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"

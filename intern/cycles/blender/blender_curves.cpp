@@ -711,8 +711,6 @@ void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offs
 void BlenderSync::sync_curve_settings()
 {
 	PointerRNA csscene = RNA_pointer_get(&b_scene.ptr, "cycles_curves");
-	
-	int preset = CURVE_ACCURATE_PRESET;
 
 	CurveSystemManager *curve_system_manager = scene->curve_system_manager;
 	CurveSystemManager prev_curve_system_manager = *curve_system_manager;
