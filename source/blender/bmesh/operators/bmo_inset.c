@@ -126,6 +126,7 @@ static void bmo_face_inset_individual(
 	BMLoop *l_iter, *l_first;
 	BMLoop *l_other;
 	unsigned int i;
+	float e_length_prev;
 
 	l_first = BM_FACE_FIRST_LOOP(f);
 
@@ -184,6 +185,11 @@ static void bmo_face_inset_individual(
 	/* Calculate translation vector for new */
 	l_iter = l_first;
 	i = 0;
+
+	if (depth != 0.0f) {
+		e_length_prev = BM_edge_calc_length(l_iter->prev->e);
+	}
+
 	do {
 		const float *eno_prev = edge_nors[(i ? i : f->len) - 1];
 		const float *eno_next = edge_nors[i];
@@ -209,7 +215,15 @@ static void bmo_face_inset_individual(
 		/* Set normal, add depth and write new vertex position*/
 		copy_v3_v3(l_iter->v->no, f->no);
 
-		madd_v3_v3fl(v_new_co, f->no, depth);
+		if (depth != 0.0f) {
+			const float e_length = BM_edge_calc_length(l_iter->e);
+			const float fac = depth * (use_relative_offset ? ((e_length_prev + e_length) * 0.5f) : 1.0f);
+			e_length_prev = e_length;
+
+			madd_v3_v3fl(v_new_co, f->no, fac);
+		}
+
+
 
 		copy_v3_v3(coords[i], v_new_co);
 	} while (i++, ((l_iter = l_iter->next) != l_first));
@@ -337,6 +351,27 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 	else {
 		return NULL;
 	}
+}
+
+static float bm_edge_info_average_length(BMVert *v, SplitEdgeInfo *edge_info)
+{
+	BMIter iter;
+	BMEdge *e;
+
+	float len = 0.0f;
+	int tot = 0;
+
+
+	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+		const int i = BM_elem_index_get(e);
+		if (i != -1) {
+			len += edge_info[i].length;
+			tot++;
+		}
+	}
+
+	BLI_assert(tot != 0);
+	return len / (float)tot;
 }
 
 /**
@@ -883,7 +918,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
-				                   (use_relative_offset ? BM_vert_calc_mean_tagged_edge_length(v) : 1.0f) *
+				                   (use_relative_offset ? bm_edge_info_average_length(v, edge_info) : 1.0f) *
 				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
