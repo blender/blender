@@ -350,6 +350,7 @@ typedef struct TransInfo {
 	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
 	struct wmKeyMap *keymap;  /* so we can do lookups for header text */
+	struct ReportList *reports;  /* assign from the operator, or can be NULL */
 	int         mval[2];        /* current mouse position               */
 	float       zfac;           /* use for 3d view */
 	struct Object *obedit;

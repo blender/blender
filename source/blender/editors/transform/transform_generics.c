@@ -1063,6 +1063,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	t->ar = ar;
 	t->obedit = obedit;
 	t->settings = ts;
+	t->reports = op ? op->reports : NULL;
 
 	if (obedit) {
 		copy_m3_m4(t->obedit_mat, obedit->obmat);

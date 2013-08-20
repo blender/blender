@@ -275,6 +275,13 @@ static void createTransTexspace(TransInfo *t)
 
 	id = ob->data;
 	if (id == NULL || !ELEM3(GS(id->name), ID_ME, ID_CU, ID_MB)) {
+		BKE_report(t->reports, RPT_ERROR, "Unsupported object type for text-space transform");
+		t->total = 0;
+		return;
+	}
+
+	if (BKE_object_obdata_is_libdata(ob)) {
+		BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
 		t->total = 0;
 		return;
 	}
@@ -990,8 +997,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE) == 0) {
-			// XXX use transform operator reports
-			// BKE_report(op->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
+			BKE_report(t->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
 			return;
 		}
 	}
@@ -1031,8 +1037,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	}
 
 	if (td != (t->data + t->total)) {
-		// XXX use transform operator reports
-		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error");
+		BKE_report(t->reports, RPT_DEBUG, "Bone selection count error");
 	}
 
 	/* initialize initial auto=ik chainlen's? */
