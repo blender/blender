@@ -782,6 +782,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_view_all(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View All";
 	ot->idname = "CLIP_OT_view_all";
@@ -792,7 +794,8 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+	prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** view selected operator *********************/
