@@ -83,8 +83,8 @@ public:
 
 	//Python Interface
 	enum RayAxis {
-		KX_RAY_AXIS_POS_Y = 0,
-		KX_RAY_AXIS_POS_X,
+		KX_RAY_AXIS_POS_X = 0,
+		KX_RAY_AXIS_POS_Y,
 		KX_RAY_AXIS_POS_Z,
 		KX_RAY_AXIS_NEG_X,
 		KX_RAY_AXIS_NEG_Y,
