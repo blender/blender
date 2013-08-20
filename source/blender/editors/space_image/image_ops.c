@@ -646,12 +646,13 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
  * Default behavior is to reset the position of the image and set the zoom to 1
  * If the image will not fit within the window rectangle, the zoom is adjusted */
 
-static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima;
 	ARegion *ar;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
+	int fit_view = RNA_boolean_get(op->ptr, "fit_view");
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
@@ -667,14 +668,25 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	width  = BLI_rcti_size_x(&ar->winrct) + 1;
 	height = BLI_rcti_size_y(&ar->winrct) + 1;
 
-	if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-		/* find the zoom value that will fit the image in the image space */
-		zoomx = width / w;
-		zoomy = height / h;
-		sima_zoom_set(sima, ar, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
+	if (fit_view) {
+		const int margin = 5; /* margin from border */
+
+		zoomx = (float) width / (w + 2 * margin);
+		zoomy = (float) height / (h + 2 * margin);
+
+		sima_zoom_set(sima, ar, min_ff(zoomx, zoomy), NULL);
 	}
-	else
-		sima_zoom_set(sima, ar, 1.0f, NULL);
+	else {
+		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
+			zoomx = (float) width / w;
+			zoomy = (float) height / h;
+
+			/* find the zoom value that will fit the image in the image space */
+			sima_zoom_set(sima, ar, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
+		}
+		else
+			sima_zoom_set(sima, ar, 1.0f, NULL);
+	}
 
 	sima->xof = sima->yof = 0.0f;
 
@@ -685,6 +697,8 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_view_all(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View All";
 	ot->idname = "IMAGE_OT_view_all";
@@ -693,6 +707,10 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = image_view_all_exec;
 	ot->poll = space_image_main_area_poll;
+
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** view selected operator *********************/
