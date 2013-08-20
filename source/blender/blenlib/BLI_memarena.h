@@ -93,10 +93,14 @@ __attribute__((alloc_size(2)))
 #endif
 ;
 
+void BLI_memarena_clear(MemArena *ma)
+#if MEM_GNU_ATTRIBUTES
+__attribute__((nonnull(1)))
+#endif
+;
+
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif
-
+#endif  /* __BLI_MEMARENA_H__ */

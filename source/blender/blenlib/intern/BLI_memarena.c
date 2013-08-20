@@ -30,6 +30,8 @@
  *  \ingroup bli
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_memarena.h"
@@ -89,6 +91,16 @@ void BLI_memarena_free(MemArena *ma)
 /* amt must be power of two */
 #define PADUP(num, amt) (((num) + ((amt) - 1)) & ~((amt) - 1))
 
+/* align alloc'ed memory (needed if align > 8) */
+static void memarena_curbuf_align(MemArena *ma)
+{
+	unsigned char *tmp;
+
+	tmp = (unsigned char *)PADUP( (intptr_t) ma->curbuf, ma->align);
+	ma->cursize -= (int)(tmp - ma->curbuf);
+	ma->curbuf = tmp;
+}
+
 void *BLI_memarena_alloc(MemArena *ma, int size)
 {
 	void *ptr;
@@ -98,8 +110,6 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 	size = PADUP(size, ma->align);
 
 	if (size > ma->cursize) {
-		unsigned char *tmp;
-
 		if (size > ma->bufsize - (ma->align - 1)) {
 			ma->cursize = PADUP(size + 1, ma->align);
 		}
@@ -112,11 +122,7 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 			ma->curbuf = MEM_mallocN((size_t)ma->cursize, ma->name);
 
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
-
-		/* align alloc'ed memory (needed if align > 8) */
-		tmp = (unsigned char *)PADUP( (intptr_t) ma->curbuf, ma->align);
-		ma->cursize -= (int)(tmp - ma->curbuf);
-		ma->curbuf = tmp;
+		memarena_curbuf_align(ma);
 	}
 
 	ptr = ma->curbuf;
@@ -124,4 +130,33 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 	ma->cursize -= size;
 
 	return ptr;
+}
+
+/**
+ * Clear for reuse, avoids re-allocation when an arena may
+ * otherwise be free'd and recreated.
+ */
+void BLI_memarena_clear(MemArena *ma)
+{
+	if (ma->bufs) {
+		unsigned char *curbuf_prev;
+		int curbuf_used;
+
+		if (ma->bufs->next) {
+			BLI_linklist_freeN(ma->bufs->next);
+			ma->bufs->next = NULL;
+		}
+
+		curbuf_prev = ma->curbuf;
+		ma->curbuf = ma->bufs->link;
+		memarena_curbuf_align(ma);
+
+		/* restore to original size */
+		curbuf_used = (int)(curbuf_prev - ma->curbuf);
+		ma->cursize += curbuf_used;
+
+		if (ma->use_calloc) {
+			memset(ma->curbuf, 0, (size_t)curbuf_used);
+		}
+	}
 }
