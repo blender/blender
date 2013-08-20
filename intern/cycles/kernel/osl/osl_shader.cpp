@@ -189,6 +189,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_EMISSION_ID;
+					sc.data0 = 0.0f;
+					sc.data1 = 0.0f;
 					sc.prim = NULL;
 
 					/* flag */
@@ -204,6 +206,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_AMBIENT_OCCLUSION_ID;
+					sc.data0 = 0.0f;
+					sc.data1 = 0.0f;
 					sc.prim = NULL;
 
 					if(sd->num_closure < MAX_CLOSURE) {
@@ -215,6 +219,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 				case OSL::ClosurePrimitive::Holdout: {
 					sc.sample_weight = 0.0f;
 					sc.type = CLOSURE_HOLDOUT_ID;
+					sc.data0 = 0.0f;
+					sc.data1 = 0.0f;
 					sc.prim = NULL;
 
 					if(sd->num_closure < MAX_CLOSURE) {

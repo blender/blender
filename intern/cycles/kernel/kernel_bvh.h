@@ -782,6 +782,7 @@ __device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inters
 
 #if defined(__SUBSURFACE__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface
+#define BVH_FUNCTION_FEATURES 0
 #include "kernel_bvh_subsurface.h"
 #endif
 
