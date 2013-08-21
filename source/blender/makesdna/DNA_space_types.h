@@ -132,8 +132,9 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser; /* context tabs */
 	short re_align, align;          /* align for panels */
 	short preview;                  /* preview is signal to refresh */
-	short texture_context;          /* texture context selector (material, world, brush)*/
-	char flag, pad;
+	/* texture context selector (material, lamp, particles, world, other)*/
+	short texture_context, texture_context_prev;
+	char flag, pad[7];
 	
 	void *path;                     /* runtime */
 	int pathflag, dataicon;         /* runtime */
