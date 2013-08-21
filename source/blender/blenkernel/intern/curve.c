@@ -225,6 +225,8 @@ Curve *BKE_curve_copy(Curve *cu)
 	cun->key = BKE_key_copy(cu->key);
 	if (cun->key) cun->key->from = (ID *)cun;
 
+	cun->disp.first = cun->disp.last = NULL;
+
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
 	cun->selboxes = NULL;
