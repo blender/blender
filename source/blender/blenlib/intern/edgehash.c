@@ -160,9 +160,11 @@ static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, v
 EdgeHash *BLI_edgehash_new(void)
 {
 	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
-	eh->cursize = 0;
+
+	eh->nbuckets = _ehash_hashsizes[0];  /* eh->cursize */
 	eh->nentries = 0;
-	eh->nbuckets = _ehash_hashsizes[eh->cursize];
+	eh->cursize = 0;
+	eh->flag = 0;
 
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
 	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);

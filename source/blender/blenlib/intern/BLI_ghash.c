@@ -150,15 +150,17 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
+
 	gh->hashfp = hashfp;
 	gh->cmpfp = cmpfp;
-	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 0);
 
-	gh->cursize = 0;
+	gh->nbuckets = hashsizes[0];  /* gh->cursize */
 	gh->nentries = 0;
-	gh->nbuckets = hashsizes[gh->cursize];
+	gh->cursize = 0;
+	gh->flag = 0;
 
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 0);
 
 	return gh;
 }
