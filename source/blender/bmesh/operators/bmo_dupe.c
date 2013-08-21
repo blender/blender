@@ -156,7 +156,7 @@ static BMFace *copy_face(BMOperator *op,
 	}
 
 	/* create new face */
-	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, source_face, BM_CREATE_SKIP_CD);
+	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, source_face, BM_CREATE_NOP);
 	BMO_slot_map_elem_insert(op, slot_facemap_out, source_face, target_face);
 	BMO_slot_map_elem_insert(op, slot_facemap_out, target_face, source_face);
 
