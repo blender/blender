@@ -128,52 +128,45 @@ static BMEdge *copy_edge(BMOperator *op,
  */
 static BMFace *copy_face(BMOperator *op,
                          BMOpSlot *slot_facemap_out,
-                         BMesh *source_mesh,
-                         BMFace *source_face, BMesh *target_mesh,
+                         BMesh *bm_dst, BMesh *bm_src,
+                         BMFace *source_face,
                          GHash *vhash, GHash *ehash)
 {
 	/* BMVert *target_vert1, *target_vert2; */ /* UNUSED */
 	BMVert **vtar = BLI_array_alloca(vtar, source_face->len);
 	BMEdge **edar = BLI_array_alloca(edar, source_face->len);
-	BMLoop *source_loop, *target_loop;
-	BMFace *target_face = NULL;
-	BMIter iter, iter2;
+	BMLoop *l_iter_src, *l_iter_dst, *l_first_src;
+	BMFace *f_dst = NULL;
 	int i;
-	
-	/* lookup the first and second vert */
-#if 0 /* UNUSED */
-	target_vert1 = BLI_ghash_lookup(vhash, BM_iter_new(&iter, source_mesh, BM_VERTS_OF_FACE, source_face));
-	target_vert2 = BLI_ghash_lookup(vhash, BM_iter_step(&iter));
-#else
-	BM_iter_new(&iter, source_mesh, BM_VERTS_OF_FACE, source_face);
-	BM_iter_step(&iter);
-#endif
+
+	l_first_src = BM_FACE_FIRST_LOOP(source_face);
 
 	/* lookup edge */
-	BM_ITER_ELEM_INDEX (source_loop, &iter, source_face, BM_LOOPS_OF_FACE, i) {
-		vtar[i] = BLI_ghash_lookup(vhash, source_loop->v);
-		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
-	}
+	l_iter_src = l_first_src;
+	i = 0;
+	do {
+		vtar[i] = BLI_ghash_lookup(vhash, l_iter_src->v);
+		edar[i] = BLI_ghash_lookup(ehash, l_iter_src->e);
+		i++;
+	} while ((l_iter_src = l_iter_src->next) != l_first_src);
 
 	/* create new face */
-	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, source_face, BM_CREATE_NOP);
-	BMO_slot_map_elem_insert(op, slot_facemap_out, source_face, target_face);
-	BMO_slot_map_elem_insert(op, slot_facemap_out, target_face, source_face);
+	f_dst = BM_face_create(bm_dst, vtar, edar, source_face->len, source_face, BM_CREATE_NOP);
+	BMO_slot_map_elem_insert(op, slot_facemap_out, source_face, f_dst);
+	BMO_slot_map_elem_insert(op, slot_facemap_out, f_dst, source_face);
 
 	/* mark the face for output */
-	BMO_elem_flag_enable(target_mesh, target_face, DUPE_NEW);
+	BMO_elem_flag_enable(bm_dst, f_dst, DUPE_NEW);
 	
 	/* copy per-loop custom data */
-	BM_ITER_ELEM (source_loop, &iter, source_face, BM_LOOPS_OF_FACE) {
-		BM_ITER_ELEM (target_loop, &iter2, target_face, BM_LOOPS_OF_FACE) {
-			if (BLI_ghash_lookup(vhash, source_loop->v) == target_loop->v) {
-				BM_elem_attrs_copy(source_mesh, target_mesh, source_loop, target_loop);
-				break;
-			}
-		}
-	}
+	l_iter_src = l_first_src;
+	l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
+	do {
+		BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
+	} while ((l_iter_dst = l_iter_dst->next),
+	         (l_iter_src = l_iter_src->next) != l_first_src);
 
-	return target_face;
+	return f_dst;
 }
 
 /**
@@ -272,7 +265,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 				}
 			}
 
-			copy_face(op, slot_face_map_out, bm_src, f, bm_dst, vhash, ehash);
+			copy_face(op, slot_face_map_out, bm_dst, bm_src, f, vhash, ehash);
 			BMO_elem_flag_enable(bm_src, f, DUPE_DONE);
 		}
 	}
