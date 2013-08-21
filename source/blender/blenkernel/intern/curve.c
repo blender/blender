@@ -145,6 +145,7 @@ void BKE_curve_editNurb_free(Curve *cu)
 void BKE_curve_free(Curve *cu)
 {
 	BKE_nurbList_free(&cu->nurb);
+	BKE_displist_free(&cu->disp);
 	BKE_curve_editfont_free(cu);
 
 	BKE_curve_editNurb_free(cu);
@@ -364,39 +365,29 @@ void BKE_curve_type_test(Object *ob)
 		BKE_curve_curve_dimension_update((Curve *)ob->data);
 }
 
-void BKE_curve_texspace_calc(Curve *cu)
+void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
 {
-	BoundBox *bb = cu->bb;
+	BoundBox *bb;
 	float min[3], max[3];
+	float mloc[3], msize[3];
 
-	/* Curve's undeformed bounding box is calculated in displist.c,
-	 * as a part of display list calculation.
-	 */
-	copy_v3_v3(min, bb->vec[0]);
-	copy_v3_v3(max, bb->vec[6]);
+	if (cu->bb == NULL) cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+	bb = cu->bb;
 
-	if (cu->texflag & CU_AUTOSPACE) {
-		mid_v3_v3v3(cu->loc, min, max);
-		cu->size[0] = (max[0] - min[0]) / 2.0f;
-		cu->size[1] = (max[1] - min[1]) / 2.0f;
-		cu->size[2] = (max[2] - min[2]) / 2.0f;
+	if (!r_loc) r_loc = mloc;
+	if (!r_size) r_size = msize;
 
-		zero_v3(cu->rot);
+	INIT_MINMAX(min, max);
+	BKE_displist_minmax(&cu->disp, min, max);
+	mid_v3_v3v3(r_loc, min, max);
 
-		if (cu->size[0] == 0.0f) cu->size[0] = 1.0f;
-		else if (cu->size[0] > 0.0f && cu->size[0] < 0.00001f) cu->size[0] = 0.00001f;
-		else if (cu->size[0] < 0.0f && cu->size[0] > -0.00001f) cu->size[0] = -0.00001f;
+	r_size[0] = (max[0] - min[0]) / 2.0f;
+	r_size[1] = (max[1] - min[1]) / 2.0f;
+	r_size[2] = (max[2] - min[2]) / 2.0f;
 
-		if (cu->size[1] == 0.0f) cu->size[1] = 1.0f;
-		else if (cu->size[1] > 0.0f && cu->size[1] < 0.00001f) cu->size[1] = 0.00001f;
-		else if (cu->size[1] < 0.0f && cu->size[1] > -0.00001f) cu->size[1] = -0.00001f;
+	BKE_boundbox_init_from_minmax(bb, min, max);
 
-		if (cu->size[2] == 0.0f) cu->size[2] = 1.0f;
-		else if (cu->size[2] > 0.0f && cu->size[2] < 0.00001f) cu->size[2] = 0.00001f;
-		else if (cu->size[2] < 0.0f && cu->size[2] > -0.00001f) cu->size[2] = -0.00001f;
-	}
-
-	cu->bb->flag &= ~BOUNDBOX_DIRTY;
+	bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 BoundBox *BKE_curve_boundbox_get(Object *ob)
@@ -411,6 +402,26 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
 	}
 
 	return cu->bb;
+}
+
+void BKE_curve_texspace_calc(Curve *cu)
+{
+	float loc[3], size[3];
+	int a;
+
+	BKE_curve_boundbox_calc(cu, loc, size);
+
+	if (cu->texflag & CU_AUTOSPACE) {
+		for (a = 0; a < 3; a++) {
+			if (size[a] == 0.0f) size[a] = 1.0f;
+			else if (size[a] > 0.0f && size[a] < 0.00001f) size[a] = 0.00001f;
+			else if (size[a] < 0.0f && size[a] > -0.00001f) size[a] = -0.00001f;
+		}
+
+		copy_v3_v3(cu->loc, loc);
+		copy_v3_v3(cu->size, size);
+		zero_v3(cu->rot);
+	}
 }
 
 void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
