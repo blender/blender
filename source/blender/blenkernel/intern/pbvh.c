@@ -229,9 +229,10 @@ void pbvh_grow_nodes(PBVH *bvh, int totnode)
 		bvh->node_mem_count *= 1.33;
 		if (bvh->node_mem_count < totnode)
 			bvh->node_mem_count = totnode;
-		bvh->nodes = MEM_callocN(sizeof(PBVHNode) * bvh->node_mem_count,
+		bvh->nodes = MEM_mallocN(sizeof(PBVHNode) * bvh->node_mem_count,
 		                         "bvh nodes");
 		memcpy(bvh->nodes, prev, bvh->totnode * sizeof(PBVHNode));
+		memset(bvh->nodes + bvh->totnode, 0, (bvh->node_mem_count - bvh->totnode) * sizeof(PBVHNode));
 		MEM_freeN(prev);
 	}
 
