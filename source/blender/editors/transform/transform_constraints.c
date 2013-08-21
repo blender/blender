@@ -727,6 +727,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		float tmat[4][4], imat[4][4];
 		float center[3];
+		int depth_test_enabled;
 
 		UI_ThemeColor(TH_GRID);
 
@@ -759,9 +760,16 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			glScalef(1.0f / aspx, 1.0f / aspy, 1.0);
 		}
 
+		depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+		if (depth_test_enabled)
+			glDisable(GL_DEPTH_TEST);
+
 		set_inverted_drawing(1);
 		drawcircball(GL_LINE_LOOP, center, t->prop_size, imat);
 		set_inverted_drawing(0);
+
+		if (depth_test_enabled)
+			glEnable(GL_DEPTH_TEST);
 
 		glPopMatrix();
 	}
