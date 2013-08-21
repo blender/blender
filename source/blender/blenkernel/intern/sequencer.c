@@ -3679,7 +3679,8 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
 
 /* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
 #ifdef WITH_AUDASPACE
-static bool sequencer_refresh_sound_length_recursive(Scene *scene, ListBase *seqbase) {
+static bool sequencer_refresh_sound_length_recursive(Scene *scene, ListBase *seqbase)
+{
 	Sequence *seq;
 	bool changed = false;
 

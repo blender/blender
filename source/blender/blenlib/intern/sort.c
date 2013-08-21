@@ -55,12 +55,12 @@ BLI_INLINE void	 swapfunc(char *, char *, int, int);
 #define SWAPINIT(a, es) swaptype = ((char *)a - (char *)0) % sizeof(long) || \
 	es % sizeof(long) ? 2 : es == sizeof(long)? 0 : 1;
 
-BLI_INLINE void swapfunc(char* a, char* b, int n, int swaptype)
+BLI_INLINE void swapfunc(char *a, char *b, int n, int swaptype)
 {
-	if(swaptype <= 1)
+	if (swaptype <= 1)
 		swapcode(long, a, b, n)
 	else
-	swapcode(char, a, b, n)
+		swapcode(char, a, b, n)
 }
 
 #define swap(a, b)					\
@@ -90,11 +90,14 @@ loop:
 	SWAPINIT(a, es);
 	swap_cnt = 0;
 	if (n < 7) {
-		for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es)
+		for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es) {
 			for (pl = pm;
-				pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
-				pl -= es)
+			     pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
+			     pl -= es)
+			{
 				swap(pl, pl - es);
+			}
+		}
 		return;
 	}
 	pm = (char *)a + (n / 2) * es;
@@ -138,11 +141,14 @@ loop:
 		pc -= es;
 	}
 	if (swap_cnt == 0) {  /* Switch to insertion sort */
-		for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es)
+		for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es) {
 			for (pl = pm;
-				pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
-				pl -= es)
+			     pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
+			     pl -= es)
+			{
 				swap(pl, pl - es);
+			}
+		}
 		return;
 	}
 

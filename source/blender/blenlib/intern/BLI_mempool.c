@@ -263,7 +263,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		BLI_mempool_chunk *chunk;
 		bool found = false;
 		for (chunk = pool->chunks.first; chunk; chunk = chunk->next) {
-			if ((char*)addr >= (char*)chunk->data && (char*)addr < (char*)chunk->data + pool->csize) {
+			if (ARRAY_HAS_ITEM((char *)addr, (char *)chunk->data, pool->csize)) {
 				found = true;
 				break;
 			}

@@ -1147,9 +1147,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	uiBlockSetEmboss(block, UI_EMBOSS);
-	
+
 	/* name */
-	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco + 0.5f*UI_UNIT_X, yco, 5 * UI_UNIT_X, 0.9f*UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr,
+	         xco + 0.5f * UI_UNIT_X, yco, 5 * UI_UNIT_X, 0.9f * UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
 	if (con->flag & CONSTRAINT_DISABLE)
 		uiLayoutSetRedAlert(row, TRUE);
