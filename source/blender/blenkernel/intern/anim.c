@@ -493,7 +493,6 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	BevList *bl;
 	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
 	PathPoint *pp;
-	Curve *cu;
 	Nurb *nu;
 	Path *path;
 	float *fp, *dist, *maxdist, xyz[3];
@@ -506,7 +505,6 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	if (ob == NULL || ob->type != OB_CURVE) {
 		return;
 	}
-	cu = ob->data;
 
 	if (ob->curve_cache->path) free_path(ob->curve_cache->path);
 	ob->curve_cache->path = NULL;
