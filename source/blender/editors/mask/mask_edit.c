@@ -417,6 +417,9 @@ void ED_operatortypes_mask(void)
 
 	/* layers */
 	WM_operatortype_append(MASK_OT_layer_move);
+
+	/* duplicate */
+	WM_operatortype_append(MASK_OT_duplicate);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
@@ -500,6 +503,9 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_clear", IKEY, KM_PRESS, KM_ALT, 0);
 
+	/* duplicate */
+	WM_keymap_add_item(keymap, "MASK_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
+
 	/* for image editor only */
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
@@ -514,7 +520,6 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 
 void ED_operatormacros_mask(void)
 {
-	/* XXX: just for sample */
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 
@@ -531,4 +536,11 @@ void ED_operatormacros_mask(void)
 	WM_operatortype_macro_define(ot, "MASK_OT_add_feather_vertex");
 	otmacro = WM_operatortype_macro_define(ot, "MASK_OT_slide_point");
 	RNA_boolean_set(otmacro->ptr, "slide_feather", TRUE);
+
+	ot = WM_operatortype_append_macro("MASK_OT_duplicate_move", "Add Duplicate", "Duplicate mask and move",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MASK_OT_duplicate");
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 }
