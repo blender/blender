@@ -177,11 +177,8 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 /**
  * Assign a new value to a key that may already be in ghash.
  * Avoids #BLI_ghash_remove, #BLI_ghash_insert calls (double lookups)
- *
- * \note We may want to have 'BLI_ghash_assign_ex' function that takes
- * GHashKeyFreeFP & GHashValFreeFP args. for now aren't needed.
  */
-void BLI_ghash_assign(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+void BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	Entry *e = ghash_lookup_entry_ex(gh, key, hash);

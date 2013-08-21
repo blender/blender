@@ -3208,7 +3208,7 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 	if (prop->identifier) {
 		if (cont->prophash) {
 			prop->identifier = BLI_strdup(prop->identifier);
-			BLI_ghash_assign(cont->prophash, (void *)prop->identifier, prop, NULL, NULL);
+			BLI_ghash_reinsert(cont->prophash, (void *)prop->identifier, prop, NULL, NULL);
 		}
 		else {
 			prop->identifier = BLI_strdup(prop->identifier);

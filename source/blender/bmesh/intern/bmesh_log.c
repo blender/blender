@@ -118,8 +118,8 @@ static void bm_log_vert_id_set(BMLog *log, BMVert *v, unsigned int id)
 {
 	void *vid = SET_INT_IN_POINTER(id);
 	
-	BLI_ghash_assign(log->id_to_elem, vid, v, NULL, NULL);
-	BLI_ghash_assign(log->elem_to_id, v, vid, NULL, NULL);
+	BLI_ghash_reinsert(log->id_to_elem, vid, v, NULL, NULL);
+	BLI_ghash_reinsert(log->elem_to_id, v, vid, NULL, NULL);
 }
 
 /* Get a vertex from its unique ID */
@@ -142,8 +142,8 @@ static void bm_log_face_id_set(BMLog *log, BMFace *f, unsigned int id)
 {
 	void *fid = SET_INT_IN_POINTER(id);
 
-	BLI_ghash_assign(log->id_to_elem, fid, f, NULL, NULL);
-	BLI_ghash_assign(log->elem_to_id, f, fid, NULL, NULL);
+	BLI_ghash_reinsert(log->id_to_elem, fid, f, NULL, NULL);
+	BLI_ghash_reinsert(log->elem_to_id, f, fid, NULL, NULL);
 }
 
 /* Get a face from its unique ID */
