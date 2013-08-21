@@ -369,6 +369,32 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
+/**
+ * Wrapper for #BM_face_create when you don't have an edge array
+ */
+BMFace *BM_face_create_verts(BMesh *bm, BMVert **vert_arr, const int len, const eBMCreateFlag create_flag,
+                             const bool create_edges)
+{
+	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
+	int i, i_prev = len - 1;
+
+	if (create_edges) {
+		for (i = 0; i < len; i++) {
+			edge_arr[i_prev] = BM_edge_create(bm, vert_arr[i_prev], vert_arr[i], NULL, BM_CREATE_NO_DOUBLE);
+			i_prev = i;
+		}
+	}
+	else {
+		edge_arr[i] = BM_edge_exists(vert_arr[i_prev], vert_arr[i]);
+		if (edge_arr[i] == NULL) {
+			return NULL;
+		}
+		i_prev = i;
+	}
+
+	return BM_face_create(bm, vert_arr, edge_arr, len, create_flag);
+}
+
 #ifndef NDEBUG
 
 /**

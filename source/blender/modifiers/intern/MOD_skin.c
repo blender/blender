@@ -933,7 +933,6 @@ static void add_poly(SkinOutput *so,
                      BMVert *v4)
 {
 	BMVert *verts[4] = {v1, v2, v3, v4};
-	BMEdge *edges[4];
 	BMFace *f;
 	
 	BLI_assert(v1 != v2 && v1 != v3 && v1 != v4);
@@ -941,18 +940,7 @@ static void add_poly(SkinOutput *so,
 	BLI_assert(v3 != v4);
 	BLI_assert(v1 && v2 && v3);
 
-	edges[0] = BM_edge_create(so->bm, v1, v2, NULL, BM_CREATE_NO_DOUBLE);
-	edges[1] = BM_edge_create(so->bm, v2, v3, NULL, BM_CREATE_NO_DOUBLE);
-	if (v4) {
-		edges[2] = BM_edge_create(so->bm, v3, v4, NULL, BM_CREATE_NO_DOUBLE);
-		edges[3] = BM_edge_create(so->bm, v4, v1, NULL, BM_CREATE_NO_DOUBLE);
-	}
-	else {
-		edges[2] = BM_edge_create(so->bm, v3, v1, NULL, BM_CREATE_NO_DOUBLE);
-		edges[3] = NULL;
-	}
-
-	f = BM_face_create(so->bm, verts, edges, v4 ? 4 : 3, BM_CREATE_NO_DOUBLE);
+	f = BM_face_create_verts(so->bm, verts, v4 ? 4 : 3, BM_CREATE_NO_DOUBLE, true);
 	if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 		BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 	f->mat_nr = so->mat_nr;

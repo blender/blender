@@ -2020,7 +2020,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		/* Go ahead and make the face!
 		 * --------------------------- */
 
-		f_new = BM_face_create_ngon_verts(bm, vert_array, vert_seq_len, 0, false, true);
+		f_new = BM_face_create_verts(bm, vert_array, vert_seq_len, BM_CREATE_NOP, true);
 
 		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,
