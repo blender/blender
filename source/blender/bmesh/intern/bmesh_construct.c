@@ -441,6 +441,9 @@ static int angle_index_pair_cmp(const void *e1, const void *e2)
  */
 BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, const int create_flag)
 {
+	AngleIndexPair *vang = BLI_array_alloca(vang, len);
+	BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
+
 	BMFace *f;
 
 	float totv_inv = 1.0f / (float)len;
@@ -456,10 +459,6 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, const 
 
 	float far_dist, far_best;
 	float far_cross_dist, far_cross_best = 0.0f;
-
-	AngleIndexPair *vang;
-
-	BMVert **vert_arr_map;
 
 	/* get the center point and collect vector array since we loop over these a lot */
 	zero_v3(cent);
@@ -520,8 +519,6 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, const 
 	/* --- */
 
 	/* now calculate every points angle around the normal (signed) */
-	vang = MEM_mallocN(sizeof(AngleIndexPair) * len, __func__);
-
 	for (i = 0; i < len; i++) {
 		float co[3];
 		float proj_vec[3];
@@ -551,16 +548,11 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len, const 
 	/* --- */
 
 	/* create edges and find the winding (if faces are attached to any existing edges) */
-	vert_arr_map = MEM_mallocN(sizeof(BMVert *) * len, __func__);
-
 	for (i = 0; i < len; i++) {
 		vert_arr_map[i] = vert_arr[vang[i].index];
 	}
-	MEM_freeN(vang);
 
 	f = BM_face_create_ngon_verts(bm, vert_arr_map, len, create_flag, true, true);
-
-	MEM_freeN(vert_arr_map);
 
 	return f;
 }
