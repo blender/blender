@@ -4050,7 +4050,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 
 			if (BKE_mball_is_basis(ob)) {
 				lb = ob->curve_cache ? &ob->curve_cache->disp : NULL;
-				if (lb->first == NULL) {
+				if (ELEM(lb, lb->first, NULL)) {
 					BKE_displist_make_mball(scene, ob);
 					lb = &ob->curve_cache->disp;
 				}
