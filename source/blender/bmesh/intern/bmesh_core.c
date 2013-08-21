@@ -398,11 +398,13 @@ BMFace *BM_face_create_verts(BMesh *bm, BMVert **vert_arr, const int len,
 		}
 	}
 	else {
-		edge_arr[i] = BM_edge_exists(vert_arr[i_prev], vert_arr[i]);
-		if (edge_arr[i] == NULL) {
-			return NULL;
+		for (i = 0; i < len; i++) {
+			edge_arr[i_prev] = BM_edge_exists(vert_arr[i_prev], vert_arr[i]);
+			if (edge_arr[i_prev] == NULL) {
+				return NULL;
+			}
+			i_prev = i;
 		}
-		i_prev = i;
 	}
 
 	return BM_face_create(bm, vert_arr, edge_arr, len, f_example, create_flag);
