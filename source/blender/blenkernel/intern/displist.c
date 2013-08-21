@@ -1374,8 +1374,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		ListBase dlbev;
 		ListBase nubase = {NULL, NULL};
 
-		BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
-
 		BLI_freelistN(&(ob->curve_cache->bev));
 
 		if (ob->curve_cache->path) free_path(ob->curve_cache->path);
@@ -1383,6 +1381,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		if (ob->type == OB_FONT)
 			BKE_vfont_to_curve(G.main, scene, ob, 0);
+
+		BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
 
 		if (!forOrco)
 			curve_calc_modifiers_pre(scene, ob, &nubase, forRender, renderResolution);
