@@ -207,7 +207,13 @@ __device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection 
 					--stackPtr;
 
 					/* primitive intersection */
-					while(primAddr < primAddr2) {
+					for(; primAddr < primAddr2; primAddr++) {
+#if FEATURE(BVH_HAIR)
+						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+						if(segment != ~0)
+							continue;
+#endif
+
 						/* only primitives from the same object */
 						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
 
@@ -216,8 +222,6 @@ __device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection 
 							/* intersect ray against primitive */
 							bvh_triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, tmax, &num_hits, lcg_state, max_hits);
 						}
-
-						primAddr++;
 					}
 				}
 #if FEATURE(BVH_INSTANCING)

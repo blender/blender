@@ -794,7 +794,7 @@ __device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inters
 
 #if defined(__SUBSURFACE__) && defined(__HAIR__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
 #include "kernel_bvh_subsurface.h"
 #endif
 
@@ -806,7 +806,7 @@ __device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inters
 
 #if defined(__SUBSURFACE__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
 #include "kernel_bvh_subsurface.h"
 #endif
 
