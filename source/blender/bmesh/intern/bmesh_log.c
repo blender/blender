@@ -275,7 +275,7 @@ static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
 	GHASH_ITER (gh_iter, verts) {
 		void *key = BLI_ghashIterator_getKey(&gh_iter);
 		BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
-		BMVert *v = BM_vert_create(bm, lv->co, NULL, 0);
+		BMVert *v = BM_vert_create(bm, lv->co, NULL, BM_CREATE_NOP);
 		v->head.hflag = lv->hflag;
 		vert_mask_set(bm, v, lv->mask);
 		normal_short_to_float_v3(v->no, lv->no);

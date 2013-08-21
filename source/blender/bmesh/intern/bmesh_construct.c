@@ -115,7 +115,7 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 			edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, BM_CREATE_NO_DOUBLE);
 		}
 
-		f = BM_face_create(bm, verts, edar, len, 0);
+		f = BM_face_create(bm, verts, edar, len, BM_CREATE_NOP);
 
 		if (example && f) {
 			BM_elem_attrs_copy(bm, bm, example, f);

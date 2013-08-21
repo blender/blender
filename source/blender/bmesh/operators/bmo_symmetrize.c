@@ -113,7 +113,7 @@ static void symm_verts_mirror(Symm *symm)
 				copy_v3_v3(co, src_v->co);
 				co[symm->axis] = -co[symm->axis];
 
-				dst_v = BM_vert_create(symm->bm, co, src_v, 0);
+				dst_v = BM_vert_create(symm->bm, co, src_v, BM_CREATE_NOP);
 				BMO_elem_flag_enable(symm->bm, dst_v, SYMM_OUTPUT_GEOM);
 				BLI_ghash_insert(symm->vert_symm_map, src_v, dst_v);
 				break;
@@ -190,7 +190,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 			co[symm->axis] = 0;
 
 			/* Edge is asymmetric, split it with a new vertex */
-			v = BM_vert_create(symm->bm, co, e->v1, 0);
+			v = BM_vert_create(symm->bm, co, e->v1, BM_CREATE_NOP);
 			BMO_elem_flag_enable(symm->bm, v, SYMM_OUTPUT_GEOM);
 			BLI_ghash_insert(symm->edge_split_map, e, v);
 		}
@@ -378,7 +378,7 @@ static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
 		int j = (i + 1) % len;
 		fe[i] = BM_edge_exists(fv[i], fv[j]);
 		if (!fe[i]) {
-			fe[i] = BM_edge_create(bm, fv[i], fv[j], NULL, 0);
+			fe[i] = BM_edge_create(bm, fv[i], fv[j], NULL, BM_CREATE_NOP);
 			BMO_elem_flag_enable(bm, fe[i], SYMM_OUTPUT_GEOM);
 		}
 	}

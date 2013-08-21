@@ -211,11 +211,11 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	const bool has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
 
 	for (v = BMO_iter_new(&siter, op->slots_in, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
-		dupev = BM_vert_create(bm, v->co, v, 0);
+		dupev = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
 		if (has_vskin)
 			bm_extrude_disable_skin_root(bm, v);
 
-		e = BM_edge_create(bm, v, dupev, NULL, 0);
+		e = BM_edge_create(bm, v, dupev, NULL, BM_CREATE_NOP);
 
 		BMO_elem_flag_enable(bm, e, EXT_KEEP);
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);

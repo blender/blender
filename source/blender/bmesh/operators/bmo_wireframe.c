@@ -229,9 +229,9 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			}
 
 			madd_v3_v3v3fl(tvec, v_src->co, v_src->no, -fac);
-			verts_neg[i] = BM_vert_create(bm, tvec, v_src, 0);
+			verts_neg[i] = BM_vert_create(bm, tvec, v_src, BM_CREATE_NOP);
 			madd_v3_v3v3fl(tvec, v_src->co, v_src->no,  fac);
-			verts_pos[i] = BM_vert_create(bm, tvec, v_src, 0);
+			verts_pos[i] = BM_vert_create(bm, tvec, v_src, BM_CREATE_NOP);
 		}
 		else {
 			/* could skip this */
@@ -269,7 +269,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			}
 
 			madd_v3_v3v3fl(tvec, l->v->co, tvec, fac);
-			verts_loop[verts_loop_tot] = BM_vert_create(bm, tvec, l->v, 0);
+			verts_loop[verts_loop_tot] = BM_vert_create(bm, tvec, l->v, BM_CREATE_NOP);
 
 
 			if (use_boundary) {
@@ -303,7 +303,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 								fac *= verts_relfac[BM_elem_index_get(l_pair[i]->v)];
 							}
 							madd_v3_v3v3fl(tvec, l_pair[i]->v->co, tvec, fac);
-							verts_boundary[BM_elem_index_get(l_pair[i]->v)] = BM_vert_create(bm, tvec, l_pair[i]->v, 0);
+							verts_boundary[BM_elem_index_get(l_pair[i]->v)] = BM_vert_create(bm, tvec, l_pair[i]->v, BM_CREATE_NOP);
 						}
 					}
 				}

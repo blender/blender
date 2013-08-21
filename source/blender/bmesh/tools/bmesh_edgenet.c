@@ -193,7 +193,7 @@ static BMFace *bm_edgenet_face_from_path(
 	}
 #endif
 
-	f = BM_face_create(bm, vert_arr, edge_arr, (int)path_len, 0);
+	f = BM_face_create(bm, vert_arr, edge_arr, (int)path_len, BM_CREATE_NOP);
 
 	return f;
 }

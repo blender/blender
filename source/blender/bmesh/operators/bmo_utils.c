@@ -41,14 +41,16 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+#define ELE_NEW 1
+
 void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
 {
 	float vec[3];
 
 	BMO_slot_vec_get(op->slots_in, "co", vec);
 
-	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL, 0), 1);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, 1);
+	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL, BM_CREATE_NOP), ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, ELE_NEW);
 }
 
 void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)

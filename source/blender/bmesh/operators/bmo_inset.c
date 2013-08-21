@@ -137,7 +137,7 @@ static void bmo_face_inset_individual(
 		BMVert *v_other = l_iter->v;
 		BMVert *v_sep = BM_face_loop_separate(bm, l_iter);
 		if (v_sep == v_other) {
-			v_other = BM_vert_create(bm, l_iter->v->co, l_iter->v, 0);
+			v_other = BM_vert_create(bm, l_iter->v->co, l_iter->v, BM_CREATE_NOP);
 		}
 		verts[i] = v_other;
 
@@ -489,7 +489,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
-			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, 0);
+			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, BM_CREATE_NOP);
 		}
 
 		/* store index back to original in 'edge_info' */
@@ -532,8 +532,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 		mid_v3_v3v3(tvec, es->e_new->v1->co, es->e_new->v2->co);
 
-		v1 = BM_vert_create(bm, tvec, NULL);
-		v2 = BM_vert_create(bm, tvec, NULL);
+		v1 = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
+		v2 = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
 		madd_v3_v3fl(v2->co, es->no, 0.1f);
 		BM_edge_create(bm, v1, v2, NULL, 0);
 	}

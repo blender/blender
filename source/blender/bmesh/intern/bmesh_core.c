@@ -228,7 +228,7 @@ BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f,
 	i = 0;
 	do {
 		if (copy_verts) {
-			verts[i] = BM_vert_create(bm_dst, l_iter->v->co, l_iter->v, 0);
+			verts[i] = BM_vert_create(bm_dst, l_iter->v->co, l_iter->v, BM_CREATE_NOP);
 		}
 		else {
 			verts[i] = l_iter->v;
@@ -251,7 +251,7 @@ BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f,
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			edges[i] = BM_edge_create(bm_dst,  v1, v2, l_iter->e, 0);
+			edges[i] = BM_edge_create(bm_dst,  v1, v2, l_iter->e, BM_CREATE_NOP);
 		}
 		else {
 			edges[i] = l_iter->e;
@@ -1079,7 +1079,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	}
 
 	/* create region face */
-	f_new = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, 0) : NULL;
+	f_new = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, BM_CREATE_NOP) : NULL;
 	if (UNLIKELY(!f_new || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
 			err = N_("Invalid boundary region to join faces");
@@ -1269,7 +1269,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, example, no_double ? BM_CREATE_NO_DOUBLE : 0);
+	e = BM_edge_create(bm, v1, v2, example, no_double ? BM_CREATE_NO_DOUBLE : BM_CREATE_NOP);
 
 	f2 = bm_face_create__sfme(bm, f);
 	l_f1 = bm_loop_create(bm, v2, e, f, l_v2, 0);
@@ -1410,8 +1410,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	valence2 = bmesh_disk_count(tv);
 #endif
 
-	v_new = BM_vert_create(bm, tv->co, tv, 0);
-	e_new = BM_edge_create(bm, v_new, tv, e, 0);
+	v_new = BM_vert_create(bm, tv->co, tv, BM_CREATE_NOP);
+	e_new = BM_edge_create(bm, v_new, tv, e, BM_CREATE_NOP);
 
 	bmesh_disk_edge_remove(e_new, tv);
 	bmesh_disk_edge_remove(e_new, v_new);
@@ -1996,7 +1996,7 @@ void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 
 	verts[0] = v;
 	for (i = 1; i < maxindex; i++) {
-		verts[i] = BM_vert_create(bm, v->co, v, 0);
+		verts[i] = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
 		if (copy_select) {
 			BM_elem_select_copy(bm, bm, verts[i], v);
 		}
@@ -2162,7 +2162,7 @@ void bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep,
 		e->l = l_sep->radial_next;
 	}
 
-	e_new = BM_edge_create(bm, e->v1, e->v2, e, 0);
+	e_new = BM_edge_create(bm, e->v1, e->v2, e, BM_CREATE_NOP);
 	bmesh_radial_loop_remove(l_sep, e);
 	bmesh_radial_append(e_new, l_sep);
 	l_sep->e = e_new;

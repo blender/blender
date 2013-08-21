@@ -1871,7 +1871,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		v = BM_vert_create(bm, co, NULL, 0);
+		v = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
 
 		if (v == NULL) {
 			PyErr_SetString(PyExc_ValueError,
@@ -1940,7 +1940,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 			goto cleanup;
 		}
 
-		e = BM_edge_create(bm, vert_array[0], vert_array[1], NULL, 0);
+		e = BM_edge_create(bm, vert_array[0], vert_array[1], NULL, BM_CREATE_NOP);
 
 		if (e == NULL) {
 			PyErr_SetString(PyExc_ValueError,

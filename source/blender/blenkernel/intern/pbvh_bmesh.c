@@ -278,7 +278,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
                                       const float co[3],
                                       const BMVert *example)
 {
-	BMVert *v = BM_vert_create(bvh->bm, co, example, 0);
+	BMVert *v = BM_vert_create(bvh->bm, co, example, BM_CREATE_NOP);
 	void *val = SET_INT_IN_POINTER(node_index);
 
 	BLI_assert((bvh->totnode == 1 || node_index) && node_index <= bvh->totnode);
@@ -302,7 +302,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 	/* ensure we never add existing face */
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
 
-	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, 0);
+	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, BM_CREATE_NOP);
 	// BM_elem_attrs_copy(bvh->bm, bvh->bm, f_example, f);
 	f->mat_nr = f_example->mat_nr;
 

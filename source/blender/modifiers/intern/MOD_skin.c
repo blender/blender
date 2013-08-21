@@ -984,7 +984,7 @@ static void output_frames(BMesh *bm,
 		f = &sn->frames[i];
 		for (j = 0; j < 4; j++) {
 			if (!f->merge[j].frame) {
-				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL, 0);
+				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL, BM_CREATE_NOP);
 
 				if (input_dvert) {
 					MDeformVert *dv;
@@ -1298,7 +1298,7 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
 	/* Detach everything */
 	for (i = 0; i < totattached; i++) {
 		BMVert **av = &frame->verts[attached[i]];
-		(*av) = BM_vert_create(bm, (*av)->co, *av, 0);
+		(*av) = BM_vert_create(bm, (*av)->co, *av, BM_CREATE_NOP);
 	}
 }
 
