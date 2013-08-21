@@ -140,7 +140,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 				BMFace *f;
 
 				/* don't use calc_edges option because we already have the edges */
-				f = BM_face_create_ngon_verts(bm, f_verts, i, BM_CREATE_NOP, true, false);
+				f = BM_face_create_ngon_verts(bm, f_verts, i, NULL, BM_CREATE_NOP, true, false);
 				BMO_elem_flag_enable(bm, f, ELE_OUT);
 				f->mat_nr = mat_nr;
 				if (use_smooth) {

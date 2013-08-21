@@ -162,7 +162,7 @@ static void bmo_face_inset_individual(
 		                                      v_other_next,
 		                                      l_iter->next->v,
 		                                      l_iter->v,
-		                                      f, false);
+		                                      f, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, f_new_outer, ELE_NEW);
 
 		/* copy loop data */
@@ -811,7 +811,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 #endif
 		/* no need to check doubles, we KNOW there won't be any */
 		/* yes - reverse face is correct in this case */
-		f = BM_face_create_quad_tri_v(bm, varr, j, es->l->f, false);
+		f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
 
 		/* copy for loop data, otherwise UV's and vcols are no good.

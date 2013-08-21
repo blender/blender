@@ -2020,16 +2020,13 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		/* Go ahead and make the face!
 		 * --------------------------- */
 
-		f_new = BM_face_create_verts(bm, vert_array, vert_seq_len, BM_CREATE_NOP, true);
+		f_new = BM_face_create_verts(bm, vert_array, vert_seq_len,
+		                             py_face_example ? py_face_example->f : NULL, BM_CREATE_NOP, true);
 
 		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
 			goto cleanup;
-		}
-
-		if (py_face_example) {
-			BM_elem_attrs_copy(py_face_example->bm, bm, py_face_example->f, f_new);
 		}
 
 		ret = BPy_BMFace_CreatePyObject(bm, f_new);

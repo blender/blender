@@ -255,20 +255,8 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
 	BMFace *f, *interp_f;
 	int i;
 
-	if (totv == 3) {
-		f = BM_face_create_quad_tri_v(bm, vert_arr, 3, facerep, FALSE);
-	}
-	else if (totv == 4) {
-		f = BM_face_create_quad_tri_v(bm, vert_arr, 4, facerep, FALSE);
-	}
-	else {
-		BMEdge **ee = BLI_array_alloca(ee, totv);
+	f = BM_face_create_verts(bm, vert_arr, totv, facerep, BM_CREATE_NOP, true);
 
-		for (i = 0; i < totv; i++) {
-			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, BM_CREATE_NO_DOUBLE);
-		}
-		f = BM_face_create(bm, vert_arr, ee, totv, BM_CREATE_NOP);
-	}
 	if ((facerep || (face_arr && face_arr[0])) && f) {
 		BM_elem_attrs_copy(bm, bm, facerep ? facerep : face_arr[0], f);
 		if (do_interp) {

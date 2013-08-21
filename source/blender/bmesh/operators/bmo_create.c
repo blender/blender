@@ -283,7 +283,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 
 		BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)vert_arr, totv);
-		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, BM_CREATE_NO_DOUBLE);
+		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, NULL, BM_CREATE_NO_DOUBLE);
 
 		if (f) {
 			BMO_elem_flag_enable(bm, f, ELE_OUT);

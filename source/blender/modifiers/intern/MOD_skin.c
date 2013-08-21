@@ -940,7 +940,7 @@ static void add_poly(SkinOutput *so,
 	BLI_assert(v3 != v4);
 	BLI_assert(v1 && v2 && v3);
 
-	f = BM_face_create_verts(so->bm, verts, v4 ? 4 : 3, BM_CREATE_NO_DOUBLE, true);
+	f = BM_face_create_verts(so->bm, verts, v4 ? 4 : 3, NULL, BM_CREATE_NO_DOUBLE, true);
 	if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 		BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 	f->mat_nr = so->mat_nr;

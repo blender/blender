@@ -52,7 +52,7 @@ static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
 		edges[j] = etable[ml->e];
 	}
 
-	return BM_face_create(bm, verts, edges, mp->totloop, BM_CREATE_SKIP_CD);
+	return BM_face_create(bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD);
 }
 
 /**

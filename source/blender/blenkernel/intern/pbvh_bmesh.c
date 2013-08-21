@@ -302,9 +302,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 	/* ensure we never add existing face */
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
 
-	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, BM_CREATE_NOP);
-	// BM_elem_attrs_copy(bvh->bm, bvh->bm, f_example, f);
-	f->mat_nr = f_example->mat_nr;
+	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
 
 	if (!BLI_ghash_haskey(bvh->bm_face_to_node, f)) {
 

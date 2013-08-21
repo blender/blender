@@ -343,7 +343,7 @@ static void bridge_loop_pair(BMesh *bm,
 				BMVert *v_arr[4] = {v_a, v_b, v_b_next, v_a_next};
 				if (BM_face_exists(v_arr, 4, &f) == false) {
 					/* copy if loop data if its is missing on one ring */
-					f = BM_face_create_verts(bm, v_arr, 4, BM_CREATE_NOP, true);
+					f = BM_face_create_verts(bm, v_arr, 4, NULL, BM_CREATE_NOP, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
 					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;
@@ -356,7 +356,7 @@ static void bridge_loop_pair(BMesh *bm,
 				BMVert *v_arr[3] = {v_a, v_b, v_a_next};
 				if (BM_face_exists(v_arr, 3, &f) == false) {
 					/* fan-fill a triangle */
-					f = BM_face_create_verts(bm, v_arr, 3, BM_CREATE_NOP, true);
+					f = BM_face_create_verts(bm, v_arr, 3, NULL, BM_CREATE_NOP, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
 					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;

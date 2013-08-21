@@ -189,10 +189,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 		}
 		
-		f_new = BM_face_create_ngon(bm, v, v2, edges, a, BM_CREATE_NO_DOUBLE);
+		f_new = BM_face_create_ngon(bm, v, v2, edges, a, f, BM_CREATE_NO_DOUBLE);
 		if (f_new && (f_new != f)) {
-			BM_elem_attrs_copy(bm, bm, f, f_new);
-
 			a = 0;
 			BM_ITER_ELEM (l, &liter, f_new, BM_LOOPS_OF_FACE) {
 				l_new = loops[a];

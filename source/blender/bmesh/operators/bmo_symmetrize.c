@@ -362,7 +362,7 @@ static bool symm_poly_next_crossing(const Symm *symm,
 	return false;
 }
 
-static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
+static BMFace *symm_face_create_v(BMesh *bm, BMFace *f_example,
                                   BMVert **fv, BMEdge **fe, int len)
 {
 	BMFace *f_new;
@@ -382,9 +382,7 @@ static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
 			BMO_elem_flag_enable(bm, fe[i], SYMM_OUTPUT_GEOM);
 		}
 	}
-	f_new = BM_face_create(bm, fv, fe, len, BM_CREATE_NO_DOUBLE);
-	if (example)
-		BM_elem_attrs_copy(bm, bm, example, f_new);
+	f_new = BM_face_create(bm, fv, fe, len, f_example, BM_CREATE_NO_DOUBLE);
 	BM_face_select_set(bm, f_new, true);
 	BMO_elem_flag_enable(bm, f_new, SYMM_OUTPUT_GEOM);
 

@@ -135,7 +135,7 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 				}
 
 				/* Create new hull face */
-				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, true);
+				f = BM_face_create_verts(bm, t->v, 3, example, BM_CREATE_NO_DOUBLE, true);
 				BM_face_copy_shared(bm, f, NULL, NULL);
 			}
 			/* Mark face for 'geom.out' slot and select */

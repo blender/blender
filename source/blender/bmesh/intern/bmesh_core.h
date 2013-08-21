@@ -40,10 +40,14 @@ typedef enum eBMCreateFlag {
 	BM_CREATE_SKIP_CD   = (1 << 2),
 } eBMCreateFlag;
 
-BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example, const eBMCreateFlag create_flag);
-BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, const eBMCreateFlag create_flag);
-BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, const eBMCreateFlag create_flag);
-BMFace *BM_face_create_verts(BMesh *bm, BMVert **verts, const int len, const eBMCreateFlag create_flag,
+BMVert *BM_vert_create(BMesh *bm, const float co[3],
+                       const BMVert *v_example, const eBMCreateFlag create_flag);
+BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2,
+                       const BMEdge *e_example, const eBMCreateFlag create_flag);
+BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
+                       const BMFace *f_example, const eBMCreateFlag create_flag);
+BMFace *BM_face_create_verts(BMesh *bm, BMVert **verts, const int len,
+                             const BMFace *f_example, const eBMCreateFlag create_flag,
                              const bool create_edges);
 
 void    BM_face_edges_kill(BMesh *bm, BMFace *f);

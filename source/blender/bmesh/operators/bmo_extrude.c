@@ -77,7 +77,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
 			f_side = BM_face_create_quad_tri(bm,
 			                                 l_org->next->v, l_new->next->v, l_new->v, l_org->v,
-			                                 f_org, false);
+			                                 f_org, BM_CREATE_NOP);
 
 			l_side_iter = BM_FACE_FIRST_LOOP(f_side);
 
@@ -185,7 +185,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 			f_verts[3] = e_new->v2;
 		}
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, false);
+		f = BM_face_create_verts(bm, f_verts, 4, NULL, BM_CREATE_NOP, true);
 		bm_extrude_copy_face_loop_attributes(bm, f);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
@@ -401,7 +401,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, false);
+		f = BM_face_create_verts(bm, f_verts, 4, NULL, BM_CREATE_NOP, true);
 		bm_extrude_copy_face_loop_attributes(bm, f);
 	}
 
