@@ -971,6 +971,44 @@ class Seed:
 
 _seed = Seed()
 
+### T.K. 07-Aug-2013 Temporary fix for unexpected line gaps
+
+def iter_three_segments(stroke):
+    n = stroke.stroke_vertices_size()
+    if n >= 4:
+        it1 = stroke.stroke_vertices_begin()
+        it2 = stroke.stroke_vertices_begin()
+        it2.increment()
+        it3 = stroke.stroke_vertices_begin()
+        it3.increment()
+        it3.increment()
+        it4 = stroke.stroke_vertices_begin()
+        it4.increment()
+        it4.increment()
+        it4.increment()
+        while not it4.is_end:
+            yield (it1.object, it2.object, it3.object, it4.object)
+            it1.increment()
+            it2.increment()
+            it3.increment()
+            it4.increment()
+
+class StrokeCleaner(StrokeShader):
+    def shade(self, stroke):
+        for sv1, sv2, sv3, sv4 in iter_three_segments(stroke):
+            seg1 = sv2.point - sv1.point
+            seg2 = sv3.point - sv2.point
+            seg3 = sv4.point - sv3.point
+            if seg1.dot(seg2) < 0 and seg2.dot(seg3) < 0:
+                print(sv2.first_svertex.viewvertex)
+                print(sv2.second_svertex.viewvertex)
+                print(sv3.first_svertex.viewvertex)
+                print(sv3.second_svertex.viewvertex)
+                p2 = mathutils.Vector(sv2.point)
+                p3 = mathutils.Vector(sv3.point)
+                sv2.point = p3
+                sv3.point = p2
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -1150,6 +1188,9 @@ def process(layer_name, lineset_name):
         elif m.type == '2D_TRANSFORM':
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
+    ###
+    shaders_list.append(StrokeCleaner())
+    ###
     color = linestyle.color
     if (not linestyle.use_chaining) or (linestyle.chaining == 'PLAIN' and linestyle.use_same_object):
         thickness_position = linestyle.thickness_position
