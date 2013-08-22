@@ -4445,6 +4445,10 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 	             BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"));
 	BMO_op_exec(em->bm, &bmop);
 
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
 	}
