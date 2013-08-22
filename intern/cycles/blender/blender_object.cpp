@@ -158,7 +158,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
 	
 	int samples = get_int(clamp, "samples");
-	if(get_boolean(cscene, "squared_samples"))
+	if(get_boolean(cscene, "use_square_samples"))
 		light->samples = samples * samples;
 	else
 		light->samples = samples;
@@ -196,7 +196,7 @@ void BlenderSync::sync_background_light()
 				light->shader = scene->default_background;
 				
 				int samples = get_int(cworld, "samples");
-				if(get_boolean(cscene, "squared_samples"))
+				if(get_boolean(cscene, "use_square_samples"))
 					light->samples = samples * samples;
 				else
 					light->samples = samples;

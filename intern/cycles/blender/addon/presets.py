@@ -67,7 +67,7 @@ class AddPresetSampling(AddPresetBase, Operator):
         "cycles.subsurface_samples",
         "cycles.no_caustics",
         "cycles.blur_glossy",
-        "cycles.squared_samples",
+        "cycles.use_square_samples",
         "cycles.progressive"
     ]
 

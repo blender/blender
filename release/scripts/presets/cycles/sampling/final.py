@@ -1,13 +1,13 @@
 import bpy
 cycles = bpy.context.scene.cycles
 
-cycles.squared_samples = True
+cycles.use_square_samples = True
 
 # Progressive
-cycles.samples = 500
-cycles.preview_samples = 100
+cycles.samples = 24
+cycles.preview_samples = 12
 
-# Non-Progressive (squared)
+# Non-Progressive
 cycles.aa_samples = 8
 cycles.preview_aa_samples = 4
 
