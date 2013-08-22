@@ -93,7 +93,7 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
 		BMLoop *l_iter_src, *l_first_src;
 		l_iter_src = l_first_src = e_src->l;
 		do {
-			if (BMO_elem_flag_test(bm_src, l_iter_src->e, DUPE_INPUT)) {
+			if (BMO_elem_flag_test(bm_src, l_iter_src->f, DUPE_INPUT)) {
 				rlen++;
 			}
 		} while ((l_iter_src = l_iter_src->radial_next) != l_first_src);
