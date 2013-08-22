@@ -1154,6 +1154,7 @@ static BMOpDefine bmo_duplicate_def = {
 	/* facemap maps from source faces to dupe
 	 * faces, and from dupe faces to source faces */
 	 {"face_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"vert_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {"boundary_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {"isovert_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	{{'\0'}},
