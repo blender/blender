@@ -212,6 +212,7 @@ ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$IL
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
+_need_openexr_ldconfig=false
 
 OIIO_VERSION="1.1.10"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
@@ -230,6 +231,7 @@ LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.3.2"
+OSL_VERSION_MIN=$OSL_VERSION
 OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -2776,7 +2778,7 @@ install_ARCH() {
       if [ $? -eq 0 ]; then
         install_packages_ARCH llvm clang
         have_llvm=true
-        LLVM_VERSION=`check_package_version_ge_ARCH llvm`
+        LLVM_VERSION=`check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN`
         LLVM_VERSION_FOUND=$LLVM_VERSION
         clean_LLVM
       else
