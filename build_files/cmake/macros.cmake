@@ -799,4 +799,35 @@ macro(data_to_c_simple
 	unset(_file_from)
 	unset(_file_to)
 	unset(_file_to_path)
+
+endmacro()
+
+macro(svg_to_png
+      file_from
+      file_to
+      dpi
+      list_to_add)
+
+	# remove ../'s
+	get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from} REALPATH)
+	get_filename_component(_file_to   ${CMAKE_CURRENT_SOURCE_DIR}/${file_to}   REALPATH)
+
+	list(APPEND ${list_to_add} ${_file_to})
+
+	find_program(INKSCAPE_EXE inkscape)
+	mark_as_advanced(INKSCAPE_EXE)
+
+	if(INKSCAPE_EXE)
+		add_custom_command(
+			OUTPUT  ${_file_to}
+			COMMAND ${INKSCAPE_EXE} ${_file_from} --export-dpi=${dpi}  --without-gui --export-png=${_file_to}
+			DEPENDS ${_file_from} ${INKSCAPE_EXE}
+		)
+	else()
+		message(WARNING "Inkscape not found, could not re-generate ${_file_to} from ${_file_from}!")
+	endif()
+
+	unset(_file_from)
+	unset(_file_to)
+
 endmacro()
