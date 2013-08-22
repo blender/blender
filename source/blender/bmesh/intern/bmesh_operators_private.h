@@ -35,6 +35,7 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op);
 void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op);
 void bmo_bevel_exec(BMesh *bm, BMOperator *op);
 void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op);
+void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op);
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op);
 void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op);
 void bmo_collapse_exec(BMesh *bm, BMOperator *op);

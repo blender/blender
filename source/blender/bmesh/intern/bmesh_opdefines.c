@@ -1118,6 +1118,29 @@ static BMOpDefine bmo_subdivide_edgering_def = {
 };
 
 /*
+ * Bisect Plane.
+ *
+ * Bisects the mesh by a plane (cut the mesh in half).
+ */
+static BMOpDefine bmo_bisect_plane_def = {
+	"bisect_plane",
+	/* slots_in */
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+	 {"dist",         BMO_OP_SLOT_FLT},     /* minimum distance when testing if a vert is exactly on the plane */
+	 {"plane_co", BMO_OP_SLOT_VEC},         /* point on the plane */
+	 {"plane_no", BMO_OP_SLOT_VEC},         /* direction of the plane */
+	 {"clear_outer",   BMO_OP_SLOT_BOOL},    /* when enabled. remove all geometry on the positive side of the plane */
+	 {"clear_inner",   BMO_OP_SLOT_BOOL},    /* when enabled. remove all geometry on the negative side of the plane */
+	 {{'\0'}},
+	},
+	{{"geom_cut.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE}},  /* output new geometry from the cut */
+	 {"geom.out",     BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},  /* input and output geometry (result of cut)  */
+	 {{'\0'}}},
+	bmo_bisect_plane_exec,
+	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
+};
+
+/*
  * Delete Geometry.
  *
  * Utility operator to delete geometry.
@@ -1835,6 +1858,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_split_edges_def,
 	&bmo_subdivide_edges_def,
 	&bmo_subdivide_edgering_def,
+	&bmo_bisect_plane_def,
 	&bmo_symmetrize_def,
 	&bmo_transform_def,
 	&bmo_translate_def,

@@ -41,6 +41,7 @@ set(INC_SYS
 set(SRC
 	operators/bmo_beautify.c
 	operators/bmo_bevel.c
+	operators/bmo_bisect_plane.c
 	operators/bmo_bridge.c
 	operators/bmo_connect.c
 	operators/bmo_connect_nonplanar.c
@@ -120,6 +121,8 @@ set(SRC
 
 	tools/bmesh_bevel.c
 	tools/bmesh_bevel.h
+	tools/bmesh_bisect_plane.c
+	tools/bmesh_bisect_plane.h
 	tools/bmesh_decimate_collapse.c
 	tools/bmesh_decimate_dissolve.c
 	tools/bmesh_decimate_unsubdivide.c
