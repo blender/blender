@@ -183,6 +183,28 @@ float area_poly_v2(int nr, float verts[][2])
 	return fabsf(0.5f * area);
 }
 
+/********************************* Planes **********************************/
+
+/**
+ * Calculate a plane from a point and a direction,
+ * \note \a point_no isn't required to be normalized.
+ */
+void plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const float plane_no[3])
+{
+	copy_v3_v3(r_plane, plane_no);
+	r_plane[3] = -dot_v3v3(r_plane, plane_co);
+}
+
+/**
+ * Get a point and a normal from a plane.
+ */
+void plane_to_point_normal_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3])
+{
+	const float length = normalize_v3_v3(r_plane_no, plane);
+	madd_v3_v3v3fl(r_plane_co, r_plane_no, r_plane_no, (-plane[3] / length) - 1.0f);
+}
+
+
 /********************************* Volume **********************************/
 
 /**
@@ -1043,6 +1065,22 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 }
 
 /**
+ * Check if a point is behind all planes.
+ */
+bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
+{
+	int i;
+
+	for (i = 0; i < totplane; i++) {
+		if (plane_point_side_v3(planes[i], p) > 0.0f) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
  *
  * \param out The intersection point.
@@ -1757,7 +1795,7 @@ bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4])
 	if (div == 0.0f) /* parallel */
 		return 1;
 
-	t = -(dot_v3v3(p1, plane) + plane[3]) / div;
+	t = -plane_point_side_v3(plane, p1) / div;
 
 	if (div > 0.0f) {
 		/* behind plane, completely clipped */
@@ -1811,7 +1849,7 @@ bool clip_segment_v3_plane_n(float r_p1[3], float r_p2[3], float plane_array[][4
 		const float div = dot_v3v3(dp, plane);
 
 		if (div != 0.0f) {
-			const float t = -(dot_v3v3(p1, plane) + plane[3]) / div;
+			const float t = -plane_point_side_v3(plane, p1) / div;
 			if (div > 0.0f) {
 				/* clip a */
 				if (t >= 1.0f) {
@@ -3616,4 +3654,3 @@ int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], c
 	/* linetests, the 2 diagonals have to instersect to be convex */
 	return (isect_line_line_v2(v1, v3, v2, v4) > 0);
 }
-

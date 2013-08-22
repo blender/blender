@@ -185,4 +185,9 @@ MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
 	}
 }
 
+MINLINE float plane_point_side_v3(const float plane[4], const float co[3])
+{
+	return dot_v3v3(co, plane) + plane[3];
+}
+
 #endif /* __MATH_GEOM_INLINE_C__ */

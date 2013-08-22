@@ -61,6 +61,14 @@ float area_quad_v3(const float a[3], const float b[3], const float c[3], const f
 float area_poly_v3(int nr, float verts[][3], const float normal[3]);
 float area_poly_v2(int nr, float verts[][2]);
 
+/********************************* Planes **********************************/
+
+void  plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const float plane_no[3]);
+void  plane_to_point_normal_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3]);
+MINLINE float plane_point_side_v3(const float plane[4], const float co[3]);
+
+/********************************* Volume **********************************/
+
 float volume_tetrahedron_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
@@ -120,6 +128,7 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
                         const float v0[3], const float v1[3], const float v2[3],
                         float *r_lambda, const int clip);
 
+bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3]);
 bool isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
                          const float plane_co[3], const float plane_no[3], const bool no_flip);
 

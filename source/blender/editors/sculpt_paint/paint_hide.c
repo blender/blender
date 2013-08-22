@@ -71,18 +71,6 @@
 
 #include <assert.h>
 
-static int planes_contain_v3(float (*planes)[4], int totplane, const float p[3])
-{
-	int i;
-
-	for (i = 0; i < totplane; i++) {
-		if (dot_v3v3(planes[i], p) + planes[i][3] > 0)
-			return 0;
-	}
-
-	return 1;
-}
-
 /* return true if the element should be hidden/shown */
 static int is_effected(PartialVisArea area,
                        float planes[4][4],
@@ -95,7 +83,7 @@ static int is_effected(PartialVisArea area,
 		return mask > 0.5f;
 	}
 	else {
-		int inside = planes_contain_v3(planes, 4, co);
+		bool inside = isect_point_planes_v3(planes, 4, co);
 		return ((inside && area == PARTIALVIS_INSIDE) ||
 		        (!inside && area == PARTIALVIS_OUTSIDE));
 	}
