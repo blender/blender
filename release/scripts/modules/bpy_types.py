@@ -547,7 +547,7 @@ class OrderedDictMini(dict):
         self.order.remove(key)
 
 
-class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
+class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
