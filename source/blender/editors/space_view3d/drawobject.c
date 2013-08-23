@@ -7051,6 +7051,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 				// get view vector
 				copy_v3_v3(viewnormal, rv3d->viewinv[2]);
+				invert_m4_m4(ob->imat, ob->obmat);
 				mul_mat3_m4_v3(ob->imat, viewnormal);
 				normalize_v3(viewnormal);
 
