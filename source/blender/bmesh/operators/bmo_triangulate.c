@@ -137,16 +137,21 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
 	if (use_dissolve) {
 		BMO_ITER (e, &siter, op->slots_out, "geom.out", BM_EDGE) {
-			BMFace *f_new;
-			f_new = BM_faces_join_pair(bm, e->l->f,
-			                           e->l->radial_next->f, e,
-			                           false); /* join faces */
-			if (f_new) {
-				BMO_elem_flag_enable(bm, f_new, ELE_NEW);
-				BM_edge_kill(bm, e);
+			if (LIKELY(e->l)) {  /* in rare cases the edges face will have already been removed from the edge */
+				BMFace *f_new;
+				f_new = BM_faces_join_pair(bm, e->l->f,
+				                           e->l->radial_next->f, e,
+				                           false); /* join faces */
+				if (f_new) {
+					BMO_elem_flag_enable(bm, f_new, ELE_NEW);
+					BM_edge_kill(bm, e);
+				}
+				else {
+					BMO_error_clear(bm);
+				}
 			}
 			else {
-				BMO_error_clear(bm);
+				BM_edge_kill(bm, e);
 			}
 		}
 
