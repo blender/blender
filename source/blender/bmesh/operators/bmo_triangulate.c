@@ -66,8 +66,11 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	ScanFillVert *sf_vert, *sf_vert_1, *sf_vert_2;
 	ScanFillFace *sf_tri;
 	SmallHash hash;
+	float normal[3], *normal_pt;
 
 	BLI_smallhash_init(&hash);
+
+	BMO_slot_vec_get(op->slots_in, "normal", normal);
 	
 	BLI_scanfill_begin(&sf_ctx);
 	
@@ -92,7 +95,15 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
 	
-	BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_HOLES);
+	if (is_zero_v3(normal)) {
+		normal_pt = NULL;
+	}
+	else {
+		normalize_v3(normal);
+		normal_pt = normal;
+	}
+
+	BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, normal_pt);
 	
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
