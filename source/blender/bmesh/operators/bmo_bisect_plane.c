@@ -72,27 +72,19 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 	if (clear_outer || clear_inner) {
 		BMOIter siter;
 		BMVert *v;
-		float plane_alt[4];
+		float plane_inner[4];
+		float plane_outer[4];
 
-		copy_v3_v3(plane_alt, plane);
+		copy_v3_v3(plane_outer, plane);
+		copy_v3_v3(plane_inner, plane);
+		plane_outer[3] = plane[3] - dist;
+		plane_inner[3] = plane[3] + dist;
 
-		if (clear_outer) {
-			plane_alt[3] = plane[3] - dist;
-
-			BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
-				if (plane_point_side_v3(plane_alt, v->co) > 0.0f) {
-					BM_vert_kill(bm, v);
-				}
-			}
-		}
-
-		if (clear_inner) {
-			plane_alt[3] = plane[3] + dist;
-
-			BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
-				if (plane_point_side_v3(plane_alt, v->co) < 0.0f) {
-					BM_vert_kill(bm, v);
-				}
+		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
+			if ((clear_outer && plane_point_side_v3(plane_outer, v->co) > 0.0f) ||
+			    (clear_inner && plane_point_side_v3(plane_inner, v->co) < 0.0f))
+			{
+				BM_vert_kill(bm, v);
 			}
 		}
 	}
