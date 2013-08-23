@@ -4493,6 +4493,8 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 	             BM_ELEM_SELECT, plane_co, plane_no, thresh, clear_inner, clear_outer);
 	BMO_op_exec(bm, &bmop);
 
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
 	if (use_fill) {
 		float normal_fill[3];
 		BMOperator bmop_fill;
@@ -4515,11 +4517,13 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 		             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
 		             &bmop_fill, "geom.out", false, true);
 		BMO_op_exec(bm, &bmop_attr);
+
+		BMO_slot_buffer_hflag_enable(bm, bmop_fill.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
+
 		BMO_op_finish(bm, &bmop_attr);
 		BMO_op_finish(bm, &bmop_fill);
 	}
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom_cut.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
