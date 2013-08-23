@@ -231,7 +231,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 	return result;
 }
 
-__device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
+__device float4 kernel_path_integrator(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -543,7 +543,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 	return make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - L_transparent);
 }
 
-#ifdef __NON_PROGRESSIVE__
+#ifdef __BRANCHED_PATH__
 
 __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
 	float3 throughput, int num_samples, int num_total_samples,
@@ -778,7 +778,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 	}
 }
 
-__device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, RNG *rng, int sample,
+__device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg, RNG *rng, int sample,
 	ShaderData *sd, float3 throughput, float num_samples_adjust,
 	float min_ray_pdf, float ray_pdf, PathState state,
 	int rng_offset, PathRadiance *L, __global float *buffer)
@@ -971,7 +971,7 @@ __device_noinline void kernel_path_non_progressive_lighting(KernelGlobals *kg, R
 	}
 }
 
-__device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
+__device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -1114,7 +1114,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 						old_subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
 
 						/* compute lighting with the BSDF closure */
-						kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
+						kernel_branched_path_integrate_lighting(kg, rng, sample*num_samples + j,
 							&bssrdf_sd, throughput, num_samples_inv,
 							ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 					}
@@ -1126,7 +1126,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 						/* compute lighting with the BSDF closure */
 						for(int hit = 0; hit < num_hits; hit++)
-							kernel_path_non_progressive_lighting(kg, rng, sample*num_samples + j,
+							kernel_branched_path_integrate_lighting(kg, rng, sample*num_samples + j,
 								&bssrdf_sd[hit], throughput, num_samples_inv,
 								ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 					}
@@ -1136,7 +1136,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 #endif
 
 		/* lighting */
-		kernel_path_non_progressive_lighting(kg, rng, sample, &sd, throughput,
+		kernel_branched_path_integrate_lighting(kg, rng, sample, &sd, throughput,
 			1.0f, ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 
 		/* continue in case of transparency */
@@ -1192,7 +1192,7 @@ __device_inline void kernel_path_trace_setup(KernelGlobals *kg, __global uint *r
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
 }
 
-__device void kernel_path_trace_progressive(KernelGlobals *kg,
+__device void kernel_path_trace(KernelGlobals *kg,
 	__global float *buffer, __global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
 {
@@ -1213,7 +1213,7 @@ __device void kernel_path_trace_progressive(KernelGlobals *kg,
 	float4 L;
 
 	if (ray.t != 0.0f)
-		L = kernel_path_progressive(kg, &rng, sample, ray, buffer);
+		L = kernel_path_integrator(kg, &rng, sample, ray, buffer);
 	else
 		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -1223,8 +1223,8 @@ __device void kernel_path_trace_progressive(KernelGlobals *kg,
 	path_rng_end(kg, rng_state, rng);
 }
 
-#ifdef __NON_PROGRESSIVE__
-__device void kernel_path_trace_non_progressive(KernelGlobals *kg,
+#ifdef __BRANCHED_PATH__
+__device void kernel_branched_path_trace(KernelGlobals *kg,
 	__global float *buffer, __global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
 {
@@ -1245,7 +1245,7 @@ __device void kernel_path_trace_non_progressive(KernelGlobals *kg,
 	float4 L;
 
 	if (ray.t != 0.0f)
-		L = kernel_path_non_progressive(kg, &rng, sample, ray, buffer);
+		L = kernel_branched_path_integrate(kg, &rng, sample, ray, buffer);
 	else
 		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 

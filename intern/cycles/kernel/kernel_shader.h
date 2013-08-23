@@ -959,7 +959,7 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 
 /* Merging */
 
-#ifdef __NON_PROGRESSIVE__
+#ifdef __BRANCHED_PATH__
 __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 {
 	/* merge identical closures, better when we sample a single closure at a time */

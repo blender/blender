@@ -76,7 +76,7 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 {
 	LightSample ls;
 
-#ifdef __NON_PROGRESSIVE__
+#ifdef __BRANCHED_PATH__
 	if(lindex != -1) {
 		/* sample position on a specified light */
 		light_select(kg, lindex, randu, randv, sd->P, &ls);

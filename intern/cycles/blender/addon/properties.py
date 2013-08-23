@@ -128,7 +128,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Use Open Shading Language (CPU rendering only)",
                 )
 
-        cls.integrator = EnumProperty(
+        cls.progressive = EnumProperty(
                 name="Integrator",
                 description="Method to sample lights and materials",
                 items=enum_integrator,

@@ -54,7 +54,7 @@ Integrator::Integrator()
 	ao_samples = 1;
 	mesh_light_samples = 1;
 	subsurface_samples = 1;
-	progressive = true;
+	method = PATH;
 
 	sampling_pattern = SAMPLING_PATTERN_SOBOL;
 
@@ -104,7 +104,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	kintegrator->sample_clamp = (sample_clamp == 0.0f)? FLT_MAX: sample_clamp*3.0f;
 
-	kintegrator->progressive = progressive;
+	kintegrator->branched = (method == BRANCHED_PATH);
 	kintegrator->aa_samples = aa_samples;
 	kintegrator->diffuse_samples = diffuse_samples;
 	kintegrator->glossy_samples = glossy_samples;
@@ -118,7 +118,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	/* sobol directions table */
 	int max_samples = 1;
 
-	if(!progressive) {
+	if(method == BRANCHED_PATH) {
 		foreach(Light *light, scene->lights)
 			max_samples = max(max_samples, light->samples);
 
@@ -163,7 +163,7 @@ bool Integrator::modified(const Integrator& integrator)
 		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed &&
 		sample_clamp == integrator.sample_clamp &&
-		progressive == integrator.progressive &&
+		method == integrator.method &&
 		aa_samples == integrator.aa_samples &&
 		diffuse_samples == integrator.diffuse_samples &&
 		glossy_samples == integrator.glossy_samples &&

@@ -252,10 +252,14 @@ static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 {
 	Integrator *integrator = state.scene->integrator;
+	bool branched = false;
 	
-	xml_read_bool(&integrator->progressive, node, "progressive");
+	xml_read_bool(&branched, node, "branched");
+
+	if(branched)
+		integrator->method == Integrator::BRANCHED_PATH;
 	
-	if(!integrator->progressive) {
+	if(integrator->method == Integrator::BRANCHED_PATH) {
 		xml_read_int(&integrator->diffuse_samples, node, "diffuse_samples");
 		xml_read_int(&integrator->glossy_samples, node, "glossy_samples");
 		xml_read_int(&integrator->transmission_samples, node, "transmission_samples");

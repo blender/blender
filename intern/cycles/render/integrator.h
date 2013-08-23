@@ -57,7 +57,12 @@ public:
 	int mesh_light_samples;
 	int subsurface_samples;
 
-	bool progressive;
+	enum Method {
+		BRANCHED_PATH = 0,
+		PATH = 1
+	};
+	
+	Method method;
 
 	SamplingPattern sampling_pattern;
 

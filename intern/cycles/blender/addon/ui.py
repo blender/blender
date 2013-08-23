@@ -49,7 +49,7 @@ class CyclesButtonsPanel():
 
 
 def draw_samples_info(layout, cscene):
-    integrator = cscene.integrator
+    integrator = cscene.progressive
 
     # Calculate sample values
     if integrator == 'PATH':
@@ -108,7 +108,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         row = layout.row()
-        row.prop(cscene, "integrator", text="")
+        row.prop(cscene, "progressive", text="")
         row.prop(cscene, "use_square_samples")
 
         split = layout.split()
@@ -119,7 +119,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.integrator == 'PATH':
+        if cscene.progressive == 'PATH':
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
@@ -715,7 +715,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if cscene.integrator == 'BRANCHED_PATH':
+        if cscene.progressive == 'BRANCHED_PATH':
             col.prop(clamp, "samples")
 
         col = split.column()

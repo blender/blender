@@ -39,12 +39,12 @@ CCL_NAMESPACE_BEGIN
 
 void kernel_cpu_sse3_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
 {
-#ifdef __NON_PROGRESSIVE__
-	if(!kernel_data.integrator.progressive)
-		kernel_path_trace_non_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
+#ifdef __BRANCHED_PATH__
+	if(kernel_data.integrator.branched)
+		kernel_branched_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 	else
 #endif
-		kernel_path_trace_progressive(kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
 /* Tonemapping */
