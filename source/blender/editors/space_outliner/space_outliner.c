@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_treehash.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -435,7 +436,7 @@ static void outliner_free(SpaceLink *sl)
 		BLI_mempool_destroy(soutliner->treestore);
 	}
 	if (soutliner->treehash) {
-		BLI_ghash_free(soutliner->treehash, NULL, NULL);
+		BKE_treehash_free(soutliner->treehash);
 	}
 }
 

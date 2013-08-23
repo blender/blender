@@ -262,11 +262,8 @@ typedef struct SpaceOops {
 
 	short flag, outlinevis, storeflag, search_flags;
 	
-	/* search index for every element in treestore;
-	 * It is ok for treehash to contain duplicates, because the semantics of its usage
-	 * allows duplicates (see check_persistent)
-	 */
-	struct GHash *treehash;
+	/* pointers to treestore elements, grouped by (id, type, nr) in hashtable for faster searching */
+	void *treehash;
 } SpaceOops;
 
 

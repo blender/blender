@@ -151,6 +151,7 @@
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
+#include "BKE_treehash.h"
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
@@ -5701,12 +5702,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 								tselem->id = newlibadr(fd, NULL, tselem->id);
 							}
 							if (so->treehash) {
-								/* update hash table, because it depends on ids too */
-								BLI_ghash_clear(so->treehash, NULL, NULL);
-								BLI_mempool_iternew(so->treestore, &iter);
-								while ((tselem = BLI_mempool_iterstep(&iter))) {
-									BLI_ghash_insert(so->treehash, tselem, tselem);
-								}
+								/* rebuild hash table, because it depends on ids too */
+								BKE_treehash_rebuild_from_treestore(so->treehash, so->treestore);
 							}
 						}
 					}
@@ -6042,12 +6039,8 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 							tselem->id = restore_pointer_by_name(newmain, tselem->id, 0);
 						}
 						if (so->treehash) {
-							/* update hash table, because it depends on ids too */
-							BLI_ghash_clear(so->treehash, NULL, NULL);
-							BLI_mempool_iternew(so->treestore, &iter);
-							while ((tselem = BLI_mempool_iterstep(&iter))) {
-								BLI_ghash_insert(so->treehash, tselem, tselem);
-							}
+							/* rebuild hash table, because it depends on ids too */
+							BKE_treehash_rebuild_from_treestore(so->treehash, so->treestore);
 						}
 					}
 				}
@@ -6322,7 +6315,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			else if (sl->spacetype == SPACE_OUTLINER) {
 				SpaceOops *soops = (SpaceOops *) sl;
 				
-				/* use newdataadr_no_us and do not free old memory avoidign double
+				/* use newdataadr_no_us and do not free old memory avoiding double
 				 * frees and use of freed memory. this could happen because of a
 				 * bug fixed in revision 58959 where the treestore memory address
 				 * was not unique */

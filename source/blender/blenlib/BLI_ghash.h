@@ -33,6 +33,8 @@
  *  \brief A general (pointer -> pointer) hash table ADT
  */
 
+#include "BLI_sys_types.h" /* for bool */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
