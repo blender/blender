@@ -231,7 +231,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 	return result;
 }
 
-__device float4 kernel_path_integrator(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
+__device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -778,17 +778,12 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 	}
 }
 
-__device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg, RNG *rng, int sample,
+__device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
+	int sample, int aa_samples,
 	ShaderData *sd, float3 throughput, float num_samples_adjust,
 	float min_ray_pdf, float ray_pdf, PathState state,
 	int rng_offset, PathRadiance *L, __global float *buffer)
 {
-#ifdef __CMJ__
-	int aa_samples = kernel_data.integrator.aa_samples;
-#else
-	int aa_samples = 0;
-#endif
-
 #ifdef __AO__
 	/* ambient occlusion */
 	if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
@@ -1115,6 +1110,7 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 
 						/* compute lighting with the BSDF closure */
 						kernel_branched_path_integrate_lighting(kg, rng, sample*num_samples + j,
+							aa_samples*num_samples,
 							&bssrdf_sd, throughput, num_samples_inv,
 							ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 					}
@@ -1127,6 +1123,7 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 						/* compute lighting with the BSDF closure */
 						for(int hit = 0; hit < num_hits; hit++)
 							kernel_branched_path_integrate_lighting(kg, rng, sample*num_samples + j,
+								aa_samples*num_samples,
 								&bssrdf_sd[hit], throughput, num_samples_inv,
 								ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 					}
@@ -1136,8 +1133,8 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 #endif
 
 		/* lighting */
-		kernel_branched_path_integrate_lighting(kg, rng, sample, &sd, throughput,
-			1.0f, ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
+		kernel_branched_path_integrate_lighting(kg, rng, sample, aa_samples,
+			&sd, throughput, 1.0f, ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
 
 		/* continue in case of transparency */
 		throughput *= shader_bsdf_transparency(kg, &sd);
@@ -1213,7 +1210,7 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	float4 L;
 
 	if (ray.t != 0.0f)
-		L = kernel_path_integrator(kg, &rng, sample, ray, buffer);
+		L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
 	else
 		L = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
