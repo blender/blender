@@ -73,18 +73,20 @@ def draw_samples_info(layout, cscene):
             sss = sss * sss
 
     # Draw interface
-    col = layout.column(align=True)
-    col.scale_y = 0.6
-    col.label("Total Samples:")
-    col.separator()
-    if cscene.progressive:
-        col.label("%s AA" % aa)
-    else:
-        col.label("%s AA, %s Diffuse, %s Glossy, %s Transmission" %
-                  (aa, d * aa, g * aa, t * aa))
+    # Do not draw for progressive, when Square Samples are disabled
+    if (not cscene.progressive) or (cscene.use_square_samples and cscene.progressive):
+        col = layout.column(align=True)
+        col.scale_y = 0.6
+        col.label("Total Samples:")
         col.separator()
-        col.label("%s AO, %s Mesh Light, %s Subsurface" %
-                  (ao * aa, ml * aa, sss * aa))
+        if cscene.progressive:
+            col.label("%s AA" % aa)
+        else:
+            col.label("%s AA, %s Diffuse, %s Glossy, %s Transmission" %
+                      (aa, d * aa, g * aa, t * aa))
+            col.separator()
+            col.label("%s AO, %s Mesh Light, %s Subsurface" %
+                      (ao * aa, ml * aa, sss * aa))
 
 
 class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
