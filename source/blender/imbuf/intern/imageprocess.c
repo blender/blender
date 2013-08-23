@@ -359,17 +359,21 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol
 	unsigned char *cp = rect;
 
 	while (a--) {
-		if (cp[3] == 0) {
+		if (cp[3] == 255) {
+			/* pass */
+		}
+		else if (cp[3] == 0) {
 			cp[0] = backcol[0] * 255;
 			cp[1] = backcol[1] * 255;
 			cp[2] = backcol[2] * 255;
 		}
 		else {
-			int mul = 255 - cp[3];
+			float alpha = cp[3] / 255.0;
+			float mul = 1.0f - alpha;
 
-			cp[0] = (cp[0] * cp[3] >> 8) + mul * backcol[0] / 255;
-			cp[1] = (cp[1] * cp[3] >> 8) + mul * backcol[1] / 255;
-			cp[2] = (cp[2] * cp[3] >> 8) + mul * backcol[2] / 255;
+			cp[0] = (cp[0] * alpha) + mul * backcol[0];
+			cp[1] = (cp[1] * alpha) + mul * backcol[1];
+			cp[2] = (cp[2] * alpha) + mul * backcol[2];
 		}
 
 		cp[3] = 255;
