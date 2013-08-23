@@ -26,6 +26,8 @@
  * Wrapper around #BM_mesh_bisect_plane
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
@@ -70,23 +72,39 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 
 
 	if (clear_outer || clear_inner) {
+		/* Use an array of vertices because 'geom' contains both vers and edges that may use them.
+		 * Removing a vert may remove and edge which is later checked by BMO_ITER.
+		 * over-alloc the total possible vert count */
+		const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_count(op->slots_in, "geom"));
+		BMVert **vert_arr = MEM_mallocN(sizeof(*vert_arr) * (size_t)vert_arr_max, __func__);
 		BMOIter siter;
 		BMVert *v;
 		float plane_inner[4];
 		float plane_outer[4];
+
+		STACK_DECLARE(vert_arr);
 
 		copy_v3_v3(plane_outer, plane);
 		copy_v3_v3(plane_inner, plane);
 		plane_outer[3] = plane[3] - dist;
 		plane_inner[3] = plane[3] + dist;
 
+		STACK_INIT(vert_arr);
+
 		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
 			if ((clear_outer && plane_point_side_v3(plane_outer, v->co) > 0.0f) ||
 			    (clear_inner && plane_point_side_v3(plane_inner, v->co) < 0.0f))
 			{
-				BM_vert_kill(bm, v);
+				STACK_PUSH(vert_arr, v);
 			}
 		}
+
+		while ((v = STACK_POP(vert_arr))) {
+			BM_vert_kill(bm, v);
+		}
+
+		STACK_FREE(vert_arr);
+		MEM_freeN(vert_arr);
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW | ELE_INPUT);
