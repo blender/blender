@@ -175,6 +175,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_convex_hull);
 #endif
 
+	WM_operatortype_append(MESH_OT_bisect);
 	WM_operatortype_append(MESH_OT_symmetrize);
 	WM_operatortype_append(MESH_OT_symmetry_snap);
 

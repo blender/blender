@@ -1828,6 +1828,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("mesh.symmetrize")
         layout.operator("mesh.symmetry_snap")
+        layout.operator("mesh.bisect")
         layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements...")
 
         layout.separator()
