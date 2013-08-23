@@ -229,23 +229,33 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
 {
 	MovieClip *clip = (MovieClip *) ptr->id.data;
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingPlaneTrack *plane_track;
 	MovieTrackingPlaneMarker *plane_marker = (MovieTrackingPlaneMarker *) ptr->data;
+	MovieTrackingObject *tracking_object;
+	bool found = false;
+	MovieTrackingPlaneTrack *plane_track = NULL;
 
-	/* TODO(sergey): Need to support editing markers from object's tracks */
+	for (tracking_object = tracking->objects.first;
+	     tracking_object;
+	     tracking_object = tracking_object->next)
+	{
+		ListBase *tracksbase = BKE_tracking_object_get_plane_tracks(tracking, tracking_object);
 
-	plane_track = tracking->plane_tracks.first;
-	while (plane_track) {
-		if (plane_marker >= plane_track->markers &&
-		    plane_marker < plane_track->markers + plane_track->markersnr)
+		for (plane_track = tracksbase->first;
+			 plane_track;
+			 plane_track = plane_track->next)
 		{
-			break;
+			if (plane_marker >= plane_track->markers && plane_marker < plane_track->markers + plane_track->markersnr) {
+				found = true;
+				break;
+			}
 		}
 
-		plane_track = plane_track->next;
+		if (found) {
+			break;
+		}
 	}
 
-	if (plane_track) {
+	if (found) {
 		MovieTrackingPlaneMarker new_plane_marker = *plane_marker;
 		new_plane_marker.framenr = value;
 
@@ -455,19 +465,33 @@ static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)
 {
 	MovieClip *clip = (MovieClip *) ptr->id.data;
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker = (MovieTrackingMarker *) ptr->data;
+	MovieTrackingObject *tracking_object;
+	bool found = false;
+	MovieTrackingTrack *track = NULL;
 
-	track = tracking->tracks.first;
-	while (track) {
-		if (marker >= track->markers && marker < track->markers + track->markersnr) {
-			break;
+	for (tracking_object = tracking->objects.first;
+	     tracking_object;
+	     tracking_object = tracking_object->next)
+	{
+		ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+
+		for (track = tracksbase->first;
+			 track;
+			 track = track->next)
+		{
+			if (marker >= track->markers && marker < track->markers + track->markersnr) {
+				found = true;
+				break;
+			}
 		}
 
-		track = track->next;
+		if (found) {
+			break;
+		}
 	}
 
-	if (track) {
+	if (found) {
 		MovieTrackingMarker new_marker = *marker;
 		new_marker.framenr = value;
 
@@ -619,6 +643,44 @@ static void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int fram
 		return;
 
 	BKE_tracking_marker_delete(track, framenr);
+
+	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
+}
+
+static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(MovieTrackingPlaneTrack *plane_track, int framenr, int exact)
+{
+	if (exact)
+		return BKE_tracking_plane_marker_get_exact(plane_track, framenr);
+	else
+		return BKE_tracking_plane_marker_get(plane_track, framenr);
+}
+
+static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_insert_frame(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	MovieTrackingPlaneMarker plane_marker, *new_plane_marker;
+
+	memset(&plane_marker, 0, sizeof(plane_marker));
+	plane_marker.framenr = framenr;
+
+	/* a bit arbitrary, but better than creating zero markers */
+	copy_v2_v2(plane_marker.corners[0], plane_track->markers[0].corners[0]);
+	copy_v2_v2(plane_marker.corners[1], plane_track->markers[0].corners[1]);
+	copy_v2_v2(plane_marker.corners[2], plane_track->markers[0].corners[2]);
+	copy_v2_v2(plane_marker.corners[3], plane_track->markers[0].corners[3]);
+
+	new_plane_marker = BKE_tracking_plane_marker_insert(plane_track, &plane_marker);
+
+	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
+
+	return new_plane_marker;
+}
+
+static void rna_trackingPlaneMarkers_delete_frame(MovieTrackingPlaneTrack *plane_track, int framenr)
+{
+	if (plane_track->markersnr == 1)
+		return;
+
+	BKE_tracking_plane_marker_delete(plane_track, framenr);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
@@ -1068,7 +1130,7 @@ static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "insert_frame", "rna_trackingMarkers_insert_frame");
-	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
+	RNA_def_function_ui_description(func, "Insert a new marker at the specified frame");
 	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
 	                   "Frame number to insert marker to", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1332,12 +1394,38 @@ static void rna_def_trackingPlaneMarker(BlenderRNA *brna)
 static void rna_def_trackingPlaneMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MovieTrackingPlaneMarkers");
 	srna = RNA_def_struct(brna, "MovieTrackingPlaneMarkers", NULL);
 	RNA_def_struct_sdna(srna, "MovieTrackingPlaneTrack");
 	RNA_def_struct_ui_text(srna, "Movie Tracking Plane Markers",
 	                       "Collection of markers for movie tracking plane track");
+
+	func = RNA_def_function(srna, "find_frame", "rna_trackingPlaneMarkers_find_frame");
+	RNA_def_function_ui_description(func, "Get plane marker for specified frame");
+	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "exact", TRUE, "Exact",
+	                "Get plane marker at exact frame number rather than get estimated marker");
+	parm = RNA_def_pointer(func, "plane_marker", "MovieTrackingPlaneMarker", "", "Plane marker for specified frame");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "insert_frame", "rna_trackingPlaneMarkers_insert_frame");
+	RNA_def_function_ui_description(func, "Insert a new plane marker at the specified frame");
+	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+	                   "Frame number to insert marker to", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "plane_marker", "MovieTrackingPlaneMarker", "", "Newly created plane marker");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "delete_frame", "rna_trackingPlaneMarkers_delete_frame");
+	RNA_def_function_ui_description(func, "Delete plane marker at specified frame");
+	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+	                   "Frame number to delete plane marker from", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
@@ -1567,6 +1655,8 @@ static void rna_def_trackingPlaneTracks(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MovieTrackingPlaneTracks", NULL);
 	RNA_def_struct_sdna(srna, "MovieTracking");
 	RNA_def_struct_ui_text(srna, "Movie Plane Tracks", "Collection of movie tracking plane tracks");
+
+	/* TODO(sergey): Add API to create new plane tracks */
 
 	/* active plane track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
