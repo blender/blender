@@ -56,7 +56,9 @@ extern "C" {
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
+
 #include "bmesh.h"
+#include "bmesh_tools.h"
 }
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
