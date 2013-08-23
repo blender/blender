@@ -425,7 +425,7 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotC
 				time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
 				radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
 
-				if((curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+				if(curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1)
 					radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], 0.95f);
 
 				if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
