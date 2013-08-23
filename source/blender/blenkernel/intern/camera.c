@@ -459,7 +459,7 @@ typedef struct CameraViewFrameData {
 	float plane_tx[4][4];  /* 4 planes (not 4x4 matrix)*/
 	float frame_tx[4][3];
 	float normal_tx[4][3];
-	float dist_vals[4];
+	float dist_vals_sq[4];  /* distance squared (signed) */
 	unsigned int tot;
 } CameraViewFrameData;
 
@@ -469,9 +469,9 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 	unsigned int i;
 
 	for (i = 0; i < 4; i++) {
-		float nd = dist_to_plane_v3(co, data->plane_tx[i]);
-		if (nd < data->dist_vals[i]) {
-			data->dist_vals[i] = nd;
+		float nd = dist_squared_to_plane_v3(co, data->plane_tx[i]);
+		if (nd < data->dist_vals_sq[i]) {
+			data->dist_vals_sq[i] = nd;
 		}
 	}
 
@@ -520,10 +520,7 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 	}
 
 	/* initialize callback data */
-	data_cb.dist_vals[0] =
-	data_cb.dist_vals[1] =
-	data_cb.dist_vals[2] =
-	data_cb.dist_vals[3] = FLT_MAX;
+	copy_v4_fl(data_cb.dist_vals_sq, FLT_MAX);
 	data_cb.tot = 0;
 	/* run callback on all visible points */
 	BKE_scene_foreach_display_point(scene, v3d, BA_SELECT,
@@ -538,10 +535,15 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 
 		float plane_isect_pt_1[3], plane_isect_pt_2[3];
 
+		/* could make a generic macro */
+#define SQRT_SIGNED(f) copysign(sqrtf(fabsf(f)), f)
+
 		/* apply the dist-from-plane's to the transformed plane points */
 		for (i = 0; i < 4; i++) {
-			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], data_cb.dist_vals[i]);
+			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], SQRT_SIGNED(data_cb.dist_vals_sq[i]));
 		}
+
+#undef SQRT_SIGNED
 
 		isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
 		                     plane_tx[0], data_cb.normal_tx[0],
