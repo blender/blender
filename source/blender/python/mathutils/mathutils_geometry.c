@@ -981,12 +981,22 @@ PyDoc_STRVAR(M_Geometry_distance_point_to_plane_doc,
 static PyObject *M_Geometry_distance_point_to_plane(PyObject *UNUSED(self), PyObject *args)
 {
 	VectorObject *pt, *plene_co, *plane_no;
+	float plane[4];
 
 	if (!PyArg_ParseTuple(args, "O!O!O!:distance_point_to_plane",
 	                      &vector_Type, &pt,
 	                      &vector_Type, &plene_co,
 	                      &vector_Type, &plane_no))
 	{
+		return NULL;
+	}
+
+	if (pt->size != 3 ||
+	    plene_co->size != 3 ||
+	    plane_no->size != 3)
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "One of more of the vector arguments wasn't a 3D vector");
 		return NULL;
 	}
 
@@ -997,7 +1007,8 @@ static PyObject *M_Geometry_distance_point_to_plane(PyObject *UNUSED(self), PyOb
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(dist_to_plane_v3(pt->vec, plene_co->vec, plane_no->vec));
+	plane_from_point_normal_v3(plane, plene_co->vec, plane_no->vec);
+	return PyFloat_FromDouble(dist_to_plane_v3(pt->vec, plane));
 }
 
 PyDoc_STRVAR(M_Geometry_barycentric_transform_doc,
@@ -1051,6 +1062,17 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	{
 		PyErr_SetString(PyExc_ValueError,
 		                "One of more of the vector arguments wasn't a 3D vector");
+		return NULL;
+	}
+
+	if (BaseMath_ReadCallback(vec_pt) == -1 ||
+	    BaseMath_ReadCallback(vec_t1_src) == -1 ||
+	    BaseMath_ReadCallback(vec_t2_src) == -1 ||
+	    BaseMath_ReadCallback(vec_t3_src) == -1 ||
+	    BaseMath_ReadCallback(vec_t1_tar) == -1 ||
+	    BaseMath_ReadCallback(vec_t2_tar) == -1 ||
+	    BaseMath_ReadCallback(vec_t3_tar) == -1)
+	{
 		return NULL;
 	}
 

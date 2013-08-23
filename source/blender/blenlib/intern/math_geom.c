@@ -321,25 +321,17 @@ void closest_to_plane_v3(float close_r[3], const float plane[4], const float pt[
 	madd_v3_v3v3fl(close_r, pt, plane, -side / length);
 }
 
-/* signed distance from the point to the plane in 3D */
-float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3])
+float dist_to_plane_v3(const float pt[3], const float plane[4])
 {
-	float plane_co_other[3];
+	float close[3];
 
-	add_v3_v3v3(plane_co_other, plane_co, plane_no_unit);
+	/* same logic as closest_to_plane_v3() */
+	const float length = len_squared_v3(plane);
+	const float side = plane_point_side_v3(plane, pt);
+	madd_v3_v3v3fl(close, pt, plane, -side / length);
+	/* end same logic */
 
-	return line_point_factor_v3(p, plane_co, plane_co_other);
-}
-
-float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3])
-{
-	float plane_no_unit[3];
-	float plane_co_other[3];
-
-	normalize_v3_v3(plane_no_unit, plane_no);
-	add_v3_v3v3(plane_co_other, plane_co, plane_no_unit);
-
-	return line_point_factor_v3(p, plane_co, plane_co_other);
+	return copysign(len_v3v3(pt, close), side);
 }
 
 /* distance v1 to line-piece l1-l2 in 3D */

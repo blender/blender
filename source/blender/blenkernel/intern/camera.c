@@ -456,6 +456,7 @@ void BKE_camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
 
 
 typedef struct CameraViewFrameData {
+	float plane_tx[4][4];  /* 4 planes (not 4x4 matrix)*/
 	float frame_tx[4][3];
 	float normal_tx[4][3];
 	float dist_vals[4];
@@ -468,7 +469,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 	unsigned int i;
 
 	for (i = 0; i < 4; i++) {
-		float nd = dist_to_plane_v3(co, data->frame_tx[i], data->normal_tx[i]);
+		float nd = dist_to_plane_v3(co, data->plane_tx[i]);
 		if (nd < data->dist_vals[i]) {
 			data->dist_vals[i] = nd;
 		}
@@ -514,8 +515,8 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 	}
 
 	for (i = 0; i < 4; i++) {
-		normal_tri_v3(data_cb.normal_tx[i],
-		              zero, data_cb.frame_tx[i], data_cb.frame_tx[(i + 1) % 4]);
+		normal_tri_v3(data_cb.normal_tx[i], zero, data_cb.frame_tx[i], data_cb.frame_tx[(i + 1) % 4]);
+		plane_from_point_normal_v3(data_cb.plane_tx[i], data_cb.frame_tx[i], data_cb.normal_tx[i]);
 	}
 
 	/* initialize callback data */
