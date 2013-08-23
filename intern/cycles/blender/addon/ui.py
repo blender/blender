@@ -49,8 +49,10 @@ class CyclesButtonsPanel():
 
 
 def draw_samples_info(layout, cscene):
+    integrator = cscene.integrator
+
     # Calculate sample values
-    if cscene.progressive:
+    if integrator == 'PATH':
         aa = cscene.samples
         if cscene.use_square_samples:
             aa = aa * aa
@@ -74,12 +76,12 @@ def draw_samples_info(layout, cscene):
 
     # Draw interface
     # Do not draw for progressive, when Square Samples are disabled
-    if (not cscene.progressive) or (cscene.use_square_samples and cscene.progressive):
+    if (integrator == 'BRANCHED_PATH') or (cscene.use_square_samples and integrator == 'PATH'):
         col = layout.column(align=True)
         col.scale_y = 0.6
         col.label("Total Samples:")
         col.separator()
-        if cscene.progressive:
+        if integrator == 'PATH':
             col.label("%s AA" % aa)
         else:
             col.label("%s AA, %s Diffuse, %s Glossy, %s Transmission" %
@@ -106,7 +108,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         row = layout.row()
-        row.prop(cscene, "progressive")
+        row.prop(cscene, "integrator", text="")
         row.prop(cscene, "use_square_samples")
 
         split = layout.split()
@@ -117,7 +119,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.progressive:
+        if cscene.integrator == 'PATH':
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
@@ -713,7 +715,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if not cscene.progressive:
+        if cscene.integrator == 'BRANCHED_PATH':
             col.prop(clamp, "samples")
 
         col = split.column()
