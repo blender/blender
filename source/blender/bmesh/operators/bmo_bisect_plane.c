@@ -40,6 +40,7 @@
 void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 {
 	const float dist  = BMO_slot_float_get(op->slots_in, "dist");
+	const bool use_snap_center = BMO_slot_bool_get(op->slots_in,  "use_snap_center");
 	const bool clear_outer = BMO_slot_bool_get(op->slots_in,  "clear_outer");
 	const bool clear_inner = BMO_slot_bool_get(op->slots_in,  "clear_inner");
 
@@ -64,7 +65,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL_NOLOOP, ELE_INPUT);
 
 
-	BM_mesh_bisect_plane(bm, plane, true,
+	BM_mesh_bisect_plane(bm, plane, use_snap_center, true,
 	                     ELE_NEW, dist);
 
 

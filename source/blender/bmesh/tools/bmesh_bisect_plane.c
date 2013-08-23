@@ -24,6 +24,13 @@
  *  \ingroup bmesh
  *
  * Cut the geometry in half using a plane.
+ *
+ * \par Implementation
+ * This simply works by splitting tagged edges whos verts span either side of
+ * the plane, then splitting faces along their dividing verts.
+ * The only complex case is when a ngon spans the axis multiple times,
+ * in this case we need to do some extra checks to correctly bisect the ngon.
+ * see: #bm_face_bisect_verts
  */
 
 #include <limits.h>
@@ -54,7 +61,7 @@
 
 static int plane_point_test_v3(const float plane[4], const float co[3], const float eps, float *r_depth)
 {
-	const float f = plane_point_side_v3(co, plane);
+	const float f = plane_point_side_v3(plane, co);
 	*r_depth = f;
 
 	if      (f <= -eps) return -1;
@@ -68,24 +75,11 @@ static int plane_point_test_v3(const float plane[4], const float co[3], const fl
  * later we may want to move this into some hash lookup
  * to a separate struct, but for now we can store in BMesh data */
 
-/**
- * Direction -1/0/1
- */
-#define BM_VERT_DIR(v) ((v)->head.index)
-/**
- * Distance from the plane.
- */
-#define BM_VERT_DIST(v) ((v)->no[0])
-
-/**
- * Temp value for sorting.
- */
-#define BM_VERT_SORTVAL(v) ((v)->no[1])
-
-/**
- * Temp value for sorting.
- */
-#define BM_VERT_LOOPINDEX(v) (*((unsigned int *)(&(v)->no[2])))
+#define BM_VERT_DIR(v)     ((v)->head.index)    /* Direction -1/0/1 */
+#define BM_VERT_DIST(v)    ((v)->no[0])         /* Distance from the plane. */
+#define BM_VERT_SORTVAL(v) ((v)->no[1])         /* Temp value for sorting. */
+#define BM_VERT_LOOPINDEX(v)                    /* The verts index within a face (temp var) */ \
+	(*((unsigned int *)(&(v)->no[2])))
 
 /**
  * Hide flag access
@@ -97,6 +91,7 @@ BLI_INLINE void vert_is_center_enable(BMVert *v) { BM_elem_flag_enable(v, BM_ELE
 BLI_INLINE void vert_is_center_disable(BMVert *v) { BM_elem_flag_disable(v, BM_ELEM_TAG); }
 BLI_INLINE bool vert_is_center_test(BMVert *v) { return (BM_elem_flag_test(v, BM_ELEM_TAG) != 0); }
 
+/* enable when the edge can be cut */
 BLI_INLINE void edge_is_cut_enable(BMEdge *e) { BM_elem_flag_enable(e, BM_ELEM_TAG); }
 BLI_INLINE void edge_is_cut_disable(BMEdge *e) { BM_elem_flag_disable(e, BM_ELEM_TAG); }
 BLI_INLINE bool edge_is_cut_test(BMEdge *e) { return (BM_elem_flag_test(e, BM_ELEM_TAG) != 0); }
@@ -244,7 +239,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 				float co_mid[2];
 
 				/* geometric test before doing face lookups,
-				 * find if the split */
+				 * find if the split spans a filled region of the polygon. */
 				mid_v2_v2v2(co_mid,
 				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_a)],
 				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_b)]);
@@ -292,14 +287,15 @@ finally:
 
 }
 
-
 /* -------------------------------------------------------------------- */
 /* Main logic */
 
 /**
  * \param use_tag  Only bisect tagged edges and faces.
+ * \param use_snap  Snap verts onto the plane.
  */
-void BM_mesh_bisect_plane(BMesh *bm, float plane[4], const bool use_tag,
+void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
+                          const bool use_snap_center, const bool use_tag,
                           const short oflag_new, const float eps)
 {
 	unsigned int einput_len;
@@ -314,8 +310,12 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4], const bool use_tag,
 	BMIter iter;
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		BM_VERT_DIR(v) = plane_point_test_v3(v->co, plane, eps, &(BM_VERT_DIST(v)));
 		vert_is_center_disable(v);
+
+		BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
+		if (use_snap_center && (BM_VERT_DIR(v) == 0)) {
+			closest_to_plane_v3(v->co, plane, v->co);
+		}
 	}
 
 	if (use_tag) {

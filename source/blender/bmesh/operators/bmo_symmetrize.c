@@ -39,6 +39,7 @@
 
 void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 {
+	const float dist = BMO_slot_float_get(op->slots_in, "dist");
 	const int direction = BMO_slot_int_get(op->slots_in, "direction");
 	const int axis = direction % 3;
 
@@ -63,8 +64,8 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 
 	/* Cut in half */
 	BMO_op_initf(bm, &op_bisect, op->flag,
-	             "bisect_plane geom=%s plane_no=%v dist=%f clear_outer=%b",
-	             op, "input", plane_no, 0.00001f, true);
+	             "bisect_plane geom=%s plane_no=%v dist=%f clear_outer=%b use_snap_center=%b",
+	             op, "input", plane_no, dist, true, true);
 
 	BMO_op_exec(bm, &op_bisect);
 

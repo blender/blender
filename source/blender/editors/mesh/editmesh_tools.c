@@ -4441,8 +4441,11 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMOperator bmop;
 
-	EDBM_op_init(em, &bmop, op, "symmetrize input=%hvef direction=%i",
-	             BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"));
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+
+	EDBM_op_init(em, &bmop, op,
+	             "symmetrize input=%hvef direction=%i dist=%f",
+	             BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
 	BMO_op_exec(em->bm, &bmop);
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -4476,6 +4479,7 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "direction", symmetrize_direction_items,
 	                        BMO_SYMMETRIZE_NEGATIVE_X,
 	                        "Direction", "Which sides to copy from and to");
+	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Threshold", "", 0.00001, 0.1);
 }
 
 static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
