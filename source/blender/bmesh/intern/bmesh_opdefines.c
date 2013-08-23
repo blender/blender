@@ -1597,6 +1597,7 @@ static BMOpDefine bmo_triangle_fill_def = {
 	"triangle_fill",
 	/* slots_in */
 	{{"use_beauty", BMO_OP_SLOT_BOOL},
+	 {"use_dissolve", BMO_OP_SLOT_BOOL},  /* dissolve resulting faces */
 	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
 	 {"normal", BMO_OP_SLOT_VEC},  /* optionally pass the fill normal to use */
 	 {{'\0'}},

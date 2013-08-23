@@ -59,6 +59,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 {
 	const bool use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
+	const bool use_dissolve = BMO_slot_bool_get(op->slots_in, "use_dissolve");
 	BMOIter siter;
 	BMEdge *e;
 	ScanFillContext sf_ctx;
@@ -133,4 +134,22 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
+
+	if (use_dissolve) {
+		BMO_ITER (e, &siter, op->slots_out, "geom.out", BM_EDGE) {
+			BMFace *f_new;
+			f_new = BM_faces_join_pair(bm, e->l->f,
+			                           e->l->radial_next->f, e,
+			                           false); /* join faces */
+			if (f_new) {
+				BMO_elem_flag_enable(bm, f_new, ELE_NEW);
+				BM_edge_kill(bm, e);
+			}
+			else {
+				BMO_error_clear(bm);
+			}
+		}
+
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
+	}
 }
