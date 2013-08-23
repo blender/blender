@@ -40,6 +40,7 @@
 #include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -1433,6 +1434,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_GAMEENGINE
 	Scene *startscene = CTX_data_scene(C);
+	Main *bmain = CTX_data_main(C);
 	ScrArea /* *sa, */ /* UNUSED */ *prevsa = CTX_wm_area(C);
 	ARegion *ar, *prevar = CTX_wm_region(C);
 	wmWindow *prevwin = CTX_wm_window(C);
@@ -1448,6 +1450,8 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	/* redraw to hide any menus/popups, we don't go back to
 	 * the window manager until after this operator exits */
 	WM_redraw_windows(C);
+
+	BLI_callback_exec(bmain, &startscene->id, BLI_CB_EVT_GAME_PRE);
 
 	rv3d = CTX_wm_region_view3d(C);
 	/* sa = CTX_wm_area(C); */ /* UNUSED */
@@ -1503,6 +1507,8 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	BKE_scene_set_background(CTX_data_main(C), startscene);
 	//XXX BKE_scene_update_for_newframe(bmain, scene, scene->lay);
+
+	BLI_callback_exec(bmain, &startscene->id, BLI_CB_EVT_GAME_POST);
 
 	return OPERATOR_FINISHED;
 #else
