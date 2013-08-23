@@ -35,12 +35,14 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim)
 	float *p1 = &p[1].x;
 	float *p2 = &p[2].x;
 	float *p3 = &p[3].x;
+
 	float fc = 0.71f;
 	float curve_coef[4];
 	curve_coef[0] = p1[dim];
 	curve_coef[1] = -fc*p0[dim] + fc*p2[dim];
 	curve_coef[2] = 2.0f * fc * p0[dim] + (fc - 3.0f) * p1[dim] + (3.0f - 2.0f * fc) * p2[dim] - fc * p3[dim];
 	curve_coef[3] = -fc * p0[dim] + (2.0f - fc) * p1[dim] + (fc - 2.0f) * p2[dim] + fc * p3[dim];
+
 	float discroot = curve_coef[2] * curve_coef[2] - 3 * curve_coef[3] * curve_coef[1];
 	float ta = -1.0f;
 	float tb = -1.0f;
@@ -70,7 +72,6 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim)
 	}
 	*upper = max(*upper, max(exa,exb));
 	*lower = min(*lower, min(exa,exb));
-	
 }
 
 /* Hair System Manager */
