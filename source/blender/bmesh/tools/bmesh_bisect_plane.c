@@ -115,7 +115,7 @@ static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
 }
 
 
-static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], const short oflag_new)
+static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], const short oflag_center)
 {
 	/* unlikely more then 2 verts are needed */
 	const unsigned int f_len_orig = (unsigned int)f->len;
@@ -153,10 +153,10 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 			l_new = NULL;
 			BM_face_split(bm, f, vert_split_arr[0], vert_split_arr[1], &l_new, NULL, true);
 			if (l_new) {
-				if (oflag_new) {
-					BMO_elem_flag_enable(bm, l_new->e, oflag_new);
-					BMO_elem_flag_enable(bm, l_new->f, oflag_new);
-					BMO_elem_flag_enable(bm, f,        oflag_new);
+				if (oflag_center) {
+					BMO_elem_flag_enable(bm, l_new->e, oflag_center);
+					BMO_elem_flag_enable(bm, l_new->f, oflag_center);
+					BMO_elem_flag_enable(bm, f,        oflag_center);
 				}
 			}
 		}
@@ -293,10 +293,11 @@ finally:
 /**
  * \param use_tag  Only bisect tagged edges and faces.
  * \param use_snap  Snap verts onto the plane.
+ * \param oflag_center  Operator flag, enabled for geometry on the axis (existing and created)
  */
 void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
                           const bool use_snap_center, const bool use_tag,
-                          const short oflag_new, const float eps)
+                          const short oflag_center, const float eps)
 {
 	unsigned int einput_len;
 	unsigned int i;
@@ -313,8 +314,13 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 		vert_is_center_disable(v);
 
 		BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
-		if (use_snap_center && (BM_VERT_DIR(v) == 0)) {
-			closest_to_plane_v3(v->co, plane, v->co);
+		if (BM_VERT_DIR(v) == 0) {
+			if (oflag_center) {
+				BMO_elem_flag_enable(bm, v, oflag_center);
+			}
+			if (use_snap_center) {
+				closest_to_plane_v3(v->co, plane, v->co);
+			}
 		}
 	}
 
@@ -369,8 +375,8 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 
 			v_new = BM_edge_split(bm, e, e->v1, NULL, e_fac);
 			vert_is_center_enable(v_new);
-			if (oflag_new) {
-				BMO_elem_flag_enable(bm, v_new, oflag_new);
+			if (oflag_center) {
+				BMO_elem_flag_enable(bm, v_new, oflag_center);
 			}
 
 			BM_VERT_DIR(v_new) = 0;
@@ -404,7 +410,7 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 	MEM_freeN(edges_arr);
 
 	while ((f = BLI_LINKSTACK_POP(face_stack))) {
-		bm_face_bisect_verts(bm, f, plane, oflag_new);
+		bm_face_bisect_verts(bm, f, plane, oflag_center);
 	}
 
 	/* now we have all faces to split in the stack */
