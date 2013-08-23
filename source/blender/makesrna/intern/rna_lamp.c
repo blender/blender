@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 
+#include "BLI_sys_types.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 

@@ -66,7 +66,7 @@ float normalize_qt(float q[4]);
 float normalize_qt_qt(float q1[4], const float q2[4]);
 
 /* comparison */
-int is_zero_qt(float q[4]);
+bool is_zero_qt(const float q[4]);
 
 /* interpolation */
 void interp_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
@@ -163,13 +163,13 @@ typedef struct DualQuat {
 	float scale_weight;
 } DualQuat;
 
-void copy_dq_dq(DualQuat *r, DualQuat *dq);
+void copy_dq_dq(DualQuat *r, const DualQuat *dq);
 void normalize_dq(DualQuat *dq, float totw);
-void add_weighted_dq_dq(DualQuat *r, DualQuat *dq, float weight);
+void add_weighted_dq_dq(DualQuat *r, const DualQuat *dq, float weight);
 void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq);
 
 void mat4_to_dquat(DualQuat *r, float base[4][4], float M[4][4]);
-void dquat_to_mat4(float R[4][4], DualQuat *dq);
+void dquat_to_mat4(float R[4][4], const DualQuat *dq);
 
 void quat_apply_track(float quat[4], short axis, short upflag);
 void vec_apply_track(float vec[3], short axis);
