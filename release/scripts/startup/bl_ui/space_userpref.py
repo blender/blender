@@ -477,7 +477,7 @@ class USERPREF_PT_system(Panel):
                 column.prop(system, "language")
                 row = column.row()
                 row.label(text="Translate:", text_ctxt=i18n_contexts.id_windowmanager)
-                row = column.row(True)
+                row = column.row(align=True)
                 row.prop(system, "use_translate_interface", text="Interface", toggle=True)
                 row.prop(system, "use_translate_tooltips", text="Tooltips", toggle=True)
                 row.prop(system, "use_translate_new_dataname", text="New Data", toggle=True)

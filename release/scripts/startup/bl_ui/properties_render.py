@@ -257,18 +257,16 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column()
+        col = split.column(align=True)
+        col.label(text="Threads:")
+        col.row(align=True).prop(rd, "threads_mode", expand=True)
         sub = col.column(align=True)
-        sub.label(text="Threads:")
-        sub.row().prop(rd, "threads_mode", expand=True)
-        subsub = sub.column()
-        subsub.enabled = rd.threads_mode == 'FIXED'
-        subsub.prop(rd, "threads")
+        sub.enabled = rd.threads_mode == 'FIXED'
+        sub.prop(rd, "threads")
 
-        sub = col.column(align=True)
-        sub.label(text="Tile Size:")
-        sub.prop(rd, "tile_x", text="X")
-        sub.prop(rd, "tile_y", text="Y")
+        col.label(text="Tile Size:")
+        col.prop(rd, "tile_x", text="X")
+        col.prop(rd, "tile_y", text="Y")
 
         col = split.column()
         col.label(text="Memory:")

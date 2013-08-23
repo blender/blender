@@ -562,7 +562,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
         def number_but(layout, toggle, number, name, color):
             row = layout.row(align=True)
             row.prop(halo, toggle, text="")
-            sub = row.column()
+            sub = row.column(align=True)
             sub.active = getattr(halo, toggle)
             sub.prop(halo, number, text=name, translate=False)
             if not color == "":
@@ -770,7 +770,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.label(text="Light Group:")
         sub.prop(mat, "light_group", text="")
-        row = sub.row()
+        row = sub.row(align=True)
         row.active = bool(mat.light_group)
         row.prop(mat, "use_light_group_exclusive", text="Exclusive")
         row.prop(mat, "use_light_group_local", text="Local")

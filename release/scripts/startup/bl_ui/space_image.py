@@ -183,17 +183,10 @@ class IMAGE_MT_image_invert(Menu):
 
         layout.separator()
 
-        props = layout.operator("image.invert", text="Invert Red Channel")
-        props.invert_r = True
-
-        props = layout.operator("image.invert", text="Invert Green Channel")
-        props.invert_g = True
-
-        props = layout.operator("image.invert", text="Invert Blue Channel")
-        props.invert_b = True
-
-        props = layout.operator("image.invert", text="Invert Alpha Channel")
-        props.invert_a = True
+        layout.operator("image.invert", text="Invert Red Channel").invert_r = True
+        layout.operator("image.invert", text="Invert Green Channel").invert_g = True
+        layout.operator("image.invert", text="Invert Blue Channel").invert_b = True
+        layout.operator("image.invert", text="Invert Alpha Channel").invert_a = True
 
 
 class IMAGE_MT_uvs_showhide(Menu):
@@ -714,8 +707,6 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
             self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-            row = col.row(align=True)
-
             col.prop(brush, "blend", text="Blend")
 
             if brush.image_tool == 'CLONE':
@@ -745,14 +736,14 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
         col.active = brush.brush_capabilities.has_overlay
         col.label(text="Overlay:")
 
-        row = col.row()
+        row = col.row(align=True)
         if tex_slot.map_mode != 'STENCIL':
             if brush.use_primary_overlay:
                 row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
             else:
                 row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
 
-        sub = row.row()
+        sub = row.row(align=True)
         sub.prop(brush, "texture_overlay_alpha", text="Alpha")
         sub.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
@@ -777,14 +768,14 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
         col.active = brush.brush_capabilities.has_overlay
         col.label(text="Overlay:")
 
-        row = col.row()
+        row = col.row(align=True)
         if tex_slot_alpha.map_mode != 'STENCIL':
             if brush.use_secondary_overlay:
                 row.prop(brush, "use_secondary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
             else:
                 row.prop(brush, "use_secondary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
 
-        sub = row.row()
+        sub = row.row(align=True)
         sub.prop(brush, "mask_overlay_alpha", text="Alpha")
         sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 

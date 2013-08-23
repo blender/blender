@@ -96,8 +96,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
                     col.prop(flow, "volume_density")
 
                 sub = col.column(align=True)
-
                 sub.prop(flow, "use_initial_velocity")
+
                 sub = sub.column()
                 sub.active = flow.use_initial_velocity
                 sub.prop(flow, "velocity_factor")

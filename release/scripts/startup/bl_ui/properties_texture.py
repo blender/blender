@@ -555,17 +555,17 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
 
             col = split.column(align=True)
             col.label(text="Mirror:")
-            row = col.row()
+            row = col.row(align=True)
             row.prop(tex, "use_mirror_x", text="X")
             row.active = (tex.repeat_x > 1)
-            row = col.row()
+            row = col.row(align=True)
             row.prop(tex, "use_mirror_y", text="Y")
             row.active = (tex.repeat_y > 1)
             layout.separator()
 
         elif tex.extension == 'CHECKER':
             col = split.column(align=True)
-            row = col.row()
+            row = col.row(align=True)
             row.prop(tex, "use_checker_even", text="Even")
             row.prop(tex, "use_checker_odd", text="Odd")
 
@@ -1007,7 +1007,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
         def factor_but(layout, toggle, factor, name):
             row = layout.row(align=True)
             row.prop(tex, toggle, text="")
-            sub = row.row()
+            sub = row.row(align=True)
             sub.active = getattr(tex, toggle)
             sub.prop(tex, factor, text=name, slider=True)
             return sub  # XXX, temp. use_map_normal needs to override.

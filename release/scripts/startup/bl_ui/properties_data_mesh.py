@@ -81,7 +81,7 @@ class MESH_UL_shape_keys(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(0.66, False)
             split.label(text=item.name, translate=False, icon_value=icon)
-            row = split.row(True)
+            row = split.row(align=True)
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 row.active = False
             if not item.relative_key or index > 0:
@@ -207,7 +207,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if group:
             row = layout.row()
             row.prop(group, "name")
 

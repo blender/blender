@@ -96,11 +96,8 @@ class MASK_PT_layers:
         if active_layer:
             sub.separator()
 
-            props = sub.operator("mask.layer_move", icon='TRIA_UP', text="")
-            props.direction = 'UP'
-
-            props = sub.operator("mask.layer_move", icon='TRIA_DOWN', text="")
-            props.direction = 'DOWN'
+            sub.operator("mask.layer_move", icon='TRIA_UP', text="").direction = 'UP'
+            sub.operator("mask.layer_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
             layout.prop(active_layer, "name")
 
@@ -245,8 +242,7 @@ class MASK_PT_tools():
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
-        props = col.operator("transform.transform", text="Scale Feather")
-        props.mode = 'MASK_SHRINKFATTEN'
+        col.operator("transform.transform", text="Scale Feather").mode = 'MASK_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Spline:")
@@ -300,9 +296,7 @@ class MASK_MT_visibility(Menu):
 
         layout.operator("mask.hide_view_clear", text="Show Hidden")
         layout.operator("mask.hide_view_set", text="Hide Selected")
-
-        props = layout.operator("mask.hide_view_set", text="Hide Unselected")
-        props.unselected = True
+        layout.operator("mask.hide_view_set", text="Hide Unselected").unselected = True
 
 
 class MASK_MT_transform(Menu):
@@ -314,8 +308,7 @@ class MASK_MT_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
-        props = layout.operator("transform.transform", text="Scale Feather")
-        props.mode = 'MASK_SHRINKFATTEN'
+        layout.operator("transform.transform", text="Scale Feather").mode = 'MASK_SHRINKFATTEN'
 
 
 class MASK_MT_animation(Menu):

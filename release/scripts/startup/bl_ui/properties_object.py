@@ -112,10 +112,9 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, Panel):
         col.label(text="Y:")
         col.label(text="Z:")
 
-        col = split.row()
-        col.column().prop(ob, "lock_location", text="Location")
-        col.column().prop(ob, "lock_rotation", text="Rotation")
-        col.column().prop(ob, "lock_scale", text="Scale")
+        split.column().prop(ob, "lock_location", text="Location")
+        split.column().prop(ob, "lock_rotation", text="Rotation")
+        split.column().prop(ob, "lock_scale", text="Scale")
 
         if ob.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             row = layout.row()

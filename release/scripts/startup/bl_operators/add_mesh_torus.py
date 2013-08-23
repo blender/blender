@@ -150,18 +150,19 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         layout = self.layout
         col = layout.column(align=True)
         col.prop(self, 'view_align')
-        col = layout.column(align=True)
 
+        col = layout.column(align=True)
         col.label(text="Location")
         col.prop(self, 'location', text="")
-        col = layout.column(align=True)
 
+        col = layout.column(align=True)
         col.label(text="Rotation")
         col.prop(self, 'rotation', text="")
 
         col = layout.column(align=True)
         col.label(text="Major Segments")
         col.prop(self, 'major_segments', text="")
+
         col = layout.column(align=True)
         col.label(text="Minor Segments")
         col.prop(self, 'minor_segments', text="")
@@ -174,6 +175,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             col = layout.column(align=True)
             col.label(text="Major Radius")
             col.prop(self, 'major_radius', text="")
+
             col = layout.column(align=True)
             col.label(text="Minor Radius")
             col.prop(self, 'minor_radius', text="")
@@ -181,6 +183,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             col = layout.column(align=True)
             col.label(text="Exterior Radius")
             col.prop(self, 'abso_major_rad', text="")
+
             col = layout.column(align=True)
             col.label(text="Interior Radius")
             col.prop(self, 'abso_minor_rad', text="")

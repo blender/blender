@@ -780,7 +780,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub = col.column()
         row = sub.split(align=True, percentage=0.4)
         row.prop(md, "material_offset", text="")
-        row = row.row()
+        row = row.row(align=True)
         row.active = md.use_rim
         row.prop(md, "material_offset_rim", text="Rim")
 

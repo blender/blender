@@ -136,7 +136,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if group:
             col = layout.column()
             col.active = (ob.proxy is None)
             col.prop(group, "name")
@@ -211,7 +210,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                 layout.prop(pose_marker_active, "name")
 
 
-# TODO: this panel will soon be deprecated deprecated too
+# TODO: this panel will soon be deprecated too
 class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
     bl_label = "Ghost"
 

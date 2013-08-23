@@ -599,20 +599,18 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
             split = layout.split()
 
-            sub = split.column()
-            col = sub.column(align=True)
+            col = split.column(align=True)
             col.active = boids.use_flight
             col.prop(boids, "air_speed_max")
             col.prop(boids, "air_speed_min", slider=True)
             col.prop(boids, "air_acc_max", slider=True)
             col.prop(boids, "air_ave_max", slider=True)
             col.prop(boids, "air_personal_space")
-            row = col.row()
+            row = col.row(align=True)
             row.active = (boids.use_land or boids.use_climb) and boids.use_flight
             row.prop(boids, "land_smooth")
 
-            sub = split.column()
-            col = sub.column(align=True)
+            col = split.column(align=True)
             col.active = boids.use_land or boids.use_climb
             col.prop(boids, "land_speed_max")
             col.prop(boids, "land_jump_speed")
@@ -621,9 +619,9 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.prop(boids, "land_personal_space")
             col.prop(boids, "land_stick_force")
 
-            row = layout.row()
+            split = layout.split()
 
-            col = row.column(align=True)
+            col = split.column(align=True)
             col.label(text="Battle:")
             col.prop(boids, "health")
             col.prop(boids, "strength")
@@ -631,7 +629,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.prop(boids, "accuracy")
             col.prop(boids, "range")
 
-            col = row.column()
+            col = split.column()
             col.label(text="Misc:")
             col.prop(boids, "bank", slider=True)
             col.prop(boids, "pitch", slider=True)
@@ -1037,7 +1035,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         col = row.column(align=True)
         col.label(text="Color:")
         col.prop(part, "draw_color", text="")
-        sub = col.row()
+        sub = col.row(align=True)
         sub.active = (part.draw_color in {'VELOCITY', 'ACCELERATION'})
         sub.prop(part, "color_maximum", text="Max")
 
@@ -1139,10 +1137,9 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         sub.prop(part, "kink_amplitude")
         sub.prop(part, "kink_amplitude_clump", text="Clump", slider=True)
         col.prop(part, "kink_flat", slider=True)
-        col = split.column()
-        sub = col.column(align=True)
-        sub.prop(part, "kink_frequency")
-        sub.prop(part, "kink_shape", slider=True)
+        col = split.column(align=True)
+        col.prop(part, "kink_frequency")
+        col.prop(part, "kink_shape", slider=True)
 
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel, Panel):

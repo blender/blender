@@ -252,8 +252,8 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         col = split.column(align=True)
 
         col.label(text="Threads:")
-        col.row().prop(rd, "threads_mode", expand=True)
-        sub = col.column()
+        col.row(align=True).prop(rd, "threads_mode", expand=True)
+        sub = col.column(align=True)
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
 
@@ -266,7 +266,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub.prop(cscene, "use_progressive_refine")
 
-        subsub = sub.column()
+        subsub = sub.column(align=True)
         subsub.enabled = not rd.use_border
         subsub.prop(rd, "use_save_buffers")
 

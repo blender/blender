@@ -178,7 +178,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         # draw edge type buttons
         row = box.row(align=True)
         row.prop(lineset, select_edge_type)
-        sub = row.column()
+        sub = row.column(align=True)
         sub.prop(lineset, exclude_edge_type, text="")
         sub.active = getattr(lineset, select_edge_type)
 

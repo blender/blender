@@ -53,14 +53,14 @@ class OUTLINER_HT_header(Header):
             row.operator("outliner.keyingset_remove_selected", icon='ZOOMOUT', text="")
 
             if ks:
-                row = layout.row(align=False)
+                row = layout.row()
                 row.prop_search(scene.keying_sets, "active", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
                 row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
                 row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
             else:
-                row = layout.row(align=False)
+                row = layout.row()
                 row.label(text="No Keying Set active")
 
 

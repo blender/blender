@@ -35,23 +35,23 @@ class PhysicButtonsPanel():
 
 
 def physics_add(self, layout, md, name, type, typeicon, toggles):
-    sub = layout.row(align=True)
+    row = layout.row(align=True)
     if md:
-        sub.context_pointer_set("modifier", md)
-        sub.operator("object.modifier_remove", text=name, text_ctxt=i18n_contexts.default, icon='X')
+        row.context_pointer_set("modifier", md)
+        row.operator("object.modifier_remove", text=name, text_ctxt=i18n_contexts.default, icon='X')
         if toggles:
-            sub.prop(md, "show_render", text="")
-            sub.prop(md, "show_viewport", text="")
+            row.prop(md, "show_render", text="")
+            row.prop(md, "show_viewport", text="")
     else:
-        sub.operator("object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon=typeicon).type = type
+        row.operator("object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon=typeicon).type = type
 
 
 def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
-    sub = layout.row(align=True)
+    row = layout.row(align=True)
     if data:
-        sub.operator(removeop, text=name, text_ctxt=i18n_contexts.default, icon='X')
+        row.operator(removeop, text=name, text_ctxt=i18n_contexts.default, icon='X')
     else:
-        sub.operator(addop, text=name, text_ctxt=i18n_contexts.default, icon=typeicon)
+        row.operator(addop, text=name, text_ctxt=i18n_contexts.default, icon=typeicon)
 
 
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
@@ -301,14 +301,14 @@ def basic_force_field_falloff_ui(self, context, field):
     col = split.column()
     row = col.row(align=True)
     row.prop(field, "use_min_distance", text="")
-    sub = row.row()
+    sub = row.row(align=True)
     sub.active = field.use_min_distance
     sub.prop(field, "distance_min", text="Minimum")
 
     col = split.column()
     row = col.row(align=True)
     row.prop(field, "use_max_distance", text="")
-    sub = row.row()
+    sub = row.row(align=True)
     sub.active = field.use_max_distance
     sub.prop(field, "distance_max", text="Maximum")
 

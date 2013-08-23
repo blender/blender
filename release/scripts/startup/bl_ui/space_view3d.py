@@ -120,16 +120,14 @@ class VIEW3D_HT_header(Header):
         # OpenGL render
         row = layout.row(align=True)
         row.operator("render.opengl", text="", icon='RENDER_STILL')
-        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
-        props.animation = True
+        row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
 
         # Pose
         if obj and mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='COPYDOWN')
             row.operator("pose.paste", text="", icon='PASTEDOWN')
-            props = row.operator("pose.paste", text="", icon='PASTEFLIPDOWN')
-            props.flipped = 1
+            row.operator("pose.paste", text="", icon='PASTEFLIPDOWN').flipped = 1
 
 
 # ********** Menu **********
@@ -293,10 +291,8 @@ class VIEW3D_MT_snap(Menu):
         layout = self.layout
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
-        props = layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
-        props.use_offset = False
-        props = layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)")
-        props.use_offset = True
+        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor").use_offset = False
+        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
 
         layout.separator()
 
@@ -2490,7 +2486,7 @@ class VIEW3D_PT_view3d_properties(Panel):
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
-        subcol = col.column()
+        subcol = col.column(align=True)
         subcol.enabled = not view.lock_camera_and_layers
         subcol.label(text="Local Camera:")
         subcol.prop(view, "camera", text="")
@@ -2943,7 +2939,7 @@ class VIEW3D_PT_etch_a_ton(Panel):
 
             colsub = col.column(align=True)
             colsub.prop(toolsettings, "use_etch_autoname")
-            sub = colsub.column()
+            sub = colsub.column(align=True)
             sub.enabled = not toolsettings.use_etch_autoname
             sub.prop(toolsettings, "etch_number")
             sub.prop(toolsettings, "etch_side")

@@ -104,8 +104,7 @@ class SEQUENCER_HT_header(Header):
                     row.prop(st, "overlay_type", text="")
 
         row = layout.row(align=True)
-        props = row.operator("render.opengl", text="", icon='RENDER_STILL')
-        props.sequencer = True
+        row.operator("render.opengl", text="", icon='RENDER_STILL').sequencer = True
         props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
         props.animation = True
         props.sequencer = True
@@ -339,12 +338,11 @@ class SEQUENCER_MT_strip(Menu):
         #}
 
         layout.separator()
-        props = layout.operator("sequencer.reload", text="Reload Strips")
-        props.adjust_length = False
-        props = layout.operator("sequencer.reload", text="Reload Strips and Adjust Length")
-        props.adjust_length = True
+        layout.operator("sequencer.reload", text="Reload Strips").adjust_length = False
+        layout.operator("sequencer.reload", text="Reload Strips and Adjust Length").adjust_length = True
         layout.operator("sequencer.reassign_inputs")
         layout.operator("sequencer.swap_inputs")
+
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -413,7 +411,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
             split.prop(strip, "blend_type", text="")
 
             row = layout.row(align=True)
-            sub = row.row()
+            sub = row.row(align=True)
             sub.active = (not strip.mute)
             sub.prop(strip, "blend_alpha", text="Opacity", slider=True)
             row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
@@ -427,10 +425,10 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         sub.prop(strip, "frame_final_duration")
 
         col = layout.column(align=True)
-        row = col.row()
+        row = col.row(align=True)
         row.label(text=iface_("Final Length: %s") % bpy.utils.smpte_from_frame(strip.frame_final_duration),
                   translate=False)
-        row = col.row()
+        row = col.row(align=True)
         row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
         row.label(text=iface_("Playhead: %d") % (frame_current - strip.frame_start), translate=False)
 
@@ -549,7 +547,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             layout.prop(strip, "multicam_source")
 
             row = layout.row(align=True)
-            sub = row.row()
+            sub = row.row(align=True)
             sub.scale_x = 2.0
 
             sub.operator("screen.animation_play", text="", icon='PAUSE' if context.screen.is_animation_playing else 'PLAY')
@@ -925,8 +923,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
             props.name = mod.name
             props.direction = 'DOWN'
 
-            props = row.operator("sequencer.strip_modifier_remove", text="", icon='X', emboss=False)
-            props.name = mod.name
+            row.operator("sequencer.strip_modifier_remove", text="", icon='X', emboss=False).name = mod.name
 
             if mod.show_expanded:
                 row = box.row()
