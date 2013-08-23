@@ -734,14 +734,14 @@ static void snap_to_edge_profile(EdgeHalf *e, const float va[3], const float vb[
                                  float co[3])
 {
 	float m[4][4], minv[4][4];
-	float edir[3], va0[3], vb0[3], vmid0[3], p[3], snap[3];
+	float edir[3], va0[3], vb0[3], vmid0[3], p[3], snap[3], plane[4];
 
 	sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
-	normalize_v3(edir);
 
 	/* project va and vb onto plane P, with normal edir and containing co */
-	closest_to_plane_v3(va0, co, edir, va);
-	closest_to_plane_v3(vb0, co, edir, vb);
+	plane_from_point_normal_v3(plane, co, edir);
+	closest_to_plane_v3(va0, plane, va);
+	closest_to_plane_v3(vb0, plane, vb);
 	project_to_edge(e->e, va0, vb0, vmid0);
 	if (make_unit_square_map(va0, vmid0, vb0, m)) {
 		/* Transform co and project it onto the unit circle.

@@ -305,24 +305,20 @@ void closest_to_line_segment_v3(float close_r[3], const float v1[3], const float
 		copy_v3_v3(close_r, cp);
 }
 
-/* find the closest point on a plane to another point and store it in close_r
- * close_r:       return coordinate
- * plane_co:      a point on the plane
- * plane_no_unit: the plane's normal, and d is the last number in the plane equation 0 = ax + by + cz + d
- * pt:            the point that you want the nearest of
+/**
+ * Find the closest point on a plane.
+ *
+ * \param close_r  Return coordinate
+ * \param plane  The plane to test against.
+ * \param pt  The point to find the nearest of
+ *
+ * \note non-unit-length planes are supported.
  */
-
-void closest_to_plane_v3(float close_r[3], const float plane_co[3], const float plane_no_unit[3], const float pt[3])
+void closest_to_plane_v3(float close_r[3], const float plane[4], const float pt[3])
 {
-	float temp[3];
-	float dotprod;
-
-	sub_v3_v3v3(temp, pt, plane_co);
-	dotprod = dot_v3v3(temp, plane_no_unit);
-
-	close_r[0] = pt[0] - (plane_no_unit[0] * dotprod);
-	close_r[1] = pt[1] - (plane_no_unit[1] * dotprod);
-	close_r[2] = pt[2] - (plane_no_unit[2] * dotprod);
+	const float length = len_squared_v3(plane);
+	const float side = plane_point_side_v3(plane, pt);
+	madd_v3_v3v3fl(close_r, pt, plane, -side / length);
 }
 
 /* signed distance from the point to the plane in 3D */
