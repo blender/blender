@@ -1676,7 +1676,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 		/* FIXME: there are more complicated methods that will be needed to fix more cases than just some */
 		for (f = 0; f < 3; f++) {
 			FCurve *fcu = euf->fcurves[f];
-			BezTriple *bezt, *prev = NULL;
+			BezTriple *bezt, *prev;
 			unsigned int i;
 			
 			/* skip if not enough vets to do a decent analysis of... */
@@ -1684,29 +1684,19 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 				continue;
 			
 			/* prev follows bezt, bezt = "current" point to be fixed */
-			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, prev = bezt, bezt++) {
-				/* our method depends on determining a "difference" from the previous vert */
-				if (prev == NULL)
-					continue;
+			/* our method depends on determining a "difference" from the previous vert */
+			for (i = 1, prev = fcu->bezt, bezt = fcu->bezt + 1; i < fcu->totvert; i++, prev = bezt++) {
+				const float sign = (prev->vec[1][1] > bezt->vec[1][1]) ? 1.0f : -1.0f;
 				
 				/* > 180 degree flip? */
-				if (fabs(prev->vec[1][1] - bezt->vec[1][1]) >= M_PI) {
+				if ((sign * (prev->vec[1][1] - bezt->vec[1][1])) >= (float)M_PI) {
 					/* 360 degrees to add/subtract frame value until difference is acceptably small that there's no more flip */
-					const float fac = 2.0f * (float)M_PI;
+					const float fac = sign * 2.0f * (float)M_PI;
 					
-					if (prev->vec[1][1] > bezt->vec[1][1]) {
-						while (fabsf(bezt->vec[1][1] - prev->vec[1][1]) >= (float)M_PI) {
-							bezt->vec[0][1] += fac;
-							bezt->vec[1][1] += fac;
-							bezt->vec[2][1] += fac;
-						}
-					}
-					else { /* if (prev->vec[1][1] < bezt->vec[1][1]) */
-						while (fabsf(bezt->vec[1][1] - prev->vec[1][1]) >= (float)M_PI) {
-							bezt->vec[0][1] -= fac;
-							bezt->vec[1][1] -= fac;
-							bezt->vec[2][1] -= fac;
-						}
+					while ((sign * (prev->vec[1][1] - bezt->vec[1][1])) >= (float)M_PI) {
+						bezt->vec[0][1] += fac;
+						bezt->vec[1][1] += fac;
+						bezt->vec[2][1] += fac;
 					}
 				}
 			}
