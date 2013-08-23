@@ -136,8 +136,11 @@ set(SRC
 	tools/bmesh_triangulate.c
 	tools/bmesh_triangulate.h
 
-	bmesh.h
 	bmesh_class.h
+
+	# public includes
+	bmesh.h
+	bmesh_tools.h
 )
 
 if(MSVC)

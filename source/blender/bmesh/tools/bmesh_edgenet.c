@@ -37,6 +37,7 @@
 #include "BLI_linklist.h"
 
 #include "bmesh.h"
+#include "bmesh_edgenet.h"  /* own include */
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"

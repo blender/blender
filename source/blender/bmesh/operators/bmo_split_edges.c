@@ -29,6 +29,7 @@
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 

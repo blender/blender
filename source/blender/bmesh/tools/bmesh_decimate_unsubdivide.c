@@ -32,8 +32,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
-
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "bmesh_decimate.h"  /* own include */
 
 
 static bool bm_vert_dissolve_fan_test(BMVert *v)

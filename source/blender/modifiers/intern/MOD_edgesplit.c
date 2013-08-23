@@ -44,6 +44,7 @@
 #include "BKE_modifier.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "DNA_object_types.h"
 

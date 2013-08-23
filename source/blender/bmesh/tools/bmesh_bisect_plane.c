@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
+#include "bmesh_bisect_plane.h"  /* own include */
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"

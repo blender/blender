@@ -42,6 +42,8 @@
 #include "BKE_deform.h"
 
 #include "bmesh.h"
+#include "bmesh_bevel.h"  /* own include */
+
 #include "./intern/bmesh_private.h"
 
 #define BEVEL_EPSILON_D  1e-6

@@ -33,6 +33,9 @@
 #include "BKE_modifier.h"
 #include "BKE_editmesh.h"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
 static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 {
 	DerivedMesh *result;

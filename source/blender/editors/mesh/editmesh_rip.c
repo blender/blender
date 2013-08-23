@@ -50,6 +50,9 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
 #include "mesh_intern.h"  /* own include */
 
 /**

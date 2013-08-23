@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
+
 #include "intern/bmesh_operators_private.h"
 
 

@@ -49,6 +49,7 @@
 #include "BKE_cdderivedmesh.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 // #define USE_TIMEIT
 

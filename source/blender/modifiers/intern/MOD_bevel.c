@@ -46,6 +46,7 @@
 #include "MOD_util.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "MEM_guardedalloc.h"
 

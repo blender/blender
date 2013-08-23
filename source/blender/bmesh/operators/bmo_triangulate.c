@@ -34,6 +34,7 @@
 #include "BLI_scanfill.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 #include "intern/bmesh_operators_private.h"
 
 

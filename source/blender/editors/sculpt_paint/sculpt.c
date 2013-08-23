@@ -92,6 +92,7 @@
 #include "GPU_buffers.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include <math.h>
 #include <stdlib.h>
