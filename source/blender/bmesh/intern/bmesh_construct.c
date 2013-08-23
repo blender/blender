@@ -794,6 +794,7 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, 
 	BMHeader *ele_dst = ele_dst_v;
 
 	BLI_assert(ele_src->htype == ele_dst->htype);
+	BLI_assert(ele_src != ele_dst);
 
 	if ((hflag_mask & BM_ELEM_SELECT) == 0) {
 		/* First we copy select */

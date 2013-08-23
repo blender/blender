@@ -4568,7 +4568,9 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 
 static void sculpt_dynamic_topology_triangulate(BMesh *bm)
 {
-	BM_mesh_triangulate(bm, false, false, NULL, NULL);
+	if (bm->totloop != bm->totface * 3) {
+		BM_mesh_triangulate(bm, false, false, NULL, NULL);
+	}
 }
 
 void sculpt_pbvh_clear(Object *ob)
@@ -4807,8 +4809,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Symmetrize and re-triangulate */
 	BMO_op_callf(ss->bm, BMO_FLAG_DEFAULTS,
-	             "symmetrize input=%avef direction=%i",
-	             sd->symmetrize_direction);
+	             "symmetrize input=%avef direction=%i  dist=%f",
+	             sd->symmetrize_direction, 0.00001f);
 	sculpt_dynamic_topology_triangulate(ss->bm);
 
 	/* Finish undo */
