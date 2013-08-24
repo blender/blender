@@ -232,7 +232,7 @@ public:
 
 	// operator corresponding to i++, i.e. which returns the value *and then* increments it.
 	// That's why we store the value in a temp.
-	virtual Self operator++(int)  // opérateur correspondant à i++ 
+	virtual Self operator++(int)
 	{
 		Self tmp = *this;
 		increment();
