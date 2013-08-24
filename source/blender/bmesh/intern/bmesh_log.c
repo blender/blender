@@ -407,7 +407,7 @@ static int uint_compare(const void *a_v, const void *b_v)
  */
 static GHash *bm_log_compress_ids_to_indices(unsigned int *ids, int totid)
 {
-	GHash *map = BLI_ghash_int_new(AT);
+	GHash *map = BLI_ghash_int_new_ex(AT, totid);
 	int i;
 
 	qsort(ids, totid, sizeof(*ids), uint_compare);
@@ -441,8 +441,8 @@ BMLog *BM_log_create(BMesh *bm)
 	BMLog *log = MEM_callocN(sizeof(*log), AT);
 
 	log->unused_ids = range_tree_uint_alloc(0, (unsigned)-1);
-	log->id_to_elem = BLI_ghash_ptr_new(AT);
-	log->elem_to_id = BLI_ghash_ptr_new(AT);
+	log->id_to_elem = BLI_ghash_ptr_new_ex(AT, bm->totvert + bm->totface);
+	log->elem_to_id = BLI_ghash_ptr_new_ex(AT, bm->totvert + bm->totface);
 
 	/* Assign IDs to all existing vertices and faces */
 	bm_log_assign_ids(bm, log);

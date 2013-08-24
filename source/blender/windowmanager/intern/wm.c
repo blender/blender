@@ -226,7 +226,7 @@ void WM_uilisttype_freelink(uiListType *ult)
 /* called on initialize WM_init() */
 void WM_uilisttype_init(void)
 {
-	uilisttypes_hash = BLI_ghash_str_new("uilisttypes_hash gh");
+	uilisttypes_hash = BLI_ghash_str_new_ex("uilisttypes_hash gh", 16);
 }
 
 void WM_uilisttype_free(void)
@@ -279,7 +279,8 @@ void WM_menutype_freelink(MenuType *mt)
 /* called on initialize WM_init() */
 void WM_menutype_init(void)
 {
-	menutypes_hash = BLI_ghash_str_new("menutypes_hash gh");
+	/* reserve size is set based on blender default setup */
+	menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
 }
 
 void WM_menutype_free(void)

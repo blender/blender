@@ -341,7 +341,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 		}
 
 		if (!slot_dst->data.ghash) {
-			slot_dst->data.ghash = BLI_ghash_ptr_new("bmesh operator 2");
+			slot_dst->data.ghash = BLI_ghash_ptr_new_ex("bmesh operator 2", BLI_ghash_size(slot_src->data.ghash));
 		}
 
 		for (BLI_ghashIterator_init(&it, slot_src->data.ghash);

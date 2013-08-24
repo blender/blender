@@ -277,10 +277,11 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	GHash *map;
 	int i, j, totface;
 
-	map = BLI_ghash_int_new("build_mesh_leaf_node gh");
-	
 	node->uniq_verts = node->face_verts = 0;
 	totface = node->totprim;
+
+	/* reserve size is rough guess */
+	map = BLI_ghash_int_new_ex("build_mesh_leaf_node gh", 2 * totface);
 
 	node->face_vert_indices = MEM_callocN(sizeof(int) * 4 * totface,
 	                                      "bvh node face vert indices");

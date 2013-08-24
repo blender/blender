@@ -87,8 +87,8 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 	walker->mask_edge = mask_edge;
 	walker->mask_face = mask_face;
 
-	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 1");
-	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers sec 1");
+	walker->visithash = BLI_ghash_ptr_new("bmesh walkers");
+	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers sec");
 
 	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
@@ -253,8 +253,6 @@ void BMW_reset(BMWalker *walker)
 		BMW_state_remove(walker);
 	}
 	walker->depth = 0;
-	BLI_ghash_free(walker->visithash, NULL, NULL);
-	BLI_ghash_free(walker->secvisithash, NULL, NULL);
-	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 1");
-	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers sec 1");
+	BLI_ghash_clear(walker->visithash, NULL, NULL);
+	BLI_ghash_clear(walker->secvisithash, NULL, NULL);
 }

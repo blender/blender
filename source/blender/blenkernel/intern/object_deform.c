@@ -79,7 +79,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 		return NULL;
 	}
 
-	gh = BLI_ghash_str_new("BKE_objdef_validmap_get gh");
+	gh = BLI_ghash_str_new_ex("BKE_objdef_validmap_get gh", defbase_tot);
 
 	/* add all names to a hash table */
 	for (dg = ob->defbase.first; dg; dg = dg->next) {

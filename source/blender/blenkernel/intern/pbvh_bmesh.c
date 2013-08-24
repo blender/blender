@@ -140,8 +140,8 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	c2 = &bvh->nodes[children + 1];
 	c1->flag |= PBVH_Leaf;
 	c2->flag |= PBVH_Leaf;
-	c1->bm_faces = BLI_ghash_ptr_new("bm_faces");
-	c2->bm_faces = BLI_ghash_ptr_new("bm_faces");
+	c1->bm_faces = BLI_ghash_ptr_new_ex("bm_faces", BLI_ghash_size(n->bm_faces) / 2);
+	c2->bm_faces = BLI_ghash_ptr_new_ex("bm_faces", BLI_ghash_size(n->bm_faces) / 2);
 
 	/* Partition the parent node's faces between the two children */
 	GHASH_ITER (gh_iter, n->bm_faces) {
@@ -227,19 +227,26 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 static int pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 {
 	GHash *prim_bbc;
+	GHash *bm_faces;
+	int bm_faces_size;
 	GHashIterator gh_iter;
+	BBC *bbc_array;
+	unsigned int i;
 
-	if (BLI_ghash_size(bvh->nodes[node_index].bm_faces) <= bvh->leaf_limit) {
+	bm_faces = bvh->nodes[node_index].bm_faces;
+	bm_faces_size = BLI_ghash_size(bm_faces);
+	if (bm_faces_size <= bvh->leaf_limit) {
 		/* Node limit not exceeded */
 		return FALSE;
 	}
 
 	/* For each BMFace, store the AABB and AABB centroid */
-	prim_bbc = BLI_ghash_ptr_new("prim_bbc");
+	prim_bbc = BLI_ghash_ptr_new_ex("prim_bbc", bm_faces_size);
+	bbc_array = MEM_callocN(sizeof(BBC) * bm_faces_size, "BBC");
 
-	GHASH_ITER (gh_iter, bvh->nodes[node_index].bm_faces) {
+	GHASH_ITER_INDEX (gh_iter, bm_faces, i) {
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-		BBC *bbc = MEM_callocN(sizeof(BBC), "BBC");
+		BBC *bbc = &bbc_array[i];
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
@@ -255,7 +262,8 @@ static int pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 
 	pbvh_bmesh_node_split(bvh, prim_bbc, node_index);
 
-	BLI_ghash_free(prim_bbc, NULL, MEM_freeN);
+	BLI_ghash_free(prim_bbc, NULL, NULL);
+	MEM_freeN(bbc_array);
 
 	return TRUE;
 }
@@ -1071,7 +1079,7 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 	n = bvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");
 	bvh->totnode = 1;
 	n->flag = PBVH_Leaf;
-	n->bm_faces = BLI_ghash_ptr_new("bm_faces");
+	n->bm_faces = BLI_ghash_ptr_new_ex("bm_faces", bvh->bm->totface);
 	BM_ITER_MESH (f, &iter, bvh->bm, BM_FACES_OF_MESH) {
 		BLI_ghash_insert(n->bm_faces, f, NULL);
 	}

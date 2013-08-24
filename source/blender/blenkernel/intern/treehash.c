@@ -102,7 +102,7 @@ static void fill_treehash(void *treehash, BLI_mempool *treestore)
 
 void *BKE_treehash_create_from_treestore(BLI_mempool *treestore)
 {
-	GHash *treehash = BLI_ghash_new(tse_hash, tse_cmp, "treehash");
+	GHash *treehash = BLI_ghash_new_ex(tse_hash, tse_cmp, "treehash", BLI_mempool_count(treestore));
 	fill_treehash(treehash, treestore);
 	return treehash;
 }

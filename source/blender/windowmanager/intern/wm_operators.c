@@ -4142,7 +4142,8 @@ void wm_operatortype_free(void)
 /* called on initialize WM_init() */
 void wm_operatortype_init(void)
 {
-	global_ops_hash = BLI_ghash_str_new("wm_operatortype_init gh");
+	/* reserve size is set based on blender default setup */
+	global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
 
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_history);

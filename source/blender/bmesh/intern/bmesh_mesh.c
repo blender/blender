@@ -674,7 +674,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
-		vptr_map = BLI_ghash_ptr_new("BM_mesh_remap vert pointers mapping");
+		vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
 
 		/* Make a copy of all vertices. */
 		verts_pool = MEM_callocN(sizeof(BMVert *) * totvert, "BM_mesh_remap verts pool");
@@ -708,7 +708,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
-		eptr_map = BLI_ghash_ptr_new("BM_mesh_remap edge pointers mapping");
+		eptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap edge pointers mapping", bm->totedge);
 
 		/* Make a copy of all vertices. */
 		edges_pool = MEM_callocN(sizeof(BMEdge *) * totedge, "BM_mesh_remap edges pool");
@@ -741,7 +741,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
-		fptr_map = BLI_ghash_ptr_new("BM_mesh_remap face pointers mapping");
+		fptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap face pointers mapping", bm->totface);
 
 		/* Make a copy of all vertices. */
 		faces_pool = MEM_callocN(sizeof(BMFace *) * totface, "BM_mesh_remap faces pool");

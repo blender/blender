@@ -674,7 +674,7 @@ static GHash *dupli_keyIndexHash(GHash *keyindex)
 	GHash *gh;
 	GHashIterator *hashIter;
 
-	gh = BLI_ghash_ptr_new("dupli_keyIndex gh");
+	gh = BLI_ghash_ptr_new_ex("dupli_keyIndex gh", BLI_ghash_size(keyindex));
 
 	for (hashIter = BLI_ghashIterator_new(keyindex);
 	     BLI_ghashIterator_done(hashIter) == false;
