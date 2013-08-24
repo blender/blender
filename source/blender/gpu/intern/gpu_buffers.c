@@ -1955,6 +1955,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 		
 
 		/* Assign index for use in the triangle index buffer */
+		/* note: caller must set:  bm->elem_index_dirty |= BM_VERT; */
 		BM_elem_index_set(v, (*v_index)); /* set_dirty! */
 
 		(*v_index)++;
@@ -2089,6 +2090,9 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 		}
 
 		glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+
+		/* gpu_bmesh_vert_to_buffer_copy sets dirty index values */
+		bm->elem_index_dirty |= BM_VERT;
 	}
 	else {
 		/* Memory map failed */
