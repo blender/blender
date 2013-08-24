@@ -205,7 +205,7 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 /**
  * Assign a new value to a key that may already be in edgehash.
  */
-void BLI_edgehash_assign(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+void BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
 {
 	unsigned int hash;
 	EdgeEntry *e;

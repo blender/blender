@@ -1223,7 +1223,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				// check for existing spring
 				// check also if startpoint is equal to endpoint
 				if ((index2 != tspring2->ij) &&
-				    !BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)))
+				    !BLI_edgehash_haskey(edgehash, tspring2->ij, index2))
 				{
 					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
@@ -1283,16 +1283,18 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 	}
 	
+	/* note: the edges may already exist so run reinsert */
+
 	/* insert other near springs in edgehash AFTER bending springs are calculated (for selfcolls) */
 	for (i = 0; i < numedges; i++) { /* struct springs */
-		BLI_edgehash_insert(edgehash, MIN2(medge[i].v1, medge[i].v2), MAX2(medge[i].v2, medge[i].v1), NULL);
+		BLI_edgehash_reinsert(edgehash, medge[i].v1, medge[i].v2, NULL);
 	}
 
 	for (i = 0; i < numfaces; i++) { /* edge springs */
 		if (mface[i].v4) {
-			BLI_edgehash_insert(edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL);
+			BLI_edgehash_reinsert(edgehash, mface[i].v1, mface[i].v3, NULL);
 			
-			BLI_edgehash_insert(edgehash, MIN2(mface[i].v2, mface[i].v4), MAX2(mface[i].v2, mface[i].v4), NULL);
+			BLI_edgehash_reinsert(edgehash, mface[i].v2, mface[i].v4, NULL);
 		}
 	}
 	

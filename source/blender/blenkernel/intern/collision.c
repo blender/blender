@@ -865,8 +865,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	
 						if ( ( ABS ( temp[0] ) > mindistance ) || ( ABS ( temp[1] ) > mindistance ) || ( ABS ( temp[2] ) > mindistance ) ) continue;
 	
-						// check for adjacent points (i must be smaller j)
-						if ( BLI_edgehash_haskey ( cloth->edgehash, MIN2(i, j), MAX2(i, j) ) ) {
+						if (BLI_edgehash_haskey(cloth->edgehash, i, j)) {
 							continue;
 						}
 	
