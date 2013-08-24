@@ -215,7 +215,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 	int i = 0;
 	
 	/* Get the cut path */
-	RNA_BEGIN(op->ptr, itemptr, "path")
+	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
 		float loc[2];
 

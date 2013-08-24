@@ -2292,7 +2292,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	mouse_path = MEM_mallocN(len * sizeof(*mouse_path), __func__);
 
 	/* get the cut curve */
-	RNA_BEGIN(op->ptr, itemptr, "path")
+	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
 		RNA_float_get_array(&itemptr, "loc", (float *)&mouse_path[len]);
 	}

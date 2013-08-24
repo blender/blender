@@ -796,7 +796,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 {
-	RNA_STRUCT_BEGIN(ptr, prop)
+	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		switch (RNA_property_type(prop)) {
 			case PROP_ENUM:
@@ -833,7 +833,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 int WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 {
 	int is_change = FALSE;
-	RNA_STRUCT_BEGIN(ptr, prop)
+	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		switch (RNA_property_type(prop)) {
 			case PROP_POINTER:
@@ -866,7 +866,7 @@ void WM_operator_properties_reset(wmOperator *op)
 		PropertyRNA *iterprop;
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop)
+		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
 		{
 			PropertyRNA *prop = itemptr.data;
 
@@ -901,7 +901,7 @@ int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op
 
 	/* always run, so the values are initialized,
 	 * otherwise we may get differ behavior when (dia != 1.0) */
-	RNA_STRUCT_BEGIN(op->ptr, prop)
+	RNA_STRUCT_BEGIN (op->ptr, prop)
 	{
 		if (RNA_property_type(prop) == PROP_FLOAT) {
 			PropertySubType pstype = RNA_property_subtype(prop);
@@ -2253,7 +2253,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
-		RNA_BEGIN(op->ptr, itemptr, "files")
+		RNA_BEGIN (op->ptr, itemptr, "files")
 		{
 			RNA_string_get(&itemptr, "name", name);
 			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
@@ -3199,7 +3199,7 @@ const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C), wmOperator *op, 
 			int i = 0;
 			mcords = MEM_mallocN(sizeof(int) * 2 * len, __func__);
 
-			RNA_PROP_BEGIN(op->ptr, itemptr, prop)
+			RNA_PROP_BEGIN (op->ptr, itemptr, prop)
 			{
 				float loc[2];
 
@@ -3225,7 +3225,7 @@ const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C), wmOperator *op, 
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-	RNA_BEGIN(op->ptr, itemptr, "path")
+	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
 		float loc[2];
 		
