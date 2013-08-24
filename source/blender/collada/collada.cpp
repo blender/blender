@@ -83,16 +83,6 @@ int collada_export(Scene *sce,
 {
 	ExportSettings export_settings;
 
-	/* annoying, collada crashes if file cant be created! [#27162] */
-	if (!BLI_exists(filepath)) {
-		BLI_make_existing_file(filepath);     /* makes the dir if its not there */
-		if (!BLI_file_touch(filepath)) {
-			fprintf(stdout, "Collada export: Can not create: %s\n", filepath);
-			return 0;
-		}
-	}
-	/* end! */
-
 	export_settings.filepath                 = (char *)filepath;
 
 	export_settings.apply_modifiers          = apply_modifiers != 0;

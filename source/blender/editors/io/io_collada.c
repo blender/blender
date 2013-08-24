@@ -106,6 +106,24 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filepath);
 	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
 
+
+	/* Avoid File write exceptions in Collada */
+	if (!BLI_exists(filepath)) {
+		BLI_make_existing_file(filepath);
+		if (!BLI_file_touch(filepath)) {
+			BKE_report(op->reports, RPT_ERROR, "Can't create export file");
+			fprintf(stdout, "Collada export: Can not create: %s\n", filepath);
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else if (!BLI_file_is_writable(filepath)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't overwrite export file");
+		fprintf(stdout, "Collada export: Can not modify: %s\n", filepath);
+		return OPERATOR_CANCELLED;
+	}
+
+	/* Now the exporter can create and write the export file */
+
 	/* Options panel */
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
 	export_mesh_type         = RNA_enum_get(op->ptr,    "export_mesh_type_selection");
@@ -128,6 +146,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	/* get editmode results */
 	ED_object_editmode_load(CTX_data_edit_object(C));
+
+
 
 	if (collada_export(CTX_data_scene(C),
 	                   filepath,
