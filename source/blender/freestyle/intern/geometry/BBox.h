@@ -28,6 +28,8 @@
  *  \date 22/05/2003
  */
 
+#include "BLI_utildefines.h"
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
@@ -95,6 +97,7 @@ public:
 
 	inline BBox<Point>& operator=(const BBox<Point>& b)
 	{
+		BLI_assert(!b.empty());
 		_min = b.getMin();
 		_max = b.getMax();
 		_empty = false;
@@ -103,6 +106,7 @@ public:
 
 	inline BBox<Point>& operator+=(const BBox<Point>& b)
 	{
+		BLI_assert(!b.empty());
 		if (_empty) {
 			_min = b.getMin();
 			_max = b.getMax();

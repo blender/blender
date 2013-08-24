@@ -211,6 +211,7 @@ private:
 	FastGrid _Grid;
 	//HashGrid _Grid;
 
+	BBox<Vec3r> _Scene3dBBox;
 	unsigned int _SceneNumFaces;
 	real _minEdgeSize;
 	real _EPSILON;

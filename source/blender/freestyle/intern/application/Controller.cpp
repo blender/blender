@@ -290,6 +290,8 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 
 	_ListOfModels.push_back("Blender_models");
 
+	_Scene3dBBox = _RootNode->bbox();
+
 	_bboxDiag = (_RootNode->bbox().getMax() - _RootNode->bbox().getMin()).norm();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Triangles nb     : " << _SceneNumFaces << endl;
@@ -339,6 +341,7 @@ void Controller::DeleteWingedEdge()
 
 	// clears the grid
 	_Grid.clear();
+	_Scene3dBBox.clear();
 	_SceneNumFaces = 0;
 	_minEdgeSize = DBL_MAX;
 }
@@ -540,8 +543,8 @@ void Controller::ComputeViewMap()
 	}
 	_Chrono.start();
 	// Build View Map
-	_ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON, _RootNode->bbox(), _SceneNumFaces);
-	_ViewMap->setScene3dBBox(_RootNode->bbox());
+	_ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON, _Scene3dBBox, _SceneNumFaces);
+	_ViewMap->setScene3dBBox(_Scene3dBBox);
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size());
