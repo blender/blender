@@ -209,6 +209,7 @@ void OSLShaderManager::shading_system_init()
 			"__unused__",
 			"diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
 			"glossy_ancestor",  /* PATH_RAY_GLOSSY_ANCESTOR */
+			"bssrdf_ancestor",  /* PATH_RAY_BSSRDF_ANCESTOR */
 		};
 
 		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
