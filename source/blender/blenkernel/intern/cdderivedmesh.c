@@ -2405,7 +2405,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	STACK_DECLARE(mpoly);
 	STACK_DECLARE(oldp);
 
-	EdgeHash *ehash = BLI_edgehash_new(__func__);
+	EdgeHash *ehash = BLI_edgehash_new_ex(__func__, totedge);
 
 	int i, j, c;
 	
@@ -2607,10 +2607,12 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	EdgeHashIterator *ehi;
 	MFace *mf = cddm->mface;
 	MEdge *med;
-	EdgeHash *eh = BLI_edgehash_new(__func__);
-	int i, *index, numEdges, maxFaces = dm->numTessFaceData;
+	EdgeHash *eh;
+	int i, *index, numEdges, numFaces = dm->numTessFaceData;
 
-	for (i = 0; i < maxFaces; i++, mf++) {
+	eh = BLI_edgehash_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
+
+	for (i = 0; i < numFaces; i++, mf++) {
 		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
 			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
 		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
@@ -2668,21 +2670,27 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	MPoly *mp = cddm->mpoly;
 	MLoop *ml;
 	MEdge *med, *origmed;
-	EdgeHash *eh = BLI_edgehash_new(__func__);
+	EdgeHash *eh;
+	unsigned int eh_reserve;
 	int v1, v2;
 	int *eindex;
-	int i, j, *index, numEdges = cddm->dm.numEdgeData, maxFaces = dm->numPolyData;
+	int i, j, *index;
+	const int numFaces = dm->numPolyData;
+	const int numLoops = dm->numLoopData;
+	int numEdges = dm->numEdgeData;
 
 	eindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
-
 	med = cddm->medge;
+
+	eh_reserve = max_ii(med ? numEdges : 0, BLI_EDGEHASH_SIZE_GUESS_FROM_LOOPS(numLoops));
+	eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 	if (med) {
 		for (i = 0; i < numEdges; i++, med++) {
 			BLI_edgehash_insert(eh, med->v1, med->v2, SET_INT_IN_POINTER(i + 1));
 		}
 	}
 
-	for (i = 0; i < maxFaces; i++, mp++) {
+	for (i = 0; i < numFaces; i++, mp++) {
 		ml = cddm->mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			v1 = ml->v;
@@ -2732,7 +2740,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 
 	mp = cddm->mpoly;
-	for (i = 0; i < maxFaces; i++, mp++) {
+	for (i = 0; i < numFaces; i++, mp++) {
 		ml = cddm->mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			v1 = ml->v;

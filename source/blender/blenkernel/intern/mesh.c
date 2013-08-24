@@ -177,8 +177,8 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 		if (l1->type == CD_MEDGE) {
 			MEdge *e1 = l1->data;
 			MEdge *e2 = l2->data;
-			EdgeHash *eh = BLI_edgehash_new(__func__);
 			int etot = m1->totedge;
+			EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
 		
 			for (j = 0; j < etot; j++, e1++) {
 				BLI_edgehash_insert(eh, e1->v1, e1->v2, e1);

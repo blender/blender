@@ -2484,7 +2484,7 @@ static EdgeHash *sph_springhash_build(ParticleSystem *psys)
 	ParticleSpring *spring;
 	int i = 0;
 
-	springhash = BLI_edgehash_new(__func__);
+	springhash = BLI_edgehash_new_ex(__func__, psys->tot_fluidsprings);
 
 	for (i=0, spring=psys->fluid_springs; i<psys->tot_fluidsprings; i++, spring++)
 		BLI_edgehash_insert(springhash, spring->particle_index[0], spring->particle_index[1], SET_INT_IN_POINTER(i+1));

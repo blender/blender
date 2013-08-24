@@ -62,4 +62,8 @@ void                BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *v
 void                BLI_edgehashIterator_step(EdgeHashIterator *ehi);
 bool                BLI_edgehashIterator_isDone(EdgeHashIterator *ehi);
 
+#define BLI_EDGEHASH_SIZE_GUESS_FROM_LOOPS(totloop)  ((totloop) / 2)
+#define BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly)  ((totpoly) * 2)
+
+
 #endif

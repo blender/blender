@@ -921,7 +921,8 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 	EdgeHashIterator *ehi;
 	MPoly *mp;
 	MEdge *med, *med_orig;
-	EdgeHash *eh = BLI_edgehash_new(__func__);
+	EdgeHash *eh;
+	unsigned int eh_reserve;
 	int i, totedge, totpoly = mesh->totpoly;
 	int med_index;
 	/* select for newly created meshes which are selected [#25595] */
@@ -929,6 +930,9 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 
 	if (mesh->totedge == 0)
 		update = false;
+
+	eh_reserve = max_ii(update ? mesh->totedge : 0, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly));
+	eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
 	if (update) {
 		/* assume existing edges are valid
