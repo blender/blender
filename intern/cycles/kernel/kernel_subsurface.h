@@ -111,8 +111,8 @@ __device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float
 		sc = &sd->closure[i];
 		
 		if(CLOSURE_IS_BSSRDF(sc->type)) {
-			/* in case of non-progressive integrate we sample all bssrdf's once,
-			 * for progressive we pick one, so adjust pdf for that */
+			/* in case of branched path integrate we sample all bssrdf's once,
+			 * for path trace we pick one, so adjust pdf for that */
 			float sample_weight = (all)? 1.0f: sc->sample_weight * sample_weight_inv;
 
 			/* compute pdf */
@@ -464,8 +464,8 @@ __device float3 old_subsurface_scatter_multi_eval(KernelGlobals *kg, ShaderData 
 	float inv_pdf_sum;
 	
 	if(pdf_sum > 0.0f) {
-		/* in case of non-progressive integrate we sample all bssrdf's once,
-		 * for progressive we pick one, so adjust pdf for that */
+		/* in case of branched path integrate we sample all bssrdf's once,
+		 * for path trace we pick one, so adjust pdf for that */
 		if(all)
 			inv_pdf_sum = 1.0f/pdf_sum;
 		else

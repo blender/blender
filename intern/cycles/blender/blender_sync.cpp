@@ -420,7 +420,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 		preview_samples = preview_samples * preview_samples;
 	}
 
-	if(get_int(cscene, "progressive") == 0) {
+	if(get_enum(cscene, "progressive") == 0) {
 		if(background) {
 			params.samples = aa_samples;
 		}
