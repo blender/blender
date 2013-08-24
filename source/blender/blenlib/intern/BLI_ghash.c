@@ -408,10 +408,23 @@ bool BLI_ghashIterator_done(GHashIterator *ghi)
 
 /***/
 
+#if 0
+/* works but slower */
 unsigned int BLI_ghashutil_ptrhash(const void *key)
 {
 	return (unsigned int)(intptr_t)key;
 }
+#else
+/* based python3.3's pointer hashing function */
+unsigned int BLI_ghashutil_ptrhash(const void *key)
+{
+	size_t y = (size_t)key;
+	/* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
+	 * excessive hash collisions for dicts and sets */
+	y = (y >> 4) | (y << (8 * sizeof(void *) - 4));
+	return (unsigned int)y;
+}
+#endif
 int BLI_ghashutil_ptrcmp(const void *a, const void *b)
 {
 	if (a == b)
