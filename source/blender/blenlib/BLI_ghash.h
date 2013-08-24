@@ -71,8 +71,8 @@ void   BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfr
 void  *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp);
 bool   BLI_ghash_haskey(GHash *gh, const void *key);
 int    BLI_ghash_size(GHash *gh);
-void   BLI_ghash_flag_set(GHash *gh, unsigned short flag);
-void   BLI_ghash_flag_clear(GHash *gh, unsigned short flag);
+void   BLI_ghash_flag_set(GHash *gh, unsigned int flag);
+void   BLI_ghash_flag_clear(GHash *gh, unsigned int flag);
 
 /* *** */
 

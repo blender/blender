@@ -667,7 +667,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	if (!(vert_idx || edge_idx || face_idx))
 		return;
 
-	/* Remap vertices */
+	/* Remap Verts */
 	if (vert_idx) {
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
@@ -701,7 +701,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		MEM_freeN(verts_copy);
 	}
 
-	/* XXX Code not tested yet (though I don't why it would fail)! */
+	/* Remap Edges */
 	if (edge_idx) {
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
@@ -734,7 +734,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		MEM_freeN(edges_copy);
 	}
 
-	/* XXX Code not tested yet (though I don't why it would fail)! */
+	/* Remap Faces */
 	if (face_idx) {
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;

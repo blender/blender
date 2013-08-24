@@ -77,7 +77,7 @@ struct GHash {
 	struct BLI_mempool *entrypool;
 	unsigned int nbuckets;
 	unsigned int nentries;
-	unsigned short cursize, flag;
+	unsigned int cursize, flag;
 };
 
 
@@ -343,14 +343,14 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 	MEM_freeN(gh);
 }
 
-void BLI_ghash_flag_set(GHash *gh, unsigned short flag)
+void BLI_ghash_flag_set(GHash *gh, unsigned int flag)
 {
 	gh->flag |= flag;
 }
 
-void BLI_ghash_flag_clear(GHash *gh, unsigned short flag)
+void BLI_ghash_flag_clear(GHash *gh, unsigned int flag)
 {
-	gh->flag &= (unsigned short)~flag;
+	gh->flag &= ~flag;
 }
 
 

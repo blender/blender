@@ -51,8 +51,8 @@ void          **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned in
 bool            BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1);
 int             BLI_edgehash_size(EdgeHash *eh);
 void            BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp);
-void            BLI_edgehash_flag_set(EdgeHash *eh, unsigned short flag);
-void            BLI_edgehash_flag_clear(EdgeHash *eh, unsigned short flag);
+void            BLI_edgehash_flag_set(EdgeHash *eh, unsigned int flag);
+void            BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag);
 
 EdgeHashIterator   *BLI_edgehashIterator_new(EdgeHash *eh);
 void                BLI_edgehashIterator_free(EdgeHashIterator *ehi);
@@ -65,5 +65,4 @@ bool                BLI_edgehashIterator_isDone(EdgeHashIterator *ehi);
 #define BLI_EDGEHASH_SIZE_GUESS_FROM_LOOPS(totloop)  ((totloop) / 2)
 #define BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly)  ((totpoly) * 2)
 
-
-#endif
+#endif  /* __BLI_EDGEHASH_H__ */

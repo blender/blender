@@ -75,7 +75,7 @@ struct EdgeHash {
 	EdgeEntry **buckets;
 	BLI_mempool *epool;
 	unsigned int nbuckets, nentries;
-	unsigned short cursize, flag;
+	unsigned int cursize, flag;
 };
 
 
@@ -295,14 +295,14 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 }
 
 
-void BLI_edgehash_flag_set(EdgeHash *eh, unsigned short flag)
+void BLI_edgehash_flag_set(EdgeHash *eh, unsigned int flag)
 {
 	eh->flag |= flag;
 }
 
-void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned short flag)
+void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag)
 {
-	eh->flag &= (unsigned short)~flag;
+	eh->flag &= ~flag;
 }
 
 
