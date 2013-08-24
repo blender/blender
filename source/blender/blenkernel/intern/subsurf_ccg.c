@@ -1332,7 +1332,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	if (!ccgdm->ehash) {
 		MEdge *medge;
 
-		ccgdm->ehash = BLI_edgehash_new(__func__);
+		ccgdm->ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
 		medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
 		for (i = 0; i < ccgdm->dm.numEdgeData; i++) {

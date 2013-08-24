@@ -216,7 +216,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 
 	bool do_edge_recalc = false;
 
-	EdgeHash *edge_hash = BLI_edgehash_new(__func__);
+	EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, totedge);
 
 	BLI_assert(!(do_fixes && mesh == NULL));
 

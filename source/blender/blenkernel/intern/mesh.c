@@ -1241,10 +1241,12 @@ static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
 	int totedge = *r_totedge;
 	int totedge_new;
 	EdgeHash *eh;
+	unsigned int eh_reserve;
 	const MPoly *mp;
 	int i;
 
-	eh = BLI_edgehash_new(__func__);
+	eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly));
+	eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
 	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
 		BKE_mesh_poly_edgehash_insert(eh, mp, mloop + mp->loopstart);
@@ -2308,7 +2310,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 		CustomData_external_read(fdata, id, CD_MASK_MDISPS, totface_i);
 	}
 
-	eh = BLI_edgehash_new(__func__);
+	eh = BLI_edgehash_new_ex(__func__, totedge_i);
 
 	/* build edge hash */
 	me = medge;
