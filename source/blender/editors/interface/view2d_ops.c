@@ -128,7 +128,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
-static void view_pan_apply(wmOperator *op)
+static void view_pan_apply(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd = op->customdata;
 	View2D *v2d = vpd->v2d;
@@ -153,6 +153,7 @@ static void view_pan_apply(wmOperator *op)
 	
 	/* request updates to be done... */
 	ED_region_tag_redraw(vpd->ar);
+	WM_event_add_mousemove(C);
 	
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
 	
@@ -181,7 +182,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	if (!view_pan_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	view_pan_apply(op);
+	view_pan_apply(C, op);
 	view_pan_exit(op);
 	return OPERATOR_FINISHED;
 }
@@ -209,7 +210,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
 		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
 		
-		view_pan_apply(op);
+		view_pan_apply(C, op);
 		view_pan_exit(op);
 		return OPERATOR_FINISHED;
 	}
@@ -246,7 +247,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			vpd->lastx = event->x;
 			vpd->lasty = event->y;
 			
-			view_pan_apply(op);
+			view_pan_apply(C, op);
 			break;
 		}
 			/* XXX - Mode switching isn't implemented. See comments in 36818.
@@ -333,7 +334,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", 0);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(op);
+	view_pan_apply(C, op);
 	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
@@ -377,7 +378,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", 0);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(op);
+	view_pan_apply(C, op);
 	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
@@ -425,7 +426,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* apply movement, then we're done */
-	view_pan_apply(op);
+	view_pan_apply(C, op);
 	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
@@ -475,7 +476,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* apply movement, then we're done */
-	view_pan_apply(op);
+	view_pan_apply(C, op);
 	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
