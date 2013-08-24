@@ -153,9 +153,17 @@ int             BLI_ghashutil_strcmp(const void *a, const void *b);
 unsigned int    BLI_ghashutil_inthash(const void *ptr);
 int             BLI_ghashutil_intcmp(const void *a, const void *b);
 
+GHash          *BLI_ghash_ptr_new_ex(const char *info,
+                                     const unsigned int nentries_reserve);
 GHash          *BLI_ghash_ptr_new(const char *info);
+GHash          *BLI_ghash_str_new_ex(const char *info,
+                                     const unsigned int nentries_reserve);
 GHash          *BLI_ghash_str_new(const char *info);
+GHash          *BLI_ghash_int_new_ex(const char *info,
+                                     const unsigned int nentries_reserve);
 GHash          *BLI_ghash_int_new(const char *info);
+GHash          *BLI_ghash_pair_new_ex(const char *info,
+                                      const unsigned int nentries_reserve);
 GHash          *BLI_ghash_pair_new(const char *info);
 
 typedef struct GHashPair {
