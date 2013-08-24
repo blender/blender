@@ -86,6 +86,11 @@ struct GHash {
 
 /* internal utility API */
 
+BLI_INLINE bool ghash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
+{
+	return (nentries > nbuckets / 2);
+}
+
 BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
 {
 	return gh->hashfp(key) % gh->nbuckets;
@@ -122,7 +127,7 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 	e->val = val;
 	gh->buckets[hash] = e;
 
-	if (UNLIKELY(++gh->nentries > gh->nbuckets / 2)) {
+	if (UNLIKELY(ghash_test_expand_buckets(++gh->nentries, gh->nbuckets))) {
 		Entry **old = gh->buckets;
 		const unsigned nold = gh->nbuckets;
 		unsigned int i;
@@ -147,7 +152,8 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 
 /* Public API */
 
-GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
+GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
+                        const unsigned int nentries_reserve)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
 
@@ -159,10 +165,22 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 	gh->cursize = 0;
 	gh->flag = 0;
 
+	/* if we have reserved the number of elements that this hash will contain */
+	if (nentries_reserve) {
+		while (ghash_test_expand_buckets(nentries_reserve, gh->nbuckets)) {
+			gh->nbuckets = hashsizes[++gh->cursize];
+		}
+	}
+
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 0);
 
 	return gh;
+}
+
+GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
+{
+	return BLI_ghash_new_ex(hashfp, cmpfp, info, 0);
 }
 
 int BLI_ghash_size(GHash *gh)

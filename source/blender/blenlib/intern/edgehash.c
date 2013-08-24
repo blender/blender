@@ -86,6 +86,11 @@ struct EdgeHash {
 
 #define EDGE_HASH(v0, v1)  ((v0 * 39) ^ (v1 * 31))
 
+BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
+{
+	return (nentries > nbuckets / 2);
+}
+
 BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	BLI_assert(v0 < v1);
@@ -130,7 +135,7 @@ static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, v
 	e->val = val;
 	eh->buckets[hash] = e;
 
-	if (UNLIKELY(++eh->nentries > eh->nbuckets / 2)) {
+	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
 		EdgeEntry **old = eh->buckets;
 		const unsigned int nold = eh->nbuckets;
 		unsigned int i;
@@ -157,7 +162,7 @@ static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, v
 
 /* Public API */
 
-EdgeHash *BLI_edgehash_new(void)
+EdgeHash *BLI_edgehash_new_ex(const unsigned int nentries_reserve)
 {
 	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
 
@@ -166,10 +171,22 @@ EdgeHash *BLI_edgehash_new(void)
 	eh->cursize = 0;
 	eh->flag = 0;
 
+	/* if we have reserved the number of elements that this hash will contain */
+	if (nentries_reserve) {
+		while (edgehash_test_expand_buckets(nentries_reserve, eh->nbuckets)) {
+			eh->nbuckets = _ehash_hashsizes[++eh->cursize];
+		}
+	}
+
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
 	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return eh;
+}
+
+EdgeHash *BLI_edgehash_new(void)
+{
+	return BLI_edgehash_new_ex(0);
 }
 
 /**

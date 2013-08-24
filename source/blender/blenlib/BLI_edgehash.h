@@ -40,6 +40,7 @@ enum {
 	EDGEHASH_FLAG_ALLOW_DUPES = (1 << 0),  /* only checked for in debug mode */
 };
 
+EdgeHash       *BLI_edgehash_new_ex(const unsigned int nentries_reserve);
 EdgeHash       *BLI_edgehash_new(void);
 void            BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp);
 void            BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
