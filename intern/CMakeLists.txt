@@ -27,7 +27,6 @@
 add_subdirectory(string)
 add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
-add_subdirectory(moto)
 add_subdirectory(memutil)
 add_subdirectory(opencolorio)
 add_subdirectory(opennl)
@@ -60,6 +59,10 @@ endif()
 
 if(WITH_IK_ITASC)
 	add_subdirectory(itasc)
+endif()
+
+if(WITH_IK_SOLVER OR WITH_GAMEENGINE)
+	add_subdirectory(moto)
 endif()
 
 if(WITH_CYCLES)
