@@ -28,6 +28,8 @@
  *  \date 22/05/2003
  */
 
+#include <stdlib.h>
+
 #include "BLI_utildefines.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
