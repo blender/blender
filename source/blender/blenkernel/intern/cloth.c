@@ -332,11 +332,13 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	if (clmd->clothObject == NULL) {
 		if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
 			BKE_ptcache_invalidate(cache);
+			modifier_setError(&(clmd->modifier), "Can't initialize cloth");
 			return 0;
 		}
 	
 		if (clmd->clothObject == NULL) {
 			BKE_ptcache_invalidate(cache);
+			modifier_setError(&(clmd->modifier), "Null cloth object");
 			return 0;
 		}
 	
@@ -1004,10 +1006,20 @@ int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int 
 	return 0;
 }
 
-static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), LinkNode **edgelist)
+static void cloth_free_edgelist(LinkNode **edgelist, unsigned int numverts)
 {
-	unsigned int i = 0;
-	
+	if (edgelist) {
+		unsigned int i;
+		for (i = 0; i < numverts; i++) {
+			BLI_linklist_free(edgelist[i], NULL);
+		}
+
+		MEM_freeN(edgelist);
+	}
+}
+
+static void cloth_free_errorsprings(Cloth *cloth,  LinkNode **edgelist)
+{
 	if ( cloth->springs != NULL ) {
 		LinkNode *search = cloth->springs;
 		while (search) {
@@ -1020,17 +1032,13 @@ static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), Li
 		
 		cloth->springs = NULL;
 	}
-	
-	if (edgelist) {
-		for ( i = 0; i < cloth->numverts; i++ ) {
-			BLI_linklist_free ( edgelist[i], NULL );
-		}
 
-		MEM_freeN ( edgelist );
-	}
+	cloth_free_edgelist(edgelist, cloth->numverts);
 	
-	if (cloth->edgehash)
-		BLI_edgehash_free ( cloth->edgehash, NULL );
+	if (cloth->edgehash) {
+		BLI_edgehash_free(cloth->edgehash, NULL);
+		cloth->edgehash = NULL;
+	}
 }
 
 /* update stiffness if vertex group values are changing from frame to frame */
@@ -1094,22 +1102,18 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	if ( numedges==0 )
 		return 0;
 
+	/* NOTE: handling ownership of sptings and edgehash is quite sloppy
+	 * currenlty they are never initialized but assert just to be sure */
+	BLI_assert(cloth->springs == NULL);
+	BLI_assert(cloth->edgehash == NULL);
+
 	cloth->springs = NULL;
+	cloth->edgehash = NULL;
 
 	edgelist = MEM_callocN ( sizeof (LinkNode *) * numverts, "cloth_edgelist_alloc" );
 	
 	if (!edgelist)
 		return 0;
-	
-	for ( i = 0; i < numverts; i++ ) {
-		edgelist[i] = NULL;
-	}
-
-	if ( cloth->springs )
-		MEM_freeN ( cloth->springs );
-
-	// create spring network hash
-	edgehash = BLI_edgehash_new(__func__);
 
 	// structural springs
 	for ( i = 0; i < numedges; i++ ) {
@@ -1132,11 +1136,11 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			BLI_linklist_prepend ( &cloth->springs, spring );
 		}
 		else {
-			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			cloth_free_errorsprings(cloth, edgelist);
 			return 0;
 		}
 	}
-	
+
 	if (struct_springs > 0)
 		clmd->sim_parms->avg_spring_len /= struct_springs;
 	
@@ -1153,7 +1157,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 		
 		if (!spring) {
-			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			cloth_free_errorsprings(cloth, edgelist);
 			return 0;
 		}
 
@@ -1174,7 +1178,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
 		if (!spring) {
-			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			cloth_free_errorsprings(cloth, edgelist);
 			return 0;
 		}
 
@@ -1191,6 +1195,9 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		BLI_linklist_prepend ( &cloth->springs, spring );
 	}
 
+	edgehash = BLI_edgehash_new_ex(__func__, numedges);
+	cloth->edgehash = edgehash;
+
 	if (numfaces) {
 		// bending springs
 		search2 = cloth->springs;
@@ -1206,13 +1213,13 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 				// check for existing spring
 				// check also if startpoint is equal to endpoint
-				if (!BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)) &&
-				    (index2 != tspring2->ij))
+				if ((index2 != tspring2->ij) &&
+				    !BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)))
 				{
 					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
 					if (!spring) {
-						cloth_free_errorsprings(cloth, edgehash, edgelist);
+						cloth_free_errorsprings(cloth, edgelist);
 						return 0;
 					}
 
@@ -1249,7 +1256,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 				
 				if (!spring) {
-					cloth_free_errorsprings(cloth, edgehash, edgelist);
+					cloth_free_errorsprings(cloth, edgelist);
 					return 0;
 				}
 
@@ -1284,18 +1291,12 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	cloth->numsprings = struct_springs + shear_springs + bend_springs;
 	
-	if ( edgelist ) {
-		for ( i = 0; i < numverts; i++ ) {
-			BLI_linklist_free ( edgelist[i], NULL );
-		}
-	
-		MEM_freeN ( edgelist );
-	}
-	
-	cloth->edgehash = edgehash;
-	
+	cloth_free_edgelist(edgelist, numverts);
+
+#if 0
 	if (G.debug_value > 0)
 		printf("avg_len: %f\n", clmd->sim_parms->avg_spring_len);
+#endif
 
 	return 1;
 
