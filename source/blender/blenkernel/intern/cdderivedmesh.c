@@ -2405,7 +2405,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	STACK_DECLARE(mpoly);
 	STACK_DECLARE(oldp);
 
-	EdgeHash *ehash = BLI_edgehash_new();
+	EdgeHash *ehash = BLI_edgehash_new(__func__);
 
 	int i, j, c;
 	
@@ -2607,7 +2607,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	EdgeHashIterator *ehi;
 	MFace *mf = cddm->mface;
 	MEdge *med;
-	EdgeHash *eh = BLI_edgehash_new();
+	EdgeHash *eh = BLI_edgehash_new(__func__);
 	int i, *index, numEdges, maxFaces = dm->numTessFaceData;
 
 	for (i = 0; i < maxFaces; i++, mf++) {
@@ -2668,7 +2668,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	MPoly *mp = cddm->mpoly;
 	MLoop *ml;
 	MEdge *med, *origmed;
-	EdgeHash *eh = BLI_edgehash_new();
+	EdgeHash *eh = BLI_edgehash_new(__func__);
 	int v1, v2;
 	int *eindex;
 	int i, j, *index, numEdges = cddm->dm.numEdgeData, maxFaces = dm->numPolyData;

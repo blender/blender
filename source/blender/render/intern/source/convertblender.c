@@ -3279,7 +3279,7 @@ static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
 	if (fed) {
-		edge_hash = BLI_edgehash_new();
+		edge_hash = BLI_edgehash_new(__func__);
 		if (!index) {
 			if (me->totedge == totedge) {
 				for (a = 0; a < me->totedge; a++) {

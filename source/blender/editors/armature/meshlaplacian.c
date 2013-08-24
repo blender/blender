@@ -281,7 +281,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
 
 	sys->varea = MEM_callocN(sizeof(float) * totvert, "LaplacianSystemVarea");
 
-	sys->edgehash = BLI_edgehash_new();
+	sys->edgehash = BLI_edgehash_new(__func__);
 	for (a = 0, face = sys->faces; a < sys->totface; a++, face++) {
 		laplacian_increase_edge_count(sys->edgehash, (*face)[0], (*face)[1]);
 		laplacian_increase_edge_count(sys->edgehash, (*face)[1], (*face)[2]);

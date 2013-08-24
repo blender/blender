@@ -568,7 +568,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	int numlayer;
 	unsigned int ed_v1, ed_v2;
 
-	edgehash = BLI_edgehash_new();
+	edgehash = BLI_edgehash_new(__func__);
 
 	/* recreate vertpa from facepa calculation */
 	for (i = 0, mf = mface; i < totface; i++, mf++) {
@@ -821,7 +821,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	cfra = BKE_scene_frame_get(scene);
 
 	/* hash table for vertice <-> particle relations */
-	vertpahash = BLI_edgehash_new();
+	vertpahash = BLI_edgehash_new(__func__);
 
 	for (i = 0; i < totface; i++) {
 		if (facepa[i] != totpart) {

@@ -1109,7 +1109,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		MEM_freeN ( cloth->springs );
 
 	// create spring network hash
-	edgehash = BLI_edgehash_new();
+	edgehash = BLI_edgehash_new(__func__);
 
 	// structural springs
 	for ( i = 0; i < numedges; i++ ) {

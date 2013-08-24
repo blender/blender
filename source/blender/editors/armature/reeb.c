@@ -198,7 +198,7 @@ ReebGraph *newReebGraph(void)
 	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
 	
 	rg->totnodes = 0;
-	rg->emap = BLI_edgehash_new();
+	rg->emap = BLI_edgehash_new(__func__);
 	
 	
 	rg->free_arc = REEB_freeArc;

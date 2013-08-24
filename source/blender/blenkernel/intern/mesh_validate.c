@@ -216,7 +216,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 
 	bool do_edge_recalc = false;
 
-	EdgeHash *edge_hash = BLI_edgehash_new();
+	EdgeHash *edge_hash = BLI_edgehash_new(__func__);
 
 	BLI_assert(!(do_fixes && mesh == NULL));
 
@@ -921,7 +921,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 	EdgeHashIterator *ehi;
 	MPoly *mp;
 	MEdge *med, *med_orig;
-	EdgeHash *eh = BLI_edgehash_new();
+	EdgeHash *eh = BLI_edgehash_new(__func__);
 	int i, totedge, totpoly = mesh->totpoly;
 	int med_index;
 	/* select for newly created meshes which are selected [#25595] */

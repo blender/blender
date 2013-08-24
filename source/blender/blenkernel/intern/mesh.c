@@ -177,7 +177,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 		if (l1->type == CD_MEDGE) {
 			MEdge *e1 = l1->data;
 			MEdge *e2 = l2->data;
-			EdgeHash *eh = BLI_edgehash_new();
+			EdgeHash *eh = BLI_edgehash_new(__func__);
 			int etot = m1->totedge;
 		
 			for (j = 0; j < etot; j++, e1++) {
@@ -911,7 +911,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 	MPoly *mpoly;
 	MFace *mface;
 	MEdge *medge, *med;
-	EdgeHash *hash = BLI_edgehash_new();
+	EdgeHash *hash = BLI_edgehash_new(__func__);
 	struct EdgeSort *edsort, *ed;
 	int a, totedge = 0;
 	unsigned int totedge_final = 0;
@@ -1243,7 +1243,7 @@ static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
 	const MPoly *mp;
 	int i;
 
-	eh = BLI_edgehash_new();
+	eh = BLI_edgehash_new(__func__);
 
 	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
 		BKE_mesh_poly_edgehash_insert(eh, mp, mloop + mp->loopstart);
@@ -2307,7 +2307,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 		CustomData_external_read(fdata, id, CD_MASK_MDISPS, totface_i);
 	}
 
-	eh = BLI_edgehash_new();
+	eh = BLI_edgehash_new(__func__);
 
 	/* build edge hash */
 	me = medge;

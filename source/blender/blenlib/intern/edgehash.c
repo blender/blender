@@ -162,9 +162,10 @@ static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, v
 
 /* Public API */
 
-EdgeHash *BLI_edgehash_new_ex(const unsigned int nentries_reserve)
+EdgeHash *BLI_edgehash_new_ex(const char *info,
+                              const unsigned int nentries_reserve)
 {
-	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
+	EdgeHash *eh = MEM_mallocN(sizeof(*eh), info);
 
 	eh->nbuckets = _ehash_hashsizes[0];  /* eh->cursize */
 	eh->nentries = 0;
@@ -184,9 +185,9 @@ EdgeHash *BLI_edgehash_new_ex(const unsigned int nentries_reserve)
 	return eh;
 }
 
-EdgeHash *BLI_edgehash_new(void)
+EdgeHash *BLI_edgehash_new(const char *info)
 {
-	return BLI_edgehash_new_ex(0);
+	return BLI_edgehash_new_ex(info, 0);
 }
 
 /**
