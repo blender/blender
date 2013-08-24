@@ -1078,8 +1078,6 @@ static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_t
 	else if (tiny) {
 		glLineStipple(3, 0xaaaa);
 		glEnable(GL_LINE_STIPPLE);
-		glEnable(GL_COLOR_LOGIC_OP);
-		glLogicOp(GL_NOR);
 	}
 
 	/* Draw rectangle itself. */
@@ -1127,10 +1125,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_t
 		}
 	}
 	else if (tiny) {
-		glDisable(GL_COLOR_LOGIC_OP);
 		glDisable(GL_LINE_STIPPLE);
-		glLineStipple(3, 0xaaaa);
-		glEnable(GL_LINE_STIPPLE);
 	}
 }
 
