@@ -88,7 +88,7 @@ struct EdgeHash {
 
 BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
-	return (nentries > nbuckets / 2);
+	return (nentries > nbuckets * 3);
 }
 
 BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)

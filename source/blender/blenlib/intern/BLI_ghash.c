@@ -88,7 +88,7 @@ struct GHash {
 
 BLI_INLINE bool ghash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
-	return (nentries > nbuckets / 2);
+	return (nentries > nbuckets * 3);
 }
 
 BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
