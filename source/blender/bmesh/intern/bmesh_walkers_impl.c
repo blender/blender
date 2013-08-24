@@ -694,7 +694,7 @@ static bool bmw_FaceLoopWalker_include_face(BMWalker *walker, BMLoop *l)
 		return false;
 	}
 
-	/* the face must not have been already visite */
+	/* the face must not have been already visited */
 	if (BLI_ghash_haskey(walker->visithash, l->f) && BLI_ghash_haskey(walker->secvisithash, l->e)) {
 		return false;
 	}
@@ -741,7 +741,7 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->no_calc = false;
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
-	/* rewin */
+	/* rewind */
 	while ((owalk_pt = BMW_current_state(walker))) {
 		owalk = *((BMwFaceLoopWalker *)owalk_pt);
 		BMW_walk(walker);
@@ -753,7 +753,7 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 
 	BLI_ghash_free(walker->secvisithash, NULL, NULL);
 	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers 3");
-	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
+	BLI_ghash_insert(walker->secvisithash, lwalk->l->e, NULL);
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
 	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 3");
