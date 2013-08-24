@@ -911,7 +911,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 	MPoly *mpoly;
 	MFace *mface;
 	MEdge *medge, *med;
-	EdgeHash *hash = BLI_edgehash_new(__func__);
+	EdgeHash *hash;
 	struct EdgeSort *edsort, *ed;
 	int a, totedge = 0;
 	unsigned int totedge_final = 0;
@@ -988,6 +988,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 	MEM_freeN(edsort);
 	
 	/* set edge members of mloops */
+	hash = BLI_edgehash_new_ex(__func__, totedge_final);
 	for (edge_index = 0, med = medge; edge_index < totedge_final; edge_index++, med++) {
 		BLI_edgehash_insert(hash, med->v1, med->v2, SET_UINT_IN_POINTER(edge_index));
 	}
