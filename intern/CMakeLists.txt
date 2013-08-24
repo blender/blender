@@ -23,6 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# add_subdirectory(atomic)  # header only
 add_subdirectory(string)
 add_subdirectory(ghost)
 add_subdirectory(guardedalloc)

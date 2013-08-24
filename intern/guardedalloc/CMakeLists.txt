@@ -36,6 +36,9 @@ set(SRC
 	./intern/mallocn.c
 
 	MEM_guardedalloc.h
+
+	# include here since its a header-only
+	../atomic/atomic_ops.h
 )
 
 if(WIN32 AND NOT UNIX)
