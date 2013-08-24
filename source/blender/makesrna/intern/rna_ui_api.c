@@ -369,7 +369,7 @@ static void api_ui_item_common_text(FunctionRNA *func)
 {
 	RNA_def_string(func, "text", "", 0, "", "Override automatic text of the item");
 	RNA_def_string(func, "text_ctxt", "", 0, "", "Override automatic translation context of the given text");
-	RNA_def_boolean(func, "translate", TRUE, "", "Translate the given text, when UI translation is enabled");
+	RNA_def_boolean(func, "translate", true, "", "Translate the given text, when UI translation is enabled");
 }
 
 static void api_ui_item_common(FunctionRNA *func)
@@ -428,7 +428,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func,
 	                                "Sub-layout. Items placed in this sublayout are placed next to each other "
 	                                "in a row");
-	RNA_def_boolean(func, "align", FALSE, "", "Align buttons to each other");
+	RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 	
 	func = RNA_def_function(srna, "column", "uiLayoutColumn");
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
@@ -436,13 +436,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func,
 	                                "Sub-layout. Items placed in this sublayout are placed under each other "
 	                                "in a column");
-	RNA_def_boolean(func, "align", FALSE, "", "Align buttons to each other");
+	RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 
 	func = RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
 	RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic", 0, INT_MAX);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
-	RNA_def_boolean(func, "align", FALSE, "", "Align buttons to each other");
+	RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 
 	/* box layout */
 	func = RNA_def_function(srna, "box", "uiLayoutBox");
@@ -456,7 +456,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
 	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at", 0.0f, 1.0f);
-	RNA_def_boolean(func, "align", FALSE, "", "Align buttons to each other");
+	RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 
 	/* Icon of a rna pointer */
 	func = RNA_def_function(srna, "icon", "rna_ui_get_rnaptr_icon");
@@ -501,13 +501,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. Exposes an RNA item and places it into the layout");
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
-	RNA_def_boolean(func, "expand", FALSE, "", "Expand button to show more detail");
-	RNA_def_boolean(func, "slider", FALSE, "", "Use slider widget for numeric values");
-	RNA_def_boolean(func, "toggle", FALSE, "", "Use toggle widget for boolean values");
-	RNA_def_boolean(func, "icon_only", FALSE, "", "Draw only icons in buttons, no text");
-	RNA_def_boolean(func, "event", FALSE, "", "Use button to input key events");
-	RNA_def_boolean(func, "full_event", FALSE, "", "Use button to input full events including modifiers");
-	RNA_def_boolean(func, "emboss", TRUE, "", "Draw the button itself, just the icon/text");
+	RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
+	RNA_def_boolean(func, "slider", false, "", "Use slider widget for numeric values");
+	RNA_def_boolean(func, "toggle", false, "", "Use toggle widget for boolean values");
+	RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in buttons, no text");
+	RNA_def_boolean(func, "event", false, "", "Use button to input key events");
+	RNA_def_boolean(func, "full_event", false, "", "Use button to input full events including modifiers");
+	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
 	RNA_def_int(func, "index", -1, -2, INT_MAX, "",
 	            "The index of this button, when set a single member of an array can be accessed, "
 	            "when set to -1 all array members are used", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
@@ -535,7 +535,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func = RNA_def_function(srna, "operator", "rna_uiItemO");
 	api_ui_item_op_common(func);
-	RNA_def_boolean(func, "emboss", TRUE, "", "Draw the button itself, just the icon/text");
+	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "",
 	                       "Operator properties to fill in, return when 'properties' is set to true");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
@@ -569,7 +569,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_op_common(func);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_boolean(func, "value", FALSE, "", "Value of the property to call the operator with");
+	parm = RNA_def_boolean(func, "value", false, "", "Value of the property to call the operator with");
 	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
 	func = RNA_def_function(srna, "operator_int", "uiItemIntO");
@@ -623,7 +623,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	/* templates */
 	func = RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_boolean(func, "menus", TRUE, "", "The header has menus, and should show menu expander");
+	RNA_def_boolean(func, "menus", true, "", "The header has menus, and should show menu expander");
 
 	func = RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -679,7 +679,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc");
 	parm = RNA_def_pointer(func, "id", "ID", "", "ID datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "show_buttons", TRUE, "", "Show preview buttons?");
+	RNA_def_boolean(func, "show_buttons", true, "", "Show preview buttons?");
 	RNA_def_pointer(func, "parent", "ID", "", "ID datablock");
 	RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot");
 
@@ -687,13 +687,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A curve mapping widget used for e.g falloff curves for lamps");
 	api_ui_item_rna_common(func);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display");
-	RNA_def_boolean(func, "levels", FALSE, "", "Show black/white levels");
-	RNA_def_boolean(func, "brush", FALSE, "", "Show brush options");
+	RNA_def_boolean(func, "levels", false, "", "Show black/white levels");
+	RNA_def_boolean(func, "brush", false, "", "Show brush options");
 
 	func = RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	RNA_def_function_ui_description(func, "Item. A color ramp widget");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", FALSE, "", "Expand button to show more detail");
+	RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
 	
 	func = RNA_def_function(srna, "template_icon_view", "uiTemplateIconView");
 	RNA_def_function_ui_description(func, "Enum. Large widget showing Icon previews");
@@ -723,10 +723,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "template_color_picker", "uiTemplateColorPicker");
 	RNA_def_function_ui_description(func, "Item. A color wheel widget to pick colors");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "value_slider", FALSE, "", "Display the value slider to the right of the color wheel");
-	RNA_def_boolean(func, "lock", FALSE, "", "Lock the color wheel display to value 1.0 regardless of actual color");
-	RNA_def_boolean(func, "lock_luminosity", FALSE, "", "Keep the color at its original vector length");
-	RNA_def_boolean(func, "cubic", TRUE, "", "Cubic saturation for picking values close to white");
+	RNA_def_boolean(func, "value_slider", false, "", "Display the value slider to the right of the color wheel");
+	RNA_def_boolean(func, "lock", false, "", "Lock the color wheel display to value 1.0 regardless of actual color");
+	RNA_def_boolean(func, "lock_luminosity", false, "", "Keep the color at its original vector length");
+	RNA_def_boolean(func, "cubic", true, "", "Cubic saturation for picking values close to white");
 
 	func = RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -741,19 +741,19 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	parm = RNA_def_pointer(func, "image_user", "ImageUser", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
-	RNA_def_boolean(func, "compact", FALSE, "", "Use more compact layout");
+	RNA_def_boolean(func, "compact", false, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_image_settings", "uiTemplateImageSettings");
 	RNA_def_function_ui_description(func, "User interface for setting image format options");
 	parm = RNA_def_pointer(func, "image_settings", "ImageFormatSettings", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
-	RNA_def_boolean(func, "color_management", FALSE, "", "Show color management settings");
+	RNA_def_boolean(func, "color_management", false, "", "Show color management settings");
 
 	func = RNA_def_function(srna, "template_movieclip", "uiTemplateMovieClip");
 	RNA_def_function_ui_description(func, "Item(s). User interface for selecting movie clips and their source paths");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "compact", FALSE, "", "Use more compact layout");
+	RNA_def_boolean(func, "compact", false, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_track", "uiTemplateTrack");
 	RNA_def_function_ui_description(func, "Item. A movie-track widget to preview tracking image.");
@@ -766,7 +766,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
-	RNA_def_boolean(func, "compact", FALSE, "", "Use more compact layout");
+	RNA_def_boolean(func, "compact", false, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_movieclip_information", "uiTemplateMovieclipInformation");
 	RNA_def_function_ui_description(func, "Item. Movie clip information data.");
@@ -859,7 +859,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A widget to control color managed view settings settings.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
-	/* RNA_def_boolean(func, "show_global_settings", FALSE, "", "Show widgets to control global color management settings"); */
+	/* RNA_def_boolean(func, "show_global_settings", false, "", "Show widgets to control global color management settings"); */
 
 	/* node socket icon */
 	func = RNA_def_function(srna, "template_node_socket", "uiTemplateNodeSocket");
