@@ -734,6 +734,15 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 	ShadeInput shi = {NULL};
 	Isect isec;
 	float dist_mir = origshi->mat->dist_mir;
+
+	/* with high depth the number of rays can explode due to the path splitting
+	 * in two each time, giving 2^depth rays. we need to be able to cancel such
+	 * a render to avoid hanging, a better solution would be random picking
+	 * between directions and russian roulette termination */
+	if(R.test_break(R.tbh)) {
+		zero_v4(col);
+		return;
+	}
 	
 	copy_v3_v3(isec.start, start);
 	copy_v3_v3(isec.dir, dir);
