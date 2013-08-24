@@ -975,6 +975,18 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
  * SPRING NETWORK BUILDING IMPLEMENTATION BEGIN
  ***************************************************************************************/
 
+BLI_INLINE void spring_verts_ordered_set(ClothSpring *spring, int v0, int v1)
+{
+	if (v0 < v1) {
+		spring->ij = v0;
+		spring->kl = v1;
+	}
+	else {
+		spring->ij = v1;
+		spring->kl = v0;
+	}
+}
+
 // be careful: implicit solver has to be resettet when using this one!
 // --> only for implicit handling of this spring!
 int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
@@ -1120,8 +1132,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
 		if ( spring ) {
-			spring->ij = MIN2(medge[i].v1, medge[i].v2);
-			spring->kl = MAX2(medge[i].v2, medge[i].v1);
+			spring_verts_ordered_set(spring, medge[i].v1, medge[i].v2);
 			spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 			clmd->sim_parms->avg_spring_len += spring->restlen;
 			cloth->verts[spring->ij].avg_spring_len += spring->restlen;
@@ -1161,8 +1172,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			return 0;
 		}
 
-		spring->ij = MIN2(mface[i].v1, mface[i].v3);
-		spring->kl = MAX2(mface[i].v3, mface[i].v1);
+		spring_verts_ordered_set(spring, mface[i].v1, mface[i].v3);
 		spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
@@ -1182,8 +1192,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			return 0;
 		}
 
-		spring->ij = MIN2(mface[i].v2, mface[i].v4);
-		spring->kl = MAX2(mface[i].v4, mface[i].v2);
+		spring_verts_ordered_set(spring, mface[i].v2, mface[i].v4);
 		spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
@@ -1223,8 +1232,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 						return 0;
 					}
 
-					spring->ij = MIN2(tspring2->ij, index2);
-					spring->kl = MAX2(tspring2->ij, index2);
+					spring_verts_ordered_set(spring, tspring2->ij, index2);
 					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 					spring->type = CLOTH_SPRING_TYPE_BENDING;
 					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
