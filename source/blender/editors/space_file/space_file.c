@@ -148,7 +148,6 @@ static void file_free(SpaceLink *sl)
 static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
-	//printf("file_init\n");
 
 	/* refresh system directory list */
 	fsmenu_refresh_system_category(fsmenu_get());
@@ -313,7 +312,6 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
-	FileLayout *layout = NULL;
 
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
@@ -323,15 +321,14 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	if (!sfile->files || filelist_empty(sfile->files))
 		file_refresh(C, NULL);
 
-	layout = ED_fileselect_get_layout(sfile, ar);
-
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (layout && (layout->flag == FILE_LAYOUT_VER)) {
+	
+	if (params && (params->display == FILE_IMGDISPLAY)) {
 		v2d->scroll = V2D_SCROLL_RIGHT;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
 		v2d->keepofs |= V2D_LOCKOFS_X;
