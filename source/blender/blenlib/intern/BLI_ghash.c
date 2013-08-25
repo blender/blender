@@ -204,6 +204,57 @@ static Entry *ghash_insert_ex(GHash *gh, void *key,
 
 	return e;
 }
+
+/**
+ * Remove the entry and return it, caller must free from gh->entrypool.
+ */
+static Entry *ghash_remove_ex(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
+                              unsigned int hash)
+{
+	Entry *e;
+	Entry *e_prev = NULL;
+
+	for (e = gh->buckets[hash]; e; e = e->next) {
+		if (gh->cmpfp(key, e->key) == 0) {
+			Entry *e_next = e->next;
+
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
+
+			if (e_prev) e_prev->next = e_next;
+			else   gh->buckets[hash] = e_next;
+
+			gh->nentries--;
+			return e;
+		}
+		e_prev = e;
+	}
+
+	return NULL;
+}
+
+/**
+ * Run free callbacks for freeing entries.
+ */
+static void ghash_free_cb(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	unsigned int i;
+
+	BLI_assert(keyfreefp || valfreefp);
+
+	for (i = 0; i < gh->nbuckets; i++) {
+		Entry *e;
+
+		for (e = gh->buckets[i]; e; ) {
+			Entry *e_next = e->next;
+
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
+
+			e = e_next;
+		}
+	}
+}
 /** \} */
 
 
@@ -325,29 +376,14 @@ void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
-	Entry *e;
-	Entry *p = NULL;
-
-	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (gh->cmpfp(key, e->key) == 0) {
-			Entry *n = e->next;
-
-			if (keyfreefp) keyfreefp(e->key);
-			if (valfreefp) valfreefp(e->val);
-			BLI_mempool_free(gh->entrypool, e);
-
-			/* correct but 'e' isn't used before return */
-			/* e = n; *//*UNUSED*/
-			if (p) p->next = n;
-			else   gh->buckets[hash] = n;
-
-			gh->nentries--;
-			return true;
-		}
-		p = e;
+	Entry *e = ghash_remove_ex(gh, key, keyfreefp, valfreefp, hash);
+	if (e) {
+		BLI_mempool_free(gh->entrypool, e);
+		return true;
 	}
-
-	return false;
+	else {
+		return false;
+	}
 }
 
 /* same as above but return the value,
@@ -362,29 +398,15 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
-	Entry *e;
-	Entry *p = NULL;
-
-	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (gh->cmpfp(key, e->key) == 0) {
-			Entry *n = e->next;
-			void *value = e->val;
-
-			if (keyfreefp) keyfreefp(e->key);
-			BLI_mempool_free(gh->entrypool, e);
-
-			/* correct but 'e' isn't used before return */
-			/* e = n; *//*UNUSED*/
-			if (p) p->next = n;
-			else   gh->buckets[hash] = n;
-
-			gh->nentries--;
-			return value;
-		}
-		p = e;
+	Entry *e = ghash_remove_ex(gh, key, keyfreefp, NULL, hash);
+	if (e) {
+		void *val = e->val;
+		BLI_mempool_free(gh->entrypool, e);
+		return val;
 	}
-
-	return NULL;
+	else {
+		return NULL;
+	}
 }
 
 /**
@@ -405,22 +427,8 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
 void BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
                         const unsigned int nentries_reserve)
 {
-	unsigned int i;
-
-	if (keyfreefp || valfreefp) {
-		for (i = 0; i < gh->nbuckets; i++) {
-			Entry *e;
-
-			for (e = gh->buckets[i]; e; ) {
-				Entry *n = e->next;
-
-				if (keyfreefp) keyfreefp(e->key);
-				if (valfreefp) valfreefp(e->val);
-
-				e = n;
-			}
-		}
-	}
+	if (keyfreefp || valfreefp)
+		ghash_free_cb(gh, keyfreefp, valfreefp);
 
 	gh->nbuckets = hashsizes[0];  /* gh->cursize */
 	gh->nentries = 0;
@@ -453,28 +461,13 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
  */
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	unsigned int i;
+	BLI_assert((int)gh->nentries == BLI_mempool_count(gh->entrypool));
 
-	if (keyfreefp || valfreefp) {
-		for (i = 0; i < gh->nbuckets; i++) {
-			Entry *e;
-
-			for (e = gh->buckets[i]; e; ) {
-				Entry *n = e->next;
-
-				if (keyfreefp) keyfreefp(e->key);
-				if (valfreefp) valfreefp(e->val);
-
-				e = n;
-			}
-		}
-	}
+	if (keyfreefp || valfreefp)
+		ghash_free_cb(gh, keyfreefp, valfreefp);
 
 	MEM_freeN(gh->buckets);
 	BLI_mempool_destroy(gh->entrypool);
-	gh->buckets = NULL;
-	gh->nentries = 0;
-	gh->nbuckets = 0;
 	MEM_freeN(gh);
 }
 

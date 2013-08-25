@@ -50,6 +50,8 @@ void           *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int 
 void          **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1);
 bool            BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1);
 int             BLI_edgehash_size(EdgeHash *eh);
+void            BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP valfreefp,
+                                      const unsigned int nentries_reserve);
 void            BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp);
 void            BLI_edgehash_flag_set(EdgeHash *eh, unsigned int flag);
 void            BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag);

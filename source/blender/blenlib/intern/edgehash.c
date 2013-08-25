@@ -144,7 +144,7 @@ static EdgeHash *edgehash_new(const char *info,
 		edgehash_buckets_reserve(eh, nentries_reserve);
 	}
 
-	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
+	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
 	eh->epool = BLI_mempool_create((int)entry_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return eh;
@@ -190,6 +190,29 @@ static EdgeEntry *edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int
 	}
 	return e;
 }
+
+/**
+ * Run free callbacks for freeing entries.
+ */
+static void edgehash_free_cb(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+{
+	unsigned int i;
+
+	BLI_assert(valfreefp);
+
+	for (i = 0; i < eh->nbuckets; i++) {
+		EdgeEntry *e;
+
+		for (e = eh->buckets[i]; e; ) {
+			EdgeEntry *e_next = e->next;
+
+			if (valfreefp) valfreefp(e->val);
+
+			e = e_next;
+		}
+	}
+}
+
 /** \} */
 
 
@@ -289,30 +312,32 @@ int BLI_edgehash_size(EdgeHash *eh)
 /**
  * Remove all edges from hash.
  */
-void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP valfreefp,
+                           const unsigned int nentries_reserve)
 {
-	unsigned int i;
-	
-	for (i = 0; i < eh->nbuckets; i++) {
-		EdgeEntry *e;
-		
-		for (e = eh->buckets[i]; e; ) {
-			EdgeEntry *n = e->next;
-			
-			if (valfreefp) valfreefp(e->val);
-			BLI_mempool_free(eh->epool, e);
-			
-			e = n;
-		}
-		eh->buckets[i] = NULL;
+	if (valfreefp)
+		edgehash_free_cb(eh, valfreefp);
+
+	eh->nbuckets = _ehash_hashsizes[0];  /* eh->cursize */
+	eh->nentries = 0;
+	eh->cursize = 0;
+
+	if (nentries_reserve) {
+		edgehash_buckets_reserve(eh, nentries_reserve);
 	}
 
-	eh->nentries = 0;
+	MEM_freeN(eh->buckets);
+	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
+
+	BLI_mempool_clear_ex(eh->epool, nentries_reserve ? (int)nentries_reserve : -1);
 }
 
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
-	BLI_edgehash_clear(eh, valfreefp);
+	BLI_assert((int)eh->nentries == BLI_mempool_count(eh->epool));
+
+	if (valfreefp)
+		edgehash_free_cb(eh, valfreefp);
 
 	BLI_mempool_destroy(eh->epool);
 
@@ -437,6 +462,8 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 
 /* Use edgehash API to give 'set' functionality */
 
+/** \name EdgeSet Functions
+ * \{ */
 EdgeSet *BLI_edgeset_new_ex(const char *info,
                                   const unsigned int nentries_reserve)
 {
@@ -498,3 +525,5 @@ void BLI_edgeset_free(EdgeSet *es)
 {
 	BLI_edgehash_free((EdgeHash *)es, NULL);
 }
+
+/** \} */
