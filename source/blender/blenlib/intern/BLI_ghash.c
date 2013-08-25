@@ -401,6 +401,8 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 
 	MEM_freeN(gh->buckets);
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+
+	BLI_mempool_clear(gh->entrypool);
 }
 
 /**
