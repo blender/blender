@@ -128,54 +128,9 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsig
 	return edgehash_lookup_entry_ex(eh, v0, v1, hash);
 }
 
-static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val,
-                               unsigned int hash)
-{
-	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
-
-	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
-
-	/* this helps to track down errors with bad edge data */
-	BLI_assert(v0 < v1);
-	BLI_assert(v0 != v1);
-
-	e->next = eh->buckets[hash];
-	e->v0 = v0;
-	e->v1 = v1;
-	e->val = val;
-	eh->buckets[hash] = e;
-
-	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
-		EdgeEntry **old = eh->buckets;
-		const unsigned int nold = eh->nbuckets;
-		unsigned int i;
-
-		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
-		eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-
-		for (i = 0; i < nold; i++) {
-			EdgeEntry *e_next;
-			for (e = old[i]; e; e = e_next) {
-				e_next = e->next;
-				hash = edgehash_keyhash(eh, e->v0, e->v1);
-				e->next = eh->buckets[hash];
-				eh->buckets[hash] = e;
-			}
-		}
-
-		MEM_freeN(old);
-	}
-}
-/** \} */
-
-
-/** \name Public API
- * \{ */
-
-/* Public API */
-
-EdgeHash *BLI_edgehash_new_ex(const char *info,
-                              const unsigned int nentries_reserve)
+static EdgeHash *edgehash_new(const char *info,
+                              const unsigned int nentries_reserve,
+                              const size_t entry_size)
 {
 	EdgeHash *eh = MEM_mallocN(sizeof(*eh), info);
 
@@ -190,9 +145,65 @@ EdgeHash *BLI_edgehash_new_ex(const char *info,
 	}
 
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
-	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, BLI_MEMPOOL_SYSMALLOC);
+	eh->epool = BLI_mempool_create((int)entry_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return eh;
+}
+
+static EdgeEntry *edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
+                                     unsigned int hash)
+{
+	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
+
+	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
+
+	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 < v1);
+	BLI_assert(v0 != v1);
+
+	e->next = eh->buckets[hash];
+	e->v0 = v0;
+	e->v1 = v1;
+	/* intentionally don't set the value */
+	eh->buckets[hash] = e;
+
+	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
+		EdgeEntry *e_iter;
+		EdgeEntry **old = eh->buckets;
+		const unsigned int nold = eh->nbuckets;
+		unsigned int i;
+
+		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
+		eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
+
+		for (i = 0; i < nold; i++) {
+			EdgeEntry *e_next;
+			for (e_iter = old[i]; e_iter; e_iter = e_next) {
+				e_next = e_iter->next;
+				hash = edgehash_keyhash(eh, e_iter->v0, e_iter->v1);
+				e_iter->next = eh->buckets[hash];
+				eh->buckets[hash] = e_iter;
+			}
+		}
+
+		MEM_freeN(old);
+	}
+	return e;
+}
+/** \} */
+
+
+/** \name Public API
+ * \{ */
+
+/* Public API */
+
+EdgeHash *BLI_edgehash_new_ex(const char *info,
+                              const unsigned int nentries_reserve)
+{
+	return edgehash_new(info,
+	                    nentries_reserve,
+	                    sizeof(EdgeEntry));
 }
 
 EdgeHash *BLI_edgehash_new(const char *info)
@@ -207,15 +218,17 @@ EdgeHash *BLI_edgehash_new(const char *info)
 void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
 {
 	unsigned int hash;
+	EdgeEntry *e;
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 	hash = edgehash_keyhash(eh, v0, v1);
-	edgehash_insert_ex(eh, v0, v1, val, hash);
+	e = edgehash_insert_ex(eh, v0, v1, hash);
+	e->val = val;
 }
 
 /**
  * Assign a new value to a key that may already be in edgehash.
  */
-void BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
 {
 	unsigned int hash;
 	EdgeEntry *e;
@@ -226,9 +239,12 @@ void BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
 	e = edgehash_lookup_entry_ex(eh, v0, v1, hash);
 	if (e) {
 		e->val = val;
+		return false;
 	}
 	else {
-		edgehash_insert_ex(eh, v0, v1, val, hash);
+		e = edgehash_insert_ex(eh, v0, v1, hash);
+		e->val = val;
+		return true;
 	}
 }
 
@@ -412,6 +428,77 @@ void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
 bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 {
 	return (ehi->curEntry == NULL);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/* EdgeSet API */
+
+/* Use edgehash API to give 'set' functionality */
+
+/** \name EdgeSet Functions
+ * \{ */
+EdgeSet *BLI_edgeset_new_ex(const char *info,
+                                  const unsigned int nentries_reserve)
+{
+	return (EdgeSet *)edgehash_new(info,
+	                               nentries_reserve,
+	                               sizeof(EdgeEntry) - sizeof(void *));
+}
+
+EdgeSet *BLI_edgeset_new(const char *info)
+{
+	return BLI_edgeset_new_ex(info, 0);
+}
+
+int BLI_edgeset_size(EdgeSet *es)
+{
+	return (int)((EdgeHash *)es)->nentries;
+}
+
+/**
+ * Adds the key to the set (no checks for unique keys!).
+ * Matching #BLI_edgehash_insert
+ */
+void BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1)
+{
+	unsigned int hash;
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash((EdgeHash *)es, v0, v1);
+	edgehash_insert_ex((EdgeHash *)es, v0, v1, hash);
+}
+
+/**
+ * Assign a new value to a key that may already be in edgehash.
+ */
+bool BLI_edgeset_reinsert(EdgeSet *es, unsigned int v0, unsigned int v1)
+{
+	unsigned int hash;
+	EdgeEntry *e;
+
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash((EdgeHash *)es, v0, v1);
+
+	e = edgehash_lookup_entry_ex((EdgeHash *)es, v0, v1, hash);
+	if (e) {
+		return false;
+	}
+	else {
+		edgehash_insert_ex((EdgeHash *)es, v0, v1, hash);
+		return true;
+	}
+}
+
+bool BLI_edgeset_haskey(EdgeSet *es, unsigned int v0, unsigned int v1)
+{
+	return (edgehash_lookup_entry((EdgeHash *)es, v0, v1) != NULL);
+}
+
+
+void BLI_edgeset_free(EdgeSet *es)
+{
+	BLI_edgehash_free((EdgeHash *)es, NULL);
 }
 
 /** \} */

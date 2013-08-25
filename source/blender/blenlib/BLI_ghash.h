@@ -63,7 +63,7 @@ GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info);
 void   BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_insert(GHash *gh, void *key, void *val);
-void   BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+bool   BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void  *BLI_ghash_lookup(GHash *gh, const void *key);
 void **BLI_ghash_lookup_p(GHash *gh, const void *key);
 bool   BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
@@ -132,6 +132,62 @@ GHashPair      *BLI_ghashutil_pairalloc(const void *first, const void *second);
 unsigned int    BLI_ghashutil_pairhash(const void *ptr);
 int             BLI_ghashutil_paircmp(const void *a, const void *b);
 void            BLI_ghashutil_pairfree(void *ptr);
+
+
+/* *** */
+
+typedef struct GSet GSet;
+
+typedef GHashHashFP GSetHashFP;
+typedef GHashCmpFP GSetCmpFP;
+typedef GHashKeyFreeFP GSetKeyFreeFP;
+
+/* so we can cast but compiler sees as different */
+typedef struct GSetIterator {
+	GHashIterator _ghi
+#ifdef __GNUC__
+	__attribute__ ((deprecated))
+#endif
+	;
+} GSetIterator;
+
+GSet  *BLI_gset_new_ex(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
+                       const unsigned int nentries_reserve);
+GSet  *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info);
+int    BLI_gset_size(GSet *gs);
+void   BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp);
+void   BLI_gset_insert(GSet *gh, void *key);
+bool   BLI_gset_reinsert(GSet *gh, void *key, GSetKeyFreeFP keyfreefp);
+bool   BLI_gset_haskey(GSet *gs, const void *key);
+bool   BLI_gset_remove(GSet *gs, void *key, GSetKeyFreeFP keyfreefp);
+void   BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp,
+                         const unsigned int nentries_reserve);
+void  BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
+
+GSet *BLI_gset_ptr_new_ex(const char *info,
+                          const unsigned int nentries_reserve);
+GSet *BLI_gset_ptr_new(const char *info);
+GSet *BLI_gset_pair_new_ex(const char *info,
+                            const unsigned int nentries_reserve);
+GSet *BLI_gset_pair_new(const char *info);
+
+/* rely on inline api for now */
+BLI_INLINE GSetIterator *BLI_gsetIterator_new(GSet *gs) { return (GSetIterator *)BLI_ghashIterator_new((GHash *)gs); }
+BLI_INLINE void BLI_gsetIterator_init(GSetIterator *gsi, GSet *gs) { BLI_ghashIterator_init((GHashIterator *)gsi, (GHash *)gs); }
+BLI_INLINE void BLI_gsetIterator_free(GSetIterator *gsi) { BLI_ghashIterator_free((GHashIterator *)gsi); }
+BLI_INLINE void *BLI_gsetIterator_getKey(GSetIterator *gsi) { return BLI_ghashIterator_getKey((GHashIterator *)gsi); }
+BLI_INLINE void BLI_gsetIterator_step(GSetIterator *gsi) { BLI_ghashIterator_step((GHashIterator *)gsi); }
+BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi) { return BLI_ghashIterator_done((GHashIterator *)gsi); }
+
+#define GSET_ITER(gs_iter_, gset_)                                            \
+	for (BLI_gsetIterator_init(&gs_iter_, gset_);                             \
+	     BLI_gsetIterator_done(&gs_iter_) == false;                           \
+	     BLI_gsetIterator_step(&gs_iter_))
+
+#define GSET_ITER_INDEX(gs_iter_, gset_, i_)                                  \
+	for (BLI_gsetIterator_init(&gs_iter_, gset_), i_ = 0;                     \
+	     BLI_gsetIterator_done(&gs_iter_) == false;                           \
+	     BLI_gsetIterator_step(&gs_iter_), i_++)
 
 #ifdef __cplusplus
 }

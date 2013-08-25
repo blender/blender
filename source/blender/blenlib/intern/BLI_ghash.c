@@ -139,12 +139,37 @@ BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
 	return ghash_lookup_entry_ex(gh, key, hash);
 }
 
+static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
+                        const unsigned int nentries_reserve,
+                        const size_t entry_size)
+{
+	GHash *gh = MEM_mallocN(sizeof(*gh), info);
+
+	gh->hashfp = hashfp;
+	gh->cmpfp = cmpfp;
+
+	gh->nbuckets = hashsizes[0];  /* gh->cursize */
+	gh->nentries = 0;
+	gh->cursize = 0;
+	gh->flag = 0;
+
+	/* if we have reserved the number of elements that this hash will contain */
+	if (nentries_reserve) {
+		ghash_buckets_reserve(gh, nentries_reserve);
+	}
+
+	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+	gh->entrypool = BLI_mempool_create((int)entry_size, 64, 64, 0);
+
+	return gh;
+}
+
 /**
  * Internal insert function.
  * Takes a hash argument to avoid calling #ghash_keyhash multiple times.
  */
-static void ghash_insert_ex(GHash *gh, void *key, void *val,
-                            unsigned int hash)
+static Entry *ghash_insert_ex(GHash *gh, void *key,
+                              unsigned int hash)
 {
 	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
 
@@ -152,10 +177,11 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 
 	e->next = gh->buckets[hash];
 	e->key = key;
-	e->val = val;
+	/* intentionally don't set the value */
 	gh->buckets[hash] = e;
 
 	if (UNLIKELY(ghash_test_expand_buckets(++gh->nentries, gh->nbuckets))) {
+		Entry *e_iter;
 		Entry **old = gh->buckets;
 		const unsigned nold = gh->nbuckets;
 		unsigned int i;
@@ -165,16 +191,18 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 
 		for (i = 0; i < nold; i++) {
 			Entry *e_next;
-			for (e = old[i]; e; e = e_next) {
-				e_next = e->next;
-				hash = ghash_keyhash(gh, e->key);
-				e->next = gh->buckets[hash];
-				gh->buckets[hash] = e;
+			for (e_iter = old[i]; e_iter; e_iter = e_next) {
+				e_next = e_iter->next;
+				hash = ghash_keyhash(gh, e_iter->key);
+				e_iter->next = gh->buckets[hash];
+				gh->buckets[hash] = e_iter;
 			}
 		}
 
 		MEM_freeN(old);
 	}
+
+	return e;
 }
 /** \} */
 
@@ -195,25 +223,9 @@ static void ghash_insert_ex(GHash *gh, void *key, void *val,
 GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
                         const unsigned int nentries_reserve)
 {
-	GHash *gh = MEM_mallocN(sizeof(*gh), info);
-
-	gh->hashfp = hashfp;
-	gh->cmpfp = cmpfp;
-
-	gh->nbuckets = hashsizes[0];  /* gh->cursize */
-	gh->nentries = 0;
-	gh->cursize = 0;
-	gh->flag = 0;
-
-	/* if we have reserved the number of elements that this hash will contain */
-	if (nentries_reserve) {
-		ghash_buckets_reserve(gh, nentries_reserve);
-	}
-
-	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 0);
-
-	return gh;
+	return ghash_new(hashfp, cmpfp, info,
+	                 nentries_reserve,
+	                 sizeof(Entry));
 }
 
 /**
@@ -242,27 +254,32 @@ int BLI_ghash_size(GHash *gh)
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
-	ghash_insert_ex(gh, key, val, hash);
+	Entry *e = ghash_insert_ex(gh, key, hash);
+	e->val = val;
 }
 
 /**
  * Inserts a new value to a key that may already be in ghash.
  *
  * Avoids #BLI_ghash_remove, #BLI_ghash_insert calls (double lookups)
+ *
+ * \returns true if a new key has been added.
  */
-void BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+bool BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	Entry *e = ghash_lookup_entry_ex(gh, key, hash);
 	if (e) {
 		if (keyfreefp) keyfreefp(e->key);
 		if (valfreefp) valfreefp(e->val);
-
 		e->key = key;
 		e->val = val;
+		return false;
 	}
 	else {
-		ghash_insert_ex(gh, key, val, hash);
+		e = ghash_insert_ex(gh, key, hash);
+		e->val = val;
+		return true;
 	}
 }
 
@@ -700,7 +717,7 @@ void BLI_ghashutil_pairfree(void *ptr)
 /** \} */
 
 
-/** \name Convenience Creation Functions
+/** \name Convenience GHash Creation Functions
  * \{ */
 
 GHash *BLI_ghash_ptr_new_ex(const char *info,
@@ -745,6 +762,123 @@ GHash *BLI_ghash_pair_new_ex(const char *info,
 GHash *BLI_ghash_pair_new(const char *info)
 {
 	return BLI_ghash_pair_new_ex(info, 0);
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* GSet API */
+
+/* Use ghash API to give 'set' functionality */
+
+/* TODO: typical set functions
+ * isdisjoint/issubset/issuperset/union/intersection/difference etc */
+
+/** \name GSet Functions
+ * \{ */
+GSet *BLI_gset_new_ex(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
+                      const unsigned int nentries_reserve)
+{
+	return (GSet *)ghash_new(hashfp, cmpfp, info,
+	                         nentries_reserve,
+	                         sizeof(Entry) - sizeof(void *));
+}
+
+GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)
+{
+	return BLI_gset_new_ex(hashfp, cmpfp, info, 0);
+}
+
+int BLI_gset_size(GSet *gs)
+{
+	return (int)((GHash *)gs)->nentries;
+}
+
+/**
+ * Adds the key to the set (no checks for unique keys!).
+ * Matching #BLI_ghash_insert
+ */
+void BLI_gset_insert(GSet *gs, void *key)
+{
+	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
+	ghash_insert_ex((GHash *)gs, key, hash);
+}
+
+/**
+ * Adds the key to the set (duplicates are managed).
+ * Matching #BLI_ghash_reinsert
+ *
+ * \returns true if a new key has been added.
+ */
+bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
+{
+	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
+	Entry *e = ghash_lookup_entry_ex((GHash *)gs, key, hash);
+	if (e) {
+		if (keyfreefp) keyfreefp(e->key);
+		e->key = key;
+		return false;
+	}
+	else {
+		ghash_insert_ex((GHash *)gs, key, hash);
+		return true;
+	}
+}
+
+bool BLI_gset_remove(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
+{
+	return BLI_ghash_remove((GHash *)gs, key, keyfreefp, NULL);
+}
+
+
+bool BLI_gset_haskey(GSet *gs, const void *key)
+{
+	return (ghash_lookup_entry((GHash *)gs, key) != NULL);
+}
+
+void BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp,
+                       const unsigned int nentries_reserve)
+{
+	BLI_ghash_clear_ex((GHash *)gs, keyfreefp, NULL,
+	                   nentries_reserve);
+}
+
+void BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp)
+{
+	BLI_ghash_clear((GHash *)gs, keyfreefp, NULL);
+}
+
+void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp)
+{
+	BLI_ghash_free((GHash *)gs, keyfreefp, NULL);
+}
+/** \} */
+
+
+/** \name Convenience GSet Creation Functions
+ * \{ */
+
+GSet *BLI_gset_ptr_new_ex(const char *info,
+                          const unsigned int nentries_reserve)
+{
+	return BLI_gset_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info,
+	                       nentries_reserve);
+}
+GSet *BLI_gset_ptr_new(const char *info)
+{
+	return BLI_gset_ptr_new_ex(info, 0);
+}
+
+GSet *BLI_gset_pair_new_ex(const char *info,
+                             const unsigned int nentries_reserve)
+{
+	return BLI_gset_new_ex(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info,
+	                        nentries_reserve);
+}
+GSet *BLI_gset_pair_new(const char *info)
+{
+	return BLI_gset_pair_new_ex(info, 0);
 }
 
 /** \} */
