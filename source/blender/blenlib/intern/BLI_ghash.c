@@ -96,6 +96,16 @@ BLI_INLINE bool ghash_test_expand_buckets(const unsigned int nentries, const uns
 }
 
 /**
+ * Increase initial bucket size to match a reserved ammount.
+ */
+BLI_INLINE void ghash_buckets_reserve(GHash *gh, const unsigned int nentries_reserve)
+{
+	while (ghash_test_expand_buckets(nentries_reserve, gh->nbuckets)) {
+		gh->nbuckets = hashsizes[++gh->cursize];
+	}
+}
+
+/**
  * Get the hash for a key.
  */
 BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
@@ -197,9 +207,7 @@ GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 
 	/* if we have reserved the number of elements that this hash will contain */
 	if (nentries_reserve) {
-		while (ghash_test_expand_buckets(nentries_reserve, gh->nbuckets)) {
-			gh->nbuckets = hashsizes[++gh->cursize];
-		}
+		ghash_buckets_reserve(gh, nentries_reserve);
 	}
 
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
@@ -375,8 +383,10 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
  *
  * \param keyfreefp  Optional callback to free the key.
  * \param valfreefp  Optional callback to free the value.
+ * \param nentries_reserve  Optionally reserve the number of members that the hash will hold.
  */
-void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+void BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
+                        const unsigned int nentries_reserve)
 {
 	unsigned int i;
 
@@ -395,14 +405,26 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 		}
 	}
 
-	gh->cursize = 0;
+	gh->nbuckets = hashsizes[0];  /* gh->cursize */
 	gh->nentries = 0;
-	gh->nbuckets = hashsizes[gh->cursize];
+	gh->cursize = 0;
+
+	if (nentries_reserve) {
+		ghash_buckets_reserve(gh, nentries_reserve);
+	}
 
 	MEM_freeN(gh->buckets);
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 
-	BLI_mempool_clear(gh->entrypool);
+	BLI_mempool_clear_ex(gh->entrypool, nentries_reserve ? (int)nentries_reserve : -1);
+}
+
+/**
+ * Wraps #BLI_ghash_clear_ex with zero entries reserved.
+ */
+void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	BLI_ghash_clear_ex(gh, keyfreefp, valfreefp, 0);
 }
 
 /**

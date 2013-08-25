@@ -90,6 +90,16 @@ BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const 
 	return (nentries > nbuckets * 3);
 }
 
+/**
+ * Increase initial bucket size to match a reserved ammount.
+ */
+BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentries_reserve)
+{
+	while (edgehash_test_expand_buckets(nentries_reserve, eh->nbuckets)) {
+		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
+	}
+}
+
 BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	BLI_assert(v0 < v1);
@@ -176,9 +186,7 @@ EdgeHash *BLI_edgehash_new_ex(const char *info,
 
 	/* if we have reserved the number of elements that this hash will contain */
 	if (nentries_reserve) {
-		while (edgehash_test_expand_buckets(nentries_reserve, eh->nbuckets)) {
-			eh->nbuckets = _ehash_hashsizes[++eh->cursize];
-		}
+		edgehash_buckets_reserve(eh, nentries_reserve);
 	}
 
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");

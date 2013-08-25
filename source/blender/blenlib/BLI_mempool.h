@@ -73,6 +73,12 @@ void         BLI_mempool_free(BLI_mempool *pool, void *addr)
 __attribute__((nonnull(1, 2)))
 #endif
 ;
+void         BLI_mempool_clear_ex(BLI_mempool *pool,
+                                  const int totelem_reserve)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 void         BLI_mempool_clear(BLI_mempool *pool)
 #ifdef __GNUC__
 __attribute__((nonnull(1)))
