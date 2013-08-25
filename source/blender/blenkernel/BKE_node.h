@@ -32,8 +32,8 @@
  *  \ingroup bke
  */
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "DNA_listBase.h"
 
