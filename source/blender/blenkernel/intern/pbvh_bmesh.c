@@ -48,8 +48,8 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 	PBVHNode *n = &bvh->nodes[node_index];
 
 	/* Create vert hash sets */
-	n->bm_unique_verts = BLI_ghash_ptr_new("bm_unique_verts");
-	n->bm_other_verts = BLI_ghash_ptr_new("bm_other_verts");
+	n->bm_unique_verts = BLI_gset_ptr_new("bm_unique_verts");
+	n->bm_other_verts = BLI_gset_ptr_new("bm_other_verts");
 
 	BB_reset(&n->vb);
 
@@ -67,13 +67,12 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			v = l_iter->v;
-			if (!BLI_ghash_haskey(n->bm_unique_verts, v)) {
+			if (!BLI_gset_haskey(n->bm_unique_verts, v)) {
 				if (BLI_ghash_haskey(bvh->bm_vert_to_node, v)) {
-					if (!BLI_ghash_haskey(n->bm_other_verts, v))
-						BLI_ghash_insert(n->bm_other_verts, v, NULL);
+					BLI_gset_reinsert(n->bm_other_verts, v, NULL);
 				}
 				else {
-					BLI_ghash_insert(n->bm_unique_verts, v, NULL);
+					BLI_gset_insert(n->bm_unique_verts, v);
 					BLI_ghash_insert(bvh->bm_vert_to_node, v, node_val);
 				}
 			}
@@ -101,6 +100,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 {
 	GHash *empty, *other;
 	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 	PBVHNode *n, *c1, *c2;
 	BB cb;
 	float mid;
@@ -177,11 +177,11 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 
 	/* Mark this node's unique verts as unclaimed */
 	if (n->bm_unique_verts) {
-		GHASH_ITER (gh_iter, n->bm_unique_verts) {
-			BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+		GSET_ITER (gs_iter, n->bm_unique_verts) {
+			BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 			BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);
 		}
-		BLI_ghash_free(n->bm_unique_verts, NULL, NULL);
+		BLI_gset_free(n->bm_unique_verts, NULL);
 	}
 
 	/* Unclaim faces */
@@ -192,7 +192,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	BLI_ghash_free(n->bm_faces, NULL, NULL);
 
 	if (n->bm_other_verts)
-		BLI_ghash_free(n->bm_other_verts, NULL, NULL);
+		BLI_gset_free(n->bm_other_verts, NULL);
 
 	if (n->layer_disp)
 		MEM_freeN(n->layer_disp);
@@ -291,7 +291,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
 
 	BLI_assert((bvh->totnode == 1 || node_index) && node_index <= bvh->totnode);
 
-	BLI_ghash_insert(bvh->nodes[node_index].bm_unique_verts, v, NULL);
+	BLI_gset_insert(bvh->nodes[node_index].bm_unique_verts, v);
 	BLI_ghash_insert(bvh->bm_vert_to_node, v, val);
 
 	/* Log the new vertex */
@@ -373,14 +373,14 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 	BLI_assert(current_owner != new_owner);
 
 	/* Remove current ownership */
-	BLI_ghash_remove(current_owner->bm_unique_verts, v, NULL, NULL);
+	BLI_gset_remove(current_owner->bm_unique_verts, v, NULL);
 
 	/* Set new ownership */
 	BLI_ghash_reinsert(bvh->bm_vert_to_node, v,
-	                 SET_INT_IN_POINTER(new_owner - bvh->nodes), NULL, NULL);
-	BLI_ghash_insert(new_owner->bm_unique_verts, v, NULL);
-	BLI_ghash_remove(new_owner->bm_other_verts, v, NULL, NULL);
-	BLI_assert(!BLI_ghash_haskey(new_owner->bm_other_verts, v));
+	                   SET_INT_IN_POINTER(new_owner - bvh->nodes), NULL, NULL);
+	BLI_gset_insert(new_owner->bm_unique_verts, v);
+	BLI_gset_remove(new_owner->bm_other_verts, v, NULL);
+	BLI_assert(!BLI_gset_haskey(new_owner->bm_other_verts, v));
 }
 
 static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
@@ -391,7 +391,7 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
 
 	BLI_assert(BLI_ghash_haskey(bvh->bm_vert_to_node, v));
 	v_node = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);
-	BLI_ghash_remove(v_node->bm_unique_verts, v, NULL, NULL);
+	BLI_gset_remove(v_node->bm_unique_verts, v, NULL);
 	BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);
 
 	/* Have to check each neighboring face's node */
@@ -401,10 +401,10 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
 		/* Remove current ownership */
 		/* Should be handled above by vert_to_node removal, leaving just in case - psy-fi */
 		//BLI_ghash_remove(f_node->bm_unique_verts, v, NULL, NULL);
-		BLI_ghash_remove(f_node->bm_other_verts, v, NULL, NULL);
+		BLI_gset_remove(f_node->bm_other_verts, v, NULL);
 
-		BLI_assert(!BLI_ghash_haskey(f_node->bm_unique_verts, v));
-		BLI_assert(!BLI_ghash_haskey(f_node->bm_other_verts, v));
+		BLI_assert(!BLI_gset_haskey(f_node->bm_unique_verts, v));
+		BLI_assert(!BLI_gset_haskey(f_node->bm_other_verts, v));
 	}
 }
 
@@ -424,7 +424,7 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 	do {
 		v = l_iter->v;
 		if (pbvh_bmesh_node_vert_use_count(bvh, f_node, v) == 1) {
-			if (BLI_ghash_haskey(f_node->bm_unique_verts, v)) {
+			if (BLI_gset_haskey(f_node->bm_unique_verts, v)) {
 				/* Find a different node that uses 'v' */
 				PBVHNode *new_node;
 
@@ -435,13 +435,13 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 					pbvh_bmesh_vert_ownership_transfer(bvh, new_node, v);
 				}
 				else {
-					BLI_ghash_remove(f_node->bm_unique_verts, v, NULL, NULL);
+					BLI_gset_remove(f_node->bm_unique_verts, v, NULL);
 					BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);
 				}
 			}
 			else {
 				/* Remove from other verts */
-				BLI_ghash_remove(f_node->bm_other_verts, v, NULL, NULL);
+				BLI_gset_remove(f_node->bm_other_verts, v, NULL);
 			}
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -733,10 +733,10 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 		BM_face_kill(bvh->bm, f_adj);
 
 		/* Ensure new vertex is in the node */
-		if (!BLI_ghash_haskey(bvh->nodes[ni].bm_unique_verts, v_new) &&
-			!BLI_ghash_haskey(bvh->nodes[ni].bm_other_verts, v_new))
+		if (!BLI_gset_haskey(bvh->nodes[ni].bm_unique_verts, v_new) &&
+			!BLI_gset_haskey(bvh->nodes[ni].bm_other_verts, v_new))
 		{
-			BLI_ghash_insert(bvh->nodes[ni].bm_other_verts, v_new, NULL);
+			BLI_gset_insert(bvh->nodes[ni].bm_other_verts, v_new);
 		}
 
 		if (BM_vert_edge_count(v_opp) >= 9) {
@@ -857,10 +857,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 			pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f);
 
 			/* Ensure that v1 is in the new face's node */
-			if (!BLI_ghash_haskey(n->bm_unique_verts, v1) &&
-			    !BLI_ghash_haskey(n->bm_other_verts,  v1))
+			if (!BLI_gset_haskey(n->bm_unique_verts, v1) &&
+			    !BLI_gset_haskey(n->bm_other_verts,  v1))
 			{
-				BLI_ghash_insert(n->bm_other_verts, v1, NULL);
+				BLI_gset_insert(n->bm_other_verts, v1);
 			}
 		}
 
@@ -1033,16 +1033,17 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 
 		if (node->flag & PBVH_UpdateNormals) {
 			GHashIterator gh_iter;
+			GSetIterator gs_iter;
 
 			GHASH_ITER (gh_iter, node->bm_faces) {
 				BM_face_normal_update(BLI_ghashIterator_getKey(&gh_iter));
 			}
-			GHASH_ITER (gh_iter, node->bm_unique_verts) {
-				BM_vert_normal_update(BLI_ghashIterator_getKey(&gh_iter));
+			GSET_ITER (gs_iter, node->bm_unique_verts) {
+				BM_vert_normal_update(BLI_gsetIterator_getKey(&gs_iter));
 			}
 			/* This should be unneeded normally */
-			GHASH_ITER (gh_iter, node->bm_other_verts) {
-				BM_vert_normal_update(BLI_ghashIterator_getKey(&gh_iter));
+			GSET_ITER (gs_iter, node->bm_other_verts) {
+				BM_vert_normal_update(BLI_gsetIterator_getKey(&gs_iter));
 			}
 			node->flag &= ~PBVH_UpdateNormals;
 		}
@@ -1156,14 +1157,15 @@ BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
 void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 {
 	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 	int i, totvert, tottri;
 
 	/* Skip if original coords/triangles are already saved */
 	if (node->bm_orco)
 		return;
 
-	totvert = (BLI_ghash_size(node->bm_unique_verts) +
-	           BLI_ghash_size(node->bm_other_verts));
+	totvert = (BLI_gset_size(node->bm_unique_verts) +
+	           BLI_gset_size(node->bm_other_verts));
 
 	tottri = BLI_ghash_size(node->bm_faces);
 
@@ -1172,14 +1174,14 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 
 	/* Copy out the vertices and assign a temporary index */
 	i = 0;
-	GHASH_ITER (gh_iter, node->bm_unique_verts) {
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gs_iter, node->bm_unique_verts) {
+		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 		copy_v3_v3(node->bm_orco[i], v->co);
 		BM_elem_index_set(v, i); /* set_dirty! */
 		i++;
 	}
-	GHASH_ITER (gh_iter, node->bm_other_verts) {
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gs_iter, node->bm_other_verts) {
+		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 		copy_v3_v3(node->bm_orco[i], v->co);
 		BM_elem_index_set(v, i); /* set_dirty! */
 		i++;
@@ -1236,12 +1238,12 @@ void BKE_pbvh_node_mark_topology_update(PBVHNode *node)
 	node->flag |= PBVH_UpdateTopology;
 }
 
-GHash *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
+GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
 {
 	return node->bm_unique_verts;
 }
 
-GHash *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
+GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
 {
 	return node->bm_other_verts;
 }
@@ -1259,6 +1261,27 @@ void bli_ghash_duplicate_key_check(GHash *gh)
 
 		GHASH_ITER (gh_iter2, gh) {
 			void *key2 = BLI_ghashIterator_getKey(&gh_iter2);
+
+			if (key1 == key2) {
+				dup++;
+				if (dup > 0) {
+					BLI_assert(!"duplicate in hash");
+				}
+			}
+		}
+	}
+}
+
+void bli_gset_duplicate_key_check(GSet *gs)
+{
+	GSetIterator gs_iter1, gs_iter2;
+
+	GSET_ITER (gs_iter1, gs) {
+		void *key1 = BLI_gsetIterator_getKey(&gs_iter1);
+		int dup = -1;
+
+		GSET_ITER (gs_iter2, gs) {
+			void *key2 = BLI_gsetIterator_getKey(&gs_iter2);
 
 			if (key1 == key2) {
 				dup++;
@@ -1331,6 +1354,7 @@ void bmesh_print(BMesh *bm)
 void pbvh_bmesh_print(PBVH *bvh)
 {
 	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 	int n;
 
 	fprintf(stderr, "\npbvh=%p\n", bvh);
@@ -1358,13 +1382,13 @@ void pbvh_bmesh_print(PBVH *bvh)
 			fprintf(stderr, "    %d\n",
 			        BM_elem_index_get((BMFace *)BLI_ghashIterator_getKey(&gh_iter)));
 		fprintf(stderr, "  unique verts:\n");
-		GHASH_ITER (gh_iter, node->bm_unique_verts)
+		GSET_ITER (gs_iter, node->bm_unique_verts)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
 		fprintf(stderr, "  other verts:\n");
-		GHASH_ITER (gh_iter, node->bm_other_verts)
+		GSET_ITER (gs_iter, node->bm_other_verts)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
 	}
 }
 
@@ -1382,6 +1406,7 @@ void print_flag_factors(int flag)
 void pbvh_bmesh_verify(PBVH *bvh)
 {
 	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 	int i, vert_count = 0;
 	BMIter iter;
 	BMVert *vi;
@@ -1407,17 +1432,17 @@ void pbvh_bmesh_verify(PBVH *bvh)
 			PBVHNode *nv;
 
 			/* Check that the vertex is in the node */
-			BLI_assert(BLI_ghash_haskey(n->bm_unique_verts, v) ^
-			           BLI_ghash_haskey(n->bm_other_verts, v));
+			BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v) ^
+			           BLI_gset_haskey(n->bm_other_verts, v));
 
 			/* Check that the vertex has a node owner */
 			nv = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);
 
 			/* Check that the vertex's node knows it owns the vert */
-			BLI_assert(BLI_ghash_haskey(nv->bm_unique_verts, v));
+			BLI_assert(BLI_gset_haskey(nv->bm_unique_verts, v));
 
 			/* Check that the vertex isn't duplicated as an 'other' vert */
-			BLI_assert(!BLI_ghash_haskey(nv->bm_other_verts, v));
+			BLI_assert(!BLI_gset_haskey(nv->bm_other_verts, v));
 		}
 	}
 
@@ -1436,10 +1461,10 @@ void pbvh_bmesh_verify(PBVH *bvh)
 		BLI_assert(n->flag & PBVH_Leaf);
 
 		/* Check that the vert's node knows it owns the vert */
-		BLI_assert(BLI_ghash_haskey(n->bm_unique_verts, v));
+		BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v));
 
 		/* Check that the vertex isn't duplicated as an 'other' vert */
-		BLI_assert(!BLI_ghash_haskey(n->bm_other_verts, v));
+		BLI_assert(!BLI_gset_haskey(n->bm_other_verts, v));
 
 		/* Check that the vert's node also contains one of the vert's
 		 * adjacent faces */
@@ -1451,13 +1476,13 @@ void pbvh_bmesh_verify(PBVH *bvh)
 		}
 		BLI_assert(found);
 
-		#if 0
+		#if 1
 		/* total freak stuff, check if node exists somewhere else */
 		/* Slow */
 		for (i = 0; i < bvh->totnode; i++) {
 			PBVHNode *n = &bvh->nodes[i];
 			if (i != ni && n->bm_unique_verts)
-				BLI_assert(!BLI_ghash_haskey(n->bm_unique_verts, v));
+				BLI_assert(!BLI_gset_haskey(n->bm_unique_verts, v));
 		}
 
 		#endif
@@ -1470,7 +1495,7 @@ void pbvh_bmesh_verify(PBVH *bvh)
 		bool has_unique = false;
 		for (i = 0; i < bvh->totnode; i++) {
 			PBVHNode *n = &bvh->nodes[i];
-			if ((n->bm_unique_verts != NULL) && BLI_ghash_haskey(n->bm_unique_verts, vi))
+			if ((n->bm_unique_verts != NULL) && BLI_gset_haskey(n->bm_unique_verts, vi))
 				has_unique = true;
 		}
 		BLI_assert(has_unique);
@@ -1489,8 +1514,8 @@ void pbvh_bmesh_verify(PBVH *bvh)
 			/* Slow */
 			#if 0
 			bli_ghash_duplicate_key_check(n->bm_faces);
-			bli_ghash_duplicate_key_check(n->bm_unique_verts);
-			bli_ghash_duplicate_key_check(n->bm_other_verts);
+			bli_gset_duplicate_key_check(n->bm_unique_verts);
+			bli_gset_duplicate_key_check(n->bm_other_verts);
 			#endif
 
 			GHASH_ITER (gh_iter, n->bm_faces) {
@@ -1500,16 +1525,16 @@ void pbvh_bmesh_verify(PBVH *bvh)
 				BLI_assert(GET_INT_FROM_POINTER(nip) == (n - bvh->nodes));
 			}
 
-			GHASH_ITER (gh_iter, n->bm_unique_verts) {
-				BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+			GSET_ITER (gs_iter, n->bm_unique_verts) {
+				BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 				void *nip = BLI_ghash_lookup(bvh->bm_vert_to_node, v);
 				BLI_assert(BLI_ghash_haskey(bvh->bm_vert_to_node, v));
-				BLI_assert(!BLI_ghash_haskey(n->bm_other_verts, v));
+				BLI_assert(!BLI_gset_haskey(n->bm_other_verts, v));
 				BLI_assert(GET_INT_FROM_POINTER(nip) == (n - bvh->nodes));
 			}
 
-			GHASH_ITER (gh_iter, n->bm_other_verts) {
-				BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+			GSET_ITER (gs_iter, n->bm_other_verts) {
+				BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 				BLI_assert(BLI_ghash_haskey(bvh->bm_vert_to_node, v));
 				BLI_assert(BM_vert_face_count(v) > 0);
 			}

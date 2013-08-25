@@ -101,8 +101,8 @@ struct PBVHNode {
 
 	/* Dyntopo */
 	GHash *bm_faces;
-	GHash *bm_unique_verts;
-	GHash *bm_other_verts;
+	GSet *bm_unique_verts;
+	GSet *bm_other_verts;
 	float (*bm_orco)[3];
 	int (*bm_ortri)[3];
 	int bm_tot_ortri;

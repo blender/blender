@@ -614,9 +614,9 @@ void BKE_pbvh_free(PBVH *bvh)
 			if (node->bm_faces)
 				BLI_ghash_free(node->bm_faces, NULL, NULL);
 			if (node->bm_unique_verts)
-				BLI_ghash_free(node->bm_unique_verts, NULL, NULL);
+				BLI_gset_free(node->bm_unique_verts, NULL);
 			if (node->bm_other_verts)
-				BLI_ghash_free(node->bm_other_verts, NULL, NULL);
+				BLI_gset_free(node->bm_other_verts, NULL);
 		}
 	}
 
@@ -1314,8 +1314,8 @@ void BKE_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 			if (uniquevert) *uniquevert = node->uniq_verts;
 			break;
 		case PBVH_BMESH:
-			tot = BLI_ghash_size(node->bm_unique_verts);
-			if (totvert) *totvert = tot + BLI_ghash_size(node->bm_other_verts);
+			tot = BLI_gset_size(node->bm_unique_verts);
+			if (totvert) *totvert = tot + BLI_gset_size(node->bm_other_verts);
 			if (uniquevert) *uniquevert = tot;
 			break;
 	}
@@ -1866,8 +1866,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->mverts = verts;
 
 	if (bvh->type == PBVH_BMESH) {
-		BLI_ghashIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
-		BLI_ghashIterator_init(&vi->bm_other_verts, node->bm_other_verts);
+		BLI_gsetIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
+		BLI_gsetIterator_init(&vi->bm_other_verts, node->bm_other_verts);
 		vi->bm_vdata = &bvh->bm->vdata;
 	}
 

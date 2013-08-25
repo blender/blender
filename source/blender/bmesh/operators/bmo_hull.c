@@ -67,7 +67,7 @@ typedef struct HullTriangle {
 
 /*************************** Hull Triangles ***************************/
 
-static void hull_add_triangle(BMesh *bm, GHash *hull_triangles, BLI_mempool *pool,
+static void hull_add_triangle(BMesh *bm, GSet *hull_triangles, BLI_mempool *pool,
                               BMVert *v1, BMVert *v2, BMVert *v3)
 {
 	HullTriangle *t;
@@ -82,7 +82,7 @@ static void hull_add_triangle(BMesh *bm, GHash *hull_triangles, BLI_mempool *poo
 	for (i = 0; i < 3; i++)
 		BMO_elem_flag_disable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
 
-	BLI_ghash_insert(hull_triangles, t, NULL);
+	BLI_gset_insert(hull_triangles, t);
 	normal_tri_v3(t->no, v1->co, v2->co, v3->co);
 }
 
@@ -102,12 +102,12 @@ static BMFace *hull_find_example_face(BMesh *bm, BMEdge *e)
 	return NULL;
 }
 
-static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
+static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 {
-	GHashIterator iter;
+	GSetIterator iter;
 	
-	GHASH_ITER (iter, hull_triangles) {
-		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
+	GSET_ITER (iter, hull_triangles) {
+		HullTriangle *t = BLI_gsetIterator_getKey(&iter);
 		int i;
 
 		if (!t->skip) {
@@ -206,22 +206,22 @@ static int hull_final_edges_lookup(HullFinalEdges *final_edges,
 }
 
 /* Used for checking whether a pre-existing edge lies on the hull */
-static HullFinalEdges *hull_final_edges(GHash *hull_triangles)
+static HullFinalEdges *hull_final_edges(GSet *hull_triangles)
 {
 	HullFinalEdges *final_edges;
-	GHashIterator iter;
+	GSetIterator iter;
 	
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
 	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
 	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, 0);
 	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, 0);
 
-	GHASH_ITER (iter, hull_triangles) {
+	GSET_ITER (iter, hull_triangles) {
 		LinkData *link;
 		int i;
 		
 		for (i = 0; i < 3; i++) {
-			HullTriangle *t = BLI_ghashIterator_getKey(&iter);
+			HullTriangle *t = BLI_gsetIterator_getKey(&iter);
 			BMVert *v1 = t->v[i];
 			BMVert *v2 = t->v[(i + 1) % 3];
 			ListBase *adj;
@@ -259,13 +259,13 @@ static void hull_final_edges_free(HullFinalEdges *final_edges)
 
 /**************************** Final Output ****************************/
 
-static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
+static void hull_remove_overlapping(BMesh *bm, GSet *hull_triangles,
                                     HullFinalEdges *final_edges)
 {
-	GHashIterator hull_iter;
+	GSetIterator hull_iter;
 
-	GHASH_ITER (hull_iter, hull_triangles) {
-		HullTriangle *t = BLI_ghashIterator_getKey(&hull_iter);
+	GSET_ITER (hull_iter, hull_triangles) {
+		HullTriangle *t = BLI_gsetIterator_getKey(&hull_iter);
 		BMIter bm_iter1, bm_iter2;
 		BMFace *f;
 		bool f_on_hull;
@@ -479,7 +479,7 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
 }
 
 static void hull_from_bullet(BMesh *bm, BMOperator *op,
-                             GHash *hull_triangles,
+                             GSet *hull_triangles,
                              BLI_mempool *pool)
 {
 	int *fvi = NULL;
@@ -556,7 +556,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	BLI_mempool *hull_pool;
 	BMElemF *ele;
 	BMOIter oiter;
-	GHash *hull_triangles;
+	GSet *hull_triangles;
 
 	/* Verify that at least three verts in the input */
 	if (!hull_num_input_verts_is_ok(op)) {
@@ -575,7 +575,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	}
 
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
-	hull_triangles = BLI_ghash_ptr_new("hull_triangles");
+	hull_triangles = BLI_gset_ptr_new("hull_triangles");
 
 	hull_from_bullet(bm, op, hull_triangles, hull_pool);
 
@@ -597,7 +597,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	hull_output_triangles(bm, hull_triangles);
 	BLI_mempool_destroy(hull_pool);
 
-	BLI_ghash_free(hull_triangles, NULL, NULL);
+	BLI_gset_free(hull_triangles, NULL);
 
 	hull_tag_unused(bm, op);
 

@@ -1963,19 +1963,19 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 }
 
 /* Return the total number of vertices that don't have BM_ELEM_HIDDEN set */
-static int gpu_bmesh_vert_visible_count(GHash *bm_unique_verts,
-										GHash *bm_other_verts)
+static int gpu_bmesh_vert_visible_count(GSet *bm_unique_verts,
+                                        GSet *bm_other_verts)
 {
-	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 	int totvert = 0;
 
-	GHASH_ITER (gh_iter, bm_unique_verts) {
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gs_iter, bm_unique_verts) {
+		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			totvert++;
 	}
-	GHASH_ITER (gh_iter, bm_other_verts) {
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gs_iter, bm_other_verts) {
+		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			totvert++;
 	}
@@ -2002,10 +2002,10 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer. */
 void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
-							  BMesh *bm,
-							  GHash *bm_faces,
-							  GHash *bm_unique_verts,
-							  GHash *bm_other_verts)
+                              BMesh *bm,
+                              GHash *bm_faces,
+                              GSet *bm_unique_verts,
+                              GSet *bm_other_verts)
 {
 	VertexBufferFormat *vert_data;
 	void *tri_data;
@@ -2036,22 +2036,23 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 	/* Fill vertex buffer */
 	vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 	if (vert_data) {
-		GHashIterator gh_iter;
 		int v_index = 0;
 
 		if (buffers->smooth) {
+			GSetIterator gs_iter;
+
 			/* Vertices get an index assigned for use in the triangle
 			 * index buffer */
 			bm->elem_index_dirty |= BM_VERT;
 
-			GHASH_ITER (gh_iter, bm_unique_verts) {
-				gpu_bmesh_vert_to_buffer_copy(BLI_ghashIterator_getKey(&gh_iter),
+			GSET_ITER (gs_iter, bm_unique_verts) {
+				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
 				                              cd_vert_mask_offset);
 			}
 
-			GHASH_ITER (gh_iter, bm_other_verts) {
-				gpu_bmesh_vert_to_buffer_copy(BLI_ghashIterator_getKey(&gh_iter),
+			GSET_ITER (gs_iter, bm_other_verts) {
+				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
 				                              cd_vert_mask_offset);
 			}
@@ -2059,6 +2060,8 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 			maxvert = v_index;
 		}
 		else {
+			GHashIterator gh_iter;
+
 			GHASH_ITER (gh_iter, bm_faces) {
 				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 

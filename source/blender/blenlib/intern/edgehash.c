@@ -437,8 +437,6 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 
 /* Use edgehash API to give 'set' functionality */
 
-/** \name EdgeSet Functions
- * \{ */
 EdgeSet *BLI_edgeset_new_ex(const char *info,
                                   const unsigned int nentries_reserve)
 {
@@ -500,5 +498,3 @@ void BLI_edgeset_free(EdgeSet *es)
 {
 	BLI_edgehash_free((EdgeHash *)es, NULL);
 }
-
-/** \} */

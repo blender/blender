@@ -2642,7 +2642,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 
 	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
 	     BLI_edgehashIterator_isDone(ehi) == FALSE;
-	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
+	     BLI_edgehashIterator_step(ehi), i++, med++, index++)
 	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 

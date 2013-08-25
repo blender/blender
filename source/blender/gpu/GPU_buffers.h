@@ -46,6 +46,7 @@ struct CustomData;
 struct DMFlagMat;
 struct DerivedMesh;
 struct GHash;
+struct GSet;
 struct GPUVertPointLink;
 struct PBVH;
 
@@ -175,10 +176,10 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading);
 
 void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
-							  struct BMesh *bm,
-							  struct GHash *bm_faces,
-							  struct GHash *bm_unique_verts,
-							  struct GHash *bm_other_verts);
+                              struct BMesh *bm,
+                              struct GHash *bm_faces,
+                              struct GSet *bm_unique_verts,
+                              struct GSet *bm_other_verts);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,

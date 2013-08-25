@@ -67,8 +67,8 @@ typedef struct BMWalker {
 
 	BMWFlag flag;
 
-	GHash *visithash;
-	GHash *secvisithash;
+	GSet *visit_set;
+	GSet *visit_set_alt;
 	int depth;
 } BMWalker;
 

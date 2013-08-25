@@ -223,20 +223,20 @@ static void partialvis_update_grids(Object *ob,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-										  GHash *verts,
-										  PartialVisAction action,
-										  PartialVisArea area,
-										  float planes[4][4],
-										  int *any_changed,
-										  int *any_visible)
+                                          GSet *verts,
+                                          PartialVisAction action,
+                                          PartialVisArea area,
+                                          float planes[4][4],
+                                          int *any_changed,
+                                          int *any_visible)
 {
-	GHashIterator gh_iter;
+	GSetIterator gs_iter;
 
-	GHASH_ITER (gh_iter, verts) {
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gs_iter, verts) {
+		BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
 		float *vmask = CustomData_bmesh_get(&bm->vdata,
-											v->head.data,
-											CD_PAINT_MASK);
+		                                    v->head.data,
+		                                    CD_PAINT_MASK);
 
 		/* hide vertex if in the hide volume */
 		if (is_effected(area, planes, v->co, *vmask)) {
@@ -260,7 +260,7 @@ static void partialvis_update_bmesh(Object *ob,
 									float planes[4][4])
 {
 	BMesh *bm;
-	GHash *unique, *other;
+	GSet *unique, *other;
 	int any_changed = 0, any_visible = 0;
 
 	bm = BKE_pbvh_get_bmesh(pbvh);

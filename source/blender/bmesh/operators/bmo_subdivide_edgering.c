@@ -203,7 +203,7 @@ finally:
 /* -------------------------------------------------------------------- */
 /* Edge Loop Pairs */
 /* key (ordered loop pointers) */
-static GHash *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
+static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 {
 	/**
 	 * Method for for finding pairs:
@@ -219,7 +219,7 @@ static GHash *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 	 * could sort and optimize this but not really so important.
 	 */
 
-	GHash *eloop_pair_gh = BLI_ghash_pair_new(__func__);
+	GSet *eloop_pair_gs = BLI_gset_pair_new(__func__);
 	GHash *vert_eloop_gh = BLI_ghash_ptr_new(__func__);
 
 	struct BMEdgeLoopStore *el_store;
@@ -256,9 +256,9 @@ static GHash *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 					if (pair_test.first > pair_test.second)
 						SWAP(const void *, pair_test.first, pair_test.second);
 
-					if (!BLI_ghash_haskey(eloop_pair_gh, &pair_test)) {
+					if (!BLI_gset_haskey(eloop_pair_gs, &pair_test)) {
 						GHashPair *pair = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
-						BLI_ghash_insert(eloop_pair_gh, pair, NULL);
+						BLI_gset_insert(eloop_pair_gs, pair);
 					}
 
 				}
@@ -268,12 +268,12 @@ static GHash *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
 	BLI_ghash_free(vert_eloop_gh, NULL, NULL);
 
-	if (BLI_ghash_size(eloop_pair_gh) == 0) {
-		BLI_ghash_free(eloop_pair_gh, NULL, NULL);
-		eloop_pair_gh = NULL;
+	if (BLI_gset_size(eloop_pair_gs) == 0) {
+		BLI_gset_free(eloop_pair_gs, NULL);
+		eloop_pair_gs = NULL;
 	}
 
-	return eloop_pair_gh;
+	return eloop_pair_gs;
 }
 
 
@@ -1175,23 +1175,23 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	else {
-		GHashIterator gh_iter;
+		GSetIterator gs_iter;
 		int i;
 
-		GHash *eloop_pairs_gh = bm_edgering_pair_calc(bm, &eloops_rim);
+		GSet *eloop_pairs_gs = bm_edgering_pair_calc(bm, &eloops_rim);
 		LoopPairStore **lpair_arr;
 
-		if (eloop_pairs_gh == NULL) {
+		if (eloop_pairs_gs == NULL) {
 			BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 			                "Edge-rings are not connected");
 			goto cleanup;
 		}
 
-		lpair_arr = BLI_array_alloca(lpair_arr, BLI_ghash_size(eloop_pairs_gh));
+		lpair_arr = BLI_array_alloca(lpair_arr, BLI_gset_size(eloop_pairs_gs));
 
 		/* first cache pairs */
-		GHASH_ITER_INDEX (gh_iter, eloop_pairs_gh, i) {
-			GHashPair *eloop_pair = BLI_ghashIterator_getKey(&gh_iter);
+		GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
+			GHashPair *eloop_pair = BLI_gsetIterator_getKey(&gs_iter);
 			struct BMEdgeLoopStore *el_store_a = (void *)eloop_pair->first;
 			struct BMEdgeLoopStore *el_store_b = (void *)eloop_pair->second;
 			LoopPairStore *lpair;
@@ -1207,8 +1207,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 			BLI_assert(bm_verts_tag_count(bm) == 0);
 		}
 
-		GHASH_ITER_INDEX (gh_iter, eloop_pairs_gh, i) {
-			GHashPair *eloop_pair = BLI_ghashIterator_getKey(&gh_iter);
+		GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
+			GHashPair *eloop_pair = BLI_gsetIterator_getKey(&gs_iter);
 			struct BMEdgeLoopStore *el_store_a = (void *)eloop_pair->first;
 			struct BMEdgeLoopStore *el_store_b = (void *)eloop_pair->second;
 			LoopPairStore *lpair = lpair_arr[i];
@@ -1222,7 +1222,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 
 			BLI_assert(bm_verts_tag_count(bm) == 0);
 		}
-		BLI_ghash_free(eloop_pairs_gh, MEM_freeN, NULL);
+		BLI_gset_free(eloop_pairs_gs, MEM_freeN);
 	}
 
 cleanup:

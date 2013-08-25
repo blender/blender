@@ -298,7 +298,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	CCGVertHDL *fverts = NULL;
 	BLI_array_declare(fverts);
 #endif
-	EdgeHash *ehash;
+	EdgeSet *eset;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
@@ -334,7 +334,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	}
 
 	/* create edges */
-	ehash = BLI_edgehash_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totface));
+	eset = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totface));
 
 	for (i = 0; i < totface; i++) {
 		MPoly *mp = &((MPoly *) mpoly)[i];
@@ -359,7 +359,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 			MVert *mv0 = mvert + (ml[j_next].v);
 			MVert *mv1 = mvert + (ml[j].v);
 
-			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
+			if (BLI_edgeset_reinsert(eset, v0, v1)) {
 				CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
 				CCGEdgeHDL ehdl = SET_INT_IN_POINTER(mp->loopstart + j_next);
 				float crease;
@@ -370,12 +370,11 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 					crease = ccgSubSurf_getEdgeCrease(orige);
 
 				ccgSubSurf_syncEdge(ss, ehdl, fverts[j_next], fverts[j], crease, &e);
-				BLI_edgehash_insert(ehash, v0, v1, NULL);
 			}
 		}
 	}
 
-	BLI_edgehash_free(ehash, NULL);
+	BLI_edgeset_free(eset);
 
 	/* create faces */
 	for (i = 0; i < totface; i++) {
