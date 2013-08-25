@@ -576,7 +576,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             # End of columns
             row = layout.row(align=True)
             row.prop(linestyle, "use_split_pattern", text="")
-            sub = row.row()
+            sub = row.row(align=True)
             sub.active = linestyle.use_split_pattern
             sub.prop(linestyle, "split_dash1", text="D1")
             sub.prop(linestyle, "split_gap1", text="G1")
@@ -612,7 +612,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             layout.label(text="Dashed Line:")
             row = layout.row(align=True)
             row.prop(linestyle, "use_dashed_line", text="")
-            sub = row.row()
+            sub = row.row(align=True)
             sub.active = linestyle.use_dashed_line
             sub.prop(linestyle, "dash1", text="D1")
             sub.prop(linestyle, "gap1", text="G1")
