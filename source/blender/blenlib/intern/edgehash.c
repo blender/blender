@@ -82,9 +82,8 @@ struct EdgeHash {
 /* -------------------------------------------------------------------- */
 /* EdgeHash API */
 
-/* internal utility API */
-
-#define EDGE_HASH(v0, v1)  ((v0 * 39) ^ (v1 * 31))
+/** \name Internal Utility API
+ * \{ */
 
 BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
@@ -94,7 +93,8 @@ BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const 
 BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	BLI_assert(v0 < v1);
-	return EDGE_HASH(v0, v1) % eh->nbuckets;
+
+	return ((v0 * 39) ^ (v1 * 31)) % eh->nbuckets;
 }
 
 BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
@@ -156,9 +156,11 @@ static void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, v
 		MEM_freeN(old);
 	}
 }
+/** \} */
 
-#undef EDGE_HASH
 
+/** \name Public API
+ * \{ */
 
 /* Public API */
 
@@ -305,9 +307,14 @@ void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag)
 	eh->flag &= ~flag;
 }
 
+/** \} */
+
 
 /* -------------------------------------------------------------------- */
 /* EdgeHash Iterator API */
+
+/** \name Iterator API
+ * \{ */
 
 struct EdgeHashIterator {
 	EdgeHash *eh;
@@ -398,3 +405,5 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 {
 	return (ehi->curEntry == NULL);
 }
+
+/** \} */
