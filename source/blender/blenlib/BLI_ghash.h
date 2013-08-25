@@ -78,61 +78,16 @@ void   BLI_ghash_flag_clear(GHash *gh, unsigned int flag);
 
 /* *** */
 
-/**
- * Create a new GHashIterator. The hash table must not be mutated
- * while the iterator is in use, and the iterator will step exactly
- * BLI_ghash_size(gh) times before becoming done.
- *
- * \param gh The GHash to iterate over.
- * \return Pointer to a new DynStr.
- */
 GHashIterator *BLI_ghashIterator_new(GHash *gh);
-/**
- * Init an already allocated GHashIterator. The hash table must not
- * be mutated while the iterator is in use, and the iterator will
- * step exactly BLI_ghash_size(gh) times before becoming done.
- *
- * \param ghi The GHashIterator to initialize.
- * \param gh The GHash to iterate over.
- */
-void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
-/**
- * Free a GHashIterator.
- *
- * \param ghi The iterator to free.
- */
-void            BLI_ghashIterator_free(GHashIterator *ghi);
 
-/**
- * Retrieve the key from an iterator.
- *
- * \param ghi The iterator.
- * \return The key at the current index, or NULL if the
- * iterator is done.
- */
-void           *BLI_ghashIterator_getKey(GHashIterator *ghi);
-/**
- * Retrieve the value from an iterator.
- *
- * \param ghi The iterator.
- * \return The value at the current index, or NULL if the
- * iterator is done.
- */
-void           *BLI_ghashIterator_getValue(GHashIterator *ghi);
-/**
- * Steps the iterator to the next index.
- *
- * \param ghi The iterator.
- */
-void            BLI_ghashIterator_step(GHashIterator *ghi);
-/**
- * Determine if an iterator is done (has reached the end of
- * the hash table).
- *
- * \param ghi The iterator.
- * \return True if done, False otherwise.
- */
-bool            BLI_ghashIterator_done(GHashIterator *ghi);
+void           BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
+void           BLI_ghashIterator_free(GHashIterator *ghi);
+
+void          *BLI_ghashIterator_getKey(GHashIterator *ghi);
+void          *BLI_ghashIterator_getValue(GHashIterator *ghi);
+
+void           BLI_ghashIterator_step(GHashIterator *ghi);
+bool           BLI_ghashIterator_done(GHashIterator *ghi);
 
 #define GHASH_ITER(gh_iter_, ghash_)                                          \
 	for (BLI_ghashIterator_init(&gh_iter_, ghash_);                           \

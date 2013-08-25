@@ -486,12 +486,29 @@ void BLI_ghash_flag_clear(GHash *gh, unsigned int flag)
 /** \name Iterator API
  * \{ */
 
+/**
+ * Create a new GHashIterator. The hash table must not be mutated
+ * while the iterator is in use, and the iterator will step exactly
+ * BLI_ghash_size(gh) times before becoming done.
+ *
+ * \param gh The GHash to iterate over.
+ * \return Pointer to a new DynStr.
+ */
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
 	GHashIterator *ghi = MEM_mallocN(sizeof(*ghi), "ghash iterator");
 	BLI_ghashIterator_init(ghi, gh);
 	return ghi;
 }
+
+/**
+ * Init an already allocated GHashIterator. The hash table must not
+ * be mutated while the iterator is in use, and the iterator will
+ * step exactly BLI_ghash_size(gh) times before becoming done.
+ *
+ * \param ghi The GHashIterator to initialize.
+ * \param gh The GHash to iterate over.
+ */
 void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 {
 	ghi->gh = gh;
@@ -504,20 +521,46 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 		ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
 	}
 }
+
+/**
+ * Free a GHashIterator.
+ *
+ * \param ghi The iterator to free.
+ */
 void BLI_ghashIterator_free(GHashIterator *ghi)
 {
 	MEM_freeN(ghi);
 }
 
+/**
+ * Retrieve the key from an iterator.
+ *
+ * \param ghi The iterator.
+ * \return The key at the current index, or NULL if the
+ * iterator is done.
+ */
 void *BLI_ghashIterator_getKey(GHashIterator *ghi)
 {
 	return ghi->curEntry ? ghi->curEntry->key : NULL;
 }
+
+/**
+ * Retrieve the value from an iterator.
+ *
+ * \param ghi The iterator.
+ * \return The value at the current index, or NULL if the
+ * iterator is done.
+ */
 void *BLI_ghashIterator_getValue(GHashIterator *ghi)
 {
 	return ghi->curEntry ? ghi->curEntry->val : NULL;
 }
 
+/**
+ * Steps the iterator to the next index.
+ *
+ * \param ghi The iterator.
+ */
 void BLI_ghashIterator_step(GHashIterator *ghi)
 {
 	if (ghi->curEntry) {
@@ -530,6 +573,14 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 		}
 	}
 }
+
+/**
+ * Determine if an iterator is done (has reached the end of
+ * the hash table).
+ *
+ * \param ghi The iterator.
+ * \return True if done, False otherwise.
+ */
 bool BLI_ghashIterator_done(GHashIterator *ghi)
 {
 	return ghi->curEntry == NULL;
