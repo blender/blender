@@ -1385,7 +1385,7 @@ static PyObject *gPySetVsync(PyObject *, PyObject *args)
 
 	if (interval == VSYNC_ADAPTIVE)
 		interval = -1;
-	gp_Canvas->SetSwapInterval(!interval); // VSYNC_OFF == 1, VSYNC_ON == 0, so this works
+	gp_Canvas->SetSwapInterval((interval == VSYNC_ON) ? 1 : 0);
 	Py_RETURN_NONE;
 }
 
