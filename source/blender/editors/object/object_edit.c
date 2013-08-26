@@ -1501,19 +1501,21 @@ static const char *object_mode_op_string(int mode)
 }
 
 /* checks the mode to be set is compatible with the object
- * should be made into a generic function */
-static bool object_mode_set_compat(bContext *UNUSED(C), wmOperator *op, Object *ob)
+ * should be made into a generic function
+ */
+static bool object_mode_set_compat(Object *ob, ObjectMode mode)
 {
-	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
-
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
 			return true;
 
 		switch (ob->type) {
 			case OB_MESH:
-				if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT))
+				if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
+				            OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT))
+				{
 					return true;
+				}
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -1543,25 +1545,30 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	if (!ob || !object_mode_set_compat(C, op, ob))
+	if (!ob || !object_mode_set_compat(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
 	/* Exit current mode if it's not the mode we're setting */
-	if (ob->mode != OB_MODE_OBJECT && ob->mode != mode)
+	if (ob->mode != OB_MODE_OBJECT && ob->mode != mode) {
 		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
+	}
 
-	if (mode != OB_MODE_OBJECT) {
+	if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
 		/* Enter new mode */
-		if (ob->mode != mode || toggle)
-			WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+	}
 
-		if (toggle) {
-			if (ob->mode == mode)
-				/* For toggling, store old mode so we know what to go back to */
-				ob->restore_mode = restore_mode;
-			else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
-				WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
-			}
+	if (toggle) {
+		/* Special case for Object mode! */
+		if (mode == OB_MODE_OBJECT && restore_mode == OB_MODE_OBJECT && ob->restore_mode != OB_MODE_OBJECT) {
+			WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+		}
+		else if (ob->mode == mode) {
+			/* For toggling, store old mode so we know what to go back to */
+			ob->restore_mode = restore_mode;
+		}
+		else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+			WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
 		}
 	}
 
@@ -1570,6 +1577,8 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_mode_set(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Set Object Mode";
 	ot->description = "Sets the object interaction mode";
@@ -1585,14 +1594,20 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	
 	ot->prop = RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(ot->prop, object_mode_set_itemsf);
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
 
 void ED_object_toggle_modes(bContext *C, int mode)
 {
+	/* Couldn't we use object_mode_op_string() here?
+	 * Also, if several bits are set in mode, several toggle ops will be called, is this expected?
+	 * If so, would be nice to explain why. ;) --mont29
+	 */
 	if (mode & OB_MODE_SCULPT)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if (mode & OB_MODE_VERTEX_PAINT)
