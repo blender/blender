@@ -2273,11 +2273,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 				valstr = "*";
 			}
 
-			/* this must be kept in sync with RNA_parameter_length_get_data,
+			/* this must be kept in sync with RNA_parameter_dynamic_length_get_data and RNA_parameter_get,
 			 * we could just call the function directly, but this is faster */
 			if (flag & PROP_DYNAMIC) {
-				fprintf(f, "\t%s_len = %s((int *)_data);\n", dparm->prop->identifier, pout ? "" : "*");
-				data_str = "(&(((char *)_data)[sizeof(void *)]))";
+				fprintf(f, "\t%s_len = %s((ParameterDynAlloc *)_data)->array_tot;\n", dparm->prop->identifier,
+				                                                                      pout ? "(int *)&" : "(int)");
+				data_str = "(&(((ParameterDynAlloc *)_data)->array))";
 			}
 			else {
 				data_str = "_data";

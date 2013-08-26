@@ -5357,7 +5357,14 @@ PropertyRNA *RNA_function_get_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *fu
 
 PropertyRNA *RNA_function_find_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *func, const char *identifier)
 {
-	return BLI_findstring(&func->cont.properties, identifier, offsetof(PropertyRNA, identifier));
+	PropertyRNA *parm;
+
+	parm = func->cont.properties.first;
+	for (; parm; parm = parm->next)
+		if (strcmp(RNA_property_identifier(parm), identifier) == 0)
+			break;
+
+	return parm;
 }
 
 const ListBase *RNA_function_defined_parameters(FunctionRNA *func)
@@ -5529,10 +5536,19 @@ void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value)
 		if (iter.parm == parm)
 			break;
 
-	if (iter.valid)
-		*value = iter.data;
-	else
+	if (iter.valid) {
+		if (parm->flag & PROP_DYNAMIC) {
+			/* for dynamic arrays and strings, data is a pointer to an array */
+			ParameterDynAlloc *data_alloc = iter.data;
+			*value = data_alloc->array;
+		}
+		else {
+			*value = iter.data;
+		}
+	}
+	else {
 		*value = NULL;
+	}
 
 	RNA_parameter_list_end(&iter);
 }
@@ -5560,8 +5576,35 @@ void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, const void *valu
 		if (iter.parm == parm)
 			break;
 
-	if (iter.valid)
-		memcpy(iter.data, value, iter.size);
+	if (iter.valid) {
+		if (parm->flag & PROP_DYNAMIC) {
+			/* for dynamic arrays and strings, data is a pointer to an array */
+			ParameterDynAlloc *data_alloc = iter.data;
+			size_t size = 0;
+			switch (parm->type) {
+				case PROP_STRING:
+					size = sizeof(char);
+					break;
+				case PROP_INT:
+				case PROP_BOOLEAN:
+					size = sizeof(int);
+					break;
+				case PROP_FLOAT:
+					size = sizeof(float);
+					break;
+				default:
+					break;
+			}
+			size *= data_alloc->array_tot;
+			if (data_alloc->array)
+				MEM_freeN(data_alloc->array);
+			data_alloc->array = MEM_mallocN(size, AT);
+			memcpy(data_alloc->array, value, size);
+		}
+		else {
+			memcpy(iter.data, value, iter.size);
+		}
+	}
 
 	RNA_parameter_list_end(&iter);
 }
@@ -5579,7 +5622,7 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, cons
 		RNA_parameter_set(parms, parm, value);
 }
 
-int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm)
+int RNA_parameter_dynamic_length_get(ParameterList *parms, PropertyRNA *parm)
 {
 	ParameterIterator iter;
 	int len = 0;
@@ -5591,14 +5634,14 @@ int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm)
 			break;
 
 	if (iter.valid)
-		len = RNA_parameter_length_get_data(parms, parm, iter.data);
+		len = RNA_parameter_dynamic_length_get_data(parms, parm, iter.data);
 
 	RNA_parameter_list_end(&iter);
 
 	return len;
 }
 
-void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length)
+void RNA_parameter_dynamic_length_set(ParameterList *parms, PropertyRNA *parm, int length)
 {
 	ParameterIterator iter;
 
@@ -5609,19 +5652,24 @@ void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int lengt
 			break;
 
 	if (iter.valid)
-		RNA_parameter_length_set_data(parms, parm, iter.data, length);
+		RNA_parameter_dynamic_length_set_data(parms, parm, iter.data, length);
 
 	RNA_parameter_list_end(&iter);
 }
 
-int RNA_parameter_length_get_data(ParameterList *UNUSED(parms), PropertyRNA *UNUSED(parm), void *data)
+int RNA_parameter_dynamic_length_get_data(ParameterList *UNUSED(parms), PropertyRNA *parm, void *data)
 {
-	return *((int *)((char *)data));
+	if (parm->flag & PROP_DYNAMIC) {
+		return (int)((ParameterDynAlloc *)data)->array_tot;
+	}
+	return 0;
 }
 
-void RNA_parameter_length_set_data(ParameterList *UNUSED(parms), PropertyRNA *UNUSED(parm), void *data, int length)
+void RNA_parameter_dynamic_length_set_data(ParameterList *UNUSED(parms), PropertyRNA *parm, void *data, int length)
 {
-	*((int *)data) = length;
+	if (parm->flag & PROP_DYNAMIC) {
+		((ParameterDynAlloc *)data)->array_tot = (intptr_t)length;
+	}
 }
 
 int RNA_function_call(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
