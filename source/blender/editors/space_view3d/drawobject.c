@@ -3094,9 +3094,6 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	BMVert *eve_act = NULL;
 	bool use_occlude_wire = (v3d->flag2 & V3D_OCCLUDE_WIRE) && (dt > OB_WIRE);
 	
-	// BLI_assert(!cageDM || !(cageDM->dirty & DM_DIRTY_NORMALS));
-	BLI_assert(!finalDM || !(finalDM->dirty & DM_DIRTY_NORMALS));
-
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
 		/* face is handeled above */
@@ -3368,8 +3365,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 	if (!dm)
 		return;
-
-	if (dm)  BLI_assert(!(dm->dirty & DM_DIRTY_NORMALS));
 
 	/* Check to draw dynamic paint colors (or weights from WeightVG modifiers).
 	 * Note: Last "preview-active" modifier in stack will win! */
