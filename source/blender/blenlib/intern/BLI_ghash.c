@@ -61,6 +61,16 @@ const unsigned int hashsizes[] = {
 	268435459
 };
 
+/* internal flag to ensure sets values aren't used */
+#ifndef NDEBUG
+#  define GHASH_FLAG_IS_SET (1 << 8)
+#  define IS_GHASH_ASSERT(gh) BLI_assert((gh->flag & GHASH_FLAG_IS_SET) == 0)
+// #  define IS_GSET_ASSERT(gs) BLI_assert((gs->flag & GHASH_FLAG_IS_SET) != 0)
+#else
+#  define IS_GHASH_ASSERT(gh)
+// #  define IS_GSET_ASSERT(eh)
+#endif
+
 /***/
 
 typedef struct Entry {
@@ -346,6 +356,7 @@ bool BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreef
 void *BLI_ghash_lookup(GHash *gh, const void *key)
 {
 	Entry *e = ghash_lookup_entry(gh, key);
+	IS_GHASH_ASSERT(gh);
 	return e ? e->val : NULL;
 }
 
@@ -362,6 +373,7 @@ void *BLI_ghash_lookup(GHash *gh, const void *key)
 void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 {
 	Entry *e = ghash_lookup_entry(gh, key);
+	IS_GHASH_ASSERT(gh);
 	return e ? &e->val : NULL;
 }
 
@@ -399,6 +411,7 @@ void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	Entry *e = ghash_remove_ex(gh, key, keyfreefp, NULL, hash);
+	IS_GHASH_ASSERT(gh);
 	if (e) {
 		void *val = e->val;
 		BLI_mempool_free(gh->entrypool, e);
@@ -462,7 +475,6 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	BLI_assert((int)gh->nentries == BLI_mempool_count(gh->entrypool));
-
 	if (keyfreefp || valfreefp)
 		ghash_free_cb(gh, keyfreefp, valfreefp);
 
@@ -773,9 +785,13 @@ GHash *BLI_ghash_pair_new(const char *info)
 GSet *BLI_gset_new_ex(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
                       const unsigned int nentries_reserve)
 {
-	return (GSet *)ghash_new(hashfp, cmpfp, info,
-	                         nentries_reserve,
-	                         sizeof(Entry) - sizeof(void *));
+	GSet *gs = (GSet *)ghash_new(hashfp, cmpfp, info,
+	                             nentries_reserve,
+	                             sizeof(Entry) - sizeof(void *));
+#ifndef NDEBUG
+	((GHash *)gs)->flag |= GHASH_FLAG_IS_SET;
+#endif
+	return gs;
 }
 
 GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)

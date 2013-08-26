@@ -55,6 +55,16 @@ static const unsigned int _ehash_hashsizes[] = {
 	268435459
 };
 
+/* internal flag to ensure sets values aren't used */
+#ifndef NDEBUG
+#  define EDGEHASH_FLAG_IS_SET (1 << 8)
+#  define IS_EDGEHASH_ASSERT(eh) BLI_assert((eh->flag & EDGEHASH_FLAG_IS_SET) == 0)
+// #  define IS_EDGESET_ASSERT(es) BLI_assert((es->flag & EDGEHASH_FLAG_IS_SET) != 0)
+#else
+#  define IS_EDGEHASH_ASSERT(eh)
+// #  define IS_EDGESET_ASSERT(es)
+#endif
+
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
 	if (v0 > v1) {       \
@@ -242,6 +252,7 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 {
 	unsigned int hash;
 	EdgeEntry *e;
+	IS_EDGEHASH_ASSERT(eh);
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 	hash = edgehash_keyhash(eh, v0, v1);
 	e = edgehash_insert_ex(eh, v0, v1, hash);
@@ -255,6 +266,8 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
 {
 	unsigned int hash;
 	EdgeEntry *e;
+
+	IS_EDGEHASH_ASSERT(eh);
 
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 	hash = edgehash_keyhash(eh, v0, v1);
@@ -278,6 +291,7 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
 void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
+	IS_EDGEHASH_ASSERT(eh);
 	return e ? &e->val : NULL;
 }
 
@@ -290,6 +304,7 @@ void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
 void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
+	IS_EDGEHASH_ASSERT(eh);
 	return e ? e->val : NULL;
 }
 
@@ -467,9 +482,13 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 EdgeSet *BLI_edgeset_new_ex(const char *info,
                                   const unsigned int nentries_reserve)
 {
-	return (EdgeSet *)edgehash_new(info,
-	                               nentries_reserve,
-	                               sizeof(EdgeEntry) - sizeof(void *));
+	EdgeSet *es = (EdgeSet *)edgehash_new(info,
+	                                      nentries_reserve,
+	                                      sizeof(EdgeEntry) - sizeof(void *));
+#ifndef NDEBUG
+	((EdgeHash *)es)->flag |= EDGEHASH_FLAG_IS_SET;
+#endif
+	return es;
 }
 
 EdgeSet *BLI_edgeset_new(const char *info)
