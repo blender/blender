@@ -802,6 +802,7 @@ macro(data_to_c_simple
 
 endmacro()
 
+# XXX Not used for now...
 macro(svg_to_png
       file_from
       file_to
