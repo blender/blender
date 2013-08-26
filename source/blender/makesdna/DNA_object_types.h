@@ -41,7 +41,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 struct Object;
 struct AnimData;
 struct Ipo;
@@ -323,26 +323,26 @@ typedef struct DupliObject {
 /* **************** OBJECT ********************* */
 
 /* used many places... should be specialized  */
-#define SELECT			1
+#define SELECT          1
 
 /* type */
-#define OB_EMPTY		0
-#define OB_MESH			1
-#define OB_CURVE		2
-#define OB_SURF			3
-#define OB_FONT			4
-#define OB_MBALL		5
+#define OB_EMPTY        0
+#define OB_MESH         1
+#define OB_CURVE        2
+#define OB_SURF         3
+#define OB_FONT         4
+#define OB_MBALL        5
 
-#define OB_LAMP			10
-#define OB_CAMERA		11
+#define OB_LAMP         10
+#define OB_CAMERA       11
 
-#define OB_SPEAKER		12
+#define OB_SPEAKER      12
 
-// #define OB_WAVE			21
-#define OB_LATTICE		22
+/* #define OB_WAVE         21 */
+#define OB_LATTICE      22
 
 /* 23 and 24 are for life and sector (old file compat.) */
-#define	OB_ARMATURE		25
+#define	OB_ARMATURE     25
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
@@ -360,86 +360,87 @@ typedef struct DupliObject {
 	ID_ME: case ID_CU: case ID_MB: case ID_LA: case ID_SPK: case ID_CA: case ID_LT: case ID_AR
 
 /* partype: first 4 bits: type */
-#define PARTYPE			15
-#define PAROBJECT		0
-#define PARCURVE		1
-#define PARKEY			2
+#define PARTYPE         ((1 << 4) - 1)
+#define PAROBJECT       0
+#define PARCURVE        1
+#define PARKEY          2
 
-#define PARSKEL			4
-#define PARVERT1		5
-#define PARVERT3		6
-#define PARBONE			7
+#define PARSKEL         4
+#define PARVERT1        5
+#define PARVERT3        6
+#define PARBONE         7
 
-	/* slow parenting - is not threadsafe and/or may give errors after jumping  */
-#define PARSLOW			16
+    /* slow parenting - is not threadsafe and/or may give errors after jumping  */
+#define PARSLOW         16
 
 /* (short) transflag */
 /* flags 1 and 2 were unused or relics from past features */
-#define OB_NEG_SCALE		4
-#define OB_DUPLI			(8+16+256+512+2048)
-#define OB_DUPLIFRAMES		8
-#define OB_DUPLIVERTS		16
-#define OB_DUPLIROT			32
-#define OB_DUPLINOSPEED		64
-/*#define OB_POWERTRACK		128*/ /*UNUSED*/
-#define OB_DUPLIGROUP		256
-#define OB_DUPLIFACES		512
-#define OB_DUPLIFACES_SCALE	1024
-#define OB_DUPLIPARTS		2048
-#define OB_RENDER_DUPLI		4096
-#define OB_NO_CONSTRAINTS	8192 /* runtime constraints disable */
-#define OB_NO_PSYS_UPDATE	16384 /* hack to work around particle issue */
+#define OB_NEG_SCALE        (1 << 2)
+#define OB_DUPLIFRAMES      (1 << 3)
+#define OB_DUPLIVERTS       (1 << 4)
+#define OB_DUPLIROT         (1 << 5)
+#define OB_DUPLINOSPEED     (1 << 6)
+/*#define OB_POWERTRACK       (1 << 7)*/ /*UNUSED*/
+#define OB_DUPLIGROUP       (1 << 8)
+#define OB_DUPLIFACES       (1 << 9)
+#define OB_DUPLIFACES_SCALE (1 << 10)
+#define OB_DUPLIPARTS       (1 << 11)
+#define OB_RENDER_DUPLI     (1 << 12)
+#define OB_NO_CONSTRAINTS   (1 << 13)  /* runtime constraints disable */
+#define OB_NO_PSYS_UPDATE   (1 << 14)  /* hack to work around particle issue */
+
+#define OB_DUPLI            (OB_DUPLIFRAMES | OB_DUPLIVERTS | OB_DUPLIGROUP | OB_DUPLIFACES | OB_DUPLIPARTS)
 
 /* (short) ipoflag */
 /* XXX: many old flags for features removed due to incompatibility
  * with new system and/or other design issues were here 
  */
 	/* for stride/path editing (XXX: NEEDS REVIEW) */
-#define OB_DISABLE_PATH		1024
+#define OB_DISABLE_PATH     (1 << 10)
 
 /* (short) trackflag / upflag */
-#define OB_POSX			0
-#define OB_POSY			1
-#define OB_POSZ			2
-#define OB_NEGX			3
-#define OB_NEGY			4
-#define OB_NEGZ			5
+#define OB_POSX    0
+#define OB_POSY    1
+#define OB_POSZ    2
+#define OB_NEGX    3
+#define OB_NEGY    4
+#define OB_NEGZ    5
 
 /* gameflag in game.h */
 
 /* dt: no flags */
-#define OB_BOUNDBOX		1
-#define OB_WIRE			2
-#define OB_SOLID		3
-#define OB_MATERIAL		4
-#define OB_TEXTURE		5
-#define OB_RENDER		6
+#define OB_BOUNDBOX    1
+#define OB_WIRE        2
+#define OB_SOLID       3
+#define OB_MATERIAL    4
+#define OB_TEXTURE     5
+#define OB_RENDER      6
 
-#define OB_PAINT		100	/* temporary used in draw code */
+#define OB_PAINT       100  /* temporary used in draw code */
 
 /* dtx: flags (short) */
-#define OB_DRAWBOUNDOX		(1 << 0)
-#define OB_AXIS				(1 << 1)
-#define OB_TEXSPACE			(1 << 2)
-#define OB_DRAWNAME			(1 << 3)
-#define OB_DRAWIMAGE		(1 << 4)
+#define OB_DRAWBOUNDOX    (1 << 0)
+#define OB_AXIS           (1 << 1)
+#define OB_TEXSPACE       (1 << 2)
+#define OB_DRAWNAME       (1 << 3)
+#define OB_DRAWIMAGE      (1 << 4)
 	/* for solid+wire display */
-#define OB_DRAWWIRE			(1 << 5)
+#define OB_DRAWWIRE       (1 << 5)
 	/* for overdraw s*/
-#define OB_DRAWXRAY			(1 << 6)
+#define OB_DRAWXRAY       (1 << 6)
 	/* enable transparent draw */
-#define OB_DRAWTRANSP		(1 << 7)
-#define OB_DRAW_ALL_EDGES	(1 << 8)  /* only for meshes currently */
+#define OB_DRAWTRANSP     (1 << 7)
+#define OB_DRAW_ALL_EDGES (1 << 8)  /* only for meshes currently */
 
 /* empty_drawtype: no flags */
-#define OB_ARROWS		1
-#define OB_PLAINAXES	2
-#define OB_CIRCLE		3
-#define OB_SINGLE_ARROW	4
-#define OB_CUBE			5
-#define OB_EMPTY_SPHERE	6
-#define OB_EMPTY_CONE	7
-#define OB_EMPTY_IMAGE	8
+#define OB_ARROWS        1
+#define OB_PLAINAXES     2
+#define OB_CIRCLE        3
+#define OB_SINGLE_ARROW  4
+#define OB_CUBE          5
+#define OB_EMPTY_SPHERE  6
+#define OB_EMPTY_CONE    7
+#define OB_EMPTY_IMAGE   8
 
 /* boundtype */
 #define OB_BOUND_BOX           0
@@ -454,30 +455,30 @@ typedef struct DupliObject {
 
 /* **************** BASE ********************* */
 
-/* also needed for base!!!!! or rather, thy interfere....*/
+/* also needed for base!!!!! or rather, they interfere....*/
 /* base->flag and ob->flag */
-#define BA_WAS_SEL			2
-#define BA_HAS_RECALC_OB	4
-#define BA_HAS_RECALC_DATA	8
+#define BA_WAS_SEL          (1 << 1)
+#define BA_HAS_RECALC_OB    (1 << 2)
+#define BA_HAS_RECALC_DATA  (1 << 3)
 
 	/* NOTE: this was used as a proper setting in past, so nullify before using */
-#define BA_TEMP_TAG			32
+#define BA_TEMP_TAG         (1 << 5)
 
-/* #define BA_FROMSET			128 */ /*UNUSED*/
+/* #define BA_FROMSET          (1 << 7) */ /*UNUSED*/
 
-#define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
-#define BA_TRANSFORM_PARENT	8192 /* parent of a transformed object */
+#define BA_TRANSFORM_CHILD  (1 << 8)  /* child of a transformed object */
+#define BA_TRANSFORM_PARENT (1 << 13)  /* parent of a transformed object */
 
 
 /* an initial attempt as making selection more specific! */
-#define BA_DESELECT		0
-#define BA_SELECT		1
+#define BA_DESELECT     0
+#define BA_SELECT       1
 
 
-#define OB_FROMDUPLI		512
-#define OB_DONE				1024
-// #define OB_RADIO			2048	/* deprecated */
-#define OB_FROMGROUP		4096
+#define OB_FROMDUPLI        (1 << 9)
+#define OB_DONE             (1 << 10)
+/* #define OB_RADIO            (1 << 11) */  /* deprecated */
+#define OB_FROMGROUP        (1 << 12)
 
 /* WARNING - when adding flags check on PSYS_RECALC */
 /* ob->recalc (flag bits!) */
@@ -489,134 +490,134 @@ typedef struct DupliObject {
 #define OB_RECALC_ALL       (OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME)
 
 /* controller state */
-#define OB_MAX_STATES		30
+#define OB_MAX_STATES       30
 
 /* collision masks */
-#define OB_MAX_COL_MASKS	8
+#define OB_MAX_COL_MASKS    8
 
 /* ob->gameflag */
-#define OB_DYNAMIC		1
-#define OB_CHILD		2
-#define OB_ACTOR		4
-#define OB_INERTIA_LOCK_X	8
-#define OB_INERTIA_LOCK_Y	16
-#define OB_INERTIA_LOCK_Z	32
-#define OB_DO_FH			64
-#define OB_ROT_FH			128
-#define OB_ANISOTROPIC_FRICTION 256
-#define OB_GHOST			512
-#define OB_RIGID_BODY		1024
-#define OB_BOUNDS		2048
+#define OB_DYNAMIC               (1 << 0)
+#define OB_CHILD                 (1 << 1)
+#define OB_ACTOR                 (1 << 2)
+#define OB_INERTIA_LOCK_X        (1 << 3)
+#define OB_INERTIA_LOCK_Y        (1 << 4)
+#define OB_INERTIA_LOCK_Z        (1 << 5)
+#define OB_DO_FH                 (1 << 6)
+#define OB_ROT_FH                (1 << 7)
+#define OB_ANISOTROPIC_FRICTION  (1 << 8)
+#define OB_GHOST                 (1 << 9)
+#define OB_RIGID_BODY            (1 << 10)
+#define OB_BOUNDS                (1 << 11)
 
-#define OB_COLLISION_RESPONSE	4096
-#define OB_SECTOR		8192
-#define OB_PROP			16384
-#define OB_MAINACTOR	32768
+#define OB_COLLISION_RESPONSE    (1 << 12)
+#define OB_SECTOR                (1 << 13)
+#define OB_PROP                  (1 << 14)
+#define OB_MAINACTOR             (1 << 15)
 
-#define OB_COLLISION	65536
-#define OB_SOFT_BODY	0x20000
-#define OB_OCCLUDER		0x40000
-#define OB_SENSOR		0x80000
-#define OB_NAVMESH		0x100000
-#define OB_HASOBSTACLE	0x200000
-#define OB_CHARACTER		0x400000
+#define OB_COLLISION             (1 << 16)
+#define OB_SOFT_BODY             (1 << 17)
+#define OB_OCCLUDER              (1 << 18)
+#define OB_SENSOR                (1 << 19)
+#define OB_NAVMESH               (1 << 20)
+#define OB_HASOBSTACLE           (1 << 21)
+#define OB_CHARACTER             (1 << 22)
 
 /* ob->gameflag2 */
-#define OB_NEVER_DO_ACTIVITY_CULLING	1
-#define OB_LOCK_RIGID_BODY_X_AXIS	4
-#define OB_LOCK_RIGID_BODY_Y_AXIS	8
-#define OB_LOCK_RIGID_BODY_Z_AXIS	16
-#define OB_LOCK_RIGID_BODY_X_ROT_AXIS	32
-#define OB_LOCK_RIGID_BODY_Y_ROT_AXIS	64
-#define OB_LOCK_RIGID_BODY_Z_ROT_AXIS	128
+#define OB_NEVER_DO_ACTIVITY_CULLING    (1 << 0)
+#define OB_LOCK_RIGID_BODY_X_AXIS       (1 << 2)
+#define OB_LOCK_RIGID_BODY_Y_AXIS       (1 << 3)
+#define OB_LOCK_RIGID_BODY_Z_AXIS       (1 << 4)
+#define OB_LOCK_RIGID_BODY_X_ROT_AXIS   (1 << 5)
+#define OB_LOCK_RIGID_BODY_Y_ROT_AXIS   (1 << 6)
+#define OB_LOCK_RIGID_BODY_Z_ROT_AXIS   (1 << 7)
 
-/* #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD) */
+/* #define OB_LIFE     (OB_PROP | OB_DYNAMIC | OB_ACTOR | OB_MAINACTOR | OB_CHILD) */
 
 /* ob->body_type */
-#define OB_BODY_TYPE_NO_COLLISION	0
-#define OB_BODY_TYPE_STATIC			1
-#define OB_BODY_TYPE_DYNAMIC		2
-#define OB_BODY_TYPE_RIGID			3
-#define OB_BODY_TYPE_SOFT			4
-#define OB_BODY_TYPE_OCCLUDER		5
-#define OB_BODY_TYPE_SENSOR			6
-#define OB_BODY_TYPE_NAVMESH		7
-#define OB_BODY_TYPE_CHARACTER			8
+#define OB_BODY_TYPE_NO_COLLISION   0
+#define OB_BODY_TYPE_STATIC         1
+#define OB_BODY_TYPE_DYNAMIC        2
+#define OB_BODY_TYPE_RIGID          3
+#define OB_BODY_TYPE_SOFT           4
+#define OB_BODY_TYPE_OCCLUDER       5
+#define OB_BODY_TYPE_SENSOR         6
+#define OB_BODY_TYPE_NAVMESH        7
+#define OB_BODY_TYPE_CHARACTER      8
 
 /* ob->depsflag */
-#define OB_DEPS_EXTRA_OB_RECALC		1
-#define OB_DEPS_EXTRA_DATA_RECALC	2
+#define OB_DEPS_EXTRA_OB_RECALC     (1 << 0)
+#define OB_DEPS_EXTRA_DATA_RECALC   (1 << 1)
 
 /* ob->scavisflag */
-#define OB_VIS_SENS		1
-#define OB_VIS_CONT		2
-#define OB_VIS_ACT		4
+#define OB_VIS_SENS     (1 << 0)
+#define OB_VIS_CONT     (1 << 1)
+#define OB_VIS_ACT      (1 << 2)
 
 /* ob->scaflag */
-#define OB_SHOWSENS		64
-#define OB_SHOWACT		128
-#define OB_ADDSENS		256
-#define OB_ADDCONT		512
-#define OB_ADDACT		1024
-#define OB_SHOWCONT		2048
-#define OB_ALLSTATE		4096
-#define OB_INITSTBIT	8192
-#define OB_DEBUGSTATE	16384
-#define OB_SHOWSTATE	32768
+#define OB_SHOWSENS     (1 << 6)
+#define OB_SHOWACT      (1 << 7)
+#define OB_ADDSENS      (1 << 8)
+#define OB_ADDCONT      (1 << 9)
+#define OB_ADDACT       (1 << 10)
+#define OB_SHOWCONT     (1 << 11)
+#define OB_ALLSTATE     (1 << 12)
+#define OB_INITSTBIT    (1 << 13)
+#define OB_DEBUGSTATE   (1 << 14)
+#define OB_SHOWSTATE    (1 << 15)
 
 /* ob->restrictflag */
-#define OB_RESTRICT_VIEW	1
-#define OB_RESTRICT_SELECT	2
-#define OB_RESTRICT_RENDER	4
+#define OB_RESTRICT_VIEW    (1 << 0)
+#define OB_RESTRICT_SELECT  (1 << 1)
+#define OB_RESTRICT_RENDER  (1 << 2)
 
 /* ob->shapeflag */
-#define OB_SHAPE_LOCK		1
-#define OB_SHAPE_TEMPLOCK	2		// deprecated
-#define OB_SHAPE_EDIT_MODE	4
+#define OB_SHAPE_LOCK       (1 << 0)
+#define OB_SHAPE_TEMPLOCK   (1 << 1)  /* deprecated */
+#define OB_SHAPE_EDIT_MODE  (1 << 2)
 
 /* ob->nlaflag */
-	/* WARNING: flags (1<<0) and (1<<1) were from old animsys */
+	/* WARNING: flags (1 << 0) and (1 << 1) were from old animsys */
 	/* object-channel expanded status */
-#define OB_ADS_COLLAPSED	(1<<10)
+#define OB_ADS_COLLAPSED    (1 << 10)
 	/* object's ipo-block */
-#define OB_ADS_SHOWIPO		(1<<11)
+#define OB_ADS_SHOWIPO      (1 << 11)
 	/* object's constraint channels */
-#define OB_ADS_SHOWCONS		(1<<12)
+#define OB_ADS_SHOWCONS     (1 << 12)
 	/* object's material channels */
-#define OB_ADS_SHOWMATS		(1<<13)
+#define OB_ADS_SHOWMATS     (1 << 13)
 	/* object's marticle channels */
-#define OB_ADS_SHOWPARTS	(1<<14)
+#define OB_ADS_SHOWPARTS    (1 << 14)
 
 /* ob->protectflag */
-#define OB_LOCK_LOCX	1
-#define OB_LOCK_LOCY	2
-#define OB_LOCK_LOCZ	4
-#define OB_LOCK_LOC		7
-#define OB_LOCK_ROTX	8
-#define OB_LOCK_ROTY	16
-#define OB_LOCK_ROTZ	32
-#define OB_LOCK_ROT		56
-#define OB_LOCK_SCALEX	64
-#define OB_LOCK_SCALEY	128
-#define OB_LOCK_SCALEZ	256
-#define OB_LOCK_SCALE	448
-#define OB_LOCK_ROTW	512
-#define OB_LOCK_ROT4D	1024
+#define OB_LOCK_LOCX    (1 << 0)
+#define OB_LOCK_LOCY    (1 << 1)
+#define OB_LOCK_LOCZ    (1 << 2)
+#define OB_LOCK_LOC     (OB_LOCK_LOCX | OB_LOCK_LOCY | OB_LOCK_LOCZ)
+#define OB_LOCK_ROTX    (1 << 3)
+#define OB_LOCK_ROTY    (1 << 4)
+#define OB_LOCK_ROTZ    (1 << 5)
+#define OB_LOCK_ROT     (OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ)
+#define OB_LOCK_SCALEX  (1 << 6)
+#define OB_LOCK_SCALEY  (1 << 7)
+#define OB_LOCK_SCALEZ  (1 << 8)
+#define OB_LOCK_SCALE   (OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ)
+#define OB_LOCK_ROTW    (1 << 9)
+#define OB_LOCK_ROT4D   (1 << 10)
 
 /* ob->mode */
 typedef enum ObjectMode {
-	OB_MODE_OBJECT = 0,
-	OB_MODE_EDIT = 1,
-	OB_MODE_SCULPT = 2,
-	OB_MODE_VERTEX_PAINT = 4,
-	OB_MODE_WEIGHT_PAINT = 8,
-	OB_MODE_TEXTURE_PAINT = 16,
-	OB_MODE_PARTICLE_EDIT = 32,
-	OB_MODE_POSE = 64
+	OB_MODE_OBJECT =        0,
+	OB_MODE_EDIT =          1 << 0,
+	OB_MODE_SCULPT =        1 << 1,
+	OB_MODE_VERTEX_PAINT =  1 << 2,
+	OB_MODE_WEIGHT_PAINT =  1 << 3,
+	OB_MODE_TEXTURE_PAINT = 1 << 4,
+	OB_MODE_PARTICLE_EDIT = 1 << 5,
+	OB_MODE_POSE =          1 << 6,
 } ObjectMode;
 
 /* any mode where the brush system is used */
-#define OB_MODE_ALL_PAINT (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)
+#define OB_MODE_ALL_PAINT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)
 
 #define MAX_DUPLI_RECUR 8
 
