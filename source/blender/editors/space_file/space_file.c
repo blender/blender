@@ -328,7 +328,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
 	
-	if (params && (params->display == FILE_IMGDISPLAY)) {
+	if (params->display == FILE_IMGDISPLAY) {
 		v2d->scroll = V2D_SCROLL_RIGHT;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
 		v2d->keepofs |= V2D_LOCKOFS_X;
