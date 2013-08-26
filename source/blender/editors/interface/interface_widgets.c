@@ -2980,7 +2980,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
 		case UI_WTYPE_LISTLABEL:
 			wt.wcol_theme = &btheme->tui.wcol_list_item;
-			/* fall-through */  /* we use usual label code too. */
+			wt.draw = NULL;
+			/* Can't use usual label code. */
+			break;
 		case UI_WTYPE_LABEL:
 			wt.draw = NULL;
 			wt.state = widget_state_label;
