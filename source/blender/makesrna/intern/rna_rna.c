@@ -566,6 +566,12 @@ static int rna_Property_is_required_get(PointerRNA *ptr)
 	return prop->flag & PROP_REQUIRED ? 1 : 0;
 }
 
+static int rna_Property_is_argument_optional_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop = (PropertyRNA *)ptr->data;
+	return prop->flag & PROP_PYFUNC_OPTIONAL ? 1 : 0;
+}
+
 static int rna_Property_is_never_none_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1170,6 +1176,12 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_required_get", NULL);
 	RNA_def_property_ui_text(prop, "Required", "False when this property is an optional argument in an RNA function");
+
+	prop = RNA_def_property(srna, "is_argument_optional", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_argument_optional_get", NULL);
+	RNA_def_property_ui_text(prop, "Optional Argument",
+	                         "True when the property is optional in a Python function implementing an RNA function");
 
 	prop = RNA_def_property(srna, "is_never_none", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
