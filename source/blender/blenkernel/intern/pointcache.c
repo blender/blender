@@ -2969,12 +2969,10 @@ void BKE_ptcache_free(PointCache *cache)
 }
 void BKE_ptcache_free_list(ListBase *ptcaches)
 {
-	PointCache *cache = ptcaches->first;
+	PointCache *cache;
 
-	while (cache) {
-		BLI_remlink(ptcaches, cache);
+	while ((cache = BLI_pophead(ptcaches))) {
 		BKE_ptcache_free(cache);
-		cache = ptcaches->first;
 	}
 }
 

@@ -81,11 +81,8 @@ void BKE_displist_free(ListBase *lb)
 {
 	DispList *dl;
 
-	dl = lb->first;
-	while (dl) {
-		BLI_remlink(lb, dl);
+	while ((dl = BLI_pophead(lb))) {
 		BKE_displist_elem_free(dl);
-		dl = lb->first;
 	}
 }
 

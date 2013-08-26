@@ -2230,8 +2230,7 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 
-	while ( (but = block->buttons.first) ) {
-		BLI_remlink(&block->buttons, but);
+	while ((but = BLI_pophead(&block->buttons))) {
 		ui_free_but(C, but);
 	}
 
@@ -2255,8 +2254,7 @@ void uiFreeBlocks(const bContext *C, ListBase *lb)
 {
 	uiBlock *block;
 	
-	while ( (block = lb->first) ) {
-		BLI_remlink(lb, block);
+	while ((block = BLI_pophead(lb))) {
 		uiFreeBlock(C, block);
 	}
 }

@@ -59,9 +59,8 @@ void BKE_bproperty_free(bProperty *prop)
 void BKE_bproperty_free_list(ListBase *lb)
 {
 	bProperty *prop;
-	
-	while ( (prop = lb->first) ) {
-		BLI_remlink(lb, prop);
+
+	while ((prop = BLI_pophead(lb))) {
 		BKE_bproperty_free(prop);
 	}
 }

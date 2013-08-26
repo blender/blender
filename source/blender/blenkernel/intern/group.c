@@ -65,9 +65,7 @@ void BKE_group_free(Group *group)
 	/* don't free group itself */
 	GroupObject *go;
 	
-	while (group->gobject.first) {
-		go = group->gobject.first;
-		BLI_remlink(&group->gobject, go);
+	while ((go = BLI_pophead(&group->gobject))) {
 		free_group_object(go);
 	}
 }

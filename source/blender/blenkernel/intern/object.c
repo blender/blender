@@ -142,11 +142,9 @@ void BKE_object_update_base_layer(struct Scene *scene, Object *ob)
 
 void BKE_object_free_particlesystems(Object *ob)
 {
-	while (ob->particlesystem.first) {
-		ParticleSystem *psys = ob->particlesystem.first;
-		
-		BLI_remlink(&ob->particlesystem, psys);
-		
+	ParticleSystem *psys;
+
+	while ((psys = BLI_pophead(&ob->particlesystem))) {
 		psys_free(ob, psys);
 	}
 }
@@ -182,11 +180,9 @@ void BKE_object_free_curve_cache(Object *ob)
 
 void BKE_object_free_modifiers(Object *ob)
 {
-	while (ob->modifiers.first) {
-		ModifierData *md = ob->modifiers.first;
-		
-		BLI_remlink(&ob->modifiers, md);
-		
+	ModifierData *md;
+
+	while ((md = BLI_pophead(&ob->modifiers))) {
 		modifier_free(md);
 	}
 

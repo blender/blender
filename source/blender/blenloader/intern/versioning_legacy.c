@@ -518,11 +518,8 @@ static void do_version_free_effects_245(ListBase *lb)
 {
 	Effect *eff;
 
-	eff = lb->first;
-	while (eff) {
-		BLI_remlink(lb, eff);
+	while ((eff = BLI_pophead(lb))) {
 		do_version_free_effect_245(eff);
-		eff = lb->first;
 	}
 }
 

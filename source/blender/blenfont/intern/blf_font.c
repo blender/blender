@@ -524,9 +524,7 @@ void blf_font_free(FontBLF *font)
 	GlyphCacheBLF *gc;
 
 	font->glyph_cache = NULL;
-	while (font->cache.first) {
-		gc = font->cache.first;
-		BLI_remlink(&font->cache, gc);
+	while ((gc = BLI_pophead(&font->cache))) {
 		blf_glyph_cache_free(gc);
 	}
 

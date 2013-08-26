@@ -1049,10 +1049,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
 	/* if list only has 1 item, remove it from the list and return */
 	if (matches->first == matches->last) {
 		/* need to remove from the list, otherwise it gets freed and then we can't return it */
-		nvi = matches->first;
-		BLI_remlink(matches, nvi);
-		
-		return nvi;
+		return BLI_pophead(matches);
 	}
 	
 	/* try to find the first selected F-Curve vert, then take the one after it */
@@ -1075,9 +1072,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
 	/* if we're still here, this means that we failed to find anything appropriate in the first pass,
 	 * so just take the first item now...
 	 */
-	nvi = matches->first;
-	BLI_remlink(matches, nvi);
-	return nvi;
+	return BLI_pophead(matches);
 }
 
 /* Find the nearest vertices (either a handle or the keyframe) that are nearest to the mouse cursor (in area coordinates) 

@@ -70,7 +70,7 @@ bool   BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashVal
 void   BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
                           const unsigned int nentries_reserve);
-void  *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp);
+void  *BLI_ghash_popkey(GHash *gh, void *key, GHashKeyFreeFP keyfreefp);
 bool   BLI_ghash_haskey(GHash *gh, const void *key);
 int    BLI_ghash_size(GHash *gh);
 void   BLI_ghash_flag_set(GHash *gh, unsigned int flag);

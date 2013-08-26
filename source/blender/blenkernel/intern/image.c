@@ -195,9 +195,7 @@ static void image_free_buffers(Image *ima)
 {
 	ImBuf *ibuf;
 
-	while ((ibuf = ima->ibufs.first)) {
-		BLI_remlink(&ima->ibufs, ibuf);
-
+	while ((ibuf = BLI_pophead(&ima->ibufs))) {
 		if (ibuf->userdata) {
 			MEM_freeN(ibuf->userdata);
 			ibuf->userdata = NULL;
@@ -524,8 +522,7 @@ void BKE_image_merge(Image *dest, Image *source)
 	/* sanity check */
 	if (dest && source && dest != source) {
 
-		while ((ibuf = source->ibufs.first)) {
-			BLI_remlink(&source->ibufs, ibuf);
+		while ((ibuf = BLI_pophead(&source->ibufs))) {
 			image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
 		}
 

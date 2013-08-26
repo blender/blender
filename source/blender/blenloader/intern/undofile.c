@@ -51,9 +51,9 @@ void BLO_free_memfile(MemFile *memfile)
 {
 	MemFileChunk *chunk;
 	
-	while ( (chunk = (memfile->chunks.first) ) ) {
-		if (chunk->ident == 0) MEM_freeN(chunk->buf);
-		BLI_remlink(&memfile->chunks, chunk);
+	while ((chunk = BLI_pophead(&memfile->chunks))) {
+		if (chunk->ident == 0)
+			MEM_freeN(chunk->buf);
 		MEM_freeN(chunk);
 	}
 	memfile->size = 0;

@@ -63,8 +63,7 @@ void free_sensors(ListBase *lb)
 {
 	bSensor *sens;
 	
-	while ((sens= lb->first)) {
-		BLI_remlink(lb, sens);
+	while ((sens = BLI_pophead(lb))) {
 		free_sensor(sens);
 	}
 }
@@ -227,9 +226,9 @@ void free_controllers(ListBase *lb)
 {
 	bController *cont;
 	
-	while ((cont= lb->first)) {
-		BLI_remlink(lb, cont);
-		if (cont->slinks) MEM_freeN(cont->slinks);
+	while ((cont = BLI_pophead(lb))) {
+		if (cont->slinks)
+			MEM_freeN(cont->slinks);
 		free_controller(cont);
 	}
 }
@@ -346,8 +345,7 @@ void free_actuators(ListBase *lb)
 {
 	bActuator *act;
 	
-	while ((act= lb->first)) {
-		BLI_remlink(lb, act);
+	while ((act = BLI_pophead(lb))) {
 		free_actuator(act);
 	}
 }

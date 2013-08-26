@@ -924,9 +924,7 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 		ID *id;
 		ListBase *lb1 = lbarray[a], *lb2 = fromarray[a];
 		
-		while (lb2->first) {
-			id = lb2->first;
-			BLI_remlink(lb2, id);
+		while ((id = BLI_pophead(lb2))) {
 			BLI_addtail(lb1, id);
 			id_sort_by_name(lb1, id);
 		}

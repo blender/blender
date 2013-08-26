@@ -2666,7 +2666,7 @@ void BKE_node_instance_hash_clear(bNodeInstanceHash *hash, bNodeInstanceValueFP 
 
 void *BKE_node_instance_hash_pop(bNodeInstanceHash *hash, bNodeInstanceKey key)
 {
-	return BLI_ghash_pop(hash->ghash, &key, NULL);
+	return BLI_ghash_popkey(hash->ghash, &key, NULL);
 }
 
 int BKE_node_instance_hash_haskey(bNodeInstanceHash *hash, bNodeInstanceKey key)

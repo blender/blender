@@ -127,8 +127,7 @@ void wm_event_free_all(wmWindow *win)
 {
 	wmEvent *event;
 	
-	while ((event = win->queue.first)) {
-		BLI_remlink(&win->queue, event);
+	while ((event = BLI_pophead(&win->queue))) {
 		wm_event_free(event);
 	}
 }
@@ -233,14 +232,6 @@ static void wm_notifier_clear(wmNotifier *note)
 	memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
 }
 
-static wmNotifier *wm_notifier_next(wmWindowManager *wm)
-{
-	wmNotifier *note = wm->queue.first;
-	
-	if (note) BLI_remlink(&wm->queue, note);
-	return note;
-}
-
 /* called in mainloop */
 void wm_event_do_notifiers(bContext *C)
 {
@@ -316,7 +307,7 @@ void wm_event_do_notifiers(bContext *C)
 	}
 	
 	/* the notifiers are sent without context, to keep it clean */
-	while ( (note = wm_notifier_next(wm)) ) {
+	while ((note = BLI_pophead(&wm->queue))) {
 		for (win = wm->windows.first; win; win = win->next) {
 			
 			/* filter out notifiers */
@@ -1331,9 +1322,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	
 	/* C is zero on freeing database, modal handlers then already were freed */
-	while ((handler = handlers->first)) {
-		BLI_remlink(handlers, handler);
-		
+	while ((handler = BLI_pophead(handlers))) {
 		if (handler->op) {
 			if (handler->op->type->cancel) {
 				ScrArea *area = CTX_wm_area(C);

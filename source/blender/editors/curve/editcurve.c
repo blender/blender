@@ -361,7 +361,7 @@ static CVKeyIndex *getCVKeyIndex(EditNurb *editnurb, void *cv)
 
 static CVKeyIndex *popCVKeyIndex(EditNurb *editnurb, void *cv)
 {
-	return BLI_ghash_pop(editnurb->keyindex, cv, NULL);
+	return BLI_ghash_popkey(editnurb->keyindex, cv, NULL);
 }
 
 static BezTriple *getKeyIndexOrig_bezt(EditNurb *editnurb, BezTriple *bezt)

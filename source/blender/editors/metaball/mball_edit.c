@@ -501,19 +501,13 @@ bool mouse_mball(bContext *C, const int mval[2], bool extend, bool deselect, boo
 /* free all MetaElems from ListBase */
 static void freeMetaElemlist(ListBase *lb)
 {
-	MetaElem *ml, *next;
+	MetaElem *ml;
 
 	if (lb == NULL) return;
 
-	ml = lb->first;
-	while (ml) {
-		next = ml->next;
-		BLI_remlink(lb, ml);
+	while ((ml = BLI_pophead(lb))) {
 		MEM_freeN(ml);
-		ml = next;
 	}
-
-	lb->first = lb->last = NULL;
 }
 
 

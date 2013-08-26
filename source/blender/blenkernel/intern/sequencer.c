@@ -865,8 +865,7 @@ void BKE_sequencer_sort(Scene *scene)
 	seqbase.first = seqbase.last = NULL;
 	effbase.first = effbase.last = NULL;
 
-	while ( (seq = ed->seqbasep->first) ) {
-		BLI_remlink(ed->seqbasep, seq);
+	while ((seq = BLI_pophead(ed->seqbasep))) {
 
 		if (seq->type & SEQ_TYPE_EFFECT) {
 			seqt = effbase.first;

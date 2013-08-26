@@ -60,6 +60,8 @@ void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
 bool BLI_remlink_safe(struct ListBase *listbase, void *vlink);
+void *BLI_pophead(ListBase *listbase);
+void *BLI_poptail(ListBase *listbase);
 
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);

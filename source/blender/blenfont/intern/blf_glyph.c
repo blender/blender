@@ -128,9 +128,7 @@ void blf_glyph_cache_clear(FontBLF *font)
 
 	for (gc = font->cache.first; gc; gc = gc->next) {
 		for (i = 0; i < 257; i++) {
-			while (gc->bucket[i].first) {
-				g = gc->bucket[i].first;
-				BLI_remlink(&(gc->bucket[i]), g);
+			while ((g = BLI_pophead(&gc->bucket[i]))) {
 				blf_glyph_free(g);
 			}
 		}
@@ -145,9 +143,7 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
 	int i;
 
 	for (i = 0; i < 257; i++) {
-		while (gc->bucket[i].first) {
-			g = gc->bucket[i].first;
-			BLI_remlink(&(gc->bucket[i]), g);
+		while ((g = BLI_pophead(&gc->bucket[i]))) {
 			blf_glyph_free(g);
 		}
 	}

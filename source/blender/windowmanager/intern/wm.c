@@ -156,8 +156,7 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 {
 	wmOperator *op;
 	
-	while ((op = wm->operators.first)) {
-		BLI_remlink(&wm->operators, op);
+	while ((op = BLI_pophead(&wm->operators))) {
 		WM_operator_free(op);
 	}
 	
@@ -414,20 +413,17 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	if (wm->autosavetimer)
 		wm_autosave_timer_ended(wm);
 
-	while ((win = wm->windows.first)) {
-		BLI_remlink(&wm->windows, win);
+	while ((win = BLI_pophead(&wm->windows))) {
 		win->screen = NULL; /* prevent draw clear to use screen */
 		wm_draw_window_clear(win);
 		wm_window_free(C, wm, win);
 	}
 	
-	while ((op = wm->operators.first)) {
-		BLI_remlink(&wm->operators, op);
+	while ((op = BLI_pophead(&wm->operators))) {
 		WM_operator_free(op);
 	}
 
-	while ((keyconf = wm->keyconfigs.first)) {
-		BLI_remlink(&wm->keyconfigs, keyconf);
+	while ((keyconf = BLI_pophead(&wm->keyconfigs))) {
 		WM_keyconfig_free(keyconf);
 	}
 

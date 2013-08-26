@@ -1039,9 +1039,7 @@ static void GPU_nodes_free(ListBase *nodes)
 {
 	GPUNode *node;
 
-	while (nodes->first) {
-		node = nodes->first;
-		BLI_remlink(nodes, node);
+	while ((node = BLI_pophead(nodes))) {
 		GPU_node_free(node);
 	}
 }

@@ -198,8 +198,7 @@ void CTX_store_free_list(ListBase *contexts)
 {
 	bContextStore *ctx;
 
-	while ((ctx = contexts->first)) {
-		BLI_remlink(contexts, ctx);
+	while ((ctx = BLI_pophead(contexts))) {
 		CTX_store_free(ctx);
 	}
 }

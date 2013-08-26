@@ -340,9 +340,9 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		BLI_freenode *curnode = NULL;
 		char *tmpaddr = NULL;
 		int i;
-		BLI_mempool_chunk *first = pool->chunks.first;
+		BLI_mempool_chunk *first;
 
-		BLI_remlink(&pool->chunks, first);
+		first = BLI_pophead(&pool->chunks);
 		mempool_chunk_free_all(&pool->chunks, pool->flag);
 		BLI_addtail(&pool->chunks, first);
 #ifdef USE_TOTALLOC
@@ -543,8 +543,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 	chunks_temp = pool->chunks;
 	pool->chunks.first = pool->chunks.last = NULL;
 
-	while ((mpchunk = chunks_temp.first)) {
-		BLI_remlink(&chunks_temp, mpchunk);
+	while ((mpchunk = BLI_pophead(&chunks_temp))) {
 		lasttail = mempool_chunk_add(pool, mpchunk, lasttail);
 	}
 }

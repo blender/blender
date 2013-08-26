@@ -361,8 +361,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
 void BM_mesh_edgeloops_free(ListBase *eloops)
 {
 	BMEdgeLoopStore *el_store;
-	while ((el_store = eloops->first)) {
-		BLI_remlink(eloops, el_store);
+	while ((el_store = BLI_pophead(eloops))) {
 		BM_edgeloop_free(el_store);
 	}
 }

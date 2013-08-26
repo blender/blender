@@ -85,29 +85,23 @@ void BKE_key_free(Key *key)
 	KeyBlock *kb;
 	
 	BKE_free_animdata((ID *)key);
-	
-	while ( (kb = key->block.first) ) {
-		
-		if (kb->data) MEM_freeN(kb->data);
-		
-		BLI_remlink(&key->block, kb);
+
+	while ((kb = BLI_pophead(&key->block))) {
+		if (kb->data)
+			MEM_freeN(kb->data);
 		MEM_freeN(kb);
 	}
-	
 }
 
 void BKE_key_free_nolib(Key *key)
 {
 	KeyBlock *kb;
-	
-	while ( (kb = key->block.first) ) {
-		
-		if (kb->data) MEM_freeN(kb->data);
-		
-		BLI_remlink(&key->block, kb);
+
+	while ((kb = BLI_pophead(&key->block))) {
+		if (kb->data)
+			MEM_freeN(kb->data);
 		MEM_freeN(kb);
 	}
-	
 }
 
 Key *BKE_key_add(ID *id)    /* common function */
