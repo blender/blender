@@ -146,7 +146,7 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 /* Make sure enums are updated with thses */
-/* HIGHEST FLAG IN USE: 1 << 29 */
+/* HIGHEST FLAG IN USE: 1 << 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -172,10 +172,16 @@ typedef enum PropertyFlag {
 	/* do not write in presets */
 	PROP_SKIP_SAVE = (1 << 28),
 
-	/* function paramater flags */
+	/* function parameter flags */
 	PROP_REQUIRED = (1 << 2),
 	PROP_OUTPUT = (1 << 3),
 	PROP_RNAPTR = (1 << 11),
+	/* This allows for non-breaking API updates, when adding non-critical new parameter to a callback function.
+	 * This way, old py code defining funcs without that parameter would still work.
+	 * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
+	 * NOTE: only for input parameters!
+	 */
+	PROP_PYFUNC_OPTIONAL = (1 << 30),
 	/* registering */
 	PROP_REGISTER = (1 << 4),
 	PROP_REGISTER_OPTIONAL = (1 << 4) | (1 << 5),
