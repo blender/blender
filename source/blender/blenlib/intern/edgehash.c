@@ -95,9 +95,52 @@ struct EdgeHash {
 /** \name Internal Utility API
  * \{ */
 
+/**
+ * Get the hash for a key.
+ */
+BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
+{
+	BLI_assert(v0 < v1);
+
+	return ((v0 * 39) ^ (v1 * 31)) % eh->nbuckets;
+}
+
+/**
+ * Check if the number of items in the GHash is large enough to require more buckets.
+ */
 BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
 	return (nentries > nbuckets * 3);
+}
+
+/**
+ * Expand buckets to the next size up.
+ */
+BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const unsigned int nbuckets)
+{
+	EdgeEntry **buckets_old = eh->buckets;
+	EdgeEntry **buckets_new;
+	const unsigned int nbuckets_old = eh->nbuckets;
+	unsigned int i;
+	EdgeEntry *e;
+
+	BLI_assert(eh->nbuckets != nbuckets);
+
+	eh->nbuckets = nbuckets;
+	buckets_new = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
+
+	for (i = 0; i < nbuckets_old; i++) {
+		EdgeEntry *e_next;
+		for (e = buckets_old[i]; e; e = e_next) {
+			const unsigned hash = edgehash_keyhash(eh, e->v0, e->v1);
+			e_next = e->next;
+			e->next = buckets_new[hash];
+			buckets_new[hash] = e;
+		}
+	}
+
+	eh->buckets = buckets_new;
+	MEM_freeN(buckets_old);
 }
 
 /**
@@ -110,26 +153,26 @@ BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentri
 	}
 }
 
-BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned int v1)
-{
-	BLI_assert(v0 < v1);
-
-	return ((v0 * 39) ^ (v1 * 31)) % eh->nbuckets;
-}
-
+/**
+ * Internal lookup function.
+ * Takes a hash argument to avoid calling #ghash_keyhash multiple times.
+ */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
                                                const unsigned int hash)
 {
 	EdgeEntry *e;
 	BLI_assert(v0 < v1);
 	for (e = eh->buckets[hash]; e; e = e->next) {
-		if (v0 == e->v0 && v1 == e->v1) {
+		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
 			return e;
 		}
 	}
 	return NULL;
 }
 
+/**
+ * Internal lookup function. Only wraps #edgehash_lookup_entry_ex
+ */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	unsigned int hash;
@@ -137,6 +180,7 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsig
 	hash = edgehash_keyhash(eh, v0, v1);
 	return edgehash_lookup_entry_ex(eh, v0, v1, hash);
 }
+
 
 static EdgeHash *edgehash_new(const char *info,
                               const unsigned int nentries_reserve,
@@ -160,8 +204,38 @@ static EdgeHash *edgehash_new(const char *info,
 	return eh;
 }
 
-static EdgeEntry *edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
-                                     unsigned int hash)
+/**
+ * Internal insert function.
+ * Takes a hash argument to avoid calling #edgehash_keyhash multiple times.
+ */
+BLI_INLINE void edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val,
+                                   unsigned int hash)
+{
+	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
+
+	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
+	IS_EDGEHASH_ASSERT(eh);
+
+	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 < v1);
+	BLI_assert(v0 != v1);
+
+	e->next = eh->buckets[hash];
+	e->v0 = v0;
+	e->v1 = v1;
+	e->val = val;
+	eh->buckets[hash] = e;
+
+	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
+		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
+	}
+}
+
+/**
+ * Insert function that doesn't set the value (use for EdgeSet)
+ */
+BLI_INLINE void edgehash_insert_ex_keyonly(EdgeHash *eh, unsigned int v0, unsigned int v1,
+                                           unsigned int hash)
 {
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
@@ -174,31 +248,20 @@ static EdgeEntry *edgehash_insert_ex(EdgeHash *eh, unsigned int v0, unsigned int
 	e->next = eh->buckets[hash];
 	e->v0 = v0;
 	e->v1 = v1;
-	/* intentionally don't set the value */
+	/* intentionally leave value unset */
 	eh->buckets[hash] = e;
 
 	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
-		EdgeEntry *e_iter;
-		EdgeEntry **old = eh->buckets;
-		const unsigned int nold = eh->nbuckets;
-		unsigned int i;
-
-		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
-		eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-
-		for (i = 0; i < nold; i++) {
-			EdgeEntry *e_next;
-			for (e_iter = old[i]; e_iter; e_iter = e_next) {
-				e_next = e_iter->next;
-				hash = edgehash_keyhash(eh, e_iter->v0, e_iter->v1);
-				e_iter->next = eh->buckets[hash];
-				eh->buckets[hash] = e_iter;
-			}
-		}
-
-		MEM_freeN(old);
+		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
 	}
-	return e;
+}
+
+BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+{
+	unsigned int hash;
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	edgehash_insert_ex(eh, v0, v1, val, hash);
 }
 
 /**
@@ -250,13 +313,7 @@ EdgeHash *BLI_edgehash_new(const char *info)
  */
 void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
 {
-	unsigned int hash;
-	EdgeEntry *e;
-	IS_EDGEHASH_ASSERT(eh);
-	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
-	hash = edgehash_keyhash(eh, v0, v1);
-	e = edgehash_insert_ex(eh, v0, v1, hash);
-	e->val = val;
+	edgehash_insert(eh, v0, v1, val);
 }
 
 /**
@@ -278,8 +335,7 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
 		return false;
 	}
 	else {
-		e = edgehash_insert_ex(eh, v0, v1, hash);
-		e->val = val;
+		edgehash_insert_ex(eh, v0, v1, val, hash);
 		return true;
 	}
 }
@@ -510,7 +566,7 @@ void BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1)
 	unsigned int hash;
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 	hash = edgehash_keyhash((EdgeHash *)es, v0, v1);
-	edgehash_insert_ex((EdgeHash *)es, v0, v1, hash);
+	edgehash_insert_ex_keyonly((EdgeHash *)es, v0, v1, hash);
 }
 
 /**
@@ -529,7 +585,7 @@ bool BLI_edgeset_reinsert(EdgeSet *es, unsigned int v0, unsigned int v1)
 		return false;
 	}
 	else {
-		edgehash_insert_ex((EdgeHash *)es, v0, v1, hash);
+		edgehash_insert_ex_keyonly((EdgeHash *)es, v0, v1, hash);
 		return true;
 	}
 }

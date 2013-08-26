@@ -98,11 +98,49 @@ struct GHash {
  * \{ */
 
 /**
+ * Get the hash for a key.
+ */
+BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
+{
+	return gh->hashfp(key) % gh->nbuckets;
+}
+
+/**
  * Check if the number of items in the GHash is large enough to require more buckets.
  */
 BLI_INLINE bool ghash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
 	return (nentries > nbuckets * 3);
+}
+
+/**
+ * Expand buckets to the next size up.
+ */
+BLI_INLINE void ghash_resize_buckets(GHash *gh, const unsigned int nbuckets)
+{
+	Entry **buckets_old = gh->buckets;
+	Entry **buckets_new;
+	const unsigned int nbuckets_old = gh->nbuckets;
+	unsigned int i;
+	Entry *e;
+
+	BLI_assert(gh->nbuckets != nbuckets);
+
+	gh->nbuckets = nbuckets;
+	buckets_new = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+
+	for (i = 0; i < nbuckets_old; i++) {
+		Entry *e_next;
+		for (e = buckets_old[i]; e; e = e_next) {
+			const unsigned hash = ghash_keyhash(gh, e->key);
+			e_next = e->next;
+			e->next = buckets_new[hash];
+			buckets_new[hash] = e;
+		}
+	}
+
+	gh->buckets = buckets_new;
+	MEM_freeN(buckets_old);
 }
 
 /**
@@ -116,14 +154,6 @@ BLI_INLINE void ghash_buckets_reserve(GHash *gh, const unsigned int nentries_res
 }
 
 /**
- * Get the hash for a key.
- */
-BLI_INLINE unsigned int ghash_keyhash(GHash *gh, const void *key)
-{
-	return gh->hashfp(key) % gh->nbuckets;
-}
-
-/**
  * Internal lookup function.
  * Takes a hash argument to avoid calling #ghash_keyhash multiple times.
  */
@@ -133,7 +163,7 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key,
 	Entry *e;
 
 	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (gh->cmpfp(key, e->key) == 0) {
+		if (UNLIKELY(gh->cmpfp(key, e->key) == 0)) {
 			return e;
 		}
 	}
@@ -178,41 +208,45 @@ static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
  * Internal insert function.
  * Takes a hash argument to avoid calling #ghash_keyhash multiple times.
  */
-static Entry *ghash_insert_ex(GHash *gh, void *key,
-                              unsigned int hash)
+BLI_INLINE void ghash_insert_ex(GHash *gh, void *key, void *val,
+                                unsigned int hash)
 {
 	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
-
 	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
+	IS_GHASH_ASSERT(gh);
 
 	e->next = gh->buckets[hash];
 	e->key = key;
-	/* intentionally don't set the value */
+	e->val = val;
 	gh->buckets[hash] = e;
 
 	if (UNLIKELY(ghash_test_expand_buckets(++gh->nentries, gh->nbuckets))) {
-		Entry *e_iter;
-		Entry **old = gh->buckets;
-		const unsigned nold = gh->nbuckets;
-		unsigned int i;
-
-		gh->nbuckets = hashsizes[++gh->cursize];
-		gh->buckets = (Entry **)MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-
-		for (i = 0; i < nold; i++) {
-			Entry *e_next;
-			for (e_iter = old[i]; e_iter; e_iter = e_next) {
-				e_next = e_iter->next;
-				hash = ghash_keyhash(gh, e_iter->key);
-				e_iter->next = gh->buckets[hash];
-				gh->buckets[hash] = e_iter;
-			}
-		}
-
-		MEM_freeN(old);
+		ghash_resize_buckets(gh, hashsizes[++gh->cursize]);
 	}
+}
 
-	return e;
+/**
+ * Insert function that doesn't set the value (use for GSet)
+ */
+BLI_INLINE void ghash_insert_ex_keyonly(GHash *gh, void *key,
+                                        unsigned int hash)
+{
+	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
+	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
+	e->next = gh->buckets[hash];
+	e->key = key;
+	/* intentionally leave value unset */
+	gh->buckets[hash] = e;
+
+	if (UNLIKELY(ghash_test_expand_buckets(++gh->nentries, gh->nbuckets))) {
+		ghash_resize_buckets(gh, hashsizes[++gh->cursize]);
+	}
+}
+
+BLI_INLINE void ghash_insert(GHash *gh, void *key, void *val)
+{
+	const unsigned int hash = ghash_keyhash(gh, key);
+	return ghash_insert_ex(gh, key, val, hash);
 }
 
 /**
@@ -225,7 +259,7 @@ static Entry *ghash_remove_ex(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GH
 	Entry *e_prev = NULL;
 
 	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (gh->cmpfp(key, e->key) == 0) {
+		if (UNLIKELY(gh->cmpfp(key, e->key) == 0)) {
 			Entry *e_next = e->next;
 
 			if (keyfreefp) keyfreefp(e->key);
@@ -314,9 +348,7 @@ int BLI_ghash_size(GHash *gh)
  */
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
-	const unsigned int hash = ghash_keyhash(gh, key);
-	Entry *e = ghash_insert_ex(gh, key, hash);
-	e->val = val;
+	ghash_insert(gh, key, val);
 }
 
 /**
@@ -338,8 +370,7 @@ bool BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreef
 		return false;
 	}
 	else {
-		e = ghash_insert_ex(gh, key, hash);
-		e->val = val;
+		ghash_insert_ex(gh, key, val, hash);
 		return true;
 	}
 }
@@ -811,7 +842,7 @@ int BLI_gset_size(GSet *gs)
 void BLI_gset_insert(GSet *gs, void *key)
 {
 	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
-	ghash_insert_ex((GHash *)gs, key, hash);
+	ghash_insert_ex_keyonly((GHash *)gs, key, hash);
 }
 
 /**
@@ -830,7 +861,7 @@ bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
 		return false;
 	}
 	else {
-		ghash_insert_ex((GHash *)gs, key, hash);
+		ghash_insert_ex_keyonly((GHash *)gs, key, hash);
 		return true;
 	}
 }
