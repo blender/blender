@@ -85,6 +85,7 @@
 #  include "RNA_enum_types.h"
 #endif
 
+static void wm_notifier_clear(wmNotifier *note);
 static void update_tablet_data(wmWindow *win, wmEvent *event);
 
 static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
@@ -218,11 +219,18 @@ void WM_main_remove_notifier_reference(const void *reference)
 			note_next = note->next;
 
 			if (note->reference == reference) {
-				BLI_remlink(&wm->queue, note);
-				MEM_freeN(note);
+				/* don't remove becauise this causes problems for #wm_event_do_notifiers
+				 * which may be looping on the data (deleting screens) */
+				wm_notifier_clear(note);
 			}
 		}
 	}
+}
+
+static void wm_notifier_clear(wmNotifier *note)
+{
+	/* NULL the entire notifier, only leaving (next, prev) members intact */
+	memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
 }
 
 static wmNotifier *wm_notifier_next(wmWindowManager *wm)
