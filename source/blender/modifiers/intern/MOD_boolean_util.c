@@ -266,44 +266,6 @@ static void FaceIt_Construct(
 	output->it = it;
 }
 
-static Object *AddNewBlenderMesh(Scene *scene, Base *base)
-{
-	/* This little function adds a new mesh object to the blender object list
-	 * It uses ob to duplicate data as this seems to be easier than creating
-	 * a new one. This new oject contains no faces nor vertices. */
-	Mesh *old_me;
-	Base *basen;
-	Object *ob_new;
-
-	/* now create a new blender object.
-	 * duplicating all the settings from the previous object
-	 * to the new one. */
-	ob_new = BKE_object_copy(base->object);
-
-	/* Ok we don't want to use the actual data from the
-	 * last object, the above function incremented the
-	 * number of users, so decrement it here. */
-	old_me = ob_new->data;
-	old_me->id.us--;
-
-	/* Now create a new base to add into the linked list of
-	 * vase objects. */
-
-	basen = MEM_mallocN(sizeof(Base), "duplibase");
-	*basen = *base;
-	BLI_addhead(&scene->base, basen);   /* addhead: anders oneindige lus */
-	basen->object = ob_new;
-	basen->flag &= ~SELECT;
-				
-	/* Initialize the mesh data associated with this object. */
-	ob_new->data = BKE_mesh_add(G.main, "Mesh");
-
-	/* Finally assign the object type. */
-	ob_new->type = OB_MESH;
-
-	return ob_new;
-}
-
 static void InterpCSGFace(
         DerivedMesh *dm, DerivedMesh *orig_dm, int index, int orig_index, int nr,
         float mapmat[4][4])
@@ -509,9 +471,9 @@ static void FreeMeshDescriptors(
 	FaceIt_Destruct(face_it);
 }
 
-static DerivedMesh *NewBooleanDerivedMesh_intern(
+DerivedMesh *NewBooleanDerivedMesh(
         DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-        int int_op_type, Material **mat, int *totmat)
+        int int_op_type)
 {
 
 	float inv_mat[4][4];
@@ -567,7 +529,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 			/* iterate through results of operation and insert
 			 * into new object */
 			result = ConvertCSGDescriptorsToDerivedMesh(
-			    &fd_o, &vd_o, inv_mat, map_mat, mat, totmat, dm_select, ob_select, dm, ob);
+			    &fd_o, &vd_o, inv_mat, map_mat, NULL, NULL, dm_select, ob_select, dm, ob);
 
 			/* free up the memory */
 			CSG_FreeVertexDescriptor(&vd_o);
@@ -583,68 +545,4 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 	}
 
 	return result;
-}
-
-int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
-{
-	Mesh *me_new;
-	int a, maxmat, totmat = 0;
-	Object *ob_new, *ob, *ob_select;
-	Material **mat;
-	DerivedMesh *result;
-	DerivedMesh *dm_select;
-	DerivedMesh *dm;
-
-	ob = base->object;
-	ob_select = base_select->object;
-
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	dm_select = mesh_create_derived_view(scene, ob_select, 0); // no modifiers in editmode ??
-
-	maxmat = ob->totcol + ob_select->totcol;
-	mat = (Material **)MEM_mallocN(sizeof(Material *) * maxmat, "NewBooleanMeshMat");
-	
-	/* put some checks in for nice user feedback */
-	if (dm == NULL || dm_select == NULL) {
-		return 0;
-	}
-
-	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) {
-		MEM_freeN(mat);
-		return -1;
-	}
-	
-	result = NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, mat, &totmat);
-
-	if (result == NULL) {
-		MEM_freeN(mat);
-		return 0;
-	}
-
-	/* create a new blender mesh object - using 'base' as  a template */
-	ob_new = AddNewBlenderMesh(scene, base_select);
-	me_new = ob_new->data;
-
-	DM_to_mesh(result, me_new, ob_new, CD_MASK_MESH);
-	result->release(result);
-
-	dm->release(dm);
-	dm_select->release(dm_select);
-
-	/* add materials to object */
-	for (a = 0; a < totmat; a++)
-		assign_material(ob_new, mat[a], a + 1, BKE_MAT_ASSIGN_USERPREF);
-
-	MEM_freeN(mat);
-
-	/* update dag */
-	DAG_id_tag_update(&ob_new->id, OB_RECALC_DATA);
-
-	return 1;
-}
-
-DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-                                   int int_op_type)
-{
-	return NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, NULL, NULL);
 }

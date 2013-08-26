@@ -39,12 +39,6 @@ struct Base;
 struct DerivedMesh;
 
 /* Performs a boolean between two mesh objects, it is assumed that both objects
- * are in fact a mesh object. On success returns 1 and creates a new mesh object
- * into blender data structures. On failure returns 0 and reports an error. */
-int NewBooleanMesh(struct Scene *scene, struct Base *base, struct Base *base_select, int op);
-
-
-/* Performs a boolean between two mesh objects, it is assumed that both objects
  * are in fact mesh object. On success returns a DerivedMesh. On failure
  * returns NULL and reports an error. */
 
