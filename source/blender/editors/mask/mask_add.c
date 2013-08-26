@@ -737,3 +737,159 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
+
+/******************** common primitive functions *********************/
+
+static int create_primitive_from_points(bContext *C, wmOperator *op, const float (*points)[2],
+                                        int num_points, char handle_type)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	Scene *scene = CTX_data_scene(C);
+	Mask *mask;
+	MaskLayer *mask_layer;
+	MaskSpline *new_spline;
+	float scale, location[2], frame_size[2];
+	int i, width, height;
+	int size = RNA_float_get(op->ptr, "size");
+
+	ED_mask_get_size(sa, &width, &height);
+	scale = (float)size / max_ii(width, height);
+
+	/* Get location in mask space. */
+	frame_size[0] = width;
+	frame_size[1] = height;
+	RNA_float_get_array(op->ptr, "location", location);
+	location[0] /= width;
+	location[1] /= height;
+	BKE_mask_coord_from_frame(location, location, frame_size);
+
+	/* Make it so new primitive is centered to mouse location. */
+	location[0] -= 0.5f * scale;
+	location[1] -= 0.5f * scale;
+
+	mask_layer = ED_mask_layer_ensure(C);
+	mask = CTX_data_edit_mask(C);
+
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
+
+	new_spline = BKE_mask_spline_add(mask_layer);
+	new_spline->flag = MASK_SPLINE_CYCLIC | SELECT;
+	new_spline->tot_point = num_points;
+	new_spline->points = MEM_recallocN(new_spline->points,
+	                                   sizeof(MaskSplinePoint) * new_spline->tot_point);
+
+	mask_layer->act_spline = new_spline;
+	mask_layer->act_point = NULL;
+
+	for (i = 0; i < num_points; i++) {
+		MaskSplinePoint *new_point = &new_spline->points[i];
+
+		copy_v2_v2(new_point->bezt.vec[1], points[i]);
+		mul_v2_fl(new_point->bezt.vec[1], scale);
+		add_v2_v2(new_point->bezt.vec[1], location);
+
+		new_point->bezt.h1 = handle_type;
+		new_point->bezt.h2 = handle_type;
+		BKE_mask_point_select_set(new_point, true);
+	}
+
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+
+	/* TODO: only update this spline */
+	BKE_mask_update_display(mask, CFRA);
+
+	return OPERATOR_FINISHED;
+}
+
+static int primitive_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	float cursor[2];
+	int width, height;
+
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_cursor_location_get(sa, cursor);
+
+	cursor[0] *= width;
+	cursor[1] *= height;
+
+	RNA_float_set_array(op->ptr, "location", cursor);
+
+	return op->type->exec(C, op);
+}
+
+static void define_prinitive_add_properties(wmOperatorType *ot)
+{
+	RNA_def_float(ot->srna, "size", 100, -FLT_MAX, FLT_MAX,
+	                     "Size", "Size of new circle", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
+	                     "Location", "Location of new circle", -FLT_MAX, FLT_MAX);
+}
+
+/******************** primitive add circle *********************/
+
+static int primitive_circle_add_exec(bContext *C, wmOperator *op)
+{
+	const float points[4][2] = {{0.0f, 0.5f},
+	                            {0.5f, 1.0f},
+	                            {1.0f, 0.5f},
+	                            {0.5f, 0.0f}};
+	int num_points = sizeof(points) / (2 * sizeof(float));
+
+	create_primitive_from_points(C, op, points, num_points, HD_AUTO);
+
+	return OPERATOR_FINISHED;
+}
+
+void MASK_OT_primitive_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Circle";
+	ot->description = "Add new circle-shaped spline";
+	ot->idname = "MASK_OT_primitive_circle_add";
+
+	/* api callbacks */
+	ot->exec = primitive_circle_add_exec;
+	ot->invoke = primitive_add_invoke;
+	ot->poll = ED_operator_mask;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	define_prinitive_add_properties(ot);
+}
+
+/******************** primitive add suqare *********************/
+
+static int primitive_square_add_exec(bContext *C, wmOperator *op)
+{
+	const float points[4][2] = {{0.0f, 0.0f},
+	                            {0.0f, 1.0f},
+	                            {1.0f, 1.0f},
+	                            {1.0f, 0.0f}};
+	int num_points = sizeof(points) / (2 * sizeof(float));
+
+	create_primitive_from_points(C, op, points, num_points, HD_VECT);
+
+	return OPERATOR_FINISHED;
+}
+
+void MASK_OT_primitive_square_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Square";
+	ot->description = "Add new square-shaped spline";
+	ot->idname = "MASK_OT_primitive_square_add";
+
+	/* api callbacks */
+	ot->exec = primitive_square_add_exec;
+	ot->invoke = primitive_add_invoke;
+	ot->poll = ED_operator_mask;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	define_prinitive_add_properties(ot);
+}

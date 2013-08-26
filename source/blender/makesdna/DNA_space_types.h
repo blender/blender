@@ -1093,6 +1093,8 @@ typedef struct SpaceClip {
 
 	int around, pad4;             /* pivot point for transforms */
 
+	float cursor[2];              /* Mask editor 2d cursor */
+
 	MaskSpaceInfo mask_info;
 } SpaceClip;
 

@@ -28,6 +28,7 @@ _modules = [
     "clip",
     "console",
     "image",
+    "mask",
     "mesh",
     "node",
     "object_align",

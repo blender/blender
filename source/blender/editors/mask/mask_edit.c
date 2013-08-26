@@ -363,6 +363,40 @@ void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *s
 	}
 }
 
+void ED_mask_cursor_location_get(ScrArea *sa, float cursor[2])
+{
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *space_clip = sa->spacedata.first;
+				copy_v2_v2(cursor, space_clip->cursor);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				zero_v2(cursor);
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *space_image = sa->spacedata.first;
+				copy_v2_v2(cursor, space_image->cursor);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(cursor);
+				break;
+		}
+	}
+	else {
+		BLI_assert(0);
+		zero_v2(cursor);
+	}
+}
+
 /********************** registration *********************/
 
 void ED_operatortypes_mask(void)
@@ -376,6 +410,8 @@ void ED_operatortypes_mask(void)
 	/* add */
 	WM_operatortype_append(MASK_OT_add_vertex);
 	WM_operatortype_append(MASK_OT_add_feather_vertex);
+	WM_operatortype_append(MASK_OT_primitive_circle_add);
+	WM_operatortype_append(MASK_OT_primitive_square_add);
 
 	/* geometry */
 	WM_operatortype_append(MASK_OT_switch_direction);
@@ -431,6 +467,9 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	keymap->poll = ED_maskedit_poll;
 
 	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+
+	/* add menu */
+	WM_keymap_add_menu(keymap, "MASK_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* mask mode supports PET now */
 	ED_keymap_proportional_cycle(keyconf, keymap);

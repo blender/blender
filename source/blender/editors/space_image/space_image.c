@@ -674,7 +674,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else if (sima->mode == SI_MODE_MASK) {
 		mask = ED_space_image_get_mask(sima);
-		draw_image_cursor(sima, ar);
+		draw_image_cursor(ar, sima->cursor);
 	}
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -723,7 +723,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 		ED_mask_draw_frames(mask, ar, CFRA, mask->sfra, mask->efra);
 
-		draw_image_cursor(sima, ar);
+		draw_image_cursor(ar, sima->cursor);
 	}
 
 	/* scrollers? */

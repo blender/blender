@@ -42,9 +42,12 @@ struct wmOperatorType;
 /* mask_add.c */
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
+void MASK_OT_primitive_circle_add(struct wmOperatorType *ot);
+void MASK_OT_primitive_square_add(struct wmOperatorType *ot);
 
 /* mask_ops.c */
 struct Mask *ED_mask_new(struct bContext *C, const char *name);
+struct MaskLayer *ED_mask_layer_ensure(struct bContext *C);
 
 void MASK_OT_new(struct wmOperatorType *ot);
 void MASK_OT_layer_new(struct wmOperatorType *ot);

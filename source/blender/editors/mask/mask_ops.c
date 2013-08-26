@@ -292,6 +292,26 @@ Mask *ED_mask_new(bContext *C, const char *name)
 	return mask;
 }
 
+/* Get ative layer. Will create mask/layer to be sure there's an active layer.  */
+MaskLayer *ED_mask_layer_ensure(bContext *C)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *mask_layer;
+
+	if (mask == NULL) {
+		/* If there's no active mask, create one. */
+		mask = ED_mask_new(C, NULL);
+	}
+
+	mask_layer = BKE_mask_layer_active(mask);
+	if (mask_layer == NULL) {
+		/* If there's no active mask layer, create one. */
+		mask_layer = BKE_mask_layer_new(mask, "");
+	}
+
+	return mask_layer;
+}
+
 static int mask_new_exec(bContext *C, wmOperator *op)
 {
 	char name[MAX_ID_NAME - 2];

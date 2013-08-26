@@ -56,6 +56,7 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
+#include "ED_uvedit.h"  /* just for draw_image_cursor */
 
 #include "IMB_imbuf.h"
 
@@ -442,6 +443,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_view_ndof);
 	WM_operatortype_append(CLIP_OT_prefetch);
 	WM_operatortype_append(CLIP_OT_set_scene_frames);
+	WM_operatortype_append(CLIP_OT_cursor_set);
 
 	/* ** clip_toolbar.c ** */
 	WM_operatortype_append(CLIP_OT_tools);
@@ -723,6 +725,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+
+	/* Cursor */
+	WM_keymap_add_item(keymap, "CLIP_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	/* ******** Hotkeys avalaible for preview region only ******** */
 
@@ -1153,8 +1158,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		if (mask) {
 			ScrArea *sa = CTX_wm_area(C);
 			int width, height;
-			float aspx, aspy;
+			float aspx, aspy, zoomx, zoomy, x, y;
 			ED_mask_get_size(sa, &width, &height);
+			ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 			ED_space_clip_get_aspect(sc, &aspx, &aspy);
 			ED_mask_draw_region(mask, ar,
 			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
@@ -1162,9 +1168,18 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			                    aspx, aspy,
 			                    TRUE, TRUE,
 			                    sc->stabmat, C);
+
+			/* TODO(sergey): would be nice to find a way to de-duplicate all this space conversions */
+			UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+			glPushMatrix();
+			glTranslatef(x, y, 0);
+			glScalef(zoomx, zoomy, 0);
+			glMultMatrixf(sc->stabmat);
+			glScalef(width, height, 0);
+			draw_image_cursor(ar, sc->cursor);
+			glPopMatrix();
 		}
-
-
 	}
 
 	if (sc->flag & SC_SHOW_GPENCIL) {

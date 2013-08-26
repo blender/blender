@@ -48,6 +48,8 @@ void ED_mask_point_pos(struct ScrArea *sa, struct ARegion *ar, float x, float y,
 void ED_mask_point_pos__reverse(struct ScrArea *sa, struct ARegion *ar,
                                 float x, float y, float *xr, float *yr);
 
+void ED_mask_cursor_location_get(struct ScrArea *sa, float cursor[2]);
+
 void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);

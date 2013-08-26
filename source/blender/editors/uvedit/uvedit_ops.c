@@ -3823,6 +3823,12 @@ static void UV_OT_reveal(wmOperatorType *ot)
 
 /******************** set 3d cursor operator ********************/
 
+static int uv_set_2d_cursor_poll(bContext *C)
+{
+	return ED_operator_uvedit_space_image(C) ||
+	       ED_space_image_maskedit_poll(C);
+}
+
 static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -3858,7 +3864,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_set_2d_cursor_exec;
 	ot->invoke = uv_set_2d_cursor_invoke;
-	ot->poll = ED_operator_uvedit_space_image;
+	ot->poll = uv_set_2d_cursor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

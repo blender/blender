@@ -69,7 +69,7 @@
 #define USE_EDBM_LOOPTRIS
 
 
-void draw_image_cursor(SpaceImage *sima, ARegion *ar)
+void draw_image_cursor(ARegion *ar, const float cursor[2])
 {
 	float zoom[2], x_fac, y_fac;
 
@@ -80,7 +80,7 @@ void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 	y_fac = zoom[1];
 	
 	cpack(0xFFFFFF);
-	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0);
+	glTranslatef(cursor[0], cursor[1], 0.0);
 	fdrawline(-0.05f * x_fac, 0, 0, 0.05f * y_fac);
 	fdrawline(0, 0.05f * y_fac, 0.05f * x_fac, 0.0f);
 	fdrawline(0.05f * x_fac, 0.0f, 0.0f, -0.05f * y_fac);
@@ -108,7 +108,7 @@ void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 	fdrawline(0.0f, -0.020f * y_fac, 0.0f, -0.1f * y_fac);
 	fdrawline(0.0f, 0.1f * y_fac, 0.0f, 0.020f * y_fac);
 
-	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0);
+	glTranslatef(-cursor[0], -cursor[1], 0.0);
 	setlinestyle(0);
 }
 
@@ -884,7 +884,7 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 			draw_uvs_texpaint(sima, scene, obact);
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))
-			draw_image_cursor(sima, ar);
+			draw_image_cursor(ar, sima->cursor);
 	}
 }
 
