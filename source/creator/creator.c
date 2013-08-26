@@ -174,11 +174,12 @@ static int print_version(int argc, const char **argv, void *data);
 #endif
 
 /* for the callbacks: */
-
+#ifndef WITH_PYTHON_MODULE
 #define BLEND_VERSION_FMT         "Blender %d.%02d (sub %d)"
 #define BLEND_VERSION_ARG         BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
 /* pass directly to printf */
 #define BLEND_VERSION_STRING_FMT  BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
+#endif
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
