@@ -1,4 +1,7 @@
 #!/bin/sh
 # This script updates icons from the SVG file
 
-inkscape prvicons.svg --without-gui --export-png=prvicons.png
+BASEDIR=$(dirname $0)
+
+inkscape $BASEDIR/prvicons.svg --without-gui --export-png=$BASEDIR/prvicons.png
+

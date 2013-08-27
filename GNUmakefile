@@ -184,6 +184,7 @@ help:
 	@echo "  * check_spelling_py    - check for spelling errors (Python only)"
 	@echo ""
 	@echo "Utilities (not associated with building blender)"
+	@echo "  * icons    - updates PNG icons from SVG files."
 	@echo "  * tbz      - create a compressed svn export 'blender_archive.tar.bz2'"
 	@echo ""
 	@echo "Documentation Targets (not associated with building blender)"
@@ -321,6 +322,10 @@ tbz:
 	tar cjf blender_archive.tar.bz2 blender_archive/
 	rm -rf blender_archive/
 	@echo "blender_archive.tar.bz2 written"
+
+icons:
+	$(BLENDER_DIR)/release/datafiles/blender_icons.sh
+	$(BLENDER_DIR)/release/datafiles/prvicons.sh
 
 
 # -----------------------------------------------------------------------------
