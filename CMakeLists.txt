@@ -261,7 +261,7 @@ mark_as_advanced(PYTHON_NUMPY_PATH)
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
-option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
+option(WITH_CYCLES_STANDALONE		"Build cycles standalone application" OFF)
 option(WITH_CYCLES_OSL				"Build Cycles with OSL support" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 sm_35 CACHE STRING "CUDA architectures to build binaries for")
@@ -373,7 +373,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
-if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_TEST)
+if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_STANDALONE)
 	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER must be enabled, nothing to do!")
 endif()
 

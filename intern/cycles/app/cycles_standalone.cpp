@@ -229,7 +229,7 @@ static void options_parse(int argc, const char **argv)
 	ArgParse ap;
 	bool help = false;
 
-	ap.options ("Usage: cycles_test [options] file.xml",
+	ap.options ("Usage: cycles [options] file.xml",
 		"%*", files_parse, "",
 		"--device %s", &devicename, ("Devices to use: " + device_names).c_str(),
 		"--shadingsys %s", &ssname, "Shading system to use: svm, osl",

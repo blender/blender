@@ -2,7 +2,7 @@
 ###########################################################################
 # GLUT
 
-if(WITH_CYCLES_TEST)
+if(WITH_CYCLES_STANDALONE)
 	set(GLUT_ROOT_PATH ${CYCLES_GLUT})
 
 	find_package(GLUT)

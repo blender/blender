@@ -22,7 +22,7 @@ set(SRC
 	util_transform.cpp
 )
 
-if(WITH_CYCLES_TEST)
+if(WITH_CYCLES_STANDALONE)
 	list(APPEND SRC
 		util_view.cpp
 	)
