@@ -500,6 +500,11 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 		for (j = i + 1; j < verts_len; j++) {
 			BMVert *v_other = verts[j];
 
+			/* a match has already been found, (we could check which is best, for now don't) */
+			if (BMO_elem_flag_test(bm, v_other, VERT_DOUBLE)) {
+				continue;
+			}
+
 			/* Compare sort values of the verts using 3x tolerance (allowing for the tolerance
 			 * on each of the three axes). This avoids the more expensive length comparison
 			 * for most vertex pairs. */
