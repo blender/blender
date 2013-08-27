@@ -218,7 +218,7 @@ void WM_main_remove_notifier_reference(const void *reference)
 			note_next = note->next;
 
 			if (note->reference == reference) {
-				/* don't remove becauise this causes problems for #wm_event_do_notifiers
+				/* don't remove because this causes problems for #wm_event_do_notifiers
 				 * which may be looping on the data (deleting screens) */
 				wm_notifier_clear(note);
 			}

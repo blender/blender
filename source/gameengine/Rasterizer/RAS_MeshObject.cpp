@@ -548,15 +548,3 @@ void RAS_MeshObject::SchedulePolygons(int drawingmode)
 		m_bMeshModified = true;
 	} 
 }
-
-static int get_def_index(Object* ob, const char* vgroup)
-{
-	bDeformGroup *curdef;
-	int index = 0;
-
-	for (curdef = (bDeformGroup*)ob->defbase.first; curdef; curdef=(bDeformGroup*)curdef->next, index++)
-		if (!strcmp(curdef->name, vgroup))
-			return index;
-
-	return -1;
-}
