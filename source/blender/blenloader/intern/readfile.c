@@ -6127,6 +6127,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 
 	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
 		ui_list->type = NULL;
+		ui_list->dyn_data = NULL;
 	}
 
 	if (spacetype == SPACE_EMPTY) {

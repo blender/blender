@@ -267,6 +267,8 @@ void BKE_spacedata_draw_locks(int set)
 /* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *ar)
 {
+	uiList *uilst;
+
 	if (st) {
 		ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
 		
@@ -285,6 +287,12 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	}
 
 	BLI_freelistN(&ar->panels);
+
+	for (uilst = ar->ui_lists.first; uilst; uilst = uilst->next) {
+		if (uilst->dyn_data) {
+			MEM_freeN(uilst->dyn_data);
+		}
+	}
 	BLI_freelistN(&ar->ui_lists);
 }
 

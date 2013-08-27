@@ -2497,30 +2497,89 @@ static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UN
 	}
 }
 
+typedef struct {
+	int visual_items;  /* Visual number of items (i.e. number of items we have room to display). */
+	int start_idx;     /* Index of first item to display. */
+	int end_idx;       /* Index of last item to display + 1. */
+} uiListLayoutdata;
+
+static void prepare_list(uiList *ui_list, int len, int activei, int rows, int maxrows, int columns,
+                         uiListLayoutdata *layoutdata)
+{
+	uiListDyn *dyn_data = ui_list->dyn_data;
+	int activei_row, max_scroll;
+
+	/* default rows */
+	if (rows == 0)
+		rows = 5;
+	dyn_data->visual_height_min = rows;
+	if (maxrows == 0)
+		maxrows = 5;
+	if (columns == 0)
+		columns = 9;
+	if (ui_list->list_grip >= rows)
+		maxrows = rows = ui_list->list_grip;
+	else
+		ui_list->list_grip = 0;  /* Reset to auto-size mode. */
+
+	if (columns > 1) {
+		dyn_data->height = (int)ceil((double)len / (double)columns);
+		activei_row = (int)floor((double)activei / (double)columns);
+	}
+	else {
+		dyn_data->height = len;
+		activei_row = activei;
+	}
+
+	/* Expand size if needed and possible. */
+	if ((ui_list->list_grip == 0) && (rows != maxrows) && (dyn_data->height > rows)) {
+		rows = min_ii(dyn_data->height, maxrows);
+	}
+
+	/* If list length changes or list is tagged to check this, and active is out of view, scroll to it .*/
+	if (ui_list->list_last_len != len || ui_list->flag & UILST_SCROLL_TO_ACTIVE_ITEM) {
+		if (activei_row < ui_list->list_scroll) {
+			ui_list->list_scroll = activei_row;
+		}
+		else if (activei_row >= ui_list->list_scroll + rows) {
+			ui_list->list_scroll = activei_row - rows + 1;
+		}
+		ui_list->flag &= ~UILST_SCROLL_TO_ACTIVE_ITEM;
+	}
+
+	max_scroll = max_ii(0, dyn_data->height - rows);
+	CLAMP(ui_list->list_scroll, 0, max_scroll);
+	ui_list->list_last_len = len;
+	dyn_data->visual_height = rows;
+	layoutdata->visual_items = rows * columns;
+	layoutdata->start_idx = ui_list->list_scroll * columns;
+	layoutdata->end_idx = min_ii(layoutdata->start_idx + rows * columns, len);
+}
+
 void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
                     PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
-                    const char *active_propname, int rows, int maxrows, int layout_type)
+                    const char *active_propname, int rows, int maxrows, int layout_type, int columns)
 {
 	uiListType *ui_list_type;
 	uiList *ui_list = NULL;
+	uiListDyn *dyn_data;
 	ARegion *ar;
 	uiListDrawItemFunc draw_item;
 
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
-	uiLayout *box, *row, *col, *sub, *overlap;
+	uiLayout *glob = NULL, *box, *row, *col, *subrow, *sub, *overlap;
 	uiBlock *block, *subblock;
 	uiBut *but;
 
+	uiListLayoutdata layoutdata;
 	char ui_list_id[UI_MAX_NAME_STR];
 	char numstr[32];
 	int rnaicon = ICON_NONE, icon = ICON_NONE;
 	int i = 0, activei = 0;
 	int len = 0;
-	int items;
 	int found;
-	int min, max;
 
 	/* validate arguments */
 	/* Forbid default UI_UL_DEFAULT_CLASS_NAME list class without a custom list_id! */
@@ -2592,54 +2651,39 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	ui_list = BLI_findstring(&ar->ui_lists, ui_list_id, offsetof(uiList, list_id));
 
 	if (!ui_list) {
-		ui_list = MEM_callocN(sizeof(uiList), __func__);
+		ui_list = MEM_callocN(sizeof(uiList), AT);
 		BLI_strncpy(ui_list->list_id, ui_list_id, sizeof(ui_list->list_id));
 		BLI_addtail(&ar->ui_lists, ui_list);
 	}
+
+	if (!ui_list->dyn_data) {
+		ui_list->dyn_data = MEM_callocN(sizeof(uiListDyn), AT);
+	}
+	dyn_data = ui_list->dyn_data;
 
 	/* Because we can't actually pass type across save&load... */
 	ui_list->type = ui_list_type;
 	ui_list->layout_type = layout_type;
 
+	if (dataptr->data && prop)
+		dyn_data->items_len = dyn_data->items_shown = len = RNA_property_collection_length(dataptr, prop);
+
 	switch (layout_type) {
 		case UILST_LAYOUT_DEFAULT:
-			/* default rows */
-			if (rows == 0)
-				rows = 5;
-			if (maxrows == 0)
-				maxrows = 5;
-			if (ui_list->list_grip_size != 0)
-				rows = ui_list->list_grip_size;
-
 			/* layout */
 			box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
-			row = uiLayoutRow(box, FALSE);
+			glob = uiLayoutColumn(box, TRUE);
+			row = uiLayoutRow(glob, FALSE);
 			col = uiLayoutColumn(row, TRUE);
 
 			/* init numbers */
-			RNA_property_int_range(active_dataptr, activeprop, &min, &max);
-
-			if (prop)
-				len = RNA_property_collection_length(dataptr, prop);
-			items = CLAMPIS(len, rows, MAX2(rows, maxrows));
-
-			/* if list length changes and active is out of view, scroll to it */
-			if ((ui_list->list_last_len != len) &&
-			    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items))
-			{
-				ui_list->list_scroll = activei;
-			}
-
-			ui_list->list_scroll = min_ii(ui_list->list_scroll, len - items);
-			ui_list->list_scroll = max_ii(ui_list->list_scroll, 0);
-			ui_list->list_size = items;
-			ui_list->list_last_len = len;
+			prepare_list(ui_list, len, activei, rows, maxrows, 1, &layoutdata);
 
 			if (dataptr->data && prop) {
 				/* create list items */
 				RNA_PROP_BEGIN (dataptr, itemptr, prop)
 				{
-					if (i >= ui_list->list_scroll && i < ui_list->list_scroll + items) {
+					if (i >= layoutdata.start_idx && i < layoutdata.end_idx) {
 						subblock = uiLayoutGetBlock(col);
 						overlap = uiLayoutOverlap(col);
 
@@ -2672,17 +2716,16 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			}
 
 			/* add dummy buttons to fill space */
-			while (i < ui_list->list_scroll + items) {
-				if (i >= ui_list->list_scroll)
-					uiItemL(col, "", ICON_NONE);
-				i++;
+			for (; i < layoutdata.start_idx + layoutdata.visual_items; i++) {
+				uiItemL(col, "", ICON_NONE);
 			}
 
 			/* add scrollbar */
-			if (len > items) {
+			if (len > layoutdata.visual_items) {
 				col = uiLayoutColumn(row, FALSE);
-				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &ui_list->list_scroll,
-				          0, len - items, items, 0, "");
+				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * dyn_data->visual_height,
+				          &ui_list->list_scroll, 0, dyn_data->height - dyn_data->visual_height,
+				          dyn_data->visual_height, 0, "");
 			}
 			break;
 		case UILST_LAYOUT_COMPACT:
@@ -2719,19 +2762,24 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			break;
 		case UILST_LAYOUT_GRID:
 			box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
-			col = uiLayoutColumn(box, TRUE);
-			row = uiLayoutRow(col, FALSE);
+			glob = uiLayoutColumn(box, TRUE);
+			row = uiLayoutRow(glob, FALSE);
+			col = uiLayoutColumn(row, TRUE);
+			subrow = NULL;  /* Quite gcc warning! */
+
+			prepare_list(ui_list, len, activei, rows, maxrows, columns, &layoutdata);
 
 			if (dataptr->data && prop) {
 				/* create list items */
 				RNA_PROP_BEGIN (dataptr, itemptr, prop)
 				{
+					if (i >= layoutdata.start_idx && i < layoutdata.end_idx) {
 					/* create button */
-					if (!(i % 9))
-						row = uiLayoutRow(col, FALSE);
+					if (!(i % columns))
+						subrow = uiLayoutRow(col, FALSE);
 
-					subblock = uiLayoutGetBlock(row);
-					overlap = uiLayoutOverlap(row);
+					subblock = uiLayoutGetBlock(subrow);
+					overlap = uiLayoutOverlap(subrow);
 
 					uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
 
@@ -2753,12 +2801,40 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					}
 
 					uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
-
+					}
 					i++;
 				}
 				RNA_PROP_END;
 			}
+
+			/* add dummy buttons to fill space */
+			for (; i < layoutdata.start_idx + layoutdata.visual_items; i++) {
+				if (!(i % columns)) {
+					subrow = uiLayoutRow(col, FALSE);
+				}
+				uiItemL(subrow, "", ICON_NONE);
+			}
+
+			/* add scrollbar */
+			if (len > layoutdata.visual_items) {
+				col = uiLayoutColumn(row, FALSE);
+				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * dyn_data->visual_height,
+				          &ui_list->list_scroll, 0, dyn_data->height - dyn_data->visual_height,
+				          dyn_data->visual_height, 0, "");
+			}
 			break;
+	}
+
+	if (glob) {
+		row = uiLayoutRow(glob, TRUE);
+		subblock = uiLayoutGetBlock(row);
+		uiBlockSetEmboss(subblock, UI_EMBOSSN);
+
+		but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.4f, ui_list,
+		                   0.0, 0.0, 0, -1, "");
+		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+
+		uiBlockSetEmboss(subblock, UI_EMBOSS);
 	}
 }
 

@@ -112,22 +112,36 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	void *activedata;			/* runtime for panel manipulation */
 } Panel;
 
-typedef struct uiList {				/* some list UI data need to be saved in file */
+/* uiList dynamic data... */
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
+typedef struct uiListDyn {
+	int height;                   /* Number of rows needed to draw all elements. */
+	int visual_height;            /* Actual visual height of the list (in rows). */
+	int visual_height_min;        /* Minimal visual height of the list (in rows). */
+
+	int items_len;                /* Number of items in collection. */
+	int items_shown;              /* Number of items actually visible after filtering. */
+} uiListDyn;
+
+typedef struct uiList {           /* some list UI data need to be saved in file */
 	struct uiList *next, *prev;
 
-	struct uiListType *type;		/* runtime */
-	void *padp;
+	struct uiListType *type;      /* runtime */
 
-	char list_id[64];				/* defined as UI_MAX_NAME_STR */
+	char list_id[64];             /* defined as UI_MAX_NAME_STR */
 
-	int layout_type;				/* How items are layedout in the list */
-	int padi;
+	int layout_type;              /* How items are layedout in the list */
+	int flag;
 
 	int list_scroll;
-	int list_size;
+	int list_grip;
 	int list_last_len;
-	int list_grip_size;
-/*	char list_search[64]; */
+	int padi1;
+
+	/* Dynamic data (runtime). */
+	uiListDyn *dyn_data;
 } uiList;
 
 typedef struct ScrArea {
@@ -232,11 +246,16 @@ typedef struct ARegion {
 #define PNL_DEFAULT_CLOSED		1
 #define PNL_NO_HEADER			2
 
-/* uilist layout_type */
+/* uiList layout_type */
 enum {
 	UILST_LAYOUT_DEFAULT          = 0,
 	UILST_LAYOUT_COMPACT          = 1,
 	UILST_LAYOUT_GRID             = 2,
+};
+
+/* uiList flag */
+enum {
+	UILST_SCROLL_TO_ACTIVE_ITEM   = 1 << 0,          /* Scroll list to make active item visible. */
 };
 
 /* regiontype, first two are the default set */

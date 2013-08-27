@@ -170,6 +170,7 @@ typedef struct uiHandleButtonData {
 	/* coords are Window/uiBlock relative (depends on the button) */
 	int draglastx, draglasty;
 	int dragstartx, dragstarty;
+	int draglastvalue;
 	bool dragchange, draglock;
 	int dragsel;
 	float dragf, dragfstart;
@@ -3406,6 +3407,87 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return retval;
 }
 
+static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
+{
+	uiList *ui_list = but->custom_data;
+	int *size = (int *)but->poin;
+	int mx, my;
+	int retval = WM_UI_HANDLER_CONTINUE;
+
+	mx = event->x;
+	my = event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if (data->state == BUTTON_STATE_NUM_EDITING) {
+		if (event->type == ESCKEY) {
+			data->cancel = true;
+			data->escapecancel = true;
+			*size = (int)data->origvalue;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ED_region_tag_redraw(data->region);
+		}
+		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ED_region_tag_redraw(data->region);
+		}
+		else if (event->type == MOUSEMOVE) {
+			/* If we switched from dragged to auto size, suspend shrinking dragging and set dragstarty to a temp
+			 * refpoint.
+			 */
+			if (data->draglastvalue > 0 && *size == 0) {
+				data->draglastvalue = *size;
+				data->draglasty = data->dragstarty;
+				data->dragstarty = my;
+			}
+			else {
+				int delta = -(my - data->dragstarty);
+				/* Number of rows to show/hide, UI_UNIT_Y should work nice in most cases. */
+				delta /= UI_UNIT_Y;
+
+				/* If we are not in autosize mode, default behavior... */
+				if (*size > 0 && delta != 0) {
+					/* Note: In case some items of the list would draw more than UI_UNIT_Y height, we only grow from one
+					 *       item at a time, to avoid instability!
+					 */
+					delta = delta / abs(delta);
+					/* We can't use ui_numedit_apply()... */
+					/* list template will clamp, but we do not want to reach 0 aka autosize mode!. */
+					*size = max_ii(*size + delta, 1);
+
+					/* Used to detect switch to/from autosize mode. */
+					data->draglastvalue = *size;
+
+					data->dragchange = true;
+					data->applied = data->applied_interactive = true;
+
+					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+					ED_region_tag_redraw(data->region);
+				}
+				/* If we are leaving autosize mode (growing dragging), restore to minimal size. */
+				else if (delta > 0) {
+					/* We can't use ui_numedit_apply()... */
+					*size = ui_list->dyn_data->visual_height_min;
+
+					/* Restore real dragstarty value! */
+					data->dragstarty = data->draglasty;
+
+					/* Used to detect switch to/from autosize mode. */
+					data->draglastvalue = *size;
+
+					data->dragchange = true;
+					data->applied = data->applied_interactive = true;
+
+					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+					ED_region_tag_redraw(data->region);
+				}
+			}
+		}
+
+		retval = WM_UI_HANDLER_BREAK;
+	}
+
+	return retval;
+}
 
 static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
@@ -5367,8 +5449,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		case NUMSLI:
 			retval = ui_do_but_SLI(C, block, but, data, event);
 			break;
-		case ROUNDBOX:
 		case LISTBOX:
+			retval = ui_do_but_LISTBOX(C, block, but, data, event);
+			break;
+		case ROUNDBOX:
 		case LABEL:
 		case LISTLABEL:
 		case ROW:
@@ -5622,8 +5706,6 @@ static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
 	uiBut *but;
 	int mx, my;
 
-//	if (!win->active)
-//		return NULL;
 	if (!ui_mouse_inside_region(ar, x, y))
 		return NULL;
 
@@ -5768,7 +5850,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				WM_cursor_grab_disable(data->window, NULL);
 			}
 #else
-			WM_cursor_grab_disable(data->window, );
+			WM_cursor_grab_disable(data->window, NULL);
 #endif
 		}
 	}
@@ -6423,89 +6505,124 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 
 static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 {
-	uiBut *but = ui_list_find_mouse_over(ar, event->x, event->y);
+	uiBut *but, *dragbut;
+	uiList *ui_list;
+	uiListDyn *dyn_data;
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int type = event->type, val = event->val;
+	int mx, my;
+	bool is_over_dragbut = false;
 
-	if (but) {
-		uiList *ui_list = but->custom_data;
+	but = ui_list_find_mouse_over(ar, event->x, event->y);
+	if (!but) {
+		return retval;
+	}
 
-		if (ui_list) {
-			
-			/* convert pan to scrollwheel */
-			if (type == MOUSEPAN) {
-				ui_pan_to_scroll(event, &type, &val);
-				
-				/* if type still is mousepan, we call it handled, since delta-y accumulate */
-				/* also see wm_event_system.c do_wheel_ui hack */
-				if (type == MOUSEPAN)
-					retval = WM_UI_HANDLER_BREAK;
-			}
-			
-			if (val == KM_PRESS) {
-				
-				if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
-					((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
-				{
-					const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
-					int value, min, max;
+	ui_list = but->custom_data;
+	if (!ui_list || !ui_list->dyn_data) {
+		return retval;
+	}
+	dyn_data = ui_list->dyn_data;
 
-					/* activate up/down the list */
-					value = value_orig;
+	mx = event->x;
+	my = event->y;
+	ui_window_to_block(ar, but->block, &mx, &my);
 
-					if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
-						value--;
-					else
-						value++;
+	/* Find our "dragging" button. */
+	for (dragbut = but->block->buttons.first; dragbut; dragbut = dragbut->next) {
+		if (dragbut->poin == (void *)ui_list) {
+			break;
+		}
+	}
+	if (dragbut && dragbut == ui_but_find_mouse_over(ar, event->x, event->y)) {
+		is_over_dragbut = true;
+	}
 
-					CLAMP(value, 0, ui_list->list_last_len - 1);
+	if (is_over_dragbut && type == LEFTMOUSE && val == KM_PRESS) {
+		uiHandleButtonData *data;
+		int *size = (int *)but->poin;
 
-					if (value < ui_list->list_scroll)
-						ui_list->list_scroll = value;
-					else if (value >= ui_list->list_scroll + ui_list->list_size)
-						ui_list->list_scroll = value - ui_list->list_size + 1;
+		ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+		button_activate_state(C, but, BUTTON_STATE_INIT);
 
-					RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
-					value = CLAMPIS(value, min, max);
+		data = but->active;
+		data->dragstarty = my;
 
-					if (value != value_orig) {
-						RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-						RNA_property_update(C, &but->rnapoin, but->rnaprop);
+		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-						ui_apply_undo(but);
-						ED_region_tag_redraw(ar);
-					}
+		/* Again, have to override values set by ui_numedit_begin, because our listbox button also has a rnapoin... */
+		*size = data->origvalue = (double)dyn_data->visual_height;
 
-					retval = WM_UI_HANDLER_BREAK;
+		retval = WM_UI_HANDLER_BREAK;
+	}
+	else {
+		/* convert pan to scrollwheel */
+		if (type == MOUSEPAN) {
+			ui_pan_to_scroll(event, &type, &val);
+
+			/* if type still is mousepan, we call it handled, since delta-y accumulate */
+			/* also see wm_event_system.c do_wheel_ui hack */
+			if (type == MOUSEPAN)
+				retval = WM_UI_HANDLER_BREAK;
+		}
+
+		if (val == KM_PRESS) {
+			if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
+			    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+			{
+				const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+				int value, min, max;
+
+				/* activate up/down the list */
+				value = value_orig;
+
+				if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
+					value--;
+				else
+					value++;
+
+				CLAMP(value, 0, dyn_data->items_len - 1);
+
+				RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
+				CLAMP(value, min, max);
+
+				if (value != value_orig) {
+					RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+					RNA_property_update(C, &but->rnapoin, but->rnaprop);
+
+					ui_apply_undo(but);
+
+					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+					ED_region_tag_redraw(ar);
 				}
-				else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
-					/* silly replacement for proper grip */
-					if (ui_list->list_grip_size == 0)
-						ui_list->list_grip_size = ui_list->list_size;
+				retval = WM_UI_HANDLER_BREAK;
+			}
+			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+				/* We now have proper grip, but keep this anyway! */
+				if (ui_list->list_grip == 0)
+					ui_list->list_grip = dyn_data->visual_height;
+				/* list template will clamp */
+				if (type == WHEELUPMOUSE)
+					ui_list->list_grip--;
+				else
+					ui_list->list_grip++;
 
+				ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+				ED_region_tag_redraw(ar);
+
+				retval = WM_UI_HANDLER_BREAK;
+			}
+			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+				if (dyn_data->height > dyn_data->visual_height) {
+					/* list template will clamp */
 					if (type == WHEELUPMOUSE)
-						ui_list->list_grip_size--;
+						ui_list->list_scroll--;
 					else
-						ui_list->list_grip_size++;
-
-					ui_list->list_grip_size = MAX2(ui_list->list_grip_size, 1);
+						ui_list->list_scroll++;
 
 					ED_region_tag_redraw(ar);
 
 					retval = WM_UI_HANDLER_BREAK;
-				}
-				else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-					if (ui_list->list_last_len > ui_list->list_size) {
-						/* list template will clamp */
-						if (type == WHEELUPMOUSE)
-							ui_list->list_scroll--;
-						else
-							ui_list->list_scroll++;
-
-						ED_region_tag_redraw(ar);
-
-						retval = WM_UI_HANDLER_BREAK;
-					}
 				}
 			}
 		}
