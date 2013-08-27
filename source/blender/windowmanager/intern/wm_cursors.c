@@ -49,6 +49,7 @@
 #include "WM_types.h"
 #include "WM_api.h"
 #include "wm_cursors.h"
+#include "wm_window.h"
 
 /* XXX this still is mess from old code */
 
@@ -233,25 +234,32 @@ void WM_cursor_grab_disable(wmWindow *win, int mouse_ungrab_xy[2])
 	}
 }
 
+static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
+{
+	/* note: don't use wmEvent coords because of continuous grab [#36409] */
+	int cx, cy;
+	wm_get_cursor_position(win, &cx, &cy);
+	WM_cursor_warp(win, cx + x, cy + y);
+}
+
 /* give it a modal keymap one day? */
 int wm_cursor_arrow_move(wmWindow *win, wmEvent *event)
 {
 	if (win && event->val == KM_PRESS) {
-		
 		if (event->type == UPARROWKEY) {
-			WM_cursor_warp(win, event->x, event->y + 1);
+			wm_cursor_warp_relative(win, 0, 1);
 			return 1;
 		}
 		else if (event->type == DOWNARROWKEY) {
-			WM_cursor_warp(win, event->x, event->y - 1);
+			wm_cursor_warp_relative(win, 0, -1);
 			return 1;
 		}
 		else if (event->type == LEFTARROWKEY) {
-			WM_cursor_warp(win, event->x - 1, event->y);
+			wm_cursor_warp_relative(win, -1, 0);
 			return 1;
 		}
 		else if (event->type == RIGHTARROWKEY) {
-			WM_cursor_warp(win, event->x + 1, event->y);
+			wm_cursor_warp_relative(win, 1, 0);
 			return 1;
 		}
 	}
