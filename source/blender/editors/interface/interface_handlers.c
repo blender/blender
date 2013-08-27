@@ -3444,7 +3444,7 @@ static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			else {
 				int delta = -(my - data->dragstarty);
 				/* Number of rows to show/hide, UI_UNIT_Y should work nice in most cases. */
-				delta /= UI_UNIT_Y;
+				delta = (int)floorf(((float)delta / (float)UI_UNIT_Y) + 0.5f);
 
 				/* If we are not in autosize mode, default behavior... */
 				if (*size > 0 && delta != 0) {
