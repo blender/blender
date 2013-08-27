@@ -127,12 +127,38 @@ void BMO_pop(BMesh *bm)
 /* use for both slot_types_in and slot_types_out */
 static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args)
 {
+	BMOpSlot *slot;
 	unsigned int i;
 	for (i = 0; slot_types[i].type; i++) {
-		slot_args[i].slot_name    = slot_types[i].name;
-		slot_args[i].slot_type    = slot_types[i].type;
-		slot_args[i].slot_subtype = slot_types[i].subtype;
-		// slot_args[i].index = i;  // UNUSED
+		slot = &slot_args[i];
+		slot->slot_name    = slot_types[i].name;
+		slot->slot_type    = slot_types[i].type;
+		slot->slot_subtype = slot_types[i].subtype;
+		// slot->index = i;  // UNUSED
+
+		switch (slot->slot_type) {
+			case BMO_OP_SLOT_MAPPING:
+				slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+static void bmo_op_slots_free(const BMOSlotType *slot_types, BMOpSlot *slot_args)
+{
+	BMOpSlot *slot;
+	unsigned int i;
+	for (i = 0; slot_types[i].type; i++) {
+		slot = &slot_args[i];
+		switch (slot->slot_type) {
+			case BMO_OP_SLOT_MAPPING:
+				BLI_ghash_free(slot->data.ghash, NULL, NULL);
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -196,20 +222,6 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 		bmesh_edit_end(bm, op->type_flag);
 	
 	BMO_pop(bm);
-}
-
-static void bmo_op_slots_free(const BMOSlotType *slot_types, BMOpSlot *slot_args)
-{
-	BMOpSlot *slot;
-	unsigned int i;
-	for (i = 0; slot_types[i].type; i++) {
-		slot = &slot_args[i];
-		if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
-			if (slot->data.ghash) {
-				BLI_ghash_free(slot->data.ghash, NULL, NULL);
-			}
-		}
-	}
 }
 
 /**
@@ -334,15 +346,6 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 	else if (slot_dst->slot_type == BMO_OP_SLOT_MAPPING) {
 		GHashIterator it;
 		BMOElemMapping *srcmap, *dstmap;
-
-		/* sanity check */
-		if (!slot_src->data.ghash) {
-			return;
-		}
-
-		if (!slot_dst->data.ghash) {
-			slot_dst->data.ghash = BLI_ghash_ptr_new_ex("bmesh operator 2", BLI_ghash_size(slot_src->data.ghash));
-		}
 
 		for (BLI_ghashIterator_init(&it, slot_src->data.ghash);
 		     (srcmap = BLI_ghashIterator_getValue(&it));
@@ -621,12 +624,7 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
-	
-	/* check if its actually a buffer */
-	if (!(slot->slot_type == BMO_OP_SLOT_MAPPING))
-		return 0;
-
-	return slot->data.ghash ? BLI_ghash_size(slot->data.ghash) : 0;
+	return BLI_ghash_size(slot->data.ghash);
 }
 
 /* inserts a key/value mapping into a mapping slot.  note that it copies the
@@ -644,13 +642,6 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
 	mapping->element = (BMHeader *) element;
 	mapping->len = len;
 	memcpy(BMO_OP_SLOT_MAPPING_DATA(mapping), data, len);
-
-	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
-	}
-	else {
-		BLI_assert(slot->data.ghash);
-	}
 
 	BLI_ghash_insert(slot->data.ghash, (void *)element, mapping);
 }
@@ -707,11 +698,11 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 
-	/* sanity check */
-	if (!slot->data.ghash) return;
 
-	BLI_ghashIterator_init(&it, slot->data.ghash);
-	for ( ; (ele_f = BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
+	for (BLI_ghashIterator_init(&it, slot->data.ghash);
+	     (ele_f = BLI_ghashIterator_getKey(&it));
+	     BLI_ghashIterator_step(&it))
+	{
 		if (ele_f->head.htype & htype) {
 			BMO_elem_flag_enable(bm, ele_f, oflag);
 		}
@@ -1360,12 +1351,7 @@ void *BMO_iter_new(BMOIter *iter,
 	iter->restrictmask = restrictmask;
 
 	if (iter->slot->slot_type == BMO_OP_SLOT_MAPPING) {
-		if (iter->slot->data.ghash) {
-			BLI_ghashIterator_init(&iter->giter, slot->data.ghash);
-		}
-		else {
-			return NULL;
-		}
+		BLI_ghashIterator_init(&iter->giter, slot->data.ghash);
 	}
 	else if (iter->slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
 		BLI_assert(restrictmask & slot->slot_subtype.elem);
