@@ -71,6 +71,11 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 #define EDGE_COL	2
 #define FACE_MARK	2
 
+/**
+ * \note with 'targetmap', multiple 'keys' are currently supported, though no callers should be using.
+ * (because slot maps currently use GHash without the GHASH_FLAG_ALLOW_DUPES flag set)
+ *
+ */
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;

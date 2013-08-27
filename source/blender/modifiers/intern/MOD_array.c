@@ -319,8 +319,10 @@ static void merge_first_last(BMesh *bm,
 	/* add new merge targets to weld operator */
 	slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-		v2 = BMO_iter_map_value_p(&oiter);
-		BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
+		if (!BMO_slot_map_contains(slot_targetmap, v)) {
+			v2 = BMO_iter_map_value_p(&oiter);
+			BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
+		}
 	}
 
 	BMO_op_finish(bm, &find_op);
@@ -344,7 +346,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int *indexMap = NULL;
 	DerivedMesh *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
-	BMOpSlot *slot_targetmap = NULL;  /* for weldop */
+	BMOpSlot *slot_targetmap = NULL;  /* for weld_op */
 
 	/* need to avoid infinite recursion here */
 	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH)
