@@ -107,7 +107,8 @@ void *BKE_treehash_create_from_treestore(BLI_mempool *treestore)
 	return treehash;
 }
 
-static void free_treehash_group(void *key) {
+static void free_treehash_group(void *key)
+{
 	tse_group_free(key);
 }
 

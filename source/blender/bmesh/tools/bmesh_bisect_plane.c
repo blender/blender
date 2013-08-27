@@ -182,7 +182,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 			cross_v3_v3v3(sort_dir, f->no, plane);
 			if (UNLIKELY(normalize_v3(sort_dir) == 0.0f)) {
 				/* find any 2 verts and get their direction */
-				for(i = 0; i < STACK_SIZE(vert_split_arr); i++) {
+				for (i = 0; i < STACK_SIZE(vert_split_arr); i++) {
 					if (!equals_v3v3(vert_split_arr[0]->co, vert_split_arr[i]->co)) {
 						sub_v3_v3v3(sort_dir, vert_split_arr[0]->co, vert_split_arr[i]->co);
 						normalize_v3(sort_dir);
@@ -214,7 +214,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 
 			/* ---- */
 			/* Sort the verts across the face from one side to another */
-			for(i = 0; i < STACK_SIZE(vert_split_arr); i++) {
+			for (i = 0; i < STACK_SIZE(vert_split_arr); i++) {
 				BMVert *v = vert_split_arr[i];
 				BM_VERT_SORTVAL(v) = dot_v3v3(sort_dir, v->co);
 			}
@@ -233,7 +233,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 			STACK_INIT(face_split_arr);
 			STACK_PUSH(face_split_arr, f);
 
-			for(i = 0; i < STACK_SIZE(vert_split_arr) - 1; i++) {
+			for (i = 0; i < STACK_SIZE(vert_split_arr) - 1; i++) {
 				BMVert *v_a = vert_split_arr[i];
 				BMVert *v_b = vert_split_arr[i + 1];
 				float co_mid[2];
@@ -249,7 +249,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 					bool found = false;
 					unsigned int j;
 
-					for(j = 0; j < STACK_SIZE(face_split_arr); j++) {
+					for (j = 0; j < STACK_SIZE(face_split_arr); j++) {
 						/* would be nice to avoid loop lookup here,
 						 * but we need to know which face the verts are in */
 						if ((l_a = BM_face_vert_share_loop(face_split_arr[j], v_a)) &&
@@ -352,7 +352,7 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 	/* store a stack of faces to be evaluated for splitting */
 	BLI_LINKSTACK_INIT(face_stack);
 
-	for(i = 0; i < einput_len; i++) {
+	for (i = 0; i < einput_len; i++) {
 		/* we could check edge_is_cut_test(e) but there is no point */
 		BMEdge *e = edges_arr[i];
 		const int side[2] = {BM_VERT_DIR(e->v1), BM_VERT_DIR(e->v2)};

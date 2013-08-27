@@ -1129,7 +1129,7 @@ static BMOpDefine bmo_bisect_plane_def = {
 	 {"dist",         BMO_OP_SLOT_FLT},     /* minimum distance when testing if a vert is exactly on the plane */
 	 {"plane_co", BMO_OP_SLOT_VEC},         /* point on the plane */
 	 {"plane_no", BMO_OP_SLOT_VEC},         /* direction of the plane */
-	 {"use_snap_center",BMO_OP_SLOT_BOOL},  /* snap axis aligned verts to the center */
+	 {"use_snap_center", BMO_OP_SLOT_BOOL},  /* snap axis aligned verts to the center */
 	 {"clear_outer",   BMO_OP_SLOT_BOOL},    /* when enabled. remove all geometry on the positive side of the plane */
 	 {"clear_inner",   BMO_OP_SLOT_BOOL},    /* when enabled. remove all geometry on the negative side of the plane */
 	 {{'\0'}},
