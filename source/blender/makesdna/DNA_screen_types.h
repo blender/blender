@@ -256,6 +256,7 @@ enum {
 /* uiList flag */
 enum {
 	UILST_SCROLL_TO_ACTIVE_ITEM   = 1 << 0,          /* Scroll list to make active item visible. */
+	UILST_RESIZING                = 1 << 1,          /* We are currently resizing, deactivate autosize! */
 };
 
 /* regiontype, first two are the default set */

@@ -2517,10 +2517,17 @@ static void prepare_list(uiList *ui_list, int len, int activei, int rows, int ma
 		maxrows = 5;
 	if (columns == 0)
 		columns = 9;
-	if (ui_list->list_grip >= rows)
+
+	if (ui_list->list_grip >= rows) {
 		maxrows = rows = ui_list->list_grip;
-	else
+	}
+	else {
 		ui_list->list_grip = 0;  /* Reset to auto-size mode. */
+		/* Prevent auto-size mode to take effect while grab-resizing! */
+		if (ui_list->flag & UILST_RESIZING) {
+			maxrows = rows;
+		}
+	}
 
 	if (columns > 1) {
 		dyn_data->height = (int)ceil((double)len / (double)columns);

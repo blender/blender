@@ -3424,10 +3424,12 @@ static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			data->escapecancel = true;
 			*size = (int)data->origvalue;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_list->flag &= ~UILST_RESIZING;
 			ED_region_tag_redraw(data->region);
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_list->flag &= ~UILST_RESIZING;
 			ED_region_tag_redraw(data->region);
 		}
 		else if (event->type == MOUSEMOVE) {
@@ -6552,6 +6554,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 		/* Again, have to override values set by ui_numedit_begin, because our listbox button also has a rnapoin... */
 		*size = data->origvalue = (double)dyn_data->visual_height;
+		ui_list->flag |= UILST_RESIZING;
 
 		retval = WM_UI_HANDLER_BREAK;
 	}
