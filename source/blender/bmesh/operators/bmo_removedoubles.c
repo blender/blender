@@ -493,7 +493,7 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 	for (i = 0; i < verts_len; i++) {
 		BMVert *v_check = verts[i];
 
-		if (BMO_elem_flag_test(bm, v_check, VERT_DOUBLE)) {
+		if (BMO_elem_flag_test(bm, v_check, VERT_DOUBLE | VERT_TARGET)) {
 			continue;
 		}
 
@@ -501,7 +501,7 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 			BMVert *v_other = verts[j];
 
 			/* a match has already been found, (we could check which is best, for now don't) */
-			if (BMO_elem_flag_test(bm, v_other, VERT_DOUBLE)) {
+			if (BMO_elem_flag_test(bm, v_other, VERT_DOUBLE | VERT_TARGET)) {
 				continue;
 			}
 
