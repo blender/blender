@@ -238,6 +238,7 @@ typedef struct PBVHVertexIter {
 	struct GSetIterator bm_unique_verts;
 	struct GSetIterator bm_other_verts;
 	struct CustomData *bm_vdata;
+	int cd_vert_mask_offset;
 
 	/* result: these are all computed in the macro, but we assume
 	 * that compiler optimization's will skip the ones we don't use */
@@ -307,9 +308,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 						continue; \
 					vi.co = vi.bm_vert->co; \
 					vi.fno = vi.bm_vert->no; \
-					vi.mask = CustomData_bmesh_get(vi.bm_vdata, \
-												   vi.bm_vert->head.data, \
-												   CD_PAINT_MASK); \
+					vi.mask = BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset); \
 				}
 
 #define BKE_pbvh_vertex_iter_end \

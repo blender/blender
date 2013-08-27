@@ -490,6 +490,13 @@ typedef struct {
 	float limit_len_squared;
 } EdgeQueue;
 
+typedef struct {
+	EdgeQueue *q;
+	BLI_mempool *pool;
+	BMesh *bm;
+	int cd_vert_mask_offset;
+} EdgeQueueContext;
+
 static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
 	BMVert *v_tri[3];
@@ -506,16 +513,13 @@ static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 }
 
 /* Return true if the vertex mask is less than 0.5, false otherwise */
-static int check_mask_half(BMesh *bm, BMVert *v)
+static bool check_mask_half(EdgeQueueContext *eq_ctx, BMVert *v)
 {
-	const float *mask;
-
-	mask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
-	return ((*mask) < 0.5f);
+	return (BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 0.5f);
 }
 
-static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,
-                              float priority, BMesh *bm)
+static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
+                              float priority)
 {
 	BMVert **pair;
 
@@ -523,56 +527,56 @@ static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,
 	 * displacements, can't do 50% topology update, so instead set
 	 * (arbitrary) cutoff: if both vertices' masks are less than 50%,
 	 * topology update can happen. */
-	if (check_mask_half(bm, e->v1) && check_mask_half(bm, e->v2)) {
-		pair = BLI_mempool_alloc(pool);
+	if (check_mask_half(eq_ctx, e->v1) && check_mask_half(eq_ctx, e->v2)) {
+		pair = BLI_mempool_alloc(eq_ctx->pool);
 		pair[0] = e->v1;
 		pair[1] = e->v2;
-		BLI_heap_insert(q->heap, priority, pair);
+		BLI_heap_insert(eq_ctx->q->heap, priority, pair);
 	}
 }
 
-static void long_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
-                                     BMEdge *e, BMesh *bm)
+static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
+                                     BMEdge *e)
 {
 	const float len_sq = BM_edge_calc_length_squared(e);
-	if (len_sq > q->limit_len_squared)
-		edge_queue_insert(q, pool, e, 1.0f / len_sq, bm);
+	if (len_sq > eq_ctx->q->limit_len_squared)
+		edge_queue_insert(eq_ctx, e, 1.0f / len_sq);
 }
 
-static void short_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
-                                      BMEdge *e, BMesh *bm)
+static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
+                                      BMEdge *e)
 {
 	const float len_sq = BM_edge_calc_length_squared(e);
-	if (len_sq < q->limit_len_squared)
-		edge_queue_insert(q, pool, e, len_sq, bm);
+	if (len_sq < eq_ctx->q->limit_len_squared)
+		edge_queue_insert(eq_ctx, e, len_sq);
 }
 
-static void long_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
-                                     BMFace *f, BMesh *bm)
+static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
+                                     BMFace *f)
 {
-	if (edge_queue_tri_in_sphere(q, f)) {
+	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			long_edge_queue_edge_add(q, pool, l_iter->e, bm);
+			long_edge_queue_edge_add(eq_ctx, l_iter->e);
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
 
-static void short_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
-                                      BMFace *f, BMesh *bm)
+static void short_edge_queue_face_add(EdgeQueueContext *eq_ctx,
+                                      BMFace *f)
 {
-	if (edge_queue_tri_in_sphere(q, f)) {
+	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			short_edge_queue_edge_add(q, pool, l_iter->e, bm);
+			short_edge_queue_edge_add(eq_ctx, l_iter->e);
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
@@ -586,16 +590,16 @@ static void short_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
  *
  * The highest priority (lowest number) is given to the longest edge.
  */
-static void long_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
+static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
                                    PBVH *bvh, const float center[3],
                                    float radius)
 {
 	int n;
 
-	q->heap = BLI_heap_new();
-	q->center = center;
-	q->radius_squared = radius * radius;
-	q->limit_len_squared = bvh->bm_max_edge_len * bvh->bm_max_edge_len;
+	eq_ctx->q->heap = BLI_heap_new();
+	eq_ctx->q->center = center;
+	eq_ctx->q->radius_squared = radius * radius;
+	eq_ctx->q->limit_len_squared = bvh->bm_max_edge_len * bvh->bm_max_edge_len;
 
 	for (n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
@@ -610,7 +614,7 @@ static void long_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
 			GHASH_ITER (gh_iter, node->bm_faces) {
 				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
-				long_edge_queue_face_add(q, pool, f, bvh->bm);
+				long_edge_queue_face_add(eq_ctx, f);
 			}
 		}
 	}
@@ -625,16 +629,16 @@ static void long_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
  *
  * The highest priority (lowest number) is given to the shortest edge.
  */
-static void short_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
+static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
                                     PBVH *bvh, const float center[3],
                                     float radius)
 {
 	int n;
 
-	q->heap = BLI_heap_new();
-	q->center = center;
-	q->radius_squared = radius * radius;
-	q->limit_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
+	eq_ctx->q->heap = BLI_heap_new();
+	eq_ctx->q->center = center;
+	eq_ctx->q->radius_squared = radius * radius;
+	eq_ctx->q->limit_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
 
 	for (n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
@@ -649,7 +653,7 @@ static void short_edge_queue_create(EdgeQueue *q, BLI_mempool *pool,
 			GHASH_ITER (gh_iter, node->bm_faces) {
 				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
-				short_edge_queue_face_add(q, pool, f, bvh->bm);
+				short_edge_queue_face_add(eq_ctx, f);
 			}
 		}
 	}
@@ -664,7 +668,7 @@ static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
 	e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], NULL, BM_CREATE_NO_DOUBLE);
 }
 
-static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
+static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
                                   BMEdge *e, BLI_Buffer *edge_loops)
 {
 	BMVert *v_new;
@@ -717,7 +721,7 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 		v_tri[2] = v_opp;
 		bm_edges_from_tri(bvh->bm, v_tri, e_tri);
 		f_new = pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f_adj);
-		long_edge_queue_face_add(q, pool, f_new, bvh->bm);
+		long_edge_queue_face_add(eq_ctx, f_new);
 
 		v_tri[0] = v_new;
 		v_tri[1] = v2;
@@ -726,7 +730,7 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 		e_tri[2] = e_tri[1];  /* switched */
 		e_tri[1] = BM_edge_create(bvh->bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
 		f_new = pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f_adj);
-		long_edge_queue_face_add(q, pool, f_new, bvh->bm);
+		long_edge_queue_face_add(eq_ctx, f_new);
 
 		/* Delete original */
 		pbvh_bmesh_face_remove(bvh, f_adj);
@@ -744,7 +748,7 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 			BMEdge *e2;
 
 			BM_ITER_ELEM (e2, &bm_iter, v_opp, BM_EDGES_OF_VERT) {
-				long_edge_queue_edge_add(q, pool, e2, bvh->bm);
+				long_edge_queue_edge_add(eq_ctx, e2);
 			}
 		}
 	}
@@ -752,23 +756,22 @@ static void pbvh_bmesh_split_edge(PBVH *bvh, EdgeQueue *q, BLI_mempool *pool,
 	BM_edge_kill(bvh->bm, e);
 }
 
-static int pbvh_bmesh_subdivide_long_edges(PBVH *bvh, EdgeQueue *q,
-                                           BLI_mempool *pool,
+static int pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
                                            BLI_Buffer *edge_loops)
 {
 	int any_subdivided = FALSE;
 
-	while (!BLI_heap_is_empty(q->heap)) {
-		BMVert **pair = BLI_heap_popmin(q->heap);
+	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
+		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
 		BMEdge *e;
 
 		/* Check that the edge still exists */
 		if (!(e = BM_edge_exists(pair[0], pair[1]))) {
-			BLI_mempool_free(pool, pair);
+			BLI_mempool_free(eq_ctx->pool, pair);
 			continue;
 		}
 
-		BLI_mempool_free(pool, pair);
+		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
 		/* Check that the edge's vertices are still in the PBVH. It's
@@ -781,12 +784,12 @@ static int pbvh_bmesh_subdivide_long_edges(PBVH *bvh, EdgeQueue *q,
 			continue;
 		}
 
-		if (BM_edge_calc_length_squared(e) <= q->limit_len_squared)
+		if (BM_edge_calc_length_squared(e) <= eq_ctx->q->limit_len_squared)
 			continue;
 
 		any_subdivided = TRUE;
 
-		pbvh_bmesh_split_edge(bvh, q, pool, e, edge_loops);
+		pbvh_bmesh_split_edge(eq_ctx, bvh, e, edge_loops);
 	}
 
 	return any_subdivided;
@@ -928,8 +931,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	BM_vert_kill(bvh->bm, v2);
 }
 
-static int pbvh_bmesh_collapse_short_edges(PBVH *bvh, EdgeQueue *q,
-                                           BLI_mempool *pool,
+static int pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
+                                           PBVH *bvh,
                                            BLI_Buffer *edge_loops,
                                            BLI_Buffer *deleted_faces)
 {
@@ -939,14 +942,14 @@ static int pbvh_bmesh_collapse_short_edges(PBVH *bvh, EdgeQueue *q,
 
 	deleted_verts = BLI_ghash_ptr_new("deleted_verts");
 
-	while (!BLI_heap_is_empty(q->heap)) {
-		BMVert **pair = BLI_heap_popmin(q->heap);
+	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
+		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
 		BMEdge *e;
 		BMVert *v1, *v2;
 
 		v1 = pair[0];
 		v2 = pair[1];
-		BLI_mempool_free(pool, pair);
+		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
 		/* Check that the vertices/edge still exist */
@@ -1098,6 +1101,7 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 	/* 2 is enough for edge faces - manifold edge */
 	BLI_buffer_declare_static(BMFace *, edge_loops, BLI_BUFFER_NOP, 2);
 	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
+	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
 
 	int modified = FALSE;
 	int n;
@@ -1106,8 +1110,10 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 		EdgeQueue q;
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert) * 2,
 		                                             128, 128, 0);
-		short_edge_queue_create(&q, queue_pool, bvh, center, radius);
-		pbvh_bmesh_collapse_short_edges(bvh, &q, queue_pool, &edge_loops,
+		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
+
+		short_edge_queue_create(&eq_ctx, bvh, center, radius);
+		pbvh_bmesh_collapse_short_edges(&eq_ctx, bvh, &edge_loops,
 		                                &deleted_faces);
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
@@ -1117,8 +1123,10 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 		EdgeQueue q;
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert) * 2,
 		                                             128, 128, 0);
-		long_edge_queue_create(&q, queue_pool, bvh, center, radius);
-		pbvh_bmesh_subdivide_long_edges(bvh, &q, queue_pool, &edge_loops);
+		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
+
+		long_edge_queue_create(&eq_ctx, bvh, center, radius);
+		pbvh_bmesh_subdivide_long_edges(&eq_ctx, bvh, &edge_loops);
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}

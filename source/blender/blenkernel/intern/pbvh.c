@@ -1869,6 +1869,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		BLI_gsetIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
 		BLI_gsetIterator_init(&vi->bm_other_verts, node->bm_other_verts);
 		vi->bm_vdata = &bvh->bm->vdata;
+		vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
 	}
 
 	vi->gh = NULL;
