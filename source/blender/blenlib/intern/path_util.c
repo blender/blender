@@ -46,19 +46,11 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_fnmatch.h"
 
 #include "../blenkernel/BKE_blender.h"  /* BLENDER_VERSION, bad level include (no function call) */
 
 #include "GHOST_Path-api.h"
-
-#if defined WIN32 && !defined _LIBC  || defined __sun
-#  include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
-#else
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-#  include <fnmatch.h>
-#endif
 
 #ifdef WIN32
 #  include "utf_winfunc.h"

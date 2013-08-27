@@ -59,6 +59,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_fileops_types.h"
+#include "BLI_fnmatch.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -80,12 +81,6 @@
 
 #include "file_intern.h"
 #include "filelist.h"
-
-#if defined WIN32 && !defined _LIBC
-# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
-#else
-# include <fnmatch.h>
-#endif
 
 FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile)
 {

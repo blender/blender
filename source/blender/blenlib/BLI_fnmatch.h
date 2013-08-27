@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#if defined WIN32 && !defined _LIBC  || defined __sun
+
 #if defined(__cplusplus) || (defined(__STDC__) && __STDC__)
 #undef  __P
 #define __P(protos) protos
@@ -64,6 +66,13 @@ extern "C" {
  * returning zero if it matches, FNM_NOMATCH if not.  */
 extern int fnmatch __P((const char *__pattern, const char *__string,
                         int __flags));
+
+#else
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+#  include <fnmatch.h>
+#endif /* defined WIN32 && !defined _LIBC  || defined __sun */
 
 #ifdef  __cplusplus
 }

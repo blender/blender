@@ -32,15 +32,6 @@
 #include <math.h>
 #include <string.h>
 
-#if defined WIN32 && !defined _LIBC  || defined __sun
-# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
-#else
-#  ifndef _GNU_SOURCE
-#    define _GNU_SOURCE
-#  endif
-# include <fnmatch.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -65,6 +56,7 @@
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
+#include "BLI_fnmatch.h"
 
 #include "BLF_translation.h"
 
