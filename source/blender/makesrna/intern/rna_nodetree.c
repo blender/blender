@@ -921,22 +921,6 @@ static void rna_NodeTree_active_output_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_NodeTree_inputs_lookupstring(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
-{
-	bNodeTree *ntree = (bNodeTree *)ptr->data;
-	bNodeSocket *sock = ntreeFindSocketInterface(ntree, SOCK_IN, key);
-	RNA_pointer_create(ptr->id.data, &RNA_NodeSocketInterface, sock, r_ptr);
-	return (sock != NULL);
-}
-
-static int rna_NodeTree_outputs_lookupstring(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
-{
-	bNodeTree *ntree = (bNodeTree *)ptr->data;
-	bNodeSocket *sock = ntreeFindSocketInterface(ntree, SOCK_OUT, key);
-	RNA_pointer_create(ptr->id.data, &RNA_NodeSocketInterface, sock, r_ptr);
-	return (sock != NULL);
-}
-
 static bNodeSocket *rna_NodeTree_inputs_new(bNodeTree *ntree, ReportList *reports, const char *type, const char *name)
 {
 	bNodeSocket *sock;
@@ -1561,22 +1545,6 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	
 	/* fix all the animation data which may link to this */
 	BKE_all_animdata_fix_paths_rename(NULL, "nodes", oldname, node->name);
-}
-
-static int rna_Node_inputs_lookupstring(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
-{
-	bNode *node = (bNode *)ptr->data;
-	bNodeSocket *sock = nodeFindSocket(node, SOCK_IN, key);
-	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, sock, r_ptr);
-	return (sock != NULL);
-}
-
-static int rna_Node_outputs_lookupstring(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
-{
-	bNode *node = (bNode *)ptr->data;
-	bNodeSocket *sock = nodeFindSocket(node, SOCK_OUT, key);
-	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, sock, r_ptr);
-	return (sock != NULL);
 }
 
 static bNodeSocket *rna_Node_inputs_new(ID *id, bNode *node, ReportList *reports, const char *type, const char *name, const char *identifier)
@@ -6841,16 +6809,12 @@ static void rna_def_node(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL,
-	                                  "rna_Node_inputs_lookupstring", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocket");
 	RNA_def_property_ui_text(prop, "Inputs", "");
 	rna_def_node_sockets_api(brna, prop, SOCK_IN);
 	
 	prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL,
-	                                  "rna_Node_outputs_lookupstring", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocket");
 	RNA_def_property_ui_text(prop, "Outputs", "");
 	rna_def_node_sockets_api(brna, prop, SOCK_OUT);
@@ -7266,8 +7230,6 @@ static void rna_def_nodetree(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL,
-	                                  "rna_NodeTree_inputs_lookupstring", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocketInterface");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Inputs", "Node tree inputs");
@@ -7280,8 +7242,6 @@ static void rna_def_nodetree(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL,
-	                                  "rna_NodeTree_outputs_lookupstring", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocketInterface");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Outputs", "Node tree outputs");
