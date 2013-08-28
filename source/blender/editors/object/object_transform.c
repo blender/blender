@@ -589,8 +589,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	}
 	CTX_DATA_END;
 
-	if (!change)
+	if (!change) {
+		BKE_report(reports, RPT_WARNING, "Objects have no data to transform");
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	return OPERATOR_FINISHED;
