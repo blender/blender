@@ -63,8 +63,4 @@ void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BLI_callback_global_init(void);
 void BLI_callback_global_finalize(void);
 
-
-/* This is blenlib internal only, unrelated to above */
-void callLocalErrorCallBack(const char *msg);
-
 #endif /* __BLI_CALLBACKS_H__ */

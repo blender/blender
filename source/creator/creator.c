@@ -118,8 +118,6 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
-#include "BLI_scanfill.h" /* for BLI_setErrorCallBack, TODO, move elsewhere */
-
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"
 #endif
@@ -1685,12 +1683,6 @@ void main_python_exit(void)
 }
 #endif
 
-static void error_cb(const char *err)
-{
-	
-	printf("%s\n", err);    /* XXX do this in WM too */
-}
-
 static void mem_error_cb(const char *errorStr)
 {
 	fputs(errorStr, stderr);
@@ -1701,9 +1693,4 @@ static void setCallbacks(void)
 {
 	/* Error output from the alloc routines: */
 	MEM_set_error_callback(mem_error_cb);
-
-
-	/* BLI_blenlib: */
-
-	BLI_setErrorCallBack(error_cb); /* */
 }

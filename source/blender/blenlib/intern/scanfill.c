@@ -44,41 +44,6 @@
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
 
-/* callbacks for errors and interrupts and some goo */
-static void (*BLI_localErrorCallBack)(const char *) = NULL;
-
-/**
- * Set a function taking a (char *) as argument to flag errors. If the
- * callback is not set, the error is discarded.
- * \param f The function to use as callback
- * \attention used in creator.c
- */
-void BLI_setErrorCallBack(void (*f)(const char *))
-{
-	BLI_localErrorCallBack = f;
-}
-
-/* just flush the error to /dev/null if the error handler is missing */
-void callLocalErrorCallBack(const char *msg)
-{
-	if (BLI_localErrorCallBack) {
-		BLI_localErrorCallBack(msg);
-	}
-}
-
-#if 0
-/* ignore if the interrupt wasn't set */
-static int callLocalInterruptCallBack(void)
-{
-	if (BLI_localInterruptCallBack) {
-		return BLI_localInterruptCallBack();
-	}
-	else {
-		return 0;
-	}
-}
-#endif
-
 /* local types */
 typedef struct PolyFill {
 	int edges, verts;
@@ -989,7 +954,9 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 	}
 	if (eed) {
 		/* otherwise it's impossible to be sure you can clear vertices */
-		callLocalErrorCallBack("No vertices with 250 edges allowed!");
+#ifdef DEBUG
+		printf("No vertices with 250 edges allowed!\n");
+#endif
 		return 0;
 	}
 	

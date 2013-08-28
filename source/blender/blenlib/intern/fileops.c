@@ -215,6 +215,11 @@ bool BLI_file_touch(const char *file)
 
 #ifdef WIN32
 
+static void callLocalErrorCallBack(const char *err)
+{
+	printf("%s\n", err);
+}
+
 static char str[MAXPATHLEN + 12];
 
 FILE *BLI_fopen(const char *filename, const char *mode)
