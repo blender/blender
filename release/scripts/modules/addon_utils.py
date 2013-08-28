@@ -35,7 +35,6 @@ error_duplicates = False
 error_encoding = False
 addons_fake_modules = {}
 
-
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     addon_paths = _bpy.utils.script_paths("addons")
@@ -51,7 +50,7 @@ def paths():
     return addon_paths
 
 
-def modules(module_cache):
+def modules_refresh(module_cache=addons_fake_modules):
     global error_duplicates
     global error_encoding
     import os
@@ -183,6 +182,11 @@ def modules(module_cache):
     for mod_stale in modules_stale:
         del module_cache[mod_stale]
     del modules_stale
+
+
+def modules(module_cache=addons_fake_modules, refresh=True):
+    if refresh:
+        modules_refresh(module_cache)
 
     mod_list = list(module_cache.values())
     mod_list.sort(key=lambda mod: (mod.bl_info["category"],
@@ -369,6 +373,9 @@ def reset_all(reload_scripts=False):
     Sets the addon state based on the user preferences.
     """
     import sys
+
+    # initializes addons_fake_modules
+    modules_refresh()
 
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths_list = paths()

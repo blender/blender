@@ -105,7 +105,7 @@ def register():
 
         items_unique = set()
 
-        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
+        for mod in addon_utils.modules(refresh=False):
             info = addon_utils.module_bl_info(mod)
             items_unique.add(info["category"])
 
