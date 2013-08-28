@@ -50,7 +50,7 @@ __device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
 {
 	/* integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) from 0 to Rm
 	 * = 1 - exp(-Rm*Rm/(2*v)) */
-	const float v = sc->data0;
+	const float v = sc->data0*sc->data0*(0.25f*0.25f);
 	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
 
 	if(r >= Rm)
@@ -72,7 +72,7 @@ __device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, floa
 	/* xi = integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) = -exp(-r^2/(2*v))
 	 * r = sqrt(-2*v*logf(xi)) */
 
-	const float v = sc->data0;
+	const float v = sc->data0*sc->data0*(0.25f*0.25f);
 	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
 
 	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
