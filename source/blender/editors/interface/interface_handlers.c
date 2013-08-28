@@ -3411,11 +3411,18 @@ static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 {
 	uiList *ui_list = but->custom_data;
 	int *size = (int *)but->poin;
-	int mx, my;
+	int mx, my, raw_dir_sign;
 	int retval = WM_UI_HANDLER_CONTINUE;
 
 	mx = event->x;
 	my = event->y;
+
+	/* We find the direction of the mouse since last time, before converting coordinates into block's space.
+	 * We'll use it to avoid flickering in case some rows are higher than UI_UNIT_Y.
+	 */
+	raw_dir_sign = (data->draglasty - my < 0) ? -1 : 1;
+	data->draglasty = my;
+
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_NUM_EDITING) {
@@ -3438,49 +3445,53 @@ static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			 */
 			if (data->draglastvalue > 0 && *size == 0) {
 				data->draglastvalue = *size;
-				data->draglasty = data->dragstarty;
+				data->dragstartx = data->dragstarty;  /* draglasty already used... */
 				data->dragstarty = my;
 			}
 			else {
-				int delta = -(my - data->dragstarty);
-				/* Number of rows to show/hide, UI_UNIT_Y should work nice in most cases. */
-				delta = (int)floorf(((float)delta / (float)UI_UNIT_Y) + 0.5f);
+				int delta = data->dragstarty - my;
+				/* We only actually do something if the real mousemouve direction matches the "virtual"
+				 * mousemove direction in current block's space. This avoids flickering when drag-resizing lists with
+				 * items drawing higher that UI_UNIT_Y.
+				 */
+				if (delta * raw_dir_sign > 0) {
+					/* Number of rows to show/hide, UI_UNIT_Y should work nice in most cases. */
+					delta = (int)floorf(((float)delta / (float)UI_UNIT_Y) + 0.5f);
 
-				/* If we are not in autosize mode, default behavior... */
-				if (*size > 0 && delta != 0) {
-					/* Note: In case some items of the list would draw more than UI_UNIT_Y height, we only grow from one
-					 *       item at a time, to avoid instability!
-					 */
-					delta = delta / abs(delta);
-					/* We can't use ui_numedit_apply()... */
-					/* list template will clamp, but we do not want to reach 0 aka autosize mode!. */
-					*size = max_ii(*size + delta, 1);
+					/* If we are not in autosize mode, default behavior... */
+					if (*size > 0 && delta != 0) {
+						/* This prevents some instability in case some items draw more/less than UI_UNIT_Y height. */
+						delta = (delta < -5) ? -5 : (delta > 5) ? 5 : delta;
+						/* We can't use ui_numedit_apply()... */
+						/* list template will clamp, but we do not want to reach 0 aka autosize mode! */
+						*size = max_ii(*size + delta, 1);
 
-					/* Used to detect switch to/from autosize mode. */
-					data->draglastvalue = *size;
+						/* Used to detect switch to/from autosize mode. */
+						data->draglastvalue = *size;
 
-					data->dragchange = true;
-					data->applied = data->applied_interactive = true;
+						data->dragchange = true;
+						data->applied = data->applied_interactive = true;
 
-					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
-					ED_region_tag_redraw(data->region);
-				}
-				/* If we are leaving autosize mode (growing dragging), restore to minimal size. */
-				else if (delta > 0) {
-					/* We can't use ui_numedit_apply()... */
-					*size = ui_list->dyn_data->visual_height_min;
+						ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+						ED_region_tag_redraw(data->region);
+					}
+					/* If we are leaving autosize mode (growing dragging), restore to minimal size. */
+					else if (delta > 0) {
+						/* We can't use ui_numedit_apply()... */
+						*size = ui_list->dyn_data->visual_height_min;
 
-					/* Restore real dragstarty value! */
-					data->dragstarty = data->draglasty;
+						/* Restore real dragstarty value! */
+						data->dragstarty = data->dragstartx;
 
-					/* Used to detect switch to/from autosize mode. */
-					data->draglastvalue = *size;
+						/* Used to detect switch to/from autosize mode. */
+						data->draglastvalue = *size;
 
-					data->dragchange = true;
-					data->applied = data->applied_interactive = true;
+						data->dragchange = true;
+						data->applied = data->applied_interactive = true;
 
-					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
-					ED_region_tag_redraw(data->region);
+						ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+						ED_region_tag_redraw(data->region);
+					}
 				}
 			}
 		}
