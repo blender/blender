@@ -649,8 +649,10 @@ void MEM_printmemlist_stats(void)
 		pb++;
 
 #ifdef HAVE_MALLOC_H
-		mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) +
-		                    malloc_usable_size((void *)membl)) - membl->len;
+		if (!membl->mmap) {
+			mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) +
+			                    malloc_usable_size((void *)membl)) - membl->len;
+		}
 #endif
 
 		if (membl->next)
