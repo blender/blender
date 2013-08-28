@@ -152,17 +152,27 @@ static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
 /* ******************* SORT ******************* */
 
+static bool compare_is_directory(const struct direntry *entry)
+{
+	/* for library browse .blend files may be treated as directories, but
+	 * for sorting purposes they should be considered regular files */
+	if (S_ISDIR(entry->type))
+		return !(entry->flags & (BLENDERFILE|BLENDERFILE_BACKUP));
+	
+	return false;
+}
+
 static int compare_name(const void *a1, const void *a2)
 {
 	const struct direntry *entry1 = a1, *entry2 = a2;
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)) {
-		if (S_ISDIR(entry2->type) == 0) return (-1);
+	if (compare_is_directory(entry1)) {
+		if (compare_is_directory(entry2) == 0) return (-1);
 	}
 	else {
-		if (S_ISDIR(entry2->type)) return (1);
+		if (compare_is_directory(entry2)) return (1);
 	}
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
@@ -188,11 +198,11 @@ static int compare_date(const void *a1, const void *a2)
 	
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)) {
-		if (S_ISDIR(entry2->type) == 0) return (-1);
+	if (compare_is_directory(entry1)) {
+		if (compare_is_directory(entry2) == 0) return (-1);
 	}
 	else {
-		if (S_ISDIR(entry2->type)) return (1);
+		if (compare_is_directory(entry2)) return (1);
 	}
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
@@ -221,11 +231,11 @@ static int compare_size(const void *a1, const void *a2)
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)) {
-		if (S_ISDIR(entry2->type) == 0) return (-1);
+	if (compare_is_directory(entry1)) {
+		if (compare_is_directory(entry2) == 0) return (-1);
 	}
 	else {
-		if (S_ISDIR(entry2->type)) return (1);
+		if (compare_is_directory(entry2)) return (1);
 	}
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
@@ -262,11 +272,11 @@ static int compare_extension(const void *a1, const void *a2)
 
 	/* type is equal to stat.st_mode */
 
-	if (S_ISDIR(entry1->type)) {
-		if (S_ISDIR(entry2->type) == 0) return (-1);
+	if (compare_is_directory(entry1)) {
+		if (compare_is_directory(entry2) == 0) return (-1);
 	}
 	else {
-		if (S_ISDIR(entry2->type)) return (1);
+		if (compare_is_directory(entry2)) return (1);
 	}
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
