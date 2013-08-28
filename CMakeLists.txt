@@ -771,14 +771,14 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		if(LLVM_DIRECTORY)
-			FIND_PROGRAM(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
+			find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
 			if(NOT LLVM_CONFIG)
-				FIND_PROGRAM(LLVM_CONFIG llvm-config HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
+				find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
 			endif()
 		else()
-			FIND_PROGRAM(LLVM_CONFIG llvm-config-${LLVM_VERSION})
+			find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
 			if(NOT LLVM_CONFIG)
-				FIND_PROGRAM(LLVM_CONFIG llvm-config)
+				find_program(LLVM_CONFIG llvm-config)
 			endif()
 		endif()
 		execute_process(COMMAND ${LLVM_CONFIG} --version
@@ -2144,6 +2144,23 @@ endif()
 # eg: -Wno-uninitialized
 set(CMAKE_C_FLAGS "${C_WARNINGS} ${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
+
+# defined above, platform spesific but shared names
+mark_as_advanced(
+	CYCLES_OSL
+	OSL_LIB_EXEC
+	OSL_COMPILER
+	OSL_LIB_COMP
+	OSL_LIB_QUERY
+	OSL_INCLUDES
+)
+
+mark_as_advanced(
+	LLVM_CONFIG
+	LLVM_DIRECTORY
+	LLVM_LIBRARY
+	LLVM_VERSION
+)
 
 #-------------------------------------------------------------------------------
 # Global Defines
