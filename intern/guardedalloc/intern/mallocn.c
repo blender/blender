@@ -48,6 +48,11 @@
 #  define __func__ __FUNCTION__
 #endif
 
+/* only for utility functions */
+#if defined(__GNUC__)
+#include <malloc.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 /* should always be defined except for experimental cases */
@@ -620,7 +625,9 @@ void MEM_printmemlist_stats(void)
 	MemHead *membl;
 	MemPrintBlock *pb, *printblock;
 	int totpb, a, b;
-
+#ifdef __GNUC__
+	size_t mem_in_use_slop;
+#endif
 	mem_lock_thread();
 
 	/* put memory blocks into array */
@@ -639,6 +646,11 @@ void MEM_printmemlist_stats(void)
 
 		totpb++;
 		pb++;
+
+#ifdef __GNUC__
+		mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) +
+		                    malloc_usable_size((void *)membl)) - membl->len;
+#endif
 
 		if (membl->next)
 			membl = MEMNEXT(membl->next);
@@ -668,6 +680,10 @@ void MEM_printmemlist_stats(void)
 	       (double)mem_in_use / (double)(1024 * 1024));
 	printf("peak memory len: %.3f MB\n",
 	       (double)peak_mem / (double)(1024 * 1024));
+#ifdef __GNUC__
+	printf("slop memory len: %.3f MB\n",
+	       (double)mem_in_use_slop / (double)(1024 * 1024));
+#endif
 	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
 	for (a = 0, pb = printblock; a < totpb; a++, pb++) {
 		printf("%6d (%8.3f  %8.3f) %s\n",
