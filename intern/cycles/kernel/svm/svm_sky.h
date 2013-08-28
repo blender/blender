@@ -28,7 +28,7 @@ __device float sky_angle_between(float thetav, float phiv, float theta, float ph
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-__device float sky_perez_function(__constant float *lam, float theta, float gamma)
+__device float sky_perez_function(float *lam, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
 	float cgamma = cosf(gamma);
@@ -66,7 +66,7 @@ __device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
-__device float sky_radiance_internal(__constant float *configuration, float theta, float gamma)
+__device float sky_radiance_internal(float *configuration, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
 	float cgamma = cosf(gamma);
