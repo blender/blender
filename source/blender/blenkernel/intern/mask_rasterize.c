@@ -575,10 +575,13 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
 	MaskLayer *masklay;
 	unsigned int masklay_index;
+	MemArena *sf_arena;
 
 	mr_handle->layers_tot = (unsigned int)BLI_countlist(&mask->masklayers);
 	mr_handle->layers = MEM_mallocN(sizeof(MaskRasterLayer) * mr_handle->layers_tot, "MaskRasterLayer");
 	BLI_rctf_init_minmax(&mr_handle->bounds);
+
+	sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
 
 	for (masklay = mask->masklayers.first, masklay_index = 0; masklay; masklay = masklay->next, masklay_index++) {
 
@@ -613,7 +616,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		tot_splines = (unsigned int)BLI_countlist(&masklay->splines);
 		open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 
-		BLI_scanfill_begin(&sf_ctx);
+		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
@@ -1148,8 +1151,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		}
 
 		/* add trianges */
-		BLI_scanfill_end(&sf_ctx);
+		BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 	}
+
+	BLI_memarena_free(sf_arena);
 }
 
 

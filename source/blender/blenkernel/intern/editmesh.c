@@ -36,6 +36,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 
 #include "BKE_editmesh.h"
@@ -123,6 +124,7 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
 	int i = 0;
 
 	ScanFillContext sf_ctx;
+	MemArena *sf_arena = NULL;
 
 #if 0
 	/* note, we could be clever and re-use this array but would need to ensure
@@ -217,7 +219,11 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
 			ScanFillFace *sf_tri;
 			int totfilltri;
 
-			BLI_scanfill_begin(&sf_ctx);
+			if (UNLIKELY(sf_arena == NULL)) {
+				sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
+			}
+
+			BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
 			/* scanfill time */
 			j = 0;
@@ -262,8 +268,13 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
 				l_ptr[2] = l3;
 			}
 
-			BLI_scanfill_end(&sf_ctx);
+			BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 		}
+	}
+
+	if (sf_arena) {
+		BLI_memarena_free(sf_arena);
+		sf_arena = NULL;
 	}
 
 	em->tottri = i;

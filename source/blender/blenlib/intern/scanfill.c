@@ -40,6 +40,7 @@
 #include "BLI_callbacks.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
 
@@ -132,99 +133,45 @@ static int vergpoly(const void *a1, const void *a2)
 	return 0;
 }
 
-/* ************* MEMORY MANAGEMENT ************* */
-
-/* memory management */
-struct mem_elements {
-	struct mem_elements *next, *prev;
-	char *data;
-};
-
-static void *mem_element_new(ScanFillContext *sf_ctx, int size)
-{
-	BLI_assert(!(size > 10000 || size == 0)); /* this is invalid use! */
-
-	size = (size + 3) & ~3;     /* allocate in units of 4 */
-	
-	if (sf_ctx->melem__cur && (size + sf_ctx->melem__offs < MEM_ELEM_BLOCKSIZE)) {
-		void *adr = (void *) (sf_ctx->melem__cur->data + sf_ctx->melem__offs);
-		sf_ctx->melem__offs += size;
-		return adr;
-	}
-	else {
-		sf_ctx->melem__cur = MEM_callocN(sizeof(struct mem_elements), "newmem");
-		sf_ctx->melem__cur->data = MEM_callocN(MEM_ELEM_BLOCKSIZE, "newmem");
-		BLI_addtail(&sf_ctx->melem__lb, sf_ctx->melem__cur);
-
-		sf_ctx->melem__offs = size;
-		return sf_ctx->melem__cur->data;
-	}
-}
-static void mem_element_reset(ScanFillContext *sf_ctx, int keep_first)
-{
-	struct mem_elements *first;
-
-	if ((first = sf_ctx->melem__lb.first)) { /* can be false if first fill fails */
-		if (keep_first) {
-			BLI_remlink(&sf_ctx->melem__lb, first);
-		}
-
-		sf_ctx->melem__cur = sf_ctx->melem__lb.first;
-		while (sf_ctx->melem__cur) {
-			MEM_freeN(sf_ctx->melem__cur->data);
-			sf_ctx->melem__cur = sf_ctx->melem__cur->next;
-		}
-		BLI_freelistN(&sf_ctx->melem__lb);
-
-		/*reset the block we're keeping*/
-		if (keep_first) {
-			BLI_addtail(&sf_ctx->melem__lb, first);
-			memset(first->data, 0, MEM_ELEM_BLOCKSIZE);
-		}
-		else {
-			first = NULL;
-
-		}
-	}
-
-	sf_ctx->melem__cur = first;
-	sf_ctx->melem__offs = 0;
-}
-
-void BLI_scanfill_end(ScanFillContext *sf_ctx)
-{
-	mem_element_reset(sf_ctx, FALSE);
-	
-	sf_ctx->fillvertbase.first = sf_ctx->fillvertbase.last = NULL;
-	sf_ctx->filledgebase.first = sf_ctx->filledgebase.last = NULL;
-	sf_ctx->fillfacebase.first = sf_ctx->fillfacebase.last = NULL;
-}
-
 /* ****  FILL ROUTINES *************************** */
 
 ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 {
-	ScanFillVert *eve;
+	ScanFillVert *sf_v;
 	
-	eve = mem_element_new(sf_ctx, sizeof(ScanFillVert));
-	BLI_addtail(&sf_ctx->fillvertbase, eve);
-	
-	copy_v3_v3(eve->co, vec);
+	sf_v = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillVert));
 
-	return eve;
+	BLI_addtail(&sf_ctx->fillvertbase, sf_v);
+
+	sf_v->tmp.p = NULL;
+	copy_v3_v3(sf_v->co, vec);
+
+	/* just zero out the rest */
+	zero_v2(sf_v->xy);
+	sf_v->keyindex = 0;
+	sf_v->poly_nr = 0;
+	sf_v->edge_tot = 0;
+	sf_v->f = 0;
+
+	return sf_v;
 }
 
 ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2)
 {
-	ScanFillEdge *newed;
+	ScanFillEdge *sf_ed;
 
-	newed = mem_element_new(sf_ctx, sizeof(ScanFillEdge));
-	BLI_addtail(&sf_ctx->filledgebase, newed);
+	sf_ed = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillEdge));
+	BLI_addtail(&sf_ctx->filledgebase, sf_ed);
 	
-	newed->v1 = v1;
-	newed->v2 = v2;
+	sf_ed->v1 = v1;
+	sf_ed->v2 = v2;
 
-	return newed;
+	/* just zero out the rest */
+	sf_ed->poly_nr = 0;
+	sf_ed->f = 0;
+	sf_ed->tmp.c = 0;
+
+	return sf_ed;
 }
 
 static void addfillface(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2, ScanFillVert *v3)
@@ -232,7 +179,7 @@ static void addfillface(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert 
 	/* does not make edges */
 	ScanFillFace *sf_tri;
 
-	sf_tri = mem_element_new(sf_ctx, sizeof(ScanFillFace));
+	sf_tri = BLI_memarena_alloc(sf_ctx->arena, sizeof(ScanFillFace));
 	BLI_addtail(&sf_ctx->fillfacebase, sf_tri);
 	
 	sf_tri->v1 = v1;
@@ -826,11 +773,33 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 void BLI_scanfill_begin(ScanFillContext *sf_ctx)
 {
 	memset(sf_ctx, 0, sizeof(*sf_ctx));
+	sf_ctx->arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
 }
 
-int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag)
+void BLI_scanfill_begin_arena(ScanFillContext *sf_ctx, MemArena *arena)
 {
-	return BLI_scanfill_calc_ex(sf_ctx, flag, NULL);
+	memset(sf_ctx, 0, sizeof(*sf_ctx));
+	sf_ctx->arena = arena;
+}
+
+void BLI_scanfill_end(ScanFillContext *sf_ctx)
+{
+	BLI_memarena_free(sf_ctx->arena);
+	sf_ctx->arena = NULL;
+
+	sf_ctx->fillvertbase.first = sf_ctx->fillvertbase.last = NULL;
+	sf_ctx->filledgebase.first = sf_ctx->filledgebase.last = NULL;
+	sf_ctx->fillfacebase.first = sf_ctx->fillfacebase.last = NULL;
+}
+
+void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, MemArena *arena)
+{
+	BLI_memarena_clear(arena);
+	BLI_assert(sf_ctx->arena == arena);
+
+	sf_ctx->fillvertbase.first = sf_ctx->fillvertbase.last = NULL;
+	sf_ctx->filledgebase.first = sf_ctx->filledgebase.last = NULL;
+	sf_ctx->fillfacebase.first = sf_ctx->fillfacebase.last = NULL;
 }
 
 int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float nor_proj[3])
@@ -1176,4 +1145,9 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 	MEM_freeN(pflist);
 
 	return totfaces;
+}
+
+int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag)
+{
+	return BLI_scanfill_calc_ex(sf_ctx, flag, NULL);
 }

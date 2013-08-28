@@ -43,6 +43,7 @@
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_memarena.h"
 #include "BLI_math.h"
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
@@ -450,6 +451,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 	ScanFillContext sf_ctx;
 	ScanFillVert *sf_vert, *sf_vert_new, *sf_vert_last;
 	ScanFillFace *sf_tri;
+	MemArena *sf_arena;
 	DispList *dlnew = NULL, *dl;
 	float *f1;
 	int colnr = 0, charidx = 0, cont = 1, tot, a, *index, nextcol = 0;
@@ -460,12 +462,14 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 	if (dispbase->first == NULL)
 		return;
 
+	sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
+
 	while (cont) {
 		cont = 0;
 		totvert = 0;
 		nextcol = 0;
 
-		BLI_scanfill_begin(&sf_ctx);
+		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
 		dl = dispbase->first;
 		while (dl) {
@@ -553,7 +557,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 
 			BLI_addhead(to, dlnew);
 		}
-		BLI_scanfill_end(&sf_ctx);
+		BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 
 		if (nextcol) {
 			/* stay at current char but fill polys with next material */
@@ -565,6 +569,8 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 			colnr = 0;
 		}
 	}
+
+	BLI_memarena_free(sf_arena);
 
 	/* do not free polys, needed for wireframe display */
 }

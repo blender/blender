@@ -46,20 +46,13 @@ typedef struct ScanFillContext {
 	ListBase filledgebase;
 	ListBase fillfacebase;
 
-	/* simple optimization for allocating thousands of small memory blocks
-	 * only to be used within loops, and not by one function at a time
-	 * free in the end, with argument '-1'
-	 */
-#define MEM_ELEM_BLOCKSIZE 16384
-	struct mem_elements *melem__cur;
-	int melem__offs;                   /* the current free address */
-	ListBase melem__lb;
-
 	/* private */
 	struct ScanFillVertLink *_scdata;
+	struct MemArena *arena;
 } ScanFillContext;
 
-/* note; changing this also might affect the undo copy in editmesh.c */
+#define BLI_SCANFILL_ARENA_SIZE 16384
+
 typedef struct ScanFillVert {
 	struct ScanFillVert *next, *prev;
 	union {
@@ -68,9 +61,9 @@ typedef struct ScanFillVert {
 		intptr_t             l;
 		unsigned int         u;
 	} tmp;
-	float co[3]; /* vertex location */
-	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
-	unsigned int keyindex; /* original index #, for restoring  key information */
+	float co[3];  /* vertex location */
+	float xy[2];  /* 2D projection of vertex location */
+	unsigned int keyindex; /* index, caller can use how it likes to match the scanfill result with own data */
 	short poly_nr;
 	unsigned char edge_tot;  /* number of edges using this vertex */
 	unsigned char f;
@@ -91,7 +84,7 @@ typedef struct ScanFillFace {
 	struct ScanFillVert *v1, *v2, *v3;
 } ScanFillFace;
 
-/* scanfill.c: used in displist only... */
+/* scanfill.c */
 struct ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3]);
 struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, struct ScanFillVert *v1, struct ScanFillVert *v2);
 
@@ -112,6 +105,9 @@ int  BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
 int  BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag,
                           const float nor_proj[3]);
 void BLI_scanfill_end(ScanFillContext *sf_ctx);
+
+void BLI_scanfill_begin_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
+void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 
 /* These callbacks are needed to make the lib finction properly */
 void BLI_setErrorCallBack(void (*f)(const char *));

@@ -46,6 +46,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_memarena.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_bitmap.h"
@@ -2733,6 +2734,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	ScanFillContext sf_ctx;
 	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
 	ScanFillFace *sf_tri;
+	MemArena *sf_arena = NULL;
 	int *mface_to_poly_map;
 	int lindex[4]; /* only ever use 3 in this case */
 	int poly_index, j, mface_index;
@@ -2815,7 +2817,11 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #endif
 			ml = mloop + mp->loopstart;
 			
-			BLI_scanfill_begin(&sf_ctx);
+			if (UNLIKELY(sf_arena == NULL)) {
+				sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
+			}
+
+			BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 			sf_vert_first = NULL;
 			sf_vert_last = NULL;
 			for (j = 0; j < mp->totloop; j++, ml++) {
@@ -2867,10 +2873,15 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 				mface_index++;
 			}
 	
-			BLI_scanfill_end(&sf_ctx);
+			BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 
 #undef USE_TESSFACE_CALCNORMAL
 		}
+	}
+
+	if (sf_arena) {
+		BLI_memarena_free(sf_arena);
+		sf_arena = NULL;
 	}
 
 	CustomData_free(fdata, totface);
