@@ -105,6 +105,10 @@ public:
 
 	float3 sun_direction;
 	float turbidity;
+	float ground_albedo;
+	
+	ustring type;
+	static ShaderEnum type_enum;
 };
 
 class OutputNode : public ShaderNode {

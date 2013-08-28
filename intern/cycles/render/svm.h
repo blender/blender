@@ -29,7 +29,6 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class DeviceScene;
 class ImageManager;
-struct KernelSunSky;
 class Scene;
 class ShaderGraph;
 class ShaderInput;
@@ -77,7 +76,6 @@ public:
 
 	ImageManager *image_manager;
 	ShaderManager *shader_manager;
-	KernelSunSky *sunsky;
 	bool background;
 
 protected:

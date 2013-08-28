@@ -285,6 +285,11 @@ typedef enum NodeWaveType {
 	NODE_WAVE_RINGS
 } NodeWaveType;
 
+typedef enum NodeSkyType {
+	NODE_SKY_OLD,
+	NODE_SKY_NEW
+} NodeSkyType;
+
 typedef enum NodeGradientType {
 	NODE_BLEND_LINEAR,
 	NODE_BLEND_QUADRATIC,

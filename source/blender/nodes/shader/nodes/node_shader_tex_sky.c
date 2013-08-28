@@ -48,6 +48,8 @@ static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
 	tex->sun_direction[1] = 0.0f;
 	tex->sun_direction[2] = 1.0f;
 	tex->turbidity = 2.2f;
+	tex->ground_albedo = 0.3f;
+	tex->sky_model = SHD_SKY_NEW;
 
 	node->storage = tex;
 }
@@ -70,6 +72,7 @@ void register_node_type_sh_tex_sky(void)
 	sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_sky_in, sh_node_tex_sky_out);
+	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, node_shader_init_tex_sky);
 	node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
 	node_type_gpu(&ntype, node_shader_gpu_tex_sky);

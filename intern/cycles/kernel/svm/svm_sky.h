@@ -16,10 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/*
- * "A Practical Analytic Model for Daylight"
- * A. J. Preetham, Peter Shirley, Brian Smits
- */
+/* Sky texture */
 
 __device float sky_angle_between(float thetav, float phiv, float theta, float phi)
 {
@@ -27,6 +24,10 @@ __device float sky_angle_between(float thetav, float phiv, float theta, float ph
 	return safe_acosf(cospsi);
 }
 
+/*
+ * "A Practical Analytic Model for Daylight"
+ * A. J. Preetham, Peter Shirley, Brian Smits
+ */
 __device float sky_perez_function(__constant float *lam, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
@@ -35,7 +36,10 @@ __device float sky_perez_function(__constant float *lam, float theta, float gamm
 	return (1.0f + lam[0]*expf(lam[1]/ctheta)) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cgamma*cgamma);
 }
 
-__device float3 sky_radiance(KernelGlobals *kg, float3 dir)
+__device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
+                                 float sunphi, float suntheta,
+                                 float radiance_x, float radiance_y, float radiance_z,
+                                 float *config_x, float *config_y, float *config_z)
 {
 	/* convert vector to spherical coordinates */
 	float2 spherical = direction_to_spherical(dir);
@@ -43,25 +47,135 @@ __device float3 sky_radiance(KernelGlobals *kg, float3 dir)
 	float phi = spherical.y;
 
 	/* angle between sun direction and dir */
-	float gamma = sky_angle_between(theta, phi, kernel_data.sunsky.theta, kernel_data.sunsky.phi);
+	float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
 
 	/* clamp theta to horizon */
 	theta = min(theta, M_PI_2_F - 0.001f);
 
 	/* compute xyY color space values */
-	float x = kernel_data.sunsky.zenith_x * sky_perez_function(kernel_data.sunsky.perez_x, theta, gamma);
-	float y = kernel_data.sunsky.zenith_y * sky_perez_function(kernel_data.sunsky.perez_y, theta, gamma);
-	float Y = kernel_data.sunsky.zenith_Y * sky_perez_function(kernel_data.sunsky.perez_Y, theta, gamma);
+	float x = radiance_y * sky_perez_function(config_y, theta, gamma);
+	float y = radiance_z * sky_perez_function(config_z, theta, gamma);
+	float Y = radiance_x * sky_perez_function(config_x, theta, gamma);
 
 	/* convert to RGB */
 	float3 xyz = xyY_to_xyz(x, y, Y);
 	return xyz_to_rgb(xyz.x, xyz.y, xyz.z);
 }
 
-__device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint dir_offset, uint out_offset)
+/*
+ * "An Analytic Model for Full Spectral Sky-Dome Radiance"
+ * Lukas Hosek, Alexander Wilkie
+ */
+__device float sky_radiance_internal(__constant float *configuration, float theta, float gamma)
 {
+	float ctheta = cosf(theta);
+	float cgamma = cosf(gamma);
+
+	float expM = expf(configuration[4] * gamma);
+	float rayM = cgamma * cgamma;
+	float mieM = (1.0f + rayM) / powf((1.0f + configuration[8]*configuration[8] - 2.0f*configuration[8]*cgamma), 1.5f);
+	float zenith = sqrt(ctheta);
+
+	return (1.0f + configuration[0] * expf(configuration[1] / (ctheta + 0.01f))) *
+		(configuration[2] + configuration[3] * expM + configuration[5] * rayM + configuration[6] * mieM + configuration[7] * zenith);
+}
+
+__device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
+                                 float sunphi, float suntheta,
+                                 float radiance_x, float radiance_y, float radiance_z,
+                                 float *config_x, float *config_y, float *config_z)
+{
+	/* convert vector to spherical coordinates */
+	float2 spherical = direction_to_spherical(dir);
+	float theta = spherical.x;
+	float phi = spherical.y;
+
+	/* angle between sun direction and dir */
+	float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
+
+	/* clamp theta to horizon */
+	theta = min(theta, M_PI_2_F - 0.001f);
+
+	/* compute xyz color space values */
+	float x = sky_radiance_internal(config_x, theta, gamma) * radiance_x;
+	float y = sky_radiance_internal(config_y, theta, gamma) * radiance_y;
+	float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
+
+	/* convert to RGB and adjust strength */
+	return xyz_to_rgb(x, y, z) * (M_2PI_F/683);
+}
+
+__device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+{
+	/* Define variables */
+	float sunphi, suntheta, radiance_x, radiance_y, radiance_z;
+	float config_x[9], config_y[9], config_z[9];
+	
+	/* Load data */
+	uint dir_offset = node.y;
+	uint out_offset = node.z;
+	int sky_model = node.w;
+
+	float4 data = read_node_float(kg, offset);
+	sunphi = data.x;
+	suntheta = data.y;
+	radiance_x = data.z;
+	radiance_y = data.w;
+	
+	data = read_node_float(kg, offset);
+	radiance_z = data.x;
+	config_x[0] = data.y;
+	config_x[1] = data.z;
+	config_x[2] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_x[3] = data.x;
+	config_x[4] = data.y;
+	config_x[5] = data.z;
+	config_x[6] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_x[7] = data.x;
+	config_x[8] = data.y;
+	config_y[0] = data.z;
+	config_y[1] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_y[2] = data.x;
+	config_y[3] = data.y;
+	config_y[4] = data.z;
+	config_y[5] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_y[6] = data.x;
+	config_y[7] = data.y;
+	config_y[8] = data.z;
+	config_z[0] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_z[1] = data.x;
+	config_z[2] = data.y;
+	config_z[3] = data.z;
+	config_z[4] = data.w;
+	
+	data = read_node_float(kg, offset);
+	config_z[5] = data.x;
+	config_z[6] = data.y;
+	config_z[7] = data.z;
+	config_z[8] = data.w;
+	
 	float3 dir = stack_load_float3(stack, dir_offset);
-	float3 f = sky_radiance(kg, dir);
+	float3 f;
+
+	/* Compute Sky */
+	if(sky_model == 0)
+		f = sky_radiance_old(kg, dir, sunphi, suntheta,
+	                             radiance_x, radiance_y, radiance_z,
+	                             config_x, config_y, config_z);
+	else
+		f = sky_radiance_new(kg, dir, sunphi, suntheta,
+	                             radiance_x, radiance_y, radiance_z,
+	                             config_x, config_y, config_z);
 
 	stack_store_float3(stack, out_offset, f);
 }

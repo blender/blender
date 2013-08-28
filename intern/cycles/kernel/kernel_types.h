@@ -717,16 +717,6 @@ typedef struct KernelBackground {
 	float ao_distance;
 } KernelBackground;
 
-typedef struct KernelSunSky {
-	/* sun direction in spherical and cartesian */
-	float theta, phi, pad3, pad4;
-
-	/* perez function parameters */
-	float zenith_Y, zenith_x, zenith_y, pad2;
-	float perez_Y[5], perez_x[5], perez_y[5];
-	float pad5;
-} KernelSunSky;
-
 typedef struct KernelIntegrator {
 	/* emission */
 	int use_direct_light;
@@ -837,7 +827,6 @@ typedef struct KernelData {
 	KernelCamera cam;
 	KernelFilm film;
 	KernelBackground background;
-	KernelSunSky sunsky;
 	KernelIntegrator integrator;
 	KernelBVH bvh;
 	KernelCurves curve;
