@@ -255,6 +255,17 @@ char *WM_jobs_name(wmWindowManager *wm, void *owner)
 	return NULL;
 }
 
+void *WM_jobs_customdata(wmWindowManager *wm, void *owner)
+{
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+	
+	if (wm_job)
+		return WM_jobs_customdata_get(wm_job);
+	
+	return NULL;
+
+}
+
 int WM_jobs_is_running(wmJob *wm_job)
 {
 	return wm_job->running;

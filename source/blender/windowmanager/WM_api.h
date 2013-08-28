@@ -386,6 +386,7 @@ struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
+void       *WM_jobs_customdata(struct wmWindowManager *wm, void *owner);
 
 int         WM_jobs_is_running(struct wmJob *);
 void       *WM_jobs_customdata_get(struct wmJob *);
