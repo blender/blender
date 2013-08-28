@@ -49,8 +49,9 @@
 #endif
 
 /* only for utility functions */
-#if defined(__GNUC__)
+#if defined(__GNUC__) && defined(__linux__)
 #include <malloc.h>
+#  define HAVE_MALLOC_H
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -625,7 +626,7 @@ void MEM_printmemlist_stats(void)
 	MemHead *membl;
 	MemPrintBlock *pb, *printblock;
 	int totpb, a, b;
-#ifdef __GNUC__
+#ifdef HAVE_MALLOC_H
 	size_t mem_in_use_slop;
 #endif
 	mem_lock_thread();
@@ -647,7 +648,7 @@ void MEM_printmemlist_stats(void)
 		totpb++;
 		pb++;
 
-#ifdef __GNUC__
+#ifdef HAVE_MALLOC_H
 		mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) +
 		                    malloc_usable_size((void *)membl)) - membl->len;
 #endif
@@ -680,7 +681,7 @@ void MEM_printmemlist_stats(void)
 	       (double)mem_in_use / (double)(1024 * 1024));
 	printf("peak memory len: %.3f MB\n",
 	       (double)peak_mem / (double)(1024 * 1024));
-#ifdef __GNUC__
+#ifdef HAVE_MALLOC_H
 	printf("slop memory len: %.3f MB\n",
 	       (double)mem_in_use_slop / (double)(1024 * 1024));
 #endif
@@ -694,7 +695,8 @@ void MEM_printmemlist_stats(void)
 	
 	mem_unlock_thread();
 
-#if 0 /* GLIBC only */
+#ifdef HAVE_MALLOC_H /* GLIBC only */
+	printf("System Statistics:\n");
 	malloc_stats();
 #endif
 }
