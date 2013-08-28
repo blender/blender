@@ -157,7 +157,7 @@ static bool compare_is_directory(const struct direntry *entry)
 	/* for library browse .blend files may be treated as directories, but
 	 * for sorting purposes they should be considered regular files */
 	if (S_ISDIR(entry->type))
-		return !(entry->flags & (BLENDERFILE|BLENDERFILE_BACKUP));
+		return !(entry->flags & (BLENDERFILE | BLENDERFILE_BACKUP));
 	
 	return false;
 }

@@ -131,8 +131,9 @@ MINLINE int power_of_2_max_i(int n)
 	if (is_power_of_2_i(n))
 		return n;
 
-	while (!is_power_of_2_i(n))
+	do {
 		n = n & (n - 1);
+	} while (!is_power_of_2_i(n));
 
 	return n * 2;
 }
