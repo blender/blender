@@ -106,18 +106,28 @@ typedef struct {
 	Nurb *orig_nu;
 } CVKeyIndex;
 
-void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus);
-static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
+typedef enum eVisible_Types {
+	HIDDEN = true,
+	VISIBLE = false,
+} eVisible_Types;
+
+typedef enum eEndPoint_Types {
+	FIRST = true,
+	LAST = false,
+} eEndPoint_Types;
+
+typedef enum eCurveElem_Types {
+	CURVE_VERTEX = 0,
+	CURVE_SEGMENT,
+} eCurveElem_Types;
+
+void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
+static void select_adjacent_cp(ListBase *editnurb, short next, const bool cont, const bool selstatus);
 static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
-static int curve_delete_selected(Object *obedit, const int type, const bool split);
+static int curve_delete_selected(Object *obedit, const eCurveElem_Types type, const bool split);
 
 /* still need to eradicate a few :( */
 #define CALLOC_STRUCT_N(x, y, name) (x *)MEM_callocN((y) * sizeof(x), name)
-
-enum {
-	CURVE_VERTEX = 0,
-	CURVE_SEGMENT,
-};
 
 static float nurbcircle[8][2] = {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
@@ -156,69 +166,59 @@ static Nurb *get_actNurb(Object *obedit)
 
 /* ******************* SELECTION FUNCTIONS ********************* */
 
-#define HIDDEN          1
-#define VISIBLE         0
-
-#define FIRST           1
-#define LAST            0
-
 
 /* returns 1 in case (de)selection was successful */
-static short select_beztriple(BezTriple *bezt, short selstatus, short flag, short hidden)
+static bool select_beztriple(BezTriple *bezt, bool selstatus, short flag, eVisible_Types hidden)
 {	
-	if (bezt) {
-		if ((bezt->hide == 0) || (hidden == 1)) {
-			if (selstatus == 1) { /* selects */
-				bezt->f1 |= flag;
-				bezt->f2 |= flag;
-				bezt->f3 |= flag;
-				return 1;
-			}
-			else { /* deselects */
-				bezt->f1 &= ~flag; 
-				bezt->f2 &= ~flag; 
-				bezt->f3 &= ~flag; 
-				return 1;
-			}
+	if ((bezt->hide == 0) || (hidden == HIDDEN)) {
+		if (selstatus == SELECT) { /* selects */
+			bezt->f1 |= flag;
+			bezt->f2 |= flag;
+			bezt->f3 |= flag;
+			return true;
+		}
+		else { /* deselects */
+			bezt->f1 &= ~flag;
+			bezt->f2 &= ~flag;
+			bezt->f3 &= ~flag;
+			return true;
 		}
 	}
 	
-	return 0;
+	return false;
 }
 
 /* returns 1 in case (de)selection was successful */
-static short select_bpoint(BPoint *bp, short selstatus, short flag, short hidden) 
+static bool select_bpoint(BPoint *bp, bool selstatus, short flag, bool hidden)
 {	
-	if (bp) {
-		if ((bp->hide == 0) || (hidden == 1)) {
-			if (selstatus == 1) {
-				bp->f1 |= flag;
-				return 1;
-			}
-			else {
-				bp->f1 &= ~flag;
-				return 1;
-			}
+	if ((bp->hide == 0) || (hidden == 1)) {
+		if (selstatus == SELECT) {
+			bp->f1 |= flag;
+			return true;
+		}
+		else {
+			bp->f1 &= ~flag;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static short swap_selection_beztriple(BezTriple *bezt)
+static bool swap_selection_beztriple(BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
-		return select_beztriple(bezt, DESELECT, 1, VISIBLE);
+		return select_beztriple(bezt, DESELECT, SELECT, VISIBLE);
 	else
-		return select_beztriple(bezt, SELECT, 1, VISIBLE);
+		return select_beztriple(bezt, SELECT, SELECT, VISIBLE);
 }
 
-static short swap_selection_bpoint(BPoint *bp)
+static bool swap_selection_bpoint(BPoint *bp)
 {
 	if (bp->f1 & SELECT)
-		return select_bpoint(bp, DESELECT, 1, VISIBLE);
+		return select_bpoint(bp, DESELECT, SELECT, VISIBLE);
 	else
-		return select_bpoint(bp, SELECT, 1, VISIBLE);
+		return select_bpoint(bp, SELECT, SELECT, VISIBLE);
 }
 
 int isNurbsel(Nurb *nu)
@@ -2599,7 +2599,8 @@ void CURVE_OT_smooth_tilt(wmOperatorType *ot)
 /* next == -1 -> select previous    */
 /* cont == 1 -> select continuously */
 /* selstatus, inverts behavior		*/
-static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus)
+static void select_adjacent_cp(ListBase *editnurb, short next,
+                               const bool cont, const bool selstatus)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -2617,10 +2618,10 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 			if (next < 0) bezt = &nu->bezt[a - 1];
 			while (a--) {
 				if (a - abs(next) < 0) break;
-				if ((lastsel == 0) && (bezt->hide == 0) && ((bezt->f2 & SELECT) || (selstatus == 0))) {
+				if ((lastsel == 0) && (bezt->hide == 0) && ((bezt->f2 & SELECT) || (selstatus == DESELECT))) {
 					bezt += next;
-					if (!(bezt->f2 & SELECT) || (selstatus == 0)) {
-						short sel = select_beztriple(bezt, selstatus, 1, VISIBLE);
+					if (!(bezt->f2 & SELECT) || (selstatus == DESELECT)) {
+						short sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
 						if ((sel == 1) && (cont == 0)) lastsel = true;
 					}
 				}
@@ -2638,10 +2639,10 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 			if (next < 0) bp = &nu->bp[a - 1];
 			while (a--) {
 				if (a - abs(next) < 0) break;
-				if ((lastsel == 0) && (bp->hide == 0) && ((bp->f1 & SELECT) || (selstatus == 0))) {
+				if ((lastsel == 0) && (bp->hide == 0) && ((bp->f1 & SELECT) || (selstatus == DESELECT))) {
 					bp += next;
-					if (!(bp->f1 & SELECT) || (selstatus == 0)) {
-						short sel = select_bpoint(bp, selstatus, 1, VISIBLE);
+					if (!(bp->f1 & SELECT) || (selstatus == DESELECT)) {
+						short sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
 						if ((sel == 1) && (cont == 0)) lastsel = true;
 					}
 				}
@@ -2663,7 +2664,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
  * doswap: defines if selection state of each first/last control point is swapped
  * selstatus: selection status in case doswap is false
  */
-void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus)
+void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap, bool selstatus)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
@@ -2682,7 +2683,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 			a = nu->pntsu;
 			
 			/* which point? */
-			if (selfirst == 0) { /* select last */
+			if (selfirst == LAST) { /* select last */
 				bezt = &nu->bezt[a - 1];
 			}
 			else { /* select first */
@@ -2690,18 +2691,18 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 			}
 			
 			while (a--) {
-				short sel;
+				bool sel;
 				if (doswap) sel = swap_selection_beztriple(bezt);
-				else sel = select_beztriple(bezt, selstatus, 1, VISIBLE);
+				else sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
 				
-				if (sel == 1) break;
+				if (sel == true) break;
 			}
 		}
 		else {
 			a = nu->pntsu * nu->pntsv;
 			
 			/* which point? */
-			if (selfirst == 0) { /* select last */
+			if (selfirst == LAST) { /* select last */
 				bp = &nu->bp[a - 1];
 			}
 			else { /* select first */
@@ -2710,11 +2711,11 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 
 			while (a--) {
 				if (bp->hide == 0) {
-					short sel;
+					bool sel;
 					if (doswap) sel = swap_selection_bpoint(bp);
-					else sel = select_bpoint(bp, selstatus, 1, VISIBLE);
+					else sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
 					
-					if (sel == 1) break;
+					if (sel == true) break;
 				}
 			}
 		}
@@ -2725,7 +2726,7 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 
-	selectend_nurb(obedit, FIRST, 1, DESELECT);
+	selectend_nurb(obedit, FIRST, true, DESELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2750,7 +2751,7 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 
-	selectend_nurb(obedit, LAST, 1, DESELECT);
+	selectend_nurb(obedit, LAST, true, DESELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2875,11 +2876,11 @@ static int hide_exec(bContext *C, wmOperator *op)
 			sel = 0;
 			while (a--) {
 				if (invert == 0 && BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
-					select_beztriple(bezt, DESELECT, 1, HIDDEN);
+					select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
 					bezt->hide = 1;
 				}
 				else if (invert && !BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
-					select_beztriple(bezt, DESELECT, 1, HIDDEN);
+					select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
 					bezt->hide = 1;
 				}
 				if (bezt->hide) sel++;
@@ -2893,11 +2894,11 @@ static int hide_exec(bContext *C, wmOperator *op)
 			sel = 0;
 			while (a--) {
 				if (invert == 0 && (bp->f1 & SELECT)) {
-					select_bpoint(bp, DESELECT, 1, HIDDEN);
+					select_bpoint(bp, DESELECT, SELECT, HIDDEN);
 					bp->hide = 1;
 				}
 				else if (invert && (bp->f1 & SELECT) == 0) {
-					select_bpoint(bp, DESELECT, 1, HIDDEN);
+					select_bpoint(bp, DESELECT, SELECT, HIDDEN);
 					bp->hide = 1;
 				}
 				if (bp->hide) sel++;
@@ -2949,7 +2950,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			a = nu->pntsu;
 			while (a--) {
 				if (bezt->hide) {
-					select_beztriple(bezt, SELECT, 1, HIDDEN);
+					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
 					bezt->hide = 0;
 				}
 				bezt++;
@@ -2960,7 +2961,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			a = nu->pntsu * nu->pntsv;
 			while (a--) {
 				if (bp->hide) {
-					select_bpoint(bp, SELECT, 1, HIDDEN);
+					select_bpoint(bp, SELECT, SELECT, HIDDEN);
 					bp->hide = 0;
 				}
 				bp++;
@@ -3926,7 +3927,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 		for (u = 0; u < nu1->pntsu; u++, bp++) {
 			if (u < origu) {
 				*bp = *bp1; bp1++;
-				select_bpoint(bp, SELECT, 1, HIDDEN);
+				select_bpoint(bp, SELECT, SELECT, HIDDEN);
 			}
 			else {
 				*bp = *bp2; bp2++;
@@ -4234,7 +4235,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 		if (extend) {
 			if (bezt) {
 				if (hand == 1) {
-					select_beztriple(bezt, SELECT, 1, HIDDEN);
+					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
 					cu->lastsel = bezt;
 				}
 				else {
@@ -4246,13 +4247,13 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			}
 			else {
 				cu->lastsel = bp;
-				select_bpoint(bp, SELECT, 1, HIDDEN);
+				select_bpoint(bp, SELECT, SELECT, HIDDEN);
 			}
 		}
 		else if (deselect) {
 			if (bezt) {
 				if (hand == 1) {
-					select_beztriple(bezt, DESELECT, 1, HIDDEN);
+					select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
 					if (bezt == cu->lastsel) cu->lastsel = NULL;
 				}
 				else if (hand == 0) {
@@ -4263,7 +4264,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 				}
 			}
 			else {
-				select_bpoint(bp, DESELECT, 1, HIDDEN);
+				select_bpoint(bp, DESELECT, SELECT, HIDDEN);
 				if (cu->lastsel == bp) cu->lastsel = NULL;
 			}
 		}
@@ -4271,11 +4272,11 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			if (bezt) {
 				if (hand == 1) {
 					if (bezt->f2 & SELECT) {
-						select_beztriple(bezt, DESELECT, 1, HIDDEN);
+						select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
 						if (bezt == cu->lastsel) cu->lastsel = NULL;
 					}
 					else {
-						select_beztriple(bezt, SELECT, 1, HIDDEN);
+						select_beztriple(bezt, SELECT, SELECT, HIDDEN);
 						cu->lastsel = bezt;
 					}
 				}
@@ -4288,11 +4289,11 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			}
 			else {
 				if (bp->f1 & SELECT) {
-					select_bpoint(bp, DESELECT, 1, HIDDEN);
+					select_bpoint(bp, DESELECT, SELECT, HIDDEN);
 					if (cu->lastsel == bp) cu->lastsel = NULL;
 				}
 				else {
-					select_bpoint(bp, SELECT, 1, HIDDEN);
+					select_bpoint(bp, SELECT, SELECT, HIDDEN);
 					cu->lastsel = bp;
 				}
 			}
@@ -4303,7 +4304,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			if (bezt) {
 
 				if (hand == 1) {
-					select_beztriple(bezt, SELECT, 1, HIDDEN);
+					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
 					cu->lastsel = bezt;
 				}
 				else {
@@ -4315,7 +4316,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			}
 			else {
 				cu->lastsel = bp;
-				select_bpoint(bp, SELECT, 1, HIDDEN);
+				select_bpoint(bp, SELECT, SELECT, HIDDEN);
 			}
 		}
 
@@ -5030,7 +5031,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 					a = nu->pntsu;
 					bezt = nu->bezt;
 					while (a--) {
-						select_beztriple(bezt, SELECT, 1, VISIBLE);
+						select_beztriple(bezt, SELECT, SELECT, VISIBLE);
 						bezt++;
 					}
 					break;
@@ -5046,7 +5047,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 					a = nu->pntsu * nu->pntsv;
 					bp = nu->bp;
 					while (a--) {
-						select_bpoint(bp, SELECT, 1, VISIBLE);
+						select_bpoint(bp, SELECT, SELECT, VISIBLE);
 						bp++;
 					}
 					break;
@@ -5107,8 +5108,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 		a = nu->pntsu;
 		bezt = nu->bezt;
 		while (a--) {
-			if (deselect) select_beztriple(bezt, DESELECT, 1, VISIBLE);
-			else select_beztriple(bezt, SELECT, 1, VISIBLE);
+			if (deselect) select_beztriple(bezt, DESELECT, SELECT, VISIBLE);
+			else select_beztriple(bezt, SELECT, SELECT, VISIBLE);
 			bezt++;
 		}
 	}
@@ -5116,8 +5117,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 		a = nu->pntsu * nu->pntsv;
 		bp = nu->bp;
 		while (a--) {
-			if (deselect) select_bpoint(bp, DESELECT, 1, VISIBLE);
-			else select_bpoint(bp, SELECT, 1, VISIBLE);
+			if (deselect) select_bpoint(bp, DESELECT, SELECT, VISIBLE);
+			else select_bpoint(bp, SELECT, SELECT, VISIBLE);
 			bp++;
 		}
 	}
@@ -5189,10 +5190,10 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 			for (a = 0; a < nu->pntsv; a++) {
 				for (b = 0; b < nu->pntsu; b++, bp++) {
 					if (direction) {
-						if (a == v) select_bpoint(bp, SELECT, 1, VISIBLE);
+						if (a == v) select_bpoint(bp, SELECT, SELECT, VISIBLE);
 					}
 					else {
-						if (b == u) select_bpoint(bp, SELECT, 1, VISIBLE);
+						if (b == u) select_bpoint(bp, SELECT, SELECT, VISIBLE);
 					}
 				}
 			}
@@ -5303,14 +5304,14 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 					/* upper control point */
 					if (a % nu->pntsu != 0) {
 						tempbp = bp - 1;
-						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
+						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
 					}
 
 					/* left control point. select only if it is not selected already */
 					if (a - nu->pntsu > 0) {
 						sel = 0;
 						tempbp = bp + nu->pntsu;
-						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, 1, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
 						/* make sure selected bpoint is discarded */
 						if (sel == 1) BLI_BITMAP_SET(selbpoints, a - nu->pntsu);
 					}
@@ -5318,14 +5319,14 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 					/* right control point */
 					if (a + nu->pntsu < nu->pntsu * nu->pntsv) {
 						tempbp = bp - nu->pntsu;
-						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
+						if (!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
 					}
 				
 					/* lower control point. skip next bp in case selection was made */
 					if (a % nu->pntsu != 1) {
 						sel = 0;
 						tempbp = bp + 1;
-						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, 1, VISIBLE);
+						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, SELECT, VISIBLE);
 						if (sel) {
 							bp++;
 							a--;
@@ -5427,7 +5428,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 
 					if (sel != 4) {
-						select_bpoint(bp, DESELECT, 1, VISIBLE); 
+						select_bpoint(bp, DESELECT, SELECT, VISIBLE);
 						BLI_BITMAP_SET(selbpoints, a);
 					}
 				}
@@ -5473,7 +5474,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						}
 
 						if (sel != 2) {
-							select_beztriple(bezt, DESELECT, 1, VISIBLE);
+							select_beztriple(bezt, DESELECT, SELECT, VISIBLE);
 							lastsel = true;
 						}
 						else {
@@ -5515,7 +5516,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						}
 
 						if (sel != 2) {
-							select_bpoint(bp, DESELECT, 1, VISIBLE);
+							select_bpoint(bp, DESELECT, SELECT, VISIBLE);
 							lastsel = true;
 						}
 						else {
@@ -5567,7 +5568,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 			a = nu->pntsu;
 			while (a--) {
 				if (BLI_frand() < randfac)
-					select_beztriple(bezt, SELECT, 1, VISIBLE);
+					select_beztriple(bezt, SELECT, SELECT, VISIBLE);
 				bezt++;
 			}
 		}
@@ -5577,7 +5578,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 			
 			while (a--) {
 				if (BLI_frand() < randfac)
-					select_bpoint(bp, SELECT, 1, VISIBLE); 
+					select_bpoint(bp, SELECT, SELECT, VISIBLE);
 				bp++;
 			}
 		}
@@ -5620,15 +5621,13 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 
 /********************* every nth number of point *******************/
 
-static int point_on_nurb(Nurb *nu, void *point)
+static bool point_in_nurb(Nurb *nu, void *point)
 {
 	if (nu->bezt) {
-		BezTriple *bezt = (BezTriple *)point;
-		return bezt >= nu->bezt && bezt < &nu->bezt[nu->pntsu];
+		return ARRAY_HAS_ITEM((BezTriple *)point, nu->bezt, nu->pntsu);
 	}
 	else {
-		BPoint *bp = (BPoint *)point;
-		return bp >= nu->bp && bp < &nu->bp[nu->pntsu * nu->pntsv];
+		return ARRAY_HAS_ITEM((BPoint *)point, nu->bp, nu->pntsu);
 	}
 }
 
@@ -5641,7 +5640,7 @@ static Nurb *get_lastsel_nurb(Curve *cu)
 		return NULL;
 
 	while (nu) {
-		if (point_on_nurb(nu, cu->lastsel))
+		if (point_in_nurb(nu, cu->lastsel))
 			return nu;
 
 		nu = nu->next;
@@ -5660,7 +5659,7 @@ static void select_nth_bezt(Nurb *nu, BezTriple *bezt, int nth)
 
 	while (a--) {
 		if (abs(start - a) % nth) {
-			select_beztriple(bezt, DESELECT, 1, HIDDEN);
+			select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
 		}
 
 		bezt--;
@@ -5683,7 +5682,7 @@ static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
 	while (a--) {
 		dist = abs(pnt - startpnt) + abs(row - startrow);
 		if (dist % nth) {
-			select_bpoint(bp, DESELECT, 1, HIDDEN);
+			select_bpoint(bp, DESELECT, SELECT, HIDDEN);
 		}
 
 		pnt--;
@@ -5787,7 +5786,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 
 /********************** delete operator *********************/
 
-static int curve_delete_selected(Object *obedit, int type, const bool split)
+static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bool split)
 {
 	Curve *cu = obedit->data;
 	EditNurb *editnurb = cu->editnurb;
@@ -6155,7 +6154,7 @@ static int curve_delete_selected(Object *obedit, int type, const bool split)
 
 								if (split) {
 									for (b = 0; b < startnu->pntsu; b++, bp1++) {
-										select_bpoint(bp1, DESELECT, 1, 1);
+										select_bpoint(bp1, DESELECT, SELECT, HIDDEN);
 									}
 								}
 
@@ -6183,7 +6182,7 @@ static int curve_delete_selected(Object *obedit, int type, const bool split)
 							if (split) {
 								/* deselect for split operator */
 								for (b = 0, bp1 = nu1->bp; b < nu1->pntsu; b++, bp1++) {
-									select_bpoint(bp1, DESELECT, 1, 1);
+									select_bpoint(bp1, DESELECT, SELECT, HIDDEN);
 								}
 							}
 
@@ -6235,7 +6234,7 @@ static int curve_delete_selected(Object *obedit, int type, const bool split)
 static int delete_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	int type = RNA_enum_get(op->ptr, "type");
+	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
 	int retval = curve_delete_selected(obedit, type, false);
 
 	if (retval == OPERATOR_FINISHED) {
