@@ -278,7 +278,11 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 {
 #ifdef WITH_SDL
 	if (m_isinit) {
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		if (SDL_JoystickGetAttached(m_private->m_joystick)) {
+#else
 		if (SDL_JoystickOpened(m_joyindex)) {
+#endif
 			JOYSTICK_ECHO("Closing-joystick " << m_joyindex);
 			SDL_JoystickClose(m_private->m_joystick);
 		}
@@ -290,7 +294,12 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 int SCA_Joystick::Connected(void)
 {
 #ifdef WITH_SDL
-	if (m_isinit && SDL_JoystickOpened(m_joyindex))
+	if (m_isinit
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		&& SDL_JoystickGetAttached(m_private->m_joystick))
+#else
+	    && SDL_JoystickOpened(m_joyindex))
+#endif
 		return 1;
 #endif
 	return 0;
@@ -328,7 +337,11 @@ int SCA_Joystick::pAxisTest(int axisnum)
 const char *SCA_Joystick::GetName()
 {
 #ifdef WITH_SDL
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	return SDL_JoystickName(m_private->m_joystick);
+#else
 	return SDL_JoystickName(m_joyindex);
+#endif
 #else /* WITH_SDL */
 	return "";
 #endif /* WITH_SDL */
