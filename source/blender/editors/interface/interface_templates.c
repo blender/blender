@@ -2526,7 +2526,7 @@ typedef struct {
 static int cmpstringp(const void *p1, const void *p2)
 {
 	/* Case-insensitive comparison. */
-	return strcasecmp(((StringCmp *) p1)->name, ((StringCmp *) p2)->name);
+	return BLI_strcasecmp(((StringCmp *) p1)->name, ((StringCmp *) p2)->name);
 }
 
 static void uilist_filter_items_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct PointerRNA *dataptr,
