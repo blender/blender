@@ -2086,10 +2086,17 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 
 static void txt_screen_clamp(SpaceText *st, ARegion *ar)
 {
-	int last;
-	last = text_get_total_lines(st, ar);
-	last = last - (st->viewlines / 2);
-	CLAMP(st->top, 0, last);
+	if (st->top < 0) {
+		st->top = 0;
+	}
+	else {
+		int last;
+		last = text_get_total_lines(st, ar);
+		last = last - (st->viewlines / 2);
+		if (last > 0 && st->top > last) {
+			st->top = last;
+		}
+	}
 }
 
 /* Moves the view vertically by the specified number of lines */
