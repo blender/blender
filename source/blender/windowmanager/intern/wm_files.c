@@ -810,15 +810,14 @@ int write_crash_blend(void)
 	}
 }
 
-int wm_file_write(bContext *C, const char *target, int fileflags, ReportList *reports)
+int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
-	char filepath[FILE_MAX];
 	int *thumb = NULL;
 	ImBuf *ibuf_thumb = NULL;
 
-	len = strlen(target);
+	len = strlen(filepath);
 	
 	if (len == 0) {
 		BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
@@ -830,9 +829,9 @@ int wm_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 		return -1;
 	}
  
-	BLI_strncpy(filepath, target, FILE_MAX);
-	BLI_replace_extension(filepath, FILE_MAX, ".blend");
-	/* don't use 'target' anymore */
+	/* note: used to replace the file extension (to ensure '.blend'),
+	 * no need to now because the operator ensures,
+	 * its handy for scripts to save to a predefined name without blender editing it */
 	
 	/* send the OnSave event */
 	for (li = G.main->library.first; li; li = li->id.next) {
