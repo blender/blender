@@ -151,8 +151,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	ret = WM_gesture_straightline_modal(C, op, event);
 
 	if (ret & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
-		if (opdata)
-			edbm_bisect_exit(C, &opdata_back);
+		edbm_bisect_exit(C, &opdata_back);
 	}
 
 	return ret;
