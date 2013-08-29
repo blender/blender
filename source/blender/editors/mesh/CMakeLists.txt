@@ -42,6 +42,7 @@ set(SRC
 	editface.c
 	editmesh_add.c
 	editmesh_bevel.c
+	editmesh_bisect.c
 	editmesh_extrude.c
 	editmesh_inset.c
 	editmesh_knife.c

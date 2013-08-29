@@ -174,8 +174,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.operator("mesh.subdivide")
         col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move", text="Duplicate")
-        col.operator("mesh.spin")
-        col.operator("mesh.screw")
+        row = col.row(align=True)
+        row.operator("mesh.spin")
+        row.operator("mesh.screw")
 
         row = col.row(align=True)
         props = row.operator("mesh.knife_tool", text="Knife")
@@ -185,6 +186,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         props.use_occlude_geometry = False
         props.only_selected = True
         col.operator("mesh.knife_project")
+        col.operator("mesh.bisect")
 
         col = layout.column(align=True)
         col.label(text="Remove:")

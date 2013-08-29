@@ -95,6 +95,8 @@ void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 /* *** editmesh_bevel.c *** */
 void MESH_OT_bevel(struct wmOperatorType *ot);
 
+/* *** editmesh_bisect.c *** */
+void MESH_OT_bisect(struct wmOperatorType *ot);
 
 /* *** editmesh_extrude.c *** */
 void MESH_OT_extrude_repeat(struct wmOperatorType *ot);
@@ -171,7 +173,6 @@ void MESH_OT_edge_split(struct wmOperatorType *ot);
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
 void MESH_OT_wireframe(struct wmOperatorType *ot);
 void MESH_OT_convex_hull(struct wmOperatorType *ot);
-void MESH_OT_bisect(struct wmOperatorType *ot);
 void MESH_OT_symmetrize(struct wmOperatorType *ot);
 void MESH_OT_symmetry_snap(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
