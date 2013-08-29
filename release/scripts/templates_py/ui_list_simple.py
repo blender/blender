@@ -1,14 +1,3 @@
-"""
-Basic UIList Example
-+++++++++++++++++++
-This script is the UIList subclass used to show material slots, with a bunch of additional commentaries.
-
-Notice the name of the class, this naming convention is similar as the one for panels or menus.
-
-.. note::
-
-   UIList subclasses must be registered for blender to use them.
-"""
 import bpy
 
 
@@ -22,7 +11,10 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
     #   active item of the collection).
     #   active_propname is the name of the active property (use 'getattr(active_data, active_propname)').
     #   index is index of the current item in the collection.
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    #   flt_flag is the result of the filtering process for this item.
+    #   Note: as index and flt_flag are optional arguments, you do not have to use/declare them here if you don't
+    #         need them.
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         ob = data
         slot = item
         ma = slot.material

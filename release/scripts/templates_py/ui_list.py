@@ -1,79 +1,45 @@
 import bpy
 
 
-class MATERIAL_UL_matslots_example(bpy.types.UIList):
-    # The draw_item function is called for each item of the collection that is visible in the list.
-    #   data is the RNA object containing the collection,
-    #   item is the current drawn item of the collection,
-    #   icon is the "computed" icon for the item (as an integer, because some objects like materials or textures
-    #   have custom icons ID, which are not available as enum items).
-    #   active_data is the RNA object containing the active property for the collection (i.e. integer pointing to the
-    #   active item of the collection).
-    #   active_propname is the name of the active property (use 'getattr(active_data, active_propname)').
-    #   index is index of the current item in the collection.
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        ob = data
-        slot = item
-        ma = slot.material
-        # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
+class MESH_UL_mylist(UIList):
+    # Constants (flags)
+    # Be careful not to shadow FILTER_ITEM (i.e. UIList().bitflag_filter_item)!
+    # E.g. VGROUP_EMPTY = 1 << 0
+
+    # Custom properties, saved with .blend file. E.g.
+    # use_filter_empty = bpy.props.BoolProperty(name="Filter Empty", default=False, options=set(),
+    #                                           description="Whether to filter empty vertex groups")
+
+    # Called for each drawn item.
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index, flt_flag):
+        # 'DEFAULT' and 'COMPACT' layout types should usually use the same draw code.
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # You should always start your row layout by a label (icon + text), this will also make the row easily
-            # selectable in the list!
-            # We use icon_value of label, as our given icon is an integer value, not an enum ID.
-            # Note "data" names should never be translated!
-            layout.label(text=ma.name if ma else "", translate=False, icon_value=icon)
-            # And now we can add other UI stuff...
-            # Here, we add nodes info if this material uses (old!) shading nodes.
-            if ma and not context.scene.render.use_shading_nodes:
-                manode = ma.active_node_material
-                if manode:
-                    # The static method UILayout.icon returns the integer value of the icon ID "computed" for the given
-                    # RNA object.
-                    layout.label(text="Node %s" % manode.name, translate=False, icon_value=layout.icon(manode))
-                elif ma.use_nodes:
-                    layout.label(text="Node <none>", translate=False)
-                else:
-                    layout.label(text="")
+            pass
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
         elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+            pass
 
+    # Called once to draw filtering/reordering options.
+    def draw_filter(self, context, layout):
+        # Nothing much to say here, it's usual UI code...
+        pass
 
-# And now we can use this list everywhere in Blender. Here is a small example panel.
-class UIListPanelExample(bpy.types.Panel):
-    """Creates a Panel in the Object properties window"""
-    bl_label = "UIList Panel"
-    bl_idname = "OBJECT_PT_ui_list_example"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
+    # Called once to filter/reorder items.
+    def filter_items(self, context, data, propname):
+        # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
+        # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
+        #   matching item as filtered (i.e. to be shown), and 31 other bits are free for custom needs. Here we use the
+        #   first one to mark VGROUP_EMPTY.
+        # * The second one is for reordering, it must return a list containing the new indices of the items (which
+        #   gives us a mapping org_idx -> new_idx).
+        # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
+        # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
+        # returning full lists doing nothing!).
 
-    def draw(self, context):
-        layout = self.layout
+        # Default return values.
+        flt_flags = []
+        flt_neworder = []
 
-        obj = context.object
+        # Do filtering/reordering here...
 
-        # template_list now takes two new args.
-        # The first one is the identifier of the registered UIList to use (if you want only the default list,
-        # with no custom draw code, use "UI_UL_list").
-        layout.template_list("MATERIAL_UL_matslots_example", "", obj, "material_slots", obj, "active_material_index")
-
-        # The second one can usually be left as an empty string. It's an additional ID used to distinguish lists in case you
-        # use the same list several times in a given area.
-        layout.template_list("MATERIAL_UL_matslots_example", "compact", obj, "material_slots",
-                             obj, "active_material_index", type='COMPACT')
-
-
-def register():
-    bpy.utils.register_class(MATERIAL_UL_matslots_example)
-    bpy.utils.register_class(UIListPanelExample)
-
-
-def unregister():
-    bpy.utils.unregister_class(MATERIAL_UL_matslots_example)
-    bpy.utils.unregister_class(UIListPanelExample)
-
-
-if __name__ == "__main__":
-    register()
+        return flt_flags, flt_neworder
