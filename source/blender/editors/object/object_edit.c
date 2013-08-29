@@ -79,6 +79,7 @@
 #include "BKE_softbody.h"
 #include "BKE_modifier.h"
 #include "BKE_editmesh.h"
+#include "BKE_report.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
@@ -556,11 +557,20 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
 
-static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
+	const int mode_flag = OB_MODE_EDIT;
+	const bool is_mode_set = CTX_data_edit_object(C);
 	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
 
-	if (!CTX_data_edit_object(C))
+	if (!is_mode_set) {
+		Scene *scene = CTX_data_scene(C);
+		if (!ED_object_mode_compat_set(C, scene->basact->object, mode_flag, op->reports)) {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (!is_mode_set)
 		ED_object_editmode_enter(C, EM_WAITCURSOR);
 	else
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR);  /* had EM_DO_UNDO but op flag calls undo too [#24685] */
@@ -582,10 +592,7 @@ static int editmode_toggle_poll(bContext *C)
 	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT))
 		return 0;
 
-	return (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
-	        ob->type == OB_FONT || ob->type == OB_MBALL ||
-	        ob->type == OB_LATTICE || ob->type == OB_SURF ||
-	        ob->type == OB_CURVE);
+	return (ELEM7(ob->type, OB_MESH, OB_ARMATURE, OB_FONT, OB_MBALL, OB_LATTICE, OB_SURF, OB_CURVE));
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
@@ -598,7 +605,6 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = editmode_toggle_exec;
-	
 	ot->poll = editmode_toggle_poll;
 	
 	/* flags */
@@ -607,16 +613,25 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 /* *************************** */
 
-static int posemode_exec(bContext *C, wmOperator *UNUSED(op))
+static int posemode_exec(bContext *C, wmOperator *op)
 {
 	Base *base = CTX_data_active_base(C);
+	Object *ob = base->object;
+	const int mode_flag = OB_MODE_POSE;
+	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	
-	if (base->object->type == OB_ARMATURE) {
-		if (base->object == CTX_data_edit_object(C)) {
+	if (!is_mode_set) {
+		if (ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (ob->type == OB_ARMATURE) {
+		if (ob == CTX_data_edit_object(C)) {
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
 			ED_armature_enter_posemode(C, base);
 		}
-		else if (base->object->mode & OB_MODE_POSE)
+		else if (is_mode_set)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
@@ -1503,7 +1518,7 @@ static const char *object_mode_op_string(int mode)
 /* checks the mode to be set is compatible with the object
  * should be made into a generic function
  */
-static bool object_mode_set_compat(Object *ob, ObjectMode mode)
+static bool object_mode_compat_test(Object *ob, ObjectMode mode)
 {
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
@@ -1538,6 +1553,30 @@ static bool object_mode_set_compat(Object *ob, ObjectMode mode)
 	return false;
 }
 
+/**
+ * Sets the mode to a compatible state (use before entering the mode).
+ *
+ * This is so each mode's exec function can call
+ */
+bool ED_object_mode_compat_set(bContext *C, Object *ob, int mode, ReportList *reports)
+{
+	bool ok;
+	if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
+		const char *opstring = object_mode_op_string(ob->mode);
+		WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
+		ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
+		if (!ok) {
+			wmOperatorType *ot = WM_operatortype_find(opstring, false);
+			BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
+		}
+	}
+	else {
+		ok = true;
+	}
+
+	return ok;
+}
+
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
@@ -1545,14 +1584,15 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	if (!ob || !object_mode_set_compat(ob, mode))
+	if (!ob || !object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
-	/* Exit current mode if it's not the mode we're setting */
-	if (ob->mode != OB_MODE_OBJECT && ob->mode != mode) {
-		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
+	if (ob->mode != mode) {
+		/* we should be able to remove this call, each operator calls  */
+		ED_object_mode_compat_set(C, ob, mode, op->reports);
 	}
 
+	/* Exit current mode if it's not the mode we're setting */
 	if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
 		/* Enter new mode */
 		WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);

@@ -123,6 +123,7 @@ struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, st
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 
+bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, int mode, struct ReportList *reports);
 void ED_object_toggle_modes(struct bContext *C, int mode);
 
 /* bitflags for enter/exit editmode */

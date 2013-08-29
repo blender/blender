@@ -82,6 +82,7 @@
 #include "UI_view2d.h"
 
 #include "ED_image.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_uvedit.h"
@@ -1006,9 +1007,12 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 static int texture_paint_toggle_poll(bContext *C)
 {
-	if (CTX_data_edit_object(C))
+	Object *ob = CTX_data_active_object(C);
+	if (ob == NULL || ob->type != OB_MESH)
 		return 0;
-	if (CTX_data_active_object(C) == NULL)
+	if (!ob->data || ((ID *)ob->data)->lib)
+		return 0;
+	if (CTX_data_edit_object(C))
 		return 0;
 
 	return 1;
@@ -1018,25 +1022,20 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	Mesh *me = NULL;
-	
-	if (ob == NULL)
-		return OPERATOR_CANCELLED;
-	
-	if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
-		return OPERATOR_CANCELLED;
+	const int mode_flag = OB_MODE_TEXTURE_PAINT;
+	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	Mesh *me;
+
+	if (!is_mode_set) {
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	me = BKE_mesh_from_object(ob);
 
-	if (!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
-		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects");
-		return OPERATOR_CANCELLED;
-	}
-
-	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-		ob->mode &= ~OB_MODE_TEXTURE_PAINT;
+	if (ob->mode & mode_flag) {
+		ob->mode &= ~mode_flag;
 
 		if (U.glreslimit != 0)
 			GPU_free_images();
@@ -1045,7 +1044,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 0);
 	}
 	else {
-		ob->mode |= OB_MODE_TEXTURE_PAINT;
+		ob->mode |= mode_flag;
 
 		if (me->mtface == NULL)
 			me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,

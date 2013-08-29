@@ -69,6 +69,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_object.h"
 #include "ED_physics.h"
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -4345,23 +4346,36 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 
 static int particle_edit_toggle_poll(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 
-	if (!scene || !ob || ob->id.lib)
+	if (ob == NULL || ob->type != OB_MESH)
 		return 0;
-	
-	return (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody));
+	if (!ob->data || ((ID *)ob->data)->lib)
+		return 0;
+	if (CTX_data_edit_object(C))
+		return 0;
+
+	return (ob->particlesystem.first ||
+	        modifiers_findByType(ob, eModifierType_Cloth) ||
+	        modifiers_findByType(ob, eModifierType_Softbody));
 }
 
-static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	const int mode_flag = OB_MODE_PARTICLE_EDIT;
+	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
-	if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
+	if (!is_mode_set) {
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (!is_mode_set) {
 		PTCacheEdit *edit;
-		ob->mode |= OB_MODE_PARTICLE_EDIT;
+		ob->mode |= mode_flag;
 		edit= PE_create_current(scene, ob);
 	
 		/* mesh may have changed since last entering editmode.
@@ -4373,7 +4387,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
 	}
 	else {
-		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
+		ob->mode &= ~mode_flag;
 		toggle_particle_cursor(C, 0);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
