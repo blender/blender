@@ -123,6 +123,10 @@ typedef struct uiListDyn {
 
 	int items_len;                /* Number of items in collection. */
 	int items_shown;              /* Number of items actually visible after filtering. */
+
+	/* Filtering data. */
+	int *items_filter_flags;      /* items_len length. */
+	int *items_filter_neworder;   /* org_idx -> new_idx, items_len length. */
 } uiListDyn;
 
 typedef struct uiList {           /* some list UI data need to be saved in file */
@@ -139,6 +143,14 @@ typedef struct uiList {           /* some list UI data need to be saved in file 
 	int list_grip;
 	int list_last_len;
 	int padi1;
+
+	/* Filtering data. */
+	char filter_byname[64];	      /* defined as UI_MAX_NAME_STR */
+	int filter_flag;
+	int filter_orderby_flag;
+
+	/* Custom sub-classes properties. */
+	IDProperty *properties;
 
 	/* Dynamic data (runtime). */
 	uiListDyn *dyn_data;
@@ -258,6 +270,25 @@ enum {
 	UILST_SCROLL_TO_ACTIVE_ITEM   = 1 << 0,          /* Scroll list to make active item visible. */
 	UILST_RESIZING                = 1 << 1,          /* We are currently resizing, deactivate autosize! */
 };
+
+/* uiList filter flags (dyn_data) */
+enum {
+	UILST_FLT_ITEM      = 1 << 31,  /* This item has passed the filter process successfully. */
+};
+
+/* uiList filter options */
+enum {
+	UILST_FLT_SHOW      = 1 << 0,          /* Show filtering UI. */
+	UILST_FLT_EXCLUDE   = UILST_FLT_ITEM,  /* Exclude filtered items, *must* use this same value. */
+};
+
+/* uiList filter orderby type */
+enum {
+	UILST_FLT_ORDERBY_NAME         = 1 << 0,
+	UILST_FLT_ORDERBY_REVERSE      = 1 << 31  /* Special value, bitflag used to reverse order! */
+};
+
+#define UILST_FLT_ORDERBY_MASK (((unsigned int)UILST_FLT_ORDERBY_REVERSE) - 1)
 
 /* regiontype, first two are the default set */
 /* Do NOT change order, append on end. Types are hardcoded needed */

@@ -6585,15 +6585,55 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 			    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 			{
 				const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
-				int value, min, max;
+				int value, min, max, inc;
 
 				/* activate up/down the list */
 				value = value_orig;
+				if ((ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) != 0) {
+					inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? 1 : -1;
+				}
+				else {
+					inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? -1 : 1;
+				}
 
-				if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
-					value--;
-				else
-					value++;
+				if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
+					/* If we have a display order different from collection order, we have some work! */
+					int *org_order = MEM_mallocN(dyn_data->items_shown * sizeof(int), AT);
+					int *new_order = dyn_data->items_filter_neworder;
+					int i, org_idx = -1, len = dyn_data->items_len;
+					int current_idx = -1;
+					int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+
+					for (i = 0; i < len; i++) {
+						if (!dyn_data->items_filter_flags ||
+							((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+						{
+							org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
+							if (i == value) {
+								current_idx = new_order ? new_order[org_idx] : org_idx;
+							}
+						}
+						else if (i == value && org_idx >= 0) {
+							current_idx = -(new_order ? new_order[org_idx] : org_idx) - 1;
+						}
+					}
+					/* Now, org_order maps displayed indices to real indices,
+					 * and current_idx either contains the displayed index of active value (positive),
+					 *                 or its more-nearest one (negated).
+					 */
+					if (current_idx < 0) {
+						current_idx = (current_idx * -1) + (inc < 0 ? inc : inc - 1);
+					}
+					else {
+						current_idx += inc;
+					}
+					CLAMP(current_idx, 0, dyn_data->items_shown - 1);
+					value = org_order[current_idx];
+					MEM_freeN(org_order);
+				}
+				else {
+					value += inc;
+				}
 
 				CLAMP(value, 0, dyn_data->items_len - 1);
 

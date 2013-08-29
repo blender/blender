@@ -44,6 +44,7 @@
 #include "BLI_rect.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_fnmatch.h"
 
 #include "BLF_api.h"
 #include "BLF_translation.h"
@@ -2471,7 +2472,7 @@ void uiTemplateGameStates(uiLayout *layout, PointerRNA *ptr, const char *propnam
 static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout,
                                      struct PointerRNA *UNUSED(dataptr), struct PointerRNA *itemptr, int icon,
                                      struct PointerRNA *UNUSED(active_dataptr), const char *UNUSED(active_propname),
-                                     int UNUSED(index))
+                                     int UNUSED(index), int UNUSED(flt_flag))
 {
 	char *namebuf;
 	const char *name;
@@ -2496,6 +2497,153 @@ static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UN
 		MEM_freeN(namebuf);
 	}
 }
+
+static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout)
+{
+	PointerRNA listptr;
+	uiLayout *row, *subrow;
+
+	RNA_pointer_create(NULL, &RNA_UIList, ui_list, &listptr);
+
+	row = uiLayoutRow(layout, FALSE);
+
+	subrow = uiLayoutRow(row, TRUE);
+	uiItemR(subrow, &listptr, "filter_name", 0, "", ICON_NONE);
+	uiItemR(subrow, &listptr, "use_filter_invert", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
+	        (ui_list->filter_flag & UILST_FLT_EXCLUDE) ? ICON_ZOOM_OUT : ICON_ZOOM_IN);
+
+	subrow = uiLayoutRow(row, TRUE);
+	uiItemR(subrow, &listptr, "use_filter_orderby_name", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+	uiItemR(subrow, &listptr, "use_filter_orderby_invert", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
+	        (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) ? ICON_TRIA_UP : ICON_TRIA_DOWN);
+}
+
+typedef struct {
+	char name[MAX_IDPROP_NAME];
+	int org_idx;
+} StringCmp;
+
+static int cmpstringp(const void *p1, const void *p2)
+{
+	/* Case-insensitive comparison. */
+	return strcasecmp(((StringCmp *) p1)->name, ((StringCmp *) p2)->name);
+}
+
+static void uilist_filter_items_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct PointerRNA *dataptr,
+                                        const char *propname)
+{
+	uiListDyn *dyn_data = ui_list->dyn_data;
+	PropertyRNA *prop = RNA_struct_find_property(dataptr, propname);
+
+	const char *filter_raw = ui_list->filter_byname;
+	char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = NULL;
+	bool filter_exclude = (ui_list->filter_flag & UILST_FLT_EXCLUDE) != 0;
+	bool order_by_name = (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_NAME) != 0;
+	int len = RNA_property_collection_length(dataptr, prop);
+
+	dyn_data->items_shown = dyn_data->items_len = len;
+
+	if (len && (order_by_name || filter_raw[0])) {
+		StringCmp *names = NULL;
+		int order_idx = 0, i = 0;
+
+		if (order_by_name) {
+			names = MEM_callocN(sizeof(StringCmp) * len, AT);
+		}
+		if (filter_raw[0]) {
+			size_t idx = 0, slen = strlen(filter_raw);
+
+			dyn_data->items_filter_flags = MEM_callocN(sizeof(int) * len, AT);
+			dyn_data->items_shown = 0;
+
+			/* Implicitly add heading/trailing wildcards if needed. */
+			if (len + 3 <= 32) {
+				filter = filter_buff;
+			}
+			else {
+				filter = filter_dyn = MEM_mallocN((slen + 3) * sizeof(char), AT);
+			}
+			if (filter_raw[idx] != '*') {
+				filter[idx++] = '*';
+			}
+			memcpy(filter + idx, filter_raw, slen);
+			idx += slen;
+			if (filter[idx - 1] != '*') {
+				filter[idx++] = '*';
+			}
+			filter[idx] = '\0';
+		}
+
+		RNA_PROP_BEGIN (dataptr, itemptr, prop)
+		{
+			char *namebuf;
+			const char *name;
+			bool do_order = false;
+
+			namebuf = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
+			name = namebuf ? namebuf : "";
+
+			if (filter[0]) {
+				/* Case-insensitive! */
+				if (fnmatch(filter, name, FNM_CASEFOLD) == 0) {
+					dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
+					if (!filter_exclude) {
+						dyn_data->items_shown++;
+						do_order = order_by_name;
+					}
+					//printf("%s: '%s' matches '%s'\n", __func__, name, filter);
+				}
+				else if (filter_exclude) {
+					dyn_data->items_shown++;
+					do_order = order_by_name;
+				}
+			}
+			else {
+				do_order = order_by_name;
+			}
+
+			if (do_order) {
+				names[order_idx].org_idx = order_idx;
+				BLI_strncpy(names[order_idx++].name, name, MAX_IDPROP_NAME);
+			}
+
+			/* free name */
+			if (namebuf) {
+				MEM_freeN(namebuf);
+			}
+			i++;
+		}
+		RNA_PROP_END;
+
+		if (order_by_name) {
+			int new_idx;
+			/* note: order_idx equals either to ui_list->items_len if no filtering done,
+			 *       or to ui_list->items_shown if filter is enabled,
+			 *       or to (ui_list->items_len - ui_list->items_shown) if filtered items are excluded.
+			 *       This way, we only sort items we actually intend to draw!
+			 */
+			qsort(names, order_idx, sizeof(StringCmp), cmpstringp);
+
+			dyn_data->items_filter_neworder = MEM_mallocN(sizeof(int) * order_idx, AT);
+			for (new_idx = 0; new_idx < order_idx; new_idx++) {
+				dyn_data->items_filter_neworder[names[new_idx].org_idx] = new_idx;
+			}
+		}
+
+		if (filter_dyn) {
+			MEM_freeN(filter_dyn);
+		}
+		if (names) {
+			MEM_freeN(names);
+		}
+	}
+}
+
+typedef struct {
+	PointerRNA item;
+	int org_idx;
+	int flt_flag;
+} _uilist_item;
 
 typedef struct {
 	int visual_items;  /* Visual number of items (i.e. number of items we have room to display). */
@@ -2572,9 +2720,12 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	uiListDyn *dyn_data;
 	ARegion *ar;
 	uiListDrawItemFunc draw_item;
+	uiListDrawFilterFunc draw_filter;
+	uiListFilterItemsFunc filter_items;
 
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
+	_uilist_item *items_ptr = NULL;
 	StructRNA *ptype;
 	uiLayout *glob = NULL, *box, *row, *col, *subrow, *sub, *overlap;
 	uiBlock *block, *subblock;
@@ -2586,7 +2737,6 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	int rnaicon = ICON_NONE, icon = ICON_NONE;
 	int i = 0, activei = 0;
 	int len = 0;
-	int found;
 
 	/* validate arguments */
 	/* Forbid default UI_UL_DEFAULT_CLASS_NAME list class without a custom list_id! */
@@ -2649,6 +2799,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	}
 
 	draw_item = ui_list_type->draw_item ? ui_list_type->draw_item : uilist_draw_item_default;
+	draw_filter = ui_list_type->draw_filter ? ui_list_type->draw_filter : uilist_draw_filter_default;
+	filter_items = ui_list_type->filter_items ? ui_list_type->filter_items : uilist_filter_items_default;
 
 	/* Find or add the uiList to the current Region. */
 	/* We tag the list id with the list type... */
@@ -2672,8 +2824,89 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	ui_list->type = ui_list_type;
 	ui_list->layout_type = layout_type;
 
-	if (dataptr->data && prop)
-		dyn_data->items_len = dyn_data->items_shown = len = RNA_property_collection_length(dataptr, prop);
+	/* Reset filtering data. */
+	if (dyn_data->items_filter_flags) {
+		MEM_freeN(dyn_data->items_filter_flags);
+		dyn_data->items_filter_flags = NULL;
+	}
+	if (dyn_data->items_filter_neworder) {
+		MEM_freeN(dyn_data->items_filter_neworder);
+		dyn_data->items_filter_neworder = NULL;
+	}
+	dyn_data->items_len = dyn_data->items_shown = -1;
+
+	/* Filter list items! (not for compact layout, though) */
+	if (dataptr->data && prop) {
+		int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+		bool order_reverse = (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) != 0;
+		int items_shown, idx = 0;
+#if 0
+		int prev_ii = -1, prev_i;
+#endif
+
+		if (layout_type == UILST_LAYOUT_COMPACT) {
+			dyn_data->items_len = dyn_data->items_shown = RNA_property_collection_length(dataptr, prop);
+		}
+		else {
+			//printf("%s: filtering...\n", __func__);
+			filter_items(ui_list, C, dataptr, propname);
+			//printf("%s: filtering done.\n", __func__);
+		}
+
+		items_shown = dyn_data->items_shown;
+		if (items_shown >= 0) {
+			items_ptr = MEM_mallocN(sizeof(_uilist_item) * items_shown, AT);
+			//printf("%s: items shown: %d.\n", __func__, items_shown);
+			RNA_PROP_BEGIN (dataptr, itemptr, prop)
+			{
+				if (!dyn_data->items_filter_flags ||
+					((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+				{
+					int ii;
+					if (dyn_data->items_filter_neworder) {
+						ii = dyn_data->items_filter_neworder[idx++];
+						ii = order_reverse ? items_shown - ii - 1 : ii;
+					}
+					else {
+						ii = order_reverse ? items_shown - ++idx : idx++;
+					}
+					//printf("%s: ii: %d\n", __func__, ii);
+					items_ptr[ii].item = itemptr;
+					items_ptr[ii].org_idx = i;
+					items_ptr[ii].flt_flag = dyn_data->items_filter_flags ? dyn_data->items_filter_flags[i] : 0;
+
+					if (activei == i) {
+						activei = ii;
+					}
+# if 0 /* For now, do not alter active element, even if it will be hidden... */
+					else if (activei < i) {
+						/* We do not want an active but invisible item!
+						 * Only exception is when all items are filtered out...
+						 */
+						if (prev_ii >= 0) {
+							activei = prev_ii;
+							RNA_property_int_set(active_dataptr, activeprop, prev_i);
+						}
+						else {
+							activei = ii;
+							RNA_property_int_set(active_dataptr, activeprop, i);
+						}
+					}
+					prev_i = i;
+					prev_ii = ii;
+#endif
+				}
+				i++;
+			}
+			RNA_PROP_END;
+		}
+		if (dyn_data->items_shown >= 0) {
+			len = dyn_data->items_shown;
+		}
+		else {
+			len = dyn_data->items_len;
+		}
+	}
 
 	switch (layout_type) {
 		case UILST_LAYOUT_DEFAULT:
@@ -2688,38 +2921,39 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 			if (dataptr->data && prop) {
 				/* create list items */
-				RNA_PROP_BEGIN (dataptr, itemptr, prop)
-				{
-					if (i >= layoutdata.start_idx && i < layoutdata.end_idx) {
-						subblock = uiLayoutGetBlock(col);
-						overlap = uiLayoutOverlap(col);
+				for (i = layoutdata.start_idx; i < layoutdata.end_idx; i++) {
+					PointerRNA *itemptr = &items_ptr[i].item;
+					int org_i = items_ptr[i].org_idx;
+					int flt_flag = items_ptr[i].flt_flag;
+					subblock = uiLayoutGetBlock(col);
 
-						uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
+					overlap = uiLayoutOverlap(col);
 
-						/* list item behind label & other buttons */
-						sub = uiLayoutRow(overlap, FALSE);
+					uiBlockSetFlag(subblock, UI_BLOCK_LIST_ITEM);
 
-						but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-						                     active_dataptr, activeprop, 0, 0, i, 0, 0, NULL);
-						uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+					/* list item behind label & other buttons */
+					sub = uiLayoutRow(overlap, FALSE);
 
-						sub = uiLayoutRow(overlap, FALSE);
+					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, NULL);
+					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
-						icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-						if (icon == ICON_DOT)
-							icon = ICON_NONE;
-						draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+					sub = uiLayoutRow(overlap, FALSE);
 
-						/* If we are "drawing" active item, set all labels as active. */
-						if (i == activei) {
-							ui_layout_list_set_labels_active(sub);
-						}
+					icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+					if (icon == ICON_DOT)
+						icon = ICON_NONE;
+					draw_item(ui_list, C, sub, dataptr, itemptr, icon, active_dataptr, active_propname,
+					          org_i, flt_flag);
 
-						uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
+
+					/* If we are "drawing" active item, set all labels as active. */
+					if (i == activei) {
+						ui_layout_list_set_labels_active(sub);
 					}
-					i++;
+
+					uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
 				}
-				RNA_PROP_END;
 			}
 
 			/* add dummy buttons to fill space */
@@ -2738,33 +2972,25 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		case UILST_LAYOUT_COMPACT:
 			row = uiLayoutRow(layout, TRUE);
 
-			if (dataptr->data && prop) {
-				/* create list items */
-				RNA_PROP_BEGIN (dataptr, itemptr, prop)
-				{
-					found = (activei == i);
+			if (dataptr->data && prop && dyn_data->items_shown > 0) {
+				PointerRNA *itemptr = &items_ptr[activei].item;
+				int org_i = items_ptr[activei].org_idx;
 
-					if (found) {
-						icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-						if (icon == ICON_DOT)
-							icon = ICON_NONE;
-						draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
-					}
-
-					i++;
-				}
-				RNA_PROP_END;
+				icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+				if (icon == ICON_DOT)
+					icon = ICON_NONE;
+				draw_item(ui_list, C, row, dataptr, itemptr, icon, active_dataptr, active_propname, org_i, 0);
+			}
+			/* if list is empty, add in dummy button */
+			else {
+				uiItemL(row, "", ICON_NONE);
 			}
 
-			/* if list is empty, add in dummy button */
-			if (i == 0)
-				uiItemL(row, "", ICON_NONE);
-
 			/* next/prev button */
-			BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
+			BLI_snprintf(numstr, sizeof(numstr), "%d :", dyn_data->items_shown);
 			but = uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
 			                             active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
-			if (i == 0)
+			if (dyn_data->items_shown == 0)
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			break;
 		case UILST_LAYOUT_GRID:
@@ -2778,9 +3004,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 			if (dataptr->data && prop) {
 				/* create list items */
-				RNA_PROP_BEGIN (dataptr, itemptr, prop)
-				{
-					if (i >= layoutdata.start_idx && i < layoutdata.end_idx) {
+				for (i = layoutdata.start_idx; i < layoutdata.end_idx; i++) {
+					PointerRNA *itemptr = &items_ptr[i].item;
+					int org_i = items_ptr[i].org_idx;
+					int flt_flag = items_ptr[i].flt_flag;
+
 					/* create button */
 					if (!(i % columns))
 						subrow = uiLayoutRow(col, FALSE);
@@ -2794,13 +3022,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					sub = uiLayoutRow(overlap, FALSE);
 
 					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-					                     active_dataptr, activeprop, 0, 0, i, 0, 0, NULL);
+					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, NULL);
 					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
 					sub = uiLayoutRow(overlap, FALSE);
 
-					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, false);
-					draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+					icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+					draw_item(ui_list, C, sub, dataptr, itemptr, icon, active_dataptr, active_propname,
+					          org_i, flt_flag);
 
 					/* If we are "drawing" active item, set all labels as active. */
 					if (i == activei) {
@@ -2808,10 +3037,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					}
 
 					uiBlockClearFlag(subblock, UI_BLOCK_LIST_ITEM);
-					}
-					i++;
 				}
-				RNA_PROP_END;
 			}
 
 			/* add dummy buttons to fill space */
@@ -2837,11 +3063,40 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		subblock = uiLayoutGetBlock(row);
 		uiBlockSetEmboss(subblock, UI_EMBOSSN);
 
-		but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.4f, ui_list,
-		                   0.0, 0.0, 0, -1, "");
-		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+		if (ui_list->filter_flag & UILST_FLT_SHOW) {
+			but = uiDefIconButBitI(subblock, TOG, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_DOWN, 0, 0,
+			                       UI_UNIT_X, UI_UNIT_Y * 0.6f, &(ui_list->filter_flag), 0, 0, 0, 0,
+			                       TIP_("Hide filtering options"));
+			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
-		uiBlockSetEmboss(subblock, UI_EMBOSS);
+			but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.6f, ui_list,
+			                   0.0, 0.0, 0, -1, "");
+			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+
+			uiBlockSetEmboss(subblock, UI_EMBOSS);
+
+			col = uiLayoutColumn(glob, FALSE);
+			subblock = uiLayoutGetBlock(col);
+			uiDefBut(subblock, SEPR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, NULL, 0.0, 0.0, 0, 0, "");
+
+			draw_filter(ui_list, C, col);
+		}
+		else {
+			but = uiDefIconButBitI(subblock, TOG, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_RIGHT, 0, 0,
+			                       UI_UNIT_X, UI_UNIT_Y * 0.6f, &(ui_list->filter_flag), 0, 0, 0, 0,
+			                       TIP_("Show filtering options"));
+			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+
+			but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.6f, ui_list,
+			                   0.0, 0.0, 0, -1, "");
+			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+
+			uiBlockSetEmboss(subblock, UI_EMBOSS);
+ 		}
+	}
+
+	if (items_ptr) {
+		MEM_freeN(items_ptr);
 	}
 }
 

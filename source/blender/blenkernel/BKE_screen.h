@@ -189,9 +189,15 @@ typedef struct PanelType {
 
 /* uilist types */
 
-/* draw an item in the uiList */
+/* Draw an item in the uiList */
 typedef void (*uiListDrawItemFunc)(struct uiList *, struct bContext *, struct uiLayout *, struct PointerRNA *,
-                                   struct PointerRNA *, int, struct PointerRNA *, const char *, int);
+                                   struct PointerRNA *, int, struct PointerRNA *, const char *, int, int);
+
+/* Draw the filtering part of an uiList */
+typedef void (*uiListDrawFilterFunc)(struct uiList *, struct bContext *, struct uiLayout *);
+
+/* Filter items of an uiList */
+typedef void (*uiListFilterItemsFunc)(struct uiList *, struct bContext *, struct PointerRNA *, const char *);
 
 typedef struct uiListType {
 	struct uiListType *next, *prev;
@@ -199,6 +205,8 @@ typedef struct uiListType {
 	char idname[BKE_ST_MAXNAME];            /* unique name */
 
 	uiListDrawItemFunc draw_item;
+	uiListDrawFilterFunc draw_filter;
+	uiListFilterItemsFunc filter_items;
 
 	/* RNA integration */
 	ExtensionRNA ext;

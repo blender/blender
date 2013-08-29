@@ -6128,6 +6128,9 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
 		ui_list->type = NULL;
 		ui_list->dyn_data = NULL;
+		ui_list->properties = newdataadr(fd, ui_list->properties);
+		if (ui_list->properties)
+			IDP_DirectLinkProperty(ui_list->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 
 	if (spacetype == SPACE_EMPTY) {

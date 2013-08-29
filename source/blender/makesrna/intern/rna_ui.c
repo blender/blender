@@ -31,6 +31,8 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_idprop.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -58,12 +60,9 @@ EnumPropertyItem operator_context_items[] = {
 };
 
 EnumPropertyItem uilist_layout_type_items[] = {
-	{UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout",
-	                       "Use the default, multi-rows layout"},
-	{UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout",
-	                       "Use the compact, single-row layout"},
-	{UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout",
-	                    "Use the grid-based layout"},
+	{UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout", "Use the default, multi-rows layout"},
+	{UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout", "Use the compact, single-row layout"},
+	{UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout", "Use the grid-based layout"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -269,8 +268,24 @@ static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 }
 
 /* UIList */
+static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *ptr)
+{
+	return UILST_FLT_ITEM;
+}
+
+static IDProperty *rna_UIList_idprops(PointerRNA *ptr, bool create)
+{
+	uiList *ui_list = (uiList *)ptr->data;
+	if (create && !ui_list->properties) {
+		IDPropertyTemplate val = {0};
+		ui_list->properties = IDP_New(IDP_GROUP, &val, "RNA_UIList IDproperties group");
+	}
+
+	return ui_list->properties;
+}
+
 static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, PointerRNA *dataptr, PointerRNA *itemptr,
-                             int icon, PointerRNA *active_dataptr, const char *active_propname, int index)
+                             int icon, PointerRNA *active_dataptr, const char *active_propname, int index, int flt_flag)
 {
 	extern FunctionRNA rna_UIList_draw_item_func;
 
@@ -290,7 +305,135 @@ static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, Poi
 	RNA_parameter_set_lookup(&list, "active_data", active_dataptr);
 	RNA_parameter_set_lookup(&list, "active_property", &active_propname);
 	RNA_parameter_set_lookup(&list, "index", &index);
+	RNA_parameter_set_lookup(&list, "flt_flag", &flt_flag);
 	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout)
+{
+	extern FunctionRNA rna_UIList_draw_filter_func;
+
+	PointerRNA ul_ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->ext.srna, ui_list, &ul_ptr);
+	func = &rna_UIList_draw_filter_func; /* RNA_struct_find_function(&ul_ptr, "draw_filter"); */
+
+	RNA_parameter_list_create(&list, &ul_ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "layout", &layout);
+	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void uilist_filter_items(uiList *ui_list, bContext *C, PointerRNA *dataptr, const char *propname)
+{
+	extern FunctionRNA rna_UIList_filter_items_func;
+
+	PointerRNA ul_ptr;
+	ParameterList list;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	uiListDyn *flt_data = ui_list->dyn_data;
+	int *filter_flags, *filter_neworder;
+	void *ret1, *ret2;
+	int ret_len;
+	int len = flt_data->items_len = RNA_collection_length(dataptr, propname);
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->ext.srna, ui_list, &ul_ptr);
+	func = &rna_UIList_filter_items_func; /* RNA_struct_find_function(&ul_ptr, "filter_items"); */
+
+	RNA_parameter_list_create(&list, &ul_ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "data", dataptr);
+	RNA_parameter_set_lookup(&list, "property", &propname);
+
+	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
+
+	parm = RNA_function_find_parameter(NULL, func, "filter_flags");
+	ret_len = RNA_parameter_dynamic_length_get(&list, parm);
+	if (ret_len != len && ret_len != 0) {
+		printf("%s: Error, py func returned %d items in %s, %d or none were expected.\n", AT,
+		       RNA_parameter_dynamic_length_get(&list, parm), "filter_flags", len);
+		RNA_parameter_list_free(&list);
+		return;
+	}
+	RNA_parameter_get(&list, parm, &ret1);
+	filter_flags = (int *)ret1;
+
+	parm = RNA_function_find_parameter(NULL, func, "filter_neworder");
+	ret_len = RNA_parameter_dynamic_length_get(&list, parm);
+	if (ret_len != len && ret_len != 0) {
+		printf("%s: Error, py func returned %d items in %s, %d or none were expected.\n", AT,
+		       RNA_parameter_dynamic_length_get(&list, parm), "filter_neworder", len);
+		RNA_parameter_list_free(&list);
+		return;
+	}
+	RNA_parameter_get(&list, parm, &ret2);
+	filter_neworder = (int *)ret2;
+
+	/* We have to do some final checks and transforms... */
+	{
+		int i, filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+		if (filter_flags) {
+			flt_data->items_filter_flags = MEM_mallocN(sizeof(int) * len, AT);
+			memcpy(flt_data->items_filter_flags, filter_flags, sizeof(int) * len);
+
+			if (filter_neworder) {
+				/* For sake of simplicity, py filtering is expected to filter all items, but we actually only want
+				 * reordering data for shown items!
+				 */
+				int items_shown, shown_idx;
+				int t_idx, t_ni, prev_ni;
+				flt_data->items_shown = 0;
+				for (i = 0, shown_idx = 0; i < len; i++) {
+					if ((filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude) {
+						filter_neworder[shown_idx++] = filter_neworder[i];
+					}
+				}
+				items_shown = flt_data->items_shown = shown_idx;
+				flt_data->items_filter_neworder = MEM_mallocN(sizeof(int) * items_shown, AT);
+				/* And now, bring back new indices into the [0, items_shown[ range!
+				 * XXX This is O(N²)... :/
+				 */
+				for (shown_idx = 0, prev_ni = -1; shown_idx < items_shown; shown_idx++) {
+					for (i = 0, t_ni = len, t_idx = -1; i < items_shown; i++) {
+						int ni = filter_neworder[i];
+						if (ni > prev_ni && ni < t_ni) {
+							t_idx = i;
+							t_ni = ni;
+						}
+					}
+					if (t_idx >= 0) {
+						prev_ni = t_ni;
+						flt_data->items_filter_neworder[t_idx] = shown_idx;
+					}
+				}
+			}
+			else {
+				/* we still have to set flt_data->items_shown... */
+				flt_data->items_shown = 0;
+				for (i = 0; i < len; i++) {
+					if ((filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude) {
+						flt_data->items_shown++;
+					}
+				}
+			}
+		}
+		else {
+			flt_data->items_shown = len;
+
+			if (filter_neworder) {
+				flt_data->items_filter_neworder = MEM_mallocN(sizeof(int) * len, AT);
+				memcpy(flt_data->items_filter_neworder, filter_neworder, sizeof(int) * len);
+			}
+		}
+	}
 
 	RNA_parameter_list_free(&list);
 }
@@ -318,7 +461,7 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 	uiListType *ult, dummyult = {NULL};
 	uiList dummyuilist = {NULL};
 	PointerRNA dummyul_ptr;
-	int have_function[1];
+	int have_function[3];
 	size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
 
 	/* setup dummy menu & menu type to store static properties in */
@@ -349,9 +492,10 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 	ult->ext.call = call;
 	ult->ext.free = free;
 	RNA_struct_blender_type_set(ult->ext.srna, ult);
-	RNA_def_struct_flag(ult->ext.srna, STRUCT_NO_IDPROPERTIES);
 
 	ult->draw_item = (have_function[0]) ? uilist_draw_item : NULL;
+	ult->draw_filter = (have_function[1]) ? uilist_draw_filter : NULL;
+	ult->filter_items = (have_function[2]) ? uilist_filter_items : NULL;
 
 	WM_uilisttype_add(ult);
 
@@ -874,8 +1018,45 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "uiList");
 	RNA_def_struct_refine_func(srna, "rna_UIList_refine");
 	RNA_def_struct_register_funcs(srna, "rna_UIList_register", "rna_UIList_unregister", NULL);
+	RNA_def_struct_idprops_func(srna, "rna_UIList_idprops");
 
-	/* draw */
+	/* Registration */
+	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->idname");
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
+	RNA_def_property_ui_text(prop, "ID Name",
+	                         "If this is set, the uilist gets a custom ID, otherwise it takes the "
+	                         "name of the class used to define the uilist (for example, if the "
+	                         "class name is \"OBJECT_UL_vgroups\", and bl_idname is not set by the "
+	                         "script, then bl_idname = \"OBJECT_UL_vgroups\")");
+
+	/* Data */
+	prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, uilist_layout_type_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	/* Filter options */
+	prop = RNA_def_property(srna, "use_filter_show", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_SHOW);
+	RNA_def_property_ui_text(prop, "Show Filter", "Show filtering options");
+
+	prop = RNA_def_property(srna, "filter_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "filter_byname");
+	RNA_def_property_ui_text(prop, "Filter by Name", "Only show items matching this name (use '*' as wildcard)");
+
+	prop = RNA_def_property(srna, "use_filter_invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_EXCLUDE);
+	RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice-versa)");
+
+	prop = RNA_def_property(srna, "use_filter_orderby_name", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_orderby_flag", UILST_FLT_ORDERBY_NAME);
+	RNA_def_property_ui_text(prop, "Order by Name", "Order shown items by their names");
+
+	prop = RNA_def_property(srna, "use_filter_orderby_invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_orderby_flag", UILST_FLT_ORDERBY_REVERSE);
+	RNA_def_property_ui_text(prop, "Invert", "Invert the order of shown items");
+
+	/* draw_item */
 	func = RNA_def_function(srna, "draw_item", NULL);
 	RNA_def_function_ui_description(func, "Draw an item in the list (NOTE: when you define your own draw_item "
 	                                      "function, you may want to check given 'item' is of the right type...)");
@@ -897,21 +1078,52 @@ static void rna_def_uilist(BlenderRNA *brna)
 	                      "Identifier of property in active_data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of the item in the collection", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_PYFUNC_OPTIONAL);
+	prop = RNA_def_property(func, "flt_flag", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "", "The filter-flag result for this item");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_PYFUNC_OPTIONAL);
+
+	/* draw_filter */
+	func = RNA_def_function(srna, "draw_filter", NULL);
+	RNA_def_function_ui_description(func, "Draw filtering options");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
-	prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, uilist_layout_type_items);
+	/* filter */
+	func = RNA_def_function(srna, "filter_items", NULL);
+	RNA_def_function_ui_description(func, "Filter and/or re-order items of the collection (output filter results in "
+	                                      "filter_flags, and reorder results in filter_neworder arrays)");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take Collection property");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data, for the collection");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	prop = RNA_def_property(func, "filter_flags", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_DYNAMIC);
+	RNA_def_property_array(prop, 1);  /* XXX Dummy value, default 0 does not work */
+	RNA_def_property_ui_text(prop, "", "An array of filter flags, one for each item in the collection (NOTE: "
+	                                   "FILTER_ITEM bit is reserved, it defines whether the item is shown or not)");
+	RNA_def_function_output(func, prop);
+	prop = RNA_def_property(func, "filter_neworder", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_DYNAMIC);
+	RNA_def_property_array(prop, 1);  /* XXX Dummy value, default 0 does not work */
+	RNA_def_property_ui_text(prop, "", "An array of indices, one for each item in the collection, mapping the org "
+	                                   "index to the new one");
+	RNA_def_function_output(func, prop);
+
+	/* "Constants"! */
+	RNA_define_verify_sdna(0); /* not in sdna */
+
+	prop = RNA_def_property(srna, "bitflag_filter_item", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "FILTER_ITEM",
+	                               "The value of the reserved bitfalg 'FILTER_ITEM' (in filter_flags values)");
+	RNA_def_property_int_funcs(prop, "rna_UIList_filter_const_FILTER_ITEM_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	/* registration */
-	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
-	RNA_def_property_ui_text(prop, "ID Name",
-	                         "If this is set, the uilist gets a custom ID, otherwise it takes the "
-	                         "name of the class used to define the uilist (for example, if the "
-	                         "class name is \"OBJECT_UL_vgroups\", and bl_idname is not set by the "
-	                         "script, then bl_idname = \"OBJECT_UL_vgroups\")");
 }
 
 static void rna_def_header(BlenderRNA *brna)
