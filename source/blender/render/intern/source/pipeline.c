@@ -1697,12 +1697,17 @@ static void composite_freestyle_renders(Render *re, int sample)
 	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
 		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
 			continue;
+
 		if (FRS_is_freestyle_enabled(srl)) {
 			freestyle_render = (Render *)link->data;
-			render_result_exr_file_read(freestyle_render, sample);
-			FRS_composite_result(re, srl, freestyle_render);
-			RE_FreeRenderResult(freestyle_render->result);
-			freestyle_render->result = NULL;
+
+			/* may be NULL in case of empty render layer */
+			if (freestyle_render) {
+				render_result_exr_file_read(freestyle_render, sample);
+				FRS_composite_result(re, srl, freestyle_render);
+				RE_FreeRenderResult(freestyle_render->result);
+				freestyle_render->result = NULL;
+			}
 		}
 		link = link->next;
 	}
@@ -1717,8 +1722,9 @@ static void free_all_freestyle_renders(void)
 
 	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
-			if (link->data) {
-				freestyle_render = (Render *)link->data;
+			freestyle_render = (Render *)link->data;
+
+			if (freestyle_render) {
 				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
 				BKE_scene_unlink(&re1->freestyle_bmain, freestyle_scene, NULL);
