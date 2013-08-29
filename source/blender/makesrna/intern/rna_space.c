@@ -3534,6 +3534,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	static EnumPropertyItem pivot_items[] = {
 		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
 		             "Pivot around bounding box center of selected object(s)"},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", "Pivot around the 2D cursor"},
 		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
 		            "Individual Origins", "Pivot around each object's own origin"},
 		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point",

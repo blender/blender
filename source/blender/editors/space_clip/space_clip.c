@@ -1121,6 +1121,8 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
+	float aspx, aspy, zoomx, zoomy, x, y;
+	int width, height;
 
 	/* if tracking is in progress, we should synchronize framenr from clipuser
 	 * so latest tracked frame would be shown */
@@ -1152,35 +1154,34 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	clip_draw_main(C, sc, ar);
 
-	if (sc->mode == SC_MODE_MASKEDIT) {
+	/* TODO(sergey): would be nice to find a way to de-duplicate all this space conversions */
+	UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	ED_space_clip_get_size(sc, &width, &height);
+	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
+	if (sc->mode == SC_MODE_MASKEDIT) {
 		Mask *mask = CTX_data_edit_mask(C);
 		if (mask) {
 			ScrArea *sa = CTX_wm_area(C);
-			int width, height;
-			float aspx, aspy, zoomx, zoomy, x, y;
-			ED_mask_get_size(sa, &width, &height);
-			ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
-			ED_space_clip_get_aspect(sc, &aspx, &aspy);
+			int mask_width, mask_height;
+			ED_mask_get_size(sa, &mask_width, &mask_height);
 			ED_mask_draw_region(mask, ar,
 			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
-			                    width, height,
+			                    mask_width, mask_height,
 			                    aspx, aspy,
 			                    TRUE, TRUE,
 			                    sc->stabmat, C);
-
-			/* TODO(sergey): would be nice to find a way to de-duplicate all this space conversions */
-			UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
-			glPushMatrix();
-			glTranslatef(x, y, 0);
-			glScalef(zoomx, zoomy, 0);
-			glMultMatrixf(sc->stabmat);
-			glScalef(width, height, 0);
-			draw_image_cursor(ar, sc->cursor);
-			glPopMatrix();
 		}
 	}
+
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glScalef(zoomx, zoomy, 0);
+	glMultMatrixf(sc->stabmat);
+	glScalef(width, height, 0);
+	draw_image_cursor(ar, sc->cursor);
+	glPopMatrix();
 
 	if (sc->flag & SC_SHOW_GPENCIL) {
 		/* Grease Pencil */

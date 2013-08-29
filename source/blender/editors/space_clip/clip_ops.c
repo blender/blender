@@ -1493,7 +1493,7 @@ void CLIP_OT_cursor_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = clip_set_2d_cursor_exec;
 	ot->invoke = clip_set_2d_cursor_invoke;
-	ot->poll = ED_space_clip_maskedit_mask_poll;
+	ot->poll = ED_space_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
