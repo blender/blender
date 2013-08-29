@@ -2086,7 +2086,7 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 
 static void txt_screen_clamp(SpaceText *st, ARegion *ar)
 {
-	if (st->top < 0) {
+	if (st->top <= 0) {
 		st->top = 0;
 	}
 	else {

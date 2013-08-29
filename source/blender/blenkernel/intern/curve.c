@@ -3093,11 +3093,18 @@ void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
 
 	BLI_assert(ARRAY_HAS_ITEM(bezt, nu->bezt, nu->pntsu));
 
-	if (index == 0) {
-		prev = (nu->flag & CU_NURB_CYCLIC) ? &nu->bezt[nu->pntsu - 1] : NULL;
+	if (nu->pntsu > 1) {
+		if (index == 0) {
+			prev = (nu->flagu & CU_NURB_CYCLIC) ? &nu->bezt[nu->pntsu - 1] : NULL;
+			next = bezt + 1;
+		}
+		else if (index == nu->pntsu - 1) {
+			prev = bezt - 1;
+			next = (nu->flagu & CU_NURB_CYCLIC) ? &nu->bezt[0] : NULL;
+		}
 	}
-	if (index == nu->pntsu - 1) {
-		next = (nu->flag & CU_NURB_CYCLIC) ? &nu->bezt[0] : NULL;
+	else {
+		prev = next = NULL;
 	}
 
 	BKE_nurb_handle_calc(bezt, prev, next, 0);
