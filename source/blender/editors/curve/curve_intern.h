@@ -76,6 +76,7 @@ void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);
 
 void CURVE_OT_separate(struct wmOperatorType *ot);
+void CURVE_OT_split(struct wmOperatorType *ot);
 void CURVE_OT_duplicate(struct wmOperatorType *ot);
 void CURVE_OT_delete(struct wmOperatorType *ot);
 

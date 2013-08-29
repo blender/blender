@@ -87,6 +87,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_reveal);
 
 	WM_operatortype_append(CURVE_OT_separate);
+	WM_operatortype_append(CURVE_OT_split);
 	WM_operatortype_append(CURVE_OT_duplicate);
 	WM_operatortype_append(CURVE_OT_delete);
 
@@ -244,6 +245,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_separate", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_split", YKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);

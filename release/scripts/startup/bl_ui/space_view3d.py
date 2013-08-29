@@ -2138,6 +2138,7 @@ def draw_curve(self, context):
 
     layout.operator("curve.extrude_move")
     layout.operator("curve.duplicate_move")
+    layout.operator("curve.split")
     layout.operator("curve.separate")
     layout.operator("curve.make_segment")
     layout.operator("curve.cyclic_toggle")

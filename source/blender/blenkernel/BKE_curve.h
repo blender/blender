@@ -150,6 +150,7 @@ void BKE_nurb_bezt_calc_normal(struct Nurb *nu, struct BezTriple *bezt, float r_
 void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_plane[3]);
 
 void BKE_nurb_handle_calc(struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
+void BKE_nurb_handle_calc_simple(struct Nurb *nu, struct BezTriple *bezt);
 
 void BKE_nurb_handles_calc(struct Nurb *nu);
 void BKE_nurb_handles_autocalc(struct Nurb *nu, int flag);
