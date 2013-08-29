@@ -93,6 +93,23 @@ static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 	}
 }
 
+static void rna_SequenceElement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Scene *scene = (Scene *) ptr->id.data;
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+
+	if (ed) {
+		StripElem *se = (StripElem *)ptr->data;
+		Sequence *seq;
+
+		/* slow but we can't avoid! */
+		seq = BKE_sequencer_from_elem(&ed->seqbase, se);
+		if (seq) {
+			BKE_sequence_invalidate_cache(scene, seq);
+		}
+	}
+}
+
 static void rna_Sequence_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
@@ -1063,7 +1080,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceElement_update");
 
 	prop = RNA_def_property(srna, "orig_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "orig_width");

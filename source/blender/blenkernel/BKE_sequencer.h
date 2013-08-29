@@ -194,6 +194,7 @@ void             BKE_sequencer_editing_free(struct Scene *scene);
 
 void             BKE_sequencer_sort(struct Scene *scene);
 
+struct Sequence *BKE_sequencer_from_elem(ListBase *seqbase, struct StripElem *se);
 struct Sequence *BKE_sequencer_active_get(struct Scene *scene);
 int              BKE_sequencer_active_get_pair(struct Scene *scene, struct Sequence **seq_act, struct Sequence **seq_other);
 void             BKE_sequencer_active_set(struct Scene *scene, struct Sequence *seq);

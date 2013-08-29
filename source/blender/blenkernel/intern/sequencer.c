@@ -3998,6 +3998,29 @@ Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, int recu
 	return NULL;
 }
 
+/**
+ * Only use as last resort when the StripElem is available but no the Sequence.
+ * (needed for RNA)
+ */
+Sequence *BKE_sequencer_from_elem(ListBase *seqbase, StripElem *se)
+{
+	Sequence *iseq;
+
+	for (iseq = seqbase->first; iseq; iseq = iseq->next) {
+		Sequence *seq_found;
+		if ((iseq->strip && iseq->strip->stripdata) &&
+		    (ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len)))
+		{
+			break;
+		}
+		else if ((seq_found = BKE_sequencer_from_elem(&iseq->seqbase, se))) {
+			iseq = seq_found;
+			break;
+		}
+	}
+
+	return iseq;
+}
 
 Sequence *BKE_sequencer_active_get(Scene *scene)
 {
