@@ -1752,6 +1752,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	rectf = MEM_mapallocN(re->rectx * re->recty * sizeof(float) * 4, "fullsample rgba");
 	
 	for (sample = 0; sample < re->r.osa; sample++) {
+		Scene *sce;
 		Render *re1;
 		RenderResult rres;
 		int mask;
@@ -1763,9 +1764,11 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		/* also function below assumes this */
 			
 		tag_scenes_for_render(re);
-		for (re1 = RenderGlobal.renderlist.first; re1; re1 = re1->next) {
-			if (re1->scene->id.flag & LIB_DOIT) {
-				if (re1->r.scemode & R_FULL_SAMPLE) {
+		for (sce = re->main->scene.first; sce; sce = sce->id.next) {
+			if (sce->id.flag & LIB_DOIT) {
+				re1 = RE_GetRender(sce->id.name);
+
+				if (re1 && (re1->r.scemode & R_FULL_SAMPLE)) {
 					if (sample) {
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 						render_result_exr_file_read(re1, sample);
