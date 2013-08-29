@@ -638,3 +638,16 @@ GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
 	SDL_ShowCursor(visible);
 	return GHOST_kSuccess;
 }
+
+GHOST_TSuccess
+GHOST_WindowSDL::setSwapInterval(int interval)
+{
+	SDL_GL_SetSwapInterval(interval);
+	return GHOST_kSuccess;
+}
+
+int
+GHOST_WindowSDL::getSwapInterval()
+{
+	return SDL_GL_GetSwapInterval();
+}

@@ -173,6 +173,8 @@ protected:
 
 	GHOST_TSuccess endFullScreen() const { return GHOST_kFailure; }
 
+	GHOST_TSuccess setSwapInterval(int interval);
+	int getSwapInterval();
 };
 
 
