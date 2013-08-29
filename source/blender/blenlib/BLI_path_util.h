@@ -122,6 +122,7 @@ bool BLI_testextensie_array(const char *str, const char **ext_array);
 bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
 bool BLI_replace_extension(char *path, size_t maxlen, const char *ext);
 bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext);
+bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char *defname, char delim, short name_offs, short len);
 bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
                        void *arg, const char * defname, char delim, char *name, short name_len);

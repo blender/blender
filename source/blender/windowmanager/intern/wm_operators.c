@@ -2419,15 +2419,10 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 
 /* *************** save file as **************** */
 
-static void untitled(char *filepath)
+static void wm_filepath_default(char *filepath)
 {
-	if (G.save_over == 0 && strlen(filepath) < FILE_MAX - 16) {
-		char *c = (char *)BLI_last_slash(filepath);
-		
-		if (c)
-			strcpy(&c[1], "untitled.blend");
-		else
-			strcpy(filepath, "untitled.blend");
+	if (G.save_over == false) {
+		BLI_ensure_filename(filepath, FILE_MAX, "untitled.blend");
 	}
 }
 
@@ -2455,7 +2450,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 	else
 		BLI_strncpy(name, G.main->name, FILE_MAX);
 	
-	untitled(name);
+	wm_filepath_default(name);
 	RNA_string_set(op->ptr, "filepath", name);
 	
 	WM_event_add_fileselect(C, op);
@@ -2471,11 +2466,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	save_set_compress(op);
 	
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", path);
+	}
 	else {
 		BLI_strncpy(path, G.main->name, FILE_MAX);
-		untitled(path);
+		wm_filepath_default(path);
 	}
 	
 	fileflags = G.fileflags & ~G_FILE_USERPREFS;
@@ -2566,7 +2562,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	else
 		BLI_strncpy(name, G.main->name, FILE_MAX);
 
-	untitled(name);
+	wm_filepath_default(name);
 	
 	RNA_string_set(op->ptr, "filepath", name);
 

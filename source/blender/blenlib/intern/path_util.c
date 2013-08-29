@@ -1641,6 +1641,16 @@ bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
 	return true;
 }
 
+bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename)
+{
+	char *c = (char *)BLI_last_slash(filepath);
+	if (!c || ((c - filepath) < maxlen - (strlen(filename) + 1))) {
+		strcpy(c ? &c[1] : filepath, filename);
+		return true;
+	}
+	return false;
+}
+
 /* Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
  * - wont change 'string'
  * - wont create any directories
