@@ -118,7 +118,7 @@ void SCA_Joystick::HandleEvents(void)
 				break;
 #endif
 			default:
-				printf("SCA_Joystick::HandleEvents, Unknown SDL event, this should not happen\n");
+				printf("SCA_Joystick::HandleEvents, Unknown SDL event (%d), this should not happen\n", sdl_event.type);
 				break;
 		}
 	}

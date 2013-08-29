@@ -532,7 +532,7 @@ GHOST_SystemSDL::generateWindowExposeEvents()
 		(*w_start)->validate();
 
 		if (g_event) {
-			printf("Expose events pushed\n");
+			//printf("Expose events pushed\n");
 			pushEvent(g_event);
 			anyProcessed = true;
 		}
