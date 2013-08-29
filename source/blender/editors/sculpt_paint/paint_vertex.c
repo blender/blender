@@ -75,6 +75,9 @@
 
 #include "paint_intern.h"  /* own include */
 
+
+static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op);
+
 /* check if we can do partial updates and have them draw realtime
  * (without rebuilding the 'derivedFinal') */
 static int vertex_paint_use_fast_update_check(Object *ob)
@@ -2026,7 +2029,10 @@ static void do_weight_paint_vertex(
 
 /* *************** set wpaint operator ****************** */
 
-static int wpaint_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))  /* toggle */
+/**
+ * \note Keep in sync with #vpaint_mode_toggle_exec
+ */
+static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {		
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2036,31 +2042,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))  /* togg
 	me = BKE_mesh_from_object(ob);
 	if (ob->id.lib || me == NULL) return OPERATOR_PASS_THROUGH;
 	
-	if (ob->mode & OB_MODE_WEIGHT_PAINT) ob->mode &= ~OB_MODE_WEIGHT_PAINT;
-	else ob->mode |= OB_MODE_WEIGHT_PAINT;
-	
-	
-	/* Weightpaint works by overriding colors in mesh,
-	 * so need to make sure we recalc on enter and
-	 * exit (exit needs doing regardless because we
-	 * should redeform).
-	 */
-	DAG_id_tag_update(&me->id, 0);
-	
 	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-		if (wp == NULL)
-			wp = scene->toolsettings->wpaint = new_vpaint(1);
-
-		BKE_paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
-		paint_cursor_start(C, weight_paint_poll);
-		
-		mesh_octree_table(ob, NULL, NULL, 's');
-		
-		ED_vgroup_sync_from_pose(ob);
-	}
-	else {
-		mesh_octree_table(NULL, NULL, NULL, 'e');
-		mesh_mirrtopo_table(NULL, 'e');
+		ob->mode &= ~OB_MODE_WEIGHT_PAINT;
 
 		if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
 			BKE_mesh_flush_select_from_verts(me);
@@ -2068,10 +2051,39 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *UNUSED(op))  /* togg
 		else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
 		}
+
+		/* weight paint spesific */
+		mesh_octree_table(NULL, NULL, NULL, 'e');
+		mesh_mirrtopo_table(NULL, 'e');
+	}
+	else {
+		ob->mode |= OB_MODE_WEIGHT_PAINT;
+
+		/* Turn off vertex painting */
+		if (ob->mode & OB_MODE_VERTEX_PAINT)
+			vpaint_mode_toggle_exec(C, op);
+
+		if (wp == NULL)
+			wp = scene->toolsettings->wpaint = new_vpaint(1);
+
+		paint_cursor_start(C, weight_paint_poll);
+
+		BKE_paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
+
+		/* weight paint spesific */
+		mesh_octree_table(ob, NULL, NULL, 's');
+		ED_vgroup_sync_from_pose(ob);
 	}
 	
+	/* Weightpaint works by overriding colors in mesh,
+	 * so need to make sure we recalc on enter and
+	 * exit (exit needs doing regardless because we
+	 * should redeform).
+	 */
+	DAG_id_tag_update(&me->id, 0);
+
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2634,7 +2646,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = weight_paint_set_exec;
-	ot->poll = mask_paint_poll; /* it was facemask_paint_poll */
+	ot->poll = mask_paint_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2642,8 +2654,10 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 
 /* ************ set / clear vertex paint mode ********** */
 
-
-static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)  /* toggle */
+/**
+ * \note Keep in sync with #wpaint_mode_toggle_exec
+ */
+static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {	
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2663,7 +2677,6 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)  /* toggle */
 	
 	/* toggle: end vpaint */
 	if (ob->mode & OB_MODE_VERTEX_PAINT) {
-		
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 
 		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
