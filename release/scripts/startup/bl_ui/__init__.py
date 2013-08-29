@@ -155,21 +155,20 @@ class UI_UL_list(bpy.types.UIList):
         """
         import fnmatch
 
-        if not pattern:  # Empty pattern = no filtering!
+        if not pattern or not items:  # Empty pattern or list = no filtering!
             return flags or []
 
         if flags is None:
             flags = [0] * len(items)
-        for idx, it in enumerate(items):
-            name = getattr(it, propname, None)
-            # Implicitly add heading/trailing wildcards if needed.
-            if pattern[0] != "*":
-                pattern = "*" + pattern
-            if pattern[-1] != "*":
-                pattern = pattern + "*"
+
+        # Implicitly add heading/trailing wildcards.
+        pattern = "*" + pattern + "*"
+
+        for i, item in enumerate(items):
+            name = getattr(item, propname, None)
             # This is similar to a logical xor
-            if bool(name and fnmatch.fnmatch(name.lower(), pattern.lower())) is not bool(reverse):
-                flags[idx] |= bitflag
+            if bool(name and fnmatch.fnmatchcase(name, pattern)) is not bool(reverse):
+                flags[i] |= bitflag
         return flags
 
     @staticmethod
