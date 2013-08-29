@@ -126,9 +126,6 @@ static void select_adjacent_cp(ListBase *editnurb, short next, const bool cont, 
 static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
 static int curve_delete_selected(Object *obedit, const eCurveElem_Types type, const bool split);
 
-/* still need to eradicate a few :( */
-#define CALLOC_STRUCT_N(x, y, name) (x *)MEM_callocN((y) * sizeof(x), name)
-
 static float nurbcircle[8][2] = {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
 	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
@@ -6222,16 +6219,14 @@ static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bo
 		BKE_nurbList_free(nubase);
 		BLI_movelisttolist(nubase, &newnurb);
 	}
-	else if (type == 2) {
-		cu->actnu = -1;
-		keyIndex_delNurbList(editnurb, nubase);
-		BKE_nurbList_free(nubase);
+	else {
+		BLI_assert(0);
 	}
 
 	return OPERATOR_FINISHED;
 }
 
-static int delete_exec(bContext *C, wmOperator *op)
+static int curve_delete_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
@@ -6249,37 +6244,41 @@ static int delete_exec(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int delete_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	Object *obedit = CTX_data_edit_object(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
+static EnumPropertyItem curve_delete_type_items[] = {
+	{CURVE_VERTEX, "VERTICES", 0, "Vertices", ""},
+	{CURVE_SEGMENT, "SEGMENT", 0, "Segments", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
+static EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                            PropertyRNA *UNUSED(prop), int *free)
+{
+	Object *obedit;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+
+	if (!C) /* needed for docs and i18n tools */
+		return curve_delete_type_items;
+
+	obedit = CTX_data_edit_object(C);
 	if (obedit->type == OB_SURF) {
-		pup = uiPupMenuBegin(C, IFACE_("Delete"), ICON_NONE);
-		layout = uiPupMenuLayout(pup);
-		uiItemEnumO_ptr(layout, op->type, NULL, 0, "type", 0);
-		uiItemEnumO_ptr(layout, op->type, NULL, 0, "type", 2);
-		uiPupMenuEnd(C, pup);
+		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
 	}
 	else {
-		pup = uiPupMenuBegin(C, IFACE_("Delete"), ICON_NONE);
-		layout = uiPupMenuLayout(pup);
-		uiItemsEnumO(layout, op->type->idname, "type");
-		uiPupMenuEnd(C, pup);
+		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
+		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_SEGMENT);
 	}
 
-	return OPERATOR_CANCELLED;
+	RNA_enum_item_end(&item, &totitem);
+	*free = true;
+
+	return item;
 }
 
 void CURVE_OT_delete(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
-		{CURVE_VERTEX, "VERTICES", 0, "Vertices", ""},
-		{CURVE_SEGMENT, "SEGMENT", 0, "Segments", ""},
-		{2, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "Delete";
@@ -6287,15 +6286,18 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	ot->idname = "CURVE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec = delete_exec;
-	ot->invoke = delete_invoke;
+	ot->exec = curve_delete_exec;
+	ot->invoke = WM_menu_invoke;
 	ot->poll = ED_operator_editsurfcurve;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete");
+	prop = RNA_def_enum(ot->srna, "type", curve_delete_type_items, 0, "Type", "Which elements to delete");
+	RNA_def_enum_funcs(prop, rna_curve_delete_type_itemf);
+
+	ot->prop = prop;
 }
 
 /********************** shade smooth/flat operator *********************/
@@ -6566,7 +6568,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				nu->pntsu = 4;
 				nu->pntsv = 1;
 				nu->orderu = 4;
-				nu->bp = CALLOC_STRUCT_N(BPoint, 4, "addNurbprim3");
+				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 4, "addNurbprim3");
 
 				bp = nu->bp;
 				for (a = 0; a < 4; a++, bp++) {
@@ -6602,7 +6604,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 			nu->orderu = 5;
 			nu->flagu = CU_NURB_ENDPOINT; /* endpoint */
 			nu->resolu = cu->resolu;
-			nu->bp = CALLOC_STRUCT_N(BPoint, 5, "addNurbprim3");
+			nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim3");
 
 			bp = nu->bp;
 			for (a = 0; a < 5; a++, bp++) {
@@ -6635,7 +6637,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 			if (cutype == CU_BEZIER) {
 				if (!force_3d) nu->flag |= CU_2D;
 				nu->pntsu = 4;
-				nu->bezt = CALLOC_STRUCT_N(BezTriple, 4, "addNurbprim1");
+				nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * 4, "addNurbprim1");
 				nu->flagu = CU_NURB_CYCLIC;
 				bezt = nu->bezt;
 
@@ -6672,7 +6674,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				nu->pntsu = 8;
 				nu->pntsv = 1;
 				nu->orderu = 4;
-				nu->bp = CALLOC_STRUCT_N(BPoint, 8, "addNurbprim6");
+				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 8, "addNurbprim6");
 				nu->flagu = CU_NURB_CYCLIC;
 				bp = nu->bp;
 
@@ -6705,7 +6707,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				nu->orderu = 4;
 				nu->orderv = 4;
 				nu->flag = CU_SMOOTH;
-				nu->bp = CALLOC_STRUCT_N(BPoint, 4 * 4, "addNurbprim6");
+				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * (4 * 4), "addNurbprim6");
 				nu->flagu = 0;
 				nu->flagv = 0;
 				bp = nu->bp;
@@ -6767,7 +6769,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				nu->resolu = cu->resolu;
 				nu->resolv = cu->resolv;
 				nu->flag = CU_SMOOTH;
-				nu->bp = CALLOC_STRUCT_N(BPoint, 5, "addNurbprim6");
+				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim6");
 				nu->flagu = 0;
 				bp = nu->bp;
 
