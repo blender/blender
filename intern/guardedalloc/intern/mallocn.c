@@ -568,8 +568,15 @@ void *MEM_mapallocN(size_t len, const char *str)
 
 	len = (len + 3) & ~3;   /* allocate in units of 4 */
 
+#if defined(WIN32)
+	/* our windows mmap implementation is not thread safe */
+	mem_lock_thread();
+#endif
 	memh = mmap(NULL, len + sizeof(MemHead) + sizeof(MemTail),
 	            PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+#if defined(WIN32)
+	mem_unlock_thread();
+#endif
 
 	if (memh != (MemHead *)-1) {
 		make_memhead_header(memh, len, str);
@@ -957,8 +964,15 @@ static void rem_memblock(MemHead *memh)
 
 	if (memh->mmap) {
 		atomic_sub_z(&mmap_in_use, memh->len);
+#if defined(WIN32)
+		/* our windows mmap implementation is not thread safe */
+		mem_lock_thread();
+#endif
 		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
 			printf("Couldn't unmap memory %s\n", memh->name);
+#if defined(WIN32)
+		mem_unlock_thread();
+#endif
 	}
 	else {
 		if (malloc_debug_memset && memh->len)
