@@ -145,7 +145,7 @@ typedef double *ArHosekSkyModel_Radiance_Dataset;
 
 // internal functions
 
-void ArHosekSkyModel_CookConfiguration(
+static void ArHosekSkyModel_CookConfiguration(
         ArHosekSkyModel_Dataset       dataset, 
         ArHosekSkyModelConfiguration  config, 
         double                        turbidity, 
@@ -227,7 +227,7 @@ void ArHosekSkyModel_CookConfiguration(
     }
 }
 
-double ArHosekSkyModel_CookRadianceConfiguration(
+static double ArHosekSkyModel_CookRadianceConfiguration(
         ArHosekSkyModel_Radiance_Dataset  dataset, 
         double                            turbidity, 
         double                            albedo, 
@@ -289,7 +289,7 @@ double ArHosekSkyModel_CookRadianceConfiguration(
     return res;
 }
 
-double ArHosekSkyModel_GetRadianceInternal(
+static double ArHosekSkyModel_GetRadianceInternal(
         ArHosekSkyModelConfiguration  configuration, 
         double                        theta, 
         double                        gamma
