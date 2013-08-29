@@ -1286,9 +1286,10 @@ class WM_OT_blenderplayer_start(Operator):
             self.report({'ERROR'}, "Player path: %r not found" % player_path)
             return {'CANCELLED'}
 
-        filepath = os.path.join(bpy.app.tempdir, "game.blend")
+        filepath = bpy.data.filepath+'~' if bpy.data.is_saved else os.path.join(bpy.app.tempdir, "game.blend")
         bpy.ops.wm.save_as_mainfile('EXEC_DEFAULT', filepath=filepath, copy=True)
         subprocess.call([player_path, filepath])
+        os.unlink(filepath)
         return {'FINISHED'}
 
 
