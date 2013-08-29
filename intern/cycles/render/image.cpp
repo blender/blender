@@ -127,10 +127,14 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 
 				is_linear = !(colorspace == "sRGB" ||
 				              colorspace == "GammaCorrected" ||
-							  strcmp(in->format_name(), "png") == 0);
+				              (colorspace == "" &&
+				                  (strcmp(in->format_name(), "png") == 0 ||
+				                   strcmp(in->format_name(), "tiff") == 0 ||
+				                   strcmp(in->format_name(), "jpeg2000") == 0)));
 			}
-			else
+			else {
 				is_linear = false;
+			}
 
 			in->close();
 		}
