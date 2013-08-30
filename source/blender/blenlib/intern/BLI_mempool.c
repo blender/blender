@@ -68,11 +68,21 @@
 /* when undefined, merge the allocs for BLI_mempool_chunk and its data */
 // #define USE_DATA_PTR
 
+/**
+ * A free element from #BLI_mempool_chunk. Data is cast to this type and stored in
+ * #BLI_mempool.free as a single linked list, each item #BLI_mempool.esize large.
+ *
+ * Each element represents a block which BLI_mempool_alloc may return.
+ */
 typedef struct BLI_freenode {
 	struct BLI_freenode *next;
 	int freeword; /* used to identify this as a freed node */
 } BLI_freenode;
 
+/**
+ * A chunk of memory in the mempool stored in
+ * #BLI_mempool.chunks as a double linked list.
+ */
 typedef struct BLI_mempool_chunk {
 	struct BLI_mempool_chunk *next, *prev;
 #ifdef USE_DATA_PTR
@@ -80,6 +90,9 @@ typedef struct BLI_mempool_chunk {
 #endif
 } BLI_mempool_chunk;
 
+/**
+ * The mempool, stores and tracks memory \a chunks and elements within those chunks \a free.
+ */
 struct BLI_mempool {
 	struct ListBase chunks;
 	unsigned int esize;         /* element size in bytes */
@@ -289,7 +302,6 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 	}
 
 	pool->free = pool->free->next;
-	//memset(retval, 0, pool->esize);
 	return retval;
 }
 
@@ -389,6 +401,7 @@ void *BLI_mempool_findelem(BLI_mempool *pool, unsigned int index)
  * Fill in \a data with pointers to each element of the mempool,
  * to create lookup table.
  *
+ * \param pool Pool to create a table from.
  * \param data array of pointers at least the size of 'pool->totused'
  */
 void BLI_mempool_as_table(BLI_mempool *pool, void **data)
@@ -440,6 +453,9 @@ void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 	return data;
 }
 
+/**
+ * Create a new mempool iterator, \a BLI_MEMPOOL_ALLOW_ITER flag must be set.
+ */
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -485,17 +501,16 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 
 /* optimized version of code above */
 
+/**
+ * Step over the iterator, returning the mempool item or NULL.
+ */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 {
 	BLI_freenode *ret;
 
-	if (UNLIKELY(iter->pool->totused == 0)) {
-		return NULL;
-	}
-
 	do {
 		if (LIKELY(iter->curchunk)) {
-			ret = (BLI_freenode *)(((char *)CHUNK_DATA(iter->curchunk)) + iter->pool->esize * iter->curindex);
+			ret = (BLI_freenode *)(((char *)CHUNK_DATA(iter->curchunk)) + (iter->pool->esize * iter->curindex));
 		}
 		else {
 			return NULL;
@@ -512,6 +527,12 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 
 #endif
 
+/**
+ * Empty the pool, as if it were just created.
+ *
+ * \param pool The pool to clear.
+ * \param totelem_reserve  Optionally reserve how many items should be kept from clearing.
+ */
 void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 {
 	BLI_mempool_chunk *mpchunk;
@@ -551,6 +572,9 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 	}
 }
 
+/**
+ * Wrap #BLI_mempool_clear_ex with no reserve set.
+ */
 void BLI_mempool_clear(BLI_mempool *pool)
 {
 	return BLI_mempool_clear_ex(pool, -1);
