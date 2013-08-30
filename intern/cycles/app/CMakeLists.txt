@@ -45,7 +45,7 @@ if(WITH_CYCLES_STANDALONE)
 		cycles_xml.h
 	)
 	add_executable(cycles ${SRC})
-	target_link_libraries(cycles ${LIBRARIES})
+	target_link_libraries(cycles ${LIBRARIES} ${CMAKE_DL_LIBS})
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles PROPERTIES INSTALL_RPATH $ORIGIN/lib)

@@ -387,7 +387,7 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
 
-	target_link_libraries(${target} ${PLATFORM_LINKLIBS})
+	target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
 endmacro()
 
 macro(TEST_SSE_SUPPORT

@@ -882,8 +882,6 @@ if(UNIX AND NOT APPLE)
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
-			# BSD's dont use libdl.so
-		set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -ldl")
 			# binreloc is linux only
 			set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
 			set(WITH_BINRELOC ON)
