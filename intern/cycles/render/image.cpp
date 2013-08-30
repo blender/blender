@@ -307,7 +307,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 	}
 
 	/* we only handle certain number of components */
-	if(!(components == 1 || components == 3 || components == 4)) {
+	if(!(components >= 1 && components <= 4)) {
 		if(in) {
 			in->close();
 			delete in;
@@ -334,7 +334,15 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		builtin_image_pixels_cb(img->filename, img->builtin_data, pixels);
 	}
 
-	if(components == 3) {
+	if(components == 2) {
+		for(int i = width*height-1; i >= 0; i--) {
+			pixels[i*4+3] = pixels[i*2+1];
+			pixels[i*4+2] = pixels[i*2+0];
+			pixels[i*4+1] = pixels[i*2+0];
+			pixels[i*4+0] = pixels[i*2+0];
+		}
+	}
+	else if(components == 3) {
 		for(int i = width*height-1; i >= 0; i--) {
 			pixels[i*4+3] = 255;
 			pixels[i*4+2] = pixels[i*3+2];
@@ -390,7 +398,7 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, components);
 	}
 
-	if(!(components == 1 || components == 3 || components == 4)) {
+	if(!(components >= 1 && components <= 4)) {
 		if(in) {
 			in->close();
 			delete in;
@@ -416,7 +424,15 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		builtin_image_float_pixels_cb(img->filename, img->builtin_data, pixels);
 	}
 
-	if(components == 3) {
+	if(components == 2) {
+		for(int i = width*height-1; i >= 0; i--) {
+			pixels[i*4+3] = pixels[i*2+1];
+			pixels[i*4+2] = pixels[i*2+0];
+			pixels[i*4+1] = pixels[i*2+0];
+			pixels[i*4+0] = pixels[i*2+0];
+		}
+	}
+	else if(components == 3) {
 		for(int i = width*height-1; i >= 0; i--) {
 			pixels[i*4+3] = 1.0f;
 			pixels[i*4+2] = pixels[i*3+2];
