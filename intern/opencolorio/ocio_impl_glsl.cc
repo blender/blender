@@ -36,12 +36,7 @@
 #include <sstream>
 #include <string.h>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
 #include <GL/glew.h>
-#endif
 
 #include <OpenColorIO/OpenColorIO.h>
 
@@ -200,6 +195,13 @@ static bool ensureLUT3DAllocated(OCIO_GLSLDrawState *state)
 	state->lut3d_texture_valid = glGetError() == GL_NO_ERROR;
 
 	return state->lut3d_texture_valid;
+}
+
+/* Detect if we can support GLSL drawing */
+bool OCIOImpl::supportGLSLDraw()
+{
+	/* GLSL and GL_RGB16F_ARB */
+	return GLEW_VERSION_2_0 && (GLEW_VERSION_3_0 || GLEW_ARB_texture_float);
 }
 
 /**

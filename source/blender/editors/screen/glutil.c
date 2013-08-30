@@ -1091,15 +1091,18 @@ void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
 		if (ibuf->rect_float) {
 			if (ibuf->float_colorspace) {
 				ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
-				                                                    ibuf->float_colorspace, TRUE);
+				                                                    ibuf->float_colorspace,
+				                                                    TRUE, FALSE);
 			}
 			else {
-				ok = IMB_colormanagement_setup_glsl_draw(view_settings, display_settings, TRUE);
+				ok = IMB_colormanagement_setup_glsl_draw(view_settings, display_settings,
+				                                         TRUE, FALSE);
 			}
 		}
 		else {
 			ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
-			                                                    ibuf->rect_colorspace, FALSE);
+			                                                    ibuf->rect_colorspace,
+			                                                    FALSE, FALSE);
 		}
 
 		if (ok) {
