@@ -110,20 +110,12 @@ CCL_NAMESPACE_BEGIN
 //   Some macro definitions that occur elsewhere in ART, and that have to be
 //   replicated to make this a stand-alone module.
 
-#ifndef NIL
-#define NIL                         0
-#endif
-
 #ifndef MATH_PI 
 #define MATH_PI                     3.141592653589793
 #endif
 
 #ifndef MATH_DEG_TO_RAD
 #define MATH_DEG_TO_RAD             ( MATH_PI / 180.0 )
-#endif
-
-#ifndef MATH_RAD_TO_DEG
-#define MATH_RAD_TO_DEG             ( 180.0 / MATH_PI )
 #endif
 
 #ifndef DEGREES

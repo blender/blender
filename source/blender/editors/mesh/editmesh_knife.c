@@ -1243,8 +1243,8 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 			}
 
 			n_isects = 0;
-			if (fabs(dist_to_plane_v3(kfe->v1->cageco, tri_plane)) < KNIFE_FLT_EPS &&
-			    fabs(dist_to_plane_v3(kfe->v2->cageco, tri_plane)) < KNIFE_FLT_EPS) {
+			if (fabsf(dist_to_plane_v3(kfe->v1->cageco, tri_plane)) < KNIFE_FLT_EPS &&
+			    fabsf(dist_to_plane_v3(kfe->v2->cageco, tri_plane)) < KNIFE_FLT_EPS) {
 				/* both kfe ends are in cutting triangle */
 				copy_v3_v3(isects[0], kfe->v1->cageco);
 				copy_v3_v3(isects[1], kfe->v2->cageco);

@@ -78,10 +78,11 @@ static bool mesh_bisect_interactive_calc(
 	int x_end = RNA_int_get(op->ptr, "xend");
 	int y_end = RNA_int_get(op->ptr, "yend");
 
+	/* reference location (some point infront of the view) for finding a point on a plane */
 	const float *co_ref = rv3d->ofs;
 	float co_a_ss[2] = {x_start, y_start}, co_b_ss[2] = {x_end, y_end}, co_delta_ss[2];
 	float co_a[3], co_b[3];
-	float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
+	const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
 
 	opdata = gesture->userdata;
 
