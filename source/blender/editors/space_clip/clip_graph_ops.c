@@ -352,6 +352,10 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	BorderSelectuserData userdata;
 	rcti rect;
 
+	if (act_track == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* get rectangle from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
