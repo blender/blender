@@ -464,6 +464,9 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 	float2 spherical = sky_spherical_coordinates(dir);
 	float theta = spherical.x;
 	float phi = spherical.y;
+	
+	/* Clamp to Horizon */
+	theta = clamp(theta, 0.0f, M_PI_2_F); 
 
 	sunsky->theta = theta;
 	sunsky->phi = phi;
