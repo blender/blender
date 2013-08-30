@@ -314,7 +314,7 @@ public:
 class OpenCLDevice : public Device
 {
 public:
-	TaskPool task_pool;
+	DedicatedTaskPool task_pool;
 	cl_context cxContext;
 	cl_command_queue cqCommandQueue;
 	cl_platform_id cpPlatform;
@@ -1100,7 +1100,7 @@ public:
 
 	void task_wait()
 	{
-		task_pool.wait_work();
+		task_pool.wait();
 	}
 
 	void task_cancel()

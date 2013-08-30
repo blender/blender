@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 class CUDADevice : public Device
 {
 public:
-	TaskPool task_pool;
+	DedicatedTaskPool task_pool;
 	CUdevice cuDevice;
 	CUcontext cuContext;
 	CUmodule cuModule;
@@ -976,7 +976,7 @@ public:
 
 	void task_wait()
 	{
-		task_pool.wait_work();
+		task_pool.wait();
 	}
 
 	void task_cancel()

@@ -50,7 +50,7 @@ public:
  * pool, we can wait for all tasks to be done, or cancel them before they are
  * done.
  *
- * The run callback that actually executes the task may be create like this:
+ * The run callback that actually executes the task may be created like this:
  * function_bind(&MyClass::task_execute, this, _1, _2) */
 
 class TaskPool
@@ -77,8 +77,8 @@ protected:
 	thread_mutex num_mutex;
 	thread_condition_variable num_cond;
 
-	volatile int num;
-	volatile bool do_cancel;
+	int num;
+	bool do_cancel;
 };
 
 /* Task Scheduler
@@ -109,7 +109,7 @@ protected:
 	static thread_mutex mutex;
 	static int users;
 	static vector<thread*> threads;
-	static volatile bool do_exit;
+	static bool do_exit;
 
 	static list<Entry> queue;
 	static thread_mutex queue_mutex;
@@ -120,6 +120,51 @@ protected:
 
 	static void push(Entry& entry, bool front);
 	static void clear(TaskPool *pool);
+};
+
+/* Dedicated Task Pool
+ *
+ * Like a TaskPool, but will launch one dedicated thread to execute all tasks.
+ *
+ * The run callback that actually executes the task may be created like this:
+ * function_bind(&MyClass::task_execute, this, _1, _2) */
+
+class DedicatedTaskPool
+{
+public:
+	DedicatedTaskPool();
+	~DedicatedTaskPool();
+
+	void push(Task *task, bool front = false);
+	void push(const TaskRunFunction& run, bool front = false);
+
+	void wait();        /* wait until all tasks are done */
+	void cancel();		/* cancel all tasks, keep worker thread running */
+	void stop();		/* stop worker thread */
+
+	bool cancelled();	/* for worker thread, test if cancelled */
+
+protected:
+	void num_decrease(int done);
+	void num_increase();
+
+	void thread_run();
+	bool thread_wait_pop(Task*& entry);
+
+	void clear();
+
+	thread_mutex num_mutex;
+	thread_condition_variable num_cond;
+
+	list<Task*> queue;
+	thread_mutex queue_mutex;
+	thread_condition_variable queue_cond;
+
+	int num;
+	bool do_cancel;
+	bool do_exit;
+
+	thread *worker_thread;
 };
 
 CCL_NAMESPACE_END

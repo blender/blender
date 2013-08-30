@@ -168,7 +168,7 @@ void TaskPool::num_increase()
 thread_mutex TaskScheduler::mutex;
 int TaskScheduler::users = 0;
 vector<thread*> TaskScheduler::threads;
-volatile bool TaskScheduler::do_exit = false;
+bool TaskScheduler::do_exit = false;
 
 list<TaskScheduler::Entry> TaskScheduler::queue;
 thread_mutex TaskScheduler::queue_mutex;
@@ -296,6 +296,154 @@ void TaskScheduler::clear(TaskPool *pool)
 
 	/* notify done */
 	pool->num_decrease(done);
+}
+
+/* Dedicated Task Pool */
+
+DedicatedTaskPool::DedicatedTaskPool()
+{
+	do_cancel = false;
+	do_exit = false;
+	num = 0;
+
+	worker_thread = new thread(function_bind(&DedicatedTaskPool::thread_run, this));
+}
+
+DedicatedTaskPool::~DedicatedTaskPool()
+{
+	stop();
+	worker_thread->join();
+	delete worker_thread;
+}
+
+void DedicatedTaskPool::push(Task *task, bool front)
+{
+	num_increase();
+
+	/* add task to queue */
+	queue_mutex.lock();
+	if(front)
+		queue.push_front(task);
+	else
+		queue.push_back(task);
+
+	queue_cond.notify_one();
+	queue_mutex.unlock();
+}
+
+void DedicatedTaskPool::push(const TaskRunFunction& run, bool front)
+{
+	push(new Task(run), front);
+}
+
+void DedicatedTaskPool::wait()
+{
+	thread_scoped_lock num_lock(num_mutex);
+
+	while(num)
+		num_cond.wait(num_lock);
+}
+
+void DedicatedTaskPool::cancel()
+{
+	do_cancel = true;
+
+	clear();
+	wait();
+
+	do_cancel = false;
+}
+
+void DedicatedTaskPool::stop()
+{
+	clear();
+
+	do_exit = true;
+	queue_cond.notify_all();
+
+	wait();
+
+	assert(num == 0);
+}
+
+bool DedicatedTaskPool::cancelled()
+{
+	return do_cancel;
+}
+
+void DedicatedTaskPool::num_decrease(int done)
+{
+	num_mutex.lock();
+	num -= done;
+
+	assert(num >= 0);
+	if(num == 0)
+		num_cond.notify_all();
+
+	num_mutex.unlock();
+}
+
+void DedicatedTaskPool::num_increase()
+{
+	thread_scoped_lock num_lock(num_mutex);
+	num++;
+	num_cond.notify_all();
+}
+
+bool DedicatedTaskPool::thread_wait_pop(Task*& task)
+{
+	thread_scoped_lock queue_lock(queue_mutex);
+
+	while(queue.empty() && !do_exit)
+		queue_cond.wait(queue_lock);
+
+	if(queue.empty()) {
+		assert(do_exit);
+		return false;
+	}
+
+	task = queue.front();
+	queue.pop_front();
+
+	return true;
+}
+
+void DedicatedTaskPool::thread_run()
+{
+	Task *task;
+
+	/* keep popping off tasks */
+	while(thread_wait_pop(task)) {
+		/* run task */
+		task->run();
+
+		/* delete task */
+		delete task;
+
+		/* notify task was done */
+		num_decrease(1);
+	}
+}
+
+void DedicatedTaskPool::clear()
+{
+	thread_scoped_lock queue_lock(queue_mutex);
+
+	/* erase all tasks from the queue */
+	list<Task*>::iterator it = queue.begin();
+	int done = 0;
+
+	while(it != queue.end()) {
+		done++;
+		delete *it;
+
+		it = queue.erase(it);
+	}
+
+	queue_lock.unlock();
+
+	/* notify done */
+	num_decrease(done);
 }
 
 CCL_NAMESPACE_END
