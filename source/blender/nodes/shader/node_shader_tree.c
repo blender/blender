@@ -189,13 +189,16 @@ void register_node_tree_type_sh(void)
 
 void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 {
+	/* localize tree to create links for reroute and mute */
+	bNodeTree *localtree = ntreeLocalize(ntree);
 	bNodeTreeExec *exec;
 
-	exec = ntreeShaderBeginExecTree(ntree);
-
+	exec = ntreeShaderBeginExecTree(localtree);
 	ntreeExecGPUNodes(exec, mat, 1);
-
 	ntreeShaderEndExecTree(exec);
+
+	ntreeFreeTree_ex(localtree, false);
+	MEM_freeN(localtree);
 }
 
 /* **************** call to switch lamploop for material node ************ */
