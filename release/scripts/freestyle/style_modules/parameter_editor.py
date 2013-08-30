@@ -78,11 +78,11 @@ class ScalarBlendModifier(StrokeShader):
         elif self.__blend == 'DIFFERENCE':
             v1 = facm * v1 + fac * abs(v1 - v2)
         elif self.__blend == 'MININUM':
-            tmp = fac * v1
+            tmp = fac * v2
             if v1 > tmp:
                 v1 = tmp
         elif self.__blend == 'MAXIMUM':
-            tmp = fac * v1
+            tmp = fac * v2
             if v1 < tmp:
                 v1 = tmp
         else:
@@ -142,18 +142,19 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         self.__ratio = ratio
 
     def blend_thickness(self, outer, inner, v):
+        v = self.blend(outer + inner, v)
         if self.__position == 'CENTER':
-            outer = self.blend(outer, v / 2)
-            inner = self.blend(inner, v / 2)
+            outer = v * 0.5
+            inner = v - outer
         elif self.__position == 'INSIDE':
-            outer = self.blend(outer, 0)
-            inner = self.blend(inner, v)
+            outer = 0
+            inner = v
         elif self.__position == 'OUTSIDE':
-            outer = self.blend(outer, v)
-            inner = self.blend(inner, 0)
+            outer = v
+            inner = 0
         elif self.__position == 'RELATIVE':
-            outer = self.blend(outer, v * self.__ratio)
-            inner = self.blend(inner, v * (1 - self.__ratio))
+            outer = v * self.__ratio
+            inner = v - outer
         else:
             raise ValueError("unknown thickness position: " + self.__position)
         return outer, inner
@@ -168,8 +169,8 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
         StrokeShader.__init__(self)
         ThicknessModifierMixIn.__init__(self)
         if position == 'CENTER':
-            self.__outer = thickness / 2
-            self.__inner = thickness / 2
+            self.__outer = thickness * 0.5
+            self.__inner = thickness - self.__outer
         elif position == 'INSIDE':
             self.__outer = 0
             self.__inner = thickness
@@ -178,7 +179,7 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
             self.__inner = 0
         elif position == 'RELATIVE':
             self.__outer = thickness * ratio
-            self.__inner = thickness * (1 - ratio)
+            self.__inner = thickness - self.__outer
         else:
             raise ValueError("unknown thickness position: " + self.position)
 
