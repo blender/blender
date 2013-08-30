@@ -894,6 +894,45 @@ bool isect_line_tri_v3(const float p1[3], const float p2[3],
 	return 1;
 }
 
+/* like isect_line_tri_v3, but allows epsilon tolerance around triangle */
+bool isect_line_tri_epsilon_v3(const float p1[3], const float p2[3],
+                       const float v0[3], const float v1[3], const float v2[3],
+                       float *r_lambda, float r_uv[2], const float epsilon)
+{
+
+	float p[3], s[3], d[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+
+	sub_v3_v3v3(e1, v1, v0);
+	sub_v3_v3v3(e2, v2, v0);
+	sub_v3_v3v3(d, p2, p1);
+
+	cross_v3_v3v3(p, d, e2);
+	a = dot_v3v3(e1, p);
+	if ((a > -0.000001f) && (a < 0.000001f)) return 0;
+	f = 1.0f / a;
+
+	sub_v3_v3v3(s, p1, v0);
+
+	u = f * dot_v3v3(s, p);
+	if ((u < -epsilon) || (u > 1.0f + epsilon)) return 0;
+
+	cross_v3_v3v3(q, s, e1);
+
+	v = f * dot_v3v3(d, q);
+	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return 0;
+
+	*r_lambda = f * dot_v3v3(e2, q);
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return 0;
+
+	if (r_uv) {
+		r_uv[0] = u;
+		r_uv[1] = v;
+	}
+
+	return 1;
+}
+
 /* moved from effect.c
  * test if the ray starting at p1 going in d direction intersects the triangle v0..v2
  * return non zero if it does

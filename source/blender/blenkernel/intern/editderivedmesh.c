@@ -1872,7 +1872,7 @@ static void statvis_calc_thickness(
 		normal_tri_v3(ray_no, cos[2], cos[1], cos[0]);
 
 #define FACE_RAY_TEST_ANGLE \
-		f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no, \
+		f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no, 0.0f, \
 		                           &dist, NULL, NULL); \
 		if (f_hit && dist < face_dists[index]) { \
 			float angle_fac = fabsf(dot_v3v3(ltri[0]->f->no, f_hit->no)); \

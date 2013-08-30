@@ -499,10 +499,11 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 {
 	KnifeEdge *kfe = new_knife_edge(kcd), *kfe2 = NULL, *kfe3 = NULL;
 
-	if (kcd->prev.vert && kcd->prev.vert == kcd->curr.vert)
+	if ((kcd->prev.vert && kcd->prev.vert == kcd->curr.vert) ||
+	    (kcd->prev.edge && kcd->prev.edge == kcd->curr.edge)) {
+		kcd->prev = kcd->curr;
 		return;
-	if (kcd->prev.edge && kcd->prev.edge == kcd->curr.edge)
-		return;
+	}
 
 	kfe->draw = true;
 
@@ -573,10 +574,17 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 
 	if      (lh1->l < lh2->l) return -1;
 	else if (lh1->l > lh2->l) return 1;
+	else if (lh1->v && lh2->v) {
+		/* want like verts to sort together; just compare pointers */
+		if      (lh1->v < lh2->v) return -1;
+		else if (lh1->v > lh2->v) return 1;
+		else return 0;
+	}
 	else return 0;
 }
 
 /* If there's a linehit connected (same face) as testi in range [firsti, lasti], return the first such, else -1.
+ * It also counts as connected if both linehits are snapped to the same vertex.
  * If testi is out of range, look for connection to f instead, if f is non-NULL */
 static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, int firsti, int lasti)
 {
@@ -586,9 +594,10 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 		if (testi >= 0 && testi < kcd->totlinehit) {
 			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
 			                           &kcd->linehits[i].kfe->faces))
-			{
 				return i;
-			}
+			else if (kcd->linehits[testi].v &&
+				 kcd->linehits[testi].v == kcd->linehits[i].v)
+				return i;
 		}
 		else if (f) {
 			if (find_ref(&kcd->linehits[i].kfe->faces, f))
@@ -598,12 +607,37 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 	return -1;
 }
 
-/* Sort in order of distance along cut line, but take care when distances are equal */
-static void knife_sort_linehits(KnifeTool_OpData *kcd)
+/* Sort in order of distance along cut line.
+ * Remove any successive linehits that are snapped to the same vertex.
+ * If joinfaces, treat hits at same distance as follows: try to find
+ * ordering so that preceding and succeeding hits will share a face.
+ */
+static void knife_sort_linehits(KnifeTool_OpData *kcd, bool joinfaces)
 {
 	int i, j, k, nexti, nsame;
 
 	qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
+
+	/* Remove duplicated linehits snapped to same vertex */
+	i = j = 0;  /* loop copies from j to i */
+	while (j < kcd->totlinehit) {
+		nsame = 0;
+		if (kcd->linehits[j].v) {
+			for (k = j + 1; k < kcd->totlinehit; k++) {
+				if (kcd->linehits[k].v != kcd->linehits[j].v)
+					break;
+				nsame++;
+			}
+		}
+		if (i != j)
+			kcd->linehits[i] = kcd->linehits[j];
+		i++;
+		j += 1 + nsame;
+	}
+	kcd->totlinehit = i;
+
+	if (!joinfaces)
+		return;
 
 	/* for ranges of equal "l", swap if neccesary to make predecessor and
 	 * successor faces connected to the linehits at either end of the range */
@@ -653,6 +687,7 @@ static void knife_add_single_cut_through(KnifeTool_OpData *kcd, KnifeVert *v1, K
 		knife_edge_append_face(kcd, kfenew, f);
 }
 
+#if 0
 static void knife_get_vert_faces(KnifeTool_OpData *kcd, KnifeVert *kfv, BMFace *facef, ListBase *lst)
 {
 	BMIter bmiter;
@@ -685,20 +720,32 @@ static void knife_get_edge_faces(KnifeTool_OpData *kcd, KnifeEdge *kfe, ListBase
 		}
 	}
 }
+#endif
+
+static void copy_hit_from_posdata(BMEdgeHit *lh, KnifePosData *pos, float lambda) {
+	lh->kfe = pos->edge;
+	lh->v = pos->vert;
+	lh->f = pos->bmface;
+	copy_v3_v3(lh->hit, pos->co);
+	copy_v3_v3(lh->cagehit, pos->cage);
+	copy_v3_v3(lh->realhit, pos->co);
+	lh->l = lambda;
+	/* perc and schit not used by callers of this function */
+}
 
 /* BMESH_TODO: add more functionality to cut-through:
  *    - cutting "in face" (e.g., holes) should cut in all faces, not just visible one
  *    - perhaps improve O(n^2) algorithm used here */
 static void knife_cut_through(KnifeTool_OpData *kcd)
 {
-	BMEdgeHit *lh, *lh2;
+	BMEdgeHit *lh, *lh2, *linehits;
 	BMFace *f;
-	KnifeEdge *kfe, *kfe2, *kfe3;
-	KnifeVert *v1, *v2, *firstv = NULL, *lastv = NULL;
-	ListBase firstfaces = {NULL, NULL}, lastfaces = {NULL, NULL};
-	Ref *r, *r2;
+	KnifeEdge *kfe, *kfe2;
+	KnifeVert *v1, *v2, *lastv;
+	ListBase *faces1, *faces2;
 	KnifeEdge **splitkfe;
-	int i, j;
+	bool needprev, needcurr;
+	int i, j, n;
 
 	if (!kcd->totlinehit) {
 		/* if no linehits then no interesting back face stuff to do */
@@ -706,93 +753,68 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 		return;
 	}
 
-	/* TODO: probably don't need to sort at all */
-	qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
-	splitkfe = MEM_callocN(kcd->totlinehit * sizeof(KnifeEdge *), "knife_cut_through");
+	/* sort eliminates hits on same vertices */
+	knife_sort_linehits(kcd, false);
 
-	if (kcd->prev.vert) {
-		if (kcd->prev.vert == kcd->curr.vert)
-			return;
-		firstv = kcd->prev.vert;
-		knife_get_vert_faces(kcd, firstv, kcd->prev.bmface, &firstfaces);
+	/* code is cleaner if make prev and curr into hits (if they are on edges or verts) */
+	n = kcd->totlinehit;
+	needprev = ((kcd->prev.vert && kcd->prev.vert != kcd->linehits[0].v) || kcd->prev.edge);
+	needcurr = ((kcd->curr.vert && kcd->curr.vert != kcd->linehits[n - 1].v) || kcd->curr.edge);
+	n += needprev + needcurr;
+	linehits = MEM_callocN(n * sizeof(BMEdgeHit), "knife_cut_through");
+	i = 0;
+	if (needprev) {
+		copy_hit_from_posdata(&linehits[0], &kcd->prev, 0.0f);
+		i++;
 	}
-	else if (kcd->prev.edge) {
-		if (kcd->prev.edge == kcd->curr.edge)
-			return;
-		firstv = knife_split_edge(kcd, kcd->prev.edge, kcd->prev.co, &kfe3);
-		knife_get_edge_faces(kcd, kcd->prev.edge, &firstfaces);
-	}
+	memcpy(linehits + i, kcd->linehits, kcd->totlinehit * sizeof(BMEdgeHit));
+	i += kcd->totlinehit;
+	if (needcurr)
+		copy_hit_from_posdata(&linehits[i], &kcd->curr, 1.0f);
 
-	if (kcd->curr.vert) {
-		lastv = kcd->curr.vert;
-		knife_get_vert_faces(kcd, lastv, kcd->curr.bmface, &lastfaces);
-	}
-	else if (kcd->curr.edge) {
-		lastv = knife_split_edge(kcd, kcd->curr.edge, kcd->curr.co, &kfe3);
-		knife_get_edge_faces(kcd, kcd->curr.edge, &lastfaces);
-	}
 
-	if (firstv) {
-		/* For each face incident to firstv,
-		 * find the first following linehit (if any) sharing that face and connect */
-		for (r = firstfaces.first; r; r = r->next) {
-			bool found = false;
-			f = r->ref;
-			for (j = 0, lh2 = kcd->linehits; j < kcd->totlinehit && !found; j++, lh2++) {
-				kfe2 = lh2->kfe;
-				for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
-					if (r2->ref == f) {
-						v2 = splitkfe[j] ? kfe2->v1 : knife_split_edge(kcd, kfe2, lh2->hit, &splitkfe[j]);
-						knife_add_single_cut_through(kcd, firstv, v2, f);
-						found = true;
-						break;
-					}
-				}
-			}
-			if (!found && lastv) {
-				for (r2 = lastfaces.first; r2; r2 = r2->next) {
-					if (r2->ref == f) {
-						knife_add_single_cut_through(kcd, firstv, lastv, f);
-						break;
-					}
-				}
-			}
-		}
-	}
+	splitkfe = MEM_callocN(n * sizeof(KnifeEdge *), "knife_cut_through");
 
-	for (i = 0, lh = kcd->linehits; i < kcd->totlinehit; i++, lh++) {
+	lastv = NULL;
+	for (i = 0, lh = linehits; i < n; i++, lh++) {
 		kfe = lh->kfe;
+		v1 = NULL;
 
-		/* For each face attached to edge for this linehit,
-		 * find the first following linehit (if any) sharing that face and connect */
-		for (r = kfe->faces.first; r; r = r->next) {
-			bool found = false;
-			f = r->ref;
-			for (j = i + 1, lh2 = lh + 1; j < kcd->totlinehit && !found; j++, lh2++) {
-				kfe2 = lh2->kfe;
-				for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
-					if (r2->ref == f) {
-						v1 = splitkfe[i] ? kfe->v1 : knife_split_edge(kcd, kfe, lh->hit, &splitkfe[i]);
-						v2 = splitkfe[j] ? kfe2->v1 : knife_split_edge(kcd, kfe2, lh2->hit, &splitkfe[j]);
-						knife_add_single_cut_through(kcd, v1, v2, f);
-						found = true;
-						break;
-					}
-				}
+		/* get faces incident on hit lh */
+		if (lh->v) {
+			v1 = lh->v;
+			faces1 = &v1->faces;
+		}
+		else if (kfe) {
+			faces1 = &kfe->faces;
+		}
+
+		/* For each following hit, connect if lh1 an lh2 share a face */
+		for (j = i + 1, lh2 = lh + 1; j < n; j++, lh2++) {
+			kfe2 = lh2->kfe;
+			v2 = NULL;
+			if (lh2->v) {
+				v2 = lh2->v;
+				faces2 = &v2->faces;
 			}
-			if (!found && lastv) {
-				for (r2 = lastfaces.first; r2; r2 = r2->next) {
-					if (r2->ref == f) {
-						v1 = splitkfe[i] ? kfe->v1 : knife_split_edge(kcd, kfe, lh->hit, &splitkfe[i]);
-						knife_add_single_cut_through(kcd, v1, lastv, f);
-						break;
-					}
-				}
+			else if (kfe2) {
+				faces2 = &kfe2->faces;
+			}
+
+			f = knife_find_common_face(faces1, faces2);
+			if (f) {
+				if (!v1)
+					v1 = splitkfe[i] ? kfe->v1 : knife_split_edge(kcd, kfe, lh->hit, &splitkfe[i]);
+				if (!v2)
+					v2 = splitkfe[j] ? kfe2->v1 : knife_split_edge(kcd, kfe2, lh2->hit, &splitkfe[j]);
+				knife_add_single_cut_through(kcd, v1, v2, f);
+				lastv = v2;
 			}
 		}
 	}
 
 	MEM_freeN(splitkfe);
+	MEM_freeN(linehits);
 	MEM_freeN(kcd->linehits);
 	kcd->linehits = NULL;
 	kcd->totlinehit = 0;
@@ -816,7 +838,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 		BMEdgeHit *lh, *lastlh, *firstlh;
 		int i;
 
-		knife_sort_linehits(kcd);
+		knife_sort_linehits(kcd, true);
 
 		lh = kcd->linehits;
 		lastlh = firstlh = NULL;
@@ -848,14 +870,14 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 				continue;
 
 			/* first linehit may be down face parallel to view */
-			if (!lastlh && fabsf(lh->l) < KNIFE_FLT_EPS)
+			if (!lastlh && !lh->v && fabsf(lh->l) < KNIFE_FLT_EPS)
 				continue;
 
 			if (kcd->prev.is_space) {
 				kcd->prev.is_space = 0;
 				copy_v3_v3(kcd->prev.co, lh->hit);
 				copy_v3_v3(kcd->prev.cage, lh->cagehit);
-				kcd->prev.vert = NULL;
+				kcd->prev.vert = lh->v;
 				kcd->prev.edge = lh->kfe;
 				kcd->prev.bmface = lh->f;
 				continue;
@@ -1181,9 +1203,9 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	BLI_array_declare(edges);
 	BVHTreeOverlap *results, *result;
 	BMLoop **ls;
-	float cos[9], lambda;
+	float cos[9], tri_norm[3], tri_plane[4], isects[2][3], lambda;
 	unsigned int tot = 0;
-	int i;
+	int i, j, n_isects;
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
@@ -1193,6 +1215,9 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	copy_v3_v3(cos + 0, v1);
 	copy_v3_v3(cos + 3, v2);
 	copy_v3_v3(cos + 6, v3);
+
+	normal_tri_v3(tri_norm, v1, v2, v3);
+	plane_from_point_normal_v3(tri_plane, v1, tri_norm);
 
 	BLI_bvhtree_insert(tree2, 0, cos, 3);
 	BLI_bvhtree_balance(tree2);
@@ -1217,11 +1242,23 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				continue;  /* We already found a hit on this knife edge */
 			}
 
-			if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL)) {
+			n_isects = 0;
+			if (fabs(dist_to_plane_v3(kfe->v1->cageco, tri_plane)) < KNIFE_FLT_EPS &&
+			    fabs(dist_to_plane_v3(kfe->v2->cageco, tri_plane)) < KNIFE_FLT_EPS) {
+				/* both kfe ends are in cutting triangle */
+				copy_v3_v3(isects[0], kfe->v1->cageco);
+				copy_v3_v3(isects[1], kfe->v2->cageco);
+				n_isects = 2;
+			}
+			else if (isect_line_tri_epsilon_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL, depsilon)) {
+				/* kfe intersects cutting triangle lambda of the way along kfe */
+				interp_v3_v3v3(isects[0], kfe->v1->cageco, kfe->v2->cageco, lambda);
+				n_isects = 1;
+			}
+			for (j = 0; j < n_isects; j++) {
 				float p[3], no[3], view[3], sp[2];
 
-				interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
-
+				copy_v3_v3(p, isects[j]);
 				if (kcd->curr.vert && len_squared_v3v3(kcd->curr.vert->cageco, p) < depsilon_sq) {
 					continue;
 				}
@@ -1268,7 +1305,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					add_v3_v3(p1, no);
 						
 					/* ray cast */
-					f_hit = BKE_bmbvh_ray_cast(bmtree, p1, no, NULL, NULL, NULL);
+					f_hit = BKE_bmbvh_ray_cast(bmtree, p1, no, KNIFE_FLT_EPS, NULL, NULL, NULL);
 				}
 
 				/* ok, if visible add the new point */
@@ -1292,7 +1329,6 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					interp_v3_v3v3(p, kfe->v1->co, kfe->v2->co, hit.perc);
 					copy_v3_v3(hit.realhit, p);
 
-					/* BMESH_TODO: should also snap to vertices */
 					if (kcd->snap_midpoints) {
 						float perc = hit.perc;
 
@@ -1309,6 +1345,12 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 						interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, perc);
 						interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, perc);
+					}
+					else if (hit.perc < KNIFE_FLT_EPS || hit.perc > 1.0f - KNIFE_FLT_EPS) {
+						/* snap to vert */
+						hit.v = (hit.perc < KNIFE_FLT_EPS) ? kfe->v1 : kfe->v2;
+						copy_v3_v3(hit.hit, hit.v->co);
+						copy_v3_v3(hit.cagehit, hit.v->co);
 					}
 					else {
 						copy_v3_v3(hit.hit, p);
@@ -1502,7 +1544,7 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
 	sub_v3_v3v3(ray, origin_ofs, origin);
 
-	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, NULL, co, cageco);
+	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, 0.0f, NULL, co, cageco);
 
 	if (is_space)
 		*is_space = !f;

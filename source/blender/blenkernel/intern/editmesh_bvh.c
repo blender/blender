@@ -193,11 +193,14 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
 	const BMLoop **ltri = bmcb_data->looptris[index];
 	float dist, uv[2];
 	const float *tri_cos[3];
+	bool isect;
 
 	bmbvh_tri_from_face(tri_cos, ltri, bmcb_data->cos_cage);
 
-	if (isect_ray_tri_v3(ray->origin, ray->direction, tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv) &&
-	    (dist < hit->dist))
+	isect = ray->radius > 0.0f ?
+		isect_ray_tri_epsilon_v3(ray->origin, ray->direction, tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv, ray->radius) :
+		isect_ray_tri_v3(ray->origin, ray->direction, tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv);
+	if (isect && dist < hit->dist)
 	{
 		hit->dist = dist;
 		hit->index = index;
@@ -213,7 +216,7 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
 	}
 }
 
-BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir[3],
+BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir[3], const float radius,
                            float *r_dist, float r_hitout[3], float r_cagehit[3])
 {
 	BVHTreeRayHit hit;
@@ -229,7 +232,7 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir
 	bmcb_data.looptris = (const BMLoop *(*)[3])bmtree->em->looptris;
 	bmcb_data.cos_cage = (const float (*)[3])bmtree->cos_cage;
 	
-	BLI_bvhtree_ray_cast(bmtree->tree, co, dir, 0.0f, &hit, bmbvh_ray_cast_cb, &bmcb_data);
+	BLI_bvhtree_ray_cast(bmtree->tree, co, dir, radius, &hit, bmbvh_ray_cast_cb, &bmcb_data);
 	if (hit.index != -1 && hit.dist != dist) {
 		if (r_hitout) {
 			if (bmtree->flag & BMBVH_RETURN_ORIG) {
