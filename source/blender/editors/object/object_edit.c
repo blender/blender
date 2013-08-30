@@ -621,7 +621,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	
 	if (!is_mode_set) {
-		if (ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
