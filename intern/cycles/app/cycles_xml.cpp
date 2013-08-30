@@ -257,7 +257,7 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	xml_read_bool(&branched, node, "branched");
 
 	if(branched)
-		integrator->method == Integrator::BRANCHED_PATH;
+		integrator->method = Integrator::BRANCHED_PATH;
 	
 	if(integrator->method == Integrator::BRANCHED_PATH) {
 		xml_read_int(&integrator->diffuse_samples, node, "diffuse_samples");
