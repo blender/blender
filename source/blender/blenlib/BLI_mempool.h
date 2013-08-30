@@ -48,7 +48,8 @@ typedef struct BLI_mempool BLI_mempool;
  * first four bytes of the elements never contain the character string
  * 'free'.  use with care.*/
 
-BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
+BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
+                                unsigned int pchunk, unsigned int flag)
 #ifdef __GNUC__
 __attribute__((malloc))
 __attribute__((warn_unused_result))
@@ -94,7 +95,7 @@ int          BLI_mempool_count(BLI_mempool *pool)
 __attribute__((nonnull(1)))
 #endif
 ;
-void        *BLI_mempool_findelem(BLI_mempool *pool, int index)
+void        *BLI_mempool_findelem(BLI_mempool *pool, unsigned int index)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
@@ -133,7 +134,7 @@ __attribute__((nonnull(1, 2)))
 typedef struct BLI_mempool_iter {
 	BLI_mempool *pool;
 	struct BLI_mempool_chunk *curchunk;
-	int curindex;
+	unsigned int curindex;
 } BLI_mempool_iter;
 
 /* flag */

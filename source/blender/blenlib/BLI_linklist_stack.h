@@ -81,7 +81,7 @@
 	BLI_mempool_destroy(_##var##_pool); \
 	_##var##_pool = NULL; (void)_##var##_pool; \
 	var = NULL; (void)var; \
-	(void)_##var##_type; \
+	(void)&(_##var##_type); \
 } (void)0
 
 #include "BLI_linklist.h"

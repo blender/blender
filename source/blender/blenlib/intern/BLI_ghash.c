@@ -181,7 +181,7 @@ BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
 
 static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
                         const unsigned int nentries_reserve,
-                        const size_t entry_size)
+                        const unsigned int entry_size)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
 
@@ -199,7 +199,7 @@ static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 	}
 
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-	gh->entrypool = BLI_mempool_create((int)entry_size, 64, 64, 0);
+	gh->entrypool = BLI_mempool_create(entry_size, 64, 64, 0);
 
 	return gh;
 }
@@ -320,7 +320,7 @@ GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 {
 	return ghash_new(hashfp, cmpfp, info,
 	                 nentries_reserve,
-	                 sizeof(Entry));
+	                 (unsigned int)sizeof(Entry));
 }
 
 /**

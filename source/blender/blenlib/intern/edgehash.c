@@ -184,7 +184,7 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsig
 
 static EdgeHash *edgehash_new(const char *info,
                               const unsigned int nentries_reserve,
-                              const size_t entry_size)
+                              const unsigned int entry_size)
 {
 	EdgeHash *eh = MEM_mallocN(sizeof(*eh), info);
 
@@ -199,7 +199,7 @@ static EdgeHash *edgehash_new(const char *info,
 	}
 
 	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-	eh->epool = BLI_mempool_create((int)entry_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
+	eh->epool = BLI_mempool_create(entry_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
 
 	return eh;
 }
