@@ -1048,12 +1048,13 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_EXCLUDE);
 	RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice-versa)");
 
-	prop = RNA_def_property(srna, "use_filter_orderby_name", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter_orderby_flag", UILST_FLT_ORDERBY_NAME);
-	RNA_def_property_ui_text(prop, "Order by Name", "Order shown items by their names");
+	prop = RNA_def_property(srna, "use_filter_sort_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_sort_flag", UILST_FLT_SORT_ALPHA);
+	RNA_def_property_ui_icon(prop, ICON_SORTALPHA, 0);
+	RNA_def_property_ui_text(prop, "Sort by Name", "Sort items by their name");
 
-	prop = RNA_def_property(srna, "use_filter_orderby_invert", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter_orderby_flag", UILST_FLT_ORDERBY_REVERSE);
+	prop = RNA_def_property(srna, "use_filter_sort_reverse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_sort_flag", UILST_FLT_SORT_REVERSE);
 	RNA_def_property_ui_text(prop, "Invert", "Invert the order of shown items");
 
 	/* draw_item */

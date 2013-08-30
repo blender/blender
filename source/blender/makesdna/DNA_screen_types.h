@@ -147,7 +147,7 @@ typedef struct uiList {           /* some list UI data need to be saved in file 
 	/* Filtering data. */
 	char filter_byname[64];	      /* defined as UI_MAX_NAME_STR */
 	int filter_flag;
-	int filter_orderby_flag;
+	int filter_sort_flag;
 
 	/* Custom sub-classes properties. */
 	IDProperty *properties;
@@ -284,11 +284,11 @@ enum {
 
 /* uiList filter orderby type */
 enum {
-	UILST_FLT_ORDERBY_NAME         = 1 << 0,
-	UILST_FLT_ORDERBY_REVERSE      = 1 << 31  /* Special value, bitflag used to reverse order! */
+	UILST_FLT_SORT_ALPHA         = 1 << 0,
+	UILST_FLT_SORT_REVERSE      = 1 << 31  /* Special value, bitflag used to reverse order! */
 };
 
-#define UILST_FLT_ORDERBY_MASK (((unsigned int)UILST_FLT_ORDERBY_REVERSE) - 1)
+#define UILST_FLT_SORT_MASK (((unsigned int)UILST_FLT_SORT_REVERSE) - 1)
 
 /* regiontype, first two are the default set */
 /* Do NOT change order, append on end. Types are hardcoded needed */

@@ -62,6 +62,7 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install", icon="FILESEL")
+            layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
@@ -1147,7 +1148,6 @@ class USERPREF_PT_addons(Panel):
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
-        col.operator("wm.addon_refresh", icon='FILE_REFRESH')
 
         col.label(text="Supported Level")
         col.prop(context.window_manager, "addon_support", expand=True)

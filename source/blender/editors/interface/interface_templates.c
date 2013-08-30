@@ -2513,9 +2513,9 @@ static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *
 	        (ui_list->filter_flag & UILST_FLT_EXCLUDE) ? ICON_ZOOM_OUT : ICON_ZOOM_IN);
 
 	subrow = uiLayoutRow(row, TRUE);
-	uiItemR(subrow, &listptr, "use_filter_orderby_name", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-	uiItemR(subrow, &listptr, "use_filter_orderby_invert", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
-	        (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) ? ICON_TRIA_UP : ICON_TRIA_DOWN);
+	uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+	uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
+	        (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_TRIA_UP : ICON_TRIA_DOWN);
 }
 
 typedef struct {
@@ -2538,7 +2538,7 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 	const char *filter_raw = ui_list->filter_byname;
 	char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = NULL;
 	bool filter_exclude = (ui_list->filter_flag & UILST_FLT_EXCLUDE) != 0;
-	bool order_by_name = (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_NAME) != 0;
+	bool order_by_name = (ui_list->filter_sort_flag & UILST_FLT_SORT_ALPHA) != 0;
 	int len = RNA_property_collection_length(dataptr, prop);
 
 	dyn_data->items_shown = dyn_data->items_len = len;
@@ -2838,7 +2838,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	/* Filter list items! (not for compact layout, though) */
 	if (dataptr->data && prop) {
 		int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
-		bool order_reverse = (ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) != 0;
+		bool order_reverse = (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0;
 		int items_shown, idx = 0;
 #if 0
 		int prev_ii = -1, prev_i;
@@ -3092,7 +3092,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
 			uiBlockSetEmboss(subblock, UI_EMBOSS);
- 		}
+		}
 	}
 
 	if (items_ptr) {

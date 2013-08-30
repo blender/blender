@@ -6589,7 +6589,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 				/* activate up/down the list */
 				value = value_orig;
-				if ((ui_list->filter_orderby_flag & UILST_FLT_ORDERBY_REVERSE) != 0) {
+				if ((ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0) {
 					inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? 1 : -1;
 				}
 				else {
