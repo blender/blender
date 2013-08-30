@@ -53,6 +53,8 @@ public:
 	int start_resolution;
 	int threads;
 
+	bool display_buffer_linear;
+
 	double cancel_timeout;
 	double reset_timeout;
 	double text_timeout;
@@ -71,6 +73,8 @@ public:
 		tile_size = make_int2(64, 64);
 		start_resolution = INT_MAX;
 		threads = 0;
+
+		display_buffer_linear = false;
 
 		cancel_timeout = 0.1;
 		reset_timeout = 0.1;
@@ -91,6 +95,7 @@ public:
 		&& tile_size == params.tile_size
 		&& start_resolution == params.start_resolution
 		&& threads == params.threads
+		&& display_buffer_linear == params.display_buffer_linear
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
 		&& text_timeout == params.text_timeout

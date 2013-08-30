@@ -492,6 +492,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 		params.shadingsystem = SessionParams::SVM;
 	else if(shadingsystem == 1)
 		params.shadingsystem = SessionParams::OSL;
+	
+	/* color managagement */
+	params.display_buffer_linear = b_engine.support_display_space_shader(b_scene);
 
 	return params;
 }

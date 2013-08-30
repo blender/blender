@@ -96,11 +96,16 @@ void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_s
 		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
-/* Tonemapping */
+/* Film */
 
-void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer, int sample, int x, int y, int offset, int stride)
+void kernel_cpu_convert_to_byte(KernelGlobals *kg, uchar4 *rgba, float *buffer, float sample_scale, int x, int y, int offset, int stride)
 {
-	kernel_film_tonemap(kg, rgba, buffer, sample, x, y, offset, stride);
+	kernel_film_convert_to_byte(kg, rgba, buffer, sample_scale, x, y, offset, stride);
+}
+
+void kernel_cpu_convert_to_half_float(KernelGlobals *kg, uchar4 *rgba, float *buffer, float sample_scale, int x, int y, int offset, int stride)
+{
+	kernel_film_convert_to_half_float(kg, rgba, buffer, sample_scale, x, y, offset, stride);
 }
 
 /* Shader Evaluation */

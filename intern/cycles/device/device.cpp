@@ -41,7 +41,10 @@ void Device::pixels_alloc(device_memory& mem)
 
 void Device::pixels_copy_from(device_memory& mem, int y, int w, int h)
 {
-	mem_copy_from(mem, y, w, h, sizeof(uint8_t)*4);
+	if(mem.data_type == TYPE_HALF)
+		mem_copy_from(mem, y, w, h, sizeof(half4));
+	else
+		mem_copy_from(mem, y, w, h, sizeof(uchar4));
 }
 
 void Device::pixels_free(device_memory& mem)
@@ -53,27 +56,49 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 {
 	pixels_copy_from(rgba, y, w, h);
 
+	GLuint texid;
+	glGenTextures(1, &texid);
+	glBindTexture(GL_TEXTURE_2D, texid);
+	if(rgba.data_type == TYPE_HALF)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, (void*)rgba.data_pointer);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)rgba.data_pointer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glEnable(GL_TEXTURE_2D);
+	
 	if(transparent) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	glPixelZoom((float)width/(float)w, (float)height/(float)h);
-	glRasterPos2f(0, dy);
+	glColor3f(1.0f, 1.0f, 1.0f);
 
-	uint8_t *pixels = (uint8_t*)rgba.data_pointer;
+	glPushMatrix();
+	glTranslatef(0.0f, (float)dy, 0.0f);
 
-	/* for multi devices, this assumes the ineffecient method that we allocate
-	 * all pixels on the device even though we only render to a subset */
-	pixels += 4*y*w;
+	glBegin(GL_QUADS);
+	
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex2f(0.0f, 0.0f);
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex2f((float)width, 0.0f);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2f((float)width, (float)height);
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex2f(0.0f, (float)height);
 
-	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glEnd();
 
-	glRasterPos2f(0.0f, 0.0f);
-	glPixelZoom(1.0f, 1.0f);
+	glPopMatrix();
 
 	if(transparent)
 		glDisable(GL_BLEND);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE_2D);
+	glDeleteTextures(1, &texid);
 }
 
 Device *Device::create(DeviceInfo& info, Stats &stats, bool background)

@@ -44,13 +44,22 @@ extern "C" __global__ void kernel_cuda_branched_path_trace(float *buffer, uint *
 }
 #endif
 
-extern "C" __global__ void kernel_cuda_tonemap(uchar4 *rgba, float *buffer, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
+extern "C" __global__ void kernel_cuda_convert_to_byte(uchar4 *rgba, float *buffer, float sample_scale, int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_film_tonemap(NULL, rgba, buffer, sample, x, y, offset, stride);
+		kernel_film_convert_to_byte(NULL, rgba, buffer, sample_scale, x, y, offset, stride);
+}
+
+extern "C" __global__ void kernel_cuda_convert_to_half_float(uchar4 *rgba, float *buffer, float sample_scale, int sx, int sy, int sw, int sh, int offset, int stride)
+{
+	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
+	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
+
+	if(x < sx + sw && y < sy + sh)
+		kernel_film_convert_to_half_float(NULL, rgba, buffer, sample_scale, x, y, offset, stride);
 }
 
 extern "C" __global__ void kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx)

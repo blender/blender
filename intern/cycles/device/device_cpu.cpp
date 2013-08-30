@@ -127,8 +127,8 @@ public:
 	{
 		if(task->type == DeviceTask::PATH_TRACE)
 			thread_path_trace(*task);
-		else if(task->type == DeviceTask::TONEMAP)
-			thread_tonemap(*task);
+		else if(task->type == DeviceTask::FILM_CONVERT)
+			thread_film_convert(*task);
 		else if(task->type == DeviceTask::SHADER)
 			thread_shader(*task);
 	}
@@ -237,28 +237,55 @@ public:
 #endif
 	}
 
-	void thread_tonemap(DeviceTask& task)
+	void thread_film_convert(DeviceTask& task)
 	{
+		float sample_scale = 1.0f/(task.sample + 1);
+
+		if(task.rgba_half) {
 #ifdef WITH_OPTIMIZED_KERNEL
-		if(system_cpu_support_sse3()) {
-			for(int y = task.y; y < task.y + task.h; y++)
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_sse3_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
-						task.sample, x, y, task.offset, task.stride);
-		}
-		else if(system_cpu_support_sse2()) {
-			for(int y = task.y; y < task.y + task.h; y++)
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_sse2_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
-						task.sample, x, y, task.offset, task.stride);
-		}
-		else
+			if(system_cpu_support_sse3()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_sse3_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
+			else if(system_cpu_support_sse2()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_sse2_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
+			else
 #endif
-		{
-			for(int y = task.y; y < task.y + task.h; y++)
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
-						task.sample, x, y, task.offset, task.stride);
+			{
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
+		}
+		else {
+#ifdef WITH_OPTIMIZED_KERNEL
+			if(system_cpu_support_sse3()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_sse3_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
+			else if(system_cpu_support_sse2()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_sse2_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
+			else
+#endif
+			{
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
+							sample_scale, x, y, task.offset, task.stride);
+			}
 		}
 	}
 

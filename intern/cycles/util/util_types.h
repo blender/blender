@@ -541,6 +541,70 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m12
 }
 #endif
 
+/* Half Floats */
+
+#ifdef __KERNEL_OPENCL__
+
+__device_inline void float4_store_half(half *h, const float4 *f, float scale)
+{
+	vstore_half4(*f * scale, 0, h);
+}
+
+#else
+
+typedef unsigned short half;
+struct half4 { half x, y, z, w; };
+
+#ifdef __KERNEL_CUDA__
+
+__device_inline void float4_store_half(half *h, const float4 *f, float scale)
+{
+	h[0] = __float2half_rn(f->x * scale);
+	h[1] = __float2half_rn(f->y * scale);
+	h[2] = __float2half_rn(f->z * scale);
+	h[3] = __float2half_rn(f->w * scale);
+}
+
+#else
+
+__device_inline void float4_store_half(half *h, const float4 *f, float scale)
+{
+#ifndef __KERNEL_SSE2__
+	for(int i = 0; i < 4; i++) {
+		/* optimized float to half for pixels:
+		 * assumes no negative, no nan, no inf, and sets denormal to 0 */
+		union { uint i; float f; } in;
+		in.f = ((*f)[i] > 0.0f)? (*f)[i] * scale: 0.0f;
+		int x = in.i;
+
+		int absolute = x & 0x7FFFFFFF;
+		int Z = absolute + 0xC8000000;
+		int result = (absolute < 0x38800000)? 0: Z;
+
+		h[i] = ((result >> 13) & 0x7FFF);
+	}
+#else
+	/* same as above with SSE */
+	const __m128 mm_scale = _mm_set_ps1(scale);
+	const __m128i mm_38800000 = _mm_set1_epi32(0x38800000);
+	const __m128i mm_7FFF = _mm_set1_epi32(0x7FFF);
+	const __m128i mm_7FFFFFFF = _mm_set1_epi32(0x7FFFFFFF);
+	const __m128i mm_C8000000 = _mm_set1_epi32(0xC8000000);
+
+	__m128i x = _mm_castps_si128(_mm_max_ps(_mm_mul_ps(*(__m128*)f, mm_scale), _mm_set_ps1(0.0f)));
+	__m128i absolute = _mm_and_si128(x, mm_7FFFFFFF);
+	__m128i Z = _mm_add_epi32(absolute, mm_C8000000);
+	__m128i result = _mm_andnot_si128(_mm_cmplt_epi32(absolute, mm_38800000), Z); 
+	__m128i rh = _mm_and_si128(_mm_srai_epi32(result, 13), mm_7FFF);
+
+	_mm_storel_pi((__m64*)h, _mm_castsi128_ps(_mm_packs_epi32(rh, rh)));
+#endif
+}
+
+#endif
+
+#endif
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TYPES_H__ */

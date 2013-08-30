@@ -34,11 +34,12 @@ class Tile;
 
 class DeviceTask : public Task {
 public:
-	typedef enum { PATH_TRACE, TONEMAP, SHADER } Type;
+	typedef enum { PATH_TRACE, FILM_CONVERT, SHADER } Type;
 	Type type;
 
 	int x, y, w, h;
-	device_ptr rgba;
+	device_ptr rgba_byte;
+	device_ptr rgba_half;
 	device_ptr buffer;
 	int sample;
 	int num_samples;

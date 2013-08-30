@@ -408,7 +408,8 @@ protected:
 			rcv.read(task);
 
 			if(task.buffer) task.buffer = ptr_map[task.buffer];
-			if(task.rgba) task.rgba = ptr_map[task.rgba];
+			if(task.rgba_byte) task.rgba_byte = ptr_map[task.rgba_byte];
+			if(task.rgba_half) task.rgba_half = ptr_map[task.rgba_half];
 			if(task.shader_input) task.shader_input = ptr_map[task.shader_input];
 			if(task.shader_output) task.shader_output = ptr_map[task.shader_output];
 
@@ -448,7 +449,6 @@ protected:
 
 				if(tile.buffer) tile.buffer = ptr_map[tile.buffer];
 				if(tile.rng_state) tile.rng_state = ptr_map[tile.rng_state];
-				if(tile.rgba) tile.rgba = ptr_map[tile.rgba];
 
 				result = true;
 				break;
@@ -478,7 +478,6 @@ protected:
 
 		if(tile.buffer) tile.buffer = ptr_imap[tile.buffer];
 		if(tile.rng_state) tile.rng_state = ptr_imap[tile.rng_state];
-		if(tile.rgba) tile.rgba = ptr_imap[tile.rgba];
 
 		RPCSend snd(socket, "release_tile");
 		snd.add(tile);

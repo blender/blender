@@ -52,7 +52,7 @@ __kernel void kernel_ocl_path_trace(
 		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
-__kernel void kernel_ocl_tonemap(
+__kernel void kernel_ocl_convert_to_byte(
 	__constant KernelData *data,
 	__global uchar4 *rgba,
 	__global float *buffer,
@@ -61,7 +61,7 @@ __kernel void kernel_ocl_tonemap(
 	__global type *name,
 #include "kernel_textures.h"
 
-	int sample,
+	float sample_scale,
 	int sx, int sy, int sw, int sh, int offset, int stride)
 {
 	KernelGlobals kglobals, *kg = &kglobals;
@@ -76,7 +76,34 @@ __kernel void kernel_ocl_tonemap(
 	int y = sy + get_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_film_tonemap(kg, rgba, buffer, sample, x, y, offset, stride);
+		kernel_film_convert_to_byte(kg, rgba, buffer, sample_scale, x, y, offset, stride);
+}
+
+__kernel void kernel_ocl_convert_to_half_float(
+	__constant KernelData *data,
+	__global uchar4 *rgba,
+	__global float *buffer,
+
+#define KERNEL_TEX(type, ttype, name) \
+	__global type *name,
+#include "kernel_textures.h"
+
+	float sample_scale,
+	int sx, int sy, int sw, int sh, int offset, int stride)
+{
+	KernelGlobals kglobals, *kg = &kglobals;
+
+	kg->data = data;
+
+#define KERNEL_TEX(type, ttype, name) \
+	kg->name = name;
+#include "kernel_textures.h"
+
+	int x = sx + get_global_id(0);
+	int y = sy + get_global_id(1);
+
+	if(x < sx + sw && y < sy + sh)
+		kernel_film_convert_to_half_float(kg, rgba, buffer, sample_scale, x, y, offset, stride);
 }
 
 __kernel void kernel_ocl_shader(

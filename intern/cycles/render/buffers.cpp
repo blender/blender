@@ -91,7 +91,6 @@ RenderTile::RenderTile()
 
 	buffer = 0;
 	rng_state = 0;
-	rgba = 0;
 
 	buffers = NULL;
 }
@@ -298,12 +297,13 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 
 /* Display Buffer */
 
-DisplayBuffer::DisplayBuffer(Device *device_)
+DisplayBuffer::DisplayBuffer(Device *device_, bool linear)
 {
 	device = device_;
 	draw_width = 0;
 	draw_height = 0;
 	transparent = true; /* todo: determine from background */
+	half_float = linear;
 }
 
 DisplayBuffer::~DisplayBuffer()
@@ -313,9 +313,13 @@ DisplayBuffer::~DisplayBuffer()
 
 void DisplayBuffer::device_free()
 {
-	if(rgba.device_pointer) {
-		device->pixels_free(rgba);
-		rgba.clear();
+	if(rgba_byte.device_pointer) {
+		device->pixels_free(rgba_byte);
+		rgba_byte.clear();
+	}
+	if(rgba_half.device_pointer) {
+		device->pixels_free(rgba_half);
+		rgba_half.clear();
 	}
 }
 
@@ -330,8 +334,14 @@ void DisplayBuffer::reset(Device *device, BufferParams& params_)
 	device_free();
 
 	/* allocate display pixels */
-	rgba.resize(params.width, params.height);
-	device->pixels_alloc(rgba);
+	if(half_float) {
+		rgba_half.resize(params.width, params.height);
+		device->pixels_alloc(rgba_half);
+	}
+	else {
+		rgba_byte.resize(params.width, params.height);
+		device->pixels_alloc(rgba_byte);
+	}
 }
 
 void DisplayBuffer::draw_set(int width, int height)
@@ -347,6 +357,7 @@ void DisplayBuffer::draw(Device *device)
 	if(draw_width != 0 && draw_height != 0) {
 		glPushMatrix();
 		glTranslatef(params.full_x, params.full_y, 0.0f);
+		device_memory& rgba = rgba_data();
 
 		device->draw_pixels(rgba, 0, draw_width, draw_height, 0, params.width, params.height, transparent);
 
@@ -366,8 +377,12 @@ void DisplayBuffer::write(Device *device, const string& filename)
 
 	if(w == 0 || h == 0)
 		return;
+	
+	if(half_float)
+		return;
 
 	/* read buffer from device */
+	device_memory& rgba = rgba_data();
 	device->pixels_copy_from(rgba, 0, w, h);
 
 	/* write image */
@@ -387,6 +402,14 @@ void DisplayBuffer::write(Device *device, const string& filename)
 	out->close();
 
 	delete out;
+}
+
+device_memory& DisplayBuffer::rgba_data()
+{
+	if(half_float)
+		return rgba_half;
+	else
+		return rgba_byte;
 }
 
 CCL_NAMESPACE_END

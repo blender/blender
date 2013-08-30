@@ -625,7 +625,7 @@ public:
 		cuda_pop_context();
 	}
 
-	void tonemap(DeviceTask& task, device_ptr buffer, device_ptr rgba)
+	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
 	{
 		if(have_error())
 			return;
@@ -633,11 +633,14 @@ public:
 		cuda_push_context();
 
 		CUfunction cuFilmConvert;
-		CUdeviceptr d_rgba = map_pixels(rgba);
+		CUdeviceptr d_rgba = map_pixels((rgba_byte)? rgba_byte: rgba_half);
 		CUdeviceptr d_buffer = cuda_device_ptr(buffer);
 
 		/* get kernel function */
-		cuda_assert(cuModuleGetFunction(&cuFilmConvert, cuModule, "kernel_cuda_tonemap"))
+		if(rgba_half)
+			cuda_assert(cuModuleGetFunction(&cuFilmConvert, cuModule, "kernel_cuda_convert_to_half_float"))
+		else
+			cuda_assert(cuModuleGetFunction(&cuFilmConvert, cuModule, "kernel_cuda_convert_to_byte"))
 
 		/* pass in parameters */
 		int offset = 0;
@@ -648,11 +651,11 @@ public:
 		cuda_assert(cuParamSetv(cuFilmConvert, offset, &d_buffer, sizeof(d_buffer)))
 		offset += sizeof(d_buffer);
 
-		int sample = task.sample;
-		offset = align_up(offset, __alignof(sample));
+		float sample_scale = 1.0f/(task.sample + 1);
+		offset = align_up(offset, __alignof(sample_scale));
 
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.sample))
-		offset += sizeof(task.sample);
+		cuda_assert(cuParamSetf(cuFilmConvert, offset, sample_scale))
+		offset += sizeof(sample_scale);
 
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.x))
 		offset += sizeof(task.x);
@@ -684,7 +687,7 @@ public:
 		cuda_assert(cuFuncSetBlockShape(cuFilmConvert, xthreads, ythreads, 1))
 		cuda_assert(cuLaunchGrid(cuFilmConvert, xblocks, yblocks))
 
-		unmap_pixels(task.rgba);
+		unmap_pixels((rgba_byte)? rgba_byte: rgba_half);
 
 		cuda_pop_context();
 	}
@@ -771,13 +774,19 @@ public:
 
 			glGenBuffers(1, &pmem.cuPBO);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLfloat)*3, NULL, GL_DYNAMIC_DRAW);
+			if(mem.data_type == TYPE_HALF)
+				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLhalf)*4, NULL, GL_DYNAMIC_DRAW);
+			else
+				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(uint8_t)*4, NULL, GL_DYNAMIC_DRAW);
 			
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 			
 			glGenTextures(1, &pmem.cuTexId);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pmem.w, pmem.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			if(mem.data_type == TYPE_HALF)
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, pmem.w, pmem.h, 0, GL_RGBA, GL_HALF_FLOAT, NULL);
+			else
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pmem.w, pmem.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -865,11 +874,19 @@ public:
 
 			/* for multi devices, this assumes the ineffecient method that we allocate
 			 * all pixels on the device even though we only render to a subset */
-			size_t offset = sizeof(uint8_t)*4*y*w;
+			size_t offset = 4*y*w;
+
+			if(mem.data_type == TYPE_HALF)
+				offset *= sizeof(GLhalf);
+			else
+				offset *= sizeof(uint8_t);
 
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pmem.cuPBO);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
+			if(mem.data_type == TYPE_HALF)
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_HALF_FLOAT, (void*)offset);
+			else
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 			
 			glEnable(GL_TEXTURE_2D);
@@ -961,9 +978,9 @@ public:
 
 	void task_add(DeviceTask& task)
 	{
-		if(task.type == DeviceTask::TONEMAP) {
+		if(task.type == DeviceTask::FILM_CONVERT) {
 			/* must be done in main thread due to opengl access */
-			tonemap(task, task.buffer, task.rgba);
+			film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
 
 			cuda_push_context();
 			cuda_assert(cuCtxSynchronize())

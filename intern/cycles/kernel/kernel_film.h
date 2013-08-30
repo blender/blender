@@ -16,9 +16,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float4 film_map(KernelGlobals *kg, float4 irradiance, int sample)
+__device float4 film_map(KernelGlobals *kg, float4 irradiance, float scale)
 {
-	float scale = 1.0f/(float)(sample+1);
 	float exposure = kernel_data.film.exposure;
 	float4 result = irradiance*scale;
 
@@ -46,9 +45,9 @@ __device uchar4 film_float_to_byte(float4 color)
 	return result;
 }
 
-__device void kernel_film_tonemap(KernelGlobals *kg,
+__device void kernel_film_convert_to_byte(KernelGlobals *kg,
 	__global uchar4 *rgba, __global float *buffer,
-	int sample, int x, int y, int offset, int stride)
+	float sample_scale, int x, int y, int offset, int stride)
 {
 	/* buffer offset */
 	int index = offset + x + y*stride;
@@ -58,10 +57,24 @@ __device void kernel_film_tonemap(KernelGlobals *kg,
 
 	/* map colors */
 	float4 irradiance = *((__global float4*)buffer);
-	float4 float_result = film_map(kg, irradiance, sample);
+	float4 float_result = film_map(kg, irradiance, sample_scale);
 	uchar4 byte_result = film_float_to_byte(float_result);
 
 	*rgba = byte_result;
+}
+
+__device void kernel_film_convert_to_half_float(KernelGlobals *kg,
+	__global uchar4 *rgba, __global float *buffer,
+	float sample_scale, int x, int y, int offset, int stride)
+{
+	/* buffer offset */
+	int index = offset + x + y*stride;
+
+	float4 *in = (__global float4*)(buffer + index*kernel_data.film.pass_stride);
+	half *out = (half*)rgba + index*4;
+	float scale = kernel_data.film.exposure*sample_scale;
+
+	float4_store_half(out, in, scale);
 }
 
 CCL_NAMESPACE_END

@@ -25,8 +25,6 @@
 #include <cuda.h>
 #include <float.h>
 
-#include "util_types.h"
-
 /* Qualifier wrappers for different names on different devices */
 
 #define __device  __device__ __inline__
@@ -40,6 +38,10 @@
 /* No assert supported for CUDA */
 
 #define kernel_assert(cond)
+
+/* Types */
+
+#include "util_types.h"
 
 /* Textures */
 

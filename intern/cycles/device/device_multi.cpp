@@ -261,7 +261,6 @@ public:
 			if(sub.device == sub_device) {
 				if(tile.buffer) tile.buffer = sub.ptr_map[tile.buffer];
 				if(tile.rng_state) tile.rng_state = sub.ptr_map[tile.rng_state];
-				if(tile.rgba) tile.rgba = sub.ptr_map[tile.rgba];
 			}
 		}
 	}
@@ -290,7 +289,8 @@ public:
 				tasks.pop_front();
 
 				if(task.buffer) subtask.buffer = sub.ptr_map[task.buffer];
-				if(task.rgba) subtask.rgba = sub.ptr_map[task.rgba];
+				if(task.rgba_byte) subtask.rgba_byte = sub.ptr_map[task.rgba_byte];
+				if(task.rgba_half) subtask.rgba_half = sub.ptr_map[task.rgba_half];
 				if(task.shader_input) subtask.shader_input = sub.ptr_map[task.shader_input];
 				if(task.shader_output) subtask.shader_output = sub.ptr_map[task.shader_output];
 

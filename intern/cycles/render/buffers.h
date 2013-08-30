@@ -87,8 +87,8 @@ protected:
 
 /* Display Buffer
  *
- * The buffer used for drawing during render, filled by tonemapping the render
- * buffers and converting to uchar4 storage. */
+ * The buffer used for drawing during render, filled by converting the render
+ * buffers to byte of half float storage */
 
 class DisplayBuffer {
 public:
@@ -100,10 +100,13 @@ public:
 	int draw_width, draw_height;
 	/* draw alpha channel? */
 	bool transparent;
-	/* byte buffer for tonemapped result */
-	device_vector<uchar4> rgba;
+	/* use half float? */
+	bool half_float;
+	/* byte buffer for converted result */
+	device_vector<uchar4> rgba_byte;
+	device_vector<half4> rgba_half;
 
-	DisplayBuffer(Device *device);
+	DisplayBuffer(Device *device, bool linear = false);
 	~DisplayBuffer();
 
 	void reset(Device *device, BufferParams& params);
@@ -112,6 +115,8 @@ public:
 	void draw_set(int width, int height);
 	void draw(Device *device);
 	bool draw_ready();
+
+	device_memory& rgba_data();
 
 protected:
 	void device_free();
@@ -134,7 +139,6 @@ public:
 
 	device_ptr buffer;
 	device_ptr rng_state;
-	device_ptr rgba;
 
 	RenderBuffers *buffers;
 

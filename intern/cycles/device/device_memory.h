@@ -46,7 +46,8 @@ enum DataType {
 	TYPE_UCHAR,
 	TYPE_UINT,
 	TYPE_INT,
-	TYPE_FLOAT
+	TYPE_FLOAT,
+	TYPE_HALF
 };
 
 static inline size_t datatype_size(DataType datatype) 
@@ -56,6 +57,7 @@ static inline size_t datatype_size(DataType datatype)
 		case TYPE_FLOAT: return sizeof(float);
 		case TYPE_UINT: return sizeof(uint);
 		case TYPE_INT: return sizeof(int);
+		case TYPE_HALF: return sizeof(half);
 		default: return 0;
 	}
 }
@@ -144,6 +146,11 @@ template<> struct device_type_traits<float3> {
 
 template<> struct device_type_traits<float4> {
 	static const DataType data_type = TYPE_FLOAT;
+	static const int num_elements = 4;
+};
+
+template<> struct device_type_traits<half4> {
+	static const DataType data_type = TYPE_HALF;
 	static const int num_elements = 4;
 };
 
