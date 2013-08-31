@@ -152,7 +152,9 @@ typedef struct uiHandleButtonData {
 	char *str, *origstr;
 	double value, origvalue, startvalue;
 	float vec[3], origvec[3];
+#if 0  /* UNUSED */
 	int togdual, togonly;
+#endif
 	ColorBand *coba;
 
 	/* tooltip */
@@ -2661,8 +2663,10 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 #ifdef USE_DRAG_TOGGLE
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+#if 0		/* UNUSED */
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
+#endif
 			ui_apply_button(C, but->block, but, data, true);
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
@@ -2678,8 +2682,10 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 #endif
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+#if 0		/* UNUSED */
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
+#endif
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -5256,13 +5262,12 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	}
 
 	/* Show header tools for header buttons. */
-	if (CTX_wm_region(C)) {
+	{
 		ARegion *ar = CTX_wm_region(C);
-			if (ar->regiontype == RGN_TYPE_HEADER) {
-			
-				uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
-				uiItemS(layout);
-			}
+		if (ar && (ar->regiontype == RGN_TYPE_HEADER)) {
+			uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
+			uiItemS(layout);
+		}
 	}
 
 	{   /* Docs */
@@ -5368,7 +5373,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 				ui_but_anim_insert_keyframe(C);
 			}
 			
-			ED_region_tag_redraw(CTX_wm_region(C));
+			ED_region_tag_redraw(data->region);
 			
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -5382,7 +5387,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			else
 				ui_but_anim_add_driver(C);
 				
-			ED_region_tag_redraw(CTX_wm_region(C));
+			ED_region_tag_redraw(data->region);
 			
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -5396,7 +5401,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			else
 				ui_but_anim_add_keyingset(C);
 				
-			ED_region_tag_redraw(CTX_wm_region(C));
+			ED_region_tag_redraw(data->region);
 			
 			return WM_UI_HANDLER_BREAK;
 		}
