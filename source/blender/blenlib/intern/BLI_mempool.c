@@ -177,7 +177,7 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 	}
 
 	/* loop through the allocated data, building the pointer structures */
-	for (addr = CHUNK_DATA(mpchunk), j = 0; j <= pchunk_last; j++) {
+	for (addr = CHUNK_DATA(mpchunk), j = 0; j != pchunk_last; j++) {
 		curnode = ((BLI_freenode *)addr);
 		addr += pool->esize;
 		curnode->next = (BLI_freenode *)addr;
@@ -478,7 +478,7 @@ static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 
 	iter->curindex++;
 
-	if (iter->curindex >= iter->pool->pchunk) {
+	if (iter->curindex == iter->pool->pchunk) {
 		iter->curchunk = iter->curchunk->next;
 		iter->curindex = 0;
 	}
@@ -516,7 +516,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 			return NULL;
 		}
 
-		if (UNLIKELY(++iter->curindex >= iter->pool->pchunk)) {
+		if (UNLIKELY(++iter->curindex == iter->pool->pchunk)) {
 			iter->curindex = 0;
 			iter->curchunk = iter->curchunk->next;
 		}
