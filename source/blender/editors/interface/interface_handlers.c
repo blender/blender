@@ -5400,13 +5400,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* reset to default */
-		/* XXX hardcoded keymap check.... */
-		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
-			/* ctrl+backspace = reset active button; backspace = reset a whole array*/
-			if (!(ELEM3(but->type, HSVCIRCLE, HSVCUBE, HISTOGRAM)))
-				ui_set_but_default(C, !event->ctrl);
-		}
 		/* handle menu */
 		else if (event->type == RIGHTMOUSE && event->val == KM_PRESS) {
 			/* RMB has two options now */
@@ -5533,7 +5526,22 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		case BUT_EXTRA:
 			break;
 	}
-	
+
+
+	/* reset to default (generic function, only use if not handled by switch above) */
+	/* XXX hardcoded keymap check.... */
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if ((retval == WM_UI_HANDLER_CONTINUE) &&
+		    (event->type == BACKSPACEKEY && event->val == KM_PRESS))
+		{
+			/* ctrl+backspace = reset active button; backspace = reset a whole array*/
+			ui_set_but_default(C, !event->ctrl);
+			ED_region_tag_redraw(data->region);
+			retval = WM_UI_HANDLER_BREAK;
+		}
+	}
+
+
 	return retval;
 }
 

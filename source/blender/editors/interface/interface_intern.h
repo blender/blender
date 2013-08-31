@@ -393,7 +393,7 @@ extern bool ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern bool ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value);
 extern int  ui_get_but_string_max_length(uiBut *but);
 
-extern void ui_set_but_default(struct bContext *C, short all);
+extern void ui_set_but_default(struct bContext *C, const bool all);
 
 extern void ui_check_but(uiBut *but);
 extern bool ui_is_but_float(uiBut *but);
