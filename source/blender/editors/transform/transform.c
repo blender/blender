@@ -4828,7 +4828,7 @@ static bool bm_loop_calc_opposite_co(BMLoop *l_tmp,
 		float tvec[3];
 		if (isect_line_plane_v3(tvec,
 		                        l_iter->v->co, l_iter->next->v->co,
-		                        l_tmp->v->co, plane_no, false))
+		                        l_tmp->v->co, plane_no))
 		{
 			const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
 			/* allow some overlap to avoid missing the intersection because of float precision */

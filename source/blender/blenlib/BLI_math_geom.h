@@ -97,6 +97,10 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3], const float t1[3],
 
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3]);
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2]);
+
+float line_plane_factor_v3(const float plane_co[3], const float plane_no[3],
+                           const float l1[3], const float l2[3]);
+
 void limit_dist_v3(float v1[3], float v2[3], const float dist);
 
 /******************************* Intersection ********************************/
@@ -130,7 +134,7 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
 
 bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3]);
 bool isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
-                         const float plane_co[3], const float plane_no[3], const bool no_flip);
+                         const float plane_co[3], const float plane_no[3]);
 
 void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],

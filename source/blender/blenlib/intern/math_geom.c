@@ -1121,50 +1121,28 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
  * \param l2 The second point of the line.
  * \param plane_co A point on the plane to intersect with.
  * \param plane_no The direction of the plane (does not need to be normalized).
- * \param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
+ *
+ * \note #line_plane_factor_v3() shares logic.
  */
 bool isect_line_plane_v3(float out[3],
                          const float l1[3], const float l2[3],
-                         const float plane_co[3], const float plane_no[3], const bool no_flip)
+                         const float plane_co[3], const float plane_no[3])
 {
-	float l_vec[3]; /* l1 -> l2 normalized vector */
-	float p_no[3]; /* 'plane_no' normalized */
+	float u[3], h[3];
 	float dot;
 
-	sub_v3_v3v3(l_vec, l2, l1);
+	sub_v3_v3v3(u, l2, l1);
+	sub_v3_v3v3(h, l1, plane_co);
+	dot = dot_v3v3(plane_no, u);
 
-	normalize_v3(l_vec);
-	normalize_v3_v3(p_no, plane_no);
-
-	dot = dot_v3v3(l_vec, p_no);
-	if (dot == 0.0f) {
-		return 0;
+	if (fabsf(dot) > FLT_EPSILON) {
+		float lambda = -dot_v3v3(plane_no, h) / dot;
+		madd_v3_v3v3fl(out, l1, u, lambda);
+		return true;
 	}
 	else {
-		float l1_plane[3]; /* line point aligned with the plane */
-		float dist; /* 'plane_no' aligned distance to the 'plane_co' */
-
-		/* for predictable flipping since the plane is only used to
-		 * define a direction, ignore its flipping and aligned with 'l_vec' */
-		if (dot < 0.0f) {
-			dot = -dot;
-			negate_v3(p_no);
-		}
-
-		add_v3_v3v3(l1_plane, l1, p_no);
-
-		dist = line_point_factor_v3(plane_co, l1, l1_plane);
-
-		/* treat line like a ray, when 'no_flip' is set */
-		if (no_flip && dist < 0.0f) {
-			dist = -dist;
-		}
-
-		mul_v3_fl(l_vec, dist / dot);
-
-		add_v3_v3v3(out, l1, l_vec);
-
-		return 1;
+		/* The segment is parallel to plane */
+		return false;
 	}
 }
 
@@ -1190,7 +1168,7 @@ void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 	cross_v3_v3v3(r_isect_no, plane_a_no, plane_b_no); /* direction is simply the cross product */
 	cross_v3_v3v3(plane_a_co_other, plane_a_no, r_isect_no);
 	add_v3_v3(plane_a_co_other, plane_a_co);
-	isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no, FALSE);
+	isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no);
 }
 
 
@@ -1714,6 +1692,20 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 	dot = dot_v2v2(u, u);
 	return (dot != 0.0f) ? (dot_v2v2(u, h) / dot) : 0.0f;
 #endif
+}
+
+/**
+ * \note #isect_line_plane_v3() shares logic
+ */
+float line_plane_factor_v3(const float plane_co[3], const float plane_no[3],
+                           const float l1[3], const float l2[3])
+{
+	float u[3], h[3];
+	float dot;
+	sub_v3_v3v3(u, l2, l1);
+	sub_v3_v3v3(h, l1, plane_co);
+	dot = dot_v3v3(plane_no, u);
+	return (dot != 0.0f) ? -dot_v3v3(plane_no, h) / dot : 0.0f;
 }
 
 /* ensure the distance between these points is no greater then 'dist'

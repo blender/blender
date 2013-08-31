@@ -568,22 +568,19 @@ PyDoc_STRVAR(M_Geometry_intersect_line_plane_doc,
 "   :type plane_co: :class:`mathutils.Vector`\n"
 "   :arg plane_no: The direction the plane is facing\n"
 "   :type plane_no: :class:`mathutils.Vector`\n"
-"   :arg no_flip: Always return an intersection on the directon defined bt line_a -> line_b\n"
-"   :type no_flip: :boolean\n"
 "   :return: The point of intersection or None when not found\n"
 "   :rtype: :class:`mathutils.Vector` or None\n"
 );
 static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObject *args)
 {
 	VectorObject *line_a, *line_b, *plane_co, *plane_no;
-	int no_flip = 0;
 	float isect[3];
+
 	if (!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
 	                      &vector_Type, &line_a,
 	                      &vector_Type, &line_b,
 	                      &vector_Type, &plane_co,
-	                      &vector_Type, &plane_no,
-	                      &no_flip))
+	                      &vector_Type, &plane_no))
 	{
 		return NULL;
 	}
@@ -603,7 +600,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	if (isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec, no_flip) == 1) {
+	if (isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec) == 1) {
 		return Vector_CreatePyObject(isect, 3, Py_NEW, NULL);
 	}
 	else {

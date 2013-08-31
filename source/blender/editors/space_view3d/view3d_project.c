@@ -405,15 +405,15 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 	float line_end[3];
 
 	if (rv3d->is_persp) {
-		float mousevec[3];
+		float mousevec[3], lambda;
 		copy_v3_v3(line_sta, rv3d->viewinv[3]);
 		ED_view3d_win_to_vector(ar, mval, mousevec);
 		add_v3_v3v3(line_end, line_sta, mousevec);
 
-		if (isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], true) == 0) {
-			/* highly unlikely to ever happen, mouse vector parallel with view plane */
-			zero_v3(out);
-		}
+		/* note, we could use isect_line_plane_v3() however we want the intersection to be infront of the
+		 * view no matter what, so apply the unsigned factor instead */
+		lambda = line_plane_factor_v3(depth_pt, rv3d->viewinv[2], line_sta, line_end);
+		interp_v3_v3v3(out, line_sta, line_end, fabsf(lambda));
 	}
 	else {
 		float dx = (2.0f * mval[0] / (float)ar->winx) - 1.0f;
