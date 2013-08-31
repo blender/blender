@@ -3533,6 +3533,189 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
 }
 
+
+/* ************************ viewroll ******************************** */
+
+static void view_roll_angle(ARegion *ar, float quat[4], const float orig_quat[4], const float dvec[3], float angle)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	float quat_mul[4];
+
+	/* camera axis */
+	axis_angle_to_quat(quat_mul, dvec, angle);
+
+	mul_qt_qtqt(quat, orig_quat, quat_mul);
+	rv3d->view = RV3D_VIEW_USER;
+}
+
+static void viewroll_apply(ViewOpsData *vod, int x, int UNUSED(y))
+{
+	float angle = 0.0;
+
+	{
+		float len1, len2, tot;
+
+		tot = vod->ar->winrct.xmax - vod->ar->winrct.xmin;
+		len1 = (vod->ar->winrct.xmax - x) / tot;
+		len2 = (vod->ar->winrct.xmax - vod->origx) / tot;
+		angle = (len1 - len2) * (float)M_PI * 4.0f;
+	}
+
+	if (angle != 0.0f)
+		view_roll_angle(vod->ar, vod->rv3d->viewquat, vod->oldquat, vod->mousevec, angle);
+
+	if (vod->rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_sync(vod->sa, vod->ar);
+
+	ED_view3d_camera_lock_sync(vod->v3d, vod->rv3d);
+
+	ED_region_tag_redraw(vod->ar);
+}
+
+static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ViewOpsData *vod = op->customdata;
+	short event_code = VIEW_PASS;
+
+	/* execute the events */
+	if (event->type == MOUSEMOVE) {
+		event_code = VIEW_APPLY;
+	}
+	else if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case VIEW_MODAL_CONFIRM:
+				event_code = VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code = VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code = VIEW_CONFIRM;
+				break;
+		}
+	}
+	else if (event->type == vod->origkey && event->val == KM_RELEASE) {
+		event_code = VIEW_CONFIRM;
+	}
+
+	if (event_code == VIEW_APPLY) {
+		viewroll_apply(vod, event->x, event->y);
+	}
+	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_depth_tag_update(vod->rv3d);
+		viewops_data_free(C, op);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int viewroll_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d;
+	RegionView3D *rv3d;
+	ARegion *ar;
+	float mousevec[3];
+
+	if (op->customdata) {
+		ViewOpsData *vod = op->customdata;
+		ar = vod->ar;
+		v3d = vod->v3d;
+	}
+	else {
+		ar = CTX_wm_region(C);
+		v3d = CTX_wm_view3d(C);
+	}
+
+	negate_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+	normalize_v3(mousevec);
+
+	rv3d = ar->regiondata;
+	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+		const float angle = RNA_float_get(op->ptr, "angle");
+		float mousevec[3];
+		float quat_new[4];
+
+		normalize_v3_v3(mousevec, rv3d->viewinv[2]);
+		negate_v3(mousevec);
+		view_roll_angle(ar, quat_new, rv3d->viewquat, mousevec, angle);
+
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, NULL, quat_new, NULL, NULL);
+
+		viewops_data_free(C, op);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		viewops_data_free(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ViewOpsData *vod;
+
+	/* makes op->customdata */
+	viewops_data_create(C, op, event);
+	vod = op->customdata;
+
+	if (RNA_struct_property_is_set(op->ptr, "angle")) {
+		viewroll_exec(C, op);
+	}
+	else {
+		/* overwrite the mouse vector with the view direction */
+		normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+		negate_v3(vod->mousevec);
+
+		if (event->type == MOUSEROTATE) {
+			vod->origx = vod->oldx = event->x;
+			viewroll_apply(vod, event->prevx, event->prevy);
+			ED_view3d_depth_tag_update(vod->rv3d);
+
+			viewops_data_free(C, op);
+			return OPERATOR_FINISHED;
+		}
+		else {
+			/* add temp handler */
+			WM_event_add_modal_handler(C, op);
+
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
+	return OPERATOR_FINISHED;
+}
+
+static int viewroll_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
+void VIEW3D_OT_view_roll(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Roll";
+	ot->description = "Roll the view";
+	ot->idname = "VIEW3D_OT_view_roll";
+
+	/* api callbacks */
+	ot->invoke = viewroll_invoke;
+	ot->exec = viewroll_exec;
+	ot->modal = viewroll_modal;
+	ot->poll = ED_operator_rv3d_user_region_poll;
+	ot->cancel = viewroll_cancel;
+
+	/* flags */
+	ot->flag = 0;
+
+	/* properties */
+	ot->prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
+}
+
 static EnumPropertyItem prop_view_pan_items[] = {
 	{V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the Left"},
 	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the Right"},
