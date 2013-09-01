@@ -55,6 +55,7 @@
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
 #include "BLI_string.h"
+#include "BLI_kdtree.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -584,12 +585,12 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
 	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
 	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
-	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
+	{PAR_VERTEX_TRI, "VERTEX_TRI", 0, "Vertex (Triangle)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
-                         int partype, int xmirror, int keep_transform)
+                         int partype, bool xmirror, bool keep_transform, const int vert_par[3])
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -718,8 +719,17 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				if (pchan->bone)
 					pchan->bone->flag |= BONE_RELATIVE_PARENTING;
 			}
-			else
+			else if (partype == PAR_VERTEX) {
+				ob->partype = PARVERT1;
+				ob->par1 = vert_par[0];
+			}
+			else if (partype == PAR_VERTEX_TRI) {
+				ob->partype = PARVERT3;
+				copy_v3_v3_int(&ob->par1, vert_par);
+			}
+			else {
 				ob->partype = PAROBJECT;  /* note, dna define, not operator property */
+			}
 			
 			/* constraint */
 			if (partype == PAR_PATH_CONST) {
@@ -766,24 +776,82 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 	return 1;
 }
 
+
+
+static void parent_set_vert_find(KDTree *tree, Object *child, int vert_par[3], bool is_tri)
+{
+	const float *co_find = child->obmat[3];
+	if (is_tri) {
+		KDTreeNearest nearest[3];
+		int tot;
+
+		tot = BLI_kdtree_find_nearest_n(tree, co_find, NULL, nearest, 3);
+		BLI_assert(tot == 3);
+
+		vert_par[0] = nearest[0].index;
+		vert_par[1] = nearest[1].index;
+		vert_par[2] = nearest[2].index;
+
+		BLI_assert(min_iii(UNPACK3(vert_par)) >= 0);
+	}
+	else {
+		vert_par[0] = BLI_kdtree_find_nearest(tree, co_find, NULL, NULL);
+		BLI_assert(vert_par[0] >= 0);
+		vert_par[1] = 0;
+		vert_par[2] = 0;
+	}
+}
+
 static int parent_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
-	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
-	int keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
-	int ok = 1;
+	bool xmirror = RNA_boolean_get(op->ptr, "xmirror");
+	bool keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
+	bool ok = true;
 
+	/* vertex parent (kdtree) */
+	const bool is_vert_par = ELEM(partype, PAR_VERTEX, PAR_VERTEX_TRI);
+	const bool is_tri = partype == PAR_VERTEX_TRI;
+	int tree_tot;
+	struct KDTree *tree = NULL;
+	int vert_par[3] = {0, 0, 0};
+	int *vert_par_p = is_vert_par ? vert_par : NULL;
+
+
+	if (is_vert_par) {
+		tree = BKE_object_as_kdtree(par, &tree_tot);
+		BLI_assert(tree != NULL);
+
+		if (tree_tot < (is_tri ? 3 : 1)) {
+			BKE_report(op->reports, RPT_ERROR, "Not enough vertices for vertex-parent");
+			ok = false;
+			goto cleanup;
+		}
+	}
+
+
+	/* Non vertex-parent */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform)) {
-			ok = 0;
+		if (is_vert_par) {
+			parent_set_vert_find(tree, ob, vert_par, is_tri);
+		}
+
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform, vert_par_p)) {
+			ok = false;
 			break;
 		}
 	}
 	CTX_DATA_END;
+
+
+cleanup:
+	if (is_vert_par) {
+		BLI_kdtree_free(tree);
+	}
 
 	if (!ok)
 		return OPERATOR_CANCELLED;
@@ -835,6 +903,12 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
 	}
 	
+	/* vertex parenting */
+	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)) {
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX_TRI);
+	}
+
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
