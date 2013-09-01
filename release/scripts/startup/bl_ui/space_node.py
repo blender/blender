@@ -152,6 +152,7 @@ class NODE_MT_view(Menu):
             layout.operator("node.backimage_move", text="Backdrop move")
             layout.operator("node.backimage_zoom", text="Backdrop zoom in").factor = 1.2
             layout.operator("node.backimage_zoom", text="Backdrop zoom out").factor = 0.833
+            layout.operator("node.backimage_fit", text="Fit backdrop to available space")
 
         layout.separator()
 
@@ -361,6 +362,8 @@ class NODE_PT_backdrop(Panel):
         col.prop(snode, "backdrop_x", text="X")
         col.prop(snode, "backdrop_y", text="Y")
         col.operator("node.backimage_move", text="Move")
+        
+        layout.operator("node.backimage_fit", text="Fit")
 
 
 class NODE_PT_quality(bpy.types.Panel):

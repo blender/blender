@@ -327,6 +327,60 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
 }
 
+static int backimage_fit_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	Image *ima;
+	ImBuf *ibuf;
+
+	const float pad = 32.0f;
+
+	void *lock;
+
+	float facx, facy;
+
+	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if (ibuf == NULL) {
+		BKE_image_release_ibuf(ima, ibuf, lock);
+		return OPERATOR_CANCELLED;
+	}
+
+	facx = 1.0f * (ar->sizex - pad) / (ibuf->x * snode->zoom);
+	facy = 1.0f * (ar->sizey - pad) / (ibuf->y * snode->zoom);
+
+	BKE_image_release_ibuf(ima, ibuf, lock);
+
+	snode->zoom *= min_ff(facx, facy);
+
+	snode->xof = 0;
+	snode->yof = 0;
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_backimage_fit(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "Background Image Fit";
+	ot->idname = "NODE_OT_backimage_fit";
+	ot->description = "Zoom in/out the background image";
+
+	/* api callbacks */
+	ot->exec = backimage_fit_exec;
+	ot->poll = composite_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING;
+
+}
+
 /******************** sample backdrop operator ********************/
 
 typedef struct ImageSampleInfo {

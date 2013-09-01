@@ -129,6 +129,7 @@ void NODE_OT_view_selected(struct wmOperatorType *ot);
 
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
+void NODE_OT_backimage_fit(struct wmOperatorType *ot);
 void NODE_OT_backimage_sample(struct wmOperatorType *ot);
 
 /* drawnode.c */

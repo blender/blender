@@ -98,6 +98,7 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
 	WM_operatortype_append(NODE_OT_backimage_zoom);
+	WM_operatortype_append(NODE_OT_backimage_fit);
 	WM_operatortype_append(NODE_OT_backimage_sample);
 	
 	WM_operatortype_append(NODE_OT_add_file);
@@ -249,6 +250,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	RNA_float_set(kmi->ptr, "factor", 0.83333f);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, KM_ALT, 0);
 	RNA_float_set(kmi->ptr, "factor", 1.2f);
+	WM_keymap_add_item(keymap, "NODE_OT_backimage_fit", HOMEKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_sample", ACTIONMOUSE, KM_PRESS, KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
