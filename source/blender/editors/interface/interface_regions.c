@@ -2605,12 +2605,10 @@ static void confirm_cancel_operator(bContext *UNUSED(C), void *opv)
 	WM_operator_free(opv);
 }
 
-static void vconfirm_opname(bContext *C, const char *opname, const char *title, const char *itemfmt, va_list ap)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 4, 0)))
-#endif
-;
-static void vconfirm_opname(bContext *C, const char *opname, const char *title, const char *itemfmt, va_list ap)
+static void vconfirm_opname(bContext *C, const char *opname, const char *title,
+                            const char *itemfmt, va_list ap) ATTR_PRINTF_FORMAT(4, 0);
+static void vconfirm_opname(bContext *C, const char *opname, const char *title,
+                            const char *itemfmt, va_list ap)
 {
 	uiPopupBlockHandle *handle;
 	char *s, buf[512];

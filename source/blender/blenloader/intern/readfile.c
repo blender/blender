@@ -250,11 +250,7 @@ static void convert_tface_mt(FileData *fd, Main *main);
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
 
-static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 3, 4)))
-#endif
-;
+static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
 static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
 	char fixed_buf[1024]; /* should be long enough */

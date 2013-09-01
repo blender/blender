@@ -59,11 +59,7 @@ void                BLI_memarena_use_calloc(struct MemArena *ma) ATTR_NONNULL(1)
 void                BLI_memarena_use_align(struct MemArena *ma, const int align) ATTR_NONNULL(1);
 void               *BLI_memarena_alloc(struct MemArena *ma, int size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) ATTR_MALLOC ATTR_ALLOC_SIZE(2);
 
-void BLI_memarena_clear(MemArena *ma)
-#if MEM_GNU_ATTRIBUTES
-__attribute__((nonnull(1)))
-#endif
-;
+void BLI_memarena_clear(MemArena *ma) ATTR_NONNULL(1);
 
 #ifdef __cplusplus
 }
