@@ -327,7 +327,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
 }
 
-static int backimage_fit_exec(bContext *C, wmOperator *op)
+static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
