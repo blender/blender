@@ -33,6 +33,9 @@
 #    pragma GCC diagnostic error "-Wsign-compare"
 #    pragma GCC diagnostic error "-Wconversion"
 #  endif
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408  /* gcc4.8+ only (behavior changed to ignore globals)*/
+#    pragma GCC diagnostic error "-Wshadow"
+#  endif
 #endif
 
 #endif  /* __BLI_STRICT_FLAGS_H__ */

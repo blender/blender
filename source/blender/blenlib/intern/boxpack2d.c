@@ -27,7 +27,9 @@
 #include <stdlib.h> /* for qsort */
 
 #include "MEM_guardedalloc.h"
-#include "BLI_boxpack2d.h"
+#include "BLI_strict_flags.h"
+
+#include "BLI_boxpack2d.h"  /* own include */
 
 /* BoxPacker for backing 2D rectangles into a square
  * 
@@ -169,11 +171,11 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 	}
 
 	/* Sort boxes, biggest first */
-	qsort(boxarray, len, sizeof(BoxPack), box_areasort);
+	qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
 
 	/* add verts to the boxes, these are only used internally  */
-	vert = vertarray = MEM_mallocN(len * 4 * sizeof(BoxVert), "BoxPack Verts");
-	vertex_pack_indices = MEM_mallocN(len * 3 * sizeof(int), "BoxPack Indices");
+	vert = vertarray = MEM_mallocN((size_t)len * 4 * sizeof(BoxVert), "BoxPack Verts");
+	vertex_pack_indices = MEM_mallocN((size_t)len * 3 * sizeof(int), "BoxPack Indices");
 
 	for (box = boxarray, box_index = 0, i = 0; box_index < len; box_index++, box++) {
 
@@ -241,7 +243,7 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 		box_width = box->w;
 		box_height = box->h;
 
-		qsort(vertex_pack_indices, verts_pack_len, sizeof(int), vertex_sort);
+		qsort(vertex_pack_indices, (size_t)verts_pack_len, sizeof(int), vertex_sort);
 
 		/* Pack the box in with the others */
 		/* sort the verts */
@@ -318,7 +320,7 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 						(*tot_height) = max_ff(BOXTOP(box), (*tot_height));
 
 						/* Place the box */
-						vert->free &= ~quad_flags[j];
+						vert->free &= (short)~quad_flags[j];
 
 						switch (j) {
 							case TR:

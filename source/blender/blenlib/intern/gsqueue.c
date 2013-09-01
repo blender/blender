@@ -35,6 +35,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_gsqueue.h"
+#include "BLI_strict_flags.h"
 
 typedef struct _GSQueueElem GSQueueElem;
 struct _GSQueueElem {
@@ -93,7 +94,7 @@ int BLI_gsqueue_size(GSQueue *gq)
  */
 void BLI_gsqueue_peek(GSQueue *gq, void *item_r)
 {
-	memcpy(item_r, &gq->head[1], gq->elem_size);
+	memcpy(item_r, &gq->head[1], (size_t)gq->elem_size);
 }
 
 /**
@@ -114,7 +115,7 @@ void BLI_gsqueue_pop(GSQueue *gq, void *item_r)
 		gq->head = gq->head->next;
 	}
 	
-	if (item_r) memcpy(item_r, &elem[1], gq->elem_size);
+	if (item_r) memcpy(item_r, &elem[1], (size_t)gq->elem_size);
 	MEM_freeN(elem);
 }
 
@@ -130,11 +131,11 @@ void BLI_gsqueue_push(GSQueue *gq, void *item)
 	
 	/* compare: prevent events added double in row */
 	if (!BLI_gsqueue_is_empty(gq)) {
-		if (0 == memcmp(item, &gq->head[1], gq->elem_size))
+		if (0 == memcmp(item, &gq->head[1], (size_t)gq->elem_size))
 			return;
 	}
-	elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
-	memcpy(&elem[1], item, gq->elem_size);
+	elem = MEM_mallocN(sizeof(*elem) + (size_t)gq->elem_size, "gqueue_push");
+	memcpy(&elem[1], item, (size_t)gq->elem_size);
 	elem->next = NULL;
 	
 	if (BLI_gsqueue_is_empty(gq)) {
@@ -154,8 +155,8 @@ void BLI_gsqueue_push(GSQueue *gq, void *item)
  */
 void BLI_gsqueue_pushback(GSQueue *gq, void *item)
 {
-	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
-	memcpy(&elem[1], item, gq->elem_size);
+	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + (size_t)gq->elem_size, "gqueue_push");
+	memcpy(&elem[1], item, (size_t)gq->elem_size);
 	elem->next = gq->head;
 
 	if (BLI_gsqueue_is_empty(gq)) {
@@ -176,5 +177,3 @@ void BLI_gsqueue_free(GSQueue *gq)
 	}
 	MEM_freeN(gq);
 }
-
-

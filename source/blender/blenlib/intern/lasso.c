@@ -34,12 +34,13 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_strict_flags.h"
 
 #include "BLI_lasso.h" /* own include */
 
-void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const short moves)
+void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const unsigned int moves)
 {
-	short a;
+	unsigned int a;
 
 	rect->xmin = rect->xmax = mcords[0][0];
 	rect->ymin = rect->ymax = mcords[0][1];
@@ -53,11 +54,11 @@ void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const short moves)
 }
 
 
-bool BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
+bool BLI_lasso_is_point_inside(const int mcords[][2], const unsigned int moves,
                                const int sx, const int sy,
                                const int error_value)
 {
-	if (sx == error_value) {
+	if (sx == error_value || moves == 0) {
 		return false;
 	}
 	else {
@@ -67,14 +68,14 @@ bool BLI_lasso_is_point_inside(const int mcords[][2], const short moves,
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-bool BLI_lasso_is_edge_inside(const int mcords[][2], const short moves,
+bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves,
                               int x0, int y0, int x1, int y1,
                               const int error_value)
 {
 	int v1[2], v2[2];
-	int a;
+	unsigned int a;
 
-	if (x0 == error_value || x1 == error_value) {
+	if (x0 == error_value || x1 == error_value || moves == 0) {
 		return false;
 	}
 

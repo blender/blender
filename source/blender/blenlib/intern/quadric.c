@@ -35,6 +35,8 @@
 //#include <string.h>
 
 #include "BLI_math.h"
+#include "BLI_strict_flags.h"
+
 #include "BLI_quadric.h"  /* own include */
 
 
