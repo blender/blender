@@ -33,8 +33,8 @@
  */
 
 void    BLI_jitter_init(float *jitarr, int num);
-void    BLI_jitterate1(float *jit1, float *jit2, int num, float rad1);
-void    BLI_jitterate2(float *jit1, float *jit2, int num, float rad2);
+void    BLI_jitterate1(float *jit1, float *jit2, int num, float radius1);
+void    BLI_jitterate2(float *jit1, float *jit2, int num, float radius2);
 
 #endif
 
