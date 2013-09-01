@@ -667,8 +667,8 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
 	UVProjectModifierData *md = (UVProjectModifierData *)ptr->data;
 	int a;
 
-	md->num_projectors = CLAMPIS(value, 1, MOD_UVPROJECT_MAX);
-	for (a = md->num_projectors; a < MOD_UVPROJECT_MAX; a++)
+	md->num_projectors = CLAMPIS(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
+	for (a = md->num_projectors; a < MOD_UVPROJECT_MAXPROJECTORS; a++)
 		md->projectors[a] = NULL;
 }
 
@@ -1720,7 +1720,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "num_projectors");
 	RNA_def_property_ui_text(prop, "Number of Projectors", "Number of projectors to use");
 	RNA_def_property_int_funcs(prop, NULL, "rna_UVProjectModifier_num_projectors_set", NULL);
-	RNA_def_property_range(prop, 1, MOD_UVPROJECT_MAX);
+	RNA_def_property_range(prop, 1, MOD_UVPROJECT_MAXPROJECTORS);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
