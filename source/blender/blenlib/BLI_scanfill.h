@@ -64,7 +64,7 @@ typedef struct ScanFillVert {
 	float co[3];  /* vertex location */
 	float xy[2];  /* 2D projection of vertex location */
 	unsigned int keyindex; /* index, caller can use how it likes to match the scanfill result with own data */
-	short poly_nr;
+	unsigned short poly_nr;
 	unsigned char edge_tot;  /* number of edges using this vertex */
 	unsigned char f;
 } ScanFillVert;
@@ -72,7 +72,7 @@ typedef struct ScanFillVert {
 typedef struct ScanFillEdge {
 	struct ScanFillEdge *next, *prev;
 	struct ScanFillVert *v1, *v2;
-	short poly_nr;
+	unsigned short poly_nr;
 	unsigned char f;
 	union {
 		unsigned char c;
@@ -101,8 +101,8 @@ enum {
 	BLI_SCANFILL_CALC_HOLES            = (1 << 2)
 };
 void BLI_scanfill_begin(ScanFillContext *sf_ctx);
-int  BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
-int  BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag,
+unsigned int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
+unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag,
                           const float nor_proj[3]);
 void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
