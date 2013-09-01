@@ -159,7 +159,7 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 }
 
 /* munmap for windows */
-intptr_t munmap(void *ptr, intptr_t UNUSED(size))
+intptr_t munmap(void *ptr, size_t UNUSED(size))
 {
 	MemMap *mm = mmap_findlink(mmapbase, ptr);
 	if (!mm) {
