@@ -376,15 +376,27 @@ void blf_font_buffer(FontBLF *font, const char *str)
 								cbuf[0] = b_col_char[0];
 								cbuf[1] = b_col_char[1];
 								cbuf[2] = b_col_char[2];
-								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)b_col_char[3])) < 255 ?
-								          (unsigned char)(alphatest) : 255;
+								
+								alphatest = (int)cbuf[3] + (int)b_col_char[3];
+								if (alphatest < 255) {
+									cbuf[3] = (unsigned char)(alphatest);
+								}
+								else {
+									cbuf[3] = 255;
+								}
 							}
 							else {
 								cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
 								cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
 								cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
-								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)((b_col_float[3] * a) * 255.0f))) < 255 ?
-								          (unsigned char)(alphatest) : 255;
+								
+								alphatest = ((int)cbuf[3] + (int)((b_col_float[3] * a) * 255.0f));
+								if (alphatest < 255) {
+									cbuf[3] = (unsigned char)(alphatest);
+								}
+								else {
+									cbuf[3] = 255;
+								}
 							}
 						}
 					}
