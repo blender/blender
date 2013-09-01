@@ -2453,7 +2453,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 			copy_v3_v3(co, point->keys->co);
 			mul_m4_v3(mat, co);
 
-			totn= BLI_kdtree_find_n_nearest(tree, 10, co, NULL, nearest);
+			totn = BLI_kdtree_find_nearest_n(tree, co, NULL, nearest, 10);
 
 			for (n=0; n<totn; n++) {
 				/* this needs a custom threshold still */
@@ -3459,7 +3459,7 @@ static int brush_add(PEData *data, short number)
 				float maxd, totw=0.0, weight[3];
 
 				psys_particle_on_dm(psmd->dm, psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co1, 0, 0, 0, 0, 0);
-				maxw= BLI_kdtree_find_n_nearest(tree, 3, co1, NULL, ptn);
+				maxw = BLI_kdtree_find_nearest_n(tree, co1, NULL, ptn, 3);
 
 				maxd= ptn[maxw-1].dist;
 				

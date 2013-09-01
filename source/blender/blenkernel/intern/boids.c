@@ -253,7 +253,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 	//check boids in own system
 	if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
-		neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, acbr->look_ahead * len_v3(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
+		neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, pa->prev_state.co, pa->prev_state.ave,
+		                                    &ptn, acbr->look_ahead * len_v3(pa->prev_state.vel));
 		if (neighbors > 1) for (n=1; n<neighbors; n++) {
 			copy_v3_v3(co1, pa->prev_state.co);
 			copy_v3_v3(vel1, pa->prev_state.vel);
@@ -299,7 +300,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
 
 		if (epsys) {
-			neighbors = BLI_kdtree_range_search(epsys->tree, acbr->look_ahead * len_v3(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
+			neighbors = BLI_kdtree_range_search(epsys->tree, pa->prev_state.co, pa->prev_state.ave,
+			                                    &ptn, acbr->look_ahead * len_v3(pa->prev_state.vel));
 			if (neighbors > 0) for (n=0; n<neighbors; n++) {
 				copy_v3_v3(co1, pa->prev_state.co);
 				copy_v3_v3(vel1, pa->prev_state.vel);
@@ -354,7 +356,8 @@ static int rule_separate(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues 
 	ParticleTarget *pt;
 	float len = 2.0f * val->personal_space * pa->size + 1.0f;
 	float vec[3] = {0.0f, 0.0f, 0.0f};
-	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, 2.0f * val->personal_space * pa->size, pa->prev_state.co, NULL, &ptn);
+	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, pa->prev_state.co, NULL,
+	                                        &ptn, 2.0f * val->personal_space * pa->size);
 	int ret = 0;
 
 	if (neighbors > 1 && ptn[1].dist!=0.0f) {
@@ -372,7 +375,8 @@ static int rule_separate(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues 
 		ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
 
 		if (epsys) {
-			neighbors = BLI_kdtree_range_search(epsys->tree, 2.0f * val->personal_space * pa->size, pa->prev_state.co, NULL, &ptn);
+			neighbors = BLI_kdtree_range_search(epsys->tree, pa->prev_state.co, NULL,
+			                                    &ptn, 2.0f * val->personal_space * pa->size);
 			
 			if (neighbors > 0 && ptn[0].dist < len) {
 				sub_v3_v3v3(vec, pa->prev_state.co, ptn[0].co);
@@ -392,7 +396,7 @@ static int rule_flock(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues *UN
 {
 	KDTreeNearest ptn[11];
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
-	int neighbors = BLI_kdtree_find_n_nearest(bbd->sim->psys->tree, 11, pa->state.co, pa->prev_state.ave, ptn);
+	int neighbors = BLI_kdtree_find_nearest_n(bbd->sim->psys->tree, pa->state.co, pa->prev_state.ave, ptn, 11);
 	int n;
 	int ret = 0;
 
@@ -619,7 +623,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	int n, ret = 0;
 
 	/* calculate own group strength */
-	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, fbr->distance, pa->prev_state.co, NULL, &ptn);
+	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, pa->prev_state.co, NULL,
+	                                        &ptn, fbr->distance);
 	for (n=0; n<neighbors; n++) {
 		bpa = bbd->sim->psys->particles[ptn[n].index].boid;
 		health += bpa->data.health;
@@ -635,7 +640,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 		if (epsys) {
 			epars = epsys->particles;
 
-			neighbors = BLI_kdtree_range_search(epsys->tree, fbr->distance, pa->prev_state.co, NULL, &ptn);
+			neighbors = BLI_kdtree_range_search(epsys->tree, pa->prev_state.co, NULL,
+			                                    &ptn, fbr->distance);
 			
 			health = 0.0f;
 

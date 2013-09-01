@@ -3802,14 +3802,15 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					 */
 					KDTreeNearest *nearest;
 
-					int n, particles = 0;
+					int n, particles;
 					float smooth_range = smooth * (1.0f - strength), dist;
 					/* calculate max range that can have particles with higher influence than the nearest one */
 					float max_range = smooth - strength * smooth + solidradius;
 					/* Make gcc happy! */
 					dist = max_range;
 
-					particles = BLI_kdtree_range_search(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
+					particles = BLI_kdtree_range_search(tree, bData->realCoord[bData->s_pos[index]].v, NULL,
+					                                    &nearest, max_range);
 
 					/* Find particle that produces highest influence */
 					for (n = 0; n < particles; n++) {

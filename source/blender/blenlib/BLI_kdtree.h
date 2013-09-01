@@ -31,6 +31,8 @@
  *  \author Brecht van Lommel
  */
 
+#include "BLI_compiler_attrs.h"
+
 struct KDTree;
 typedef struct KDTree KDTree;
 
@@ -40,22 +42,19 @@ typedef struct KDTreeNearest {
 	float co[3];
 } KDTreeNearest;
 
-/* Creates or free a kdtree */
-KDTree *BLI_kdtree_new(int maxsize);
+KDTree *BLI_kdtree_new(unsigned int maxsize);
 void BLI_kdtree_free(KDTree *tree);
 
-/* Construction: first insert points, then call balance. Normal is optional. */
-void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3]);
-void BLI_kdtree_balance(KDTree *tree);
+void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3]) ATTR_NONNULL(1, 3);
+void BLI_kdtree_balance(KDTree *tree) ATTR_NONNULL(1);
 
-/* Find nearest returns index, and -1 if no node is found.
- * Find n nearest returns number of points found, with results in nearest.
- * Normal is optional, but if given will limit results to points in normal direction from co. */
-int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3], KDTreeNearest *nearest);
-int BLI_kdtree_find_n_nearest(KDTree *tree, int n, const float co[3], const float nor[3], KDTreeNearest *nearest);
+int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3],
+                            KDTreeNearest *r_nearest) ATTR_NONNULL(1, 2);
+int BLI_kdtree_find_nearest_n(KDTree *tree, const float co[3], const float nor[3],
+                              KDTreeNearest *r_nearest,
+                              unsigned int n) ATTR_NONNULL(1, 2, 4);
+int BLI_kdtree_range_search(KDTree *tree, const float co[3], const float nor[3],
+                            KDTreeNearest **r_nearest,
+                            float range) ATTR_NONNULL(1, 2, 4) ATTR_WARN_UNUSED_RESULT;
 
-/* Range search returns number of points found, with results in nearest */
-/* Normal is optional, but if given will limit results to points in normal direction from co. */
-/* Remember to free nearest after use! */
-int BLI_kdtree_range_search(KDTree *tree, float range, const float co[3], const float nor[3], KDTreeNearest **nearest);
-#endif
+#endif  /* __BLI_KDTREE_H__ */
