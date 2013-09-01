@@ -399,9 +399,15 @@ class VIEW3D_MT_view_navigation(Menu):
     bl_label = "Navigation"
 
     def draw(self, context):
+        from math import pi
         layout = self.layout
 
         layout.operator_enum("view3d.view_orbit", "type")
+
+        layout.separator()
+
+        layout.operator("view3d.view_roll", text="Roll Left").angle = pi / -12.0
+        layout.operator("view3d.view_roll", text="Roll Right").angle = pi / 12.0
 
         layout.separator()
 
@@ -2997,6 +3003,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
