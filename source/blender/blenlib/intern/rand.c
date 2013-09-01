@@ -175,20 +175,10 @@ float BLI_frand(void)
 
 float BLI_hash_frand(unsigned int seed)
 {
-	r_uint64 X;
+	RNG rng;
 
-	seed = seed + hash[seed & 255];
-	X = (((r_uint64) seed) << 16) | LOWSEED;
-	seed = (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
-
-	seed = seed + hash[seed & 255];
-	X = (((r_uint64) seed) << 16) | LOWSEED;
-	X = (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
-
-	seed = seed + hash[seed & 255];
-	X = (((r_uint64) seed) << 16) | LOWSEED;
-
-	return (int)(((MULTIPLIER * X + ADDEND) & MASK) >> 17);
+	BLI_rng_srandom(&rng, seed);
+	return BLI_rng_get_float(&rng);
 }
 
 void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int seed)
