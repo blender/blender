@@ -39,13 +39,8 @@
 #include "bmesh.h"
 #include "bmesh_edgenet.h"  /* own include */
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
-#    pragma GCC diagnostic error "-Wsign-compare"
-#    pragma GCC diagnostic error "-Wconversion"
-#  endif
-#endif
+#include "BLI_strict_flags.h"  /* keep last */
+
 
 /* Data for one end of an edge involved in a bevel */
 typedef struct VertNetInfo {

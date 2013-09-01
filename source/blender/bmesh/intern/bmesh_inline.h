@@ -56,7 +56,7 @@ BLI_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag)
 
 BLI_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag)
 {
-	head->hflag &= ~hflag;
+	head->hflag &= (char)~hflag;
 }
 
 BLI_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val)

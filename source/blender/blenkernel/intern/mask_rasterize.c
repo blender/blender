@@ -82,16 +82,9 @@
 #include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_strict_flags.h"
 
 #include "BKE_mask.h"
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
-#    pragma GCC diagnostic error "-Wsign-compare"
-#    pragma GCC diagnostic error "-Wconversion"
-#  endif
-#endif
 
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */

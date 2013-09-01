@@ -43,16 +43,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_mempool.h"
 #include "BLI_ghash.h"
+#include "BLI_strict_flags.h"
 
-/***/
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
-#    pragma GCC diagnostic error "-Wsign-compare"
-#    pragma GCC diagnostic error "-Wconversion"
-#  endif
-#endif
 
 const unsigned int hashsizes[] = {
 	5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 

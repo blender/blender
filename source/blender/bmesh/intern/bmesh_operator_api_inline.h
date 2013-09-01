@@ -55,13 +55,13 @@ BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const shor
 
 BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth - 1].f &= ~oflag;
+	oflags[bm->stackdepth - 1].f &= (short)~oflag;
 }
 
 BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
 	if (val) oflags[bm->stackdepth - 1].f |= oflag;
-	else     oflags[bm->stackdepth - 1].f &= ~oflag;
+	else     oflags[bm->stackdepth - 1].f &= (short)~oflag;
 }
 
 BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)

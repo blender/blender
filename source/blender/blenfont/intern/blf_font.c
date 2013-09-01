@@ -50,6 +50,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_linklist.h"  /* linknode */
+#include "BLI_strict_flags.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -58,10 +59,6 @@
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#endif
 
 /* freetype2 handle ONLY for this file!. */
 static FT_Library ft_lib;
@@ -163,7 +160,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 		                   _kern_mode,                                           \
 		                   &(_delta)) == 0)                                      \
 		{                                                                        \
-			_pen_x += _delta.x >> 6;                                             \
+			_pen_x += (int)_delta.x >> 6;                                        \
 		}                                                                        \
 	}                                                                            \
 } (void)0
@@ -194,7 +191,7 @@ void blf_font_draw(FontBLF *font, const char *str, size_t len)
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
 
-		pen_x += g->advance;
+		pen_x += (int)g->advance;
 		g_prev = g;
 	}
 }
@@ -221,7 +218,7 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
 
-		pen_x += g->advance;
+		pen_x += (int)g->advance;
 		g_prev = g;
 	}
 }
@@ -273,10 +270,11 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	/* buffer specific vars */
 	FontBufInfoBLF *buf_info = &font->buf_info;
 	float b_col_float[4];
-	const unsigned char b_col_char[4] = {buf_info->col[0] * 255,
-	                                     buf_info->col[1] * 255,
-	                                     buf_info->col[2] * 255,
-	                                     buf_info->col[3] * 255};
+	const unsigned char b_col_char[4] = {
+	    (unsigned char)(buf_info->col[0] * 255),
+	    (unsigned char)(buf_info->col[1] * 255),
+	    (unsigned char)(buf_info->col[2] * 255),
+	    (unsigned char)(buf_info->col[3] * 255)};
 
 	unsigned char *cbuf;
 	int chx, chy;
@@ -378,14 +376,15 @@ void blf_font_buffer(FontBLF *font, const char *str)
 								cbuf[0] = b_col_char[0];
 								cbuf[1] = b_col_char[1];
 								cbuf[2] = b_col_char[2];
-								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)b_col_char[3])) < 255 ? alphatest : 255;
+								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)b_col_char[3])) < 255 ?
+								          (unsigned char)(alphatest) : 255;
 							}
 							else {
-								cbuf[0] = (b_col_char[0] * a) + (cbuf[0] * (1.0f - a));
-								cbuf[1] = (b_col_char[1] * a) + (cbuf[1] * (1.0f - a));
-								cbuf[2] = (b_col_char[2] * a) + (cbuf[2] * (1.0f - a));
-								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)((b_col_float[3] * a) * 255.0f))) <
-								          255 ? alphatest : 255;
+								cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
+								cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
+								cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
+								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)((b_col_float[3] * a) * 255.0f))) < 255 ?
+								          (unsigned char)(alphatest) : 255;
 							}
 						}
 					}
@@ -398,7 +397,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			}
 		}
 
-		pen_x += g->advance;
+		pen_x += (int)g->advance;
 		g_prev = g;
 	}
 }
@@ -433,10 +432,10 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 		if (has_kerning)
 			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
-		gbox.xmin = pen_x;
-		gbox.xmax = pen_x + g->advance;
-		gbox.ymin = g->box.ymin + pen_y;
-		gbox.ymax = g->box.ymax + pen_y;
+		gbox.xmin = (float)pen_x;
+		gbox.xmax = (float)pen_x + g->advance;
+		gbox.ymin = g->box.ymin + (float)pen_y;
+		gbox.ymax = g->box.ymax + (float)pen_y;
 
 		if (gbox.xmin < box->xmin) box->xmin = gbox.xmin;
 		if (gbox.ymin < box->ymin) box->ymin = gbox.ymin;
@@ -444,7 +443,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 		if (gbox.xmax > box->xmax) box->xmax = gbox.xmax;
 		if (gbox.ymax > box->ymax) box->ymax = gbox.ymax;
 
-		pen_x += g->advance;
+		pen_x += (int)g->advance;
 		g_prev = g;
 	}
 

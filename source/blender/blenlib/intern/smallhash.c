@@ -31,6 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_smallhash.h"
+#include "BLI_strict_flags.h"
 
 /* SMHASH_CELL_UNUSED means this cell is inside a key series,
  * while SMHASH_CELL_FREE means this cell terminates a key series.
@@ -42,14 +43,6 @@
  */
 #define SMHASH_CELL_UNUSED  ((void *)0x7FFFFFFF)
 #define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
-#    pragma GCC diagnostic error "-Wsign-compare"
-#    pragma GCC diagnostic error "-Wconversion"
-#  endif
-#endif
 
 /* typically this re-assigns 'h' */
 #define SMHASH_NEXT(h, hoff)  ( \
