@@ -640,7 +640,7 @@ void MEM_printmemlist_stats(void)
 	MemPrintBlock *pb, *printblock;
 	unsigned int totpb, a, b;
 #ifdef HAVE_MALLOC_H
-	size_t mem_in_use_slop;
+	size_t mem_in_use_slop = 0;
 #endif
 	mem_lock_thread();
 
