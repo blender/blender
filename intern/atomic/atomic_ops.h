@@ -91,13 +91,13 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return (OSAtomicAdd64((int64_t)x, (int64_t *)p));
+	return (uint64_t)(OSAtomicAdd64((int64_t)x, (int64_t *)p));
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return (OSAtomicAdd64(-((int64_t)x), (int64_t *)p));
+	return (uint64_t)(OSAtomicAdd64(-((int64_t)x), (int64_t *)p));
 }
 #  elif (defined(__amd64__) || defined(__x86_64__))
 ATOMIC_INLINE uint64_t
@@ -189,13 +189,13 @@ atomic_sub_uint32(uint32_t *p, uint32_t x)
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (OSAtomicAdd32((int32_t)x, (int32_t *)p));
+	return (uint32_t)(OSAtomicAdd32((int32_t)x, (int32_t *)p));
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (OSAtomicAdd32(-((int32_t)x), (int32_t *)p));
+	return (uint32_t)(OSAtomicAdd32(-((int32_t)x), (int32_t *)p));
 }
 #elif (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
 ATOMIC_INLINE uint32_t
