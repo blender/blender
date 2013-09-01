@@ -47,7 +47,8 @@ makesdna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesdna/\\"" '
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '#/intern/atomic',
-                                 '../../makesdna', '../../bmesh'])
+                                 '../../makesdna', '../../bmesh',
+                                 '../../blenlib'])
 
 if env['OURPLATFORM'] == 'linuxcross':
     USE_WINE = True # when cross compiling on linux 64bit this is useful

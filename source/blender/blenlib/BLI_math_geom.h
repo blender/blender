@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
 
 #if BLI_MATH_DO_INLINE
@@ -293,11 +294,7 @@ float form_factor_hemi_poly(float p[3], float n[3],
 
 bool  axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3]);
 void  axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3]);
-float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-#endif
-;
+float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);

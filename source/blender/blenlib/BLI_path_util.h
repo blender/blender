@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 struct ListBase;
 struct direntry;
 
@@ -90,17 +92,9 @@ void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t d
 void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, const size_t filelen);
 void BLI_path_append(char *__restrict dst, const size_t maxlen,
-                     const char *__restrict file)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+                     const char *__restrict file) ATTR_NONNULL();
 void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
-                      const char *__restrict dir, const char *__restrict file)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+                      const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
 const char *BLI_path_basename(const char *path);
 
 typedef enum bli_rebase_state {
@@ -132,11 +126,7 @@ void BLI_stringenc(char *string, const char *head, const char *tail, unsigned sh
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 
 /* make sure path separators conform to system one */
-void BLI_clean(char *path)
-#ifdef __GNUC__
-__attribute__((nonnull(1)))
-#endif
-;
+void BLI_clean(char *path) ATTR_NONNULL();
 
 /**
  * dir can be any input, like from buttons, and this function
@@ -182,11 +172,7 @@ bool BLI_path_is_rel(const char *path);
 #  define BLI_path_ncmp strncmp
 #endif
 
-void BLI_char_switch(char *string, char from, char to)
-#ifdef __GNUC__
-__attribute__((nonnull(1)))
-#endif
-;
+void BLI_char_switch(char *string, char from, char to) ATTR_NONNULL();
 
 /* Initialize path to program executable */
 void BLI_init_program_path(const char *argv0);

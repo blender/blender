@@ -36,6 +36,8 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 struct ListBase;
 struct ID;
 struct Main;
@@ -45,24 +47,9 @@ struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 
-void *BKE_libblock_alloc(struct ListBase *lb, short type, const char *name)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-void *BKE_libblock_copy_ex(struct Main *bmain, struct ID *id)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-void *BKE_libblock_copy(struct ID *id)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+void *BKE_libblock_alloc(struct ListBase *lb, short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void *BKE_libblock_copy_ex(struct Main *bmain, struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void *BKE_libblock_copy(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const bool do_action);
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
@@ -99,12 +86,7 @@ void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, const struct ID *id);
 void test_idbutton(char *name);
 void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only);
-struct ID *BKE_libblock_find_name(const short type, const char *name)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void clear_id_newpoins(void);
 
 #if 0

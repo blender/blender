@@ -42,6 +42,8 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_compiler_attrs.h"
+
 /* -------------------------- Type Defines --------------------------- */
 
 /* sometimes used - mainly for GE/Ketsji */

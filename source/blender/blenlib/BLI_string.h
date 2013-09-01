@@ -38,152 +38,43 @@
 extern "C" {
 #endif
 
-char *BLI_strdupn(const char *str, const size_t len)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+#include "BLI_compiler_attrs.h"
 
-char *BLI_strdup(const char *str)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+char *BLI_strdupn(const char *str, const size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
 
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
 
-size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_NONNULL();
 
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
 
-size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 3, 4)))
-__attribute__((nonnull))
-#endif
-;
+char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
 
-size_t BLI_vsnprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, va_list arg)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 3, 0)))
-#endif
-;
+size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...) ATTR_NONNULL() ATTR_PRINTF_FORMAT(3, 4);
 
-char *BLI_sprintfN(const char *__restrict format, ...)
-#ifdef __GNUC__
-__attribute__((malloc))
-__attribute__ ((format(printf, 1, 2)))
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+size_t BLI_vsnprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 
-size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC ATTR_PRINTF_FORMAT(1, 2);
 
-int BLI_strcaseeq(const char *a, const char *b)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
+size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_NONNULL();
 
-char *BLI_strcasestr(const char *s, const char *find)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-int BLI_strcasecmp(const char *s1, const char *s2)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-int BLI_natstrcmp(const char *s1, const char *s2)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-size_t BLI_strnlen(const char *str, const size_t maxlen)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-__attribute__((nonnull))
-#endif
-;
-void BLI_timestr(double _time, char *str, size_t maxlen)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strcasecmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strncasecmp(const char *s1, const char *s2, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_natstrcmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_strnlen(const char *str, const size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void BLI_timestr(double _time, char *str, size_t maxlen) ATTR_NONNULL();
 
-void BLI_ascii_strtolower(char *str, const size_t len)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
-void BLI_ascii_strtoupper(char *str, const size_t len)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
-int BLI_str_rstrip_float_zero(char *str, const char pad)
-#ifdef __GNUC__
-__attribute__((nonnull))
-#endif
-;
+void BLI_ascii_strtolower(char *str, const size_t len) ATTR_NONNULL();
+void BLI_ascii_strtoupper(char *str, const size_t len) ATTR_NONNULL();
+int BLI_str_rstrip_float_zero(char *str, const char pad) ATTR_NONNULL();
 
 #ifdef __cplusplus
 }

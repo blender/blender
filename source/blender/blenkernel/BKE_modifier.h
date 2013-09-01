@@ -29,6 +29,7 @@
  */
 
 #include "DNA_modifier_types.h"     /* needed for all enum typdefs */
+#include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
 struct ID;
@@ -325,11 +326,7 @@ bool          modifier_isCorrectableDeformed(struct ModifierData *md);
 bool          modifier_isSameTopology(ModifierData *md);
 bool          modifier_isNonGeometrical(ModifierData *md);
 bool          modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
-void          modifier_setError(struct ModifierData *md, const char *format, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 2, 3)))
-#endif
-;
+void          modifier_setError(struct ModifierData *md, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 bool          modifier_isPreview(struct ModifierData *md);
 
 void          modifiers_foreachObjectLink(struct Object *ob,

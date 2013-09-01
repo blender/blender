@@ -40,6 +40,7 @@
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
 #include "WM_keymap.h"
+#include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,17 +77,9 @@ void		WM_init_native_pixels(bool do_it);
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
 
-void		WM_exit				(struct bContext *C)
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((noreturn))
-#endif
-;
+void		WM_exit				(struct bContext *C) ATTR_NORETURN;
 
-void		WM_main				(struct bContext *C)
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((noreturn))
-#endif
-;
+void		WM_main				(struct bContext *C) ATTR_NORETURN;
 
 bool 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
@@ -180,11 +173,7 @@ void		WM_main_remove_notifier_reference(const void *reference);
 
 			/* reports */
 void        WM_report(const struct bContext *C, ReportType type, const char *message);
-void        WM_reportf(const struct bContext *C, ReportType type, const char *format, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 3, 4)))
-#endif
-;
+void        WM_reportf(const struct bContext *C, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
 
 void		wm_event_add(struct wmWindow *win, const struct wmEvent *event_to_add);
 void		wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);

@@ -57,7 +57,7 @@ if env['WITH_BF_CYCLES_OSL']:
     incs.append(cycles['BF_OSL_INC'])
 
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
-incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
+incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna #source/blender/blenlib'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())
 incs.extend('#extern/glew/include #intern/mikktspace'.split())
 incs.append(cycles['BF_OIIO_INC'])

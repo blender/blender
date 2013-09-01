@@ -337,12 +337,6 @@
 #  define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
-#ifdef __GNUC__
-#  define WARN_UNUSED  __attribute__((warn_unused_result))
-#else
-#  define WARN_UNUSED
-#endif
-
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #  define BLI_INLINE static __forceinline

@@ -36,13 +36,15 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 struct Lamp;
 struct Main;
 struct Scene;
 
-struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) WARN_UNUSED;
-struct Lamp *BKE_lamp_copy(struct Lamp *la) WARN_UNUSED;
-struct Lamp *localize_lamp(struct Lamp *la) WARN_UNUSED;
+struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
+struct Lamp *BKE_lamp_copy(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
+struct Lamp *localize_lamp(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
 void BKE_lamp_make_local(struct Lamp *la);
 void BKE_lamp_free(struct Lamp *la);
 

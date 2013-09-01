@@ -40,6 +40,8 @@
 
 #include <stdarg.h>
 
+#include "BLI_compiler_attrs.h"
+
 struct DynStr;
 
 /** The abstract DynStr type */
@@ -75,16 +77,8 @@ void    BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len);
  * \param ds The DynStr to append to.
  * \param format The printf format string to use.
  */
-void    BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 2, 3)))
-#endif
-;
-void    BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
-#ifdef __GNUC__
-__attribute__ ((format(printf, 2, 0)))
-#endif
-;
+void    BLI_dynstr_appendf(DynStr *ds, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+void    BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args) ATTR_PRINTF_FORMAT(2, 0);
 
 /**
  * Find the length of a DynStr.

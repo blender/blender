@@ -39,6 +39,7 @@
  *
  */
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_mempool.h"
 
 /* Defines for passing to BM_iter_new.
@@ -181,18 +182,10 @@ typedef struct BMIter {
 	char itype;
 } BMIter;
 
-void   *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-#endif
-;
+void   *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index) ATTR_WARN_UNUSED_RESULT;
 int     BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
 void   *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
-                          void **stack_array, int stack_array_size)
-#ifdef __GNUC__
-__attribute__((warn_unused_result))
-#endif
-;
+                          void **stack_array, int stack_array_size) ATTR_WARN_UNUSED_RESULT;
 int     BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
                           void **array, const int len);
 void    *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,

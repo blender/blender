@@ -10,6 +10,7 @@ set(INC
 	../../mikktspace
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
+	../../../source/blender/blenlib
 	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
 )
 
