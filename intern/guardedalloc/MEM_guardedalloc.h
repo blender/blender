@@ -190,7 +190,7 @@ extern "C" {
 	 * Are the start/end block markers still correct ?
 	 *
 	 * @retval 0 for correct memory, 1 for corrupted memory. */
-	int MEM_check_memory_integrity(void);
+	bool MEM_check_memory_integrity(void);
 
 	/** Set thread locking functions for safe memory allocation from multiple
 	 * threads, pass NULL pointers to disable thread locking again. */
@@ -207,13 +207,13 @@ extern "C" {
 	/** Get mapped memory usage. */
 	uintptr_t MEM_get_mapped_memory_in_use(void);
 	/** Get amount of memory blocks in use. */
-	int MEM_get_memory_blocks_in_use(void);
+	unsigned int MEM_get_memory_blocks_in_use(void);
 
 	/** Reset the peak memory statistic to zero. */
 	void MEM_reset_peak_memory(void);
 
 	/** Get the peak memory usage in bytes, including mmap allocations. */
-	uintptr_t MEM_get_peak_memory(void)
+	size_t MEM_get_peak_memory(void)
 #if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 #endif
