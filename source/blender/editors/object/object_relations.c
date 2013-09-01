@@ -904,7 +904,7 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	}
 	
 	/* vertex parenting */
-	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)) {
+	if (OB_TYPE_SUPPORT_PARVERT(ob->type)) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX_TRI);
 	}

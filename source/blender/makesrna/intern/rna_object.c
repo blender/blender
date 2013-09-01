@@ -465,7 +465,7 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), Point
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
 		}
 
-		if (ELEM4(par->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)) {
+		if (OB_TYPE_SUPPORT_PARVERT(par->type)) {
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT1);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT3);
 		}

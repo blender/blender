@@ -2013,29 +2013,23 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
 static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 {
-	float cmat[3][3], v1[3], v2[3], v3[3], q[4];
 
 	/* in local ob space */
-	unit_m4(mat);
-	
-	if (ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE)) {
-		
+	if (OB_TYPE_SUPPORT_PARVERT(par->type)) {
+		float cmat[3][3], v1[3], v2[3], v3[3], q[4];
+
 		give_parvert(par, ob->par1, v1);
 		give_parvert(par, ob->par2, v2);
 		give_parvert(par, ob->par3, v3);
-				
+
 		tri_to_quat(q, v1, v2, v3);
 		quat_to_mat3(cmat, q);
 		copy_m4_m3(mat, cmat);
-		
-		if (ob->type == OB_CURVE) {
-			copy_v3_v3(mat[3], v1);
-		}
-		else {
-			add_v3_v3v3(mat[3], v1, v2);
-			add_v3_v3(mat[3], v3);
-			mul_v3_fl(mat[3], 1.0f / 3.0f);
-		}
+
+		mid_v3_v3v3v3(mat[3], v1, v2, v3);
+	}
+	else {
+		unit_m4(mat);
 	}
 }
 

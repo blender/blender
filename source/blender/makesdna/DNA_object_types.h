@@ -353,6 +353,8 @@ enum {
 	(ELEM(_type, OB_MESH, OB_LATTICE))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
 	(ELEM7(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
+#define OB_TYPE_SUPPORT_PARVERT(_type) \
+	(ELEM4(_type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
