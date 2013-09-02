@@ -562,6 +562,21 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			if (apply_scale)
 				BKE_tracking_reconstruction_scale(&clip->tracking, ob->size);
 		}
+		else if (ob->type == OB_EMPTY) {
+			/* It's possible for empties too, even though they don't 
+			 * really have obdata, since we can simply apply the maximum
+			 * scaling to the empty's drawsize.
+			 *
+			 * Core Assumptions:
+			 * 1) Most scaled empties have uniform scaling 
+			 *    (i.e. for visibility reasons), AND/OR
+			 * 2) Preserving non-uniform scaling is not that important,
+			 *    and is something that many users would be willing to
+			 *    sacrifice for having an easy way to do this.
+			 */
+			 float max_scale = MAX3(ob->size[0], ob->size[1], ob->size[2]);
+			 ob->empty_drawsize *= max_scale;
+		}
 		else {
 			continue;
 		}
