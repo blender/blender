@@ -76,7 +76,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_image.h" /* so we can check the image's type */
+#include "BKE_image.h"
 
 #include "BKE_bpath.h"  /* own include */
 
@@ -388,6 +388,13 @@ static bool rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *a
 	}
 }
 
+/* fix the image user "ok" tag after updating paths, so ImBufs get loaded */
+static void bpath_traverse_image_user_cb(Image *ima, ImageUser *iuser, void *customdata)
+{
+	if (ima == customdata)
+		iuser->ok = 1;
+}
+
 /* Run visitor function 'visit' on all paths contained in 'id'. */
 void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
@@ -405,6 +412,8 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			if (ima->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 					rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
+					BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+					BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
 				}
 			}
 			break;
