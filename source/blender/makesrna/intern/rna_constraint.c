@@ -1083,7 +1083,8 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 0.0, 100.f);
+	RNA_def_property_range(prop, -1000.0, 1000.0f);
+	RNA_def_property_ui_range(prop, -100.0f, 100.0f, 1, -1);
 	RNA_def_property_ui_text(prop, "Offset", "Offset of floor from object origin");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
