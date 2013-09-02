@@ -949,7 +949,7 @@ static int text_indent_exec(bContext *C, wmOperator *UNUSED(op))
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 	if (txt_has_sel(text)) {
-		txt_order_cursors(text);
+		txt_order_cursors(text, false);
 		txt_indent(text);
 	}
 	else
@@ -983,7 +983,7 @@ static int text_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-	txt_order_cursors(text);
+	txt_order_cursors(text, false);
 	txt_unindent(text);
 
 	text_update_edited(text);
@@ -1063,7 +1063,7 @@ static int text_comment_exec(bContext *C, wmOperator *UNUSED(op))
 	if (txt_has_sel(text)) {
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-		txt_order_cursors(text);
+		txt_order_cursors(text, false);
 		txt_comment(text);
 		text_update_edited(text);
 
@@ -1096,7 +1096,7 @@ static int text_uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 	if (txt_has_sel(text)) {
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-		txt_order_cursors(text);
+		txt_order_cursors(text, false);
 		txt_uncomment(text);
 		text_update_edited(text);
 
@@ -1861,11 +1861,23 @@ static int text_move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_CHAR:
-			txt_move_left(text, select);
+			if (txt_has_sel(text)) {
+				txt_order_cursors(text, false);
+				txt_pop_sel(text);
+			}
+			else {
+				txt_move_left(text, select);
+			}
 			break;
 
 		case NEXT_CHAR:
-			txt_move_right(text, select);
+			if (txt_has_sel(text)) {
+				txt_order_cursors(text, true);
+				txt_pop_sel(text);
+			}
+			else {
+				txt_move_right(text, select);
+			}
 			break;
 
 		case PREV_LINE:

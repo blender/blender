@@ -58,7 +58,7 @@ void			BKE_text_write      (struct Text *text, const char *str);
 
 char   *txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
-void	txt_order_cursors	(struct Text *text);
+void	txt_order_cursors	(struct Text *text, const bool reverse);
 int		txt_find_string		(struct Text *text, const char *findstr, int wrap, int match_case);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);

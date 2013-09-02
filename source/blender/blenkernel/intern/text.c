@@ -1151,17 +1151,26 @@ void txt_pop_sel(Text *text)
 	text->selc = text->curc;
 }
 
-void txt_order_cursors(Text *text)
+void txt_order_cursors(Text *text, const bool reverse)
 {
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
 	
-	/* Flip so text->curl is before text->sell */
-	if ((txt_get_span(text->curl, text->sell) < 0) ||
-	    (text->curl == text->sell && text->curc > text->selc))
-	{
-		txt_curs_swap(text);
+	/* Flip so text->curl is before/after text->sell */
+	if (reverse == false) {
+		if ((txt_get_span(text->curl, text->sell) < 0) ||
+		    (text->curl == text->sell && text->curc > text->selc))
+		{
+			txt_curs_swap(text);
+		}
+	}
+	else {
+		if ((txt_get_span(text->curl, text->sell) > 0) ||
+		    (text->curl == text->sell && text->curc < text->selc))
+		{
+			txt_curs_swap(text);
+		}
 	}
 }
 
@@ -1181,7 +1190,7 @@ static void txt_delete_sel(Text *text)
 
 	if (!txt_has_sel(text)) return;
 	
-	txt_order_cursors(text);
+	txt_order_cursors(text, false);
 
 	if (!undoing) {
 		buf = txt_sel_to_buf(text);
@@ -1305,7 +1314,7 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
-	txt_order_cursors(text);
+	txt_order_cursors(text, false);
 
 	tl = startl = text->sell;
 	
@@ -2833,7 +2842,7 @@ void txt_move_lines(struct Text *text, const int direction)
 
 	if (!text || !text->curl || !text->sell) return;
 	
-	txt_order_cursors(text);
+	txt_order_cursors(text, false);
 
 	line_other =  (direction == TXT_MOVE_LINE_DOWN) ? text->sell->next : text->curl->prev;
 	
