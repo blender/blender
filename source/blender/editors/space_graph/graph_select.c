@@ -149,16 +149,36 @@ static void deselect_graph_keys(bAnimContext *ac, short test, short sel, short d
 static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	bAnimListElem *ale_active = NULL;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-		
+	
+	/* find active F-Curve, and preserve this for later 
+	 * or else it becomes annoying with the current active
+	 * curve keeps fading out even while you're editing it
+	 */
+	ale_active = get_active_fcurve_channel(&ac);
+	
 	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
 		deselect_graph_keys(&ac, 0, SELECT_INVERT, TRUE);
 	else
 		deselect_graph_keys(&ac, 1, SELECT_ADD, TRUE);
+	
+	/* restore active F-Curve... */
+	if (ale_active) {
+		FCurve *fcu = (FCurve *)ale_active->data;
+		
+		/* all others should not be disabled, so we should be able to just set this directly... 
+		 * - selection needs to be set too, or else this won't work...
+		 */
+		fcu->flag |= (FCURVE_SELECTED | FCURVE_ACTIVE);
+		
+		MEM_freeN(ale_active);
+		ale_active = NULL;
+	}
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
