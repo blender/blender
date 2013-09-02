@@ -2149,9 +2149,7 @@ void BKE_image_walk_all_users(const Main *mainp, void *customdata,
 	/* texture users */
 	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
 		if (tex->type == TEX_IMAGE && tex->ima) {
-			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				callback(tex->ima, &tex->iuser, customdata);
-			}
+			callback(tex->ima, &tex->iuser, customdata);
 		}
 	}
 
@@ -2193,7 +2191,7 @@ static void image_tag_frame_recalc(Image *ima, ImageUser *iuser, void *customdat
 {
 	Image *changed_image = customdata;
 
-	if (ima == changed_image) {
+	if (ima == changed_image && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 		iuser->flag |= IMA_NEED_FRAME_RECALC;
 	}
 }
