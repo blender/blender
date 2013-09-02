@@ -921,7 +921,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (BMO_elem_flag_test(bm, face, FACE_CUSTOMFILL)) {
-			pat = BMO_slot_map_data_get(params.slot_custom_patterns, face);
+			pat = *BMO_slot_map_data_get(params.slot_custom_patterns, face);
 			for (i = 0; i < pat->len; i++) {
 				matched = 1;
 				for (j = 0; j < pat->len; j++) {

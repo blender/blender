@@ -581,11 +581,11 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 					item = PyDict_New();
 					if (slot_hash) {
 						GHASH_ITER (hash_iter, slot_hash) {
-							BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
-							BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+							BMHeader *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+							void     *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
-							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
-							PyObject *py_val =  BPy_BMElem_CreatePyObject(bm, *(void **)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm, ele_key);
+							PyObject *py_val =  BPy_BMElem_CreatePyObject(bm, ele_val);
 
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);
@@ -599,11 +599,11 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 					item = PyDict_New();
 					if (slot_hash) {
 						GHASH_ITER (hash_iter, slot_hash) {
-							BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
-							BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+							BMHeader *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+							void     *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
 							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
-							PyObject *py_val =  PyFloat_FromDouble(*(float *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+							PyObject *py_val =  PyFloat_FromDouble(*(float *)&ele_val);
 
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);
@@ -617,11 +617,11 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 					item = PyDict_New();
 					if (slot_hash) {
 						GHASH_ITER (hash_iter, slot_hash) {
-							BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
-							BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+							BMHeader *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+							void     *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
 							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
-							PyObject *py_val =  PyLong_FromLong(*(int *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+							PyObject *py_val =  PyLong_FromLong(*(int *)&ele_val);
 
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);
@@ -635,11 +635,11 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 					item = PyDict_New();
 					if (slot_hash) {
 						GHASH_ITER (hash_iter, slot_hash) {
-							BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
-							BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+							BMHeader *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+							void     *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
 							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
-							PyObject *py_val =  PyBool_FromLong(*(int *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+							PyObject *py_val =  PyBool_FromLong(*(int *)&ele_val);
 
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);

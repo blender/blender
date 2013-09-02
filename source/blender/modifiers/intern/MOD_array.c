@@ -199,7 +199,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 
 	/*element type argument doesn't do anything here*/
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-		v2 = BMO_iter_map_value_p(&oiter);
+		v2 = BMO_iter_map_value_ptr(&oiter);
 
 		index_map[BM_elem_index_get(v)] = BM_elem_index_get(v2) + 1;
 	}
@@ -272,7 +272,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 
 		/* add new merge targets to weld operator */
 		BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-			v2 = BMO_iter_map_value_p(&oiter);
+			v2 = BMO_iter_map_value_ptr(&oiter);
 			/* check in case the target vertex (v2) is already marked
 			 * for merging */
 			while ((v3 = BMO_slot_map_elem_get(slot_targetmap, v2))) {
@@ -320,7 +320,7 @@ static void merge_first_last(BMesh *bm,
 	slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		if (!BMO_slot_map_contains(slot_targetmap, v)) {
-			v2 = BMO_iter_map_value_p(&oiter);
+			v2 = BMO_iter_map_value_ptr(&oiter);
 			BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
 		}
 	}

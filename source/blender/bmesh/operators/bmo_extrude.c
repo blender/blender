@@ -170,7 +170,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e; e = BMO_iter_step(&siter)) {
 		BMVert *f_verts[4];
-		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
+		e_new = BMO_iter_map_value_ptr(&siter);
 
 		if (e->l && e->v1 != e->l->v) {
 			f_verts[0] = e->v1;
@@ -372,7 +372,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
+		e_new = BMO_iter_map_value_ptr(&siter);
 
 		if (!e_new) {
 			continue;
@@ -407,7 +407,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* link isolated vert */
 	for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovert_map.out", 0); v; v = BMO_iter_step(&siter)) {
-		BMVert *v2 = *((void **)BMO_iter_map_value(&siter));
+		BMVert *v2 = BMO_iter_map_value_ptr(&siter);
 		BM_edge_create(bm, v, v2, v->e, BM_CREATE_NO_DOUBLE);
 	}
 

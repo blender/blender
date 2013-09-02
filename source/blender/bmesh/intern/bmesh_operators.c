@@ -74,7 +74,7 @@ const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 	0,                      /*  7: unused */
 	sizeof(float) * 3,      /*  8: BMO_OP_SLOT_VEC */
 	sizeof(void *),	        /*  9: BMO_OP_SLOT_ELEMENT_BUF */
-	sizeof(BMOElemMapping)  /* 10: BMO_OP_SLOT_MAPPING */
+	sizeof(void *)          /* 10: BMO_OP_SLOT_MAPPING */
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
@@ -345,19 +345,13 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 	}
 	else if (slot_dst->slot_type == BMO_OP_SLOT_MAPPING) {
 		GHashIterator it;
-		BMOElemMapping *srcmap, *dstmap;
-
 		for (BLI_ghashIterator_init(&it, slot_src->data.ghash);
-		     (srcmap = BLI_ghashIterator_getValue(&it));
+		     BLI_ghashIterator_done(&it) == false;
 		     BLI_ghashIterator_step(&it))
 		{
-			dstmap = BLI_memarena_alloc(arena_dst, sizeof(*dstmap) + srcmap->len);
-
-			dstmap->element = srcmap->element;
-			dstmap->len = srcmap->len;
-			memcpy(BMO_OP_SLOT_MAPPING_DATA(dstmap), BMO_OP_SLOT_MAPPING_DATA(srcmap), srcmap->len);
-
-			BLI_ghash_insert(slot_dst->data.ghash, dstmap->element, dstmap);
+			void *key = BLI_ghashIterator_getKey(&it);
+			void *val = BLI_ghashIterator_getValue(&it);
+			BLI_ghash_insert(slot_dst->data.ghash, key, val);
 		}
 	}
 	else {
@@ -631,19 +625,12 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
  * value, it doesn't store a reference to it. */
 
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
-                         const void *element, const void *data, const int len)
+                         const void *element, const void *data)
 {
-	BMOElemMapping *mapping;
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 	BMO_ASSERT_SLOT_IN_OP(slot, op);
 
-	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
-
-	mapping->element = (BMHeader *) element;
-	mapping->len = len;
-	memcpy(BMO_OP_SLOT_MAPPING_DATA(mapping), data, len);
-
-	BLI_ghash_insert(slot->data.ghash, (void *)element, mapping);
+	BLI_ghash_insert(slot->data.ghash, (void *)element, (void *)data);
 }
 
 #if 0
@@ -1388,11 +1375,8 @@ void *BMO_iter_step(BMOIter *iter)
 		return ele;
 	}
 	else if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
-		BMOElemMapping *map;
 		void *ret = BLI_ghashIterator_getKey(&iter->giter);
-		map = BLI_ghashIterator_getValue(&iter->giter);
-		
-		iter->val = BMO_OP_SLOT_MAPPING_DATA(map);
+		iter->val = BLI_ghashIterator_getValue_p(&iter->giter);
 
 		BLI_ghashIterator_step(&iter->giter);
 
@@ -1406,19 +1390,40 @@ void *BMO_iter_step(BMOIter *iter)
 }
 
 /* used for iterating over mappings */
-void *BMO_iter_map_value(BMOIter *iter)
+
+/**
+ * Returns a pointer to the key-value when iterating over mappings.
+ * remember for pointer maps this will be a pointer to a pointer.
+ */
+void **BMO_iter_map_value_p(BMOIter *iter)
 {
 	return iter->val;
 }
 
-void *BMO_iter_map_value_p(BMOIter *iter)
+void *BMO_iter_map_value_ptr(BMOIter *iter)
 {
-	return *((void **)iter->val);
+	BLI_assert(ELEM(iter->slot->slot_subtype.map,
+	                BMO_OP_SLOT_SUBTYPE_MAP_ELEM, BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL));
+	return iter->val ? *iter->val : NULL;
 }
 
-float BMO_iter_map_value_f(BMOIter *iter)
+
+float BMO_iter_map_value_float(BMOIter *iter)
 {
-	return *((float *)iter->val);
+	BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_FLT);
+	return **((float **)iter->val);
+}
+
+int BMO_iter_map_value_int(BMOIter *iter)
+{
+	BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INT);
+	return **((int **)iter->val);
+}
+
+bool BMO_iter_map_value_bool(BMOIter *iter)
+{
+	BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
+	return **((int **)iter->val);
 }
 
 /* error system */

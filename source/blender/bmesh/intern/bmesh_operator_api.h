@@ -398,7 +398,7 @@ int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot
 int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
-                         const void *element, const void *data, const int len);
+                         const void *element, const void *data);
 
 /* flags all elements in a mapping.  note that the mapping must only have
  * bmesh elements in it.*/
@@ -452,7 +452,7 @@ typedef struct BMOIter {
 	BMOpSlot *slot;
 	int cur; //for arrays
 	GHashIterator giter;
-	void *val;
+	void **val;
 	char restrictmask; /* bitwise '&' with BMHeader.htype */
 } BMOIter;
 
@@ -463,31 +463,18 @@ void *BMO_iter_new(BMOIter *iter,
                    const char restrictmask);
 void *BMO_iter_step(BMOIter *iter);
 
-/* returns a pointer to the key value when iterating over mappings.
- * remember for pointer maps this will be a pointer to a pointer.*/
-void *BMO_iter_map_value(BMOIter *iter);
+void **BMO_iter_map_value_p(BMOIter *iter);
+void  *BMO_iter_map_value_ptr(BMOIter *iter);
 
-/* use this for pointer mappings */
-void *BMO_iter_map_value_p(BMOIter *iter);
-
-/* use this for float mappings */
-float BMO_iter_map_value_f(BMOIter *iter);
+float BMO_iter_map_value_float(BMOIter *iter);
+int   BMO_iter_map_value_int(BMOIter *iter);
+bool  BMO_iter_map_value_bool(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, slot_args, slot_name, restrict_flag)   \
 	for (ele = BMO_iter_new(iter, slot_args, slot_name, restrict_flag); ele; ele = BMO_iter_step(iter))
 
 /******************* Inlined Functions********************/
 typedef void (*opexec)(BMesh *bm, BMOperator *op);
-
-/* mappings map elements to data, which
- * follows the mapping struct in memory. */
-typedef struct BMOElemMapping {
-	BMHeader *element;
-	int len;
-} BMOElemMapping;
-
-/* pointer after BMOElemMapping */
-#define BMO_OP_SLOT_MAPPING_DATA(var) (void *)(((BMOElemMapping *)var) + 1)
 
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
