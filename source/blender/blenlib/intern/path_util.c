@@ -1695,7 +1695,7 @@ void BLI_split_file_part(const char *string, char *file, const size_t filelen)
 /**
  * Append a filename to a dir, ensuring slash separates.
  */
-void BLI_path_append(char *dst, const size_t maxlen, const char *file)
+void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
 {
 	size_t dirlen = BLI_strnlen(dst, maxlen);
 
@@ -1716,7 +1716,7 @@ void BLI_path_append(char *dst, const size_t maxlen, const char *file)
  * Simple appending of filename to dir, does not check for valid path!
  * Puts result into *dst, which may be same area as *dir.
  */
-void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const char *file)
+void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__restrict dir, const char *__restrict file)
 {
 	size_t dirlen = BLI_strnlen(dir, maxlen);
 

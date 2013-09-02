@@ -911,7 +911,7 @@ void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4])
 
 void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec,
                   const float ho1[4], const float ho2[4], const float ho3[4], const float ho4[4],
-                  int c1, int c2, int c3, int c4)
+                  const int c1, const int c2, const int c3, const int c4)
 {
 	float vez[20];
 	int and, or;
