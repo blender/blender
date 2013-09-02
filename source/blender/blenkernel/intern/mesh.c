@@ -3312,7 +3312,7 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
  * Calculate smooth groups from sharp edges.
  *
  * \param r_totgroup The total number of groups, 1 or more.
- * \return Polygon aligned array of group index values (starting at 1)
+ * \return Polygon aligned array of group index values (bitflags, starting at 1).
  */
 int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
                                 const MPoly *mpoly, const int totpoly,
@@ -3321,10 +3321,12 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 {
 	int *poly_groups;
 	int *poly_stack;
-	STACK_DECLARE(poly_stack);
 
 	int poly_prev = 0;
-	int poly_group_id = 0;
+	const int temp_poly_group_id = 3;  /* Placeholder value. */
+	const int poly_group_id_overflowed = 5;  /* Group we could not find any available bit, will be reset to 0 at end */
+	int tot_group = 0;
+	bool group_id_overflow = false;
 
 	/* map vars */
 	MeshElemMap *edge_poly_map;
@@ -3343,10 +3345,10 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 	poly_groups = MEM_callocN(sizeof(int) * totpoly, __func__);
 	poly_stack  = MEM_mallocN(sizeof(int) * totpoly, __func__);
 
-	STACK_INIT(poly_stack);
-
 	while (true) {
 		int poly;
+		int bit_poly_group_mask = 0;
+		int ps_curr_idx = 0, ps_end_idx = 0;  /* stack indices */
 
 		for (poly = poly_prev; poly < totpoly; poly++) {
 			if (poly_groups[poly] == 0) {
@@ -3362,37 +3364,82 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 		/* start searching from here next time */
 		poly_prev = poly + 1;
 
-		/* group starts at 1 */
-		poly_group_id++;
+		poly_groups[poly] = temp_poly_group_id;
+		poly_stack[ps_end_idx++] = poly;
 
-		poly_groups[poly] = poly_group_id;
-		STACK_PUSH(poly_stack, poly);
-
-		while ((poly = STACK_POP_ELSE(poly_stack, -1)) != -1) {
-
-			const MPoly *mp = &mpoly[poly];
+		while (ps_curr_idx != ps_end_idx) {
+			const MPoly *mp;
 			const MLoop *ml;
-			int j = mp->totloop;
+			int j;
 
-			BLI_assert(poly_groups[poly] == poly_group_id);
+			poly = poly_stack[ps_curr_idx++];
+			BLI_assert(poly_groups[poly] == temp_poly_group_id);
 
-			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			mp = &mpoly[poly];
+			for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
+				/* loop over poly users */
+				const MeshElemMap *map_ele = &edge_poly_map[ml->e];
+				int *p = map_ele->indices;
+				int i = map_ele->count;
 				if (!(medge[ml->e].flag & ME_SHARP)) {
-					/* loop over poly users */
-					const MeshElemMap *map_ele = &edge_poly_map[ml->e];
-					int *p = map_ele->indices;
-					int i = map_ele->count;
-
 					for (; i--; p++) {
 						/* if we meet other non initialized its a bug */
-						BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
+						BLI_assert(ELEM(poly_groups[*p], 0, temp_poly_group_id));
 
 						if (poly_groups[*p] == 0) {
-							poly_groups[*p] = poly_group_id;
-							STACK_PUSH(poly_stack, *p);
+							poly_groups[*p] = temp_poly_group_id;
+							poly_stack[ps_end_idx++] = *p;
 						}
 					}
 				}
+				else {
+					/* Find contiguous smooth groups already assigned, these are the values we can't reuse! */
+					for (; i--; p++) {
+						int bit = poly_groups[*p];
+						if (!ELEM3(bit, 0, temp_poly_group_id, poly_group_id_overflowed) &&
+						    !(bit_poly_group_mask & bit))
+						{
+							bit_poly_group_mask |= bit;
+						}
+					}
+				}
+			}
+		}
+		/* And now, we have all our poly from current group in poly_stack (from 0 to (ps_end_idx - 1)), as well as
+		 * all smoothgroups bits we can't use in bit_poly_group_mask.
+		 */
+		{
+			int i, *p, gid_bit = 0, poly_group_id = 1;
+
+			/* Find first bit available! */
+			for (; (poly_group_id & bit_poly_group_mask) && (gid_bit < 32); gid_bit++) {
+				poly_group_id <<= 1;  /* will 'overflow' on last possible iteration. */
+			}
+			if (UNLIKELY(gid_bit > 31)) {
+				/* All bits used in contiguous smooth groups, we can't do much!
+				 * Note: this is *very* unlikely - theoretically, four groups are enough, I don't think we can reach
+				 *       this goal with such a simple algo, but I don't think either we'll never need all 32 groups!
+				 */
+				printf("Warning, could not find an available id for current smooth group, faces will me marked "
+				       "as out of any smooth group...\n");
+				poly_group_id = poly_group_id_overflowed; /* Can't use 0, will have to set them to this value later. */
+				group_id_overflow = true;
+			}
+			if (gid_bit > tot_group) {
+				tot_group = gid_bit;
+			}
+			/* And assign the final smooth group id to that poly group! */
+			for (i = ps_end_idx, p = poly_stack; i--; p++) {
+				poly_groups[*p] = poly_group_id;
+			}
+		}
+	}
+
+	if (UNLIKELY(group_id_overflow)) {
+		int i = totpoly, *gid = poly_groups;
+		for (; i--; gid++) {
+			if (*gid == poly_group_id_overflowed) {
+				*gid = 0;
 			}
 		}
 	}
@@ -3401,9 +3448,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 	MEM_freeN(edge_poly_mem);
 	MEM_freeN(poly_stack);
 
-	STACK_FREE(poly_stack);
-
-	*r_totgroup = poly_group_id;
+	*r_totgroup = tot_group + 1;
 
 	return poly_groups;
 }
