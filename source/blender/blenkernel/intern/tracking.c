@@ -1303,6 +1303,25 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track, float 
 
 /*********************** Plane Track *************************/
 
+static void plane_tracks_replace_point_track(ListBase *plane_tracks,
+                                             MovieTrackingTrack *old_track,
+                                             MovieTrackingTrack *new_track)
+{
+	MovieTrackingPlaneTrack *plane_track;
+
+	for (plane_track = plane_tracks->first;
+	    plane_track;
+	    plane_track = plane_track->next)
+	{
+		int i;
+		for (i = 0; i < plane_track->point_tracksnr; i++) {
+			if (plane_track->point_tracks[i] == old_track) {
+				plane_track->point_tracks[i] = new_track;
+			}
+		}
+	}
+}
+
 /* Creates new plane track out of selected point tracks */
 MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking, ListBase *plane_tracks_base,
                                                       ListBase *tracks, int framenr)
@@ -2367,17 +2386,19 @@ static void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *c
 	map->ptr++;
 }
 
+/* TODO(sergey): Make it so tracks are not re-allocating here */
 static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	MovieTrackingTrack *rot_track = tracking->stabilization.rot_track;
 	ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
-	ListBase *old_tracks;
+	ListBase *old_tracks, *plane_tracks;
 	int a;
 
 	if (map->is_camera) {
 		old_tracks = &tracking->tracks;
+		plane_tracks = &tracking->plane_tracks;
 	}
 	else {
 		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
@@ -2388,6 +2409,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		}
 
 		old_tracks = &object->tracks;
+		plane_tracks = &object->plane_tracks;
 	}
 
 	/* duplicate currently operating tracks to temporary list.
@@ -2396,48 +2418,40 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 	 */
 	for (a = 0; a < map->num_tracks; a++) {
 		int replace_sel = 0, replace_rot = 0;
-		MovieTrackingTrack *new_track, *old;
+		MovieTrackingTrack *new_track, *old_track;
 
 		track = &map->tracks[a];
 
+		new_track = tracking_track_duplicate(track);
+
 		/* find original of operating track in list of previously displayed tracks */
-		old = BLI_ghash_lookup(map->hash, track);
-		if (old) {
-			MovieTrackingTrack *cur = old_tracks->first;
+		old_track = BLI_ghash_lookup(map->hash, track);
+		if (old_track) {
+			if (BLI_findindex(old_tracks->first, old_track) != -1) {
+				/* Update active track in movie clip. */
+				if (old_track == act_track) {
+					tracking->act_track = new_track;
+				}
 
-			while (cur) {
-				if (cur == old)
-					break;
+				/* Update track used for rotation stabilization. */
+				if (old_track == rot_track) {
+					tracking->stabilization.rot_track = new_track;
+				}
 
-				cur = cur->next;
-			}
+				new_track->flag = track->flag = old_track->flag;
+				new_track->pat_flag = track->pat_flag = old_track->pat_flag;
+				new_track->search_flag = track->search_flag = old_track->search_flag;
 
-			/* original track was found, re-use flags and remove this track */
-			if (cur) {
-				if (cur == act_track)
-					replace_sel = 1;
-				if (cur == rot_track)
-					replace_rot = 1;
+				plane_tracks_replace_point_track(plane_tracks, old_track, new_track);
 
-				track->flag = cur->flag;
-				track->pat_flag = cur->pat_flag;
-				track->search_flag = cur->search_flag;
-
-				BKE_tracking_track_free(cur);
-				BLI_freelinkN(old_tracks, cur);
+				BKE_tracking_track_free(old_track);
+				BLI_freelinkN(old_tracks, old_track);
 			}
 		}
 
-		new_track = tracking_track_duplicate(track);
-
-		BLI_ghash_remove(map->hash, track, NULL, NULL); /* XXX: are we actually need this */
+		/* Update old-new track mapping */
+		BLI_ghash_remove(map->hash, track, NULL, NULL);
 		BLI_ghash_insert(map->hash, track, new_track);
-
-		if (replace_sel)  /* update current selection in clip */
-			tracking->act_track = new_track;
-
-		if (replace_rot)  /* update track used for rotation stabilization */
-			tracking->stabilization.rot_track = new_track;
 
 		BLI_addtail(&tracks, new_track);
 	}
