@@ -62,6 +62,7 @@ EdgeHashIterator   *BLI_edgehashIterator_new(EdgeHash *eh) ATTR_MALLOC ATTR_WARN
 void                BLI_edgehashIterator_free(EdgeHashIterator *ehi);
 void                BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *v0_r, unsigned int *v1_r);
 void               *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) ATTR_WARN_UNUSED_RESULT;
+void              **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi) ATTR_WARN_UNUSED_RESULT;
 void                BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val);
 void                BLI_edgehashIterator_step(EdgeHashIterator *ehi);
 bool                BLI_edgehashIterator_isDone(EdgeHashIterator *ehi) ATTR_WARN_UNUSED_RESULT;

@@ -602,6 +602,18 @@ void *BLI_ghashIterator_getValue(GHashIterator *ghi)
 }
 
 /**
+ * Retrieve the value from an iterator.
+ *
+ * \param ghi The iterator.
+ * \return The value at the current index, or NULL if the
+ * iterator is done.
+ */
+void **BLI_ghashIterator_getValue_p(GHashIterator *ghi)
+{
+	return ghi->curEntry ? &ghi->curEntry->val : NULL;
+}
+
+/**
  * Steps the iterator to the next index.
  *
  * \param ghi The iterator.

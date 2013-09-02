@@ -86,6 +86,7 @@ void           BLI_ghashIterator_free(GHashIterator *ghi);
 
 void          *BLI_ghashIterator_getKey(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
 void          *BLI_ghashIterator_getValue(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+void         **BLI_ghashIterator_getValue_p(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
 
 void           BLI_ghashIterator_step(GHashIterator *ghi);
 bool           BLI_ghashIterator_done(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;

@@ -484,6 +484,14 @@ void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
 }
 
 /**
+ * Retrieve the pointer to the value from an iterator.
+ */
+void **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi)
+{
+	return ehi->curEntry ? &ehi->curEntry->val : NULL;
+}
+
+/**
  * Set the value for an iterator.
  */
 void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
