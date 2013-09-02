@@ -42,8 +42,6 @@ extern struct bNodeTreeType *ntreeType_Texture;
 void register_node_tree_type_tex(void);
 
 void register_node_type_tex_group(void);
-void register_node_type_tex_forloop(void);
-void register_node_type_tex_whileloop(void);
 
 void register_node_type_tex_math(void);
 void register_node_type_tex_mix_rgb(void);

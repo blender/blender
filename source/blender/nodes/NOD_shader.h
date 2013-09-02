@@ -43,8 +43,6 @@ extern struct bNodeTreeType *ntreeType_Shader;
 void register_node_tree_type_sh(void);
 
 void register_node_type_sh_group(void);
-void register_node_type_sh_forloop(void);
-void register_node_type_sh_whileloop(void);
 
 void register_node_type_sh_output(void);
 void register_node_type_sh_material(void);
