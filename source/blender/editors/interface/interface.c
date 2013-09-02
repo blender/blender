@@ -1807,12 +1807,14 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
 	int unit_type = RNA_SUBTYPE_UNIT_VALUE(uiButGetUnitType(but));
-	float step;
+	double step;
 
 	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, step_default), but->block->unit->system, unit_type);
 
-	if (step > 0.0f) { /* -1 is an error value */
-		return (float)((double)step / ui_get_but_scale_unit(but, 1.0)) * 100.0f;
+	/* -1 is an error value */
+	if (step != -1.0) {
+		BLI_assert(step > 0.0);
+		return (float)(step / ui_get_but_scale_unit(but, 1.0)) * 100.0f;
 	}
 	else {
 		return step_default;

@@ -2781,7 +2781,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_ui_range(prop, 0, -M_PI * 2, M_PI * 2, 2);
+	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 2, -1);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
