@@ -665,6 +665,8 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
                          const void *element, const void *data)
 {
+	(void) op;  /* Ignored in release builds. */
+
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 	BMO_ASSERT_SLOT_IN_OP(slot, op);
 
