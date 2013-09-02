@@ -417,33 +417,41 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
-	IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
+	if (ibuf->rect_float) {
+		IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
+	}
 }
 
 void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_float)
 {
 	const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
 	const char *to_colorspace = scene->sequencer_colorspace_settings.name;
+	const char *float_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
 
 	if (!ibuf->rect_float) {
-		if (make_float && ibuf->rect) {
-			/* when converting byte buffer to float in sequencer we need to make float
-			 * buffer be in sequencer's working space, which is currently only doable
-			 * from linear space.
-			 *
-			 */
+		if (ibuf->rect) {
+			const char *byte_colorspace = IMB_colormanagement_get_rect_colorspace(ibuf);
+			if (make_float || !STREQ(to_colorspace, byte_colorspace)) {
+				/* If byte space is not in sequencer's working space, we deliver float color space,
+				 * this is to to prevent data loss.
+				 */
 
-			/*
-			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
-			 */
+				/* when converting byte buffer to float in sequencer we need to make float
+				 * buffer be in sequencer's working space, which is currently only doable
+				 * from linear space.
+				 */
 
-			IMB_float_from_rect(ibuf);
+				/*
+				 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
+				 */
+
+				IMB_float_from_rect(ibuf);
+			}
+			else {
+				return;
+			}
 		}
 		else {
-			/* if there's only byte buffer in image it's already in compositor's working space,
-			 * nothing to do here
-			 */
-
 			return;
 		}
 	}
@@ -452,8 +460,10 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
 
-		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                       from_colorspace, to_colorspace, TRUE);
+		if (!STREQ(float_colorspace, to_colorspace)) {
+			IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+			                                       from_colorspace, to_colorspace, TRUE);
+		}
 	}
 }
 
@@ -2667,6 +2677,8 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 				ibuf = IMB_anim_absolute(seq->anim, nr + seq->anim_startofs,
 				                         seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
 				                         seq_rendersize_to_proxysize(context.preview_render_size));
+
+				BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 
 				/* we don't need both (speed reasons)! */
 				if (ibuf && ibuf->rect_float && ibuf->rect)
