@@ -602,6 +602,44 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	}
 }
 
+void BMO_mesh_selected_remap(BMesh *bm,
+                             BMOpSlot *slot_vert_map,
+                             BMOpSlot *slot_edge_map,
+                             BMOpSlot *slot_face_map)
+{
+	if (bm->selected.first) {
+		BMEditSelection *ese, *ese_next;
+		BMOpSlot *slot_elem_map;
+
+		for (ese = bm->selected.first; ese; ese = ese_next) {
+			ese_next = ese->next;
+
+			switch (ese->htype) {
+				case BM_VERT: slot_elem_map = slot_vert_map; break;
+				case BM_EDGE: slot_elem_map = slot_edge_map; break;
+				default:      slot_elem_map = slot_face_map; break;
+			}
+
+			ese->ele = BMO_slot_map_elem_get(slot_elem_map, ese->ele);
+
+			if (UNLIKELY((ese->ele == NULL) ||
+			             (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false)))
+			{
+				BLI_remlink(&bm->selected, ese);
+				MEM_freeN(ese);
+			}
+		}
+	}
+
+	if (bm->act_face) {
+		BMFace *f = BMO_slot_map_elem_get(slot_face_map, bm->act_face);
+		if (f) {
+			bm->act_face = f;
+		}
+	}
+}
+
+
 int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);

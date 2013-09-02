@@ -75,6 +75,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
  * Copy an existing edge from one bmesh to another.
  */
 static BMEdge *bmo_edge_copy(BMOperator *op,
+                             BMOpSlot *slot_edgemap_out,
                              BMOpSlot *slot_boundarymap_out,
                              BMesh *bm_dst, BMesh *bm_src,
                              BMEdge *e_src,
@@ -105,7 +106,9 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
 	
 	/* Create a new edge */
 	e_dst = BM_edge_create(bm_dst, e_dst_v1, e_dst_v2, NULL, BM_CREATE_SKIP_CD);
-	
+	BMO_slot_map_elem_insert(op, slot_edgemap_out, e_src, e_dst);
+	BMO_slot_map_elem_insert(op, slot_edgemap_out, e_dst, e_src);
+
 	/* add to new/old edge map if necassary */
 	if (rlen < 2) {
 		/* not sure what non-manifold cases of greater then three
@@ -192,8 +195,10 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 
 	BMOpSlot *slot_boundary_map_out = BMO_slot_get(op->slots_out, "boundary_map.out");
 	BMOpSlot *slot_isovert_map_out  = BMO_slot_get(op->slots_out, "isovert_map.out");
-	BMOpSlot *slot_face_map_out     = BMO_slot_get(op->slots_out, "face_map.out");
-	BMOpSlot *slot_vert_map_out     = BMO_slot_get(op->slots_out, "vert_map.out");
+
+	BMOpSlot *slot_vert_map_out = BMO_slot_get(op->slots_out, "vert_map.out");
+	BMOpSlot *slot_edge_map_out = BMO_slot_get(op->slots_out, "edge_map.out");
+	BMOpSlot *slot_face_map_out = BMO_slot_get(op->slots_out, "face_map.out");
 
 	/* initialize pointer hashes */
 	vhash = BLI_ghash_ptr_new("bmesh dupeops v");
@@ -248,7 +253,8 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 				BMO_elem_flag_enable(bm_src, e->v2, DUPE_DONE);
 			}
 			/* now copy the actual edge */
-			bmo_edge_copy(op, slot_boundary_map_out, bm_dst, bm_src, e, vhash, ehash);
+			bmo_edge_copy(op, slot_edge_map_out, slot_boundary_map_out,
+			              bm_dst, bm_src, e, vhash, ehash);
 			BMO_elem_flag_enable(bm_src, e, DUPE_DONE);
 		}
 	}
@@ -267,7 +273,8 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
 			/* edge pass */
 			BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
 				if (!BMO_elem_flag_test(bm_src, e, DUPE_DONE)) {
-					bmo_edge_copy(op, slot_boundary_map_out, bm_dst, bm_src, e, vhash, ehash);
+					bmo_edge_copy(op, slot_edge_map_out, slot_boundary_map_out,
+					              bm_dst, bm_src, e, vhash, ehash);
 					BMO_elem_flag_enable(bm_src, e, DUPE_DONE);
 				}
 			}

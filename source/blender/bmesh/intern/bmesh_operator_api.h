@@ -335,6 +335,11 @@ void BMO_slot_mat3_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, const short oflag);
 
+void BMO_mesh_selected_remap(BMesh *bm,
+                             BMOpSlot *slot_vert_map,
+                             BMOpSlot *slot_edge_map,
+                             BMOpSlot *slot_face_map);
+
 /* copies the values from another slot to the end of the output slot */
 #define BMO_slot_buffer_append(op_src, slots_src, slot_name_src,              \
                                op_dst, slots_dst, slot_name_dst)              \

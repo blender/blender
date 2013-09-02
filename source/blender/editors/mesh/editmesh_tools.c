@@ -892,14 +892,30 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
+	BMesh *bm = em->bm;
 	BMOperator bmop;
+	ListBase bm_selected_store = {NULL, NULL};
+
+	/* de-select all would clear otherwise */
+	SWAP(ListBase, bm->selected, bm_selected_store);
 
 	EDBM_op_init(em, &bmop, op, "duplicate geom=%hvef", BM_ELEM_SELECT);
 	
-	BMO_op_exec(em->bm, &bmop);
+	BMO_op_exec(bm, &bmop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+	/* rebuild editselection */
+	bm->selected = bm_selected_store;
+
+	if (bm->selected.first) {
+		BMOpSlot *slot_vert_map_out = BMO_slot_get(bmop.slots_out, "vert_map.out");
+		BMOpSlot *slot_edge_map_out = BMO_slot_get(bmop.slots_out, "edge_map.out");
+		BMOpSlot *slot_face_map_out = BMO_slot_get(bmop.slots_out, "face_map.out");
+
+		BMO_mesh_selected_remap(bm, slot_vert_map_out, slot_edge_map_out, slot_face_map_out);
+	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
