@@ -3312,12 +3312,12 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
  * Calculate smooth groups from sharp edges.
  *
  * \param r_totgroup The total number of groups, 1 or more.
- * \return Polygon aligned array of group index values (bitflags, starting at 1).
+ * \return Polygon aligned array of group index values (bitflags if use_bitflags is true), starting at 1.
  */
 int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
                                 const MPoly *mpoly, const int totpoly,
                                 const MLoop *mloop, const int totloop,
-                                int *r_totgroup)
+                                int *r_totgroup, const bool use_bitflags)
 {
 	int *poly_groups;
 	int *poly_stack;
@@ -3348,6 +3348,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 	while (true) {
 		int poly;
 		int bit_poly_group_mask = 0;
+		int poly_group_id;
 		int ps_curr_idx = 0, ps_end_idx = 0;  /* stack indices */
 
 		for (poly = poly_prev; poly < totpoly; poly++) {
@@ -3361,10 +3362,12 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 			break;
 		}
 
+		poly_group_id = use_bitflags ? temp_poly_group_id : ++tot_group;
+
 		/* start searching from here next time */
 		poly_prev = poly + 1;
 
-		poly_groups[poly] = temp_poly_group_id;
+		poly_groups[poly] = poly_group_id;
 		poly_stack[ps_end_idx++] = poly;
 
 		while (ps_curr_idx != ps_end_idx) {
@@ -3373,7 +3376,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 			int j;
 
 			poly = poly_stack[ps_curr_idx++];
-			BLI_assert(poly_groups[poly] == temp_poly_group_id);
+			BLI_assert(poly_groups[poly] == poly_group_id);
 
 			mp = &mpoly[poly];
 			for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
@@ -3384,19 +3387,19 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 				if (!(medge[ml->e].flag & ME_SHARP)) {
 					for (; i--; p++) {
 						/* if we meet other non initialized its a bug */
-						BLI_assert(ELEM(poly_groups[*p], 0, temp_poly_group_id));
+						BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
 
 						if (poly_groups[*p] == 0) {
-							poly_groups[*p] = temp_poly_group_id;
+							poly_groups[*p] = poly_group_id;
 							poly_stack[ps_end_idx++] = *p;
 						}
 					}
 				}
-				else {
+				else if (use_bitflags) {
 					/* Find contiguous smooth groups already assigned, these are the values we can't reuse! */
 					for (; i--; p++) {
 						int bit = poly_groups[*p];
-						if (!ELEM3(bit, 0, temp_poly_group_id, poly_group_id_overflowed) &&
+						if (!ELEM3(bit, 0, poly_group_id, poly_group_id_overflowed) &&
 						    !(bit_poly_group_mask & bit))
 						{
 							bit_poly_group_mask |= bit;
@@ -3408,8 +3411,9 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 		/* And now, we have all our poly from current group in poly_stack (from 0 to (ps_end_idx - 1)), as well as
 		 * all smoothgroups bits we can't use in bit_poly_group_mask.
 		 */
-		{
-			int i, *p, gid_bit = 0, poly_group_id = 1;
+		if (use_bitflags) {
+			int i, *p, gid_bit = 0;
+			poly_group_id = 1;
 
 			/* Find first bit available! */
 			for (; (poly_group_id & bit_poly_group_mask) && (gid_bit < 32); gid_bit++) {

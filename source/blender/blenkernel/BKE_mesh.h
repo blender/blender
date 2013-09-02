@@ -108,7 +108,7 @@ void BKE_mesh_calc_poly_angles(struct MPoly *mpoly, struct MLoop *loopstart,
 int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge, const int totedge,
                                 const struct MPoly *mpoly, const int totpoly,
                                 const struct MLoop *mloop, const int totloop,
-                                int *r_totgroup);
+                                int *r_totgroup, const bool use_bitflags);
 
 void BKE_mesh_calc_relative_deform(
         const struct MPoly *mpoly, const int totpoly,
