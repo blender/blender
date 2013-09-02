@@ -2417,7 +2417,6 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 	 * of currently operating tracks (if needed)
 	 */
 	for (a = 0; a < map->num_tracks; a++) {
-		int replace_sel = 0, replace_rot = 0;
 		MovieTrackingTrack *new_track, *old_track;
 
 		track = &map->tracks[a];

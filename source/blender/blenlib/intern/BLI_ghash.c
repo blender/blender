@@ -238,7 +238,7 @@ BLI_INLINE void ghash_insert_ex_keyonly(GHash *gh, void *key,
 BLI_INLINE void ghash_insert(GHash *gh, void *key, void *val)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
-	return ghash_insert_ex(gh, key, val, hash);
+	ghash_insert_ex(gh, key, val, hash);
 }
 
 /**
