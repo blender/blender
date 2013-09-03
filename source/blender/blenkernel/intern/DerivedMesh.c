@@ -2741,11 +2741,9 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					int offs = 0;  /* initial triangulation is 0,1,2 and 0, 2, 3 */
 					if (nr_verts == 4) {
 						float pos_len_diag0, pos_len_diag1;
-						float vtmp[3];
-						sub_v3_v3v3(vtmp, verts[2], verts[0]);
-						pos_len_diag0 = dot_v3v3(vtmp, vtmp);
-						sub_v3_v3v3(vtmp, verts[3], verts[1]);
-						pos_len_diag1 = dot_v3v3(vtmp, vtmp);
+
+						pos_len_diag0 = len_squared_v3v3(verts[2], verts[0]);
+						pos_len_diag1 = len_squared_v3v3(verts[3], verts[1]);
 
 						if (pos_len_diag1 < pos_len_diag0) {
 							offs = 1;     // alter split
@@ -2753,10 +2751,8 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						else if (pos_len_diag0 == pos_len_diag1) { /* do UV check instead */
 							float tex_len_diag0, tex_len_diag1;
 
-							sub_v2_v2v2(vtmp, tex_coords[2], tex_coords[0]);
-							tex_len_diag0 = dot_v2v2(vtmp, vtmp);
-							sub_v2_v2v2(vtmp, tex_coords[3], tex_coords[1]);
-							tex_len_diag1 = dot_v2v2(vtmp, vtmp);
+							tex_len_diag0 = len_squared_v2v2(tex_coords[2], tex_coords[0]);
+							tex_len_diag1 = len_squared_v2v2(tex_coords[3], tex_coords[1]);
 
 							if (tex_len_diag1 < tex_len_diag0) {
 								offs = 1; /* alter split */
@@ -2765,7 +2761,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					}
 					nr_tris_to_pile = nr_verts - 2;
 					if (nr_tris_to_pile == 1 || nr_tris_to_pile == 2) {
-						const int indices[] = {offs + 0, offs + 1, offs + 2, offs + 0, offs + 2, (offs + 3) & 0x3 };
+						const int indices[6] = {offs + 0, offs + 1, offs + 2, offs + 0, offs + 2, (offs + 3) & 0x3 };
 						int t;
 						for (t = 0; t < nr_tris_to_pile; t++) {
 							float f2x_area_uv;
@@ -2785,7 +2781,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 								cross_v3_v3v3(norm, v0, v1);
 
 								f2x_surf_area = len_v3(norm);
-								fsurf_ratio = f2x_surf_area / f2x_area_uv;    // tri area divided by texture area
+								fsurf_ratio = f2x_surf_area / f2x_area_uv;  /* tri area divided by texture area */
 
 								nr_accumulated++;
 								dsum += (double)(fsurf_ratio);
