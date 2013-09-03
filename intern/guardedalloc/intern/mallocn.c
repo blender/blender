@@ -37,9 +37,6 @@
 #include <stdarg.h>
 #include <sys/types.h>
 
-/* to ensure strict conversions */
-#include "../../source/blender/blenlib/BLI_strict_flags.h"
-
 /* mmap exception */
 #if defined(WIN32)
 #  include "mmap_win.h"
@@ -58,6 +55,10 @@
 #endif
 
 #include "MEM_guardedalloc.h"
+
+/* to ensure strict conversions */
+#include "../../source/blender/blenlib/BLI_strict_flags.h"
+
 
 /* should always be defined except for experimental cases */
 #ifdef WITH_GUARDEDALLOC

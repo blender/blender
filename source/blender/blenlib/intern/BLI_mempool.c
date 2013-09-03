@@ -36,13 +36,15 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_strict_flags.h"
 
 #include "BLI_mempool.h" /* own include */
 
 #include "DNA_listBase.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_strict_flags.h"  /* keep last */
+
 
 /* note: copied from BLO_blend_defs.h, don't use here because we're in BLI */
 #ifdef __BIG_ENDIAN__

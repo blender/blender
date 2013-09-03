@@ -43,10 +43,11 @@
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
-#include "BLI_strict_flags.h"
 
 #include "bmesh.h"
 #include "bmesh_bisect_plane.h"  /* own include */
+
+#include "BLI_strict_flags.h"  /* keep last */
 
 
 /* -------------------------------------------------------------------- */
