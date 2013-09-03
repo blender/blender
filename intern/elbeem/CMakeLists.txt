@@ -106,10 +106,6 @@ add_definitions(
 	-DNEWDIRVELMOTEST=0
 )
 
-if(WINDOWS)
-	add_definitions(-DUSE_MSVC6FIXES)
-endif()
-
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 else()
