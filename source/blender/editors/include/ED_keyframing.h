@@ -222,6 +222,7 @@ short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
 /* Flags for use by driver creation calls */
 typedef enum eCreateDriverFlags {
 	CREATEDRIVER_WITH_DEFAULT_DVAR  = (1 << 0),   /* create drivers with a default variable for nicer UI */
+	CREATEDRIVER_WITH_FMODIFIER     = (1 << 1),   /* create drivers with Generator FModifier (for backwards compat) */
 } eCreateDriverFlags;
 
 /* -------- */

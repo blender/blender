@@ -75,7 +75,8 @@ void free_anim_drivers_copybuf(void);
  * for the given Animation Data block. This assumes that all the destinations are valid.
  *	
  *	- add:	0 - don't add anything if not found, 
- *			1 - add new Driver FCurve, 
+ *			1 - add new Driver FCurve (with keyframes for visual tweaking),
+ *			2 - add new Driver FCurve (with generator, for script backwards compatability) 
  *			-1 - add new Driver FCurve without driver stuff (for pasting)
  */
 FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_index, short add)
@@ -114,11 +115,38 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 		
 		/* if add is negative, don't init this data yet, since it will be filled in by the pasted driver */
 		if (add > 0) {
+			BezTriple *bezt;
+			size_t i;
+			
 			/* add some new driver data */
 			fcu->driver = MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
+			fcu->driver->flag |= DRIVER_FLAG_SHOWDEBUG;
 			
-			/* add simple generator modifier for driver so that there is some visible representation */
-			add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+			/* F-Modifier or Keyframes? */
+			// FIXME: replace these magic numbers with defines
+			if (add == 2) {
+				/* Python API Backwards compatability hack:
+				 * Create FModifier so that old scripts won't break
+				 * for now before 2.7 series -- (September 4, 2013)
+				 */
+				add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+			}
+			else {
+				/* add 2 keyframes so that user has something to work with 
+				 * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
+				 *   which can be easily tweaked from there.
+				 */
+				insert_vert_fcurve(fcu, 0.0f, 0.0f, INSERTKEY_FAST);
+				insert_vert_fcurve(fcu, 1.0f, 1.0f, INSERTKEY_FAST);
+				
+				/* configure this curve to extrapolate */
+				for (i = 0, bezt = fcu->bezt;  (i < fcu->totvert) && bezt;  i++, bezt++) {
+					bezt->h1 = bezt->h2 = HD_VECT;
+				}
+				
+				fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
+				calchandles_fcurve(fcu);
+			}
 		}
 		
 		/* just add F-Curve to end of driver list */
@@ -166,8 +194,10 @@ short ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
+		short add_mode = (flag & CREATEDRIVER_WITH_FMODIFIER) ? 2 : 1;
+		
 		/* create F-Curve with Driver */
-		fcu = verify_driver_fcurve(id, rna_path, array_index, 1);
+		fcu = verify_driver_fcurve(id, rna_path, array_index, add_mode);
 		
 		if (fcu && fcu->driver) {
 			ChannelDriver *driver = fcu->driver;

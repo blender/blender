@@ -256,7 +256,7 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 				dst->f1 = bezt->f1;
 				dst->f2 = bezt->f2;
 				dst->f3 = bezt->f3;
-
+				
 				/* TODO: perform some other operations? */
 			}
 		}
