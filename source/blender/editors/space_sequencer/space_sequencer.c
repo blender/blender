@@ -491,6 +491,7 @@ static void sequencer_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa
 				case ND_MARKERS:
 				case ND_RENDER_OPTIONS: /* for FPS and FPS Base */
 				case ND_SEQUENCER:
+				case ND_RENDER_RESULT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
