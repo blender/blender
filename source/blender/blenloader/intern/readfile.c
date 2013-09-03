@@ -10949,12 +10949,13 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 	for (group = mainvar->group.first; group; group = group->id.next) {
 		if (group->id.flag & LIB_DOIT) {
 			Base *base;
+			Object *ob;
 
 			/* any indirect group should not have been tagged */
 			BLI_assert((group->id.flag & LIB_INDIRECT)==0);
 			
 			/* BKE_object_add(...) messes with the selection */
-			Object *ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name + 2);
+			ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name + 2);
 			ob->type = OB_EMPTY;
 			ob->lay = scene->lay;
 			
