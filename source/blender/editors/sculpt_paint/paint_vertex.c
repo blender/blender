@@ -919,15 +919,13 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 	                                   co, co_ss,
 	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
-		float delta[2];
-		float dist_squared;
-		float factor = 1.0;
+		const float dist_squared = len_squared_v2v2(mval, co_ss);
 
-		sub_v2_v2v2(delta, mval, co_ss);
-		dist_squared = dot_v2v2(delta, delta); /* len squared */
 		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = BKE_paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_squared);
+			float factor;
+
 			if (brush->mtex.tex && rgba) {
 				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
 					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
@@ -937,6 +935,9 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
 				}
 				factor = rgba[3];
+			}
+			else {
+				factor = 1.0f;
 			}
 			return factor * BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 		}

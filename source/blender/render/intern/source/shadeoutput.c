@@ -1191,8 +1191,8 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		float visifac= 1.0f, t;
 		
 		sub_v3_v3v3(lv, co, lar->co);
-		*dist= sqrtf(dot_v3v3(lv, lv));
-		t= 1.0f/dist[0];
+		*dist = len_v3(lv);
+		t = 1.0f / (*dist);
 		mul_v3_fl(lv, t);
 		
 		/* area type has no quad or sphere option */

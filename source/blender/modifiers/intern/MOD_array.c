@@ -402,7 +402,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* calculate the maximum number of copies which will fit within the
 	 * prescribed length */
 	if (amd->fit_type == MOD_ARR_FITLENGTH || amd->fit_type == MOD_ARR_FITCURVE) {
-		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
+		float dist = len_v3(offset[3]);
 
 		if (dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
