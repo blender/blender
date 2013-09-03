@@ -2900,19 +2900,24 @@ static void tracking_configure_tracker(const MovieTrackingTrack *track, float *m
 static bool tracking_check_marker_margin(MovieTrackingTrack *track, MovieTrackingMarker *marker,
                                          int frame_width, int frame_height)
 {
-	float pat_min[2], pat_max[2], dim[2], margin[2];
+	float pat_min[2], pat_max[2];
+	float margin_left, margin_top, margin_right, margin_bottom;
+	float normalized_track_margin[2];
 
 	/* margin from frame boundaries */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
-	sub_v2_v2v2(dim, pat_max, pat_min);
-	margin[0] = margin[1] = max_ff(dim[0], dim[1]) / 2.0f;
 
-	margin[0] = max_ff(margin[0], (float)track->margin / frame_width);
-	margin[1] = max_ff(margin[1], (float)track->margin / frame_height);
+	normalized_track_margin[0] = (float)track->margin / frame_width;
+	normalized_track_margin[1] = (float)track->margin / frame_height;
+
+	margin_left   = max_ff(-pat_min[0], normalized_track_margin[0]);
+	margin_top    = max_ff( pat_max[1], normalized_track_margin[1]);
+	margin_right  = max_ff( pat_max[0], normalized_track_margin[0]);
+	margin_bottom = max_ff(-pat_min[1], normalized_track_margin[1]);
 
 	/* do not track markers which are too close to boundary */
-	if (marker->pos[0] < margin[0] || marker->pos[0] > 1.0f - margin[0] ||
-	    marker->pos[1] < margin[1] || marker->pos[1] > 1.0f - margin[1])
+	if (marker->pos[0] < margin_left || marker->pos[0] > 1.0f - margin_right ||
+	    marker->pos[1] < margin_bottom || marker->pos[1] > 1.0f - margin_top)
 	{
 		return false;
 	}
