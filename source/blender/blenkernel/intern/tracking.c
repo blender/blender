@@ -2426,7 +2426,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		/* find original of operating track in list of previously displayed tracks */
 		old_track = BLI_ghash_lookup(map->hash, track);
 		if (old_track) {
-			if (BLI_findindex(old_tracks->first, old_track) != -1) {
+			if (BLI_findindex(old_tracks, old_track) != -1) {
 				/* Update active track in movie clip. */
 				if (old_track == act_track) {
 					tracking->act_track = new_track;
