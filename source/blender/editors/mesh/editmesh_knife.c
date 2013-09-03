@@ -1320,6 +1320,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 					hit.kfe = kfe;
 					hit.v = NULL;
+					hit.l = 0.0f;
 
 					knife_find_basef(kfe);
 					hit.f = kfe->basef;
@@ -1694,7 +1695,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 		if (fptr)
 			*fptr = f;
 
-		if (cure && p) {
+		if (cure) {
 			if (!kcd->ignore_edge_snapping || !(cure->e)) {
 				KnifeVert *edgesnap = NULL;
 
@@ -1787,7 +1788,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 			if (fptr)
 				*fptr = f;
 
-			if (curv && p) {
+			if (curv) {
 				copy_v3_v3(p, curv->co);
 				copy_v3_v3(cagep, curv->cageco);
 
@@ -2725,7 +2726,7 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 			BM_edge_select_set(bm, l_new->e, true);
 		}
 	}
-	else {
+	else if (f_new) {
 		BM_elem_select_copy(bm, bm, f_new, f);
 	}
 
