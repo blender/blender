@@ -203,7 +203,7 @@ public:
 	BsdfNode(bool scattering = false);
 	SHADER_NODE_BASE_CLASS(BsdfNode);
 
-	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL);
+	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL, ShaderInput *param4 = NULL);
 
 	ClosureType closure;
 	bool scattering;

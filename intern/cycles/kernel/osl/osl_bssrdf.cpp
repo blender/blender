@@ -56,10 +56,8 @@ public:
 
 	void setup()
 	{
-		sc.type = CLOSURE_BSSRDF_COMPATIBLE_ID;
-		sc.prim = NULL;
+		sc.type = CLOSURE_BSSRDF_CUBIC_ID;
 		sc.data0 = fabsf(average(radius));
-		sc.data1 = 0.0f; // XXX texture blur
 	}
 
 	bool mergeable(const ClosurePrimitive *other) const
@@ -85,6 +83,19 @@ ClosureParam *closure_bssrdf_cubic_params()
 	return params;
 }
 
+ClosureParam *closure_bssrdf_cubic_extended_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(CubicBSSRDFClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(CubicBSSRDFClosure, radius),
+		CLOSURE_FLOAT_PARAM(CubicBSSRDFClosure, sc.data1),
+		CLOSURE_FLOAT_PARAM(CubicBSSRDFClosure, sc.T.x),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(CubicBSSRDFClosure)
+	};
+	return params;
+}
+
 CLOSURE_PREPARE(closure_bssrdf_cubic_prepare, CubicBSSRDFClosure)
 
 /* Gaussian */
@@ -97,9 +108,7 @@ public:
 	void setup()
 	{
 		sc.type = CLOSURE_BSSRDF_GAUSSIAN_ID;
-		sc.prim = NULL;
 		sc.data0 = fabsf(average(radius));
-		sc.data1 = 0.0f; // XXX texture blurring!
 	}
 
 	bool mergeable(const ClosurePrimitive *other) const
@@ -119,6 +128,18 @@ ClosureParam *closure_bssrdf_gaussian_params()
 		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, sc.N),
 		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, radius),
 		//CLOSURE_FLOAT_PARAM(GaussianBSSRDFClosure, sc.data1),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(GaussianBSSRDFClosure)
+	};
+	return params;
+}
+
+ClosureParam *closure_bssrdf_gaussian_extended_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, radius),
+		CLOSURE_FLOAT_PARAM(GaussianBSSRDFClosure, sc.data1),
 	    CLOSURE_STRING_KEYPARAM("label"),
 	    CLOSURE_FINISH_PARAM(GaussianBSSRDFClosure)
 	};

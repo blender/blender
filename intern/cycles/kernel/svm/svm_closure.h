@@ -108,13 +108,13 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 	if(mix_weight == 0.0f)
 		return;
 
-	float3 N = stack_valid(data_node.y)? stack_load_float3(stack, data_node.y): sd->N; 
+	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N; 
 #else
 	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
 	float mix_weight = 1.0f;
 
 	uint4 data_node = read_node(kg, offset);
-	float3 N = stack_valid(data_node.y)? stack_load_float3(stack, data_node.y): sd->N; 
+	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N; 
 #endif
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
@@ -279,10 +279,10 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 				sc->N = N;
 
 #ifdef __ANISOTROPIC__
-				sc->T = stack_load_float3(stack, data_node.z);
+				sc->T = stack_load_float3(stack, data_node.y);
 
 				/* rotate tangent */
-				float rotation = stack_load_float(stack, data_node.w);
+				float rotation = stack_load_float(stack, data_node.z);
 
 				if(rotation != 0.0f)
 					sc->T = rotate_around_axis(sc->T, sc->N, rotation * M_2PI_F);
@@ -353,7 +353,9 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 
 			if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
 				/* radius * scale */
-				float3 radius = stack_load_float3(stack, data_node.w)*param1;
+				float3 radius = stack_load_float3(stack, data_node.z)*param1;
+				/* sharpness */
+				float sharpness = stack_load_float(stack, data_node.w);
 				/* texture color blur */
 				float texture_blur = param2;
 
@@ -363,6 +365,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.x;
 					sc->data1 = texture_blur;
+					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif
@@ -378,6 +381,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.y;
 					sc->data1 = texture_blur;
+					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif
@@ -393,6 +397,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.z;
 					sc->data1 = texture_blur;
+					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
 #endif

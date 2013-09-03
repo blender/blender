@@ -31,6 +31,7 @@ __device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 	}
 	else {
 		sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* texture blur */
+		sc->T.x = clamp(sc->T.x, 0.0f, 1.0f); /* sharpness */
 		sc->type = type;
 
 		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
@@ -95,17 +96,49 @@ __device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, floa
 
 __device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
 {
-	const float Rm = sc->data0;
+	const float sharpness = sc->T.x;
 
-	if(r >= Rm)
-		return 0.0f;
-	
-	/* integrate (2*pi*r * 10*(R - r)^3)/(pi * R^5) from 0 to R = 1 */
-	const float Rm5 = (Rm*Rm) * (Rm*Rm) * Rm;
-	const float f = Rm - min(r, Rm);
-	const float f3 = f*f*f;
+	if(sharpness == 0.0f) {
+		const float Rm = sc->data0;
 
-	return (f3 * 10.0f) / (Rm5 * M_PI_F);
+		if(r >= Rm)
+			return 0.0f;
+
+		/* integrate (2*pi*r * 10*(R - r)^3)/(pi * R^5) from 0 to R = 1 */
+		const float Rm5 = (Rm*Rm) * (Rm*Rm) * Rm;
+		const float f = Rm - r;
+		const float num = f*f*f;
+
+		return (10.0f * num) / (Rm5 * M_PI_F);
+
+	}
+	else {
+		float Rm = sc->data0*(1.0f + sharpness);
+
+		if(r >= Rm)
+			return 0.0f;
+
+		/* custom variation with extra sharpness, to match the previous code */
+		const float y = 1.0f/(1.0f + sharpness);
+		float Rmy, ry, ryinv;
+
+		if(sharpness == 1.0f) {
+			Rmy = sqrtf(Rm);
+			ry = sqrtf(r);
+			ryinv = (ry > 0.0f)? 1.0f/ry: 0.0f;
+		}
+		else {
+			Rmy = powf(Rm, y);
+			ry = powf(r, y);
+			ryinv = (r > 0.0f)? powf(r, 2.0f*y - 2.0f): 0.0f;
+		}
+
+		const float Rmy5 = (Rmy*Rmy) * (Rmy*Rmy) * Rmy;
+		const float f = Rmy - ry;
+		const float num = f*(f*f)*(y*ryinv);
+
+		return (10.0f * num) / (Rmy5 * M_PI_F);
+	}
 }
 
 __device float bssrdf_cubic_pdf(ShaderClosure *sc, float r)
@@ -143,9 +176,16 @@ __device float bssrdf_cubic_quintic_root_find(float xi)
 
 __device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
-	const float Rm = sc->data0;
-	const float r_ = bssrdf_cubic_quintic_root_find(xi) * Rm;
+	float Rm = sc->data0;
+	float r_ = bssrdf_cubic_quintic_root_find(xi);
 
+	const float sharpness = sc->T.x;
+	if(sharpness != 0.0f) {
+		r_ = powf(r_, 1.0f + sharpness);
+		Rm *= (1.0f + sharpness);
+	}
+	
+	r_ *= Rm;
 	*r = r_;
 
 	/* h^2 + r^2 = Rm^2 */

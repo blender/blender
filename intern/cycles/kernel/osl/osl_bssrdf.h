@@ -48,7 +48,7 @@ public:
 	ShaderClosure sc;
 	float3 radius;
 
-	CBSSRDFClosure() : OSL::ClosurePrimitive(BSSRDF) { }
+	CBSSRDFClosure() : OSL::ClosurePrimitive(BSSRDF) { memset(&sc, 0, sizeof(sc)); }
 	~CBSSRDFClosure() { }
 
 	int scattering() const { return LABEL_DIFFUSE; }

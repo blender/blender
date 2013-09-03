@@ -52,6 +52,8 @@ OSL::ClosureParam *closure_westin_backscatter_params();
 OSL::ClosureParam *closure_westin_sheen_params();
 OSL::ClosureParam *closure_bssrdf_cubic_params();
 OSL::ClosureParam *closure_bssrdf_gaussian_params();
+OSL::ClosureParam *closure_bssrdf_cubic_extended_params();
+OSL::ClosureParam *closure_bssrdf_gaussian_extended_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);

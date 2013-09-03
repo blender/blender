@@ -2819,6 +2819,15 @@ static void rna_ShaderNodeScript_update(Main *bmain, Scene *scene, PointerRNA *p
 	ED_node_tag_update_nodetree(bmain, ntree);
 }
 
+static void rna_ShaderNodeSubsurface_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+
+	nodeUpdate(ntree, node);
+	rna_Node_update(bmain, scene, ptr);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -3642,7 +3651,7 @@ static void def_sh_subsurface(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, prop_subsurface_falloff_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Function to determine how much light nearby points contribute based on their distance to the shading point");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeSubsurface_update");
 }
 
 static void def_sh_script(StructRNA *srna)

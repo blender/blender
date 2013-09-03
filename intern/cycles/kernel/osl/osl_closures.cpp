@@ -221,6 +221,10 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bssrdf_cubic_params(), closure_bssrdf_cubic_prepare);
 	register_closure(ss, "bssrdf_gaussian", id++,
 		closure_bssrdf_gaussian_params(), closure_bssrdf_gaussian_prepare);
+	register_closure(ss, "bssrdf_cubic", id++,
+		closure_bssrdf_cubic_extended_params(), closure_bssrdf_cubic_prepare);
+	register_closure(ss, "bssrdf_gaussian", id++,
+		closure_bssrdf_gaussian_extended_params(), closure_bssrdf_gaussian_prepare);
 }
 
 CCL_NAMESPACE_END

@@ -33,7 +33,8 @@ static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Scale"),			1.0, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	SOCK_VECTOR, 1, N_("Radius"),		1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f},
-	{	SOCK_FLOAT, 1, N_("Texture Blur"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Sharpness"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Texture Blur"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_VECTOR, 1, N_("Normal"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
@@ -43,12 +44,42 @@ static bNodeSocketTemplate sh_node_subsurface_scattering_out[] = {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	/*bNodeSocket *sock;*/
+
+	node->custom1 = SHD_SUBSURFACE_CUBIC;
+
+	/*for (sock = node->inputs.first; sock; sock = sock->next) {
+		if (strcmp(sock->name, "Sharpness") == 0) {
+			bNodeSocketValueFloat *dval = sock->default_value;
+			dval->value = 0.0f;
+		}
+	}*/
+}
+
 static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[1].link)
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
 
 	return GPU_stack_link(mat, "node_subsurface_scattering", in, out);
+}
+
+static void node_shader_update_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	bNodeSocket *sock;
+	int falloff = node->custom1;
+
+	for (sock = node->inputs.first; sock; sock = sock->next) {
+		if (strcmp(sock->name, "Sharpness") == 0) {
+			if (falloff == SHD_SUBSURFACE_CUBIC)
+				sock->flag &= ~SOCK_UNAVAIL;
+			else
+				sock->flag |= SOCK_UNAVAIL;
+
+		}
+	}
 }
 
 /* node type definition */
@@ -60,9 +91,10 @@ void register_node_type_sh_subsurface_scattering(void)
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_subsurface_scattering_in, sh_node_subsurface_scattering_out);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, NULL);
+	node_type_init(&ntype, node_shader_init_subsurface_scattering);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_subsurface_scattering);
+	node_type_update(&ntype, node_shader_update_subsurface_scattering, NULL);
 
 	nodeRegisterType(&ntype);
 }
