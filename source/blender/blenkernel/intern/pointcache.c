@@ -66,6 +66,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -227,6 +228,11 @@ static int  ptcache_softbody_totpoint(void *soft_v, int UNUSED(cfra))
 	SoftBody *soft= soft_v;
 	return soft->totpoint;
 }
+static void ptcache_softbody_error(void *UNUSED(soft_v), const char *UNUSED(message))
+{
+	/* ignored for now */
+}
+
 /* Particle functions */
 void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, float time)
 {
@@ -405,6 +411,12 @@ static int  ptcache_particle_totpoint(void *psys_v, int UNUSED(cfra))
 	ParticleSystem *psys = psys_v;
 	return psys->totpart;
 }
+
+static void ptcache_particle_error(void *UNUSED(psys_v), const char *UNUSED(message))
+{
+	/* ignored for now */
+}
+
 static int  ptcache_particle_totwrite(void *psys_v, int cfra)
 {
 	ParticleSystem *psys = psys_v;
@@ -534,6 +546,12 @@ static int  ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 	return clmd->clothObject ? clmd->clothObject->numverts : 0;
 }
 
+static void ptcache_cloth_error(void *cloth_v, const char *message)
+{
+	ClothModifierData *clmd= cloth_v;
+	modifier_setError(&clmd->modifier, "%s", message);
+}
+
 #ifdef WITH_SMOKE
 /* Smoke functions */
 static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
@@ -546,6 +564,12 @@ static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 	}
 	else
 		return 0;
+}
+
+static void ptcache_smoke_error(void *smoke_v, const char *message)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
+	modifier_setError(&smd->modifier, "%s", message);
 }
 
 #define SMOKE_CACHE_VERSION "1.04"
@@ -865,8 +889,10 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 	return 1;
 }
+
 #else // WITH_SMOKE
 static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; }
+static void ptcache_smoke_error(void *UNUSED(smoke_v), const char *UNUSED(message)) { }
 static int  ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 #endif // WITH_SMOKE
@@ -877,6 +903,11 @@ static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
 
 	if (!surface->data) return 0;
 	else return surface->data->total_points;
+}
+
+static void ptcache_dynamicpaint_error(void *UNUSED(sd), const char *UNUSED(message))
+{
+	/* ignored for now */
 }
 
 #define DPAINT_CACHE_VERSION "1.01"
@@ -1055,6 +1086,11 @@ static int ptcache_rigidbody_totpoint(void *rb_v, int UNUSED(cfra))
 	return rbw->numbodies;
 }
 
+static void ptcache_rigidbody_error(void *UNUSED(rb_v), const char *UNUSED(message))
+{
+	/* ignored for now */
+}
+
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
@@ -1067,6 +1103,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->cache_ptr= &sb->pointcache;
 	pid->ptcaches= &sb->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_softbody_totpoint;
+	pid->error					= ptcache_softbody_error;
 
 	pid->write_point			= ptcache_softbody_write;
 	pid->read_point				= ptcache_softbody_read;
@@ -1107,6 +1144,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
 	pid->totpoint				= ptcache_particle_totpoint;
 	pid->totwrite				= ptcache_particle_totwrite;
+	pid->error					= ptcache_particle_error;
 
 	pid->write_point				= ptcache_particle_write;
 	pid->read_point				= ptcache_particle_read;
@@ -1159,6 +1197,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 	pid->cache_ptr= &clmd->point_cache;
 	pid->ptcaches= &clmd->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_cloth_totpoint;
+	pid->error					= ptcache_cloth_error;
 
 	pid->write_point			= ptcache_cloth_write;
 	pid->read_point				= ptcache_cloth_read;
@@ -1197,6 +1236,7 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->ptcaches= &(sds->ptcaches[0]);
 
 	pid->totpoint= pid->totwrite= ptcache_smoke_totpoint;
+	pid->error					= ptcache_smoke_error;
 
 	pid->write_point			= NULL;
 	pid->read_point				= NULL;
@@ -1236,6 +1276,7 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSu
 	pid->cache_ptr= &surface->pointcache;
 	pid->ptcaches= &surface->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_dynamicpaint_totpoint;
+	pid->error					= ptcache_dynamicpaint_error;
 
 	pid->write_point			= NULL;
 	pid->read_point				= NULL;
@@ -1272,6 +1313,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 	pid->cache_ptr= &rbw->pointcache;
 	pid->ptcaches= &rbw->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_rigidbody_totpoint;
+	pid->error					= ptcache_rigidbody_error;
 	
 	pid->write_point			= ptcache_rigidbody_write;
 	pid->read_point				= ptcache_rigidbody_read;
@@ -2083,21 +2125,31 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
 		return 0;
 	}
 
-	if (!ptcache_file_header_begin_read(pf))
+	if (!ptcache_file_header_begin_read(pf)) {
+		pid->error(pid->calldata, "Failed to read point cache file");
 		error = 1;
-
-	if (!error && (pf->type != pid->type || !pid->read_header(pf)))
+	}
+	else if (pf->type != pid->type) {
+		pid->error(pid->calldata, "Point cache file has wrong type");
 		error = 1;
-
-	if (!error && pf->totpoint != pid->totpoint(pid->calldata, cfra))
+	}
+	else if (!pid->read_header(pf)) {
+		pid->error(pid->calldata, "Failed to read point cache file header");
 		error = 1;
+	}
+	else if (pf->totpoint != pid->totpoint(pid->calldata, cfra)) {
+		pid->error(pid->calldata, "Number of points in cache does not match mesh");
+		error = 1;
+	}
 
 	if (!error) {
 		ptcache_file_pointers_init(pf);
 
 		// we have stream reading here
-		if (!pid->read_stream(pf, pid->calldata))
+		if (!pid->read_stream(pf, pid->calldata)) {
+			pid->error(pid->calldata, "Failed to read point cache file data");
 			error = 1;
+		}
 	}
 
 	ptcache_file_close(pf);
@@ -2125,8 +2177,14 @@ static int ptcache_read(PTCacheID *pid, int cfra)
 	if (pm) {
 		int totpoint = pm->totpoint;
 
-		if ((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
-			totpoint = MIN2(totpoint, pid->totpoint(pid->calldata, cfra));
+		if ((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0) {
+			int pid_totpoint = pid->totpoint(pid->calldata, cfra);
+
+			if (totpoint != pid_totpoint) {
+				pid->error(pid->calldata, "Number of points in cache does not match mesh");
+				totpoint = MIN2(totpoint, pid_totpoint);
+			}
+		}
 
 		BKE_ptcache_mem_pointers_init(pm);
 
@@ -2173,8 +2231,14 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 	if (pm) {
 		int totpoint = pm->totpoint;
 
-		if ((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
-			totpoint = MIN2(totpoint, pid->totpoint(pid->calldata, (int)cfra));
+		if ((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0) {
+			int pid_totpoint = pid->totpoint(pid->calldata, (int)cfra);
+
+			if (totpoint != pid_totpoint) {
+				pid->error(pid->calldata, "Number of points in cache does not match mesh");
+				totpoint = MIN2(totpoint, pid_totpoint);
+			}
+		}
 
 		BKE_ptcache_mem_pointers_init(pm);
 
