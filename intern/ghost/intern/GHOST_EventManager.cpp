@@ -54,8 +54,7 @@ GHOST_EventManager::~GHOST_EventManager()
 	while (iter != m_consumers.end()) {
 		GHOST_IEventConsumer *consumer = *iter;
 		delete consumer;
-		m_consumers.erase(iter);
-		iter = m_consumers.begin();
+		iter = m_consumers.erase(iter);
 	}
 }
 
