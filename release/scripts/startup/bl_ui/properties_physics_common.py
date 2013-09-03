@@ -159,6 +159,8 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 
+        can_bake = True
+
         if cachetype not in {'SMOKE', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             split = layout.split()
             split.enabled = enabled and bpy.data.is_saved
@@ -176,9 +178,18 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.label(text="Compression:")
             row.prop(cache, "compression", expand=True)
 
-        layout.separator()
+            layout.separator()
+
+            if cache.id_data.library:
+                can_bake = False
+
+                col = layout.column(align=True)
+                col.label(text="Linked object baking requires Disk Cache to be enabled", icon='INFO')
+        else:
+            layout.separator()
 
         split = layout.split()
+        split.active = can_bake
 
         col = split.column()
 
