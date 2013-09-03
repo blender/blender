@@ -162,6 +162,7 @@ set(SRC
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h
+	PIL_time_utildefines.h
 )
 
 if(WITH_BINRELOC)

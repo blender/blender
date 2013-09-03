@@ -28,17 +28,11 @@
  *  \ingroup modifiers
  */
 
-#define DO_PROFILE 0
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_rand.h"
-
-#if DO_PROFILE
-	#include "PIL_time.h"
-#endif
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -57,6 +51,13 @@
 #include "MEM_guardedalloc.h"
 #include "MOD_util.h"
 #include "MOD_weightvg_util.h"
+
+// #define USE_TIMEIT
+
+#ifdef USE_TIMEIT
+#  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
+#endif
 
 /**************************************
  * Util functions.                    *
@@ -382,8 +383,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
 #endif
 
-#if DO_PROFILE
-	TIMEIT_START(perf)
+#ifdef USE_TIMEIT
+	TIMEIT_START(perf);
 #endif
 
 	/* Get number of verts. */
@@ -548,8 +549,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		MEM_freeN(indices);
 	MEM_freeN(v_cos);
 
-#if DO_PROFILE
-	TIMEIT_END(perf)
+#ifdef USE_TIMEIT
+	TIMEIT_END(perf);
 #endif
 
 	/* Return the vgroup-modified mesh. */

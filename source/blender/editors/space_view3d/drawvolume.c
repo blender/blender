@@ -83,6 +83,7 @@ struct GPUTexture;
 
 #ifdef DEBUG_DRAW_TIME
 #  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
 #endif
 
 static int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])

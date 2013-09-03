@@ -55,6 +55,7 @@
 
 #ifdef USE_TIMEIT
 #  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
 #endif
 
 #include "MOD_util.h"
