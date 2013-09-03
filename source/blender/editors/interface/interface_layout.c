@@ -471,6 +471,8 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 					but->type = NUMSLI;
 				if (toggle && but->type == OPTION)
 					but->type = TOG;
+				if ((a == 0) && (subtype == PROP_AXISANGLE))
+					uiButSetUnitType(but, PROP_UNIT_ROTATION);
 			}
 
 			if (boolarr) {
