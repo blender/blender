@@ -1987,8 +1987,8 @@ void add_halo_flare(Render *re)
 			rr->renlay= rl;
 			re->display_draw(re->ddh, rr, NULL);
 		}
+
+		R.r.mode= mode;
 	}
-	
-	R.r.mode= mode;
 }
 

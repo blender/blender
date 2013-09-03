@@ -373,14 +373,12 @@ bool DedicatedTaskPool::cancelled()
 
 void DedicatedTaskPool::num_decrease(int done)
 {
-	num_mutex.lock();
+	thread_scoped_lock num_lock(num_mutex);
 	num -= done;
 
 	assert(num >= 0);
 	if(num == 0)
 		num_cond.notify_all();
-
-	num_mutex.unlock();
 }
 
 void DedicatedTaskPool::num_increase()

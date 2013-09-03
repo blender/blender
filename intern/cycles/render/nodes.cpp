@@ -452,6 +452,13 @@ static void sky_texture_precompute_old(SunSky *sunsky, float3 dir, float turbidi
 	sunsky->config_z[3] = (-0.0441f * T  - 1.6537f);
 	sunsky->config_z[4] = (-0.0109f * T  + 0.0529f);
 
+	/* unused for old sky model */
+	for(int i = 5; i < 9; i++) {
+		sunsky->config_x[i] = 0.0f;
+		sunsky->config_y[i] = 0.0f;
+		sunsky->config_z[i] = 0.0f;
+	}
+
 	sunsky->radiance_x /= sky_perez_function(sunsky->config_x, 0, theta);
 	sunsky->radiance_y /= sky_perez_function(sunsky->config_y, 0, theta);
 	sunsky->radiance_z /= sky_perez_function(sunsky->config_z, 0, theta);
@@ -558,6 +565,7 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	SunSky sunsky;
+
 	if(type_enum[type] == NODE_SKY_OLD)
 		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
 	else if(type_enum[type] == NODE_SKY_NEW)

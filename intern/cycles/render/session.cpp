@@ -66,6 +66,7 @@ Session::Session(const SessionParams& params_)
 	reset_time = 0.0;
 	preview_time = 0.0;
 	paused_time = 0.0;
+	last_update_time = 0.0;
 
 	delayed_reset.do_reset = false;
 	delayed_reset.samples = 0;

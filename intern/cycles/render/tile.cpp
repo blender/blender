@@ -22,7 +22,7 @@
 CCL_NAMESPACE_BEGIN
 
 TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int start_resolution_,
-                         bool preserve_tile_device_, bool background_, int tile_order_, int num_devices_)
+                         bool preserve_tile_device_, bool background_, TileOrder tile_order_, int num_devices_)
 {
 	progressive = progressive_;
 	tile_size = tile_size_;
@@ -178,7 +178,7 @@ list<Tile>::iterator TileManager::next_viewport_tile(int device)
 	return state.tiles.end();
 }
 
-list<Tile>::iterator TileManager::next_background_tile(int device, int tile_order)
+list<Tile>::iterator TileManager::next_background_tile(int device, TileOrder tile_order)
 {
 	list<Tile>::iterator iter, best = state.tiles.end();
 
@@ -199,21 +199,21 @@ list<Tile>::iterator TileManager::next_background_tile(int device, int tile_orde
 			int64_t disty = cordy;
 			
 			switch (tile_order) {
-				case TileManager::CENTER:
+				case TILE_CENTER:
 					distx = centx - (cur_tile.x + cur_tile.w);
 					disty = centy - (cur_tile.y + cur_tile.h);
 					distx = (int64_t) sqrt((double)distx * distx + disty * disty);
 					break;
-				case TileManager::RIGHT_TO_LEFT:
+				case TILE_RIGHT_TO_LEFT:
 					distx = cordx - cur_tile.x;
 					break;
-				case TileManager::LEFT_TO_RIGHT:
+				case TILE_LEFT_TO_RIGHT:
 					distx = cordx + cur_tile.x;	
 					break;
-				case TileManager::TOP_TO_BOTTOM:
+				case TILE_TOP_TO_BOTTOM:
 					distx = cordx - cur_tile.y;
 					break;
-				case TileManager::BOTTOM_TO_TOP:
+				case TILE_BOTTOM_TO_TOP:
 					distx = cordx + cur_tile.y;
 					break; 
 				default:

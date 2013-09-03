@@ -39,6 +39,7 @@ CCL_NAMESPACE_BEGIN
 Mesh::Mesh()
 {
 	need_update = true;
+	need_update_rebuild = false;
 	transform_applied = false;
 	transform_negative_scaled = false;
 	transform_normal = transform_identity();
@@ -467,6 +468,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			osl_attr.type = attr.type();
 			osl_attr.elem = ATTR_ELEMENT_VALUE;
 			osl_attr.value = attr;
+			osl_attr.offset = 0;
 
 			og->attribute_map[i*ATTR_PRIM_TYPES][attr.name()] = osl_attr;
 			og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][attr.name()] = osl_attr;

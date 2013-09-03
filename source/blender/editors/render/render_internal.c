@@ -502,7 +502,8 @@ static void render_endjob(void *rjv)
 	 * engine API, so lets use simple and robust way for now
 	 *                                          - sergey -
 	 */
-	if (rj->scene->r.layers.first != rj->scene->r.layers.last) {
+	if (rj->scene->r.layers.first != rj->scene->r.layers.last ||
+	    rj->image_outdated) {
 		void *lock;
 		Image *ima = rj->image;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);

@@ -40,6 +40,17 @@ public:
 	: index(index_), x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
 };
 
+/* Tile order */
+
+/* Note: this should match enum_tile_order in properties.py */
+enum TileOrder {
+	TILE_CENTER = 0,
+	TILE_RIGHT_TO_LEFT = 1,
+	TILE_LEFT_TO_RIGHT = 2,
+	TILE_TOP_TO_BOTTOM = 3,
+	TILE_BOTTOM_TO_TOP = 4
+};
+
 /* Tile Manager */
 
 class TileManager {
@@ -59,7 +70,7 @@ public:
 	int num_samples;
 
 	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
-	            bool preserve_tile_device, bool background, int tile_order, int num_devices = 1);
+	            bool preserve_tile_device, bool background, TileOrder tile_order, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -67,23 +78,15 @@ public:
 	bool next();
 	bool next_tile(Tile& tile, int device = 0);
 	bool done();
-
-	void set_tile_order(int tile_order_) { tile_order = tile_order_; }
-protected:
-	/* Note: this should match enum_tile_order in properties.py */
-	enum {
-		CENTER = 0,
-		RIGHT_TO_LEFT = 1,
-		LEFT_TO_RIGHT = 2,
-		TOP_TO_BOTTOM = 3,
-		BOTTOM_TO_TOP = 4
-	} TileOrder;
 	
+	void set_tile_order(TileOrder tile_order_) { tile_order = tile_order_; }
+protected:
+
 	void set_tiles();
 
 	bool progressive;
 	int2 tile_size;
-	int tile_order;
+	TileOrder tile_order;
 	int start_resolution;
 	int num_devices;
 
@@ -113,7 +116,7 @@ protected:
 	void gen_tiles_sliced();
 
 	/* returns tiles for background render */
-	list<Tile>::iterator next_background_tile(int device, int tile_order);
+	list<Tile>::iterator next_background_tile(int device, TileOrder tile_order);
 
 	/* returns first unhandled tile for viewport render */
 	list<Tile>::iterator next_viewport_tile(int device);

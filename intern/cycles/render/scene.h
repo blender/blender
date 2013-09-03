@@ -136,6 +136,7 @@ public:
 #else
 		use_qbvh = false;
 #endif
+		persistent_data = false;
 	}
 
 	bool modified(const SceneParams& params)

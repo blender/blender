@@ -49,7 +49,7 @@ public:
 	bool experimental;
 	int samples;
 	int2 tile_size;
-	int tile_order;
+	TileOrder tile_order;
 	int start_resolution;
 	int threads;
 
@@ -81,6 +81,7 @@ public:
 		text_timeout = 1.0;
 
 		shadingsystem = SVM;
+		tile_order = TILE_CENTER;
 	}
 
 	bool modified(const SessionParams& params)
@@ -99,6 +100,7 @@ public:
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
 		&& text_timeout == params.text_timeout
+		&& tile_order == params.tile_order
 		&& shadingsystem == params.shadingsystem); }
 
 };

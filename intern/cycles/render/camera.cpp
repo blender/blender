@@ -52,6 +52,7 @@ Camera::Camera()
 
 	width = 1024;
 	height = 512;
+	resolution = 1;
 
 	viewplane.left = -((float)width/(float)height);
 	viewplane.right = (float)width/(float)height;

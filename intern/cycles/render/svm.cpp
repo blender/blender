@@ -110,6 +110,7 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	max_stack_use = 0;
 	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
+	current_graph = NULL;
 	background = false;
 	mix_weight_offset = SVM_STACK_INVALID;
 	use_multi_closure = use_multi_closure_;

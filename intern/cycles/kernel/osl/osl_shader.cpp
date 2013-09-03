@@ -388,6 +388,8 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_VOLUME_ID;
+					sc.data0 = 0.0f;
+					sc.data1 = 0.0f;
 					sc.prim = NULL;
 
 					/* add */
