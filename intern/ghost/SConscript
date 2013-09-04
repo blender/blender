@@ -75,7 +75,12 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     ## So until this is supported properly as with CMake,
     ## just dont use the PREFIX.
     # defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
-    defs += ['WITH_X11_XINPUT']  # XXX, make an option
+    if env['WITH_X11_XINPUT']:
+        defs += ['WITH_X11_XINPUT']
+
+    if env['WITH_X11_XF86VMODE']:
+        #incs += env['X11_xf86vmode_INCLUDE_PATH']
+        defs += ['WITH_X11_XF86VMODE']
 
     # freebsd doesn't seem to support XDND protocol
     if env['WITH_GHOST_XDND'] and window_system not in ('freebsd7', 'freebsd8', 'freebsd9'):
