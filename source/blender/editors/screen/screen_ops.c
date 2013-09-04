@@ -700,9 +700,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 		{
-			/* for AZONE_AREA 'delta_min' uses (AZONESPOT + 1) dragging before a gesture is accepted.
-			 * because the distance must be larger then the hot-spot else an intended join can turn into a split */
-			const int delta_min = (sad->az->type == AZONE_AREA) ? (AZONESPOT + 1) : 1;
+			bool is_gesture;
 
 			const int delta_x = (event->x - sad->x);
 			const int delta_y = (event->y - sad->y);
@@ -717,10 +715,20 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			else
 				sad->gesture_dir = 'w';
 			
+			if (sad->az->type == AZONE_AREA) {
+				/* once we drag outside the actionzone, register a gesture
+				 * check we're not on an edge so join finds the other area */
+				is_gesture = ((is_in_area_actionzone(sad->sa1, &event->x) != sad->az) &&
+				              (screen_find_active_scredge(CTX_wm_screen(C), event->x, event->y) == NULL));
+			}
+			else {
+				const int delta_min = 1;
+				is_gesture = (ABS(delta_x) > delta_min || ABS(delta_y) > delta_min);
+			}
+
 			/* gesture is large enough? */
-			if (ABS(delta_x) > delta_min || ABS(delta_y) > delta_min) {
-				
-				/* second area, for join */
+			if (is_gesture) {
+				/* second area, for join when (sa1 != sa2) */
 				sad->sa2 = screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 				/* apply sends event */
 				actionzone_apply(C, op, sad->az->type);
