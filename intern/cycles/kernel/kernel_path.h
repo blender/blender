@@ -808,15 +808,9 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			}
 		}
 #endif
-
-#ifdef __SUBSURFACE__
-
-		if(!kernel_path_integrate_lighting(kg, rng, sample, num_samples, &sd,
-			&throughput, &min_ray_pdf, &ray_pdf, &state, rng_offset, &L, &ray, &ray_t))
-			break;
-
-#else
-
+		
+		/* The following code is the same as in kernel_path_integrate_lighting(),
+		   but for CUDA the function call is slower. */
 #ifdef __EMISSION__
 		if(kernel_data.integrator.use_direct_light) {
 			/* sample illumination from lights to find path contribution */
@@ -897,8 +891,6 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #ifdef __RAY_DIFFERENTIALS__
 		ray.dP = sd.dP;
 		ray.dD = bsdf_domega_in;
-#endif
-
 #endif
 	}
 
