@@ -87,7 +87,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
 
 /* construct: first insert points, then call balance */
-int BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints);
+void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints);
 void BLI_bvhtree_balance(BVHTree *tree);
 
 /* update: first update points/nodes, then call update_tree to refit the bounding volumes */

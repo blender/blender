@@ -439,7 +439,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 /* only supports x,y,z axis in the moment
  * but we should use a plain and simple function here for speed sake */
-static char get_largest_axis(float *bv)
+static char get_largest_axis(const float *bv)
 {
 	float middle_point[3];
 
@@ -920,7 +920,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	BVHNode **leafs_array    = tree->nodes;
 
 	/* This function should only be called once (some big bug goes here if its being called more than once per tree) */
-	assert(tree->totbranch == 0);
+	BLI_assert(tree->totbranch == 0);
 
 	/* Build the implicit tree */
 	non_recursive_bvh_div_nodes(tree, branches_array, leafs_array, tree->totleaf);
@@ -935,19 +935,14 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	/* bvhtree_info(tree); */
 }
 
-int BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints)
+void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints)
 {
 	axis_t axis_iter;
 	BVHNode *node = NULL;
 
 	/* insert should only possible as long as tree->totbranch is 0 */
-	if (tree->totbranch > 0)
-		return 0;
-
-	if ((size_t)tree->totleaf + 1 >= MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)))
-		return 0;
-
-	/* TODO check if have enough nodes in array */
+	BLI_assert(tree->totbranch <= 0);
+	BLI_assert((size_t)tree->totleaf < MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)));
 
 	node = tree->nodes[tree->totleaf] = &(tree->nodearray[tree->totleaf]);
 	tree->totleaf++;
@@ -960,8 +955,6 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoint
 		node->bv[(2 * axis_iter)] -= tree->epsilon; /* minimum */
 		node->bv[(2 * axis_iter) + 1] += tree->epsilon; /* maximum */
 	}
-
-	return 1;
 }
 
 
@@ -1017,10 +1010,10 @@ float BLI_bvhtree_getepsilon(const BVHTree *tree)
  * overlap - is it possible for 2 bv's to collide ? */
 static int tree_overlap(BVHNode *node1, BVHNode *node2, axis_t start_axis, axis_t stop_axis)
 {
-	float *bv1 = node1->bv;
-	float *bv2 = node2->bv;
+	const float *bv1 = node1->bv;
+	const float *bv2 = node2->bv;
 
-	float *bv1_end = bv1 + (stop_axis << 1);
+	const float *bv1_end = bv1 + (stop_axis << 1);
 		
 	bv1 += start_axis << 1;
 	bv2 += start_axis << 1;
