@@ -903,12 +903,13 @@ static bool mesh_validate_customdata(CustomData *data, CustomDataMask mask,
  */
 bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
                                       CustomData *ldata, CustomData *pdata,
-                                      CustomDataMask mask,
+                                      const bool check_meshmask,
                                       const bool do_verbose, const bool do_fixes,
                                       bool *r_change)
 {
 	bool is_valid = true;
 	bool is_change_v, is_change_e, is_change_l, is_change_p;
+	CustomDataMask mask = check_meshmask ? CD_MASK_MESH : 0;
 
 	is_valid &= mesh_validate_customdata(vdata, mask, do_verbose, do_fixes, &is_change_v);
 	is_valid &= mesh_validate_customdata(edata, mask, do_verbose, do_fixes, &is_change_e);
@@ -936,7 +937,7 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 
 	is_valid &= BKE_mesh_validate_all_customdata(
 	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
-	        CD_MASK_MESH,
+	        true,
 	        do_verbose, true,
 	        &is_change);
 

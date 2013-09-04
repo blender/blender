@@ -355,7 +355,7 @@ bool BKE_mesh_validate_arrays(
 bool BKE_mesh_validate_all_customdata(
         struct CustomData *vdata, struct CustomData *edata,
         struct CustomData *ldata, struct CustomData *pdata,
-        uint64_t mask,  /* should be CustomDataMask but thats not defined */
+        const bool check_meshmask,
         const bool do_verbose, const bool do_fixes,
         bool *r_change);
 
