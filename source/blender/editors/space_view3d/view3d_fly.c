@@ -159,6 +159,11 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_UP);
 	WM_modalkeymap_add_item(keymap, FKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_DOWN);
 
+	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_FORWARD);
+	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_BACKWARD);
+	WM_modalkeymap_add_item(keymap, LEFTARROWKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_LEFT);
+	WM_modalkeymap_add_item(keymap, RIGHTARROWKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_RIGHT);
+
 	WM_modalkeymap_add_item(keymap, XKEY, KM_PRESS, 0, 0, FLY_MODAL_AXIS_LOCK_X);
 	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, 0, 0, FLY_MODAL_AXIS_LOCK_Z);
 
@@ -580,6 +585,12 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 				double time_currwheel;
 				float time_wheel;
 
+				/* not quite correct but avoids confusion WASD/arrow keys 'locking up' */
+				if (fly->axis == -1) {
+					fly->axis = 2;
+					fly->speed = fabsf(fly->speed);
+				}
+
 				time_currwheel = PIL_check_seconds_timer();
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
 				fly->time_lastwheel = time_currwheel;
@@ -598,6 +609,12 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 			{
 				double time_currwheel;
 				float time_wheel;
+
+				/* not quite correct but avoids confusion WASD/arrow keys 'locking up' */
+				if (fly->axis == -1) {
+					fly->axis = 2;
+					fly->speed = -fabsf(fly->speed);
+				}
 
 				time_currwheel = PIL_check_seconds_timer();
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
@@ -806,9 +823,10 @@ static void flyMoveCamera(bContext *C, RegionView3D *rv3d, FlyInfo *fly,
 
 static int flyApply(bContext *C, FlyInfo *fly)
 {
-#define FLY_ROTATE_FAC 2.5f /* more is faster */
+#define FLY_ROTATE_FAC 10.0f /* more is faster */
 #define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
+#define FLY_SMOOTH_FAC 20.0f  /* higher value less lag */
 
 	/* fly mode - Shift+F
 	 * a fly loop where the user can move move the view as if they are flying
@@ -1052,7 +1070,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			}
 
 			/* impose a directional lag */
-			interp_v3_v3v3(dvec, dvec_tmp, fly->dvec_prev, (1.0f / (1.0f + (time_redraw * 5.0f))));
+			interp_v3_v3v3(dvec, dvec_tmp, fly->dvec_prev, (1.0f / (1.0f + (time_redraw * FLY_SMOOTH_FAC))));
 
 			if (rv3d->persp == RV3D_CAMOB) {
 				Object *lock_ob = fly->root_parent ? fly->root_parent : fly->v3d->camera;
