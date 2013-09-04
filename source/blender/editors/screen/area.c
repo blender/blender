@@ -1806,7 +1806,7 @@ void ED_region_header_init(ARegion *ar)
 /* UI_UNIT_Y is defined as U variable now, depending dpi */
 int ED_area_headersize(void)
 {
-	return (int)(1.3f * UI_UNIT_Y);
+	return (int)(HEADERY * UI_DPI_FAC);
 }
 
 void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_color[4])
