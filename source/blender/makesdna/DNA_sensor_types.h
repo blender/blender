@@ -60,6 +60,7 @@ typedef struct bMouseSensor {
 	short pad2;
 } bMouseSensor;
 
+/* DEPRECATED */
 typedef struct bTouchSensor {
 	char name[64];	/* MAX_NAME */
 	struct Material *ma;
@@ -235,7 +236,7 @@ typedef struct bJoystickSensor {
 
 /* sensor->type */
 #define SENS_ALWAYS		0
-#define SENS_TOUCH		1
+#define SENS_TOUCH		1  /* DEPRECATED */
 #define SENS_NEAR		2
 #define SENS_KEYBOARD	3
 #define SENS_PROPERTY	4

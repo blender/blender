@@ -1108,9 +1108,6 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 		case SENS_MOUSE:
 			writestruct(wd, DATA, "bMouseSensor", 1, sens->data);
 			break;
-		case SENS_TOUCH:
-			writestruct(wd, DATA, "bTouchSensor", 1, sens->data);
-			break;
 		case SENS_KEYBOARD:
 			writestruct(wd, DATA, "bKeyboardSensor", 1, sens->data);
 			break;

@@ -4367,12 +4367,8 @@ static void lib_link_object(FileData *fd, Main *main)
 			for (sens = ob->sensors.first; sens; sens = sens->next) {
 				for (a = 0; a < sens->totlinks; a++)
 					sens->links[a] = newglobadr(fd, sens->links[a]);
-				
-				if (sens->type == SENS_TOUCH) {
-					bTouchSensor *ts = sens->data;
-					ts->ma = newlibadr(fd, ob->id.lib, ts->ma);
-				}
-				else if (sens->type == SENS_MESSAGE) {
+
+				if (sens->type == SENS_MESSAGE) {
 					bMessageSensor *ms = sens->data;
 					ms->fromObject =
 						newlibadr(fd, ob->id.lib, ms->fromObject);
@@ -9616,6 +9612,32 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			bSensor *sens;
+			bTouchSensor *ts;
+			bCollisionSensor *cs;
+			Material *ma;
+
+			for (sens = ob->sensors.first; sens; sens = sens->next) {
+				if (sens->type == SENS_TOUCH) {
+					ts = sens->data;
+					cs = MEM_callocN(sizeof(bCollisionSensor), "touch -> collision sensor do_version");
+
+					if (ts->ma) {
+						ma = blo_do_versions_newlibadr(fd, ob->id.lib, ts->ma);
+						BLI_strncpy(cs->materialName, ma->id.name+2, sizeof(cs->materialName));
+					}
+
+					cs->mode = SENS_COLLISION_MATERIAL;
+
+					MEM_freeN(ts);
+
+					sens->data = cs;
+					sens->type = sens->otype = SENS_COLLISION;
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10517,11 +10539,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, psys->part);
 	
 	for (sens = ob->sensors.first; sens; sens = sens->next) {
-		if (sens->type == SENS_TOUCH) {
-			bTouchSensor *ts = sens->data;
-			expand_doit(fd, mainvar, ts->ma);
-		}
-		else if (sens->type == SENS_MESSAGE) {
+		if (sens->type == SENS_MESSAGE) {
 			bMessageSensor *ms = sens->data;
 			expand_doit(fd, mainvar, ms->fromObject);
 		}

@@ -58,7 +58,6 @@ EnumPropertyItem sensor_type_items[] = {
 	{SENS_RADAR, "RADAR", 0, "Radar", ""},
 	{SENS_RANDOM, "RANDOM", 0, "Random", ""},
 	{SENS_RAY, "RAY", 0, "Ray", ""},
-	{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -74,8 +73,6 @@ static StructRNA *rna_Sensor_refine(struct PointerRNA *ptr)
 	switch (sensor->type) {
 		case SENS_ALWAYS:
 			return &RNA_AlwaysSensor;
-		case SENS_TOUCH:
-			return &RNA_TouchSensor;
 		case SENS_NEAR:
 			return &RNA_NearSensor;
 		case SENS_KEYBOARD:
@@ -267,15 +264,6 @@ static void rna_Sensor_Armature_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 	posechannel[0] = 0;
 	constraint[0] = 0;
 }
-
-/* note: the following set functions exists only to avoid id refcounting */
-static void rna_Sensor_touch_material_set(PointerRNA *ptr, PointerRNA value)
-{
-	bSensor *sens = (bSensor *)ptr->data;
-	bTouchSensor *ts = (bTouchSensor *) sens->data;
-
-	ts->ma = value.data;
-}
 #else
 
 static void rna_def_sensor(BlenderRNA *brna)
@@ -424,25 +412,6 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_pulse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_MOUSE_FOCUS_PULSE);
 	RNA_def_property_ui_text(prop, "Pulse", "Moving the mouse over a different object generates a pulse");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-}
-
-static void rna_def_touch_sensor(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "TouchSensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Touch Sensor", "Sensor to detect objects colliding with the current object");
-	RNA_def_struct_sdna_from(srna, "bTouchSensor", "data");
-
-	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_pointer_sdna(prop, NULL, "ma");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material (blank = all objects)");
-	/* note: custom set function is ONLY to avoid rna setting a user for this. */
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -917,7 +886,6 @@ void RNA_def_sensor(BlenderRNA *brna)
 	rna_def_always_sensor(brna);
 	rna_def_near_sensor(brna);
 	rna_def_mouse_sensor(brna);
-	rna_def_touch_sensor(brna);
 	rna_def_keyboard_sensor(brna);
 	rna_def_property_sensor(brna);
 	rna_def_armature_sensor(brna);

@@ -112,9 +112,6 @@ void init_sensor(bSensor *sens)
 	case SENS_ALWAYS:
 		sens->pulse = 0;
 		break;
-	case SENS_TOUCH:
-		sens->data= MEM_callocN(sizeof(bTouchSensor), "touchsens");
-		break;
 	case SENS_NEAR:
 		ns=sens->data= MEM_callocN(sizeof(bNearSensor), "nearsens");
 		ns->dist= 1.0;

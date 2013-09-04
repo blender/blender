@@ -194,30 +194,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				
 				break;
 			}
-		case SENS_TOUCH:
-			{
-				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
-				if (eventmgr)
-				{
-					STR_String touchpropertyname;
-					bTouchSensor* blendertouchsensor = (bTouchSensor*)sens->data;
-					
-					if (blendertouchsensor->ma)
-					{
-						touchpropertyname = (char*) (blendertouchsensor->ma->id.name+2);
-					}
-					bool bFindMaterial = true;
-					if (gameobj->GetPhysicsController())
-					{
-						gamesensor = new KX_TouchSensor(eventmgr,
-							gameobj,
-							bFindMaterial,
-							false,
-							touchpropertyname);
-					}
-				}
-				break;
-			}
 		case SENS_MESSAGE:
 			{
 				KX_NetworkEventManager* eventmgr = (KX_NetworkEventManager*)

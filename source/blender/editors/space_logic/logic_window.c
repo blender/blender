@@ -427,8 +427,6 @@ static const char *sensor_name(int type)
 	switch (type) {
 	case SENS_ALWAYS:
 		return "Always";
-	case SENS_TOUCH:
-		return "Touch";
 	case SENS_NEAR:
 		return "Near";
 	case SENS_KEYBOARD:
@@ -1233,11 +1231,6 @@ static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiItemR(row, ptr, "use_x_ray", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 }
 
-static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
-{
-	uiItemR(layout, ptr, "material", 0, NULL, ICON_NONE);
-}
-
 static void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
@@ -1291,9 +1284,6 @@ static void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 			break;
 		case SENS_RAY:
 			draw_sensor_ray(box, ptr, C);
-			break;
-		case SENS_TOUCH:
-			draw_sensor_touch(box, ptr);
 			break;
 	}
 }
