@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
+#include "BLI_strict_flags.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -65,8 +66,8 @@ struct BVHTree {
 	int totleaf;            /* leafs */
 	int totbranch;
 	axis_t start_axis, stop_axis;  /* KDOP_AXES array indices according to axis */
-	axis_t axis;              /* kdop type (6 => OBB, 7 => AABB, ...) */
-	char tree_type;         /* type of tree (4 => quadtree) */
+	axis_t axis;                   /* kdop type (6 => OBB, 7 => AABB, ...) */
+	char tree_type;                /* type of tree (4 => quadtree) */
 };
 
 /* optimization, ensure we stay small */
@@ -77,7 +78,8 @@ BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
 typedef struct BVHOverlapData {
 	BVHTree *tree1, *tree2; 
 	BVHTreeOverlap *overlap; 
-	int i, max_overlap; /* i is number of overlaps */
+	unsigned int i;
+	unsigned int max_overlap; /* i is number of overlaps */
 	axis_t start_axis, stop_axis;
 } BVHOverlapData;
 
@@ -497,9 +499,13 @@ static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 	axis_t axis_iter;
 
 	for (i = 0; i < depth; i++) printf(" ");
-	printf(" - %d (%ld): ", node->index, node - tree->nodearray);
-	for (axis_iter = 2 * tree->start_axis; axis_iter < 2 * tree->stop_axis; axis_iter++)
+	printf(" - %d (%ld): ", node->index, (long int)(node - tree->nodearray));
+	for (axis_iter = (axis_t)(2 * tree->start_axis);
+	     axis_iter < (axis_t)(2 * tree->stop_axis);
+	     axis_iter++)
+	{
 		printf("%.3f ", node->bv[axis_iter]);
+	}
 	printf("\n");
 
 	for (i = 0; i < tree->tree_type; i++)
@@ -513,7 +519,7 @@ static void bvhtree_info(BVHTree *tree)
 	printf("tree_type = %d, axis = %d, epsilon = %f\n", tree->tree_type, tree->axis, tree->epsilon);
 	printf("nodes = %d, branches = %d, leafs = %d\n", tree->totbranch + tree->totleaf,  tree->totbranch, tree->totleaf);
 	printf("Memory per node = %ldbytes\n", sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis);
-	printf("BV memory = %dbytes\n", MEM_allocN_len(tree->nodebv));
+	printf("BV memory = %dbytes\n", (int)MEM_allocN_len(tree->nodebv));
 
 	printf("Total memory = %ldbytes\n", sizeof(BVHTree) +
 	       MEM_allocN_len(tree->nodes) +
@@ -792,7 +798,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 					break;
 				}
 
-				parent->totnode = k + 1;
+				parent->totnode = (char)(k + 1);
 			}
 		}
 	}
@@ -811,10 +817,9 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	if (tree_type < 2)
 		return NULL;
 
-	if (tree_type > MAX_TREETYPE)
-		return NULL;
+	BLI_assert(tree_type <= MAX_TREETYPE);
 
-	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
+	tree = MEM_callocN(sizeof(BVHTree), "BVHTree");
 
 	/* tree epsilon must be >= FLT_EPSILON
 	 * so that tangent rays can still hit a bounding volume..
@@ -855,27 +860,27 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		/* Allocate arrays */
 		numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
-		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *) * numnodes, "BVHNodes");
+		tree->nodes = MEM_callocN(sizeof(BVHNode *) * (size_t)numnodes, "BVHNodes");
 		
 		if (!tree->nodes) {
 			MEM_freeN(tree);
 			return NULL;
 		}
-		
-		tree->nodebv = (float *)MEM_callocN(sizeof(float) * axis * numnodes, "BVHNodeBV");
+
+		tree->nodebv = MEM_callocN(sizeof(float) * (size_t)(axis * numnodes), "BVHNodeBV");
 		if (!tree->nodebv) {
 			MEM_freeN(tree->nodes);
 			MEM_freeN(tree);
 		}
 
-		tree->nodechild = (BVHNode **)MEM_callocN(sizeof(BVHNode *) * tree_type * numnodes, "BVHNodeBV");
+		tree->nodechild = MEM_callocN(sizeof(BVHNode *) * (size_t)(tree_type * numnodes), "BVHNodeBV");
 		if (!tree->nodechild) {
 			MEM_freeN(tree->nodebv);
 			MEM_freeN(tree->nodes);
 			MEM_freeN(tree);
 		}
 
-		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode) * numnodes, "BVHNodeArray");
+		tree->nodearray = MEM_callocN(sizeof(BVHNode) * (size_t)numnodes, "BVHNodeArray");
 		
 		if (!tree->nodearray) {
 			MEM_freeN(tree->nodechild);
@@ -939,7 +944,7 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoint
 	if (tree->totbranch > 0)
 		return 0;
 
-	if (tree->totleaf + 1 >= MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)))
+	if ((size_t)tree->totleaf + 1 >= MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)))
 		return 0;
 
 	/* TODO check if have enough nodes in array */
@@ -1045,7 +1050,7 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 
 				if (data->i >= data->max_overlap) {
 					/* try to make alloc'ed memory bigger */
-					data->overlap = realloc(data->overlap, sizeof(BVHTreeOverlap) * data->max_overlap * 2);
+					data->overlap = realloc(data->overlap, sizeof(BVHTreeOverlap) * (size_t)data->max_overlap * 2);
 					
 					if (!data->overlap) {
 						printf("Out of Memory in traverse\n");
@@ -1099,13 +1104,13 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	data = MEM_callocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
 	
 	for (j = 0; j < tree1->tree_type; j++) {
-		data[j] = (BVHOverlapData *)MEM_callocN(sizeof(BVHOverlapData), "BVHOverlapData");
+		data[j] = MEM_callocN(sizeof(BVHOverlapData), "BVHOverlapData");
 		
 		/* init BVHOverlapData */
-		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * max_ii(tree1->totleaf, tree2->totleaf));
+		data[j]->overlap = malloc(sizeof(BVHTreeOverlap) * (size_t)max_ii(tree1->totleaf, tree2->totleaf));
 		data[j]->tree1 = tree1;
 		data[j]->tree2 = tree2;
-		data[j]->max_overlap = max_ii(tree1->totleaf, tree2->totleaf);
+		data[j]->max_overlap = (unsigned int)max_ii(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
 		data[j]->start_axis = min_axis(tree1->start_axis, tree2->start_axis);
 		data[j]->stop_axis  = min_axis(tree1->stop_axis,  tree2->stop_axis);
@@ -1119,7 +1124,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	for (j = 0; j < tree1->tree_type; j++)
 		total += data[j]->i;
 	
-	to = overlap = (BVHTreeOverlap *)MEM_callocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap");
+	to = overlap = MEM_callocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap");
 	
 	for (j = 0; j < tree1->tree_type; j++) {
 		memcpy(to, data[j]->overlap, data[j]->i * sizeof(BVHTreeOverlap));
