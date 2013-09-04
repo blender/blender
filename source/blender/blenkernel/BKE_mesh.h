@@ -341,7 +341,7 @@ void BKE_mesh_translate(struct Mesh *me, const float offset[3], const bool do_ke
 /* mesh_validate.c */
 /* XXX Loop v/e are unsigned, so using max uint_32 value as invalid marker... */
 #define INVALID_LOOP_EDGE_MARKER 4294967295u
-int BKE_mesh_validate_arrays(
+bool BKE_mesh_validate_arrays(
         struct Mesh *me,
         struct MVert *mverts, unsigned int totvert,
         struct MEdge *medges, unsigned int totedge,
@@ -349,9 +349,17 @@ int BKE_mesh_validate_arrays(
         struct MLoop *mloops, unsigned int totloop,
         struct MPoly *mpolys, unsigned int totpoly,
         struct MDeformVert *dverts, /* assume totvert length */
-        const bool do_verbose, const bool do_fixes);
+        const bool do_verbose, const bool do_fixes,
+        bool *r_change);
+
+bool BKE_mesh_validate_all_customdata(
+        struct CustomData *vdata, struct CustomData *edata,
+        struct CustomData *ldata, struct CustomData *pdata,
+        uint64_t mask,  /* should be CustomDataMask but thats not defined */
+        const bool do_verbose, const bool do_fixes,
+        bool *r_change);
+
 int BKE_mesh_validate(struct Mesh *me, const int do_verbose);
-int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 
 void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);
 

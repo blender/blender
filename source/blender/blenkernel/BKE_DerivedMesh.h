@@ -735,6 +735,8 @@ void DM_init_origspace(DerivedMesh *dm);
 char *DM_debug_info(DerivedMesh *dm);
 void DM_debug_print(DerivedMesh *dm);
 void DM_debug_print_cdlayers(CustomData *cdata);
+
+bool DM_is_valid(DerivedMesh *dm);
 #endif
 
 BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i) ATTR_NONNULL(1);

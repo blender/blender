@@ -82,11 +82,20 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
+/* very slow! enable for testing only! */
+// #define USE_MODIFIER_VALIDATE
+
+#ifdef USE_MODIFIER_VALIDATE
+#  define ASSERT_IS_VALID_DM(dm) (BLI_assert((dm == NULL) || (DM_is_valid(dm) == true)))
+#else
+#  define ASSERT_IS_VALID_DM(dm)
+#endif
+
 static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid);
 
-///////////////////////////////////
-///////////////////////////////////
+
+/* -------------------------------------------------------------------- */
 
 static MVert *dm_getVertArray(DerivedMesh *dm)
 {
@@ -879,6 +888,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 			add_shapekey_layers(tdm, me, ob);
 		
 		dm = modwrap_applyModifier(md, ob, tdm, 0);
+		ASSERT_IS_VALID_DM(dm);
 
 		if (tdm != dm) tdm->release(tdm);
 	}
@@ -1650,6 +1660,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 			else {
 				dm = CDDM_from_mesh(me, ob);
+				ASSERT_IS_VALID_DM(dm);
 
 				if (build_shapekey_layers)
 					add_shapekey_layers(dm, me, ob);
@@ -1707,6 +1718,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 
 			ndm = modwrap_applyModifier(md, ob, dm, app_flags);
+			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -1733,6 +1745,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				                  mti->requiredDataMask(ob, md) : 0));
 
 				ndm = modwrap_applyModifier(md, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1750,6 +1763,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
 
 				ndm = modwrap_applyModifier(md, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -2052,6 +2066,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			}
 			else {
 				dm = CDDM_from_editbmesh(em, FALSE, FALSE);
+				ASSERT_IS_VALID_DM(dm);
 
 				if (deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -2075,6 +2090,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 					ndm = modwrap_applyModifierEM(md, ob, em, orcodm, MOD_APPLY_ORCO);
 				else
 					ndm = modwrap_applyModifier(md, ob, orcodm, MOD_APPLY_ORCO);
+				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -2100,6 +2116,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				ndm = modwrap_applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE);
 			else
 				ndm = modwrap_applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
+			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
 				if (dm && dm != ndm)
@@ -3259,6 +3276,37 @@ void DM_debug_print_cdlayers(CustomData *data)
 	}
 
 	printf("}\n");
+}
+
+bool DM_is_valid(DerivedMesh *dm)
+{
+	const bool do_verbose = true;
+	const bool do_fixes = false;
+
+	bool is_valid = true;
+	bool is_change = true;
+
+	is_valid &= BKE_mesh_validate_all_customdata(
+	        dm->getVertDataLayout(dm),
+	        dm->getEdgeDataLayout(dm),
+	        dm->getLoopDataLayout(dm),
+	        dm->getPolyDataLayout(dm),
+	        0,  /* setting mask here isn't useful, gives false positives */
+	        do_verbose, do_fixes, &is_change);
+
+	is_valid &= BKE_mesh_validate_arrays(
+	        NULL,
+	        dm->getVertArray(dm), dm->getNumVerts(dm),
+	        dm->getEdgeArray(dm), dm->getNumEdges(dm),
+	        dm->getTessFaceArray(dm), dm->getNumTessFaces(dm),
+	        dm->getLoopArray(dm), dm->getNumLoops(dm),
+	        dm->getPolyArray(dm), dm->getNumPolys(dm),
+	        dm->getVertDataArray(dm, CD_MDEFORMVERT),
+	        do_verbose, do_fixes, &is_change);
+
+	BLI_assert(is_change == false);
+
+	return is_valid;
 }
 
 #endif /* NDEBUG */

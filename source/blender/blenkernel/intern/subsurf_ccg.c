@@ -3189,8 +3189,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getVert = ccgDM_getFinalVert;
 	ccgdm->dm.getEdge = ccgDM_getFinalEdge;
 	ccgdm->dm.getTessFace = ccgDM_getFinalFace;
+
 	ccgdm->dm.getVertCo = ccgDM_getFinalVertCo;
 	ccgdm->dm.getVertNo = ccgDM_getFinalVertNo;
+
 	ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
 	ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
 	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
@@ -3215,11 +3217,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
 	ccgdm->dm.getPolyMap = ccgDM_getPolyMap;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
-
-	ccgdm->dm.getTessFace = ccgDM_getFinalFace;
-	ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
-	ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
-	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
 
 	ccgdm->dm.calcNormals = ccgDM_calcNormals;
 	ccgdm->dm.recalcTessellation = ccgDM_recalcTessellation;
