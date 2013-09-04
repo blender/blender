@@ -1541,10 +1541,16 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
 	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 	size_t items = 0;
 	
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
-		FreestyleLineSet *lineset;
+		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+			lineset->linestyle->id.flag |= LIB_DOIT;
+		}
+	}
+
+	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		
 		/* skip render layers without Freestyle enabled */
 		if (!(srl->layflag & SCE_LAY_FRS))
@@ -1555,6 +1561,10 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			ListBase tmp_data = {NULL, NULL};
 			size_t tmp_items = 0;
+
+			if (!(linestyle->id.flag & LIB_DOIT))
+				continue;
+			linestyle->id.flag &= ~LIB_DOIT;
 			
 			/* add scene-level animation channels */
 			BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_LS_SCED(linestyle))
