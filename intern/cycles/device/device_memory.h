@@ -254,7 +254,6 @@ public:
 
 private:
 	array<T> data;
-	bool referenced;
 };
 
 CCL_NAMESPACE_END
