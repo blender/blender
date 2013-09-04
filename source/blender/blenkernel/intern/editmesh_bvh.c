@@ -197,11 +197,13 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
 
 	bmbvh_tri_from_face(tri_cos, ltri, bmcb_data->cos_cage);
 
-	isect = ray->radius > 0.0f ?
-		isect_ray_tri_epsilon_v3(ray->origin, ray->direction, tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv, ray->radius) :
-		isect_ray_tri_v3(ray->origin, ray->direction, tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv);
-	if (isect && dist < hit->dist)
-	{
+	isect = (ray->radius > 0.0f ?
+	         isect_ray_tri_epsilon_v3(ray->origin, ray->direction,
+	                                  tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv, ray->radius) :
+	         isect_ray_tri_v3(ray->origin, ray->direction,
+	                          tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv));
+
+	if (isect && dist < hit->dist) {
 		hit->dist = dist;
 		hit->index = index;
 

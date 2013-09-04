@@ -500,7 +500,8 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 	KnifeEdge *kfe = new_knife_edge(kcd), *kfe2 = NULL, *kfe3 = NULL;
 
 	if ((kcd->prev.vert && kcd->prev.vert == kcd->curr.vert) ||
-	    (kcd->prev.edge && kcd->prev.edge == kcd->curr.edge)) {
+	    (kcd->prev.edge && kcd->prev.edge == kcd->curr.edge))
+	{
 		kcd->prev = kcd->curr;
 		return;
 	}
@@ -594,10 +595,14 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 		if (testi >= 0 && testi < kcd->totlinehit) {
 			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
 			                           &kcd->linehits[i].kfe->faces))
+			{
 				return i;
+			}
 			else if (kcd->linehits[testi].v &&
-				 kcd->linehits[testi].v == kcd->linehits[i].v)
+			         kcd->linehits[testi].v == kcd->linehits[i].v)
+			{
 				return i;
+			}
 		}
 		else if (f) {
 			if (find_ref(&kcd->linehits[i].kfe->faces, f))
@@ -722,7 +727,8 @@ static void knife_get_edge_faces(KnifeTool_OpData *kcd, KnifeEdge *kfe, ListBase
 }
 #endif
 
-static void copy_hit_from_posdata(BMEdgeHit *lh, KnifePosData *pos, float lambda) {
+static void copy_hit_from_posdata(BMEdgeHit *lh, KnifePosData *pos, float lambda)
+{
 	lh->kfe = pos->edge;
 	lh->v = pos->vert;
 	lh->f = pos->bmface;
@@ -1244,7 +1250,8 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 			n_isects = 0;
 			if (fabsf(dist_to_plane_v3(kfe->v1->cageco, tri_plane)) < KNIFE_FLT_EPS &&
-			    fabsf(dist_to_plane_v3(kfe->v2->cageco, tri_plane)) < KNIFE_FLT_EPS) {
+			    fabsf(dist_to_plane_v3(kfe->v2->cageco, tri_plane)) < KNIFE_FLT_EPS)
+			{
 				/* both kfe ends are in cutting triangle */
 				copy_v3_v3(isects[0], kfe->v1->cageco);
 				copy_v3_v3(isects[1], kfe->v2->cageco);

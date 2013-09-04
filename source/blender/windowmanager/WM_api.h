@@ -144,9 +144,9 @@ struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, 
 void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
 struct wmEventHandler *WM_event_add_ui_handler(
-		const struct bContext *C, ListBase *handlers,
-		int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
-		void (*remove)(struct bContext *C, void *userdata), void *userdata);
+        const struct bContext *C, ListBase *handlers,
+        int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
+        void (*remove)(struct bContext *C, void *userdata), void *userdata);
 
 void		WM_event_remove_ui_handler(ListBase *handlers,
                                        int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
