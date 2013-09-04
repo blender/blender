@@ -28,7 +28,9 @@
 #endif
 #include "../closure/bsdf_westin.h"
 #include "../closure/bsdf_toon.h"
+#ifdef __SUBSURFACE__
 #include "../closure/bssrdf.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 

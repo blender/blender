@@ -16,15 +16,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-#include "closure/bssrdf.h"
-
 /* NEW BSSRDF: See "BSSRDF Importance Sampling", SIGGRAPH 2013 */
 
 /* TODO:
  * - test using power heuristic for combing bssrdfs
  * - try to reduce one sample model variance
- * - possible shade all hits for progressive integrator
- * - cubic and gaussian scale difference tweak
  */
 
 #define BSSRDF_MULTI_EVAL
