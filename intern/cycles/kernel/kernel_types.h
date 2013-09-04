@@ -462,7 +462,7 @@ typedef struct ShaderClosure {
 	float data1;
 
 	float3 N;
-#ifdef __ANISOTROPIC__
+#if defined(__ANISOTROPIC__) || defined(__SUBSURFACE__)
 	float3 T;
 #endif
 
