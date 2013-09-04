@@ -696,26 +696,29 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	sActionzoneData *sad = op->customdata;
-	int deltax, deltay;
-	int mindelta = sad->az->type == AZONE_REGION ? 1 : 12;
 	
 	switch (event->type) {
 		case MOUSEMOVE:
+		{
+			/* for AZONE_AREA 'delta_min' uses (AZONESPOT + 1) dragging before a gesture is accepted.
+			 * because the distance must be larger then the hot-spot else an intended join can turn into a split */
+			const int delta_min = (sad->az->type == AZONE_AREA) ? (AZONESPOT + 1) : 1;
+
+			const int delta_x = (event->x - sad->x);
+			const int delta_y = (event->y - sad->y);
+
 			/* calculate gesture direction */
-			deltax = (event->x - sad->x);
-			deltay = (event->y - sad->y);
-			
-			if (deltay > ABS(deltax))
+			if (delta_y > ABS(delta_x))
 				sad->gesture_dir = 'n';
-			else if (deltax > ABS(deltay))
+			else if (delta_x > ABS(delta_y))
 				sad->gesture_dir = 'e';
-			else if (deltay < -ABS(deltax))
+			else if (delta_y < -ABS(delta_x))
 				sad->gesture_dir = 's';
 			else
 				sad->gesture_dir = 'w';
 			
 			/* gesture is large enough? */
-			if (ABS(deltax) > mindelta || ABS(deltay) > mindelta) {
+			if (ABS(delta_x) > delta_min || ABS(delta_y) > delta_min) {
 				
 				/* second area, for join */
 				sad->sa2 = screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
@@ -726,6 +729,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_FINISHED;
 			}
 			break;
+		}
 		case ESCKEY:
 			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
