@@ -31,7 +31,9 @@
  * Simple test of memory.
  */
 
-
+/* To compile run:
+ * gcc -DWITH_GUARDEDALLOC -I../../ -I../../../atomic/ memtest.c  ../../intern/mallocn.c -o simpletest
+ */
 
 /* Number of chunks to test with */
 #define NUM_BLOCKS 10
