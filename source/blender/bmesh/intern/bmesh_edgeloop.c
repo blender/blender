@@ -230,7 +230,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool, ListBase *lb, const in
 					/* on the same side - do nothing */
 				}
 				else {
-					/* we have met out match! (vertices from differnt sides meet) */
+					/* we have met out match! (vertices from different sides meet) */
 					if (dir == 1) {
 						v_match[0] = vs->v;
 						v_match[1] = v_next;

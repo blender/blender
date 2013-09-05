@@ -594,8 +594,7 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 static int interval_test(const int min, const int max, int p1, const int cycl)
 {
 	if (cycl) {
-		if      (p1 < min) p1 = ((p1 - min) % (max - min + 1)) + max + 1;
-		else if (p1 > max) p1 = ((p1 - min) % (max - min + 1)) + min;
+		p1 = mod_i(p1 - min, (max - min + 1)) + min;
 	}
 	else {
 		if      (p1 < min) p1 = min;

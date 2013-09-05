@@ -273,7 +273,7 @@ static void bridge_loop_pair(BMesh *bm,
 		if (twist_offset != 0) {
 			const int len_b = BM_edgeloop_length_get(el_store_b);
 			ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
-			LinkData *el_b = BLI_rfindlink(lb_b, positive_mod(twist_offset, len_b));
+			LinkData *el_b = BLI_rfindlink(lb_b, mod_i(twist_offset, len_b));
 			BLI_rotatelist_first(lb_b, el_b);
 		}
 	}

@@ -2959,7 +2959,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 		RNA_property_int_set(op->ptr, prop_span, span);
 
 		offset = RNA_property_int_get(op->ptr, prop_offset);
-		offset = positive_mod(offset, clamp);
+		offset = mod_i(offset, clamp);
 
 		/* in simple cases, move selection for tags, but also support more advanced cases */
 		edbm_fill_grid_prepare(em->bm, span, offset);

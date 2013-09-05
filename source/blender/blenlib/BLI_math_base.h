@@ -222,7 +222,7 @@ MINLINE int power_of_2_max_i(int n);
 MINLINE int power_of_2_min_i(int n);
 
 MINLINE int divide_round_i(int a, int b);
-MINLINE int positive_mod(int i, int n);
+MINLINE int mod_i(int i, int n);
 
 MINLINE float shell_angle_to_dist(const float angle);
 

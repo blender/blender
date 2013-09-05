@@ -153,9 +153,12 @@ MINLINE int divide_round_i(int a, int b)
 	return (2 * a + b) / (2 * b);
 }
 
-MINLINE int positive_mod(int i, int n)
+/**
+ * modulo that handles negative numbers, works the same as Python's.
+ */
+MINLINE int mod_i(int i, int n)
 {
-	return ((i = i % n) < 0) ? i + n : i;
+	return (i % n + n) % n;
 }
 
 MINLINE unsigned int highest_order_bit_i(unsigned int n)
