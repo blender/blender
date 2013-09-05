@@ -45,6 +45,7 @@
 #include "BLI_noise.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_sort_utils.h"
 
 #include "BKE_material.h"
 #include "BKE_context.h"
@@ -2834,6 +2835,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_beauty", true, "Beauty", "Use best triangulation division");
 }
 
+
 /* -------------------------------------------------------------------- */
 /* Grid Fill (and helper functions) */
 
@@ -2861,11 +2863,12 @@ static float edbm_fill_grid_vert_tag_angle(BMVert *v)
 /**
  * non-essential utility function to select 2 open edge loops from a closed loop.
  */
-static void edbm_fill_grid_prepare(BMesh *bm, int span, int offset)
+static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span_calc)
 {
 	BMEdge *e;
 	BMIter iter;
 	int count;
+	int span = *r_span;
 
 	ListBase eloops = {NULL};
 	struct BMEdgeLoopStore *el_store;
@@ -2923,10 +2926,55 @@ static void edbm_fill_grid_prepare(BMesh *bm, int span, int offset)
 		}
 
 		MEM_freeN(edges);
+
+
+		if (span_calc) {
+			/* calculate the span by finding the next corner in 'verts'
+			 * we dont know what defines a corner exactly so find the 4 verts
+			 * in the loop with the greatest angle.
+			 * Tag them and use the first tagged vertex to calcualte the span.
+			 *
+			 * note: we may have already checked 'edbm_fill_grid_vert_tag_angle()' on each
+			 * vert, but advantage of de-duplicating is minimal. */
+			struct SortPointerByFloat *ele_sort = MEM_mallocN(sizeof(*ele_sort) * verts_len, __func__);
+			LinkData *v_link;
+			for (v_link = verts->first, i = 0; v_link; v_link = v_link->next, i++) {
+				BMVert *v = v_link->data;
+				const float angle = edbm_fill_grid_vert_tag_angle(v);
+				ele_sort[i].sort_value = angle;
+				ele_sort[i].data = v;
+
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+			}
+
+			qsort(ele_sort, verts_len, sizeof(*ele_sort), BLI_sortutil_cmp_float_reverse);
+
+			for (i = 0; i < 4; i++) {
+				BMVert *v = ele_sort[i].data;
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+			}
+
+			/* now find the first... */
+			for (v_link = verts->first, i = 0; i < verts_len / 2; v_link = v_link->next, i++) {
+				BMVert *v = v_link->data;
+				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+					if (v != v_act) {
+						span = i;
+						// printf("Span found %d\n", span);
+						break;
+					}
+				}
+			}
+			MEM_freeN(ele_sort);
+		}
+		/* end span calc */
+
 	}
 	/* else let the bmesh-operator handle it */
 
 	BM_mesh_edgeloops_free(&eloops);
+
+	*r_span = span;
 }
 
 static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
@@ -2937,13 +2985,14 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
 	const int totedge_orig = em->bm->totedge;
 	const int totface_orig = em->bm->totface;
-
 	const bool use_prepare = true;
+
 
 	if (use_prepare) {
 		/* use when we have a single loop selected */
 		PropertyRNA *prop_span = RNA_struct_find_property(op->ptr, "span");
 		PropertyRNA *prop_offset = RNA_struct_find_property(op->ptr, "offset");
+		bool calc_span;
 
 		const int clamp = em->bm->totvertsel;
 		int span;
@@ -2952,18 +3001,23 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 		if (RNA_property_is_set(op->ptr, prop_span)) {
 			span = RNA_property_int_get(op->ptr, prop_span);
 			span = min_ii(span, (clamp / 2) - 1);
+			calc_span = false;
 		}
 		else {
 			span = clamp / 4;
+			calc_span = true;
 		}
-		RNA_property_int_set(op->ptr, prop_span, span);
 
 		offset = RNA_property_int_get(op->ptr, prop_offset);
 		offset = mod_i(offset, clamp);
 
 		/* in simple cases, move selection for tags, but also support more advanced cases */
-		edbm_fill_grid_prepare(em->bm, span, offset);
+		edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
+
+		RNA_property_int_set(op->ptr, prop_span, span);
 	}
+	/* end tricky prepare code */
+
 
 	if (!EDBM_op_init(em, &bmop, op,
 	                  "grid_fill edges=%he mat_nr=%i use_smooth=%b",
