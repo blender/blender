@@ -1947,6 +1947,7 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 void txt_do_undo(Text *text)
 {
 	int op = text->undo_buf[text->undo_pos];
+	int prev_flags;
 	unsigned int linep, i;
 	unsigned int uchar;
 	unsigned int curln, selln;
@@ -2070,8 +2071,14 @@ void txt_do_undo(Text *text)
 			txt_move_to(text, selln, selc, 1);
 			
 			if ((curln == selln) && (curc == selc)) {
+				/* disable tabs to spaces since moving right may involve skipping multiple spaces */
+				prev_flags = text->flags;
+				text->flags &= ~TXT_TABSTOSPACES;
+				
 				for (i = 0; i < linep; i++)
 					txt_move_right(text, 1);
+				
+				text->flags = prev_flags;
 			}
 			
 			txt_delete_selected(text);

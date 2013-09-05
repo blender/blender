@@ -1861,7 +1861,7 @@ static int text_move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_CHAR:
-			if (txt_has_sel(text)) {
+			if (txt_has_sel(text) && !select) {
 				txt_order_cursors(text, false);
 				txt_pop_sel(text);
 			}
@@ -1871,7 +1871,7 @@ static int text_move_cursor(bContext *C, int type, int select)
 			break;
 
 		case NEXT_CHAR:
-			if (txt_has_sel(text)) {
+			if (txt_has_sel(text) && !select) {
 				txt_order_cursors(text, true);
 				txt_pop_sel(text);
 			}
