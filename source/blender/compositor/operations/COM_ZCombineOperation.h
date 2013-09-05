@@ -22,7 +22,7 @@
 
 #ifndef _COM_ZCombineOperation_h
 #define _COM_ZCombineOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 
 
 /**

@@ -22,7 +22,7 @@
 
 #include "COM_AlphaOverNode.h"
 
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 #include "COM_AlphaOverKeyOperation.h"
 #include "COM_AlphaOverMixedOperation.h"
 #include "COM_AlphaOverPremultiplyOperation.h"

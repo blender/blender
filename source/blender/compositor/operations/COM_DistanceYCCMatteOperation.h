@@ -21,7 +21,7 @@
 
 #ifndef _COM_DistanceYCCMatteOperation_h
 #define _COM_DistanceYCCMatteOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 #include "COM_DistanceRGBMatteOperation.h"
 
 

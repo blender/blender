@@ -22,7 +22,7 @@
 
 #ifndef _COM_AlphaOverMixedOperation_h_
 #define _COM_AlphaOverMixedOperation_h_
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 
 
 /**

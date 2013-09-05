@@ -28,7 +28,7 @@
 #include "COM_SetValueOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_AntiAliasOperation.h"
-#include "COM_MixBlendOperation.h"
+#include "COM_MixOperation.h"
 
 #include "DNA_material_types.h" // the ramp types
 

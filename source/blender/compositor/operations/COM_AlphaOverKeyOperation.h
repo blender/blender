@@ -22,7 +22,7 @@
 
 #ifndef _COM_AlphaOverKeyOperation_h
 #define _COM_AlphaOverKeyOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 
 
 /**

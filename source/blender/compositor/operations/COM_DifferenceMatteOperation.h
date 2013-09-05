@@ -22,7 +22,7 @@
 
 #ifndef _COM_DifferenceMatteOperation_h
 #define _COM_DifferenceMatteOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 
 
 /**

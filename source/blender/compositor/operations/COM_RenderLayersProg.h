@@ -102,4 +102,107 @@ public:
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class RenderLayersAOOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersAOOperation();
+};
+
+class RenderLayersAlphaProg : public RenderLayersBaseProg {
+public:
+	RenderLayersAlphaProg();
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+
+};
+
+class RenderLayersColorOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersColorOperation();
+};
+
+class RenderLayersCyclesOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersCyclesOperation(int pass);
+};
+
+class RenderLayersDepthProg : public RenderLayersBaseProg {
+public:
+	RenderLayersDepthProg();
+};
+
+class RenderLayersDiffuseOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersDiffuseOperation();
+};
+
+class RenderLayersEmitOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersEmitOperation();
+};
+
+class RenderLayersEnvironmentOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersEnvironmentOperation();
+};
+
+/// @todo rename to image operation
+class RenderLayersColorProg : public RenderLayersBaseProg {
+public:
+	RenderLayersColorProg();
+};
+
+class RenderLayersIndirectOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersIndirectOperation();
+};
+
+class RenderLayersMaterialIndexOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersMaterialIndexOperation();
+};
+
+class RenderLayersMistOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersMistOperation();
+};
+
+class RenderLayersNormalOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersNormalOperation();
+};
+
+class RenderLayersObjectIndexOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersObjectIndexOperation();
+};
+
+class RenderLayersReflectionOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersReflectionOperation();
+};
+
+class RenderLayersRefractionOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersRefractionOperation();
+};
+
+class RenderLayersShadowOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersShadowOperation();
+};
+
+class RenderLayersSpecularOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersSpecularOperation();
+};
+
+class RenderLayersSpeedOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersSpeedOperation();
+};
+
+class RenderLayersUVOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersUVOperation();
+};
+
 #endif

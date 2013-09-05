@@ -21,7 +21,7 @@
 
 #ifndef _COM_LuminanceMatteOperation_h
 #define _COM_LuminanceMatteOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_MixOperation.h"
 
 
 /**

@@ -25,7 +25,7 @@
 #include "COM_ConvolutionEdgeFilterOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
-#include "COM_MixBlendOperation.h"
+#include "COM_MixOperation.h"
 
 FilterNode::FilterNode(bNode *editorNode) : Node(editorNode)
 {

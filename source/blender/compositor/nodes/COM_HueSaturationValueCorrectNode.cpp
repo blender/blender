@@ -26,7 +26,7 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_ConvertRGBToHSVOperation.h"
 #include "COM_ConvertHSVToRGBOperation.h"
-#include "COM_MixBlendOperation.h"
+#include "COM_MixOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_ChangeHSVOperation.h"

@@ -26,7 +26,7 @@
 #include "COM_GlareSimpleStarOperation.h"
 #include "COM_GlareStreaksOperation.h"
 #include "COM_SetValueOperation.h"
-#include "COM_MixGlareOperation.h"
+#include "COM_MixOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_GlareGhostOperation.h"
 #include "COM_GlareFogGlowOperation.h"

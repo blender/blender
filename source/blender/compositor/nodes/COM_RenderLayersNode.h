@@ -22,7 +22,7 @@
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
-#include "COM_RenderLayersBaseProg.h"
+#include "COM_RenderLayersProg.h"
 
 /**
  * @brief RenderLayersNode

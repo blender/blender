@@ -25,7 +25,7 @@
 #include "COM_ColorBalanceASCCDLOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
-#include "COM_MixBlendOperation.h"
+#include "COM_MixOperation.h"
 
 ColorBalanceNode::ColorBalanceNode(bNode *editorNode) : Node(editorNode)
 {
