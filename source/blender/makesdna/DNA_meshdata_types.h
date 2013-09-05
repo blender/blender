@@ -42,7 +42,7 @@ struct Image;
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
-	char edcode, flag;	/* we keep edcode, for conversion to edges draw flags in old files */
+	char edcode, flag;  /* we keep edcode, for conversion to edges draw flags in old files */
 } MFace;
 
 typedef struct MEdge {
@@ -52,44 +52,42 @@ typedef struct MEdge {
 } MEdge;
 
 typedef struct MDeformWeight {
-	int				def_nr;
-	float			weight;
+	int def_nr;
+	float weight;
 } MDeformWeight;
 
 typedef struct MDeformVert {
 	struct MDeformWeight *dw;
 	int totweight;
-	int flag;	/* flag only in use for weightpaint now */
+	int flag;  /* flag only in use for weightpaint now */
 } MDeformVert;
 
 typedef struct MVert {
-	float	co[3];
-	short	no[3];
+	float co[3];
+	short no[3];
 	char flag, bweight;
 } MVert;
 
 /* tessellation vertex color data.
- * at the moment alpha is abused for vertex painting
- * and not used for transparency, note that red and blue are swapped */
+ * at the moment alpha is abused for vertex painting and not used for transparency, note that red and blue are swapped
+ */
 typedef struct MCol {
 	char a, r, g, b;
 } MCol;
 
-/* new face structure, replaces MFace, which is now
- * only used for storing tessellations.*/
+/* new face structure, replaces MFace, which is now only used for storing tessellations.*/
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
-	int totloop; /* keep signed since we need to subtract when getting the previous loop */
+	int totloop;  /* keep signed since we need to subtract when getting the previous loop */
 	short mat_nr;
 	char flag, pad;
 } MPoly;
 
-/* the e here is because we want to move away from
- * relying on edge hashes.*/
+/* the e here is because we want to move away from relying on edge hashes.*/
 typedef struct MLoop {
-	unsigned int v; /*vertex index*/
-	unsigned int e; /*edge index*/
+	unsigned int v;  /* vertex index */
+	unsigned int e;  /* edge index */
 } MLoop;
 
 typedef struct MTexPoly {
@@ -114,9 +112,11 @@ typedef struct MLoopUV {
 } MLoopUV;
 
 /*mloopuv->flag*/
-#define MLOOPUV_EDGESEL	1
-#define MLOOPUV_VERTSEL	2
-#define MLOOPUV_PINNED	4
+enum {
+	MLOOPUV_EDGESEL = (1 << 0),
+	MLOOPUV_VERTSEL = (1 << 1),
+	MLOOPUV_PINNED  = (1 << 2),
+};
 
 /**
  * at the moment alpha is abused for vertex painting,
@@ -166,13 +166,13 @@ typedef struct MTFace {
 
 /*Custom Data Properties*/
 typedef struct MFloatProperty {
-	float	f;
+	float f;
 } MFloatProperty;
 typedef struct MIntProperty {
-	int		i;
+	int i;
 } MIntProperty;
 typedef struct MStringProperty {
-	char	s[255], s_len;
+	char s[255], s_len;
 } MStringProperty;
 
 typedef struct OrigSpaceFace {
@@ -188,11 +188,10 @@ typedef struct MDisps {
 	int totdisp;
 	int level;
 	float (*disps)[3];
-	
-	/* Used for hiding parts of a multires mesh. Essentially the multires
-	 * equivalent of MVert.flag's ME_HIDE bit.
-	 *
-	 * This is a bitmap, keep in sync with type used in BLI_bitmap.h */
+
+	/* Used for hiding parts of a multires mesh. Essentially the multires equivalent of MVert.flag's ME_HIDE bit.
+	 * NOTE: This is a bitmap, keep in sync with type used in BLI_bitmap.h
+	 */
 	unsigned int *hidden;
 } MDisps;
 
@@ -200,15 +199,18 @@ typedef struct MDisps {
 typedef struct MultiresCol {
 	float a, r, g, b;
 } MultiresCol;
+
 typedef struct MultiresColFace {
 	/* vertex colors */
 	MultiresCol col[4];
 } MultiresColFace;
+
 typedef struct MultiresFace {
 	unsigned int v[4];
 	unsigned int mid;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
+
 typedef struct MultiresEdge {
 	unsigned int v[2];
 	unsigned int mid;
@@ -245,7 +247,7 @@ typedef struct Multires {
 /** End Multires **/
 
 typedef struct MRecast {
-	int		i;
+	int i;
 } MRecast;
 
 typedef struct GridPaintMask {
@@ -259,20 +261,19 @@ typedef struct GridPaintMask {
 } GridPaintMask;
 
 typedef enum MVertSkinFlag {
-	/* Marks a vertex as the edge-graph root, used for calculating
-	 * rotations for all connected edges (recursively.) Also used to
-	 * choose a root when generating an armature. */
+	/* Marks a vertex as the edge-graph root, used for calculating rotations for all connected edges (recursively).
+	 * Also used to choose a root when generating an armature.
+	 */
 	MVERT_SKIN_ROOT = 1,
 
-	/* Marks a branch vertex (vertex with more than two connected
-	 * edges) so that it's neighbors are directly hulled together,
-	 * rather than the default of generating intermediate frames. */
-	MVERT_SKIN_LOOSE = 2
+	/* Marks a branch vertex (vertex with more than two connected edges), so that it's neighbors are
+	 * directly hulled together, rather than the default of generating intermediate frames.
+	 */
+	MVERT_SKIN_LOOSE = 2,
 } MVertSkinFlag;
 
 typedef struct MVertSkin {
-	/* Radii of the skin, define how big the generated frames
-	 * are. Currently only the first two elements are used. */
+	/* Radii of the skin, define how big the generated frames are. Currently only the first two elements are used. */
 	float radius[3];
 
 	/* MVertSkinFlag */
@@ -285,7 +286,9 @@ typedef struct FreestyleEdge {
 } FreestyleEdge;
 
 /* FreestyleEdge->flag */
-#define FREESTYLE_EDGE_MARK	1
+enum {
+	FREESTYLE_EDGE_MARK = 1,
+};
 
 typedef struct FreestyleFace {
 	char flag;
@@ -293,96 +296,118 @@ typedef struct FreestyleFace {
 } FreestyleFace;
 
 /* FreestyleFace->flag */
-#define FREESTYLE_FACE_MARK	1
+enum {
+	FREESTYLE_FACE_MARK = 1,
+};
 
-/* mvert->flag (1=SELECT) */
-#define ME_SPHERETEST		2
-#define ME_VERT_TMP_TAG		4
-#define ME_HIDE				16
-#define ME_VERT_MERGED		(1<<6)
-#define ME_VERT_PBVH_UPDATE	(1<<7)
+/* mvert->flag */
+enum {
+/*	SELECT              = (1 << 0), */
+	ME_SPHERETEST       = (1 << 1),
+	ME_VERT_TMP_TAG     = (1 << 2),
+	ME_HIDE             = (1 << 4),
+	ME_VERT_MERGED      = (1 << 6),
+	ME_VERT_PBVH_UPDATE = (1 << 7),
+};
 
-/* medge->flag (1=SELECT)*/
-#define ME_EDGEDRAW			(1<<1)
-#define ME_SEAM				(1<<2)
-#define ME_FGON				(1<<3) /* no longer used (now we have ngons), only defined so we can clear it */
-						/* reserve 16 for ME_HIDE */
-#define ME_EDGERENDER		(1<<5)
-#define ME_LOOSEEDGE		(1<<7)
-#define ME_EDGE_TMP_TAG		(1 << 8)
-#define ME_SHARP			(1<<9)    /* only reason this flag remains a 'short' */
+/* medge->flag */
+enum {
+/*	SELECT              = (1 << 0), */
+	ME_EDGEDRAW         = (1 << 1),
+	ME_SEAM             = (1 << 2),
+	ME_FGON             = (1 << 3),  /* no longer used (now we have ngons), only defined so we can clear it */
+/*	ME_HIDE             = (1 << 4), */
+	ME_EDGERENDER       = (1 << 5),
+	ME_LOOSEEDGE        = (1 << 7),
+	ME_EDGE_TMP_TAG     = (1 << 8),
+	ME_SHARP            = (1 << 9),  /* only reason this flag remains a 'short' */
+};
 
 /* puno = vertexnormal (mface) */
-#define ME_PROJXY		16
-#define ME_PROJXZ		32
-#define ME_PROJYZ		64
+enum {
+	ME_PROJXY = (1 << 4),
+	ME_PROJXZ = (1 << 5),
+	ME_PROJYZ = (1 << 6),
+};
 
 /* edcode (mface) */
-#define ME_V1V2			1
-#define ME_V2V3			2
-#define ME_V3V1			4
-#define ME_V3V4			4
-#define ME_V4V1			8
+enum {
+	ME_V1V2 = (1 << 0),
+	ME_V2V3 = (1 << 1),
+	ME_V3V1 = (1 << 2),
+	ME_V3V4 = ME_V3V1,
+	ME_V4V1 = (1 << 3),
+};
 
 /* flag (mface) */
-#define ME_SMOOTH			1
-#define ME_FACE_SEL			2
-/* flag ME_HIDE==16 is used here too */ 
+enum {
+	ME_SMOOTH   = (1 << 0),
+	ME_FACE_SEL = (1 << 1),
+/*	ME_HIDE     = (1 << 4), */ 
+};
 
 #define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
 #define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
 
 /* mselect->type */
-#define ME_VSEL	0
-#define ME_ESEL 1
-#define ME_FSEL 2
+enum {
+	ME_VSEL = 0,
+	ME_ESEL = 1,
+	ME_FSEL = 2,
+};
 
 /* mtface->flag */
-#define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
-#define TF_ACTIVE	2 /* deprecated! */
-#define TF_SEL1		4
-#define TF_SEL2		8
-#define TF_SEL3		16
-#define TF_SEL4		32
+enum {
+	TF_SELECT = (1 << 0),  /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
+	TF_ACTIVE = (1 << 1),  /* deprecated! */
+	TF_SEL1   = (1 << 2),
+	TF_SEL2   = (1 << 3),
+	TF_SEL3   = (1 << 4),
+	TF_SEL4   = (1 << 5),
+};
 
 /* mtface->mode */
-#define TF_DYNAMIC		1
-#define TF_ALPHASORT	2
-#define TF_TEX			4
-#define TF_SHAREDVERT	8
-#define TF_LIGHT		16
+enum {
+	TF_DYNAMIC    = (1 << 0),
+	TF_ALPHASORT  = (1 << 1),
+	TF_TEX        = (1 << 2),
+	TF_SHAREDVERT = (1 << 3),
+	TF_LIGHT      = (1 << 4),
 
-#define TF_CONVERTED 32 /* tface converted to material */
+	TF_CONVERTED  = (1 << 5),  /* tface converted to material */
 
-#define TF_SHAREDCOL	64
-#define TF_TILES		128		/* deprecated */
-#define TF_BILLBOARD	256
-#define TF_TWOSIDE		512
-#define TF_INVISIBLE	1024
+	TF_SHAREDCOL  = (1 << 6),
+	TF_TILES      = (1 << 7),  /* deprecated */
+	TF_BILLBOARD  = (1 << 8),
+	TF_TWOSIDE    = (1 << 9),
+	TF_INVISIBLE  = (1 << 10),
 
-#define TF_OBCOL		2048
-#define TF_BILLBOARD2	4096	/* with Z axis constraint */
-#define TF_SHADOW		8192
-#define TF_BMFONT		16384
+	TF_OBCOL      = (1 << 11),
+	TF_BILLBOARD2 = (1 << 12),  /* with Z axis constraint */
+	TF_SHADOW     = (1 << 13),
+	TF_BMFONT     = (1 << 14),
+};
 
 /* mtface->transp, values 1-4 are used as flags in the GL, WARNING, TF_SUB cant work with this */
-#define TF_SOLID	0
-#define TF_ADD		1
-#define TF_ALPHA	2
-#define TF_CLIP		4 /* clipmap alpha/binary alpha all or nothing! */
+enum {
+	TF_SOLID = 0,
+	TF_ADD   = (1 << 0),
+	TF_ALPHA = (1 << 1),
+	TF_CLIP  = (1 << 2),  /* clipmap alpha/binary alpha all or nothing! */
 
-/* sub is not available in the user interface anymore */
-#define TF_SUB		3
-
+	TF_SUB   = 3,  /* sub is not available in the user interface anymore */
+};
 
 /* mtface->unwrap */
-#define TF_DEPRECATED1     1
-#define TF_DEPRECATED2     2
-#define TF_DEPRECATED3     4
-#define TF_DEPRECATED4     8
-#define TF_PIN1            16
-#define TF_PIN2	           32
-#define TF_PIN3	   	       64
-#define TF_PIN4	           128
+enum {
+	TF_DEPRECATED1 = (1 << 0),
+	TF_DEPRECATED2 = (1 << 1),
+	TF_DEPRECATED3 = (1 << 2),
+	TF_DEPRECATED4 = (1 << 3),
+	TF_PIN1        = (1 << 4),
+	TF_PIN2        = (1 << 5),
+	TF_PIN3        = (1 << 6),
+	TF_PIN4        = (1 << 7),
+};
 
-#endif
+#endif  /* __DNA_MESHDATA_TYPES_H__ */
