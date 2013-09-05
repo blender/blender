@@ -44,7 +44,7 @@ public:
 	void executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler);
 	const bool isReadBufferOperation() const { return true; }
 	void setOffset(unsigned int offset) { this->m_offset = offset; }
-	unsigned int getOffset() { return this->m_offset; }
+	unsigned int getOffset() const { return this->m_offset; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return memoryBuffers[this->m_offset]; }
 	void readResolutionFromWriteBuffer();

@@ -54,9 +54,9 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 					// first pass no offset, always same for every pass, exact copy,
 					// otherwise results in uneven brightness, only need once
 					if (n == 0) tsrc->read(c1, x, y); else c1[0] = c1[1] = c1[2] = 0;
-					tsrc->readCubic(c2, x + vxp, y + vyp);
-					tsrc->readCubic(c3, x + vxp * 2.f, y + vyp * 2.f);
-					tsrc->readCubic(c4, x + vxp * 3.f, y + vyp * 3.f);
+					tsrc->readBilinear(c2, x + vxp, y + vyp);
+					tsrc->readBilinear(c3, x + vxp * 2.f, y + vyp * 2.f);
+					tsrc->readBilinear(c4, x + vxp * 3.f, y + vyp * 3.f);
 					// modulate color to look vaguely similar to a color spectrum
 					c2[1] *= cmo;
 					c2[2] *= cmo;

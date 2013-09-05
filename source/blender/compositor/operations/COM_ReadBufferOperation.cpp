@@ -62,7 +62,7 @@ void ReadBufferOperation::executePixel(float output[4], float x, float y, PixelS
 		m_buffer->read(output, x, y);
 	}
 	else {
-		m_buffer->readCubic(output, x, y);
+		m_buffer->readBilinear(output, x, y);
 	}
 }
 

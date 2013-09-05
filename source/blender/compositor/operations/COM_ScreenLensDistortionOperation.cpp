@@ -103,7 +103,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
-				buffer->readCubic(color, nx, ny);
+				buffer->readBilinear(color, nx, ny);
 				tc[0] += (1.0f - tz) * color[0], tc[1] += tz * color[1];
 				dr++, dg++;
 			}
@@ -121,7 +121,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
-				buffer->readCubic(color, nx, ny);
+				buffer->readBilinear(color, nx, ny);
 				tc[1] += (1.0f - tz) * color[1], tc[2] += tz * color[2];
 				dg++, db++;
 			}

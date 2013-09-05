@@ -46,6 +46,12 @@ typedef enum MemoryBufferState {
 	COM_MB_TEMPORARILY = 6
 } MemoryBufferState;
 
+typedef enum MemoryBufferExtend {
+	COM_MB_CLIP,
+	COM_MB_EXTEND,
+	COM_MB_REPEAT
+} MemoryBufferExtend;
+
 class MemoryProxy;
 
 /**
@@ -125,31 +131,67 @@ public:
 		this->m_state = COM_MB_AVAILABLE;
 	}
 	
-	inline void read(float result[4], int x, int y)
+	inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
 	{
-		if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
-		    y >= this->m_rect.ymin && y < this->m_rect.ymax)
-		{
-			const int dx = x - this->m_rect.xmin;
-			const int dy = y - this->m_rect.ymin;
-			const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
-			copy_v4_v4(result, &this->m_buffer[offset]);
+		int w = m_rect.xmax - m_rect.xmin;
+		int h = m_rect.ymax - m_rect.ymin;
+		x = x - m_rect.xmin;
+		y = y - m_rect.ymin;
+		
+		switch (extend_x) {
+			case COM_MB_CLIP:
+				break;
+			case COM_MB_EXTEND:
+				if (x < 0) x = 0;
+				if (x >= w) x = w;
+				break;
+			case COM_MB_REPEAT:
+				x = (x >= 0.0f ? (x % w) : (x % w) + w);
+				break;
+		}
+		
+		switch (extend_y) {
+			case COM_MB_CLIP:
+				break;
+			case COM_MB_EXTEND:
+				if (y < 0) y = 0;
+				if (y >= h) y = h;
+				break;
+			case COM_MB_REPEAT:
+				y = (y >= 0.0f ? (y % h) : (y % h) + h);
+				break;
+		}
+	}
+	
+	inline void read(float result[4], int x, int y,
+	                 MemoryBufferExtend extend_x = COM_MB_CLIP,
+	                 MemoryBufferExtend extend_y = COM_MB_CLIP)
+	{
+		bool clip_x = (extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax));
+		bool clip_y = (extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax));
+		if (clip_x || clip_y) {
+			/* clip result outside rect is zero */
+			zero_v4(result);
 		}
 		else {
-			zero_v4(result);
+			wrap_pixel(x, y, extend_x, extend_y);
+			const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+			copy_v4_v4(result, &this->m_buffer[offset]);
 		}
 	}
 
-	inline void readNoCheck(float result[4], int x, int y)
+	inline void readNoCheck(float result[4], int x, int y,
+	                        MemoryBufferExtend extend_x = COM_MB_CLIP,
+	                        MemoryBufferExtend extend_y = COM_MB_CLIP)
 	{
-		const int dx = x - this->m_rect.xmin;
-		const int dy = y - this->m_rect.ymin;
-		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+		wrap_pixel(x, y, extend_x, extend_y);
+		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
 
 		BLI_assert(offset >= 0);
 		BLI_assert(offset < this->determineBufferSize() * COM_NUMBER_OF_CHANNELS);
-		BLI_assert(x >= this->m_rect.xmin && x < this->m_rect.xmax &&
-		           y >= this->m_rect.ymin && y < this->m_rect.ymax);
+		bool clip_x = (extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax));
+		bool clip_y = (extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax));
+		BLI_assert(!clip_x && !clip_y);
 
 #if 0
 		/* always true */
@@ -162,12 +204,16 @@ public:
 	
 	void writePixel(int x, int y, const float color[4]);
 	void addPixel(int x, int y, const float color[4]);
-	inline void readCubic(float result[4], float x, float y)
+	inline void readBilinear(float result[4], float x, float y,
+	                         MemoryBufferExtend extend_x = COM_MB_CLIP,
+	                         MemoryBufferExtend extend_y = COM_MB_CLIP)
 	{
 		int x1 = floor(x);
-		int x2 = x1 + 1;
 		int y1 = floor(y);
+		int x2 = x1 + 1;
 		int y2 = y1 + 1;
+		wrap_pixel(x1, y1, extend_x, extend_y);
+		wrap_pixel(x2, y2, extend_x, extend_y);
 
 		float valuex = x - x1;
 		float valuey = y - y1;
@@ -199,8 +245,6 @@ public:
 		result[2] = color1[2] * mvaluex + color3[2] * valuex;
 		result[3] = color1[3] * mvaluex + color3[3] * valuex;
 	}
-		
-
 
 	void readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler);
 	

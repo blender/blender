@@ -55,11 +55,11 @@ void ProjectorLensDistortionOperation::executePixel(float output[4], int x, int 
 	const float v = (y + 0.5f) / height;
 	const float u = (x + 0.5f) / width;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-	inputBuffer->readCubic(inputValue, (u * width + this->m_kr2) - 0.5f, v * height - 0.5f);
+	inputBuffer->readBilinear(inputValue, (u * width + this->m_kr2) - 0.5f, v * height - 0.5f);
 	output[0] = inputValue[0];
 	inputBuffer->read(inputValue, x, y);
 	output[1] = inputValue[1];
-	inputBuffer->readCubic(inputValue, (u * width - this->m_kr2) - 0.5f, v * height - 0.5f);
+	inputBuffer->readBilinear(inputValue, (u * width - this->m_kr2) - 0.5f, v * height - 0.5f);
 	output[2] = inputValue[2];
 	output[3] = 1.0f;
 }
