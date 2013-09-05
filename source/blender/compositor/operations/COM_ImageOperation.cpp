@@ -141,7 +141,7 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 		}
 		rgba_uchar_to_float(color, byte_color);
 		if (make_linear_rgb) {
-			IMB_colormanagement_colorspace_to_scene_linear_v4(color, FALSE, ibuf->rect_colorspace);
+			IMB_colormanagement_colorspace_to_scene_linear_v4(color, false, ibuf->rect_colorspace);
 		}
 	}
 }

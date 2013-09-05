@@ -87,7 +87,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		else {
 			ImBuf *write_ibuf;
 
-			write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, true, true, &scene->view_settings,
 			                                                 &scene->display_settings, &scene->r.im_format);
 
 			write_ibuf->planes = scene->r.im_format.planes;

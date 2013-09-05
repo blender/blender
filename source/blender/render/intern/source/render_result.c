@@ -1191,7 +1191,7 @@ void render_result_rect_get_pixels(RenderResult *rr, unsigned int *rect, int rec
 	}
 	else if (rr->rectf) {
 		IMB_display_buffer_transform_apply((unsigned char *) rect, rr->rectf, rr->rectx, rr->recty, 4,
-		                                   view_settings, display_settings, TRUE);
+		                                   view_settings, display_settings, true);
 	}
 	else
 		/* else fill with black */

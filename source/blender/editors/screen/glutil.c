@@ -1092,17 +1092,17 @@ void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
 			if (ibuf->float_colorspace) {
 				ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
 				                                                    ibuf->float_colorspace,
-				                                                    TRUE, FALSE);
+				                                                    true, false);
 			}
 			else {
 				ok = IMB_colormanagement_setup_glsl_draw(view_settings, display_settings,
-				                                         TRUE, FALSE);
+				                                         true, false);
 			}
 		}
 		else {
 			ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
 			                                                    ibuf->rect_colorspace,
-			                                                    FALSE, FALSE);
+			                                                    false, false);
 		}
 
 		if (ok) {
@@ -1181,7 +1181,7 @@ int glaBufferTransformFromRole_glsl(float *buffer, int width, int height, int ro
 
 	GPU_offscreen_bind(ofs);
 
-	if (!IMB_colormanagement_setup_transform_from_role_glsl(role, TRUE)) {
+	if (!IMB_colormanagement_setup_transform_from_role_glsl(role, true)) {
 		GPU_offscreen_unbind(ofs);
 		GPU_offscreen_free(ofs);
 		return FALSE;

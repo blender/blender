@@ -1336,7 +1336,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		const char *relbase = ID_BLEND_PATH(CTX_data_main(C), &ima->id);
 		const short relative = (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		const short save_copy = (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
-		const short save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") && RNA_boolean_get(op->ptr, "save_as_render"));
+		const bool save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") && RNA_boolean_get(op->ptr, "save_as_render"));
 		ImageFormatData *imf = &simopts->im_format;
 		short ok = FALSE;
 
@@ -1362,7 +1362,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 
-		colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, TRUE, &imf->view_settings, &imf->display_settings, imf);
+		colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
 
 		if (simopts->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			Scene *scene = CTX_data_scene(C);

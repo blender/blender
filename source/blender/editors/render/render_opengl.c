@@ -591,7 +591,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		ibuf_save = ibuf;
 
 		if (is_movie || !BKE_imtype_requires_linear_float(scene->r.im_format.imtype)) {
-			ibuf_save = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			ibuf_save = IMB_colormanagement_imbuf_for_write(ibuf, true, true, &scene->view_settings,
 			                                                &scene->display_settings, &scene->r.im_format);
 
 			needs_free = TRUE;

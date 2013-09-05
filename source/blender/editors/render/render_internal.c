@@ -164,7 +164,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
 	                                  &scene->view_settings, &scene->display_settings,
-	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, TRUE);
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, true);
 }
 
 /* ****************************** render invoking ***************** */
@@ -1137,7 +1137,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 
 		/* Try using GLSL display transform. */
 		if (force_fallback == false) {
-			if (IMB_colormanagement_setup_glsl_draw(NULL, &scene->display_settings, TRUE, FALSE)) {
+			if (IMB_colormanagement_setup_glsl_draw(NULL, &scene->display_settings, true, false)) {
 				glEnable(GL_BLEND);
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_FLOAT,

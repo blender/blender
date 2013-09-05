@@ -32,6 +32,7 @@
 #define __IMB_COLORMANAGEMENT_INTERN_H__
 
 #include "DNA_listBase.h"
+#include "BLI_sys_types.h"
 
 struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
@@ -48,8 +49,8 @@ typedef struct ColorSpace {
 	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
 	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
 
-	int is_invertible;
-	int is_data;
+	bool is_invertible;
+	bool is_data;
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {
@@ -87,7 +88,7 @@ struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
 struct ColorManagedView *colormanage_view_get_named(const char *name);
 
-struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible, int is_data);
+struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, bool is_invertible, bool is_data);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_roled(int role);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);

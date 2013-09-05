@@ -2542,7 +2542,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		}
 
 
-		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+		IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 		                                    &scene->display_settings, &scene->r.im_format);
 
 		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *) ibuf->rect,
@@ -2573,7 +2573,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		else {
 			ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
 
-			IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+			IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 			                                    &scene->display_settings, &scene->r.im_format);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
@@ -2593,7 +2593,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				BKE_add_image_extension(name, &imf);
 				ibuf->planes = 24;
 
-				IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+				IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 				                                    &scene->display_settings, &imf);
 
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
@@ -2935,7 +2935,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return 0;
 	}
 
-	IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings, &scene->display_settings, &imf);
+	IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings, &scene->display_settings, &imf);
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));

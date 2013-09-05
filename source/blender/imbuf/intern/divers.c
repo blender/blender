@@ -565,7 +565,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 	buffer = MEM_dupallocN(ibuf->rect_float);
 
 	/* first make float buffer in byte space */
-	IMB_colormanagement_transform(buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, ibuf->rect_colorspace->name, TRUE);
+	IMB_colormanagement_transform(buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, ibuf->rect_colorspace->name, true);
 
 	/* convert from float's premul alpha to byte's straight alpha */
 	IMB_unpremultiply_rect_float(buffer, ibuf->planes, ibuf->x, ibuf->y);
@@ -657,7 +657,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
 
 	/* then make float be in linear space */
 	IMB_colormanagement_colorspace_to_scene_linear(rect_float, ibuf->x, ibuf->y, ibuf->channels,
-	                                               ibuf->rect_colorspace, FALSE);
+	                                               ibuf->rect_colorspace, false);
 
 	/* byte buffer is straight alpha, float should always be premul */
 	IMB_premultiply_rect_float(rect_float, ibuf->channels, ibuf->x, ibuf->y);
