@@ -122,12 +122,12 @@ static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 
 	param = PyLong_AsLong(value);
 
-	if (param == true) {
-		BM_elem_flag_enable(self->ele, hflag);
-		return 0;
-	}
-	else if (param == false) {
-		BM_elem_flag_disable(self->ele, hflag);
+	if ((unsigned int)param <= 1) {
+		if (hflag == BM_ELEM_SELECT)
+			BM_elem_select_set(self->bm, self->ele, param);
+		else
+			BM_elem_flag_set(self->ele, hflag, param);
+
 		return 0;
 	}
 	else {
