@@ -933,6 +933,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 	Camera *cam = NULL;
 	std::string cam_id, cam_name;
 	
+	ExtraTags *et=getExtraTags(camera->getUniqueId());
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
 	if (cam_name.size()) cam = (Camera *)BKE_camera_add(G.main, (char *)cam_name.c_str());
@@ -941,6 +942,12 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");
 		return true;
+	}
+
+	if(et && et->isProfile("blender")) {
+		et->setData("shiftx",&(cam->shiftx));
+		et->setData("shifty",&(cam->shifty));
+		et->setData("YF_dofdist",&(cam->YF_dofdist));
 	}
 	cam->clipsta = camera->getNearClippingPlane().getValue();
 	cam->clipend = camera->getFarClippingPlane().getValue();

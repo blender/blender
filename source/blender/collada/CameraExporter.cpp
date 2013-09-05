@@ -63,7 +63,6 @@ void CamerasExporter::exportCameras(Scene *sce)
 }
 void CamerasExporter::operator()(Object *ob, Scene *sce)
 {
-	// TODO: shiftx, shifty, YF_dofdist
 	Camera *cam = (Camera *)ob->data;
 	std::string cam_id(get_camera_id(ob));
 	std::string cam_name(id_name(cam));
@@ -78,7 +77,9 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 			persp.setZFar(cam->clipend, false, "zfar");
 			persp.setZNear(cam->clipsta, false, "znear");
 			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
+			exportBlenderProfile(ccam, cam);
 			addCamera(ccam);
+
 			break;
 		}
 		case CAM_ORTHO:
@@ -90,8 +91,17 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 			ortho.setZFar(cam->clipend, false, "zfar");
 			ortho.setZNear(cam->clipsta, false, "znear");
 			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
+			exportBlenderProfile(ccam, cam);
 			addCamera(ccam);
 			break;
 		}
 	}
+}
+bool CamerasExporter::exportBlenderProfile(COLLADASW::Camera &cm,Camera *cam)
+{
+	cm.addExtraTechniqueParameter("blender","shiftx",cam->shiftx);
+	cm.addExtraTechniqueParameter("blender","shifty",cam->shifty);
+	cm.addExtraTechniqueParameter("blender","YF_dofdist",cam->YF_dofdist);
+	return true;
+
 }
