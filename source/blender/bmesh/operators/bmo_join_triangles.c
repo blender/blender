@@ -34,6 +34,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
+#include "BLI_sort_utils.h"
 
 #include "BKE_customdata.h"
 
@@ -181,10 +182,6 @@ static bool bm_edge_faces_cmp(BMesh *bm, BMEdge *e, const bool do_uv, const bool
 	return true;
 }
 
-typedef struct JoinEdge {
-	float weight;
-	BMEdge *e;
-} JoinEdge;
 
 #define EDGE_MARK	1
 #define EDGE_CHOSEN	2
@@ -192,14 +189,7 @@ typedef struct JoinEdge {
 #define FACE_MARK	1
 #define FACE_INPUT	2
 
-static int fplcmp(const void *v1, const void *v2)
-{
-	const JoinEdge *e1 = (JoinEdge *)v1, *e2 = (JoinEdge *)v2;
 
-	if      (e1->weight > e2->weight) return  1;
-	else if (e1->weight < e2->weight) return -1;
-	else                              return  0;
-}
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
@@ -214,7 +204,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMFace *f;
 	BMEdge *e;
-	JoinEdge *jedges = NULL;
+	/* data: edge-to-join, sort_value: error weight */
+	struct SortPointerByFloat *jedges;
 	unsigned i, totedge;
 	unsigned int totedge_tag = 0;
 
@@ -271,19 +262,19 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 		measure = measure_facepair(v1->co, v2->co, v3->co, v4->co, limit);
 		if (measure < limit) {
-			jedges[i].e = e;
-			jedges[i].weight = measure;
+			jedges[i].data = e;
+			jedges[i].sort_value = measure;
 			i++;
 		}
 	}
 
 	totedge = i;
-	qsort(jedges, totedge, sizeof(JoinEdge), fplcmp);
+	qsort(jedges, totedge, sizeof(*jedges), BLI_sortutil_cmp_float);
 
 	for (i = 0; i < totedge; i++) {
 		BMFace *f_a, *f_b;
 
-		e = jedges[i].e;
+		e = jedges[i].data;
 		f_a = e->l->f;
 		f_b = e->l->radial_next->f;
 

@@ -35,6 +35,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_math.h"
+#include "BLI_sort_utils.h"
 
 #include "BKE_customdata.h"
 
@@ -358,20 +359,6 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len,
 	        f_example, create_flag);
 }
 
-
-typedef struct AngleIndexPair {
-	float angle;
-	int index;
-} AngleIndexPair;
-
-static int angle_index_pair_cmp(const void *e1, const void *e2)
-{
-	const AngleIndexPair *p1 = e1, *p2 = e2;
-	if      (p1->angle > p2->angle) return  1;
-	else if (p1->angle < p2->angle) return -1;
-	else return 0;
-}
-
 /**
  * Makes an NGon from an un-ordered set of verts
  *
@@ -391,7 +378,7 @@ static int angle_index_pair_cmp(const void *e1, const void *e2)
 BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
                                    const BMFace *f_example, const eBMCreateFlag create_flag)
 {
-	AngleIndexPair *vang = BLI_array_alloca(vang, len);
+	struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
 	BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
 
 	BMFace *f;
@@ -488,18 +475,18 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
 			angle = -angle;
 		}
 
-		vang[i].angle = angle;
-		vang[i].index = i;
+		vang[i].sort_value = angle;
+		vang[i].data = i;
 	}
 
 	/* sort by angle and magic! - we have our ngon */
-	qsort(vang, len, sizeof(AngleIndexPair), angle_index_pair_cmp);
+	qsort(vang, len, sizeof(*vang), BLI_sortutil_cmp_float);
 
 	/* --- */
 
 	/* create edges and find the winding (if faces are attached to any existing edges) */
 	for (i = 0; i < len; i++) {
-		vert_arr_map[i] = vert_arr[vang[i].index];
+		vert_arr_map[i] = vert_arr[vang[i].data];
 	}
 
 	f = BM_face_create_ngon_verts(bm, vert_arr_map, len, f_example, create_flag, true, true);

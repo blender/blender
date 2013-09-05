@@ -87,6 +87,7 @@ set(SRC
 	intern/scanfill.c
 	intern/smallhash.c
 	intern/sort.c
+	intern/sort_utils.c
 	intern/stack.c
 	intern/storage.c
 	intern/string.c
@@ -150,6 +151,7 @@ set(SRC
 	BLI_scanfill.h
 	BLI_smallhash.h
 	BLI_sort.h
+	BLI_sort_utils.h
 	BLI_stack.h
 	BLI_strict_flags.h
 	BLI_string.h
