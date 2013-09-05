@@ -1905,7 +1905,7 @@ static void cameraIntrinscisOptionsFromTracking(libmv_CameraIntrinsicsOptions *c
 	camera_intrinsics_options->k3 = camera->k3;
 
 	camera_intrinsics_options->image_width = calibration_width;
-	camera_intrinsics_options->image_height = (double) (calibration_height * aspy);
+	camera_intrinsics_options->image_height = (int) (calibration_height * aspy);
 }
 
 MovieDistortion *BKE_tracking_distortion_new(void)
