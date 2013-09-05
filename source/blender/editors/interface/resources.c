@@ -484,6 +484,14 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_STITCH_PREVIEW_ACTIVE:
 					cp = ts->preview_stitch_active;
 					break;
+
+				case TH_UV_OTHERS:
+					cp = ts->uv_others;
+					break;
+				case TH_UV_SHADOW:
+					cp = ts->uv_shadow;
+					break;
+
 				case TH_MARKER_OUTLINE:
 					cp = ts->marker_outline; break;
 				case TH_MARKER:
@@ -917,6 +925,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_active, 0.886, 0.824, 0.765, 0.140);
+
+	rgba_char_args_test_set(btheme->tima.uv_others, 96, 96, 96, 255);
+	rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
 
 	/* space text */
 	btheme->text = btheme->tv3d;
@@ -2205,7 +2216,15 @@ void init_userdef_do_versions(void)
 	}
 
 	/* NOTE!! from now on use U.versionfile and U.subversionfile */
-	
+
+	if (U.versionfile < 269 || (U.versionfile == 268 && U.subversionfile < 3)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_test_set(btheme->tima.uv_others, 96, 96, 96, 255);
+			rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
+		}
+	}
+
 	
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;

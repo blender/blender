@@ -158,7 +158,7 @@ static int draw_uvs_dm_shadow(DerivedMesh *dm)
 	/* draw shadow mesh - this is the mesh with the modifier applied */
 
 	if (dm && dm->drawUVEdges && CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
-		glColor3ub(112, 112, 112);
+		UI_ThemeColor(TH_UV_SHADOW);
 		dm->drawUVEdges(dm);
 		return 1;
 	}
@@ -362,7 +362,7 @@ static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)
 {
 	Base *base;
 
-	glColor3ub(96, 96, 96);
+	UI_ThemeColor(TH_UV_OTHERS);
 
 	for (base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
@@ -404,7 +404,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 	if (sima->flag & SI_DRAW_OTHER)
 		draw_uvs_other(scene, ob, curimage);
 
-	glColor3ub(112, 112, 112);
+	UI_ThemeColor(TH_UV_SHADOW);
 
 	if (me->mtpoly) {
 		MPoly *mpoly = me->mpoly;
