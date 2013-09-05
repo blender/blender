@@ -1854,15 +1854,15 @@ static bool bevelinside(BevList *bl1, BevList *bl2)
 }
 
 
-struct bevelsort {
-	float left;
+struct BevelSort {
 	BevList *bl;
+	float left;
 	int dir;
 };
 
 static int vergxcobev(const void *a1, const void *a2)
 {
-	const struct bevelsort *x1 = a1, *x2 = a2;
+	const struct BevelSort *x1 = a1, *x2 = a2;
 
 	if (x1->left > x2->left)
 		return 1;
@@ -2471,7 +2471,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	BevList *bl, *blnew, *blnext;
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float min, inp;
-	struct bevelsort *sortdata, *sd, *sd1;
+	struct BevelSort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius, do_weight;
 	int is_editmode = 0;
@@ -2725,7 +2725,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 	/* find extreme left points, also test (turning) direction */
 	if (poly > 0) {
-		sd = sortdata = MEM_mallocN(sizeof(struct bevelsort) * poly, "makeBevelList5");
+		sd = sortdata = MEM_mallocN(sizeof(struct BevelSort) * poly, "makeBevelList5");
 		bl = bev->first;
 		while (bl) {
 			if (bl->poly > 0) {
@@ -2767,7 +2767,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 			bl = bl->next;
 		}
-		qsort(sortdata, poly, sizeof(struct bevelsort), vergxcobev);
+		qsort(sortdata, poly, sizeof(struct BevelSort), vergxcobev);
 
 		sd = sortdata + 1;
 		for (a = 1; a < poly; a++, sd++) {
