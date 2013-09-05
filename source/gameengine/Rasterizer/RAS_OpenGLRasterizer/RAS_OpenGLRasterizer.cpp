@@ -1010,7 +1010,11 @@ void RAS_OpenGLRasterizer::DisableMotionBlur()
 
 void RAS_OpenGLRasterizer::SetAlphaBlend(int alphablend)
 {
-	GPU_set_material_alpha_blend(alphablend);
+	/* Variance shadow maps don't handle alpha well, best to not allow it for now  */
+	if (m_drawingmode == KX_SHADOW && m_usingoverrideshader)
+		GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
+	else
+		GPU_set_material_alpha_blend(alphablend);
 /*
 	if (alphablend == m_last_alphablend)
 		return;

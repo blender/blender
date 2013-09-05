@@ -1201,6 +1201,7 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 
 			/* render */
 			m_rasterizer->ClearDepthBuffer();
+			m_rasterizer->ClearColorBuffer();
 			scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 
 			/* unbind framebuffer object, restore drawmode, free camera */
