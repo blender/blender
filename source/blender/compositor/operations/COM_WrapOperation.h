@@ -23,19 +23,15 @@
 #ifndef _COM_WrapOperation_h_
 #define _COM_WrapOperation_h_
 
-#include "COM_NodeOperation.h"
+#include "COM_ReadBufferOperation.h"
 
-class WrapOperation : public NodeOperation {
+class WrapOperation : public ReadBufferOperation {
 private:
-	SocketReader *m_inputOperation;
 	int m_wrappingType;
 public:
 	WrapOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
-
-	void initExecution();
-	void deinitExecution();
 
 	void setWrapping(int wrapping_type);
 	float getWrappedOriginalXPos(float x);

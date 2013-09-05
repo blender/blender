@@ -24,6 +24,7 @@
 
 #include "COM_TranslateOperation.h"
 #include "COM_WrapOperation.h"
+#include "COM_WriteBufferOperation.h"
 #include "COM_ExecutionSystem.h"
 
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
@@ -43,10 +44,15 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
 
 	if (data->wrap_axis) {
+		WriteBufferOperation *writeOperation = new WriteBufferOperation();
 		WrapOperation *wrapOperation = new WrapOperation();
+		wrapOperation->setMemoryProxy(writeOperation->getMemoryProxy());
 		wrapOperation->setWrapping(data->wrap_axis);
-		inputSocket->relinkConnections(wrapOperation->getInputSocket(0), 0, graph);
+		
+		inputSocket->relinkConnections(writeOperation->getInputSocket(0), 0, graph);
 		addLink(graph, wrapOperation->getOutputSocket(), operation->getInputSocket(0));
+		
+		graph->addOperation(writeOperation);
 		graph->addOperation(wrapOperation);
 	}
 	else {
