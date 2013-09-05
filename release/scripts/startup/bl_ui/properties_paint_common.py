@@ -45,8 +45,9 @@ class UnifiedPaintPanel():
     def unified_paint_settings(parent, context):
         ups = context.tool_settings.unified_paint_settings
         parent.label(text="Unified Settings:")
-        parent.prop(ups, "use_unified_size", text="Size")
-        parent.prop(ups, "use_unified_strength", text="Strength")
+        row = parent.row()
+        row.prop(ups, "use_unified_size", text="Size")
+        row.prop(ups, "use_unified_strength", text="Strength")
         if context.weight_paint_object:
             parent.prop(ups, "use_unified_weight", text="Weight")
 
