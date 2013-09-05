@@ -1272,6 +1272,8 @@ class WM_OT_blenderplayer_start(Operator):
         import sys
         import subprocess
 
+        gs = context.scene.game_settings
+
         # these remain the same every execution
         blender_bin_path = bpy.app.binary_path
         blender_bin_dir = os.path.dirname(blender_bin_path)
@@ -1288,7 +1290,26 @@ class WM_OT_blenderplayer_start(Operator):
 
         filepath = bpy.data.filepath + '~' if bpy.data.is_saved else os.path.join(bpy.app.tempdir, "game.blend")
         bpy.ops.wm.save_as_mainfile('EXEC_DEFAULT', filepath=filepath, copy=True)
-        subprocess.call([player_path, filepath])
+
+        # start the command line call with the player path
+        args = []
+        args.append(player_path)
+
+        # handle some UI options as command line arguments
+        value = 1 if gs.show_framerate_profile else 0
+        args.extend(("-g show_framerate = %d"%value).split())
+        args.extend(("-g show_profile = %d"%value).split())
+
+        value = 1 if gs.show_debug_properties else 0
+        args.extend(("-g show_properties = %d"%value).split())
+
+        value = 1 if gs.use_deprecation_warnings else 0
+        args.extend(("-g ignore_deprecation_warnings = %d"%value).split())
+
+        # finish the call with the path to the blend file
+        args.append(filepath)
+
+        subprocess.call(args)
         os.remove(filepath)
         return {'FINISHED'}
 
