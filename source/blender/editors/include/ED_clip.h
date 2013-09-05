@@ -63,18 +63,18 @@ int ED_space_clip_get_clip_frame_number(struct SpaceClip *sc);
 struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
 struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
 
-int ED_space_clip_color_sample(struct SpaceClip *sc, struct ARegion *ar, int mval[2], float r_col[3]);
+bool ED_space_clip_color_sample(struct SpaceClip *sc, struct ARegion *ar, int mval[2], float r_col[3]);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
-int ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, int fit);
+bool ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, bool fit);
 
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(struct SpaceClip *sc, struct ARegion *ar, float x, float y, float *xr, float *yr);
 void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc, struct ARegion *ar, const float co[2], float r_co[2]);
 void ED_clip_mouse_pos(struct SpaceClip *sc, struct ARegion *ar, const int mval[2], float co[2]);
 
-int ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
-int ED_space_clip_check_show_maskedit(struct SpaceClip *sc);
+bool ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
+bool ED_space_clip_check_show_maskedit(struct SpaceClip *sc);
 
 struct MovieClip *ED_space_clip_get_clip(struct SpaceClip *sc);
 void ED_space_clip_set_clip(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);

@@ -76,7 +76,8 @@ void clip_graph_tracking_values_iterate_track(
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
 	for (coord = 0; coord < 2; coord++) {
-		int i, open = FALSE, prevfra = 0;
+		int i, prevfra = 0;
+		bool open = false;
 		float prevval = 0.0f;
 
 		for (i = 0; i < track->markersnr; i++) {
@@ -88,7 +89,7 @@ void clip_graph_tracking_values_iterate_track(
 					if (segment_end)
 						segment_end(userdata);
 
-					open = FALSE;
+					open = false;
 				}
 
 				continue;
@@ -98,7 +99,7 @@ void clip_graph_tracking_values_iterate_track(
 				if (segment_start)
 					segment_start(userdata, track, coord);
 
-				open = TRUE;
+				open = true;
 				prevval = marker->pos[coord];
 			}
 
@@ -184,7 +185,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 
-	int has_bundle = FALSE, update_stab = FALSE;
+	bool has_bundle = false, update_stab = false;
 
 	if (track == act_track)
 		tracking->act_track = NULL;
@@ -192,19 +193,19 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	if (track == stab->rot_track) {
 		stab->rot_track = NULL;
 
-		update_stab = TRUE;
+		update_stab = true;
 	}
 
 	/* handle reconstruction display in 3d viewport */
 	if (track->flag & TRACK_HAS_BUNDLE)
-		has_bundle = TRUE;
+		has_bundle = true;
 
 	/* Make sure no plane will use freed track */
 	for (plane_track = plane_tracks_base->first;
 	     plane_track;
 	     plane_track = next_plane_track)
 	{
-		bool found  = false;
+		bool found = false;
 		int i;
 
 		next_plane_track = plane_track->next;

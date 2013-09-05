@@ -96,8 +96,8 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 /******************** mouse select operator ********************/
 
 typedef struct {
-	int coord,          /* coordinate index of found entuty (0 = X-axis, 1 = Y-axis) */
-	    has_prev;       /* if there's valid coordinate of previous point of curve segment */
+	int coord;          /* coordinate index of found entuty (0 = X-axis, 1 = Y-axis) */
+	bool has_prev;      /* if there's valid coordinate of previous point of curve segment */
 
 	float min_dist,     /* minimal distance between mouse and currently found entuty */
 	      mouse_co[2],  /* mouse coordinate */
@@ -134,7 +134,7 @@ static void find_nearest_tracking_segment_end_cb(void *userdata)
 {
 	MouseSelectUserData *data = userdata;
 
-	data->has_prev = FALSE;
+	data->has_prev = false;
 }
 
 static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *track,
@@ -163,7 +163,7 @@ static void mouse_select_init_data(MouseSelectUserData *userdata, float *co)
 	copy_v2_v2(userdata->mouse_co, co);
 }
 
-static int mouse_select_knot(bContext *C, float co[2], int extend)
+static bool mouse_select_knot(bContext *C, float co[2], bool extend)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -200,15 +200,15 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 				else
 					userdata.marker->flag |= MARKER_GRAPH_SEL_Y;
 
-				return TRUE;
+				return true;
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-static int mouse_select_curve(bContext *C, float co[2], int extend)
+static bool mouse_select_curve(bContext *C, float co[2], bool extend)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -242,15 +242,15 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 			                            toggle_selection_cb);
 		}
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
-static int mouse_select(bContext *C, float co[2], int extend)
+static int mouse_select(bContext *C, float co[2], bool extend)
 {
-	int sel = FALSE;
+	bool sel = false;
 
 	/* first try to select knot on selected curves */
 	sel = mouse_select_knot(C, co, extend);
@@ -269,7 +269,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 static int select_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	RNA_float_get_array(op->ptr, "location", co);
 
@@ -313,7 +313,8 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 
 typedef struct BorderSelectuserData {
 	rctf rect;
-	int change, mode, extend;
+	int mode;
+	bool change, extend;
 } BorderSelectuserData;
 
 static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
@@ -362,7 +363,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
 
-	userdata.change = FALSE;
+	userdata.change = false;
 	userdata.mode = RNA_int_get(op->ptr, "gesture_mode");
 	userdata.extend = RNA_boolean_get(op->ptr, "extend");
 

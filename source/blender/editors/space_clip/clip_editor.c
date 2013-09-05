@@ -262,15 +262,15 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 
 /* returns color in SRGB */
 /* matching ED_space_image_color_sample() */
-int ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
 {
 	ImBuf *ibuf;
 	float fx, fy, co[2];
-	int ret = FALSE;
+	bool ret = false;
 
 	ibuf = ED_space_clip_get_buffer(sc);
 	if (!ibuf) {
-		return FALSE;
+		return false;
 	}
 
 	/* map the mouse coords to the backdrop image space */
@@ -290,12 +290,12 @@ int ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 			linearrgb_to_srgb_v3_v3(r_col, fp);
-			ret = TRUE;
+			ret = true;
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 			rgb_uchar_to_float(r_col, cp);
-			ret = TRUE;
+			ret = true;
 		}
 	}
 
@@ -325,11 +325,12 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 	}
 }
 
-static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
+static bool selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTrackingTrack *track;
-	int width, height, ok = FALSE;
+	int width, height;
+	bool ok = false;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
@@ -362,7 +363,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 
 				minmax_v2v2_v2(min, max, pos);
 
-				ok = TRUE;
+				ok = true;
 			}
 		}
 
@@ -372,7 +373,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	return ok;
 }
 
-int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
+bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	int w, h, frame_width, frame_height;
@@ -381,10 +382,10 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 	ED_space_clip_get_size(sc, &frame_width, &frame_height);
 
 	if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL))
-		return FALSE;
+		return false;
 
 	if (!selected_boundbox(sc, min, max))
-		return FALSE;
+		return false;
 
 	/* center view */
 	clip_view_center_to_point(sc, (max[0] + min[0]) / (2 * frame_width),
@@ -412,7 +413,7 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 			sc->zoom = newzoom;
 	}
 
-	return TRUE;
+	return true;
 }
 
 void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[2])
@@ -500,22 +501,22 @@ void ED_clip_mouse_pos(SpaceClip *sc, ARegion *ar, const int mval[2], float co[2
 	ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &co[0], &co[1]);
 }
 
-int ED_space_clip_check_show_trackedit(SpaceClip *sc)
+bool ED_space_clip_check_show_trackedit(SpaceClip *sc)
 {
 	if (sc) {
 		return ELEM3(sc->mode, SC_MODE_TRACKING, SC_MODE_RECONSTRUCTION, SC_MODE_DISTORTION);
 	}
 
-	return FALSE;
+	return false;
 }
 
-int ED_space_clip_check_show_maskedit(SpaceClip *sc)
+bool ED_space_clip_check_show_maskedit(SpaceClip *sc)
 {
 	if (sc) {
 		return sc->mode == SC_MODE_MASKEDIT;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* ******** clip editing functions ******** */

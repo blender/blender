@@ -461,7 +461,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
 	rctf rectf;
-	int change = FALSE, mode, extend;
+	bool change = false;
+	int mode, extend;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
@@ -490,7 +491,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 				}
 
-				change = TRUE;
+				change = true;
 			}
 		}
 
@@ -520,7 +521,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				}
 			}
 
-			change = TRUE;
+			change = true;
 		}
 	}
 
@@ -569,7 +570,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
-	int change = FALSE;
+	bool change = false;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
@@ -596,7 +597,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 				}
 
-				change = TRUE;
+				change = true;
 			}
 		}
 
@@ -630,7 +631,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 				}
 			}
 
-			change = TRUE;
+			change = true;
 		}
 	}
 
@@ -713,7 +714,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	MovieTrackingPlaneTrack *plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-	int x, y, radius, width, height, mode, change = FALSE;
+	int x, y, radius, width, height, mode;
+	bool change = false;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
@@ -745,7 +747,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 				else
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 
-				change = TRUE;
+				change = true;
 			}
 		}
 
@@ -772,7 +774,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 				}
 			}
 
-			change = TRUE;
+			change = true;
 		}
 	}
 
@@ -824,7 +826,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
-	int has_selection = FALSE;
+	bool has_selection = false;
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
@@ -877,7 +879,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		}
 
 		if (TRACK_VIEW_SELECTED(sc, track))
-			has_selection = TRUE;
+			has_selection = true;
 	}
 
 	for (plane_track = plane_tracks_base->first;
@@ -899,7 +901,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		}
 
 		if (plane_track->flag & SELECT) {
-			has_selection = TRUE;
+			has_selection = true;
 		}
 	}
 
@@ -945,7 +947,7 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 
 	track = tracksbase->first;
 	while (track) {
-		int ok = FALSE;
+		bool ok = false;
 
 		marker = BKE_tracking_marker_get(track, framenr);
 

@@ -126,7 +126,7 @@ static void tracking_segment_end_cb(void *UNUSED(userdata))
 static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
                                      MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
-	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
+	struct { MovieTrackingTrack *act_track; bool sel; float xscale, yscale, hsize; } *data = userdata;
 	int sel = 0, sel_flag;
 
 	if (track != data->act_track)
@@ -151,7 +151,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	int width, height;
-	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } userdata;
+	struct { MovieTrackingTrack *act_track; bool sel; float xscale, yscale, hsize; } userdata;
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
@@ -160,7 +160,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 
 	/* non-selected knot handles */
 	userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
-	userdata.sel = FALSE;
+	userdata.sel = false;
 	userdata.act_track = act_track;
 	UI_view2d_getscale(v2d, &userdata.xscale, &userdata.yscale);
 	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,

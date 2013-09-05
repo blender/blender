@@ -593,14 +593,14 @@ static int mouse_on_tilt(SpaceClip *sc, MovieTrackingMarker *marker, float co[2]
 	return mouse_on_slide_zone(sc, marker, TRACK_AREA_PAT, co, slider, 0.0f, width, height);
 }
 
-static int slide_check_corners(float (*corners)[2])
+static bool slide_check_corners(float (*corners)[2])
 {
 	int i, next, prev;
 	float cross = 0.0f;
 	float p[2] = {0.0f, 0.0f};
 
 	if (!isect_point_quad_v2(p, corners[0], corners[1], corners[2], corners[3]))
-		return FALSE;
+		return false;
 
 	for (i = 0; i < 4; i++) {
 		float v1[2], v2[2], cur_cross;
@@ -618,12 +618,12 @@ static int slide_check_corners(float (*corners)[2])
 				cross = cur_cross;
 			}
 			else if (cross * cur_cross < 0.0f) {
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void hide_cursor(bContext *C)
@@ -664,25 +664,25 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, const wmEvent *even
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-			int ok = FALSE;
+			bool ok = false;
 
 			if ((marker->flag & MARKER_DISABLED) == 0) {
 				if (mouse_on_offset(sc, track, marker, co, width, height)) {
 					area = TRACK_AREA_POINT;
 					action = SLIDE_ACTION_POS;
-					ok = TRUE;
+					ok = true;
 				}
 
 				if (!ok && (sc->flag & SC_SHOW_MARKER_SEARCH)) {
 					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, 0.0f, width, height)) {
 						area = TRACK_AREA_SEARCH;
 						action = SLIDE_ACTION_OFFSET;
-						ok = TRUE;
+						ok = true;
 					}
 					else if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 0, 0.0f, width, height)) {
 						area = TRACK_AREA_SEARCH;
 						action = SLIDE_ACTION_SIZE;
-						ok = TRUE;
+						ok = true;
 					}
 				}
 
@@ -693,7 +693,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, const wmEvent *even
 						area = TRACK_AREA_PAT;
 						action = SLIDE_ACTION_POS;
 						corner = current_corner;
-						ok = TRUE;
+						ok = true;
 					}
 					else {
 #if 0
@@ -702,18 +702,18 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, const wmEvent *even
 						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1, 12.0f, width, height)) {
 							area = TRACK_AREA_PAT;
 							action = SLIDE_ACTION_OFFSET;
-							ok = TRUE;
+							ok = true;
 						}
 						if (!ok && mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 0, 12.0f, width, height)) {
 							area = TRACK_AREA_PAT;
 							action = SLIDE_ACTION_SIZE;
-							ok = TRUE;
+							ok = true;
 						}
 #endif
 						if (!ok && mouse_on_tilt(sc, marker, co, width, height)) {
 							area = TRACK_AREA_PAT;
 							action = SLIDE_ACTION_TILT_SIZE;
-							ok = TRUE;
+							ok = true;
 						}
 					}
 				}
@@ -1145,18 +1145,18 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit
 	*frames_limit_r = frames_limit;
 }
 
-static int track_markers_check_direction(int backwards, int curfra, int efra)
+static bool track_markers_check_direction(int backwards, int curfra, int efra)
 {
 	if (backwards) {
 		if (curfra < efra)
-			return FALSE;
+			return false;
 	}
 	else {
 		if (curfra > efra)
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
@@ -1960,7 +1960,7 @@ static int count_selected_bundles(bContext *C)
 static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
 {
 	bConstraint *con;
-	int found = FALSE;
+	bool found = false;
 
 	for (con = ob->constraints.first; con; con = con->next) {
 		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
@@ -1979,7 +1979,7 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 
 			mul_m4_m4m4(invmat, invmat, data->invmat);
 
-			found = TRUE;
+			found = true;
 		}
 	}
 
@@ -2099,7 +2099,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 {
 	Object *camera = get_camera_with_movieclip(scene, clip);
 	int is_camera = tracking_object->flag & TRACKING_OBJECT_CAMERA;
-	int flip = FALSE;
+	bool flip = false;
 	float mat[4][4], vec[3], obmat[4][4], dvec[3];
 
 	BKE_object_to_mat4(ob, obmat);
@@ -2127,7 +2127,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 
 	if (axis == 'X') {
 		if (fabsf(dvec[1]) < 1e-3f) {
-			flip = TRUE;
+			flip = true;
 
 			mat[0][0] = -1.0f; mat[0][1] = 0.0f; mat[0][2] = 0.0f;
 			mat[1][0] = 0.0f; mat[1][1] = -1.0f; mat[1][2] = 0.0f;
@@ -2151,7 +2151,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 	}
 	else {
 		if (fabsf(dvec[0]) < 1e-3f) {
-			flip = TRUE;
+			flip = true;
 
 			mat[0][0] = -1.0f; mat[0][1] = 0.0f; mat[0][2] = 0.0f;
 			mat[1][0] = 0.0f; mat[1][1] = -1.0f; mat[1][2] = 0.0f;

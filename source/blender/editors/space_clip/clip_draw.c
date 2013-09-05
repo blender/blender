@@ -497,7 +497,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
                                 float marker_pos[2], int width, int height)
 {
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
-	int show_search = FALSE;
+	bool show_search = false;
 	float px[2];
 
 	UI_ThemeColor(TH_MARKER_OUTLINE);
@@ -560,8 +560,8 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		glEnd();
 	}
 
-	show_search = TRACK_VIEW_SELECTED(sc, track) &&
-	              ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0);
+	show_search = (TRACK_VIEW_SELECTED(sc, track) &&
+	               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
 	if (sc->flag & SC_SHOW_MARKER_SEARCH && show_search) {
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(marker->search_min[0], marker->search_min[1]);
@@ -600,7 +600,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
                               float marker_pos[2], int width, int height, int act, int sel)
 {
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
-	int show_search = 0;
+	bool show_search = false;
 	float col[3], scol[3], px[2];
 
 	track_colors(track, act, col, scol);
@@ -715,8 +715,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* search */
-	show_search = TRACK_VIEW_SELECTED(sc, track) &&
-	              ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0);
+	show_search = (TRACK_VIEW_SELECTED(sc, track) &&
+	               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
 	if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
 		if (track->flag & TRACK_LOCKED) {
 			if (act)

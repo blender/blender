@@ -238,7 +238,8 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 {
 	MarkerUpdateCb *cb = (MarkerUpdateCb *) arg_cb;
 	MovieTrackingMarker *marker;
-	int width, height, ok = FALSE;
+	int width, height;
+	bool ok = false;
 
 	BKE_movieclip_get_size(cb->clip, cb->user, &width, &height);
 
@@ -252,7 +253,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		DAG_id_tag_update(&cb->clip->id, 0);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-		ok = TRUE;
+		ok = true;
 	}
 	else if (event == B_MARKER_PAT_DIM) {
 		float dim[2], pat_dim[2], pat_min[2], pat_max[2];
@@ -276,7 +277,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		BKE_tracking_marker_clamp(cb->marker, CLAMP_PAT_DIM);
 
-		ok = TRUE;
+		ok = true;
 	}
 	else if (event == B_MARKER_SEARCH_POS) {
 		float delta[2], side[2];
@@ -292,7 +293,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_POS);
 
-		ok = TRUE;
+		ok = true;
 	}
 	else if (event == B_MARKER_SEARCH_DIM) {
 		float dim[2], search_dim[2];
@@ -313,12 +314,12 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_DIM);
 
-		ok = TRUE;
+		ok = true;
 	}
 	else if (event == B_MARKER_FLAG) {
 		marker->flag = cb->marker_flag;
 
-		ok = TRUE;
+		ok = true;
 	}
 	else if (event == B_MARKER_OFFSET) {
 		float offset[2], delta[2];
@@ -337,7 +338,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		DAG_id_tag_update(&cb->clip->id, 0);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-		ok = TRUE;
+		ok = true;
 	}
 
 	if (ok)

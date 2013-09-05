@@ -859,36 +859,36 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	ARegion *ar_preview = ED_clip_has_preview_region(C, sa);
 	ARegion *ar_properties = ED_clip_has_properties_region(sa);
 	ARegion *ar_channels = ED_clip_has_channels_region(sa);
-	int main_visible = FALSE, preview_visible = FALSE, tools_visible = FALSE;
-	int tool_props_visible = FALSE, properties_visible = FALSE, channels_visible = FALSE;
-	int view_changed = FALSE;
+	bool main_visible = false, preview_visible = false, tools_visible = false;
+	bool tool_props_visible = false, properties_visible = false, channels_visible = false;
+	bool view_changed = false;
 
 	switch (sc->view) {
 		case SC_VIEW_CLIP:
-			main_visible = TRUE;
-			preview_visible = FALSE;
-			tools_visible = TRUE;
-			tool_props_visible = TRUE;
-			properties_visible = TRUE;
-			channels_visible = FALSE;
+			main_visible = true;
+			preview_visible = false;
+			tools_visible = true;
+			tool_props_visible = true;
+			properties_visible = true;
+			channels_visible = false;
 			break;
 		case SC_VIEW_GRAPH:
-			main_visible = FALSE;
-			preview_visible = TRUE;
-			tools_visible = FALSE;
-			tool_props_visible = FALSE;
-			properties_visible = FALSE;
-			channels_visible = FALSE;
+			main_visible = false;
+			preview_visible = true;
+			tools_visible = false;
+			tool_props_visible = false;
+			properties_visible = false;
+			channels_visible = false;
 
 			reinit_preview_region(C, ar_preview);
 			break;
 		case SC_VIEW_DOPESHEET:
-			main_visible = FALSE;
-			preview_visible = TRUE;
-			tools_visible = FALSE;
-			tool_props_visible = FALSE;
-			properties_visible = FALSE;
-			channels_visible = TRUE;
+			main_visible = false;
+			preview_visible = true;
+			tools_visible = false;
+			tool_props_visible = false;
+			properties_visible = false;
+			channels_visible = true;
 
 			reinit_preview_region(C, ar_preview);
 			break;
@@ -898,12 +898,12 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 			ar_main->flag &= ~RGN_FLAG_HIDDEN;
 			ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 
 		if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
 			ar_main->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -911,11 +911,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_main->flag |= RGN_FLAG_HIDDEN;
 			ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_main->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
 			ar_main->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -923,11 +923,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_properties && (ar_properties->flag & RGN_FLAG_HIDDEN)) {
 			ar_properties->flag &= ~RGN_FLAG_HIDDEN;
 			ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_properties && ar_properties->alignment != RGN_ALIGN_RIGHT) {
 			ar_properties->alignment = RGN_ALIGN_RIGHT;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -935,11 +935,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_properties->flag |= RGN_FLAG_HIDDEN;
 			ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_properties->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_properties && ar_properties->alignment != RGN_ALIGN_NONE) {
 			ar_properties->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -947,11 +947,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_tools && (ar_tools->flag & RGN_FLAG_HIDDEN)) {
 			ar_tools->flag &= ~RGN_FLAG_HIDDEN;
 			ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_tools && ar_tools->alignment != RGN_ALIGN_LEFT) {
 			ar_tools->alignment = RGN_ALIGN_LEFT;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -959,11 +959,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_tools->flag |= RGN_FLAG_HIDDEN;
 			ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_tools->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_tools && ar_tools->alignment != RGN_ALIGN_NONE) {
 			ar_tools->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -971,11 +971,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_tool_props && (ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
 			ar_tool_props->flag &= ~RGN_FLAG_HIDDEN;
 			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_tool_props && (ar_tool_props->alignment != (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV))) {
 			ar_tool_props->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -983,11 +983,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_tool_props->flag |= RGN_FLAG_HIDDEN;
 			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_tool_props->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_tool_props && ar_tool_props->alignment != RGN_ALIGN_NONE) {
 			ar_tool_props->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -996,11 +996,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 			ar_preview->v2d.cur = ar_preview->v2d.tot;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
 			ar_preview->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -1008,11 +1008,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_preview->flag |= RGN_FLAG_HIDDEN;
 			ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_preview->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
 			ar_preview->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -1020,11 +1020,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		if (ar_channels && (ar_channels->flag & RGN_FLAG_HIDDEN)) {
 			ar_channels->flag &= ~RGN_FLAG_HIDDEN;
 			ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_channels && ar_channels->alignment != RGN_ALIGN_LEFT) {
 			ar_channels->alignment = RGN_ALIGN_LEFT;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 	else {
@@ -1032,11 +1032,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_channels->flag |= RGN_FLAG_HIDDEN;
 			ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
 			WM_event_remove_handlers((bContext *)C, &ar_channels->handlers);
-			view_changed = TRUE;
+			view_changed = true;
 		}
 		if (ar_channels && ar_channels->alignment != RGN_ALIGN_NONE) {
 			ar_channels->alignment = RGN_ALIGN_NONE;
-			view_changed = TRUE;
+			view_changed = true;
 		}
 	}
 
@@ -1185,7 +1185,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (sc->flag & SC_SHOW_GPENCIL) {
 		/* Grease Pencil */
-		clip_draw_grease_pencil((bContext *)C, TRUE);
+		clip_draw_grease_pencil((bContext *)C, true);
 	}
 
 	/* reset view matrix */
@@ -1193,7 +1193,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (sc->flag & SC_SHOW_GPENCIL) {
 		/* draw Grease Pencil - screen space only */
-		clip_draw_grease_pencil((bContext *)C, FALSE);
+		clip_draw_grease_pencil((bContext *)C, false);
 	}
 }
 

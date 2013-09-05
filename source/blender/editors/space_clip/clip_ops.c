@@ -181,7 +181,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		PointerRNA fileptr;
 		PropertyRNA *prop;
 		char dir_only[FILE_MAX], file_only[FILE_MAX];
-		int relative = RNA_boolean_get(op->ptr, "relative_path");
+		bool relative = RNA_boolean_get(op->ptr, "relative_path");
 
 		RNA_string_get(op->ptr, "directory", dir_only);
 		if (relative)
@@ -353,7 +353,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 }
 
-static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
+static void view_pan_exit(bContext *C, wmOperator *op, bool cancel)
 {
 	ViewPanData *vpd = op->customdata;
 
@@ -502,7 +502,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 }
 
-static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
+static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ViewZoomData *vpd = op->customdata;
@@ -736,7 +736,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	int w, h, width, height;
 	float aspx, aspy;
-	int fit_view = RNA_boolean_get(op->ptr, "fit_view");
+	bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
 	float zoomx, zoomy;
 
 	/* retrieve state */
@@ -946,7 +946,8 @@ typedef struct ProxyBuildJob {
 	Scene *scene;
 	struct Main *main;
 	MovieClip *clip;
-	int clip_flag, stop;
+	int clip_flag;
+	bool stop;
 	struct IndexBuildContext *index_context;
 } ProxyJob;
 
@@ -1126,10 +1127,10 @@ static void *do_proxy_thread(void *data_v)
 		ibuf = IMB_ibImageFromMemory(mem, size, IB_rect | IB_multilayer | IB_alphamode_detect, NULL, "proxy frame");
 
 		BKE_movieclip_build_proxy_frame_for_ibuf(data->clip, ibuf, NULL, cfra,
-		                                         data->build_sizes, data->build_count, FALSE);
+		                                         data->build_sizes, data->build_count, false);
 
 		BKE_movieclip_build_proxy_frame_for_ibuf(data->clip, ibuf, data->distortion, cfra,
-		                                         data->build_undistort_sizes, data->build_undistort_count, TRUE);
+		                                         data->build_undistort_sizes, data->build_undistort_count, true);
 
 		IMB_freeImBuf(ibuf);
 
