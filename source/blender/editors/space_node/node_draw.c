@@ -1075,31 +1075,31 @@ int node_get_resize_cursor(int directions)
 		return CURSOR_EDIT;
 }
 
-void node_set_cursor(wmWindow *win, SpaceNode *snode)
+void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
 {
 	bNodeTree *ntree = snode->edittree;
 	bNode *node;
 	bNodeSocket *sock;
-	int cursor = CURSOR_STD;
+	int wmcursor = CURSOR_STD;
 	
 	if (ntree) {
-		if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN | SOCK_OUT)) {
+		if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN | SOCK_OUT)) {
 			/* pass */
 		}
 		else {
 			/* check nodes front to back */
 			for (node = ntree->nodes.last; node; node = node->prev) {
-				if (BLI_rctf_isect_pt(&node->totr, snode->cursor[0], snode->cursor[1]))
+				if (BLI_rctf_isect_pt(&node->totr, cursor[0], cursor[1]))
 					break;  /* first hit on node stops */
 			}
 			if (node) {
-				int dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
-				cursor = node_get_resize_cursor(dir);
+				int dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+				wmcursor = node_get_resize_cursor(dir);
 			}
 		}
 	}
 	
-	WM_cursor_set(win, cursor);
+	WM_cursor_set(win, wmcursor);
 }
 
 void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node, bNodeInstanceKey key)
@@ -1251,6 +1251,7 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 
 void drawnodespace(const bContext *C, ARegion *ar)
 {
+	wmWindow *win = CTX_wm_window(C);
 	View2DScrollers *scrollers;
 	SpaceNode *snode = CTX_wm_space_node(C);
 	View2D *v2d = &ar->v2d;
@@ -1259,7 +1260,13 @@ void drawnodespace(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(v2d);
-
+	
+	/* XXX snode->cursor set in coordspace for placing new nodes, used for drawing noodles too */
+	UI_view2d_region_to_view(&ar->v2d, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin,
+	                         &snode->cursor[0], &snode->cursor[1]);
+	snode->cursor[0] /= UI_DPI_FAC;
+	snode->cursor[1] /= UI_DPI_FAC;
+	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
 	/* only set once */

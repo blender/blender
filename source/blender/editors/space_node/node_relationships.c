@@ -443,18 +443,19 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	bNodeSocket *tsock = NULL;
 	bNodeLink *link;
 	LinkData *linkdata;
+	float cursor[2];
 	int in_out;
 
 	in_out = nldrag->in_out;
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->cursor[0], &snode->cursor[1]);
+	                         &cursor[0], &cursor[1]);
 
 	switch (event->type) {
 		case MOUSEMOVE:
 			
 			if (in_out == SOCK_OUT) {
-				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
+				if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_IN)) {
 					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
 						link = linkdata->data;
 						
@@ -480,7 +481,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 			}
 			else {
-				if (node_find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
+				if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_OUT)) {
 					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
 						link = linkdata->data;
 						
@@ -550,7 +551,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* return 1 when socket clicked */
-static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
+static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], int detach)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -560,7 +561,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
 	int num_links;
 
 	/* output indicated? */
-	if (node_find_indicated_socket(snode, &node, &sock, SOCK_OUT)) {
+	if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
 		nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 
 		num_links = nodeCountSocketLinks(snode->edittree, sock);
@@ -596,7 +597,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
 		}
 	}
 	/* or an input? */
-	else if (node_find_indicated_socket(snode, &node, &sock, SOCK_IN)) {
+	else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
 		nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 
 		num_links = nodeCountSocketLinks(snode->edittree, sock);
@@ -644,14 +645,16 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	bNodeLinkDrag *nldrag;
+	float cursor[2];
+	
 	int detach = RNA_boolean_get(op->ptr, "detach");
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->cursor[0], &snode->cursor[1]);
+	                         &cursor[0], &cursor[1]);
 
 	ED_preview_kill_jobs(C);
 
-	nldrag = node_link_init(snode, detach);
+	nldrag = node_link_init(snode, cursor, detach);
 
 	if (nldrag) {
 		op->customdata = nldrag;
@@ -1065,18 +1068,23 @@ void NODE_OT_join(wmOperatorType *ot)
 
 /* ****************** Attach ******************* */
 
-static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
+	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
 	bNode *frame;
+	float cursor[2];
+	
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
 
 	/* check nodes front to back */
 	for (frame = ntree->nodes.last; frame; frame = frame->prev) {
 		/* skip selected, those are the nodes we want to attach */
 		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
 			continue;
-		if (BLI_rctf_isect_pt(&frame->totr, snode->cursor[0], snode->cursor[1]))
+		if (BLI_rctf_isect_pt(&frame->totr, cursor[0], cursor[1]))
 			break;
 	}
 	if (frame) {
@@ -1116,16 +1124,6 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int node_attach_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	ARegion *ar = CTX_wm_region(C);
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
-
-	return node_attach_exec(C, op);
-}
 
 void NODE_OT_attach(wmOperatorType *ot)
 {
@@ -1135,7 +1133,7 @@ void NODE_OT_attach(wmOperatorType *ot)
 	ot->idname = "NODE_OT_attach";
 
 	/* api callbacks */
-	ot->exec = node_attach_exec;
+	
 	ot->invoke = node_attach_invoke;
 	ot->poll = ED_operator_node_editable;
 

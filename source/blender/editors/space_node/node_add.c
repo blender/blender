@@ -84,10 +84,6 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	node->locy = locy + 60.0f;     /* arbitrary... so its visible, (0,0) is top of node */
 	nodeSetSelected(node, TRUE);
 	
-	/* node location is mapped */
-	locx /= UI_DPI_FAC;
-	locy /= UI_DPI_FAC;
-	
 	node->locx = locx;
 	node->locy = locy + 60.0f;
 	
@@ -417,9 +413,8 @@ static int node_add_mask_poll(bContext *C)
 	return ED_operator_node_editable(C) && snode->nodetree->type == NTREE_COMPOSIT;
 }
 
-static int node_add_mask_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int node_add_mask_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	ID *mask = NULL;
@@ -435,9 +430,6 @@ static int node_add_mask_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	ED_preview_kill_jobs(C);
 
-	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->cursor[0], &snode->cursor[1]);
 	node = node_add_node(C, NULL, CMP_NODE_MASK, snode->cursor[0], snode->cursor[1]);
 
 	if (!node) {
@@ -462,7 +454,7 @@ void NODE_OT_add_mask(wmOperatorType *ot)
 	ot->idname = "NODE_OT_add_mask";
 
 	/* callbacks */
-	ot->invoke = node_add_mask_invoke;
+	ot->exec = node_add_mask_exec;
 	ot->poll = node_add_mask_poll;
 
 	/* flags */

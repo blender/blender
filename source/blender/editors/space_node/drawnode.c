@@ -3075,7 +3075,16 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 {
 	float dist, vec[4][2];
 	float deltax, deltay;
+	float cursor[2] = {0.0f, 0.0f};
 	int toreroute, fromreroute;
+	
+	/* this function can be called with snode null (via cut_links_intersect) */
+	/* XXX map snode->cursor back to view space */
+	if (snode) {
+		cursor[0] = snode->cursor[0] * UI_DPI_FAC;
+		cursor[1] = snode->cursor[1] * UI_DPI_FAC;
+	}
+	
 	/* in v0 and v3 we put begin/end points */
 	if (link->fromsock) {
 		vec[0][0] = link->fromsock->locx;
@@ -3084,7 +3093,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	}
 	else {
 		if (snode == NULL) return 0;
-		copy_v2_v2(vec[0], snode->cursor);
+		copy_v2_v2(vec[0], cursor);
 		fromreroute = 0;
 	}
 	if (link->tosock) {
@@ -3094,7 +3103,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	}
 	else {
 		if (snode == NULL) return 0;
-		copy_v2_v2(vec[3], snode->cursor);
+		copy_v2_v2(vec[3], cursor);
 		toreroute = 0;
 	}
 

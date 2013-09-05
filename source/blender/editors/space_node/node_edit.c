@@ -1056,7 +1056,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 
 /* checks snode->mouse position, and returns found node/socket */
 /* type is SOCK_IN and/or SOCK_OUT */
-int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
+int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, float cursor[2], int in_out)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -1068,10 +1068,10 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	/* check if we click in a socket */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		
-		rect.xmin = snode->cursor[0] - (NODE_SOCKSIZE + 4);
-		rect.ymin = snode->cursor[1] - (NODE_SOCKSIZE + 4);
-		rect.xmax = snode->cursor[0] + (NODE_SOCKSIZE + 4);
-		rect.ymax = snode->cursor[1] + (NODE_SOCKSIZE + 4);
+		rect.xmin = cursor[0] - (NODE_SOCKSIZE + 4);
+		rect.ymin = cursor[1] - (NODE_SOCKSIZE + 4);
+		rect.xmax = cursor[0] + (NODE_SOCKSIZE + 4);
+		rect.ymax = cursor[1] + (NODE_SOCKSIZE + 4);
 		
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
@@ -2087,17 +2087,6 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	ARegion *ar = CTX_wm_region(C);
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
-
-	return node_clipboard_paste_exec(C, op);
-}
-
 void NODE_OT_clipboard_paste(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2107,7 +2096,6 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_clipboard_paste_exec;
-	ot->invoke = node_clipboard_paste_invoke;
 	ot->poll = ED_operator_node_editable;
 
 	/* flags */

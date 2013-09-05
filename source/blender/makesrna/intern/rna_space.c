@@ -172,6 +172,7 @@ static EnumPropertyItem buttons_texture_context_items[] = {
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
 
@@ -196,6 +197,9 @@ static EnumPropertyItem buttons_texture_context_items[] = {
 #include "GPU_material.h"
 
 #include "IMB_imbuf_types.h"
+
+#include "UI_interface.h"
+#include "UI_view2d.h"
 
 static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 {
@@ -1261,6 +1265,15 @@ static void rna_SpaceNodeEditor_show_backdrop_update(Main *UNUSED(bmain), Scene 
 {
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
+}
+
+static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode, bContext *C, int x, int y)
+{
+	ARegion *ar = CTX_wm_region(C);
+	
+	UI_view2d_region_to_view(&ar->v2d, x, y, &snode->cursor[0], &snode->cursor[1]);
+	snode->cursor[0] /= UI_DPI_FAC;
+	snode->cursor[1] /= UI_DPI_FAC;
 }
 
 static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
@@ -3301,7 +3314,8 @@ static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_space_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	PropertyRNA *prop, *parm;
+	FunctionRNA *func;
 
 	static EnumPropertyItem texture_type_items[] = {
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
@@ -3442,6 +3456,14 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
+	func = RNA_def_function(srna, "cursor_location_from_region", "rna_SpaceNodeEditor_cursor_location_from_region");
+	RNA_def_function_ui_description(func, "Set the cursor location using region coordinates");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)
