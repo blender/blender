@@ -1563,7 +1563,7 @@ static void wm_block_splash_close(bContext *C, void *arg_block, void *UNUSED(arg
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused);
 
-/* XXX: hack to refresh splash screen with updated prest menu name,
+/* XXX: hack to refresh splash screen with updated preset menu name,
  * since popup blocks don't get regenerated like panels do */
 static void wm_block_splash_refreshmenu(bContext *UNUSED(C), void *UNUSED(arg_block), void *UNUSED(arg))
 {

@@ -377,7 +377,7 @@ public:
 
 // ZDiscontinuityF1D
 /*! Returns a real giving the distance between and Interface1D and the shape that lies behind (occludee).
- *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no oject is occluded
+ *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
  *  by the shape to which the Interface1D belongs to, 1 is returned.
  */
 class LIB_VIEW_MAP_EXPORT ZDiscontinuityF1D : public UnaryFunction1D<real>

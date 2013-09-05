@@ -882,9 +882,9 @@ static void delete_graph_keys(bAnimContext *ac)
 		delete_fcurve_keys(fcu); 
 		
 		/* Only delete curve too if it won't be doing anything anymore */
-		if ((fcu->totvert == 0) && 
-			(list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0) &&
-			(fcu->driver == NULL)) 
+		if ((fcu->totvert == 0) &&
+		    (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0) &&
+		    (fcu->driver == NULL))
 		{
 			ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}

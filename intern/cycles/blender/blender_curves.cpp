@@ -820,7 +820,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 
 	/* add hair geometry to mesh */
-	if(primitive == CURVE_TRIANGLES){
+	if(primitive == CURVE_TRIANGLES) {
 		if(triangle_method == CURVE_CAMERA_TRIANGLES)
 			ExportCurveTrianglePlanes(mesh, &CData, RotCam);
 		else {

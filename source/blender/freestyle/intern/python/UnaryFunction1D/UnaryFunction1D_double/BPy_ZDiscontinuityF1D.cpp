@@ -52,7 +52,7 @@ static char ZDiscontinuityF1D___doc__[] =
 "   Returns a real value giving the distance between an Interface1D\n"
 "   and the shape that lies behind (occludee).  This distance is\n"
 "   evaluated in the camera space and normalized between 0 and 1.\n"
-"   Therefore, if no oject is occluded by the shape to which the\n"
+"   Therefore, if no object is occluded by the shape to which the\n"
 "   Interface1D belongs to, 1 is returned.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"

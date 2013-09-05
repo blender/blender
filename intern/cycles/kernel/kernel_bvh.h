@@ -444,7 +444,7 @@ __device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 				float tb = 2*(tdif.z - tg.z*(tdifz + gd*(tdifz*gd + or1)));
 				float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - or1*or1 - 2*or1*tdifz*gd;
 				float td = tb*tb - 4*cyla*tc;
-				if (td < 0.0f){
+				if (td < 0.0f) {
 					tree++;
 					level = tree & -tree;
 					continue;

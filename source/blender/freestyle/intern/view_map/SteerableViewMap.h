@@ -89,7 +89,7 @@ public:
 
 	/*! Returns the number of the SVM to which a FEdge belongs most.
 	 *  \param id
-	 *    The First element of the Id struct of the FEdge we're intersted in.
+	 *    The First element of the Id struct of the FEdge we're interested in.
 	 */
 	unsigned getSVMNumber(unsigned id);
 

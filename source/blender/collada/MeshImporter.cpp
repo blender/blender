@@ -857,7 +857,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
  *
  * During import all materials have been assigned to Object.
  * Now we iterate over the imported objects and optimize
- * the assignements as follows:
+ * the assignments as follows:
  *
  * for each imported geometry:
  *     if number of users is 1:

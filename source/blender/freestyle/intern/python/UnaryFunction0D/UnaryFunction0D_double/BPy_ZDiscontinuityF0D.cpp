@@ -47,7 +47,7 @@ static char ZDiscontinuityF0D___doc__[] =
 "   :class:`Interface0D` pointed by the Interface0DIterator and the\n"
 "   shape that lies behind (occludee).  This distance is evaluated in\n"
 "   the camera space and normalized between 0 and 1.  Therefore, if no\n"
-"   oject is occluded by the shape to which the Interface0D belongs to,\n"
+"   object is occluded by the shape to which the Interface0D belongs to,\n"
 "   1 is returned.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"

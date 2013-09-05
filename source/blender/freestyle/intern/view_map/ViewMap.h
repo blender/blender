@@ -888,7 +888,7 @@ template<class Traits> class vertex_iterator_base;
 
 } // end of namespace ViewEdgeInternal
 
-/*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connnects two ViewVertex.
+/*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two ViewVertex.
  *  It is made by connecting a set of FEdges.
  */
 class LIB_VIEW_MAP_EXPORT ViewEdge : public Interface1D

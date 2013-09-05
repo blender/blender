@@ -222,7 +222,7 @@
  * - skip BMO flag allocation, its not needed in many cases, this is fairly redundant to calc by default.
  * - ability to call BMO's with option not to create return data (will save some time)
  * - binary diff UNDO, currently this uses huge amount of ram when all shapes are stored for each undo step for eg.
- * - use two differnt iterator types for BMO map/buffer types.
+ * - use two different iterator types for BMO map/buffer types.
  * - avoid string lookups for BMO slot lookups _especially_ when used in loops, this is very crappy.
  *
  *

@@ -65,7 +65,7 @@ typedef struct BMHeader {
 	void *data; /* customdata layers */
 	int index; /* notes:
 	            * - Use BM_elem_index_get/set macros for index
-	            * - Unitialized to -1 so we can easily tell its not set.
+	            * - Uninitialized to -1 so we can easily tell its not set.
 	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
 	            *   this is abused by various tools which set it dirty.
 	            * - For loops this is used for sorting during tessellation. */

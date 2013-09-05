@@ -346,7 +346,7 @@ public:
 
 // ZDiscontinuity
 /*! Returns a real giving the distance between and Interface0D and the shape that lies behind (occludee).
- *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no oject is occluded
+ *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
  *  by the shape to which the Interface0D belongs to, 1 is returned.
  */
 class LIB_VIEW_MAP_EXPORT ZDiscontinuityF0D : public UnaryFunction0D<real>
@@ -383,7 +383,7 @@ public:
 /*! Returns the material of the object evaluated at the Interface0D.
  *  This evaluation can be ambiguous (in the case of a TVertex for example.
  *  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
- *  Interface0DIterator& belongs to and by arbitrary chosing the material of the face that lies on its left when
+ *  Interface0DIterator& belongs to and by arbitrary choosing the material of the face that lies on its left when
  *  following the 1D element if there are two different materials on each side of the point.
  *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
  *  should implement its own getMaterial functor.

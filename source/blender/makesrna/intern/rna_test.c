@@ -34,6 +34,8 @@
 
 #include "rna_internal.h"
 
+#ifdef RNA_RUNTIME
+
 #define ARRAY_SIZE 3
 #define DYNAMIC_ARRAY_SIZE 64
 #define MARRAY_DIM [3][4][5]
@@ -42,8 +44,6 @@
 #define MARRAY_SIZE(type) (sizeof(type MARRAY_DIM) / sizeof(type))
 #define DYNAMIC_MARRAY_DIM [3][4][5]
 #define DYNAMIC_MARRAY_SIZE(type) (sizeof(type DYNAMIC_MARRAY_DIM) / sizeof(type))
-
-#ifdef RNA_RUNTIME
 
 #ifdef UNIT_TEST
 

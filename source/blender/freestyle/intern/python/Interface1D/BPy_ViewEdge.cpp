@@ -44,7 +44,7 @@ PyDoc_STRVAR(ViewEdge_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`ViewEdge`\n"
 "\n"
 "Class defining a ViewEdge.  A ViewEdge in an edge of the image graph.\n"
-"it connnects two :class:`ViewVertex` objects.  It is made by connecting\n"
+"it connects two :class:`ViewVertex` objects.  It is made by connecting\n"
 "a set of FEdges.\n"
 "\n"
 ".. method:: __init__()\n"

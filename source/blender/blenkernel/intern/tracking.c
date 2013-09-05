@@ -3164,7 +3164,7 @@ void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, Movi
 
 	BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
 
-	/* Get an image buffer for reference frame, also gets referecnce marker.
+	/* Get an image buffer for reference frame, also gets reference marker.
 	 *
 	 * Usually tracking_context_get_reference_ibuf will return current frame
 	 * if marker is keyframed, which is correct for normal tracking. But here
@@ -4057,7 +4057,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 
 /*********************** 2D stabilization *************************/
 
-/* Claculate median point of markers of tracks marked as used for
+/* Calculate median point of markers of tracks marked as used for
  * 2D stabilization.
  *
  * NOTE: frame number should be in clip space, not scene space
@@ -4414,7 +4414,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
  * stabilization data and used for easy coordinate
  * transformation.
  *
- * NOTE: The reaosn it is 4x4 matrix is because it's
+ * NOTE: The reason it is 4x4 matrix is because it's
  *       used for OpenGL drawing directly.
  */
 void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect,

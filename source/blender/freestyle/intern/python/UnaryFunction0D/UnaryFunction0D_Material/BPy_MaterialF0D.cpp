@@ -48,7 +48,7 @@ static char MaterialF0D___doc__[] =
 "   evaluation can be ambiguous (in the case of a :class:`TVertex` for\n"
 "   example.  This functor tries to remove this ambiguity using the\n"
 "   context offered by the 1D element to which the Interface0DIterator\n"
-"   belongs to and by arbitrary chosing the material of the face that\n"
+"   belongs to and by arbitrary choosing the material of the face that\n"
 "   lies on its left when following the 1D element if there are two\n"
 "   different materials on each side of the point.  However, there\n"
 "   still can be problematic cases, and the user willing to deal with\n"
