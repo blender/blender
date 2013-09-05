@@ -120,7 +120,6 @@ void BL_ConvertActuators(const char* maggiename,
                          KX_KetsjiEngine* ketsjiEngine,
                          int activeLayerBitInfo,
                          bool isInActiveLayer,
-                         RAS_IRenderTools* rendertools,
                          KX_BlenderSceneConverter* converter
                          )
 {
