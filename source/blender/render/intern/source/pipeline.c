@@ -630,6 +630,22 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	RE_init_threadcount(re);
 }
 
+/* update some variables that can be animated, and otherwise wouldn't be due to
+ * RenderData getting copied once at the start of animation render */
+static void render_update_anim_renderdata(Render *re, RenderData *rd)
+{
+	/* filter */
+	re->r.gauss = rd->gauss;
+
+	/* motion blur */
+	re->r.mblur_samples = rd->mblur_samples;
+	re->r.blurfac = rd->blurfac;
+
+	/* freestyle */
+	re->r.line_thickness_mode = rd->line_thickness_mode;
+	re->r.unit_line_thickness = rd->unit_line_thickness;
+}
+
 void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 {
 	/* re->ok flag? */
@@ -2408,6 +2424,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	/* not too nice, but it survives anim-border render */
 	if (anim) {
+		render_update_anim_renderdata(re, &scene->r);
 		re->disprect = disprect;
 		return 1;
 	}

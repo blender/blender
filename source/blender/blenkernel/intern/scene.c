@@ -44,6 +44,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -1064,6 +1065,7 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
  */
 static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 {
+	SceneRenderLayer *srl;
 	float ctime = BKE_scene_frame_get(scene);
 	
 	/* scene itself */
@@ -1097,6 +1099,22 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		
 		if (adt && adt->drivers.first)
 			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
+	}
+
+	/* freestyle */
+	for (srl = scene->r.layers.first; srl; srl = srl->next) {
+		FreestyleConfig *config = &srl->freestyleConfig;
+		FreestyleLineSet *lineset;
+
+		for (lineset = config->linesets.first; lineset; lineset = lineset->next) {
+			if (lineset->linestyle) {
+				ID *lid = &lineset->linestyle->id;
+				AnimData *adt = BKE_animdata_from_id(lid);
+
+				if (adt && adt->drivers.first)
+					BKE_animsys_evaluate_animdata(scene, lid, adt, ctime, ADT_RECALC_DRIVERS);
+			}
+		}
 	}
 }
 
