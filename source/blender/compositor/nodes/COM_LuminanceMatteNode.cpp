@@ -22,7 +22,7 @@
 #include "COM_LuminanceMatteNode.h"
 #include "BKE_node.h"
 #include "COM_LuminanceMatteOperation.h"
-#include "COM_ConvertRGBToYUVOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_SetAlphaOperation.h"
 
 LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)

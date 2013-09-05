@@ -20,10 +20,9 @@
  */
 
 #include "COM_SeparateYCCANode.h"
-#include "COM_SeparateChannelOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
-#include "COM_ConvertRGBToYCCOperation.h"
+#include "COM_ConvertOperation.h"
 
 SeparateYCCANode::SeparateYCCANode(bNode *editorNode) : SeparateRGBANode(editorNode)
 {

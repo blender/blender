@@ -20,10 +20,9 @@
  */
 
 #include "COM_SeparateYUVANode.h"
-#include "COM_SeparateChannelOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
-#include "COM_ConvertRGBToYUVOperation.h"
+#include "COM_ConvertOperation.h"
 
 SeparateYUVANode::SeparateYUVANode(bNode *editorNode) : SeparateRGBANode(editorNode)
 {

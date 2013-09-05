@@ -394,37 +394,11 @@ set(SRC
 	operations/COM_PreviewOperation.cpp
 	operations/COM_SplitOperation.h
 	operations/COM_SplitOperation.cpp
-	operations/COM_ConvertValueToColorProg.h
-	operations/COM_ConvertValueToColorProg.cpp
-	operations/COM_ConvertColorToValueProg.h
-	operations/COM_ConvertColorToValueProg.cpp
-	operations/COM_ConvertColorToBWOperation.h
-	operations/COM_ConvertColorToBWOperation.cpp
-	operations/COM_ConvertColorToVectorOperation.h
-	operations/COM_ConvertColorToVectorOperation.cpp
-	operations/COM_ConvertValueToVectorOperation.h
-	operations/COM_ConvertValueToVectorOperation.cpp
-	operations/COM_ConvertVectorToColorOperation.h
-	operations/COM_ConvertVectorToColorOperation.cpp
-	operations/COM_ConvertVectorToValueOperation.h
-	operations/COM_ConvertVectorToValueOperation.cpp
 	operations/COM_ConvertDepthToRadiusOperation.h
 	operations/COM_ConvertDepthToRadiusOperation.cpp
 	operations/COM_ZCombineOperation.cpp
 	operations/COM_ZCombineOperation.h
 
-	operations/COM_ConvertRGBToYCCOperation.h
-	operations/COM_ConvertRGBToYCCOperation.cpp
-	operations/COM_ConvertYCCToRGBOperation.h
-	operations/COM_ConvertYCCToRGBOperation.cpp
-	operations/COM_ConvertRGBToYUVOperation.h
-	operations/COM_ConvertRGBToYUVOperation.cpp
-	operations/COM_ConvertYUVToRGBOperation.h
-	operations/COM_ConvertYUVToRGBOperation.cpp
-	operations/COM_ConvertRGBToHSVOperation.h
-	operations/COM_ConvertRGBToHSVOperation.cpp
-	operations/COM_ConvertHSVToRGBOperation.h
-	operations/COM_ConvertHSVToRGBOperation.cpp
 	operations/COM_ChangeHSVOperation.h
 	operations/COM_ChangeHSVOperation.cpp
 	operations/COM_ColorCurveOperation.h
@@ -451,10 +425,6 @@ set(SRC
 	operations/COM_ColorMatteOperation.h
 	operations/COM_ChannelMatteOperation.cpp
 	operations/COM_ChannelMatteOperation.h
-	operations/COM_ConvertPremulToStraightOperation.cpp
-	operations/COM_ConvertPremulToStraightOperation.h
-	operations/COM_ConvertStraightToPremulOperation.cpp
-	operations/COM_ConvertStraightToPremulOperation.h
 
 	operations/COM_ReadBufferOperation.cpp
 	operations/COM_ReadBufferOperation.h
@@ -556,11 +526,8 @@ set(SRC
 	#Convert operations
 	operations/COM_IDMaskOperation.cpp
 	operations/COM_IDMaskOperation.h
-
-	operations/COM_SeparateChannelOperation.cpp
-	operations/COM_SeparateChannelOperation.h
-	operations/COM_CombineChannelsOperation.cpp
-	operations/COM_CombineChannelsOperation.h
+	operations/COM_ConvertOperation.cpp
+	operations/COM_ConvertOperation.h
 
 	operations/COM_DotproductOperation.cpp
 	operations/COM_DotproductOperation.h

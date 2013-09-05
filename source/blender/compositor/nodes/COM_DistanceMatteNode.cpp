@@ -24,7 +24,7 @@
 #include "COM_DistanceRGBMatteOperation.h"
 #include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaOperation.h"
-#include "COM_ConvertRGBToYCCOperation.h"
+#include "COM_ConvertOperation.h"
 
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
 {

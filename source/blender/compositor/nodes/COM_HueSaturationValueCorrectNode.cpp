@@ -22,10 +22,8 @@
 
 #include "COM_HueSaturationValueCorrectNode.h"
 
-#include "COM_ConvertColorToValueProg.h"
+#include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
-#include "COM_ConvertRGBToHSVOperation.h"
-#include "COM_ConvertHSVToRGBOperation.h"
 #include "COM_MixOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"

@@ -22,7 +22,7 @@
 #include "COM_ColorMatteNode.h"
 #include "BKE_node.h"
 #include "COM_ColorMatteOperation.h"
-#include "COM_ConvertRGBToHSVOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_SetAlphaOperation.h"
 
 ColorMatteNode::ColorMatteNode(bNode *editorNode) : Node(editorNode)

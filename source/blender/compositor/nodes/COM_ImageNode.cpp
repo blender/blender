@@ -25,7 +25,7 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_ImageOperation.h"
 #include "COM_MultilayerImageOperation.h"
-#include "COM_ConvertPremulToStraightOperation.h"
+#include "COM_ConvertOperation.h"
 #include "BKE_node.h"
 #include "BLI_utildefines.h"
 

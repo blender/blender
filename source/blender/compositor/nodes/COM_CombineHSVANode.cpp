@@ -22,11 +22,11 @@
 
 #include "COM_CombineHSVANode.h"
 
-#include "COM_CombineChannelsOperation.h"
+#include "COM_ConvertOperation.h"
 
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
-#include "COM_ConvertHSVToRGBOperation.h"
+#include "COM_ConvertOperation.h"
 
 CombineHSVANode::CombineHSVANode(bNode *editorNode) : CombineRGBANode(editorNode)
 {

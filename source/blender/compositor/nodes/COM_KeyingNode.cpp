@@ -32,10 +32,7 @@
 
 #include "COM_MathBaseOperation.h"
 
-#include "COM_SeparateChannelOperation.h"
-#include "COM_CombineChannelsOperation.h"
-#include "COM_ConvertRGBToYCCOperation.h"
-#include "COM_ConvertYCCToRGBOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_SetValueOperation.h"
 
 #include "COM_DilateErodeOperation.h"

@@ -24,7 +24,7 @@
 #include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
 #include "COM_ColorRampOperation.h"
-#include "COM_SeparateChannelOperation.h"
+#include "COM_ConvertOperation.h"
 #include "DNA_texture_types.h"
 
 ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)

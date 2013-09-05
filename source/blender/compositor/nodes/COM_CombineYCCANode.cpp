@@ -20,7 +20,7 @@
  */
 
 #include "COM_CombineYCCANode.h"
-#include "COM_ConvertYCCToRGBOperation.h"
+#include "COM_ConvertOperation.h"
 
 CombineYCCANode::CombineYCCANode(bNode *editorNode) : CombineRGBANode(editorNode)
 {

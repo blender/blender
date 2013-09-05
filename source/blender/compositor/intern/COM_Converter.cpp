@@ -47,12 +47,7 @@
 #include "COM_CombineYUVANode.h"
 #include "COM_CompositorNode.h"
 #include "COM_ConvertAlphaNode.h"
-#include "COM_ConvertColorToVectorOperation.h"
-#include "COM_ConvertColorToValueProg.h"
-#include "COM_ConvertValueToColorProg.h"
-#include "COM_ConvertValueToVectorOperation.h"
-#include "COM_ConvertVectorToColorOperation.h"
-#include "COM_ConvertVectorToValueOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_Converter.h"
 #include "COM_CropNode.h"
 #include "COM_DefocusNode.h"
@@ -420,13 +415,13 @@ void Converter::convertDataType(SocketConnection *connection, ExecutionSystem *s
 	DataType toDatatype = inputSocket->getDataType();
 	NodeOperation *converter = NULL;
 	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
-		converter = new ConvertValueToColorProg();
+		converter = new ConvertValueToColorOperation();
 	}
 	else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertValueToVectorOperation();
 	}
 	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
-		converter = new ConvertColorToValueProg();
+		converter = new ConvertColorToValueOperation();
 	}
 	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertColorToVectorOperation();

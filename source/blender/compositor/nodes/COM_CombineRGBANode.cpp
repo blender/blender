@@ -22,7 +22,7 @@
 
 #include "COM_CombineRGBANode.h"
 
-#include "COM_CombineChannelsOperation.h"
+#include "COM_ConvertOperation.h"
 
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"

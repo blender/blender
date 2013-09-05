@@ -22,7 +22,7 @@
 
 #include "COM_SeparateRGBANode.h"
 
-#include "COM_SeparateChannelOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" // the ramp types

@@ -22,7 +22,7 @@
 
 #include "COM_ColorToBWNode.h"
 
-#include "COM_ConvertColorToBWOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
 ColorToBWNode::ColorToBWNode(bNode *editorNode) : Node(editorNode)

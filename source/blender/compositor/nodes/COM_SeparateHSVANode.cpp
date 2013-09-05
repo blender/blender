@@ -22,10 +22,9 @@
 
 #include "COM_SeparateHSVANode.h"
 
-#include "COM_SeparateChannelOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
-#include "COM_ConvertRGBToHSVOperation.h"
+#include "COM_ConvertOperation.h"
 
 SeparateHSVANode::SeparateHSVANode(bNode *editorNode) : SeparateRGBANode(editorNode)
 {

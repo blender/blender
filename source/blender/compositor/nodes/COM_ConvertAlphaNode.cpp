@@ -20,8 +20,7 @@
  */
 
 #include "COM_ConvertAlphaNode.h"
-#include "COM_ConvertPremulToStraightOperation.h"
-#include "COM_ConvertStraightToPremulOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
 void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

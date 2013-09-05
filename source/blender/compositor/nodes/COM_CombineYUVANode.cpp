@@ -20,7 +20,7 @@
  */
 
 #include "COM_CombineYUVANode.h"
-#include "COM_ConvertYUVToRGBOperation.h"
+#include "COM_ConvertOperation.h"
 
 CombineYUVANode::CombineYUVANode(bNode *editorNode) : CombineRGBANode(editorNode)
 {

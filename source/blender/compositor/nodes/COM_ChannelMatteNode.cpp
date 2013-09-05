@@ -22,9 +22,7 @@
 #include "COM_ChannelMatteNode.h"
 #include "BKE_node.h"
 #include "COM_ChannelMatteOperation.h"
-#include "COM_ConvertRGBToHSVOperation.h"
-#include "COM_ConvertRGBToYCCOperation.h"
-#include "COM_ConvertRGBToYUVOperation.h"
+#include "COM_ConvertOperation.h"
 #include "COM_SetAlphaOperation.h"
 
 ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
