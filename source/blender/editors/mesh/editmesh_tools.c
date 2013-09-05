@@ -2913,7 +2913,7 @@ static void edbm_fill_grid_prepare(BMesh *bm, int span, int offset)
 		}
 
 		/* set this vertex first */
-		BLI_rotatelist(verts, v_act_link);
+		BLI_rotatelist_first(verts, v_act_link);
 		BM_edgeloop_edges_get(el_store, edges);
 
 		/* un-flag 'rails' */
