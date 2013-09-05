@@ -153,6 +153,11 @@ MINLINE int divide_round_i(int a, int b)
 	return (2 * a + b) / (2 * b);
 }
 
+MINLINE int positive_mod(int i, int n)
+{
+	return ((i = i % n) < 0) ? i + n : i;
+}
+
 MINLINE unsigned int highest_order_bit_i(unsigned int n)
 {
 	n |= (n >>  1);
