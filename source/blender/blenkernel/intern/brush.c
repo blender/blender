@@ -970,10 +970,10 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */
-unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
+unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_secondary)
 {
 	unsigned int *texcache = NULL;
-	MTex *mtex = &br->mtex;
+	MTex *mtex = (use_secondary) ? &br->mask_mtex : &br->mtex;
 	TexResult texres = {0};
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
@@ -1014,7 +1014,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
 
 
 /**** Radial Control ****/
-struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)
+struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary)
 {
 	ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
 	unsigned int *texcache;
@@ -1023,7 +1023,7 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)
 	int i, j;
 
 	curvemapping_initialize(br->curve);
-	texcache = BKE_brush_gen_texture_cache(br, half);
+	texcache = BKE_brush_gen_texture_cache(br, half, secondary);
 	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
 	im->x = im->y = side;
 

@@ -3427,7 +3427,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	/* Need to allocate a bigger buffer for bigger brush size */
 	ss->texcache_side = 2 * radius;
 	if (!ss->texcache || ss->texcache_side > ss->texcache_actual) {
-		ss->texcache = BKE_brush_gen_texture_cache(brush, radius);
+		ss->texcache = BKE_brush_gen_texture_cache(brush, radius, false);
 		ss->texcache_actual = ss->texcache_side;
 		ss->tex_pool = BKE_image_pool_new();
 	}
