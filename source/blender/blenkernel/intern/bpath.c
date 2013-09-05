@@ -297,7 +297,14 @@ static bool findMissingFiles_visit_cb(void *userdata, char *path_dst, const char
 		return false;
 	}
 	else {
+		bool was_relative = BLI_path_is_rel(path_dst);
+
 		BLI_strncpy(path_dst, filename_new, FILE_MAX);
+
+		/* keep path relative if the previous one was relative */
+		if (was_relative)
+			BLI_path_rel(path_dst, data->basedir);
+
 		return true;
 	}
 }
@@ -307,6 +314,7 @@ void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportLis
 {
 	struct BPathFind_Data data = {NULL};
 
+	data.basedir = bmain->name;
 	data.reports = reports;
 	data.searchdir = searchpath;
 	data.find_all = find_all;
@@ -329,6 +337,9 @@ static bool rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *ab
 	else {
 		path_src = path;
 	}
+
+	/* so functions can check old value */
+	BLI_strncpy(path_dst, path, FILE_MAX);
 
 	if (visit_cb(userdata, path_dst, path_src)) {
 		BLI_strncpy(path, path_dst, FILE_MAX);
