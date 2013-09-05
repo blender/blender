@@ -133,11 +133,10 @@ void IDP_AppendArray(IDProperty *prop, IDProperty *item)
 
 void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 {
-	void *newarr;
-	int newsize = newlen;
+	int newsize;
 
-	/*first check if the array buffer size has room*/
-	/*if newlen is 200 chars less then totallen, reallocate anyway*/
+	/* first check if the array buffer size has room */
+	/* if newlen is 200 items less then totallen, reallocate anyway */
 	if (newlen <= prop->totallen) {
 		if (newlen < prop->len && prop->totallen - newlen < 200) {
 			int i;
@@ -154,6 +153,15 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 		}
 	}
 
+	/* free trailing items */
+	if (newlen < prop->len) {
+		/* newlen is smaller */
+		int i;
+		for (i = newlen; i < prop->len; i++) {
+			IDP_FreeProperty(GETPROP(prop, i));
+		}
+	}
+
 	/* - Note: This code comes from python, here's the corresponding comment. - */
 	/* This over-allocates proportional to the list size, making room
 	 * for additional growth.  The over-allocation is mild, but is
@@ -162,25 +170,9 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 	 * system realloc().
 	 * The growth pattern is:  0, 4, 8, 16, 25, 35, 46, 58, 72, 88, ...
 	 */
+	newsize = newlen;
 	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
-
-	newarr = MEM_callocN(sizeof(IDProperty) * newsize, "idproperty array resized");
-	if (newlen >= prop->len) {
-		/* newlen is bigger */
-		memcpy(newarr, prop->data.pointer, prop->len * sizeof(IDProperty));
-	}
-	else {
-		int i;
-		/* newlen is smaller */
-		for (i = newlen; i < prop->len; i++) {
-			IDP_FreeProperty(GETPROP(prop, i));
-		}
-		memcpy(newarr, prop->data.pointer, newlen * sizeof(IDProperty));
-	}
-
-	if (prop->data.pointer)
-		MEM_freeN(prop->data.pointer);
-	prop->data.pointer = newarr;
+	prop->data.pointer = MEM_recallocN(prop->data.pointer, sizeof(IDProperty) * newsize);
 	prop->len = newlen;
 	prop->totallen = newsize;
 }
@@ -217,11 +209,11 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 /*this function works for strings too!*/
 void IDP_ResizeArray(IDProperty *prop, int newlen)
 {
-	void *newarr;
-	int newsize = newlen;
+	int newsize;
+	const bool is_grow = newlen >= prop->len;
 
-	/*first check if the array buffer size has room*/
-	/*if newlen is 200 chars less then totallen, reallocate anyway*/
+	/* first check if the array buffer size has room */
+	/* if newlen is 200 chars less then totallen, reallocate anyway */
 	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
 		idp_resize_group_array(prop, newlen, prop->data.pointer);
 		prop->len = newlen;
@@ -236,22 +228,17 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	 * system realloc().
 	 * The growth pattern is:  0, 4, 8, 16, 25, 35, 46, 58, 72, 88, ...
 	 */
-	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
+	newsize = newlen;
+	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;\
 
-	newarr = MEM_callocN(idp_size_table[(int)prop->subtype] * newsize, "idproperty array resized");
-	if (newlen >= prop->len) {
-		/* newlen is bigger */
-		memcpy(newarr, prop->data.pointer, prop->len * idp_size_table[(int)prop->subtype]);
-		idp_resize_group_array(prop, newlen, newarr);
-	}
-	else {
-		/* newlen is smaller */
-		idp_resize_group_array(prop, newlen, newarr);
-		memcpy(newarr, prop->data.pointer, newlen * idp_size_table[(int)prop->subtype]);
-	}
+	if (is_grow == false)
+		idp_resize_group_array(prop, newlen, prop->data.pointer);
 
-	MEM_freeN(prop->data.pointer);
-	prop->data.pointer = newarr;
+	prop->data.pointer = MEM_recallocN(prop->data.pointer, idp_size_table[(int)prop->subtype] * newsize);
+
+	if (is_grow == true)
+		idp_resize_group_array(prop, newlen, prop->data.pointer);
+
 	prop->len = newlen;
 	prop->totallen = newsize;
 }
@@ -301,14 +288,23 @@ static IDProperty *IDP_CopyArray(IDProperty *prop)
 }
 
 /* ---------- String Type ------------ */
+
+/**
+ *
+ * \param st  The string to assign.
+ * \param name  The property name.
+ * \param maxlen  The size of the new string (including the \0 terminator)
+ * \return
+ */
 IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 {
 	IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
 
 	if (st == NULL) {
-		prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+		prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+		*IDP_String(prop) = '\0';
 		prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
-		prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
+		prop->len = 1;  /* NULL string, has len of 1 to account for null byte. */
 	}
 	else {
 		int stlen = strlen(st);
@@ -318,7 +314,7 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 
 		stlen++; /* null terminator '\0' */
 
-		prop->data.pointer = MEM_callocN(stlen, "id property string 2");
+		prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
 		prop->len = prop->totallen = stlen;
 		BLI_strncpy(prop->data.pointer, st, stlen);
 	}
@@ -354,7 +350,7 @@ void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 		memcpy(prop->data.pointer, st, stlen);
 	}
 	else {
-		stlen++; /* make room for null byte */
+		stlen++;
 		IDP_ResizeArray(prop, stlen);
 		BLI_strncpy(prop->data.pointer, st, stlen);
 	}
@@ -822,7 +818,8 @@ IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *n
 			if (val->string.subtype == IDP_STRING_SUB_BYTE) {
 				/* note, intentionally not null terminated */
 				if (st == NULL) {
-					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					*IDP_String(prop) = '\0';
 					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
 					prop->len = 0;
 				}
@@ -835,7 +832,8 @@ IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *n
 			}
 			else {
 				if (st == NULL) {
-					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					*IDP_String(prop) = '\0';
 					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
 					prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
 				}

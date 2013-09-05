@@ -985,7 +985,7 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 			
 			IDPropertyTemplate val = {0};
 			prop_path = IDP_New(IDP_GROUP, &val, __func__);
-			prop_path_value = IDP_NewString(data_path, "data_path", strlen(data_path) + 1); /* len + 1, or else will be truncated */
+			prop_path_value = IDP_NewString(data_path, "data_path", strlen(data_path) + 1);
 			IDP_AddToGroup(prop_path, prop_path_value);
 			
 			/* check each until one works... */
