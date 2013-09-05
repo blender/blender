@@ -32,13 +32,15 @@
 #define CERES_INTERNAL_PRECONDITIONER_H_
 
 #include <vector>
+#include "ceres/casts.h"
+#include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/linear_operator.h"
 #include "ceres/sparse_matrix.h"
 
 namespace ceres {
 namespace internal {
 
-class BlockSparseMatrixBase;
+class BlockSparseMatrix;
 class SparseMatrix;
 
 class Preconditioner : public LinearOperator {
@@ -46,7 +48,7 @@ class Preconditioner : public LinearOperator {
   struct Options {
     Options()
         : type(JACOBI),
-          sparse_linear_algebra_library(SUITE_SPARSE),
+          sparse_linear_algebra_library_type(SUITE_SPARSE),
           num_threads(1),
           row_block_size(Eigen::Dynamic),
           e_block_size(Eigen::Dynamic),
@@ -55,7 +57,7 @@ class Preconditioner : public LinearOperator {
 
     PreconditionerType type;
 
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
 
     // If possible, how many threads the preconditioner can use.
     int num_threads;
@@ -105,7 +107,7 @@ class Preconditioner : public LinearOperator {
   //
   // D can be NULL, in which case its interpreted as a diagonal matrix
   // of size zero.
-  virtual bool Update(const BlockSparseMatrixBase& A, const double* D) = 0;
+  virtual bool Update(const LinearOperator& A, const double* D) = 0;
 
   // LinearOperator interface. Since the operator is symmetric,
   // LeftMultiply and num_cols are just calls to RightMultiply and
@@ -122,19 +124,40 @@ class Preconditioner : public LinearOperator {
   }
 };
 
+// This templated subclass of Preconditioner serves as a base class for
+// other preconditioners that depend on the particular matrix layout of
+// the underlying linear operator.
+template <typename MatrixType>
+class TypedPreconditioner : public Preconditioner {
+ public:
+  virtual ~TypedPreconditioner() {}
+  virtual bool Update(const LinearOperator& A, const double* D) {
+    return UpdateImpl(*down_cast<const MatrixType*>(&A), D);
+  }
+
+ private:
+  virtual bool UpdateImpl(const MatrixType& A, const double* D) = 0;
+};
+
+// Preconditioners that depend on acccess to the low level structure
+// of a SparseMatrix.
+typedef TypedPreconditioner<SparseMatrix>              SparseMatrixPreconditioner;               // NOLINT
+typedef TypedPreconditioner<BlockSparseMatrix>         BlockSparseMatrixPreconditioner;          // NOLINT
+typedef TypedPreconditioner<CompressedRowSparseMatrix> CompressedRowSparseMatrixPreconditioner;  // NOLINT
+
 // Wrap a SparseMatrix object as a preconditioner.
-class SparseMatrixPreconditionerWrapper : public Preconditioner {
+class SparseMatrixPreconditionerWrapper : public SparseMatrixPreconditioner {
  public:
   // Wrapper does NOT take ownership of the matrix pointer.
   explicit SparseMatrixPreconditionerWrapper(const SparseMatrix* matrix);
   virtual ~SparseMatrixPreconditionerWrapper();
 
   // Preconditioner interface
-  virtual bool Update(const BlockSparseMatrixBase& A, const double* D);
   virtual void RightMultiply(const double* x, double* y) const;
   virtual int num_rows() const;
 
  private:
+  virtual bool UpdateImpl(const SparseMatrix& A, const double* D);
   const SparseMatrix* matrix_;
 };
 

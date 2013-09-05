@@ -41,8 +41,6 @@
 namespace ceres {
 namespace internal {
 
-class SparseMatrixProto;
-
 // This class defines the interface for storing and manipulating
 // sparse matrices. The key property that differentiates different
 // sparse matrices is how they are organized in memory and how the
@@ -85,11 +83,6 @@ class SparseMatrix : public LinearOperator {
   // Resize and populate dense_matrix with a dense version of the
   // sparse matrix.
   virtual void ToDenseMatrix(Matrix* dense_matrix) const = 0;
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-  // Dump the sparse matrix to a proto. Destroys the contents of proto.
-  virtual void ToProto(SparseMatrixProto* proto) const = 0;
-#endif
 
   // Write out the matrix as a sequence of (i,j,s) triplets. This
   // format is useful for loading the matrix into MATLAB/octave as a

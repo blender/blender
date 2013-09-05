@@ -173,8 +173,8 @@ class ParameterBlock {
           new double[local_parameterization_->GlobalSize() *
                      local_parameterization_->LocalSize()]);
       CHECK(UpdateLocalParameterizationJacobian())
-          "Local parameterization Jacobian computation failed"
-          "for x: " << ConstVectorRef(state_, Size()).transpose();
+          << "Local parameterization Jacobian computation failed for x: "
+          << ConstVectorRef(state_, Size()).transpose();
     } else {
       // Ignore the case that the parameterizations match.
     }

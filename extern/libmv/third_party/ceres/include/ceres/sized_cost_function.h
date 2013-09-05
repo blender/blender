@@ -38,9 +38,9 @@
 #ifndef CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 #define CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 
-#include <glog/logging.h>
 #include "ceres/types.h"
 #include "ceres/cost_function.h"
+#include "glog/logging.h"
 
 namespace ceres {
 

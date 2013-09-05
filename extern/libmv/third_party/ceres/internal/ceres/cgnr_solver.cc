@@ -46,7 +46,7 @@ CgnrSolver::CgnrSolver(const LinearSolver::Options& options)
 }
 
 LinearSolver::Summary CgnrSolver::SolveImpl(
-    BlockSparseMatrixBase* A,
+    BlockSparseMatrix* A,
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {

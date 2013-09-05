@@ -91,8 +91,8 @@ void SchurJacobiPreconditioner::InitEliminator(
 }
 
 // Update the values of the preconditioner matrix and factorize it.
-bool SchurJacobiPreconditioner::Update(const BlockSparseMatrixBase& A,
-                                       const double* D) {
+bool SchurJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
+                                           const double* D) {
   const int num_rows = m_->num_rows();
   CHECK_GT(num_rows, 0);
 
@@ -128,7 +128,7 @@ void SchurJacobiPreconditioner::RightMultiply(const double* x,
     VectorRef(y, block_size) =
         block
         .selfadjointView<Eigen::Upper>()
-        .ldlt()
+        .llt()
         .solve(ConstVectorRef(x, block_size));
 
     x += block_size;

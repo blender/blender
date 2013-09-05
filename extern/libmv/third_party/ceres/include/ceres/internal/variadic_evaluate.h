@@ -34,10 +34,10 @@
 
 #include <stddef.h>
 
-#include <glog/logging.h>
 #include "ceres/jet.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

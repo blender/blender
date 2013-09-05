@@ -32,7 +32,10 @@
 
 #include "ceres/cxsparse.h"
 
+#include <vector>
+#include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/internal/port.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 
@@ -44,9 +47,10 @@ CXSparse::CXSparse() : scratch_(NULL), scratch_size_(0) {
 
 CXSparse::~CXSparse() {
   if (scratch_size_ > 0) {
-    cs_free(scratch_);
+    cs_di_free(scratch_);
   }
 }
+
 
 bool CXSparse::SolveCholesky(cs_di* A,
                              cs_dis* symbolic_factorization,
@@ -54,42 +58,107 @@ bool CXSparse::SolveCholesky(cs_di* A,
   // Make sure we have enough scratch space available.
   if (scratch_size_ < A->n) {
     if (scratch_size_ > 0) {
-      cs_free(scratch_);
+      cs_di_free(scratch_);
     }
-    scratch_ = reinterpret_cast<CS_ENTRY*>(cs_malloc(A->n, sizeof(CS_ENTRY)));
+    scratch_ =
+        reinterpret_cast<CS_ENTRY*>(cs_di_malloc(A->n, sizeof(CS_ENTRY)));
     scratch_size_ = A->n;
   }
 
   // Solve using Cholesky factorization
-  csn* numeric_factorization = cs_chol(A, symbolic_factorization);
+  csn* numeric_factorization = cs_di_chol(A, symbolic_factorization);
   if (numeric_factorization == NULL) {
     LOG(WARNING) << "Cholesky factorization failed.";
     return false;
   }
 
-  // When the Cholesky factorization succeeded, these methods are guaranteed to
-  // succeeded as well. In the comments below, "x" refers to the scratch space.
+  // When the Cholesky factorization succeeded, these methods are
+  // guaranteed to succeeded as well. In the comments below, "x"
+  // refers to the scratch space.
   //
   // Set x = P * b.
-  cs_ipvec(symbolic_factorization->pinv, b, scratch_, A->n);
-
+  cs_di_ipvec(symbolic_factorization->pinv, b, scratch_, A->n);
   // Set x = L \ x.
-  cs_lsolve(numeric_factorization->L, scratch_);
-
+  cs_di_lsolve(numeric_factorization->L, scratch_);
   // Set x = L' \ x.
-  cs_ltsolve(numeric_factorization->L, scratch_);
-
+  cs_di_ltsolve(numeric_factorization->L, scratch_);
   // Set b = P' * x.
-  cs_pvec(symbolic_factorization->pinv, scratch_, b, A->n);
+  cs_di_pvec(symbolic_factorization->pinv, scratch_, b, A->n);
 
   // Free Cholesky factorization.
-  cs_nfree(numeric_factorization);
+  cs_di_nfree(numeric_factorization);
   return true;
 }
 
 cs_dis* CXSparse::AnalyzeCholesky(cs_di* A) {
   // order = 1 for Cholesky factorization.
   return cs_schol(1, A);
+}
+
+cs_dis* CXSparse::AnalyzeCholeskyWithNaturalOrdering(cs_di* A) {
+  // order = 0 for Natural ordering.
+  return cs_schol(0, A);
+}
+
+cs_dis* CXSparse::BlockAnalyzeCholesky(cs_di* A,
+                                       const vector<int>& row_blocks,
+                                       const vector<int>& col_blocks) {
+  const int num_row_blocks = row_blocks.size();
+  const int num_col_blocks = col_blocks.size();
+
+  vector<int> block_rows;
+  vector<int> block_cols;
+  CompressedColumnScalarMatrixToBlockMatrix(A->i,
+                                            A->p,
+                                            row_blocks,
+                                            col_blocks,
+                                            &block_rows,
+                                            &block_cols);
+  cs_di block_matrix;
+  block_matrix.m = num_row_blocks;
+  block_matrix.n = num_col_blocks;
+  block_matrix.nz  = -1;
+  block_matrix.nzmax = block_rows.size();
+  block_matrix.p = &block_cols[0];
+  block_matrix.i = &block_rows[0];
+  block_matrix.x = NULL;
+
+  int* ordering = cs_amd(1, &block_matrix);
+  vector<int> block_ordering(num_row_blocks, -1);
+  copy(ordering, ordering + num_row_blocks, &block_ordering[0]);
+  cs_free(ordering);
+
+  vector<int> scalar_ordering;
+  BlockOrderingToScalarOrdering(row_blocks, block_ordering, &scalar_ordering);
+
+  cs_dis* symbolic_factorization =
+      reinterpret_cast<cs_dis*>(cs_calloc(1, sizeof(cs_dis)));
+  symbolic_factorization->pinv = cs_pinv(&scalar_ordering[0], A->n);
+  cs* permuted_A = cs_symperm(A, symbolic_factorization->pinv, 0);
+
+  symbolic_factorization->parent = cs_etree(permuted_A, 0);
+  int* postordering = cs_post(symbolic_factorization->parent, A->n);
+  int* column_counts = cs_counts(permuted_A,
+                                 symbolic_factorization->parent,
+                                 postordering,
+                                 0);
+  cs_free(postordering);
+  cs_spfree(permuted_A);
+
+  symbolic_factorization->cp = (int*) cs_malloc(A->n+1, sizeof(int));
+  symbolic_factorization->lnz = cs_cumsum(symbolic_factorization->cp,
+                                          column_counts,
+                                          A->n);
+  symbolic_factorization->unz = symbolic_factorization->lnz;
+
+  cs_free(column_counts);
+
+  if (symbolic_factorization->lnz < 0) {
+    cs_sfree(symbolic_factorization);
+    symbolic_factorization = NULL;
+  }
+
+  return symbolic_factorization;
 }
 
 cs_di CXSparse::CreateSparseMatrixTransposeView(CompressedRowSparseMatrix* A) {
@@ -115,6 +184,20 @@ cs_di* CXSparse::CreateSparseMatrix(TripletSparseMatrix* tsm) {
   tsm_wrapper.x = tsm->mutable_values();
 
   return cs_compress(&tsm_wrapper);
+}
+
+void CXSparse::ApproximateMinimumDegreeOrdering(cs_di* A, int* ordering) {
+  int* cs_ordering = cs_amd(1, A);
+  copy(cs_ordering, cs_ordering + A->m, ordering);
+  cs_free(cs_ordering);
+}
+
+cs_di* CXSparse::TransposeMatrix(cs_di* A) {
+  return cs_di_transpose(A, 1);
+}
+
+cs_di* CXSparse::MatrixMatrixMultiply(cs_di* A, cs_di* B) {
+  return cs_di_multiply(A, B);
 }
 
 void CXSparse::Free(cs_di* sparse_matrix) {

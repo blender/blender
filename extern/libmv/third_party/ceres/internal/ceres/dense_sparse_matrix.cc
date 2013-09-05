@@ -31,10 +31,10 @@
 #include "ceres/dense_sparse_matrix.h"
 
 #include <algorithm>
-#include "ceres/matrix_proto.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -80,22 +80,6 @@ DenseSparseMatrix::DenseSparseMatrix(const ColMajorMatrix& m)
       has_diagonal_reserved_(false) {
 }
 
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-DenseSparseMatrix::DenseSparseMatrix(const SparseMatrixProto& outer_proto)
-    : m_(Eigen::MatrixXd::Zero(
-        outer_proto.dense_matrix().num_rows(),
-        outer_proto.dense_matrix().num_cols())),
-      has_diagonal_appended_(false),
-      has_diagonal_reserved_(false) {
-  const DenseSparseMatrixProto& proto = outer_proto.dense_matrix();
-  for (int i = 0; i < m_.rows(); ++i) {
-    for (int j = 0; j < m_.cols(); ++j) {
-      m_(i, j) = proto.values(m_.cols() * i + j);
-    }
-  }
-}
-#endif
-
 void DenseSparseMatrix::SetZero() {
   m_.setZero();
 }
@@ -120,22 +104,6 @@ void DenseSparseMatrix::ScaleColumns(const double* scale) {
 void DenseSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
   *dense_matrix = m_.block(0, 0, num_rows(), num_cols());
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-void DenseSparseMatrix::ToProto(SparseMatrixProto* outer_proto) const {
-  CHECK(!has_diagonal_appended_) << "Not supported.";
-  outer_proto->Clear();
-  DenseSparseMatrixProto* proto = outer_proto->mutable_dense_matrix();
-
-  proto->set_num_rows(num_rows());
-  proto->set_num_cols(num_cols());
-
-  int num_nnz = num_nonzeros();
-  for (int i = 0; i < num_nnz; ++i) {
-    proto->add_values(m_.data()[i]);
-  }
-}
-#endif
 
 void DenseSparseMatrix::AppendDiagonal(double *d) {
   CHECK(!has_diagonal_appended_);

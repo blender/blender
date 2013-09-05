@@ -43,7 +43,25 @@
 namespace ceres {
 namespace internal {
 
-// Compare two vertices of a graph by their degrees.
+// Compare two vertices of a graph by their degrees, if the degrees
+// are equal then order them by their ids.
+template <typename Vertex>
+class VertexTotalOrdering {
+ public:
+  explicit VertexTotalOrdering(const Graph<Vertex>& graph)
+      : graph_(graph) {}
+
+  bool operator()(const Vertex& lhs, const Vertex& rhs) const {
+    if (graph_.Neighbors(lhs).size() == graph_.Neighbors(rhs).size()) {
+      return lhs < rhs;
+    }
+    return graph_.Neighbors(lhs).size() < graph_.Neighbors(rhs).size();
+  }
+
+ private:
+  const Graph<Vertex>& graph_;
+};
+
 template <typename Vertex>
 class VertexDegreeLessThan {
  public:
@@ -51,9 +69,6 @@ class VertexDegreeLessThan {
       : graph_(graph) {}
 
   bool operator()(const Vertex& lhs, const Vertex& rhs) const {
-    if (graph_.Neighbors(lhs).size() == graph_.Neighbors(rhs).size()) {
-      return lhs < rhs;
-    }
     return graph_.Neighbors(lhs).size() < graph_.Neighbors(rhs).size();
   }
 
@@ -104,8 +119,83 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
 
 
   sort(vertex_queue.begin(), vertex_queue.end(),
-       VertexDegreeLessThan<Vertex>(graph));
+       VertexTotalOrdering<Vertex>(graph));
 
+  // Iterate over vertex_queue. Pick the first white vertex, add it
+  // to the independent set. Mark it black and its neighbors grey.
+  for (int i = 0; i < vertex_queue.size(); ++i) {
+    const Vertex& vertex = vertex_queue[i];
+    if (vertex_color[vertex] != kWhite) {
+      continue;
+    }
+
+    ordering->push_back(vertex);
+    vertex_color[vertex] = kBlack;
+    const HashSet<Vertex>& neighbors = graph.Neighbors(vertex);
+    for (typename HashSet<Vertex>::const_iterator it = neighbors.begin();
+         it != neighbors.end();
+         ++it) {
+      vertex_color[*it] = kGrey;
+    }
+  }
+
+  int independent_set_size = ordering->size();
+
+  // Iterate over the vertices and add all the grey vertices to the
+  // ordering. At this stage there should only be black or grey
+  // vertices in the graph.
+  for (typename vector<Vertex>::const_iterator it = vertex_queue.begin();
+       it != vertex_queue.end();
+       ++it) {
+    const Vertex vertex = *it;
+    DCHECK(vertex_color[vertex] != kWhite);
+    if (vertex_color[vertex] != kBlack) {
+      ordering->push_back(vertex);
+    }
+  }
+
+  CHECK_EQ(ordering->size(), num_vertices);
+  return independent_set_size;
+}
+
+// Same as above with one important difference. The ordering parameter
+// is an input/output parameter which carries an initial ordering of
+// the vertices of the graph. The greedy independent set algorithm
+// starts by sorting the vertices in increasing order of their
+// degree. The input ordering is used to stabilize this sort, i.e., if
+// two vertices have the same degree then they are ordered in the same
+// order in which they occur in "ordering".
+//
+// This is useful in eliminating non-determinism from the Schur
+// ordering algorithm over all.
+template <typename Vertex>
+int StableIndependentSetOrdering(const Graph<Vertex>& graph,
+                                 vector<Vertex>* ordering) {
+  CHECK_NOTNULL(ordering);
+  const HashSet<Vertex>& vertices = graph.vertices();
+  const int num_vertices = vertices.size();
+  CHECK_EQ(vertices.size(), ordering->size());
+
+  // Colors for labeling the graph during the BFS.
+  const char kWhite = 0;
+  const char kGrey = 1;
+  const char kBlack = 2;
+
+  vector<Vertex> vertex_queue(*ordering);
+
+  stable_sort(vertex_queue.begin(), vertex_queue.end(),
+              VertexDegreeLessThan<Vertex>(graph));
+
+  // Mark all vertices white.
+  HashMap<Vertex, char> vertex_color;
+  for (typename HashSet<Vertex>::const_iterator it = vertices.begin();
+       it != vertices.end();
+       ++it) {
+    vertex_color[*it] = kWhite;
+  }
+
+  ordering->clear();
+  ordering->reserve(num_vertices);
   // Iterate over vertex_queue. Pick the first white vertex, add it
   // to the independent set. Mark it black and its neighbors grey.
   for (int i = 0; i < vertex_queue.size(); ++i) {

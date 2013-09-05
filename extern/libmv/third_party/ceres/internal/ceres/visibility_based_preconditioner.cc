@@ -324,8 +324,8 @@ void VisibilityBasedPreconditioner::InitEliminator(
 }
 
 // Update the values of the preconditioner matrix and factorize it.
-bool VisibilityBasedPreconditioner::Update(const BlockSparseMatrixBase& A,
-                                           const double* D) {
+bool VisibilityBasedPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
+                                               const double* D) {
   const time_t start_time = time(NULL);
   const int num_rows = m_->num_rows();
   CHECK_GT(num_rows, 0);

@@ -45,8 +45,8 @@ SparseMatrixPreconditionerWrapper::SparseMatrixPreconditionerWrapper(
 SparseMatrixPreconditionerWrapper::~SparseMatrixPreconditionerWrapper() {
 }
 
-bool SparseMatrixPreconditionerWrapper::Update(const BlockSparseMatrixBase& A,
-                                               const double* D) {
+bool SparseMatrixPreconditionerWrapper::UpdateImpl(const SparseMatrix& A,
+                                                   const double* D) {
   return true;
 }
 

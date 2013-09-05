@@ -62,7 +62,7 @@ IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {
 }
 
 LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
-    BlockSparseMatrixBase* A,
+    BlockSparseMatrix* A,
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
@@ -77,6 +77,17 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
                                     options_.preconditioner_type == JACOBI));
   }
   schur_complement_->Init(*A, per_solve_options.D, b);
+
+  const int num_schur_complement_blocks =
+      A->block_structure()->cols.size() - options_.elimination_groups[0];
+  if (num_schur_complement_blocks == 0) {
+    VLOG(2) << "No parameter blocks left in the schur complement.";
+    LinearSolver::Summary cg_summary;
+    cg_summary.num_iterations = 0;
+    cg_summary.termination_type = TOLERANCE;
+    schur_complement_->BackSubstitute(NULL, x);
+    return cg_summary;
+  }
 
   // Initialize the solution to the Schur complement system to zero.
   //
@@ -97,8 +108,8 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
 
   Preconditioner::Options preconditioner_options;
   preconditioner_options.type = options_.preconditioner_type;
-  preconditioner_options.sparse_linear_algebra_library =
-      options_.sparse_linear_algebra_library;
+  preconditioner_options.sparse_linear_algebra_library_type =
+      options_.sparse_linear_algebra_library_type;
   preconditioner_options.num_threads = options_.num_threads;
   preconditioner_options.row_block_size = options_.row_block_size;
   preconditioner_options.e_block_size = options_.e_block_size;
@@ -116,16 +127,16 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     case SCHUR_JACOBI:
       if (preconditioner_.get() == NULL) {
         preconditioner_.reset(
-            new SchurJacobiPreconditioner(
-                *A->block_structure(), preconditioner_options));
+            new SchurJacobiPreconditioner(*A->block_structure(),
+                                          preconditioner_options));
       }
       break;
     case CLUSTER_JACOBI:
     case CLUSTER_TRIDIAGONAL:
       if (preconditioner_.get() == NULL) {
         preconditioner_.reset(
-            new VisibilityBasedPreconditioner(
-                *A->block_structure(), preconditioner_options));
+            new VisibilityBasedPreconditioner(*A->block_structure(),
+                                              preconditioner_options));
       }
       break;
     default:

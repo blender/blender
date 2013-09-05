@@ -85,6 +85,18 @@ class DenseNormalCholeskySolver: public DenseSparseMatrixSolver {
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x);
 
+  LinearSolver::Summary SolveUsingLAPACK(
+      DenseSparseMatrix* A,
+      const double* b,
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* x);
+
+  LinearSolver::Summary SolveUsingEigen(
+      DenseSparseMatrix* A,
+      const double* b,
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* x);
+
   const LinearSolver::Options options_;
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseNormalCholeskySolver);
 };

@@ -21,7 +21,7 @@ defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_NO_CXSPARSE')
-defs.append('CERES_NO_PROTOCOL_BUFFERS')
+defs.append('CERES_NO_LAPACK')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 defs.append('CERES_HAVE_RWLOCK')
 

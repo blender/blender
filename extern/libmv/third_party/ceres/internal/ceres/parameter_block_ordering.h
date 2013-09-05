@@ -58,6 +58,12 @@ class ParameterBlock;
 int ComputeSchurOrdering(const Program& program,
                          vector<ParameterBlock* >* ordering);
 
+// Same as above, except that ties while computing the independent set
+// ordering are resolved in favour of the order in which the parameter
+// blocks occur in the program.
+int ComputeStableSchurOrdering(const Program& program,
+                               vector<ParameterBlock* >* ordering);
+
 // Use an approximate independent set ordering to decompose the
 // parameter blocks of a problem in a sequence of independent
 // sets. The ordering covers all the non-constant parameter blocks in

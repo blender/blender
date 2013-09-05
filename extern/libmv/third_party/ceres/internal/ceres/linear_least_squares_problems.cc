@@ -36,10 +36,8 @@
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/casts.h"
-#include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/file.h"
 #include "ceres/internal/scoped_ptr.h"
-#include "ceres/matrix_proto.h"
 #include "ceres/stringprintf.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
@@ -63,74 +61,6 @@ LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromId(int id) {
   }
   return NULL;
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromFile(
-    const string& filename) {
-  LinearLeastSquaresProblemProto problem_proto;
-  {
-    string serialized_proto;
-    ReadFileToStringOrDie(filename, &serialized_proto);
-    CHECK(problem_proto.ParseFromString(serialized_proto));
-  }
-
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
-  const SparseMatrixProto& A = problem_proto.a();
-
-  if (A.has_block_matrix()) {
-    problem->A.reset(new BlockSparseMatrix(A));
-  } else if (A.has_triplet_matrix()) {
-    problem->A.reset(new TripletSparseMatrix(A));
-  } else {
-    problem->A.reset(new CompressedRowSparseMatrix(A));
-  }
-
-  if (problem_proto.b_size() > 0) {
-    problem->b.reset(new double[problem_proto.b_size()]);
-    for (int i = 0; i < problem_proto.b_size(); ++i) {
-      problem->b[i] = problem_proto.b(i);
-    }
-  }
-
-  if (problem_proto.d_size() > 0) {
-    problem->D.reset(new double[problem_proto.d_size()]);
-    for (int i = 0; i < problem_proto.d_size(); ++i) {
-      problem->D[i] = problem_proto.d(i);
-    }
-  }
-
-  if (problem_proto.d_size() > 0) {
-    if (problem_proto.x_size() > 0) {
-      problem->x_D.reset(new double[problem_proto.x_size()]);
-      for (int i = 0; i < problem_proto.x_size(); ++i) {
-        problem->x_D[i] = problem_proto.x(i);
-      }
-    }
-  } else {
-    if (problem_proto.x_size() > 0) {
-      problem->x.reset(new double[problem_proto.x_size()]);
-      for (int i = 0; i < problem_proto.x_size(); ++i) {
-        problem->x[i] = problem_proto.x(i);
-      }
-    }
-  }
-
-  problem->num_eliminate_blocks = 0;
-  if (problem_proto.has_num_eliminate_blocks()) {
-    problem->num_eliminate_blocks = problem_proto.num_eliminate_blocks();
-  }
-
-  return problem;
-}
-#else
-LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromFile(
-    const string& filename) {
-  LOG(FATAL)
-      << "Loading a least squares problem from disk requires "
-      << "Ceres to be built with Protocol Buffers support.";
-  return NULL;
-}
-#endif  // CERES_NO_PROTOCOL_BUFFERS
 
 /*
 A = [1   2]
@@ -574,9 +504,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
 }
 
 namespace {
-bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
-                                            int iteration,
-                                            const SparseMatrix* A,
+bool DumpLinearLeastSquaresProblemToConsole(const SparseMatrix* A,
                                             const double* D,
                                             const double* b,
                                             const double* x,
@@ -601,61 +529,6 @@ bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
   return true;
 };
 
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
-                                                   int iteration,
-                                                   const SparseMatrix* A,
-                                                   const double* D,
-                                                   const double* b,
-                                                   const double* x,
-                                                   int num_eliminate_blocks) {
-  CHECK_NOTNULL(A);
-  LinearLeastSquaresProblemProto lsqp;
-  A->ToProto(lsqp.mutable_a());
-
-  if (D != NULL) {
-    for (int i = 0; i < A->num_cols(); ++i) {
-      lsqp.add_d(D[i]);
-    }
-  }
-
-  if (b != NULL) {
-    for (int i = 0; i < A->num_rows(); ++i) {
-      lsqp.add_b(b[i]);
-    }
-  }
-
-  if (x != NULL) {
-    for (int i = 0; i < A->num_cols(); ++i) {
-      lsqp.add_x(x[i]);
-    }
-  }
-
-  lsqp.set_num_eliminate_blocks(num_eliminate_blocks);
-  string format_string = JoinPath(directory,
-                                  "lm_iteration_%03d.lsqp");
-  string filename =
-      StringPrintf(format_string.c_str(),  iteration);
-  LOG(INFO) << "Dumping least squares problem for iteration " << iteration
-            << " to disk. File: " << filename;
-  WriteStringToFileOrDie(lsqp.SerializeAsString(), filename);
-  return true;
-}
-#else
-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
-                                                   int iteration,
-                                                   const SparseMatrix* A,
-                                                   const double* D,
-                                                   const double* b,
-                                                   const double* x,
-                                                   int num_eliminate_blocks) {
-  LOG(ERROR) << "Dumping least squares problems is only "
-             << "supported when Ceres is compiled with "
-             << "protocol buffer support.";
-  return false;
-}
-#endif
-
 void WriteArrayToFileOrDie(const string& filename,
                            const double* x,
                            const int size) {
@@ -669,31 +542,25 @@ void WriteArrayToFileOrDie(const string& filename,
   fclose(fptr);
 }
 
-bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
-                                             int iteration,
+bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
                                              const SparseMatrix* A,
                                              const double* D,
                                              const double* b,
                                              const double* x,
                                              int num_eliminate_blocks) {
   CHECK_NOTNULL(A);
-  string format_string = JoinPath(directory,
-                                  "lm_iteration_%03d");
-  string filename_prefix =
-      StringPrintf(format_string.c_str(), iteration);
-
-  LOG(INFO) << "writing to: " << filename_prefix << "*";
+  LOG(INFO) << "writing to: " << filename_base << "*";
 
   string matlab_script;
   StringAppendF(&matlab_script,
-                "function lsqp = lm_iteration_%03d()\n", iteration);
+                "function lsqp = load_trust_region_problem()\n");
   StringAppendF(&matlab_script,
                 "lsqp.num_rows = %d;\n", A->num_rows());
   StringAppendF(&matlab_script,
                 "lsqp.num_cols = %d;\n", A->num_cols());
 
   {
-    string filename = filename_prefix + "_A.txt";
+    string filename = filename_base + "_A.txt";
     FILE* fptr = fopen(filename.c_str(), "w");
     CHECK_NOTNULL(fptr);
     A->ToTextFile(fptr);
@@ -709,34 +576,33 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
 
 
   if (D != NULL) {
-    string filename = filename_prefix + "_D.txt";
+    string filename = filename_base + "_D.txt";
     WriteArrayToFileOrDie(filename, D, A->num_cols());
     StringAppendF(&matlab_script,
                   "lsqp.D = load('%s', '-ascii');\n", filename.c_str());
   }
 
   if (b != NULL) {
-    string filename = filename_prefix + "_b.txt";
+    string filename = filename_base + "_b.txt";
     WriteArrayToFileOrDie(filename, b, A->num_rows());
     StringAppendF(&matlab_script,
                   "lsqp.b = load('%s', '-ascii');\n", filename.c_str());
   }
 
   if (x != NULL) {
-    string filename = filename_prefix + "_x.txt";
+    string filename = filename_base + "_x.txt";
     WriteArrayToFileOrDie(filename, x, A->num_cols());
     StringAppendF(&matlab_script,
                   "lsqp.x = load('%s', '-ascii');\n", filename.c_str());
   }
 
-  string matlab_filename = filename_prefix + ".m";
+  string matlab_filename = filename_base + ".m";
   WriteStringToFileOrDie(matlab_script, matlab_filename);
   return true;
 }
 }  // namespace
 
-bool DumpLinearLeastSquaresProblem(const string& directory,
-                                   int iteration,
+bool DumpLinearLeastSquaresProblem(const string& filename_base,
                                    DumpFormatType dump_format_type,
                                    const SparseMatrix* A,
                                    const double* D,
@@ -745,19 +611,10 @@ bool DumpLinearLeastSquaresProblem(const string& directory,
                                    int num_eliminate_blocks) {
   switch (dump_format_type) {
     case CONSOLE:
-      return DumpLinearLeastSquaresProblemToConsole(directory,
-                                                    iteration,
-                                                    A, D, b, x,
+      return DumpLinearLeastSquaresProblemToConsole(A, D, b, x,
                                                     num_eliminate_blocks);
-    case PROTOBUF:
-      return DumpLinearLeastSquaresProblemToProtocolBuffer(
-          directory,
-          iteration,
-          A, D, b, x,
-          num_eliminate_blocks);
     case TEXTFILE:
-      return DumpLinearLeastSquaresProblemToTextFile(directory,
-                                                     iteration,
+      return DumpLinearLeastSquaresProblemToTextFile(filename_base,
                                                      A, D, b, x,
                                                      num_eliminate_blocks);
     default:

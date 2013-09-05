@@ -86,7 +86,7 @@ void EventLogger::AddEvent(const string& event_name) {
   last_event_time_ = current_time;
 
   StringAppendF(&events_,
-                "  %25s : %10.5f   %10.5f\n",
+                "  %30s : %10.5f   %10.5f\n",
                 event_name.c_str(),
                 relative_time_delta,
                 absolute_time_delta);

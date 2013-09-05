@@ -55,7 +55,7 @@ ImplicitSchurComplement::ImplicitSchurComplement(int num_eliminate_blocks,
 ImplicitSchurComplement::~ImplicitSchurComplement() {
 }
 
-void ImplicitSchurComplement::Init(const BlockSparseMatrixBase& A,
+void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
                                    const double* D,
                                    const double* b) {
   // Since initialization is reasonably heavy, perhaps we can save on
@@ -161,7 +161,7 @@ void ImplicitSchurComplement::AddDiagonalAndInvert(
 
     m = m
         .selfadjointView<Eigen::Upper>()
-        .ldlt()
+        .llt()
         .solve(Matrix::Identity(row_block_size, row_block_size));
   }
 }

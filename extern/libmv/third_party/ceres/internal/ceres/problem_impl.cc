@@ -711,13 +711,14 @@ int ProblemImpl::NumResiduals() const {
   return program_->NumResiduals();
 }
 
-int ProblemImpl::ParameterBlockSize(double* parameter_block) const {
-  return FindParameterBlockOrDie(parameter_block_map_, parameter_block)->Size();
+int ProblemImpl::ParameterBlockSize(const double* parameter_block) const {
+  return FindParameterBlockOrDie(parameter_block_map_,
+                                 const_cast<double*>(parameter_block))->Size();
 };
 
-int ProblemImpl::ParameterBlockLocalSize(double* parameter_block) const {
-  return FindParameterBlockOrDie(parameter_block_map_,
-                                 parameter_block)->LocalSize();
+int ProblemImpl::ParameterBlockLocalSize(const double* parameter_block) const {
+  return FindParameterBlockOrDie(
+      parameter_block_map_, const_cast<double*>(parameter_block))->LocalSize();
 };
 
 void ProblemImpl::GetParameterBlocks(vector<double*>* parameter_blocks) const {

@@ -73,17 +73,13 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
       const LinearSolver::PerSolveOptions& options,
       double* x);
 
-#ifndef CERES_NO_SUITESPARSE
   SuiteSparse ss_;
   // Cached factorization
   cholmod_factor* factor_;
-#endif  // CERES_NO_SUITESPARSE
 
-#ifndef CERES_NO_CXSPARSE
   CXSparse cxsparse_;
   // Cached factorization
   cs_dis* cxsparse_factor_;
-#endif  // CERES_NO_CXSPARSE
 
   const LinearSolver::Options options_;
   CERES_DISALLOW_COPY_AND_ASSIGN(SparseNormalCholeskySolver);

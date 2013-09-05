@@ -29,7 +29,6 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
 #include "ceres/block_structure.h"
-#include "ceres/matrix_proto.h"
 
 namespace ceres {
 namespace internal {
@@ -37,56 +36,6 @@ namespace internal {
 bool CellLessThan(const Cell& lhs, const Cell& rhs) {
   return (lhs.block_id < rhs.block_id);
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-void ProtoToBlockStructure(const BlockStructureProto &proto,
-                           CompressedRowBlockStructure *block_structure) {
-  // Decode the column blocks.
-  block_structure->cols.resize(proto.cols_size());
-  for (int i = 0; i < proto.cols_size(); ++i) {
-    block_structure->cols[i].size = proto.cols(i).size();
-    block_structure->cols[i].position =
-        proto.cols(i).position();
-  }
-  // Decode the row structure.
-  block_structure->rows.resize(proto.rows_size());
-  for (int i = 0; i < proto.rows_size(); ++i) {
-    const CompressedRowProto &row = proto.rows(i);
-    block_structure->rows[i].block.size = row.block().size();
-    block_structure->rows[i].block.position = row.block().position();
-
-    // Copy the cells within the row.
-    block_structure->rows[i].cells.resize(row.cells_size());
-    for (int j = 0; j < row.cells_size(); ++j) {
-      const CellProto &cell = row.cells(j);
-      block_structure->rows[i].cells[j].block_id = cell.block_id();
-      block_structure->rows[i].cells[j].position = cell.position();
-    }
-  }
-}
-
-void BlockStructureToProto(const CompressedRowBlockStructure &block_structure,
-                           BlockStructureProto *proto) {
-  // Encode the column blocks.
-  for (int i = 0; i < block_structure.cols.size(); ++i) {
-    BlockProto *block = proto->add_cols();
-    block->set_size(block_structure.cols[i].size);
-    block->set_position(block_structure.cols[i].position);
-  }
-  // Encode the row structure.
-  for (int i = 0; i < block_structure.rows.size(); ++i) {
-    CompressedRowProto *row = proto->add_rows();
-    BlockProto *block = row->mutable_block();
-    block->set_size(block_structure.rows[i].block.size);
-    block->set_position(block_structure.rows[i].block.position);
-    for (int j = 0; j < block_structure.rows[i].cells.size(); ++j) {
-      CellProto *cell = row->add_cells();
-      cell->set_block_id(block_structure.rows[i].cells[j].block_id);
-      cell->set_position(block_structure.rows[i].cells[j].position);
-    }
-  }
-}
-#endif
 
 }  // namespace internal
 }  // namespace ceres

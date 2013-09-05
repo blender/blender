@@ -48,11 +48,11 @@ class BlockJacobiPreconditioner;
 //
 // as required for solving for x in the least squares sense. Currently only
 // block diagonal preconditioning is supported.
-class CgnrSolver : public BlockSparseMatrixBaseSolver {
+class CgnrSolver : public BlockSparseMatrixSolver {
  public:
   explicit CgnrSolver(const LinearSolver::Options& options);
   virtual Summary SolveImpl(
-      BlockSparseMatrixBase* A,
+      BlockSparseMatrix* A,
       const double* b,
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x);

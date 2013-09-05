@@ -40,22 +40,28 @@ set(INC_SYS
 
 set(SRC
 	internal/ceres/array_utils.cc
+	internal/ceres/blas.cc
 	internal/ceres/block_evaluate_preparer.cc
 	internal/ceres/block_jacobian_writer.cc
 	internal/ceres/block_jacobi_preconditioner.cc
+	internal/ceres/block_random_access_crs_matrix.cc
 	internal/ceres/block_random_access_dense_matrix.cc
 	internal/ceres/block_random_access_matrix.cc
 	internal/ceres/block_random_access_sparse_matrix.cc
 	internal/ceres/block_sparse_matrix.cc
 	internal/ceres/block_structure.cc
 	internal/ceres/canonical_views_clustering.cc
+	internal/ceres/c_api.cc
 	internal/ceres/cgnr_solver.cc
+	internal/ceres/compressed_col_sparse_matrix_utils.cc
 	internal/ceres/compressed_row_jacobian_writer.cc
 	internal/ceres/compressed_row_sparse_matrix.cc
 	internal/ceres/conditioned_cost_function.cc
 	internal/ceres/conjugate_gradients_solver.cc
 	internal/ceres/coordinate_descent_minimizer.cc
 	internal/ceres/corrector.cc
+	internal/ceres/covariance.cc
+	internal/ceres/covariance_impl.cc
 	internal/ceres/cxsparse.cc
 	internal/ceres/dense_normal_cholesky_solver.cc
 	internal/ceres/dense_qr_solver.cc
@@ -67,7 +73,9 @@ set(SRC
 	internal/ceres/generated/schur_eliminator_d_d_d.cc
 	internal/ceres/gradient_checking_cost_function.cc
 	internal/ceres/implicit_schur_complement.cc
+	internal/ceres/incomplete_lq_factorization.cc
 	internal/ceres/iterative_schur_complement_solver.cc
+	internal/ceres/lapack.cc
 	internal/ceres/levenberg_marquardt_strategy.cc
 	internal/ceres/linear_least_squares_problems.cc
 	internal/ceres/linear_operator.cc
@@ -111,10 +119,12 @@ set(SRC
 
 	include/ceres/autodiff_cost_function.h
 	include/ceres/autodiff_local_parameterization.h
+	include/ceres/c_api.h
 	include/ceres/ceres.h
 	include/ceres/conditioned_cost_function.h
 	include/ceres/cost_function.h
 	include/ceres/cost_function_to_functor.h
+	include/ceres/covariance.h
 	include/ceres/crs_matrix.h
 	include/ceres/dynamic_autodiff_cost_function.h
 	include/ceres/fpclassify.h
@@ -146,6 +156,7 @@ set(SRC
 	internal/ceres/block_evaluate_preparer.h
 	internal/ceres/block_jacobian_writer.h
 	internal/ceres/block_jacobi_preconditioner.h
+	internal/ceres/block_random_access_crs_matrix.h
 	internal/ceres/block_random_access_dense_matrix.h
 	internal/ceres/block_random_access_matrix.h
 	internal/ceres/block_random_access_sparse_matrix.h
@@ -156,11 +167,13 @@ set(SRC
 	internal/ceres/cgnr_linear_operator.h
 	internal/ceres/cgnr_solver.h
 	internal/ceres/collections_port.h
+	internal/ceres/compressed_col_sparse_matrix_utils.h
 	internal/ceres/compressed_row_jacobian_writer.h
 	internal/ceres/compressed_row_sparse_matrix.h
 	internal/ceres/conjugate_gradients_solver.h
 	internal/ceres/coordinate_descent_minimizer.h
 	internal/ceres/corrector.h
+	internal/ceres/covariance_impl.h
 	internal/ceres/cxsparse.h
 	internal/ceres/dense_jacobian_writer.h
 	internal/ceres/dense_normal_cholesky_solver.h
@@ -175,8 +188,10 @@ set(SRC
 	internal/ceres/graph_algorithms.h
 	internal/ceres/graph.h
 	internal/ceres/implicit_schur_complement.h
+	internal/ceres/incomplete_lq_factorization.h
 	internal/ceres/integral_types.h
 	internal/ceres/iterative_schur_complement_solver.h
+	internal/ceres/lapack.h
 	internal/ceres/levenberg_marquardt_strategy.h
 	internal/ceres/linear_least_squares_problems.h
 	internal/ceres/linear_operator.h
@@ -186,7 +201,6 @@ set(SRC
 	internal/ceres/line_search_minimizer.h
 	internal/ceres/low_rank_inverse_hessian.h
 	internal/ceres/map_util.h
-	internal/ceres/matrix_proto.h
 	internal/ceres/minimizer.h
 	internal/ceres/mutex.h
 	internal/ceres/parameter_block.h
@@ -206,6 +220,7 @@ set(SRC
 	internal/ceres/schur_eliminator_impl.h
 	internal/ceres/schur_jacobi_preconditioner.h
 	internal/ceres/scratch_evaluate_preparer.h
+	internal/ceres/small_blas.h
 	internal/ceres/solver_impl.h
 	internal/ceres/sparse_matrix.h
 	internal/ceres/sparse_normal_cholesky_solver.h
@@ -261,7 +276,7 @@ add_definitions(
 	-DCERES_HAVE_PTHREAD
 	-DCERES_NO_SUITESPARSE
 	-DCERES_NO_CXSPARSE
-	-DCERES_NO_PROTOCOL_BUFFERS
+	-DCERES_NO_LAPACK
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 	-DCERES_HAVE_RWLOCK
 )

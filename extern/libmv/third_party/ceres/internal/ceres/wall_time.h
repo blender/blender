@@ -32,7 +32,7 @@
 #define CERES_INTERNAL_WALL_TIME_H_
 
 #include <map>
-
+#include <string>
 #include "ceres/internal/port.h"
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"

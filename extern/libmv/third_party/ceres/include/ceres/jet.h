@@ -405,7 +405,6 @@ CERES_DEFINE_JET_COMPARISON_OPERATOR( != )  // NOLINT
 // double-valued and Jet-valued functions, but we are not allowed to put
 // Jet-valued functions inside namespace std.
 //
-// Missing: cosh, sinh, tanh, tan
 // TODO(keir): Switch to "using".
 inline double abs     (double x) { return std::abs(x);      }
 inline double log     (double x) { return std::log(x);      }
@@ -415,6 +414,11 @@ inline double cos     (double x) { return std::cos(x);      }
 inline double acos    (double x) { return std::acos(x);     }
 inline double sin     (double x) { return std::sin(x);      }
 inline double asin    (double x) { return std::asin(x);     }
+inline double tan     (double x) { return std::tan(x);      }
+inline double atan    (double x) { return std::atan(x);     }
+inline double sinh    (double x) { return std::sinh(x);     }
+inline double cosh    (double x) { return std::cosh(x);     }
+inline double tanh    (double x) { return std::tanh(x);     }
 inline double pow  (double x, double y) { return std::pow(x, y);   }
 inline double atan2(double y, double x) { return std::atan2(y, x); }
 
@@ -491,6 +495,58 @@ Jet<T, N> asin(const Jet<T, N>& f) {
   Jet<T, N> g;
   g.a = asin(f.a);
   const T tmp = T(1.0) / sqrt(T(1.0) - f.a * f.a);
+  g.v = tmp * f.v;
+  return g;
+}
+
+// tan(a + h) ~= tan(a) + (1 + tan(a)^2) h
+template <typename T, int N> inline
+Jet<T, N> tan(const Jet<T, N>& f) {
+  Jet<T, N> g;
+  g.a = tan(f.a);
+  double tan_a = tan(f.a);
+  const T tmp = T(1.0) + tan_a * tan_a;
+  g.v = tmp * f.v;
+  return g;
+}
+
+// atan(a + h) ~= atan(a) + 1 / (1 + a^2) h
+template <typename T, int N> inline
+Jet<T, N> atan(const Jet<T, N>& f) {
+  Jet<T, N> g;
+  g.a = atan(f.a);
+  const T tmp = T(1.0) / (T(1.0) + f.a * f.a);
+  g.v = tmp * f.v;
+  return g;
+}
+
+// sinh(a + h) ~= sinh(a) + cosh(a) h
+template <typename T, int N> inline
+Jet<T, N> sinh(const Jet<T, N>& f) {
+  Jet<T, N> g;
+  g.a = sinh(f.a);
+  const T cosh_a = cosh(f.a);
+  g.v = cosh_a * f.v;
+  return g;
+}
+
+// cosh(a + h) ~= cosh(a) + sinh(a) h
+template <typename T, int N> inline
+Jet<T, N> cosh(const Jet<T, N>& f) {
+  Jet<T, N> g;
+  g.a = cosh(f.a);
+  const T sinh_a = sinh(f.a);
+  g.v = sinh_a * f.v;
+  return g;
+}
+
+// tanh(a + h) ~= tanh(a) + (1 - tanh(a)^2) h
+template <typename T, int N> inline
+Jet<T, N> tanh(const Jet<T, N>& f) {
+  Jet<T, N> g;
+  g.a = tanh(f.a);
+  double tanh_a = tanh(f.a);
+  const T tmp = T(1.0) - tanh_a * tanh_a;
   g.v = tmp * f.v;
   return g;
 }
@@ -645,6 +701,11 @@ template<typename T, int N> inline       Jet<T, N>  ei_exp (const Jet<T, N>& x) 
 template<typename T, int N> inline       Jet<T, N>  ei_log (const Jet<T, N>& x) { return log(x);         }  // NOLINT
 template<typename T, int N> inline       Jet<T, N>  ei_sin (const Jet<T, N>& x) { return sin(x);         }  // NOLINT
 template<typename T, int N> inline       Jet<T, N>  ei_cos (const Jet<T, N>& x) { return cos(x);         }  // NOLINT
+template<typename T, int N> inline       Jet<T, N>  ei_tan (const Jet<T, N>& x) { return tan(x);         }  // NOLINT
+template<typename T, int N> inline       Jet<T, N>  ei_atan(const Jet<T, N>& x) { return atan(x);        }  // NOLINT
+template<typename T, int N> inline       Jet<T, N>  ei_sinh(const Jet<T, N>& x) { return sinh(x);        }  // NOLINT
+template<typename T, int N> inline       Jet<T, N>  ei_cosh(const Jet<T, N>& x) { return cosh(x);        }  // NOLINT
+template<typename T, int N> inline       Jet<T, N>  ei_tanh(const Jet<T, N>& x) { return tanh(x);        }  // NOLINT
 template<typename T, int N> inline       Jet<T, N>  ei_pow (const Jet<T, N>& x, Jet<T, N> y) { return pow(x, y); }  // NOLINT
 
 // Note: This has to be in the ceres namespace for argument dependent lookup to

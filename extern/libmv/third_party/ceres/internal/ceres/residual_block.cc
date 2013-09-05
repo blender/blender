@@ -34,8 +34,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <vector>
-
-#include "ceres/blas.h"
 #include "ceres/corrector.h"
 #include "ceres/parameter_block.h"
 #include "ceres/residual_block_utils.h"
@@ -44,6 +42,7 @@
 #include "ceres/internal/fixed_array.h"
 #include "ceres/local_parameterization.h"
 #include "ceres/loss_function.h"
+#include "ceres/small_blas.h"
 
 using Eigen::Dynamic;
 

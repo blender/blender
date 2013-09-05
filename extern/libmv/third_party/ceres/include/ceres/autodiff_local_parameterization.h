@@ -58,7 +58,7 @@ namespace ceres {
 //
 // For example, Quaternions have a three dimensional local
 // parameterization. It's plus operation can be implemented as (taken
-// from interncal/ceres/auto_diff_local_parameterization_test.cc)
+// from internal/ceres/auto_diff_local_parameterization_test.cc)
 //
 //   struct QuaternionPlus {
 //     template<typename T>

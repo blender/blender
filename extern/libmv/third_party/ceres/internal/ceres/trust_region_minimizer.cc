@@ -41,6 +41,7 @@
 #include "Eigen/Core"
 #include "ceres/array_utils.h"
 #include "ceres/evaluator.h"
+#include "ceres/file.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
@@ -70,25 +71,8 @@ void TrustRegionMinimizer::EstimateScale(const SparseMatrix& jacobian,
 
 void TrustRegionMinimizer::Init(const Minimizer::Options& options) {
   options_ = options;
-  sort(options_.lsqp_iterations_to_dump.begin(),
-       options_.lsqp_iterations_to_dump.end());
-}
-
-bool TrustRegionMinimizer::MaybeDumpLinearLeastSquaresProblem(
-    const int iteration,
-    const SparseMatrix* jacobian,
-    const double* residuals,
-    const double* step) const  {
-  // TODO(sameeragarwal): Since the use of trust_region_radius has
-  // moved inside TrustRegionStrategy, its not clear how we dump the
-  // regularization vector/matrix anymore.
-  //
-  // Also num_eliminate_blocks is not visible to the trust region
-  // minimizer either.
-  //
-  // Both of these indicate that this is the wrong place for this
-  // code, and going forward this should needs fixing/refactoring.
-  return true;
+  sort(options_.trust_region_minimizer_iterations_to_dump.begin(),
+       options_.trust_region_minimizer_iterations_to_dump.end());
 }
 
 void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
@@ -139,14 +123,15 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
 
   // Do initial cost and Jacobian evaluation.
   double cost = 0.0;
-  if (!evaluator->Evaluate(x.data(), &cost, residuals.data(), NULL, jacobian)) {
+  if (!evaluator->Evaluate(x.data(),
+                           &cost,
+                           residuals.data(),
+                           gradient.data(),
+                           jacobian)) {
     LOG(WARNING) << "Terminating: Residual and Jacobian evaluation failed.";
     summary->termination_type = NUMERICAL_FAILURE;
     return;
   }
-
-  summary->initial_cost = cost + summary->fixed_cost;
-  iteration_summary.cost = cost + summary->fixed_cost;
 
   int num_consecutive_nonmonotonic_steps = 0;
   double minimum_cost = cost;
@@ -155,16 +140,9 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   double candidate_cost = cost;
   double accumulated_candidate_model_cost_change = 0.0;
 
-  gradient.setZero();
-  jacobian->LeftMultiply(residuals.data(), gradient.data());
+  summary->initial_cost = cost + summary->fixed_cost;
+  iteration_summary.cost = cost + summary->fixed_cost;
   iteration_summary.gradient_max_norm = gradient.lpNorm<Eigen::Infinity>();
-
-  if (options_.jacobi_scaling) {
-    EstimateScale(*jacobian, scale.data());
-    jacobian->ScaleColumns(scale.data());
-  } else {
-    scale.setOnes();
-  }
 
   // The initial gradient max_norm is bounded from below so that we do
   // not divide by zero.
@@ -189,8 +167,17 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       + summary->preprocessor_time_in_seconds;
   summary->iterations.push_back(iteration_summary);
 
+  if (options_.jacobi_scaling) {
+    EstimateScale(*jacobian, scale.data());
+    jacobian->ScaleColumns(scale.data());
+  } else {
+    scale.setOnes();
+  }
+
   int num_consecutive_invalid_steps = 0;
+  bool inner_iterations_are_enabled = options.inner_iteration_minimizer != NULL;
   while (true) {
+    bool inner_iterations_were_useful = false;
     if (!RunCallbacks(options.callbacks, iteration_summary, summary)) {
       return;
     }
@@ -210,33 +197,38 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       break;
     }
 
-    iteration_summary = IterationSummary();
-    iteration_summary = summary->iterations.back();
-    iteration_summary.iteration = summary->iterations.back().iteration + 1;
-    iteration_summary.step_is_valid = false;
-    iteration_summary.step_is_successful = false;
-
     const double strategy_start_time = WallTimeInSeconds();
     TrustRegionStrategy::PerSolveOptions per_solve_options;
     per_solve_options.eta = options_.eta;
+    if (find(options_.trust_region_minimizer_iterations_to_dump.begin(),
+             options_.trust_region_minimizer_iterations_to_dump.end(),
+             iteration_summary.iteration) !=
+        options_.trust_region_minimizer_iterations_to_dump.end()) {
+      per_solve_options.dump_format_type =
+          options_.trust_region_problem_dump_format_type;
+      per_solve_options.dump_filename_base =
+          JoinPath(options_.trust_region_problem_dump_directory,
+                   StringPrintf("ceres_solver_iteration_%03d",
+                                iteration_summary.iteration));
+    } else {
+      per_solve_options.dump_format_type = TEXTFILE;
+      per_solve_options.dump_filename_base.clear();
+    }
+
     TrustRegionStrategy::Summary strategy_summary =
         strategy->ComputeStep(per_solve_options,
                               jacobian,
                               residuals.data(),
                               trust_region_step.data());
 
+    iteration_summary = IterationSummary();
+    iteration_summary.iteration = summary->iterations.back().iteration + 1;
     iteration_summary.step_solver_time_in_seconds =
         WallTimeInSeconds() - strategy_start_time;
     iteration_summary.linear_solver_iterations =
         strategy_summary.num_iterations;
-
-    if (!MaybeDumpLinearLeastSquaresProblem(iteration_summary.iteration,
-                                            jacobian,
-                                            residuals.data(),
-                                            trust_region_step.data())) {
-      LOG(FATAL) << "Tried writing linear least squares problem: "
-                 << options.lsqp_dump_directory << "but failed.";
-    }
+    iteration_summary.step_is_valid = false;
+    iteration_summary.step_is_successful = false;
 
     double model_cost_change = 0.0;
     if (strategy_summary.termination_type != FAILURE) {
@@ -249,8 +241,8 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       //  = -f'J * step - step' * J' * J * step / 2
       model_residuals.setZero();
       jacobian->RightMultiply(trust_region_step.data(), model_residuals.data());
-      model_cost_change = -(residuals.dot(model_residuals) +
-                            model_residuals.squaredNorm() / 2.0);
+      model_cost_change =
+          - model_residuals.dot(residuals + model_residuals / 2.0);
 
       if (model_cost_change < 0.0) {
         VLOG(1) << "Invalid step: current_cost: " << cost
@@ -316,7 +308,9 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
         new_cost = numeric_limits<double>::max();
       } else {
         // Check if performing an inner iteration will make it better.
-        if (options.inner_iteration_minimizer != NULL) {
+        if (inner_iterations_are_enabled) {
+          ++summary->num_inner_iteration_steps;
+          double inner_iteration_start_time = WallTimeInSeconds();
           const double x_plus_delta_cost = new_cost;
           Vector inner_iteration_x = x_plus_delta;
           Solver::Summary inner_iteration_summary;
@@ -336,7 +330,23 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
             VLOG(2) << "Inner iteration succeeded; current cost: " << cost
                     << " x_plus_delta_cost: " << x_plus_delta_cost
                     << " new_cost: " << new_cost;
+            const double inner_iteration_relative_progress =
+                1.0 - new_cost / x_plus_delta_cost;
+            inner_iterations_are_enabled =
+                (inner_iteration_relative_progress >
+                 options.inner_iteration_tolerance);
+
+            inner_iterations_were_useful = new_cost < cost;
+
+            // Disable inner iterations once the relative improvement
+            // drops below tolerance.
+            if (!inner_iterations_are_enabled) {
+              VLOG(2) << "Disabling inner iterations. Progress : "
+                      << inner_iteration_relative_progress;
+            }
           }
+          summary->inner_iteration_time_in_seconds +=
+              WallTimeInSeconds() - inner_iteration_start_time;
         }
       }
 
@@ -355,7 +365,6 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
         return;
       }
 
-      VLOG(2) << "old cost: " << cost << " new cost: " << new_cost;
       iteration_summary.cost_change =  cost - new_cost;
       const double absolute_function_tolerance =
           options_.function_tolerance * cost;
@@ -392,13 +401,51 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
           ? max(relative_decrease, historical_relative_decrease)
           : relative_decrease;
 
+      // Normally, the quality of a trust region step is measured by
+      // the ratio
+      //
+      //              cost_change
+      //    r =    -----------------
+      //           model_cost_change
+      //
+      // All the change in the nonlinear objective is due to the trust
+      // region step so this ratio is a good measure of the quality of
+      // the trust region radius. However, when inner iterations are
+      // being used, cost_change includes the contribution of the
+      // inner iterations and its not fair to credit it all to the
+      // trust region algorithm. So we change the ratio to be
+      //
+      //                              cost_change
+      //    r =    ------------------------------------------------
+      //           (model_cost_change + inner_iteration_cost_change)
+      //
+      // In most cases this is fine, but it can be the case that the
+      // change in solution quality due to inner iterations is so large
+      // and the trust region step is so bad, that this ratio can become
+      // quite small.
+      //
+      // This can cause the trust region loop to reject this step. To
+      // get around this, we expicitly check if the inner iterations
+      // led to a net decrease in the objective function value. If
+      // they did, we accept the step even if the trust region ratio
+      // is small.
+      //
+      // Notice that we do not just check that cost_change is positive
+      // which is a weaker condition and would render the
+      // min_relative_decrease threshold useless. Instead, we keep
+      // track of inner_iterations_were_useful, which is true only
+      // when inner iterations lead to a net decrease in the cost.
       iteration_summary.step_is_successful =
-          iteration_summary.relative_decrease > options_.min_relative_decrease;
+          (inner_iterations_were_useful ||
+           iteration_summary.relative_decrease >
+           options_.min_relative_decrease);
 
       if (iteration_summary.step_is_successful) {
         accumulated_candidate_model_cost_change += model_cost_change;
         accumulated_reference_model_cost_change += model_cost_change;
-        if (relative_decrease <= options_.min_relative_decrease) {
+
+        if (!inner_iterations_were_useful &&
+            relative_decrease <= options_.min_relative_decrease) {
           iteration_summary.step_is_nonmonotonic = true;
           VLOG(2) << "Non-monotonic step! "
                   << " relative_decrease: " << relative_decrease
@@ -419,7 +466,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       if (!evaluator->Evaluate(x.data(),
                                &cost,
                                residuals.data(),
-                               NULL,
+                               gradient.data(),
                                jacobian)) {
         summary->termination_type = NUMERICAL_FAILURE;
         summary->error =
@@ -428,8 +475,6 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
         return;
       }
 
-      gradient.setZero();
-      jacobian->LeftMultiply(residuals.data(), gradient.data());
       iteration_summary.gradient_max_norm = gradient.lpNorm<Eigen::Infinity>();
 
       if (iteration_summary.gradient_max_norm <= absolute_gradient_tolerance) {

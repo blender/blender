@@ -206,11 +206,11 @@ int Problem::NumResiduals() const {
   return problem_impl_->NumResiduals();
 }
 
-int Problem::ParameterBlockSize(double* parameter_block) const {
+int Problem::ParameterBlockSize(const double* parameter_block) const {
   return problem_impl_->ParameterBlockSize(parameter_block);
 };
 
-int Problem::ParameterBlockLocalSize(double* parameter_block) const {
+int Problem::ParameterBlockLocalSize(const double* parameter_block) const {
   return problem_impl_->ParameterBlockLocalSize(parameter_block);
 };
 

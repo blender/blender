@@ -142,11 +142,11 @@
 
 #include <stddef.h>
 
-#include <glog/logging.h>
 #include "ceres/jet.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
 #include "ceres/internal/variadic_evaluate.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -165,13 +165,14 @@ namespace internal {
 //
 // is what would get put in dst if N was 3, offset was 3, and the jet type JetT
 // was 8-dimensional.
-template <typename JetT, typename T>
-inline void Make1stOrderPerturbation(int offset, int N, const T *src,
-                                     JetT *dst) {
+template <typename JetT, typename T, int N>
+inline void Make1stOrderPerturbation(int offset, const T* src, JetT* dst) {
   DCHECK(src);
   DCHECK(dst);
   for (int j = 0; j < N; ++j) {
-    dst[j] = JetT(src[j], offset + j);
+    dst[j].a = src[j];
+    dst[j].v.setZero();
+    dst[j].v[offset + j] = 1.0;
   }
 }
 
@@ -212,7 +213,7 @@ struct AutoDiff {
                             T **jacobians) {
     // This block breaks the 80 column rule to keep it somewhat readable.
     DCHECK_GT(num_outputs, 0);
-    CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+    DCHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
           ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
           ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
           ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
@@ -258,12 +259,12 @@ struct AutoDiff {
 
     JetT* output = x.get() + N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9;
 
-#define CERES_MAKE_1ST_ORDER_PERTURBATION(i) \
-    if (N ## i) { \
-      internal::Make1stOrderPerturbation(jet ## i, \
-                                         N ## i, \
-                                         parameters[i], \
-                                         x.get() + jet ## i); \
+#define CERES_MAKE_1ST_ORDER_PERTURBATION(i)                            \
+    if (N ## i) {                                                       \
+      internal::Make1stOrderPerturbation<JetT, T, N ## i>(              \
+          jet ## i,                                                     \
+          parameters[i],                                                \
+          x.get() + jet ## i);                                          \
     }
     CERES_MAKE_1ST_ORDER_PERTURBATION(0);
     CERES_MAKE_1ST_ORDER_PERTURBATION(1);

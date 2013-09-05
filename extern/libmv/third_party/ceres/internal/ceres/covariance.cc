@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,15 +26,37 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
-//
-// A portability header to make optional protocol buffer support less intrusive.
+// Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#ifndef CERES_INTERNAL_MATRIX_PROTO_H_
-#define CERES_INTERNAL_MATRIX_PROTO_H_
+#include "ceres/covariance.h"
 
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-#include "ceres/matrix.pb.h"
-#endif
+#include <utility>
+#include <vector>
+#include "ceres/covariance_impl.h"
+#include "ceres/problem.h"
+#include "ceres/problem_impl.h"
 
-#endif  // CERES_INTERNAL_MATRIX_PROTO_H_
+namespace ceres {
+
+Covariance::Covariance(const Covariance::Options& options) {
+  impl_.reset(new internal::CovarianceImpl(options));
+}
+
+Covariance::~Covariance() {
+}
+
+bool Covariance::Compute(
+    const vector<pair<const double*, const double*> >& covariance_blocks,
+    Problem* problem) {
+  return impl_->Compute(covariance_blocks, problem->problem_impl_.get());
+}
+
+bool Covariance::GetCovarianceBlock(const double* parameter_block1,
+                                    const double* parameter_block2,
+                                    double* covariance_block) const {
+  return impl_->GetCovarianceBlock(parameter_block1,
+                                   parameter_block2,
+                                   covariance_block);
+}
+
+}  // namespace ceres

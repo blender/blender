@@ -35,12 +35,15 @@
 namespace ceres {
 namespace internal {
 
-LowRankInverseHessian::LowRankInverseHessian(int num_parameters,
-                                             int max_num_corrections)
+LowRankInverseHessian::LowRankInverseHessian(
+    int num_parameters,
+    int max_num_corrections,
+    bool use_approximate_eigenvalue_scaling)
     : num_parameters_(num_parameters),
       max_num_corrections_(max_num_corrections),
+      use_approximate_eigenvalue_scaling_(use_approximate_eigenvalue_scaling),
       num_corrections_(0),
-      diagonal_(1.0),
+      approximate_eigenvalue_scale_(1.0),
       delta_x_history_(num_parameters, max_num_corrections),
       delta_gradient_history_(num_parameters, max_num_corrections),
       delta_x_dot_delta_gradient_(max_num_corrections) {
@@ -50,7 +53,8 @@ bool LowRankInverseHessian::Update(const Vector& delta_x,
                                    const Vector& delta_gradient) {
   const double delta_x_dot_delta_gradient = delta_x.dot(delta_gradient);
   if (delta_x_dot_delta_gradient <= 1e-10) {
-    VLOG(2) << "Skipping LBFGS Update. " << delta_x_dot_delta_gradient;
+    VLOG(2) << "Skipping LBFGS Update, delta_x_dot_delta_gradient too small: "
+            << delta_x_dot_delta_gradient;
     return false;
   }
 
@@ -58,16 +62,16 @@ bool LowRankInverseHessian::Update(const Vector& delta_x,
     // TODO(sameeragarwal): This can be done more efficiently using
     // a circular buffer/indexing scheme, but for simplicity we will
     // do the expensive copy for now.
-    delta_x_history_.block(0, 0, num_parameters_, max_num_corrections_ - 2) =
+    delta_x_history_.block(0, 0, num_parameters_, max_num_corrections_ - 1) =
         delta_x_history_
         .block(0, 1, num_parameters_, max_num_corrections_ - 1);
 
     delta_gradient_history_
-        .block(0, 0, num_parameters_, max_num_corrections_ - 2) =
+        .block(0, 0, num_parameters_, max_num_corrections_ - 1) =
         delta_gradient_history_
         .block(0, 1, num_parameters_, max_num_corrections_ - 1);
 
-    delta_x_dot_delta_gradient_.head(num_corrections_ - 2) =
+    delta_x_dot_delta_gradient_.head(num_corrections_ - 1) =
         delta_x_dot_delta_gradient_.tail(num_corrections_ - 1);
   } else {
     ++num_corrections_;
@@ -77,7 +81,8 @@ bool LowRankInverseHessian::Update(const Vector& delta_x,
   delta_gradient_history_.col(num_corrections_ - 1) = delta_gradient;
   delta_x_dot_delta_gradient_(num_corrections_ - 1) =
       delta_x_dot_delta_gradient;
-  diagonal_ = delta_x_dot_delta_gradient / delta_gradient.squaredNorm();
+  approximate_eigenvalue_scale_ =
+      delta_x_dot_delta_gradient / delta_gradient.squaredNorm();
   return true;
 }
 
@@ -96,7 +101,39 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
     search_direction -= alpha(i) * delta_gradient_history_.col(i);
   }
 
-  search_direction *= diagonal_;
+  if (use_approximate_eigenvalue_scaling_) {
+    // Rescale the initial inverse Hessian approximation (H_0) to be iteratively
+    // updated so that it is of similar 'size' to the true inverse Hessian along
+    // the most recent search direction.  As shown in [1]:
+    //
+    //   \gamma_k = (delta_gradient_{k-1}' * delta_x_{k-1}) /
+    //              (delta_gradient_{k-1}' * delta_gradient_{k-1})
+    //
+    // Satisfies:
+    //
+    //   (1 / \lambda_m) <= \gamma_k <= (1 / \lambda_1)
+    //
+    // Where \lambda_1 & \lambda_m are the smallest and largest eigenvalues of
+    // the true Hessian (not the inverse) along the most recent search direction
+    // respectively.  Thus \gamma is an approximate eigenvalue of the true
+    // inverse Hessian, and choosing: H_0 = I * \gamma will yield a starting
+    // point that has a similar scale to the true inverse Hessian.  This
+    // technique is widely reported to often improve convergence, however this
+    // is not universally true, particularly if there are errors in the initial
+    // jacobians, or if there are significant differences in the sensitivity
+    // of the problem to the parameters (i.e. the range of the magnitudes of
+    // the components of the gradient is large).
+    //
+    // The original origin of this rescaling trick is somewhat unclear, the
+    // earliest reference appears to be Oren [1], however it is widely discussed
+    // without specific attributation in various texts including [2] (p143/178).
+    //
+    // [1] Oren S.S., Self-scaling variable metric (SSVM) algorithms Part II:
+    //     Implementation and experiments, Management Science,
+    //     20(5), 863-874, 1974.
+    // [2] Nocedal J., Wright S., Numerical Optimization, Springer, 1999.
+    search_direction *= approximate_eigenvalue_scale_;
+  }
 
   for (int i = 0; i < num_corrections_; ++i) {
     const double beta = delta_gradient_history_.col(i).dot(search_direction) /

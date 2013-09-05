@@ -40,8 +40,11 @@
 // this is hidden, and you should write the function as if T were a scalar type
 // (e.g. a double-precision floating point number).
 //
-// The function must write the computed value in the last argument (the only
-// non-const one) and return true to indicate success.
+// The function must write the computed value in the last argument
+// (the only non-const one) and return true to indicate
+// success. Please see cost_function.h for details on how the return
+// value maybe used to impose simple constraints on the parameter
+// block.
 //
 // For example, consider a scalar error e = k - x'y, where both x and y are
 // two-dimensional column vector parameters, the prime sign indicates
@@ -125,11 +128,11 @@
 #ifndef CERES_PUBLIC_AUTODIFF_COST_FUNCTION_H_
 #define CERES_PUBLIC_AUTODIFF_COST_FUNCTION_H_
 
-#include <glog/logging.h>
 #include "ceres/internal/autodiff.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 

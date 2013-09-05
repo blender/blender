@@ -60,7 +60,7 @@ class PartitionedMatrixView {
  public:
   // matrix = [E F], where the matrix E contains the first
   // num_col_blocks_a column blocks.
-  PartitionedMatrixView(const BlockSparseMatrixBase& matrix,
+  PartitionedMatrixView(const BlockSparseMatrix& matrix,
                         int num_col_blocks_a);
   ~PartitionedMatrixView();
 
@@ -107,7 +107,7 @@ class PartitionedMatrixView {
   BlockSparseMatrix* CreateBlockDiagonalMatrixLayout(int start_col_block,
                                                      int end_col_block) const;
 
-  const BlockSparseMatrixBase& matrix_;
+  const BlockSparseMatrix& matrix_;
   int num_row_blocks_e_;
   int num_col_blocks_e_;
   int num_col_blocks_f_;

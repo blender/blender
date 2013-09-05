@@ -37,6 +37,8 @@
 #ifndef CERES_PUBLIC_TYPES_H_
 #define CERES_PUBLIC_TYPES_H_
 
+#include <string>
+
 #include "ceres/internal/port.h"
 
 namespace ceres {
@@ -124,6 +126,11 @@ enum SparseLinearAlgebraLibraryType {
   CX_SPARSE
 };
 
+enum DenseLinearAlgebraLibraryType {
+  EIGEN,
+  LAPACK
+};
+
 enum LinearSolverTerminationType {
   // Termination criterion was met. For factorization based solvers
   // the tolerance is assumed to be zero. Any user provided values are
@@ -167,10 +174,47 @@ enum LineSearchDirectionType {
   // used is determined by NonlinerConjuateGradientType.
   NONLINEAR_CONJUGATE_GRADIENT,
 
-  // A limited memory approximation to the inverse Hessian is
-  // maintained and used to compute a quasi-Newton step.
+  // BFGS, and it's limited memory approximation L-BFGS, are quasi-Newton
+  // algorithms that approximate the Hessian matrix by iteratively refining
+  // an initial estimate with rank-one updates using the gradient at each
+  // iteration. They are a generalisation of the Secant method and satisfy
+  // the Secant equation.  The Secant equation has an infinium of solutions
+  // in multiple dimensions, as there are N*(N+1)/2 degrees of freedom in a
+  // symmetric matrix but only N conditions are specified by the Secant
+  // equation. The requirement that the Hessian approximation be positive
+  // definite imposes another N additional constraints, but that still leaves
+  // remaining degrees-of-freedom.  (L)BFGS methods uniquely deteremine the
+  // approximate Hessian by imposing the additional constraints that the
+  // approximation at the next iteration must be the 'closest' to the current
+  // approximation (the nature of how this proximity is measured is actually
+  // the defining difference between a family of quasi-Newton methods including
+  // (L)BFGS & DFP). (L)BFGS is currently regarded as being the best known
+  // general quasi-Newton method.
   //
-  // For more details see
+  // The principal difference between BFGS and L-BFGS is that whilst BFGS
+  // maintains a full, dense approximation to the (inverse) Hessian, L-BFGS
+  // maintains only a window of the last M observations of the parameters and
+  // gradients. Using this observation history, the calculation of the next
+  // search direction can be computed without requiring the construction of the
+  // full dense inverse Hessian approximation. This is particularly important
+  // for problems with a large number of parameters, where storage of an N-by-N
+  // matrix in memory would be prohibitive.
+  //
+  // For more details on BFGS see:
+  //
+  // Broyden, C.G., "The Convergence of a Class of Double-rank Minimization
+  // Algorithms,"; J. Inst. Maths. Applics., Vol. 6, pp 76–90, 1970.
+  //
+  // Fletcher, R., "A New Approach to Variable Metric Algorithms,"
+  // Computer Journal, Vol. 13, pp 317–322, 1970.
+  //
+  // Goldfarb, D., "A Family of Variable Metric Updates Derived by Variational
+  // Means," Mathematics of Computing, Vol. 24, pp 23–26, 1970.
+  //
+  // Shanno, D.F., "Conditioning of Quasi-Newton Methods for Function
+  // Minimization," Mathematics of Computing, Vol. 24, pp 647–656, 1970.
+  //
+  // For more details on L-BFGS see:
   //
   // Nocedal, J. (1980). "Updating Quasi-Newton Matrices with Limited
   // Storage". Mathematics of Computation 35 (151): 773–782.
@@ -179,7 +223,12 @@ enum LineSearchDirectionType {
   // "Representations of Quasi-Newton Matrices and their use in
   // Limited Memory Methods". Mathematical Programming 63 (4):
   // 129–156.
+  //
+  // A general reference for both methods:
+  //
+  // Nocedal J., Wright S., Numerical Optimization, 2nd Ed. Springer, 1999.
   LBFGS,
+  BFGS,
 };
 
 // Nonliner conjugate gradient methods are a generalization of the
@@ -198,6 +247,7 @@ enum LineSearchType {
   // Backtracking line search with polynomial interpolation or
   // bisection.
   ARMIJO,
+  WOLFE,
 };
 
 // Ceres supports different strategies for computing the trust region
@@ -310,13 +360,6 @@ enum DumpFormatType {
   CONSOLE,
 
   // Write out the linear least squares problem to the directory
-  // pointed to by Solver::Options::lsqp_dump_directory as a protocol
-  // buffer. linear_least_squares_problems.h/cc contains routines for
-  // loading these problems. For details on the on disk format used,
-  // see matrix.proto. The files are named lm_iteration_???.lsqp.
-  PROTOBUF,
-
-  // Write out the linear least squares problem to the directory
   // pointed to by Solver::Options::lsqp_dump_directory as text files
   // which can be read into MATLAB/Octave. The Jacobian is dumped as a
   // text file containing (i,j,s) triplets, the vectors D, x and f are
@@ -339,6 +382,18 @@ enum NumericDiffMethod {
   FORWARD
 };
 
+enum LineSearchInterpolationType {
+  BISECTION,
+  QUADRATIC,
+  CUBIC
+};
+
+enum CovarianceAlgorithmType {
+  DENSE_SVD,
+  SPARSE_CHOLESKY,
+  SPARSE_QR
+};
+
 const char* LinearSolverTypeToString(LinearSolverType type);
 bool StringToLinearSolverType(string value, LinearSolverType* type);
 
@@ -350,6 +405,12 @@ const char* SparseLinearAlgebraLibraryTypeToString(
 bool StringToSparseLinearAlgebraLibraryType(
     string value,
     SparseLinearAlgebraLibraryType* type);
+
+const char* DenseLinearAlgebraLibraryTypeToString(
+    DenseLinearAlgebraLibraryType type);
+bool StringToDenseLinearAlgebraLibraryType(
+    string value,
+    DenseLinearAlgebraLibraryType* type);
 
 const char* TrustRegionStrategyTypeToString(TrustRegionStrategyType type);
 bool StringToTrustRegionStrategyType(string value,
@@ -371,7 +432,20 @@ bool StringToLineSearchType(string value, LineSearchType* type);
 const char* NonlinearConjugateGradientTypeToString(
     NonlinearConjugateGradientType type);
 bool StringToNonlinearConjugateGradientType(
-    string value, NonlinearConjugateGradientType* type);
+    string value,
+    NonlinearConjugateGradientType* type);
+
+const char* LineSearchInterpolationTypeToString(
+    LineSearchInterpolationType type);
+bool StringToLineSearchInterpolationType(
+    string value,
+    LineSearchInterpolationType* type);
+
+const char* CovarianceAlgorithmTypeToString(
+    CovarianceAlgorithmType type);
+bool StringToCovarianceAlgorithmType(
+    string value,
+    CovarianceAlgorithmType* type);
 
 const char* LinearSolverTerminationTypeToString(
     LinearSolverTerminationType type);
@@ -381,7 +455,8 @@ const char* SolverTerminationTypeToString(SolverTerminationType type);
 bool IsSchurType(LinearSolverType type);
 bool IsSparseLinearAlgebraLibraryTypeAvailable(
     SparseLinearAlgebraLibraryType type);
-
+bool IsDenseLinearAlgebraLibraryTypeAvailable(
+    DenseLinearAlgebraLibraryType type);
 
 }  // namespace ceres
 

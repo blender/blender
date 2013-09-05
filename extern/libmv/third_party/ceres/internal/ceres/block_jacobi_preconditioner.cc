@@ -41,7 +41,7 @@ namespace ceres {
 namespace internal {
 
 BlockJacobiPreconditioner::BlockJacobiPreconditioner(
-    const BlockSparseMatrixBase& A)
+    const BlockSparseMatrix& A)
     : num_rows_(A.num_rows()),
       block_structure_(*A.block_structure()) {
   // Calculate the amount of storage needed.
@@ -66,19 +66,19 @@ BlockJacobiPreconditioner::BlockJacobiPreconditioner(
 
 BlockJacobiPreconditioner::~BlockJacobiPreconditioner() {}
 
-bool BlockJacobiPreconditioner::Update(const BlockSparseMatrixBase& A,
-                                       const double* D) {
+bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
+                                           const double* D) {
   const CompressedRowBlockStructure* bs = A.block_structure();
 
   // Compute the diagonal blocks by block inner products.
   std::fill(block_storage_.begin(), block_storage_.end(), 0.0);
+  const double* values = A.values();
   for (int r = 0; r < bs->rows.size(); ++r) {
     const int row_block_size = bs->rows[r].block.size;
     const vector<Cell>& cells = bs->rows[r].cells;
-    const double* row_values = A.RowBlockValues(r);
     for (int c = 0; c < cells.size(); ++c) {
       const int col_block_size = bs->cols[cells[c].block_id].size;
-      ConstMatrixRef m(row_values + cells[c].position,
+      ConstMatrixRef m(values + cells[c].position,
                        row_block_size,
                        col_block_size);
 
@@ -111,7 +111,7 @@ bool BlockJacobiPreconditioner::Update(const BlockSparseMatrixBase& A,
     }
 
     block = block.selfadjointView<Eigen::Upper>()
-                 .ldlt()
+                 .llt()
                  .solve(Matrix::Identity(size, size));
   }
   return true;

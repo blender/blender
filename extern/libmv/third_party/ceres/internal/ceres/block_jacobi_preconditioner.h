@@ -37,7 +37,7 @@
 namespace ceres {
 namespace internal {
 
-class BlockSparseMatrixBase;
+class BlockSparseMatrix;
 struct CompressedRowBlockStructure;
 class LinearOperator;
 
@@ -51,20 +51,21 @@ class LinearOperator;
 // update the matrix by running Update(A, D). The values of the matrix A are
 // inspected to construct the preconditioner. The vector D is applied as the
 // D^TD diagonal term.
-class BlockJacobiPreconditioner : public Preconditioner {
+class BlockJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
  public:
   // A must remain valid while the BlockJacobiPreconditioner is.
-  explicit BlockJacobiPreconditioner(const BlockSparseMatrixBase& A);
+  explicit BlockJacobiPreconditioner(const BlockSparseMatrix& A);
   virtual ~BlockJacobiPreconditioner();
 
   // Preconditioner interface
-  virtual bool Update(const BlockSparseMatrixBase& A, const double* D);
   virtual void RightMultiply(const double* x, double* y) const;
   virtual void LeftMultiply(const double* x, double* y) const;
   virtual int num_rows() const { return num_rows_; }
   virtual int num_cols() const { return num_rows_; }
 
  private:
+  virtual bool UpdateImpl(const BlockSparseMatrix& A, const double* D);
+
   std::vector<double*> blocks_;
   std::vector<double> block_storage_;
   int num_rows_;

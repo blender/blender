@@ -33,10 +33,10 @@
 #define CERES_PUBLIC_INTERNAL_FIXED_ARRAY_H_
 
 #include <cstddef>
-#include <glog/logging.h>
 #include "Eigen/Core"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/manual_constructor.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

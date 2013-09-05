@@ -153,4 +153,4 @@ Graph<int>* CreateSchurComplementGraph(const vector<set<int> >& visibility) {
 }  // namespace internal
 }  // namespace ceres
 
-#endif
+#endif  // CERES_NO_SUITESPARSE

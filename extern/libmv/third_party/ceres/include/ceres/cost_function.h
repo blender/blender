@@ -93,6 +93,24 @@ class CostFunction {
   // the case when computing cost only. If jacobians[i] is NULL, then
   // the jacobian block corresponding to the i'th parameter block must
   // not to be returned.
+  //
+  // The return value indicates whether the computation of the
+  // residuals and/or jacobians was successful or not.
+  //
+  // This can be used to communicate numerical failures in jacobian
+  // computations for instance.
+  //
+  // A more interesting and common use is to impose constraints on the
+  // parameters. If the initial values of the parameter blocks satisfy
+  // the constraints, then returning false whenever the constraints
+  // are not satisfied will prevent the solver from moving into the
+  // infeasible region. This is not a very sophisticated mechanism for
+  // enforcing constraints, but is often good enough for things like
+  // non-negativity constraints.
+  //
+  // Note that it is important that the initial values of the
+  // parameter block must be feasible, otherwise the solver will
+  // declare a numerical problem at iteration 0.
   virtual bool Evaluate(double const* const* parameters,
                         double* residuals,
                         double** jacobians) const = 0;

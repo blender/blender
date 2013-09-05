@@ -329,12 +329,12 @@ class Problem {
   int NumResiduals() const;
 
   // The size of the parameter block.
-  int ParameterBlockSize(double* values) const;
+  int ParameterBlockSize(const double* values) const;
 
   // The size of local parameterization for the parameter block. If
   // there is no local parameterization associated with this parameter
   // block, then ParameterBlockLocalSize = ParameterBlockSize.
-  int ParameterBlockLocalSize(double* values) const;
+  int ParameterBlockLocalSize(const double* values) const;
 
   // Fills the passed parameter_blocks vector with pointers to the
   // parameter blocks currently in the problem. After this call,
@@ -423,6 +423,7 @@ class Problem {
 
  private:
   friend class Solver;
+  friend class Covariance;
   internal::scoped_ptr<internal::ProblemImpl> problem_impl_;
   CERES_DISALLOW_COPY_AND_ASSIGN(Problem);
 };

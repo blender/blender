@@ -44,7 +44,6 @@ namespace ceres {
 namespace internal {
 
 class BlockSparseMatrix;
-class BlockSparseMatrixBase;
 
 // This class implements various linear algebraic operations related
 // to the Schur complement without explicitly forming it.
@@ -110,7 +109,7 @@ class ImplicitSchurComplement : public LinearOperator {
   // is important that the matrix A have a BlockStructure object
   // associated with it and has a block structure that is compatible
   // with the SchurComplement solver.
-  void Init(const BlockSparseMatrixBase& A, const double* D, const double* b);
+  void Init(const BlockSparseMatrix& A, const double* D, const double* b);
 
   // y += Sx, where S is the Schur complement.
   virtual void RightMultiply(const double* x, double* y) const;

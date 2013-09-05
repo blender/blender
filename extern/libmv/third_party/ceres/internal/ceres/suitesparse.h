@@ -33,6 +33,7 @@
 #ifndef CERES_INTERNAL_SUITESPARSE_H_
 #define CERES_INTERNAL_SUITESPARSE_H_
 
+
 #ifndef CERES_NO_SUITESPARSE
 
 #include <cstring>
@@ -42,6 +43,29 @@
 #include "ceres/internal/port.h"
 #include "cholmod.h"
 #include "glog/logging.h"
+#include "SuiteSparseQR.hpp"
+
+// Before SuiteSparse version 4.2.0, cholmod_camd was only enabled
+// if SuiteSparse was compiled with Metis support. This makes
+// calling and linking into cholmod_camd problematic even though it
+// has nothing to do with Metis. This has been fixed reliably in
+// 4.2.0.
+//
+// The fix was actually committed in 4.1.0, but there is
+// some confusion about a silent update to the tar ball, so we are
+// being conservative and choosing the next minor version where
+// things are stable.
+#if (SUITESPARSE_VERSION < 4002)
+#define CERES_NO_CAMD
+#endif
+
+// UF_long is deprecated but SuiteSparse_long is only available in
+// newer versions of SuiteSparse. So for older versions of
+// SuiteSparse, we define SuiteSparse_long to be the same as UF_long,
+// which is what recent versions of SuiteSparse do anyways.
+#ifndef SuiteSparse_long
+#define SuiteSparse_long UF_long
+#endif
 
 namespace ceres {
 namespace internal {
@@ -184,33 +208,42 @@ class SuiteSparse {
                         const vector<int>& col_blocks,
                         vector<int>* ordering);
 
-  // Given a set of blocks and a permutation of these blocks, compute
-  // the corresponding "scalar" ordering, where the scalar ordering of
-  // size sum(blocks).
-  static void BlockOrderingToScalarOrdering(const vector<int>& blocks,
-                                            const vector<int>& block_ordering,
-                                            vector<int>* scalar_ordering);
-
-  // Extract the block sparsity pattern of the scalar sparse matrix
-  // A and return it in compressed column form. The compressed column
-  // form is stored in two vectors block_rows, and block_cols, which
-  // correspond to the row and column arrays in a compressed column sparse
-  // matrix.
-  //
-  // If c_ij is the block in the matrix A corresponding to row block i
-  // and column block j, then it is expected that A contains at least
-  // one non-zero entry corresponding to the top left entry of c_ij,
-  // as that entry is used to detect the presence of a non-zero c_ij.
-  static void ScalarMatrixToBlockMatrix(const cholmod_sparse* A,
-                                        const vector<int>& row_blocks,
-                                        const vector<int>& col_blocks,
-                                        vector<int>* block_rows,
-                                        vector<int>* block_cols);
-
   // Find a fill reducing approximate minimum degree
   // ordering. ordering is expected to be large enough to hold the
   // ordering.
   void ApproximateMinimumDegreeOrdering(cholmod_sparse* matrix, int* ordering);
+
+
+  // Before SuiteSparse version 4.2.0, cholmod_camd was only enabled
+  // if SuiteSparse was compiled with Metis support. This makes
+  // calling and linking into cholmod_camd problematic even though it
+  // has nothing to do with Metis. This has been fixed reliably in
+  // 4.2.0.
+  //
+  // The fix was actually committed in 4.1.0, but there is
+  // some confusion about a silent update to the tar ball, so we are
+  // being conservative and choosing the next minor version where
+  // things are stable.
+  static bool IsConstrainedApproximateMinimumDegreeOrderingAvailable() {
+    return (SUITESPARSE_VERSION>4001);
+  }
+
+  // Find a fill reducing approximate minimum degree
+  // ordering. constraints is an array which associates with each
+  // column of the matrix an elimination group. i.e., all columns in
+  // group 0 are eliminated first, all columns in group 1 are
+  // eliminated next etc. This function finds a fill reducing ordering
+  // that obeys these constraints.
+  //
+  // Calling ApproximateMinimumDegreeOrdering is equivalent to calling
+  // ConstrainedApproximateMinimumDegreeOrdering with a constraint
+  // array that puts all columns in the same elimination group.
+  //
+  // If CERES_NO_CAMD is defined then calling this function will
+  // result in a crash.
+  void ConstrainedApproximateMinimumDegreeOrdering(cholmod_sparse* matrix,
+                                                   int* constraints,
+                                                   int* ordering);
 
   void Free(cholmod_sparse* m) { cholmod_free_sparse(&m, &cc_); }
   void Free(cholmod_dense* m)  { cholmod_free_dense(&m, &cc_);  }
@@ -236,6 +269,11 @@ class SuiteSparse {
 
 }  // namespace internal
 }  // namespace ceres
+
+#else  // CERES_NO_SUITESPARSE
+
+class SuiteSparse {};
+typedef void cholmod_factor;
 
 #endif  // CERES_NO_SUITESPARSE
 

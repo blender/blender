@@ -39,8 +39,6 @@
 namespace ceres {
 namespace internal {
 
-class SparseMatrixProto;
-
 // An implementation of the SparseMatrix interface to store and
 // manipulate sparse matrices in triplet (i,j,s) form.  This object is
 // inspired by the design of the cholmod_triplet struct used in the
@@ -50,9 +48,6 @@ class TripletSparseMatrix : public SparseMatrix {
   TripletSparseMatrix();
   TripletSparseMatrix(int num_rows, int num_cols, int max_num_nonzeros);
   explicit TripletSparseMatrix(const TripletSparseMatrix& orig);
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-  explicit TripletSparseMatrix(const SparseMatrixProto& proto);
-#endif
 
   TripletSparseMatrix& operator=(const TripletSparseMatrix& rhs);
 
@@ -65,9 +60,6 @@ class TripletSparseMatrix : public SparseMatrix {
   virtual void SquaredColumnNorm(double* x) const;
   virtual void ScaleColumns(const double* scale);
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-  virtual void ToProto(SparseMatrixProto *proto) const;
-#endif
   virtual void ToTextFile(FILE* file) const;
   virtual int num_rows()        const { return num_rows_;     }
   virtual int num_cols()        const { return num_cols_;     }

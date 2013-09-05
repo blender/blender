@@ -33,20 +33,18 @@
 #include <set>
 #include <vector>
 
-#ifndef CERES_NO_CXSPARSE
-#include "cs.h"
-#endif  // CERES_NO_CXSPARSE
-
 #include "Eigen/Dense"
 #include "ceres/block_random_access_dense_matrix.h"
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_random_access_sparse_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
+#include "ceres/cxsparse.h"
 #include "ceres/detect_structure.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/lapack.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_complement_solver.h"
 #include "ceres/suitesparse.h"
@@ -58,7 +56,7 @@ namespace ceres {
 namespace internal {
 
 LinearSolver::Summary SchurComplementSolver::SolveImpl(
-    BlockSparseMatrixBase* A,
+    BlockSparseMatrix* A,
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
@@ -130,29 +128,31 @@ bool DenseSchurComplementSolver::SolveReducedLinearSystem(double* solution) {
     return true;
   }
 
-  // TODO(sameeragarwal): Add proper error handling; this completely ignores
-  // the quality of the solution to the solve.
-  VectorRef(solution, num_rows) =
-      ConstMatrixRef(m->values(), num_rows, num_rows)
-      .selfadjointView<Eigen::Upper>()
-      .ldlt()
-      .solve(ConstVectorRef(rhs(), num_rows));
+  if (options().dense_linear_algebra_library_type == EIGEN) {
+    // TODO(sameeragarwal): Add proper error handling; this completely ignores
+    // the quality of the solution to the solve.
+    VectorRef(solution, num_rows) =
+        ConstMatrixRef(m->values(), num_rows, num_rows)
+        .selfadjointView<Eigen::Upper>()
+        .llt()
+        .solve(ConstVectorRef(rhs(), num_rows));
+    return true;
+  }
 
-  return true;
+  VectorRef(solution, num_rows) = ConstVectorRef(rhs(), num_rows);
+  const int info = LAPACK::SolveInPlaceUsingCholesky(num_rows,
+                                                     m->values(),
+                                                     solution);
+  return (info == 0);
 }
 
 #if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARE)
 
 SparseSchurComplementSolver::SparseSchurComplementSolver(
     const LinearSolver::Options& options)
-    : SchurComplementSolver(options) {
-#ifndef CERES_NO_SUITESPARSE
-  factor_ = NULL;
-#endif  // CERES_NO_SUITESPARSE
-
-#ifndef CERES_NO_CXSPARSE
-  cxsparse_factor_ = NULL;
-#endif  // CERES_NO_CXSPARSE
+    : SchurComplementSolver(options),
+      factor_(NULL),
+      cxsparse_factor_(NULL) {
 }
 
 SparseSchurComplementSolver::~SparseSchurComplementSolver() {
@@ -243,18 +243,18 @@ void SparseSchurComplementSolver::InitStorage(
 }
 
 bool SparseSchurComplementSolver::SolveReducedLinearSystem(double* solution) {
-  switch (options().sparse_linear_algebra_library) {
+  switch (options().sparse_linear_algebra_library_type) {
     case SUITE_SPARSE:
       return SolveReducedLinearSystemUsingSuiteSparse(solution);
     case CX_SPARSE:
       return SolveReducedLinearSystemUsingCXSparse(solution);
     default:
       LOG(FATAL) << "Unknown sparse linear algebra library : "
-                 << options().sparse_linear_algebra_library;
+                 << options().sparse_linear_algebra_library_type;
   }
 
   LOG(FATAL) << "Unknown sparse linear algebra library : "
-             << options().sparse_linear_algebra_library;
+             << options().sparse_linear_algebra_library_type;
   return false;
 }
 
@@ -276,26 +276,42 @@ bool SparseSchurComplementSolver::SolveReducedLinearSystemUsingSuiteSparse(
     return true;
   }
 
-  cholmod_sparse* cholmod_lhs = ss_.CreateSparseMatrix(tsm);
-  // The matrix is symmetric, and the upper triangular part of the
-  // matrix contains the values.
-  cholmod_lhs->stype = 1;
+  cholmod_sparse* cholmod_lhs = NULL;
+  if (options().use_postordering) {
+    // If we are going to do a full symbolic analysis of the schur
+    // complement matrix from scratch and not rely on the
+    // pre-ordering, then the fastest path in cholmod_factorize is the
+    // one corresponding to upper triangular matrices.
+
+    // Create a upper triangular symmetric matrix.
+    cholmod_lhs = ss_.CreateSparseMatrix(tsm);
+    cholmod_lhs->stype = 1;
+
+    if (factor_ == NULL) {
+      factor_ = ss_.BlockAnalyzeCholesky(cholmod_lhs, blocks_, blocks_);
+    }
+  } else {
+    // If we are going to use the natural ordering (i.e. rely on the
+    // pre-ordering computed by solver_impl.cc), then the fastest
+    // path in cholmod_factorize is the one corresponding to lower
+    // triangular matrices.
+
+    // Create a upper triangular symmetric matrix.
+    cholmod_lhs = ss_.CreateSparseMatrixTranspose(tsm);
+    cholmod_lhs->stype = -1;
+
+    if (factor_ == NULL) {
+      factor_ = ss_.AnalyzeCholeskyWithNaturalOrdering(cholmod_lhs);
+    }
+  }
 
   cholmod_dense*  cholmod_rhs =
       ss_.CreateDenseVector(const_cast<double*>(rhs()), num_rows, num_rows);
-
-  // Symbolic factorization is computed if we don't already have one handy.
-  if (factor_ == NULL) {
-    factor_ = ss_.BlockAnalyzeCholesky(cholmod_lhs, blocks_, blocks_);
-  }
-
   cholmod_dense* cholmod_solution =
       ss_.SolveCholesky(cholmod_lhs, factor_, cholmod_rhs);
 
   ss_.Free(cholmod_lhs);
-  cholmod_lhs = NULL;
   ss_.Free(cholmod_rhs);
-  cholmod_rhs = NULL;
 
   if (cholmod_solution == NULL) {
     LOG(WARNING) << "CHOLMOD solve failed.";
@@ -339,7 +355,8 @@ bool SparseSchurComplementSolver::SolveReducedLinearSystemUsingCXSparse(
 
   // Compute symbolic factorization if not available.
   if (cxsparse_factor_ == NULL) {
-    cxsparse_factor_ = CHECK_NOTNULL(cxsparse_.AnalyzeCholesky(lhs));
+    cxsparse_factor_ =
+        CHECK_NOTNULL(cxsparse_.BlockAnalyzeCholesky(lhs, blocks_, blocks_));
   }
 
   // Solve the linear system.

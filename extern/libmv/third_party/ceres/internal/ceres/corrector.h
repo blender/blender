@@ -66,7 +66,7 @@ class Corrector {
   explicit Corrector(double sq_norm, const double rho[3]);
 
   // residuals *= sqrt(rho[1]) / (1 - alpha)
-  void CorrectResiduals(int nrow, double* residuals);
+  void CorrectResiduals(int num_rows, double* residuals);
 
   // jacobian = sqrt(rho[1]) * jacobian -
   // sqrt(rho[1]) * alpha / sq_norm * residuals residuals' * jacobian.
@@ -74,8 +74,10 @@ class Corrector {
   // The method assumes that the jacobian has row-major storage. It is
   // the caller's responsibility to ensure that the pointer to
   // jacobian is not null.
-  void CorrectJacobian(int nrow, int ncol,
-                       double* residuals, double* jacobian);
+  void CorrectJacobian(int num_rows,
+                       int num_cols,
+                       double* residuals,
+                       double* jacobian);
 
  private:
   double sqrt_rho1_;

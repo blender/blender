@@ -39,7 +39,7 @@
 namespace ceres {
 namespace internal {
 
-class BlockSparseMatrixBase;
+class BlockSparseMatrix;
 class ImplicitSchurComplement;
 class Preconditioner;
 
@@ -67,14 +67,14 @@ class Preconditioner;
 // a proof of this fact and others related to this solver please see
 // the section on Domain Decomposition Methods in Saad's book
 // "Iterative Methods for Sparse Linear Systems".
-class IterativeSchurComplementSolver : public BlockSparseMatrixBaseSolver {
+class IterativeSchurComplementSolver : public BlockSparseMatrixSolver {
  public:
   explicit IterativeSchurComplementSolver(const LinearSolver::Options& options);
   virtual ~IterativeSchurComplementSolver();
 
  private:
   virtual LinearSolver::Summary SolveImpl(
-      BlockSparseMatrixBase* A,
+      BlockSparseMatrix* A,
       const double* b,
       const LinearSolver::PerSolveOptions& options,
       double* x);

@@ -31,6 +31,8 @@
 #ifndef CERES_INTERNAL_TRUST_REGION_STRATEGY_H_
 #define CERES_INTERNAL_TRUST_REGION_STRATEGY_H_
 
+#include <string>
+#include "ceres/internal/port.h"
 #include "ceres/types.h"
 
 namespace ceres {
@@ -58,8 +60,8 @@ class TrustRegionStrategy {
         : trust_region_strategy_type(LEVENBERG_MARQUARDT),
           initial_radius(1e4),
           max_radius(1e32),
-          lm_min_diagonal(1e-6),
-          lm_max_diagonal(1e32),
+          min_lm_diagonal(1e-6),
+          max_lm_diagonal(1e32),
           dogleg_type(TRADITIONAL_DOGLEG) {
     }
 
@@ -73,8 +75,8 @@ class TrustRegionStrategy {
     // by LevenbergMarquardtStrategy. The DoglegStrategy also uses
     // these bounds to construct a regularizing diagonal to ensure
     // that the Gauss-Newton step computation is of full rank.
-    double lm_min_diagonal;
-    double lm_max_diagonal;
+    double min_lm_diagonal;
+    double max_lm_diagonal;
 
     // Further specify which dogleg method to use
     DoglegType dogleg_type;
@@ -82,8 +84,22 @@ class TrustRegionStrategy {
 
   // Per solve options.
   struct PerSolveOptions {
+    PerSolveOptions()
+        : eta(0),
+          dump_filename_base(""),
+          dump_format_type(TEXTFILE) {
+    }
+
     // Forcing sequence for inexact solves.
     double eta;
+
+    // If non-empty and dump_format_type is not CONSOLE, the trust
+    // regions strategy will write the linear system to file(s) with
+    // name starting with dump_filename_base.  If dump_format_type is
+    // CONSOLE then dump_filename_base will be ignored and the linear
+    // system will be written to the standard error.
+    string dump_filename_base;
+    DumpFormatType dump_format_type;
   };
 
   struct Summary {

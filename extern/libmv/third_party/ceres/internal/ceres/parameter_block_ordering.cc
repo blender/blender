@@ -42,6 +42,32 @@
 namespace ceres {
 namespace internal {
 
+int ComputeStableSchurOrdering(const Program& program,
+                         vector<ParameterBlock*>* ordering) {
+  CHECK_NOTNULL(ordering)->clear();
+
+  scoped_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
+  const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
+  const HashSet<ParameterBlock*>& vertices = graph->vertices();
+  for (int i = 0; i < parameter_blocks.size(); ++i) {
+    if (vertices.count(parameter_blocks[i]) > 0) {
+      ordering->push_back(parameter_blocks[i]);
+    }
+  }
+
+  int independent_set_size = StableIndependentSetOrdering(*graph, ordering);
+
+  // Add the excluded blocks to back of the ordering vector.
+  for (int i = 0; i < parameter_blocks.size(); ++i) {
+    ParameterBlock* parameter_block = parameter_blocks[i];
+    if (parameter_block->IsConstant()) {
+      ordering->push_back(parameter_block);
+    }
+  }
+
+  return independent_set_size;
+}
+
 int ComputeSchurOrdering(const Program& program,
                          vector<ParameterBlock*>* ordering) {
   CHECK_NOTNULL(ordering)->clear();

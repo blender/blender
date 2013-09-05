@@ -33,7 +33,6 @@
 #ifndef CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_
 #define CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_
 
-#include <glog/logging.h>
 #include "ceres/sparse_matrix.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/macros.h"
@@ -43,7 +42,6 @@
 namespace ceres {
 namespace internal {
 
-class SparseMatrixProto;
 class TripletSparseMatrix;
 
 class DenseSparseMatrix : public SparseMatrix {
@@ -52,9 +50,6 @@ class DenseSparseMatrix : public SparseMatrix {
   // m. This assumes that m does not have any repeated entries.
   explicit DenseSparseMatrix(const TripletSparseMatrix& m);
   explicit DenseSparseMatrix(const ColMajorMatrix& m);
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-  explicit DenseSparseMatrix(const SparseMatrixProto& proto);
-#endif
 
   DenseSparseMatrix(int num_rows, int num_cols);
   DenseSparseMatrix(int num_rows, int num_cols, bool reserve_diagonal);
@@ -68,9 +63,6 @@ class DenseSparseMatrix : public SparseMatrix {
   virtual void SquaredColumnNorm(double* x) const;
   virtual void ScaleColumns(const double* scale);
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-  virtual void ToProto(SparseMatrixProto* proto) const;
-#endif
   virtual void ToTextFile(FILE* file) const;
   virtual int num_rows() const;
   virtual int num_cols() const;

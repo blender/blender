@@ -36,11 +36,8 @@
 #include <cstring>
 #include <ctime>
 
-#ifndef CERES_NO_CXSPARSE
-#include "cs.h"
-#endif
-
 #include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/cxsparse.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
@@ -54,14 +51,9 @@ namespace internal {
 
 SparseNormalCholeskySolver::SparseNormalCholeskySolver(
     const LinearSolver::Options& options)
-    : options_(options) {
-#ifndef CERES_NO_SUITESPARSE
-  factor_ = NULL;
-#endif
-
-#ifndef CERES_NO_CXSPARSE
-  cxsparse_factor_ = NULL;
-#endif  // CERES_NO_CXSPARSE
+    : factor_(NULL),
+      cxsparse_factor_(NULL),
+      options_(options) {
 }
 
 SparseNormalCholeskySolver::~SparseNormalCholeskySolver() {
@@ -85,18 +77,18 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImpl(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double * x) {
-  switch (options_.sparse_linear_algebra_library) {
+  switch (options_.sparse_linear_algebra_library_type) {
     case SUITE_SPARSE:
       return SolveImplUsingSuiteSparse(A, b, per_solve_options, x);
     case CX_SPARSE:
       return SolveImplUsingCXSparse(A, b, per_solve_options, x);
     default:
       LOG(FATAL) << "Unknown sparse linear algebra library : "
-                 << options_.sparse_linear_algebra_library;
+                 << options_.sparse_linear_algebra_library_type;
   }
 
   LOG(FATAL) << "Unknown sparse linear algebra library : "
-             << options_.sparse_linear_algebra_library;
+             << options_.sparse_linear_algebra_library_type;
   return LinearSolver::Summary();
 }
 
@@ -133,34 +125,37 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
   // factorized. CHOLMOD/SuiteSparse on the other hand can just work
   // off of Jt to compute the Cholesky factorization of the normal
   // equations.
-  cs_di* A2 = cs_transpose(&At, 1);
-  cs_di* AtA = cs_multiply(&At, A2);
+  cs_di* A2 = cxsparse_.TransposeMatrix(&At);
+  cs_di* AtA = cxsparse_.MatrixMatrixMultiply(&At, A2);
 
   cxsparse_.Free(A2);
   if (per_solve_options.D != NULL) {
     A->DeleteRows(num_cols);
   }
-
   event_logger.AddEvent("Setup");
 
   // Compute symbolic factorization if not available.
   if (cxsparse_factor_ == NULL) {
-    cxsparse_factor_ = CHECK_NOTNULL(cxsparse_.AnalyzeCholesky(AtA));
+    if (options_.use_postordering) {
+      cxsparse_factor_ =
+          CHECK_NOTNULL(cxsparse_.BlockAnalyzeCholesky(AtA,
+                                                       A->col_blocks(),
+                                                       A->col_blocks()));
+    } else {
+      cxsparse_factor_ =
+          CHECK_NOTNULL(cxsparse_.AnalyzeCholeskyWithNaturalOrdering(AtA));
+    }
   }
-
   event_logger.AddEvent("Analysis");
-
 
   // Solve the linear system.
   if (cxsparse_.SolveCholesky(AtA, cxsparse_factor_, Atb.data())) {
     VectorRef(x, Atb.rows()) = Atb;
     summary.termination_type = TOLERANCE;
   }
-
   event_logger.AddEvent("Solve");
 
   cxsparse_.Free(AtA);
-
   event_logger.AddEvent("Teardown");
   return summary;
 }
@@ -205,11 +200,13 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
 
   if (factor_ == NULL) {
     if (options_.use_postordering) {
-      factor_ = ss_.BlockAnalyzeCholesky(&lhs,
-                                         A->col_blocks(),
-                                         A->row_blocks());
+      factor_ =
+          CHECK_NOTNULL(ss_.BlockAnalyzeCholesky(&lhs,
+                                                 A->col_blocks(),
+                                                 A->row_blocks()));
     } else {
-      factor_ = ss_.AnalyzeCholeskyWithNaturalOrdering(&lhs);
+      factor_ =
+      CHECK_NOTNULL(ss_.AnalyzeCholeskyWithNaturalOrdering(&lhs));
     }
   }
 

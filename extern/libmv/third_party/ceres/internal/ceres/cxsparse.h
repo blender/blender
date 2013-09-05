@@ -33,7 +33,9 @@
 
 #ifndef CERES_NO_CXSPARSE
 
+#include <vector>
 #include "cs.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 namespace internal {
@@ -68,9 +70,48 @@ class CXSparse {
   // with Free. May return NULL if the compression or allocation fails.
   cs_di* CreateSparseMatrix(TripletSparseMatrix* A);
 
+  // B = A'
+  //
+  // The returned matrix should be deallocated with Free when not used
+  // anymore.
+  cs_di* TransposeMatrix(cs_di* A);
+
+  // C = A * B
+  //
+  // The returned matrix should be deallocated with Free when not used
+  // anymore.
+  cs_di* MatrixMatrixMultiply(cs_di* A, cs_di* B);
+
   // Computes a symbolic factorization of A that can be used in SolveCholesky.
+  //
   // The returned matrix should be deallocated with Free when not used anymore.
   cs_dis* AnalyzeCholesky(cs_di* A);
+
+  // Computes a symbolic factorization of A that can be used in
+  // SolveCholesky, but does not compute a fill-reducing ordering.
+  //
+  // The returned matrix should be deallocated with Free when not used anymore.
+  cs_dis* AnalyzeCholeskyWithNaturalOrdering(cs_di* A);
+
+  // Computes a symbolic factorization of A that can be used in
+  // SolveCholesky. The difference from AnalyzeCholesky is that this
+  // function first detects the block sparsity of the matrix using
+  // information about the row and column blocks and uses this block
+  // sparse matrix to find a fill-reducing ordering. This ordering is
+  // then used to find a symbolic factorization. This can result in a
+  // significant performance improvement AnalyzeCholesky on block
+  // sparse matrices.
+  //
+  // The returned matrix should be deallocated with Free when not used
+  // anymore.
+  cs_dis* BlockAnalyzeCholesky(cs_di* A,
+                               const vector<int>& row_blocks,
+                               const vector<int>& col_blocks);
+
+  // Compute an fill-reducing approximate minimum degree ordering of
+  // the matrix A. ordering should be non-NULL and should point to
+  // enough memory to hold the ordering for the rows of A.
+  void ApproximateMinimumDegreeOrdering(cs_di* A, int* ordering);
 
   void Free(cs_di* sparse_matrix);
   void Free(cs_dis* symbolic_factorization);
@@ -83,6 +124,11 @@ class CXSparse {
 
 }  // namespace internal
 }  // namespace ceres
+
+#else  // CERES_NO_CXSPARSE
+
+class CXSparse {};
+typedef void cs_dis;
 
 #endif  // CERES_NO_CXSPARSE
 

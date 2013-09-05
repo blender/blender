@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_MINIMIZER_H_
 #define CERES_INTERNAL_MINIMIZER_H_
 
+#include <string>
 #include <vector>
 #include "ceres/internal/port.h"
 #include "ceres/iteration_callback.h"
@@ -73,9 +74,12 @@ class Minimizer {
       use_nonmonotonic_steps = options.use_nonmonotonic_steps;
       max_consecutive_nonmonotonic_steps =
           options.max_consecutive_nonmonotonic_steps;
-      lsqp_dump_directory = options.lsqp_dump_directory;
-      lsqp_iterations_to_dump = options.lsqp_iterations_to_dump;
-      lsqp_dump_format_type = options.lsqp_dump_format_type;
+      trust_region_problem_dump_directory =
+          options.trust_region_problem_dump_directory;
+      trust_region_minimizer_iterations_to_dump =
+          options.trust_region_minimizer_iterations_to_dump;
+      trust_region_problem_dump_format_type =
+          options.trust_region_problem_dump_format_type;
       max_num_consecutive_invalid_steps =
           options.max_num_consecutive_invalid_steps;
       min_trust_region_radius = options.min_trust_region_radius;
@@ -84,11 +88,31 @@ class Minimizer {
       nonlinear_conjugate_gradient_type =
           options.nonlinear_conjugate_gradient_type;
       max_lbfgs_rank = options.max_lbfgs_rank;
+      use_approximate_eigenvalue_bfgs_scaling =
+          options.use_approximate_eigenvalue_bfgs_scaling;
+      line_search_interpolation_type =
+          options.line_search_interpolation_type;
+      min_line_search_step_size = options.min_line_search_step_size;
+      line_search_sufficient_function_decrease =
+          options.line_search_sufficient_function_decrease;
+      max_line_search_step_contraction =
+          options.max_line_search_step_contraction;
+      min_line_search_step_contraction =
+          options.min_line_search_step_contraction;
+      max_num_line_search_step_size_iterations =
+          options.max_num_line_search_step_size_iterations;
+      max_num_line_search_direction_restarts =
+          options.max_num_line_search_direction_restarts;
+      line_search_sufficient_curvature_decrease =
+          options.line_search_sufficient_curvature_decrease;
+      max_line_search_step_expansion =
+          options.max_line_search_step_expansion;
       evaluator = NULL;
       trust_region_strategy = NULL;
       jacobian = NULL;
       callbacks = options.callbacks;
       inner_iteration_minimizer = NULL;
+      inner_iteration_tolerance = options.inner_iteration_tolerance;
     }
 
     int max_num_iterations;
@@ -109,15 +133,26 @@ class Minimizer {
     bool jacobi_scaling;
     bool use_nonmonotonic_steps;
     int max_consecutive_nonmonotonic_steps;
-    vector<int> lsqp_iterations_to_dump;
-    DumpFormatType lsqp_dump_format_type;
-    string lsqp_dump_directory;
+    vector<int> trust_region_minimizer_iterations_to_dump;
+    DumpFormatType trust_region_problem_dump_format_type;
+    string trust_region_problem_dump_directory;
     int max_num_consecutive_invalid_steps;
     double min_trust_region_radius;
     LineSearchDirectionType line_search_direction_type;
     LineSearchType line_search_type;
     NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;
     int max_lbfgs_rank;
+    bool use_approximate_eigenvalue_bfgs_scaling;
+    LineSearchInterpolationType line_search_interpolation_type;
+    double min_line_search_step_size;
+    double line_search_sufficient_function_decrease;
+    double max_line_search_step_contraction;
+    double min_line_search_step_contraction;
+    int max_num_line_search_step_size_iterations;
+    int max_num_line_search_direction_restarts;
+    double line_search_sufficient_curvature_decrease;
+    double max_line_search_step_expansion;
+
 
     // List of callbacks that are executed by the Minimizer at the end
     // of each iteration.
@@ -141,6 +176,7 @@ class Minimizer {
     SparseMatrix* jacobian;
 
     Minimizer* inner_iteration_minimizer;
+    double inner_iteration_tolerance;
   };
 
   static bool RunCallbacks(const vector<IterationCallback*> callbacks,

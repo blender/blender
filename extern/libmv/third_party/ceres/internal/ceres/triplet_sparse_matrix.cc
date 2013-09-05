@@ -35,7 +35,6 @@
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
-#include "ceres/matrix_proto.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 
@@ -82,32 +81,6 @@ TripletSparseMatrix::TripletSparseMatrix(const TripletSparseMatrix& orig)
   AllocateMemory();
   CopyData(orig);
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-TripletSparseMatrix::TripletSparseMatrix(const SparseMatrixProto& outer_proto) {
-  CHECK(outer_proto.has_triplet_matrix());
-
-  const TripletSparseMatrixProto& proto = outer_proto.triplet_matrix();
-  CHECK(proto.has_num_rows());
-  CHECK(proto.has_num_cols());
-  CHECK_EQ(proto.rows_size(), proto.cols_size());
-  CHECK_EQ(proto.cols_size(), proto.values_size());
-
-  // Initialize the matrix with the appropriate size and capacity.
-  max_num_nonzeros_ = 0;
-  set_num_nonzeros(0);
-  Reserve(proto.num_nonzeros());
-  Resize(proto.num_rows(), proto.num_cols());
-  set_num_nonzeros(proto.num_nonzeros());
-
-  // Copy the entries in.
-  for (int i = 0; i < proto.num_nonzeros(); ++i) {
-    rows_[i] = proto.rows(i);
-    cols_[i] = proto.cols(i);
-    values_[i] = proto.values(i);
-  }
-}
-#endif
 
 TripletSparseMatrix& TripletSparseMatrix::operator=(
     const TripletSparseMatrix& rhs) {
@@ -214,22 +187,6 @@ void TripletSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
     m(rows_[i], cols_[i]) += values_[i];
   }
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-void TripletSparseMatrix::ToProto(SparseMatrixProto *proto) const {
-  proto->Clear();
-
-  TripletSparseMatrixProto* tsm_proto = proto->mutable_triplet_matrix();
-  tsm_proto->set_num_rows(num_rows_);
-  tsm_proto->set_num_cols(num_cols_);
-  tsm_proto->set_num_nonzeros(num_nonzeros_);
-  for (int i = 0; i < num_nonzeros_; ++i) {
-    tsm_proto->add_rows(rows_[i]);
-    tsm_proto->add_cols(cols_[i]);
-    tsm_proto->add_values(values_[i]);
-  }
-}
-#endif
 
 void TripletSparseMatrix::AppendRows(const TripletSparseMatrix& B) {
   CHECK_EQ(B.num_cols(), num_cols_);

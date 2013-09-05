@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_COORDINATE_DESCENT_MINIMIZER_H_
 #define CERES_INTERNAL_COORDINATE_DESCENT_MINIMIZER_H_
 
+#include <string>
 #include <vector>
 
 #include "ceres/evaluator.h"

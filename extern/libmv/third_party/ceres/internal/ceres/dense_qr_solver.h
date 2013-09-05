@@ -90,8 +90,22 @@ class DenseQRSolver: public DenseSparseMatrixSolver {
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x);
 
+  LinearSolver::Summary SolveUsingEigen(
+      DenseSparseMatrix* A,
+      const double* b,
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* x);
+
+  LinearSolver::Summary SolveUsingLAPACK(
+      DenseSparseMatrix* A,
+      const double* b,
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* x);
+
   const LinearSolver::Options options_;
+  ColMajorMatrix lhs_;
   Vector rhs_;
+  Vector work_;
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseQRSolver);
 };
 

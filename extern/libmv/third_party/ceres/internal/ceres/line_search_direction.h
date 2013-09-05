@@ -48,7 +48,8 @@ class LineSearchDirection {
           type(LBFGS),
           nonlinear_conjugate_gradient_type(FLETCHER_REEVES),
           function_tolerance(1e-12),
-          max_lbfgs_rank(20) {
+          max_lbfgs_rank(20),
+          use_approximate_eigenvalue_bfgs_scaling(true) {
     }
 
     int num_parameters;
@@ -56,6 +57,7 @@ class LineSearchDirection {
     NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;
     double function_tolerance;
     int max_lbfgs_rank;
+    bool use_approximate_eigenvalue_bfgs_scaling;
   };
 
   static LineSearchDirection* Create(const Options& options);

@@ -33,10 +33,9 @@
 #include <cstddef>
 #include <algorithm>
 #include <vector>
-#include "ceres/blas.h"
 #include "ceres/block_structure.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/matrix_proto.h"
+#include "ceres/small_blas.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 
@@ -81,31 +80,6 @@ BlockSparseMatrix::BlockSparseMatrix(
   values_.reset(new double[num_nonzeros_]);
   CHECK_NOTNULL(values_.get());
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-BlockSparseMatrix::BlockSparseMatrix(const SparseMatrixProto& outer_proto) {
-  CHECK(outer_proto.has_block_matrix());
-
-  const BlockSparseMatrixProto& proto = outer_proto.block_matrix();
-  CHECK(proto.has_num_rows());
-  CHECK(proto.has_num_cols());
-  CHECK_EQ(proto.num_nonzeros(), proto.values_size());
-
-  num_rows_ = proto.num_rows();
-  num_cols_ = proto.num_cols();
-  num_nonzeros_ = proto.num_nonzeros();
-
-  // Copy out the values into *this.
-  values_.reset(new double[num_nonzeros_]);
-  for (int i = 0; i < proto.num_nonzeros(); ++i) {
-    values_[i] = proto.values(i);
-  }
-
-  // Create the block structure according to the proto.
-  block_structure_.reset(new CompressedRowBlockStructure);
-  ProtoToBlockStructure(proto.block_structure(), block_structure_.get());
-}
-#endif
 
 void BlockSparseMatrix::SetZero() {
   fill(values_.get(), values_.get() + num_nonzeros_, 0.0);
@@ -242,21 +216,6 @@ const CompressedRowBlockStructure* BlockSparseMatrix::block_structure()
     const {
   return block_structure_.get();
 }
-
-#ifndef CERES_NO_PROTOCOL_BUFFERS
-void BlockSparseMatrix::ToProto(SparseMatrixProto* outer_proto) const {
-  outer_proto->Clear();
-
-  BlockSparseMatrixProto* proto = outer_proto->mutable_block_matrix();
-  proto->set_num_rows(num_rows_);
-  proto->set_num_cols(num_cols_);
-  proto->set_num_nonzeros(num_nonzeros_);
-  for (int i = 0; i < num_nonzeros_; ++i) {
-    proto->add_values(values_[i]);
-  }
-  BlockStructureToProto(*block_structure_, proto->mutable_block_structure());
-}
-#endif
 
 void BlockSparseMatrix::ToTextFile(FILE* file) const {
   CHECK_NOTNULL(file);
