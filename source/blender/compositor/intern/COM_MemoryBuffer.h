@@ -189,9 +189,8 @@ public:
 
 		BLI_assert(offset >= 0);
 		BLI_assert(offset < this->determineBufferSize() * COM_NUMBER_OF_CHANNELS);
-		bool clip_x = (extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax));
-		bool clip_y = (extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax));
-		BLI_assert(!clip_x && !clip_y);
+		BLI_assert(!(extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax))
+		           && !(extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax)));
 
 #if 0
 		/* always true */
