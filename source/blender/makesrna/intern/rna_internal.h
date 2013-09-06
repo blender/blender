@@ -278,6 +278,7 @@ void RNA_api_scene_render(struct StructRNA *srna);
 void RNA_api_sequence_strip(StructRNA *srna);
 void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
+void RNA_api_window(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
 void RNA_api_sensor(struct StructRNA *srna);
 void RNA_api_controller(struct StructRNA *srna);

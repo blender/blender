@@ -169,6 +169,8 @@ extern EnumPropertyItem linestyle_alpha_modifier_type_items[];
 extern EnumPropertyItem linestyle_thickness_modifier_type_items[];
 extern EnumPropertyItem linestyle_geometry_modifier_type_items[];
 
+extern EnumPropertyItem window_cursor_items[];
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;

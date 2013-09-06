@@ -1735,6 +1735,8 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "sizey");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Height", "Window height");
+
+	RNA_api_window(srna);
 }
 
 /* curve.splines */

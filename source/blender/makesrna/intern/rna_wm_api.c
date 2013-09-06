@@ -41,7 +41,30 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "wm_cursors.h"
+
 #include "rna_internal.h"  /* own include */
+
+/* confusingm 2 enums mixed up here */
+EnumPropertyItem window_cursor_items[] = {
+	{CURSOR_STD, "DEFAULT", 0, "Default", ""},
+	{CURSOR_NONE, "NONE", 0, "None", ""},
+	{CURSOR_WAIT, "WAIT", 0, "Wait", ""},
+	{CURSOR_EDIT, "CROSSHAIR", 0, "Crosshair", ""},
+	{CURSOR_X_MOVE, "MOVE_X", 0, "Move-X", ""},
+	{CURSOR_Y_MOVE, "MOVE_Y", 0, "Move-Y", ""},
+
+	/* new */
+	{BC_KNIFECURSOR, "KNIFE", 0, "Knife", ""},
+	{BC_TEXTEDITCURSOR, "TEXT", 0, "Text", ""},
+	{BC_PAINTBRUSHCURSOR, "PAINT_BRUSH", 0, "Paint Brush", ""},
+	{BC_HANDCURSOR, "HAND", 0, "Hand", ""},
+	{BC_EW_SCROLLCURSOR, "SCROLL_X", 0, "Scroll-X", ""},
+	{BC_NS_SCROLLCURSOR, "SCROLL_Y", 0, "Scroll-Y", ""},
+	{BC_NSEW_SCROLLCURSOR, "SCROLL_XY", 0, "Scroll-XY", ""},
+	{BC_EYEDROPPER_CURSOR, "EYEDROPPER", 0, "Eyedropper", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -297,6 +320,30 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 		parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 		RNA_def_function_return(func, parm);
 	}
+}
+
+void RNA_api_window(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	(void)func;
+	(void)parm;
+
+	func = RNA_def_function(srna, "cursor_set", "WM_cursor_set");
+	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, window_cursor_items);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Set the cursor");
+
+	func = RNA_def_function(srna, "cursor_modal_set", "WM_cursor_modal_set");
+	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, window_cursor_items);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Set the cursor, so the previous cursor can be restored");
+
+	RNA_def_function(srna, "cursor_modal_restore", "WM_cursor_modal_restore");
+	RNA_def_function_ui_description(func, "Restore the previous cursor after calling ``cursor_modal_set``");
 }
 
 void RNA_api_wm(StructRNA *srna)
