@@ -103,6 +103,94 @@ static void quad_verts_to_barycentric_tri(
 #endif
 
 
+/* -------------------------------------------------------------------- */
+/* Handle Loop Pairs */
+
+/** \name Loop Pairs
+ * \{ */
+
+/**
+ * Assign a loop pair from 2 verts (which _must_ share an edge)
+ */
+static void bm_loop_pair_from_verts(BMVert *v_a, BMVert *v_b,
+                                    BMLoop *l_pair[2])
+{
+	BMEdge *e = BM_edge_exists(v_a, v_b);
+	if (e->l) {
+		if (e->l->v == v_a) {
+			l_pair[0] = e->l;
+			l_pair[1] = e->l->next;
+		}
+		else {
+			l_pair[0] = e->l->next;
+			l_pair[1] = e->l;
+		}
+	}
+	else {
+		l_pair[0] = NULL;
+		l_pair[1] = NULL;
+	}
+}
+
+/**
+ * Copy loop pair from one side to the other if either is missing,
+ * this simplifies interpolation code so we only need to check if x/y are missing,
+ * rather then checking each loop.
+ */
+static void bm_loop_pair_test_copy(BMLoop *l_pair_a[2], BMLoop *l_pair_b[2])
+{
+	/* if the first one is set, we know the second is too */
+	if (l_pair_a[0] && l_pair_b[0] == NULL)  {
+		l_pair_b[0] = l_pair_a[1];
+		l_pair_b[1] = l_pair_a[0];
+	}
+	else if (l_pair_b[0] && l_pair_a[0] == NULL)  {
+		l_pair_a[0] = l_pair_b[1];
+		l_pair_a[1] = l_pair_b[0];
+	}
+}
+
+/**
+ * Interpolate from boundary loops.
+ *
+ * \note These weights will be calculated multiple times per vertex.
+ * Since this runs on each loop, could reduce calls to #barycentric_weights_v2_quad.
+ */
+static void bm_loop_interp_from_grid_boundary_4(BMesh *bm, BMLoop *l, BMLoop *l_bound[4], const float uv[2])
+{
+	float cos[4][2] = {
+	    {uv[0],     0},
+	    {0,     uv[1]},
+	    {uv[0],     1},
+	    {1,     uv[1]}};
+
+	void *l_cdata[4] = {
+	    l_bound[0]->head.data,
+	    l_bound[1]->head.data,
+	    l_bound[2]->head.data,
+	    l_bound[3]->head.data};
+
+	float w[4];
+
+	barycentric_weights_v2_quad(UNPACK4(cos), uv, w);
+	CustomData_bmesh_interp(&bm->ldata, l_cdata, w, NULL, 4, l->head.data);
+}
+
+static void bm_loop_interp_from_grid_boundary_2(BMesh *bm, BMLoop *l, BMLoop *l_bound[2], const float t)
+{
+
+	void *l_cdata[2] = {
+	    l_bound[0]->head.data,
+	    l_bound[1]->head.data};
+
+	const float w[2] = {1.0f - t, t};
+
+	CustomData_bmesh_interp(&bm->ldata, l_cdata, w, NULL, 2, l->head.data);
+}
+
+/** \} */
+
+
 /**
  * This may be useful outside the bmesh operator.
  *
@@ -113,7 +201,11 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
                                const bool use_flip)
 {
 	const bool use_vert_interp = CustomData_has_interp(&bm->vdata);
+	const bool use_loop_interp = CustomData_has_interp(&bm->ldata);
 	int x, y;
+
+	/* for use_loop_interp */
+	BMLoop *((*larr_x_a)[2]), *((*larr_x_b)[2]), *((*larr_y_a)[2]), *((*larr_y_b)[2]);
 
 #define XY(_x, _y)  ((_x) + ((_y) * (xtot)))
 
@@ -140,6 +232,31 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
 	        NULL, NULL,
 	        true);
 #endif
+
+
+	/* Store loops */
+	if (use_loop_interp) {
+		/* x2 because each edge connects 2 loops */
+		larr_x_a = MEM_mallocN(sizeof(*larr_x_a) * (xtot - 1), __func__);
+		larr_x_b = MEM_mallocN(sizeof(*larr_x_b) * (xtot - 1), __func__);
+
+		larr_y_a = MEM_mallocN(sizeof(*larr_y_a) * (ytot - 1), __func__);
+		larr_y_b = MEM_mallocN(sizeof(*larr_y_b) * (ytot - 1), __func__);
+
+		/* fill in the loops */
+		for (x = 0; x < xtot - 1; x++) {
+			bm_loop_pair_from_verts(v_grid[XY(x,        0)], v_grid[XY(x + 1,        0)], larr_x_a[x]);
+			bm_loop_pair_from_verts(v_grid[XY(x, ytot - 1)], v_grid[XY(x + 1, ytot - 1)], larr_x_b[x]);
+			bm_loop_pair_test_copy(larr_x_a[x], larr_x_b[x]);
+		}
+
+		for (y = 0; y < ytot - 1; y++) {
+			bm_loop_pair_from_verts(v_grid[XY(0,        y)], v_grid[XY(0,        y + 1)], larr_y_a[y]);
+			bm_loop_pair_from_verts(v_grid[XY(xtot - 1, y)], v_grid[XY(xtot - 1, y + 1)], larr_y_b[y]);
+			bm_loop_pair_test_copy(larr_y_a[y], larr_y_b[y]);
+		}
+	}
+
 
 	/* Build Verts */
 	for (y = 1; y < ytot - 1; y++) {
@@ -230,6 +347,88 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
 				        NULL,
 				        BM_CREATE_NOP);
 			}
+
+
+			if (use_loop_interp && (larr_x_a[x][0] || larr_y_a[y][0])) {
+				/* bottom/left/top/right */
+				BMLoop *l_quad[4];
+				BMLoop *l_bound[4];
+				BMLoop *l_tmp;
+				float uv[2]; /* xy in the grid */
+				int x_side, y_side, i;
+				char interp_from;
+
+
+				if (larr_x_a[x][0] && larr_y_a[y][0]) {
+					interp_from = 'B';  /* B == both */
+					l_tmp = larr_x_a[x][0];
+				}
+				else if (larr_x_a[x][0]) {
+					interp_from = 'X';
+					l_tmp = larr_x_a[x][0];
+				}
+				else {
+					interp_from = 'Y';
+					l_tmp = larr_y_a[y][0];
+				}
+
+				BM_elem_attrs_copy(bm, bm, l_tmp->f, f);
+
+
+				BM_face_as_array_loop_quad(f, l_quad);
+
+				l_tmp = BM_FACE_FIRST_LOOP(f);
+
+				if (use_flip) {
+					l_quad[0] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[1] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[3] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[2] = l_tmp;
+				}
+				else {
+					l_quad[2] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[3] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[1] = l_tmp; l_tmp = l_tmp->next;
+					l_quad[0] = l_tmp;
+				}
+
+				i = 0;
+
+				for (x_side = 0; x_side < 2; x_side++) {
+					for (y_side = 0; y_side < 2; y_side++) {
+
+						uv[0] = (float)(x + x_side) / (xtot - 1);
+						uv[1] = (float)(y + y_side) / (ytot - 1);
+
+						if (interp_from == 'B') {
+							l_bound[0] = larr_x_a[x][x_side];  /* B */
+							l_bound[1] = larr_y_a[y][y_side];  /* L */
+							l_bound[2] = larr_x_b[x][x_side];  /* T */
+							l_bound[3] = larr_y_b[y][y_side];  /* R */
+
+							bm_loop_interp_from_grid_boundary_4(bm, l_quad[i++], l_bound, uv);
+						}
+						else if (interp_from == 'X') {
+							l_bound[0] = larr_x_a[x][x_side];  /* B */
+							l_bound[1] = larr_x_b[x][x_side];  /* T */
+
+							bm_loop_interp_from_grid_boundary_2(bm, l_quad[i++], l_bound, uv[1]);
+						}
+						else if (interp_from == 'Y') {
+							l_bound[0] = larr_y_a[y][y_side];  /* L */
+							l_bound[1] = larr_y_b[y][y_side];  /* R */
+
+							bm_loop_interp_from_grid_boundary_2(bm, l_quad[i++], l_bound, uv[0]);
+						}
+						else {
+							BLI_assert(0);
+						}
+					}
+				}
+			}
+			/* end interp */
+
+
 			BMO_elem_flag_enable(bm, f, FACE_OUT);
 			f->mat_nr = mat_nr;
 			if (use_smooth) {
@@ -237,6 +436,14 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const int xtot, const
 			}
 		}
 	}
+
+	if (use_loop_interp) {
+		MEM_freeN(larr_x_a);
+		MEM_freeN(larr_y_a);
+		MEM_freeN(larr_x_b);
+		MEM_freeN(larr_y_b);
+	}
+
 #undef XY
 }
 
