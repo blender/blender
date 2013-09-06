@@ -1402,7 +1402,7 @@ void BKE_mask_update_deform(Mask *mask)
 				int j;
 
 				for (j = 0; j <= 2; j += 2) { /* (0, 2) */
-					printf("--- %d %d, %d, %d\n", i, j, i_prev, i_next);
+					// printf("--- %d %d, %d, %d\n", i, j, i_prev, i_next);
 					barycentric_weights_v2(bezt_prev->vec[1], bezt->vec[1], bezt_next->vec[1],
 					                       bezt->vec[j], w_src);
 					interp_v3_v3v3v3(bezt_def->vec[j],
