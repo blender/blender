@@ -327,17 +327,21 @@ void RNA_api_window(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	(void)func;
-	(void)parm;
+	func = RNA_def_function(srna, "cursor_warp", "WM_cursor_warp");
+	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Set the cursor position");
 
 	func = RNA_def_function(srna, "cursor_set", "WM_cursor_set");
-	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, window_cursor_items);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor");
 
 	func = RNA_def_function(srna, "cursor_modal_set", "WM_cursor_modal_set");
-	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, window_cursor_items);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor, so the previous cursor can be restored");
