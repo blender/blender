@@ -384,7 +384,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	/* Clear bake */
 	canvas->flags &= ~MOD_DPAINT_BAKING;
 	if (!G.background) {
-		WM_cursor_restore(win);
+		WM_cursor_modal_restore(win);
 	}
 	dynamicPaint_freeSurfaceData(surface);
 

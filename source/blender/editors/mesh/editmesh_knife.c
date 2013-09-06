@@ -2968,7 +2968,7 @@ static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
 		return;
 
 	if (kcd->is_interactive) {
-		WM_cursor_restore(CTX_wm_window(C));
+		WM_cursor_modal_restore(CTX_wm_window(C));
 
 		/* deactivate the extra drawing stuff in 3D-View */
 		ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
@@ -3103,7 +3103,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	knifetool_init(C, kcd, only_select, cut_through, true);
 
 	/* add a modal handler for this operator - handles loop selection */
-	WM_cursor_modal(CTX_wm_window(C), BC_KNIFECURSOR);
+	WM_cursor_modal_set(CTX_wm_window(C), BC_KNIFECURSOR);
 	WM_event_add_modal_handler(C, op);
 
 	knifetool_update_mval_i(kcd, event->mval);

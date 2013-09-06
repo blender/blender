@@ -1431,7 +1431,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 	gpencil_undo_finish();
 	
 	/* restore cursor to indicate end of drawing */
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 	
 	/* don't assume that operator data exists at all */
 	if (p) {
@@ -1764,9 +1764,9 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	
 	/* set cursor */
 	if (p->paintmode == GP_PAINTMODE_ERASER)
-		WM_cursor_modal(win, BC_CROSSCURSOR);  /* XXX need a better cursor */
+		WM_cursor_modal_set(win, BC_CROSSCURSOR);  /* XXX need a better cursor */
 	else
-		WM_cursor_modal(win, BC_PAINTBRUSHCURSOR);
+		WM_cursor_modal_set(win, BC_PAINTBRUSHCURSOR);
 	
 	/* special hack: if there was an initial event, then we were invoked via a hotkey, and 
 	 * painting should start immediately. Otherwise, this was called from a toolbar, in which

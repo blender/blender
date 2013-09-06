@@ -219,11 +219,11 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	RNA_int_set(op->ptr, "deltay", 0);
 	
 	if (v2d->keepofs & V2D_LOCKOFS_X)
-		WM_cursor_modal(window, BC_NS_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)
-		WM_cursor_modal(window, BC_EW_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_EW_SCROLLCURSOR);
 	else
-		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
@@ -260,7 +260,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
 				view_pan_exit(op);
-				WM_cursor_restore(CTX_wm_window(C));
+				WM_cursor_modal_restore(CTX_wm_window(C));
 				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
 				return OPERATOR_FINISHED;
 			}
@@ -273,7 +273,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 					
 					view_pan_exit(op);
-					WM_cursor_restore(CTX_wm_window(C));
+					WM_cursor_modal_restore(CTX_wm_window(C));
 					
 					return OPERATOR_FINISHED;
 				}
@@ -987,11 +987,11 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	}
 
 	if (v2d->keepofs & V2D_LOCKOFS_X)
-		WM_cursor_modal(window, BC_NS_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)
-		WM_cursor_modal(window, BC_EW_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_EW_SCROLLCURSOR);
 	else
-		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
+		WM_cursor_modal_set(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
@@ -1093,7 +1093,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 			
 			/* free customdata */
 			view_zoomdrag_exit(C, op);
-			WM_cursor_restore(CTX_wm_window(C));
+			WM_cursor_modal_restore(CTX_wm_window(C));
 			
 			return OPERATOR_FINISHED;
 		}

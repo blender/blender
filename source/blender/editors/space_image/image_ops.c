@@ -245,7 +245,7 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
 	ViewPanData *vpd;
 
 	op->customdata = vpd = MEM_callocN(sizeof(ViewPanData), "ImageViewPanData");
-	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
+	WM_cursor_modal_set(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
 	vpd->x = event->x;
 	vpd->y = event->y;
@@ -267,7 +267,7 @@ static void image_view_pan_exit(bContext *C, wmOperator *op, int cancel)
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 	MEM_freeN(op->customdata);
 }
 
@@ -391,7 +391,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
 	ViewZoomData *vpd;
 
 	op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
-	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
+	WM_cursor_modal_set(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
 	vpd->origx = event->x;
 	vpd->origy = event->y;
@@ -425,7 +425,7 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 	if (vpd->timer)
 		WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
 
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 	MEM_freeN(op->customdata);
 }
 
@@ -2557,7 +2557,7 @@ static void image_record_composite_exit(bContext *C, wmOperator *op)
 
 	scene->r.cfra = rcd->old_cfra;
 
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 
 	if (rcd->timer)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rcd->timer);

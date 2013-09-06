@@ -854,14 +854,14 @@ static void node_resize_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	nsw->oldminiwidth = node->miniwidth;
 	nsw->directions = dir;
 	
-	WM_cursor_modal(CTX_wm_window(C), node_get_resize_cursor(dir));
+	WM_cursor_modal_set(CTX_wm_window(C), node_get_resize_cursor(dir));
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 }
 
 static void node_resize_exit(bContext *C, wmOperator *op, int UNUSED(cancel))
 {
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 	
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;

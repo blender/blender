@@ -469,7 +469,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 		WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
 	}
 
-	WM_cursor_restore(oglrender->win);
+	WM_cursor_modal_restore(oglrender->win);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
 

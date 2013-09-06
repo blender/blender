@@ -150,7 +150,7 @@ void WM_cursor_set(wmWindow *win, int curs)
 	}
 }
 
-void WM_cursor_modal(wmWindow *win, int val)
+void WM_cursor_modal_set(wmWindow *win, int val)
 {
 	if (win->lastcursor == 0)
 		win->lastcursor = win->cursor;
@@ -158,7 +158,7 @@ void WM_cursor_modal(wmWindow *win, int val)
 	WM_cursor_set(win, val);
 }
 
-void WM_cursor_restore(wmWindow *win)
+void WM_cursor_modal_restore(wmWindow *win)
 {
 	win->modalcursor = 0;
 	if (win->lastcursor)
@@ -175,10 +175,10 @@ void WM_cursor_wait(bool val)
 		
 		for (; win; win = win->next) {
 			if (val) {
-				WM_cursor_modal(win, BC_WAITCURSOR);
+				WM_cursor_modal_set(win, BC_WAITCURSOR);
 			}
 			else {
-				WM_cursor_restore(win);
+				WM_cursor_modal_restore(win);
 			}
 		}
 	}

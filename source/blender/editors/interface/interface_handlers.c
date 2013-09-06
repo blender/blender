@@ -1981,7 +1981,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	ui_check_but(but);
 	
-	WM_cursor_modal(CTX_wm_window(C), BC_TEXTEDITCURSOR);
+	WM_cursor_modal_set(CTX_wm_window(C), BC_TEXTEDITCURSOR);
 }
 
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -2013,7 +2013,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 		but->pos = -1;
 	}
 	
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 }
 
 static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)

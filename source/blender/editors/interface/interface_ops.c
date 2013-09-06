@@ -118,7 +118,7 @@ static int eyedropper_init(bContext *C, wmOperator *op)
 
 static void eyedropper_exit(bContext *C, wmOperator *op)
 {
-	WM_cursor_restore(CTX_wm_window(C));
+	WM_cursor_modal_restore(CTX_wm_window(C));
 	
 	if (op->customdata)
 		MEM_freeN(op->customdata);
@@ -289,7 +289,7 @@ static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 {
 	/* init */
 	if (eyedropper_init(C, op)) {
-		WM_cursor_modal(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+		WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
 
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);

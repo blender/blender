@@ -120,7 +120,7 @@ static void rna_progress_update(struct wmWindowManager *wm, float value)
 static void rna_progress_end(struct wmWindowManager *wm)
 {
 	if (wm_progress_state.is_valid) {
-		WM_cursor_restore(wm->winactive);
+		WM_cursor_modal_restore(wm->winactive);
 		wm_progress_state.is_valid = false;
 	}
 }

@@ -803,7 +803,7 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 
 	view3d_ruler_header_update(sa);
 
-	WM_cursor_modal(win, BC_CROSSCURSOR);
+	WM_cursor_modal_set(win, BC_CROSSCURSOR);
 	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1029,7 +1029,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 exit:
 	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-		WM_cursor_restore(ruler_info->win);
+		WM_cursor_modal_restore(ruler_info->win);
 
 		view3d_ruler_end(C, ruler_info);
 		view3d_ruler_free(ruler_info);

@@ -2103,7 +2103,7 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 		win->screen->do_draw_drag = TRUE;
 		
 		/* restore cursor (disabled, see wm_dragdrop.c) */
-		// WM_cursor_restore(win);
+		// WM_cursor_modal_restore(win);
 	}
 	
 	/* overlap fails otherwise */

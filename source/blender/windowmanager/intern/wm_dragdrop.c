@@ -233,10 +233,10 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 		
 		if (opname) {
 			BLI_strncpy(drag->opname, opname, FILE_MAX);
-			// WM_cursor_modal(win, CURSOR_COPY);
+			// WM_cursor_modal_set(win, CURSOR_COPY);
 		}
 		// else
-		//	WM_cursor_restore(win);
+		//	WM_cursor_modal_restore(win);
 		/* unsure about cursor type, feels to be too much */
 	}
 }

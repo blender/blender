@@ -2756,7 +2756,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	if (RNA_struct_find_property(op->ptr, "cursor") )
-		WM_cursor_restore(CTX_wm_window(C));
+		WM_cursor_modal_restore(CTX_wm_window(C));
 }
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3065,7 +3065,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	wm_gesture_tag_redraw(C);
 	
 	if (RNA_struct_find_property(op->ptr, "cursor") )
-		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -3080,7 +3080,7 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	wm_gesture_tag_redraw(C);
 	
 	if (RNA_struct_find_property(op->ptr, "cursor") )
-		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -3297,7 +3297,7 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	wm_gesture_tag_redraw(C);
 	
 	if (RNA_struct_find_property(op->ptr, "cursor") )
-		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
 		
 	return OPERATOR_RUNNING_MODAL;
 }

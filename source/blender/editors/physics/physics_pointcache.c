@@ -126,7 +126,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	 * the job system soon anyways. */
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_cursor_time;
-		baker.progressend = (void (*)(void *))WM_cursor_restore;
+		baker.progressend = (void (*)(void *))WM_cursor_modal_restore;
 		baker.progresscontext = win;
 	}
 	else {
@@ -230,7 +230,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	 * the job system soon anyways. */
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_cursor_time;
-		baker.progressend = (void (*)(void *))WM_cursor_restore;
+		baker.progressend = (void (*)(void *))WM_cursor_modal_restore;
 		baker.progresscontext = win;
 	}
 	else {
