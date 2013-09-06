@@ -2407,12 +2407,12 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 				BLI_remlink(old_tracks, old_track);
 				BLI_addtail(&tracks, old_track);
 
-				/* Copy flags like selection back to the track map */
+				/* Copy flags like selection back to the track map. */
 				track->flag = old_track->flag;
 				track->pat_flag = old_track->pat_flag;
 				track->search_flag = old_track->search_flag;
 
-				/* Copy all the rest settings back from the map to the actual tracks,  */
+				/* Copy all the rest settings back from the map to the actual tracks. */
 				MEM_freeN(old_track->markers);
 				*old_track = *track;
 				old_track->markers = MEM_dupallocN(old_track->markers);
