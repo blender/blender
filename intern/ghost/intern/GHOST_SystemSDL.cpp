@@ -276,6 +276,18 @@ convertSDLKey(SDL_Scancode key)
 }
 #undef GXMAP
 
+/**
+ * Events don't always have valid windows,
+ * but GHOST needs a window _always_. fallback to the GL window.
+ */
+static SDL_Window *SDL_GetWindowFromID_fallback(Uint32 id)
+{
+	SDL_Window *sdl_win = SDL_GetWindowFromID(id);
+	if (sdl_win == NULL) {
+		sdl_win = SDL_GL_GetCurrentWindow();
+	}
+	return sdl_win;
+}
 
 void
 GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
@@ -286,7 +298,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 		case SDL_WINDOWEVENT:
 		{
 			SDL_WindowEvent &sdl_sub_evt = sdl_event->window;
-			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
+			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
 			//assert(window != NULL); // can be NULL on close window.
 
 			switch (sdl_sub_evt.event) {
@@ -318,7 +330,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 		case SDL_MOUSEMOTION:
 		{
 			SDL_MouseMotionEvent &sdl_sub_evt = sdl_event->motion;
-			SDL_Window *sdl_win = SDL_GetWindowFromID(sdl_sub_evt.windowID);
+			SDL_Window *sdl_win = SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID);
 			GHOST_WindowSDL *window = findGhostWindow(sdl_win);
 			assert(window != NULL);
 
@@ -379,7 +391,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
 			GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
 
-			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
+			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
 			assert(window != NULL);
 
 			/* process rest of normal mouse buttons */
@@ -403,7 +415,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 		case SDL_MOUSEWHEEL:
 		{
 			SDL_MouseWheelEvent &sdl_sub_evt = sdl_event->wheel;
-			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
+			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
 			assert(window != NULL);
 			g_event = new GHOST_EventWheel(getMilliSeconds(), window, sdl_sub_evt.y);
 		}
@@ -415,7 +427,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 			SDL_Keycode sym = sdl_sub_evt.keysym.sym;
 			GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
-			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
+			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
 			assert(window != NULL);
 
 			GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
