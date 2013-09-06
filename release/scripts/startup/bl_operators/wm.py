@@ -1292,19 +1292,15 @@ class WM_OT_blenderplayer_start(Operator):
         bpy.ops.wm.save_as_mainfile('EXEC_DEFAULT', filepath=filepath, copy=True)
 
         # start the command line call with the player path
-        args = []
-        args.append(player_path)
+        args = [player_path]
 
         # handle some UI options as command line arguments
-        value = 1 if gs.show_framerate_profile else 0
-        args.extend(("-g show_framerate = %d"%value).split())
-        args.extend(("-g show_profile = %d"%value).split())
-
-        value = 1 if gs.show_debug_properties else 0
-        args.extend(("-g show_properties = %d"%value).split())
-
-        value = 1 if gs.use_deprecation_warnings else 0
-        args.extend(("-g ignore_deprecation_warnings = %d"%value).split())
+        args.extend([
+            "-g", "show_framerate=%d" % gs.show_framerate_profile,
+            "-g", "show_profile=%d" % gs.show_framerate_profile,
+            "-g", "show_properties=%d" % gs.show_debug_properties,
+            "-g", "ignore_deprecation_warnings=%d" % (not gs.use_deprecation_warnings),
+            ])
 
         # finish the call with the path to the blend file
         args.append(filepath)
@@ -1613,11 +1609,12 @@ class WM_OT_addon_enable(Operator):
             info_ver = info.get("blender", (0, 0, 0))
 
             if info_ver > bpy.app.version:
-                self.report({'WARNING'}, ("This script was written Blender "
-                                          "version %d.%d.%d and might not "
-                                          "function (correctly), "
-                                          "though it is enabled") %
-                                         info_ver)
+                self.report({'WARNING'},
+                            ("This script was written Blender "
+                             "version %d.%d.%d and might not "
+                             "function (correctly), "
+                             "though it is enabled" %
+                             info_ver))
             return {'FINISHED'}
         else:
 
@@ -1722,9 +1719,9 @@ class WM_OT_addon_refresh(Operator):
 
     def execute(self, context):
         import addon_utils
-        
+
         addon_utils.modules_refresh()
-        
+
         return {'FINISHED'}
 
 
