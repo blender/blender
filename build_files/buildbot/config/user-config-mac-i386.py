@@ -34,6 +34,8 @@ elif cmd_res[:2]=='11':
     MAC_CUR_VER='10.7'
 elif cmd_res[:2]=='12':
     MAC_CUR_VER='10.8'
+elif cmd_res[:2]=='13':
+    MAC_CUR_VER='10.9'
 cmd = 'xcodebuild -version'
 cmd_xcode=commands.getoutput(cmd)
 XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
@@ -367,7 +369,7 @@ if not WITH_OSX_STATICPYTHON:
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 #for > 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
-if MACOSX_SDK.endswith("10.7.sdk") or MACOSX_SDK.endswith("10.8.sdk"):
+if MACOSX_SDK.endswith("10.7.sdk") or MACOSX_SDK.endswith("10.8.sdk") or MACOSX_SDK.endswith("10.9.sdk"):
     LLIBS = ['stdc++']
 else:
     LLIBS = ['stdc++', 'SystemStubs']
