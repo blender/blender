@@ -1872,7 +1872,7 @@ void AmbientOcclusionNode::compile(OSLCompiler& compiler)
 VolumeNode::VolumeNode()
 : ShaderNode("volume")
 {
-	closure = ccl::CLOSURE_VOLUME_ISOTROPIC_ID;
+	closure = CLOSURE_VOLUME_ISOTROPIC_ID;
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Density", SHADER_SOCKET_FLOAT, 1.0f);
@@ -1930,7 +1930,7 @@ void TransparentVolumeNode::compile(SVMCompiler& compiler)
 
 void TransparentVolumeNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_isotropic_volume");
+	compiler.add(this, "node_transparent_volume");
 }
 
 /* Isotropic Volume Closure */
