@@ -2919,14 +2919,6 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 		BLI_rotatelist_first(verts, v_act_link);
 		BM_edgeloop_edges_get(el_store, edges);
 
-		/* un-flag 'rails' */
-		for (i = 0; i < span; i++) {
-			BM_elem_flag_disable(edges[i], BM_ELEM_TAG);
-			BM_elem_flag_disable(edges[(verts_len / 2) + i], BM_ELEM_TAG);
-		}
-
-		MEM_freeN(edges);
-
 
 		if (span_calc) {
 			/* calculate the span by finding the next corner in 'verts'
@@ -2960,7 +2952,6 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 					if (v != v_act) {
 						span = i;
-						// printf("Span found %d\n", span);
 						break;
 					}
 				}
@@ -2969,6 +2960,13 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 		}
 		/* end span calc */
 
+
+		/* un-flag 'rails' */
+		for (i = 0; i < span; i++) {
+			BM_elem_flag_disable(edges[i], BM_ELEM_TAG);
+			BM_elem_flag_disable(edges[(verts_len / 2) + i], BM_ELEM_TAG);
+		}
+		MEM_freeN(edges);
 	}
 	/* else let the bmesh-operator handle it */
 
