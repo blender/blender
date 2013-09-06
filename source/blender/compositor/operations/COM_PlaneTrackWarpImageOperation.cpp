@@ -143,13 +143,11 @@ void PlaneTrackWarpImageOperation::executePixel(float output[4], float x, float 
 			v *= this->m_pixelReader->getHeight();
 
 			this->m_pixelReader->read(current_color, u, v, dx, dy, COM_PS_NEAREST);
-			premul_to_straight_v4(current_color);
 			add_v4_v4(color_accum, current_color);
 		}
 	}
 
 	mul_v4_v4fl(output, color_accum, 1.0f / this->m_osa);
-	straight_to_premul_v4(output);
 }
 
 bool PlaneTrackWarpImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
