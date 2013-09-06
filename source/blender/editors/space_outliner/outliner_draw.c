@@ -363,6 +363,9 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 
 	if (group_restrict_flag(gr, flag)) {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
+			if (gob->ob->id.lib)
+				continue;
+
 			gob->ob->restrictflag &= ~flag;
 			
 			if (flag == OB_RESTRICT_VIEW)
@@ -372,6 +375,9 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 	}
 	else {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
+			if (gob->ob->id.lib)
+				continue;
+
 			/* not in editmode */
 			if (scene->obedit != gob->ob) {
 				gob->ob->restrictflag |= flag;
@@ -565,7 +571,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			}
 			if (tselem->type == 0 && te->idcode == ID_GR) {
 				int restrict_bool;
+				int but_flag = UI_BUT_DRAG_LOCK;
 				gr = (Group *)tselem->id;
+
+				if(gr->id.lib)
+					but_flag |= UI_BUT_DISABLED;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -574,21 +584,21 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow visibility in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
-				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
+				uiButSetFlag(bt, but_flag);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF,
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow selection in the 3D View"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
-				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
+				uiButSetFlag(bt, but_flag);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF,
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
-				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
+				uiButSetFlag(bt, but_flag);
 
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
