@@ -2983,6 +2983,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
 	const int totedge_orig = em->bm->totedge;
 	const int totface_orig = em->bm->totface;
+	const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
 	const bool use_prepare = true;
 
 
@@ -3018,8 +3019,9 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 
 
 	if (!EDBM_op_init(em, &bmop, op,
-	                  "grid_fill edges=%he mat_nr=%i use_smooth=%b",
-	                  use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	                  "grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
+	                  use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
+	                  em->mat_nr, use_smooth, use_interp_simple))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3066,6 +3068,7 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "Number of sides (zero disables)", -100, 100);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_boolean(ot->srna, "use_interp_simple", 0, "Simple Blending", "");
 }
 
 static int edbm_fill_holes_exec(bContext *C, wmOperator *op)

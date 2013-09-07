@@ -542,6 +542,7 @@ static BMOpDefine bmo_grid_fill_def = {
 	/* restricts edges to groups.  maps edges to integer */
 	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
 	 {"use_smooth",     BMO_OP_SLOT_BOOL},     /* smooth state to use */
+	 {"use_interp_simple", BMO_OP_SLOT_BOOL},  /* use simple interpolation */
 	 {{'\0'}},
 	},
 	/* slots_out */
