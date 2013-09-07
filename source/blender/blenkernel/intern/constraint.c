@@ -3308,6 +3308,14 @@ static void shrinkwrap_id_looper(bConstraint *con, ConstraintIDFunc func, void *
 	func(con, (ID **)&data->target, FALSE, userdata);
 }
 
+static void shrinkwrap_new_data(void *cdata)
+{
+	bShrinkwrapConstraint *data = (bShrinkwrapConstraint *)cdata;
+
+	data->projAxis = OB_POSZ;
+	data->projAxisSpace = CONSTRAINT_SPACE_LOCAL;
+}
+
 static int shrinkwrap_get_tars(bConstraint *con, ListBase *list)
 {
 	if (con && list) {
@@ -3339,23 +3347,13 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 	
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) ) {
-		int fail = FALSE;
+		bool fail = false;
 		float co[3] = {0.0f, 0.0f, 0.0f};
-		float no[3] = {0.0f, 0.0f, 0.0f};
-		float dist;
 		
 		SpaceTransform transform;
 		DerivedMesh *target = object_get_derived_final(ct->tar);
-		BVHTreeRayHit hit;
-		BVHTreeNearest nearest;
 		
 		BVHTreeFromMesh treeData = {NULL};
-		
-		nearest.index = -1;
-		nearest.dist = FLT_MAX;
-		
-		hit.index = -1;
-		hit.dist = 100000.0f;  //TODO should use FLT_MAX.. but normal projection doenst yet supports it
 		
 		unit_m4(ct->matrix);
 		
@@ -3365,7 +3363,13 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 			switch (scon->shrinkType) {
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
-					
+				{
+					BVHTreeNearest nearest;
+					float dist;
+
+					nearest.index = -1;
+					nearest.dist = FLT_MAX;
+
 					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
 						bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
 					else
@@ -3386,30 +3390,54 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 					}
 					space_transform_invert(&transform, co);
 					break;
-				
+				}
 				case MOD_SHRINKWRAP_PROJECT:
-					if (scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) no[0] = 1.0f;
-					if (scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) no[1] = 1.0f;
-					if (scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) no[2] = 1.0f;
+				{
+					BVHTreeRayHit hit;
+
+					float mat[4][4];
+					float no[3] = {0.0f, 0.0f, 0.0f};
+
+					/* TODO should use FLT_MAX.. but normal projection doenst yet supports it */
+					hit.index = -1;
+					hit.dist = (scon->projLimit == 0.0f) ? 100000.0f : scon->projLimit;
+
+					switch (scon->projAxis) {
+						case OB_POSX: case OB_POSY: case OB_POSZ:
+							no[scon->projAxis - OB_POSX] = 1.0f;
+							break;
+						case OB_NEGX: case OB_NEGY: case OB_NEGZ:
+							no[scon->projAxis - OB_NEGX] = -1.0f;
+							break;
+					}
 					
+					/* transform normal into requested space */
+					unit_m4(mat);
+					BKE_constraint_mat_convertspace(cob->ob, cob->pchan, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace);
+					invert_m4(mat);
+					mul_mat3_m4_v3(mat, no);
+
 					if (normalize_v3(no) < FLT_EPSILON) {
 						fail = TRUE;
 						break;
 					}
-					
-					
+
 					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
 					if (treeData.tree == NULL) {
 						fail = TRUE;
 						break;
 					}
+
 					
-					if (normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE) {
+					if (BKE_shrinkwrap_project_normal(0, co, no, &transform, treeData.tree, &hit,
+					                                  treeData.raycast_callback, &treeData) == false)
+					{
 						fail = TRUE;
 						break;
 					}
 					copy_v3_v3(co, hit.co);
 					break;
+				}
 			}
 			
 			free_bvhtree_from_mesh(&treeData);
@@ -3446,7 +3474,7 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 	NULL, /* free data */
 	shrinkwrap_id_looper, /* id looper */
 	NULL, /* copy data */
-	NULL, /* new data */
+	shrinkwrap_new_data, /* new data */
 	shrinkwrap_get_tars, /* get constraint targets */
 	shrinkwrap_flush_tars, /* flush constraint targets */
 	shrinkwrap_get_tarmat, /* get a target matrix */

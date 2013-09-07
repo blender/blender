@@ -726,9 +726,12 @@ class ConstraintButtonsPanel():
 
         if con.shrinkwrap_type == 'PROJECT':
             row = layout.row(align=True)
-            row.prop(con, "use_x")
-            row.prop(con, "use_y")
-            row.prop(con, "use_z")
+            row.prop(con, "project_axis", expand=True)
+            split = layout.split(percentage=0.4)
+            split.label(text="Axis Space:")
+            rowsub = split.row()
+            rowsub.prop(con, "project_axis_space", text="")
+            layout.prop(con, "project_limit")
 
     def DAMPED_TRACK(self, context, layout, con):
         self.target_template(layout, con)

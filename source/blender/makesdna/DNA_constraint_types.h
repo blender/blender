@@ -407,8 +407,10 @@ typedef struct bShrinkwrapConstraint {
 	struct Object		*target;
 	float		dist;			/* distance to kept from target */
 	short		shrinkType;		/* shrink type (look on MOD shrinkwrap for values) */
-	char		projAxis;		/* axis to project over UP_X, UP_Y, UP_Z */
-	char 		pad[9];
+	char		projAxis;		/* axis to project/constrain */
+	char		projAxisSpace;	/* space to project axis in */
+	float		projLimit;		/* distance to search */
+	char 		pad[4];
 } bShrinkwrapConstraint;
 
 /* Follow Track constraints */

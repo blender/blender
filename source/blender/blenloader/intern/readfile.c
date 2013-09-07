@@ -9530,8 +9530,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (MAIN_VERSION_OLDER(main, 267, 1))
-	{
+	if (MAIN_VERSION_OLDER(main, 267, 1)) {
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -9575,9 +9574,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		#undef BRUSH_FIXED
 	}
 	
-	{
+
+	if (!MAIN_VERSION_ATLEAST(main, 268, 4)) {
 		bScreen *sc;
 		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			bConstraint *con;
+			for (con = ob->constraints.first; con; con = con->next) {
+				if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
+					bShrinkwrapConstraint *data = (bShrinkwrapConstraint *)con->data;
+					if      (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) data->projAxis = OB_POSX;
+					else if (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) data->projAxis = OB_POSY;
+					else                                                          data->projAxis = OB_POSZ;
+					data->projAxisSpace = CONSTRAINT_SPACE_LOCAL;
+				}
+			}
+		}
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
