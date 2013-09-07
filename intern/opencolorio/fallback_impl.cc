@@ -54,7 +54,7 @@ OCIO_ConstConfigRcPtr *FallbackImpl::getCurrentConfig(void)
 	return CONFIG_DEFAULT;
 }
 
-void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr *)
+void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/)
 {
 }
 
@@ -63,21 +63,21 @@ OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv(void)
 	return CONFIG_DEFAULT;
 }
 
-OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromFile(const char *)
+OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromFile(const char * /*filename*/)
 {
 	return CONFIG_DEFAULT;
 }
 
-void FallbackImpl::configRelease(OCIO_ConstConfigRcPtr *)
+void FallbackImpl::configRelease(OCIO_ConstConfigRcPtr * /*config*/)
 {
 }
 
-int FallbackImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr *)
+int FallbackImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr * /*config*/)
 {
 	return 2;
 }
 
-const char *FallbackImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *, int index)
+const char *FallbackImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr * /*config*/, int index)
 {
 	if (index == 0)
 		return "Linear";
@@ -87,7 +87,7 @@ const char *FallbackImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *
 	return NULL;
 }
 
-OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *, const char *name)
+OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcPtr * /*config*/, const char *name)
 {
 	if (strcmp(name, "scene_linear") == 0)
 		return COLORSPACE_LINEAR;
@@ -121,17 +121,17 @@ int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, con
 	return -1;
 }
 
-const char *FallbackImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *)
+const char *FallbackImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr * /*config*/)
 {
 	return "sRGB";
 }
 
-int FallbackImpl::configGetNumDisplays(OCIO_ConstConfigRcPtr* config)
+int FallbackImpl::configGetNumDisplays(OCIO_ConstConfigRcPtr * /*config*/)
 {
 	return 1;
 }
 
-const char *FallbackImpl::configGetDisplay(OCIO_ConstConfigRcPtr *, int index)
+const char *FallbackImpl::configGetDisplay(OCIO_ConstConfigRcPtr * /*config*/, int index)
 {
 	if (index == 0)
 		return "sRGB";
@@ -139,17 +139,17 @@ const char *FallbackImpl::configGetDisplay(OCIO_ConstConfigRcPtr *, int index)
 	return NULL;
 }
 
-const char *FallbackImpl::configGetDefaultView(OCIO_ConstConfigRcPtr *, const char *)
+const char *FallbackImpl::configGetDefaultView(OCIO_ConstConfigRcPtr * /*config*/, const char * /*display*/)
 {
 	return "Default";
 }
 
-int FallbackImpl::configGetNumViews(OCIO_ConstConfigRcPtr *, const char *)
+int FallbackImpl::configGetNumViews(OCIO_ConstConfigRcPtr * /*config*/, const char * /*display*/)
 {
 	return 1;
 }
 
-const char *FallbackImpl::configGetView(OCIO_ConstConfigRcPtr *, const char *, int index)
+const char *FallbackImpl::configGetView(OCIO_ConstConfigRcPtr * /*config*/, const char * /*display*/, int index)
 {
 	if (index == 0)
 		return "Default";
@@ -157,22 +157,22 @@ const char *FallbackImpl::configGetView(OCIO_ConstConfigRcPtr *, const char *, i
 	return NULL;
 }
 
-const char *FallbackImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *, const char *, const char *)
+const char *FallbackImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr * /*config*/, const char * /*display*/, const char * /*view*/)
 {
 	return "sRGB";
 }
 
-int FallbackImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs)
+int FallbackImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 	return 1;
 }
 
-int FallbackImpl::colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs)
+int FallbackImpl::colorSpaceIsData(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 	return 0;
 }
 
-void FallbackImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)
+void FallbackImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 }
 
@@ -189,7 +189,7 @@ OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessorWithNames(OCIO_ConstCo
 	return 0;
 }
 
-OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessor(OCIO_ConstConfigRcPtr *, OCIO_ConstTransformRcPtr *tfm)
+OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessor(OCIO_ConstConfigRcPtr * /*config*/, OCIO_ConstTransformRcPtr *tfm)
 {
 	return (OCIO_ConstProcessorRcPtr*)tfm;
 }
@@ -277,7 +277,7 @@ void FallbackImpl::processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *proces
 	}
 }
 
-void FallbackImpl::processorRelease(OCIO_ConstProcessorRcPtr *)
+void FallbackImpl::processorRelease(OCIO_ConstProcessorRcPtr * /*p*/)
 {
 }
 
@@ -291,12 +291,12 @@ const char *FallbackImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
 	return NULL;
 }
 
-const char *FallbackImpl::colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *)
+const char *FallbackImpl::colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 	return "";
 }
 
-const char *FallbackImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *)
+const char *FallbackImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 	return "";
 }
@@ -306,27 +306,27 @@ OCIO_DisplayTransformRcPtr *FallbackImpl::createDisplayTransform(void)
 	return (OCIO_DisplayTransformRcPtr*)PROCESSOR_LINEAR_TO_SRGB;
 }
 
-void FallbackImpl::displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *, const char *)
+void FallbackImpl::displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr * /*dt*/, const char * /*name*/)
 {
 }
 
-void FallbackImpl::displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *, const char *)
+void FallbackImpl::displayTransformSetDisplay(OCIO_DisplayTransformRcPtr * /*dt*/, const char * /*name*/)
 {
 }
 
-void FallbackImpl::displayTransformSetView(OCIO_DisplayTransformRcPtr *, const char *)
+void FallbackImpl::displayTransformSetView(OCIO_DisplayTransformRcPtr * /*dt*/, const char * /*name*/)
 {
 }
 
-void FallbackImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *, OCIO_ConstTransformRcPtr *)
+void FallbackImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr * /*dt*/, OCIO_ConstTransformRcPtr * /*et*/)
 {
 }
 
-void FallbackImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *, OCIO_ConstTransformRcPtr *)
+void FallbackImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr * /*dt*/, OCIO_ConstTransformRcPtr * /*et*/)
 {
 }
 
-void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *)
+void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr * /*dt*/)
 {
 }
 
@@ -356,11 +356,11 @@ OCIO_ExponentTransformRcPtr *FallbackImpl::createExponentTransform(void)
 	return (OCIO_ExponentTransformRcPtr*)PROCESSOR_UNKNOWN;
 }
 
-void FallbackImpl::exponentTransformSetValue(OCIO_ExponentTransformRcPtr *, const float *)
+void FallbackImpl::exponentTransformSetValue(OCIO_ExponentTransformRcPtr * /*et*/, const float * /*exponent*/)
 {
 }
 
-void FallbackImpl::exponentTransformRelease(OCIO_ExponentTransformRcPtr *)
+void FallbackImpl::exponentTransformRelease(OCIO_ExponentTransformRcPtr * /*et*/)
 {
 }
 
@@ -369,15 +369,15 @@ OCIO_MatrixTransformRcPtr *FallbackImpl::createMatrixTransform(void)
 	return (OCIO_MatrixTransformRcPtr*)PROCESSOR_UNKNOWN;
 }
 
-void FallbackImpl::matrixTransformSetValue(OCIO_MatrixTransformRcPtr *, const float *, const float *)
+void FallbackImpl::matrixTransformSetValue(OCIO_MatrixTransformRcPtr * /*mt*/, const float * /*m44*/, const float * /*offset4*/)
 {
 }
 
-void FallbackImpl::matrixTransformRelease(OCIO_MatrixTransformRcPtr *)
+void FallbackImpl::matrixTransformRelease(OCIO_MatrixTransformRcPtr * /*mt*/)
 {
 }
 
-void FallbackImpl::matrixTransformScale(float * , float * , const float *)
+void FallbackImpl::matrixTransformScale(float * /*m44*/, float * /*offset44*/, const float * /*scale4*/)
 {
 }
 
@@ -386,15 +386,15 @@ bool FallbackImpl::supportGLSLDraw(void)
 	return false;
 }
 
-bool FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, bool predivide)
+bool FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState ** /*state_r*/, OCIO_ConstProcessorRcPtr * /*processor*/, bool /*predivide*/)
 {
 	return false;
 }
 
-void FallbackImpl::finishGLSLDraw(OCIO_GLSLDrawState *state)
+void FallbackImpl::finishGLSLDraw(OCIO_GLSLDrawState * /*state*/)
 {
 }
 
-void FallbackImpl::freeGLState(struct OCIO_GLSLDrawState *state_r)
+void FallbackImpl::freeGLState(struct OCIO_GLSLDrawState * /*state*/_r)
 {
 }

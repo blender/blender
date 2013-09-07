@@ -547,7 +547,7 @@ void OCIOImpl::matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt)
 	MEM_DELETE((MatrixTransformRcPtr *) mt, MatrixTransformRcPtr);
 }
 
-void OCIOImpl::matrixTransformScale(float * m44, float * offset4, const float *scale4f)
+void OCIOImpl::matrixTransformScale(float *m44, float *offset4, const float *scale4f)
 {
 	MatrixTransform::Scale(m44, offset4, scale4f);
 }

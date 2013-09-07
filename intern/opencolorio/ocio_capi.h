@@ -116,10 +116,10 @@ void OCIO_exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float
 void OCIO_exponentTransformRelease(OCIO_ExponentTransformRcPtr *et);
 
 OCIO_MatrixTransformRcPtr *OCIO_createMatrixTransform(void);
-void OCIO_matrixTransformSetValue(OCIO_MatrixTransformRcPtr *et, const float *m44, const float *offset4);
+void OCIO_matrixTransformSetValue(OCIO_MatrixTransformRcPtr *mt, const float *m44, const float *offset4);
 void OCIO_matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 
-void OCIO_matrixTransformScale(float * m44, float * offset4, const float * scale4);
+void OCIO_matrixTransformScale(float *m44, float *offset4, const float *scale4);
 
 int OCIO_supportGLSLDraw(void);
 int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, int predivide);
