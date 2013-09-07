@@ -395,6 +395,6 @@ void FallbackImpl::finishGLSLDraw(OCIO_GLSLDrawState * /*state*/)
 {
 }
 
-void FallbackImpl::freeGLState(struct OCIO_GLSLDrawState * /*state*/_r)
+void FallbackImpl::freeGLState(struct OCIO_GLSLDrawState * /*state_r*/)
 {
 }
