@@ -2394,17 +2394,16 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
  * more than 3 vertices */
 static float mean_value_half_tan_v3(const float v1[3], const float v2[3], const float v3[3])
 {
-	float d2[3], d3[3], cross[3], area, dot, len;
+	float d2[3], d3[3], cross[3], area;
 
 	sub_v3_v3v3(d2, v2, v1);
 	sub_v3_v3v3(d3, v3, v1);
 	cross_v3_v3v3(cross, d2, d3);
 
 	area = len_v3(cross);
-	dot = dot_v3v3(d2, d3);
-	len = len_v3(d2) * len_v3(d3);
-
 	if (LIKELY(area != 0.0f)) {
+		const float dot = dot_v3v3(d2, d3);
+		const float len = len_v3(d2) * len_v3(d3);
 		return (len - dot) / area;
 	}
 	else {
@@ -2413,18 +2412,16 @@ static float mean_value_half_tan_v3(const float v1[3], const float v2[3], const 
 }
 static float mean_value_half_tan_v2(const float v1[2], const float v2[2], const float v3[2])
 {
-	float d2[2], d3[2], area, dot, len;
+	float d2[2], d3[2], area;
 
 	sub_v2_v2v2(d2, v2, v1);
 	sub_v2_v2v2(d3, v3, v1);
 
 	/* different from the 3d version but still correct */
 	area = cross_v2v2(d2, d3);
-
-	dot = dot_v2v2(d2, d3);
-	len = len_v2(d2) * len_v2(d3);
-
 	if (LIKELY(area != 0.0f)) {
+		const float dot = dot_v2v2(d2, d3);
+		const float len = len_v2(d2) * len_v2(d3);
 		return (len - dot) / area;
 	}
 	else {

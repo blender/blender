@@ -925,7 +925,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* preview */
 	if (node->flag & NODE_PREVIEW && previews) {
 		bNodePreview *preview = BKE_node_instance_hash_lookup(previews, key);
-		if (preview->xsize && preview->ysize) {
+		if (preview && (preview->xsize && preview->ysize)) {
 			if (preview->rect && !BLI_rctf_is_empty(&node->prvr)) {
 				node_draw_preview(preview, &node->prvr);
 			}
