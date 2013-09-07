@@ -207,10 +207,11 @@ void WM_jobs_kill_all_except(struct wmWindowManager *wm) {STUB_ASSERT(0);}
 char *WM_clipboard_text_get(int selection) {STUB_ASSERT(0); return (char *)0;}
 void WM_clipboard_text_set(char *buf, int selection) {STUB_ASSERT(0);}
 
-void	WM_cursor_set(struct wmWindow *win, int curor) {STUB_ASSERT(0);}
-void	WM_cursor_modal_set(struct wmWindow *win, int curor) {STUB_ASSERT(0);}
-void	WM_cursor_modal_restore(struct wmWindow *win) {STUB_ASSERT(0);}
-void	WM_cursor_time(struct wmWindow *win, int nr) {STUB_ASSERT(0);}
+void WM_cursor_set(struct wmWindow *win, int curor) {STUB_ASSERT(0);}
+void WM_cursor_modal_set(struct wmWindow *win, int curor) {STUB_ASSERT(0);}
+void WM_cursor_modal_restore(struct wmWindow *win) {STUB_ASSERT(0);}
+void WM_cursor_time(struct wmWindow *win, int nr) {STUB_ASSERT(0);}
+void WM_cursor_warp(struct wmWindow *win, int x, int y) {STUB_ASSERT(0);}
 
 void                WM_uilisttype_init(void) {STUB_ASSERT(0);}
 struct uiListType  *WM_uilisttype_find(const char *idname, int quiet) {STUB_ASSERT(0); return (struct uiListType *)NULL;}
