@@ -41,6 +41,7 @@ set(SRC_HEADERS
 	kernel_object.h
 	kernel_passes.h
 	kernel_path.h
+	kernel_path_state.h
 	kernel_primitive.h
 	kernel_projection.h
 	kernel_random.h
