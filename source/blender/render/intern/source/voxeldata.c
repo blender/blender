@@ -109,8 +109,8 @@ static int load_frame_blendervoxel(VoxelData *vd, FILE *fp, int frame)
 static int load_frame_raw8(VoxelData *vd, FILE *fp, int frame)
 {
 	const size_t size = vd_resol_size(vd);
+	size_t i;
 	char *data_c;
-	int i;
 
 	if (is_vd_res_ok(vd) == FALSE)
 		return 0;

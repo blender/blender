@@ -568,7 +568,7 @@ static void bm_grid_fill(BMesh *bm,
 
 static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 {
-	return BMO_elem_flag_test((BMesh *)bm_v, e, EDGE_MARK);
+	return BMO_elem_flag_test_bool((BMesh *)bm_v, e, EDGE_MARK);
 }
 
 static bool bm_edge_test_rail_cb(BMEdge *e, void *UNUSED(bm_v))
@@ -686,6 +686,8 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	             mat_nr, use_smooth, use_interp_simple);
 
 	change = true;
+
+
 cleanup:
 	BM_mesh_edgeloops_free(&eloops);
 	BM_mesh_edgeloops_free(&eloops_rail);
