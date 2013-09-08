@@ -232,7 +232,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 }
 
 
-#if defined(__BRANCHED_PATH__) || defined(__BSSRDF__)
+#if defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__)
 
 __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
 	float3 throughput, int num_samples, int num_total_samples,
@@ -290,7 +290,9 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		shader_setup_from_ray(kg, &sd, &isect, &ray, state.bounce);
 		float rbsdf = path_rng_1D(kg, rng, sample, num_total_samples, rng_offset + PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_INDIRECT);
+#ifdef __BRANCHED_PATH__
 		shader_merge_closures(kg, &sd);
+#endif
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
 		 * of following this particular path (diffuse, rough glossy) */
