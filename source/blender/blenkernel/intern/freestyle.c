@@ -52,7 +52,7 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
 
 	config->modules.first = config->modules.last = NULL;
 	config->flags = 0;
-	config->sphere_radius = 1.0f;
+	config->sphere_radius = 0.1f;
 	config->dkr_epsilon = 0.0f;
 	config->crease_angle = DEG2RADF(134.43f);
 
