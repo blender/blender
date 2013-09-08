@@ -273,7 +273,7 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	if (!ofile) return 0;
 
 	putShortLSB(19778, ofile); /* "BM" */
-	putIntLSB(0, ofile); /* This can be 0 for BI_RGB bitmaps */
+	putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile);  /* Total file size */
 	putShortLSB(0, ofile); /* Res1 */
 	putShortLSB(0, ofile); /* Res2 */
 	putIntLSB(BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile);
@@ -284,7 +284,7 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	putShortLSB(1, ofile);
 	putShortLSB(24, ofile);
 	putIntLSB(0, ofile);
-	putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile);
+	putIntLSB(bytesize, ofile);
 	putIntLSB((int)(ibuf->ppm[0] + 0.5), ofile);
 	putIntLSB((int)(ibuf->ppm[1] + 0.5), ofile);
 	putIntLSB(0, ofile);
