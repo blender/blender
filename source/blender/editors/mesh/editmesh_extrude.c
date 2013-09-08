@@ -836,6 +836,8 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	copy_v3_v3(nor, obedit->obmat[2]);
+
 	/* calculate dvec */
 	mul_v3_m4v3(v1_co_global, obedit->obmat, v1->co);
 	mul_v3_m4v3(v2_co_global, obedit->obmat, v2->co);
