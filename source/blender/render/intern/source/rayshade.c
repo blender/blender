@@ -2317,9 +2317,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 		}
 		
 		copy_v3_v3(isec->start, start);
-		isec->dir[0] = end[0]-isec->start[0];
-		isec->dir[1] = end[1]-isec->start[1];
-		isec->dir[2] = end[2]-isec->start[2];
+		sub_v3_v3v3(isec->dir, end, start);
 		isec->dist = normalize_v3(isec->dir);
 		
 		if (shi->obi->flag & R_ENV_TRANSFORMED)

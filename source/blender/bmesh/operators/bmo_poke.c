@@ -65,7 +65,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 			break;
 		default:
 			BLI_assert(0);
-			break;
+			return;
 	}
 
 	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
