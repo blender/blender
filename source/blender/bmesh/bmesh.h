@@ -45,9 +45,9 @@
  * \subsection bm_header_flags Header Flags
  * Each element (vertex/edge/face/loop) in a mesh has an associated bit-field called "header flags".
  *
- * BMHeader flags should <b>never</b> be read or written to by bmesh operators (see Operators below).
+ * BMHeader flags should **never** be read or written to by bmesh operators (see Operators below).
  *
- * Access to header flags is done with BM_elem_flag_*() functions.
+ * Access to header flags is done with ``BM_elem_flag_*()`` functions.
  *
  *
  * \subsection bm_faces Faces
@@ -64,7 +64,8 @@
  * Loops store several handy pointers:
  *
  * - BMLoop#v - pointer to the vertex associated with this loop.
- * - BMLoop#e - pointer to the edge associated with this loop.
+ * - BMLoop#e - pointer to the edge associated with this loop,
+ *   between verts ``(loop->v, loop->next->v)``
  * - BMLoop#f - pointer to the face associated with this loop.
  *
  *
@@ -124,14 +125,14 @@
  * \subsection bm_ops Operators
  *
  * Operators are an integral part of BMesh. Unlike regular blender operators,
- * BMesh operators <b>bmo's</b> are designed to be nested (e.g. call other operators).
+ * BMesh operators **bmo's** are designed to be nested (e.g. call other operators).
  *
  * Each operator has a number of input/output "slots" which are used to pass settings & data into/out of the operator
  * (and allows for chaining operators together).
  *
  * These slots are identified by name, using strings.
  *
- * Access to slots is done with BMO_slot_*() functions.
+ * Access to slots is done with ``BMO_slot_***()`` functions.
  *
  *
  * \subsection bm_tool_flags Tool Flags
@@ -145,9 +146,9 @@
  * These flags should not be confused with header flags, which are used to store persistent flags
  * (e.g. selection, hide status, etc).
  *
- * Access to tool flags is done with BMO_elem_flag_*() functions.
+ * Access to tool flags is done with ``BMO_elem_flag_***()`` functions.
  *
- * \warning Operators are never allowed to read or write to header flags.
+ * \warning Operators are **never** allowed to read or write to header flags.
  * They act entirely on the data inside their input slots.
  * For example an operator should not check the selected state of an element,
  * there are some exceptions to this - some operators check of a face is smooth.
@@ -161,8 +162,10 @@
  * - boolean - #BMO_OP_SLOT_BOOL
  * - float   - #BMO_OP_SLOT_FLT
  * - pointer - #BMO_OP_SLOT_PNT
- * - element buffer - #BMO_OP_SLOT_ELEMENT_BUF - a list of verts/edges/faces
- * - map     - BMO_OP_SLOT_MAPPING - simple hash map
+ * - matrix  - #BMO_OP_SLOT_MAT
+ * - vector  - #BMO_OP_SLOT_VEC
+ * - buffer  - #BMO_OP_SLOT_ELEMENT_BUF - a list of verts/edges/faces.
+ * - map     - BMO_OP_SLOT_MAPPING - simple hash map.
  *
  *
  * \subsection bm_slot_iter Slot Iterators
@@ -185,33 +188,25 @@
  *
  * These conventions should be used throughout the bmesh module.
  *
- * - BM_xxx() -     High level BMesh API function for use anywhere.
- * - bmesh_xxx() -  Low level API function.
- * - bm_xxx() -     'static' functions, not apart of the API at all, but use prefix since they operate on BMesh data.
- * - BMO_xxx() -    High level operator API function for use anywhere.
- * - bmo_xxx() -    Low level / internal operator API functions.
- * - _bm_xxx() -    Functions which are called via macros only.
+ * - ``BM_***()`` -     High level BMesh API function for use anywhere.
+ * - ``bmesh_***()`` -  Low level API function.
+ * - ``bm_***()`` -     'static' functions, not apart of the API at all, but use prefix since they operate on BMesh data.
+ * - ``BMO_***()`` -    High level operator API function for use anywhere.
+ * - ``bmo_***()`` -    Low level / internal operator API functions.
+ * - ``_bm_***()`` -    Functions which are called via macros only.
  *
  * \section bm_todo BMesh TODO's
  *
  * There may be a better place for this section, but adding here for now.
- *
- * \subsection bm_todo_api API
- *
- * - make crease and bevel weight optional, they come for free in meshes but are allocated layers
- *   in the bmesh data structure.
- *
  *
  * \subsection bm_todo_tools Tools
  *
  * Probably most of these will be bmesh operators.
  *
  * - make ngons flat.
- * - make ngons into tris/quads (ngon poke?), many methods could be used here (triangulate/fan/quad-fan).
  * - solidify (precise mode), keeps even wall thickness, re-creates outlines of offset faces with plane-plane
  *   intersections.
- * - split vert (we already have in our API, just no tool)
- * - bridge (add option to bridge between different edge loop counts, option to remove selected face regions)
+ * - split vert (we already have in our API, just no tool).
  * - flip selected region (invert all faces about the plane defined by the selected region outline)
  * - interactive dissolve (like the knife tool but draw over edges to dissolve)
  *
@@ -223,15 +218,11 @@
  * - ability to call BMO's with option not to create return data (will save some time)
  * - binary diff UNDO, currently this uses huge amount of ram when all shapes are stored for each undo step for eg.
  * - use two different iterator types for BMO map/buffer types.
- * - avoid string lookups for BMO slot lookups _especially_ when used in loops, this is very crappy.
  *
  *
  * \subsection bm_todo_tools_enhance Tool Enhancements
  *
- * - face inset interpolate loop data from face (currently copies - but this stretches UV's in an ugly way)
  * - vert slide UV correction (like we have for edge slide)
- * - fill-face edge net - produce consistent normals, currently it won't, fix should be to fill in edge-net node
- *   connected with previous one - since they already check for normals of adjacent edge-faces before creating.
  */
 
 #ifdef __cplusplus
