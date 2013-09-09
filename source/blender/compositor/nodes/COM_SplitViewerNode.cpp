@@ -35,9 +35,8 @@ SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
-	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC) &&
-	                  (editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup()) ||
-	                 context->isRendering();
+	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC || context->isRendering()) &&
+	                  (editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 
 	InputSocket *image1Socket = this->getInputSocket(0);
 	InputSocket *image2Socket = this->getInputSocket(1);
