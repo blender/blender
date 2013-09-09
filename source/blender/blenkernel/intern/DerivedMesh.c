@@ -438,9 +438,9 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 
-	int mf_idx,
-	    totface = dm->getNumTessFaces(dm),
-	    ml_idx[4];
+	const int totface = dm->getNumTessFaces(dm);
+	int mf_idx;
+	int ml_idx[4];
 
 	/* Should never occure, but better abort than segfault! */
 	if (!polyindex)

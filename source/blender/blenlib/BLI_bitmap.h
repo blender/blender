@@ -54,17 +54,17 @@ typedef unsigned int BLI_bitmap;
 /* get the value of a single bit at '_index' */
 #define BLI_BITMAP_GET(_bitmap, _index) \
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] & \
-	 (1 << ((_index) & BLI_BITMAP_MASK)))
+	 (1u << ((_index) & BLI_BITMAP_MASK)))
 
 /* set the value of a single bit at '_index' */
 #define BLI_BITMAP_SET(_bitmap, _index) \
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] |= \
-	 (1 << ((_index) & BLI_BITMAP_MASK)))
+	 (1u << ((_index) & BLI_BITMAP_MASK)))
 
 /* clear the value of a single bit at '_index' */
 #define BLI_BITMAP_CLEAR(_bitmap, _index) \
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] &= \
-	 ~(1 << ((_index) & BLI_BITMAP_MASK)))
+	 ~(1u << ((_index) & BLI_BITMAP_MASK)))
 
 /* set or clear the value of a single bit at '_index' */
 #define BLI_BITMAP_MODIFY(_bitmap, _index, _set) \
