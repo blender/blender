@@ -42,10 +42,7 @@ if env['WITH_BF_LIBMV']:
 else:
     src = env.Glob("libmv-capi_stub.cc")
 
-if (env['OURPLATFORM'] == 'darwin' and env['XCODE_CUR_VER'] > 4):  # Apple LLVM version 5.0 (clang-500.1.74) (based on LLVM 3.3svn)
-    env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137], cc_compileflags=env['CCFLAGS'].append('-ftemplate-depth=1024') )
-else:
-    env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
+env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
 if env['WITH_BF_LIBMV']:
     SConscript(['third_party/SConscript'])
