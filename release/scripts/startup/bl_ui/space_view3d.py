@@ -2781,9 +2781,9 @@ class VIEW3D_PT_view3d_curvedisplay(Panel):
         curve = context.active_object.data
 
         col = layout.column()
-        col.label(text="Overlays:")
-        col.prop(curve, "show_handles", text="Handles")
-        col.prop(curve, "show_normal_face", text="Normals")
+        row = col.row()
+        row.prop(curve, "show_handles", text="Handles")
+        row.prop(curve, "show_normal_face", text="Normals")
         col.prop(context.scene.tool_settings, "normal_size", text="Normal Size")
 
 
