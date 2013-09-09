@@ -440,8 +440,8 @@ static const int g_iCells = 2048;
 static NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
 	const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
-	const int iIndex = fIndex<0?0:((int)fIndex);
-	return iIndex<g_iCells?iIndex:(g_iCells-1);
+	const int iIndex = (int)fIndex;
+	return iIndex < g_iCells ? (iIndex >= 0 ? iIndex : 0) : (g_iCells - 1);
 }
 
 static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);
