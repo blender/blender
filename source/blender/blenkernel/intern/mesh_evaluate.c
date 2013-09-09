@@ -42,7 +42,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_scanfill.h"
 #include "BLI_alloca.h"
-#include "BLI_array.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
@@ -1288,13 +1287,15 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	int k;
 
 	MPoly *mp, *mpoly;
-	MFace *mface = NULL, *mf;
-	BLI_array_declare(mface);
+	MFace *mface, *mf;
 
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
+
+	/* over-alloc, ngons will be skipped */
+	mface = MEM_mallocN(sizeof(*mface) * (size_t)totpoly, __func__);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -1303,7 +1304,6 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	k = 0;
 	for (i = 0; i < totpoly; i++, mp++) {
 		if (ELEM(mp->totloop, 3, 4)) {
-			BLI_array_grow_one(mface);
 			mf = &mface[k];
 
 			mf->mat_nr = mp->mat_nr;
