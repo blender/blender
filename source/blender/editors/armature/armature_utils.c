@@ -488,7 +488,6 @@ void ED_armature_from_edit(Object *obedit)
 			/* don't change active selection, this messes up separate which uses
 			 * editmode toggle and can separate active bone which is de-selected originally */
 			/* newBone->flag |= BONE_SELECTED; */ /* important, editbones can be active with only 1 point selected */
-			arm->act_edbone = NULL;
 			arm->act_bone = newBone;
 		}
 		newBone->roll = 0.0f;
@@ -575,6 +574,7 @@ void ED_armature_edit_free(struct Object *ob)
 		}
 		MEM_freeN(arm->edbo);
 		arm->edbo = NULL;
+		arm->act_edbone = NULL;
 	}
 }
 
