@@ -2371,12 +2371,11 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;
 	ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
-	ListBase *old_tracks, *plane_tracks;
+	ListBase *old_tracks;
 	int a;
 
 	if (map->is_camera) {
 		old_tracks = &tracking->tracks;
-		plane_tracks = &tracking->plane_tracks;
 	}
 	else {
 		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
@@ -2387,7 +2386,6 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		}
 
 		old_tracks = &object->tracks;
-		plane_tracks = &object->plane_tracks;
 	}
 
 	/* duplicate currently operating tracks to temporary list.
@@ -2405,7 +2403,6 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		if (old_track) {
 			if (BLI_findindex(old_tracks, old_track) != -1) {
 				BLI_remlink(old_tracks, old_track);
-				BLI_addtail(&tracks, old_track);
 
 				/* Copy flags like selection back to the track map. */
 				track->flag = old_track->flag;
@@ -2416,6 +2413,8 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 				MEM_freeN(old_track->markers);
 				*old_track = *track;
 				old_track->markers = MEM_dupallocN(old_track->markers);
+
+				BLI_addtail(&tracks, old_track);
 
 				mapped_to_old = true;
 			}
@@ -2436,10 +2435,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 	track = old_tracks->first;
 	while (track) {
 		MovieTrackingTrack *next = track->next;
-
-		track->next = track->prev = NULL;
 		BLI_addtail(&new_tracks, track);
-
 		track = next;
 	}
 
