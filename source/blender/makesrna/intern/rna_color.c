@@ -980,7 +980,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem look_items[] = {
-		{0, "NONE", 0, "None", "Do not modify image in an artistics manner"},
+		{0, "NONE", 0, "None", "Do not modify image in an artistic manner"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1015,7 +1015,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_look_get",
 	                                  "rna_ColorManagedViewSettings_look_set",
 	                                  "rna_ColorManagedViewSettings_look_itemf");
-	RNA_def_property_ui_text(prop, "Look", "Additional tarnsform applyed before view transform for an artistics needs");
+	RNA_def_property_ui_text(prop, "Look", "Additional transform applied before view transform for an artistic needs");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);

@@ -71,6 +71,7 @@ class SpellChecker():
         "backscattered",
         "bandnoise",
         "bindcode",
+        "bitflag", "bitflags",
         "bitrate",
         "blackbody",
         "blendfile",
@@ -432,6 +433,7 @@ class SpellChecker():
         "catrom",
         "chebychev",
         "courant",
+        "hosek",
         "kutta",
         "lennard",
         "minkowski",
@@ -440,10 +442,12 @@ class SpellChecker():
         "nayar",
         "netravali",
         "oren",
+        "preetham",
         "prewitt",
         "runge",
         "sobol",
         "verlet",
+        "wilkie",
         "worley",
 
         # Acronyms

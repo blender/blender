@@ -1121,7 +1121,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				/* window is needed for invoke, cancel operator */
 				if (window == NULL) {
 					if (poll_only) {
-						CTX_wm_operator_poll_msg_set(C, "missing 'window' in context");
+						CTX_wm_operator_poll_msg_set(C, "Missing 'window' in context");
 					}
 					return 0;
 				}

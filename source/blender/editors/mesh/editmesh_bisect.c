@@ -78,7 +78,7 @@ static bool mesh_bisect_interactive_calc(
 	int x_end = RNA_int_get(op->ptr, "xend");
 	int y_end = RNA_int_get(op->ptr, "yend");
 
-	/* reference location (some point infront of the view) for finding a point on a plane */
+	/* reference location (some point in front of the view) for finding a point on a plane */
 	const float *co_ref = rv3d->ofs;
 	float co_a_ss[2] = {x_start, y_start}, co_b_ss[2] = {x_end, y_end}, co_delta_ss[2];
 	float co_a[3], co_b[3];
@@ -323,7 +323,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill in the cut");
 	RNA_def_boolean(ot->srna, "clear_inner", false, "Clear Inner", "Remove geometry behind the plane");
-	RNA_def_boolean(ot->srna, "clear_outer", false, "Clear Outer", "Remove geometry infront of the plane");
+	RNA_def_boolean(ot->srna, "clear_outer", false, "Clear Outer", "Remove geometry in front of the plane");
 
 	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold", "", 0.00001, 0.1);
 
