@@ -2220,7 +2220,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			case BACKSPACEKEY:
 				changed = ui_textedit_delete(but, data, 0,
-				                             event->shift ? STRCUR_JUMP_ALL : (event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE));
+				                             event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 				
