@@ -623,6 +623,7 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 /* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
 static float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
 {
+	curvemap_initialize(cuma);
 	return curvemap_evaluateF(cuma, value);
 }
 

@@ -878,6 +878,19 @@ void curvemapping_initialize(CurveMapping *cumap)
 	}
 }
 
+void curvemap_initialize(CurveMap *cuma)
+{
+	if (cuma->table == NULL) {
+		rctf clipr;
+		/* clip rectangle is not available here, but we can use a temporary
+		 * rectangle with the same min/max values */
+		clipr.xmin = cuma->mintable;
+		clipr.xmax = cuma->maxtable;
+
+		curvemap_make_table(cuma, &clipr);
+	}
+}
+
 void curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size)
 {
 	int a;
