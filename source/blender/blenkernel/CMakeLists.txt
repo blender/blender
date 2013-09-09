@@ -115,6 +115,7 @@ set(SRC
 	intern/material.c
 	intern/mball.c
 	intern/mesh.c
+	intern/mesh_evaluate.c
 	intern/mesh_validate.c
 	intern/modifier.c
 	intern/modifiers_bmesh.c

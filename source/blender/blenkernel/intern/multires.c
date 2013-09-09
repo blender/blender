@@ -1645,6 +1645,11 @@ void multires_free(Multires *mr)
 	}
 }
 
+typedef struct IndexNode {
+	struct IndexNode *next, *prev;
+	int index;
+} IndexNode;
+
 static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const MultiresFace *mface,
                                      const int totvert, const int totface)
 {

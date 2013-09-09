@@ -49,7 +49,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#define SELECT 1
+/* loop v/e are unsigned, so using max uint_32 value as invalid marker... */
+#define INVALID_LOOP_EDGE_MARKER 4294967295u
+
+
+/** \name Internal functions
+ * \{ */
 
 typedef union {
 	uint32_t verts[2];
@@ -181,6 +186,14 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 	/* Else, sort on loopstart. */
 	return sp1->loopstart > sp2->loopstart ? 1 : sp1->loopstart < sp2->loopstart ? -1 : 0;
 }
+/** \} */
+
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Mesh Validation
+ * \{ */
 
 #define PRINT_MSG(...) (void) \
 	( \
@@ -960,6 +973,331 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 		return false;
 	}
 }
+/** \} */
+
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Mesh Stripping (removing invalid data)
+ * \{ */
+
+/* We need to keep this for edge creation (for now?), and some old readfile code... */
+void BKE_mesh_strip_loose_faces(Mesh *me)
+{
+	MFace *f;
+	int a, b;
+
+	for (a = b = 0, f = me->mface; a < me->totface; a++, f++) {
+		if (f->v3) {
+			if (a != b) {
+				memcpy(&me->mface[b], f, sizeof(me->mface[b]));
+				CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
+			}
+			b++;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->fdata, b, a - b);
+		me->totface = b;
+	}
+}
+
+/* Works on both loops and polys! */
+/* Note: It won't try to guess which loops of an invalid poly to remove!
+ *       this is the work of the caller, to mark those loops...
+ *       See e.g. BKE_mesh_validate_arrays(). */
+void BKE_mesh_strip_loose_polysloops(Mesh *me)
+{
+	MPoly *p;
+	MLoop *l;
+	int a, b;
+	/* New loops idx! */
+	int *new_idx = MEM_mallocN(sizeof(int) * me->totloop, __func__);
+
+	for (a = b = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
+		int invalid = FALSE;
+		int i = p->loopstart;
+		int stop = i + p->totloop;
+
+		if (stop > me->totloop || stop < i) {
+			invalid = TRUE;
+		}
+		else {
+			l = &me->mloop[i];
+			i = stop - i;
+			/* If one of the poly's loops is invalid, the whole poly is invalid! */
+			for (; i--; l++) {
+				if (l->e == INVALID_LOOP_EDGE_MARKER) {
+					invalid = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (p->totloop >= 3 && !invalid) {
+			if (a != b) {
+				memcpy(&me->mpoly[b], p, sizeof(me->mpoly[b]));
+				CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
+			}
+			b++;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->pdata, b, a - b);
+		me->totpoly = b;
+	}
+
+	/* And now, get rid of invalid loops. */
+	for (a = b = 0, l = me->mloop; a < me->totloop; a++, l++) {
+		if (l->e != INVALID_LOOP_EDGE_MARKER) {
+			if (a != b) {
+				memcpy(&me->mloop[b], l, sizeof(me->mloop[b]));
+				CustomData_copy_data(&me->ldata, &me->ldata, a, b, 1);
+			}
+			new_idx[a] = b;
+			b++;
+		}
+		else {
+			/* XXX Theoretically, we should be able to not do this, as no remaining poly
+			 *     should use any stripped loop. But for security's sake... */
+			new_idx[a] = -a;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->ldata, b, a - b);
+		me->totloop = b;
+	}
+
+	/* And now, update polys' start loop index. */
+	/* Note: At this point, there should never be any poly using a striped loop! */
+	for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
+		p->loopstart = new_idx[p->loopstart];
+	}
+
+	MEM_freeN(new_idx);
+}
+
+void BKE_mesh_strip_loose_edges(Mesh *me)
+{
+	MEdge *e;
+	MLoop *l;
+	int a, b;
+	unsigned int *new_idx = MEM_mallocN(sizeof(int) * me->totedge, __func__);
+
+	for (a = b = 0, e = me->medge; a < me->totedge; a++, e++) {
+		if (e->v1 != e->v2) {
+			if (a != b) {
+				memcpy(&me->medge[b], e, sizeof(me->medge[b]));
+				CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
+			}
+			new_idx[a] = b;
+			b++;
+		}
+		else {
+			new_idx[a] = INVALID_LOOP_EDGE_MARKER;
+		}
+	}
+	if (a != b) {
+		CustomData_free_elem(&me->edata, b, a - b);
+		me->totedge = b;
+	}
+
+	/* And now, update loops' edge indices. */
+	/* XXX We hope no loop was pointing to a striped edge!
+	 *     Else, its e will be set to INVALID_LOOP_EDGE_MARKER :/ */
+	for (a = 0, l = me->mloop; a < me->totloop; a++, l++) {
+		l->e = new_idx[l->e];
+	}
+
+	MEM_freeN(new_idx);
+}
+/** \} */
+
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Mesh Edge Calculation
+ * \{ */
+
+/* make edges in a Mesh, for outside of editmode */
+
+struct EdgeSort {
+	unsigned int v1, v2;
+	char is_loose, is_draw;
+};
+
+/* edges have to be added with lowest index first for sorting */
+static void to_edgesort(struct EdgeSort *ed,
+                        unsigned int v1, unsigned int v2,
+                        char is_loose, short is_draw)
+{
+	if (v1 < v2) {
+		ed->v1 = v1; ed->v2 = v2;
+	}
+	else {
+		ed->v1 = v2; ed->v2 = v1;
+	}
+	ed->is_loose = is_loose;
+	ed->is_draw = is_draw;
+}
+
+static int vergedgesort(const void *v1, const void *v2)
+{
+	const struct EdgeSort *x1 = v1, *x2 = v2;
+
+	if (x1->v1 > x2->v1) return 1;
+	else if (x1->v1 < x2->v1) return -1;
+	else if (x1->v2 > x2->v2) return 1;
+	else if (x1->v2 < x2->v2) return -1;
+
+	return 0;
+}
+
+
+/* Create edges based on known verts and faces,
+ * this function is only used when loading very old blend files */
+
+static void mesh_calc_edges_mdata(
+        MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
+        MPoly *allpoly, int UNUSED(totvert), int totface, int UNUSED(totloop), int totpoly,
+        const bool use_old,
+        MEdge **r_medge, int *r_totedge)
+{
+	MPoly *mpoly;
+	MFace *mface;
+	MEdge *medge, *med;
+	EdgeHash *hash;
+	struct EdgeSort *edsort, *ed;
+	int a, totedge = 0;
+	unsigned int totedge_final = 0;
+	unsigned int edge_index;
+
+	/* we put all edges in array, sort them, and detect doubles that way */
+
+	for (a = totface, mface = allface; a > 0; a--, mface++) {
+		if (mface->v4) totedge += 4;
+		else if (mface->v3) totedge += 3;
+		else totedge += 1;
+	}
+
+	if (totedge == 0) {
+		/* flag that mesh has edges */
+		(*r_medge) = MEM_callocN(0, __func__);
+		(*r_totedge) = 0;
+		return;
+	}
+
+	ed = edsort = MEM_mallocN(totedge * sizeof(struct EdgeSort), "EdgeSort");
+
+	for (a = totface, mface = allface; a > 0; a--, mface++) {
+		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
+		if (mface->v4) {
+			to_edgesort(ed++, mface->v2, mface->v3, 0, mface->edcode & ME_V2V3);
+			to_edgesort(ed++, mface->v3, mface->v4, 0, mface->edcode & ME_V3V4);
+			to_edgesort(ed++, mface->v4, mface->v1, 0, mface->edcode & ME_V4V1);
+		}
+		else if (mface->v3) {
+			to_edgesort(ed++, mface->v2, mface->v3, 0, mface->edcode & ME_V2V3);
+			to_edgesort(ed++, mface->v3, mface->v1, 0, mface->edcode & ME_V3V1);
+		}
+	}
+
+	qsort(edsort, totedge, sizeof(struct EdgeSort), vergedgesort);
+
+	/* count final amount */
+	for (a = totedge, ed = edsort; a > 1; a--, ed++) {
+		/* edge is unique when it differs from next edge, or is last */
+		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) totedge_final++;
+	}
+	totedge_final++;
+
+	medge = MEM_callocN(sizeof(MEdge) * totedge_final, __func__);
+
+	for (a = totedge, med = medge, ed = edsort; a > 1; a--, ed++) {
+		/* edge is unique when it differs from next edge, or is last */
+		if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) {
+			med->v1 = ed->v1;
+			med->v2 = ed->v2;
+			if (use_old == false || ed->is_draw) med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+			if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
+
+			/* order is swapped so extruding this edge as a surface wont flip face normals
+			 * with cyclic curves */
+			if (ed->v1 + 1 != ed->v2) {
+				SWAP(unsigned int, med->v1, med->v2);
+			}
+			med++;
+		}
+		else {
+			/* equal edge, we merge the drawflag */
+			(ed + 1)->is_draw |= ed->is_draw;
+		}
+	}
+	/* last edge */
+	med->v1 = ed->v1;
+	med->v2 = ed->v2;
+	med->flag = ME_EDGEDRAW;
+	if (ed->is_loose) med->flag |= ME_LOOSEEDGE;
+	med->flag |= ME_EDGERENDER;
+
+	MEM_freeN(edsort);
+
+	/* set edge members of mloops */
+	hash = BLI_edgehash_new_ex(__func__, totedge_final);
+	for (edge_index = 0, med = medge; edge_index < totedge_final; edge_index++, med++) {
+		BLI_edgehash_insert(hash, med->v1, med->v2, SET_UINT_IN_POINTER(edge_index));
+	}
+
+	mpoly = allpoly;
+	for (a = 0; a < totpoly; a++, mpoly++) {
+		MLoop *ml, *ml_next;
+		int i = mpoly->totloop;
+
+		ml_next = allloop + mpoly->loopstart;  /* first loop */
+		ml = &ml_next[i - 1];                  /* last loop */
+
+		while (i-- != 0) {
+			ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
+			ml = ml_next;
+			ml_next++;
+		}
+	}
+
+	BLI_edgehash_free(hash, NULL);
+
+	*r_medge = medge;
+	*r_totedge = totedge_final;
+}
+
+/**
+ * If the mesh is from a very old blender version,
+ * convert mface->edcode to edge drawflags
+ */
+void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
+{
+	MEdge *medge;
+	int totedge = 0;
+
+	mesh_calc_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly,
+	                      me->totvert, me->totface, me->totloop, me->totpoly,
+	                      use_old, &medge, &totedge);
+
+	if (totedge == 0) {
+		/* flag that mesh has edges */
+		me->medge = medge;
+		me->totedge = 0;
+		return;
+	}
+
+	medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, totedge);
+	me->medge = medge;
+	me->totedge = totedge;
+
+	BKE_mesh_strip_loose_faces(me);
+}
+
 
 /**
  * Calculate edges from polygons
@@ -1055,3 +1393,4 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 
 	BLI_edgehash_free(eh, NULL);
 }
+/** \} */
