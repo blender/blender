@@ -132,6 +132,31 @@ const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, c
 	return impl->configGetDisplayColorSpaceName(config, display, view);
 }
 
+int OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config)
+{
+	return impl->configGetNumLooks(config);
+}
+
+const char *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index)
+{
+	return impl->configGetLookNameByIndex(config, index);
+}
+
+OCIO_ConstLookRcPtr *OCIO_configGetLook(OCIO_ConstConfigRcPtr *config, const char *name)
+{
+	return impl->configGetLook(config, name);
+}
+
+const char *OCIO_lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
+{
+	return impl->lookGetProcessSpace(look);
+}
+
+void OCIO_lookRelease(OCIO_ConstLookRcPtr *look)
+{
+	impl->lookRelease(look);
+}
+
 int OCIO_colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs)
 {
 	return impl->colorSpaceIsInvertible(cs);
@@ -230,6 +255,16 @@ void OCIO_displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_Cons
 void OCIO_displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *t)
 {
 	impl->displayTransformSetLinearCC(dt, t);
+}
+
+void OCIO_displayTransformSetLooksOverride(OCIO_DisplayTransformRcPtr *dt, const char *looks)
+{
+	impl->displayTransformSetLooksOverride(dt, looks);
+}
+
+void OCIO_displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransformRcPtr *dt, bool enabled)
+{
+	impl->displayTransformSetLooksOverrideEnabled(dt, enabled);
 }
 
 void OCIO_displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)

@@ -52,6 +52,7 @@ OCIO_DECLARE_HANDLE(OCIO_DisplayTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_ConstTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_ExponentTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_MatrixTransformRcPtr);
+OCIO_DECLARE_HANDLE(OCIO_ConstLookRcPtr);
 
 void OCIO_init(void);
 void OCIO_exit(void);
@@ -83,6 +84,13 @@ int         OCIO_configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *di
 const char *OCIO_configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
 const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
 
+int                  OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config);
+const char          *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
+OCIO_ConstLookRcPtr *OCIO_configGetLook(OCIO_ConstConfigRcPtr *config, const char *name);
+
+const char *OCIO_lookGetProcessSpace(OCIO_ConstLookRcPtr *look);
+void OCIO_lookRelease(OCIO_ConstLookRcPtr *look);
+
 OCIO_ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config, const char *srcName, const char *dstName);
 OCIO_ConstProcessorRcPtr *OCIO_configGetProcessor(OCIO_ConstConfigRcPtr *config, OCIO_ConstTransformRcPtr *transform);
 
@@ -104,6 +112,8 @@ void OCIO_displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char 
 void OCIO_displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name);
 void OCIO_displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
 void OCIO_displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
+void OCIO_displayTransformSetLooksOverride(OCIO_DisplayTransformRcPtr *dt, const char *looks);
+void OCIO_displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransformRcPtr *dt, bool enabled);
 void OCIO_displayTransformRelease(OCIO_DisplayTransformRcPtr *dt);
 
 OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,

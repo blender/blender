@@ -130,6 +130,10 @@ const char *IMB_colormanagement_display_get_none_name(void);
 int IMB_colormanagement_view_get_named_index(const char *name);
 const char *IMB_colormanagement_view_get_indexed_name(int index);
 
+/* ** Look funcrions ** */
+int IMB_colormanagement_look_get_named_index(const char *name);
+const char *IMB_colormanagement_look_get_indexed_name(int index);
+
 /* ** Color space functions ** */
 int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
@@ -140,6 +144,7 @@ void IMB_colormanagment_colorspace_from_ibuf_ftype(struct ColorManagedColorspace
 /* ** RNA helper functions ** */
 void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int *totitem);
 void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *totitem, const char *display_name);
+void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem);
 void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, int *totitem);
 
 /* ** Tile-based buffer management ** */

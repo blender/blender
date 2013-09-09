@@ -3434,6 +3434,8 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), P
 
 	col = uiLayoutColumn(layout, FALSE);
 
+	uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
+
 	row = uiLayoutRow(col, FALSE);
 	uiItemR(row, &view_transform_ptr, "view_transform", UI_ITEM_R_EXPAND, IFACE_("View"), ICON_NONE);
 

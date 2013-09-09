@@ -162,6 +162,30 @@ const char *FallbackImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *
 	return "sRGB";
 }
 
+int FallbackImpl::configGetNumLooks(OCIO_ConstConfigRcPtr * /*config*/)
+{
+	return 0;
+}
+
+const char *FallbackImpl::configGetLookNameByIndex(OCIO_ConstConfigRcPtr * /*config*/, int /*index*/)
+{
+	return "";
+}
+
+OCIO_ConstLookRcPtr *FallbackImpl::configGetLook(OCIO_ConstConfigRcPtr * /*config*/, const char * /*name*/)
+{
+	return NULL;
+}
+
+const char *FallbackImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
+{
+	return NULL;
+}
+
+void FallbackImpl::lookRelease(OCIO_ConstLookRcPtr * /*look*/)
+{
+}
+
 int FallbackImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 	return 1;
@@ -323,6 +347,14 @@ void FallbackImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr * /*d
 }
 
 void FallbackImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr * /*dt*/, OCIO_ConstTransformRcPtr * /*et*/)
+{
+}
+
+void FallbackImpl::displayTransformSetLooksOverride(OCIO_DisplayTransformRcPtr * /*dt*/, const char * /*looks*/)
+{
+}
+
+void FallbackImpl::displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransformRcPtr * /*dt*/, bool /*enabled*/)
 {
 }
 

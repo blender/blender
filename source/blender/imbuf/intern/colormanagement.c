@@ -81,13 +81,15 @@ static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
 
-static ListBase global_colorspaces = {NULL};
-static ListBase global_displays = {NULL};
-static ListBase global_views = {NULL};
+static ListBase global_colorspaces = {NULL, NULL};
+static ListBase global_displays = {NULL, NULL};
+static ListBase global_views = {NULL, NULL};
+static ListBase global_looks = {NULL, NULL};
 
 static int global_tot_colorspace = 0;
 static int global_tot_display = 0;
 static int global_tot_view = 0;
+static int global_tot_looks = 0;
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -107,6 +109,7 @@ static struct global_glsl_state {
 	OCIO_ConstProcessorRcPtr *processor;
 
 	/* Settings of processor for comparison. */
+	char look[MAX_COLORSPACE_NAME];
 	char view[MAX_COLORSPACE_NAME];
 	char display[MAX_COLORSPACE_NAME];
 	char input[MAX_COLORSPACE_NAME];
@@ -185,6 +188,7 @@ static struct global_glsl_state {
  */
 typedef struct ColormanageCacheViewSettings {
 	int flag;
+	int look;
 	int view;
 	float exposure;
 	float gamma;
@@ -202,6 +206,7 @@ typedef struct ColormanageCacheKey {
 
 typedef struct ColormnaageCacheData {
 	int flag;        /* view flags of cached buffer */
+	int look;        /* Additional artistics transform */
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
 	CurveMapping *curve_mapping;  /* curve mapping used for cached buffer */
@@ -285,8 +290,10 @@ static void colormanage_cachedata_set(ImBuf *ibuf, ColormnaageCacheData *data)
 static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cache_view_settings,
                                                const ColorManagedViewSettings *view_settings)
 {
+	int look = IMB_colormanagement_look_get_named_index(view_settings->look);
 	int view = IMB_colormanagement_view_get_named_index(view_settings->view_transform);
 
+	cache_view_settings->look = look;
 	cache_view_settings->view = view;
 	cache_view_settings->exposure = view_settings->exposure;
 	cache_view_settings->gamma = view_settings->gamma;
@@ -364,7 +371,8 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		 */
 		cache_data = colormanage_cachedata_get(cache_ibuf);
 
-		if (cache_data->exposure != view_settings->exposure ||
+		if (cache_data->look != view_settings->look ||
+		    cache_data->exposure != view_settings->exposure ||
 		    cache_data->gamma != view_settings->gamma ||
 		    cache_data->flag != view_settings->flag ||
 		    cache_data->curve_mapping != curve_mapping ||
@@ -409,6 +417,7 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 
 	/* store data which is needed to check whether cached buffer could be used for color managed display settings */
 	cache_data = MEM_callocN(sizeof(ColormnaageCacheData), "color manage cache imbuf data");
+	cache_data->look = view_settings->look;
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
 	cache_data->flag = view_settings->flag;
@@ -454,7 +463,8 @@ static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
 
 static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 {
-	int tot_colorspace, tot_display, tot_display_view, index, viewindex, viewindex2;
+	int tot_colorspace, tot_display, tot_display_view, tot_looks;
+	int index, viewindex, viewindex2;
 	const char *name;
 
 	/* get roles */
@@ -519,6 +529,21 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 	}
 
 	global_tot_display = tot_display;
+
+	/* load looks */
+	tot_looks = OCIO_configGetNumLooks(config);
+	colormanage_look_add("None", "", true);
+	for (index = 0; index < tot_looks; index++) {
+		OCIO_ConstLookRcPtr *ocio_look;
+		const char *process_space;
+
+		name = OCIO_configGetLookNameByIndex(config, index);
+		ocio_look = OCIO_configGetLook(config, name);
+		process_space = OCIO_lookGetProcessSpace(ocio_look);
+		OCIO_lookRelease(ocio_look);
+
+		colormanage_look_add(name, process_space, false);
+	}
 }
 
 static void colormanage_free_config(void)
@@ -565,6 +590,9 @@ static void colormanage_free_config(void)
 
 	/* free views */
 	BLI_freelistN(&global_views);
+
+	/* free looks */
+	BLI_freelistN(&global_looks);
 
 	OCIO_exit();
 }
@@ -705,7 +733,8 @@ static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettin
 	return NULL;
 }
 
-static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform,
+static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *look,
+                                                                 const char *view_transform,
                                                                  const char *display,
                                                                  float exposure, float gamma,
                                                                  const char *from_colorspace)
@@ -713,12 +742,18 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *vie
 	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	OCIO_DisplayTransformRcPtr *dt;
 	OCIO_ConstProcessorRcPtr *processor;
+	ColorManagedLook *look_descr = colormanage_look_get_named(look);
 
 	dt = OCIO_createDisplayTransform();
 
 	OCIO_displayTransformSetInputColorSpaceName(dt, from_colorspace);
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
+
+	if (look_descr->is_noop == false) {
+		OCIO_displayTransformSetLooksOverrideEnabled(dt, true);
+		OCIO_displayTransformSetLooksOverride(dt, look);
+	}
 
 	/* fstop exposure control */
 	if (exposure != 0.0f) {
@@ -965,6 +1000,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 	}
 	else {
 		ColorManagedView *view = colormanage_view_get_named(view_settings->view_transform);
+		ColorManagedLook *look;
 
 		if (!view) {
 			display = colormanage_display_get_named(display_settings->display_device);
@@ -978,6 +1014,19 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 
 				BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 			}
+		}
+
+		look = colormanage_look_get_named(view_settings->look);
+		if (!look) {
+			ColorManagedLook *default_look = (ColorManagedLook *) global_looks.first;
+
+			/* Prevent paranoid printf when opening files stored prior looks implementation. */
+			if (view_settings->look[0]) {
+				printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
+				       what, view_settings->look, default_look->name);
+			}
+
+			BLI_strncpy(view_settings->look, default_look->name, sizeof(view_settings->look));
 		}
 	}
 
@@ -2357,7 +2406,7 @@ ColorSpace *colormanage_colorspace_get_roled(int role)
 
 ColorSpace *colormanage_colorspace_get_indexed(int index)
 {
-	/* display indices are 1-based */
+	/* color space indices are 1-based */
 	return BLI_findlink(&global_colorspaces, index - 1);
 }
 
@@ -2400,6 +2449,71 @@ void IMB_colormanagment_colorspace_from_ibuf_ftype(ColorManagedColorspaceSetting
 			BLI_strncpy(colorspace_settings->name, role_colorspace, sizeof(colorspace_settings->name));
 		}
 	}
+}
+
+/*********************** Looks functions *************************/
+
+ColorManagedLook *colormanage_look_add(const char *name, const char *process_space, bool is_noop)
+{
+	ColorManagedLook *look;
+	int index = global_tot_looks;
+
+	look = MEM_callocN(sizeof(ColorManagedLook), "ColorManagedLook");
+	look->index = index + 1;
+	BLI_strncpy(look->name, name, sizeof(look->name));
+	BLI_strncpy(look->process_space, process_space, sizeof(look->process_space));
+	look->is_noop = is_noop;
+
+	BLI_addtail(&global_looks, look);
+
+	global_tot_looks++;
+
+	return look;
+}
+
+ColorManagedLook *colormanage_look_get_named(const char *name)
+{
+	ColorManagedLook *look;
+
+	for (look = global_looks.first; look; look = look->next) {
+		if (!strcmp(look->name, name)) {
+			return look;
+		}
+	}
+
+	return NULL;
+}
+
+ColorManagedLook *colormanage_look_get_indexed(int index)
+{
+	/* look indices are 1-based */
+	return BLI_findlink(&global_looks, index - 1);
+}
+
+int IMB_colormanagement_look_get_named_index(const char *name)
+{
+	ColorManagedLook *look;
+
+	look = colormanage_look_get_named(name);
+
+	if (look) {
+		return look->index;
+	}
+
+	return 0;
+}
+
+const char *IMB_colormanagement_look_get_indexed_name(int index)
+{
+	ColorManagedLook *look;
+
+	look = colormanage_look_get_indexed(index);
+
+	if (look) {
+		return look->name;
+	}
+
+	return NULL;
 }
 
 /*********************** RNA helper functions *************************/
@@ -2447,6 +2561,23 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 
 			colormanagement_view_item_add(items, totitem, view);
 		}
+	}
+}
+
+void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem)
+{
+	ColorManagedLook *look;
+
+	for (look = global_looks.first; look; look = look->next) {
+		EnumPropertyItem item;
+
+		item.value = look->index;
+		item.name = look->name;
+		item.identifier = look->name;
+		item.icon = 0;
+		item.description = "";
+
+		RNA_enum_item_add(items, totitem, &item);
 	}
 }
 
@@ -2682,8 +2813,11 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 	if (display_space)
 		cm_processor->is_data_result = display_space->is_data;
 
-	cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
-	                                                          applied_view_settings->exposure, applied_view_settings->gamma,
+	cm_processor->processor = create_display_buffer_processor(applied_view_settings->look,
+	                                                          applied_view_settings->view_transform,
+	                                                          display_settings->display_device,
+	                                                          applied_view_settings->exposure,
+	                                                          applied_view_settings->gamma,
 	                                                          global_role_scene_linear);
 
 	if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
@@ -2786,6 +2920,7 @@ static bool check_glsl_display_processor_changed(const ColorManagedViewSettings 
 {
 	return !(global_glsl_state.exposure == view_settings->exposure &&
 	         global_glsl_state.gamma == view_settings->gamma &&
+	         STREQ(global_glsl_state.look, view_settings->look) &&
 	         STREQ(global_glsl_state.view, view_settings->view_transform) &&
 	         STREQ(global_glsl_state.display, display_settings->display_device) &&
 	         STREQ(global_glsl_state.input, from_colorspace));
@@ -2802,6 +2937,7 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 	    check_glsl_display_processor_changed(view_settings, display_settings, from_colorspace))
 	{
 		/* Store settings of processor for further comparison. */
+		BLI_strncpy(global_glsl_state.look, view_settings->look, MAX_COLORSPACE_NAME);
 		BLI_strncpy(global_glsl_state.view, view_settings->view_transform, MAX_COLORSPACE_NAME);
 		BLI_strncpy(global_glsl_state.display, display_settings->display_device, MAX_COLORSPACE_NAME);
 		BLI_strncpy(global_glsl_state.input, from_colorspace, MAX_COLORSPACE_NAME);
@@ -2814,7 +2950,8 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 
 		/* We're using display OCIO processor, no RGB curves yet. */
 		global_glsl_state.processor =
-			create_display_buffer_processor(global_glsl_state.view,
+			create_display_buffer_processor(global_glsl_state.look,
+			                                global_glsl_state.view,
 			                                global_glsl_state.display,
 			                                global_glsl_state.exposure,
 			                                global_glsl_state.gamma,

@@ -470,6 +470,37 @@ static EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(bCont
 	return items;
 }
 
+static int rna_ColorManagedViewSettings_look_get(PointerRNA *ptr)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	return IMB_colormanagement_look_get_named_index(view->look);
+}
+
+static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	const char *name = IMB_colormanagement_look_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(view->look, name, sizeof(view->look));
+	}
+}
+
+static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(bContext *C, PointerRNA *ptr,
+                                                                 PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	IMB_colormanagement_look_items_add(&items, &totitem);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+	return items;
+}
+
 static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, int value)
 {
 	ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *) ptr->data;
@@ -947,6 +978,11 @@ static void rna_def_colormanage(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem look_items[] = {
+		{0, "NONE", 0, "None", "Do not modify image in an artistics manner"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static EnumPropertyItem view_transform_items[] = {
 		{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
 		{0, NULL, 0, NULL, NULL}
@@ -973,12 +1009,20 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
 
+	prop = RNA_def_property(srna, "look", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, look_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_look_get",
+	                                  "rna_ColorManagedViewSettings_look_set",
+	                                  "rna_ColorManagedViewSettings_look_itemf");
+	RNA_def_property_ui_text(prop, "Look", "Additional tarnsform applyed before view transform for an artistics needs");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
 	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, view_transform_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
 	                                  "rna_ColorManagedViewSettings_view_transform_set",
 	                                  "rna_ColorManagedViewSettings_view_transform_itemf");
-	RNA_def_property_ui_text(prop, "View Transform", "View used ");
+	RNA_def_property_ui_text(prop, "View Transform", "View used when converting image to a display space");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);

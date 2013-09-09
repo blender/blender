@@ -282,6 +282,59 @@ const char *OCIOImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *conf
 	return NULL;
 }
 
+int OCIOImpl::configGetNumLooks(OCIO_ConstConfigRcPtr *config)
+{
+	try {
+		return (*(ConstConfigRcPtr *) config)->getNumLooks();
+	}
+	catch (Exception &exception) {
+		OCIO_reportException(exception);
+	}
+
+	return 0;
+}
+
+const char *OCIOImpl::configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index)
+{
+	try {
+		return (*(ConstConfigRcPtr *) config)->getLookNameByIndex(index);
+	}
+	catch (Exception &exception) {
+		OCIO_reportException(exception);
+	}
+
+	return NULL;
+}
+
+OCIO_ConstLookRcPtr *OCIOImpl::configGetLook(OCIO_ConstConfigRcPtr *config, const char *name)
+{
+	ConstLookRcPtr *look = MEM_NEW(ConstLookRcPtr);
+
+	try {
+		*look = (*(ConstConfigRcPtr *) config)->getLook(name);
+
+		if (*look)
+			return (OCIO_ConstLookRcPtr *) look;
+	}
+	catch (Exception &exception) {
+		OCIO_reportException(exception);
+	}
+
+	MEM_DELETE(look, ConstLookRcPtr);
+
+	return NULL;
+}
+
+const char *OCIOImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
+{
+	return (*(ConstLookRcPtr *) look)->getProcessSpace();
+}
+
+void OCIOImpl::lookRelease(OCIO_ConstLookRcPtr *look)
+{
+	MEM_DELETE((ConstLookRcPtr *) look, ConstLookRcPtr);
+}
+
 int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
 {
 	ConstColorSpaceRcPtr *cs = (ConstColorSpaceRcPtr *) cs_;
@@ -479,6 +532,16 @@ void OCIOImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO
 void OCIOImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *t)
 {
 	(*(DisplayTransformRcPtr *) dt)->setLinearCC(*(ConstTransformRcPtr *) t);
+}
+
+void OCIOImpl::displayTransformSetLooksOverride(OCIO_DisplayTransformRcPtr *dt, const char *looks)
+{
+	(*(DisplayTransformRcPtr *) dt)->setLooksOverride(looks);
+}
+
+void OCIOImpl::displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransformRcPtr *dt, bool enabled)
+{
+	(*(DisplayTransformRcPtr *) dt)->setLooksOverrideEnabled(enabled);
 }
 
 void OCIOImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)

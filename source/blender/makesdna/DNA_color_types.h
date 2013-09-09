@@ -162,6 +162,7 @@ typedef struct Scopes {
 
 typedef struct ColorManagedViewSettings {
 	int flag, pad;
+	char look[64];   /* look which is being applied when displaying buffer on the screen (prior to view transform) */
 	char view_transform[64];   /* view transform which is being applied when displaying buffer on the screen */
 	float exposure;            /* fstop exposure */
 	float gamma;               /* post-display gamma transform */

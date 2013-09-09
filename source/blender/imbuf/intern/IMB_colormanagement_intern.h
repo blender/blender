@@ -69,6 +69,14 @@ typedef struct ColorManagedView {
 	char name[MAX_COLORSPACE_NAME];
 } ColorManagedView;
 
+typedef struct ColorManagedLook {
+	struct ColorManagedLook *next, *prev;
+	int index;
+	char name[MAX_COLORSPACE_NAME];
+	char process_space[MAX_COLORSPACE_NAME];
+	bool is_noop;
+} ColorManagedLook;
+
 /* ** Initialization / De-initialization ** */
 
 void colormanagement_init(void);
@@ -92,6 +100,10 @@ struct ColorSpace *colormanage_colorspace_add(const char *name, const char *desc
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_roled(int role);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);
+
+struct ColorManagedLook *colormanage_look_add(const char *name, const char *process_space, bool is_noop);
+struct ColorManagedLook *colormanage_look_get_named(const char *name);
+struct ColorManagedLook *colormanage_look_get_indexed(int index);
 
 void colorspace_set_default_role(char *colorspace, int size, int role);
 
