@@ -523,6 +523,9 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_create_plane_track);
 	WM_operatortype_append(CLIP_OT_slide_plane_marker);
 
+	WM_operatortype_append(CLIP_OT_keyframe_insert);
+	WM_operatortype_append(CLIP_OT_keyframe_delete);
+
 	/* ** clip_graph_ops.c  ** */
 
 	/* graph editing */
@@ -693,6 +696,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* plane tracks */
 	WM_keymap_add_item(keymap, "CLIP_OT_slide_plane_marker", LEFTMOUSE, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
 
 	/* clean-up */
 	WM_keymap_add_item(keymap, "CLIP_OT_join_tracks", JKEY, KM_PRESS, KM_CTRL, 0);

@@ -4069,3 +4069,89 @@ void CLIP_OT_slide_plane_marker(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 }
+
+/********************** Insert track keyframe operator *********************/
+
+static void keyframe_set_flag(bContext *C, bool set)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracks_base = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+	for (track = tracks_base->first; track; track = track->next) {
+		if (TRACK_VIEW_SELECTED(sc, track)) {
+			MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+			if (marker) {
+				if (set) {
+					marker->flag &= ~MARKER_TRACKED;
+				}
+				else {
+					marker->flag |= MARKER_TRACKED;
+				}
+			}
+		}
+	}
+
+	for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
+		if (plane_track->flag & SELECT) {
+			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, framenr);
+			if (plane_marker) {
+				if (set) {
+					plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+				}
+				else {
+					plane_marker->flag |= PLANE_MARKER_TRACKED;
+				}
+			}
+		}
+	}
+}
+
+static int keyframe_insert_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	keyframe_set_flag(C, true);
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_keyframe_insert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Insert keyframe";
+	ot->description = "Insert a keyframe to selected tracks at current frame";
+	ot->idname = "CLIP_OT_keyframe_insert";
+
+	/* api callbacks */
+	ot->poll = ED_space_clip_tracking_poll;
+	ot->exec = keyframe_insert_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/********************** Delete track keyframe operator *********************/
+
+static int keyframe_delete_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	keyframe_set_flag(C, false);
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_keyframe_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete keyframe";
+	ot->description = "Delete a keyframe from selected tracks at current frame";
+	ot->idname = "CLIP_OT_keyframe_delete";
+
+	/* api callbacks */
+	ot->poll = ED_space_clip_tracking_poll;
+	ot->exec = keyframe_delete_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
