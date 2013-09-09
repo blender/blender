@@ -375,12 +375,12 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		/* needed so we can detect the graphics card below */
 		GPU_extensions_init();
 		
-		/* set the state*/
-		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
-
 		win->ghostwin = ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win); /* pointer back */
 		
+		/* set the state*/
+		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
+
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
