@@ -109,7 +109,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	edgeMap = MEM_mallocN(sizeof(*edgeMap) * numEdge_src, "build modifier edgeMap");
 	faceMap = MEM_mallocN(sizeof(*faceMap) * numPoly_src, "build modifier faceMap");
 
-#pragma omp parallel sections if (numVert_src + numEdge_src + numPoly_src >= DM_OMP_LIMIT)
+#pragma omp parallel sections if (numVert_src + numEdge_src + numPoly_src >= BKE_MESH_OMP_LIMIT)
 	{
 #pragma omp section
 		{ range_vn_i(vertMap, numVert_src, 0); }

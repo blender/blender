@@ -63,6 +63,12 @@ struct UvElement;
 extern "C" {
 #endif
 
+/* setting zero so we can catch bugs in OpenMP/BMesh */
+#ifdef DEBUG
+#  define BKE_MESH_OMP_LIMIT 0
+#else
+#  define BKE_MESH_OMP_LIMIT 10000
+#endif
 
 /* *** mesh.c *** */
 

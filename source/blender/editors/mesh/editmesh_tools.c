@@ -2924,7 +2924,7 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 			/* calculate the span by finding the next corner in 'verts'
 			 * we dont know what defines a corner exactly so find the 4 verts
 			 * in the loop with the greatest angle.
-			 * Tag them and use the first tagged vertex to calcualte the span.
+			 * Tag them and use the first tagged vertex to calculate the span.
 			 *
 			 * note: we may have already checked 'edbm_fill_grid_vert_tag_angle()' on each
 			 * vert, but advantage of de-duplicating is minimal. */

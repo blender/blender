@@ -292,6 +292,12 @@ typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
  * but should not error on valid cases */
 #define BM_LOOP_RADIAL_MAX 10000
 #define BM_NGON_MAX 100000
-#define BM_OMP_LIMIT 10000 /* 10000 */  /* setting zero so we can catch bugs in OpenMP/BMesh */
+
+/* setting zero so we can catch bugs in OpenMP/BMesh */
+#ifdef DEBUG
+#  define BM_OMP_LIMIT 0
+#else
+#  define BM_OMP_LIMIT 10000
+#endif
 
 #endif /* __BMESH_CLASS_H__ */

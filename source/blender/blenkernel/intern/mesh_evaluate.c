@@ -168,7 +168,7 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 			v_curr = mvert[ml[i].v].co;
 			add_newell_cross_v3_v3v3(polyno, v_prev, v_curr);
 
-			/* Unrelated to normalize, calcualte edge-vector */
+			/* Unrelated to normalize, calculate edge-vector */
 			sub_v3_v3v3(edgevecbuf[i_prev], v_prev, v_curr);
 			normalize_v3(edgevecbuf[i_prev]);
 			i_prev = i;
@@ -212,7 +212,7 @@ void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly
 	if (only_face_normals) {
 		BLI_assert(pnors != NULL);
 
-#pragma omp parallel for if (numPolys > BM_OMP_LIMIT)
+#pragma omp parallel for if (numPolys > BKE_MESH_OMP_LIMIT)
 		for (i = 0; i < numPolys; i++) {
 			BKE_mesh_calc_poly_normal(&mpolys[i], mloop + mpolys[i].loopstart, mverts, pnors[i]);
 		}

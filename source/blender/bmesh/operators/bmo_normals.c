@@ -47,7 +47,7 @@ static bool bmo_recalc_normal_edge_filter_cb(BMElem *ele, void *UNUSED(user_data
 }
 
 /**
- * Given an array of faces, recalcualte their normals.
+ * Given an array of faces, recalculate their normals.
  * this functions assumes all faces in the array are connected by edges.
  *
  * \param bm

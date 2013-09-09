@@ -1685,7 +1685,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_poly_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-#pragma omp parallel sections if (dm->numVertData + dm->numEdgeData + dm->numPolyData >= DM_OMP_LIMIT)
+#pragma omp parallel sections if (dm->numVertData + dm->numEdgeData + dm->numPolyData >= BKE_MESH_OMP_LIMIT)
 					{
 #pragma omp section
 						{ range_vn_i(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0); }
