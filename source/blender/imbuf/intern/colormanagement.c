@@ -906,6 +906,7 @@ static void init_default_view_settings(const ColorManagedDisplaySettings *displa
 	else
 		view_settings->view_transform[0] = '\0';
 
+	BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
 	view_settings->flag = 0;
 	view_settings->gamma = 1.0f;
 	view_settings->exposure = 0.0f;

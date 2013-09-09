@@ -1260,7 +1260,7 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 	 *            for now use NONE to be compatible with all current files
 	 */
 	BLI_strncpy(settings->view_transform, "Default", sizeof(settings->view_transform));
-	BLI_strncpy(settings->look, "NONE", sizeof(settings->look));
+	BLI_strncpy(settings->look, "None", sizeof(settings->look));
 
 	settings->gamma = 1.0f;
 	settings->exposure = 0.0f;
