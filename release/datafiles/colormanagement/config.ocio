@@ -290,7 +290,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -298,7 +298,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -306,7 +306,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_400.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_400.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -314,7 +314,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_ii_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -322,7 +322,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_ii_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -330,7 +330,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_futura_ii_400.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_400.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -338,7 +338,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_hdc_100_plus.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_100_plus.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -346,7 +346,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_hdc_400_plus.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_400_plus.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -354,7 +354,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_hdc_200_plus.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_200_plus.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -362,7 +362,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_optima_ii_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_optima_ii_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -370,7 +370,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_optima_ii_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_optima_ii_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -378,7 +378,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_ultra_050.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_ultra_050.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -386,7 +386,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_vista_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -394,7 +394,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_vista_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -402,7 +402,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_vista_400.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_400.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -410,7 +410,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfacolor_vista_800.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_800.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -418,7 +418,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfachrome_ct_precisa_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfachrome_ct_precisa_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -426,7 +426,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfachrome_ct_precisa_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfachrome_ct_precisa_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -434,7 +434,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfachrome_rsx2_050.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_050.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -442,7 +442,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfachrome_rsx2_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -450,7 +450,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_agfachrome_rsx2_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -458,7 +458,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_advantix_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_advantix_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -466,7 +466,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_advantix_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_advantix_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -474,7 +474,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/agfa_advantix_400.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/agfa_advantix_400.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -482,7 +482,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_gold_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_gold_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -490,7 +490,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_gold_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_gold_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -498,7 +498,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_max_zoom_800.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_max_zoom_800.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -506,7 +506,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_100t.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_100t.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -514,7 +514,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_160nc.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_160nc.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -522,7 +522,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_160vc.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_160vc.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -530,7 +530,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_800.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_800.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -538,7 +538,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_400vc.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_400vc.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -546,7 +546,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_portra_400nc.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_portra_400nc.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -554,7 +554,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_100_plus.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_100_plus.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -562,7 +562,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_320t.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_320t.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -570,7 +570,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_400x.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_400x.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -578,7 +578,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_64.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_64.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -586,7 +586,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_64t.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_64t.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -594,7 +594,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_e100s.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_e100s.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -602,7 +602,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_ektachrome_100.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_ektachrome_100.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -610,7 +610,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kodachrome_200.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kodachrome_200.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -618,7 +618,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kodachrome_25.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kodachrome_25.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -626,39 +626,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kodachrome_64.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-125
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/fujifilm_f-125.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-250
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/fujifilm_f-250.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-400
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/fujifilm_f-400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm FCI
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/fujifilm_fci.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kodachrome_64.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -666,7 +634,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3151.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3151.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -674,7 +642,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3152.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3152.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -682,7 +650,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3153.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3153.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -690,7 +658,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3154.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3154.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -698,7 +666,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3155.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3155.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -706,47 +674,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_dscs_3156.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm FP2900Z
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/fujifilm_fp2900z.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 12min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/eastman_double_x_neg_12min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 6min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/eastman_double_x_neg_6min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 5min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/eastman_double_x_neg_5min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 4min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: camera_response/eastman_double_x_neg_4min.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_dscs_3156.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -754,7 +682,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kai-0311.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kai-0311.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -762,7 +690,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kaf-2001.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kaf-2001.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -770,7 +698,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kaf-3000.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kaf-3000.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -778,7 +706,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kai-0372.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kai-0372.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -786,7 +714,79 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/kodak_kai-1010.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/kodak_kai-1010.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Eastman Double X Neg 12min
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/eastman_double_x_neg_12min.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Eastman Double X Neg 6min
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/eastman_double_x_neg_6min.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Eastman Double X Neg 5min
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/eastman_double_x_neg_5min.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Eastman Double X Neg 4min
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/eastman_double_x_neg_4min.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Fujifilm F-125
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/fujifilm_f-125.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Fujifilm F-250
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/fujifilm_f-250.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Fujifilm F-400
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/fujifilm_f-400.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Fujifilm FCI
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/fujifilm_fci.spi1d, interpolation: linear}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+
+  - !<Look>
+    name: Fujifilm FP2900Z
+    process_space: linear
+    transform: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: film_response/fujifilm_fp2900z.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -794,7 +794,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/canon_optura_981111.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/canon_optura_981111.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -802,7 +802,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/canon_optura_981113.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/canon_optura_981113.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -810,7 +810,7 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/canon_optura_981114.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/canon_optura_981114.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
 
   - !<Look>
@@ -818,5 +818,5 @@ looks:
     process_space: linear
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: camera_response/canon_optura_981111.slrr.spi1d, interpolation: linear}
+        - !<FileTransform> {src: film_response/canon_optura_981111.slrr.spi1d, interpolation: linear}
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
