@@ -3467,7 +3467,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, 
 			track->flag &= ~TRACK_HAS_BUNDLE;
 			ok = false;
 
-			printf("No bundle for track #%d '%s'\n", tracknr, track->name);
+			printf("Unable to reconstruct position for track #%d '%s'\n", tracknr, track->name);
 		}
 
 		track = track->next;
