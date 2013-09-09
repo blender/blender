@@ -288,7 +288,7 @@ Mat pseudoInverse(const Mat &matrix) {
 }
 }  // namespace
 
-void SelectkeyframesBasedOnGRICAndVariance(const Tracks &tracks,
+void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
                                            CameraIntrinsics &intrinsics,
                                            vector<int> &keyframes) {
   // Mirza Tahir Ahmed, Matthew N. Dailey

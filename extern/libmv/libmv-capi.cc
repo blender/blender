@@ -510,7 +510,7 @@ static bool selectTwoKeyframesBasedOnGRICAndVariance(
 	libmv::vector<int> keyframes;
 
 	/* Get list of all keyframe candidates first. */
-	SelectkeyframesBasedOnGRICAndVariance(normalized_tracks,
+	SelectKeyframesBasedOnGRICAndVariance(normalized_tracks,
 	                                      camera_intrinsics,
 	                                      keyframes);
 
