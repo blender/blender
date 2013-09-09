@@ -2275,7 +2275,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 		 * so it should happen tracking-related constraints recalculation
 		 * when camera is changing (sergey) */
 		if (sce->camera && &sce->camera->id == id) {
-			MovieClip *clip = BKE_object_movieclip_get(sce, sce->camera, 1);
+			MovieClip *clip = BKE_object_movieclip_get(sce, sce->camera, true);
 
 			if (clip)
 				dag_id_flush_update(bmain, sce, &clip->id);

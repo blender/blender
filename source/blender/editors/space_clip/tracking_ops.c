@@ -1874,13 +1874,13 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 	Object *camera = scene->camera;
 	Base *base;
 
-	if (camera && BKE_object_movieclip_get(scene, camera, 0) == clip)
+	if (camera && BKE_object_movieclip_get(scene, camera, false) == clip)
 		return camera;
 
 	base = scene->base.first;
 	while (base) {
 		if (base->object->type == OB_CAMERA) {
-			if (BKE_object_movieclip_get(scene, base->object, 0) == clip) {
+			if (BKE_object_movieclip_get(scene, base->object, false) == clip) {
 				camera = base->object;
 				break;
 			}

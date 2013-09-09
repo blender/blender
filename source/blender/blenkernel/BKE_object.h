@@ -170,7 +170,7 @@ int BKE_object_is_deform_modified(struct Scene *scene, struct Object *ob);
 
 void BKE_object_relink(struct Object *ob);
 
-struct MovieClip *BKE_object_movieclip_get(struct Scene *scene, struct Object *ob, int use_default);
+struct MovieClip *BKE_object_movieclip_get(struct Scene *scene, struct Object *ob, bool use_default);
 
 /* this function returns a superset of the scenes selection based on relationships */
 

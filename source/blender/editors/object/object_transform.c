@@ -551,7 +551,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			}
 		}
 		else if (ob->type == OB_CAMERA) {
-			MovieClip *clip = BKE_object_movieclip_get(scene, ob, FALSE);
+			MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 
 			/* applying scale on camera actually scales clip's reconstruction.
 			 * of there's clip assigned to camera nothing to do actually.

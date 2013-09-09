@@ -3261,7 +3261,7 @@ void BKE_object_relink(Object *ob)
 	ID_NEW(ob->proxy_group);
 }
 
-MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, int use_default)
+MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
 {
 	MovieClip *clip = use_default ? scene->clip : NULL;
 	bConstraint *con = ob->constraints.first, *scon = NULL;

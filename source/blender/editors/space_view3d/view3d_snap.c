@@ -882,7 +882,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
-	MovieClip *clip = BKE_object_movieclip_get(scene, ob, 0);
+	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	MovieTracking *tracking;
 	MovieTrackingObject *object;
 	int ok = 0;
