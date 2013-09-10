@@ -49,6 +49,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "RNA_access.h"
+
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -392,6 +394,17 @@ RenderData *RE_engine_get_render_data(Render *re)
 
 /* Render */
 
+static bool render_layer_exclude_animated(Scene *scene, SceneRenderLayer *srl)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	RNA_pointer_create(&scene->id, &RNA_SceneRenderLayer, srl, &ptr);
+	prop = RNA_struct_find_property(&ptr, "layers_exclude");
+
+	return RNA_property_animated(&ptr, prop);
+}
+
 int RE_engine_render(Render *re, int do_all)
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
@@ -420,13 +433,25 @@ int RE_engine_render(Render *re, int do_all)
 
 			if (re->r.scemode & R_SINGLE_LAYER) {
 				srl = BLI_findlink(&re->r.layers, re->r.actlay);
-				if (srl)
+				if (srl) {
 					non_excluded_lay |= ~srl->lay_exclude;
+
+					/* in this case we must update all because animation for
+					 * the scene has not been updated yet, and so may not be
+					 * up to date until after BKE_scene_update_for_newframe */
+					if (render_layer_exclude_animated(re->scene, srl))
+						non_excluded_lay |= ~0;
+				}
 			}
 			else {
-				for (srl = re->r.layers.first; srl; srl = srl->next)
-					if (!(srl->layflag & SCE_LAY_DISABLE))
+				for (srl = re->r.layers.first; srl; srl = srl->next) {
+					if (!(srl->layflag & SCE_LAY_DISABLE)) {
 						non_excluded_lay |= ~srl->lay_exclude;
+
+						if (render_layer_exclude_animated(re->scene, srl))
+							non_excluded_lay |= ~0;
+					}
+				}
 			}
 
 			lay &= non_excluded_lay;

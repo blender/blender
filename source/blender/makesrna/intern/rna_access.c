@@ -49,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
+#include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -1512,13 +1513,23 @@ bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 	return (prop->flag & PROP_EDITABLE) != 0;
 }
 
-bool RNA_property_animated(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
+bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 {
-	/* would need to ask animation system */
+	int len = 1, index;
+	bool driven;
+
+	if (!prop)
+		return false;
+
+	if (RNA_property_array_check(prop))
+		len = RNA_property_array_length(ptr, prop);
+
+	for (index = 0; index < len; index++)
+		if (rna_get_fcurve(ptr, prop, index, NULL, &driven))
+			return true;
 
 	return false;
 }
-
 
 /* this function is to check if its possible to create a valid path from the ID
  * its slow so don't call in a loop */

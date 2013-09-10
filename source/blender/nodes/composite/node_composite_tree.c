@@ -318,38 +318,22 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 	lb = RNA_struct_type_properties(ptr.type);
 
 	for (link = lb->first; link; link = link->next) {
-		int len = 1, index;
-		bool driven;
 		prop = (PropertyRNA *)link;
 
-		if (RNA_property_array_check(prop))
-			len = RNA_property_array_length(&ptr, prop);
-
-		for (index = 0; index < len; index++) {
-			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
-				nodeUpdate(ntree, node);
-				return 1;
-			}
+		if (RNA_property_animated(&ptr, prop)) {
+			nodeUpdate(ntree, node);
+			return 1;
 		}
 	}
 
 	/* now check node sockets */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		int len = 1, index;
-		bool driven;
-
 		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 		prop = RNA_struct_find_property(&ptr, "default_value");
-		if (prop) {
-			if (RNA_property_array_check(prop))
-				len = RNA_property_array_length(&ptr, prop);
 
-			for (index = 0; index < len; index++) {
-				if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
-					nodeUpdate(ntree, node);
-					return 1;
-				}
-			}
+		if (RNA_property_animated(&ptr, prop)) {
+			nodeUpdate(ntree, node);
+			return 1;
 		}
 	}
 
