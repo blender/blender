@@ -24,7 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_convexhull2d.h"
-
+#include "BLI_math.h"
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
 
@@ -36,6 +36,9 @@
  * Users of this code must verify correctness for their application.
  * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm
  */
+
+/** \name Main Convex-Hull Calculation
+ * \{ */
 
 /**
  * tests if a point is Left|On|Right of an infinite line.
@@ -219,3 +222,71 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
 
 	return tot;
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Helper functions */
+
+/** \name Utility Convex-Hull Functions
+ * \{ */
+
+/**
+ * \return The best angle for fitting the convex hull to an axis aligned bounding box.
+ *
+ * Intended to be used with #BLI_convexhull_2d
+ *
+ * \note we could return the index of the best edge too if its needed.
+ */
+float BLI_convexhull_aabb_fit_2d(const float (*points_hull)[2], unsigned int n)
+{
+	unsigned int i, i_prev;
+	float area_best = FLT_MAX;
+	float angle_best = 0.0f;
+
+	i_prev = n - 1;
+	for (i = 0; i < n; i++) {
+		const float *ev_a = points_hull[i];
+		const float *ev_b = points_hull[i_prev];
+		float dvec[2];
+
+		sub_v2_v2v2(dvec, ev_a, ev_b);
+		if (normalize_v2(dvec) != 0.0f) {
+			float mat[2][2];
+			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
+
+			unsigned int j;
+			const float angle = atan2f(dvec[0], dvec[1]);
+			float area;
+
+			angle_to_mat2(mat, angle);
+
+			for (j = 0; j < n; j++) {
+				float tvec[2];
+				mul_v2_m2v2(tvec, mat, points_hull[j]);
+
+				min[0] = min_ff(min[0], tvec[0]);
+				min[1] = min_ff(min[1], tvec[1]);
+
+				max[0] = max_ff(max[0], tvec[0]);
+				max[1] = max_ff(max[1], tvec[1]);
+
+				area = (max[0] - min[0]) * (max[1] - min[1]);
+				if (area > area_best) {
+					break;
+				}
+			}
+
+			if (area < area_best) {
+				area_best = area;
+				angle_best = angle;
+			}
+		}
+
+		i_prev = i;
+	}
+
+	return angle_best;
+}
+/** \} */

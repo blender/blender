@@ -99,7 +99,7 @@ void param_smooth_area(ParamHandle *handle);
 
 /* Packing */
 
-void param_pack(ParamHandle *handle, float margin);
+void param_pack(ParamHandle *handle, float margin, bool do_rotate);
 
 /* Average area for all charts */
 

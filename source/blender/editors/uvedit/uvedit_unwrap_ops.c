@@ -718,6 +718,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ParamHandle *handle;
 	bool implicit = true;
+	bool do_rotate = RNA_boolean_get(op->ptr, "rotate");
 
 	if (!uvedit_have_selection(scene, em, implicit)) {
 		return OPERATOR_CANCELLED;
@@ -729,7 +730,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
 
 	handle = construct_param_handle(scene, obedit, em, implicit, 0, 1, 1);
-	param_pack(handle, scene->toolsettings->uvcalc_margin);
+	param_pack(handle, scene->toolsettings->uvcalc_margin, do_rotate);
 	param_flush(handle);
 	param_delete(handle);
 	
@@ -753,6 +754,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 
 	/* properties */
+	RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
 	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
@@ -1151,7 +1153,7 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	param_lscm_end(handle);
 
 	param_average(handle);
-	param_pack(handle, scene->toolsettings->uvcalc_margin);
+	param_pack(handle, scene->toolsettings->uvcalc_margin, false);
 
 	param_flush(handle);
 

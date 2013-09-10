@@ -33,6 +33,7 @@
 #include "BLI_rand.h"
 #include "BLI_heap.h"
 #include "BLI_boxpack2d.h"
+#include "BLI_convexhull2d.h"
 
 #include "ONL_opennl.h"
 
@@ -484,6 +485,36 @@ static void p_chart_uv_translate(PChart *chart, float trans[2])
 		v->uv[1] += trans[1];
 	}
 }
+
+static void p_chart_uv_transform(PChart *chart, float mat[2][2])
+{
+	PVert *v;
+
+	for (v = chart->verts; v; v = v->nextlink) {
+		mul_v2_m2v2(v->uv, mat, v->uv);
+	}
+}
+
+static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
+{
+	PVert *v;
+	unsigned int i = 0;
+
+	for (v = chart->verts; v; v = v->nextlink) {
+		copy_v2_v2(points[i++], v->uv);
+	}
+}
+
+static void UNUSED_FUNCTION(p_chart_uv_from_array)(PChart *chart, float (*points)[2])
+{
+	PVert *v;
+	unsigned int i = 0;
+
+	for (v = chart->verts; v; v = v->nextlink) {
+		copy_v2_v2(v->uv, points[i++]);
+	}
+}
+
 
 static PBool p_intersect_line_2d_dir(float *v1, float *dir1, float *v2, float *dir2, float *isect)
 {
@@ -4441,8 +4472,59 @@ void param_smooth_area(ParamHandle *handle)
 		p_smooth(chart);
 	}
 }
- 
-void param_pack(ParamHandle *handle, float margin)
+
+/* don't pack, just rotate (used for better packing) */
+static void param_pack_rotate(ParamHandle *handle)
+{
+	PChart *chart;
+	int i;
+
+	PHandle *phandle = (PHandle *)handle;
+
+	for (i = 0; i < phandle->ncharts; i++) {
+		float (*points)[2];
+		int *index_map;
+		int tot;
+
+		chart = phandle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK) {
+			continue;
+		}
+
+		points = MEM_mallocN(sizeof(*points) * chart->nverts, __func__);
+		index_map = MEM_mallocN(sizeof(*index_map) * chart->nverts, __func__);
+
+		p_chart_uv_to_array(chart, points);
+
+		tot = BLI_convexhull_2d((const float (*)[2])points, chart->nverts, index_map);
+
+		if (tot) {
+			float (*points_hull)[2];
+			int j;
+			float angle;
+
+			points_hull = MEM_mallocN(sizeof(*points) * tot, __func__);
+			for (j = 0; j < tot; j++) {
+				copy_v2_v2(points_hull[j], points[index_map[j]]);
+			}
+
+			angle = BLI_convexhull_aabb_fit_2d((const float (*)[2])points_hull, tot);
+			MEM_freeN(points_hull);
+
+			if (angle != 0.0f) {
+				float mat[2][2];
+				angle_to_mat2(mat, angle);
+				p_chart_uv_transform(chart, mat);
+			}
+		}
+
+		MEM_freeN(points);
+		MEM_freeN(index_map);
+	}
+}
+
+void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 {	
 	/* box packing variables */
 	BoxPack *boxarray, *box;
@@ -4461,6 +4543,11 @@ void param_pack(ParamHandle *handle, float margin)
 	if (phandle->aspx != phandle->aspy)
 		param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
 	
+	/* this could be its own function */
+	if (do_rotate) {
+		param_pack_rotate(handle);
+	}
+
 	/* we may not use all these boxes */
 	boxarray = MEM_mallocN(phandle->ncharts * sizeof(BoxPack), "BoxPack box");
 	
