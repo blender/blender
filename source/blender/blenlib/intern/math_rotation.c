@@ -817,7 +817,8 @@ void mat4_to_axis_angle(float axis[3], float *angle, float mat[4][4])
 	quat_to_axis_angle(axis, angle, q);
 }
 
-void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float angle)
+/* rotation matrix from a single axis */
+void axis_angle_to_mat3_single(float mat[3][3], const char axis, const float angle)
 {
 	const float angle_cos = cosf(angle);
 	const float angle_sin = sinf(angle);
@@ -860,6 +861,18 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 			BLI_assert(0);
 			break;
 	}
+}
+
+void angle_to_mat2(float mat[2][2], const float angle)
+{
+	const float angle_cos = cosf(angle);
+	const float angle_sin = sinf(angle);
+
+	/* 2D rotation matrix */
+	mat[0][0] =  angle_cos;
+	mat[0][1] =  angle_sin;
+	mat[1][0] = -angle_sin;
+	mat[1][1] =  angle_cos;
 }
 
 /******************************** XYZ Eulers *********************************/
