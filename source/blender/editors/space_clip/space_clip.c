@@ -1129,6 +1129,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	float aspx, aspy, zoomx, zoomy, x, y;
 	int width, height;
+	bool show_cursor = false;
 
 	/* if tracking is in progress, we should synchronize framenr from clipuser
 	 * so latest tracked frame would be shown */
@@ -1181,13 +1182,18 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		}
 	}
 
-	glPushMatrix();
-	glTranslatef(x, y, 0);
-	glScalef(zoomx, zoomy, 0);
-	glMultMatrixf(sc->stabmat);
-	glScalef(width, height, 0);
-	draw_image_cursor(ar, sc->cursor);
-	glPopMatrix();
+	show_cursor |= sc->mode == SC_MODE_MASKEDIT;
+	show_cursor |= sc->around == V3D_CURSOR;
+
+	if (show_cursor) {
+		glPushMatrix();
+		glTranslatef(x, y, 0);
+		glScalef(zoomx, zoomy, 0);
+		glMultMatrixf(sc->stabmat);
+		glScalef(width, height, 0);
+		draw_image_cursor(ar, sc->cursor);
+		glPopMatrix();
+	}
 
 	if (sc->flag & SC_SHOW_GPENCIL) {
 		/* Grease Pencil */

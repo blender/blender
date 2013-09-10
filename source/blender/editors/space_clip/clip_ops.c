@@ -1464,6 +1464,14 @@ void CLIP_OT_set_scene_frames(wmOperatorType *ot)
 static int clip_set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sclip = CTX_wm_space_clip(C);
+	bool show_cursor = false;
+
+	show_cursor |= sclip->mode == SC_MODE_MASKEDIT;
+	show_cursor |= sclip->around == V3D_CURSOR;
+
+	if (!show_cursor) {
+		return OPERATOR_CANCELLED;
+	}
 
 	RNA_float_get_array(op->ptr, "location", sclip->cursor);
 
