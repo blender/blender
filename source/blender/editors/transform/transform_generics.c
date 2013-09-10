@@ -659,9 +659,7 @@ static void recalcData_spaceclip(TransInfo *t)
 	if (ED_space_clip_check_show_trackedit(sc)) {
 		MovieClip *clip = ED_space_clip_get_clip(sc);
 		ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-		ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
 		MovieTrackingTrack *track;
-		MovieTrackingPlaneTrack *plane_track;
 		int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 		flushTransTracking(t);
@@ -690,15 +688,6 @@ static void recalcData_spaceclip(TransInfo *t)
 			}
 
 			track = track->next;
-		}
-
-		for (plane_track = plane_tracks_base->first;
-		     plane_track;
-		     plane_track = plane_track->next)
-		{
-			if (plane_track->flag & SELECT) {
-				BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
-			}
 		}
 
 		DAG_id_tag_update(&clip->id, 0);

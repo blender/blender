@@ -5250,6 +5250,48 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 	}
 }
 
+static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
+{
+	SpaceClip *sc = t->sa->spacedata.first;
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTrackingPlaneTrack *plane_track;
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		bool do_update = false;
+
+		do_update |= (plane_track->flag & SELECT) != 0;
+		if (do_update == false) {
+			if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+				int i;
+				for (i = 0; i < plane_track->point_tracksnr; i++) {
+					MovieTrackingTrack *track = plane_track->point_tracks[i];
+
+					if (TRACK_VIEW_SELECTED(sc, track)) {
+						do_update = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (do_update) {
+			BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
+		}
+	}
+
+	if (t->scene->nodetree) {
+		/* tracks can be used for stabilization nodes,
+		 * flush update for such nodes */
+		nodeUpdateID(t->scene->nodetree, &clip->id);
+		WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+	}
+}
+
 static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 {
 	Mask *mask = NULL;
@@ -5405,15 +5447,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		if (t->options & CTX_MOVIECLIP) {
-			SpaceClip *sc = t->sa->spacedata.first;
-			MovieClip *clip = ED_space_clip_get_clip(sc);
-
-			if (t->scene->nodetree) {
-				/* tracks can be used for stabilization nodes,
-				 * flush update for such nodes */
-				nodeUpdateID(t->scene->nodetree, &clip->id);
-				WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
-			}
+			special_aftertrans_update__movieclip(C, t);
 		}
 		else if (t->options & CTX_MASK) {
 			special_aftertrans_update__mask(C, t);

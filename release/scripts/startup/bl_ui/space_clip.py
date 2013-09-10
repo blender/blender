@@ -601,6 +601,7 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
             return
 
         layout.prop(active_track, "name")
+        layout.prop(active_track, "use_auto_keying")
 
 
 class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):

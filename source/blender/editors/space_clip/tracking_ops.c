@@ -812,6 +812,32 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 	}
 }
 
+static void apply_mouse_slide(bContext *C, SlideMarkerData *data)
+{
+	if (data->area == TRACK_AREA_POINT) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		MovieClip *clip = ED_space_clip_get_clip(sc);
+		MovieTrackingPlaneTrack *plane_track;
+		ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+		int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+		for (plane_track = plane_tracks_base->first;
+		     plane_track;
+		     plane_track = plane_track->next)
+		{
+			if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+				int i;
+				for (i = 0; i < plane_track->point_tracksnr; i++) {
+					if (plane_track->point_tracks[i] == data->track) {
+						BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
 static void free_slide_data(SlideMarkerData *data)
 {
 	if (data->old_markers)
@@ -1007,6 +1033,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
+				apply_mouse_slide(C, op->customdata);
 				free_slide_data(op->customdata);
 
 				show_cursor(C);
@@ -1267,7 +1294,7 @@ static void track_markers_updatejob(void *tmv)
 	BKE_tracking_context_sync(tmj->context);
 }
 
-static void track_markers_freejob(void *tmv)
+static void track_markers_endjob(void *tmv)
 {
 	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
 
@@ -1276,10 +1303,15 @@ static void track_markers_freejob(void *tmv)
 	ED_update_for_newframe(tmj->main, tmj->scene, 0);
 
 	BKE_tracking_context_sync(tmj->context);
-	BKE_tracking_context_free(tmj->context);
+	BKE_tracking_context_finish(tmj->context);
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, tmj->scene);
+}
 
+static void track_markers_freejob(void *tmv)
+{
+	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+	BKE_tracking_context_free(tmj->context);
 	MEM_freeN(tmj);
 }
 
@@ -1333,6 +1365,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_tracking_context_sync(context);
+	BKE_tracking_context_finish(context);
 	BKE_tracking_context_free(context);
 
 	/* update scene current frame to the lastes tracked frame */
@@ -1389,7 +1422,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	else
 		WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | NA_EVALUATED, 0);
 
-	WM_jobs_callbacks(wm_job, track_markers_startjob, NULL, track_markers_updatejob, NULL);
+	WM_jobs_callbacks(wm_job, track_markers_startjob, NULL, track_markers_updatejob, track_markers_endjob);
 
 	G.is_break = FALSE;
 

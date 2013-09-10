@@ -2498,7 +2498,7 @@ typedef struct MovieTrackingContext {
 	MovieClip *clip;
 	int clip_flag;
 
-	int frames;
+	int frames, first_frame;
 	bool first_time;
 
 	MovieTrackingSettings settings;
@@ -2538,6 +2538,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->backwards = backwards;
 	context->sync_frame = user->framenr;
 	context->first_time = true;
+	context->first_frame = user->framenr;
 	context->sequence = sequence;
 
 	/* count */
@@ -3114,6 +3115,44 @@ bool BKE_tracking_context_step(MovieTrackingContext *context)
 	return ok;
 }
 
+void BKE_tracking_context_finish(MovieTrackingContext *context)
+{
+	MovieClip *clip = context->clip;
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+	MovieTrackingPlaneTrack *plane_track;
+	int map_size = tracks_map_get_size(context->tracks_map);
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+			int i;
+			for (i = 0; i < map_size; i++) {
+				TrackContext *track_context = NULL;
+				MovieTrackingTrack *track, *old_track;
+				bool do_update = false;
+				int j;
+
+				tracks_map_get_indexed_element(context->tracks_map, i, &track, (void **)&track_context);
+
+				old_track = BLI_ghash_lookup(context->tracks_map->hash, track);
+				for (j = 0; j < plane_track->point_tracksnr; j++) {
+					if (plane_track->point_tracks[j] == old_track) {
+						do_update = true;
+						break;
+					}
+				}
+
+				if (do_update) {
+					BKE_tracking_track_plane_from_existing_motion(plane_track, context->first_frame);
+					break;
+				}
+			}
+		}
+	}
+}
+
 /* Refine marker's position using previously known keyframe.
  * Direction of searching for a keyframe depends on backwards flag,
  * which means if backwards is false, previous keyframe will be as
@@ -3246,8 +3285,29 @@ BLI_INLINE void mat3f_from_mat3d(float mat_float[3][3], double mat_double[3][3])
 static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_track, int start_frame, int direction)
 {
 	MovieTrackingPlaneMarker *start_plane_marker = BKE_tracking_plane_marker_get(plane_track, start_frame);
+	MovieTrackingPlaneMarker *keyframe_plane_marker = NULL;
 	MovieTrackingPlaneMarker new_plane_marker;
 	int current_frame, frame_delta = direction > 0 ? 1 : -1;
+
+	if (plane_track->flag & PLANE_TRACK_AUTOKEY) {
+		/* Find a keyframe in given direction. */
+		for (current_frame = start_frame; ; current_frame += frame_delta) {
+			MovieTrackingPlaneMarker *next_plane_marker =
+				BKE_tracking_plane_marker_get_exact(plane_track, current_frame + frame_delta);
+
+			if (next_plane_marker == NULL) {
+				break;
+			}
+
+			if ((next_plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
+				keyframe_plane_marker = next_plane_marker;
+				break;
+			}
+		}
+	}
+	else {
+		start_plane_marker->flag |= PLANE_MARKER_TRACKED;
+	}
 
 	new_plane_marker = *start_plane_marker;
 	new_plane_marker.flag |= PLANE_MARKER_TRACKED;
@@ -3262,7 +3322,10 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
 		/* As soon as we meet keyframed plane, we stop updating the sequence. */
 		if (next_plane_marker && (next_plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
-			break;
+			/* Don't override keyframes if track is in auto-keyframe mode */
+			if (plane_track->flag & PLANE_TRACK_AUTOKEY) {
+				break;
+			}
 		}
 
 		num_correspondences =
@@ -3295,6 +3358,21 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 		}
 
 		new_plane_marker.framenr = current_frame + frame_delta;
+
+		if (keyframe_plane_marker &&
+		    next_plane_marker &&
+		    (plane_track->flag & PLANE_TRACK_AUTOKEY))
+		{
+			float fac = ((float) next_plane_marker->framenr - start_plane_marker->framenr)
+			          / ((float) keyframe_plane_marker->framenr - start_plane_marker->framenr);
+
+			fac = 3*fac*fac - 2*fac*fac*fac;
+
+			for (i = 0; i < 4; i++) {
+				interp_v2_v2v2(new_plane_marker.corners[i], new_plane_marker.corners[i],
+				               next_plane_marker->corners[i], fac);
+			}
+		}
 
 		BKE_tracking_plane_marker_insert(plane_track, &new_plane_marker);
 

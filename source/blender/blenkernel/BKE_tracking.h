@@ -211,6 +211,8 @@ void BKE_tracking_context_free(struct MovieTrackingContext *context);
 void BKE_tracking_context_sync(struct MovieTrackingContext *context);
 void BKE_tracking_context_sync_user(const struct MovieTrackingContext *context, struct MovieClipUser *user);
 bool BKE_tracking_context_step(struct MovieTrackingContext *context);
+void BKE_tracking_context_finish(struct MovieTrackingContext *context);
+
 void BKE_tracking_refine_marker(struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, bool backwards);
 
 /* **** Plane tracking **** */

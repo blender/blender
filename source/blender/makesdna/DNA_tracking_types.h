@@ -481,8 +481,9 @@ enum {
 
 /* MovieTrackingPlaneTrack->flag */
 enum {
-	PLANE_TRACK_HIDDEN = (1 << 1),
-	PLANE_TRACK_LOCKED = (1 << 2),
+	PLANE_TRACK_HIDDEN  = (1 << 1),
+	PLANE_TRACK_LOCKED  = (1 << 2),
+	PLANE_TRACK_AUTOKEY = (1 << 3),
 };
 
 #endif  /* __DNA_TRACKING_TYPES_H__ */
