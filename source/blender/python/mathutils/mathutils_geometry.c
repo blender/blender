@@ -34,6 +34,7 @@
 #  include "MEM_guardedalloc.h"
 #  include "BLI_blenlib.h"
 #  include "BLI_boxpack2d.h"
+#  include "BLI_convexhull2d.h"
 #  include "BKE_displist.h"
 #  include "BKE_curve.h"
 #endif
@@ -1503,6 +1504,70 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 	return ret;
 }
 
+
+PyDoc_STRVAR(M_Geometry_convex_hull_2d_doc,
+".. function:: convex_hull_2d(points)\n"
+"\n"
+"   Returns a list of indices into the list given\n"
+"\n"
+"   :arg points: list of 2d points.\n"
+"   :type points: list\n"
+"   :return: a list of indices\n"
+"   :rtype: list of ints\n"
+);
+static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *pointlist)
+{
+	Py_ssize_t len;
+
+	PyObject *ret;
+
+	if (!PyList_Check(pointlist)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a list of Vectors");
+		return NULL;
+	}
+
+	len = PyList_GET_SIZE(pointlist);
+	if (len) {
+		float (*points)[2] = MEM_mallocN(sizeof(*points) * len, __func__);
+		int *index_map;
+		Py_ssize_t len_ret, i;
+		PyObject *list_item;
+		bool ok = true;
+
+		for (i = 0; i < len; i++) {
+			list_item = PyList_GET_ITEM(pointlist, i);
+			if (mathutils_array_parse(points[i], 2, 2, list_item, "convex_hull") == -1) {
+				ok = false;
+				break;
+			}
+		}
+
+		if (ok == false) {
+			MEM_freeN(points);
+			return NULL;
+		}
+
+		index_map  = MEM_mallocN(sizeof(*index_map) * len, __func__);
+
+		/* Non Python function */
+		len_ret = BLI_convexhull_2d((const float (*)[2])points, len, index_map);
+		MEM_freeN(points);
+
+		ret = PyList_New(len_ret);
+		for (i = 0; i < len_ret; i++) {
+			PyList_SET_ITEM(ret, i, PyLong_FromLong(index_map[i]));
+		}
+
+		MEM_freeN(index_map);
+	}
+	else {
+		ret = PyList_New(0);
+	}
+
+	return ret;
+}
+
 #endif /* MATH_STANDALONE */
 
 
@@ -1527,6 +1592,7 @@ static PyMethodDef M_Geometry_methods[] = {
 #ifndef MATH_STANDALONE
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"tessellate_polygon", (PyCFunction) M_Geometry_tessellate_polygon, METH_O, M_Geometry_tessellate_polygon_doc},
+	{"convex_hull_2d", (PyCFunction) M_Geometry_convex_hull_2d, METH_O, M_Geometry_convex_hull_2d_doc},
 	{"box_pack_2d", (PyCFunction) M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
 #endif
 	{NULL, NULL, 0, NULL}
