@@ -29,6 +29,8 @@
  * Functions to evaluate mesh data.
  */
 
+#include <limits.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -41,14 +43,23 @@
 #include "BLI_edgehash.h"
 #include "BLI_bitmap.h"
 #include "BLI_scanfill.h"
+#include "BLI_linklist.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_alloca.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 
-
 #include "BLI_strict_flags.h"
+
+
+// #define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
+#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -253,9 +264,15 @@ void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly
 
 void BKE_mesh_calc_normals(Mesh *mesh)
 {
+#ifdef DEBUG_TIME
+	TIMEIT_START(BKE_mesh_calc_normals);
+#endif
 	BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert,
 	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
 	                           NULL, false);
+#ifdef DEBUG_TIME
+	TIMEIT_END(BKE_mesh_calc_normals);
+#endif
 }
 
 void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3])
@@ -296,6 +313,265 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 	if (fnors != faceNors_r)
 		MEM_freeN(fnors);
 }
+
+/**
+ * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
+ * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
+ */
+void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *medges, int numEdges,
+                                 MLoop *mloops, float (*r_loopnors)[3], int numLoops,
+                                 MPoly *mpolys, float (*polynors)[3], int numPolys, float split_angle)
+{
+#define INDEX_UNSET INT_MIN
+#define INDEX_INVALID -1
+/* See comment about edge_to_loops below. */
+#define IS_EDGE_SHARP(_e2l) (ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID))
+
+	/* Mapping edge -> loops.
+	 * If that edge is used by more than two loops (polys), it is always sharp (and tagged as such, see below).
+	 * We also use the second loop index as a kind of flag: smooth edge: > 0,
+	 *                                                      sharp edge: < 0 (INDEX_INVALID || INDEX_UNSET),
+	 *                                                      unset: INDEX_UNSET
+	 * Note that currently we only have two values for second loop of sharp edges. However, if needed, we can
+	 * store the negated value of loop index instead of INDEX_INVALID to retrieve th real value later in code).
+	 * Note also that lose edges always have the value 0!
+	 */
+	int (*edge_to_loops)[2] = MEM_callocN(sizeof(int[2]) * (size_t)numEdges, __func__);
+
+	/* Simple mapping from a loop to its polygon index. */
+	int *loop_to_poly = MEM_mallocN(sizeof(int) * (size_t)numLoops, __func__);
+
+	MPoly *mp;
+	int mp_index;
+	const bool check_angle = (split_angle < (float)M_PI);
+
+	/* Temp normal stack. */
+	BLI_SMALLSTACK_DECLARE(normal, float *);
+
+#ifdef DEBUG_TIME
+	TIMEIT_START(BKE_mesh_normals_loop_split);
+#endif
+
+	if (check_angle) {
+		split_angle = cosf(split_angle);
+	}
+
+	/* This first loop check which edges are actually smooth, and compute edge vectors. */
+	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
+		MLoop *ml_curr;
+		int *e2l;
+		int ml_curr_index = mp->loopstart;
+		const int ml_last_index = (ml_curr_index + mp->totloop) - 1;
+
+		ml_curr = &mloops[ml_curr_index];
+
+		for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
+			e2l = edge_to_loops[ml_curr->e];
+
+			loop_to_poly[ml_curr_index] = mp_index;
+
+			/* Pre-populate all loop normals as if their verts were all-smooth, this way we don't have to compute
+			 * those later!
+			 */
+			normal_short_to_float_v3(r_loopnors[ml_curr_index], mverts[ml_curr->v].no);
+
+			/* Check whether current edge might be smooth or sharp */
+			if ((e2l[0] | e2l[1]) == 0) {
+				/* 'Empty' edge until now, set e2l[0] (and e2l[1] to INT_MIN to tag it as unset). */
+				e2l[0] = ml_curr_index;
+				e2l[1] = INDEX_UNSET;
+			}
+			else if (e2l[1] == INDEX_UNSET) {
+				/* Second loop using this edge, time to test its sharpness.
+				 * An edge is sharp if it is tagged as such, or its face is not smooth, or angle between
+				 * both its polys' normals is above split_angle value...
+				 */
+				if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
+				    (check_angle && dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle))
+				{
+					/* Note: we are sure that loop != 0 here ;) */
+					e2l[1] = INDEX_INVALID;
+				}
+				else {
+					e2l[1] = ml_curr_index;
+				}
+			}
+			else if (!IS_EDGE_SHARP(e2l)) {
+				/* More that two loops using this edge, tag as sharp if not yet done. */
+				e2l[1] = INDEX_INVALID;
+			}
+			/* Else, edge is already 'disqualified' (i.e. sharp)! */
+		}
+	}
+
+	/* We now know edges that can be smoothed (with their vector, and their two loops), and edges that will be hard!
+	 * Now, time to generate the normals.
+	 */
+	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
+		MLoop *ml_curr, *ml_prev;
+		float (*lnors)[3];
+		const int ml_last_index = (mp->loopstart + mp->totloop) - 1;
+		int ml_curr_index = mp->loopstart;
+		int ml_prev_index = ml_last_index;
+
+		ml_curr = &mloops[ml_curr_index];
+		ml_prev = &mloops[ml_prev_index];
+		lnors = &r_loopnors[ml_curr_index];
+
+		for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++, lnors++) {
+			const int *e2l_curr = edge_to_loops[ml_curr->e];
+			const int *e2l_prev = edge_to_loops[ml_prev->e];
+
+			if (!IS_EDGE_SHARP(e2l_curr)) {
+				/* A smooth edge.
+				 * We skip it because it is either:
+				 * - in the middle of a 'smooth fan' already computed (or that will be as soon as we hit
+				 *   one of its ends, i.e. one of its two sharp edges), or...
+				 * - the related vertex is a "full smooth" one, in which case pre-populated normals from vertex
+				 *   are just fine!
+				 */
+			}
+			else if (IS_EDGE_SHARP(e2l_prev)) {
+				/* Simple case (both edges around that vertex are sharp in current polygon),
+				 * this vertex just takes its poly normal.
+				 */
+				copy_v3_v3(*lnors, polynors[mp_index]);
+				/* No need to mark loop as done here, we won't run into it again anyway! */
+			}
+			/* This loop may have been already computed, in which case its 'to_poly' map is set to -1... */
+			else if (loop_to_poly[ml_curr_index] != -1) {
+				/* Gah... We have to fan around current vertex, until we find the other non-smooth edge,
+				 * and accumulate face normals into the vertex!
+				 * Note in case this vertex has only one sharp edges, this is a waste because the normal is the same as
+				 * the vertex normal, but I do not see any easy way to detect that (would need to count number
+				 * of sharp edges per vertex, I doubt the additional memory usage would be worth it, especially as
+				 * it should not be a common case in real-life meshes anyway).
+				 */
+				const unsigned int mv_pivot_index = ml_curr->v;  /* The vertex we are "fanning" around! */
+				const int *e2lfan_curr;
+				float vec_curr[3], vec_prev[3];
+				MLoop *mlfan_curr, *mlfan_next;
+				MPoly *mpfan_next;
+				float lnor[3] = {0.0f, 0.0f, 0.0f};
+				/* mlfan_vert_index: the loop of our current edge might not be the loop of our current vertex! */
+				int mlfan_curr_index, mlfan_vert_index, mpfan_curr_index;
+
+				e2lfan_curr = e2l_prev;
+				mlfan_curr = ml_prev;
+				mlfan_curr_index = ml_prev_index;
+				mlfan_vert_index = ml_curr_index;
+				mpfan_curr_index = mp_index;
+
+				/* Only need to compute previous edge's vector once, then we can just reuse old current one! */
+				{
+					const MEdge *me_prev = &medges[ml_prev->e];
+					const MVert *mv_1 = &mverts[mv_pivot_index];
+					const MVert *mv_2 = (me_prev->v1 == mv_pivot_index) ? &mverts[me_prev->v2] : &mverts[me_prev->v1];
+
+					sub_v3_v3v3(vec_prev, mv_2->co, mv_1->co);
+					normalize_v3(vec_prev);
+				}
+
+				while (true) {
+					/* Compute edge vectors.
+					 * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing them
+					 *       twice (or more) here. However, time gained is not worth memory and time lost,
+					 *       given the fact that this code should not be called that much in real-life meshes...
+					 */
+					{
+						const MEdge *me_curr = &medges[ml_curr->e];
+						const MVert *mv_1 = &mverts[mv_pivot_index];
+						const MVert *mv_2 = (me_curr->v1 == mv_pivot_index) ? &mverts[me_curr->v2] :
+						                                                      &mverts[me_curr->v1];
+
+						sub_v3_v3v3(vec_curr, mv_2->co, mv_1->co);
+						normalize_v3(vec_curr);
+					}
+
+					{
+						/* Code similar to accumulate_vertex_normals_poly. */
+						/* Calculate angle between the two poly edges incident on this vertex. */
+						const float fac = saacos(dot_v3v3(vec_curr, vec_prev));
+						/* Accumulate */
+						madd_v3_v3fl(lnor, polynors[mpfan_curr_index], fac);
+					}
+
+					/* We store here a pointer to all loop-normals processed. */
+					BLI_SMALLSTACK_PUSH(normal, &(r_loopnors[mlfan_vert_index][0]));
+
+					/* And we are done with this loop, mark it as such! */
+					loop_to_poly[mlfan_vert_index] = -1;
+
+					if (IS_EDGE_SHARP(e2lfan_curr)) {
+						/* Current edge is sharp, we have finished with this fan of faces around this vert! */
+						break;
+					}
+
+					copy_v3_v3(vec_prev, vec_curr);
+
+					/* Warning! This is rather complex!
+					 * We have to find our next edge around the vertex (fan mode).
+					 * First we find the next loop, which is either previous or next to mlfan_curr_index, depending
+					 * whether both loops using current edge are in the same direction or not, and whether
+					 * mlfan_curr_index actually uses the vertex we are fanning around!
+					 * mlfan_curr_index is the index of mlfan_next here, and mlfan_next is not the real next one
+					 * (i.e. not the future mlfan_curr)...
+					 */
+					mlfan_curr_index = (e2lfan_curr[0] == mlfan_curr_index) ? e2lfan_curr[1] : e2lfan_curr[0];
+					mpfan_curr_index = loop_to_poly[mlfan_curr_index];
+					mlfan_next = &mloops[mlfan_curr_index];
+					mpfan_next = &mpolys[mpfan_curr_index];
+					if ((mlfan_curr->v == mlfan_next->v && mlfan_curr->v == mv_pivot_index) ||
+					    (mlfan_curr->v != mlfan_next->v && mlfan_curr->v != mv_pivot_index))
+					{
+						/* We need the previous loop, but current one is our vertex's loop. */
+						mlfan_vert_index = mlfan_curr_index;
+						if (--mlfan_curr_index < mpfan_next->loopstart) {
+							mlfan_curr_index = mpfan_next->loopstart + mpfan_next->totloop - 1;
+						}
+					}
+					else {
+						/* We need the next loop, which is also our vertex's loop. */
+						if (++mlfan_curr_index >= mpfan_next->loopstart + mpfan_next->totloop) {
+							mlfan_curr_index = mpfan_next->loopstart;
+						}
+						mlfan_vert_index = mlfan_curr_index;
+					}
+					mlfan_curr = &mloops[mlfan_curr_index];
+					/* And now we are back in sync, mlfan_curr_index is the index of mlfan_curr! Pff! */
+
+					e2lfan_curr = edge_to_loops[mlfan_curr->e];
+				}
+
+				/* In case we get a zero normal here, just use vertex normal already set! */
+				if (LIKELY(normalize_v3(lnor) != 0.0f)) {
+					/* Copy back the final computed normal into all related loop-normals. */
+					float *nor;
+					while ((nor = BLI_SMALLSTACK_POP(normal))) {
+						copy_v3_v3(nor, lnor);
+					}
+				}
+			}
+
+			ml_prev = ml_curr;
+			ml_prev_index = ml_curr_index;
+		}
+	}
+
+	BLI_SMALLSTACK_FREE(normal);
+
+	MEM_freeN(edge_to_loops);
+	MEM_freeN(loop_to_poly);
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(BKE_mesh_normals_loop_split);
+#endif
+
+#undef INDEX_UNSET
+#undef INDEX_INVALID
+#undef IS_EDGE_SHARP
+}
+
 /** \} */
 
 
