@@ -225,7 +225,7 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir
 	struct RayCastUserData bmcb_data;
 	const float dist = r_dist ? *r_dist : FLT_MAX;
 
-	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
 
 	hit.dist = dist;
 	hit.index = -1;
@@ -319,7 +319,7 @@ BMFace *BKE_bmbvh_find_face_segment(BMBVHTree *bmtree, const float co_a[3], cons
 	const float dist = len_v3v3(co_a, co_b);
 	float dir[3];
 
-	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
 
 	sub_v3_v3v3(dir, co_b, co_a);
 
@@ -405,7 +405,7 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 	struct VertSearchUserData bmcb_data;
 	const float maxdist_sq = maxdist * maxdist;
 
-	if (bmtree->cos_cage) BLI_assert(!(bmtree->em->bm->elem_index_dirty & BM_VERT));
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
 
 	hit.dist = maxdist_sq;
 	hit.index = -1;
