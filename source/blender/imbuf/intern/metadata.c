@@ -63,21 +63,21 @@ void IMB_metadata_free(struct ImBuf *img)
 	}
 }
 
-int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
+bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
 {
 	ImMetaData *info;
-	int retval = 0;
+	bool retval = false;
 
 	if (!img)
-		return 0;
+		return false;
 	if (!img->metadata) {
-		return 0;
+		return false;
 	}
 	info = img->metadata;
 	while (info) {
 		if (strcmp(key, info->key) == 0) {
 			BLI_strncpy(field, info->value, len);
-			retval = 1;
+			retval = true;
 			break;
 		}
 		info = info->next;
@@ -85,13 +85,13 @@ int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, cons
 	return retval;
 }
 
-int IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value)
+bool IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value)
 {
 	ImMetaData *info;
 	ImMetaData *last;
 
 	if (!img)
-		return 0;
+		return false;
 
 	if (!img->metadata) {
 		img->metadata = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
@@ -109,15 +109,15 @@ int IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value
 	}
 	info->key = BLI_strdup(key);
 	info->value = BLI_strdup(value);
-	return 1;
+	return true;
 }
 
-int IMB_metadata_del_field(struct ImBuf *img, const char *key)
+bool IMB_metadata_del_field(struct ImBuf *img, const char *key)
 {
 	ImMetaData *p, *p1;
 
 	if ((!img) || (!img->metadata))
-		return (0);
+		return false;
 
 	p = img->metadata;
 	p1 = NULL;
@@ -131,20 +131,20 @@ int IMB_metadata_del_field(struct ImBuf *img, const char *key)
 			MEM_freeN(p->key);
 			MEM_freeN(p->value);
 			MEM_freeN(p);
-			return (1);
+			return true;
 		}
 		p1 = p;
 		p = p->next;
 	}
-	return (0);
+	return false;
 }
 
-int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field)
+bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field)
 {
 	ImMetaData *p;
 
 	if (!img)
-		return (0);
+		return false;
 
 	if (!img->metadata)
 		return (IMB_metadata_add_field(img, key, field));
@@ -154,7 +154,7 @@ int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *fi
 		if (!strcmp(key, p->key)) {
 			MEM_freeN(p->value);
 			p->value = BLI_strdup(field);
-			return (1);
+			return true;
 		}
 		p = p->next;
 	}

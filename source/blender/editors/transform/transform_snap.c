@@ -1671,7 +1671,8 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 	}
 	else if (ob->type == OB_EMPTY) {
 		retval = snapEmpty(snap_mode, ar, ob, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
-	} else if (ob->type == OB_CAMERA) {
+	}
+	else if (ob->type == OB_CAMERA) {
 		retval = snapCamera(snap_mode, ar, scene, ob, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
 	}
 	

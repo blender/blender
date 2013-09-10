@@ -35,8 +35,8 @@
 
 struct ImBuf;
 
-short imb_addencodedbufferImBuf(struct ImBuf *ibuf);
-short imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
+bool imb_addencodedbufferImBuf(struct ImBuf *ibuf);
+bool imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
 
 #endif
 

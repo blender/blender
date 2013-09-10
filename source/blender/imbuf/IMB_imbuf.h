@@ -51,9 +51,6 @@
  * - Endianness issues are dealt with internally.
  * - File I/O must be done externally. The module uses FILE*'s to
  *   direct input/output.
- * - Platform dependency is limited. Some minor patches for
- *   amiga and Irix are present. A 'posix-compliance-patch'
- *   provides the interface to windows.
  *
  * \section dependencies Dependencies
  *
@@ -71,6 +68,9 @@
 #define __IMB_IMBUF_H__
 
 #define IM_MAX_SPACE 64
+
+/* for bool */
+#include "../blenlib/BLI_sys_types.h"
 
 /**
  *
@@ -146,8 +146,8 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  *
  * \attention Defined in allocimbuf.c
  */
-short addzbufImBuf(struct ImBuf *ibuf);
-short addzbuffloatImBuf(struct ImBuf *ibuf);
+bool addzbufImBuf(struct ImBuf *ibuf);
+bool addzbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  *
@@ -500,17 +500,17 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
                        int x1, int y1, int x2, int y2);
 
 /* defined in metadata.c */
-int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);
+bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
-short imb_addrectImBuf(struct ImBuf *ibuf);
+bool imb_addrectImBuf(struct ImBuf *ibuf);
 void imb_freerectImBuf(struct ImBuf *ibuf);
 
-short imb_addrectfloatImBuf(struct ImBuf *ibuf);
+bool imb_addrectfloatImBuf(struct ImBuf *ibuf);
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
-short imb_addtilesImBuf(struct ImBuf *ibuf);
+bool imb_addtilesImBuf(struct ImBuf *ibuf);
 void imb_freetilesImBuf(struct ImBuf *ibuf);
 
 /* threaded processors */

@@ -574,7 +574,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				int but_flag = UI_BUT_DRAG_LOCK;
 				gr = (Group *)tselem->id;
 
-				if(gr->id.lib)
+				if (gr->id.lib)
 					but_flag |= UI_BUT_DISABLED;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);

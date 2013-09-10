@@ -62,7 +62,7 @@ void IMB_metadata_free(struct ImBuf *img);
  *  \param len - length of value buffer allocated by user.
  *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
  */
-int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, const size_t len);
+bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, const size_t len);
 
 /** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
  *  before calling this function.
@@ -71,13 +71,13 @@ int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, cons
  *  \param value - the data to be written to the field. zero terminated string
  *  \return    - 1 (true) if ImageInfo present, 0 (false) otherwise
  */
-int IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value);
+bool IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value);
 
 /** delete the key/field par in the ImMetaData struct.
  * \param img - the ImBuf that contains the image data
  * \param key - the key of the field
  * \return - 1 (true) if delete the key/field, 0 (false) otherwise
  */
-int IMB_metadata_del_field(struct ImBuf *img, const char *key);
+bool IMB_metadata_del_field(struct ImBuf *img, const char *key);
 
 #endif /* __IMB_METADATA_H__ */

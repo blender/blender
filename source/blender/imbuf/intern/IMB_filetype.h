@@ -94,7 +94,6 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags);
 
 /* cocoa */
 struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
-short imb_cocoaSaveImage(struct ImBuf *ibuf, const char *name, int flags);
 
 /* cineon */
 int imb_save_cineon(struct ImBuf *buf, const char *name, int flags);

@@ -191,11 +191,11 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 	return rval;
 }
 
-short addzbufImBuf(ImBuf *ibuf)
+bool addzbufImBuf(ImBuf *ibuf)
 {
 	size_t size;
 	
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 	
 	IMB_freezbufImBuf(ibuf);
 	
@@ -204,17 +204,17 @@ short addzbufImBuf(ImBuf *ibuf)
 	if ((ibuf->zbuf = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuf;
 		ibuf->flags |= IB_zbuf;
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
-short addzbuffloatImBuf(ImBuf *ibuf)
+bool addzbuffloatImBuf(ImBuf *ibuf)
 {
 	size_t size;
 	
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 	
 	IMB_freezbuffloatImBuf(ibuf);
 	
@@ -223,16 +223,16 @@ short addzbuffloatImBuf(ImBuf *ibuf)
 	if ((ibuf->zbuf_float = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuffloat;
 		ibuf->flags |= IB_zbuffloat;
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-short imb_addencodedbufferImBuf(ImBuf *ibuf)
+bool imb_addencodedbufferImBuf(ImBuf *ibuf)
 {
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 
 	freeencodedbufferImBuf(ibuf);
 
@@ -241,33 +241,33 @@ short imb_addencodedbufferImBuf(ImBuf *ibuf)
 
 	ibuf->encodedsize = 0;
 
-	if ((ibuf->encodedbuffer = MEM_mallocN(ibuf->encodedbuffersize, "addencodedbufferImBuf"))) {
+	if ((ibuf->encodedbuffer = MEM_mallocN(ibuf->encodedbuffersize, __func__))) {
 		ibuf->mall |= IB_mem;
 		ibuf->flags |= IB_mem;
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
-short imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
+bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 {
 	unsigned int newsize, encodedsize;
 	void *newbuffer;
 
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 
 	if (ibuf->encodedbuffersize < ibuf->encodedsize) {
-		printf("imb_enlargeencodedbufferImBuf: error in parameters\n");
-		return FALSE;
+		printf("%s: error in parameters\n", __func__);
+		return false;
 	}
 
 	newsize = 2 * ibuf->encodedbuffersize;
 	if (newsize < 10000) newsize = 10000;
 
-	newbuffer = MEM_mallocN(newsize, "enlargeencodedbufferImBuf");
-	if (newbuffer == NULL) return FALSE;
+	newbuffer = MEM_mallocN(newsize, __func__);
+	if (newbuffer == NULL) return false;
 
 	if (ibuf->encodedbuffer) {
 		memcpy(newbuffer, ibuf->encodedbuffer, ibuf->encodedsize);
@@ -286,14 +286,14 @@ short imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 	ibuf->mall |= IB_mem;
 	ibuf->flags |= IB_mem;
 
-	return TRUE;
+	return true;
 }
 
-short imb_addrectfloatImBuf(ImBuf *ibuf)
+bool imb_addrectfloatImBuf(ImBuf *ibuf)
 {
 	size_t size;
 	
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 	
 	if (ibuf->rect_float)
 		imb_freerectfloatImBuf(ibuf);  /* frees mipmap too, hrm */
@@ -304,18 +304,18 @@ short imb_addrectfloatImBuf(ImBuf *ibuf)
 	if ((ibuf->rect_float = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_rectfloat;
 		ibuf->flags |= IB_rectfloat;
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 /* question; why also add zbuf? */
-short imb_addrectImBuf(ImBuf *ibuf)
+bool imb_addrectImBuf(ImBuf *ibuf)
 {
 	size_t size;
 
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 	
 	/* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
 	if (ibuf->rect && (ibuf->mall & IB_rect))
@@ -327,16 +327,20 @@ short imb_addrectImBuf(ImBuf *ibuf)
 	if ((ibuf->rect = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_rect;
 		ibuf->flags |= IB_rect;
-		if (ibuf->planes > 32) return (addzbufImBuf(ibuf));
-		else return TRUE;
+		if (ibuf->planes > 32) {
+			return (addzbufImBuf(ibuf));
+		}
+		else {
+			return true;
+		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-short imb_addtilesImBuf(ImBuf *ibuf)
+bool imb_addtilesImBuf(ImBuf *ibuf)
 {
-	if (ibuf == NULL) return FALSE;
+	if (ibuf == NULL) return false;
 
 	if (!ibuf->tiles)
 		if ((ibuf->tiles = MEM_callocN(sizeof(unsigned int *) * ibuf->xtiles * ibuf->ytiles, "imb_tiles")))
@@ -360,28 +364,28 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 		ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254f; /* IMB_DPI_DEFAULT -> pixels-per-meter */
 
 		if (flags & IB_rect) {
-			if (imb_addrectImBuf(ibuf) == FALSE) {
+			if (imb_addrectImBuf(ibuf) == false) {
 				IMB_freeImBuf(ibuf);
 				return NULL;
 			}
 		}
 		
 		if (flags & IB_rectfloat) {
-			if (imb_addrectfloatImBuf(ibuf) == FALSE) {
+			if (imb_addrectfloatImBuf(ibuf) == false) {
 				IMB_freeImBuf(ibuf);
 				return NULL;
 			}
 		}
 		
 		if (flags & IB_zbuf) {
-			if (addzbufImBuf(ibuf) == FALSE) {
+			if (addzbufImBuf(ibuf) == false) {
 				IMB_freeImBuf(ibuf);
 				return NULL;
 			}
 		}
 		
 		if (flags & IB_zbuffloat) {
-			if (addzbuffloatImBuf(ibuf) == FALSE) {
+			if (addzbuffloatImBuf(ibuf) == false) {
 				IMB_freeImBuf(ibuf);
 				return NULL;
 			}
@@ -420,7 +424,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 
 	if (ibuf1->encodedbuffer) {
 		ibuf2->encodedbuffersize = ibuf1->encodedbuffersize;
-		if (imb_addencodedbufferImBuf(ibuf2) == FALSE) {
+		if (imb_addencodedbufferImBuf(ibuf2) == false) {
 			IMB_freeImBuf(ibuf2);
 			return NULL;
 		}
