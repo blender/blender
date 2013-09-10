@@ -3388,8 +3388,12 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 
 		/* attach callbacks to compensate for missing properties update,
 		 * we don't know which keymap (item) is being modified there */
-		for (; but; but = but->next)
-			uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
+		for (; but; but = but->next) {
+			/* operator buttons may store props for use (file selector, [#36492]) */
+			if (but->rnaprop) {
+				uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
+			}
+		}
 	}
 }
 
