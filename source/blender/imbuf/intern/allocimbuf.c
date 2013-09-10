@@ -48,6 +48,8 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
+#include "BLI_utildefines.h"
+
 void imb_freemipmapImBuf(ImBuf *ibuf)
 {
 	int a;
