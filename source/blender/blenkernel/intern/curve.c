@@ -3088,9 +3088,11 @@ void BKE_nurb_handles_calc(Nurb *nu) /* first, if needed, set handle flags */
  * figures out the previous and next for us */
 void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
 {
-	BezTriple *prev = BKE_nurb_bezt_get_prev(nu, bezt);
-	BezTriple *next = BKE_nurb_bezt_get_next(nu, bezt);
-	BKE_nurb_handle_calc(bezt, prev, next, 0);
+	if (nu->pntsu > 1) {
+		BezTriple *prev = BKE_nurb_bezt_get_prev(nu, bezt);
+		BezTriple *next = BKE_nurb_bezt_get_next(nu, bezt);
+		BKE_nurb_handle_calc(bezt, prev, next, 0);
+	}
 }
 
 void BKE_nurb_handles_test(Nurb *nu)
