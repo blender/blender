@@ -9653,6 +9653,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 268, 5)) {
+		bScreen *sc;
+		ScrArea *sa;
+
+		/* add missing (+) expander in node editor */
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				ARegion *ar, *arnew;
+
+				if (sa->spacetype == SPACE_NODE) {
+					ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+
+					if (ar)
+						continue;
+
+					/* add subdiv level; after header */
+					ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+					
+					/* is error! */
+					if (ar == NULL)
+						continue;
+
+					arnew = MEM_callocN(sizeof(ARegion), "node tools");
+					
+					BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+					arnew->regiontype = RGN_TYPE_TOOLS;
+					arnew->alignment = RGN_ALIGN_LEFT;
+					
+					arnew->flag = RGN_FLAG_HIDDEN;
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
