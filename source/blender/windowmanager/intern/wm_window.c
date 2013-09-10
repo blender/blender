@@ -114,8 +114,8 @@ void wm_get_screensize(int *width_r, int *height_r)
 	*height_r = uiheight;
 }
 
-/* size of all screens, useful since the mouse is bound by this */
-void wm_get_screensize_all(int *width_r, int *height_r)
+/* size of all screens (desktop), useful since the mouse is bound by this */
+void wm_get_desktopsize(int *width_r, int *height_r)
 {
 	unsigned int uiwidth;
 	unsigned int uiheight;
@@ -131,7 +131,7 @@ static void wm_window_check_position(rcti *rect)
 {
 	int width, height, d;
 	
-	wm_get_screensize(&width, &height);
+	wm_get_desktopsize(&width, &height);
 	
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
 	height -= 70;
@@ -359,7 +359,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	if (multisamples == -1)
 		multisamples = U.ogl_multisamples;
 	
-	wm_get_screensize(&scr_w, &scr_h);
+	wm_get_desktopsize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
 	ghostwin = GHOST_CreateWindow(g_system, title,
@@ -856,7 +856,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					
 					GHOST_DisposeRectangle(client_rect);
 					
-					wm_get_screensize_all(&scr_w, &scr_h);
+					wm_get_desktopsize(&scr_w, &scr_h);
 					sizex = r - l;
 					sizey = b - t;
 					posx = l;
