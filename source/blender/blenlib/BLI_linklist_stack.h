@@ -40,6 +40,15 @@
  * \note _##var##_type is a dummy var only used for typechecks.
  */
 
+/* -------------------------------------------------------------------- */
+/* Linked Stack using BLI_mempool
+ *
+ * Uses mempool for storage.
+ */
+
+/** \name Linked Stack (mempool)
+ * \{ */
+
 #define BLI_LINKSTACK_DECLARE(var, type) \
 	LinkNode *var; \
 	BLI_mempool *_##var##_pool; \
@@ -87,4 +96,64 @@
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
 
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Linked Stack, using stack memory (alloca)
+ *
+ * alloca never frees, pop'd items are stored in a free-list for reuse.
+ * only use for lists small enough to fit on the stack.
+ */
+
+
+/** \name Linked Stack (alloca)
+ * \{ */
+
+#ifdef __GNUC__
+#  define _BLI_SMALLSTACK_CAST(var) typeof(_##var##_type)
+#else
+#  define _BLI_SMALLSTACK_CAST(var)
+#endif
+
+#define BLI_SMALLSTACK_DECLARE(var, type) \
+	LinkNode *_##var##_stack = NULL, *_##var##_free = NULL, *_##var##_temp = NULL; \
+	type _##var##_type
+
+#define BLI_SMALLSTACK_PUSH(var, data) \
+{ \
+	CHECK_TYPE_PAIR(data, _##var##_type); \
+	if (_##var##_free) { \
+		_##var##_temp = _##var##_free; \
+		_##var##_free = _##var##_free->next; \
+	} \
+	else { \
+		_##var##_temp = alloca(sizeof(LinkNode)); \
+	} \
+	_##var##_temp->next = _##var##_stack; \
+	_##var##_temp->link = data; \
+	_##var##_stack = _##var##_temp; \
+} (void)0
+
+/* internal use, no null check */
+#define _BLI_SMALLSTACK_DEL(var) \
+	(void)((_##var##_temp = _##var##_stack->next), \
+	       (_##var##_stack->next = _##var##_free), \
+	       (_##var##_free = _##var##_stack), \
+	       (_##var##_stack = _##var##_temp)) \
+
+/* check for typeof() */
+#define BLI_SMALLSTACK_POP(var) \
+	(_BLI_SMALLSTACK_CAST(var)) ((_##var##_stack) ? \
+	(_BLI_SMALLSTACK_DEL(var), (_##var##_free->link)) : NULL)
+
+#define BLI_SMALLSTACK_FREE(var)  { \
+	(void)&(_##var##_type); \
+} (void)0
+
+#include "BLI_alloca.h"
+
+/** \} */
+
 #endif  /* __BLI_LINKLIST_STACK_H__ */
+
