@@ -430,7 +430,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.filtertype = R_FILTER_MITCH;
 	sce->r.size = 50;
 
-	sce->r.im_format.planes = R_IMF_PLANES_RGB;
+	sce->r.im_format.planes = R_IMF_PLANES_RGBA;
 	sce->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	sce->r.im_format.depth = R_IMF_CHAN_DEPTH_8;
 	sce->r.im_format.quality = 90;

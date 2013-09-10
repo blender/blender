@@ -1326,7 +1326,7 @@ int BKE_add_image_extension_from_type(char *string, const char imtype)
 void BKE_imformat_defaults(ImageFormatData *im_format)
 {
 	memset(im_format, 0, sizeof(*im_format));
-	im_format->planes = R_IMF_PLANES_RGB;
+	im_format->planes = R_IMF_PLANES_RGBA;
 	im_format->imtype = R_IMF_IMTYPE_PNG;
 	im_format->depth = R_IMF_CHAN_DEPTH_8;
 	im_format->quality = 90;

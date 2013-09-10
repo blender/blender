@@ -38,5 +38,9 @@
  * This function can be emptied each time the startup.blend is updated. */
 void BLO_update_defaults_startup_blend(Main *main)
 {
+	Scene *scene;
+
+	for (scene = main->scene.first; scene; scene = scene->id.next)
+		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 }
 
