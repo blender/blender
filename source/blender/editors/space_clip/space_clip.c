@@ -735,6 +735,23 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* Cursor */
 	WM_keymap_add_item(keymap, "CLIP_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
+	/* pivot point */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "BOUNDING_BOX_CENTER");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "MEDIAN_POINT");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "CURSOR");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
+
 	/* ******** Hotkeys avalaible for preview region only ******** */
 
 	keymap = WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
