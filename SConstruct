@@ -295,8 +295,8 @@ if env['OURPLATFORM']=='darwin':
     else:
         print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
 		
-    if env['CXX'].startswith('clang'):
-        env['CCFLAGS'].append('-ftemplate-depth=1024') # would break other gcc or llvm-gcc
+    if env['CXX'].startswith('clang') and env['XCODE_CUR_VER'] >= '5':
+        env['CCFLAGS'].append('-ftemplate-depth=1024') # only valid for clang bundled with xcode 5
 
     # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
     # necessary header file lives here when installed:
