@@ -193,14 +193,15 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 
 short addzbufImBuf(ImBuf *ibuf)
 {
-	int size;
+	size_t size;
 	
 	if (ibuf == NULL) return FALSE;
 	
 	IMB_freezbufImBuf(ibuf);
 	
-	size = ibuf->x * ibuf->y * sizeof(unsigned int);
-	if ((ibuf->zbuf = MEM_mapallocN(size, "addzbufImBuf"))) {
+	size = (size_t)(ibuf->x * ibuf->y) * sizeof(unsigned int);
+
+	if ((ibuf->zbuf = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuf;
 		ibuf->flags |= IB_zbuf;
 		return TRUE;
@@ -211,14 +212,15 @@ short addzbufImBuf(ImBuf *ibuf)
 
 short addzbuffloatImBuf(ImBuf *ibuf)
 {
-	int size;
+	size_t size;
 	
 	if (ibuf == NULL) return FALSE;
 	
 	IMB_freezbuffloatImBuf(ibuf);
 	
-	size = ibuf->x * ibuf->y * sizeof(float);
-	if ((ibuf->zbuf_float = MEM_mapallocN(size, "addzbuffloatImBuf"))) {
+	size = (size_t)(ibuf->x * ibuf->y) * sizeof(float);
+
+	if ((ibuf->zbuf_float = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuffloat;
 		ibuf->flags |= IB_zbuffloat;
 		return TRUE;
@@ -289,18 +291,17 @@ short imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 
 short imb_addrectfloatImBuf(ImBuf *ibuf)
 {
-	int size;
+	size_t size;
 	
 	if (ibuf == NULL) return FALSE;
 	
 	if (ibuf->rect_float)
 		imb_freerectfloatImBuf(ibuf);  /* frees mipmap too, hrm */
 	
-	size = ibuf->x * ibuf->y;
-	size = size * 4 * sizeof(float);
+	size = (size_t)(ibuf->x * ibuf->y) * sizeof(float[4]);
+
 	ibuf->channels = 4;
-	
-	if ((ibuf->rect_float = MEM_mapallocN(size, "imb_addrectfloatImBuf"))) {
+	if ((ibuf->rect_float = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_rectfloat;
 		ibuf->flags |= IB_rectfloat;
 		return TRUE;
@@ -312,7 +313,7 @@ short imb_addrectfloatImBuf(ImBuf *ibuf)
 /* question; why also add zbuf? */
 short imb_addrectImBuf(ImBuf *ibuf)
 {
-	int size;
+	size_t size;
 
 	if (ibuf == NULL) return FALSE;
 	
@@ -321,10 +322,9 @@ short imb_addrectImBuf(ImBuf *ibuf)
 		MEM_freeN(ibuf->rect);
 	ibuf->rect = NULL;
 	
-	size = ibuf->x * ibuf->y;
-	size = size * sizeof(unsigned int);
+	size = (size_t)(ibuf->x * ibuf->y) * sizeof(unsigned int);
 
-	if ((ibuf->rect = MEM_mapallocN(size, "imb_addrectImBuf"))) {
+	if ((ibuf->rect = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_rect;
 		ibuf->flags |= IB_rect;
 		if (ibuf->planes > 32) return (addzbufImBuf(ibuf));
