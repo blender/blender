@@ -26,7 +26,7 @@
 #include "BLI_convexhull2d.h"
 
 #include "BLI_strict_flags.h"
-
+#include "BLI_utildefines.h"
 
 /* Copyright 2001, softSurfer (www.softsurfer.com)
  * This code may be freely used and modified for any purpose
