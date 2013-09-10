@@ -320,6 +320,20 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 	medge->crease = (char)(CLAMPIS(value * 255.0f, 0, 255));
 }
 
+static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me = rna_mesh(ptr);
+	MLoop *ml = (MLoop *)ptr->data;
+	const float (*vec)[3] = CustomData_get(&me->ldata, (int)(ml - me->mloop), CD_NORMAL);
+
+	if (!vec) {
+		zero_v3(values);
+	}
+	else {
+		copy_v3_v3(values, (const float *)vec);
+	}
+}
+
 static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 {
 	Mesh *me = rna_mesh(ptr);
@@ -1838,6 +1852,16 @@ static void rna_def_mloop(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshLoop_index_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Index", "Index of this loop");
+
+	prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshLoop_normal_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Loop Normal",
+	                         "Local space unit length split normal vector of this vertex for this polygon "
+	                         "(only computed on demand!)");
+
 }
 
 static void rna_def_mpolygon(BlenderRNA *brna)

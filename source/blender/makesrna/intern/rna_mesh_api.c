@@ -37,6 +37,7 @@
 #include "BLI_sys_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_mesh.h"
 #include "ED_mesh.h"
@@ -57,8 +58,48 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, st
 	return ret;
 }
 
-void rna_Mesh_calc_smooth_groups(struct Mesh *mesh, int use_bitflags, int *r_poly_group_len,
-                                 int **r_poly_group, int *r_group_total)
+static void rna_Mesh_calc_split_normals(Mesh *mesh, float min_angle)
+{
+	float (*r_loopnors)[3];
+	float (*polynors)[3];
+	bool free_polynors;
+
+	if (CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
+		r_loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+		memset(r_loopnors, 0, sizeof(float[3]) * mesh->totloop);
+	}
+	else {
+		r_loopnors = CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_CALLOC, NULL, mesh->totloop);
+		CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+	}
+
+	if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
+		/* This assume that layer is always up to date, not sure this is the case (esp. in Edit mode?)... */
+		polynors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+	}
+	else {
+		polynors = MEM_mallocN(sizeof(float [3]) * mesh->totpoly, AT);
+		BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+		                           polynors, false);
+		free_polynors = true;
+	}
+
+	BKE_mesh_normals_loop_split(mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge,
+	                            mesh->mloop, r_loopnors, mesh->totloop, mesh->mpoly, polynors, mesh->totpoly,
+	                            min_angle);
+
+	if (free_polynors) {
+		MEM_freeN(polynors);
+	}
+}
+
+static void rna_Mesh_free_split_normals(Mesh *mesh)
+{
+	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
+}
+
+static void rna_Mesh_calc_smooth_groups(Mesh *mesh, int use_bitflags, int *r_poly_group_len,
+                                        int **r_poly_group, int *r_group_total)
 {
 	*r_poly_group_len = mesh->totpoly;
 	*r_poly_group = BKE_mesh_calc_smoothgroups(
@@ -82,6 +123,16 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func = RNA_def_function(srna, "calc_normals", "BKE_mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals");
+
+	func = RNA_def_function(srna, "calc_split_normals", "rna_Mesh_calc_split_normals");
+	RNA_def_function_ui_description(func, "Calculate split vertex normals, which preserve sharp edges");
+	parm = RNA_def_float(func, "split_angle", M_PI, 0.0f, M_PI, "",
+	                     "Angle between polys' normals above which an edge is always sharp (180° to disable)",
+	                     0.0f, M_PI);
+	RNA_def_property_subtype(parm, PROP_UNIT_ROTATION);
+
+	func = RNA_def_function(srna, "free_split_normals", "rna_Mesh_free_split_normals");
+	RNA_def_function_ui_description(func, "Free split vertex normals");
 
 	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");
 	RNA_def_function_ui_description(func, "Calculate face tessellation (supports editmode too)");
