@@ -1493,7 +1493,7 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 		}
 
 		/* Non Python function */
-		BLI_box_pack_2D(boxarray, len, &tot_width, &tot_height);
+		BLI_box_pack_2d(boxarray, len, &tot_width, &tot_height);
 
 		boxPack_ToPyObject(boxlist, &boxarray);
 	}

@@ -444,7 +444,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op,
 static float (*hull_verts_for_bullet(BMVert **input_verts,
                                      const int num_input_verts))[3]
 {
-	float (*coords)[3] = MEM_callocN(sizeof(*coords) * num_input_verts, AT);
+	float (*coords)[3] = MEM_callocN(sizeof(*coords) * num_input_verts, __func__);
 	int i;
 
 	for (i = 0; i < num_input_verts; i++) {

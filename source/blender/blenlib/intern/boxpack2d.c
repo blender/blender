@@ -156,7 +156,7 @@ static int vertex_sort(const void *p1, const void *p2)
  *  len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
-void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height)
+void BLI_box_pack_2d(BoxPack *boxarray, const int len, float *tot_width, float *tot_height)
 {
 	BoxVert *vert; /* the current vert */
 	int box_index, verts_pack_len, i, j, k, isect;

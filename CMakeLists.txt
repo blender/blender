@@ -1784,8 +1784,14 @@ elseif(APPLE)
 		set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 	endif()
 
-	# Xcode 5 has too low template depth of 128 for libmv
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		if(${CMAKE_GENERATOR} MATCHES "Xcode")
+			if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
+				# Xcode 5 has too low template depth of 128 for libmv
+				set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
+			endif()
+		endif()
+	endif()
 endif()
 
 #-----------------------------------------------------------------------------

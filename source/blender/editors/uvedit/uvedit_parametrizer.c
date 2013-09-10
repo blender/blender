@@ -4513,7 +4513,7 @@ void param_pack(ParamHandle *handle, float margin)
 		}
 	}
 	
-	BLI_box_pack_2D(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
+	BLI_box_pack_2d(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
 	
 	if (tot_height > tot_width)
 		scale = 1.0f / tot_height;

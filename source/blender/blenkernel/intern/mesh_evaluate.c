@@ -118,8 +118,8 @@ void BKE_mesh_calc_normals_mapping_ex(
 		return;
 	}
 
-	if (!pnors) pnors = MEM_callocN(sizeof(float) * 3 * (size_t)numPolys, __func__);
-	/* if (!fnors) fnors = MEM_callocN(sizeof(float) * 3 * numFaces, "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
+	if (!pnors) pnors = MEM_callocN(sizeof(float[3]) * (size_t)numPolys, __func__);
+	/* if (!fnors) fnors = MEM_callocN(sizeof(float[3]) * numFaces, "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
 
 
 	if (only_face_normals == FALSE) {
@@ -334,7 +334,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 	 *                                                      unset: INDEX_UNSET
 	 * Note that currently we only have two values for second loop of sharp edges. However, if needed, we can
 	 * store the negated value of loop index instead of INDEX_INVALID to retrieve th real value later in code).
-	 * Note also that lose edges always have the value 0!
+	 * Note also that lose edges always have both values set to 0!
 	 */
 	int (*edge_to_loops)[2] = MEM_callocN(sizeof(int[2]) * (size_t)numEdges, __func__);
 
@@ -1109,7 +1109,7 @@ void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map, int **r_mem,
                                    const MEdge *medge, int totvert, int totedge)
 {
 	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totvert, "vert-edge map");
-	int *indices = MEM_mallocN(sizeof(int) * (size_t)totedge * 2, "vert-edge map mem");
+	int *indices = MEM_mallocN(sizeof(int[2]) * (size_t)totedge, "vert-edge map mem");
 	int *i_pt = indices;
 
 	int i;
@@ -1732,6 +1732,7 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		else {
 			const int side = (int)sqrtf((float)(fd->totdisp / corners));
 			const int side_sq = side * side;
+			const size_t disps_size = sizeof(float[3]) * (size_t)side_sq;
 
 			for (i = 0; i < tot; i++, disps += side_sq, ld++) {
 				ld->totdisp = side_sq;
@@ -1740,12 +1741,12 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 				if (ld->disps)
 					MEM_freeN(ld->disps);
 
-				ld->disps = MEM_mallocN(sizeof(float) * (size_t)(3 * side_sq), "converted loop mdisps");
+				ld->disps = MEM_mallocN(disps_size, "converted loop mdisps");
 				if (fd->disps) {
-					memcpy(ld->disps, disps, sizeof(float) * (size_t)(3 * side_sq));
+					memcpy(ld->disps, disps, disps_size);
 				}
 				else {
-					memset(ld->disps, 0, sizeof(float) * (size_t)(3 * side_sq));
+					memset(ld->disps, 0, disps_size);
 				}
 			}
 		}

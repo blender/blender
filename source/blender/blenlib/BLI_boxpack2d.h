@@ -46,7 +46,7 @@ typedef struct BoxPack {
 	struct BoxVert *v[4];
 } BoxPack;
 
-void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height);
+void BLI_box_pack_2d(BoxPack *boxarray, const int len, float *tot_width, float *tot_height);
 
 #endif
 
