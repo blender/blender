@@ -265,7 +265,10 @@ void BLO_main_expander(void (*expand_doit_func)(void *, struct Main *, void *));
  * \param mainvar the Main database to expand
  */
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
-	
+
+/* Update defaults in startup.blend, without having to save and embed it */
+void BLO_update_defaults_startup_blend(struct Main *mainvar);
+
 #ifdef __cplusplus
 } 
 #endif

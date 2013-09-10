@@ -462,13 +462,16 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 	return (bfd ? retval : BKE_READ_FILE_FAIL);
 }
 
-int BKE_read_file_from_memory(bContext *C, const void *filebuf, int filelength, ReportList *reports)
+int BKE_read_file_from_memory(bContext *C, const void *filebuf, int filelength, ReportList *reports, int update_defaults)
 {
 	BlendFileData *bfd;
 
 	bfd = BLO_read_from_memory(filebuf, filelength, reports);
-	if (bfd)
+	if (bfd) {
+		if (update_defaults)
+			BLO_update_defaults_startup_blend(bfd->main);
 		setup_app_data(C, bfd, "<memory2>");
+	}
 	else
 		BKE_reports_prepend(reports, "Loading failed: ");
 
