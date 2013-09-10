@@ -1624,7 +1624,7 @@ elseif(APPLE)
 		endif()
 
 	if(WITH_JACK)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework jackmp")
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework jackmp")
 	endif()
 
 	else()
