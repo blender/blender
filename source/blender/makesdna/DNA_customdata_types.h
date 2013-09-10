@@ -73,111 +73,115 @@ typedef struct CustomData {
 } CustomData;
 
 /* CustomData.type */
-#define CD_MVERT		0
-#define CD_MSTICKY		1  /* DEPRECATED */
-#define CD_MDEFORMVERT	2
-#define CD_MEDGE		3
-#define CD_MFACE		4
-#define CD_MTFACE		5
-#define CD_MCOL			6
-#define CD_ORIGINDEX	7
-#define CD_NORMAL		8
-//#define CD_POLYINDEX	9
-#define CD_PROP_FLT		10
-#define CD_PROP_INT		11
-#define CD_PROP_STR		12
-#define CD_ORIGSPACE	13 /* for modifier stack face location mapping */
-#define CD_ORCO			14
-#define CD_MTEXPOLY		15
-#define CD_MLOOPUV		16
-#define CD_MLOOPCOL		17
-#define CD_TANGENT		18
-#define CD_MDISPS		19
-#define CD_PREVIEW_MCOL	20 /* for displaying weightpaint colors */
-#define CD_ID_MCOL		21
-#define CD_TEXTURE_MCOL	22
-#define CD_CLOTH_ORCO	23
-#define CD_RECAST		24
+enum {
+	CD_MVERT            = 0,
+	CD_MSTICKY          = 1,  /* DEPRECATED */
+	CD_MDEFORMVERT      = 2,
+	CD_MEDGE            = 3,
+	CD_MFACE            = 4,
+	CD_MTFACE           = 5,
+	CD_MCOL             = 6,
+	CD_ORIGINDEX        = 7,
+	CD_NORMAL           = 8,
+/*	CD_POLYINDEX        = 9, */
+	CD_PROP_FLT         = 10,
+	CD_PROP_INT         = 11,
+	CD_PROP_STR         = 12,
+	CD_ORIGSPACE        = 13,  /* for modifier stack face location mapping */
+	CD_ORCO             = 14,
+	CD_MTEXPOLY         = 15,
+	CD_MLOOPUV          = 16,
+	CD_MLOOPCOL         = 17,
+	CD_TANGENT          = 18,
+	CD_MDISPS           = 19,
+	CD_PREVIEW_MCOL     = 20,  /* for displaying weightpaint colors */
+	CD_ID_MCOL          = 21,
+	CD_TEXTURE_MCOL     = 22,
+	CD_CLOTH_ORCO       = 23,
+	CD_RECAST           = 24,
 
 /* BMESH ONLY START */
-#define CD_MPOLY		25
-#define CD_MLOOP		26
-#define CD_SHAPE_KEYINDEX	27
-#define CD_SHAPEKEY		28
-#define CD_BWEIGHT		29
-#define CD_CREASE		30
-#define CD_ORIGSPACE_MLOOP	31
-#define CD_PREVIEW_MLOOPCOL	32
-#define CD_BM_ELEM_PYPTR	33
+	CD_MPOLY            = 25,
+	CD_MLOOP            = 26,
+	CD_SHAPE_KEYINDEX   = 27,
+	CD_SHAPEKEY         = 28,
+	CD_BWEIGHT          = 29,
+	CD_CREASE           = 30,
+	CD_ORIGSPACE_MLOOP  = 31,
+	CD_PREVIEW_MLOOPCOL = 32,
+	CD_BM_ELEM_PYPTR    = 33,
 /* BMESH ONLY END */
 
-#define CD_PAINT_MASK	34
-#define CD_GRID_PAINT_MASK	35
-#define CD_MVERT_SKIN	36
-#define CD_FREESTYLE_EDGE	37
-#define CD_FREESTYLE_FACE	38
-#define CD_NUMTYPES		39
+	CD_PAINT_MASK       = 34,
+	CD_GRID_PAINT_MASK  = 35,
+	CD_MVERT_SKIN       = 36,
+	CD_FREESTYLE_EDGE   = 37,
+	CD_FREESTYLE_FACE   = 38,
+	CD_NUMTYPES         = 39,
+};
 
 /* Bits for CustomDataMask */
-#define CD_MASK_MVERT		(1 << CD_MVERT)
-#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)  /* DEPRECATED */
-#define CD_MASK_MDEFORMVERT	(1 << CD_MDEFORMVERT)
-#define CD_MASK_MEDGE		(1 << CD_MEDGE)
-#define CD_MASK_MFACE		(1 << CD_MFACE)
-#define CD_MASK_MTFACE		(1 << CD_MTFACE)
-#define CD_MASK_MCOL		(1 << CD_MCOL)
-#define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
-#define CD_MASK_NORMAL		(1 << CD_NORMAL)
-// #define CD_MASK_POLYINDEX	(1 << CD_POLYINDEX)
-#define CD_MASK_PROP_FLT	(1 << CD_PROP_FLT)
-#define CD_MASK_PROP_INT	(1 << CD_PROP_INT)
-#define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
-#define CD_MASK_ORIGSPACE	(1 << CD_ORIGSPACE)
-#define CD_MASK_ORCO		(1 << CD_ORCO)
-#define CD_MASK_MTEXPOLY	(1 << CD_MTEXPOLY)
-#define CD_MASK_MLOOPUV		(1 << CD_MLOOPUV)
-#define CD_MASK_MLOOPCOL	(1 << CD_MLOOPCOL)
-#define CD_MASK_TANGENT		(1 << CD_TANGENT)
-#define CD_MASK_MDISPS		(1 << CD_MDISPS)
-#define CD_MASK_PREVIEW_MCOL	(1 << CD_PREVIEW_MCOL)
-#define CD_MASK_CLOTH_ORCO	(1 << CD_CLOTH_ORCO)
-#define CD_MASK_RECAST		(1 << CD_RECAST)
+enum {
+	CD_MASK_MVERT            = (1LL << CD_MVERT),
+	CD_MASK_MSTICKY          = (1LL << CD_MSTICKY),  /* DEPRECATED */
+	CD_MASK_MDEFORMVERT      = (1LL << CD_MDEFORMVERT),
+	CD_MASK_MEDGE            = (1LL << CD_MEDGE),
+	CD_MASK_MFACE            = (1LL << CD_MFACE),
+	CD_MASK_MTFACE           = (1LL << CD_MTFACE),
+	CD_MASK_MCOL             = (1LL << CD_MCOL),
+	CD_MASK_ORIGINDEX        = (1LL << CD_ORIGINDEX),
+	CD_MASK_NORMAL           = (1LL << CD_NORMAL),
+/*	CD_MASK_POLYINDEX        = (1LL << CD_POLYINDEX), */
+	CD_MASK_PROP_FLT         = (1LL << CD_PROP_FLT),
+	CD_MASK_PROP_INT         = (1LL << CD_PROP_INT),
+	CD_MASK_PROP_STR         = (1LL << CD_PROP_STR),
+	CD_MASK_ORIGSPACE        = (1LL << CD_ORIGSPACE),
+	CD_MASK_ORCO             = (1LL << CD_ORCO),
+	CD_MASK_MTEXPOLY         = (1LL << CD_MTEXPOLY),
+	CD_MASK_MLOOPUV          = (1LL << CD_MLOOPUV),
+	CD_MASK_MLOOPCOL         = (1LL << CD_MLOOPCOL),
+	CD_MASK_TANGENT          = (1LL << CD_TANGENT),
+	CD_MASK_MDISPS           = (1LL << CD_MDISPS),
+	CD_MASK_PREVIEW_MCOL     = (1LL << CD_PREVIEW_MCOL),
+	CD_MASK_CLOTH_ORCO       = (1LL << CD_CLOTH_ORCO),
+	CD_MASK_RECAST           = (1LL << CD_RECAST),
 
 /* BMESH ONLY START */
-#define CD_MASK_MPOLY		(1 << CD_MPOLY)
-#define CD_MASK_MLOOP		(1 << CD_MLOOP)
-#define CD_MASK_SHAPE_KEYINDEX	(1 << CD_SHAPE_KEYINDEX)
-#define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
-#define CD_MASK_BWEIGHT		(1 << CD_BWEIGHT)
-#define CD_MASK_CREASE		(1 << CD_CREASE)
-#define CD_MASK_ORIGSPACE_MLOOP	(1LL << CD_ORIGSPACE_MLOOP)
-#define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)
-#define CD_MASK_BM_ELEM_PYPTR (1LL << CD_BM_ELEM_PYPTR)
+	CD_MASK_MPOLY            = (1LL << CD_MPOLY),
+	CD_MASK_MLOOP            = (1LL << CD_MLOOP),
+	CD_MASK_SHAPE_KEYINDEX   = (1LL << CD_SHAPE_KEYINDEX),
+	CD_MASK_SHAPEKEY         = (1LL << CD_SHAPEKEY),
+	CD_MASK_BWEIGHT          = (1LL << CD_BWEIGHT),
+	CD_MASK_CREASE           = (1LL << CD_CREASE),
+	CD_MASK_ORIGSPACE_MLOOP  = (1LL << CD_ORIGSPACE_MLOOP),
+	CD_MASK_PREVIEW_MLOOPCOL = (1LL << CD_PREVIEW_MLOOPCOL),
+	CD_MASK_BM_ELEM_PYPTR    = (1LL << CD_BM_ELEM_PYPTR),
 /* BMESH ONLY END */
 
-#define CD_MASK_PAINT_MASK		(1LL << CD_PAINT_MASK)
-#define CD_MASK_GRID_PAINT_MASK	(1LL << CD_GRID_PAINT_MASK)
-#define CD_MASK_MVERT_SKIN		(1LL << CD_MVERT_SKIN)
-#define CD_MASK_FREESTYLE_EDGE	(1LL << CD_FREESTYLE_EDGE)
-#define CD_MASK_FREESTYLE_FACE	(1LL << CD_FREESTYLE_FACE)
+	CD_MASK_PAINT_MASK       = (1LL << CD_PAINT_MASK),
+	CD_MASK_GRID_PAINT_MASK  = (1LL << CD_GRID_PAINT_MASK),
+	CD_MASK_MVERT_SKIN       = (1LL << CD_MVERT_SKIN),
+	CD_MASK_FREESTYLE_EDGE   = (1LL << CD_FREESTYLE_EDGE),
+	CD_MASK_FREESTYLE_FACE   = (1LL << CD_FREESTYLE_FACE),
+};
 
 /* CustomData.flag */
-
-/* indicates layer should not be copied by CustomData_from_template or
- * CustomData_copy_data */
-#define CD_FLAG_NOCOPY    (1<<0)
-/* indicates layer should not be freed (for layers backed by external data) */
-#define CD_FLAG_NOFREE    (1<<1)
-/* indicates the layer is only temporary, also implies no copy */
-#define CD_FLAG_TEMPORARY ((1<<2)|CD_FLAG_NOCOPY)
-/* indicates the layer is stored in an external file */
-#define CD_FLAG_EXTERNAL  (1<<3)
-/* indicates external data is read into memory */
-#define CD_FLAG_IN_MEMORY (1<<4)
+enum {
+	/* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */
+	CD_FLAG_NOCOPY    = (1 << 0),
+	/* Indicates layer should not be freed (for layers backed by external data) */
+	CD_FLAG_NOFREE    = (1 << 1),
+	/* Indicates the layer is only temporary, also implies no copy */
+	CD_FLAG_TEMPORARY = ((1 << 2) | CD_FLAG_NOCOPY),
+	/* Indicates the layer is stored in an external file */
+	CD_FLAG_EXTERNAL  = (1 << 3),
+	/* Indicates external data is read into memory */
+	CD_FLAG_IN_MEMORY = (1 << 4),
+};
 
 /* Limits */
-#define MAX_MTFACE 8
-#define MAX_MCOL   8
+#define MAX_MTFACE  8
+#define MAX_MCOL    8
 
 #ifdef __cplusplus
 }
