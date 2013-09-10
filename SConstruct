@@ -294,6 +294,9 @@ if env['OURPLATFORM']=='darwin':
         print  B.bc.OKGREEN + "Auto-setting available MacOSX SDK -> " + B.bc.ENDC + "MacOSX10.6.sdk"
     else:
         print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
+		
+    if env['CXX'].startswith('clang'):
+        env['CCFLAGS'].append('-ftemplate-depth=1024') # would break other gcc or llvm-gcc
 
     # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
     # necessary header file lives here when installed:

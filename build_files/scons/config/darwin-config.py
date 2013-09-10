@@ -348,7 +348,7 @@ else:
 
 CFLAGS = []
 CXXFLAGS = []
-CCFLAGS = ['-pipe','-funsigned-char','-ftemplate-depth=1024']
+CCFLAGS = ['-pipe','-funsigned-char']
 
 
 CPPFLAGS = list(ARCH_FLAGS)
