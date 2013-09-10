@@ -56,6 +56,7 @@ extern const CustomDataMask CD_MASK_EDITMESH;
 extern const CustomDataMask CD_MASK_DERIVEDMESH;
 extern const CustomDataMask CD_MASK_BMESH;
 extern const CustomDataMask CD_MASK_FACECORNERS;
+extern const CustomDataMask CD_MASK_EVERYTHING;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
