@@ -182,7 +182,6 @@ GHOST_WindowX11(
 	 * X can find us a visual matching those requirements. */
 
 	int attributes[40], i, samples;
-	Atom atoms[2];
 	int natom;
 	int glxVersionMajor, glxVersionMinor; /* As in GLX major.minor */
 
@@ -405,6 +404,7 @@ GHOST_WindowX11(
 
 	/* The basic for a good ICCCM "work" */
 	if (m_system->m_atom.WM_PROTOCOLS) {
+		Atom atoms[2];
 		natom = 0;
 
 		if (m_system->m_atom.WM_DELETE_WINDOW) {

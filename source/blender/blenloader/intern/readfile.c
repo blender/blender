@@ -7066,7 +7066,9 @@ static const char *dataname(short id_code)
 		case ID_BR: return "Data from BR";
 		case ID_PA: return "Data from PA";
 		case ID_GD: return "Data from GD";
+		case ID_WM: return "Data from WM";
 		case ID_MC: return "Data from MC";
+		case ID_MSK: return "Data from MSK";
 		case ID_LS: return "Data from LS";
 	}
 	return "Data from Lib Block";
