@@ -84,14 +84,7 @@ static int rna_Text_modified_get(PointerRNA *ptr)
 static int rna_Text_current_line_index_get(PointerRNA *ptr)
 {
 	Text *text = (Text *)ptr->data;
-	TextLine *linep = text->lines.first;
-	int i = 0;
-	while(linep) {
-		if(text->curl==linep) break;
-		linep = linep->next;
-		i++;
-	}
-	return i;
+	return BLI_findindex(&text->lines, text->curl);
 }
 
 static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
