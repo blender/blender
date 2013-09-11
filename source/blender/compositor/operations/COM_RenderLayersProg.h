@@ -111,7 +111,6 @@ class RenderLayersAlphaProg : public RenderLayersBaseProg {
 public:
 	RenderLayersAlphaProg();
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
-
 };
 
 class RenderLayersColorOperation : public RenderLayersBaseProg {
@@ -127,6 +126,7 @@ public:
 class RenderLayersDepthProg : public RenderLayersBaseProg {
 public:
 	RenderLayersDepthProg();
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersDiffuseOperation : public RenderLayersBaseProg {

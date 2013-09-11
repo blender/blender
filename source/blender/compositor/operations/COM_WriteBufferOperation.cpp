@@ -75,7 +75,6 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			for (x = x1; x < x2; x++) {
 				this->m_input->read(&(buffer[offset4]), x, y, data);
 				offset4 += COM_NUMBER_OF_CHANNELS;
-
 			}
 			if (isBreaked()) {
 				breaked = true;

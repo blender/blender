@@ -518,17 +518,15 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	// find all chunks inside the rect
 	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
 
-	float chunkSizef = this->m_chunkSize;
-
 	int indexx, indexy;
-	int minxchunk = floor((area->xmin - this->m_viewerBorder.xmin) / chunkSizef);
-	int maxxchunk = ceil((area->xmax - 1) / chunkSizef);
-	int minychunk = floor((area->ymin - this->m_viewerBorder.ymin) / chunkSizef);
-	int maxychunk = ceil((area->ymax - 1) / chunkSizef);
-	minxchunk = max(minxchunk, 0);
-	minychunk = max(minychunk, 0);
-	maxxchunk = min(maxxchunk, (int)this->m_numberOfXChunks);
-	maxychunk = min(maxychunk, (int)this->m_numberOfYChunks);
+	int minxchunk = (area->xmin - m_viewerBorder.xmin) / m_chunkSize;
+	int maxxchunk = (area->xmax + m_chunkSize - 1) / m_chunkSize;
+	int minychunk = (area->ymin - m_viewerBorder.ymin) / m_chunkSize;
+	int maxychunk = (area->ymax + m_chunkSize - 1) / m_chunkSize;
+	minxchunk = max_ii(minxchunk, 0);
+	minychunk = max_ii(minychunk, 0);
+	maxxchunk = min_ii(maxxchunk, m_numberOfXChunks);
+	maxychunk = min_ii(maxychunk, m_numberOfYChunks);
 
 	bool result = true;
 	for (indexx = minxchunk; indexx < maxxchunk; indexx++) {

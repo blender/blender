@@ -234,6 +234,27 @@ RenderLayersDepthProg::RenderLayersDepthProg() : RenderLayersBaseProg(SCE_PASS_Z
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
+void RenderLayersDepthProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	int ix = x;
+	int iy = y;
+	float *inputBuffer = this->getInputBuffer();
+
+	if (inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
+		output[0] = 0.0f;
+		output[1] = 0.0f;
+		output[2] = 0.0f;
+		output[3] = 0.0f;
+	}
+	else {
+		unsigned int offset = (iy * this->getWidth() + ix);
+		output[0] = inputBuffer[offset];
+		output[1] = 0.0f;
+		output[2] = 0.0f;
+		output[3] = 0.0f;
+	}
+}
+
 /* ******** Render Layers Diffuse Operation ******** */
 
 RenderLayersDiffuseOperation::RenderLayersDiffuseOperation() : RenderLayersBaseProg(SCE_PASS_DIFFUSE, 3)
