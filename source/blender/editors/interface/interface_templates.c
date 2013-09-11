@@ -3133,7 +3133,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, true,
 					                                 &name[len + 1], sizeof(name) - len - 1))
 					{
-						name[len] = '|';
+						name[len] = UI_SEP_CHAR;
 					}
 				}
 				

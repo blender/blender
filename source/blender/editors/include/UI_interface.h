@@ -82,6 +82,10 @@ typedef struct uiLayout uiLayout;
 
 /* Defines */
 
+/* char for splitting strings, aligning shortcuts in menus, users never see */
+#define UI_SEP_CHAR   '|'
+#define UI_SEP_CHAR_S "|"
+
 /* names */
 #define UI_MAX_DRAW_STR 400
 #define UI_MAX_NAME_STR 128

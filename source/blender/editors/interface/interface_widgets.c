@@ -1215,7 +1215,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	/* cut string in 2 parts - only for menu entries */
 	if ((but->block->flag & UI_BLOCK_LOOP)) {
 		if (ELEM3(but->type, NUM, TEX, NUMSLI) == 0) {
-			cpoin = strchr(but->drawstr, '|');
+			cpoin = strchr(but->drawstr, UI_SEP_CHAR);
 			if (cpoin) *cpoin = 0;
 		}
 	}
@@ -1261,7 +1261,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		fstyle->align = UI_STYLE_TEXT_RIGHT;
 		rect->xmax -= ui_but_draw_menu_icon(but) ? UI_DPI_ICON_SIZE : 0.25f * U.widget_unit;
 		uiStyleFontDraw(fstyle, rect, cpoin + 1);
-		*cpoin = '|';
+		*cpoin = UI_SEP_CHAR;
 	}
 }
 
@@ -3513,7 +3513,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 
 	/* cut string in 2 parts? */
 	if (use_sep) {
-		cpoin = strchr(name, '|');
+		cpoin = strchr(name, UI_SEP_CHAR);
 		if (cpoin) {
 			*cpoin = 0;
 			rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1) + 10;
@@ -3529,7 +3529,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 			fstyle->align = UI_STYLE_TEXT_RIGHT;
 			rect->xmax = _rect.xmax - 5;
 			uiStyleFontDraw(fstyle, rect, cpoin + 1);
-			*cpoin = '|';
+			*cpoin = UI_SEP_CHAR;
 		}
 	}
 	

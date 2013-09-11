@@ -837,7 +837,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 {
 
 	if (do_strip) {
-		char *cpoin = strchr(but->str, '|');
+		char *cpoin = strchr(but->str, UI_SEP_CHAR);
 		if (cpoin) {
 			*cpoin = '\0';
 		}
@@ -855,7 +855,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 		}
 		BLI_snprintf(but->strdata,
 		             sizeof(but->strdata),
-		             "%s|%s",
+		             "%s" UI_SEP_CHAR_S "%s",
 		             butstr_orig, shortcut_str);
 		MEM_freeN(butstr_orig);
 		but->str = but->strdata;
