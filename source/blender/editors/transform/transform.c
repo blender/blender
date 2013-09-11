@@ -1896,6 +1896,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	else if (t->spacetype == SPACE_CLIP) {
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		unit_m3(t->spacemtx);
