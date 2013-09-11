@@ -178,10 +178,19 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
 
+		int framex = GetSystemMetrics(SM_CXSIZEFRAME);
+		int framey = GetSystemMetrics(SM_CYSIZEFRAME);
+		int caption = GetSystemMetrics(SM_CYCAPTION);
+		width += framex * 2;
+		height += framey * 2 + caption;
+
+		left -= framex;
+		top -= (caption+framey);
+
 		rect.left = left;
-		rect.right = left + width;
+		rect.right = left + width + framex;
 		rect.top = top;
-		rect.bottom = top + height;
+		rect.bottom = top + height + caption - framey;
 
 		int wintype = WS_OVERLAPPEDWINDOW;
 		if (m_parentWindowHwnd != 0)
