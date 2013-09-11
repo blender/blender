@@ -127,11 +127,8 @@ bool RAS_ListSlot::End()
 
 
 RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool lock, int storage)
-:	RAS_OpenGLRasterizer(canvas, storage),
-	mATI(false)
+:	RAS_OpenGLRasterizer(canvas, storage)
 {
-	if (!strcmp((const char*)glGetString(GL_VENDOR), "ATI Technologies Inc."))
-		mATI = true;
 }
 
 RAS_ListRasterizer::~RAS_ListRasterizer() 

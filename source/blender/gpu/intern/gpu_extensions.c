@@ -86,6 +86,7 @@ static struct GPUGlobal {
 	int extdisabled;
 	int colordepth;
 	int npotdisabled; /* ATI 3xx-5xx (and more) chipsets support NPoT partially (== not enough) */
+	int dlistsdisabled; /* Legacy ATI driver does not support display lists well */
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
@@ -190,6 +191,9 @@ void GPU_extensions_init(void)
 		 * Incomplete list http://dri.freedesktop.org/wiki/ATIRadeon
 		 * New IDs from MESA's src/gallium/drivers/r300/r300_screen.c
 		 */
+		/* This list is close enough to those using the legacy driver which
+		 * has a bug with display lists and glVertexAttrib 
+		 */
 		if (strstr(renderer, "R3") || strstr(renderer, "RV3") ||
 		    strstr(renderer, "R4") || strstr(renderer, "RV4") ||
 		    strstr(renderer, "RS4") || strstr(renderer, "RC4") ||
@@ -200,6 +204,7 @@ void GPU_extensions_init(void)
 		    strstr(renderer, "RADEON 9"))
 		{
 			GG.npotdisabled = 1;
+			GG.dlistsdisabled = 1;
 		}
 	}
 
@@ -236,6 +241,11 @@ int GPU_non_power_of_two_support(void)
 		return 0;
 
 	return GLEW_ARB_texture_non_power_of_two;
+}
+
+int GPU_display_list_support(void)
+{
+	return !GG.dlistsdisabled;
 }
 
 int GPU_color_depth(void)
