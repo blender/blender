@@ -43,7 +43,8 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem event_keymouse_value_items[] = {
+#ifdef RNA_RUNTIME
+static EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
@@ -52,7 +53,7 @@ EnumPropertyItem event_keymouse_value_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_tweak_value_items[] = {
+static EnumPropertyItem event_tweak_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
 	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
@@ -65,25 +66,7 @@ EnumPropertyItem event_tweak_value_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_value_items[] = {
-	{KM_ANY, "ANY", 0, "Any", ""},
-	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
-	{KM_PRESS, "PRESS", 0, "Press", ""},
-	{KM_RELEASE, "RELEASE", 0, "Release", ""},
-	{KM_CLICK, "CLICK", 0, "Click", ""},
-	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
-	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
-	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
-	{EVT_GESTURE_E, "EAST", 0, "East", ""},
-	{EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
-	{EVT_GESTURE_S, "SOUTH", 0, "South", ""},
-	{EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
-	{EVT_GESTURE_W, "WEST", 0, "West", ""},
-	{EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem event_tweak_type_items[] = {
+static EnumPropertyItem event_tweak_type_items[] = {
 	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
 	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
 	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Right", ""},
@@ -92,7 +75,7 @@ EnumPropertyItem event_tweak_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_mouse_type_items[] = {
+static EnumPropertyItem event_mouse_type_items[] = {
 	{LEFTMOUSE, "LEFTMOUSE", 0, "Left", ""},
 	{MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle", ""},
 	{RIGHTMOUSE, "RIGHTMOUSE", 0, "Right", ""},
@@ -113,7 +96,7 @@ EnumPropertyItem event_mouse_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_timer_type_items[] = {
+static EnumPropertyItem event_timer_type_items[] = {
 	{TIMER, "TIMER", 0, "Timer", ""},
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
@@ -125,12 +108,12 @@ EnumPropertyItem event_timer_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_textinput_type_items[] = {
+static EnumPropertyItem event_textinput_type_items[] = {
 	{KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem event_ndof_type_items[] = {
+static EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_MOTION, "NDOF_MOTION", 0, "Motion", ""},
 	/* buttons on all 3dconnexion devices */
 	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
@@ -179,6 +162,7 @@ EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "Button C", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY */
 EnumPropertyItem event_type_items[] = {
@@ -386,6 +370,24 @@ EnumPropertyItem event_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem event_value_items[] = {
+	{KM_ANY, "ANY", 0, "Any", ""},
+	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+	{KM_PRESS, "PRESS", 0, "Press", ""},
+	{KM_RELEASE, "RELEASE", 0, "Release", ""},
+	{KM_CLICK, "CLICK", 0, "Click", ""},
+	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
+	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
+	{EVT_GESTURE_E, "EAST", 0, "East", ""},
+	{EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
+	{EVT_GESTURE_S, "SOUTH", 0, "South", ""},
+	{EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
+	{EVT_GESTURE_W, "WEST", 0, "West", ""},
+	{EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem keymap_propvalue_items[] = {
 	{0, "NONE", 0, "", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -401,7 +403,9 @@ static EnumPropertyItem keymap_modifiers_items[] = {
 };
 #endif
 
-EnumPropertyItem operator_flag_items[] = {
+
+#ifndef RNA_RUNTIME
+static EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
 	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
 	{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
@@ -413,6 +417,7 @@ EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 EnumPropertyItem operator_return_items[] = {
 	{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},

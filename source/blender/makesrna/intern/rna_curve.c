@@ -46,13 +46,15 @@
 #include "BKE_curve.h"
 #include "ED_curve.h"
 
-EnumPropertyItem beztriple_handle_type_items[] = {
+#ifndef RNA_RUNTIME
+static EnumPropertyItem beztriple_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
 	{HD_AUTO, "AUTO", 0, "Auto", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 		
 EnumPropertyItem keyframe_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
@@ -70,7 +72,8 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem curve_type_items[] = {
+#ifndef RNA_RUNTIME
+static EnumPropertyItem curve_type_items[] = {
 	{CU_POLY, "POLY", 0, "Poly", ""},
 	{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
 	{CU_BSPLINE, "BSPLINE", 0, "BSpline", ""},
@@ -78,6 +81,7 @@ EnumPropertyItem curve_type_items[] = {
 	{CU_NURBS, "NURBS", 0, "Ease", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 static const EnumPropertyItem curve3d_fill_mode_items[] = {
 	{0, "FULL", 0, "Full", ""},
@@ -1488,7 +1492,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
-	RNA_def_property_collection_funcs(prop, 0, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 
 	prop = RNA_def_property(srna, "bevel_factor_start", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "bevfac1");

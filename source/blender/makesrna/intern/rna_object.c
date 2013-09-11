@@ -2350,7 +2350,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints affecting the transformation of the object");
-/*	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove"); */
+/*	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "constraints__add", "constraints__remove"); */
 	rna_def_object_constraints(brna, prop);
 
 	/* game engine */

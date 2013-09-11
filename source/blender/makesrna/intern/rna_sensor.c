@@ -43,7 +43,7 @@
 #include "WM_types.h"
 
 /* Always keep in alphabetical order */
-EnumPropertyItem sensor_type_items[] = {
+static EnumPropertyItem sensor_type_items[] = {
 	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 	{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
 	{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},

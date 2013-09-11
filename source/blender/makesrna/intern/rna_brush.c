@@ -27,14 +27,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "RNA_define.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 

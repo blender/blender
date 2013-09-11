@@ -516,7 +516,7 @@ static void rna_MaskSpline_point_remove(ID *id, MaskSpline *spline, ReportList *
 }
 
 #else
- void rna_def_maskParent(BlenderRNA *brna)
+static void rna_def_maskParent(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -827,7 +827,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
 	/* splines */
 	prop = RNA_def_property(srna, "splines", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_MaskLayer_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MaskLayer_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MaskSpline");
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines which defines this layer");
 	RNA_def_property_srna(prop, "MaskSplines");
@@ -937,7 +937,7 @@ static void rna_def_mask(BlenderRNA *brna)
 
 	/* mask layers */
 	prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Mask_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mask_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MaskLayer");
 	RNA_def_property_ui_text(prop, "Layers", "Collection of layers which defines this mask");
 	rna_def_masklayers(brna, prop);

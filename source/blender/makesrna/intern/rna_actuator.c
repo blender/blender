@@ -45,7 +45,7 @@
 #include "WM_types.h"
 
 /* Always keep in alphabetical order */
-EnumPropertyItem actuator_type_items[] = {
+static EnumPropertyItem actuator_type_items[] = {
 	{ACT_ACTION, "ACTION", 0, "Action", ""},
 	{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},

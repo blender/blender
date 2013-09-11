@@ -36,6 +36,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_types.h"
 

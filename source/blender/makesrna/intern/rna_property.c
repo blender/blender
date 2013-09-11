@@ -27,11 +27,13 @@
 
 #include <stdlib.h>
 
+#include "DNA_property_types.h"
+
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
-#include "DNA_property_types.h"
 
 #include "WM_types.h"
 

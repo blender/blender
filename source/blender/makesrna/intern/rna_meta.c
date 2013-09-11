@@ -371,7 +371,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
-	RNA_def_property_collection_funcs(prop, 0, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 	
 	prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Meta_is_editmode_get", NULL);

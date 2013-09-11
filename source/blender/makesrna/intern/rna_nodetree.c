@@ -70,7 +70,8 @@ EnumPropertyItem node_socket_in_out_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
-EnumPropertyItem node_socket_type_items[] = {
+#ifndef RNA_RUNTIME
+static EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_CUSTOM,  "CUSTOM",    0,    "Custom",    ""},
 	{SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
 	{SOCK_INT,     "INT",       0,    "Int",       ""},
@@ -82,14 +83,14 @@ EnumPropertyItem node_socket_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem node_quality_items[] = {
+static EnumPropertyItem node_quality_items[] = {
 	{NTREE_QUALITY_HIGH,   "HIGH",     0,    "High",     "High quality"},
 	{NTREE_QUALITY_MEDIUM, "MEDIUM",   0,    "Medium",   "Medium quality"},
 	{NTREE_QUALITY_LOW,    "LOW",      0,    "Low",      "Low quality"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem node_chunksize_items[] = {
+static EnumPropertyItem node_chunksize_items[] = {
 	{NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
 	{NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
 	{NTREE_CHUNCKSIZE_128,  "128",    0,    "128x128",   "Chunksize of 128x128"},
@@ -98,6 +99,7 @@ EnumPropertyItem node_chunksize_items[] = {
 	{NTREE_CHUNCKSIZE_1024, "1024",   0,    "1024x1024", "Chunksize of 1024x1024"},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 #define DEF_ICON_BLANK_SKIP
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
@@ -152,30 +154,14 @@ EnumPropertyItem node_filter_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem node_sampler_type_items[] = {
+#ifndef RNA_RUNTIME
+static EnumPropertyItem node_sampler_type_items[] = {
 	{0, "NEAREST",   0, "Nearest",   ""},
 	{1, "BILINEAR",   0, "Bilinear",   ""},
 	{2, "BICUBIC", 0, "Bicubic", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-
-EnumPropertyItem prop_noise_basis_items[] = {
-	{SHD_NOISE_PERLIN, "PERLIN", 0, "Perlin", ""},
-	{SHD_NOISE_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
-	{SHD_NOISE_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", ""},
-	{SHD_NOISE_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", ""},
-	{SHD_NOISE_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", ""},
-	{SHD_NOISE_VORONOI_F2_F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", ""},
-	{SHD_NOISE_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", ""},
-	{SHD_NOISE_CELL_NOISE, "CELL_NOISE", 0, "Cell Noise", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem prop_noise_type_items[] = {
-	{SHD_NOISE_SOFT, "SOFT", 0, "Soft", ""},
-	{SHD_NOISE_HARD, "HARD", 0, "Hard", ""},
-	{0, NULL, 0, NULL, NULL}
-};
+#endif
 
 #ifdef RNA_RUNTIME
 
@@ -5340,7 +5326,7 @@ static void dev_cmd_transform(StructRNA *srna)
 
 /* -- Compositor Nodes ------------------------------------------------------ */
 
-EnumPropertyItem node_masktype_items[] = {
+static EnumPropertyItem node_masktype_items[] = {
 	{0, "ADD",           0, "Add",           ""},
 	{1, "SUBTRACT",      0, "Subtract",      ""},
 	{2, "MULTIPLY",      0, "Multiply",      ""},

@@ -36,6 +36,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -415,7 +416,9 @@ EnumPropertyItem nla_mode_blend_items[] = {
 	                         "Weighted result of strip is removed from the accumulated results"},
 	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply",
 	                         "Weighted result of strip is multiplied with the accumulated results"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},
 	{NLASTRIP_EXTEND_HOLD, "HOLD", 0, "Hold",

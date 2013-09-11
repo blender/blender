@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -69,7 +70,8 @@ EnumPropertyItem boidrule_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem boidruleset_type_items[] = {
+#ifndef RNA_RUNTIME
+static EnumPropertyItem boidruleset_type_items[] = {
 	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy",
 	                         "Rules are gone through top to bottom (only the first rule which effect is above "
 	                         "fuzziness threshold is evaluated)"},
@@ -77,6 +79,7 @@ EnumPropertyItem boidruleset_type_items[] = {
 	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged"},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 
 #ifdef RNA_RUNTIME

@@ -26,8 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_define.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
@@ -35,6 +33,9 @@
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 

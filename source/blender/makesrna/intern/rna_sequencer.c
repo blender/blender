@@ -1298,7 +1298,7 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "StripColorBalance");
 }
 
-EnumPropertyItem blend_mode_items[] = {
+static EnumPropertyItem blend_mode_items[] = {
 	{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
 	{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
 	{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},

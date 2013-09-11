@@ -3363,10 +3363,10 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 		    next_plane_marker &&
 		    (plane_track->flag & PLANE_TRACK_AUTOKEY))
 		{
-			float fac = ((float) next_plane_marker->framenr - start_plane_marker->framenr)
-			          / ((float) keyframe_plane_marker->framenr - start_plane_marker->framenr);
+			float fac = ((float) next_plane_marker->framenr - start_plane_marker->framenr) /
+			            ((float) keyframe_plane_marker->framenr - start_plane_marker->framenr);
 
-			fac = 3*fac*fac - 2*fac*fac*fac;
+			fac = 3 * fac * fac - 2 * fac * fac * fac;
 
 			for (i = 0; i < 4; i++) {
 				interp_v2_v2v2(new_plane_marker.corners[i], new_plane_marker.corners[i],

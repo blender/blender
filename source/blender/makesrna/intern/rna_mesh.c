@@ -2430,7 +2430,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
-	RNA_def_property_collection_funcs(prop, 0, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 }
 
 
