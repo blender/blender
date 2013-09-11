@@ -1504,6 +1504,38 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 	return ret;
 }
 
+PyDoc_STRVAR(M_Geometry_box_fit_2d_doc,
+".. function:: box_fit_2d(points)\n"
+"\n"
+"   Returns a list of indices into the list given\n"
+"\n"
+"   :arg points: list of 2d points.\n"
+"   :type points: list\n"
+"   :return: a list of indices\n"
+"   :rtype: list of ints\n"
+);
+static PyObject *M_Geometry_box_fit_2d(PyObject *UNUSED(self), PyObject *pointlist)
+{
+	float (*points)[2];
+	Py_ssize_t len;
+
+	float angle = 0.0f;
+
+	len = mathutils_array_parse_alloc_v(((float **)&points), 2, pointlist, "box_fit_2d");
+	if (len == -1) {
+		return NULL;
+	}
+
+	if (len) {
+		/* Non Python function */
+		angle = BLI_convexhull_aabb_fit_points_2d((const float (*)[2])points, len);
+
+		PyMem_Free(points);
+	}
+
+
+	return PyFloat_FromDouble(angle);
+}
 
 PyDoc_STRVAR(M_Geometry_convex_hull_2d_doc,
 ".. function:: convex_hull_2d(points)\n"
@@ -1517,42 +1549,24 @@ PyDoc_STRVAR(M_Geometry_convex_hull_2d_doc,
 );
 static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *pointlist)
 {
+	float (*points)[2];
 	Py_ssize_t len;
 
 	PyObject *ret;
 
-	if (!PyList_Check(pointlist)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a list of Vectors");
+	len = mathutils_array_parse_alloc_v(((float **)&points), 2, pointlist, "convex_hull_2d");
+	if (len == -1) {
 		return NULL;
 	}
 
-	len = PyList_GET_SIZE(pointlist);
 	if (len) {
-		float (*points)[2] = MEM_mallocN(sizeof(*points) * len, __func__);
 		int *index_map;
 		Py_ssize_t len_ret, i;
-		PyObject *list_item;
-		bool ok = true;
-
-		for (i = 0; i < len; i++) {
-			list_item = PyList_GET_ITEM(pointlist, i);
-			if (mathutils_array_parse(points[i], 2, 2, list_item, "convex_hull") == -1) {
-				ok = false;
-				break;
-			}
-		}
-
-		if (ok == false) {
-			MEM_freeN(points);
-			return NULL;
-		}
 
 		index_map  = MEM_mallocN(sizeof(*index_map) * len, __func__);
 
 		/* Non Python function */
 		len_ret = BLI_convexhull_2d((const float (*)[2])points, len, index_map);
-		MEM_freeN(points);
 
 		ret = PyList_New(len_ret);
 		for (i = 0; i < len_ret; i++) {
@@ -1560,10 +1574,13 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *poi
 		}
 
 		MEM_freeN(index_map);
+
+		PyMem_Free(points);
 	}
 	else {
 		ret = PyList_New(0);
 	}
+
 
 	return ret;
 }
@@ -1593,6 +1610,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"tessellate_polygon", (PyCFunction) M_Geometry_tessellate_polygon, METH_O, M_Geometry_tessellate_polygon_doc},
 	{"convex_hull_2d", (PyCFunction) M_Geometry_convex_hull_2d, METH_O, M_Geometry_convex_hull_2d_doc},
+	{"box_fit_2d", (PyCFunction) M_Geometry_box_fit_2d, METH_O, M_Geometry_box_fit_2d_doc},
 	{"box_pack_2d", (PyCFunction) M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
 #endif
 	{NULL, NULL, 0, NULL}

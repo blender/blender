@@ -4483,8 +4483,8 @@ static void param_pack_rotate(ParamHandle *handle)
 
 	for (i = 0; i < phandle->ncharts; i++) {
 		float (*points)[2];
-		int *index_map;
 		int tot;
+		float angle;
 
 		chart = phandle->charts[i];
 
@@ -4493,34 +4493,18 @@ static void param_pack_rotate(ParamHandle *handle)
 		}
 
 		points = MEM_mallocN(sizeof(*points) * chart->nverts, __func__);
-		index_map = MEM_mallocN(sizeof(*index_map) * chart->nverts, __func__);
 
 		p_chart_uv_to_array(chart, points);
 
-		tot = BLI_convexhull_2d((const float (*)[2])points, chart->nverts, index_map);
-
-		if (tot) {
-			float (*points_hull)[2];
-			int j;
-			float angle;
-
-			points_hull = MEM_mallocN(sizeof(*points) * tot, __func__);
-			for (j = 0; j < tot; j++) {
-				copy_v2_v2(points_hull[j], points[index_map[j]]);
-			}
-
-			angle = BLI_convexhull_aabb_fit_2d((const float (*)[2])points_hull, tot);
-			MEM_freeN(points_hull);
-
-			if (angle != 0.0f) {
-				float mat[2][2];
-				angle_to_mat2(mat, angle);
-				p_chart_uv_transform(chart, mat);
-			}
-		}
+		angle = BLI_convexhull_aabb_fit_points_2d((const float (*)[2])points, tot);
 
 		MEM_freeN(points);
-		MEM_freeN(index_map);
+
+		if (angle != 0.0f) {
+			float mat[2][2];
+			angle_to_mat2(mat, angle);
+			p_chart_uv_transform(chart, mat);
+		}
 	}
 }
 
