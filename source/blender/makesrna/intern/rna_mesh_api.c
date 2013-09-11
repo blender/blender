@@ -62,7 +62,7 @@ static void rna_Mesh_calc_normals_split(Mesh *mesh, float min_angle)
 {
 	float (*r_loopnors)[3];
 	float (*polynors)[3];
-	bool free_polynors;
+	bool free_polynors = false;
 
 	if (CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
 		r_loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
