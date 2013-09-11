@@ -750,7 +750,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *loo
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
-	if (look_descr->is_noop == false) {
+	if (look_descr && look_descr->is_noop == false) {
 		OCIO_displayTransformSetLooksOverrideEnabled(dt, true);
 		OCIO_displayTransformSetLooksOverride(dt, look);
 	}
