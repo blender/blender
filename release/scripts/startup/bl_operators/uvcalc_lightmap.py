@@ -24,15 +24,16 @@ import mathutils
 
 
 class prettyface(object):
-    __slots__ = ("uv",
-                 "width",
-                 "height",
-                 "children",
-                 "xoff",
-                 "yoff",
-                 "has_parent",
-                 "rot",
-                 )
+    __slots__ = (
+        "uv",
+        "width",
+        "height",
+        "children",
+        "xoff",
+        "yoff",
+        "has_parent",
+        "rot",
+        )
 
     def __init__(self, data):
         self.has_parent = False
@@ -94,8 +95,43 @@ class prettyface(object):
             # cos = [v.co for v in data]
             cos = [data.id_data.vertices[v].co for v in data.vertices]  # XXX25
 
-            self.width = ((cos[0] - cos[1]).length + (cos[2] - cos[3]).length) / 2.0
-            self.height = ((cos[1] - cos[2]).length + (cos[0] - cos[3]).length) / 2.0
+            if len(self.uv) == 4:
+                self.width = ((cos[0] - cos[1]).length + (cos[2] - cos[3]).length) / 2.0
+                self.height = ((cos[1] - cos[2]).length + (cos[0] - cos[3]).length) / 2.0
+            else:
+                # ngon, note:
+                # for ngons to calculate the width/height we need to do the
+                # whole projection, unlike other faces
+                # we store normalized UV's in the faces coords to avoid
+                # calculating the projection and rotating it twice.
+
+                no = data.normal
+                r = no.rotation_difference(mathutils.Vector((0.0, 0.0, 1.0)))
+                cos_2d = [(r * co).xy for co in cos]
+                # print(cos_2d)
+                angle = mathutils.geometry.box_fit_2d(cos_2d)
+
+                mat = mathutils.Matrix.Rotation(angle, 2)
+                cos_2d = [(mat * co) for co in cos_2d]
+                xs = [co.x for co in cos_2d]
+                ys = [co.y for co in cos_2d]
+
+                xmin = min(xs)
+                ymin = min(ys)
+                xmax = max(xs)
+                ymax = max(ys)
+
+                xspan = xmax - xmin
+                yspan = ymax - ymin
+
+                self.width = xspan
+                self.height = yspan
+
+                # ngons work different, we store projected result
+                # in UV's to avoid having to re-project later.
+                for i, co in enumerate(cos_2d):
+                    self.uv[i][:] = ((co.x - xmin) / xspan,
+                                     (co.y - ymin) / yspan)
 
             self.children = []
 
@@ -105,7 +141,7 @@ class prettyface(object):
 
         self.width, self.height = self.height, self.width
         self.xoff, self.yoff = self.yoff, self.xoff  # not needed?
-        self.rot = not self.rot  # only for tri pairs.
+        self.rot = not self.rot  # only for tri pairs and ngons.
         # print("spinning")
         for pf in self.children:
             pf.spin()
@@ -178,10 +214,19 @@ class prettyface(object):
                 set_uv(f, (x2, y2), (x2, y1 + margin_h), (x1 + margin_w, y2))
 
         else:  # 1 QUAD
-            uv[1][:] = x1, y1
-            uv[2][:] = x1, y2
-            uv[3][:] = x2, y2
-            uv[0][:] = x2, y1
+            if len(uv) == 4:
+                uv[1][:] = x1, y1
+                uv[2][:] = x1, y2
+                uv[3][:] = x2, y2
+                uv[0][:] = x2, y1
+            else:
+                # NGon
+                xspan = x2 - x1
+                yspan = y2 - y1
+                for uvco in uv:
+                    x, y = uvco
+                    uvco[:] = ((x1 + (x * xspan)),
+                               (y1 + (y * yspan)))
 
     def __hash__(self):
         # None unique hash
@@ -244,7 +289,7 @@ def lightmap_uvpack(meshes,
             print("\tWarning, less then 4 faces, skipping")
             continue
 
-        pretty_faces = [prettyface(f) for f in face_sel if f.loop_total == 4]
+        pretty_faces = [prettyface(f) for f in face_sel if f.loop_total >= 4]
 
         # Do we have any triangles?
         if len(pretty_faces) != len(face_sel):
