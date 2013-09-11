@@ -3495,7 +3495,7 @@ void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state, bool use_sep)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect = *rect;
@@ -3512,21 +3512,25 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	if (iconid) rect->xmin += UI_DPI_ICON_SIZE;
 
 	/* cut string in 2 parts? */
-	cpoin = strchr(name, '|');
-	if (cpoin) {
-		*cpoin = 0;
-		rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1) + 10;
+	if (use_sep) {
+		cpoin = strchr(name, '|');
+		if (cpoin) {
+			*cpoin = 0;
+			rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1) + 10;
+		}
 	}
 	
 	glColor4ubv((unsigned char *)wt->wcol.text);
 	uiStyleFontDraw(fstyle, rect, name);
 	
 	/* part text right aligned */
-	if (cpoin) {
-		fstyle->align = UI_STYLE_TEXT_RIGHT;
-		rect->xmax = _rect.xmax - 5;
-		uiStyleFontDraw(fstyle, rect, cpoin + 1);
-		*cpoin = '|';
+	if (use_sep) {
+		if (cpoin) {
+			fstyle->align = UI_STYLE_TEXT_RIGHT;
+			rect->xmax = _rect.xmax - 5;
+			uiStyleFontDraw(fstyle, rect, cpoin + 1);
+			*cpoin = '|';
+		}
 	}
 	
 	/* restore rect, was messed with */

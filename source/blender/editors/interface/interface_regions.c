@@ -770,6 +770,7 @@ typedef struct uiSearchboxData {
 	int active;     /* index in items array */
 	bool noback;    /* when menu opened with enough space for this */
 	bool preview;   /* draw thumbnail previews, rather than list */
+	bool use_sep;   /* use the '|' char for splitting shortcuts (good for operators, bad for data) */
 	int prv_rows, prv_cols;
 } uiSearchboxData;
 
@@ -928,7 +929,7 @@ bool ui_searchbox_apply(uiBut *but, ARegion *ar)
 	
 	if (data->active != -1) {
 		const char *name = data->items.names[data->active];
-		const char *name_sep = strchr(name, '|');
+		const char *name_sep = data->use_sep ? strchr(name, '|') : NULL;
 
 		BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen);
 		
@@ -1034,7 +1035,7 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 		
 		for (a = 0; a < data->items.totitem; a++) {
 			const char *name = data->items.names[a];
-			const char *name_sep = strchr(name, '|');
+			const char *name_sep = data->use_sep ? strchr(name, '|') : NULL;
 			if (STREQLEN(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen)) {
 				data->active = a;
 				break;
@@ -1087,10 +1088,14 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
-				if (data->preview)
-					ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
-				else 
-					ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
+				if (data->preview) {
+					ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+					                     (a == data->active) ? UI_ACTIVE : 0);
+				}
+				else {
+					ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+					                  (a == data->active) ? UI_ACTIVE : 0, data->use_sep);
+				}
 			}
 			
 			/* indicate more */
@@ -1114,7 +1119,8 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
-				ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a == data->active) ? UI_ACTIVE : 0);
+				ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+				                  (a == data->active) ? UI_ACTIVE : 0, data->use_sep);
 				
 			}
 			/* indicate more */
@@ -1193,6 +1199,11 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->preview = true;
 		data->prv_rows = but->a1;
 		data->prv_cols = but->a2;
+	}
+
+	/* only show key shortcuts when needed (not rna buttons) [#36699] */
+	if (but->rnaprop == NULL) {
+		data->use_sep = true;
 	}
 	
 	/* compute position */
