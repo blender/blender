@@ -750,7 +750,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *loo
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
-	if (look_descr && look_descr->is_noop == false) {
+	if (look_descr->is_noop == false) {
 		OCIO_displayTransformSetLooksOverrideEnabled(dt, true);
 		OCIO_displayTransformSetLooksOverride(dt, look);
 	}
@@ -989,6 +989,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 {
 	ColorManagedDisplay *display;
 	ColorManagedView *default_view = NULL;
+	ColorManagedLook *default_look = (ColorManagedLook *) global_looks.first;
 
 	if (view_settings->view_transform[0] == '\0') {
 		display = colormanage_display_get_named(display_settings->display_device);
@@ -1001,7 +1002,6 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 	}
 	else {
 		ColorManagedView *view = colormanage_view_get_named(view_settings->view_transform);
-		ColorManagedLook *look;
 
 		if (!view) {
 			display = colormanage_display_get_named(display_settings->display_device);
@@ -1016,16 +1016,16 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 				BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 			}
 		}
+	}
 
-		look = colormanage_look_get_named(view_settings->look);
-		if (!look) {
-			ColorManagedLook *default_look = (ColorManagedLook *) global_looks.first;
-
-			/* Prevent paranoid printf when opening files stored prior looks implementation. */
-			if (view_settings->look[0]) {
-				printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
-				       what, view_settings->look, default_look->name);
-			}
+	if (view_settings->look[0] == '\0') {
+		BLI_strncpy(view_settings->look, default_look->name, sizeof(view_settings->look));
+	}
+	else {
+		ColorManagedLook *look = colormanage_look_get_named(view_settings->look);
+		if (look == NULL) {
+			printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
+			       what, view_settings->look, default_look->name);
 
 			BLI_strncpy(view_settings->look, default_look->name, sizeof(view_settings->look));
 		}
