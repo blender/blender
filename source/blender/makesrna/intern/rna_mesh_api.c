@@ -76,6 +76,7 @@ static void rna_Mesh_calc_normals_split(Mesh *mesh, float min_angle)
 	if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
 		/* This assume that layer is always up to date, not sure this is the case (esp. in Edit mode?)... */
 		polynors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+		free_polynors = false;
 	}
 	else {
 		polynors = MEM_mallocN(sizeof(float[3]) * mesh->totpoly, __func__);
