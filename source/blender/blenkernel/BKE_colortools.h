@@ -64,7 +64,6 @@ void                curvemapping_changed_all(struct CurveMapping *cumap);
 
 /* call before _all_ evaluation functions */
 void                curvemapping_initialize(struct CurveMapping *cumap);
-void                curvemap_initialize(struct CurveMap *cuma);
 
 /* keep these (const CurveMap) - to help with thread safety */
 /* single curve, no table check */
