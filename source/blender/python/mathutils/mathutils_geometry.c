@@ -1507,12 +1507,12 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 PyDoc_STRVAR(M_Geometry_box_fit_2d_doc,
 ".. function:: box_fit_2d(points)\n"
 "\n"
-"   Returns a list of indices into the list given\n"
+"   Returns an angle that best fits the points to an axis aligned rectangle\n"
 "\n"
 "   :arg points: list of 2d points.\n"
 "   :type points: list\n"
-"   :return: a list of indices\n"
-"   :rtype: list of ints\n"
+"   :return: angle\n"
+"   :rtype: float\n"
 );
 static PyObject *M_Geometry_box_fit_2d(PyObject *UNUSED(self), PyObject *pointlist)
 {

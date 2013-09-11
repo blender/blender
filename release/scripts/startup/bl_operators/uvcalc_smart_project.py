@@ -24,7 +24,6 @@ from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.0000001  # see bug [#31598] why we dont have smaller values
-BIG_NUM = 1e15
 
 global USER_FILL_HOLES
 global USER_FILL_HOLES_QUALITY
@@ -233,111 +232,17 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     return 0 # NO INTERSECTION
 
 
-
-
-# Returns the X/y Bounds of a list of vectors.
-def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
-
-    # UV's will never extend this far.
-    minx = miny = BIG_NUM
-    maxx = maxy = -BIG_NUM
-
-    for i, v in enumerate(vecs):
-
-        # Do this along the way
-        if mat != -1:
-            v = vecs[i] = mat * v
-            x= v.x
-            y= v.y
-            if x<minx: minx= x
-            if y<miny: miny= y
-            if x>maxx: maxx= x
-            if y>maxy: maxy= y
-
-        # Specific to this algo, bail out if we get bigger then the current area
-        if bestAreaSoFar != -1 and (maxx-minx) * (maxy-miny) > bestAreaSoFar:
-            return (BIG_NUM, None), None
-    w = maxx-minx
-    h = maxy-miny
-    return (w*h, w,h), vecs # Area, vecs
-
 def optiRotateUvIsland(faces):
-    global currentArea
+    uv_points = [uv for f in faces  for uv in f.uv]
+    angle = geometry.box_fit_2d(uv_points)
 
-    # Best-fit Rotation
-    def best2dRotation(uvVecs, MAT1, MAT2):
-        global currentArea
-
-        newAreaPos, newfaceProjectionGroupListPos =\
-        testNewVecLs2DRotIsBetter(uvVecs[:], MAT1, currentArea[0])
-
-
-        # Why do I use newpos here? May as well give the best area to date for an early bailout
-        # some slight speed increase in this.
-        # If the new rotation is smaller then the existing, we can
-        # avoid copying a list and overwrite the old, crappy one.
-
-        if newAreaPos[0] < currentArea[0]:
-            newAreaNeg, newfaceProjectionGroupListNeg =\
-            testNewVecLs2DRotIsBetter(uvVecs, MAT2, newAreaPos[0])  # Reuse the old bigger list.
-        else:
-            newAreaNeg, newfaceProjectionGroupListNeg =\
-            testNewVecLs2DRotIsBetter(uvVecs[:], MAT2, currentArea[0])  # Cant reuse, make a copy.
-
-
-        # Now from the 3 options we need to discover which to use
-        # we have cerrentArea/newAreaPos/newAreaNeg
-        bestArea = min(currentArea[0], newAreaPos[0], newAreaNeg[0])
-
-        if currentArea[0] == bestArea:
-            return uvVecs
-        elif newAreaPos[0] == bestArea:
-            uvVecs = newfaceProjectionGroupListPos
-            currentArea = newAreaPos
-        elif newAreaNeg[0] == bestArea:
-            uvVecs = newfaceProjectionGroupListNeg
-            currentArea = newAreaNeg
-
-        return uvVecs
-
-
-    # Serialized UV coords to Vectors
-    uvVecs = [uv for f in faces  for uv in f.uv]
-
-    # Theres a small enough number of these to hard code it
-    # rather then a loop.
-
-    # Will not modify anything
-    currentArea, dummy =\
-    testNewVecLs2DRotIsBetter(uvVecs)
-
-
-    # Try a 45d rotation
-    newAreaPos, newfaceProjectionGroupListPos = testNewVecLs2DRotIsBetter(uvVecs[:], ROTMAT_2D_POS_45D, currentArea[0])
-
-    if newAreaPos[0] < currentArea[0]:
-        uvVecs = newfaceProjectionGroupListPos
-        currentArea = newAreaPos
-    # 45d done
-
-    # Testcase different rotations and find the one that best fits in a square
-    for ROTMAT in RotMatStepRotation:
-        uvVecs = best2dRotation(uvVecs, ROTMAT[0], ROTMAT[1])
-
-    # Only if you want it, make faces verticle!
-    if currentArea[1] > currentArea[2]:
-        # Rotate 90d
-        # Work directly on the list, no need to return a value.
-        testNewVecLs2DRotIsBetter(uvVecs, ROTMAT_2D_POS_90D)
-
-
-    # Now write the vectors back to the face UV's
-    i = 0 # count the serialized uv/vectors
-    for f in faces:
-        #f.uv = [uv for uv in uvVecs[i:len(f)+i] ]
-        for j, k in enumerate(range(i, len(f.v)+i)):
-            f.uv[j][:] = uvVecs[k]
-        i += len(f.v)
+    if angle != 0.0:
+        mat = Matrix.Rotation(angle, 2)
+        i = 0 # count the serialized uv/vectors
+        for f in faces:
+            for j, k in enumerate(range(i, len(f.v) + i)):
+                f.uv[j][:] = mat * uv_points[k]
+            i += len(f.v)
 
 
 # Takes an island list and tries to find concave, hollow areas to pack smaller islands into.
