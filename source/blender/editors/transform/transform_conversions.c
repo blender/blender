@@ -6556,29 +6556,40 @@ typedef struct TransDataMasking {
 	float handle[2], orig_handle[2];
 	float vec[3][3];
 	MaskSplinePoint *point;
+	float parent_matrix[3][3];
+	float parent_inverse_matrix[3][3];
 } TransDataMasking;
 
-static void MaskPointToTransData(MaskSplinePoint *point,
+static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
                                  TransData *td, TransData2D *td2d, TransDataMasking *tdm,
                                  const int propmode, const float asp[2])
 {
 	BezTriple *bezt = &point->bezt;
 	short is_sel_point = MASKPOINT_ISSEL_KNOT(point);
 	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
+	float parent_matrix[3][3], parent_inverse_matrix[3][3];
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
 
+	BKE_mask_point_parent_matrix_get(point, CFRA, parent_matrix);
+	invert_m3_m3(parent_inverse_matrix, parent_matrix);
+
 	if (propmode || is_sel_point) {
 		int i;
 		for (i = 0; i < 3; i++) {
+			copy_m3_m3(tdm->parent_matrix, parent_matrix);
+			copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
+
 			/* CV coords are scaled by aspects. this is needed for rotations and
 			 * proportional editing to be consistent with the stretched CV coords
 			 * that are displayed. this also means that for display and numinput,
 			 * and when the the CV coords are flushed, these are converted each time */
-			td2d->loc[0] = bezt->vec[i][0] * asp[0];
-			td2d->loc[1] = bezt->vec[i][1] * asp[1];
+			mul_v2_m3v2(td2d->loc, parent_matrix, bezt->vec[i]);
+			td2d->loc[0] *= asp[0];
+			td2d->loc[1] *= asp[1];
 			td2d->loc[2] = 0.0f;
+
 			td2d->loc2d = bezt->vec[i];
 
 			td->flag = 0;
@@ -6610,18 +6621,23 @@ static void MaskPointToTransData(MaskSplinePoint *point,
 
 			td++;
 			td2d++;
+			tdm++;
 		}
 	}
 	else {
 		tdm->is_handle = TRUE;
+		copy_m3_m3(tdm->parent_matrix, parent_matrix);
+		copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
 
 		BKE_mask_point_handle(point, tdm->handle);
 
 		copy_v2_v2(tdm->orig_handle, tdm->handle);
 
-		td2d->loc[0] = tdm->handle[0] * asp[0];
-		td2d->loc[1] = tdm->handle[1] * asp[1];
+		mul_v2_m3v2(td2d->loc, parent_matrix, tdm->handle);
+		td2d->loc[0] *= asp[0];
+		td2d->loc[1] *= asp[1];
 		td2d->loc[2] = 0.0f;
+
 		td2d->loc2d = tdm->handle;
 
 		td->flag = 0;
@@ -6651,6 +6667,7 @@ static void MaskPointToTransData(MaskSplinePoint *point,
 
 static void createTransMaskingData(bContext *C, TransInfo *t)
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	TransData *td = NULL;
@@ -6723,7 +6740,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (propmode || MASKPOINT_ISSEL_ANY(point)) {
-					MaskPointToTransData(point, td, td2d, tdm, propmode, asp);
+					MaskPointToTransData(scene, point, td, td2d, tdm, propmode, asp);
 
 					if (propmode || MASKPOINT_ISSEL_KNOT(point)) {
 						td += 3;
@@ -6756,6 +6773,7 @@ void flushTransMasking(TransInfo *t)
 	for (a = 0, td = t->data2d, tdm = t->customData; a < t->total; a++, td++, tdm++) {
 		td->loc2d[0] = td->loc[0] * inv[0];
 		td->loc2d[1] = td->loc[1] * inv[1];
+		mul_m3_v2(tdm->parent_inverse_matrix, td->loc2d);
 
 		if (tdm->is_handle)
 			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);

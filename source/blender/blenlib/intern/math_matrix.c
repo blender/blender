@@ -322,6 +322,24 @@ void mul_serie_m4(float answ[4][4], float m1[4][4],
 	}
 }
 
+void mul_v2_m3v2(float r[2], float m[3][3], float v[2])
+{
+	float temp[3], warped[3];
+
+	copy_v2_v2(temp, v);
+	temp[2] = 1.0f;
+
+	mul_v3_m3v3(warped, m, temp);
+
+	r[0] = warped[0] / warped[2];
+	r[1] = warped[1] / warped[2];
+}
+
+void mul_m3_v2(float m[3][3], float r[2])
+{
+	mul_v2_m3v2(r, m, r);
+}
+
 void mul_m4_v3(float mat[4][4], float vec[3])
 {
 	float x, y;

@@ -1095,10 +1095,15 @@ void BKE_mask_coord_to_image(Image *image, ImageUser *iuser, float r_co[2], cons
 	BKE_mask_coord_to_frame(r_co, co, frame_size);
 }
 
-static int mask_evaluate_parent(MaskParent *parent, float ctime, float orig_co[2], float r_co[2])
+void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point, float ctime, float parent_matrix[3][3])
 {
-	if (!parent)
-		return FALSE;
+	MaskParent *parent = &point->parent;
+
+	unit_m3(parent_matrix);
+
+	if (!parent) {
+		return;
+	}
 
 	if (parent->id_type == ID_MC) {
 		if (parent->id) {
@@ -1115,11 +1120,10 @@ static int mask_evaluate_parent(MaskParent *parent, float ctime, float orig_co[2
 					MovieTrackingTrack *track = BKE_tracking_track_get_named(tracking, ob, parent->sub_parent);
 
 					if (track) {
-						float marker_pos_ofs[2];
-						BKE_tracking_marker_get_subframe_position(track, clip_framenr, marker_pos_ofs);
-						BKE_mask_coord_from_movieclip(clip, &user, r_co, marker_pos_ofs);
-
-						return TRUE;
+						float marker_position[2], parent_co[2];
+						BKE_tracking_marker_get_subframe_position(track, clip_framenr, marker_position);
+						BKE_mask_coord_from_movieclip(clip, &user, parent_co, marker_position);
+						sub_v2_v2v2(parent_matrix[2], parent_co, parent->parent_orig);
 					}
 				}
 				else /* if (parent->type == MASK_PARENT_PLANE_TRACK) */ {
@@ -1127,47 +1131,47 @@ static int mask_evaluate_parent(MaskParent *parent, float ctime, float orig_co[2
 
 					if (plane_track) {
 						MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, clip_framenr);
-						float H[3][3], vec[3], warped[3];
+						float aspx, aspy;
+						float frame_size[2], H[3][3], mask_from_clip_matrix[3][3], mask_to_clip_matrix[3][3];
 
 						BKE_tracking_homography_between_two_quads(parent->parent_corners_orig, plane_marker->corners, H);
 
-						BKE_mask_coord_to_movieclip(clip, &user, vec, orig_co);
-						vec[2] = 1.0f;
-						mul_v3_m3v3(warped, H, vec);
-						warped[0] /= warped[2];
-						warped[1] /= warped[2];
+						unit_m3(mask_from_clip_matrix);
 
-						BKE_mask_coord_from_movieclip(clip, &user, r_co, warped);
+						BKE_movieclip_get_size_fl(clip, &user, frame_size);
+						BKE_movieclip_get_aspect(clip, &aspx, &aspy);
+
+						frame_size[1] *= (aspy / aspx);
+						if (frame_size[0] == frame_size[1]) {
+							/* pass */
+						}
+						else if (frame_size[0] < frame_size[1]) {
+							mask_from_clip_matrix[0][0] = frame_size[1] / frame_size[0];
+							mask_from_clip_matrix[2][0] = -0.5f * (frame_size[1] / frame_size[0]) + 0.5f;
+						}
+						else { /* (frame_size[0] > frame_size[1]) */
+							mask_from_clip_matrix[1][1] = frame_size[1] / frame_size[0];
+							mask_from_clip_matrix[2][1] = -0.5f * (frame_size[1] / frame_size[0]) + 0.5f;
+						}
+
+						invert_m3_m3(mask_to_clip_matrix, mask_from_clip_matrix);
+						mul_serie_m3(parent_matrix, mask_to_clip_matrix, H, mask_from_clip_matrix, NULL, NULL, NULL, NULL, NULL);
 					}
 				}
 			}
 		}
 	}
-
-	return FALSE;
 }
 
 static void mask_evaluate_apply_point_parent(MaskSplinePoint *point, float ctime)
 {
-	MaskParent *parent = &point->parent;
+	float parent_matrix[3][3];
 
-	if (parent->type == MASK_PARENT_POINT_TRACK) {
-		float parent_co[2];
+	BKE_mask_point_parent_matrix_get(point, ctime, parent_matrix);
 
-		if (mask_evaluate_parent(parent, ctime, NULL, parent_co)) {
-			float delta[2];
-			sub_v2_v2v2(delta, parent_co, parent->parent_orig);
-
-			add_v2_v2(point->bezt.vec[0], delta);
-			add_v2_v2(point->bezt.vec[1], delta);
-			add_v2_v2(point->bezt.vec[2], delta);
-		}
-	}
-	else /* if (parent->type == MASK_PARENT_PLANE_TRACK) */ {
-		mask_evaluate_parent(parent, ctime, point->bezt.vec[0], point->bezt.vec[0]);
-		mask_evaluate_parent(parent, ctime, point->bezt.vec[1], point->bezt.vec[1]);
-		mask_evaluate_parent(parent, ctime, point->bezt.vec[2], point->bezt.vec[2]);
-	}
+	mul_m3_v2(parent_matrix, point->bezt.vec[0]);
+	mul_m3_v2(parent_matrix, point->bezt.vec[1]);
+	mul_m3_v2(parent_matrix, point->bezt.vec[2]);
 }
 
 static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *point_prev, MaskSplinePoint *point_next)
