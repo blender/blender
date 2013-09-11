@@ -715,13 +715,16 @@ int main(int /*argc*/, char ** /*argv*/)
 
 		// Add the application as event consumer
 		fSystem->addEventConsumer(&app);
-                
+
 		// Enter main loop
 		while (!app.m_exitRequested) {
 			//printf("main: loop\n");
 			fSystem->processEvents(true);
 			fSystem->dispatchEvents();
 		}
+
+		// Remove so ghost doesn't do a double free
+		fSystem->removeEventConsumer(&app);
 	}
 
 	// Dispose the system

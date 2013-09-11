@@ -931,11 +931,13 @@ void multitestapp_free(MultiTestApp *app)
 	
 int main(int argc, char **argv)
 {
+	MultiTestApp *app;
+
 #ifndef USE_BMF
 	BLF_init(11, 72);
 #endif
 
-	MultiTestApp *app = multitestapp_new();
+	app = multitestapp_new();
 	
 	multitestapp_run(app);
 	multitestapp_free(app);
