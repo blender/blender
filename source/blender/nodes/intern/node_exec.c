@@ -287,8 +287,8 @@ void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 
 bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
 {
-	bNodeStack *nsin[MAX_SOCKET];   /* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];  /* arbitrary... watch this */
+	bNodeStack *nsin[MAX_SOCKET] = {NULL};   /* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET] = {NULL};  /* arbitrary... watch this */
 	bNodeExec *nodeexec;
 	bNode *node;
 	int n;
