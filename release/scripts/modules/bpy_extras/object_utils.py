@@ -170,6 +170,8 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
 
         bpy.ops.object.join()  # join into the active.
         bpy.data.meshes.remove(obdata)
+        # base is freed, set to active object
+        base = scene.object_bases.active
 
         bpy.ops.object.mode_set(mode='EDIT')
     else:
