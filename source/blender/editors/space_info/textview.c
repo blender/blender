@@ -123,7 +123,6 @@ static int console_wrap_offsets(const char *str, int len, int width, int *lines,
 static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str_len,
                                const unsigned char fg[3], const unsigned char bg[3], const unsigned char bg_sel[4])
 {
-	int rct_ofs = cdc->lheight / 4;
 	int tot_lines;            /* total number of lines for wrapping */
 	int *offsets;             /* offsets of line beginnings for wrapping */
 	int y_next;
@@ -187,7 +186,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		
 		if (bg) {
 			glColor3ubv(bg);
-			glRecti(0, cdc->xy[1] - rct_ofs, cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)) + rct_ofs);
+			glRecti(0, cdc->xy[1], cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)));
 		}
 
 		glColor3ubv(fg);
@@ -235,7 +234,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		if (bg) {
 			glColor3ubv(bg);
-			glRecti(0, cdc->xy[1] - rct_ofs, cdc->winx, cdc->xy[1] + cdc->lheight - rct_ofs);
+			glRecti(0, cdc->xy[1], cdc->winx, cdc->xy[1] + cdc->lheight);
 		}
 
 		glColor3ubv(fg);
