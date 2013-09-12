@@ -2726,6 +2726,23 @@ static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *va
 	}
 }
 
+static bNodeSocket *rna_NodeOutputFile_slots_new(ID *id, bNode *node, bContext *C, ReportList *UNUSED(reports), const char *name)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	Scene *scene = CTX_data_scene(C);
+	ImageFormatData *im_format = NULL;
+	bNodeSocket *sock;
+	if (scene)
+		im_format = &scene->r.im_format;
+	
+	sock = ntreeCompositOutputFileAddSocket(ntree, node, name, im_format);
+	
+	ntreeUpdateTree(CTX_data_main(C), ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+	
+	return sock;
+}
+
 static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 {
 	bNode *node = (bNode *)ptr->data;
@@ -4111,7 +4128,49 @@ static void rna_def_cmp_output_file_slot_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "OpenEXR layer name used for this slot");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 }
-static void def_cmp_output_file(StructRNA *srna)
+static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna, PropertyRNA *cprop, const char *struct_name)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, struct_name);
+	srna = RNA_def_struct(brna, struct_name, NULL);
+	RNA_def_struct_sdna(srna, "bNode");
+	RNA_def_struct_ui_text(srna, "File Output Slots", "Collection of File Output node slots");
+
+	func = RNA_def_function(srna, "new", "rna_NodeOutputFile_slots_new");
+	RNA_def_function_ui_description(func, "Add a file slot to this node");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
+	parm = RNA_def_string(func, "name", "", MAX_NAME, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return value */
+	parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
+	RNA_def_function_return(func, parm);
+
+	/* NB: methods below can use the standard node socket API functions,
+	 * included here for completeness.
+	 */
+
+	func = RNA_def_function(srna, "remove", "rna_Node_socket_remove");
+	RNA_def_function_ui_description(func, "Remove a file slot from this node");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "The socket to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func = RNA_def_function(srna, "clear", "rna_Node_inputs_clear");
+	RNA_def_function_ui_description(func, "Remove all file slots from this node");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+
+	func = RNA_def_function(srna, "move", "rna_Node_inputs_move");
+	RNA_def_function_ui_description(func, "Move a file slot to another position");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_int(func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the socket", 0, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -4139,12 +4198,14 @@ static void def_cmp_output_file(StructRNA *srna)
 	                                  "rna_NodeOutputFile_slot_file_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "NodeOutputFileSlotFile");
 	RNA_def_property_ui_text(prop, "File Slots", "");
+	rna_def_cmp_output_file_slots_api(brna, prop, "CompositorNodeOutputFileFileSlots");
 	
 	prop = RNA_def_property(srna, "layer_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_NodeOutputFile_slots_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end",
 	                                  "rna_NodeOutputFile_slot_layer_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "NodeOutputFileSlotLayer");
 	RNA_def_property_ui_text(prop, "EXR Layer Slots", "");
+	rna_def_cmp_output_file_slots_api(brna, prop, "CompositorNodeOutputFileLayerSlots");
 }
 
 static void def_cmp_dilate_erode(StructRNA *srna)
@@ -7386,8 +7447,8 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
 }
 
-static void define_specific_node(BlenderRNA *brna, const char *struct_name, const char *base_name,
-                                 const char *ui_name, const char *ui_desc, void (*def_func)(StructRNA *))
+static StructRNA *define_specific_node(BlenderRNA *brna, const char *struct_name, const char *base_name,
+                                       const char *ui_name, const char *ui_desc, void (*def_func)(StructRNA *))
 {
 	StructRNA *srna;
 	FunctionRNA *func;
@@ -7434,6 +7495,8 @@ static void define_specific_node(BlenderRNA *brna, const char *struct_name, cons
 
 	if (def_func)
 		def_func(srna);
+
+	return srna;
 }
 
 static void rna_def_node_instance_hash(BlenderRNA *brna)
@@ -7451,6 +7514,8 @@ static void rna_def_node_instance_hash(BlenderRNA *brna)
 
 void RNA_def_nodetree(BlenderRNA *brna)
 {
+	StructRNA *srna;
+	
 	rna_def_node_socket(brna);
 	rna_def_node_socket_interface(brna);
 	
@@ -7471,7 +7536,13 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_texture_nodetree(brna);
 	
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-		define_specific_node(brna, #Category #StructName, #Category, UIName, UIDesc, DefFunc);
+	{ \
+		srna = define_specific_node(brna, #Category #StructName, #Category, UIName, UIDesc, DefFunc); \
+		if (ID == CMP_NODE_OUTPUT_FILE) { \
+			/* needs brna argument, can't use NOD_static_types.h */ \
+			def_cmp_output_file(brna, srna); \
+		} \
+	}
 	
 	/* hack, don't want to add include path to RNA just for this, since in the future RNA types
 	 * for nodes should be defined locally at runtime anyway ...
