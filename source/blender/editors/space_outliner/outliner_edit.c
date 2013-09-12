@@ -227,7 +227,7 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
 	else if (tselem->id->lib) {
-		// XXX						error_libdata();
+		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 	}
 	else if (te->idcode == ID_LI && te->parent) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
