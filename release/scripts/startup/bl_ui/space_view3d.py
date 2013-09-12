@@ -2614,7 +2614,7 @@ class VIEW3D_PT_view3d_shading(Panel):
     bl_region_type = 'UI'
     bl_label = "Shading"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     @classmethod
     def poll(cls, context):
         view = context.space_data

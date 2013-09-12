@@ -2600,7 +2600,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "top", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "top");
-	RNA_def_property_ui_text(prop, "Top Line", "Top line visible.");
+	RNA_def_property_ui_text(prop, "Top Line", "Top line visible");
 
 	prop = RNA_def_property(srna, "visible_lines", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

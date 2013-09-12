@@ -165,8 +165,6 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	int cd_edge_crease_offset      = use_crease ? CustomData_get_offset(&bm->edata, CD_CREASE) : -1;
 	const float crease_weight      = 1.0f;
 
-	//CustomData_has_layer(&bm->edata, CD_CREASE);
-
 	const int totvert_orig = bm->totvert;
 
 	BMOIter oiter;

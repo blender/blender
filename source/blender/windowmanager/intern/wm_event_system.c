@@ -264,7 +264,6 @@ void wm_event_do_notifiers(bContext *C)
 				if (note->category == NC_SCREEN) {
 					if (note->data == ND_SCREENBROWSE) {
 						/* free popup handlers only [#35434] */
-						wmWindow *win = CTX_wm_window(C);
 						UI_remove_popup_handlers_all(C, &win->modalhandlers);
 
 
