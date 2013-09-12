@@ -225,8 +225,23 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bN
 
 static void update_output_file(bNodeTree *ntree, bNode *node)
 {
-	bNodeSocket *sock;
+	bNodeSocket *sock, *sock_next;
 	PointerRNA ptr;
+	
+	/* XXX fix for #36706: remove invalid sockets added with bpy API.
+	 * This is not ideal, but prevents crashes from missing storage.
+	 * FileOutput node needs a redesign to support this properly.
+	 */
+	for (sock = node->inputs.first; sock; sock = sock_next) {
+		sock_next = sock->next;
+		if (sock->storage == NULL) {
+			nodeRemoveSocket(ntree, node, sock);
+		}
+	}
+	for (sock = node->outputs.first; sock; sock = sock_next) {
+		sock_next = sock->next;
+		nodeRemoveSocket(ntree, node, sock);
+	}
 	
 	cmp_node_update_default(ntree, node);
 	
