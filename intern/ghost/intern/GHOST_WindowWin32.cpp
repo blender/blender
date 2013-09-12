@@ -176,33 +176,44 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	}
 
 	if (state != GHOST_kWindowStateFullScreen) {
-		RECT rect;
-
-		int framex = GetSystemMetrics(SM_CXSIZEFRAME);
-		int framey = GetSystemMetrics(SM_CYSIZEFRAME);
-		int caption = GetSystemMetrics(SM_CYCAPTION);
-		width += framex * 2;
-		height += framey * 2 + caption;
-
-		left -= framex;
-		top -= (caption+framey);
-
-		rect.left = left;
-		rect.right = left + width + framex;
-		rect.top = top;
-		rect.bottom = top + height + caption - framey;
-
+		RECT rect, desktop;
 		int wintype = WS_OVERLAPPEDWINDOW;
+
 		if (m_parentWindowHwnd != 0)
 		{
 			wintype = WS_CHILD;
+			/* check against parent window if given */
 			GetWindowRect((HWND)m_parentWindowHwnd, &rect);
-			left = 0;
-			top = 0;
-			width = rect.right - rect.left;
-			height = rect.bottom - rect.top;
+		} else {
+			int framex = GetSystemMetrics(SM_CXSIZEFRAME);
+			int framey = GetSystemMetrics(SM_CYSIZEFRAME);
+			int caption = GetSystemMetrics(SM_CYCAPTION);
+
+			/* set up total window rect, taking in account window decorations. */
+			rect.left = left - framex;
+			rect.right = rect.left + width + framex*2;
+			rect.top = top - (caption + framey);
+			rect.bottom = rect.top + height + (caption + framey * 2);
 		}
-		
+
+		/* ask how large virtual screen is */
+		desktop.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		desktop.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+		desktop.right = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		desktop.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+		/* virtual screen (desktop) bound checks */
+		if(rect.left < desktop.left) rect.left = desktop.left;
+		if(rect.top < desktop.top) rect.top = desktop.top;
+		if(rect.bottom > desktop.bottom) rect.bottom = desktop.bottom;
+		if(rect.right > desktop.right) rect.right = desktop.right;
+
+		/* dimension vars to use in window creation */
+		left = rect.left;
+		top = rect.top;
+		width = rect.right - rect.left;
+		height = rect.bottom - rect.top;
+
 		wchar_t *title_16 = alloc_utf16_from_8((char *)(const char *)title, 0);
 		m_hWnd = ::CreateWindowW(
 		    s_windowClassName,          // pointer to registered class name
