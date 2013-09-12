@@ -2389,7 +2389,7 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	BKE_ptcache_bake(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int anim, int anim_init)
+static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay_override, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2419,8 +2419,8 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	re->scene = scene;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	re->camera_override = camera_override;
-	re->lay = lay;
-	re->i.localview = (lay & 0xFF000000) != 0;
+	re->lay = lay_override ? lay_override : scene->lay;
+	re->i.localview = (re->lay & 0xFF000000) != 0;
 	
 	/* not too nice, but it survives anim-border render */
 	if (anim) {
@@ -2469,14 +2469,14 @@ void RE_SetReports(Render *re, ReportList *reports)
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int frame, const short write_still)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay_override, int frame, const short write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.is_rendering = TRUE;
 	
 	scene->r.cfra = frame;
 	
-	if (render_initialize_from_main(re, bmain, scene, srl, camera_override, lay, 0, 0)) {
+	if (render_initialize_from_main(re, bmain, scene, srl, camera_override, lay_override, 0, 0)) {
 		MEM_reset_peak_memory();
 
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
@@ -2625,14 +2625,14 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra)
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay_override, int sfra, int efra, int tfra)
 {
 	bMovieHandle *mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 	int cfrao = scene->r.cfra;
 	int nfra, totrendered = 0, totskipped = 0;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if (!render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay, 0, 1))
+	if (!render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay_override, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2677,7 +2677,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay, 1, 0);
+			render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay_override, 1, 0);
 
 			if (nfra != scene->r.cfra) {
 				/*
