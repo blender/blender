@@ -2086,14 +2086,10 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
-				/* disabled: subsurf can't calculate twice on the same editmesh (uses freed cache) [#36299] */
-#if 0
 				if (mti->applyModifierEM) {
 					ndm = modwrap_applyModifierEM(md, ob, em, orcodm, MOD_APPLY_ORCO);
 				}
-				else
-#endif
-				{
+				else {
 					ndm = modwrap_applyModifier(md, ob, orcodm, MOD_APPLY_ORCO);
 				}
 				ASSERT_IS_VALID_DM(ndm);

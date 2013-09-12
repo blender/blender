@@ -121,14 +121,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
                                     struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *derivedData,
-                                    ModifierApplyFlag UNUSED(flag))
+                                    ModifierApplyFlag flag)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	DerivedMesh *result;
+	/* 'orco' using editmode flags would cause cache to be used twice in editbmesh_calc_modifiers */
+	SubsurfFlags ss_flags = (flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
 
-	result = subsurf_make_derived_from_derived(derivedData, smd,
-	                                           NULL, (SUBSURF_FOR_EDIT_MODE |
-	                                                  SUBSURF_IN_EDIT_MODE));
+	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, ss_flags);
 
 	return result;
 }
