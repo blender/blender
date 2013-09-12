@@ -2592,19 +2592,6 @@ class VIEW3D_PT_view3d_display(Panel):
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
-        if not scene.render.use_shading_nodes:
-            col = layout.column()
-            col.label(text="Shading:")
-            col.prop(gs, "material_mode", text="")
-            col.prop(view, "show_textured_solid")
-        if view.viewport_shade == 'SOLID':
-            col.prop(view, "use_matcap")
-            if view.use_matcap:
-                col.template_icon_view(view, "matcap_icon")
-        col.prop(view, "show_backface_culling")
-        if obj and obj.mode == 'EDIT' and view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
-            col.prop(view, "show_occlude_wire")
-
         layout.separator()
 
         region = view.region_quadview
@@ -2620,6 +2607,39 @@ class VIEW3D_PT_view3d_display(Panel):
             row = col.row()
             row.enabled = region.lock_rotation and region.show_sync_view
             row.prop(region, "use_box_clip")
+
+
+class VIEW3D_PT_view3d_shading(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Shading"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        scene = context.scene
+        gs = scene.game_settings
+        obj = context.object
+
+        col = layout.column()
+
+        if not scene.render.use_shading_nodes:
+            col.prop(gs, "material_mode", text="")
+            col.prop(view, "show_textured_solid")
+        if view.viewport_shade == 'SOLID':
+            col.prop(view, "use_matcap")
+            if view.use_matcap:
+                col.template_icon_view(view, "matcap_icon")
+        col.prop(view, "show_backface_culling")
+        if obj and obj.mode == 'EDIT' and view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
+            col.prop(view, "show_occlude_wire")
 
 
 class VIEW3D_PT_view3d_motion_tracking(Panel):
