@@ -18,6 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/buffer.c
+ *  \ingroup bli
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_buffer.h"

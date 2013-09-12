@@ -23,6 +23,10 @@
 #ifndef __BKE_OCEAN_H__
 #define __BKE_OCEAN_H__
 
+/** \file BLI_ocean.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

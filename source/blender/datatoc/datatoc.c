@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/datatoc/datatoc.c
+ *  \ingroup datatoc
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

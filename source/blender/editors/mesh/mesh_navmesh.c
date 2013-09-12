@@ -26,6 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_navmesh.c
+ *  \ingroup edmesh
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"

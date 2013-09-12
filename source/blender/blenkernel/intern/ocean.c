@@ -25,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/ocean.c
+ *  \ingroup bke
+ */
 
 #include <math.h>
 #include <stdlib.h>

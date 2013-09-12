@@ -28,6 +28,10 @@
 #ifndef __DNA_LINESTYLE_TYPES_H__
 #define __DNA_LINESTYLE_TYPES_H__
 
+/** \file DNA_linestyle_types.h
+ *  \ingroup DNA
+ */
+
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 

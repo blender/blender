@@ -18,6 +18,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/convexhull2d.c
+ *  \ingroup bli
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

@@ -22,6 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/indexer_dv.c
+ *  \ingroup imbuf
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

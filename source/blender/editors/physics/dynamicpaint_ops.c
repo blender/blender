@@ -18,6 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/dynamicpaint_ops.c
+ *  \ingroup edphys
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

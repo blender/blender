@@ -26,6 +26,10 @@
 #ifndef __TEXTURE_OCEAN_H__
 #define __TEXTURE_OCEAN_H__
 
+/** \file blender/render/intern/include/texture_ocean.h
+ *  \ingroup render
+ */
+
 int ocean_texture(struct Tex *tex, const float texvec[2], struct TexResult *texres);
 
 #endif  /* __TEXTURE_OCEAN_H__ */

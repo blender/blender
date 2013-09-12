@@ -26,6 +26,10 @@
  *
  */
 
+/** \file blender/blenlib/intern/math_interp.c
+ *  \ingroup bli
+ */
+
 #include <math.h>
 
 #include "BLI_math.h"

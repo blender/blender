@@ -23,6 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/texture_ocean.c
+ *  \ingroup bke
+ */
+
 #include <stddef.h>
 
 #include "BLI_math.h"

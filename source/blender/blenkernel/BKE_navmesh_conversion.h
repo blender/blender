@@ -28,6 +28,10 @@
 #ifndef __BKE_NAVMESH_CONVERSION_H__
 #define __BKE_NAVMESH_CONVERSION_H__
 
+/** \file BKE_navmesh_conversion.h
+ *  \ingroup bke
+ */
+
 struct DerivedMesh;
 
 /* navmesh_conversion.c */

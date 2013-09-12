@@ -23,6 +23,10 @@
 #ifndef __BKE_EDITMESH_H__
 #define __BKE_EDITMESH_H__
 
+/** \file BKE_editmesh.h
+ *  \ingroup bke
+ */
+
 #include "BKE_customdata.h"
 #include "bmesh.h"
 

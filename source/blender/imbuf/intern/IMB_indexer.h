@@ -25,6 +25,10 @@
 #ifndef __IMB_INDEXER_H__
 #define __IMB_INDEXER_H__
 
+/** \file IMB_indexer.h
+ *  \ingroup imbuf
+ */
+
 #ifdef WIN32
 #  include <io.h>
 #endif

@@ -28,6 +28,10 @@
  *
  */
 
+/** \file blender/imbuf/intern/colormanagement.c
+ *  \ingroup imbuf
+ */
+
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 

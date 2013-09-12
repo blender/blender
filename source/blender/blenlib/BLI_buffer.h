@@ -21,21 +21,23 @@
 #ifndef __BLI_BUFFER_H__
 #define __BLI_BUFFER_H__
 
-/* Note: this more or less fills same purpose as BLI_array, but makes
+/** \file BLI_buffer.h
+ *  \ingroup bli
+ *
+ * \note this more or less fills same purpose as BLI_array, but makes
  * it much easier to resize the array outside of the function it was
- * declared in since */
-
-/* Usage examples:
+ * declared in since.
  *
- * { 
- *     BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
+ * Usage examples:
+ * \code
+ * BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
  *
- *     BLI_buffer_append(my_int_array, int, 42);
- *     assert(my_int_array.count == 1);
- *     assert(BLI_buffer_at(my_int_array, int, 0) == 42);
+ * BLI_buffer_append(my_int_array, int, 42);
+ * assert(my_int_array.count == 1);
+ * assert(BLI_buffer_at(my_int_array, int, 0) == 42);
  *
- *     BLI_buffer_free(&my_int_array);
- * }
+ * BLI_buffer_free(&my_int_array);
+ * \endcode
  */
 
 typedef struct {

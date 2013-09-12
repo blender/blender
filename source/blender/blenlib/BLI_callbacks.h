@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/BLI_callbacks.h
+/** \file BLI_callbacks.h
  *  \ingroup bli
  */
 

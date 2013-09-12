@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/addon.c
+ *  \ingroup bke
+ */
+
 #include <stddef.h>
 #include <stdlib.h>
 

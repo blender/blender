@@ -28,7 +28,9 @@
 #ifndef __BKE_DERIVEDMESH_H__
 #define __BKE_DERIVEDMESH_H__
 
-/**
+/** \file BKE_DerivedMesh.h
+ *  \ingroup bke
+ *
  * Basic design of the DerivedMesh system:
  *
  * DerivedMesh is a common set of interfaces for mesh systems.

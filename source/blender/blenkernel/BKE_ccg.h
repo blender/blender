@@ -28,6 +28,10 @@
 #ifndef __BKE_CCG_H__
 #define __BKE_CCG_H__
 
+/** \file BKE_ccg.h
+ *  \ingroup bke
+ */
+
 /* defines BLI_INLINE */
 #include "BLI_utildefines.h"
 

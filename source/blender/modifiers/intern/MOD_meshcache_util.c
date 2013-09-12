@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_meshcache_util.c
+ *  \ingroup modifiers
+ */
+
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 

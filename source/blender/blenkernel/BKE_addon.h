@@ -22,6 +22,10 @@
 #ifndef __BKE_ADDON_H__
 #define __BKE_ADDON_H__
 
+/** \file BKE_addon.h
+ *  \ingroup bke
+ */
+
 #include "RNA_types.h"
 
 typedef struct bAddonPrefType {

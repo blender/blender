@@ -18,6 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/pbvh_bmesh.c
+ *  \ingroup bli
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

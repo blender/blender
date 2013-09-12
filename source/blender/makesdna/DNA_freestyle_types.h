@@ -28,6 +28,10 @@
 #ifndef __DNA_FREESTYLE_TYPES_H__
 #define __DNA_FREESTYLE_TYPES_H__
 
+/** \file DNA_freestyle_types.h
+ *  \ingroup DNA
+ */
+
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus

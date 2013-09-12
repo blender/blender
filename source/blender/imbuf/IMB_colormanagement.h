@@ -31,6 +31,10 @@
 #ifndef __IMB_COLORMANAGEMENT_H__
 #define __IMB_COLORMANAGEMENT_H__
 
+/** \file blender/imbuf/IMB_colormanagement.h
+ *  \ingroup imbuf
+ */
+
 #include "BLI_sys_types.h"
 
 #define BCM_CONFIG_FILE "config.ocio"

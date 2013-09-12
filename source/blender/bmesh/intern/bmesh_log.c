@@ -18,6 +18,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/intern/bmesh_log.c
+ *  \ingroup bmesh
+ *
+ * The BMLog is an interface for storing undo/redo steps as a BMesh is
+ * modified. It only stores changes to the BMesh, not full copies.
+ *
+ * Currently it supports the following types of changes:
+ *
+ * - Adding and removing vertices
+ * - Adding and removing faces
+ * - Moving vertices
+ * - Setting vertex paint-mask values
+ * - Setting vertex hflags
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

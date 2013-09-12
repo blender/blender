@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/callbacks.c
+ *  \ingroup bli
+ */
+
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_callbacks.h"
