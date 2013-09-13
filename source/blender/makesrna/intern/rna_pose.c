@@ -261,7 +261,7 @@ static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
 	Object *ob = (Object *)ptr->id.data;
 	bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
-	return ED_pose_channel_in_IK_chain(ob, pchan);
+	return BKE_pose_channel_in_IK_chain(ob, pchan);
 }
 
 static StructRNA *rna_IKParam_refine(PointerRNA *ptr)

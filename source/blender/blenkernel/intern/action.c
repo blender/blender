@@ -594,11 +594,43 @@ void BKE_pose_ikparam_init(bPose *pose)
 	}
 }
 
+
+/* only for real IK, not for auto-IK */
+static bool pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
+{
+	bConstraint *con;
+	Bone *bone;
+	
+	/* No need to check if constraint is active (has influence),
+	 * since all constraints with CONSTRAINT_IK_AUTO are active */
+	for (con = pchan->constraints.first; con; con = con->next) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data = con->data;
+			if ((data->rootbone == 0) || (data->rootbone > level)) {
+				if ((data->flag & CONSTRAINT_IK_AUTO) == 0)
+					return true;
+			}
+		}
+	}
+	for (bone = pchan->bone->childbase.first; bone; bone = bone->next) {
+		pchan = BKE_pose_channel_find_name(ob->pose, bone->name);
+		if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
+			return true;
+	}
+	return false;
+}
+
+bool BKE_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
+{
+	return pose_channel_in_IK_chain(ob, pchan, 0);
+}
+
+
 void BKE_pose_channels_hash_make(bPose *pose) 
 {
 	if (!pose->chanhash) {
 		bPoseChannel *pchan;
-
+		
 		pose->chanhash = BLI_ghash_str_new("make_pose_chan gh");
 		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
 			BLI_ghash_insert(pose->chanhash, pchan->name, pchan);

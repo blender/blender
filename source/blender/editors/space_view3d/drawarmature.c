@@ -1538,7 +1538,7 @@ static void draw_pose_dofs(Object *ob)
 			if (bone->flag & BONE_SELECTED) {
 				if (bone->layer & arm->layer) {
 					if (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT)) {
-						if (ED_pose_channel_in_IK_chain(ob, pchan)) {
+						if (BKE_pose_channel_in_IK_chain(ob, pchan)) {
 							float corner[4][3], posetrans[3], mat[4][4];
 							float phi = 0.0f, theta = 0.0f, scale;
 							int a, i;

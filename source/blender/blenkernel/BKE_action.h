@@ -203,6 +203,9 @@ void BKE_pose_ikparam_init(struct bPose *pose);
 /* initialize a bItasc structure with default value */
 void BKE_pose_itasc_init(struct bItasc *itasc);
 
+/* Checks if a bone is part of an IK chain or not */
+bool BKE_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
+
 /* clears BONE_UNKEYED flags for frame changing */
 // XXX to be deprecated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);

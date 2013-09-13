@@ -148,36 +148,6 @@ static short pose_has_protected_selected(Object *ob, short warn)
 }
 #endif
 
-/* only for real IK, not for auto-IK */
-static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
-{
-	bConstraint *con;
-	Bone *bone;
-	
-	/* No need to check if constraint is active (has influence),
-	 * since all constraints with CONSTRAINT_IK_AUTO are active */
-	for (con = pchan->constraints.first; con; con = con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-			bKinematicConstraint *data = con->data;
-			if (data->rootbone == 0 || data->rootbone > level) {
-				if ((data->flag & CONSTRAINT_IK_AUTO) == 0)
-					return 1;
-			}
-		}
-	}
-	for (bone = pchan->bone->childbase.first; bone; bone = bone->next) {
-		pchan = BKE_pose_channel_find_name(ob->pose, bone->name);
-		if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
-			return 1;
-	}
-	return 0;
-}
-
-int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
-{
-	return pose_channel_in_IK_chain(ob, pchan, 0);
-}
-
 /* ********************************************** */
 /* Motion Paths */
 
