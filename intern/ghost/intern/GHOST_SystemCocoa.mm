@@ -51,6 +51,7 @@
 #include "GHOST_WindowCocoa.h"
 #ifdef WITH_INPUT_NDOF
 #include "GHOST_NDOFManagerCocoa.h"
+#include "GHOST_NDOFManager3Dconnexion.h"
 #endif
 
 #include "AssertMacros.h"

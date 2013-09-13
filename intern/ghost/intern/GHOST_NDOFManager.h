@@ -109,10 +109,6 @@ public:
 
 	virtual ~GHOST_NDOFManager() {}
 
-	// whether multi-axis functionality is available (via the OS or driver)
-	// does not imply that a device is plugged in or being used
-	virtual bool available() = 0;
-
 	// each platform's device detection should call this
 	// use standard USB/HID identifiers
 	bool setDevice(unsigned short vendor_id, unsigned short product_id);

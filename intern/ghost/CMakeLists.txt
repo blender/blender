@@ -191,6 +191,10 @@ elseif(APPLE)
 				intern/GHOST_NDOFManagerCocoa.mm
 				intern/GHOST_NDOFManagerCocoa.h
 			)
+			list(APPEND SRC2
+				intern/GHOST_NDOFManager3Dconnexion.c
+				intern/GHOST_NDOFManager3Dconnexion.h
+			)
 		endif()
 
 	else()
@@ -318,4 +322,6 @@ endif()
 add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
-
+if(WITH_INPUT_NDOF)
+blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC2}" "${INC}" "${INC_SYS}")
+endif()

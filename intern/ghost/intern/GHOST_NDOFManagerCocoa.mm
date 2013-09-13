@@ -24,12 +24,14 @@
 #ifdef WITH_INPUT_NDOF
 
 #include "GHOST_NDOFManagerCocoa.h"
+#include "GHOST_NDOFManager3Dconnexion.h"
 #include "GHOST_SystemCocoa.h"
 
 extern "C" {
 	#include <ConnexionClientAPI.h>
 	#include <stdio.h>
 	}
+
 
 // static functions need to talk to these objects:
 static GHOST_SystemCocoa* ghost_system = NULL;
@@ -50,7 +52,7 @@ static void NDOF_DeviceAdded(io_connect_t connection)
 
 	// determine exactly which device is plugged in
 	SInt32 result = 0;
-	ConnexionControl(kConnexionCtlGetDeviceID, 0, &result);
+	GHOST_NDOFManager3Dconnexion_ConnexionControl(kConnexionCtlGetDeviceID, 0, &result);
 	unsigned short vendorID = result >> 16;
 	unsigned short productID = result & 0xffff;
 
@@ -123,27 +125,27 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
     : GHOST_NDOFManager(sys)
 {
-	if (available())
+	if (GHOST_NDOFManager3Dconnexion_available())
 	{
 		// give static functions something to talk to:
 		ghost_system = dynamic_cast<GHOST_SystemCocoa*>(&sys);
 		ndof_manager = this;
 
-		OSErr error = InstallConnexionHandlers(NDOF_DeviceEvent, NDOF_DeviceAdded, NDOF_DeviceRemoved);
+		OSErr error = GHOST_NDOFManager3Dconnexion_InstallConnexionHandlers(NDOF_DeviceEvent, NDOF_DeviceAdded, NDOF_DeviceRemoved);
 		if (error) {
 			printf("ndof: error %d while installing handlers\n", error);
 			return;
 		}
 
 		// Pascal string *and* a four-letter constant. How old-skool.
-		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\007blender",
+		m_clientID = GHOST_NDOFManager3Dconnexion_RegisterConnexionClient('blnd', (UInt8*) "\007blender",
 		                                     kConnexionClientModeTakeOver, kConnexionMaskAll);
 
 		// printf("ndof: client id = %d\n", m_clientID);
 
-		if (oldDRV()) {
+		if (GHOST_NDOFManager3Dconnexion_oldDRV()) {
 			has_old_driver = false;
-			SetConnexionClientButtonMask(m_clientID, kConnexionMaskAllButtons);
+			GHOST_NDOFManager3Dconnexion_SetConnexionClientButtonMask(m_clientID, kConnexionMaskAllButtons);
 		}
 		else {
 			printf("ndof: old 3Dx driver installed, some buttons may not work\n");
@@ -157,31 +159,14 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 
 GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 {
-	if (available())
+	if (GHOST_NDOFManager3Dconnexion_available())
 	{
-		UnregisterConnexionClient(m_clientID);
-		CleanupConnexionHandlers();
+		GHOST_NDOFManager3Dconnexion_UnregisterConnexionClient(m_clientID);
+        GHOST_NDOFManager3Dconnexion_UnregisterConnexionClient(m_clientID);
+
+		GHOST_NDOFManager3Dconnexion_CleanupConnexionHandlers();
 		ghost_system = NULL;
 		ndof_manager = NULL;
-	}
-}
-extern "C" {
-	bool GHOST_NDOFManagerCocoa::available()
-	{
-		extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
-		// Make the linker happy for the framework check (see link below for more info)
-		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
-		return InstallConnexionHandlers != NULL;
-		// this means that the driver is installed and dynamically linked to blender
-	}
-
-	bool GHOST_NDOFManagerCocoa::oldDRV()
-	{
-		extern OSErr SetConnexionClientButtonMask() __attribute__((weak_import));
-		// Make the linker happy for the framework check (see link below for more info)
-		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
-		return SetConnexionClientButtonMask != NULL;
-		// this means that the driver has this symbol
 	}
 }
 #endif // WITH_INPUT_NDOF

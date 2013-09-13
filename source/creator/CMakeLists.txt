@@ -992,6 +992,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()
 
+	if(WITH_INPUT_NDOF)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_ghostndof3dconnexion)
+	endif()
+	
 	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
