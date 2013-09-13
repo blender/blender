@@ -4100,6 +4100,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 		
 		if (layer->flag & CD_FLAG_EXTERNAL)
 			layer->flag &= ~CD_FLAG_IN_MEMORY;
+
+		layer->flag &= ~CD_FLAG_NOFREE;
 		
 		if (CustomData_verify_versions(data, i)) {
 			layer->data = newdataadr(fd, layer->data);
