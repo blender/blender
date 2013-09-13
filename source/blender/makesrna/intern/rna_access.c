@@ -5171,7 +5171,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 	char *cstring;
 	
 
-	/* see if we can coorce into a python type - PropertyType */
+	/* see if we can coerce into a python type - PropertyType */
 	switch (type) {
 		case PROP_BOOLEAN:
 			if (len == 0) {

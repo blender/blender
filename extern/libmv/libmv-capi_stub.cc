@@ -280,7 +280,7 @@ void libmv_cameraIntrinsicsInvert(const libmv_CameraIntrinsicsOptions *libmv_cam
 void libmv_homography2DFromCorrespondencesLinear(double (* /* x1 */)[2], double (* /* x2 */)[2], int /* num_points */,
                                                  double H[3][3], double /* expected_precision */)
 {
-	memset(H, 0, sizeof(H));
+	memset(H, 0, sizeof(double[3][3]));
 	H[0][0] = 1.0f;
 	H[1][1] = 1.0f;
 	H[2][2] = 1.0f;
