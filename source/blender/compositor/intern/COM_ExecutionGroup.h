@@ -422,6 +422,9 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
+
+	/* allow the DebugInfo class to peek inside without having to add getters for everything */
+	friend class DebugInfo;
 };
 
 #endif

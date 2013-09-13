@@ -101,6 +101,8 @@ set(SRC
 	intern/COM_ChannelInfo.h
 	intern/COM_SingleThreadedNodeOperation.cpp
 	intern/COM_SingleThreadedNodeOperation.h
+	intern/COM_Debug.cpp
+	intern/COM_Debug.h
 
 	operations/COM_QualityStepHelper.h
 	operations/COM_QualityStepHelper.cpp

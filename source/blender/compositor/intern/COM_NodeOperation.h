@@ -199,7 +199,8 @@ public:
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
 	const bool isComplex() const { return this->m_complex; }
-	virtual const bool isSetOperation() const { return false; }
+
+	virtual bool isSetOperation() const { return false; }
 
 	/**
 	 * @brief is this operation of type ReadBufferOperation

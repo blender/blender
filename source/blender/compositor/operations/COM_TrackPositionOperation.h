@@ -72,7 +72,7 @@ public:
 
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
-	const bool isSetOperation() const { return true; }
+	bool isSetOperation() const { return true; }
 };
 
 #endif

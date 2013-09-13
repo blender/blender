@@ -153,9 +153,9 @@ public:
 	 */
 	InputSocket *getInputSocket(const unsigned int index);
 	
-	
 	virtual bool isStatic() const { return false; }
 	void getStaticValues(float *result) const { }
+
 protected:
 	NodeBase();
 	

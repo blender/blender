@@ -49,6 +49,6 @@ public:
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
-	const bool isSetOperation() const { return true; }
+	bool isSetOperation() const { return true; }
 };
 #endif

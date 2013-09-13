@@ -22,9 +22,6 @@
 
 #include "COM_ExecutionSystemHelper.h"
 
-#include <sstream>
-#include <stdio.h>
-
 #include "PIL_time.h"
 
 #include "COM_Converter.h"
@@ -37,6 +34,7 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerOperation.h"
+#include "COM_Debug.h"
 
 extern "C" {
 #include "BKE_node.h"
@@ -93,6 +91,8 @@ Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool 
 	if (node) {
 		node->setIsInActiveGroup(inActiveGroup);
 		addNode(nodes, node);
+		
+		DebugInfo::node_added(node);
 	}
 	return node;
 }
@@ -165,145 +165,4 @@ SocketConnection *ExecutionSystemHelper::addLink(vector<SocketConnection *>& lin
 	toSocket->setConnection(newconnection);
 	links.push_back(newconnection);
 	return newconnection;
-}
-
-void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
-{
-	Node *node;
-	NodeOperation *operation;
-	ExecutionGroup *group;
-	SocketConnection *connection;
-	int tot, tot2;
-	printf("-- BEGIN COMPOSITOR DUMP --\r\n");
-	printf("digraph compositorexecution {\r\n");
-	tot = system->getNodes().size();
-	for (int i = 0; i < tot; i++) {
-		node = system->getNodes()[i];
-		printf("// NODE: %s\r\n", node->getbNode()->typeinfo->ui_name);
-	}
-	tot = system->getOperations().size();
-	for (int i = 0; i < tot; i++) {
-		operation = system->getOperations()[i];
-		printf("// OPERATION: %p\r\n", operation);
-		printf("\t\"O_%p\"", operation);
-		printf(" [shape=record,label=\"{");
-		tot2 = operation->getNumberOfInputSockets();
-		if (tot2 != 0) {
-			printf("{");
-			for (int j = 0; j < tot2; j++) {
-				InputSocket *socket = operation->getInputSocket(j);
-				if (j != 0) {
-					printf("|");
-				}
-				printf("<IN_%p>", socket);
-				switch (socket->getDataType()) {
-					case COM_DT_VALUE:
-						printf("Value");
-						break;
-					case COM_DT_VECTOR:
-						printf("Vector");
-						break;
-					case COM_DT_COLOR:
-						printf("Color");
-						break;
-				}
-			}
-			printf("}");
-			printf("|");
-		}
-		if (operation->isViewerOperation()) {
-			ViewerOperation *viewer = (ViewerOperation *)operation;
-			if (viewer->isActiveViewerOutput()) {
-				printf("Active viewer");
-			}
-			else {
-				printf("Viewer");
-			}
-		}
-		else if (operation->isOutputOperation(system->getContext().isRendering())) {
-			printf("Output");
-		}
-		else if (operation->isSetOperation()) {
-			printf("Set");
-		}
-		else if (operation->isReadBufferOperation()) {
-			printf("ReadBuffer");
-		}
-		else if (operation->isWriteBufferOperation()) {
-			printf("WriteBuffer");
-		}
-		else {
-			printf("O_%p", operation);
-		}
-		printf(" (%d,%d)", operation->getWidth(), operation->getHeight());
-		tot2 = operation->getNumberOfOutputSockets();
-		if (tot2 != 0) {
-			printf("|");
-			printf("{");
-			for (int j = 0; j < tot2; j++) {
-				OutputSocket *socket = operation->getOutputSocket(j);
-				if (j != 0) {
-					printf("|");
-				}
-				printf("<OUT_%p>", socket);
-				switch (socket->getDataType()) {
-					case COM_DT_VALUE:
-						printf("Value");
-						break;
-					case COM_DT_VECTOR:
-						printf("Vector");
-						break;
-					case COM_DT_COLOR:
-						printf("Color");
-						break;
-				}
-			}
-			printf("}");
-		}
-		printf("}\"]");
-		printf("\r\n");
-	}
-	tot = system->getExecutionGroups().size();
-	for (int i = 0; i < tot; i++) {
-		group = system->getExecutionGroups()[i];
-		printf("// GROUP: %d\r\n", i);
-		printf("subgraph {\r\n");
-		printf("//  OUTPUTOPERATION: %p\r\n", group->getOutputNodeOperation());
-		printf(" O_%p\r\n", group->getOutputNodeOperation());
-		printf("}\r\n");
-	}
-	tot = system->getOperations().size();
-	for (int i = 0; i < tot; i++) {
-		operation = system->getOperations()[i];
-		if (operation->isReadBufferOperation()) {
-			ReadBufferOperation *read = (ReadBufferOperation *)operation;
-			WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
-			printf("\t\"O_%p\" -> \"O_%p\" [style=dotted]\r\n", write, read);
-		}
-	}
-	tot = system->getConnections().size();
-	for (int i = 0; i < tot; i++) {
-		connection = system->getConnections()[i];
-		printf("// CONNECTION: %p.%p -> %p.%p\r\n", connection->getFromNode(), connection->getFromSocket(), connection->getToNode(), connection->getToSocket());
-		printf("\t\"O_%p\":\"OUT_%p\" -> \"O_%p\":\"IN_%p\"", connection->getFromNode(), connection->getFromSocket(), connection->getToNode(), connection->getToSocket());
-		if (!connection->isValid()) {
-			printf(" [color=red]");
-		}
-		else {
-			switch (connection->getFromSocket()->getDataType()) {
-				case COM_DT_VALUE:
-					printf(" [color=grey]");
-					break;
-				case COM_DT_VECTOR:
-					printf(" [color=blue]");
-					break;
-				case COM_DT_COLOR:
-					printf(" [color=orange]");
-					break;
-			}
-		}
-		printf("\r\n");
-	}
-	printf("}\r\n");
-	printf("-- END COMPOSITOR DUMP --\r\n");
 }

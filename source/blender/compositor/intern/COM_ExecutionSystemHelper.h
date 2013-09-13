@@ -118,12 +118,6 @@ public:
 	 */
 	static SocketConnection *addLink(vector<SocketConnection *>& links, OutputSocket *fromSocket, InputSocket *toSocket);
 
-	/**
-	 * @brief dumps the content of the execution system to standard out
-	 * @param system the execution system to dump
-	 */
-	static void debugDump(ExecutionSystem *system);
-
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystemHelper")
 #endif

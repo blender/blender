@@ -37,6 +37,7 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ChunkOrder.h"
 #include "COM_ExecutionSystemHelper.h"
+#include "COM_Debug.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLI_math.h"
@@ -343,6 +344,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			break;
 	}
 
+	DebugInfo::execution_group_started(this);
+	DebugInfo::graphviz(graph);
+
 	bool breaked = false;
 	bool finished = false;
 	unsigned int startIndex = 0;
@@ -383,6 +387,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			breaked = true;
 		}
 	}
+	DebugInfo::execution_group_finished(this);
+	DebugInfo::graphviz(graph);
 
 	MEM_freeN(chunkOrder);
 }
