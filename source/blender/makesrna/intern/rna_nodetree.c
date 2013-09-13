@@ -190,26 +190,30 @@ static EnumPropertyItem node_sampler_type_items[] = {
 int rna_node_tree_type_to_enum(bNodeTreeType *typeinfo)
 {
 	int i = 0, result = -1;
-	NODE_TREE_TYPES_BEGIN(nt)
+	NODE_TREE_TYPES_BEGIN (nt)
+	{
 		if (nt == typeinfo) {
 			result = i;
 			break;
 		}
 		++i;
-	NODE_TREE_TYPES_END
+	}
+	NODE_TREE_TYPES_END;
 	return result;
 }
 
 int rna_node_tree_idname_to_enum(const char *idname)
 {
 	int i = 0, result = -1;
-	NODE_TREE_TYPES_BEGIN(nt)
+	NODE_TREE_TYPES_BEGIN (nt)
+	{
 		if (STREQ(nt->idname, idname)) {
 			result = i;
 			break;
 		}
 		++i;
-	NODE_TREE_TYPES_END
+	}
+	NODE_TREE_TYPES_END;
 	return result;
 }
 
@@ -217,13 +221,15 @@ bNodeTreeType *rna_node_tree_type_from_enum(int value)
 {
 	int i = 0;
 	bNodeTreeType *result = NULL;
-	NODE_TREE_TYPES_BEGIN(nt)
+	NODE_TREE_TYPES_BEGIN (nt)
+	{
 		if (i == value) {
 			result = nt;
 			break;
 		}
 		++i;
-	NODE_TREE_TYPES_END
+	}
+	NODE_TREE_TYPES_END;
 	return result;
 }
 
@@ -233,7 +239,8 @@ EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, b
 	EnumPropertyItem *item = NULL;
 	int totitem = 0, i = 0;
 	
-	NODE_TREE_TYPES_BEGIN(nt)
+	NODE_TREE_TYPES_BEGIN (nt)
+	{
 		if (poll && !poll(data, nt)) {
 			++i;
 			continue;
@@ -248,7 +255,8 @@ EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, b
 		RNA_enum_item_add(&item, &totitem, &tmp);
 		
 		++i;
-	NODE_TREE_TYPES_END
+	}
+	NODE_TREE_TYPES_END;
 
 	RNA_enum_item_end(&item, &totitem);
 	*free = 1;

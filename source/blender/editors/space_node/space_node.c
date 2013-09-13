@@ -307,10 +307,12 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	snode->zoom = 1.0f;
 
 	/* select the first tree type for valid type */
-	NODE_TREE_TYPES_BEGIN(treetype)
+	NODE_TREE_TYPES_BEGIN (treetype)
+	{
 		strcpy(snode->tree_idname, treetype->idname);
 		break;
-	NODE_TREE_TYPES_END
+	}
+	NODE_TREE_TYPES_END;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for node");

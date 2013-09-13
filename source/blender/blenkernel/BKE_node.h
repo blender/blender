@@ -337,7 +337,7 @@ struct GHashIterator *ntreeTypeGetIterator(void);
 #define NODE_TREE_TYPES_END \
 	} \
 	BLI_ghashIterator_free(__node_tree_type_iter__); \
-}
+} (void)0
 
 void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
