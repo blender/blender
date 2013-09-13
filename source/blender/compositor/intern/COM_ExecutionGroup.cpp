@@ -525,14 +525,18 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
 
 	int indexx, indexy;
-	int minxchunk = (area->xmin - m_viewerBorder.xmin) / m_chunkSize;
-	int maxxchunk = (area->xmax + m_chunkSize - 1) / m_chunkSize;
-	int minychunk = (area->ymin - m_viewerBorder.ymin) / m_chunkSize;
-	int maxychunk = (area->ymax + m_chunkSize - 1) / m_chunkSize;
+	int minx = max_ii(area->xmin - m_viewerBorder.xmin, 0);
+	int maxx = min_ii(area->xmax - m_viewerBorder.xmin, m_viewerBorder.xmax - m_viewerBorder.xmin);
+	int miny = max_ii(area->ymin - m_viewerBorder.ymin, 0);
+	int maxy = min_ii(area->ymax - m_viewerBorder.ymin, m_viewerBorder.ymax - m_viewerBorder.ymin);
+	int minxchunk = minx / (int)m_chunkSize;
+	int maxxchunk = (maxx + (int)m_chunkSize - 1) / (int)m_chunkSize;
+	int minychunk = miny / (int)m_chunkSize;
+	int maxychunk = (maxy + (int)m_chunkSize - 1) / (int)m_chunkSize;
 	minxchunk = max_ii(minxchunk, 0);
 	minychunk = max_ii(minychunk, 0);
-	maxxchunk = min_ii(maxxchunk, m_numberOfXChunks);
-	maxychunk = min_ii(maxychunk, m_numberOfYChunks);
+	maxxchunk = min_ii(maxxchunk, (int)m_numberOfXChunks);
+	maxychunk = min_ii(maxychunk, (int)m_numberOfYChunks);
 
 	bool result = true;
 	for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
