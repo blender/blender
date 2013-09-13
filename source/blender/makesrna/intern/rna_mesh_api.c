@@ -94,7 +94,7 @@ static void rna_Mesh_calc_normals_split(Mesh *mesh, float min_angle)
 	}
 }
 
-static void rna_Mesh_free_split_normals(Mesh *mesh)
+static void rna_Mesh_free_normals_split(Mesh *mesh)
 {
 	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
 }
@@ -132,7 +132,7 @@ void RNA_api_mesh(StructRNA *srna)
 	                     0.0f, M_PI);
 	RNA_def_property_subtype(parm, PROP_UNIT_ROTATION);
 
-	func = RNA_def_function(srna, "free_split_normals", "rna_Mesh_free_split_normals");
+	func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
 	RNA_def_function_ui_description(func, "Free split vertex normals");
 
 	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");
