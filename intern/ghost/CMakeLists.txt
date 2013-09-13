@@ -322,6 +322,6 @@ endif()
 add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
-if(WITH_INPUT_NDOF)
-blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC2}" "${INC}" "${INC_SYS}")
+if(WITH_INPUT_NDOF AND APPLE) # workaround for clang3.3 mangling extern "C" symbols 
+	blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC2}" "${INC}" "${INC_SYS}")
 endif()
