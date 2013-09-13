@@ -1048,3 +1048,8 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary)
 
 	return im;
 }
+
+bool BKE_sculpt_brush_frontface_only(struct Brush *br)
+{
+	return br->sculpt_tool != SCULPT_TOOL_CLAY_STRIPS;
+}

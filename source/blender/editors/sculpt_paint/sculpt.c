@@ -318,6 +318,8 @@ typedef struct StrokeCache {
 	float plane_trim_squared;
 
 	rcti previous_r; /* previous redraw rectangle */
+
+	bool frontface; /* use front face */
 } StrokeCache;
 
 /************** Access to original unmodified vertex data *************/
@@ -669,10 +671,10 @@ static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loca
 	}
 }
 
-static float frontface(Brush *brush, const float sculpt_normal[3],
+static float frontface(bool ff, const float sculpt_normal[3],
                        const short no[3], const float fno[3])
 {
-	if (brush->flag & BRUSH_FRONTFACE) {
+	if (ff) {
 		float dot;
 
 		if (no) {
@@ -949,7 +951,8 @@ static float tex_strength(SculptSession *ss, Brush *br,
                           const float fno[3],
                           const float mask)
 {
-	const Scene *scene = ss->cache->vc->scene;
+	const StrokeCache *cache = ss->cache;
+	const Scene *scene = cache->vc->scene;
 	MTex *mtex = &br->mtex;
 	float avg = 1;
 	float rgba[4];
@@ -971,12 +974,12 @@ static float tex_strength(SculptSession *ss, Brush *br,
 		 * position in order to project it. This insures that the 
 		 * brush texture will be oriented correctly. */
 
-		flip_v3_v3(symm_point, point, ss->cache->mirror_symmetry_pass);
+		flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
 
-		if (ss->cache->radial_symmetry_pass)
-			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
+		if (cache->radial_symmetry_pass)
+			mul_m4_v3(cache->symm_rot_mat_inv, symm_point);
 
-		ED_view3d_project_float_v2_m4(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
+		ED_view3d_project_float_v2_m4(cache->vc->ar, symm_point, point_2d, cache->projection_mat);
 
 		/* still no symmetry supported for other paint modes.
 		 * Sculpt does it DIY */
@@ -984,7 +987,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			/* Similar to fixed mode, but projects from brush angle
 			 * rather than view direction */
 
-			mul_m4_v3(ss->cache->brush_local_mat, symm_point);
+			mul_m4_v3(cache->brush_local_mat, symm_point);
 
 			x = symm_point[0];
 			y = symm_point[1];
@@ -1006,9 +1009,9 @@ static float tex_strength(SculptSession *ss, Brush *br,
 	}
 
 	/* Falloff curve */
-	avg *= BKE_brush_curve_strength(br, len, ss->cache->radius);
+	avg *= BKE_brush_curve_strength(br, len, cache->radius);
 
-	avg *= frontface(br, sculpt_normal, vno, fno);
+	avg *= frontface(cache->frontface, sculpt_normal, vno, fno);
 
 	/* Paint mask */
 	avg *= 1.0f - mask;
@@ -2307,11 +2310,9 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					float fno[3];
-					float dot_result;
 
 					normal_short_to_float_v3(fno, unode->no[vd.i]);
-					dot_result = dot_v3v3(ss->cache->view_normal, fno);
-					if (dot_result > 0) {
+					if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
 						add_v3_v3(private_fc, unode->co[vd.i]);
 						private_count++;
 					}
@@ -2327,16 +2328,13 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
-					float dot_result;
-
 					/* for area normal */
 					if (vd.no) {
 						float fno[3];
 
 						normal_short_to_float_v3(fno, vd.no);
-						dot_result = dot_v3v3(ss->cache->view_normal, fno);
 
-						if (dot_result > 0) {
+						if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
 							add_v3_v3(private_fc, vd.co);
 							private_count++;
 						}
@@ -2346,8 +2344,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 						}
 					}
 					else {
-						dot_result = dot_v3v3(ss->cache->view_normal, vd.fno);
-						if (dot_result > 0) {
+						if (dot_v3v3(ss->cache->view_normal, vd.fno) > 0) {
 							add_v3_v3(private_fc, vd.co);
 							private_count++;
 						}
@@ -2423,11 +2420,10 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					/* for area normal */
 					float fno[3];
-					float dot_result;
 
 					normal_short_to_float_v3(fno, unode->no[vd.i]);
-					dot_result = dot_v3v3(ss->cache->view_normal, fno);
-					if (dot_result > 0) {
+
+					if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
 						add_v3_v3(private_an, fno);
 						add_v3_v3(private_fc, unode->co[vd.i]);
 						private_count++;
@@ -2445,16 +2441,13 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
-					float dot_result;
-
 					/* for area normal */
 					if (vd.no) {
 						float fno[3];
 
 						normal_short_to_float_v3(fno, vd.no);
-						dot_result = dot_v3v3(ss->cache->view_normal, fno);
 
-						if (dot_result > 0) {
+						if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
 							add_v3_v3(private_an, fno);
 							add_v3_v3(private_fc, vd.co);
 							private_count++;
@@ -2466,8 +2459,7 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 						}
 					}
 					else {
-						dot_result = dot_v3v3(ss->cache->view_normal, vd.fno);
-						if (dot_result > 0) {
+						if (dot_v3v3(ss->cache->view_normal, vd.fno) > 0) {
 							add_v3_v3(private_an, vd.fno);
 							add_v3_v3(private_fc, vd.co);
 							private_count++;
@@ -3929,6 +3921,9 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->num_vertex_turns = 0;
 	cache->previous_vertex_rotation = 0;
 	cache->init_dir_set = false;
+
+	cache->frontface = ((brush->flag & BRUSH_FRONTFACE) != 0) ||
+	                     BKE_sculpt_brush_frontface_only(brush);
 
 	sculpt_omp_start(sd, ss);
 }

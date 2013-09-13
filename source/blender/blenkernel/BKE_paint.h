@@ -173,5 +173,4 @@ void free_sculptsession(struct Object *ob);
 void free_sculptsession_deformMats(struct SculptSession *ss);
 void sculptsession_bm_to_me(struct Object *ob, int reorder);
 void sculptsession_bm_to_me_for_render(struct Object *object);
-
 #endif

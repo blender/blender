@@ -642,9 +642,10 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row.prop(brush, "height", slider=True, text="Height")
 
             # use_frontface
-            col.separator()
-            row = col.row()
-            row.prop(brush, "use_frontface", text="Front Faces Only")
+            if capabilities.has_frontface:
+                col.separator()
+                row = col.row()
+                row.prop(brush, "use_frontface", text="Front Faces Only")
 
             # direction
             col.separator()
