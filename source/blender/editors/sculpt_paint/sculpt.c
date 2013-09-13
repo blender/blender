@@ -1078,8 +1078,9 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], floa
 
 static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nodes, int totnode)
 {
-	SculptSession *ss = ob->sculpt;
 	float out_flip[3] = {0.0f, 0.0f, 0.0f};
+
+	SculptSession *ss = ob->sculpt;
 	int n, original;
 
 	/* Grab brush requires to test on original data (see r33888 and
@@ -2279,7 +2280,10 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 	SculptSession *ss = ob->sculpt;
 	int n;
 
-	float count = 0;
+	int count = 0;
+	int count_flip = 0;
+
+	float fc_flip[3] = {0.0, 0.0, 0.0};
 
 	(void)sd; /* unused w/o openmp */
 
@@ -2291,7 +2295,9 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		SculptBrushTest test;
 		SculptUndoNode *unode;
 		float private_fc[3] = {0.0f, 0.0f, 0.0f};
+		float private_fc_flip[3] = {0.0f, 0.0f, 0.0f};
 		int private_count = 0;
+		int private_count_flip = 0;
 
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
@@ -2300,8 +2306,19 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
-					add_v3_v3(private_fc, unode->co[vd.i]);
-					private_count++;
+					float fno[3];
+					float dot_result;
+
+					normal_short_to_float_v3(fno, unode->no[vd.i]);
+					dot_result = dot_v3v3(ss->cache->view_normal, fno);
+					if (dot_result > 0) {
+						add_v3_v3(private_fc, unode->co[vd.i]);
+						private_count++;
+					}
+					else {
+						add_v3_v3(private_fc_flip, unode->co[vd.i]);
+						private_count_flip++;
+					}
 				}
 			}
 			BKE_pbvh_vertex_iter_end;
@@ -2310,8 +2327,35 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
-					add_v3_v3(private_fc, vd.co);
-					private_count++;
+					float dot_result;
+
+					/* for area normal */
+					if (vd.no) {
+						float fno[3];
+
+						normal_short_to_float_v3(fno, vd.no);
+						dot_result = dot_v3v3(ss->cache->view_normal, fno);
+
+						if (dot_result > 0) {
+							add_v3_v3(private_fc, vd.co);
+							private_count++;
+						}
+						else {
+							add_v3_v3(private_fc_flip, vd.co);
+							private_count_flip++;
+						}
+					}
+					else {
+						dot_result = dot_v3v3(ss->cache->view_normal, vd.fno);
+						if (dot_result > 0) {
+							add_v3_v3(private_fc, vd.co);
+							private_count++;
+						}
+						else {
+							add_v3_v3(private_fc_flip, vd.co);
+							private_count_flip++;
+						}
+					}
 				}
 			}
 			BKE_pbvh_vertex_iter_end;
@@ -2320,11 +2364,17 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		#pragma omp critical
 		{
 			add_v3_v3(fc, private_fc);
+			add_v3_v3(fc_flip, private_fc_flip);
 			count += private_count;
+			count_flip += private_count_flip;
 		}
 	}
-
-	mul_v3_fl(fc, 1.0f / count);
+	if (count != 0)
+		mul_v3_fl(fc, 1.0f / count);
+	else if (count_flip != 0)
+		mul_v3_v3fl(fc, fc_flip, 1.0f / count_flip);
+	else
+		zero_v3(fc);
 }
 
 /* this calculates flatten center and area normal together, 
@@ -2338,9 +2388,11 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 
 	/* for area normal */
 	float out_flip[3] = {0.0f, 0.0f, 0.0f};
+	float fc_flip[3] = {0.0f, 0.0f, 0.0f};
 
 	/* for flatten center */
-	float count = 0;
+	int count = 0;
+	int count_flipped = 0;
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -2358,7 +2410,9 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 		float private_an[3] = {0.0f, 0.0f, 0.0f};
 		float private_out_flip[3] = {0.0f, 0.0f, 0.0f};
 		float private_fc[3] = {0.0f, 0.0f, 0.0f};
+		float private_fc_flip[3] = {0.0f, 0.0f, 0.0f};
 		int private_count = 0;
+		int private_count_flip = 0;
 
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
@@ -2369,13 +2423,20 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					/* for area normal */
 					float fno[3];
+					float dot_result;
 
 					normal_short_to_float_v3(fno, unode->no[vd.i]);
-					add_norm_if(ss->cache->view_normal, private_an, private_out_flip, fno);
-
-					/* for flatten center */
-					add_v3_v3(private_fc, unode->co[vd.i]);
-					private_count++;
+					dot_result = dot_v3v3(ss->cache->view_normal, fno);
+					if (dot_result > 0) {
+						add_v3_v3(private_an, fno);
+						add_v3_v3(private_fc, unode->co[vd.i]);
+						private_count++;
+					}
+					else {
+						add_v3_v3(private_out_flip, fno);
+						add_v3_v3(private_fc_flip, unode->co[vd.i]);
+						private_count_flip++;
+					}
 				}
 			}
 			BKE_pbvh_vertex_iter_end;
@@ -2384,20 +2445,39 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
+					float dot_result;
+
 					/* for area normal */
 					if (vd.no) {
 						float fno[3];
 
 						normal_short_to_float_v3(fno, vd.no);
-						add_norm_if(ss->cache->view_normal, private_an, private_out_flip, fno);
+						dot_result = dot_v3v3(ss->cache->view_normal, fno);
+
+						if (dot_result > 0) {
+							add_v3_v3(private_an, fno);
+							add_v3_v3(private_fc, vd.co);
+							private_count++;
+						}
+						else {
+							add_v3_v3(private_out_flip, fno);
+							add_v3_v3(private_fc_flip, vd.co);
+							private_count_flip++;
+						}
 					}
 					else {
-						add_norm_if(ss->cache->view_normal, private_an, private_out_flip, vd.fno);
+						dot_result = dot_v3v3(ss->cache->view_normal, vd.fno);
+						if (dot_result > 0) {
+							add_v3_v3(private_an, vd.fno);
+							add_v3_v3(private_fc, vd.co);
+							private_count++;
+						}
+						else {
+							add_v3_v3(private_out_flip, vd.fno);
+							add_v3_v3(private_fc_flip, vd.co);
+							private_count_flip++;
+						}
 					}
-
-					/* for flatten center */
-					add_v3_v3(private_fc, vd.co);
-					private_count++;
 				}
 			}
 			BKE_pbvh_vertex_iter_end;
@@ -2411,7 +2491,9 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 
 			/* for flatten center */
 			add_v3_v3(fc, private_fc);
+			add_v3_v3(fc_flip, private_fc);
 			count += private_count;
+			count_flipped += private_count_flip;
 		}
 	}
 
@@ -2422,12 +2504,12 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 	normalize_v3(an);
 
 	/* for flatten center */
-	if (count != 0) {
+	if (count != 0)
 		mul_v3_fl(fc, 1.0f / count);
-	}
-	else {
+	else if (count_flipped !=0 )
+		mul_v3_v3fl(fc, fc_flip, 1.0f / count_flipped);
+	else
 		zero_v3(fc);
-	}
 }
 
 static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float an[3], float fc[3])
