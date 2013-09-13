@@ -320,18 +320,18 @@ if(APPLE)
 		set(OSX_SYSTEM unsupported)
 	endif()
 	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
-
-	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not take xcode-select path into accout
-		# but would always look into /Applications/Xcode.app while dev versions are named Xcode<version>-DP<preview_number>
-		execute_process(COMMAND xcode-select --print-path  OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
-		string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
-		message(STATUS "Xcode-bundle : " ${XCODE_BUNDLE})
-		string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) # reduce to XCode name without dp extension
-		if(${DP_NAME} MATCHES Xcode5)
-			set(XCODE_VERSION 5)
-		endif()
+	# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not take xcode-select path into accout
+	# but would always look into /Applications/Xcode.app while dev versions are named Xcode<version>-DP<preview_number>
+	execute_process(COMMAND xcode-select --print-path  OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
+	string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
+	message(STATUS "Xcode-bundle : " ${XCODE_BUNDLE})
+	string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) # reduce to XCode name without dp extension
+	if(${DP_NAME} MATCHES Xcode5)
+		set(XCODE_VERSION 5)
+	endif()
+	
+	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 
 		##### cmake incompatibility with xcode  4.3 and higher #####
 		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
