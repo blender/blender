@@ -571,14 +571,15 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	Main *mainp;
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = NULL;
-	View3D *v3d = CTX_wm_view3d(C);
 	Render *re;
 	wmJob *wm_job;
 	RenderJob *rj;
 	Image *ima;
 	int jobflag;
-	const short is_animation = RNA_boolean_get(op->ptr, "animation");
-	const short is_write_still = RNA_boolean_get(op->ptr, "write_still");
+	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
+	const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
+	const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
+	View3D *v3d = use_viewport ? CTX_wm_view3d(C) : NULL;
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
 	Object *active_object = CTX_data_active_object(C);
@@ -737,6 +738,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
+	RNA_def_boolean(ot->srna, "use_viewport", 0, "Use 3D Viewport", "When inside a 3D viewport, use layers and camera of the viewport");
 	prop = RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render (used only when animation is disabled)");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME - 2, "Scene", "Scene to render, current scene if not specified");
