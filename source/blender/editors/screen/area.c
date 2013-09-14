@@ -1696,8 +1696,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			/* Note: this code scales fine, but because of rounding differences, positions of elements
 			 * flip +1 or -1 pixel compared to redoing the entire layout again.
 			 * Leaving in commented code for future tests */
-			/* uiScalePanels(ar, BLI_rctf_size_x(&v2d->cur));
-			   break; */
+#if 0
+			uiScalePanels(ar, BLI_rctf_size_x(&v2d->cur));
+			break;
+#endif
 		}
 		else {
 			break;

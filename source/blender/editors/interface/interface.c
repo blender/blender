@@ -962,10 +962,12 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 						data_path = BLI_sprintfN("scene.%s", path);
 						MEM_freeN(path);
 					}
-					/*else {
-						printf("ERROR in %s(): Couldn't get path for scene property - %s\n", 
+#if 0
+					else {
+						printf("ERROR in %s(): Couldn't get path for scene property - %s\n",
 						       __func__, RNA_property_identifier(but->rnaprop));
-					}*/
+					}
+#endif
 				}
 			}
 			else {

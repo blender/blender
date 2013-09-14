@@ -67,7 +67,7 @@ typedef struct MaskParent {
 	char sub_parent[64];  /* sub-entity of parent to which parenting happened
 	                       * in case of parenting to movie tracking data contains name of track */
 	float parent_orig[2]; /* track location at the moment of parenting,
-	                         stored in mask space*/
+	                       * stored in mask space*/
 
 	float parent_corners_orig[4][2]; /* Original corners of plane track at the moment of parenting */
 } MaskParent;

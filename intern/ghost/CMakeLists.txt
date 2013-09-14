@@ -191,7 +191,7 @@ elseif(APPLE)
 				intern/GHOST_NDOFManagerCocoa.mm
 				intern/GHOST_NDOFManagerCocoa.h
 			)
-			list(APPEND SRC2
+			list(APPEND SRC_NDOF3DCONNEXION
 				intern/GHOST_NDOFManager3Dconnexion.c
 				intern/GHOST_NDOFManager3Dconnexion.h
 			)
@@ -323,6 +323,7 @@ add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 
-if(WITH_INPUT_NDOF AND WITH_COCOA) # workaround for apple clang mangling extern "C" symbols
-	blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC2}" "${INC}" "${INC_SYS}")
+# workaround for apple clang mangling extern "C" symbols
+if(WITH_INPUT_NDOF AND WITH_COCOA)
+	blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC_NDOF3DCONNEXION}" "${INC}" "${INC_SYS}")
 endif()

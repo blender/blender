@@ -170,7 +170,7 @@ typedef struct MovieTrackingPlaneTrack {
 	char name[64];  /* MAX_NAME */
 
 	MovieTrackingTrack **point_tracks;  /* Array of point tracks used to define this plane.
-	                                       Each element is a pointer to MovieTrackingTrack. */
+	                                     * Each element is a pointer to MovieTrackingTrack. */
 	int point_tracksnr, pad;  /* Number of tracks in point_tracks array. */
 
 	MovieTrackingPlaneMarker *markers;   /* Markers in the plane track */
