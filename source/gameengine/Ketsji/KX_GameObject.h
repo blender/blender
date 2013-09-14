@@ -137,21 +137,22 @@ public:
 
 #ifdef WITH_PYTHON
 	// Python attributes that wont convert into CValue
-	// 
+	//
 	// there are 2 places attributes can be stored, in the CValue,
 	// where attributes are converted into BGE's CValue types
 	// these can be used with property actuators
 	//
 	// For the python API, For types that cannot be converted into CValues (lists, dicts, GameObjects)
 	// these will be put into "m_attr_dict", logic bricks cannot access them.
-	// 
+	//
 	// rules for setting attributes.
-	// 
+	//
 	// * there should NEVER be a CValue and a m_attr_dict attribute with matching names. get/sets make sure of this.
 	// * if CValue conversion fails, use a PyObject in "m_attr_dict"
 	// * when assigning a value, first see if it can be a CValue, if it can remove the "m_attr_dict" and set the CValue
-	// 
-	PyObject*							m_attr_dict; 
+	//
+	PyObject*							m_attr_dict;
+	PyObject*							m_collisionCallbacks;
 #endif
 
 	virtual void	/* This function should be virtual - derived classed override it */
@@ -872,6 +873,9 @@ public:
 	 * \section Logic bubbling methods.
 	 */
 
+	void RegisterCollisionCallbacks();
+	void UnregisterCollisionCallbacks();
+	void RunCollisionCallbacks(KX_GameObject *collider);
 	/**
 	 * Stop making progress
 	 */
@@ -1040,6 +1044,8 @@ public:
 	static PyObject*	pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_obcolor(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_collisionCallbacks(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_collisionCallbacks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 	/* Experimental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

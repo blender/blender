@@ -81,28 +81,42 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 							void *object2,
 							const PHY_CollData *coll_data)
 {
-	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
-	KX_ClientObjectInfo *info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
+	PHY_IPhysicsController* ctrl1 = static_cast<PHY_IPhysicsController*>(object1);
+	PHY_IPhysicsController* ctrl2 = static_cast<PHY_IPhysicsController*>(object2);
+
+	KX_ClientObjectInfo *info1 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl1->getNewClientInfo()) : NULL;
+	KX_ClientObjectInfo *info2 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl2->getNewClientInfo()) : NULL;
+
 	// This call back should only be called for controllers of Near and Radar sensor
-	if (!info)
+	if (!info1)
 		return true;
 
-	switch (info->m_type)
+	// Get KX_GameObjects for callbacks
+	KX_GameObject* gobj1 = info1->m_gameobject;
+	KX_GameObject* gobj2 = (info2) ? info1->m_gameobject : NULL;
+
+	bool has_py_callbacks = false;
+
+	// Consider callbacks for broadphase inclusion if it's a sensor object type
+	if (gobj1 && gobj2)
+		has_py_callbacks = gobj1->m_collisionCallbacks || gobj2->m_collisionCallbacks;
+
+	switch (info1->m_type)
 	{
 	case KX_ClientObjectInfo::SENSOR:
-		if (info->m_sensors.size() == 1)
+		if (info1->m_sensors.size() == 1)
 		{
 			// only one sensor for this type of object
-			KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
-			return touchsensor->BroadPhaseFilterCollision(object1,object2);
+			KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info1->m_sensors.begin());
+			return touchsensor->BroadPhaseFilterCollision(object1, object2);
 		}
 		break;
 	case KX_ClientObjectInfo::OBSENSOR:
 	case KX_ClientObjectInfo::OBACTORSENSOR:
 		// this object may have multiple collision sensors, 
 		// check is any of them is interested in this object
-		for (std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
-			it != info->m_sensors.end();
+		for (std::list<SCA_ISensor*>::iterator it = info1->m_sensors.begin();
+			it != info1->m_sensors.end();
 			++it)
 		{
 			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH) 
@@ -112,7 +126,8 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 					return true;
 			}
 		}
-		return false;
+
+		return has_py_callbacks;
 
 	// quiet the compiler
 	case KX_ClientObjectInfo::STATIC:
@@ -155,32 +170,43 @@ void KX_TouchEventManager::EndFrame()
 
 void KX_TouchEventManager::NextFrame()
 {
-	if (!m_sensors.Empty())
-	{
 		SG_DList::iterator<KX_TouchSensor> it(m_sensors);
 		for (it.begin();!it.end();++it)
 			(*it)->SynchronizeTransform();
 		
 		for (std::set<NewCollision>::iterator cit = m_newCollisions.begin(); cit != m_newCollisions.end(); ++cit)
 		{
+			// Controllers
 			PHY_IPhysicsController* ctrl1 = (*cit).first;
-//			PHY_IPhysicsController* ctrl2 = (*cit).second;
-//			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
-//			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
+			PHY_IPhysicsController* ctrl2 = (*cit).second;
 
-			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo *>(ctrl1->getNewClientInfo());
+			// Sensor iterator
 			list<SCA_ISensor*>::iterator sit;
+
+			// First client info
+			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(ctrl1->getNewClientInfo());
+			// First gameobject
+			KX_GameObject *kxObj1 = KX_GameObject::GetClientObject(client_info);
+			// Invoke sensor response for each object
 			if (client_info) {
 				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
-					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).first, (*cit).second, NULL);
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision(ctrl1, ctrl2, NULL);
 				}
 			}
-			client_info = static_cast<KX_ClientObjectInfo *>((*cit).second->getNewClientInfo());
+
+			// Second client info
+			client_info = static_cast<KX_ClientObjectInfo *>(ctrl2->getNewClientInfo());
+			// Second gameobject
+			KX_GameObject *kxObj2 = KX_GameObject::GetClientObject(client_info);
 			if (client_info) {
 				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
-					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).second, (*cit).first, NULL);
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision(ctrl2, ctrl1, NULL);
 				}
 			}
+			// Run python callbacks
+			kxObj1->RunCollisionCallbacks(kxObj2);
+			kxObj2->RunCollisionCallbacks(kxObj1);
+
 		}
 			
 		m_newCollisions.clear();
@@ -188,4 +214,3 @@ void KX_TouchEventManager::NextFrame()
 		for (it.begin();!it.end();++it)
 			(*it)->Activate(m_logicmgr);
 	}
-}

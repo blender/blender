@@ -134,6 +134,12 @@ base class --- :class:`SCA_IObject`
 
       :type: :class:`KX_GameObject` or None
 
+   .. attribute:: collisionCallbacks
+
+      A list of callables to be run when a collision occurs.
+
+      :type: list
+
    .. attribute:: scene
 
       The object's scene. (read-only).

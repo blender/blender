@@ -114,8 +114,10 @@ KX_GameObject::KX_GameObject(
       m_pDupliGroupObject(NULL),
       m_actionManager(NULL),
       m_isDeformable(false)
+
 #ifdef WITH_PYTHON
-    , m_attr_dict(NULL)
+    , m_attr_dict(NULL),
+    m_collisionCallbacks(NULL)
 #endif
 {
 	m_ignore_activity_culling = false;
@@ -133,6 +135,20 @@ KX_GameObject::KX_GameObject(
 
 KX_GameObject::~KX_GameObject()
 {
+#ifdef WITH_PYTHON
+	if (m_attr_dict) {
+		PyDict_Clear(m_attr_dict); /* in case of circular refs or other weird cases */
+		/* Py_CLEAR: Py_DECREF's and NULL's */
+		Py_CLEAR(m_attr_dict);
+	}
+	// Unregister collision callbacks
+	// Do this before we start freeing physics information like m_pClient_info
+	if (m_collisionCallbacks){
+		UnregisterCollisionCallbacks();
+		Py_CLEAR(m_collisionCallbacks);
+	}
+#endif // WITH_PYTHON
+
 	RemoveMeshes();
 
 	// is this delete somewhere ?
@@ -180,13 +196,6 @@ KX_GameObject::~KX_GameObject()
 	{
 		m_pInstanceObjects->Release();
 	}
-#ifdef WITH_PYTHON
-	if (m_attr_dict) {
-		PyDict_Clear(m_attr_dict); /* in case of circular refs or other weird cases */
-		/* Py_CLEAR: Py_DECREF's and NULL's */
-		Py_CLEAR(m_attr_dict);
-	}
-#endif // WITH_PYTHON
 }
 
 KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo *info)
@@ -1336,6 +1345,77 @@ const MT_Point3& KX_GameObject::NodeGetLocalPosition() const
 }
 
 
+void KX_GameObject::UnregisterCollisionCallbacks()
+{
+	if (!GetPhysicsController()) {
+		printf("Warning, trying to unregister collision callbacks for object without collisions: %s!\n", GetName().ReadPtr());
+		return;
+	}
+
+	// Unregister from callbacks
+	KX_Scene* scene = GetScene();
+	PHY_IPhysicsEnvironment* pe = scene->GetPhysicsEnvironment();
+	PHY_IPhysicsController* spc = static_cast<PHY_IPhysicsController*> (GetPhysicsController()->GetUserData());
+	// If we are the last to unregister on this physics controller
+	if (pe->removeCollisionCallback(spc)){
+		// If we are a sensor object
+		if (m_pClient_info->isSensor())
+			// Remove sensor body from physics world
+			pe->removeSensor(spc);
+	}
+}
+
+void KX_GameObject::RegisterCollisionCallbacks()
+{
+	if (!GetPhysicsController()) {
+		printf("Warning, trying to register collision callbacks for object without collisions: %s!\n", GetName().ReadPtr());
+		return;
+	}
+
+	// Register from callbacks
+	KX_Scene* scene = GetScene();
+	PHY_IPhysicsEnvironment* pe = scene->GetPhysicsEnvironment();
+	PHY_IPhysicsController* spc = static_cast<PHY_IPhysicsController*> (GetPhysicsController()->GetUserData());
+	// If we are the first to register on this physics controller
+	if (pe->requestCollisionCallback(spc)){
+		// If we are a sensor object
+		if (m_pClient_info->isSensor())
+			// Add sensor body to physics world
+			pe->addSensor(spc);
+	}
+}
+void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider)
+{
+	#ifdef WITH_PYTHON
+	Py_ssize_t len;
+	PyObject* collision_callbacks = m_collisionCallbacks;
+
+	if (collision_callbacks && (len=PyList_GET_SIZE(collision_callbacks)))
+	{
+		PyObject* args = Py_BuildValue("(O)", collider->GetProxy()); // save python creating each call
+		PyObject *func;
+		PyObject *ret;
+
+		// Iterate the list and run the callbacks
+		for (Py_ssize_t pos=0; pos < len; pos++)
+		{
+			func = PyList_GET_ITEM(collision_callbacks, pos);
+			ret = PyObject_Call(func, args, NULL);
+
+			if (ret == NULL) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				Py_DECREF(ret);
+			}
+		}
+
+		Py_DECREF(args);
+	}
+	#endif
+}
+
 /* Suspend/ resume: for the dynamic behavior, there is a simple
  * method. For the residual motion, there is not. I wonder what the
  * correct solution is for Sumo. Remove from the motion-update tree?
@@ -1716,6 +1796,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_worldOrientation,pyattr_set_localOrientation),
 	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_worldScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
+	KX_PYATTRIBUTE_RW_FUNCTION("collisionCallbacks",		KX_GameObject, pyattr_get_collisionCallbacks,	pyattr_set_collisionCallbacks),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
 	KX_PYATTRIBUTE_RW_FUNCTION("localOrientation",KX_GameObject,pyattr_get_localOrientation,pyattr_set_localOrientation),
@@ -2006,6 +2087,51 @@ PyObject *KX_GameObject::pyattr_get_group_members(void *self_v, const KX_PYATTRI
 		return instances->GetProxy();
 	}
 	Py_RETURN_NONE;
+}
+
+PyObject* KX_GameObject::pyattr_get_collisionCallbacks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+
+	// Only objects with a physics controller should have collision callbacks
+	if (!self->GetPhysicsController()) {
+		PyErr_SetString(PyExc_AttributeError, "KX_GameObject.collisionCallbacks: attribute only available for objects with collisions enabled");
+		return NULL;
+	}
+
+	// Return the existing callbacks
+	if (self->m_collisionCallbacks == NULL)
+	{
+		self->m_collisionCallbacks = PyList_New(0);
+		// Subscribe to collision update from KX_TouchManager
+		self->RegisterCollisionCallbacks();
+	}
+	Py_INCREF(self->m_collisionCallbacks);
+	return self->m_collisionCallbacks;
+}
+
+int KX_GameObject::pyattr_set_collisionCallbacks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+
+	// Only objects with a physics controller should have collision callbacks
+	if (!self->GetPhysicsController()) {
+		PyErr_SetString(PyExc_AttributeError, "KX_GameObject.collisionCallbacks: attribute only available for objects with collisions enabled");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	if (!PyList_CheckExact(value))
+	{
+		PyErr_SetString(PyExc_ValueError, "Expected a list");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	Py_XDECREF(self->m_collisionCallbacks);
+	Py_INCREF(value);
+
+	self->m_collisionCallbacks = value;
+
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_scene(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
