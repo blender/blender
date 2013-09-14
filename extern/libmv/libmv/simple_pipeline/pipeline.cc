@@ -124,7 +124,7 @@ struct ProjectivePipelineRoutines {
 
 }  // namespace
 
-static void CompleteReconstructionLogProress(
+static void CompleteReconstructionLogProgress(
     ProgressUpdateCallback *update_callback,
     double progress,
     const char *step = NULL) {
@@ -176,8 +176,8 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for track " << track;
       if (reconstructed_markers.size() >= 2) {
-        CompleteReconstructionLogProress(update_callback,
-                                         (double)tot_resects/(max_image));
+        CompleteReconstructionLogProgress(update_callback,
+                                          (double)tot_resects/(max_image));
         if (PipelineRoutines::Intersect(reconstructed_markers,
                                         reconstruction)) {
           num_intersects++;
@@ -188,9 +188,9 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_intersects) {
-      CompleteReconstructionLogProress(update_callback,
-                                       (double)tot_resects/(max_image),
-                                       "Bundling...");
+      CompleteReconstructionLogProgress(update_callback,
+                                        (double)tot_resects/(max_image),
+                                        "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
       LG << "Ran Bundle() after intersections.";
     }
@@ -215,8 +215,8 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
-        CompleteReconstructionLogProress(update_callback,
-                                         (double)tot_resects/(max_image));
+        CompleteReconstructionLogProgress(update_callback,
+                                          (double)tot_resects/(max_image));
         if (PipelineRoutines::Resect(options, reconstructed_markers,
                                      reconstruction, false)) {
           num_resects++;
@@ -228,9 +228,9 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_resects) {
-      CompleteReconstructionLogProress(update_callback,
-                                       (double)tot_resects/(max_image),
-                                       "Bundling...");
+      CompleteReconstructionLogProgress(update_callback,
+                                        (double)tot_resects/(max_image),
+                                        "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
@@ -252,8 +252,8 @@ void InternalCompleteReconstruction(
       }
     }
     if (reconstructed_markers.size() >= 5) {
-      CompleteReconstructionLogProress(update_callback,
-                                       (double)tot_resects/(max_image));
+      CompleteReconstructionLogProgress(update_callback,
+                                        (double)tot_resects/(max_image));
       if (PipelineRoutines::Resect(options, reconstructed_markers,
                                    reconstruction, true)) {
         num_resects++;
@@ -264,9 +264,9 @@ void InternalCompleteReconstruction(
     }
   }
   if (num_resects) {
-    CompleteReconstructionLogProress(update_callback,
-                                     (double)tot_resects/(max_image),
-                                     "Bundling...");
+    CompleteReconstructionLogProgress(update_callback,
+                                      (double)tot_resects/(max_image),
+                                      "Bundling...");
     PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }
