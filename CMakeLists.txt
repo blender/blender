@@ -326,9 +326,11 @@ if(APPLE)
 	execute_process(COMMAND xcode-select --print-path  OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
 	string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
 	message(STATUS "Xcode-bundle : " ${XCODE_BUNDLE})
-	string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) # reduce to XCode name without dp extension
-	if(${DP_NAME} MATCHES Xcode5)
-		set(XCODE_VERSION 5)
+	if(${XCODE_VERSION} VERSION_GREATER 4.2) # earlier xcode has no bundled developer dir, no sense in getting xcode path from
+		string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) # reduce to XCode name without dp extension
+		if(${DP_NAME} MATCHES Xcode5)
+			set(XCODE_VERSION 5)
+		endif()
 	endif()
 	
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
