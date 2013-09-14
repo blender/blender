@@ -1286,7 +1286,7 @@ static PyObject *vector_item_internal(VectorObject *self, int i, const int is_at
 
 static PyObject *Vector_item(VectorObject *self, int i)
 {
-	return vector_item_internal(self, i, FALSE);
+	return vector_item_internal(self, i, false);
 }
 /* sequence accessor (set): vector[index] = value */
 static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, const int is_attr)
@@ -1323,7 +1323,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 
 static int Vector_ass_item(VectorObject *self, int i, PyObject *value)
 {
-	return vector_ass_item_internal(self, i, value, FALSE);
+	return vector_ass_item_internal(self, i, value, false);
 }
 
 /* sequence slice (get): vector[a:b] */
@@ -2086,12 +2086,12 @@ PyDoc_STRVAR(Vector_axis_w_doc, "Vector W axis (4D Vectors only).\n\n:type: floa
 
 static PyObject *Vector_axis_get(VectorObject *self, void *type)
 {
-	return vector_item_internal(self, GET_INT_FROM_POINTER(type), TRUE);
+	return vector_item_internal(self, GET_INT_FROM_POINTER(type), true);
 }
 
 static int Vector_axis_set(VectorObject *self, PyObject *value, void *type)
 {
-	return vector_ass_item_internal(self, GET_INT_FROM_POINTER(type), value, TRUE);
+	return vector_ass_item_internal(self, GET_INT_FROM_POINTER(type), value, true);
 }
 
 /* vector.length */

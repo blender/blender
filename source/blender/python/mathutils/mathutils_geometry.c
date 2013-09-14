@@ -690,7 +690,7 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 {
 	VectorObject *line_a, *line_b, *sphere_co;
 	float sphere_radius;
-	int clip = TRUE;
+	int clip = true;
 
 	float isect_a[3];
 	float isect_b[3];
@@ -726,12 +726,12 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 
 		switch (isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 			case 1:
-				if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = FALSE;
+				if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
 				use_b = false;
 				break;
 			case 2:
-				if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = FALSE;
-				if (!(!clip || (((lambda = line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b = FALSE;
+				if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
+				if (!(!clip || (((lambda = line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b = false;
 				break;
 			default:
 				use_a = false;
@@ -771,7 +771,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 {
 	VectorObject *line_a, *line_b, *sphere_co;
 	float sphere_radius;
-	int clip = TRUE;
+	int clip = true;
 
 	float isect_a[2];
 	float isect_b[2];
@@ -801,7 +801,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 		switch (isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 			case 1:
 				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
-				use_b = FALSE;
+				use_b = false;
 				break;
 			case 2:
 				if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a = false;
@@ -1155,7 +1155,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 										PyList_Append(py_verts, item);
 										Py_DECREF(item);
 
-										planes_used[i] = planes_used[j] = planes_used[k] = TRUE;
+										planes_used[i] = planes_used[j] = planes_used[k] = true;
 									}
 								}
 							}
