@@ -951,7 +951,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
                           const float fno[3],
                           const float mask)
 {
-	const StrokeCache *cache = ss->cache;
+	StrokeCache *cache = ss->cache;
 	const Scene *scene = cache->vc->scene;
 	MTex *mtex = &br->mtex;
 	float avg = 1;
@@ -1289,13 +1289,13 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 
 /* Test whether the StrokeCache.sculpt_normal needs update in
  * do_brush_action() */
-static int brush_needs_sculpt_normal(const Brush *brush)
+static int brush_needs_sculpt_normal(const Brush *brush, SculptSession *ss)
 {
 	return ((ELEM(brush->sculpt_tool,
 	              SCULPT_TOOL_GRAB,
 	              SCULPT_TOOL_SNAKE_HOOK) &&
 	         ((brush->normal_weight > 0) ||
-	          (brush->flag & BRUSH_FRONTFACE))) ||
+	          ss->cache->frontface)) ||
 
 	        ELEM7(brush->sculpt_tool,
 	              SCULPT_TOOL_BLOB,
@@ -3139,7 +3139,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			BKE_pbvh_node_mark_update(nodes[n]);
 		}
 
-		if (brush_needs_sculpt_normal(brush))
+		if (brush_needs_sculpt_normal(brush, ss))
 			update_sculpt_normal(sd, ob, nodes, totnode);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
