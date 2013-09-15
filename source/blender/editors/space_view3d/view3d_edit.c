@@ -1012,9 +1012,13 @@ static int view3d_camera_user_poll(bContext *C)
 static int view3d_lock_poll(bContext *C)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-	return ED_view3d_offset_lock_check(v3d, rv3d);
+	if (v3d) {
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		if (rv3d) {
+			return ED_view3d_offset_lock_check(v3d, rv3d);
+		}
+	}
+	return false;
 }
 
 static int viewrotate_cancel(bContext *C, wmOperator *op)

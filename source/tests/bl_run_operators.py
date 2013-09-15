@@ -342,7 +342,8 @@ def ctx_editmode_curves():
 def ctx_editmode_curves_empty():
     bpy.ops.curve.primitive_nurbs_circle_add()
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.curve.delete(type='ALL')
+    bpy.ops.curve.select_all(action='SELECT')
+    bpy.ops.curve.delete(type='VERT')
 
 
 def ctx_editmode_surface():

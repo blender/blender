@@ -6245,7 +6245,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 }
 
 static EnumPropertyItem curve_delete_type_items[] = {
-	{CURVE_VERTEX, "VERTICES", 0, "Vertices", ""},
+	{CURVE_VERTEX, "VERT", 0, "Vertices", ""},
 	{CURVE_SEGMENT, "SEGMENT", 0, "Segments", ""},
 	{0, NULL, 0, NULL, NULL}
 };
