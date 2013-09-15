@@ -894,6 +894,10 @@ typedef struct NodeShaderNormalMap {
 #define SHD_TOON_DIFFUSE	0
 #define SHD_TOON_GLOSSY		1
 
+/* hair components */
+#define SHD_HAIR_REFLECTION		0
+#define SHD_HAIR_TRANSMISSION		1
+
 /* blend texture */
 #define SHD_BLEND_LINEAR			0
 #define SHD_BLEND_QUADRATIC			1

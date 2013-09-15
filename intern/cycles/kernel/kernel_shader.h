@@ -272,7 +272,7 @@ void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #ifdef __INSTANCING__
 	sd->object = object;
 #endif
-	/* currently no access to bvh prim index for strand sd->prim - this will cause errors with needs fixing*/
+	/* currently no access to bvh prim index for strand sd->prim*/
 	sd->prim = prim;
 #ifdef __UV__
 	sd->u = u;

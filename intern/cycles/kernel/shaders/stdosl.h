@@ -468,6 +468,9 @@ closure color ambient_occlusion() BUILTIN;
 closure color bssrdf_cubic(normal N, vector radius, float texture_blur, float sharpness) BUILTIN;
 closure color bssrdf_gaussian(normal N, vector radius, float texture_blur) BUILTIN;
 
+closure color hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
+closure color hair_transmission(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
+
 // Backwards compatibility
 closure color bssrdf_cubic(normal N, vector radius) BUILTIN;
 closure color bssrdf_gaussian(normal N, vector radius) BUILTIN;

@@ -3449,6 +3449,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_bsdf_transparent();
 	register_node_type_sh_bsdf_velvet();
 	register_node_type_sh_bsdf_toon();
+	register_node_type_sh_bsdf_hair();
 	register_node_type_sh_emission();
 	register_node_type_sh_holdout();
 	//register_node_type_sh_volume_transparent();

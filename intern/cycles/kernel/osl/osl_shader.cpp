@@ -180,6 +180,10 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 					sc.data1 = bsdf->sc.data1;
 					sc.prim = bsdf->sc.prim;
 
+#ifdef __HAIR__
+					sc.offset = bsdf->sc.offset;
+#endif
+
 					/* add */
 					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
 						sd->closure[sd->num_closure++] = sc;

@@ -54,6 +54,7 @@
 #include "closure/bsdf_ward.h"
 #include "closure/bsdf_westin.h"
 #include "closure/bsdf_toon.h"
+#include "closure/bsdf_hair.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -142,6 +143,32 @@ BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction, microfacet_beckmann_refra
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction)
 
+BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, hair_reflection, LABEL_GLOSSY)
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data0),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
+#ifdef __HAIR__
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.offset),
+#else
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
+#endif
+BSDF_CLOSURE_CLASS_END(HairReflection, hair_reflection)
+
+BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, hair_transmission, LABEL_GLOSSY)
+	CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, sc.data0),
+	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, sc.data1),
+#ifdef __HAIR__
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.offset),
+#else
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
+#endif
+BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
+
 /* Registration */
 
 static void generic_closure_setup(OSL::RendererServices *, int id, void *data)
@@ -225,6 +252,11 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bssrdf_cubic_extended_params(), closure_bssrdf_cubic_prepare);
 	register_closure(ss, "bssrdf_gaussian", id++,
 		closure_bssrdf_gaussian_extended_params(), closure_bssrdf_gaussian_prepare);
+
+	register_closure(ss, "hair_reflection", id++,
+		bsdf_hair_reflection_params(), bsdf_hair_reflection_prepare);
+	register_closure(ss, "hair_transmission", id++,
+		bsdf_hair_transmission_params(), bsdf_hair_transmission_prepare);
 }
 
 CCL_NAMESPACE_END

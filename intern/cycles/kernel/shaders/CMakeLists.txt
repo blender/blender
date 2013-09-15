@@ -74,6 +74,7 @@ set(SRC_OSL
 	node_blackbody.osl
 	node_wave_texture.osl
 	node_wireframe.osl
+	node_hair_bsdf.osl
 )
 
 set(SRC_OSL_HEADERS

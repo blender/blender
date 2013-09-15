@@ -321,6 +321,15 @@ public:
 	SHADER_NODE_CLASS(IsotropicVolumeNode)
 };
 
+class HairBsdfNode : public BsdfNode {
+public:
+	SHADER_NODE_CLASS(HairBsdfNode)
+
+	ustring component;
+	static ShaderEnum component_enum;
+
+};
+
 class GeometryNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GeometryNode)

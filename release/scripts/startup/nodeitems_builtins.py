@@ -186,6 +186,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeBsdfToon"),
         NodeItem("ShaderNodeSubsurfaceScattering"),
         NodeItem("ShaderNodeEmission"),
+        NodeItem("ShaderNodeBsdfHair"),
         NodeItem("ShaderNodeBackground"),
         NodeItem("ShaderNodeAmbientOcclusion"),
         NodeItem("ShaderNodeHoldout"),

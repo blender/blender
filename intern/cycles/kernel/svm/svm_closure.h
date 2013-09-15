@@ -337,6 +337,46 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			}
 			break;
 		}
+#ifdef __HAIR__
+		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
+		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
+			
+			if(sd->flag & SD_BACKFACING && sd->segment != ~0) {
+				ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+				if(sc) {
+					sc->weight = make_float3(1.0f,1.0f,1.0f);
+					sc->N = N;
+					sd->flag |= bsdf_transparent_setup(sc);
+				}
+			}
+			else {
+				ShaderClosure *sc = &sd->closure[sd->num_closure];
+				sc = svm_node_closure_get_bsdf(sd, mix_weight);
+
+				if(sc) {
+					sc->N = N;
+					sc->data0 = param1;
+					sc->data1 = param2;
+					sc->offset = -stack_load_float(stack, data_node.z);
+					if(sd->segment == ~0) {
+						sc->T = normalize(sd->dPdv);
+						sc->offset = 0.0f;
+					}
+					else
+						sc->T = sd->dPdu;
+					if(type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
+						sd->flag |= bsdf_hair_reflection_setup(sc);
+					}
+					else {
+						sd->flag |= bsdf_hair_transmission_setup(sc);
+					}
+				}
+			}
+
+			break;
+		}
+#endif
+
 #ifdef __SUBSURFACE__
 		case CLOSURE_BSSRDF_COMPATIBLE_ID:
 		case CLOSURE_BSSRDF_CUBIC_ID:

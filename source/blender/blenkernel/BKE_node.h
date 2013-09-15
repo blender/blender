@@ -746,6 +746,7 @@ struct ShadeResult;
 #define SH_NODE_VECT_TRANSFORM			182
 #define SH_NODE_SEPHSV					183
 #define SH_NODE_COMBHSV					184
+#define SH_NODE_BSDF_HAIR				185
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
