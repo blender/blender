@@ -2127,7 +2127,7 @@ static void createTransEditVerts(TransInfo *t)
 	BMVert *eve;
 	BMIter iter;
 	BMVert *eve_act = NULL;
-	float *mappedcos = NULL, *quats = NULL;
+	float (*mappedcos)[3] = NULL, (*quats)[4] = NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	float *dists = NULL;
 	int a;
@@ -2216,9 +2216,6 @@ static void createTransEditVerts(TransInfo *t)
 		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map);
 	}
 
-	/* BMESH_TODO, crazy-space writing into the index values is BAD!, means we cant
-	 * use the values for vertex mirror - campbell */
-
 	/* detect CrazySpace [tm] */
 	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) >= 0) {
 		if (modifiers_isCorrectableDeformed(t->obedit)) {
@@ -2232,8 +2229,8 @@ static void createTransEditVerts(TransInfo *t)
 			 * the modifiers that support deform matrices (defcos) */
 			if (totleft > 0) {
 				mappedcos = crazyspace_get_mapped_editverts(t->scene, t->obedit);
-				quats = MEM_mallocN((t->total) * sizeof(float) * 4, "crazy quats");
-				crazyspace_set_quats_editmesh(em, (float *)defcos, mappedcos, quats); /* BMESH_TODO, abuses vertex index, should use an int array */
+				quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
+				crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats);
 				if (mappedcos)
 					MEM_freeN(mappedcos);
 			}
@@ -2285,12 +2282,12 @@ static void createTransEditVerts(TransInfo *t)
 				}
 
 				/* CrazySpace */
-				if (defmats || (quats && BM_elem_index_get(eve) != -1)) {
+				if (defmats || (quats && BM_elem_flag_test(eve, BM_ELEM_TAG))) {
 					float mat[3][3], qmat[3][3], imat[3][3];
 
 					/* use both or either quat and defmat correction */
-					if (quats && BM_elem_index_get(eve) != -1) {
-						quat_to_mat3(qmat, quats + 4 * BM_elem_index_get(eve));
+					if (quats && BM_elem_flag_test(eve, BM_ELEM_TAG)) {
+						quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
 
 						if (defmats)
 							mul_serie_m3(mat, mtx, qmat, defmats[a],

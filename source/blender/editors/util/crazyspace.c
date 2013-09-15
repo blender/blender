@@ -40,7 +40,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_bitmap.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
@@ -51,8 +50,7 @@
 #include "ED_util.h"
 
 typedef struct {
-	float *vertexcos;
-	BLI_bitmap *vertex_visit;
+	float (*vertexcos)[3];
 } MappedUserData;
 
 BLI_INLINE void tan_calc_v3(float a[3], const float b[3], const float c[3])
@@ -85,15 +83,7 @@ static void make_vertexcos__mapFunc(void *userData, int index, const float co[3]
                                     const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	MappedUserData *mappedData = (MappedUserData *)userData;
-	float *vec = mappedData->vertexcos;
-
-	vec += 3 * index;
-	if (BLI_BITMAP_GET(mappedData->vertex_visit, index) == 0) {
-		/* we need coord from prototype vertex, not it clones or images,
-		 * suppose they stored in the beginning of vertex array stored in DM */
-		copy_v3_v3(vec, co);
-		BLI_BITMAP_SET(mappedData->vertex_visit, index);
-	}
+	copy_v3_v3(mappedData->vertexcos[index], co);
 }
 
 static int modifiers_disable_subsurf_temporary(Object *ob)
@@ -112,13 +102,12 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
 }
 
 /* disable subsurf temporal, get mapped cos, and enable it */
-float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
+float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 {
 	Mesh *me = obedit->data;
 	DerivedMesh *dm;
-	float *vertexcos;
+	float (*vertexcos)[3];
 	int nverts = me->edit_btmesh->bm->totvert;
-	BLI_bitmap *vertex_visit;
 	MappedUserData userData;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
@@ -130,11 +119,9 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	/* now get the cage */
 	dm = editbmesh_get_derived_cage(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
-	vertexcos = MEM_callocN(3 * sizeof(float) * nverts, "vertexcos map");
-	vertex_visit = BLI_BITMAP_NEW(nverts, "vertexcos flags");
+	vertexcos = MEM_callocN(sizeof(*vertexcos) * nverts, "vertexcos map");
 
 	userData.vertexcos = vertexcos;
-	userData.vertex_visit = vertex_visit;
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
 
 	dm->release(dm);
@@ -142,60 +129,64 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
 
-	MEM_freeN(vertex_visit);
-
 	return vertexcos;
 }
 
-void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mappedcos, float *quats)
+void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
 {
-	BMVert *v;
-	BMIter iter, liter;
-	BMLoop *l;
-	float *v1, *v2, *v3, *co1, *co2, *co3;
-	int *vert_table = MEM_callocN(sizeof(int) * em->bm->totvert, "vert_table");
-	int index = 0;
+	BMFace *f;
+	BMIter iter;
+	int index;
 
-	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (!BM_elem_flag_test(v, BM_ELEM_SELECT) || BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			continue;
-		
-		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-			BMLoop *l2 = BM_loop_other_edge_loop(l, v);
-			
-			/* retrieve mapped coordinates */
-			v1 = mappedcos + 3 * BM_elem_index_get(l->v);
-			v2 = mappedcos + 3 * BM_elem_index_get(BM_edge_other_vert(l2->e, l->v));
-			v3 = mappedcos + 3 * BM_elem_index_get(BM_edge_other_vert(l->e, l->v));
-
-			co1 = (origcos) ? origcos + 3 * BM_elem_index_get(l->v) : l->v->co;
-			co2 = (origcos) ? origcos + 3 * BM_elem_index_get(BM_edge_other_vert(l2->e, l->v)) : BM_edge_other_vert(l2->e, l->v)->co;
-			co3 = (origcos) ? origcos + 3 * BM_elem_index_get(BM_edge_other_vert(l->e, l->v)) : BM_edge_other_vert(l->e, l->v)->co;
-			
-			set_crazy_vertex_quat(quats, v1, v2, v3, co1, co2, co3);
-			quats += 4;
-			
-			vert_table[BM_elem_index_get(l->v)] = index + 1;
-			
-			index++;
-			break; /*just do one corner*/
+	{
+		BMVert *v;
+		BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, index) {
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+			BM_elem_index_set(v, index);  /* set_inline */
 		}
+		em->bm->elem_index_dirty &= ~BM_VERT;
 	}
 
-	index = 0;
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (vert_table[index] != 0)
-			BM_elem_index_set(v, vert_table[index] - 1);  /* set_dirty! */
-		else
-			BM_elem_index_set(v, -1);  /* set_dirty! */
-		
-		index++;
-	}
-	em->bm->elem_index_dirty |= BM_VERT;
+	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+		BMLoop *l_iter, *l_first;
 
-	MEM_freeN(vert_table);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT) || BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN))
+				continue;
+
+			if (!BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
+				const float *co_prev, *co_curr, *co_next;  /* orig */
+				const float *vd_prev, *vd_curr, *vd_next;  /* deform */
+
+				const int i_prev = BM_elem_index_get(l_iter->prev->v);
+				const int i_curr = BM_elem_index_get(l_iter->v);
+				const int i_next = BM_elem_index_get(l_iter->next->v);
+
+				/* retrieve mapped coordinates */
+				vd_prev = mappedcos[i_prev];
+				vd_curr = mappedcos[i_curr];
+				vd_next = mappedcos[i_next];
+
+				if (origcos) {
+					co_prev = origcos[i_prev];
+					co_curr = origcos[i_curr];
+					co_next = origcos[i_next];
+				}
+				else {
+					co_prev = l_iter->prev->v->co;
+					co_curr = l_iter->v->co;
+					co_next = l_iter->next->v->co;
+				}
+
+				set_crazy_vertex_quat(quats[i_curr],
+				                      co_curr, co_next, co_prev,
+				                      vd_curr, vd_next, vd_prev);
+
+				BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+	}
 }
 
 void crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
