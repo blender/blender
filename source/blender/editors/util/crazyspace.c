@@ -55,23 +55,31 @@ typedef struct {
 	BLI_bitmap *vertex_visit;
 } MappedUserData;
 
-#define TAN_MAKE_VEC(a, b, c)   a[0] = b[0] + 0.2f * (b[0] - c[0]); a[1] = b[1] + 0.2f * (b[1] - c[1]); a[2] = b[2] + 0.2f * (b[2] - c[2])
-static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
+BLI_INLINE void tan_calc_v3(float a[3], const float b[3], const float c[3])
 {
-	float vecu[3], vecv[3];
+	a[0] = b[0] + 0.2f * (b[0] - c[0]);
+	a[1] = b[1] + 0.2f * (b[1] - c[1]);
+	a[2] = b[2] + 0.2f * (b[2] - c[2]);
+}
+
+static void set_crazy_vertex_quat(
+        float r_quat[4],
+        const float co_1[3], const float co_2[3], const float co_3[3],
+        const float vd_1[3], const float vd_2[3], const float vd_3[3])
+{
+	float vec_u[3], vec_v[3];
 	float q1[4], q2[4];
 
-	TAN_MAKE_VEC(vecu, v1, v2);
-	TAN_MAKE_VEC(vecv, v1, v3);
-	tri_to_quat(q1, v1, vecu, vecv);
+	tan_calc_v3(vec_u, co_1, co_2);
+	tan_calc_v3(vec_v, co_1, co_3);
+	tri_to_quat(q1, co_1, vec_u, vec_v);
 
-	TAN_MAKE_VEC(vecu, def1, def2);
-	TAN_MAKE_VEC(vecv, def1, def3);
-	tri_to_quat(q2, def1, vecu, vecv);
+	tan_calc_v3(vec_u, vd_1, vd_2);
+	tan_calc_v3(vec_v, vd_1, vd_3);
+	tri_to_quat(q2, vd_1, vec_u, vec_v);
 
-	sub_qt_qtqt(quat, q2, q1);
+	sub_qt_qtqt(r_quat, q2, q1);
 }
-#undef TAN_MAKE_VEC
 
 static void make_vertexcos__mapFunc(void *userData, int index, const float co[3],
                                     const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
@@ -190,14 +198,12 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	MEM_freeN(vert_table);
 }
 
-/* BMESH_TODO - use MPolys over MFace's */
-
-void crazyspace_set_quats_mesh(Mesh *me, float *origcos, float *mappedcos, float *quats)
+void crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
 {
 	int i;
 	MVert *mvert;
-	MFace *mface;
-	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
+	MLoop *mloop;
+	MPoly *mp;
 
 	mvert = me->mvert;
 	for (i = 0; i < me->totvert; i++, mvert++)
@@ -205,49 +211,48 @@ void crazyspace_set_quats_mesh(Mesh *me, float *origcos, float *mappedcos, float
 
 	/* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
 	mvert = me->mvert;
-	mface = me->mface;
-	for (i = 0; i < me->totface; i++, mface++) {
+	mp = me->mpoly;
+	mloop = me->mloop;
 
-		/* retrieve mapped coordinates */
-		v1 = mappedcos + 3 * mface->v1;
-		v2 = mappedcos + 3 * mface->v2;
-		v3 = mappedcos + 3 * mface->v3;
+	for (i = 0; i < me->totpoly; i++, mp++) {
+		MLoop *ml_prev, *ml_curr, *ml_next;
+		int j;
 
-		co1 = (origcos) ? origcos + 3 * mface->v1 : mvert[mface->v1].co;
-		co2 = (origcos) ? origcos + 3 * mface->v2 : mvert[mface->v2].co;
-		co3 = (origcos) ? origcos + 3 * mface->v3 : mvert[mface->v3].co;
+		ml_next = &mloop[mp->loopstart];
+		ml_curr = &ml_next[mp->totloop - 1];
+		ml_prev = &ml_next[mp->totloop - 2];
 
-		if ((mvert[mface->v2].flag & ME_VERT_TMP_TAG) == 0) {
-			set_crazy_vertex_quat(&quats[mface->v2 * 4], co2, co3, co1, v2, v3, v1);
-			mvert[mface->v2].flag |= ME_VERT_TMP_TAG;
-		}
+		for (j = 0; j < mp->totloop; j++) {
+			if ((mvert[ml_curr->v].flag & ME_VERT_TMP_TAG) == 0) {
+				const float *co_prev, *co_curr, *co_next;  /* orig */
+				const float *vd_prev, *vd_curr, *vd_next;  /* deform */
 
-		if (mface->v4) {
-			v4 = mappedcos + 3 * mface->v4;
-			co4 = (origcos) ? origcos + 3 * mface->v4 : mvert[mface->v4].co;
+				/* retrieve mapped coordinates */
+				vd_prev = mappedcos[ml_prev->v];
+				vd_curr = mappedcos[ml_curr->v];
+				vd_next = mappedcos[ml_next->v];
 
-			if ((mvert[mface->v1].flag & ME_VERT_TMP_TAG) == 0) {
-				set_crazy_vertex_quat(&quats[mface->v1 * 4], co1, co2, co4, v1, v2, v4);
-				mvert[mface->v1].flag |= ME_VERT_TMP_TAG;
+				if (origcos) {
+					co_prev = origcos[ml_prev->v];
+					co_curr = origcos[ml_curr->v];
+					co_next = origcos[ml_next->v];
+				}
+				else {
+					co_prev = mvert[ml_prev->v].co;
+					co_curr = mvert[ml_curr->v].co;
+					co_next = mvert[ml_next->v].co;
+				}
+
+				set_crazy_vertex_quat(quats[ml_curr->v],
+				                      co_curr, co_next, co_prev,
+				                      vd_curr, vd_next, vd_prev);
+
+				mvert[ml_curr->v].flag |= ME_VERT_TMP_TAG;
 			}
-			if ((mvert[mface->v3].flag & ME_VERT_TMP_TAG) == 0) {
-				set_crazy_vertex_quat(&quats[mface->v3 * 4], co3, co4, co2, v3, v4, v2);
-				mvert[mface->v3].flag |= ME_VERT_TMP_TAG;
-			}
-			if ((mvert[mface->v4].flag & ME_VERT_TMP_TAG) == 0) {
-				set_crazy_vertex_quat(&quats[mface->v4 * 4], co4, co1, co3, v4, v1, v3);
-				mvert[mface->v4].flag |= ME_VERT_TMP_TAG;
-			}
-		}
-		else {
-			if ((mvert[mface->v1].flag & ME_VERT_TMP_TAG) == 0) {
-				set_crazy_vertex_quat(&quats[mface->v1 * 4], co1, co2, co3, v1, v2, v3);
-				mvert[mface->v1].flag |= ME_VERT_TMP_TAG;
-			}
-			if ((mvert[mface->v3].flag & ME_VERT_TMP_TAG) == 0) {
-				set_crazy_vertex_quat(&quats[mface->v3 * 4], co3, co1, co2, v3, v1, v2);
-				mvert[mface->v3].flag |= ME_VERT_TMP_TAG;
-			}
+
+			ml_prev = ml_curr;
+			ml_curr = ml_next;
+			ml_next++;
 		}
 	}
 }
@@ -375,7 +380,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 		float (*deformedVerts)[3] = *deformcos;
 		float (*origVerts)[3] = MEM_dupallocN(deformedVerts);
-		float *quats = NULL;
+		float (*quats)[4];
 		int i, deformed = 0;
 		VirtualModifierData virtualModifierData;
 		ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -397,14 +402,14 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 			}
 		}
 
-		quats = MEM_mallocN(me->totvert * sizeof(float) * 4, "crazy quats");
+		quats = MEM_mallocN(me->totvert * sizeof(*quats), "crazy quats");
 
-		crazyspace_set_quats_mesh(me, (float *)origVerts, (float *)deformedVerts, quats);
+		crazyspace_set_quats_mesh(me, origVerts, deformedVerts, quats);
 
 		for (i = 0; i < me->totvert; i++) {
 			float qmat[3][3], tmat[3][3];
 
-			quat_to_mat3(qmat, &quats[i * 4]);
+			quat_to_mat3(qmat, quats[i]);
 			mul_m3_m3m3(tmat, qmat, (*deformmats)[i]);
 			copy_m3_m3((*deformmats)[i], tmat);
 		}
