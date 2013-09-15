@@ -45,11 +45,12 @@
 #include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 
 #include "BLF_translation.h"
 
@@ -256,7 +257,7 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 
 			/* if this def_nr is not in the list, add it */
 			if (!node) {
-				struct MDeformWeight_Link *tmp_dwlink = MEM_mallocN(sizeof(*tmp_dwlink), __func__);
+				struct MDeformWeight_Link *tmp_dwlink = alloca(sizeof(*tmp_dwlink));
 				tmp_dwlink->dw.def_nr = dw->def_nr;
 				tmp_dwlink->dw.weight = weight;
 
@@ -286,12 +287,9 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 	}
 
 	if (totweight) {
-		struct MDeformWeight_Link *node_next;
 		dvert->totweight = totweight;
-		for (i = 0, node = dest_dwlink; node; node = node_next, i++) {
-			node_next = node->next;
+		for (i = 0, node = dest_dwlink; node; node = node->next, i++) {
 			dvert->dw[i] = node->dw;
-			MEM_freeN(node);
 		}
 	}
 	else {
