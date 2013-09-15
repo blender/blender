@@ -586,12 +586,12 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 		v3 = vertpa[mf->v3];
 
 		if (v1 != v2) {
-			BLI_edgehash_insert(edgehash, mf->v1, mf->v2, NULL);
+			BLI_edgehash_reinsert(edgehash, mf->v1, mf->v2, NULL);
 			(*fs) |= 1;
 		}
 
 		if (v2 != v3) {
-			BLI_edgehash_insert(edgehash, mf->v2, mf->v3, NULL);
+			BLI_edgehash_reinsert(edgehash, mf->v2, mf->v3, NULL);
 			(*fs) |= 2;
 		}
 
@@ -599,24 +599,24 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 			v4 = vertpa[mf->v4];
 
 			if (v3 != v4) {
-				BLI_edgehash_insert(edgehash, mf->v3, mf->v4, NULL);
+				BLI_edgehash_reinsert(edgehash, mf->v3, mf->v4, NULL);
 				(*fs) |= 4;
 			}
 
 			if (v1 != v4) {
-				BLI_edgehash_insert(edgehash, mf->v1, mf->v4, NULL);
+				BLI_edgehash_reinsert(edgehash, mf->v1, mf->v4, NULL);
 				(*fs) |= 8;
 			}
 
 			/* mark center vertex as a fake edge split */
 			if (*fs == 15)
-				BLI_edgehash_insert(edgehash, mf->v1, mf->v3, NULL);
+				BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, NULL);
 		}
 		else {
 			(*fs) |= 16; /* mark face as tri */
 
 			if (v1 != v3) {
-				BLI_edgehash_insert(edgehash, mf->v1, mf->v3, NULL);
+				BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, NULL);
 				(*fs) |= 4;
 			}
 		}
@@ -846,11 +846,11 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 		mf = &mface[i];
 
 		/* set face vertices to exist in particle group */
-		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
-		BLI_edgehash_insert(vertpahash, mf->v2, mindex, NULL);
-		BLI_edgehash_insert(vertpahash, mf->v3, mindex, NULL);
+		BLI_edgehash_reinsert(vertpahash, mf->v1, mindex, NULL);
+		BLI_edgehash_reinsert(vertpahash, mf->v2, mindex, NULL);
+		BLI_edgehash_reinsert(vertpahash, mf->v3, mindex, NULL);
 		if (mf->v4)
-			BLI_edgehash_insert(vertpahash, mf->v4, mindex, NULL);
+			BLI_edgehash_reinsert(vertpahash, mf->v4, mindex, NULL);
 	}
 
 	/* make new vertice indexes & count total vertices after duplication */
