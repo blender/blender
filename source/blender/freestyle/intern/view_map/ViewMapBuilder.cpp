@@ -595,7 +595,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilo
 
 		wFaces.clear();
 	}
-	if (iRenderMonitor) {
+	if (iRenderMonitor && vedges.size()) {
 		stringstream ss;
 		ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
 		iRenderMonitor->setInfo(ss.str());
