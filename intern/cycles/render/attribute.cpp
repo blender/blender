@@ -240,17 +240,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
 				break;
 			case ATTR_STD_GENERATED:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-				break;
 			case ATTR_STD_POSITION_UNDEFORMED:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-				break;
 			case ATTR_STD_POSITION_UNDISPLACED:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-				break;
 			case ATTR_STD_MOTION_PRE:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
-				break;
 			case ATTR_STD_MOTION_POST:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
 				break;
@@ -262,14 +254,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	else if(curve_mesh) {
 		switch(std) {
 			case ATTR_STD_UV:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
-				break;
 			case ATTR_STD_GENERATED:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
 				break;
 			case ATTR_STD_MOTION_PRE:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
-				break;
 			case ATTR_STD_MOTION_POST:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
 				break;
