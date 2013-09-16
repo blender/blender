@@ -508,19 +508,19 @@ static float setting_get_rna_value(PointerRNA *ptr, PropertyRNA *prop, int index
 	
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				value = (float)RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value = (float)RNA_property_boolean_get(ptr, prop);
 			break;
 		case PROP_INT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				value = (float)RNA_property_int_get_index(ptr, prop, index);
 			else
 				value = (float)RNA_property_int_get(ptr, prop);
 			break;
 		case PROP_FLOAT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				value = RNA_property_float_get_index(ptr, prop, index);
 			else
 				value = RNA_property_float_get(ptr, prop);

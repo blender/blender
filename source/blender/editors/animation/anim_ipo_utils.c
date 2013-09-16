@@ -132,7 +132,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			propname = RNA_property_ui_name(prop);
 			
 			/* Array Index - only if applicable */
-			if (RNA_property_array_length(&ptr, prop)) {
+			if (RNA_property_array_check(prop)) {
 				char c = RNA_property_array_item_char(prop, fcu->array_index);
 				
 				/* we need to write the index to a temp buffer (in py syntax) */

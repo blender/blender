@@ -1646,19 +1646,19 @@ void ui_set_but_val(uiBut *but, double value)
 		if (RNA_property_editable(&but->rnapoin, prop)) {
 			switch (RNA_property_type(prop)) {
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&but->rnapoin, prop))
+					if (RNA_property_array_check(prop))
 						RNA_property_boolean_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_boolean_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&but->rnapoin, prop))
+					if (RNA_property_array_check(prop))
 						RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, (int)value);
 					else
 						RNA_property_int_set(&but->rnapoin, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&but->rnapoin, prop))
+					if (RNA_property_array_check(prop))
 						RNA_property_float_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_float_set(&but->rnapoin, prop, value);
@@ -3027,7 +3027,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	but->rnapoin = *ptr;
 	but->rnaprop = prop;
 
-	if (RNA_property_array_length(&but->rnapoin, but->rnaprop))
+	if (RNA_property_array_check(but->rnaprop))
 		but->rnaindex = index;
 	else
 		but->rnaindex = 0;

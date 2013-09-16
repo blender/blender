@@ -1652,19 +1652,19 @@ static void nlaevalchan_value_init(NlaEvalChannel *nec)
 	 */
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				nec->value = (float)RNA_property_boolean_get_default_index(ptr, prop, index);
 			else
 				nec->value = (float)RNA_property_boolean_get_default(ptr, prop);
 			break;
 		case PROP_INT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				nec->value = (float)RNA_property_int_get_default_index(ptr, prop, index);
 			else
 				nec->value = (float)RNA_property_int_get_default(ptr, prop);
 			break;
 		case PROP_FLOAT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_check(prop))
 				nec->value = RNA_property_float_get_default_index(ptr, prop, index);
 			else
 				nec->value = RNA_property_float_get_default(ptr, prop);
@@ -2071,19 +2071,19 @@ void nladata_flush_channels(ListBase *channels)
 		/* write values - see animsys_write_rna_setting() to sync the code */
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(ptr, prop))
+				if (RNA_property_array_check(prop))
 					RNA_property_boolean_set_index(ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
 				else
 					RNA_property_boolean_set(ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(ptr, prop))
+				if (RNA_property_array_check(prop))
 					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(ptr, prop))
+				if (RNA_property_array_check(prop))
 					RNA_property_float_set_index(ptr, prop, array_index, value);
 				else
 					RNA_property_float_set(ptr, prop, value);
