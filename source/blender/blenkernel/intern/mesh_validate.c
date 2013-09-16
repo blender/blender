@@ -922,12 +922,20 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
 {
 	bool is_valid = true;
 	bool is_change_v, is_change_e, is_change_l, is_change_p;
+	int tot_texpoly, tot_uvloop;
 	CustomDataMask mask = check_meshmask ? CD_MASK_MESH : 0;
 
 	is_valid &= mesh_validate_customdata(vdata, mask, do_verbose, do_fixes, &is_change_v);
 	is_valid &= mesh_validate_customdata(edata, mask, do_verbose, do_fixes, &is_change_e);
 	is_valid &= mesh_validate_customdata(ldata, mask, do_verbose, do_fixes, &is_change_l);
 	is_valid &= mesh_validate_customdata(pdata, mask, do_verbose, do_fixes, &is_change_p);
+
+	tot_texpoly = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+	if (tot_texpoly != tot_uvloop) {
+		PRINT_ERR("\tCustomDataLayer mismatch, tot_texpoly(%d), tot_uvloop(%d)\n",
+		          tot_texpoly, tot_uvloop);
+	}
 
 	*r_change = (is_change_v || is_change_e || is_change_l || is_change_p);
 
@@ -972,6 +980,37 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 	else {
 		return false;
 	}
+}
+
+/**
+ * Duplicate of BM_mesh_cd_validate() for Mesh data.
+ */
+void BKE_mesh_cd_validate(Mesh *me)
+{
+	int totlayer_mtex = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+	int totlayer_uv = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+
+	if (LIKELY(totlayer_mtex == totlayer_uv)) {
+		/* pass */
+	}
+	else if (totlayer_mtex < totlayer_uv) {
+		const int uv_index_first = CustomData_get_layer_index(&me->ldata, CD_MLOOPUV);
+		do {
+			const char *from_name =  me->ldata.layers[uv_index_first + totlayer_mtex].name;
+			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, from_name);
+			CustomData_set_layer_unique_name(&me->pdata, totlayer_mtex);
+		} while (totlayer_uv != ++totlayer_mtex);
+	}
+	else if (totlayer_uv < totlayer_mtex) {
+		const int mtex_index_first = CustomData_get_layer_index(&me->pdata, CD_MTEXPOLY);
+		do {
+			const char *from_name = me->pdata.layers[mtex_index_first + totlayer_uv].name;
+			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, from_name);
+			CustomData_set_layer_unique_name(&me->ldata, totlayer_uv);
+		} while (totlayer_mtex != ++totlayer_uv);
+	}
+
+	BLI_assert(totlayer_mtex == totlayer_uv);
 }
 /** \} */
 
