@@ -42,9 +42,6 @@ CWD=$PWD
 # Do not install some optional, potentially conflicting libs by default...
 WITH_ALL=false
 
-# Do not yet enable osl, use --with-osl (or --with-all) option to try it.
-WITH_OSL=false
-
 # Do not yet enable opencollada, use --with-opencollada (or --with-all) option to try it.
 WITH_OPENCOLLADA=false
 
@@ -63,7 +60,6 @@ or use --source/--install options, if you want to use other paths!
 
 Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
 Full install: \$WITH_ALL (use --with-all option to enable it).
-Building OSL: \$WITH_OSL (use --with-osl option to enable it).
 Building OpenCOLLADA: \$WITH_OPENCOLLADA (use --with-opencollada option to enable it).
 All static linking: \$ALL_STATIC (use --all-static option to enable it).
 
@@ -95,10 +91,6 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         This option will try to install them, at the cost of potential conflicts (depending on
         how your package system is set…).
         Note this option also implies all other (more specific) --with-foo options below.
-
-    --with-osl
-        Try to install or build the OpenShadingLanguage libraries (and their dependencies).
-        Still experimental!
 
     --with-opencollada
         Build and install the OpenCOLLADA libraries.
@@ -239,7 +231,7 @@ OSL_SKIP=false
 # Version??
 OPENCOLLADA_VERSION="1.3"
 OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
-OPENCOLLADA_REPO_UID="828b60384552b83e55d2af7055f07d2c40b4d3f4"
+OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
@@ -321,9 +313,6 @@ while true; do
     ;;
     --with-all)
       WITH_ALL=true; shift; continue
-    ;;
-    --with-osl)
-      WITH_OSL=true; shift; continue
     ;;
     --with-opencollada)
       WITH_OPENCOLLADA=true; shift; continue
@@ -424,7 +413,6 @@ while true; do
 done
 
 if $WITH_ALL; then
-  WITH_OSL=true
   WITH_OPENCOLLADA=true
 fi
 
@@ -1428,7 +1416,7 @@ clean_LLVM() {
 
 compile_LLVM() {
   # To be changed each time we make edits that would modify the compiled result!
-  llvm_magic=1
+  llvm_magic=2
   _init_llvm
 
   # Clean install if needed!
@@ -1533,7 +1521,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=10
+  osl_magic=11
   _init_osl
 
   # Clean install if needed!
@@ -1591,6 +1579,7 @@ compile_OSL() {
       cmake_d="$cmake_d -D OPENIMAGEIOHOME=$INST/oiio"
     fi
 
+    INFO "$LLVM_VERSION_FOUND"
     if [ ! -z $LLVM_VERSION_FOUND ]; then
       cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
       if [ -d $INST/llvm ]; then
@@ -1635,7 +1624,7 @@ clean_OpenCOLLADA() {
 
 compile_OpenCOLLADA() {
   # To be changed each time we make edits that would modify the compiled results!
-  opencollada_magic=7
+  opencollada_magic=8
   _init_opencollada
 
   # Clean install if needed!
@@ -2074,48 +2063,38 @@ install_DEB() {
     fi
   fi
 
-  if $WITH_OSL; then
-    have_llvm=false
+  have_llvm=false
 
-    if $LLVM_SKIP; then
-      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  if $LLVM_SKIP; then
+    INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  else
+    INFO ""
+    check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB llvm-dev clang
+      have_llvm=true
+      LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
+      clean_LLVM
     else
+      install_packages_DEB libffi-dev
+      # LLVM can't find the debian ffi header dir
+      _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
       INFO ""
-      check_package_DEB llvm-$LLVM_VERSION-dev
-      if [ $? -eq 0 ]; then
-        install_packages_DEB llvm-$LLVM_VERSION-dev clang
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-        clean_LLVM
-      else
-        check_package_DEB llvm-$LLVM_VERSION_MIN-dev
-        if [ $? -eq 0 ]; then
-          install_packages_DEB llvm-$LLVM_VERSION_MIN-dev clang
-          have_llvm=true
-          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-          clean_LLVM
-        else
-          install_packages_DEB libffi-dev
-          # LLVM can't find the debian ffi header dir
-          _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-          INFO ""
-          compile_LLVM
-          have_llvm=true
-          LLVM_VERSION_FOUND=$LLVM_VERSION
-        fi
-      fi
+      compile_LLVM
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
     fi
+  fi
 
-    if $OSL_SKIP; then
-      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
-    else
-      if $have_llvm; then
-        INFO ""
-        install_packages_DEB flex bison libtbb-dev
-        # No package currently!
-        INFO ""
-        compile_OSL
-      fi
+  if $OSL_SKIP; then
+    INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+  else
+    if $have_llvm; then
+      INFO ""
+      install_packages_DEB flex bison libtbb-dev
+      # No package currently!
+      INFO ""
+      compile_OSL
     fi
   fi
 
@@ -2480,52 +2459,50 @@ install_RPM() {
     fi
   fi
 
-  if $WITH_OSL; then
-    have_llvm=false
+  have_llvm=false
 
-    INFO ""
-    if $LLVM_SKIP; then
-      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
-    else
-      # Problem compiling with LLVM 3.2 so match version 3.1 ...
-      check_package_version_match_RPM llvm $LLVM_VERSION
-      if [ $? -eq 0 ]; then
-        if [ $RPM = "SUSE" ]; then
-          install_packages_RPM llvm-devel llvm-clang-devel
-        else
-          install_packages_RPM llvm-devel clang-devel
-        fi
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-        clean_LLVM
+  INFO ""
+  if $LLVM_SKIP; then
+    INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  else
+    # Problem compiling with LLVM 3.2 so match version 3.1 ...
+    check_package_version_match_RPM llvm $LLVM_VERSION
+    if [ $? -eq 0 ]; then
+      if [ $RPM = "SUSE" ]; then
+        install_packages_RPM llvm-devel llvm-clang-devel
       else
-        #
-        # Better to compile it than use minimum version from repo...
-        #
-        install_packages_RPM libffi-devel
-        # LLVM can't find the fedora ffi header dir...
-        _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-        INFO ""
-        compile_LLVM
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
+        install_packages_RPM llvm-devel clang-devel
       fi
-    fi
-
-    if $OSL_SKIP; then
-      INFO ""
-      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+      clean_LLVM
     else
-      if $have_llvm; then
-        # No package currently!
-        INFO ""
-        install_packages_RPM flex bison git
-        if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
-          install_packages_RPM tbb-devel
-        fi
-        INFO ""
-        compile_OSL
+      #
+      # Better to compile it than use minimum version from repo...
+      #
+      install_packages_RPM libffi-devel
+      # LLVM can't find the fedora ffi header dir...
+      _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+      INFO ""
+      compile_LLVM
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+    fi
+  fi
+
+  if $OSL_SKIP; then
+    INFO ""
+    INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+  else
+    if $have_llvm; then
+      # No package currently!
+      INFO ""
+      install_packages_RPM flex bison git
+      if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+        install_packages_RPM tbb-devel
       fi
+      INFO ""
+      compile_OSL
     fi
   fi
 
@@ -2767,49 +2744,47 @@ install_ARCH() {
     fi
   fi
 
-  if $WITH_OSL; then
-    have_llvm=false
+  have_llvm=false
 
-    INFO ""
-    if $LLVM_SKIP; then
-      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  INFO ""
+  if $LLVM_SKIP; then
+    INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  else
+    check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH llvm clang
+      have_llvm=true
+      LLVM_VERSION=`check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN`
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+      clean_LLVM
     else
-      check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN
-      if [ $? -eq 0 ]; then
-        install_packages_ARCH llvm clang
-        have_llvm=true
-        LLVM_VERSION=`check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN`
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-        clean_LLVM
-      else
-        install_packages_ARCH libffi
-        # LLVM can't find the arch ffi header dir...
-        _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
-        # LLVM 3.1 needs python2 to build and arch defaults to python3
-        _PYTHON2_BIN="/usr/bin/python2"
-        INFO ""
-        compile_LLVM
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-      fi
-    fi
-
-    if $OSL_SKIP; then
+      install_packages_ARCH libffi
+      # LLVM can't find the arch ffi header dir...
+      _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
+      # LLVM 3.1 needs python2 to build and arch defaults to python3
+      _PYTHON2_BIN="/usr/bin/python2"
       INFO ""
-      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
-    else
-      if $have_llvm; then
-        check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
-        if [ $? -eq 0 ]; then
-          install_packages_ARCH openshadinglanguage
-          clean_OSL
-        else
-          #XXX Note: will fail to build with LLVM 3.2! 
-          INFO ""
-          install_packages_ARCH git intel-tbb
-          INFO ""
-          compile_OSL
-        fi
+      compile_LLVM
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+    fi
+  fi
+
+  if $OSL_SKIP; then
+    INFO ""
+    INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+  else
+    if $have_llvm; then
+      check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
+      if [ $? -eq 0 ]; then
+        install_packages_ARCH openshadinglanguage
+        clean_OSL
+      else
+        #XXX Note: will fail to build with LLVM 3.2! 
+        INFO ""
+        install_packages_ARCH git intel-tbb
+        INFO ""
+        compile_OSL
       fi
     fi
   fi
@@ -2987,26 +2962,24 @@ print_info() {
     _buildargs="$_buildargs $_1"
   fi
 
-  if $WITH_OSL; then
-    _1="-D WITH_CYCLES_OSL=ON"
-    _2="-D WITH_LLVM=ON"
-    _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
+  _1="-D WITH_CYCLES_OSL=ON"
+  _2="-D WITH_LLVM=ON"
+  _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
+  INFO "  $_1"
+  INFO "  $_2"
+  INFO "  $_3"
+  _buildargs="$_buildargs $_1 $_2 $_3"
+  if [ -d $INST/osl ]; then
+    _1="-D CYCLES_OSL=$INST/osl"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
+  fi
+  if [ -d $INST/llvm ]; then
+    _1="-D LLVM_DIRECTORY=$INST/llvm"
+    _2="-D LLVM_STATIC=ON"
     INFO "  $_1"
     INFO "  $_2"
-    INFO "  $_3"
-    _buildargs="$_buildargs $_1 $_2 $_3"
-    if [ -d $INST/osl ]; then
-      _1="-D CYCLES_OSL=$INST/osl"
-      INFO "  $_1"
-      _buildargs="$_buildargs $_1"
-    fi
-    if [ -d $INST/llvm ]; then
-      _1="-D LLVM_DIRECTORY=$INST/llvm"
-      _2="-D LLVM_STATIC=ON"
-      INFO "  $_1"
-      INFO "  $_2"
-      _buildargs="$_buildargs $_1 $_2"
-    fi
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if $WITH_OPENCOLLADA; then
