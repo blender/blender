@@ -487,7 +487,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 					create_mesh(scene, mesh, b_mesh, used_shaders);
 			}
 
-			if(render_layer.use_hair && experimental)
+			if(render_layer.use_hair)
 				sync_curves(mesh, b_mesh, b_ob, object_updated);
 
 			/* free derived mesh */
