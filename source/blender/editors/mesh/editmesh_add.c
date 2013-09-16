@@ -96,15 +96,6 @@ static void make_prim_finish(bContext *C, Object *obedit, bool was_editmode, int
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }
 
-static void make_prim_radius_prop(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_property_subtype(prop, PROP_DISTANCE);
-}
-
-
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
@@ -146,7 +137,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -192,7 +183,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -250,7 +241,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 	RNA_def_enum(ot->srna, "fill_type", fill_type_items, 0, "Fill Type", "");
 
 	ED_object_add_generic_props(ot, true);
@@ -308,7 +299,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Cap Fill Type", "");
@@ -422,7 +413,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
 	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, "Y Subdivisions", "", 3, 1000);
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 
 	ED_object_add_generic_props(ot, true);
 }
@@ -474,7 +465,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ot->poll = ED_operator_scene_editable;
 
 	/* flags */
-	make_prim_radius_prop(ot);
+	ED_object_add_unit_props(ot);
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ED_object_add_generic_props(ot, true);

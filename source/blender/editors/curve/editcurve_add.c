@@ -481,7 +481,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 		if (obedit == NULL || obedit->type != OB_CURVE) {
 			Curve *cu;
 
-			obedit = ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
+			obedit = ED_object_add_type(C, OB_CURVE, loc, rot, true, layer);
 			newob = true;
 
 			cu = (Curve *)obedit->data;
@@ -496,7 +496,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	}
 	else { /* adding surface */
 		if (obedit == NULL || obedit->type != OB_SURF) {
-			obedit = ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
+			obedit = ED_object_add_type(C, OB_SURF, loc, rot, true, layer);
 			newob = true;
 		}
 		else {
@@ -520,7 +520,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, true);
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);
@@ -567,7 +567,7 @@ void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
@@ -589,7 +589,7 @@ void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
@@ -611,7 +611,7 @@ void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
@@ -633,7 +633,7 @@ void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
@@ -655,7 +655,7 @@ void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 /* **************** NURBS surfaces ********************** */
@@ -678,7 +678,7 @@ void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
@@ -700,7 +700,7 @@ void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
@@ -722,7 +722,7 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op)
@@ -744,7 +744,7 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
@@ -766,7 +766,7 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_generic_props(ot, true);
 }
 
 static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
@@ -788,5 +788,6 @@ void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, TRUE);
+	ED_object_add_unit_props(ot);
+	ED_object_add_generic_props(ot, true);
 }
