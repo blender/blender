@@ -166,7 +166,11 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip OpenCOLLADA installation/building.
 
     --skip-ffmpeg
-        Unconditionally skip FFMpeg installation/building.\""
+        Unconditionally skip FFMpeg installation/building.
+
+    --required-numpy
+        Use this in case your distro features a valid python package, but no matching Numpy one.
+        It will force compilation of both python 3.3 and numpy 1.7.\""
 
 ##### Main Vars #####
 
@@ -181,6 +185,7 @@ NUMPY_VERSION_MIN="1.7"
 NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
 NUMPY_FORCE_REBUILD=false
 NUMPY_SKIP=false
+NUMPY_REQUIRED=false
 
 BOOST_VERSION="1.51.0"
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
@@ -396,6 +401,9 @@ while true; do
     ;;
     --skip-ffmpeg)
       FFMPEG_SKIP=true; shift; continue
+    ;;
+    --required-numpy)
+      NUMPY_REQUIRED=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1974,6 +1982,7 @@ install_DEB() {
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
   else
+    _do_compile=false
     check_package_DEB python$PYTHON_VERSION_MIN-dev
     if [ $? -eq 0 ]; then
       install_packages_DEB python$PYTHON_VERSION_MIN-dev
@@ -1984,12 +1993,21 @@ install_DEB() {
         check_package_DEB python$PYTHON_VERSION_MIN-numpy
         if [ $? -eq 0 ]; then
           install_packages_DEB python$PYTHON_VERSION_MIN-numpy
+        elif $NUMPY_REQUIRED; then
+          INFO "WARNING! Valid python package but no valid numpy package!"
+          INFO "         Building both Python and Numpy from sources!"
+          _do_compile=true
         else
-          INFO "WARNING! Sorry, using python package but no numpy package available!"
+          INFO "WARNING! Sorry, using python package but no valid numpy package available!"
+          INFO "         Use --required-numpy to force building of both Python and numpy."
         fi
       fi
       clean_Python
     else
+      _do_compile=true
+    fi
+
+    if $_do_compile; then
       compile_Python
       INFO ""
       if $NUMPY_SKIP; then
@@ -2381,6 +2399,7 @@ install_RPM() {
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
   else
+    _do_compile=false
     check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM python3-devel
@@ -2391,12 +2410,21 @@ install_RPM() {
         check_package_version_match_RPM python3-numpy $NUMPY_VERSION_MIN
         if [ $? -eq 0 ]; then
           install_packages_RPM python3-numpy
+        elif $NUMPY_REQUIRED; then
+          INFO "WARNING! Valid python package but no valid numpy package!"
+          INFO "         Building both Python and Numpy from sources!"
+          _do_compile=true
         else
-          INFO "WARNING! Sorry, using python package but no numpy package available!"
+          INFO "WARNING! Sorry, using python package but no valid numpy package available!"
+          INFO "         Use --required-numpy to force building of both Python and numpy."
         fi
       fi
       clean_Python
     else
+      _do_compile=true
+    fi
+
+    if $_do_compile; then
       compile_Python
       INFO ""
       if $NUMPY_SKIP; then
@@ -2661,6 +2689,7 @@ install_ARCH() {
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
   else
+    _do_compile=false
     check_package_version_ge_ARCH python $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH python
@@ -2672,21 +2701,28 @@ install_ARCH() {
           check_package_version_ge_ARCH python-numpy $NUMPY_VERSION_MIN
           if [ $? -eq 0 ]; then
             install_packages_ARCH python-numpy
-          else
-            INFO "WARNING! Sorry, using python package but no numpy package available!"
+        elif $NUMPY_REQUIRED; then
+          INFO "WARNING! Valid python package but no valid numpy package!"
+          INFO "         Building both Python and Numpy from sources!"
+          _do_compile=true
+        else
+          INFO "WARNING! Sorry, using python package but no valid numpy package available!"
+          INFO "         Use --required-numpy to force building of both Python and numpy."
           fi
         fi
       fi
       clean_Python
     else
+      _do_compile=true
+    fi
+
+    if $_do_compile; then
       compile_Python
       INFO ""
-      if $WITH_NUMPY; then
-        if $NUMPY_SKIP; then
-          INFO "WARNING! Skipping NumPy installation, as requested..."
-        else
-          compile_Numpy
-        fi
+      if $NUMPY_SKIP; then
+        INFO "WARNING! Skipping NumPy installation, as requested..."
+      else
+        compile_Numpy
       fi
     fi
   fi
