@@ -36,6 +36,7 @@ set(INC_SYS
 set(SRC
 	curve_ops.c
 	editcurve.c
+	editcurve_add.c
 	editfont.c
 	lorem.c
 

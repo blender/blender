@@ -3308,6 +3308,33 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	}
 }
 
+void BKE_nurbList_flag_set(ListBase *editnurb, short flag)
+{
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			a = nu->pntsu;
+			bezt = nu->bezt;
+			while (a--) {
+				bezt->f1 = bezt->f2 = bezt->f3 = flag;
+				bezt++;
+			}
+		}
+		else {
+			a = nu->pntsu * nu->pntsv;
+			bp = nu->bp;
+			while (a--) {
+				bp->f1 = flag;
+				bp++;
+			}
+		}
+	}
+}
+
 void BKE_nurb_direction_switch(Nurb *nu)
 {
 	BezTriple *bezt1, *bezt2;

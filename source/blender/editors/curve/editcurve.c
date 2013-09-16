@@ -29,16 +29,6 @@
  *  \ingroup edcurve
  */
 
-#include <math.h>
-#include <string.h>
-
-#ifndef WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
-#include <stdlib.h>
-
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -49,9 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
-#include "BLI_dynstr.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BLF_translation.h"
@@ -62,7 +50,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_animsys.h"
@@ -125,11 +112,6 @@ void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, 
 static void select_adjacent_cp(ListBase *editnurb, short next, const bool cont, const bool selstatus);
 static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
 static int curve_delete_selected(Object *obedit, const eCurveElem_Types type, const bool split);
-
-static float nurbcircle[8][2] = {
-	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
-	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
-};
 
 ListBase *object_editcurve_get(Object *ob)
 {
@@ -1557,34 +1539,7 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 	return 0;
 }
 
-static void setflagsNurb(ListBase *editnurb, short flag)
-{
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a;
-
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			a = nu->pntsu;
-			bezt = nu->bezt;
-			while (a--) {
-				bezt->f1 = bezt->f2 = bezt->f3 = flag;
-				bezt++;
-			}
-		}
-		else {
-			a = nu->pntsu * nu->pntsv;
-			bp = nu->bp;
-			while (a--) {
-				bp->f1 = flag;
-				bp++;
-			}
-		}
-	}
-}
-
-static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float rotmat[3][3])
+static void rotateflagNurb(ListBase *editnurb, short flag, const float cent[3], float rotmat[3][3])
 {
 	/* all verts with (flag & 'flag') rotate */
 	Nurb *nu;
@@ -1608,7 +1563,7 @@ static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float ro
 	}
 }
 
-static void translateflagNurb(ListBase *editnurb, short flag, const float vec[3])
+void ed_editnurb_translate_flag(ListBase *editnurb, short flag, const float vec[3])
 {
 	/* all verts with ('flag' & flag) translate */
 	Nurb *nu;
@@ -1794,11 +1749,12 @@ static int deleteflagNurb(Object *obedit, short flag)
 }
 
 /* only for OB_SURF */
-static short extrudeflagNurb(EditNurb *editnurb, int flag)
+bool ed_editnurb_extrude_flag(EditNurb *editnurb, short flag)
 {
 	Nurb *nu;
 	BPoint *bp, *bpn, *newbp;
-	int ok = 0, a, u, v, len;
+	int a, u, v, len;
+	bool ok = false;
 
 	nu = editnurb->nurbs.first;
 	while (nu) {
@@ -1817,7 +1773,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 				a--;
 			}
 			if (a == 0) {
-				ok = 1;
+				ok = true;
 				newbp = (BPoint *)MEM_mallocN(2 * nu->pntsu * sizeof(BPoint), "extrudeNurb1");
 				ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
 				bp = newbp + nu->pntsu;
@@ -1851,7 +1807,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 				}
 
 				if (u == 0 || u == nu->pntsv - 1) {      /* row in u-direction selected */
-					ok = 1;
+					ok = true;
 					newbp = (BPoint *)MEM_mallocN(nu->pntsu * (nu->pntsv + 1) *
 					                              sizeof(BPoint), "extrudeNurb1");
 					if (u == 0) {
@@ -1879,7 +1835,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					BKE_nurb_knot_calc_v(nu);
 				}
 				else if (v == 0 || v == nu->pntsu - 1) {     /* column in v-direction selected */
-					ok = 1;
+					ok = true;
 					bpn = newbp = (BPoint *)MEM_mallocN((nu->pntsu + 1) * nu->pntsv * sizeof(BPoint), "extrudeNurb1");
 					bp = nu->bp;
 
@@ -4296,7 +4252,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			}
 		}
 		else {
-			setflagsNurb(editnurb, 0);
+			BKE_nurbList_flag_set(editnurb, 0);
 
 			if (bezt) {
 
@@ -4332,7 +4288,7 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 
 /* 'cent' is in object space and 'dvec' in worldspace.
  */
-static int spin_nurb(float viewmat[4][4], Object *obedit, float *axis, float *cent)
+bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], const float cent[3])
 {
 	Curve *cu = (Curve *)obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -4340,7 +4296,8 @@ static int spin_nurb(float viewmat[4][4], Object *obedit, float *axis, float *ce
 	float si, phi, n[3], q[4], cmat[3][3], tmat[3][3], imat[3][3];
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
-	short a, ok, changed = 0;
+	bool ok, changed = false;
+	int a;
 
 	copy_m3_m4(persmat, viewmat);
 	invert_m3_m3(persinv, persmat);
@@ -4379,19 +4336,19 @@ static int spin_nurb(float viewmat[4][4], Object *obedit, float *axis, float *ce
 	mul_m3_m3m3(tmat, persinv, cmat);
 	mul_m3_m3m3(scalemat2, imat, tmat);
 
-	ok = 1;
+	ok = true;
 
 	for (a = 0; a < 7; a++) {
-		ok = extrudeflagNurb(cu->editnurb, 1);
+		ok = ed_editnurb_extrude_flag(cu->editnurb, 1);
 
-		if (ok == 0)
+		if (ok == false)
 			return changed;
 
-		changed = 1;
+		changed = true;
 
 		rotateflagNurb(editnurb, SELECT, cent, rotmat);
 
-		if ((a & SELECT) == 0) {
+		if ((a & 1) == 0) {
 			rotateflagNurb(editnurb, SELECT, cent, scalemat1);
 			weightflagNurb(editnurb, SELECT, 0.25 * M_SQRT2);
 		}
@@ -4431,7 +4388,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 	else
 		unit_m4(viewmat);
 	
-	if (!spin_nurb(viewmat, obedit, axis, cent)) {
+	if (!ed_editnurb_spin(viewmat, obedit, axis, cent)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -4846,7 +4803,7 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		addvert_Nurb(C, 'e', NULL);
 	}
 	else {
-		if (extrudeflagNurb(editnurb, 1)) { /* '1'= flag */
+		if (ed_editnurb_extrude_flag(editnurb, 1)) { /* '1'= flag */
 			if (ED_curve_updateAnimPaths(obedit->data))
 				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 
@@ -5179,7 +5136,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 		if (ok) {
 			if (last == cu->lastsel) {
 				direction = 1 - direction;
-				setflagsNurb(editnurb, 0);
+				BKE_nurbList_flag_set(editnurb, 0);
 			}
 			last = cu->lastsel;
 
@@ -6453,729 +6410,6 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/************ add primitive, used by object/ module ****************/
-
-static const char *get_curve_defname(int type)
-{
-	int stype = type & CU_PRIMITIVE;
-
-	if ((type & CU_TYPE) == CU_BEZIER) {
-		switch (stype) {
-			case CU_PRIM_CURVE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "BezierCurve");
-			case CU_PRIM_CIRCLE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "BezierCircle");
-			case CU_PRIM_PATH: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "CurvePath");
-			default:
-				return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "Curve");
-		}
-	}
-	else {
-		switch (stype) {
-			case CU_PRIM_CURVE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "NurbsCurve");
-			case CU_PRIM_CIRCLE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "NurbsCircle");
-			case CU_PRIM_PATH: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "NurbsPath");
-			default:
-				return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "Curve");
-		}
-	}
-}
-
-static const char *get_surf_defname(int type)
-{
-	int stype = type & CU_PRIMITIVE;
-
-	switch (stype) {
-		case CU_PRIM_CURVE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "SurfCurve");
-		case CU_PRIM_CIRCLE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "SurfCircle");
-		case CU_PRIM_PATCH: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "SurfPatch");
-		case CU_PRIM_SPHERE: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "SurfSphere");
-		case CU_PRIM_DONUT: return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "SurfTorus");
-		default:
-			return CTX_DATA_(BLF_I18NCONTEXT_ID_CURVE, "Surface");
-	}
-}
-
-
-Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type, int newob)
-{
-	static int xzproj = 0;   /* this function calls itself... */
-	ListBase *editnurb = object_editcurve_get(obedit);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
-	Nurb *nu = NULL;
-	BezTriple *bezt;
-	BPoint *bp;
-	Curve *cu = (Curve *)obedit->data;
-	float vec[3], zvec[3] = {0.0f, 0.0f, 1.0f};
-	float umat[4][4] = MAT4_UNITY, viewmat[4][4] = MAT4_UNITY;
-	float fac;
-	int a, b;
-	const float grid = v3d ? v3d->grid : 1.0f;
-	const int cutype = (type & CU_TYPE); // poly, bezier, nurbs, etc
-	const int stype = (type & CU_PRIMITIVE);
-	const int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
-
-	if (rv3d) {
-		copy_m4_m4(viewmat, rv3d->viewmat);
-		copy_v3_v3(zvec, rv3d->viewinv[2]);
-	}
-
-	setflagsNurb(editnurb, 0);
-	
-	/* these types call this function to return a Nurb */
-	if (stype != CU_PRIM_TUBE && stype != CU_PRIM_DONUT) {
-		nu = (Nurb *)MEM_callocN(sizeof(Nurb), "addNurbprim");
-		nu->type = cutype;
-		nu->resolu = cu->resolu;
-		nu->resolv = cu->resolv;
-	}
-
-	switch (stype) {
-		case CU_PRIM_CURVE: /* curve */
-			nu->resolu = cu->resolu;
-			if (cutype == CU_BEZIER) {
-				if (!force_3d) nu->flag |= CU_2D;
-				nu->pntsu = 2;
-				nu->bezt = (BezTriple *)MEM_callocN(2 * sizeof(BezTriple), "addNurbprim1");
-				bezt = nu->bezt;
-				bezt->h1 = bezt->h2 = HD_ALIGN;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->radius = 1.0;
-
-				bezt->vec[1][0] += -grid;
-				bezt->vec[0][0] += -1.5f * grid;
-				bezt->vec[0][1] += -0.5f * grid;
-				bezt->vec[2][0] += -0.5f * grid;
-				bezt->vec[2][1] +=  0.5f * grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-
-				bezt++;
-				bezt->h1 = bezt->h2 = HD_ALIGN;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->radius = bezt->weight = 1.0;
-
-				bezt->vec[0][0] = 0;
-				bezt->vec[0][1] = 0;
-				bezt->vec[1][0] = grid;
-				bezt->vec[1][1] = 0;
-				bezt->vec[2][0] = grid * 2;
-				bezt->vec[2][1] = 0;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-
-				BKE_nurb_handles_calc(nu);
-			}
-			else {
-
-				nu->pntsu = 4;
-				nu->pntsv = 1;
-				nu->orderu = 4;
-				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 4, "addNurbprim3");
-
-				bp = nu->bp;
-				for (a = 0; a < 4; a++, bp++) {
-					bp->vec[3] = 1.0;
-					bp->f1 = SELECT;
-					bp->radius = bp->weight = 1.0;
-				}
-
-				bp = nu->bp;
-				bp->vec[0] += -1.5f * grid;
-				bp++;
-				bp->vec[0] += -grid;
-				bp->vec[1] +=  grid;
-				bp++;
-				bp->vec[0] += grid;
-				bp->vec[1] += grid;
-				bp++;
-				bp->vec[0] += 1.5f * grid;
-
-				bp = nu->bp;
-				for (a = 0; a < 4; a++, bp++) mul_m4_v3(mat, bp->vec);
-
-				if (cutype == CU_NURBS) {
-					nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
-					BKE_nurb_knot_calc_u(nu);
-				}
-			
-			}
-			break;
-		case CU_PRIM_PATH: /* 5 point path */
-			nu->pntsu = 5;
-			nu->pntsv = 1;
-			nu->orderu = 5;
-			nu->flagu = CU_NURB_ENDPOINT; /* endpoint */
-			nu->resolu = cu->resolu;
-			nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim3");
-
-			bp = nu->bp;
-			for (a = 0; a < 5; a++, bp++) {
-				bp->vec[3] = 1.0;
-				bp->f1 = SELECT;
-				bp->radius = bp->weight = 1.0;
-			}
-
-			bp = nu->bp;
-			bp->vec[0] += -2.0f * grid;
-			bp++;
-			bp->vec[0] += -grid;
-			bp++; bp++;
-			bp->vec[0] += grid;
-			bp++;
-			bp->vec[0] += 2.0f * grid;
-
-			bp = nu->bp;
-			for (a = 0; a < 5; a++, bp++) mul_m4_v3(mat, bp->vec);
-
-			if (cutype == CU_NURBS) {
-				nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
-				BKE_nurb_knot_calc_u(nu);
-			}
-
-			break;
-		case CU_PRIM_CIRCLE: /* circle */
-			nu->resolu = cu->resolu;
-			
-			if (cutype == CU_BEZIER) {
-				if (!force_3d) nu->flag |= CU_2D;
-				nu->pntsu = 4;
-				nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * 4, "addNurbprim1");
-				nu->flagu = CU_NURB_CYCLIC;
-				bezt = nu->bezt;
-
-				bezt->h1 = bezt->h2 = HD_AUTO;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->vec[1][0] += -grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-				bezt->radius = bezt->weight = 1.0;
-
-				bezt++;
-				bezt->h1 = bezt->h2 = HD_AUTO;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->vec[1][1] += grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-				bezt->radius = bezt->weight = 1.0;
-
-				bezt++;
-				bezt->h1 = bezt->h2 = HD_AUTO;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->vec[1][0] += grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-				bezt->radius = bezt->weight = 1.0;
-
-				bezt++;
-				bezt->h1 = bezt->h2 = HD_AUTO;
-				bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-				bezt->vec[1][1] += -grid;
-				for (a = 0; a < 3; a++) mul_m4_v3(mat, bezt->vec[a]);
-				bezt->radius = bezt->weight = 1.0;
-				
-				BKE_nurb_handles_calc(nu);
-			}
-			else if (cutype == CU_NURBS) { /* nurb */
-				nu->pntsu = 8;
-				nu->pntsv = 1;
-				nu->orderu = 4;
-				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 8, "addNurbprim6");
-				nu->flagu = CU_NURB_CYCLIC;
-				bp = nu->bp;
-
-				for (a = 0; a < 8; a++) {
-					bp->f1 = SELECT;
-					if (xzproj == 0) {
-						bp->vec[0] += nurbcircle[a][0] * grid;
-						bp->vec[1] += nurbcircle[a][1] * grid;
-					}
-					else {
-						bp->vec[0] += 0.25f * nurbcircle[a][0] * grid - 0.75f * grid;
-						bp->vec[2] += 0.25f * nurbcircle[a][1] * grid;
-					}
-					if (a & 1) bp->vec[3] = 0.25 * M_SQRT2;
-					else bp->vec[3] = 1.0;
-					mul_m4_v3(mat, bp->vec);
-					bp->radius = bp->weight = 1.0;
-
-					bp++;
-				}
-
-				BKE_nurb_knot_calc_u(nu);
-			}
-			break;
-		case CU_PRIM_PATCH: /* 4x4 patch */
-			if (cutype == CU_NURBS) { /* nurb */
-
-				nu->pntsu = 4;
-				nu->pntsv = 4;
-				nu->orderu = 4;
-				nu->orderv = 4;
-				nu->flag = CU_SMOOTH;
-				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * (4 * 4), "addNurbprim6");
-				nu->flagu = 0;
-				nu->flagv = 0;
-				bp = nu->bp;
-
-				for (a = 0; a < 4; a++) {
-					for (b = 0; b < 4; b++) {
-						bp->f1 = SELECT;
-						fac = (float)a - 1.5f;
-						bp->vec[0] += fac * grid;
-						fac = (float)b - 1.5f;
-						bp->vec[1] += fac * grid;
-						if ((a == 1 || a == 2) && (b == 1 || b == 2)) {
-							bp->vec[2] += grid;
-						}
-						mul_m4_v3(mat, bp->vec);
-						bp->vec[3] = 1.0;
-						bp++;
-					}
-				}
-
-				BKE_nurb_knot_calc_u(nu);
-				BKE_nurb_knot_calc_v(nu);
-			}
-			break;
-		case CU_PRIM_TUBE: /* Cylinder */
-			if (cutype == CU_NURBS) {
-				nu = add_nurbs_primitive(C, obedit, mat, CU_NURBS | CU_PRIM_CIRCLE, 0); /* circle */
-				nu->resolu = cu->resolu;
-				nu->flag = CU_SMOOTH;
-				BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
-				vec[0] = vec[1] = 0.0;
-				vec[2] = -grid;
-
-				mul_mat3_m4_v3(mat, vec);
-
-				translateflagNurb(editnurb, 1, vec);
-				extrudeflagNurb(cu->editnurb, 1);
-				mul_v3_fl(vec, -2.0f);
-				translateflagNurb(editnurb, 1, vec);
-
-				BLI_remlink(editnurb, nu);
-
-				a = nu->pntsu * nu->pntsv;
-				bp = nu->bp;
-				while (a-- > 0) {
-					bp->f1 |= SELECT;
-					bp++;
-				}
-			}
-			break;
-		case CU_PRIM_SPHERE: /* sphere */
-			if (cutype == CU_NURBS) {
-				float tmp_cent[3] = {0.f, 0.f, 0.f};
-				float tmp_vec[3] = {0.f, 0.f, 1.f};
-
-				nu->pntsu = 5;
-				nu->pntsv = 1;
-				nu->orderu = 3;
-				nu->resolu = cu->resolu;
-				nu->resolv = cu->resolv;
-				nu->flag = CU_SMOOTH;
-				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim6");
-				nu->flagu = 0;
-				bp = nu->bp;
-
-				for (a = 0; a < 5; a++) {
-					bp->f1 = SELECT;
-					bp->vec[0] += nurbcircle[a][0] * grid;
-					bp->vec[2] += nurbcircle[a][1] * grid;
-					if (a & 1) bp->vec[3] = 0.5 * M_SQRT2;
-					else bp->vec[3] = 1.0;
-					mul_m4_v3(mat, bp->vec);
-					bp++;
-				}
-				nu->flagu = CU_NURB_BEZIER;
-				BKE_nurb_knot_calc_u(nu);
-
-				BLI_addtail(editnurb, nu); /* temporal for spin */
-
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-				else if ((U.flag & USER_ADD_VIEWALIGNED)) spin_nurb(viewmat, obedit, zvec, mat[3]);
-				else spin_nurb(umat, obedit, tmp_vec, mat[3]);
-
-				BKE_nurb_knot_calc_v(nu);
-
-				a = nu->pntsu * nu->pntsv;
-				bp = nu->bp;
-				while (a-- > 0) {
-					bp->f1 |= SELECT;
-					bp++;
-				}
-				BLI_remlink(editnurb, nu);
-			}
-			break;
-		case CU_PRIM_DONUT: /* torus */
-			if (cutype == CU_NURBS) {
-				float tmp_cent[3] = {0.f, 0.f, 0.f};
-				float tmp_vec[3] = {0.f, 0.f, 1.f};
-
-				xzproj = 1;
-				nu = add_nurbs_primitive(C, obedit, mat, CU_NURBS | CU_PRIM_CIRCLE, 0); /* circle */
-				xzproj = 0;
-				nu->resolu = cu->resolu;
-				nu->resolv = cu->resolv;
-				nu->flag = CU_SMOOTH;
-				BLI_addtail(editnurb, nu); /* temporal for spin */
-
-				/* same as above */
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-				else if ((U.flag & USER_ADD_VIEWALIGNED)) spin_nurb(viewmat, obedit, zvec, mat[3]);
-				else spin_nurb(umat, obedit, tmp_vec, mat[3]);
-
-
-				BLI_remlink(editnurb, nu);
-
-				a = nu->pntsu * nu->pntsv;
-				bp = nu->bp;
-				while (a-- > 0) {
-					bp->f1 |= SELECT;
-					bp++;
-				}
-
-			}
-			break;
-
-		default: /* should never happen */
-			BLI_assert(!"invalid nurbs type");
-			return NULL;
-	}
-
-	BLI_assert(nu != NULL);
-
-	if (nu) { /* should always be set */
-		nu->flag |= CU_SMOOTH;
-
-		BKE_nurb_test2D(nu);
-	}
-
-	return nu;
-}
-
-static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	ListBase *editnurb;
-	Nurb *nu;
-	bool newob = false;
-	bool enter_editmode, is_view_aligned;
-	unsigned int layer;
-	float loc[3], rot[3];
-	float mat[4][4];
-
-	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_view_aligned))
-		return OPERATOR_CANCELLED;
-
-	if (!isSurf) { /* adding curve */
-		if (obedit == NULL || obedit->type != OB_CURVE) {
-			Curve *cu;
-
-			obedit = ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
-			newob = true;
-
-			cu = (Curve *)obedit->data;
-			cu->flag |= CU_DEFORM_FILL;
-
-			if (type & CU_PRIM_PATH)
-				cu->flag |= CU_PATH | CU_3D;
-		}
-		else {
-			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-		}
-	}
-	else { /* adding surface */
-		if (obedit == NULL || obedit->type != OB_SURF) {
-			obedit = ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
-			newob = true;
-		}
-		else {
-			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-		}
-	}
-
-	/* rename here, the undo stack checks name for valid undo pushes */
-	if (newob) {
-		if (obedit->type == OB_CURVE) {
-			rename_id((ID *)obedit, get_curve_defname(type));
-			rename_id((ID *)obedit->data, get_curve_defname(type));
-		}
-		else {
-			rename_id((ID *)obedit, get_surf_defname(type));
-			rename_id((ID *)obedit->data, get_surf_defname(type));
-		}
-	}
-
-	/* ED_object_add_type doesnt do an undo, is needed for redo operator on primitive */
-	if (newob && enter_editmode)
-		ED_undo_push(C, "Enter Editmode");
-
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
-
-	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
-	editnurb = object_editcurve_get(obedit);
-	BLI_addtail(editnurb, nu);
-
-	/* userdef */
-	if (newob && !enter_editmode) {
-		ED_object_editmode_exit(C, EM_FREEDATA);
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
-
-	return OPERATOR_FINISHED;
-}
-
-static int curve_prim_add(bContext *C, wmOperator *op, int type)
-{
-	return curvesurf_prim_add(C, op, type, 0);
-}
-
-static int surf_prim_add(bContext *C, wmOperator *op, int type)
-{
-	return curvesurf_prim_add(C, op, type, 1);
-}
-
-/* ******************** Curves ******************* */
-
-static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
-{
-	return curve_prim_add(C, op, CU_BEZIER | CU_PRIM_CURVE);
-}
-
-void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Bezier";
-	ot->description = "Construct a Bezier Curve";
-	ot->idname = "CURVE_OT_primitive_bezier_curve_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_bezier_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
-{
-	return curve_prim_add(C, op, CU_BEZIER | CU_PRIM_CIRCLE);
-}
-
-void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Bezier Circle";
-	ot->description = "Construct a Bezier Circle";
-	ot->idname = "CURVE_OT_primitive_bezier_circle_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_bezier_circle_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
-{
-	return curve_prim_add(C, op, CU_NURBS | CU_PRIM_CURVE);
-}
-
-void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Nurbs Curve";
-	ot->description = "Construct a Nurbs Curve";
-	ot->idname = "CURVE_OT_primitive_nurbs_curve_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_curve_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
-{
-	return curve_prim_add(C, op, CU_NURBS | CU_PRIM_CIRCLE);
-}
-
-void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Nurbs Circle";
-	ot->description = "Construct a Nurbs Circle";
-	ot->idname = "CURVE_OT_primitive_nurbs_circle_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_circle_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
-{
-	return curve_prim_add(C, op, CU_NURBS | CU_PRIM_PATH);
-}
-
-void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Path";
-	ot->description = "Construct a Path";
-	ot->idname = "CURVE_OT_primitive_nurbs_path_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_curve_path_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-/* **************** NURBS surfaces ********************** */
-static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_CURVE | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Curve";
-	ot->description = "Construct a Nurbs surface Curve";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_curve_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_curve_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_CIRCLE | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Circle";
-	ot->description = "Construct a Nurbs surface Circle";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_circle_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_circle_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_PATCH | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Patch";
-	ot->description = "Construct a Nurbs surface Patch";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_surface_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_surface_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_TUBE | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Cylinder";
-	ot->description = "Construct a Nurbs surface Cylinder";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_cylinder_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_SPHERE | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Sphere";
-	ot->description = "Construct a Nurbs surface Sphere";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_sphere_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_sphere_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
-
-static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
-{
-	return surf_prim_add(C, op, CU_PRIM_DONUT | CU_NURBS);
-}
-
-void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Add Surface Torus";
-	ot->description = "Construct a Nurbs surface Torus";
-	ot->idname = "SURFACE_OT_primitive_nurbs_surface_torus_add";
-
-	/* api callbacks */
-	ot->exec = add_primitive_nurbs_surface_torus_exec;
-	ot->poll = ED_operator_scene_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	ED_object_add_generic_props(ot, TRUE);
-}
 
 /***************** clear tilt operator ********************/
 

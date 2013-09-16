@@ -23,6 +23,7 @@
  */
 
 
+#include "BLI_sys_types.h"
 #include "curve_intern.h"
 
 const char ED_lorem[] = {

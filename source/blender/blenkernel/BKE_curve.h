@@ -115,6 +115,7 @@ void BKE_nurbList_duplicate(struct ListBase *lb1,  struct ListBase *lb2);
 void BKE_nurbList_handles_set(struct ListBase *editnurb, short code);
 
 void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag);
+void BKE_nurbList_flag_set(ListBase *editnurb, short flag);
 
 void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(struct Nurb *nu);
