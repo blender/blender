@@ -237,12 +237,6 @@ static int rna_SculptToolCapabilities_has_strength_get(PointerRNA *ptr)
 	return !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
 }
 
-static int rna_SculptToolCapabilities_has_frontface_get(PointerRNA *ptr)
-{
-	Brush *br = (Brush *)ptr->data;
-	return !BKE_sculpt_brush_frontface_only(br);
-}
-
 static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -562,7 +556,6 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	SCULPT_TOOL_CAPABILITY(has_smooth_stroke, "Has Smooth Stroke");
 	SCULPT_TOOL_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
 	SCULPT_TOOL_CAPABILITY(has_strength, "Has Strength");
-	SCULPT_TOOL_CAPABILITY(has_frontface, "Has Front Facing");
 
 #undef SCULPT_CAPABILITY
 }

@@ -318,8 +318,6 @@ typedef struct StrokeCache {
 	float plane_trim_squared;
 
 	rcti previous_r; /* previous redraw rectangle */
-
-	bool frontface; /* use front face */
 } StrokeCache;
 
 /************** Access to original unmodified vertex data *************/
@@ -671,10 +669,10 @@ static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loca
 	}
 }
 
-static float frontface(bool ff, const float sculpt_normal[3],
+static float frontface(Brush *br, const float sculpt_normal[3],
                        const short no[3], const float fno[3])
 {
-	if (ff) {
+	if (br->flag & BRUSH_FRONTFACE) {
 		float dot;
 
 		if (no) {
@@ -1011,7 +1009,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 	/* Falloff curve */
 	avg *= BKE_brush_curve_strength(br, len, cache->radius);
 
-	avg *= frontface(cache->frontface, sculpt_normal, vno, fno);
+	avg *= frontface(br, sculpt_normal, vno, fno);
 
 	/* Paint mask */
 	avg *= 1.0f - mask;
@@ -1289,13 +1287,13 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 
 /* Test whether the StrokeCache.sculpt_normal needs update in
  * do_brush_action() */
-static int brush_needs_sculpt_normal(const Brush *brush, SculptSession *ss)
+static int brush_needs_sculpt_normal(const Brush *brush)
 {
 	return ((ELEM(brush->sculpt_tool,
 	              SCULPT_TOOL_GRAB,
 	              SCULPT_TOOL_SNAKE_HOOK) &&
 	         ((brush->normal_weight > 0) ||
-	          ss->cache->frontface)) ||
+	          (brush->flag & BRUSH_FRONTFACE))) ||
 
 	        ELEM7(brush->sculpt_tool,
 	              SCULPT_TOOL_BLOB,
@@ -3139,7 +3137,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			BKE_pbvh_node_mark_update(nodes[n]);
 		}
 
-		if (brush_needs_sculpt_normal(brush, ss))
+		if (brush_needs_sculpt_normal(brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
@@ -3905,10 +3903,10 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		cache->original = 1;
 	}
 
-	if (ELEM8(brush->sculpt_tool,
+	if (ELEM9(brush->sculpt_tool,
 	          SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
 	          SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
-	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE))
+	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE, SCULPT_TOOL_FLATTEN))
 	{
 		if (!(brush->flag & BRUSH_ACCUMULATE)) {
 			cache->original = 1;
@@ -3921,9 +3919,6 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->num_vertex_turns = 0;
 	cache->previous_vertex_rotation = 0;
 	cache->init_dir_set = false;
-
-	cache->frontface = ((brush->flag & BRUSH_FRONTFACE) != 0) ||
-	                     BKE_sculpt_brush_frontface_only(brush);
 
 	sculpt_omp_start(sd, ss);
 }

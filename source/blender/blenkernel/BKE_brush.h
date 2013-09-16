@@ -111,8 +111,5 @@ void BKE_brush_scale_size(int *BKE_brush_size_get,
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
 
-/* sculpt */
-bool BKE_sculpt_brush_frontface_only(struct Brush *);
-
 #endif
 
