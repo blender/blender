@@ -643,21 +643,17 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	}
 
 	if (load_tex_cursor(brush, vc, zoom)) {
+		bool do_pop = false;
+		float center[2];
 		glEnable(GL_BLEND);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_FALSE);
 		glDepthFunc(GL_ALWAYS);
 
-		/* scale based on tablet pressure */
-		if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
-			glTranslatef(0.5f, 0.5f, 0);
-			glScalef(1.0f / ups->pressure_value, 1.0f / ups->pressure_value, 1);
-			glTranslatef(-0.5f, -0.5f, 0);
-		}
-
 		if (ups->draw_anchored) {
 			const float *aim = ups->anchored_initial_mouse;
+			copy_v2_v2(center, aim);
 			quad.xmin = aim[0] - ups->anchored_size;
 			quad.ymin = aim[1] - ups->anchored_size;
 			quad.xmax = aim[0] + ups->anchored_size;
@@ -665,10 +661,23 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 		else {
 			const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
+			center[0] = x;
+			center[1] = y;
+
 			quad.xmin = x - radius;
 			quad.ymin = y - radius;
 			quad.xmax = x + radius;
 			quad.ymax = y + radius;
+		}
+
+		/* scale based on tablet pressure */
+		if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
+			do_pop = true;
+			glPushMatrix();
+			glLoadIdentity();
+			glTranslatef(center[0], center[1], 0);
+			glScalef(ups->pressure_value, ups->pressure_value, 1);
+			glTranslatef(-center[0], -center[1], 0);
 		}
 
 		glColor4f(U.sculpt_paint_overlay_col[0],
@@ -687,6 +696,9 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glTexCoord2f(0, 1);
 		glVertex2f(quad.xmin, quad.ymax);
 		glEnd();
+
+		if (do_pop)
+			glPopMatrix();
 	}
 }
 
