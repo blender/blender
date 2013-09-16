@@ -48,7 +48,7 @@ WITH_OPENCOLLADA=false
 # Try to link everything statically. Use this to produce portable versions of blender.
 ALL_STATIC=false
 
-THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
+THREADS=`cat /proc/cpuinfo | grep siblings | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 if [ -z "$THREADS" ]; then
   THREADS=1
 fi
