@@ -1729,10 +1729,14 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 			continue;
 		}
 		else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
-			/* compouned text faile, move to text. */
+			/* compouned text fail, move to text. */
 			context = XCLIB_XCOUT_NONE;
 			target = m_atom.TEXT;
 			continue;
+		}
+		else if (context == XCLIB_XCOUT_FALLBACK_TEXT) {
+			/* text fail, nothing else to try, break. */
+			context = XCLIB_XCOUT_NONE;
 		}
 
 		/* only continue if xcout() is doing something */
