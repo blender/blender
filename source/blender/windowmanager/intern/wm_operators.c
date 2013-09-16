@@ -892,33 +892,33 @@ void WM_operator_properties_free(PointerRNA *ptr)
 
 /* ************ default op callbacks, exported *********** */
 
-int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *UNUSED(event))
+void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
+	if (op->flag & OP_IS_INVOKE) {
+		Scene *scene = CTX_data_scene(C);
+		View3D *v3d = CTX_wm_view3d(C);
 
-	const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
+		const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
 
-	/* always run, so the values are initialized,
-	 * otherwise we may get differ behavior when (dia != 1.0) */
-	RNA_STRUCT_BEGIN (op->ptr, prop)
-	{
-		if (RNA_property_type(prop) == PROP_FLOAT) {
-			PropertySubType pstype = RNA_property_subtype(prop);
-			if (pstype == PROP_DISTANCE) {
-				/* we don't support arrays yet */
-				BLI_assert(RNA_property_array_check(prop) == FALSE);
-				/* initialize */
-				if (!RNA_property_is_set_ex(op->ptr, prop, FALSE)) {
-					const float value = RNA_property_float_get_default(op->ptr, prop) * dia;
-					RNA_property_float_set(op->ptr, prop, value);
+		/* always run, so the values are initialized,
+		 * otherwise we may get differ behavior when (dia != 1.0) */
+		RNA_STRUCT_BEGIN (op->ptr, prop)
+		{
+			if (RNA_property_type(prop) == PROP_FLOAT) {
+				PropertySubType pstype = RNA_property_subtype(prop);
+				if (pstype == PROP_DISTANCE) {
+					/* we don't support arrays yet */
+					BLI_assert(RNA_property_array_check(prop) == FALSE);
+					/* initialize */
+					if (!RNA_property_is_set_ex(op->ptr, prop, FALSE)) {
+						const float value = RNA_property_float_get_default(op->ptr, prop) * dia;
+						RNA_property_float_set(op->ptr, prop, value);
+					}
 				}
 			}
 		}
+		RNA_STRUCT_END;
 	}
-	RNA_STRUCT_END;
-
-	return op->type->exec(C, op);
 }
 
 int WM_operator_smooth_viewtx_get(const wmOperator *op)

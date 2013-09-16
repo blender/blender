@@ -578,6 +578,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	float mat[4][4];
 	float dia;
 
+	WM_operator_view3d_unit_defaults(C, op);
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
@@ -585,12 +586,14 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		obedit = ED_object_add_type(C, OB_MBALL, loc, rot, TRUE, layer);
 		newob = true;
 	}
-	else
+	else {
 		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	}
 
-	dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, FALSE);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, false);
+	dia = RNA_float_get(op->ptr, "radius");
 
-	add_metaball_primitive(C, obedit, mat, dia, RNA_enum_get(op->ptr, "type"), newob);
+	add_metaball_primitive(C, obedit, mat, dia, RNA_enum_get(op->ptr, "type"));
 
 	/* userdef */
 	if (newob && !enter_editmode) {
@@ -610,7 +613,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_metaball_add";
 
 	/* api callbacks */
-	ot->invoke = WM_menu_invoke;/* object_metaball_add_invoke; */
+	ot->invoke = WM_menu_invoke;
 	ot->exec = object_metaball_add_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -619,6 +622,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 
 	ot->prop = RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, TRUE);
 }
 

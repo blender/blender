@@ -45,6 +45,8 @@
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -471,8 +473,11 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	bool newob = false;
 	bool enter_editmode, is_view_aligned;
 	unsigned int layer;
+	float dia;
 	float loc[3], rot[3];
 	float mat[4][4];
+
+	WM_operator_view3d_unit_defaults(C, op);
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_view_aligned))
 		return OPERATOR_CANCELLED;
@@ -520,7 +525,11 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, true);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, false);
+	dia = RNA_float_get(op->ptr, "radius");
+	mat[0][0] *= dia;
+	mat[1][1] *= dia;
+	mat[2][2] *= dia;
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);
@@ -567,6 +576,7 @@ void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -589,6 +599,7 @@ void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -611,6 +622,7 @@ void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -633,6 +645,7 @@ void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -655,6 +668,7 @@ void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -678,6 +692,7 @@ void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -700,6 +715,7 @@ void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -722,6 +738,7 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -744,6 +761,7 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 
@@ -766,6 +784,7 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 

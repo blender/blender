@@ -98,7 +98,7 @@ void load_editMball(Object *UNUSED(obedit))
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
-MetaElem *add_metaball_primitive(bContext *UNUSED(C), Object *obedit, float mat[4][4], float dia, int type, int UNUSED(newname))
+MetaElem *add_metaball_primitive(bContext *UNUSED(C), Object *obedit, float mat[4][4], float dia, int type)
 {
 	MetaBall *mball = (MetaBall *)obedit->data;
 	MetaElem *ml;

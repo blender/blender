@@ -227,7 +227,7 @@ class INFO_MT_curve_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
         layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
         layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
@@ -242,7 +242,7 @@ class INFO_MT_surface_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
         layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
         layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
@@ -297,7 +297,9 @@ class INFO_MT_add(Menu):
         layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
         #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
         layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
         layout.separator()
 
