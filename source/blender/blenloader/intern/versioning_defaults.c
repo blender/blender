@@ -27,6 +27,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_freestyle_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -39,8 +41,17 @@
 void BLO_update_defaults_startup_blend(Main *main)
 {
 	Scene *scene;
+	SceneRenderLayer *srl;
+	FreestyleLineStyle *linestyle;
 
-	for (scene = main->scene.first; scene; scene = scene->id.next)
+	for (scene = main->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
+
+		for (srl = scene->r.layers.first; srl; srl = srl->next)
+			srl->freestyleConfig.sphere_radius = 0.1f;
+	}
+
+	for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next)
+		linestyle->flag = LS_SAME_OBJECT;
 }
 
