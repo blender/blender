@@ -165,10 +165,11 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	/* sync object should be re-created */
 	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 
-	if(b_rv3d) {
-		sync->sync_data(b_v3d, b_engine.camera_override());
-		sync->sync_camera(b_render, b_engine.camera_override(), width, height);
-	}
+	/* for final render we will do full data sync per render layer, only
+	 * do some basic syncing here, no objects or materials for speed */
+	sync->sync_render_layers(b_v3d, NULL);
+	sync->sync_integrator();
+	sync->sync_camera(b_render, b_engine.camera_override(), width, height);
 
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
