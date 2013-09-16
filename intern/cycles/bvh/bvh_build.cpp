@@ -284,9 +284,13 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 	float leafSAH = params.sah_triangle_cost * range.leafSAH;
 	float splitSAH = params.sah_node_cost * range.bounds().half_area() + params.sah_triangle_cost * range.splitSAH;
 
-	/* make leaf node when threshold reached or SAH tells us */
-	if(params.small_enough_for_leaf(size, level) || (size <= params.max_leaf_size && leafSAH < splitSAH))
-		return create_leaf_node(range);
+	/* have at least one inner node on top level, for performance and correct
+	 * visibility tests, since object instances do not check visibility flag */
+	if(!(params.top_level && level == 0)) {
+		/* make leaf node when threshold reached or SAH tells us */
+		if(params.small_enough_for_leaf(size, level) || (size <= params.max_leaf_size && leafSAH < splitSAH))
+			return create_leaf_node(range);
+	}
 
 	/* perform split */
 	BVHObjectBinning left, right;
@@ -322,17 +326,21 @@ BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
 		return NULL;
 
 	/* small enough or too deep => create leaf. */
-	if(params.small_enough_for_leaf(range.size(), level)) {
-		progress_count += range.size();
-		return create_leaf_node(range);
+	if(!(params.top_level && level == 0)) {
+		if(params.small_enough_for_leaf(range.size(), level)) {
+			progress_count += range.size();
+			return create_leaf_node(range);
+		}
 	}
 
 	/* splitting test */
 	BVHMixedSplit split(this, range, level);
 
-	if(split.no_split) {
-		progress_count += range.size();
-		return create_leaf_node(range);
+	if(!(params.top_level && level == 0)) {
+		if(split.no_split) {
+			progress_count += range.size();
+			return create_leaf_node(range);
+		}
 	}
 	
 	/* do split */
