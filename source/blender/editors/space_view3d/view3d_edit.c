@@ -489,10 +489,15 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 	}
 	else if (U.uiflag & USER_ZBUF_ORBIT) {
 		Scene *scene = CTX_data_scene(C);
+		float fallback_depth_pt[3];
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
-		if ((vod->use_dyn_ofs = ED_view3d_autodist(scene, vod->ar, vod->v3d, event->mval, vod->dyn_ofs, true))) {
+		negate_v3_v3(fallback_depth_pt, rv3d->ofs);
+
+		if ((vod->use_dyn_ofs = ED_view3d_autodist(scene, vod->ar, vod->v3d,
+		                                           event->mval, vod->dyn_ofs, true, fallback_depth_pt)))
+		{
 			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
@@ -521,6 +526,14 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 				vod->dist_prev = rv3d->dist = len_v3v3(my_pivot, dvec);
 
 				negate_v3_v3(rv3d->ofs, dvec);
+			}
+			else {
+				float mval_ar_mid[2] = {
+				    (float)vod->ar->winx / 2.0f,
+				    (float)vod->ar->winy / 2.0f};
+
+				ED_view3d_win_to_3d(vod->ar, vod->dyn_ofs, mval_ar_mid, rv3d->ofs);
+				negate_v3(rv3d->ofs);
 			}
 			negate_v3(vod->dyn_ofs);
 			copy_v3_v3(vod->ofs, rv3d->ofs);
@@ -2310,8 +2323,8 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 }
 
 static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
-                                          const float min[3], const float max[3],
-                                          bool ok_dist, const int smooth_viewtx)
+                               const float min[3], const float max[3],
+                               bool ok_dist, const int smooth_viewtx)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float afm[3];
@@ -2744,7 +2757,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 		view3d_operator_needs_opengl(C);
 
-		if (ED_view3d_autodist(scene, ar, v3d, event->mval, new_ofs, false)) {
+		if (ED_view3d_autodist(scene, ar, v3d, event->mval, new_ofs, false, NULL)) {
 			/* pass */
 		}
 		else {
@@ -4083,7 +4096,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 
 		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
 			view3d_operator_needs_opengl(C);
-			if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true))
+			if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true, NULL))
 				depth_used = true;
 		}
 
@@ -4255,7 +4268,9 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
-bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3], bool alphaoverride)
+bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d,
+                        const int mval[2], float mouse_worldloc[3],
+                        const bool alphaoverride, const float fallback_depth_pt[3])
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close;
@@ -4267,22 +4282,27 @@ bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2
 
 	depth_close = view_autodist_depth_margin(ar, mval, 4);
 
-	if (depth_close == FLT_MAX)
-		return false;
+	if (depth_close != FLT_MAX) {
+		cent[0] = (double)mval[0];
+		cent[1] = (double)mval[1];
 
-	cent[0] = (double)mval[0];
-	cent[1] = (double)mval[1];
-
-	if (!gluUnProject(cent[0], cent[1], depth_close,
-	                  mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
-	{
-		return false;
+		if (gluUnProject(cent[0], cent[1], depth_close,
+		                 mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
+		{
+			mouse_worldloc[0] = (float)p[0];
+			mouse_worldloc[1] = (float)p[1];
+			mouse_worldloc[2] = (float)p[2];
+			return true;
+		}
 	}
 
-	mouse_worldloc[0] = (float)p[0];
-	mouse_worldloc[1] = (float)p[1];
-	mouse_worldloc[2] = (float)p[2];
-	return true;
+	if (fallback_depth_pt) {
+		ED_view3d_win_to_3d_int(ar, fallback_depth_pt, mval, mouse_worldloc);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode)
