@@ -348,12 +348,6 @@ void ShaderManager::add_default(Scene *scene)
 	{
 		graph = new ShaderGraph();
 
-		closure = graph->add(new BackgroundNode());
-		closure->input("Color")->value = make_float3(0.8f, 0.8f, 0.8f);
-		out = graph->output();
-
-		graph->connect(closure->output("Background"), out->input("Surface"));
-
 		shader = new Shader();
 		shader->name = "default_background";
 		shader->graph = graph;

@@ -74,7 +74,7 @@ __device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const
 
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
-	float3 locx = cross(locy, Tg);
+	//float3 locx = cross(locy, Tg);
 
 	float theta_r = M_PI_2_F - safe_acosf(Iz);
 
@@ -130,7 +130,7 @@ __device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, co
 	float roughness2 = sc->data1;
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
-	float3 locx = cross(locy, Tg);
+	//float3 locx = cross(locy, Tg);
 
 	float theta_r = M_PI_2_F - safe_acosf(Iz);
 
