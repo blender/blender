@@ -25,10 +25,10 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,threads:,help,with-all,with-osl,with-opencollada,all-static,force-all,\
+--long source:,install:,tmp:,threads:,help,with-all,with-opencollada,all-static,force-all,\
 force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
 force-ffmpeg,skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,\
-skip-opencollada \
+skip-opencollada,required-numpy \
 -- "$@" \
 )
 
