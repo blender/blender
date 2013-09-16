@@ -153,8 +153,9 @@ static void view3d_smooth_view_state_restore(const struct SmoothView3DState *sms
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
-                        float *ofs, float *quat, float *dist, float *lens)
+void ED_view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
+                           float *ofs, float *quat, float *dist, float *lens,
+                           const int smooth_viewtx)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -203,7 +204,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	}
 	
 	/* skip smooth viewing for render engine draw */
-	if (U.smooth_viewtx && v3d->drawtype != OB_RENDER) {
+	if (smooth_viewtx && v3d->drawtype != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
 		
 		if (oldcamera != camera)
@@ -232,7 +233,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 				rv3d->view = RV3D_VIEW_USER;
 			}
 
-			sms.time_allowed = (double)U.smooth_viewtx / 1000.0;
+			sms.time_allowed = (double)smooth_viewtx / 1000.0;
 			
 			/* if this is view rotation only
 			 * we can decrease the time allowed by
@@ -506,7 +507,7 @@ void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 }
 
 
-static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
+static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 {	
 	View3D *v3d;
 	ARegion *ar;
@@ -514,6 +515,8 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	/* no NULL check is needed, poll checks */
 	ED_view3d_context_user_region(C, &v3d, &ar);
@@ -526,8 +529,11 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 		if (v3d->scenelock)
 			scene->camera = ob;
 
-		if (camera_old != ob) /* unlikely but looks like a glitch when set to the same */
-			view3d_smooth_view(C, v3d, ar, camera_old, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+		if (camera_old != ob) {  /* unlikely but looks like a glitch when set to the same */
+			ED_view3d_smooth_view(C, v3d, ar, camera_old, v3d->camera,
+			                      rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens,
+			                      smooth_viewtx);
+		}
 
 		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS | NC_OBJECT | ND_DRAW, CTX_data_scene(C));
 	}

@@ -214,7 +214,8 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int graphkeys_viewall(bContext *C, const short do_sel_only, const short include_handles)
+static int graphkeys_viewall(bContext *C, const short do_sel_only, const short include_handles,
+                             const int smooth_viewtx)
 {
 	bAnimContext ac;
 	rctf cur_new;
@@ -231,7 +232,7 @@ static int graphkeys_viewall(bContext *C, const short do_sel_only, const short i
 
 	BLI_rctf_scale(&cur_new, 1.1f);
 
-	UI_view2d_smooth_view(C, ac.ar, &cur_new);
+	UI_view2d_smooth_view(C, ac.ar, &cur_new, smooth_viewtx);
 
 	return OPERATOR_FINISHED;
 }
@@ -240,18 +241,20 @@ static int graphkeys_viewall(bContext *C, const short do_sel_only, const short i
 
 static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
 {
-	short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* whole range */
-	return graphkeys_viewall(C, FALSE, include_handles);
+	return graphkeys_viewall(C, false, include_handles, smooth_viewtx);
 }
  
 static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 {
-	short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* only selected */
-	return graphkeys_viewall(C, TRUE, include_handles);
+	return graphkeys_viewall(C, true, include_handles, smooth_viewtx);
 }
 
 void GRAPH_OT_view_all(wmOperatorType *ot)

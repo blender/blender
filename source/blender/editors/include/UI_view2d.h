@@ -216,7 +216,7 @@ void UI_view2d_operatortypes(void);
 void UI_view2d_keymap(struct wmKeyConfig *keyconf);
 
 void UI_view2d_smooth_view(struct bContext *C, struct ARegion *ar,
-                           const struct rctf *cur);
+                           const struct rctf *cur, const int smooth_viewtx);
 
 #endif /* __UI_VIEW2D_H__ */
 

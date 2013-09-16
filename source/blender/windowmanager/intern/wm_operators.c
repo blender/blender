@@ -921,6 +921,11 @@ int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op
 	return op->type->exec(C, op);
 }
 
+int WM_operator_smooth_viewtx_get(const wmOperator *op)
+{
+	return (op->flag & OP_IS_INVOKE) ? U.smooth_viewtx : 0;
+}
+
 /* invoke callback, uses enum property named "type" */
 int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {

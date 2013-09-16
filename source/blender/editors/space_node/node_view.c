@@ -66,7 +66,8 @@
 
 /* **************** View All Operator ************** */
 
-int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag)
+int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar,
+                         const int node_flag, const int smooth_viewtx)
 {
 	bNode *node;
 	rctf cur_new;
@@ -125,22 +126,23 @@ int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int n
 			BLI_rctf_scale(&cur_new, 1.1f);
 		}
 
-		UI_view2d_smooth_view(C, ar, &cur_new);
+		UI_view2d_smooth_view(C, ar, &cur_new, smooth_viewtx);
 	}
 
 	return (tot != 0);
 }
 
-static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_view_all_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	/* is this really needed? */
 	snode->xof = 0;
 	snode->yof = 0;
 
-	if (space_node_view_flag(C, snode, ar, 0)) {
+	if (space_node_view_flag(C, snode, ar, 0, smooth_viewtx)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -163,12 +165,13 @@ void NODE_OT_view_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_view_selected_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-	if (space_node_view_flag(C, snode, ar, NODE_SELECT)) {
+	if (space_node_view_flag(C, snode, ar, NODE_SELECT, smooth_viewtx)) {
 		return OPERATOR_FINISHED;
 	}
 	else {

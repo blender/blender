@@ -975,6 +975,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports == NULL, they'll be initialized */
 		const short is_nested_call = (wm->op_undo_depth != 0);
 		
+		op->flag |= OP_IS_INVOKE;
+
 		/* initialize setting from previous run */
 		if (!is_nested_call) { /* not called by py script */
 			WM_operator_last_properties_init(op);

@@ -831,7 +831,8 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 		if (active->totr.xmax < ar->v2d.cur.xmin || active->totr.xmin > ar->v2d.cur.xmax ||
 		    active->totr.ymax < ar->v2d.cur.ymin || active->totr.ymin > ar->v2d.cur.ymax)
 		{
-			space_node_view_flag(C, snode, CTX_wm_region(C), NODE_SELECT);
+			const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+			space_node_view_flag(C, snode, ar, NODE_SELECT, smooth_viewtx);
 		}
 	}
 	
@@ -895,7 +896,7 @@ static void node_find_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2
 		if (active->totr.xmax < ar->v2d.cur.xmin || active->totr.xmin > ar->v2d.cur.xmax ||
 		    active->totr.ymax < ar->v2d.cur.ymin || active->totr.ymin > ar->v2d.cur.ymax)
 		{
-			space_node_view_flag(C, snode, ar, NODE_SELECT);
+			space_node_view_flag(C, snode, ar, NODE_SELECT, U.smooth_viewtx);
 		}
 
 	}

@@ -2155,12 +2155,13 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 }
 
 /* view_all operator */
-static int sequencer_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-	UI_view2d_smooth_view(C, ar, &v2d->tot);
+	UI_view2d_smooth_view(C, ar, &v2d->tot, smooth_viewtx);
 	return OPERATOR_FINISHED;
 }
 
@@ -2322,7 +2323,7 @@ void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
 
 
 /* view_selected operator */
-static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
@@ -2355,6 +2356,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	if (ymax != 0) {
+		const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 		
 		xmax += xmargin;
 		xmin -= xmargin;
@@ -2377,7 +2379,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			cur_new.ymax = ymid + (orig_height / 2);
 		}
 
-		UI_view2d_smooth_view(C, ar, &cur_new);
+		UI_view2d_smooth_view(C, ar, &cur_new, smooth_viewtx);
 
 		return OPERATOR_FINISHED;
 	}

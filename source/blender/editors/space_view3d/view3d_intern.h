@@ -187,8 +187,9 @@ void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const struct BoundBox *bb);
 
-void view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
-                        float *ofs, float *quat, float *dist, float *lens);
+void ED_view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
+                           float *ofs, float *quat, float *dist, float *lens,
+                           const int smooth_viewtx);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);

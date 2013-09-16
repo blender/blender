@@ -339,6 +339,12 @@ typedef struct wmOperator {
 #define OPERATOR_RETVAL_CHECK(ret) (void)ret, BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret)
 
 /* wmOperator flag */
-#define OP_GRAB_POINTER			1
+enum {
+	OP_GRAB_POINTER			= (1 << 0),
+
+	/* low level flag so exec() operators can tell if they were invoked, use with care.
+	 * typically this shouldn't make any difference, but it rare cases its needed (see smooth-view) */
+	OP_IS_INVOKE			= (1 << 1),
+};
 
 #endif /* __DNA_WINDOWMANAGER_TYPES_H__ */
