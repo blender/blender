@@ -93,7 +93,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 
 	// Get KX_GameObjects for callbacks
 	KX_GameObject* gobj1 = info1->m_gameobject;
-	KX_GameObject* gobj2 = (info2) ? info1->m_gameobject : NULL;
+	KX_GameObject* gobj2 = (info2) ? info2->m_gameobject : NULL;
 
 	bool has_py_callbacks = false;
 
