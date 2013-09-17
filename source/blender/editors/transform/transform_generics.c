@@ -1106,7 +1106,8 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	}
 
 	t->remove_on_cancel = false;
-	if ((prop = RNA_struct_find_property(op->ptr, "remove_on_cancel")) && RNA_property_is_set(op->ptr, prop)) {
+
+	if (op && (prop = RNA_struct_find_property(op->ptr, "remove_on_cancel")) && RNA_property_is_set(op->ptr, prop)) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
 			t->remove_on_cancel = true;
 		}
