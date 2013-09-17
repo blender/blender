@@ -205,28 +205,39 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e, const int flag)
 		// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
 
 		if (is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
-			float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
-			/* testing rule:
-			 * the area divided by the total edge lengths
-			 */
-			len1 = len_v2v2(v1_xy, v2_xy);
-			len2 = len_v2v2(v2_xy, v3_xy);
-			len3 = len_v2v2(v3_xy, v4_xy);
-			len4 = len_v2v2(v4_xy, v1_xy);
-			len5 = len_v2v2(v1_xy, v3_xy);
-			len6 = len_v2v2(v2_xy, v4_xy);
+			/* testing rule: the area divided by the perimeter,
+			 * check if (1-3) beats the existing (2-4) edge rotation */
+			float area_a, area_b;
+			float prim_a, prim_b;
+			float fac_24, fac_13;
 
-			opp1 = area_tri_v2(v1_xy, v2_xy, v3_xy);
-			opp2 = area_tri_v2(v1_xy, v3_xy, v4_xy);
+			float len_12, len_23, len_34, len_41, len_24, len_13;
 
-			fac1 = opp1 / (len1 + len2 + len5) + opp2 / (len3 + len4 + len5);
+			/* edges around the quad */
+			len_12 = len_v2v2(v1_xy, v2_xy);
+			len_23 = len_v2v2(v2_xy, v3_xy);
+			len_34 = len_v2v2(v3_xy, v4_xy);
+			len_41 = len_v2v2(v4_xy, v1_xy);
+			/* edges crossing the quad interior */
+			len_13 = len_v2v2(v1_xy, v3_xy);
+			len_24 = len_v2v2(v2_xy, v4_xy);
 
-			opp1 = area_tri_v2(v2_xy, v3_xy, v4_xy);
-			opp2 = area_tri_v2(v2_xy, v4_xy, v1_xy);
+			/* edge (2-4), current state */
+			area_a = area_tri_v2(v2_xy, v3_xy, v4_xy);
+			area_b = area_tri_v2(v2_xy, v4_xy, v1_xy);
+			prim_a = len_23 + len_34 + len_24;
+			prim_b = len_24 + len_41 + len_12;
+			fac_24 = (area_a / prim_a) + (area_b / prim_b);
 
-			fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
-			/* negative number if we're OK */
-			return fac2 - fac1;
+			/* edge (1-3), new state */
+			area_a = area_tri_v2(v1_xy, v2_xy, v3_xy);
+			area_b = area_tri_v2(v1_xy, v3_xy, v4_xy);
+			prim_a = len_12 + len_23 + len_13;
+			prim_b = len_34 + len_41 + len_13;
+			fac_13 = (area_a / prim_a) + (area_b / prim_b);
+
+			/* negative number if (1-3) is an improved state */
+			return fac_24 - fac_13;
 		}
 	} while (false);
 
