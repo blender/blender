@@ -3281,6 +3281,9 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	else { /* non-modal-mapped events */
 		switch (event->type) {
+			case MOUSEPAN:
+			case MOUSEZOOM:
+			case MOUSEROTATE:
 			case WHEELUPMOUSE:
 			case WHEELDOWNMOUSE:
 				return OPERATOR_PASS_THROUGH;
