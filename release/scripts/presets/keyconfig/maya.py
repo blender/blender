@@ -688,6 +688,31 @@ kmi.properties.level = 4
 kmi = km.keymap_items.new('object.subdivision_set', 'FIVE', 'PRESS', ctrl=True)
 kmi.properties.level = 5
 
+# Knife Tool
+km = kc.keymaps.new('Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW', modal=True)
+
+kmi = km.keymap_items.new_modal('CANCEL', 'ESC', 'ANY', any=True)
+kmi = km.keymap_items.new_modal('PANNING', 'LEFTMOUSE', 'ANY', alt=True)
+kmi = km.keymap_items.new_modal('ADD_CUT', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('CANCEL', 'RIGHTMOUSE', 'ANY', any=True)
+kmi = km.keymap_items.new_modal('CONFIRM', 'RET', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('CONFIRM', 'NUMPAD_ENTER', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('CONFIRM', 'SPACE', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('NEW_CUT', 'E', 'PRESS')
+
+kmi = km.keymap_items.new_modal('SNAP_MIDPOINT_ON', 'LEFT_CTRL', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('SNAP_MIDPOINT_OFF', 'LEFT_CTRL', 'RELEASE', any=True)
+kmi = km.keymap_items.new_modal('SNAP_MIDPOINT_ON', 'RIGHT_CTRL', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('SNAP_MIDPOINT_OFF', 'RIGHT_CTRL', 'RELEASE', any=True)
+
+kmi = km.keymap_items.new_modal('IGNORE_SNAP_ON', 'LEFT_SHIFT', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('IGNORE_SNAP_OFF', 'LEFT_SHIFT', 'RELEASE', any=True)
+kmi = km.keymap_items.new_modal('IGNORE_SNAP_ON', 'RIGHT_SHIFT', 'PRESS', any=True)
+kmi = km.keymap_items.new_modal('IGNORE_SNAP_OFF', 'RIGHT_SHIFT', 'RELEASE', any=True)
+
+kmi = km.keymap_items.new_modal('ANGLE_SNAP_TOGGLE', 'C', 'PRESS')
+kmi = km.keymap_items.new_modal('CUT_THROUGH_TOGGLE', 'Z', 'PRESS')
+
 # Map Curve
 km = kc.keymaps.new('Curve', space_type='EMPTY', region_type='WINDOW', modal=False)
 

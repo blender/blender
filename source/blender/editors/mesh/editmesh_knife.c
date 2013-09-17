@@ -3123,7 +3123,8 @@ enum {
 	KNF_MODEL_IGNORE_SNAP_OFF,
 	KNF_MODAL_ADD_CUT,
 	KNF_MODAL_ANGLE_SNAP_TOGGLE,
-	KNF_MODAL_CUT_THROUGH_TOGGLE
+	KNF_MODAL_CUT_THROUGH_TOGGLE,
+	KNF_MODAL_PANNING
 };
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
@@ -3139,6 +3140,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 		{KNF_MODAL_CUT_THROUGH_TOGGLE, "CUT_THROUGH_TOGGLE", 0, "Toggle Cut Through", ""},
 		{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
 		{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
+		{KNF_MODAL_PANNING, "PANNING", 0, "Panning", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3152,6 +3154,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_ANY, KM_ANY, 0, KNF_MODAL_PANNING);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_ADD_CUT);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
@@ -3277,6 +3280,20 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				ED_region_tag_redraw(kcd->ar);
 				break;
+			case KNF_MODAL_PANNING:
+				if (event->val != KM_RELEASE) {
+					if (kcd->mode != MODE_PANNING) {
+						kcd->prevmode = kcd->mode;
+						kcd->mode = MODE_PANNING;
+					}
+				}
+				else {
+					kcd->mode = kcd->prevmode;
+				}
+
+				ED_region_tag_redraw(kcd->ar);
+				return OPERATOR_PASS_THROUGH;
+				break;
 		}
 	}
 	else { /* non-modal-mapped events */
@@ -3287,19 +3304,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case WHEELUPMOUSE:
 			case WHEELDOWNMOUSE:
 				return OPERATOR_PASS_THROUGH;
-			case MIDDLEMOUSE:
-				if (event->val != KM_RELEASE) {
-					if (kcd->mode != MODE_PANNING)
-						kcd->prevmode = kcd->mode;
-					kcd->mode = MODE_PANNING;
-				}
-				else {
-					kcd->mode = kcd->prevmode;
-				}
-
-				ED_region_tag_redraw(kcd->ar);
-				return OPERATOR_PASS_THROUGH;
-
 			case MOUSEMOVE: /* mouse moved somewhere to select another loop */
 				if (kcd->mode != MODE_PANNING) {
 					knifetool_update_mval_i(kcd, event->mval);
