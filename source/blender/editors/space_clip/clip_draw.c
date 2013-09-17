@@ -304,48 +304,52 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 	}
 }
 
-static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
-                                  int width, int height, float zoomx, float zoomy)
+static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-	if (sc->flag & SC_MUTE_FOOTAGE) {
-		glColor3f(0.0f, 0.0f, 0.0f);
-		glRectf(x, y, x + zoomx * width, y + zoomy * height);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glRectf(x, y, x + zoomx * width, y + zoomy * height);
+}
+
+static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
+                                  int width, int height, float zoomx, float zoomy)
+{
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	int filter = GL_LINEAR;
+	int x, y;
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+	/* checkerboard for case alpha */
+	if (ibuf->planes == 32) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		fdrawcheckerboard(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
 	}
-	else {
-		MovieClip *clip = ED_space_clip_get_clip(sc);
-		int filter = GL_LINEAR;
 
-		/* checkerboard for case alpha */
-		if (ibuf->planes == 32) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			fdrawcheckerboard(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
-		}
-
-		/* non-scaled proxy shouldn't use filtering */
-		if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
-		    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
-		{
-			filter = GL_NEAREST;
-		}
-
-		/* set zoom */
-		glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
-
-		glaDrawImBuf_glsl_ctx(C, ibuf, x, y, filter);
-
-		/* reset zoom */
-		glPixelZoom(1.0f, 1.0f);
-
-		if (ibuf->planes == 32)
-			glDisable(GL_BLEND);
+	/* non-scaled proxy shouldn't use filtering */
+	if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
+	    ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100))
+	{
+		filter = GL_NEAREST;
 	}
+
+	/* set zoom */
+	glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
+
+	glaDrawImBuf_glsl_ctx(C, ibuf, x, y, filter);
+
+	/* reset zoom */
+	glPixelZoom(1.0f, 1.0f);
+
+	if (ibuf->planes == 32)
+		glDisable(GL_BLEND);
 }
 
 static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int height, float zoomx, float zoomy)
@@ -1602,7 +1606,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
-	ImBuf *ibuf;
+	ImBuf *ibuf = NULL;
 	int width, height;
 	float zoomx, zoomy;
 
@@ -1640,7 +1644,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 			mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
 		}
 	}
-	else {
+	else if ((sc->flag & SC_MUTE_FOOTAGE) == 0) {
 		ibuf = ED_space_clip_get_buffer(sc);
 
 		zero_v2(sc->loc);
@@ -1652,6 +1656,9 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	if (ibuf) {
 		draw_movieclip_buffer(C, sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
+	}
+	else if (sc->flag & SC_MUTE_FOOTAGE) {
+		draw_movieclip_muted(ar, width, height, zoomx, zoomy);
 	}
 	else {
 		ED_region_grid_draw(ar, zoomx, zoomy);
