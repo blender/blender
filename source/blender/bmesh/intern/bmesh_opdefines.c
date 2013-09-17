@@ -1580,6 +1580,7 @@ static BMOpDefine bmo_beautify_fill_def = {
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* input faces */
 	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* edges that can be flipped */
 	 {"use_restrict_tag", BMO_OP_SLOT_BOOL}, /* restrict edge rotation to mixed tagged vertices */
+	 {"method", BMO_OP_SLOT_INT}, /* method to define what is beautiful */
 	 {{'\0'}},
 	},
 	/* slots_out */
