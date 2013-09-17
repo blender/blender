@@ -208,6 +208,8 @@ void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
 bool *ED_vgroup_subset_from_select_type(struct Object *ob, enum eVGroupSelect subset_type,
                                         int *r_vgroup_tot, int *r_subset_count);
+void ED_vgroup_subset_to_index_array(const bool *vgroup_validmap, const int vgroup_tot,
+                                     int *r_vgroup_subset_map);
 
 struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         const struct bContext *C,

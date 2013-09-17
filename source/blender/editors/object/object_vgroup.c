@@ -51,6 +51,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_linklist_stack.h"
 
 #include "BLF_translation.h"
 
@@ -1418,6 +1419,20 @@ bool *ED_vgroup_subset_from_select_type(Object *ob, eVGroupSelect subset_type, i
 	return vgroup_validmap;
 }
 
+/**
+ * store indices from the vgroup_validmap (faster lookups in some cases)
+ */
+void ED_vgroup_subset_to_index_array(const bool *vgroup_validmap, const int vgroup_tot,
+                                     int *r_vgroup_subset_map)
+{
+	int i, j = 0;
+	for (i = 0; i < vgroup_tot; i++) {
+		if (vgroup_validmap[i]) {
+			r_vgroup_subset_map[j++] = i;
+		}
+	}
+}
+
 static void vgroup_normalize(Object *ob)
 {
 	MDeformWeight *dw;
@@ -2003,138 +2018,120 @@ static void vgroup_invert_subset(Object *ob,
 	}
 }
 
-static void vgroup_blend(Object *ob, const float fac)
+static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const int vgroup_tot,
+                                const int subset_count,
+                                const float fac)
 {
-	MDeformVert *dv;
-	MDeformWeight *dw;
+	const float ifac = 1.0f - fac;
+	MDeformVert **dvert_array = NULL;
 	int i, dvert_tot = 0;
-	const int def_nr = ob->actdef - 1;
+	int *vgroup_subset_map = BLI_array_alloca(vgroup_subset_map, subset_count);
+	float *vgroup_subset_weights = BLI_array_alloca(vgroup_subset_weights, subset_count);
 
-	BLI_assert(fac >= 0.0f && fac <= 1.0f);
+	BMEditMesh *em = BKE_editmesh_from_object(ob);
+	BMesh *bm = em ? em->bm : NULL;
+	Mesh  *me = em ? NULL   : ob->data;
 
-	if (ob->type != OB_MESH) {
-		return;
+	MeshElemMap *emap ;
+	int *emap_mem;
+
+	BLI_SMALLSTACK_DECLARE(dv_stack, MDeformVert *);
+
+	ED_vgroup_subset_to_index_array(vgroup_validmap, vgroup_tot, vgroup_subset_map);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
+	memset(vgroup_subset_weights, 0, sizeof(*vgroup_subset_weights) * subset_count);
+
+	if (bm) {
+		emap = NULL;
+		emap_mem = NULL;
+	}
+	else {
+		BKE_mesh_vert_edge_map_create(&emap, &emap_mem,
+		                              me->medge, me->totvert, me->totedge);
 	}
 
-	if (BLI_findlink(&ob->defbase, def_nr)) {
-		const float ifac = 1.0f - fac;
 
-		BMEditMesh *em = BKE_editmesh_from_object(ob);
-		BMesh *bm = em ? em->bm : NULL;
-		Mesh  *me = em ? NULL   : ob->data;
-
-		/* bmesh only*/
-		BMEdge *eed;
-		BMVert *eve;
-		BMIter iter;
-
-		/* mesh only */
-		MDeformVert *dvert_array = NULL;
-
-
-		float *vg_weights;
-		float *vg_users;
-		int sel1, sel2;
+	for (i = 0; i < dvert_tot; i++) {
+		MDeformVert *dv;
+		int dv_stack_tot = 0;
+		int j;
+		/* in case its not selected */
 
 		if (bm) {
-			BM_mesh_elem_index_ensure(bm, BM_VERT);
-			dvert_tot = bm->totvert;
-		}
-		else {
-			dvert_tot = me->totvert;
-			dvert_array = me->dvert;
-		}
+			BMVert *v = EDBM_vert_at_index(em, i);
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				BMIter eiter;
+				BMEdge *e;
+				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+					BMVert *v_other = BM_edge_other_vert(e, v);
+					const int i_other = BM_elem_index_get(v_other);
 
-		vg_weights = MEM_callocN(sizeof(float) * dvert_tot, "vgroup_blend_f");
-		vg_users = MEM_callocN(sizeof(int) * dvert_tot, "vgroup_blend_i");
-
-		if (bm) {
-			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-
-			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-				sel1 = BM_elem_flag_test(eed->v1, BM_ELEM_SELECT);
-				sel2 = BM_elem_flag_test(eed->v2, BM_ELEM_SELECT);
-
-				if (sel1 != sel2) {
-					int i1 /* , i2 */;
-					/* i1 is always the selected one */
-					if (sel1) {
-						i1 = BM_elem_index_get(eed->v1);
-						/* i2 = BM_elem_index_get(eed->v2); */ /* UNUSED */
-						eve = eed->v2;
+					if (BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) {
+						dv = dvert_array[i_other];
+						BLI_SMALLSTACK_PUSH(dv_stack, dv);
+						dv_stack_tot++;
 					}
-					else {
-						/* i2 = BM_elem_index_get(eed->v1); */ /* UNUSED */
-						i1 = BM_elem_index_get(eed->v2);
-						eve = eed->v1;
-					}
-
-					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-					dw = defvert_find_index(dv, def_nr);
-					if (dw) {
-						vg_weights[i1] += dw->weight;
-					}
-					vg_users[i1]++;
-				}
-			}
-
-			BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && vg_users[i] > 0) {
-					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-
-					dw = defvert_verify_index(dv, def_nr);
-					dw->weight = (fac * (vg_weights[i] / (float)vg_users[i])) + (ifac * dw->weight);
-					/* in case of division errors */
-					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
 			}
 		}
 		else {
-			MEdge *ed = me->medge;
-			MVert *mv;
+			MVert *v = &me->mvert[i];
+			if (v->flag & SELECT) {
+				for (j = 0; j < emap[i].count; j++) {
+					MEdge *e = &me->medge[emap[i].indices[j]];
+					const int i_other = (e->v1 == i ? e->v2 : e->v1);
+					MVert *v_other = &me->mvert[i_other];
 
-			for (i = 0; i < me->totedge; i++, ed++) {
-				sel1 = me->mvert[ed->v1].flag & SELECT;
-				sel2 = me->mvert[ed->v2].flag & SELECT;
-
-				if (sel1 != sel2) {
-					int i1, i2;
-					/* i1 is always the selected one */
-					if (sel1) {
-						i1 = ed->v1;
-						i2 = ed->v2;
+					if ((v_other->flag & SELECT) == 0) {
+						dv = dvert_array[i_other];
+						BLI_SMALLSTACK_PUSH(dv_stack, dv);
+						dv_stack_tot++;
 					}
-					else {
-						i2 = ed->v1;
-						i1 = ed->v2;
-					}
-
-					dv = &dvert_array[i2];
-					dw = defvert_find_index(dv, def_nr);
-					if (dw) {
-						vg_weights[i1] += dw->weight;
-					}
-					vg_users[i1]++;
-				}
-			}
-
-			mv = me->mvert;
-			dv = dvert_array;
-
-			for (i = 0; i < dvert_tot; i++, mv++, dv++) {
-				if ((mv->flag & SELECT) && (vg_users[i] > 0)) {
-					dw = defvert_verify_index(dv, def_nr);
-					dw->weight = (fac * (vg_weights[i] / (float)vg_users[i])) + (ifac * dw->weight);
-
-					/* in case of division errors */
-					CLAMP(dw->weight, 0.0f, 1.0f);
 				}
 			}
 		}
 
-		MEM_freeN(vg_weights);
-		MEM_freeN(vg_users);
+		if (dv_stack_tot) {
+			const float dv_mul = 1.0f / (float)dv_stack_tot;
+
+			/* vgroup_subset_weights is zero'd at this point */
+			while ((dv = BLI_SMALLSTACK_POP(dv_stack))) {
+				for (j = 0; j < subset_count; j++) {
+					vgroup_subset_weights[j] += dv_mul * defvert_find_weight(dv, vgroup_subset_map[j]);
+				}
+			}
+
+			dv = dvert_array[i];
+			for (j = 0; j < subset_count; j++) {
+				MDeformWeight *dw;
+				if (vgroup_subset_weights[j] > 0.0f) {
+					dw = defvert_verify_index(dv, vgroup_subset_map[j]);
+				}
+				else {
+					dw = defvert_find_index(dv, vgroup_subset_map[j]);
+				}
+
+				if (dw) {
+					dw->weight = (fac * vgroup_subset_weights[j]) + (ifac * dw->weight);
+					CLAMP(dw->weight, 0.0f, 1.0f);
+				}
+
+				/* zero for next iteration */
+				vgroup_subset_weights[j] = 0.0f;
+			}
+		}
 	}
+
+	if (bm) {
+		/* pass */
+	}
+	else {
+		MEM_freeN(emap);
+		MEM_freeN(emap_mem);
+	}
+
+	MEM_freeN(dvert_array);
+	BLI_SMALLSTACK_FREE(dv_stack);
 }
 
 static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
@@ -3506,8 +3503,13 @@ static int vertex_group_blend_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	float fac = RNA_float_get(op->ptr, "factor");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
-	vgroup_blend(ob, fac);
+	int subset_count, vgroup_tot;
+
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_blend_subset(ob, vgroup_validmap, vgroup_tot, subset_count, fac);
+	MEM_freeN((void *)vgroup_validmap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3525,10 +3527,14 @@ static int vertex_group_blend_poll(bContext *C)
 	if (!(ob && !ob->id.lib && data && !data->lib))
 		return false;
 
+	if (ob->type != OB_MESH) {
+		return false;
+	}
+
 	if (BKE_object_is_in_editmode_vgroup(ob)) {
 		return true;
 	}
-	else if ((ob->type == OB_MESH) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+	else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 		if (ME_EDIT_PAINT_SEL_MODE(((Mesh *)data)) == SCE_SELECT_VERTEX) {
 			return true;
 		}
@@ -3559,6 +3565,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	vgroup_operator_subset_select_props(ot, true);
 	prop = RNA_def_property(ot->srna, "factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
