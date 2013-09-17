@@ -4135,14 +4135,22 @@ static void keyframe_set_flag(bContext *C, bool set)
 			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, framenr);
 			if (plane_marker) {
 				if (set) {
-					plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+					if (plane_marker->flag & PLANE_MARKER_TRACKED) {
+						plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+						BKE_tracking_track_plane_from_existing_motion(plane_track, plane_marker->framenr);
+					}
 				}
 				else {
-					plane_marker->flag |= PLANE_MARKER_TRACKED;
+					if ((plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
+						plane_marker->flag |= PLANE_MARKER_TRACKED;
+						BKE_tracking_retrack_plane_from_existing_motion_at_segment(plane_track, plane_marker->framenr);
+					}
 				}
 			}
 		}
 	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 }
 
 static int keyframe_insert_exec(bContext *C, wmOperator *UNUSED(op))
