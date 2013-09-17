@@ -124,6 +124,30 @@ static void undo_stack_push_end(UndoStack *stack)
 {
 	UndoElem *uel;
 	uintptr_t totmem, maxmem;
+	int totundo = 0;
+
+	/* first limit to undo steps */
+	uel = stack->elems.last;
+
+	while (uel) {
+		totundo++;
+		if (totundo > U.undosteps) break;
+		uel = uel->prev;
+	}
+
+	if (uel) {
+		UndoElem *first;
+
+		/* in case the undo steps are zero, the current pointer will be invalid */
+		if (uel == stack->current)
+			stack->current = NULL;
+
+		do {
+			first = stack->elems.first;
+			undo_elem_free(stack, first);
+			BLI_freelinkN(&stack->elems, first);
+		} while (first != uel);
+	}
 
 	if (U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
