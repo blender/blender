@@ -602,6 +602,16 @@ __device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
+__device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
+{
+	float3 alpha = make_float3(1.0f, 1.0f, 1.0f) - shader_bsdf_transparency(kg, sd);
+
+	alpha = max(alpha, make_float3(0.0f, 0.0f, 0.0f));
+	alpha = min(alpha, make_float3(1.0f, 1.0f, 1.0f));
+	
+	return alpha;
+}
+
 __device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__

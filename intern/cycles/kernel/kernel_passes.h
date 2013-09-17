@@ -108,8 +108,8 @@ __device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float 
 			mist = powf(mist, mist_falloff);
 
 		/* modulate by transparency */
-		float3 alpha = throughput*(make_float3(1.0f, 1.0f, 1.0f) - shader_bsdf_transparency(kg, sd));
-		L->mist += (1.0f - mist)*average(alpha);
+		float3 alpha = shader_bsdf_alpha(kg, sd);
+		L->mist += (1.0f - mist)*average(throughput*alpha);
 	}
 #endif
 }
