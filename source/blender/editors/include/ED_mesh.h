@@ -242,8 +242,10 @@ void                 ED_vgroup_clear(struct Object *ob);
 void                 ED_vgroup_select_by_name(struct Object *ob, const char *name);
 bool                 ED_vgroup_data_create(struct ID *id);
 void                 ED_vgroup_data_clamp_range(struct ID *id, const int total);
-bool                 ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
-bool                 ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
+bool                 ED_vgroup_array_get(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
+bool                 ED_vgroup_array_copy(struct Object *ob, struct Object *ob_from);
+bool                 ED_vgroup_parray_alloc(struct ID *id, struct MDeformVert ***dvert_arr, int *dvert_tot,
+                                            const bool use_vert_sel);
 void                 ED_vgroup_mirror(struct Object *ob,
                                       const bool mirror_weights, const bool flip_vgroups,
                                       const bool all_vgroups, const bool use_topology,

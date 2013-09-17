@@ -87,7 +87,6 @@ static void vgroup_remap_update_users(Object *ob, int *map);
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 static void vgroup_delete_all(Object *ob);
-static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const bool use_vert_sel);
 
 static bool vertex_group_use_vert_sel(Object *ob)
 {
@@ -208,7 +207,7 @@ void ED_vgroup_data_clamp_range(ID *id, const int total)
 	MDeformVert **dvert_arr;
 	int dvert_tot;
 
-	if (ED_vgroup_give_parray(id, &dvert_arr, &dvert_tot, false)) {
+	if (ED_vgroup_parray_alloc(id, &dvert_arr, &dvert_tot, false)) {
 		int i;
 		for (i = 0; i < dvert_tot; i++) {
 			MDeformVert *dv = dvert_arr[i];
@@ -223,7 +222,7 @@ void ED_vgroup_data_clamp_range(ID *id, const int total)
 	}
 }
 
-static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const bool use_vert_sel)
+bool ED_vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const bool use_vert_sel)
 {
 	*dvert_tot = 0;
 	*dvert_arr = NULL;
@@ -327,7 +326,7 @@ static bool ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_t
 }
 
 /* returns true if the id type supports weights */
-bool ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
+bool ED_vgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 {
 	if (id) {
 		switch (GS(id->name)) {
@@ -355,7 +354,7 @@ bool ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 }
 
 /* matching index only */
-bool ED_vgroup_copy_array(Object *ob, Object *ob_from)
+bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 {
 	MDeformVert **dvert_array_from, **dvf;
 	MDeformVert **dvert_array, **dv;
@@ -366,11 +365,11 @@ bool ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	int defbase_tot = BLI_countlist(&ob->defbase);
 	bool new_vgroup = false;
 
-	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, false);
+	ED_vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
 	if ((dvert_array == NULL) && (dvert_array_from != NULL) && ED_vgroup_data_create(ob->data)) {
-		ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, false);
+		ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 		new_vgroup = true;
 	}
 
@@ -783,8 +782,8 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 	if (!me_dst->dvert) ED_vgroup_data_create(ob_dst->data);
 
 	/* Get vertex group arrays.*/
-	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, false);
-	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, use_vert_sel);
+	ED_vgroup_parray_alloc(ob_src->data, &dv_array_src, &dv_tot_src, false);
+	ED_vgroup_parray_alloc(ob_dst->data, &dv_array_dst, &dv_tot_dst, use_vert_sel);
 
 	/* Get indexes of vertex groups.*/
 	index_src = BLI_findindex(&ob_src->defbase, dg_src);
@@ -1031,7 +1030,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 	int tot;
 
 	/* get the vert */
-	ED_vgroup_give_array(ob->data, &dvert, &tot);
+	ED_vgroup_array_get(ob->data, &dvert, &tot);
 	
 	if (dvert == NULL)
 		return;
@@ -1117,7 +1116,7 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
 
 	/* if there's no deform verts then create some,
 	 */
-	if (ED_vgroup_give_array(ob->data, &dv, &tot) && dv == NULL)
+	if (ED_vgroup_array_get(ob->data, &dv, &tot) && dv == NULL)
 		ED_vgroup_data_create(ob->data);
 
 	/* call another function to do the work
@@ -1142,7 +1141,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
 		/* get the deform vertices corresponding to the
 		 * vertnum
 		 */
-		ED_vgroup_give_array(ob->data, &dvert, &tot);
+		ED_vgroup_array_get(ob->data, &dvert, &tot);
 
 		if (dvert) {
 			MDeformVert *dv = &dvert[vertnum];
@@ -1335,7 +1334,7 @@ static void vgroup_duplicate(Object *ob)
 	icdg = (ob->actdef - 1);
 
 	/* TODO, we might want to allow only copy selected verts here? - campbell */
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, false);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
 	if (dvert_array) {
 		for (i = 0; i < dvert_tot; i++) {
@@ -1432,7 +1431,7 @@ static void vgroup_normalize(Object *ob)
 		return;
 	}
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		float weight_max = 0.0f;
@@ -1838,7 +1837,7 @@ static void vgroup_levels_subset(Object *ob, const bool *vgroup_validmap, const 
 
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 
@@ -1879,7 +1878,7 @@ static void vgroup_normalize_all(Object *ob, const bool lock_active)
 		return;
 	}
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		const int defbase_tot = BLI_countlist(&ob->defbase);
@@ -1968,7 +1967,7 @@ static void vgroup_invert_subset(Object *ob,
 	int i, dvert_tot = 0;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		for (i = 0; i < dvert_tot; i++) {
@@ -2167,7 +2166,7 @@ static int vgroup_limit_total_subset(Object *ob,
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 	int remove_tot = 0;
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		int num_to_drop = 0;
@@ -2234,7 +2233,7 @@ static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap, const i
 	int i, dvert_tot = 0;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
 		MDeformVert *dv;
@@ -2588,7 +2587,7 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 
 	assert(def_nr > -1);
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_array_get(ob->data, &dvert_array, &dvert_tot);
 
 	if (dvert_array) {
 		int i, j;
@@ -3749,7 +3748,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		if (obact != ob) {
-			if (ED_vgroup_copy_array(ob, obact)) change++;
+			if (ED_vgroup_array_copy(ob, obact)) change++;
 			else fail++;
 		}
 	}
@@ -4043,7 +4042,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 	else {
 		int dvert_tot = 0;
 
-		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
+		ED_vgroup_array_get(ob->data, &dvert, &dvert_tot);
 
 		/*create as necessary*/
 		if (dvert) {
