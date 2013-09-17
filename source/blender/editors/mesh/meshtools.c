@@ -1011,6 +1011,31 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *e
 	}
 }
 
+/**
+ * Wrapper for objectmode/editmode.
+ *
+ * call #EDBM_index_arrays_ensure first for editmesh.
+ */
+int ED_mesh_mirror_get_vert(Object *ob, int index)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+	int index_mirr;
+
+	if (em) {
+		BMVert *eve, *eve_mirr;
+		eve = EDBM_vert_at_index(em, index);
+		eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index, use_topology);
+		index_mirr = eve_mirr ? BM_elem_index_get(eve_mirr) : -1;
+	}
+	else {
+		 index_mirr = mesh_get_x_mirror_vert(ob, index, use_topology);
+	}
+
+	return index_mirr;
+}
+
 #if 0
 
 static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
