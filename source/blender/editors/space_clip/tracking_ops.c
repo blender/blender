@@ -4118,12 +4118,13 @@ static void keyframe_set_flag(bContext *C, bool set)
 
 	for (track = tracks_base->first; track; track = track->next) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
-			if (marker) {
-				if (set) {
-					marker->flag &= ~MARKER_TRACKED;
-				}
-				else {
+			if (set) {
+				MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
+				marker->flag &= ~MARKER_TRACKED;
+			}
+			else {
+				MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+				if (marker) {
 					marker->flag |= MARKER_TRACKED;
 				}
 			}
@@ -4132,15 +4133,16 @@ static void keyframe_set_flag(bContext *C, bool set)
 
 	for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
 		if (plane_track->flag & SELECT) {
-			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, framenr);
-			if (plane_marker) {
-				if (set) {
-					if (plane_marker->flag & PLANE_MARKER_TRACKED) {
-						plane_marker->flag &= ~PLANE_MARKER_TRACKED;
-						BKE_tracking_track_plane_from_existing_motion(plane_track, plane_marker->framenr);
-					}
+			if (set) {
+				MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
+				if (plane_marker->flag & PLANE_MARKER_TRACKED) {
+					plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+					BKE_tracking_track_plane_from_existing_motion(plane_track, plane_marker->framenr);
 				}
-				else {
+			}
+			else {
+				MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, framenr);
+				if (plane_marker) {
 					if ((plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
 						plane_marker->flag |= PLANE_MARKER_TRACKED;
 						BKE_tracking_retrack_plane_from_existing_motion_at_segment(plane_track, plane_marker->framenr);
