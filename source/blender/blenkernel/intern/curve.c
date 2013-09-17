@@ -2665,9 +2665,16 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	bl = bev->first;
 	while (bl) {
 		if (bl->nr) { /* null bevel items come from single points */
+			bool is_cyclic = bl->poly != -1;
 			nr = bl->nr;
-			bevp1 = (BevPoint *)(bl + 1);
-			bevp0 = bevp1 + (nr - 1);
+			if (is_cyclic) {
+				bevp1 = (BevPoint *)(bl + 1);
+				bevp0 = bevp1 + (nr - 1);
+			}
+			else {
+				bevp0 = (BevPoint *)(bl + 1);
+				bevp1 = bevp0 + 1;
+			}
 			nr--;
 			while (nr--) {
 				if (fabsf(bevp0->vec[0] - bevp1->vec[0]) < 0.00001f) {
