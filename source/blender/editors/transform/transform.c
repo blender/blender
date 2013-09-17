@@ -1854,7 +1854,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 			options |= CTX_TEXTURE;
 		}
 	}
-	
+
 	t->options = options;
 
 	t->mode = mode;

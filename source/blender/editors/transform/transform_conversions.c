@@ -5323,6 +5323,25 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 	}
 }
 
+static void special_aftertrans_update__node(bContext *UNUSED(C), TransInfo *t)
+{
+	int canceled = (t->state == TRANS_CANCEL);
+	
+	if (canceled && t->remove_on_cancel) {
+		/* remove selected nodes on cancel */
+		SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+		bNodeTree *ntree = snode->edittree;
+		if (ntree) {
+			bNode *node, *node_next;
+			for (node = ntree->nodes.first; node; node = node_next) {
+				node_next = node->next;
+				if (node->flag & NODE_SELECT)
+					nodeFreeNode(ntree, node);
+			}
+		}
+	}
+}
+
 static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
 	/* so automerge supports mirror */
@@ -5434,6 +5453,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+		special_aftertrans_update__node(C, t);
 		if (canceled == 0) {
 			ED_node_post_apply_transform(C, snode->edittree);
 			
