@@ -174,7 +174,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
 ##### Main Vars #####
 
-PYTHON_VERSION="3.3.0"
+PYTHON_VERSION="3.3.2"
 PYTHON_VERSION_MIN="3.3"
 PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
 PYTHON_FORCE_REBUILD=false
@@ -565,7 +565,7 @@ clean_Python() {
 
 compile_Python() {
   # To be changed each time we make edits that would modify the compiled result!
-  py_magic=0
+  py_magic=1
   _init_python
 
   # Clean install if needed!
@@ -589,7 +589,7 @@ compile_Python() {
 
     cd $_src
 
-    ./configure --prefix=$_inst --enable-ipv6 \
+    ./configure --prefix=$_inst --libdir=$_inst/lib --enable-ipv6 \
         --enable-loadable-sqlite-extensions --with-dbmliborder=bdb \
         --with-computed-gotos --with-pymalloc
 
@@ -629,11 +629,11 @@ clean_Numpy() {
 
 compile_Numpy() {
   # To be changed each time we make edits that would modify the compiled result!
-  py_magic=0
+  numpy_magic=0
   _init_numpy
 
   # Clean install if needed!
-  magic_compile_check numpy-$NUMPY_VERSION $py_magic
+  magic_compile_check numpy-$NUMPY_VERSION $numpy_magic
   if [ $? -eq 1 -o $NUMPY_FORCE_REBUILD == true ]; then
     clean_Numpy
   fi
@@ -664,7 +664,7 @@ compile_Numpy() {
       exit 1
     fi
 
-    magic_compile_set numpy-$NUMPY_VERSION $py_magic
+    magic_compile_set numpy-$NUMPY_VERSION $numpy_magic
 
     cd $CWD
     INFO "Done compiling Numpy-$NUMPY_VERSION!"
@@ -923,15 +923,14 @@ EOF
       ERROR "ILMBase-$ILMBASE_VERSION failed to compile, exiting"
       exit 1
     fi
+    cd $CWD
+    INFO "Done compiling ILMBase-$ILMBASE_VERSION!"
   else
     INFO "Own ILMBase-$ILMBASE_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib (and openexr), use the --force-openexr option."
   fi
 
   magic_compile_set ilmbase-$ILMBASE_VERSION $ilmbase_magic
-
-  cd $CWD
-  INFO "Done compiling ILMBase-$ILMBASE_VERSION!"
 }
 
 #### Build OpenEXR ####
@@ -2002,7 +2001,6 @@ install_DEB() {
           INFO "         Use --required-numpy to force building of both Python and numpy."
         fi
       fi
-      clean_Python
     else
       _do_compile=true
     fi
@@ -2015,6 +2013,8 @@ install_DEB() {
       else
         compile_Numpy
       fi
+    else
+      clean_Python
     fi
   fi
 
@@ -2419,7 +2419,6 @@ install_RPM() {
           INFO "         Use --required-numpy to force building of both Python and numpy."
         fi
       fi
-      clean_Python
     else
       _do_compile=true
     fi
@@ -2432,6 +2431,8 @@ install_RPM() {
       else
         compile_Numpy
       fi
+    else
+      clean_Python
     fi
   fi
 
@@ -2711,7 +2712,6 @@ install_ARCH() {
           fi
         fi
       fi
-      clean_Python
     else
       _do_compile=true
     fi
@@ -2724,6 +2724,8 @@ install_ARCH() {
       else
         compile_Numpy
       fi
+    else
+      clean_Python
     fi
   fi
 
@@ -2960,6 +2962,12 @@ print_info() {
       INFO "  $_1"
       _buildargs="$_buildargs $_1"
     fi
+  fi
+
+  if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
+    _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ -d $INST/boost ]; then
