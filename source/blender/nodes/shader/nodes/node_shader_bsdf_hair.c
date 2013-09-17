@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[2].link)
 		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
@@ -60,6 +60,7 @@ void register_node_type_sh_bsdf_hair(void)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_bsdf_hair);
 
 	nodeRegisterType(&ntype);
 }
