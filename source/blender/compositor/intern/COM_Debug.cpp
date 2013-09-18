@@ -128,68 +128,68 @@ int DebugInfo::graphviz_operation(ExecutionSystem *system, NodeOperation *operat
 		fillcolor = "darkorange";
 	}
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "// OPERATION: %p\r\n", operation);
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// OPERATION: %p\r\n", operation);
 	if (group)
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\"O_%p_%p\"", operation, group);
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p_%p\"", operation, group);
 	else
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\"O_%p\"", operation);
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " [fillcolor=%s,style=filled,shape=record,label=\"{", fillcolor.c_str());
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p\"", operation);
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " [fillcolor=%s,style=filled,shape=record,label=\"{", fillcolor.c_str());
 	
 	int totinputs = operation->getNumberOfInputSockets();
 	if (totinputs != 0) {
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "{");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{");
 		for (int k = 0; k < totinputs; k++) {
 			InputSocket *socket = operation->getInputSocket(k);
 			if (k != 0) {
-				len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "|");
+				len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
 			}
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<IN_%p>", socket);
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<IN_%p>", socket);
 			switch (socket->getDataType()) {
 				case COM_DT_VALUE:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Value");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
 					break;
 				case COM_DT_VECTOR:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Vector");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
 					break;
 				case COM_DT_COLOR:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Color");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
 					break;
 			}
 		}
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}");
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "|");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
 	}
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "%s\\n(%s)", m_node_names[operation].c_str(), typeid(*operation).name());
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "%s\\n(%s)", m_node_names[operation].c_str(), typeid(*operation).name());
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " (%d,%d)", operation->getWidth(), operation->getHeight());
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " (%d,%d)", operation->getWidth(), operation->getHeight());
 	
 	int totoutputs = operation->getNumberOfOutputSockets();
 	if (totoutputs != 0) {
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "|");
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "{");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{");
 		for (int k = 0; k < totoutputs; k++) {
 			OutputSocket *socket = operation->getOutputSocket(k);
 			if (k != 0) {
-				len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "|");
+				len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
 			}
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<OUT_%p>", socket);
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<OUT_%p>", socket);
 			switch (socket->getDataType()) {
 				case COM_DT_VALUE:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Value");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
 					break;
 				case COM_DT_VECTOR:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Vector");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
 					break;
 				case COM_DT_COLOR:
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Color");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
 					break;
 			}
 		}
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
 	}
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}\"]");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\"]");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\r\n");
 	
 	return len;
 }
@@ -197,7 +197,7 @@ int DebugInfo::graphviz_operation(ExecutionSystem *system, NodeOperation *operat
 int DebugInfo::graphviz_legend_color(const char *name, const char *color, char *str, int maxlen)
 {
 	int len = 0;
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<TR><TD>%s</TD><TD BGCOLOR=\"%s\"></TD></TR>\r\n", name, color);
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD>%s</TD><TD BGCOLOR=\"%s\"></TD></TR>\r\n", name, color);
 	return len;
 }
 
@@ -205,14 +205,14 @@ int DebugInfo::graphviz_legend_line(const char *name, const char *color, const c
 {
 	/* XXX TODO */
 	int len = 0;
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\r\n");
 	return len;
 }
 
 int DebugInfo::graphviz_legend_group(const char *name, const char *color, const char *style, char *str, int maxlen)
 {
 	int len = 0;
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<TR><TD>%s</TD><TD CELLPADDING=\"4\"><TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\"><TR><TD BGCOLOR=\"%s\"></TD></TR></TABLE></TD></TR>\r\n", name, color);
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD>%s</TD><TD CELLPADDING=\"4\"><TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\"><TR><TD BGCOLOR=\"%s\"></TD></TR></TABLE></TD></TR>\r\n", name, color);
 	return len;
 }
 
@@ -220,30 +220,30 @@ int DebugInfo::graphviz_legend(char *str, int maxlen)
 {
 	int len = 0;
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "{\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "rank = sink;\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "Legend [shape=none, margin=0, label=<\r\n");
-	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "  <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<TR><TD COLSPAN=\"2\"><B>Legend</B></TD></TR>\r\n");
-	
-	len += graphviz_legend_color("Operation", "gainsboro", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Output", "dodgerblue1", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Viewer", "lightskyblue3", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Active Viewer", "lightskyblue1", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Write Buffer", "darkorange", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Read Buffer", "darkolivegreen3", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_color("Input Value", "khaki1", str+len, maxlen>len ? maxlen-len : 0);
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rank = sink;\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Legend [shape=none, margin=0, label=<\r\n");
 
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "<TR><TD></TD></TR>\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "  <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD COLSPAN=\"2\"><B>Legend</B></TD></TR>\r\n");
 
-	len += graphviz_legend_group("Group Waiting", "white", "dashed", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_group("Group Running", "firebrick1", "solid", str+len, maxlen>len ? maxlen-len : 0);
-	len += graphviz_legend_group("Group Finished", "chartreuse4", "solid", str+len, maxlen>len ? maxlen-len : 0);
-	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "</TABLE>\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, ">];\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}\r\n");
+	len += graphviz_legend_color("Operation", "gainsboro", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Output", "dodgerblue1", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Viewer", "lightskyblue3", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Active Viewer", "lightskyblue1", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Write Buffer", "darkorange", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Read Buffer", "darkolivegreen3", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_color("Input Value", "khaki1", str + len, maxlen > len ? maxlen - len : 0);
+
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD></TD></TR>\r\n");
+
+	len += graphviz_legend_group("Group Waiting", "white", "dashed", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_group("Group Running", "firebrick1", "solid", str + len, maxlen > len ? maxlen - len : 0);
+	len += graphviz_legend_group("Group Finished", "chartreuse4", "solid", str + len, maxlen > len ? maxlen - len : 0);
+
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "</TABLE>\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, ">];\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
 
 	return len;
 }
@@ -253,14 +253,14 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 	char strbuf[64];
 	int len = 0;
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "digraph compositorexecution {\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "ranksep=1.5\r\n");
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "splines=false\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "digraph compositorexecution {\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "ranksep=1.5\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "splines=false\r\n");
 	
 	int totnodes = system->getNodes().size();
 	for (int i = 0; i < totnodes; i++) {
 		Node *node = system->getNodes()[i];
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "// NODE: %s\r\n", node->getbNode()->typeinfo->ui_name);
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// NODE: %s\r\n", node->getbNode()->typeinfo->ui_name);
 	}
 	
 	int totgroups = system->getExecutionGroups().size();
@@ -269,21 +269,21 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 	for (int i = 0; i < totgroups; ++i) {
 		ExecutionGroup *group = system->getExecutionGroups()[i];
 		
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "// GROUP: %d\r\n", i);
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "subgraph cluster_%d{\r\n", i);
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", i);
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", i);
 		/* used as a check for executing group */
 		if (m_group_states[group] == EG_WAIT) {
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "style=dashed\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=dashed\r\n");
 		}
 		else if (m_group_states[group] == EG_RUNNING) {
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "style=filled\r\n");
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "color=black\r\n");
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "fillcolor=firebrick1\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=firebrick1\r\n");
 		}
 		else if (m_group_states[group] == EG_FINISHED) {
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "style=filled\r\n");
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "color=black\r\n");
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "fillcolor=chartreuse4\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=chartreuse4\r\n");
 		}
 		
 		for (int j = 0; j < totops; ++j) {
@@ -294,12 +294,12 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 			sprintf(strbuf, "_%p", group);
 			op_groups[operation].push_back(std::string(strbuf));
 			
-			len += graphviz_operation(system, operation, group, str+len, maxlen>len ? maxlen-len : 0);
+			len += graphviz_operation(system, operation, group, str + len, maxlen > len ? maxlen - len : 0);
 		}
 		
 //		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "//  OUTPUTOPERATION: %p\r\n", group->getOutputNodeOperation());
 //		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " O_%p\r\n", group->getOutputNodeOperation());
-		len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}\r\n");
+		len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
 	}
 	
 	/* operations not included in any group */
@@ -310,7 +310,7 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 		
 		op_groups[operation].push_back(std::string(""));
 		
-		len += graphviz_operation(system, operation, 0, str+len, maxlen>len ? maxlen-len : 0);
+		len += graphviz_operation(system, operation, 0, str + len, maxlen > len ? maxlen - len : 0);
 	}
 	
 	for (int i = 0; i < totops; i++) {
@@ -324,7 +324,7 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 			
 			for (int k = 0; k < write_groups.size(); ++k) {
 				for (int l = 0; l < read_groups.size(); ++l) {
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\"O_%p%s\" -> \"O_%p%s\" [style=dotted]\r\n", write, write_groups[k].c_str(), read, read_groups[l].c_str());
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p%s\" -> \"O_%p%s\" [style=dotted]\r\n", write, write_groups[k].c_str(), read, read_groups[l].c_str());
 				}
 			}
 		}
@@ -362,20 +362,20 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 			std::vector<std::string> &from_groups = op_groups[from_op];
 			std::vector<std::string> &to_groups = op_groups[to_op];
 			
-			len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "// CONNECTION: %p.%p -> %p.%p\r\n", from_op, from_sock, to_op, to_sock);
+			len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// CONNECTION: %p.%p -> %p.%p\r\n", from_op, from_sock, to_op, to_sock);
 			for (int k = 0; k < from_groups.size(); ++k) {
 				for (int l = 0; l < to_groups.size(); ++l) {
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\"O_%p%s\":\"OUT_%p\":s -> \"O_%p%s\":\"IN_%p\":n", from_op, from_groups[k].c_str(), from_sock, to_op, to_groups[l].c_str(), to_sock);
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " [color=%s]", color.c_str());
-					len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "\r\n");
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p%s\":\"OUT_%p\":s -> \"O_%p%s\":\"IN_%p\":n", from_op, from_groups[k].c_str(), from_sock, to_op, to_groups[l].c_str(), to_sock);
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " [color=%s]", color.c_str());
+					len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\r\n");
 				}
 			}
 		}
 	}
 	
-	len += graphviz_legend(str+len, maxlen>len ? maxlen-len : 0);
+	len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0);
 	
-	len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "}\r\n");
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
 	
 	return (len < maxlen);
 }
@@ -383,7 +383,7 @@ bool DebugInfo::graphviz_system(ExecutionSystem *system, char *str, int maxlen)
 void DebugInfo::graphviz(ExecutionSystem *system)
 {
 	char str[1000000];
-	if (graphviz_system(system, str, sizeof(str)-1)) {
+	if (graphviz_system(system, str, sizeof(str) - 1)) {
 		char basename[FILE_MAX];
 		char filename[FILE_MAX];
 		
