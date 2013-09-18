@@ -542,22 +542,20 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	/* only to get the orginal props for comparisons */
 	PointerRNA opptr_default;
 
-	if (all_args == 0 || opptr == NULL) {
+	if (opptr == NULL) {
 		WM_operator_properties_create_ptr(&opptr_default, ot);
-
-		if (opptr == NULL)
-			opptr = &opptr_default;
+		opptr = &opptr_default;
 	}
 
 	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
-	cstring_args = RNA_pointer_as_string_keywords(C, opptr, &opptr_default, FALSE,
+	cstring_args = RNA_pointer_as_string_keywords(C, opptr, false,
 	                                              all_args, max_prop_length);
 	BLI_dynstr_append(dynstr, cstring_args);
 	MEM_freeN(cstring_args);
 
-	if (all_args == 0 || opptr == &opptr_default)
+	if (opptr == &opptr_default)
 		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");

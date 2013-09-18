@@ -4175,7 +4175,7 @@ static char *rna_idp_path_create(IDP_Chain *child_link)
 {
 	DynStr *dynstr = BLI_dynstr_new();
 	char *path;
-	short first = TRUE;
+	bool is_first = true;
 
 	int tot = 0;
 	IDP_Chain *link = child_link;
@@ -4194,13 +4194,13 @@ static char *rna_idp_path_create(IDP_Chain *child_link)
 	for (link = link_prev; link; link = link->up) {
 		/* pass */
 		if (link->index >= 0) {
-			BLI_dynstr_appendf(dynstr, first ? "%s[%d]" : ".%s[%d]", link->name, link->index);
+			BLI_dynstr_appendf(dynstr, is_first ? "%s[%d]" : ".%s[%d]", link->name, link->index);
 		}
 		else {
-			BLI_dynstr_appendf(dynstr, first ? "%s" : ".%s", link->name);
+			BLI_dynstr_appendf(dynstr, is_first ? "%s" : ".%s", link->name);
 		}
 
-		first = FALSE;
+		is_first = false;
 	}
 
 	path = BLI_dynstr_get_cstring(dynstr);
@@ -5041,9 +5041,9 @@ char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *p
 	}
 }
 
-/* context and ptr_default can be NULL */
-char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
-                                        const short as_function, const short all_args,
+/* context can be NULL */
+char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr,
+                                        const bool as_function, const bool all_args,
                                         const int max_prop_length,
                                         PropertyRNA *iterprop)
 {
@@ -5053,12 +5053,8 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 
 	DynStr *dynstr = BLI_dynstr_new();
 	char *cstring, *buf;
-	int first_iter = TRUE, ok = TRUE;
+	bool first_iter = true;
 	int flag;
-
-	/* only to get the orginal props for comparisons */
-	PropertyRNA *prop_default;
-	char *buf_default;
 
 	RNA_PROP_BEGIN (ptr, propptr, iterprop)
 	{
@@ -5079,45 +5075,37 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 		if (as_function && (flag & PROP_REQUIRED)) {
 			/* required args don't have useful defaults */
 			BLI_dynstr_appendf(dynstr, first_iter ? "%s" : ", %s", arg_name);
-			first_iter = FALSE;
+			first_iter = false;
 		}
 		else {
-			if (as_function && RNA_property_type(prop) == PROP_POINTER) {
-				/* don't expand pointers for functions */
-				if (flag & PROP_NEVER_NULL) {
-					/* we cant really do the right thing here. arg=arg?, hrmf! */
-					buf = BLI_strdup(arg_name);
+			bool ok = true;
+
+			if (all_args == true) {
+				/* pass */
+			}
+			else if (RNA_struct_idprops_check(ptr->type)) {
+				ok = RNA_property_is_set(ptr, prop);
+			}
+
+			if (ok) {
+				if (as_function && RNA_property_type(prop) == PROP_POINTER) {
+					/* don't expand pointers for functions */
+					if (flag & PROP_NEVER_NULL) {
+						/* we cant really do the right thing here. arg=arg?, hrmf! */
+						buf = BLI_strdup(arg_name);
+					}
+					else {
+						buf = BLI_strdup("None");
+					}
 				}
 				else {
-					buf = BLI_strdup("None");
+					buf = RNA_property_as_string(C, ptr, prop, -1, max_prop_length);
 				}
-			}
-			else {
-				buf = RNA_property_as_string(C, ptr, prop, -1, max_prop_length);
-			}
 
-			ok = TRUE;
-
-			if (all_args == FALSE && ptr_default) {
-				/* not verbose, so only add in attributes that use non-default values
-				 * slow but good for tooltips */
-				prop_default = RNA_struct_find_property(ptr_default, arg_name);
-
-				if (prop_default) {
-					buf_default = RNA_property_as_string(C, ptr_default, prop_default, -1, max_prop_length);
-
-					if (strcmp(buf, buf_default) == 0)
-						ok = FALSE;  /* values match, don't bother printing */
-
-					MEM_freeN(buf_default);
-				}
-			}
-			if (ok) {
 				BLI_dynstr_appendf(dynstr, first_iter ? "%s=%s" : ", %s=%s", arg_name, buf);
-				first_iter = FALSE;
+				first_iter = false;
+				MEM_freeN(buf);
 			}
-
-			MEM_freeN(buf);
 		}
 	}
 	RNA_PROP_END;
@@ -5127,20 +5115,20 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 	return cstring;
 }
 
-char *RNA_pointer_as_string_keywords(bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
-                                     const short as_function, const short all_args,
+char *RNA_pointer_as_string_keywords(bContext *C, PointerRNA *ptr,
+                                     const bool as_function, const bool all_args,
                                      const int max_prop_length)
 {
 	PropertyRNA *iterprop;
 
 	iterprop = RNA_struct_iterator_property(ptr->type);
 
-	return RNA_pointer_as_string_keywords_ex(C, ptr, ptr_default, as_function, all_args,
+	return RNA_pointer_as_string_keywords_ex(C, ptr, as_function, all_args,
 	                                         max_prop_length, iterprop);
 }
 
-char *RNA_function_as_string_keywords(bContext *C, FunctionRNA *func, PointerRNA *ptr_default,
-                                      const short as_function, const short all_args,
+char *RNA_function_as_string_keywords(bContext *C, FunctionRNA *func,
+                                      const bool as_function, const bool all_args,
                                       const int max_prop_length)
 {
 	PointerRNA funcptr;
@@ -5152,7 +5140,7 @@ char *RNA_function_as_string_keywords(bContext *C, FunctionRNA *func, PointerRNA
 
 	RNA_struct_iterator_property(funcptr.type);
 
-	return RNA_pointer_as_string_keywords_ex(C, &funcptr, ptr_default, as_function, all_args,
+	return RNA_pointer_as_string_keywords_ex(C, &funcptr, as_function, all_args,
 	                                         max_prop_length, iterprop);
 }
 
@@ -5263,11 +5251,11 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 					RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 					if (item) {
-						short is_first = TRUE;
+						bool is_first = false;
 						for (; item->identifier; item++) {
 							if (item->identifier[0] && item->value & val) {
 								BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
-								is_first = FALSE;
+								is_first = false;
 							}
 						}
 

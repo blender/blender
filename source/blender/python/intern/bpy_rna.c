@@ -5333,7 +5333,7 @@ static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *UNUSED(closure)
 	PyObject *ret;
 	char *args;
 
-	args = RNA_function_as_string_keywords(NULL, self->func, NULL, true, true, INT_MAX);
+	args = RNA_function_as_string_keywords(NULL, self->func, true, true, INT_MAX);
 
 	ret = PyUnicode_FromFormat("%.200s.%.200s(%.200s)\n%s",
 	                           RNA_struct_identifier(self->ptr.type),
