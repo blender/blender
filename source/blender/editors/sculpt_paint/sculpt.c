@@ -2496,7 +2496,7 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 	/* for flatten center */
 	if (count != 0)
 		mul_v3_fl(fc, 1.0f / count);
-	else if (count_flipped !=0 )
+	else if (count_flipped != 0)
 		mul_v3_v3fl(fc, fc_flip, 1.0f / count_flipped);
 	else
 		zero_v3(fc);

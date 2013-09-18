@@ -21,7 +21,7 @@
 #ifndef __PBVH_INTERN_H__
 #define __PBVH_INTERN_H__
 
-/** \file blender/blenkernel/intern/pbvh_intern.c
+/** \file blender/blenkernel/intern/pbvh_intern.h
  *  \ingroup bli
  */
 

@@ -1826,7 +1826,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
 					break;
 				default:
 					fprintf(stderr,
-					        "%s: unrecognized bmop format char: %c, %d in '%s'\n",
+					        "%s: unrecognized bmop format char: '%c', %d in '%s'\n",
 					        __func__, *fmt, (int)(fmt - ofmt), ofmt);
 					break;
 			}
