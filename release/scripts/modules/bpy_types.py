@@ -219,8 +219,9 @@ class _GenericBone:
 
     @property
     def length(self):
-        """ The distance from head to tail,
-            when set the head is moved to fit the length.
+        """
+        The distance from head to tail,
+        when set the head is moved to fit the length.
         """
         return self.vector.length
 
@@ -230,8 +231,9 @@ class _GenericBone:
 
     @property
     def vector(self):
-        """ The direction this bone is pointing.
-            Utility function for (tail - head)
+        """
+        The direction this bone is pointing.
+        Utility function for (tail - head)
         """
         return (self.tail - self.head)
 

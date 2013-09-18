@@ -482,6 +482,9 @@ def is_struct_seq(value):
 
 
 def undocumented_message(module_name, type_name, identifier):
+    return "Undocumented"
+
+    """
     if str(type_name).startswith('<module'):
         preloadtitle = '%s.%s' % (module_name, identifier)
     else:
@@ -494,6 +497,7 @@ def undocumented_message(module_name, type_name, identifier):
                "&preload=Dev:2.5/Py/API/Generating_API_Reference/Contribute/Howto-message"
                "&preloadtitle=%s>`_)\n\n" % preloadtitle)
     return message
+    """
 
 
 def range_str(val):

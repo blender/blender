@@ -121,7 +121,7 @@ def is_subdir(path, directory):
 def clean_name(name, replace="_"):
     """
     Returns a name with characters replaced that
-       may cause problems under various circumstances,
+    may cause problems under various circumstances,
     such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argument if defined.

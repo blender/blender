@@ -1,6 +1,6 @@
 """
 Get/Set Example
-++++++++++++++
++++++++++++++++
 
 Get/Set functions can be used for boolean, int, float, string and enum properties.
 If these callbacks are defined the property will not be stored in the ID properties

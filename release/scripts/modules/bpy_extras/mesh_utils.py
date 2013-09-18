@@ -327,7 +327,8 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
     indicie lists. Designed to be used for importers that need indices for an
     fgon to create from existing verts.
 
-    from_data: either a mesh, or a list/tuple of vectors.
+    :arg from_data: either a mesh, or a list/tuple of vectors.
+    :type from_data: list or :class:`bpy.types.Mesh`
     :arg indices: a list of indices to use this list
        is the ordered closed polyline
        to fill, and can be a subset of the data given.

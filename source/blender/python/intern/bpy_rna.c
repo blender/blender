@@ -4600,17 +4600,6 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_get_doc,
 ".. method:: foreach_get(attr, seq)\n"
 "\n"
 "   This is a function to give fast access to attributes within a collection.\n"
-"\n"
-"   Only works for 'basic type' properties (bool, int and float)!\n"
-"   Multi-dimensional arrays (like array of vectors) will be flattened into seq.\n"
-"\n"
-"   .. code-block:: python\n"
-"\n"
-"      collection.foreach_get(attr, someseq)\n"
-"\n"
-"      # Python equivalent\n"
-"      for i in range(len(seq)): someseq[i] = getattr(collection[i], attr)\n"
-"\n"
 );
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
@@ -4623,17 +4612,6 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_set_doc,
 ".. method:: foreach_set(attr, seq)\n"
 "\n"
 "   This is a function to give fast access to attributes within a collection.\n"
-"\n"
-"   Only works for 'basic type' properties (bool, int and float)!\n"
-"   seq must be uni-dimensional, multi-dimensional arrays (like array of vectors) will be re-created from it.\n"
-"\n"
-"   .. code-block:: python\n"
-"\n"
-"      collection.foreach_set(attr, seq)\n"
-"\n"
-"      # Python equivalent\n"
-"      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
-"\n"
 );
 static PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {

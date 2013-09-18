@@ -152,7 +152,7 @@ class UI_UL_list(bpy.types.UIList):
         propname is the name of the string property to use for filtering.
         flags must be a list of integers the same length as items, or None!
         return a list of flags (based on given flags if not None),
-               or an empty list if no flags were given and no filtering has been done.
+        or an empty list if no flags were given and no filtering has been done.
         """
         import fnmatch
 
