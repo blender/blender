@@ -83,8 +83,21 @@ def float_as_string(f):
 
 
 class InfoStructRNA:
-    global_lookup = {}
+    __slots__ = (
+        "bl_rna",
+        "identifier",
+        "name",
+        "description",
+        "base",
+        "nested",
+        "full_path",
+        "functions",
+        "children",
+        "references",
+        "properties",
+        )
 
+    global_lookup = {}
     def __init__(self, rna_type):
         self.bl_rna = rna_type
 
@@ -182,6 +195,27 @@ class InfoStructRNA:
 
 
 class InfoPropertyRNA:
+    __slots__ = (
+        "bl_prop",
+        "srna",
+        "identifier",
+        "name",
+        "description",
+        "default_str",
+        "default",
+        "enum_items",
+        "min",
+        "max",
+        "array_length",
+        "collection_type",
+        "type",
+        "fixed_type",
+        "is_argument_optional",
+        "is_enum_flag",
+        "is_required",
+        "is_readonly",
+        "is_never_none",
+        )
     global_lookup = {}
 
     def __init__(self, rna_prop):
@@ -202,6 +236,7 @@ class InfoPropertyRNA:
         self.is_required = rna_prop.is_required
         self.is_readonly = rna_prop.is_readonly
         self.is_never_none = rna_prop.is_never_none
+        self.is_argument_optional = rna_prop.is_argument_optional
 
         self.type = rna_prop.type.lower()
         fixed_type = getattr(rna_prop, "fixed_type", "")
@@ -318,6 +353,14 @@ class InfoPropertyRNA:
 
 
 class InfoFunctionRNA:
+    __slots__ = (
+        "bl_func",
+        "identifier",
+        "description",
+        "args",
+        "return_values",
+        "is_classmethod",
+        )
     global_lookup = {}
 
     def __init__(self, rna_func):
@@ -355,6 +398,15 @@ class InfoFunctionRNA:
 
 
 class InfoOperatorRNA:
+    __slots__ = (
+        "bl_op",
+        "identifier",
+        "name",
+        "module_name",
+        "func_name",
+        "description",
+        "args",
+        )
     global_lookup = {}
 
     def __init__(self, rna_op):
