@@ -166,7 +166,7 @@ void BPY_text_free_code(Text *text)
 {
 	if (text->compiled) {
 		PyGILState_STATE gilstate;
-		bool use_gil = !PYC_INTERPRETER_ACTIVE;
+		bool use_gil = !PyC_IsInterpreterActive();
 
 		if (use_gil)
 			gilstate = PyGILState_Ensure();
@@ -760,7 +760,7 @@ void BPY_modules_load_user(bContext *C)
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	PyGILState_STATE gilstate;
-	bool use_gil = !PYC_INTERPRETER_ACTIVE;
+	bool use_gil = !PyC_IsInterpreterActive();
 
 	PyObject *pyctx;
 	PyObject *item;

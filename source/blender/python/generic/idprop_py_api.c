@@ -1518,7 +1518,7 @@ void IDP_spit(IDProperty *prop)
 {
 	if (prop) {
 		PyGILState_STATE gilstate;
-		int use_gil = TRUE; /* !PYC_INTERPRETER_ACTIVE; */
+		int use_gil = TRUE; /* !PyC_IsInterpreterActive(); */
 		PyObject *ret_dict;
 		PyObject *ret_str;
 

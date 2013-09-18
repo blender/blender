@@ -191,7 +191,7 @@ void PyC_LineSpit(void)
 	int lineno;
 
 	/* Note, allow calling from outside python (RNA) */
-	if (!PYC_INTERPRETER_ACTIVE) {
+	if (!PyC_IsInterpreterActive()) {
 		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
 		return;
 	}
@@ -205,7 +205,7 @@ void PyC_LineSpit(void)
 void PyC_StackSpit(void)
 {
 	/* Note, allow calling from outside python (RNA) */
-	if (!PYC_INTERPRETER_ACTIVE) {
+	if (!PyC_IsInterpreterActive()) {
 		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
 		return;
 	}
@@ -258,7 +258,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 
 void PyC_FileAndNum_Safe(const char **filename, int *lineno)
 {
-	if (!PYC_INTERPRETER_ACTIVE) {
+	if (!PyC_IsInterpreterActive()) {
 		return;
 	}
 
@@ -597,6 +597,11 @@ void PyC_SetHomePath(const char *py_path_bundle)
 		Py_SetPythonHome(py_path_bundle_wchar);
 		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
 	}
+}
+
+bool PyC_IsInterpreterActive(void)
+{
+	return (((PyThreadState *)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL);
 }
 
 /* Would be nice if python had this built in

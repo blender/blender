@@ -123,7 +123,7 @@ static void bpy_pydriver_update_dict(const float evaltime)
 void BPY_driver_reset(void)
 {
 	PyGILState_STATE gilstate;
-	bool use_gil = true; /* !PYC_INTERPRETER_ACTIVE; */
+	bool use_gil = true; /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -162,7 +162,7 @@ static void pydriver_error(ChannelDriver *driver)
  *
  * (old)note: PyGILState_Ensure() isn't always called because python can call
  * the bake operator which intern starts a thread which calls scene update
- * which does a driver update. to avoid a deadlock check PYC_INTERPRETER_ACTIVE
+ * which does a driver update. to avoid a deadlock check PyC_IsInterpreterActive()
  * if PyGILState_Ensure() is needed - see [#27683]
  *
  * (new)note: checking if python is running is not threadsafe [#28114]
@@ -199,7 +199,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 		return 0.0f;
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();

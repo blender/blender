@@ -256,7 +256,7 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -313,7 +313,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -368,7 +368,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct Propert
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -430,7 +430,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct Propert
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -490,7 +490,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -547,7 +547,7 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -602,7 +602,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -664,7 +664,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -724,7 +724,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -781,7 +781,7 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -836,7 +836,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr, struct PropertyR
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -898,7 +898,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr, struct PropertyR
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -957,7 +957,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -1017,7 +1017,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -1079,7 +1079,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -1140,7 +1140,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -1197,7 +1197,7 @@ static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pro
 		pyrna_write_set(true);
 	}
 
-	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PyC_IsInterpreterActive(); */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();

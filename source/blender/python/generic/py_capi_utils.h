@@ -56,7 +56,7 @@ void PyC_MainModule_Restore(PyObject *main_mod);
 
 void PyC_SetHomePath(const char *py_path_bundle);
 
-#define PYC_INTERPRETER_ACTIVE (((PyThreadState *)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
+bool PyC_IsInterpreterActive(void);
 
 void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);
 
