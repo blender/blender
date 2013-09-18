@@ -219,6 +219,9 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 		if (read(file, data, filelen) == filelen) {
 			pf = newPackedFileMemory(data, filelen);
 		}
+		else {
+			MEM_freeN(data);
+		}
 
 		close(file);
 	}

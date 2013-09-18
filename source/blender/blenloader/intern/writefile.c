@@ -1757,7 +1757,13 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 	if (data_tmp.external && !wd->current)
 		CustomData_external_write(&data_tmp, id, CD_MASK_MESH, count, 0);
 
+	for (i = 0; i < data_tmp.totlayer; i++)
+		data_tmp.layers[i].flag &= ~CD_FLAG_NOFREE;
+
 	writestruct_at_address(wd, DATA, "CustomDataLayer", data_tmp.maxlayer, data->layers, data_tmp.layers);
+ 
+	for (i = 0; i < data_tmp.totlayer; i++)
+		data_tmp.layers[i].flag |= CD_FLAG_NOFREE;
 
 	for (i = 0; i < data_tmp.totlayer; i++) {
 		CustomDataLayer *layer= &data_tmp.layers[i];
