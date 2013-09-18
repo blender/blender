@@ -422,9 +422,12 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			ima = (Image *)id;
 			if (ima->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-					rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
-					BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
-					BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
+					if (rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data)) {
+						if (!ima->packedfile) {
+							BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+							BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
+						}
+					}
 				}
 			}
 			break;
