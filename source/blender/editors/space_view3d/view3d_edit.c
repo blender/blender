@@ -4082,6 +4082,11 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	float zfac;
 	bool flip;
 	
+	/* normally the caller should ensure this,
+	 * but this is called from areas that aren't already dealing with the viewport */
+	if (rv3d == NULL)
+		return;
+
 	zfac = ED_view3d_calc_zfac(rv3d, fp, &flip);
 	
 	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
