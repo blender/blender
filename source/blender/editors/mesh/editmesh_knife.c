@@ -497,7 +497,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
  * and move cur data to prev. */
 static void knife_add_single_cut(KnifeTool_OpData *kcd)
 {
-	KnifeEdge *kfe = new_knife_edge(kcd), *kfe2 = NULL, *kfe3 = NULL;
+	KnifeEdge *kfe, *kfe2 = NULL, *kfe3 = NULL;
 
 	if ((kcd->prev.vert && kcd->prev.vert == kcd->curr.vert) ||
 	    (kcd->prev.edge && kcd->prev.edge == kcd->curr.edge))
@@ -506,6 +506,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 		return;
 	}
 
+	kfe = new_knife_edge(kcd);
 	kfe->draw = true;
 
 	if (kcd->prev.vert) {
@@ -2738,7 +2739,7 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	l_new = NULL;
 	if (nco == 0) {
 		/* Want to prevent creating two-sided polygons */
-		if (BM_edge_exists(v1, v2)) {
+		if (v1 == v2 || BM_edge_exists(v1, v2)) {
 			f_new = NULL;
 		}
 		else {
