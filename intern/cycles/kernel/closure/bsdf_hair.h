@@ -47,16 +47,16 @@ __device void bsdf_hair_transmission_blur(ShaderClosure *sc, float roughness)
 __device int bsdf_hair_reflection_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
-	sc->data0 = clamp(sc->data0, 0.001f,1.0f);
-	sc->data1 = clamp(sc->data1, 0.001f,1.0f);
+	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
+	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device int bsdf_hair_transmission_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
-	sc->data0 = clamp(sc->data0, 0.001f,1.0f);
-	sc->data1 = clamp(sc->data1, 0.001f,1.0f);
+	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
+	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
@@ -67,7 +67,7 @@ __device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const
 	float3 Tg = sc->T;
 #else
 	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f,0.0f,0.0f);
+	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
 #endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
@@ -124,7 +124,7 @@ __device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, co
 	float3 Tg = sc->T;
 #else
 	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f,0.0f,0.0f);
+	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
 #endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
@@ -170,7 +170,7 @@ __device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, flo
 	float3 Tg = sc->T;
 #else
 	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f,0.0f,0.0f);
+	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
 #endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
@@ -225,7 +225,7 @@ __device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng, f
 	float3 Tg = sc->T;
 #else
 	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f,0.0f,0.0f);
+	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
 #endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
