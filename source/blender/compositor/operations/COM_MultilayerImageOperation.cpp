@@ -27,16 +27,15 @@ extern "C" {
 	#include "IMB_imbuf_types.h"
 }
 
-MultilayerBaseOperation::MultilayerBaseOperation(int pass) : BaseImageOperation()
+MultilayerBaseOperation::MultilayerBaseOperation(int passindex) : BaseImageOperation()
 {
-	this->m_passId = pass;
+	this->m_passId = passindex;
 }
 ImBuf *MultilayerBaseOperation::getImBuf()
 {
-	RenderPass *rpass;
-	rpass = (RenderPass *)BLI_findlink(&this->m_renderlayer->passes, this->m_passId);
+	RenderPass *rpass = (RenderPass *)BLI_findlink(&this->m_renderlayer->passes, this->m_passId);
 	if (rpass) {
-		this->m_imageUser->pass = this->m_passId;
+		this->m_imageUser->pass = m_passId;
 		BKE_image_multilayer_index(this->m_image->rr, this->m_imageUser);
 		return BaseImageOperation::getImBuf();
 	}
