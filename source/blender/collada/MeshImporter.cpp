@@ -665,7 +665,11 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i,
 
 			v[0] = (*values)[i++];
 			v[1] = (*values)[i++];
-			v[2] = (*values)[i];
+			if(stride>=3) {
+				v[2] = (*values)[i];
+			} else {
+				v[2] = 0.0f;
+			}
 
 		}
 		break;
@@ -676,13 +680,18 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i,
 
 			v[0] = (float)(*values)[i++];
 			v[1] = (float)(*values)[i++];
-			v[2] = (float)(*values)[i];
+			if(stride>=3) {
+				v[2] = (float)(*values)[i];
+			} else {
+				v[2] = 0.0f;
+			}
 		}
 		break;
 		default:
 			break;
 	}
 }
+
 bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count)
 {
 	float a[3], b[3];
