@@ -590,24 +590,56 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, int firsti, int lasti)
 {
 	int i;
+	ListBase *testfaces, *ifaces;
+	BMFace *testface, *iface;
+	BMEdgeHit *lh;
+	bool shareface;
 
+	if (testi >= 0 && testi < kcd->totlinehit) {
+		testface = NULL;
+		testfaces = NULL;
+		lh = &kcd->linehits[testi];
+		if (lh->v)
+			testfaces = &lh->v->faces;
+		else if (lh->kfe)
+			testfaces = &lh->kfe->faces;
+		else if (lh->f) {
+			testfaces = NULL;
+			testface = lh->f;
+		}
+	}
+	else {
+		testface = f;
+		testfaces = NULL;
+	}
 	for (i = firsti; i <= lasti; i++) {
-		if (testi >= 0 && testi < kcd->totlinehit) {
-			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
-			                           &kcd->linehits[i].kfe->faces))
-			{
-				return i;
-			}
-			else if (kcd->linehits[testi].v &&
-			         kcd->linehits[testi].v == kcd->linehits[i].v)
-			{
-				return i;
-			}
+		shareface = false;
+		lh = &kcd->linehits[i];
+		iface = NULL;
+		ifaces = NULL;
+		if (lh->v)
+			ifaces = &lh->v->faces;
+		else if (lh->kfe)
+			ifaces = &lh->kfe->faces;
+		else if (lh->f) {
+			ifaces = NULL;
+			iface = lh->f;
 		}
-		else if (f) {
-			if (find_ref(&kcd->linehits[i].kfe->faces, f))
-				return i;
+		if (testfaces) {
+			if (ifaces)
+				shareface = knife_find_common_face(testfaces, ifaces);
+			else if (iface)
+				shareface = find_ref(testfaces, iface);
 		}
+		else if (ifaces) {
+			if (testface)
+				shareface = find_ref(ifaces, testface);
+		}
+		else if (testface && iface) {
+			shareface = (testface == iface);
+		}
+		if (shareface)
+			return i;
 	}
 	return -1;
 }
