@@ -550,10 +550,10 @@ _create_inst_shortcut() {
 # ldconfig
 run_ldconfig() {
   _lib_path="$INST/$1/lib"
-  _ldonf_path="/etc/ld.so.conf.d/$1.conf"
+  _ldconf_path="/etc/ld.so.conf.d/$1.conf"
   INFO ""
   INFO "Running ldconfig for $1..."
-  sudo sh -c "echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
+  sudo sh -c "echo \"$_lib_path\" > $_ldconf_path"
   sudo /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
   INFO ""
 }
