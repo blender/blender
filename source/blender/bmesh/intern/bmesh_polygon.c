@@ -941,18 +941,18 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 			const BMVert *v2 = l_iter->v;
 			const BMVert *v3 = l_iter->next->v;
 
-			if (bm_face_goodline((float const (*)[2])projectverts, f,
-			                     BM_elem_index_get(v1),
-			                     BM_elem_index_get(v2),
-			                     BM_elem_index_get(v3)))
-			{
-				/* Compute highest cos (i.e. narrowest angle) of this tri. */
-				cos = max_fff(abscoss[i],
-				              fabsf(cos_v3v3v3(v2->co, v3->co, v1->co)),
-				              fabsf(cos_v3v3v3(v3->co, v1->co, v2->co)));
+			/* Compute highest cos (i.e. narrowest angle) of this tri. */
+			cos = max_fff(abscoss[i],
+			              fabsf(cos_v3v3v3(v2->co, v3->co, v1->co)),
+			              fabsf(cos_v3v3v3(v3->co, v1->co, v2->co)));
 
-				/* Compare to prev best (i.e. lowest) cos. */
-				if (cos < cos_best) {
+			/* Compare to prev best (i.e. lowest) cos. */
+			if (cos < cos_best) {
+				if (bm_face_goodline((float const (*)[2])projectverts, f,
+				                     BM_elem_index_get(v1),
+				                     BM_elem_index_get(v2),
+				                     BM_elem_index_get(v3)))
+				{
 					/* We must check this tri would not leave a (too much) degenerated remaining face! */
 					/* For now just assume if the average of cos of all
 					 * "remaining face"'s corners is below a given threshold, it's OK. */
