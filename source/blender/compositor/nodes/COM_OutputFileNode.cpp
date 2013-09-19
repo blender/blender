@@ -59,12 +59,12 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		bool hasConnections = false;
 		for (int i = 0; i < num_inputs; ++i) {
 			InputSocket *input = getInputSocket(i);
+			NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
+			
+			outputOperation->add_layer(sockdata->layer, input->getDataType());
+			
 			if (input->isConnected()) {
 				hasConnections = true;
-				NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
-				
-				outputOperation->add_layer(sockdata->layer, input->getDataType());
-				
 				input->relinkConnections(outputOperation->getInputSocket(i));
 			}
 		}
