@@ -193,7 +193,6 @@ BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/b
 BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
-_need_boost_ldconfig=false
 
 OCIO_VERSION="1.0.7"
 OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
@@ -209,14 +208,12 @@ ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$IL
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
-_need_openexr_ldconfig=false
 
 OIIO_VERSION="1.1.10"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
-_need_oiio_ldconfig=false
 
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
@@ -550,6 +547,17 @@ _create_inst_shortcut() {
   ln -s $_inst $_inst_shortcut
 }
 
+# ldconfig
+run_ldconfig() {
+  _lib_path="$INST/$1/lib"
+  _ldonf_path="/etc/ld.so.conf.d/$1.conf"
+  INFO ""
+  INFO "Running ldconfig for $1..."
+  sudo sh -c "echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
+  sudo /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
+  INFO ""
+}
+
 #### Build Python ####
 _init_python() {
   _src=$SRC/Python-$PYTHON_VERSION
@@ -739,7 +747,7 @@ compile_Boost() {
   fi
 
   # Just always run it, much simpler this way!
-  _need_boost_ldconfig=true
+  run_ldconfig "boost"
 }
 
 #### Build OCIO ####
@@ -1142,7 +1150,7 @@ EOF
   _with_built_openexr=true
 
   # Just always run it, much simpler this way!
-  _need_openexr_ldconfig=true
+  run_ldconfig "openexr"
 }
 
 #### Build OIIO ####
@@ -1405,7 +1413,7 @@ EOF
   fi
 
   # Just always run it, much simpler this way!
-  _need_oiio_ldconfig=true
+  run_ldconfig "oiio"
 }
 
 #### Build LLVM ####
@@ -3149,20 +3157,6 @@ else
   ERROR "Failed to detect distribution type"
   exit 1
 fi
-
-INFO ""
-INFO "Running ldconfig..."
-if [ $_need_boost_ldconfig == true ]; then
-  sudo sh -c "echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
-fi
-if [ $_need_oiio_ldconfig == true ]; then
-  sudo sh -c "echo \"$INST/oiio/lib\" > /etc/ld.so.conf.d/oiio.conf"
-fi
-if [ $_need_openexr_ldconfig == true ]; then
-  sudo sh -c "echo \"$INST/openexr/lib\" > /etc/ld.so.conf.d/openexr.conf"
-fi
-sudo /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
-INFO ""
 
 print_info | tee BUILD_NOTES.txt
 INFO ""
