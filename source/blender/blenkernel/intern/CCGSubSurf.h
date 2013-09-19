@@ -18,6 +18,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __CCGSUBSURF_H__
+#define __CCGSUBSURF_H__
+
 /** \file blender/blenkernel/intern/CCGSubSurf.h
  *  \ingroup bke
  */
@@ -182,3 +185,5 @@ CCGFace*			ccgFaceIterator_getCurrent	(CCGFaceIterator *fi);
 int					ccgFaceIterator_isStopped	(CCGFaceIterator *fi);
 void				ccgFaceIterator_next		(CCGFaceIterator *fi);
 void				ccgFaceIterator_free		(CCGFaceIterator *fi);
+
+#endif  /* __CCGSUBSURF_H__ */

@@ -25,6 +25,7 @@
  */
 
 #ifndef __MOD_MESHCACHE_UTIL_H__
+#define __MOD_MESHCACHE_UTIL_H__
 
 struct MPoly;
 struct MLoop;
@@ -64,4 +65,4 @@ void MOD_meshcache_calc_range(const float frame, const char interp,
 
 #define FRAME_SNAP_EPS 0.0001f
 
-#endif /* __MOD_MESHCACHE_UTIL_H__ */
+#endif  /* __MOD_MESHCACHE_UTIL_H__ */

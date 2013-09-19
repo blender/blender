@@ -29,8 +29,8 @@
  *  \ingroup nodes
  */
 
-#ifndef NOD_COMMON_H
-#define NOD_COMMON_H
+#ifndef __NOD_COMMON_H__
+#define __NOD_COMMON_H__
 
 #include "BKE_node.h"
 
@@ -51,4 +51,4 @@ struct bNodeSocket *node_group_output_find_socket(struct bNode *node, const char
 void node_group_input_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *id);
 void node_group_output_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *id);
 
-#endif
+#endif  /* __NOD_COMMON_H__ */

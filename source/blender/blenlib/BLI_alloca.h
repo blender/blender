@@ -19,6 +19,7 @@
  */
 
 #ifndef __BLI_ALLOCA_H__
+#define __BLI_ALLOCA_H__
 
 /** \file BLI_alloca.h
  *  \ingroup bli

@@ -20,10 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BPY_RNA_CALLBACK_H__
+#define __BPY_RNA_CALLBACK_H__
+
 /** \file blender/python/intern/bpy_rna_callback.h
  *  \ingroup pythonintern
  */
-
 
 struct BPy_StructRNA;
 struct PyObject;
@@ -35,3 +37,5 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args);
 
 PyObject *pyrna_callback_classmethod_add(PyObject *cls, PyObject *args);
 PyObject *pyrna_callback_classmethod_remove(PyObject *cls, PyObject *args);
+
+#endif  /* __BPY_RNA_CALLBACK_H__ */

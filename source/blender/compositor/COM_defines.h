@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_defines_h_
-#define _COM_defines_h_
+#ifndef __COM_DEFINES_H__
+#define __COM_DEFINES_H__
 
 /**
  * @brief possible data types for SocketConnection
@@ -109,4 +109,4 @@ typedef enum OrderOfChunks {
 
 #define COM_BLUR_BOKEH_PIXELS 512
 
-#endif
+#endif  /* __COM_DEFINES_H__ */

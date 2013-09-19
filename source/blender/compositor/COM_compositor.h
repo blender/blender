@@ -20,6 +20,9 @@
  *		Monique Dewanchand
  */
 
+#ifndef __COM_COMPOSITOR_H__
+#define __COM_COMPOSITOR_H__
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -343,3 +346,5 @@ int COM_isHighlightedbNode(bNode *bnode);
 #ifdef __cplusplus
 }
 #endif
+
+#endif  /* __COM_COMPOSITOR_H__ */

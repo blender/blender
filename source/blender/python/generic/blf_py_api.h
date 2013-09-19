@@ -20,9 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BLF_PY_API_H__
+#define __BLF_PY_API_H__
+
 /** \file blender/python/generic/blf_py_api.h
  *  \ingroup pygen
  */
 
-
 PyObject *BPyInit_blf(void);
+
+#endif  /* __BLF_PY_API_H__ */

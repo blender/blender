@@ -24,6 +24,7 @@
  */
 
 #ifndef __BPY_H__
+#define __BPY_H__
 
 void BPy_init_modules(void);
 extern PyObject *bpy_package_py;

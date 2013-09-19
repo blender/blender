@@ -27,10 +27,13 @@
 
 /** \file blender/python/intern/gpu.h
  *  \ingroup pythonintern
- */
-
-/**
+ *
  * Initializes the gpu Python module.
  */
+
+#ifndef __GPU_H__
+#define __GPU_H__
+
 PyObject *GPU_initPython(void);
 
+#endif /* __GPU_H__ */

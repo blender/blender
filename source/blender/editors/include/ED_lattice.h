@@ -28,8 +28,13 @@
  *  \ingroup editors
  */
 
+#ifndef __ED_LATTICE_H__
+#define __ED_LATTICE_H__
+
 struct Object;
 
 void free_editLatt(struct Object *ob);
 void make_editLatt(struct Object *obedit);
 void load_editLatt(struct Object *obedit);
+
+#endif  /* __ED_LATTICE_H__ */

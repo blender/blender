@@ -20,6 +20,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BPY_INTERN_STRING_H__
+#define __BPY_INTERN_STRING_H__
+
 /** \file blender/python/intern/bpy_intern_string.h
  *  \ingroup pythonintern
  */
@@ -36,3 +39,5 @@ extern PyObject *bpy_intern_str_attr;
 extern PyObject *bpy_intern_str___slots__;
 extern PyObject *bpy_intern_str___name__;
 extern PyObject *bpy_intern_str___doc__;
+
+#endif  /* __BPY_INTERN_STRING_H__ */
