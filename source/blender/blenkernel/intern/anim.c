@@ -751,14 +751,24 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 	DupliObject *dob;
 	Group *group;
 	GroupObject *go;
-	float mat[4][4], tmat[4][4], id;
-	
+	float mat[4][4], ob_obmat_ofs[4][4], id;
+
 	if (ob->dup_group == NULL) return;
 	group = ob->dup_group;
 	
 	/* simple preventing of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
 	
+	/* don't access 'ob->obmat' from now on. */
+	copy_m4_m4(ob_obmat_ofs, ob->obmat);
+
+	if (!is_zero_v3(group->dupli_ofs)) {
+		float tvec[3];
+		copy_v3_v3(tvec, group->dupli_ofs);
+		mul_mat3_m4_v3(ob_obmat_ofs, tvec);
+		sub_v3_v3(ob_obmat_ofs[3], tvec);
+	}
+
 	/* handles animated groups, and */
 
 	/* we need to check update for objects that are not in scene... */
@@ -776,14 +786,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 		if (go->ob != ob) {
 			
 			/* group dupli offset, should apply after everything else */
-			if (!is_zero_v3(group->dupli_ofs)) {
-				copy_m4_m4(tmat, go->ob->obmat);
-				sub_v3_v3v3(tmat[3], tmat[3], group->dupli_ofs);
-				mul_m4_m4m4(mat, ob->obmat, tmat);
-			}
-			else {
-				mul_m4_m4m4(mat, ob->obmat, go->ob->obmat);
-			}
+			mul_m4_m4m4(mat, ob_obmat_ofs, go->ob->obmat);
 			
 			dob = new_dupli_object(lb, go->ob, mat, ob->lay, persistent_id, level, id, OB_DUPLIGROUP, flag);
 
@@ -797,7 +800,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 
 			if (go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, persistent_id, level + 1, id, flag);
+				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob_obmat_ofs, persistent_id, level + 1, id, flag);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}
