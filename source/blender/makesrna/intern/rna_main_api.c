@@ -832,7 +832,7 @@ static Mask *rna_Main_mask_new(Main *bmain, const char *name)
 {
 	Mask *mask;
 
-	mask = BKE_mask_new(bmain, "Mask");
+	mask = BKE_mask_new(bmain, name);
 
 	return mask;
 }

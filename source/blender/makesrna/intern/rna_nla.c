@@ -98,7 +98,7 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
 	}
 	
 	/* no path */
-	return "";
+	return BLI_strdup("");
 }
 
 static void rna_NlaStrip_transform_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
