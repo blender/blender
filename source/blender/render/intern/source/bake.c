@@ -828,8 +828,11 @@ static void shade_tface(BakeShade *bs)
 				}
 			}
 
-			if (bs->use_displacement_buffer)
-				userdata->displacement_buffer = MEM_callocN(sizeof(float) * bs->rectx * bs->recty, "BakeDisp");
+			if (bs->use_displacement_buffer) {
+				if (userdata->displacement_buffer == NULL) {
+					userdata->displacement_buffer = MEM_callocN(sizeof(float) * bs->rectx * bs->recty, "BakeDisp");
+				}
+			}
 
 			bs->ibuf->userdata = userdata;
 
