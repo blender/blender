@@ -312,7 +312,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ReportList *repor
 	r_uv[1] = 0.0f;
 }
 
-static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier,
+static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object,
                                        int particle_no, int step, float n_co[3])
 {
 	ParticleSettings *part = 0;
@@ -862,7 +862,8 @@ static float rna_PartSetting_linelentail_get(struct PointerRNA *ptr)
 	ParticleSettings *settings = (ParticleSettings *)ptr->data;
 	return settings->draw_line[0];
 }
-static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max,
+                                               float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	ParticleSettings *settings = (ParticleSettings *)ptr->data;
 
@@ -919,7 +920,7 @@ static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
 static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max,
-                                                                  int *softmin, int *softmax)
+                                                                  int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 	*min = 0;
@@ -1041,7 +1042,8 @@ static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
-static void rna_ParticleDupliWeight_active_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_ParticleDupliWeight_active_index_range(PointerRNA *ptr, int *min, int *max,
+                                                       int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 	*min = 0;
@@ -3413,8 +3415,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Obtain cache hair data");
 
 	prop = RNA_def_pointer(func, "object", "Object", "", "Object");
-	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
-	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
 	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_int(func, "step", 0, INT_MIN, INT_MAX, "step no", "", INT_MIN, INT_MAX);

@@ -217,8 +217,8 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 					float3 pcKey;
 					for(int step_no = 0; step_no <= ren_step; step_no++) {
 						float nco[3];
-						b_psys.co_hair(*b_ob, psmd, pa_no, step_no, nco);
-						float3 cKey = make_float3(nco[0],nco[1],nco[2]);
+						b_psys.co_hair(*b_ob, pa_no, step_no, nco);
+						float3 cKey = make_float3(nco[0], nco[1], nco[2]);
 						cKey = transform_point(&itfm, cKey);
 						if(step_no > 0)
 							curve_length += len(cKey - pcKey);
