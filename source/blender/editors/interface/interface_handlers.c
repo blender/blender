@@ -5092,7 +5092,12 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if (but->rnapoin.data && but->rnaprop) {
-		bool is_anim = RNA_property_animateable(&but->rnapoin, but->rnaprop);
+		PointerRNA *ptr = &but->rnapoin;
+		PropertyRNA *prop = but->rnaprop;
+		bool is_anim = RNA_property_animateable(ptr, prop);
+		bool is_editable = RNA_property_editable(ptr, prop);
+		/*bool is_idprop = RNA_property_is_idprop(prop);*/ /* XXX does not work as expected, not strictly needed */
+		bool is_set = RNA_property_is_set(ptr, prop);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -5238,6 +5243,10 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		else {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset to Default Value"),
 			        ICON_NONE, "UI_OT_reset_default_button", "all", 1);
+		}
+		if (is_editable /*&& is_idprop*/ && is_set) {
+			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Unset"),
+			        ICON_NONE, "UI_OT_unset_property_button");
 		}
 		
 		uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),

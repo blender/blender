@@ -434,6 +434,28 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 
 /* Reset to Default Values Button Operator ------------------------ */
 
+static int operator_button_property_finish(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+{
+	ID *id = ptr->id.data;
+
+	/* perform updates required for this property */
+	RNA_property_update(C, ptr, prop);
+
+	/* as if we pressed the button */
+	uiContextActivePropertyHandle(C);
+
+	/* Since we don't want to undo _all_ edits to settings, eg window
+	 * edits on the screen or on operator settings.
+	 * it might be better to move undo's inline - campbell */
+	if (id && ID_CHECK_UNDO(id)) {
+		/* do nothing, go ahead with undo */
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
 static int reset_default_button_poll(bContext *C)
 {
 	PointerRNA ptr;
@@ -449,7 +471,6 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
-	int success = 0;
 	int index, all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to reset the nominated setting to its default value */
@@ -457,32 +478,11 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 	
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
-		if (RNA_property_reset(&ptr, prop, (all) ? -1 : index)) {
-			/* perform updates required for this property */
-			RNA_property_update(C, &ptr, prop);
-
-			/* as if we pressed the button */
-			uiContextActivePropertyHandle(C);
-
-			success = 1;
-		}
+		if (RNA_property_reset(&ptr, prop, (all) ? -1 : index))
+			return operator_button_property_finish(C, &ptr, prop);
 	}
 
-	/* Since we don't want to undo _all_ edits to settings, eg window
-	 * edits on the screen or on operator settings.
-	 * it might be better to move undo's inline - campbell */
-	if (success) {
-		ID *id = ptr.id.data;
-		if (id && ID_CHECK_UNDO(id)) {
-			/* do nothing, go ahead with undo */
-		}
-		else {
-			return OPERATOR_CANCELLED;
-		}
-	}
-	/* end hack */
-
-	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return OPERATOR_CANCELLED;
 }
 
 static void UI_OT_reset_default_button(wmOperatorType *ot)
@@ -501,6 +501,43 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
+}
+
+/* Unset Property Button Operator ------------------------ */
+
+static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+
+	/* try to unset the nominated property */
+	uiContextActiveProperty(C, &ptr, &prop, &index);
+
+	/* if there is a valid property that is editable... */
+	if (ptr.data && prop && RNA_property_editable(&ptr, prop)
+	    /*&& RNA_property_is_idprop(prop)*/ && RNA_property_is_set(&ptr, prop))
+	{
+		RNA_property_unset(&ptr, prop);
+		return operator_button_property_finish(C, &ptr, prop);
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+static void UI_OT_unset_property_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unset property";
+	ot->idname = "UI_OT_unset_property_button";
+	ot->description = "Clear the property and use default or generated value in operators";
+
+	/* callbacks */
+	ot->poll = ED_operator_regionactive;
+	ot->exec = unset_property_button_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /* Copy To Selected Operator ------------------------ */
@@ -1081,6 +1118,7 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
+	WM_operatortype_append(UI_OT_unset_property_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
 	WM_operatortype_append(UI_OT_reports_to_textblock);  /* XXX: temp? */
 

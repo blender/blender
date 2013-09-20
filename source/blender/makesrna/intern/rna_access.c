@@ -6316,14 +6316,20 @@ void _RNA_warning(const char *format, ...)
 #endif
 }
 
-bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool is_strict)
+bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, eRNAEqualsMode mode)
 {
 	int len, fromlen;
 
-	/* if not strict, uninitialized properties are assumed to match */
-	if (!is_strict)
-		if (!(RNA_property_is_set(a, prop) && RNA_property_is_set(b, prop)))
+	if (mode == RNA_EQ_UNSET_MATCH_ANY) {
+		/* uninitialized properties are assumed to match anything */
+		if (!RNA_property_is_set(a, prop) || !RNA_property_is_set(b, prop))
 			return true;
+	}
+	else if (mode == RNA_EQ_UNSET_MATCH_NONE) {
+		/* unset properties never match set properties */
+		if (RNA_property_is_set(a, prop) != RNA_property_is_set(b, prop))
+			return false;
+	}
 
 	/* get the length of the array to work with */
 	len = RNA_property_array_length(a, prop);
@@ -6437,7 +6443,7 @@ bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool i
 			if (!STREQ(RNA_property_identifier(prop), "rna_type")) {
 				PointerRNA propptr_a = RNA_property_pointer_get(a, prop);
 				PointerRNA propptr_b = RNA_property_pointer_get(b, prop);
-				return RNA_struct_equals(&propptr_a, &propptr_b, is_strict);
+				return RNA_struct_equals(&propptr_a, &propptr_b, mode);
 			}
 			break;
 		}
@@ -6449,7 +6455,7 @@ bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, bool i
 	return true;
 }
 
-bool RNA_struct_equals(PointerRNA *a, PointerRNA *b, bool is_strict)
+bool RNA_struct_equals(PointerRNA *a, PointerRNA *b, eRNAEqualsMode mode)
 {
 	CollectionPropertyIterator iter;
 //	CollectionPropertyRNA *citerprop;  /* UNUSED */
@@ -6470,7 +6476,7 @@ bool RNA_struct_equals(PointerRNA *a, PointerRNA *b, bool is_strict)
 	for (; iter.valid; RNA_property_collection_next(&iter)) {
 		PropertyRNA *prop = iter.ptr.data;
 
-		if (!RNA_property_equals(a, b, prop, is_strict)) {
+		if (!RNA_property_equals(a, b, prop, mode)) {
 			equals = false;
 			break;
 		}

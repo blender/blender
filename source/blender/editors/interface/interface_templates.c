@@ -3344,7 +3344,7 @@ static void keymap_item_modified(bContext *UNUSED(C), void *kmi_p, void *UNUSED(
 
 static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
 {
-	uiLayout *flow;
+	uiLayout *flow, *box, *row;
 
 	uiItemS(layout);
 
@@ -3356,6 +3356,8 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		int flag = RNA_property_flag(prop);
+		bool is_set = RNA_property_is_set(ptr, prop);
+		uiBut *but;
 
 		if (flag & PROP_HIDDEN)
 			continue;
@@ -3371,8 +3373,22 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 			}
 		}
 
-		/* add property */
-		uiItemFullR(flow, ptr, prop, -1, 0, 0, NULL, ICON_NONE);
+		box = uiLayoutBox(flow);
+		uiLayoutSetActive(box, is_set);
+		row = uiLayoutRow(box, false);
+
+		/* property value */
+		uiItemFullR(row, ptr, prop, -1, 0, 0, NULL, ICON_NONE);
+
+		if (is_set) {
+			/* unset operator */
+			uiBlock *block = uiLayoutGetBlock(row);
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			but = uiDefIconButO(block, BUT, "UI_OT_unset_property_button", WM_OP_EXEC_DEFAULT, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			but->rnapoin = *ptr;
+			but->rnaprop = prop;
+			uiBlockSetEmboss(block, UI_EMBOSS);
+		}
 	}
 	RNA_STRUCT_END;
 }
