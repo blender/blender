@@ -271,7 +271,8 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey, Object *object, Part
 	}
 }
 
-static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemModifierData *modifier, float n_uv[2])
+static void rna_Particle_uv_on_emitter(ParticleData *particle, ReportList *reports,
+                                       ParticleSystemModifierData *modifier, float r_uv[2])
 {
 	/*psys_particle_on_emitter(psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, sd.orco, 0);*/
 
@@ -279,25 +280,36 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemMod
 	int num = particle->num_dmcache;
 	int from = modifier->psys->part->from;
 
+	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
+		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
+		return;
+	}
+	DM_ensure_tessface(modifier->dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	if (num == DMCACHE_NOTFOUND)
 		if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
 			num = particle->num;
 
 	/* get uvco */
-	if (n_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+	if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 		
 		if (num != DMCACHE_NOTFOUND) {
-			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-			MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
-			mtface += num;
-			
-			psys_interpolate_uvs(mtface, mface->v4, particle->fuv, n_uv);
-		}
-		else {
-			n_uv[0] = 0.0f;
-			n_uv[1] = 0.0f;
+			MFace *mface;
+			MTFace *mtface;
+
+			mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
+			mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+
+			if (mface && mtface) {
+				mtface += num;
+				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
+				return;
+			}
 		}
 	}
+
+	r_uv[0] = 0.0f;
+	r_uv[1] = 0.0f;
 }
 
 static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier,
@@ -378,13 +390,21 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 
 }
 
-static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no, int uv_no,
-                                             float n_uv[2])
+static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ReportList *reports,
+                                             ParticleSystemModifierData *modifier, ParticleData *particle,
+                                             int particle_no, int uv_no,
+                                             float r_uv[2])
 {
 	ParticleSettings *part = 0;
 	int totpart;
 	int totchild = 0;
 	int num;
+
+	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
+		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
+		return;
+	}
+	DM_ensure_tessface(modifier->dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 	/* 1. check that everything is ok & updated */
 	if (particlesystem == NULL)
@@ -419,17 +439,17 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 			if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
 				num = particle->num;
 
-		if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+		if (r_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 			if (num != DMCACHE_NOTFOUND) {
 				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
 				MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 				mtface += num;
 				
-				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, n_uv);
+				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
 			}
 			else {
-				n_uv[0] = 0.0f;
-				n_uv[1] = 0.0f;
+				r_uv[0] = 0.0f;
+				r_uv[1] = 0.0f;
 			}
 		}
 	}
@@ -440,17 +460,17 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 
 		/* get uvco & mcol */
 		if (part->childtype == PART_CHILD_FACES) {
-			if (n_uv && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
+			if (r_uv && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (cpa->num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
 					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 					mtface += cpa->num;
 					
-					psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, n_uv);
+					psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, r_uv);
 				}
 				else {
-					n_uv[0] = 0.0f;
-					n_uv[1] = 0.0f;
+					r_uv[0] = 0.0f;
+					r_uv[1] = 0.0f;
 				}
 			}
 		}
@@ -462,17 +482,17 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 				if (parent->num < modifier->dm->getNumTessFaces(modifier->dm))
 					num = parent->num;
 
-			if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+			if (r_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
 					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 					mtface += num;
 					
-					psys_interpolate_uvs(mtface, mface->v4, parent->fuv, n_uv);
+					psys_interpolate_uvs(mtface, mface->v4, parent->fuv, r_uv);
 				}
 				else {
-					n_uv[0] = 0.0f;
-					n_uv[1] = 0.0f;
+					r_uv[0] = 0.0f;
+					r_uv[1] = 0.0f;
 				}
 			}
 		}
@@ -1294,8 +1314,11 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Obtain hairkey location with particle and modifier data");
 
 	prop = RNA_def_pointer(func, "object", "Object", "", "Object");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_pointer(func, "particle", "Particle", "", "hair particle");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	
 	prop = RNA_def_float_vector(func, "co", 3, NULL, -FLT_MAX, FLT_MAX, "Co",
 	                            "Exported hairkey location", -1e4, 1e4);
@@ -1461,7 +1484,9 @@ static void rna_def_particle(BlenderRNA *brna)
 /* UVs */
 	func = RNA_def_function(srna, "uv_on_emitter", "rna_Particle_uv_on_emitter");
 	RNA_def_function_ui_description(func, "Obtain uv for particle on derived mesh");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_property(func, "uv", PROP_FLOAT, PROP_COORDS);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
@@ -3388,7 +3413,9 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Obtain cache hair data");
 
 	prop = RNA_def_pointer(func, "object", "Object", "", "Object");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_int(func, "step", 0, INT_MIN, INT_MAX, "step no", "", INT_MIN, INT_MAX);
 
@@ -3400,8 +3427,11 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	/* extract hair UVs */
 	func = RNA_def_function(srna, "uv_on_emitter", "rna_ParticleSystem_uv_on_emitter");
 	RNA_def_function_ui_description(func, "Obtain uv for all particles");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_int(func, "uv_no", 0, INT_MIN, INT_MAX, "UV no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_property(func, "uv", PROP_FLOAT, PROP_COORDS);
@@ -3413,7 +3443,9 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	func = RNA_def_function(srna, "mcol_on_emitter", "rna_ParticleSystem_mcol_on_emitter");
 	RNA_def_function_ui_description(func, "Obtain mcol for all particles");
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
+	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_int(func, "vcol_no", 0, INT_MIN, INT_MAX, "vcol no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_property(func, "mcol", PROP_FLOAT, PROP_COLOR);
