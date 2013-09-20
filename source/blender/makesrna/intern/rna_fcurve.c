@@ -459,7 +459,8 @@ static void rna_FModifier_active_set(PointerRNA *ptr, int UNUSED(value))
 	fm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
-static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	
@@ -467,7 +468,8 @@ static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *
 	*max = (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) ? fcm->efra : MAXFRAMEF;
 }
 
-static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *max,
+                                          float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 
@@ -475,7 +477,8 @@ static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *ma
 	*max = MAXFRAMEF;
 }
 
-static void rna_FModifier_blending_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifier_blending_range(PointerRNA *ptr, float *min, float *max,
+                                         float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 
@@ -524,7 +527,8 @@ static void rna_FModifierGenerator_coefficients_set(PointerRNA *ptr, const float
 	memcpy(gen->coefficients, values, gen->arraysize * sizeof(float));
 }
 
-static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *max,
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
@@ -533,7 +537,8 @@ static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *m
 	*max = (data->flag & FCM_LIMIT_XMAX) ? data->rect.xmax : MAXFRAMEF;
 }
 
-static void rna_FModifierLimits_maxx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifierLimits_maxx_range(PointerRNA *ptr, float *min, float *max,
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
@@ -542,7 +547,8 @@ static void rna_FModifierLimits_maxx_range(PointerRNA *ptr, float *min, float *m
 	*max = MAXFRAMEF;
 }
 
-static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *max,
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
@@ -551,7 +557,8 @@ static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *m
 	*max = (data->flag & FCM_LIMIT_YMAX) ? data->rect.ymax : FLT_MAX;
 }
 
-static void rna_FModifierLimits_maxy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_FModifierLimits_maxy_range(PointerRNA *ptr, float *min, float *max,
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
@@ -562,7 +569,7 @@ static void rna_FModifierLimits_maxy_range(PointerRNA *ptr, float *min, float *m
 
 
 static void rna_FModifierStepped_start_frame_range(PointerRNA *ptr, float *min, float *max,
-                                                   float *softmin, float *softmax)
+                                                   float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Stepped *data = fcm->data;
@@ -572,7 +579,7 @@ static void rna_FModifierStepped_start_frame_range(PointerRNA *ptr, float *min, 
 }
 
 static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, float *max,
-                                                 float *softmin, float *softmax)
+                                                 float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Stepped *data = fcm->data;

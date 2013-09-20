@@ -254,7 +254,7 @@ static void rna_LineStyleGeometryModifier_name_set(PointerRNA *ptr, const char *
 #include "BLI_math.h"
 
 static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items,
-                                         char *set_name_func, int blend, int color)
+                                         const char *set_name_func, const bool blend, const bool color)
 {
 	PropertyRNA *prop;
 

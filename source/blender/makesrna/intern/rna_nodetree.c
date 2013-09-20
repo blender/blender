@@ -584,8 +584,9 @@ static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 }
 
-static StructRNA *rna_NodeTree_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_NodeTree_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeTreeType *nt, dummynt;
 	bNodeTree dummyntree;
@@ -652,7 +653,7 @@ static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
 		return true;
 }
 
-static void rna_NodeTree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_NodeTree_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 
@@ -1390,9 +1391,10 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	return nt;
 }
 
-static StructRNA *rna_Node_register(Main *bmain, ReportList *reports,
-                                    void *data, const char *identifier,
-                                    StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Node_register(
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_Node, data, identifier, validate, call, free);
 	if (!nt)
@@ -1406,9 +1408,10 @@ static StructRNA *rna_Node_register(Main *bmain, ReportList *reports,
 	return nt->ext.srna;
 }
 
-static StructRNA *rna_ShaderNode_register(Main *bmain, ReportList *reports,
-                                          void *data, const char *identifier,
-                                          StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_ShaderNode_register(
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_ShaderNode, data, identifier, validate, call, free);
 	if (!nt)
@@ -1422,9 +1425,10 @@ static StructRNA *rna_ShaderNode_register(Main *bmain, ReportList *reports,
 	return nt->ext.srna;
 }
 
-static StructRNA *rna_CompositorNode_register(Main *bmain, ReportList *reports,
-                                              void *data, const char *identifier,
-                                              StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_CompositorNode_register(
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_CompositorNode, data, identifier, validate, call, free);
 	if (!nt)
@@ -1438,9 +1442,10 @@ static StructRNA *rna_CompositorNode_register(Main *bmain, ReportList *reports,
 	return nt->ext.srna;
 }
 
-static StructRNA *rna_TextureNode_register(Main *bmain, ReportList *reports,
-                                           void *data, const char *identifier,
-                                           StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_TextureNode_register(
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_TextureNode, data, identifier, validate, call, free);
 	if (!nt)
@@ -1762,8 +1767,9 @@ static void rna_NodeSocket_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 }
 
-static StructRNA *rna_NodeSocket_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                          StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_NodeSocket_register(
+        Main *UNUSED(bmain), ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeSocketType *st, dummyst;
 	bNodeSocket dummysock;
@@ -2033,8 +2039,9 @@ static void rna_NodeSocketInterface_unregister(Main *UNUSED(bmain), StructRNA *t
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 }
 
-static StructRNA *rna_NodeSocketInterface_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                                  StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_NodeSocketInterface_register(
+        Main *UNUSED(bmain), ReportList *UNUSED(reports), void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeSocketType *st, dummyst;
 	bNodeSocket dummysock;
@@ -2350,9 +2357,10 @@ static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, struct bConte
 	}
 }
 
-static StructRNA *rna_NodeCustomGroup_register(Main *bmain, ReportList *reports,
-                                               void *data, const char *identifier,
-                                               StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_NodeCustomGroup_register(
+        Main *bmain, ReportList *reports,
+        void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bNodeType *nt = rna_Node_register_base(bmain, reports, &RNA_NodeCustomGroup, data, identifier, validate, call, free);
 	if (!nt)

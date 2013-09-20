@@ -720,7 +720,7 @@ static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
 	return data.seq;
 }
 
-static void rna_Sequence_tcindex_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Sequence_tcindex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);

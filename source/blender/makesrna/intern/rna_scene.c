@@ -781,7 +781,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                    PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	ID *id = ptr->id.data;
@@ -793,7 +793,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *C, 
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                   PropertyRNA *UNUSED(prop), int *free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -838,7 +838,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                    PropertyRNA *UNUSED(prop), int *free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1032,7 +1032,8 @@ static void rna_RenderSettings_active_layer_index_set(PointerRNA *ptr, int value
 	rd->actlay = value;
 }
 
-static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max,
+                                                        int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	RenderData *rd = (RenderData *)ptr->data;
 
@@ -1313,7 +1314,7 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *UNUSED(scene), Pointer
 		rna_Scene_use_simplify_update(bmain, sce, ptr);
 }
 
-static void rna_Scene_use_persistent_data_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *sce = ptr->id.data;
 
@@ -1462,13 +1463,13 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
-static void rna_UnifiedPaintSettings_radius_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_UnifiedPaintSettings_radius_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* changing the unified size should invalidate */
 	BKE_paint_invalidate_overlay_all();
 }
 
-static char *rna_UnifiedPaintSettings_path(PointerRNA *ptr)
+static char *rna_UnifiedPaintSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.unified_paint_settings");
 }
@@ -1490,7 +1491,7 @@ static void rna_EditMesh_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *U
 	}
 }
 
-static char *rna_MeshStatVis_path(PointerRNA *ptr)
+static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.statvis");
 }
@@ -1524,7 +1525,7 @@ static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
-static char *rna_ToolSettings_path(PointerRNA *ptr)
+static char *rna_ToolSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings");
 }
@@ -1553,7 +1554,7 @@ static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 }
 
 static void rna_FreestyleSettings_active_lineset_index_range(PointerRNA *ptr, int *min, int *max,
-                                                             int *softmin, int *softmax)
+                                                             int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 

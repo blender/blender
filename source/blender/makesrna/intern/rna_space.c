@@ -628,7 +628,7 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
 }
@@ -856,8 +856,8 @@ static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
 	sbuts->mainbuser = value;
 }
 
-static EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *C, PointerRNA *ptr,
-                                                                   PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                           PropertyRNA *UNUSED(prop), int *free)
 {
 	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
 	EnumPropertyItem *item = NULL;
@@ -1003,7 +1003,8 @@ static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 		ci->cursor = len;
 }
 
-static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *max,
+                                               int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	ConsoleLine *ci = (ConsoleLine *)ptr->data;
 

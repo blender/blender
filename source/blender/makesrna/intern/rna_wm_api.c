@@ -118,7 +118,7 @@ struct wmStaticProgress {
 } wm_progress_state = {0, 0, false};
 
 
-static void rna_progress_begin(struct wmWindowManager *wm, float min, float max)
+static void rna_progress_begin(struct wmWindowManager *UNUSED(wm), float min, float max)
 {
 	float range = max - min;
 	if (range != 0) {

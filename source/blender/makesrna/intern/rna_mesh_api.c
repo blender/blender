@@ -48,7 +48,7 @@
 
 #include "DNA_mesh_types.h"
 
-static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
+static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *mesh2)
 {
 	const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON * 60);
 	
@@ -155,7 +155,6 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func = RNA_def_function(srna, "unit_test_compare", "rna_Mesh_unit_test_compare");
 	RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to compare to");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	/* return value */
 	parm = RNA_def_string(func, "result", "nothing", 64, "Return value", "String description of result of comparison");
 	RNA_def_function_return(func, parm);

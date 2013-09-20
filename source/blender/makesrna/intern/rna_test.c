@@ -185,7 +185,8 @@ void RNA_def_test(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Test_bdmarr_get_length", "rna_Test_bdmarr_set_length");
 	RNA_def_property_boolean_funcs(prop, "rna_Test_bdmarr_get", "rna_Test_bdmarr_set");
-
+#else
+	(void)brna;
 #endif
 }
 

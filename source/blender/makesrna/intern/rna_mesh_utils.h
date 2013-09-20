@@ -32,7 +32,8 @@
 /* Define the accessors for a basic CustomDataLayer collection */
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION(collection_name, customdata_type, layer_type)        \
 	/* check */                                                                                 \
-	static int rna_##collection_name##_check(CollectionPropertyIterator *iter, void *data)      \
+	static int rna_##collection_name##_check(                                                   \
+	        CollectionPropertyIterator *UNUSED(iter), void *data)                               \
 	{                                                                                           \
 		CustomDataLayer *layer = (CustomDataLayer *)data;                                       \
 		return (layer->type != layer_type);                                                     \
@@ -59,8 +60,9 @@
 		return data ? CustomData_number_of_layers(data, layer_type) : 0;                        \
 	}                                                                                           \
 	/* index range */                                                                           \
-	static void rna_Mesh_##collection_name##_index_range(PointerRNA *ptr, int *min, int *max,   \
-	                                                     int *softmin, int *softmax)            \
+	static void rna_Mesh_##collection_name##_index_range(                                       \
+	        PointerRNA *ptr, int *min, int *max,                                                \
+	        int *UNUSED(softmin), int *UNUSED(softmax))                                         \
 	{                                                                                           \
 		CustomData *data = rna_mesh_##customdata_type(ptr);                                     \
 		*min = 0;                                                                               \

@@ -505,6 +505,7 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 		return item;
 	}
 #else
+	(void)free;
 	return audio_device_items;
 #endif
 }

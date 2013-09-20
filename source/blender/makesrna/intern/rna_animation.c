@@ -408,7 +408,8 @@ static void rna_KeyingSet_active_ksPath_index_set(PointerRNA *ptr, int value)
 	ks->active_path = value + 1;
 }
 
-static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, int *max,
+                                                    int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 

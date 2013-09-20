@@ -190,7 +190,7 @@ static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 	return 0;
 }
 
-static char *rna_ParticleEdit_path(PointerRNA *ptr)
+static char *rna_ParticleEdit_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.particle_edit");
 }
@@ -247,7 +247,7 @@ static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), Scene *scene
 	}
 }
 
-static char *rna_Sculpt_path(PointerRNA *ptr)
+static char *rna_Sculpt_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.sculpt");
 }
@@ -264,17 +264,17 @@ static char *rna_VertexPaint_path(PointerRNA *ptr)
 	}
 }
 
-static char *rna_ImagePaintSettings_path(PointerRNA *ptr)
+static char *rna_ImagePaintSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.image_paint");
 }
 
-static char *rna_UvSculpt_path(PointerRNA *ptr)
+static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.uv_sculpt");
 }
 
-static char *rna_ParticleBrush_path(PointerRNA *ptr)
+static char *rna_ParticleBrush_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.particle_edit.brush");
 }

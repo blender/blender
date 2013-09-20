@@ -191,7 +191,8 @@ static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)
 	act->active_marker = value + 1;
 }
 
-static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max,
+                                                      int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	bAction *act = (bAction *)ptr->data;
 

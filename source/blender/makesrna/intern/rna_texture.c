@@ -184,7 +184,7 @@ static void rna_Texture_mapping_update(Main *bmain, Scene *scene, PointerRNA *pt
 	rna_Texture_update(bmain, scene, ptr);
 }
 
-static void rna_Color_mapping_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Color_mapping_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* nothing to do */
 }
@@ -366,7 +366,7 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                            PropertyRNA *UNUSED(prop), int *free)
 {
 	MTex *mtex = ptr->data;
@@ -478,7 +478,7 @@ static char *rna_VoxelData_path(PointerRNA *UNUSED(ptr))
 	return BLI_sprintfN("voxel_data");
 }
 
-static char *rna_OceanTex_path(PointerRNA *ptr)
+static char *rna_OceanTex_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("ocean");
 }

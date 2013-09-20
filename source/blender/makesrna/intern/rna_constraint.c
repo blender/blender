@@ -344,7 +344,8 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), 
 	return space_object_items;
 }
 
-static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max,
+                                              float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
 	bActionConstraint *acon = (bActionConstraint *)con->data;

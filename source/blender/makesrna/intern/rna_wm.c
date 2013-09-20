@@ -590,7 +590,7 @@ static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
 	win->newscreen = value.data;
 }
 
-int rna_Window_screen_assign_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Window_screen_assign_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	bScreen *screen = (bScreen *)value.id.data;
 

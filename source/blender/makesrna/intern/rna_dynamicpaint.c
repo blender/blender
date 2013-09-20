@@ -96,12 +96,12 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
  *	Surfaces
  */
 
-static void rna_DynamicPaint_redoModifier(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
-static void rna_DynamicPaintSurfaces_updateFrames(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DynamicPaintSurfaces_updateFrames(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	dynamicPaint_cacheUpdateFrames((DynamicPaintSurface *)ptr->data);
 }
@@ -135,7 +135,7 @@ static void rna_DynamicPaintSurface_changePreview(Main *bmain, Scene *scene, Poi
 	rna_DynamicPaint_redoModifier(bmain, scene, ptr);
 }
 
-static void rna_DynamicPaintSurface_uniqueName(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DynamicPaintSurface_uniqueName(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	dynamicPaintSurface_setUniqueName((DynamicPaintSurface *)ptr->data, ((DynamicPaintSurface *)ptr->data)->name);
 }
@@ -197,7 +197,8 @@ static void rna_Surface_active_point_index_set(struct PointerRNA *ptr, int value
 	return;
 }
 
-static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max,
+                                           int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 
@@ -244,8 +245,8 @@ static int rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Objec
 }
 
 
-static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, PointerRNA *ptr,
-                                                             PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 

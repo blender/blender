@@ -93,7 +93,7 @@ EnumPropertyItem ramp_blend_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Material_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
 
@@ -101,7 +101,7 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
-static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_update_previews(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
 	
@@ -111,7 +111,7 @@ static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_PREVIEW, ma);
 }
 
-static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
 
@@ -202,7 +202,8 @@ static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA va
 	nodeSetActiveID(ma->nodetree, ID_MA, &ma_act->id);
 }
 
-static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max,
+                                                float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	Material *ma = (Material *)ptr->id.data;
 
@@ -216,7 +217,8 @@ static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, flo
 	}
 }
 
-static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float *max,
+                                              float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	Material *ma = (Material *)ptr->id.data;
 

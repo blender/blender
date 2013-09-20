@@ -65,7 +65,7 @@ static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 	DAG_relations_tag_update(bmain);
 }
 
-static void rna_Smoke_resetCache(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Smoke_resetCache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
 	if (settings->smd && settings->smd->domain)

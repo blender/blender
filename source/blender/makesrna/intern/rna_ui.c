@@ -166,7 +166,7 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Panel_unregister(Main *bmain, StructRNA *type)
+static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	ARegionType *art;
 	PanelType *pt = RNA_struct_blender_type_get(type);
@@ -268,7 +268,7 @@ static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 }
 
 /* UIList */
-static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *ptr)
+static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *UNUSED(ptr))
 {
 	return UILST_FLT_ITEM;
 }

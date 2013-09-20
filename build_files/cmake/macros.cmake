@@ -774,6 +774,9 @@ macro(data_to_c
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${file_from} ${file_to}
 		DEPENDS ${file_from} datatoc)
+
+	set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
+
 	unset(_file_to_path)
 endmacro()
 
@@ -797,10 +800,11 @@ macro(data_to_c_simple
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${_file_from} ${_file_to}
 		DEPENDS ${_file_from} datatoc)
 
+	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
+
 	unset(_file_from)
 	unset(_file_to)
 	unset(_file_to_path)
-
 endmacro()
 
 # XXX Not used for now...

@@ -94,7 +94,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 }
 
 
-static int rna_Screen_is_animation_playing_get(PointerRNA *ptr)
+static int rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 {
 	return (ED_screen_animation_playing(G.main->wm.first) != NULL);
 }

@@ -110,7 +110,8 @@ static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *value
 	curvemapping_set_black_white(cumap, NULL, NULL);
 }
 
-static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
@@ -118,7 +119,8 @@ static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *
 	*max = cumap->clipr.xmax;
 }
 
-static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
@@ -126,7 +128,8 @@ static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *
 	*max = cumap->clipr.ymax;
 }
 
-static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
@@ -134,7 +137,8 @@ static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *
 	*max = 100.0f;
 }
 
-static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
@@ -407,8 +411,8 @@ static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA
 	}
 }
 
-static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                              PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
@@ -455,8 +459,8 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
 	}
 }
 
-static EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(bContext *C, PointerRNA *ptr,
-                                                                           PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = CTX_data_scene(C);
 	EnumPropertyItem *items = NULL;
@@ -488,8 +492,8 @@ static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(bContext *C, PointerRNA *ptr,
-                                                                 PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
@@ -534,8 +538,8 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA 
 	}
 }
 
-static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                             PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;

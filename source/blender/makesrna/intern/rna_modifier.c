@@ -492,7 +492,8 @@ static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
 	mmd->simple = value;
 }
 
-static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max,
+                                             int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
 

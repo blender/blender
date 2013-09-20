@@ -243,14 +243,16 @@ static void rna_Curve_texspace_size_set(PointerRNA *ptr, const float *values)
 	copy_v3_v3(cu->size, values);
 }
 
-static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max,
+                                           int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
 	*max = max_ii(0, cu->totcol - 1);
 }
 
-static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max,
+                                                 int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
