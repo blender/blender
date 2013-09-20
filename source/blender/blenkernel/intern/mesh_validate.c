@@ -989,28 +989,37 @@ void BKE_mesh_cd_validate(Mesh *me)
 {
 	int totlayer_mtex = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 	int totlayer_uv = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+	int mtex_index = CustomData_get_layer_index(&me->pdata, CD_MTEXPOLY);
+	int uv_index = CustomData_get_layer_index(&me->ldata, CD_MLOOPUV);
+	int i;
 
 	if (LIKELY(totlayer_mtex == totlayer_uv)) {
 		/* pass */
 	}
 	else if (totlayer_mtex < totlayer_uv) {
-		const int uv_index_first = CustomData_get_layer_index(&me->ldata, CD_MLOOPUV);
 		do {
-			const char *from_name =  me->ldata.layers[uv_index_first + totlayer_mtex].name;
+			const char *from_name =  me->ldata.layers[uv_index + totlayer_mtex].name;
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, from_name);
 			CustomData_set_layer_unique_name(&me->pdata, totlayer_mtex);
 		} while (totlayer_uv != ++totlayer_mtex);
 	}
 	else if (totlayer_uv < totlayer_mtex) {
-		const int mtex_index_first = CustomData_get_layer_index(&me->pdata, CD_MTEXPOLY);
 		do {
-			const char *from_name = me->pdata.layers[mtex_index_first + totlayer_uv].name;
+			const char *from_name = me->pdata.layers[mtex_index + totlayer_uv].name;
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, from_name);
 			CustomData_set_layer_unique_name(&me->ldata, totlayer_uv);
 		} while (totlayer_mtex != ++totlayer_uv);
 	}
 
 	BLI_assert(totlayer_mtex == totlayer_uv);
+
+	/* Check uv/tex names match as well!!! */
+	for (i = 0; i < totlayer_mtex; i++, mtex_index++, uv_index++) {
+		const char *name = me->pdata.layers[mtex_index].name;
+		if (strcmp(name, me->ldata.layers[uv_index].name) != 0) {
+			BKE_mesh_uv_cdlayer_rename_index(me, mtex_index, uv_index, -1, name, false);
+		}
+	}
 }
 /** \} */
 

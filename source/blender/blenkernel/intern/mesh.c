@@ -40,6 +40,8 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_edgehash.h"
+#include "BLI_string_utf8.h"
+#include "BLI_string.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
@@ -620,6 +622,86 @@ void BKE_mesh_make_local(Mesh *me)
 			}
 		}
 	}
+}
+
+bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int loop_index, const int face_index,
+                                      const char *new_name, const bool do_tessface)
+{
+	CustomData *pdata = &me->pdata, *ldata = &me->ldata, *fdata = &me->fdata;
+	CustomDataLayer *cdlp = &pdata->layers[poly_index];
+	CustomDataLayer *cdlu = &ldata->layers[loop_index];
+	CustomDataLayer *cdlf = do_tessface ? &fdata->layers[face_index] : NULL;
+	const int step = do_tessface ? 3 : 2;
+	int i;
+
+	BLI_strncpy(cdlp->name, new_name, sizeof(cdlp->name));
+	CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
+
+	/* Loop until we do have exactly the same name for all layers! */
+	for (i = 1; (strcmp(cdlp->name, cdlu->name) != 0 || (cdlf && strcmp(cdlp->name, cdlf->name) != 0)); i++) {
+		switch (i % step) {
+			case 0:
+				BLI_strncpy(cdlp->name, cdlu->name, sizeof(cdlp->name));
+				CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
+				break;
+			case 1:
+				BLI_strncpy(cdlu->name, cdlp->name, sizeof(cdlu->name));
+				CustomData_set_layer_unique_name(ldata, cdlu - ldata->layers);
+				break;
+			case 2:
+				BLI_strncpy(cdlf->name, cdlp->name, sizeof(cdlf->name));
+				CustomData_set_layer_unique_name(fdata, cdlf - fdata->layers);
+				break;
+		}
+	}
+
+	return true;
+}
+
+bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_name, bool do_tessface)
+{
+	CustomData *pdata = &me->pdata, *ldata = &me->ldata, *fdata = &me->fdata;
+	const int pidx_start = CustomData_get_layer_index(pdata, CD_MTEXPOLY);
+	const int lidx_start = CustomData_get_layer_index(ldata, CD_MLOOPUV);
+	const int fidx_start = do_tessface ? CustomData_get_layer_index(fdata, CD_MTFACE) : -1;
+	int pidx, lidx, fidx;
+
+	do_tessface = (do_tessface && fdata->totlayer);
+	pidx = CustomData_get_named_layer(pdata, CD_MTEXPOLY, old_name);
+	lidx = CustomData_get_named_layer(ldata, CD_MLOOPUV, old_name);
+	fidx = do_tessface ? CustomData_get_named_layer(fdata, CD_MTFACE, old_name) : -1;
+
+	/* None of those cases should happen, in theory!
+	 * Note this assume we have the same number of mtexpoly, mloopuv and mtface layers!
+	 */
+	if (pidx == -1) {
+		if (lidx == -1) {
+			if (fidx == -1) {
+				/* No layer found with this name! */
+				return false;
+			}
+			else {
+				lidx = lidx_start + (fidx - fidx_start);
+			}
+		}
+		pidx = pidx_start + (lidx - lidx_start);
+	}
+	else {
+		if (lidx == -1) {
+			lidx = lidx_start + (pidx - pidx_start);
+		}
+		if (fidx == -1 && do_tessface) {
+			fidx = fidx_start + (pidx - pidx_start);
+		}
+	}
+#if 0
+	/* For now, we do not consider mismatch in indices (i.e. same name leading to (relative) different indices). */
+	else if ((pidx - pidx_start) != (lidx - lidx_start)) {
+		lidx = lidx_start + (pidx - pidx_start);
+	}
+#endif
+
+	return BKE_mesh_uv_cdlayer_rename_index(me, pidx, lidx, fidx, new_name, do_tessface);
 }
 
 void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])

@@ -184,18 +184,22 @@ static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
 	rna_cd_layer_name_set(rna_mesh_edata(ptr), (CustomDataLayer *)ptr->data, value);
 }
 #endif
+#if 0
 static void rna_MeshPolyLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	rna_cd_layer_name_set(rna_mesh_pdata(ptr), (CustomDataLayer *)ptr->data, value);
 }
+#endif
 static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	rna_cd_layer_name_set(rna_mesh_ldata(ptr), (CustomDataLayer *)ptr->data, value);
 }
+#if 0
 static void rna_MeshTessfaceLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	rna_cd_layer_name_set(rna_mesh_fdata(ptr), (CustomDataLayer *)ptr->data, value);
 }
+#endif
 /* only for layers shared between types */
 static void rna_MeshAnyLayer_name_set(PointerRNA *ptr, const char *value)
 {
@@ -682,6 +686,14 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
 		return;
 
 	CustomData_set_layer_clone_index(data, type, n);
+}
+
+/* Generic UV rename! */
+static void rna_MeshUVLayer_name_set(PointerRNA *ptr, const char *name)
+{
+	char buf[MAX_CUSTOMDATA_LAYER_NAME];
+	BLI_strncpy_utf8(buf, name, MAX_CUSTOMDATA_LAYER_NAME);
+	BKE_mesh_uv_cdlayer_rename(rna_mesh(ptr), ((CustomDataLayer *)ptr->data)->name, buf, true);
 }
 
 /* uv_layers */
@@ -1961,7 +1973,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshLoopLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshUVLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -1999,7 +2011,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshTessfaceLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshUVLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
@@ -2111,7 +2123,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshPolyLayer_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshUVLayer_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 

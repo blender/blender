@@ -119,6 +119,10 @@ struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
 void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
+bool BKE_mesh_uv_cdlayer_rename_index(struct Mesh *me, const int poly_index, const int loop_index, const int face_index,
+                                      const char *new_name, const bool do_tessface);
+bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me, const char *old_name, const char *new_name, bool do_tessface);
+
 float (*BKE_mesh_vertexCos_get(struct Mesh *me, int *r_numVerts))[3];
 
 /* vertex level transformations & checks (no derived mesh) */
