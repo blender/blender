@@ -269,9 +269,8 @@ typedef enum ClearFlag {
 } ClearFlag;
 
 
-static void clear_images(MTFace *mtface, int totface, ClearFlag flag)
+static void clear_single_image(Image *image, ClearFlag flag)
 {
-	int a;
 	const float vec_alpha[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	const float vec_solid[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	const float nor_alpha[4] = {0.5f, 0.5f, 1.0f, 0.0f};
@@ -279,30 +278,54 @@ static void clear_images(MTFace *mtface, int totface, ClearFlag flag)
 	const float disp_alpha[4] = {0.5f, 0.5f, 0.5f, 0.0f};
 	const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
-	for (a = 0; a < totface; a++)
-		mtface[a].tpage->id.flag &= ~LIB_DOIT;
+	if ((image->id.flag & LIB_DOIT) == 0) {
+		ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+
+		if (flag == CLEAR_TANGENT_NORMAL)
+			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+		else if (flag == CLEAR_DISPLACEMENT)
+			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
+		else
+			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+
+		image->id.flag |= LIB_DOIT;
+
+		BKE_image_release_ibuf(image, ibuf, NULL);
+	}
+}
+
+static void clear_images(MTFace *mtface, int totface, ClearFlag flag)
+{
+	int a;
 
 	for (a = 0; a < totface; a++) {
-		Image *ima = mtface[a].tpage;
-
-		if ((ima->id.flag & LIB_DOIT) == 0) {
-			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-
-			if (flag == CLEAR_TANGENT_NORMAL)
-				IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
-			else if (flag == CLEAR_DISPLACEMENT)
-				IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
-			else
-				IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
-
-			ima->id.flag |= LIB_DOIT;
-
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-		}
+		mtface[a].tpage->id.flag &= ~LIB_DOIT;
 	}
 
-	for (a = 0; a < totface; a++)
+	for (a = 0; a < totface; a++) {
+		clear_single_image(mtface[a].tpage, flag);
+	}
+
+	for (a = 0; a < totface; a++) {
 		mtface[a].tpage->id.flag &= ~LIB_DOIT;
+	}
+}
+
+static void clear_images_poly(MTexPoly *mtpoly, int totpoly, ClearFlag flag)
+{
+	int a;
+
+	for (a = 0; a < totpoly; a++) {
+		mtpoly[a].tpage->id.flag &= ~LIB_DOIT;
+	}
+
+	for (a = 0; a < totpoly; a++) {
+		clear_single_image(mtpoly[a].tpage, flag);
+	}
+
+	for (a = 0; a < totpoly; a++) {
+		mtpoly[a].tpage->id.flag &= ~LIB_DOIT;
+	}
 }
 
 static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
@@ -331,6 +354,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 			}
 
 			clear_images(me->mtface, me->totface, clear_flag);
+			clear_images_poly(me->mtpoly, me->totpoly, clear_flag);
 		}
 		CTX_DATA_END;
 	}
