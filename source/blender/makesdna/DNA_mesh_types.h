@@ -79,7 +79,7 @@ typedef struct Mesh {
 	 * real faces are now stored in nface.*/
 	struct MFace *mface;	/* array of mesh object mode faces for tessellation */
 	struct MTFace *mtface;	/* store tessellation face UV's and texture here */
-	struct TFace *tface;	/* depecrated, use mtface */
+	struct TFace *tface	DNA_DEPRECATED; /* deprecated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
