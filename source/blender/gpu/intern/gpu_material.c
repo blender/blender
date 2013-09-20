@@ -1126,8 +1126,15 @@ static void do_material_tex(GPUShadeInput *shi)
 							else { /* otherwise use accumulated perturbations */
 								GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), shi->vn, tnor, &newnor);
 							}
+						} else if (mtex->normapspace == MTEX_NSPACE_OBJECT) {
+							/* transform normal by object then view matrix */
+							GPU_link(mat, "mtex_nspace_object", GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX), tnor, &newnor);
+						} else if (mtex->normapspace == MTEX_NSPACE_WORLD) {
+							/* transform normal by view matrix */
+							GPU_link(mat, "mtex_nspace_world", GPU_builtin(GPU_VIEW_MATRIX), tnor, &newnor);
 						}
 						else {
+							/* no transform, normal in camera space */
 							newnor = tnor;
 						}
 						

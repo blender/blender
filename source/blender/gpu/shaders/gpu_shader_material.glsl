@@ -1415,6 +1415,16 @@ void mtex_nspace_tangent(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 out
 	outnormal = normalize(outnormal);
 }
 
+void mtex_nspace_world(mat4 viewmat, vec3 texnormal, out vec3 outnormal)
+{
+	outnormal = normalize((viewmat*vec4(texnormal, 0.0)).xyz);
+}
+
+void mtex_nspace_object(mat4 viewmat, mat4 obmat, vec3 texnormal, out vec3 outnormal)
+{
+	outnormal = normalize((viewmat*(obmat*vec4(texnormal, 0.0))).xyz);
+}
+
 void mtex_blend_normal(float norfac, vec3 normal, vec3 newnormal, out vec3 outnormal)
 {
 	outnormal = (1.0 - norfac)*normal + norfac*newnormal;
