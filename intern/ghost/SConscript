@@ -157,8 +157,9 @@ if window_system in ('win32-vc', 'win64-vc'):
 
 elif env['WITH_GHOST_COCOA']:	 # always use default-Apple-gcc for objC language, for gnu-compilers do not support it fully yet
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
-    env.BlenderLib ('bf_intern_ghostndof3dconnexion', sources2, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
     print "GHOST COCOA WILL BE COMPILED WITH APPLE GCC"
+    if env['WITH_BF_3DMOUSE']:
+        env.BlenderLib ('bf_intern_ghostndof3dconnexion', sources2, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
 
 else:
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] )
