@@ -900,7 +900,12 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 
 	BLI_assert(vm->count >= 2);
 	if (bp->vertex_only) {
-		vm->mesh_kind = bp->seg > 1 ? M_ADJ_SUBDIV : M_POLY;
+		if (vm->count == 2)
+			vm->mesh_kind = M_NONE;
+		else if (bp->seg > 1)
+			vm->mesh_kind = M_ADJ_SUBDIV;
+		else
+			vm->mesh_kind = M_POLY;
 	}
 	else if (vm->count == 2 && bv->edgecount == 3) {
 		vm->mesh_kind = M_NONE;
@@ -1962,7 +1967,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	if (!first_bme)
 		first_bme = v->e;
 
-	if ((nsel == 0 && !bp->vertex_only) || (ntot < 3 && bp->vertex_only)) {
+	if ((nsel == 0 && !bp->vertex_only) || (ntot < 2 && bp->vertex_only)) {
 		/* signal this vert isn't being beveled */
 		BM_elem_flag_disable(v, BM_ELEM_TAG);
 		return;
