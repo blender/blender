@@ -309,6 +309,8 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "selection", TRUE);
 	}
 
+	WM_keymap_add_item(keymap, "TEXT_OT_properties", PKEY, KM_PRESS, KM_CTRL, 0);
+
 	WM_keymap_add_item(keymap, "TEXT_OT_jump", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_find", GKEY, KM_PRESS, KM_CTRL, 0);
 	
