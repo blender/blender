@@ -647,6 +647,8 @@ static int get_next_bake_face(BakeShade *bs)
 					const float vec_solid[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 					const float nor_alpha[4] = {0.5f, 0.5f, 1.0f, 0.0f};
 					const float nor_solid[4] = {0.5f, 0.5f, 1.0f, 1.0f};
+					const float disp_alpha[4] = {0.5f, 0.5f, 0.5f, 0.0f};
+					const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
 					tface = RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
 
@@ -686,6 +688,8 @@ static int get_next_bake_face(BakeShade *bs)
 						if (R.r.bake_flag & R_BAKE_CLEAR) {
 							if (R.r.bake_mode == RE_BAKE_NORMALS && R.r.bake_normal_space == R_BAKE_SPACE_TANGENT)
 								IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+							else if (R.r.bake_mode == RE_BAKE_DISPLACEMENT)
+								IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
 							else
 								IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 						}
