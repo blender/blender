@@ -85,26 +85,23 @@
 /* for ndof prints */
 // #define DEBUG_NDOF_MOTION
 
-static void view3d_offset_lock_report(ReportList *reports)
-{
-	BKE_report(reports, RPT_WARNING, "View offset is locked");
-}
-
 bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d)
 {
 	return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
 }
 
-#define VIEW3D_OP_OFS_LOCK_TEST(C, op) \
-	{ \
-		View3D *v3d_tmp = CTX_wm_view3d(C); \
-		RegionView3D *rv3d_tmp = CTX_wm_region_view3d(C); \
-		if (ED_view3d_offset_lock_check(v3d_tmp, rv3d_tmp)) { \
-			view3d_offset_lock_report((op)->reports); \
-			return OPERATOR_CANCELLED; \
-		} \
-	} (void)0
-
+static bool view3d_operator_offset_lock_check(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	if (ED_view3d_offset_lock_check(v3d, rv3d)) {
+		BKE_report(op->reports, RPT_WARNING, "View offset is locked");
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
@@ -1191,8 +1188,9 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
 static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
 		View3D *v3d = CTX_wm_view3d(C);
 		ViewOpsData *vod;
@@ -1274,8 +1272,9 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
 		ViewOpsData *vod;
 		View3D *v3d = CTX_wm_view3d(C);
@@ -1372,14 +1371,16 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
  */
 static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
 		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
-		VIEW3D_OP_OFS_LOCK_TEST(C, op);
+		if (view3d_operator_offset_lock_check(C, op))
+			return OPERATOR_CANCELLED;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
@@ -1472,7 +1473,6 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-	
 		ViewOpsData *vod;
 		RegionView3D *rv3d;
 		
@@ -2260,7 +2260,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
-	VIEW3D_OP_OFS_LOCK_TEST(C, op);
+	if (view3d_operator_offset_lock_check(C, op))
+		return OPERATOR_CANCELLED;
 
 	/* makes op->customdata */
 	viewops_data_alloc(C, op);
@@ -3819,7 +3820,8 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	float zfac;
 	int pandir;
 
-	VIEW3D_OP_OFS_LOCK_TEST(C, op);
+	if (view3d_operator_offset_lock_check(C, op))
+		return OPERATOR_CANCELLED;
 
 	pandir = RNA_enum_get(op->ptr, "type");
 
