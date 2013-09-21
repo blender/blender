@@ -314,7 +314,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 				/* standard data */
 				CustomData_merge(&me->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
-				CustomData_copy_data(&me->vdata, &vdata, 0, vertofs, me->totvert);
+				CustomData_copy_data_named(&me->vdata, &vdata, 0, vertofs, me->totvert);
 				
 				/* vertex groups */
 				dvert = CustomData_get(&vdata, vertofs, CD_MDEFORMVERT);
@@ -415,7 +415,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			if (me->totedge) {
 				CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
-				CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
+				CustomData_copy_data_named(&me->edata, &edata, 0, edgeofs, me->totedge);
 				
 				for (a = 0; a < me->totedge; a++, medge++) {
 					medge->v1 += vertofs;
@@ -437,7 +437,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				}
 				
 				CustomData_merge(&me->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
-				CustomData_copy_data(&me->ldata, &ldata, 0, loopofs, me->totloop);
+				CustomData_copy_data_named(&me->ldata, &ldata, 0, loopofs, me->totloop);
 				
 				for (a = 0; a < me->totloop; a++, mloop++) {
 					mloop->v += vertofs;
@@ -461,7 +461,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				}
 
 				CustomData_merge(&me->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
-				CustomData_copy_data(&me->pdata, &pdata, 0, polyofs, me->totpoly);
+				CustomData_copy_data_named(&me->pdata, &pdata, 0, polyofs, me->totpoly);
 				
 				for (a = 0; a < me->totpoly; a++, mpoly++) {
 					mpoly->loopstart += loopofs;
