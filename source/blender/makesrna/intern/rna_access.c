@@ -4419,10 +4419,12 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 
 	data_path = RNA_path_from_ID_to_struct(ptr);
 
-	ret = BLI_sprintfN("%s.%s",
-	                   id_path, data_path);
+	/* XXX data_path may be NULL (see #36788), do we want to get the 'bpy.data.foo["bar"].(null)' stuff? */
+	ret = BLI_sprintfN("%s.%s", id_path, data_path);
 
-	MEM_freeN(data_path);
+	if (data_path) {
+		MEM_freeN(data_path);
+	}
 	MEM_freeN(id_path);
 
 	return ret;
