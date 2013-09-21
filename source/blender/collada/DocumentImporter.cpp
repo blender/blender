@@ -944,7 +944,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 		return true;
 	}
 
-	if(et && et->isProfile("blender")) {
+	if (et && et->isProfile("blender")) {
 		et->setData("shiftx",&(cam->shiftx));
 		et->setData("shifty",&(cam->shifty));
 		et->setData("YF_dofdist",&(cam->YF_dofdist));

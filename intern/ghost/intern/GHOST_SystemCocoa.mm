@@ -1541,8 +1541,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						window->clientToScreenIntern(x_warp+x_accum, y_warp+y_accum, x, y);
 						pushEvent(new GHOST_EventCursor([event timestamp] * 1000, GHOST_kEventCursorMove, window, x, y));
-					}
 						break;
+					}
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
 					{
 						NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
@@ -1552,7 +1552,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
 						/* fallback to window bounds */
-						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
+						if (window->getCursorGrabBounds(bounds) == GHOST_kFailure)
 							window->getClientBounds(bounds);
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
@@ -1586,8 +1586,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						window->getCursorGrabInitPos(x_cur, y_cur);
 						window->clientToScreenIntern(x_cur + x_accum, y_cur + y_accum, x, y);
 						pushEvent(new GHOST_EventCursor([event timestamp] * 1000, GHOST_kEventCursorMove, window, x, y));
-					}
 						break;
+					}
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
@@ -1599,8 +1599,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occurred between two cursor warps, so we can reset the delta counter
-					}
 						break;
+					}
 				}
 			}
 			break;
@@ -1854,7 +1854,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	
 	[pool drain];
 
-	if(temp_buff) {
+	if (temp_buff) {
 		return temp_buff;
 	}
 	else {
@@ -1866,7 +1866,7 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
 	NSString *textToCopy;
 	
-	if(selection) {return;} // for copying the selection, used on X11
+	if (selection) return;  // for copying the selection, used on X11
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		

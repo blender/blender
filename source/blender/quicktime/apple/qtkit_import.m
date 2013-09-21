@@ -128,7 +128,7 @@ void free_anim_quicktime(struct anim *anim)
 	if (anim == NULL) return;
 	if (anim->qtime == NULL) return;
 
-	if(anim->qtime->ibuf)
+	if (anim->qtime->ibuf)
 		IMB_freeImBuf(anim->qtime->ibuf);
 
 	[anim->qtime->media release];
@@ -136,7 +136,7 @@ void free_anim_quicktime(struct anim *anim)
 
 	[QTMovie exitQTKitOnThread];
 
-	if(anim->qtime) MEM_freeN (anim->qtime);
+	if (anim->qtime) MEM_freeN (anim->qtime);
 
 	anim->qtime = NULL;
 
@@ -289,7 +289,7 @@ ImBuf *qtime_fetchibuf (struct anim *anim, int position)
 	}
 		
 	if (frameImage == nil) {
-		if(QTIME_DEBUG) printf ("Error reading frame from Quicktime");
+		if (QTIME_DEBUG) printf ("Error reading frame from Quicktime");
 		[pool drain];
 		return NULL;
 	}
@@ -312,7 +312,7 @@ int startquicktime(struct anim *anim)
 	anim->qtime = MEM_callocN(sizeof(QuicktimeMovie),"animqt");
 
 	if (anim->qtime == NULL) {
-		if(QTIME_DEBUG) printf("Can't alloc qtime: %s\n", anim->name);
+		if (QTIME_DEBUG) printf("Can't alloc qtime: %s\n", anim->name);
 		return -1;
 	}
 
@@ -329,9 +329,9 @@ int startquicktime(struct anim *anim)
 	anim->qtime->movie = [QTMovie movieWithAttributes:attributes error:NULL];
 	
 	if (!anim->qtime->movie) {
-		if(QTIME_DEBUG) printf("qt: bad movie %s\n", anim->name);
+		if (QTIME_DEBUG) printf("qt: bad movie %s\n", anim->name);
 		MEM_freeN(anim->qtime);
-		if(QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
+		if (QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
 		[QTMovie exitQTKitOnThread];
 		[pool drain];
 		return -1;
@@ -342,11 +342,11 @@ int startquicktime(struct anim *anim)
 	
 	videoTracks = [anim->qtime->movie tracksOfMediaType:QTMediaTypeVideo];
 	
-	if([videoTracks count] == 0) {
-		if(QTIME_DEBUG) printf("qt: no video tracks for movie %s\n", anim->name);
+	if ([videoTracks count] == 0) {
+		if (QTIME_DEBUG) printf("qt: no video tracks for movie %s\n", anim->name);
 		[anim->qtime->movie release];
 		MEM_freeN(anim->qtime);
-		if(QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
+		if (QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
 		[QTMovie exitQTKitOnThread];
 		[pool drain];
 		return -1;
@@ -360,8 +360,8 @@ int startquicktime(struct anim *anim)
 	anim->x = frameSize.width;
 	anim->y = frameSize.height;
 
-	if(anim->x == 0 && anim->y == 0) {
-		if(QTIME_DEBUG) printf("qt: error, no dimensions\n");
+	if (anim->x == 0 && anim->y == 0) {
+		if (QTIME_DEBUG) printf("qt: error, no dimensions\n");
 		free_anim_quicktime(anim);
 		[pool drain];
 		return -1;
@@ -398,12 +398,12 @@ int imb_is_a_quicktime(char *name)
 	int result;
 	NSAutoreleasePool *pool;
 	
-	if(!G.have_quicktime) return 0;
+	if (!G.have_quicktime) return 0;
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	// don't let quicktime image import handle these
-	if( BLI_testextensie(name, ".swf") ||
+	if (BLI_testextensie(name, ".swf") ||
 		BLI_testextensie(name, ".txt") ||
 		BLI_testextensie(name, ".mpg") ||
 		BLI_testextensie(name, ".wav") ||
@@ -437,7 +437,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA;
 	NSAutoreleasePool *pool;
 
-	if(!G.have_quicktime)
+	if (!G.have_quicktime)
 		return NULL;
 	
 	pool = [[NSAutoreleasePool alloc] init];

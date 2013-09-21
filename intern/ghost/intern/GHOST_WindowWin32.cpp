@@ -179,12 +179,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		RECT rect, desktop;
 		int wintype = WS_OVERLAPPEDWINDOW;
 
-		if (m_parentWindowHwnd != 0)
-		{
+		if (m_parentWindowHwnd != 0) {
 			wintype = WS_CHILD;
 			/* check against parent window if given */
 			GetWindowRect((HWND)m_parentWindowHwnd, &rect);
-		} else {
+		}
+		else {
 			int framex = GetSystemMetrics(SM_CXSIZEFRAME);
 			int framey = GetSystemMetrics(SM_CYSIZEFRAME);
 			int caption = GetSystemMetrics(SM_CYCAPTION);
@@ -203,10 +203,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		desktop.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
 		/* virtual screen (desktop) bound checks */
-		if(rect.left < desktop.left) rect.left = desktop.left;
-		if(rect.top < desktop.top) rect.top = desktop.top;
-		if(rect.bottom > desktop.bottom) rect.bottom = desktop.bottom;
-		if(rect.right > desktop.right) rect.right = desktop.right;
+		if (rect.left < desktop.left) rect.left = desktop.left;
+		if (rect.top < desktop.top) rect.top = desktop.top;
+		if (rect.bottom > desktop.bottom) rect.bottom = desktop.bottom;
+		if (rect.right > desktop.right) rect.right = desktop.right;
 
 		/* dimension vars to use in window creation */
 		left = rect.left;

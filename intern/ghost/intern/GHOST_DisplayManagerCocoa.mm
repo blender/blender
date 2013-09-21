@@ -74,7 +74,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(GHOST_TUns8 display,
 	else
 		askedDisplay = [[NSScreen screens] objectAtIndex:display];
 	
-	if(askedDisplay == nil) {
+	if (askedDisplay == nil) {
 		[pool drain];
 		return GHOST_kFailure;
 	}
@@ -109,7 +109,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(GHOST_TUns8 d
 	else
 		askedDisplay = [[NSScreen screens] objectAtIndex:display];
 	
-	if(askedDisplay == nil) {
+	if (askedDisplay == nil) {
 		[pool drain];
 		return GHOST_kFailure;
 	}

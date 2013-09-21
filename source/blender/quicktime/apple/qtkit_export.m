@@ -317,7 +317,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	int success = 1;
 	OSStatus err = noErr;
 
-	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
+	if (qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 	
 	[QTMovie enterQTKitOnThread];
 	
@@ -476,7 +476,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 				err = AudioFileCreateWithURL(outputFileURL, audioFileType, &qtexport->audioOutputFormat, kAudioFileFlags_EraseFile, &qtexport->audioFile);
 				CFRelease(outputFileURL);
 				
-				if(err)
+				if (err)
 					BKE_report(reports, RPT_ERROR, "\nQuicktime: unable to create temporary audio file. Format error ?");
 				else {
 					err = AudioConverterNew(&qtexport->audioInputFormat, &qtexport->audioOutputFormat, &qtexport->audioConverter);
@@ -542,7 +542,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 		else
 			qtexport->movie = [[QTMovie alloc] initToWritableFile:qtexport->filename error:&error];
 
-		if(qtexport->movie == nil) {
+		if (qtexport->movie == nil) {
 			BKE_report(reports, RPT_ERROR, "Unable to create quicktime movie.");
 			success = 0;
 			if (qtexport->filename) [qtexport->filename release];
@@ -749,13 +749,11 @@ void end_qt(void)
 			if (audioTmpMovie) {
 				NSArray *audioTracks = [audioTmpMovie tracksOfMediaType:QTMediaTypeSound];
 				QTTrack *audioTrack = nil;
-				if( [audioTracks count] > 0 )
-				{
+				if ( [audioTracks count] > 0 ) {
 					audioTrack = [audioTracks objectAtIndex:0];
 				}
 			
-				if( audioTrack )
-				{
+				if (audioTrack) {
 					QTTimeRange totalRange;
 					totalRange.time = QTZeroTime;
 					totalRange.duration = [[audioTmpMovie attributeForKey:QTMovieDurationAttribute] QTTimeValue];
@@ -798,7 +796,7 @@ void end_qt(void)
 	
 	[QTMovie exitQTKitOnThread];
 
-	if(qtexport) {
+	if (qtexport) {
 		MEM_freeN(qtexport);
 		qtexport = NULL;
 	}

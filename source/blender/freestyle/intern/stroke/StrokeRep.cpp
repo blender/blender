@@ -149,7 +149,8 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 			if (dp < 0)
 				userDir = userDir * (-1.0f);
 			stripDir = userDir;
-		} else {
+		}
+		else {
 			++orientationErrors;
 		}
 	}
@@ -207,7 +208,8 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 				if (dp < 0)
 					userDir = userDir * (-1.0f);
 				stripDir = userDir;
-			} else {
+			}
+			else {
 				++orientationErrors;
 			}
 		}
@@ -226,7 +228,8 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 				if (dp < 0)
 					userDir = userDir * (-1.0f);
 				stripDirPrev = userDir;
-			} else {
+			}
+			else {
 				++orientationErrors;
 			}
 		}
@@ -302,7 +305,8 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 			if (dp < 0)
 				userDir = userDir * (-1.0f);
 			stripDirLast = userDir;
-		} else {
+		}
+		else {
 			++orientationErrors;
 		}
 	}

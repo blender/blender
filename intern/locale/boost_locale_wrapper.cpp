@@ -109,7 +109,7 @@ const char *bl_locale_pgettext(const char *msgctxt, const char *msgid)
 		std::locale l;
 		char_message_facet const &facet = std::use_facet<char_message_facet>(l);
 		char const *r = facet.get(0, msgctxt, msgid);
-		if(r)
+		if (r)
 			return r;
 		return msgid;
 	}

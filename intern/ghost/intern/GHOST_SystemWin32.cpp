@@ -599,17 +599,19 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, shor
 			case VK_GR_LESS:        key = GHOST_kKeyGrLess;         break;
 
 			case VK_SHIFT:
-					/* Check single shift presses */
-					if (scanCode == 0x36) {
-						key = GHOST_kKeyRightShift;
-					} else if (scanCode == 0x2a) {
-						key = GHOST_kKeyLeftShift;
-					} else {
-						/* Must be a combination SHIFT (Left or Right) + a Key 
-						 * Ignore this as the next message will contain
-						 * the desired "Key" */
-						key = GHOST_kKeyUnknown;
-					}
+				/* Check single shift presses */
+				if (scanCode == 0x36) {
+					key = GHOST_kKeyRightShift;
+				}
+				else if (scanCode == 0x2a) {
+					key = GHOST_kKeyLeftShift;
+				}
+				else {
+					/* Must be a combination SHIFT (Left or Right) + a Key
+					 * Ignore this as the next message will contain
+					 * the desired "Key" */
+					key = GHOST_kKeyUnknown;
+				}
 				break;
 			case VK_CONTROL:
 				key = (extend) ? GHOST_kKeyRightControl : GHOST_kKeyLeftControl;
@@ -1162,7 +1164,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * message without calling DefWindowProc.
 					 */
 					/* we get first WM_SIZE before we fully init. So, do not dispatch before we continiously resizng */
-					if(window->m_inLiveResize) {
+					if (window->m_inLiveResize) {
 						system->pushEvent(processWindowEvent(GHOST_kEventWindowSize, window));
 						system->dispatchEvents();
 					}

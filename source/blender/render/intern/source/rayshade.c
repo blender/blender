@@ -739,7 +739,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 	 * in two each time, giving 2^depth rays. we need to be able to cancel such
 	 * a render to avoid hanging, a better solution would be random picking
 	 * between directions and russian roulette termination */
-	if(R.test_break(R.tbh)) {
+	if (R.test_break(R.tbh)) {
 		zero_v4(col);
 		return;
 	}
