@@ -3689,7 +3689,6 @@ void OSLScriptNode::compile(OSLCompiler& compiler)
 			string param_name(input->name);
 			switch(input->type) {
 				case SHADER_SOCKET_VECTOR:
-					/*parameter_vector(param_name.c_str(), input->value);*/
 					compiler.parameter_point(param_name.c_str(), input->value);
 					compiler.parameter_normal(param_name.c_str(), input->value);
 					break;
