@@ -474,15 +474,16 @@ void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
 }
 
 
-void WM_jobs_kill_type(struct wmWindowManager *wm, int job_type)
+void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
 {
 	wmJob *wm_job, *next_job;
 	
 	for (wm_job = wm->jobs.first; wm_job; wm_job = next_job) {
 		next_job = wm_job->next;
 
-		if (wm_job->job_type == job_type)
-			wm_jobs_kill_job(wm, wm_job);
+		if (!owner || wm_job->owner == owner)
+			if (wm_job->job_type == job_type)
+				wm_jobs_kill_job(wm, wm_job);
 	}
 }
 
