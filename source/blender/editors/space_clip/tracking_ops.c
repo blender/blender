@@ -2405,7 +2405,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 
 	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track))
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE))
 			break;
 
 		track = track->next;
