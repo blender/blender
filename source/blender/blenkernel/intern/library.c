@@ -269,7 +269,8 @@ bool id_make_local(ID *id, bool test)
 			if (!test) BKE_action_make_local((bAction *)id);
 			return true;
 		case ID_NT:
-			return false; /* not implemented */
+			if (!test) ntreeMakeLocal((bNodeTree *)id);
+			return true;
 		case ID_BR:
 			if (!test) BKE_brush_make_local((Brush *)id);
 			return true;
