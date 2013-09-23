@@ -39,6 +39,8 @@
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
+#include "BLI_path_util.h"
+
 SCA_Joystick::SCA_Joystick(short int index)
 	:
 	m_joyindex(index),
@@ -88,14 +90,26 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	if (m_refCount == 0) 
 	{
 		int i;
+
 		/* The video subsystem is required for joystick input to work. However,
-		 * when GHOST is running under SDL, video is initialized elsewhere.
-		 * Do this once only. */
+		 * when GHOST is running under SDL, video is initialized elsewhere. We
+		 * also need to set the videodriver to dummy, and do it here to avoid
+		 * interfering with addons that may use SDL too.
+		 *
+		 * We also init SDL once only. */
 #  ifdef WITH_GHOST_SDL
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ) {
+		int success = (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != -1 );
 #  else
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ) {
+		/* set and restore environment variable */
+		char *videodriver = getenv("SDL_VIDEODRIVER");
+		BLI_setenv("SDL_VIDEODRIVER", "dummy");
+
+		int success = (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) != -1 );
+
+		BLI_setenv("SDL_VIDEODRIVER", videodriver);
 #  endif
+
+		if (!success) {
 			JOYSTICK_ECHO("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}

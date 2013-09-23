@@ -1324,15 +1324,20 @@ const char *BLI_get_folder_version(const int id, const int ver, const bool do_ch
 #endif
 
 /**
- * Sets the specified environment variable to the specified value.
+ * Sets the specified environment variable to the specified value,
+ * and clears it if val == NULL.
  */
 void BLI_setenv(const char *env, const char *val)
 {
 	/* free windows */
 #if (defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)
-	char *envstr = MEM_mallocN(sizeof(char) * (strlen(env) + strlen(val) + 2), "envstr"); /* one for = another for \0 */
+	char *envstr;
 
-	sprintf(envstr, "%s=%s", env, val);
+	if (val)
+		envstr = BLI_sprintfN("%s=%s", env, val);
+	else
+		envstr = BLI_sprintfN("%s=", env);
+
 	putenv(envstr);
 	MEM_freeN(envstr);
 
@@ -1343,7 +1348,10 @@ void BLI_setenv(const char *env, const char *val)
 
 #else
 	/* linux/osx/bsd */
-	setenv(env, val, 1);
+	if (val)
+		setenv(env, val, 1);
+	else
+		unsetenv(env);
 #endif
 }
 

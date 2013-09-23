@@ -166,12 +166,23 @@ int uputenv(const char *name, const char *value)
 {
 	int r = -1;
 	UTF16_ENCODE(name);
-	UTF16_ENCODE(value);
 
-	if (name_16 && value_16) {
-		r = (SetEnvironmentVariableW(name_16,value_16)!= 0) ? 0 : -1;
+	if (value) {
+		/* set */
+		UTF16_ENCODE(value);
+
+		if (name_16 && value_16) {
+			r = (SetEnvironmentVariableW(name_16,value_16)!= 0) ? 0 : -1;
+		}
+		UTF16_UN_ENCODE(value);
 	}
-	UTF16_UN_ENCODE(value);
+	else {
+		/* clear */
+		if (name_16) {
+			r = (SetEnvironmentVariableW(name_16,NULL)!= 0) ? 0 : -1;
+		}
+	}
+
 	UTF16_UN_ENCODE(name);
 
 	return r;
