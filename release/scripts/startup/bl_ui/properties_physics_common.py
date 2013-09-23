@@ -180,7 +180,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
             layout.separator()
 
-            if cache.id_data.library:
+            if cache.id_data.library and not cache.use_disk_cache:
                 can_bake = False
 
                 col = layout.column(align=True)
