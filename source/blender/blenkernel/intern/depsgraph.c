@@ -2115,6 +2115,8 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 			if ((oblay & lay) & ~scene->lay_updated) {
 				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
 					ob->recalc |= OB_RECALC_DATA;
+				if (ob->proxy && (ob->proxy_group == NULL))
+					ob->proxy->recalc |= OB_RECALC_DATA;
 				if (ob->dup_group) 
 					dag_group_on_visible_update(ob->dup_group);
 			}
