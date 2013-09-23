@@ -1009,8 +1009,6 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 			win->screen->do_draw = TRUE;
 			break;
 		case NC_SCREEN:
-			if (note->data == ND_SUBWINACTIVE)
-				uiFreeActiveButtons(C, win->screen);
 			if (note->action == NA_EDITED)
 				win->screen->do_draw = win->screen->do_refresh = TRUE;
 			break;
@@ -1335,7 +1333,11 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 			/* notifier invokes freeing the buttons... causing a bit too much redraws */
 			if (oldswin != scr->subwinactive) {
 				region_cursor_set(win, scr->subwinactive, TRUE);
-				WM_event_add_notifier(C, NC_SCREEN | ND_SUBWINACTIVE, scr);
+
+				/* this used to be a notifier, but needs to be done immediate
+				 * because it can undo setting the right button as active due
+				 * to delayed notifier handling */
+				uiFreeActiveButtons(C, win->screen);
 			}
 			else
 				region_cursor_set(win, scr->subwinactive, FALSE);
