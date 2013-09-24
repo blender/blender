@@ -662,10 +662,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	UndoMesh *um = umv;
 	BMesh *bm;
 
-	const BMAllocTemplate allocsize = {um->me.totvert,
-	                                   um->me.totedge,
-	                                   um->me.totloop,
-	                                   um->me.totpoly};
+	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(&um->me);
 
 	ob->shapenr = em->bm->shapenr = um->shapenr;
 

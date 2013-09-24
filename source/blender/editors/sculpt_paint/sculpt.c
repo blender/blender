@@ -4677,10 +4677,7 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
-	const BMAllocTemplate allocsize = {me->totvert,
-	                                   me->totedge,
-	                                   me->totloop,
-	                                   me->totpoly};
+	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
 	sculpt_pbvh_clear(ob);
 

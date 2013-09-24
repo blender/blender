@@ -1278,6 +1278,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	if (!l_v1 || !l_v2) {
+		BLI_assert(0);
 		return NULL;
 	}
 

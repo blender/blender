@@ -530,8 +530,9 @@ Mesh *BKE_mesh_copy(Mesh *me)
 BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 {
 	BMesh *bm;
+	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
-	bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&allocsize);
 
 	BM_mesh_bm_from_me(bm, me, false, true, ob->shapenr);
 

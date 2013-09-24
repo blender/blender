@@ -60,6 +60,13 @@ typedef struct BMAllocTemplate {
 extern const BMAllocTemplate bm_mesh_allocsize_default;
 extern const BMAllocTemplate bm_mesh_chunksize_default;
 
+#define BMALLOC_TEMPLATE_FROM_BM(bm) { (CHECK_TYPE_INLINE(bm, BMesh *), \
+	(bm)->totvert), (bm)->totedge, (bm)->totloop, (bm)->totface}
+#define BMALLOC_TEMPLATE_FROM_ME(me) { (CHECK_TYPE_INLINE(me, Mesh *), \
+	(me)->totvert), (me)->totedge, (me)->totloop, (me)->totpoly}
+#define BMALLOC_TEMPLATE_FROM_DM(dm) { (CHECK_TYPE_INLINE(dm, DerivedMesh *), \
+	(dm)->getNumVerts(dm)), (dm)->getNumEdges(dm), (dm)->getNumLoops(dm), (dm)->getNumPolys(dm)}
+
 enum {
 	BM_MESH_CREATE_USE_TOOLFLAGS = (1 << 0)
 };

@@ -232,8 +232,9 @@ BMEditMesh *DM_to_editbmesh(DerivedMesh *dm, BMEditMesh *existing, const bool do
 BMesh *DM_to_bmesh(DerivedMesh *dm, const bool calc_face_normal)
 {
 	BMesh *bm;
+	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_DM(dm);
 
-	bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	bm = BM_mesh_create(&allocsize);
 
 	DM_to_bmesh_ex(dm, bm, calc_face_normal);
 
