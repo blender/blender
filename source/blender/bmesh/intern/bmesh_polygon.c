@@ -865,7 +865,11 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 	const float cos_threshold = 0.9f;
 	const float bias = 1.0f + 1e-6f;
 
-	BLI_assert(len_squared_v3(f->no) > FLT_EPSILON);
+	BLI_assert(BM_face_is_normal_valid(f));
+	/* just triangulate degenerate faces */
+	if (UNLIKELY(is_zero_v3(f->no))) {
+		return BM_FACE_FIRST_LOOP(f);
+	}
 
 	if (f->len == 4) {
 		BMLoop *larr[4];
