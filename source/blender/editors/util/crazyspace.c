@@ -40,6 +40,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_bitmap.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
@@ -51,6 +52,7 @@
 
 typedef struct {
 	float (*vertexcos)[3];
+	BLI_bitmap *vertex_visit;
 } MappedUserData;
 
 BLI_INLINE void tan_calc_v3(float a[3], const float b[3], const float c[3])
@@ -83,7 +85,14 @@ static void make_vertexcos__mapFunc(void *userData, int index, const float co[3]
                                     const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	MappedUserData *mappedData = (MappedUserData *)userData;
-	copy_v3_v3(mappedData->vertexcos[index], co);
+
+	if (BLI_BITMAP_GET(mappedData->vertex_visit, index) == 0) {
+		/* we need coord from prototype vertex, not from copies,
+		 * assume they stored in the beginning of vertex array stored in DM
+		 * (mirror modifier for eg does this) */
+		copy_v3_v3(mappedData->vertexcos[index], co);
+		BLI_BITMAP_SET(mappedData->vertex_visit, index);
+	}
 }
 
 static int modifiers_disable_subsurf_temporary(Object *ob)
@@ -108,6 +117,7 @@ float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 	DerivedMesh *dm;
 	float (*vertexcos)[3];
 	int nverts = me->edit_btmesh->bm->totvert;
+	BLI_bitmap *vertex_visit;
 	MappedUserData userData;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
@@ -120,14 +130,18 @@ float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 	dm = editbmesh_get_derived_cage(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
 	vertexcos = MEM_callocN(sizeof(*vertexcos) * nverts, "vertexcos map");
+	vertex_visit = BLI_BITMAP_NEW(nverts, "vertexcos flags");
 
 	userData.vertexcos = vertexcos;
+	userData.vertex_visit = vertex_visit;
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
 
 	dm->release(dm);
 
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
+
+	MEM_freeN(vertex_visit);
 
 	return vertexcos;
 }
