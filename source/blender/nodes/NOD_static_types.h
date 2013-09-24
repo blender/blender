@@ -1,4 +1,3 @@
-
 /*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

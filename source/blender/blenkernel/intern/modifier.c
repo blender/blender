@@ -593,21 +593,21 @@ bool modifiers_usesArmature(Object *ob, bArmature *arm)
 
 bool modifier_isCorrectableDeformed(ModifierData *md)
 {
-	if (md->type == eModifierType_Armature)
-		return true;
-	if (md->type == eModifierType_ShapeKey)
-		return true;
-	
-	return false;
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	return (mti->deformMatricesEM != NULL);
 }
 
-bool modifiers_isCorrectableDeformed(Object *ob)
+bool modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+	int required_mode = eModifierMode_Realtime;
+
+	if (ob->mode == OB_MODE_EDIT)
+		required_mode |= eModifierMode_Editmode;
 	
 	for (; md; md = md->next) {
-		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) {
+		if (!modifier_isEnabled(scene, md, required_mode)) {
 			/* pass */
 		}
 		else if (modifier_isCorrectableDeformed(md)) {
