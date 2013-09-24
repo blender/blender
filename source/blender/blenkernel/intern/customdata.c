@@ -971,6 +971,11 @@ static void layerDefault_mcol(void *data, int count)
 	}
 }
 
+static void layerDefault_origindex(void *data, int count)
+{
+	fill_vn_i((int *)data, count, ORIGINDEX_NONE);
+}
+
 static void layerInterp_bweight(void **sources, const float *weights,
                                 const float *UNUSED(sub_weights), int count, void *dest)
 {
@@ -1077,7 +1082,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MCol) * 4, "MCol", 4, N_("Col"), NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	/* 7: CD_ORIGINDEX */
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_origindex},
 	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float) * 3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
