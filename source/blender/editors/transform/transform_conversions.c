@@ -2228,7 +2228,13 @@ static void createTransEditVerts(TransInfo *t)
 		/* if we still have more modifiers, also do crazyspace
 		 * correction with quats, relative to the coordinates after
 		 * the modifiers that support deform matrices (defcos) */
-		if ((totleft > 0) || (totleft == -1)) {
+
+#if 0	/* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
+		if ((totleft > 0) || (totleft == -1))
+#else
+		if (totleft > 0)
+#endif
+		{
 			mappedcos = crazyspace_get_mapped_editverts(t->scene, t->obedit);
 			quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
 			crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats);
