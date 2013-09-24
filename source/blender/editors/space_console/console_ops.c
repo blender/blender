@@ -681,6 +681,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 	if (history) {
 		while (sc->history.first)
 			console_history_free(sc, sc->history.first);
+		console_history_verify(C);
 	}
 
 	console_textview_update_rect(sc, ar);
