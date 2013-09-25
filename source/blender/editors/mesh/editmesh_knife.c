@@ -1358,13 +1358,16 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				/* both kfe ends are in cutting triangle */
 				n_isects = 2;
 			}
-			else if (isect_line_tri_epsilon_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL, depsilon)) {
+			else if (isect_line_tri_epsilon_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3,
+			                                   &lambda, NULL, depsilon))
+			{
 				/* kfe intersects cutting triangle lambda of the way along kfe */
 				interp_v3_v3v3(isects[0], kfe->v1->cageco, kfe->v2->cageco, lambda);
 				n_isects = 1;
 			}
+
 			for (j = 0; j < n_isects; j++) {
-				float p[3], no[3], view[3], sp[2];
+				float p[3];
 
 				copy_v3_v3(p, isects[j]);
 				if (kcd->curr.vert && len_squared_v3v3(kcd->curr.vert->cageco, p) < depsilon_sq) {
@@ -1384,16 +1387,18 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					continue;
 				}
 
-				knife_project_v2(kcd, p, sp);
-				ED_view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
-				mul_m4_v3(kcd->ob->imat, view);
-
 				if (kcd->cut_through) {
 					f_hit = NULL;
 				}
 				else {
 					/* check if this point is visible in the viewport */
-					float p1[3], lambda1;
+					float p1[3], no[3], view[3], sp[2];
+					float lambda1;
+
+					/* screen projection */
+					knife_project_v2(kcd, p, sp);
+					ED_view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
+					mul_m4_v3(kcd->ob->imat, view);
 
 					/* if face isn't planer, p may be behind the current tesselated tri,
 					 * so move it onto that and then a little towards eye */
