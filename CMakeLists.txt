@@ -805,26 +805,26 @@ if(UNIX AND NOT APPLE)
 		                OUTPUT_VARIABLE LLVM_DIRECTORY
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
-		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_VARIABLE LLVM_LIBPATH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		if(LLVM_STATIC)
 			find_library(LLVM_LIBRARY
 			             NAMES LLVMAnalysis # first of a whole bunch of libs to get
-			             PATHS ${LLVM_LIB_DIR})
+			             PATHS ${LLVM_LIBPATH})
 		else()
 			find_library(LLVM_LIBRARY
 			             NAMES LLVM-${LLVM_VERSION}
-			             PATHS ${LLVM_LIB_DIR})
+			             PATHS ${LLVM_LIBPATH})
 		endif()
 
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+		message(STATUS "LLVM lib dir  = ${LLVM_LIBPATH}")
 		set(LLVM_VERSION ${LLVM_VERSION} CACHE STRING "Version of LLVM to use")
 		set(LLVM_DIRECTORY ${LLVM_DIRECTORY} CACHE PATH "Path to the LLVM installation")
 
-		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -1449,7 +1449,7 @@ elseif(WIN32)
 		
 		if(WITH_LLVM)
 			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-			set(LLVM_LIB_DIR ${LLVM_DIRECTORY}/lib)
+			set(LLVM_LIBPATH ${LLVM_DIRECTORY}/lib)
 			# Explicitly set llvm lib order.
 			#---- WARNING ON GCC ORDER OF LIBS IS IMPORTANT, DO NOT CHANGE! ---------
 			set(LLVM_LIBRARY LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMAnalysis LLVMArchive
@@ -1743,13 +1743,13 @@ elseif(APPLE)
 		                OUTPUT_VARIABLE LLVM_DIRECTORY
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
-		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_VARIABLE LLVM_LIBPATH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
 		             NAMES LLVMAnalysis # first of a whole bunch of libs to get
-		             PATHS ${LLVM_LIB_DIR})
+		             PATHS ${LLVM_LIBPATH})
 
-		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
