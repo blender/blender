@@ -798,15 +798,25 @@ if(UNIX AND NOT APPLE)
 				find_program(LLVM_CONFIG llvm-config)
 			endif()
 		endif()
-		execute_process(COMMAND ${LLVM_CONFIG} --version
-		                OUTPUT_VARIABLE LLVM_VERSION
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --prefix
-		                OUTPUT_VARIABLE LLVM_DIRECTORY
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --libdir
-		                OUTPUT_VARIABLE LLVM_LIBPATH
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		if(NOT DEFINED LLVM_VERSION)
+			execute_process(COMMAND ${LLVM_CONFIG} --version
+							OUTPUT_VARIABLE LLVM_VERSION
+							OUTPUT_STRIP_TRAILING_WHITESPACE)
+			set(LLVM_VERSION ${LLVM_VERSION} CACHE STRING "Version of LLVM to use")
+		endif()
+		if(NOT DEFINED LLVM_DIRECTORY)
+			execute_process(COMMAND ${LLVM_CONFIG} --prefix
+							OUTPUT_VARIABLE LLVM_DIRECTORY
+							OUTPUT_STRIP_TRAILING_WHITESPACE)
+			set(LLVM_DIRECTORY ${LLVM_DIRECTORY} CACHE PATH "Path to the LLVM installation")
+		endif()
+		if(NOT DEFINED LLVM_LIBPATH)
+			execute_process(COMMAND ${LLVM_CONFIG} --libdir
+							OUTPUT_VARIABLE LLVM_LIBPATH
+							OUTPUT_STRIP_TRAILING_WHITESPACE)
+			set(LLVM_LIBPATH ${LLVM_LIBPATH} CACHE PATH "Path to the LLVM library path")
+		endif()
 
 		if(LLVM_STATIC)
 			find_library(LLVM_LIBRARY
@@ -818,11 +828,6 @@ if(UNIX AND NOT APPLE)
 			             PATHS ${LLVM_LIBPATH})
 		endif()
 
-		message(STATUS "LLVM version  = ${LLVM_VERSION}")
-		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM lib dir  = ${LLVM_LIBPATH}")
-		set(LLVM_VERSION ${LLVM_VERSION} CACHE STRING "Version of LLVM to use")
-		set(LLVM_DIRECTORY ${LLVM_DIRECTORY} CACHE PATH "Path to the LLVM installation")
 
 		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
 			if(LLVM_STATIC)
@@ -832,7 +837,7 @@ if(UNIX AND NOT APPLE)
 				execute_process(COMMAND ${LLVM_CONFIG} --libfiles
 				                OUTPUT_VARIABLE LLVM_LIBRARY
 				                OUTPUT_STRIP_TRAILING_WHITESPACE)
-				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+				string(REPLACE " " ";" LLVM_LIBRARY "${LLVM_LIBRARY}")
 			endif()
 		else()
 			message(FATAL_ERROR "LLVM not found.")
