@@ -142,7 +142,7 @@ typedef struct Object {
 	/* materials */
 	struct Material **mat;	/* material slots */
 	char *matbits;			/* a boolean field, with each byte 1 if corresponding material is linked to object */
-	int totcol;				/* copy of mesh or curve or meta */
+	int totcol;				/* copy of mesh, curve & meta struct member of same name (keep in sync) */
 	int actcol;				/* currently selected material in the UI */
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */

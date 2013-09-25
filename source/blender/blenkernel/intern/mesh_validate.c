@@ -1002,6 +1002,7 @@ void BKE_mesh_cd_validate(Mesh *me)
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, from_name);
 			CustomData_set_layer_unique_name(&me->pdata, totlayer_mtex);
 		} while (totlayer_uv != ++totlayer_mtex);
+		mtex_index = CustomData_get_layer_index(&me->pdata, CD_MTEXPOLY);
 	}
 	else if (totlayer_uv < totlayer_mtex) {
 		do {
@@ -1009,15 +1010,17 @@ void BKE_mesh_cd_validate(Mesh *me)
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, from_name);
 			CustomData_set_layer_unique_name(&me->ldata, totlayer_uv);
 		} while (totlayer_mtex != ++totlayer_uv);
+		uv_index = CustomData_get_layer_index(&me->ldata, CD_MLOOPUV);
 	}
 
 	BLI_assert(totlayer_mtex == totlayer_uv);
 
 	/* Check uv/tex names match as well!!! */
 	for (i = 0; i < totlayer_mtex; i++, mtex_index++, uv_index++) {
-		const char *name = me->pdata.layers[mtex_index].name;
-		if (strcmp(name, me->ldata.layers[uv_index].name) != 0) {
-			BKE_mesh_uv_cdlayer_rename_index(me, mtex_index, uv_index, -1, name, false);
+		const char *name_src = me->pdata.layers[mtex_index].name;
+		const char *name_dst = me->ldata.layers[uv_index].name;
+		if (!STREQ(name_src, name_dst)) {
+			BKE_mesh_uv_cdlayer_rename_index(me, mtex_index, uv_index, -1, name_src, false);
 		}
 	}
 }

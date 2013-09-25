@@ -1114,7 +1114,7 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
 }
 
 /**
- * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
+ * Intersect line/plane.
  *
  * \param out The intersection point.
  * \param l1 The first point of the line.
