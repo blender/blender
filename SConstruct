@@ -907,9 +907,9 @@ for tp, tn, tf in os.walk('release/text'):
         textlist.append(tp+os.sep+f)
 
 # Font licenses
-textlist += ['release/datafiles/LICENSE-bfont.ttf.txt', 'release/datafiles/LICENSE-bmonofont-i18n.ttf.txt']
+textlist.append('release/datafiles/LICENSE-bfont.ttf.txt')
 if env['WITH_BF_INTERNATIONAL']:
-    textlist.append('release/datafiles/LICENSE-droidsans.ttf.txt')
+    textlist += ['release/datafiles/LICENSE-droidsans.ttf.txt', 'release/datafiles/LICENSE-bmonofont-i18n.ttf.txt']
 
 textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
