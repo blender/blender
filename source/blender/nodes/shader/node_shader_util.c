@@ -271,6 +271,9 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in
 		GPUNodeLink *tdomax = GPU_uniform(&domax);
 
 		GPU_link(mat, "mapping", in[0].link, tmat, tmin, tmax, tdomin, tdomax, &in[0].link);
+
+		if (texmap->type == TEXMAP_TYPE_NORMAL)
+			GPU_link(mat, "texco_norm", in[0].link, &in[0].link);
 	}
 }
 

@@ -42,6 +42,8 @@ TextureMapping::TextureMapping()
 	y_mapping = Y;
 	z_mapping = Z;
 
+	type = TEXTURE;
+
 	projection = FLAT;
 }
 
@@ -55,12 +57,52 @@ Transform TextureMapping::compute_transform()
 		mmat[1][y_mapping-1] = 1.0f;
 	if(z_mapping != NONE)
 		mmat[2][z_mapping-1] = 1.0f;
+	
+	float3 scale_clamped = scale;
 
-	Transform smat = transform_scale(scale);
+	if(type == TEXTURE || type == NORMAL) {
+		/* keep matrix invertible */
+		if(fabsf(scale.x) < 1e-5f)
+			scale_clamped.x = signf(scale.x)*1e-5f;
+		if(fabsf(scale.y) < 1e-5f)
+			scale_clamped.y = signf(scale.y)*1e-5f;
+		if(fabsf(scale.z) < 1e-5f)
+			scale_clamped.z = signf(scale.z)*1e-5f;
+	}
+	
+	Transform smat = transform_scale(scale_clamped);
 	Transform rmat = transform_euler(rotation);
 	Transform tmat = transform_translate(translation);
 
-	return tmat*rmat*smat*mmat;
+	Transform mat;
+
+	switch(type) {
+		case TEXTURE:
+			/* inverse transform on texture coordinate gives
+			 * forward transform on texture */
+			mat = tmat*rmat*smat;
+			mat = transform_inverse(mat);
+			break;
+		case POINT:
+			/* full transform */
+			mat = tmat*rmat*smat;
+			break;
+		case VECTOR:
+			/* no translation for vectors */
+			mat = rmat*smat;
+			break;
+		case NORMAL:
+			/* no translation for normals, and inverse transpose */
+			mat = rmat*smat;
+			mat = transform_inverse(mat);
+			mat = transform_transpose(mat);
+			break;
+	}
+
+	/* projection last */
+	mat = mat*mmat;
+
+	return mat;
 }
 
 bool TextureMapping::skip()
@@ -97,6 +139,11 @@ void TextureMapping::compile(SVMCompiler& compiler, int offset_in, int offset_ou
 		compiler.add_node(NODE_MIN_MAX, offset_out, offset_out);
 		compiler.add_node(float3_to_float4(min));
 		compiler.add_node(float3_to_float4(max));
+	}
+
+	if(type == NORMAL) {
+		compiler.add_node(NODE_VECTOR_MATH, NODE_VECTOR_MATH_NORMALIZE, offset_out, offset_out);
+		compiler.add_node(NODE_VECTOR_MATH, SVM_STACK_INVALID, offset_out);
 	}
 }
 

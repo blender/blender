@@ -29,7 +29,6 @@
  *  \ingroup shdnodes
  */
 
-
 #include "node_shader_util.h"
 
 /* **************** MAPPING  ******************** */
@@ -53,7 +52,7 @@ static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNo
 	/* stack order output: vector */
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	mul_m4_v3(texmap->mat, vec);
-	
+
 	if (texmap->flag & TEXMAP_CLIP_MIN) {
 		if (vec[0] < texmap->min[0]) vec[0] = texmap->min[0];
 		if (vec[1] < texmap->min[1]) vec[1] = texmap->min[1];
@@ -64,12 +63,15 @@ static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNo
 		if (vec[1] > texmap->max[1]) vec[1] = texmap->max[1];
 		if (vec[2] > texmap->max[2]) vec[2] = texmap->max[2];
 	}
+
+	if (texmap->type == TEXMAP_TYPE_NORMAL)
+		normalize_v3(vec);
 }
 
 
 static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_tex_mapping();
+	node->storage = add_tex_mapping(TEXMAP_TYPE_TEXTURE);
 }
 
 static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
@@ -83,7 +85,12 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	GPUNodeLink *tdomin = GPU_uniform(&domin);
 	GPUNodeLink *tdomax = GPU_uniform(&domax);
 
-	return GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
+	int result = GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
+
+	if (result && texmap->type == TEXMAP_TYPE_NORMAL)
+		GPU_link(mat, "texco_norm", out[0].link, &out[0].link);
+
+	return result;
 }
 
 void register_node_type_sh_mapping(void)

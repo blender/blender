@@ -45,7 +45,7 @@ static bNodeSocketTemplate sh_node_tex_magic_out[] = {
 static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexMagic *tex = MEM_callocN(sizeof(NodeTexMagic), "NodeTexMagic");
-	default_tex_mapping(&tex->base.tex_mapping);
+	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_TEXTURE);
 	default_color_mapping(&tex->base.color_mapping);
 	tex->depth = 2;
 

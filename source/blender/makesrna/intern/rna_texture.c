@@ -495,6 +495,14 @@ static void rna_def_texmapping(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
+	static EnumPropertyItem prop_vect_type_items[] = {
+		{TEXMAP_TYPE_TEXTURE, "TEXTURE",  0, "Texture", "Transforms a texture by inverse mapping the texture coordinate"},
+		{TEXMAP_TYPE_POINT,   "POINT",    0, "Point",   "Transforms a point"},
+		{TEXMAP_TYPE_VECTOR,  "VECTOR",   0, "Vector",  "Transforms a direction vector"},
+		{TEXMAP_TYPE_NORMAL,  "NORMAL",   0, "Normal",  "Transforms a normal vector with unit length"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static EnumPropertyItem prop_xyz_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
@@ -508,6 +516,12 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "TexMapping", NULL);
 	RNA_def_struct_ui_text(srna, "Texture Mapping", "Texture coordinate mapping settings");
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_vect_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of vector that the mapping transforms");
+	RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
 
 	prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");

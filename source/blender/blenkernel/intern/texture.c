@@ -71,16 +71,16 @@
 
 /* ****************** Mapping ******************* */
 
-TexMapping *add_tex_mapping(void)
+TexMapping *add_tex_mapping(int type)
 {
 	TexMapping *texmap = MEM_callocN(sizeof(TexMapping), "TexMapping");
 	
-	default_tex_mapping(texmap);
+	default_tex_mapping(texmap, type);
 	
 	return texmap;
 }
 
-void default_tex_mapping(TexMapping *texmap)
+void default_tex_mapping(TexMapping *texmap, int type)
 {
 	memset(texmap, 0, sizeof(TexMapping));
 
@@ -92,11 +92,12 @@ void default_tex_mapping(TexMapping *texmap)
 	texmap->projy = PROJ_Y;
 	texmap->projz = PROJ_Z;
 	texmap->mapping = MTEX_FLAT;
+	texmap->type = type;
 }
 
 void init_tex_mapping(TexMapping *texmap)
 {
-	float smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
+	float smat[4][4], rmat[4][4], tmat[4][4], proj[4][4], size[3];
 
 	if (texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
 	    is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size))
@@ -107,7 +108,8 @@ void init_tex_mapping(TexMapping *texmap)
 	}
 	else {
 		/* axis projection */
-		zero_m3(proj);
+		zero_m4(proj);
+		proj[3][3] = 1.0f;
 
 		if (texmap->projx != PROJ_N)
 			proj[texmap->projx - 1][0] = 1.0f;
@@ -117,19 +119,50 @@ void init_tex_mapping(TexMapping *texmap)
 			proj[texmap->projz - 1][2] = 1.0f;
 
 		/* scale */
-		size_to_mat3(smat, texmap->size);
+		copy_v3_v3(size, texmap->size);
+
+		if (ELEM(texmap->type, TEXMAP_TYPE_TEXTURE, TEXMAP_TYPE_NORMAL)) {
+			/* keep matrix invertible */
+			if(fabsf(size[0]) < 1e-5f)
+				size[0] = signf(size[0])*1e-5f;
+			if(fabsf(size[1]) < 1e-5f)
+				size[1] = signf(size[1])*1e-5f;
+			if(fabsf(size[2]) < 1e-5f)
+				size[2] = signf(size[2])*1e-5f;
+		}
 		
+		size_to_mat4(smat, texmap->size);
+
 		/* rotation */
-		/* TexMapping rotation are now in radians. */
-		eul_to_mat3(rmat, texmap->rot);
-		
-		/* compose it all */
-		mul_m3_m3m3(mat, rmat, smat);
-		mul_m3_m3m3(mat, proj, mat);
-		
+		eul_to_mat4(rmat, texmap->rot);
+
 		/* translation */
-		copy_m4_m3(texmap->mat, mat);
-		copy_v3_v3(texmap->mat[3], texmap->loc);
+		unit_m4(tmat);
+		copy_v3_v3(tmat[3], texmap->loc);
+
+		if (texmap->type == TEXMAP_TYPE_TEXTURE) {
+			/* to transform a texture, the inverse transform needs
+			 * to be applied to the texture coordinate */
+			mul_serie_m4(texmap->mat, tmat, rmat, smat, 0, 0, 0, 0, 0);
+			invert_m4(texmap->mat);
+		}
+		else if (texmap->type == TEXMAP_TYPE_POINT) {
+			/* forward transform */
+			mul_serie_m4(texmap->mat, tmat, rmat, smat, 0, 0, 0, 0, 0);
+		}
+		else if (texmap->type == TEXMAP_TYPE_VECTOR) {
+			/* no translation for vectors */
+			mul_m4_m4m4(texmap->mat, rmat, smat);
+		}
+		else if (texmap->type == TEXMAP_TYPE_NORMAL) {
+			/* no translation for normals, and inverse transpose */
+			mul_m4_m4m4(texmap->mat, rmat, smat);
+			invert_m4(texmap->mat);
+			transpose_m4(texmap->mat);
+		}
+
+		/* projection last */
+		mul_m4_m4m4(texmap->mat, texmap->mat, proj);
 
 		texmap->flag &= ~TEXMAP_UNIT_MATRIX;
 	}

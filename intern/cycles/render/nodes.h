@@ -43,6 +43,9 @@ public:
 	float3 min, max;
 	bool use_minmax;
 
+	enum Type { POINT = 0, TEXTURE = 1, VECTOR = 2, NORMAL = 3 };
+	Type type;
+
 	enum Mapping { NONE = 0, X = 1, Y = 2, Z = 3 };
 	Mapping x_mapping, y_mapping, z_mapping;
 
