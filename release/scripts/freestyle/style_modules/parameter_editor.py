@@ -1093,10 +1093,10 @@ class StrokeCleaner(StrokeShader):
             seg2 = sv3.point - sv2.point
             seg3 = sv4.point - sv3.point
             if seg1.dot(seg2) < 0.0 and seg2.dot(seg3) < 0.0:
-                print(sv2.first_svertex.viewvertex)
-                print(sv2.second_svertex.viewvertex)
-                print(sv3.first_svertex.viewvertex)
-                print(sv3.second_svertex.viewvertex)
+                #print(sv2.first_svertex.viewvertex)
+                #print(sv2.second_svertex.viewvertex)
+                #print(sv3.first_svertex.viewvertex)
+                #print(sv3.second_svertex.viewvertex)
                 p2 = mathutils.Vector(sv2.point)
                 p3 = mathutils.Vector(sv3.point)
                 sv2.point = p3

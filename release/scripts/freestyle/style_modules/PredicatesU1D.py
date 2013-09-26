@@ -92,7 +92,7 @@ class pyLowSteerableViewMapDensityUP1D(UnaryPredicate1D):
 	def __call__(self, inter):
 		func = GetSteerableViewMapDensityF1D(self._level, self._integration)
 		v = func(inter)
-		print(v)
+		#print(v)
 		if v < self._threshold:
 			return 1
 		return 0
@@ -202,23 +202,23 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 		vlast = itlast.object
 		tvertex = v.viewvertex
 		if type(tvertex) is TVertex:
-			print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
+			#print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
 			eit = tvertex.edges_begin()
 			while not eit.is_end:
 				ve, incoming = eit.object
 				if ve.id == self._id:
 					return 1
-				print("-------", ve.id.first, "-", ve.id.second)
+				#print("-------", ve.id.first, "-", ve.id.second)
 				eit.increment()
 		tvertex = vlast.viewvertex
 		if type(tvertex) is TVertex:
-			print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
+			#print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
 			eit = tvertex.edges_begin()
 			while not eit.is_end:
 				ve, incoming = eit.object
 				if ve.id == self._id:
 					return 1
-				print("-------", ve.id.first, "-", ve.id.second)
+				#print("-------", ve.id.first, "-", ve.id.second)
 				eit.increment()
 		return 0
 
@@ -335,8 +335,8 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
 		itlast.decrement()	
 		vlast = itlast.object
 		v = it.object
-		print(v.id.first, v.id.second)
-		print(vlast.id.first, vlast.id.second)
+		#print(v.id.first, v.id.second)
+		#print(vlast.id.first, vlast.id.second)
 		if v.id == vlast.id:
 			return 1
 		return 0

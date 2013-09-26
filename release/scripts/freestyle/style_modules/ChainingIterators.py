@@ -280,7 +280,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.current_edge.id.first, self.current_edge.id.second)
+		#print(self.current_edge.id.first, self.current_edge.id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.next_vertex
 		if type(tvertex) is TVertex:
@@ -450,7 +450,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.current_edge.id.first, self.current_edge.id.second)
+		#print(self.current_edge.id.first, self.current_edge.id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.next_vertex
 		if type(tvertex) is TVertex:
@@ -553,7 +553,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.current_edge.id.first, self.current_edge.id.second)
+		#print(self.current_edge.id.first, self.current_edge.id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.next_vertex
 		if type(tvertex) is TVertex:

@@ -459,7 +459,7 @@ class pyRandomColorShader(StrokeShader):
 		c0 = float(random.uniform(15,75))/100.0
 		c1 = float(random.uniform(15,75))/100.0
 		c2 = float(random.uniform(15,75))/100.0
-		print(c0, c1, c2)
+		#print(c0, c1, c2)
 		it = stroke.stroke_vertices_begin()
 		while not it.is_end:
 			it.object.attribute.color = (c0,c1,c2)

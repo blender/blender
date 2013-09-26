@@ -60,7 +60,7 @@ class pyViewMapGradientNormBP1D(BinaryPredicate1D):
 		BinaryPredicate1D.__init__(self)
 		self._GetGradient = pyViewMapGradientNormF1D(l, IntegrationType.MEAN)
 	def __call__(self, i1,i2):
-		print("compare gradient")
+		#print("compare gradient")
 		return (self._GetGradient(i1) > self._GetGradient(i2))
 
 class pyShuffleBP1D(BinaryPredicate1D):
