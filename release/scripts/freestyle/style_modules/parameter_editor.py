@@ -1062,8 +1062,8 @@ class Seed:
 
 _seed = Seed()
 
-### T.K. 07-Aug-2013 Temporary fix for unexpected line gaps
 
+### T.K. 07-Aug-2013 Temporary fix for unexpected line gaps
 
 def iter_three_segments(stroke):
     n = stroke.stroke_vertices_size()
@@ -1101,6 +1101,7 @@ class StrokeCleaner(StrokeShader):
                 p3 = mathutils.Vector(sv3.point)
                 sv2.point = p3
                 sv3.point = p2
+        stroke.update_length()
 
 
 # main function for parameter processing
@@ -1233,6 +1234,9 @@ def process(layer_name, lineset_name):
         Operators.select(LengthThresholdUP1D(length_min, length_max))
     # prepare a list of stroke shaders
     shaders_list = []
+    ###
+    shaders_list.append(StrokeCleaner())
+    ###
     for m in linestyle.geometry_modifiers:
         if not m.use:
             continue
@@ -1282,9 +1286,6 @@ def process(layer_name, lineset_name):
         elif m.type == '2D_TRANSFORM':
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
-    ###
-    shaders_list.append(StrokeCleaner())
-    ###
     color = linestyle.color
     if (not linestyle.use_chaining) or (linestyle.chaining == 'PLAIN' and linestyle.use_same_object):
         thickness_position = linestyle.thickness_position
