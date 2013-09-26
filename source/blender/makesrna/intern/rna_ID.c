@@ -58,7 +58,7 @@ EnumPropertyItem id_type_items[] = {
 	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
 	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
 	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
-	{ID_LS, "LINESTYLE", ICON_BRUSH_DATA, "FreestyleLineStyle", ""}, /* FIXME proper icon */
+	{ID_LS, "LINESTYLE", ICON_BRUSH_DATA, "Line Style", ""}, /* FIXME proper icon */
 	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
 	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
 	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
