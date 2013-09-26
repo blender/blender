@@ -628,13 +628,13 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 		}
 		if (testfaces) {
 			if (ifaces)
-				shareface = knife_find_common_face(testfaces, ifaces);
+				shareface = (knife_find_common_face(testfaces, ifaces) != NULL);
 			else if (iface)
-				shareface = find_ref(testfaces, iface);
+				shareface = (find_ref(testfaces, iface) != NULL);
 		}
 		else if (ifaces) {
 			if (testface)
-				shareface = find_ref(ifaces, testface);
+				shareface = (find_ref(ifaces, testface) != NULL);
 		}
 		else if (testface && iface) {
 			shareface = (testface == iface);
