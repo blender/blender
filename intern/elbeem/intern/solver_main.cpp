@@ -378,7 +378,7 @@ LbmFsgrSolver::mainLoop(int lev)
 	const int gridLoopBound=1;
 	GRID_REGION_INIT();
 #if PARALLEL==1
-#pragma omp parallel default(shared) \
+#pragma omp parallel default(shared) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
 		calcCellsFilled,calcCellsEmptied, \
@@ -1119,7 +1119,7 @@ LbmFsgrSolver::preinitGrids()
 	
 		GRID_REGION_INIT();
 #if PARALLEL==1
-#pragma omp parallel default(shared) \
+#pragma omp parallel default(shared) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
 		calcCellsFilled,calcCellsEmptied, \
@@ -1156,7 +1156,7 @@ LbmFsgrSolver::standingFluidPreinit()
 
 	GRID_REGION_INIT();
 #if PARALLEL==1
-#pragma omp parallel default(shared) \
+#pragma omp parallel default(shared) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
 		calcCellsFilled,calcCellsEmptied, \

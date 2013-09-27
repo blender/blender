@@ -452,7 +452,9 @@ class LbmSolverInterface
 		CellIdentifierInterface* markedAdvanceCell();
 		void markedClearList();
 
-
+#if PARALLEL==1
+		void setNumOMPThreads(int num_threads);
+#endif  // PARALLEL==1
 	protected:
 
 		/*! abort simulation on error... */
@@ -595,6 +597,10 @@ class LbmSolverInterface
 		bool mDumpRawText;
 		bool mDumpRawBinary;
 		bool mDumpRawBinaryZip;
+
+#if PARALLEL==1
+		int mNumOMPThreads;
+#endif  // PARALLEL==1
 };
 
 
