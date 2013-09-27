@@ -299,6 +299,21 @@ void WM_keymap_free(wmKeyMap *keymap)
 	BLI_freelistN(&keymap->items);
 }
 
+int WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
+{
+	if (BLI_findindex(&keyconf->keymaps, keymap) != -1) {
+
+		WM_keymap_free(keymap);
+		BLI_remlink(&keyconf->keymaps, keymap);
+		MEM_freeN(keymap);
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
 static void keymap_event_set(wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier)
 {
 	kmi->type = type;

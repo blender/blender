@@ -72,6 +72,7 @@ wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int sp
 wmKeyMap	*WM_keymap_find_all(const struct bContext *C, const char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, const char *opname);
+int			 WM_keymap_remove(struct wmKeyConfig *keyconfig, struct wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
 int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);

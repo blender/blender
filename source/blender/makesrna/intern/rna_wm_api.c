@@ -262,6 +262,18 @@ static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *UNUSED(keyconf), const char 
 		return ot->modalkeymap;
 }
 
+static void rna_KeyMap_remove(wmKeyConfig *keyconfig, ReportList *reports, PointerRNA *keymap_ptr)
+{
+	wmKeyMap *keymap = keymap_ptr->data;
+
+	if (WM_keymap_remove(keyconfig, keymap) == FALSE) {
+		BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' cannot be removed", keymap->idname);
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(keymap_ptr);
+}
+
 static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, PointerRNA *keyconf_ptr)
 {
 	wmKeyConfig *keyconf = keyconf_ptr->data;
@@ -670,6 +682,12 @@ void RNA_api_keymaps(StructRNA *srna)
 	RNA_def_boolean(func, "modal", 0, "Modal", "");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_KeyMap_remove"); /* remove_keymap */
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Removed key map");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "find", "rna_keymap_find"); /* find_keymap */
 	parm = RNA_def_string(func, "name", "", 0, "Name", "");
