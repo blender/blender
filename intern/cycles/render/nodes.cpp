@@ -520,6 +520,9 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 	float theta = spherical.x;
 	float phi = spherical.y;
 	
+	/* Clamp Turbidity */
+	turbidity = clamp(turbidity, 0.0f, 10.0f); 
+	
 	/* Clamp to Horizon */
 	theta = clamp(theta, 0.0f, M_PI_2_F); 
 
