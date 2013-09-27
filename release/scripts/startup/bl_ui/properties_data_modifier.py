@@ -670,13 +670,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.prop(md, "offset")
-        col.prop(md, "subsurf_levels")
 
         col = split.column()
         col.label(text="Mode:")
         col.prop(md, "wrap_method", text="")
 
         if md.wrap_method == 'PROJECT':
+            split = layout.split()
+            col = split.column()
+            col.prop(md, "subsurf_levels")
+            col = split.column()
+
             col.prop(md, "project_limit", text="Limit")
             split = layout.split(percentage=0.25)
 
