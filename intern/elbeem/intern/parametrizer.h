@@ -17,6 +17,10 @@
 #include "utilities.h"
 #include "attributes.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 /* parametrizer accuracy */
 typedef double ParamFloat;
 typedef ntlVec3d ParamVec;
@@ -306,6 +310,11 @@ class Parametrizer {
 
 		/*! pointer to the attribute list */
 		AttributeList *mpAttrs;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:Parametrizer")
+#endif
 };
 
 

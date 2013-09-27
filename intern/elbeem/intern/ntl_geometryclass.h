@@ -16,6 +16,10 @@
 
 #include "attributes.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 //! geometry class type ids
 #define GEOCLASSTID_OBJECT   1
 #define GEOCLASSTID_SHADER   2
@@ -111,6 +115,10 @@ class ntlGeometryClass
 
 	private:
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlGeometryClass")
+#endif
 };
 
 

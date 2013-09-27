@@ -15,6 +15,10 @@
 #include "ntl_geometryobject.h"
 #include "ntl_bsptree.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 #define ISO_STRICT_DEBUG 0
 #define ISOSTRICT_EXIT *((int *)0)=0;
 
@@ -224,6 +228,11 @@ class IsoSurface :
 		vector<int> mDboundary;
 		float mSCrad1, mSCrad2;
 		ntlVec3Gfx mSCcenter;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:IsoSurface")
+#endif
 };
 
 

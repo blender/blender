@@ -14,6 +14,11 @@
 #ifndef NTL_ATTRIBUTES_H
 
 #include "utilities.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 template<class T> class ntlMatrix4x4;
 class ntlSetVec3f;
 std::ostream& operator<<( std::ostream& os, const ntlSetVec3f& i );
@@ -110,6 +115,11 @@ class AnimChannel
 		vector<Scalar> mValue;
 		/*! anim channel attr times */
 		vector<double> mTimes;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:AnimChannel")
+#endif
 };
 
 
@@ -127,6 +137,11 @@ class ntlSetVec3f {
 		ntlSetVec3f& operator*=( const ntlSetVec3f &v );
 
 		vector<ntlVec3f> mVerts;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlSetVec3f")
+#endif
 };
 
 
@@ -163,6 +178,11 @@ class Attribute
 	protected:
 
 		bool initChannel(int elemSize);
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:Attribute")
+#endif
 };
 
 
@@ -195,6 +215,11 @@ class AttributeList
 		bool ignoreParameter(string name, string source);
 		void print();
 	protected:
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:AttributeList")
+#endif
 };
 
 ntlVec3f channelFindMaxVf (AnimChannel<ntlVec3f> channel);

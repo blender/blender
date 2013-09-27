@@ -16,6 +16,11 @@
 #include "ntl_geometryclass.h"
 #include "ntl_lighting.h"
 #include "ntl_ray.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlRenderGlobals;
 class ntlTriangle;
 
@@ -240,6 +245,10 @@ class ntlGeometryObject : public ntlGeometryClass
 
 	public:
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlGeometryObject")
+#endif
 };
 
 #endif

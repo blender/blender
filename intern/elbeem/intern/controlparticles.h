@@ -18,6 +18,10 @@
 
 #include "ntl_geometrymodel.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 // indicator for LBM inclusion
 //#ifndef LBMDIM
 
@@ -80,6 +84,11 @@ public:
 		forceAtt = forceVel = forceMaxd = LbmVec(0.,0.,0.);
 		compAvWeight=0.; compAv=LbmVec(0.);
 	};
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ControlForces")
+#endif
 };
 
 
@@ -115,6 +124,11 @@ public:
 
 	// init all zero / defaults
 	void reset();
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ControlParticle")
+#endif
 };
 
 
@@ -128,6 +142,10 @@ public:
 	// particle positions
 	std::vector<ControlParticle> particles;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ControlParticleSet")
+#endif
 };
 
 
@@ -296,6 +314,11 @@ protected:
 	void initTimeArray(LbmFloat t, std::vector<ControlParticle> &parts);
 
 	bool checkPointInside(ntlTree *tree, ntlVec3Gfx org, gfxReal &distance);
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ControlParticles")
+#endif
 };
 
 

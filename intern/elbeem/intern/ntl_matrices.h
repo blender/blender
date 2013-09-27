@@ -14,6 +14,9 @@
 
 #include "ntl_vector3dim.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
 
 // The basic vector class
 template<class Scalar>
@@ -96,6 +99,10 @@ public:
 
 protected:
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlMatrix4x4")
+#endif
 };
 
 

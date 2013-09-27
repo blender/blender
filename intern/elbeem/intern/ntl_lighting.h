@@ -14,6 +14,11 @@
 #define NTL_LIGHTING_H
 
 #include "ntl_vector3dim.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlMaterial;
 class ntlRay;
 class ntlRenderGlobals;
@@ -88,6 +93,10 @@ protected:
 
 private:
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlLightObject")
+#endif
 };
 
 
@@ -195,6 +204,10 @@ public:
 	//! Set Fresnel on/off
 	inline void setFresnel(int set) { mFresnel = set; }
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlMaterial")
+#endif
 };
 
 

@@ -225,7 +225,10 @@ LbmFsgrSolver::initCpdata()
 	
 	// manually switch on! if this is zero, nothing is done...
 	mpControl->mSetForceStrength = this->mTForceStrength = 1.;
-	mpControl->mCons.clear();
+	while (!mpControl->mCons.empty()) {
+		delete mpControl->mCons.back();  mpControl->mCons.pop_back();
+	}
+
 	
 	// init all control fluid objects
 	int numobjs = (int)(mpGiObjects->size());
@@ -264,7 +267,9 @@ LbmFsgrSolver::initCpdata()
 	if(0) {
 		// manually switch on! if this is zero, nothing is done...
 		mpControl->mSetForceStrength = this->mTForceStrength = 1.;
-		mpControl->mCons.clear();
+		while (!mpControl->mCons.empty()) {
+			delete mpControl->mCons.back();  mpControl->mCons.pop_back();
+		}
 
 		// add new set
 		LbmControlSet *cset;

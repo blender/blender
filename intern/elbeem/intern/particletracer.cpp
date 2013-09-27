@@ -53,6 +53,7 @@ ParticleTracer::ParticleTracer() :
 
 ParticleTracer::~ParticleTracer() {
 	debMsgStd("ParticleTracer::~ParticleTracer",DM_MSG,"destroyed",10);
+	if(mpTrafo) delete mpTrafo;
 }
 
 /*****************************************************************************/

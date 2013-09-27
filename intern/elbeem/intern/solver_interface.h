@@ -35,6 +35,11 @@
 #include "parametrizer.h"
 #include "attributes.h"
 #include "isosurface.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ParticleTracer;
 class ParticleObject;
 
@@ -171,6 +176,11 @@ class LbmCellContents {
 		CellFlagType flag;
 		BubbleId     bubble;
   	LbmFloat     ffrac;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:LbmCellContents")
+#endif
 };
 
 /* struct for the coordinates of a cell in the grid */
@@ -224,6 +234,10 @@ class CellIdentifierInterface {
 		//! has the grid been traversed?
 		bool mEnd;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:CellIdentifierInterface")
+#endif
 };
 
 
@@ -601,6 +615,11 @@ class LbmSolverInterface
 #if PARALLEL==1
 		int mNumOMPThreads;
 #endif  // PARALLEL==1
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:LbmSolverInterface")
+#endif
 };
 
 

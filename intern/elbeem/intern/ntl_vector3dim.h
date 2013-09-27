@@ -32,6 +32,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 /* absolute value */
 template < class T >
 inline T
@@ -205,6 +209,11 @@ protected:
   
 private:
   Scalar value[3];  //< Storage of vector values
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlVector3Dim")
+#endif
 };
 
 

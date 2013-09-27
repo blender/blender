@@ -18,6 +18,10 @@
 #include "ntl_geometryshader.h"
 #include "parametrizer.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class LbmSolverInterface;
 class CellIdentifierInterface;
 class ntlTree;
@@ -188,6 +192,11 @@ class SimulationObject :
 		virtual inline ntlVec3Gfx *getBBStart() 	{ return &mGeoStart; }
 		virtual inline ntlVec3Gfx *getBBEnd() 		{ return &mGeoEnd; }
 
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:SimulationObject")
+#endif
 };
 
 

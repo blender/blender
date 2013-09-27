@@ -34,6 +34,10 @@
 #include "ieeefp.h"
 #endif
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 // weight and triangle index
 class mvmIndexWeight {
 	public:
@@ -49,6 +53,11 @@ class mvmIndexWeight {
 
 		mvmFloat weight;
 		int index;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:mvmIndexWeight")
+#endif
 };
 
 // transfer point with weights
@@ -58,6 +67,11 @@ class mvmTransferPoint {
 		ntlVec3Gfx lastpos;
 		//! triangle weights
 		std::vector<mvmIndexWeight> weights;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:mvmTransferPoint")
+#endif
 };
 
 
@@ -86,6 +100,10 @@ class MeanValueMeshCoords {
     std::vector<mvmTransferPoint> mVertices;
     int mNumVerts;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:MeanValueMeshCoords")
+#endif
 };
 
 #endif

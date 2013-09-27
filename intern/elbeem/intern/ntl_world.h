@@ -18,6 +18,11 @@
 #include "ntl_geometryobject.h"
 #include "simulation_object.h"
 #include "elbeem.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlOpenGLRenderer;
 class ntlScene;
 class SimulationObject;
@@ -119,6 +124,11 @@ class ntlWorld
 		/*! count no. of frame for correct sim time */
 		int mSimFrameCnt;
 		vector<int> mSimFrameValue;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlWorld")
+#endif
 };
 
 
@@ -389,6 +399,11 @@ private:
 	bool mSingleFrameMode;
 	//! filename for single frame mode
 	string mSingleFrameFilename;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlRenderGlobals")
+#endif
 };
 
 

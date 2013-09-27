@@ -13,6 +13,11 @@
 #define NTL_GEOMETRYSHADER_H
 
 #include "ntl_geometryclass.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlGeometryObject;
 class ntlRenderGlobals;
 
@@ -57,6 +62,11 @@ class ntlGeometryShader :
 
 		/*! surface output name for this simulation */
 		string mOutFilename; 
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlGeometryShader")
+#endif
 };
 
 #endif

@@ -14,6 +14,10 @@
 
 #include "ntl_geometryobject.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 /*! A simple box object generatedd by 12 triangles */
 class ntlGeometryObjModel : public ntlGeometryObject
 {
@@ -89,6 +93,11 @@ class ntlGeometryObjModel : public ntlGeometryObject
 
 		/*! set data file name */
 		inline void setFilename(string set) { mFilename = set; }
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlGeometryObjModel")
+#endif
 };
 
 #endif

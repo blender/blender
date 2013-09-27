@@ -22,6 +22,9 @@
 
 #define BSP_STACK_SIZE 50
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
 
 //! bsp tree stack classes, defined in ntl_bsptree.cpp,
 //  detailed definition unnecesseary here
@@ -120,6 +123,10 @@ class ntlTree
 		//! duplicated triangles, inited during subdivide 
 		int mTriDoubles; 
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+       MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlTree")
+#endif
 };
 
 

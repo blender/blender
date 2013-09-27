@@ -16,6 +16,10 @@
 #ifndef LBM_TESTCLASS_H
 #define LBM_TESTCLASS_H
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 //class IsoSurface;
 class ParticleObject;
 class ControlParticles;
@@ -147,6 +151,11 @@ class LbmControlSet {
 
 		AnimChannel<ntlVec3f> mcCpScale;
 		AnimChannel<ntlVec3f> mcCpOffset;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:LbmControlSet")
+#endif
 };
 		
 
@@ -180,6 +189,11 @@ class LbmControlData
 
 		// cp debug displau
 		LbmFloat mDebugCpscale, mDebugVelScale, mDebugCompavScale, mDebugAttScale, mDebugMaxdScale, mDebugAvgVelScale;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:LbmControlData ")
+#endif
 };
 
 #endif // LBM_TESTCLASS_H

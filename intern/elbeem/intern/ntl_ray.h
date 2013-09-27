@@ -18,6 +18,10 @@
 #include "ntl_geometryobject.h"
 #include "ntl_bsptree.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlTriangle;
 class ntlRay;
 class ntlTree;
@@ -39,6 +43,11 @@ class ntlIntersection {
 		ntlRay *ray; 
 		ntlTriangle *tri;
 		char flags;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlIntersection")
+#endif
 };
 
 //! the main ray class
@@ -138,6 +147,10 @@ private:
 	/*! ID of this ray (from renderglobals */
 	int mID;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlRay")
+#endif
 };
 
 
@@ -225,6 +238,10 @@ private:
 	/*! ID of last ray that an intersection was calculated for */
 	int mLastRay;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlTriangle")
+#endif
 };
 
 
@@ -410,6 +427,10 @@ private:
 	/*! shader/obj initializations are only done on first init */
 	bool mFirstInitDone;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlScene")
+#endif
 };
 
 

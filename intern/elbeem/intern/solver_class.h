@@ -21,6 +21,10 @@
 #include "ntl_ray.h"
 #include <stdio.h>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 #if PARALLEL==1
 #include <omp.h>
 #endif // PARALLEL=1
@@ -145,6 +149,11 @@ class UniformFsgrCellIdentifier :
 			if( x==cid->x && y==cid->y && z==cid->z && level==cid->level ) return true;
 			return false;
 		}
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:UniformFsgrCellIdentifier")
+#endif
 };
 
 //! information needed for each level in the simulation
@@ -193,6 +202,10 @@ public:
 	int lSizex, lSizey, lSizez;
 	int lOffsx, lOffsy, lOffsz;
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:FsgrLevelData")
+#endif
 };
 
 
@@ -740,6 +753,11 @@ class LbmFsgrSolver :
 		static LbmFloat lesCoeffOffdiag[ 2 ][ 9 ];
 
 #		endif  // LBMDIM==2
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:LbmFsgrSolver")
+#endif
 };
 
 #undef STCON

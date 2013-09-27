@@ -12,6 +12,11 @@
 #ifndef NTL_PARTICLETRACER_H
 
 #include "ntl_geometryobject.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 template<class Scalar> class ntlMatrix4x4;
 
 // particle types
@@ -131,6 +136,11 @@ class ParticleObject
 
 		/* for list constructions */
 		ParticleObject *mpNext;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ParticleObject")
+#endif
 };
 
 
@@ -274,6 +284,11 @@ class ParticleTracer :
 		/* prev pos save interval */
 		float mTrailTimeLast, mTrailInterval;
 		int mTrailLength;
+
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ParticleTracer")
+#endif
 };
 
 #define NTL_PARTICLETRACER_H

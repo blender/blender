@@ -12,6 +12,10 @@
 #ifndef NTL_BLENDERDUMPER_H
 #include "ntl_world.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class ntlBlenderDumper :
 	public ntlWorld
 {
@@ -27,6 +31,10 @@ public:
 
 protected:
 
+private:
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("ELBEEM:ntlBlenderDumper")
+#endif
 };
 
 #define NTL_BLENDERDUMPER_H

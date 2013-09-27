@@ -25,6 +25,7 @@
 
 set(INC
 	extern
+	../guardedalloc
 )
 
 set(INC_SYS
