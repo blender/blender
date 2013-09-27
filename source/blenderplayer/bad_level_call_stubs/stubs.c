@@ -276,6 +276,7 @@ struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spac
 struct wmKeyConfig *WM_keyconfig_new(struct wmWindowManager *wm, char *idname) {STUB_ASSERT(0); return (struct wmKeyConfig *) NULL;}
 struct wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname) {STUB_ASSERT(0); return (struct wmKeyConfig *) NULL;}
 void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname) {STUB_ASSERT(0);}
+void WM_keymap_remove(struct wmKeyConfig *keyconf, char *idname) {STUB_ASSERT(0);}
 void WM_keyconfig_set_active(struct wmWindowManager *wm, const char *idname) {STUB_ASSERT(0);}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) {STUB_ASSERT(0);}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap) {STUB_ASSERT(0);}
