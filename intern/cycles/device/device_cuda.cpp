@@ -43,7 +43,9 @@ public:
 	CUmodule cuModule;
 	map<device_ptr, bool> tex_interp_map;
 	int cuDevId;
+	int cuDevArchitecture;
 	bool first_error;
+	bool use_texture_storage;
 
 	struct PixelMem {
 		GLuint cuPBO;
@@ -173,6 +175,7 @@ public:
 	{
 		first_error = true;
 		background = background_;
+		use_texture_storage = true;
 
 		cuDevId = info.num;
 		cuDevice = 0;
@@ -203,6 +206,15 @@ public:
 		if(cuda_error_(result, "cuCtxCreate"))
 			return;
 
+		int major, minor;
+		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		cuDevArchitecture = major*100 + minor*10;
+
+		/* In order to use full 6GB of memory on Titan cards, use arrays instead
+		 * of textures. On earlier cards this seems slower, but on Titan it is
+		 * actually slightly faster in tests. */
+		use_texture_storage = (cuDevArchitecture < 350);
+
 		cuda_pop_context();
 	}
 
@@ -210,8 +222,7 @@ public:
 	{
 		task_pool.stop();
 
-		cuda_push_context();
-		cuda_assert(cuCtxDetach(cuContext))
+		cuda_assert(cuCtxDestroy(cuContext))
 	}
 
 	bool support_device(bool experimental)
@@ -448,90 +459,118 @@ public:
 		CUarray_format_enum format;
 		size_t dsize = datatype_size(mem.data_type);
 		size_t size = mem.memory_size();
+		bool use_texture = interpolation || use_texture_storage;
 
-		switch(mem.data_type) {
-			case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
-			case TYPE_UINT: format = CU_AD_FORMAT_UNSIGNED_INT32; break;
-			case TYPE_INT: format = CU_AD_FORMAT_SIGNED_INT32; break;
-			case TYPE_FLOAT: format = CU_AD_FORMAT_FLOAT; break;
-			default: assert(0); return;
-		}
+		if(use_texture) {
 
-		CUtexref texref = NULL;
+			switch(mem.data_type) {
+				case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
+				case TYPE_UINT: format = CU_AD_FORMAT_UNSIGNED_INT32; break;
+				case TYPE_INT: format = CU_AD_FORMAT_SIGNED_INT32; break;
+				case TYPE_FLOAT: format = CU_AD_FORMAT_FLOAT; break;
+				default: assert(0); return;
+			}
 
-		cuda_push_context();
-		cuda_assert(cuModuleGetTexRef(&texref, cuModule, name))
+			CUtexref texref = NULL;
 
-		if(!texref) {
-			cuda_pop_context();
-			return;
-		}
+			cuda_push_context();
+			cuda_assert(cuModuleGetTexRef(&texref, cuModule, name))
 
-		if(interpolation) {
-			CUarray handle = NULL;
-			CUDA_ARRAY_DESCRIPTOR desc;
-
-			desc.Width = mem.data_width;
-			desc.Height = mem.data_height;
-			desc.Format = format;
-			desc.NumChannels = mem.data_elements;
-
-			cuda_assert(cuArrayCreate(&handle, &desc))
-
-			if(!handle) {
+			if(!texref) {
 				cuda_pop_context();
 				return;
 			}
 
-			if(mem.data_height > 1) {
-				CUDA_MEMCPY2D param;
-				memset(&param, 0, sizeof(param));
-				param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-				param.dstArray = handle;
-				param.srcMemoryType = CU_MEMORYTYPE_HOST;
-				param.srcHost = (void*)mem.data_pointer;
-				param.srcPitch = mem.data_width*dsize*mem.data_elements;
-				param.WidthInBytes = param.srcPitch;
-				param.Height = mem.data_height;
+			if(interpolation) {
+				CUarray handle = NULL;
+				CUDA_ARRAY_DESCRIPTOR desc;
 
-				cuda_assert(cuMemcpy2D(&param))
+				desc.Width = mem.data_width;
+				desc.Height = mem.data_height;
+				desc.Format = format;
+				desc.NumChannels = mem.data_elements;
+
+				cuda_assert(cuArrayCreate(&handle, &desc))
+
+				if(!handle) {
+					cuda_pop_context();
+					return;
+				}
+
+				if(mem.data_height > 1) {
+					CUDA_MEMCPY2D param;
+					memset(&param, 0, sizeof(param));
+					param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+					param.dstArray = handle;
+					param.srcMemoryType = CU_MEMORYTYPE_HOST;
+					param.srcHost = (void*)mem.data_pointer;
+					param.srcPitch = mem.data_width*dsize*mem.data_elements;
+					param.WidthInBytes = param.srcPitch;
+					param.Height = mem.data_height;
+
+					cuda_assert(cuMemcpy2D(&param))
+				}
+				else
+					cuda_assert(cuMemcpyHtoA(handle, 0, (void*)mem.data_pointer, size))
+
+				cuda_assert(cuTexRefSetArray(texref, handle, CU_TRSA_OVERRIDE_FORMAT))
+
+				cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR))
+				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES))
+
+				mem.device_pointer = (device_ptr)handle;
+
+				stats.mem_alloc(size);
 			}
-			else
-				cuda_assert(cuMemcpyHtoA(handle, 0, (void*)mem.data_pointer, size))
+			else {
+				cuda_pop_context();
 
-			cuda_assert(cuTexRefSetArray(texref, handle, CU_TRSA_OVERRIDE_FORMAT))
+				mem_alloc(mem, MEM_READ_ONLY);
+				mem_copy_to(mem);
 
-			cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR))
-			cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES))
+				cuda_push_context();
 
-			mem.device_pointer = (device_ptr)handle;
+				cuda_assert(cuTexRefSetAddress(NULL, texref, cuda_device_ptr(mem.device_pointer), size))
+				cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT))
+				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_READ_AS_INTEGER))
+			}
 
-			stats.mem_alloc(size);
+			if(periodic) {
+				cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_WRAP))
+				cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_WRAP))
+			}
+			else {
+				cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_CLAMP))
+				cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_CLAMP))
+			}
+			cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements))
+
+			cuda_pop_context();
 		}
 		else {
-			cuda_pop_context();
-
 			mem_alloc(mem, MEM_READ_ONLY);
 			mem_copy_to(mem);
 
 			cuda_push_context();
 
-			cuda_assert(cuTexRefSetAddress(NULL, texref, cuda_device_ptr(mem.device_pointer), size))
-			cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT))
-			cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_READ_AS_INTEGER))
-		}
+			CUdeviceptr cumem;
+			size_t cubytes;
 
-		if(periodic) {
-			cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_WRAP))
-			cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_WRAP))
-		}
-		else {
-			cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_CLAMP))
-			cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_CLAMP))
-		}
-		cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements))
+			cuda_assert(cuModuleGetGlobal(&cumem, &cubytes, cuModule, name))
 
-		cuda_pop_context();
+			if(cubytes == 8) {
+				/* 64 bit device pointer */
+				uint64_t ptr = mem.device_pointer;
+				cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes))
+			}
+			else {
+				/* 32 bit device pointer */
+				uint32_t ptr = (uint32_t)mem.device_pointer;
+				cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes))
+			}
+
+			cuda_pop_context();
+		}
 
 		tex_interp_map[mem.device_pointer] = interpolation;
 	}

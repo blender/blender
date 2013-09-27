@@ -93,7 +93,11 @@ __device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __HAIR__
 	if(sd->segment != ~0)
+#ifdef __DPDU__
 		return normalize(sd->dPdu);
+#else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
 #endif
 
 	/* try to create spherical tangent from generated coordinates */
@@ -108,7 +112,11 @@ __device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 	}
 	else {
 		/* otherwise use surface derivatives */
+#ifdef __DPDU__
 		return normalize(sd->dPdu);
+#else
+		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
 	}
 }
 

@@ -66,7 +66,11 @@ typedef struct KernelGlobals {
 __constant__ KernelData __data;
 typedef struct KernelGlobals {} KernelGlobals;
 
+#ifdef __KERNEL_CUDA_TEX_STORAGE__
 #define KERNEL_TEX(type, ttype, name) ttype name;
+#else
+#define KERNEL_TEX(type, ttype, name) const __constant__ __device__ type *name;
+#endif
 #define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
 #include "kernel_textures.h"
 

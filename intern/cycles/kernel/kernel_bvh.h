@@ -809,11 +809,16 @@ __device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inters
 #include "kernel_bvh_subsurface.h"
 #endif
 
-
-#ifdef __HAIR__ 
-__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state, float difl, float extmax)
+/* to work around titan bug when using arrays instead of textures */
+#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
+__device_inline
 #else
-__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+__device_noinline
+#endif
+#ifdef __HAIR__ 
+bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state, float difl, float extmax)
+#else
+bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 #endif
 {
 #ifdef __OBJECT_MOTION__
@@ -851,8 +856,14 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 #endif /* __KERNEL_CPU__ */
 }
 
+/* to work around titan bug when using arrays instead of textures */
 #ifdef __SUBSURFACE__
-__device_inline uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, uint *lcg_state, int max_hits)
+#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
+__device_inline
+#else
+__device_noinline
+#endif
+uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, uint *lcg_state, int max_hits)
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
