@@ -247,6 +247,8 @@ _ffmpeg_list_sep=";"
 # FFMPEG optional libs.
 VORBIS_USE=false
 VORBIS_DEV=""
+OGG_USE=false
+OGG_DEV=""
 THEORA_USE=false
 THEORA_DEV=""
 XVID_USE=false
@@ -1890,16 +1892,18 @@ install_DEB() {
   # These libs should always be available in debian/ubuntu official repository...
   OPENJPEG_DEV="libopenjpeg-dev"
   VORBIS_DEV="libvorbis-dev"
+  OGG_DEV="libogg-dev"
   THEORA_DEV="libtheora-dev"
 
   _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
              libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
              libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
-             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV \
+             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
+  OGG_USE=true
   THEORA_USE=true
 
   # Install newest libtiff-dev in debian/ubuntu.
@@ -2307,15 +2311,17 @@ install_RPM() {
   # These libs should always be available in fedora/suse official repository...
   OPENJPEG_DEV="openjpeg-devel"
   VORBIS_DEV="libvorbis-devel"
+  OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
 
   _packages="gcc gcc-c++ make scons libtiff-devel freetype-devel libjpeg-devel\
              libpng-devel libX11-devel libXi-devel wget ncurses-devel \
              readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm $THEORA_DEV $VORBIS_DEV patch"
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
+  OGG_USE=true
   THEORA_USE=true
 
   if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
@@ -2643,13 +2649,15 @@ install_ARCH() {
   # These libs should always be available in arch official repository...
   OPENJPEG_DEV="openjpeg"
   VORBIS_DEV="libvorbis"
+  OGG_DEV="libogg"
   THEORA_DEV="libtheora"
 
   _packages="base-devel scons cmake libxi glew libpng libtiff wget openal \
-             $OPENJPEG_DEV $VORBIS_DEV $THEORA_DEV yasm sdl fftw"
+             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
+  OGG_USE=true
   THEORA_USE=true
 
   if $WITH_ALL; then
@@ -2910,6 +2918,10 @@ print_info_ffmpeglink() {
 
   if $VORBIS_USE; then
     _packages="$_packages $VORBIS_DEV"
+  fi
+
+  if $OGG_USE; then
+    _packages="$_packages $OGG_DEV"
   fi
 
   if $XVID_USE; then
