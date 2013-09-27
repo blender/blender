@@ -64,9 +64,9 @@ LbmSolverInterface::LbmSolverInterface() :
 	mCppfStage(0),
 	mDumpRawText(false),
 	mDumpRawBinary(false),
-	mDumpRawBinaryZip(true),
+	mDumpRawBinaryZip(true)
 #if PARALLEL==1
-	mNumOMPThreads(1)
+	, mNumOMPThreads(1)
 #endif  // PARALLEL==1
 {
 #if ELBEEM_PLUGIN==1
