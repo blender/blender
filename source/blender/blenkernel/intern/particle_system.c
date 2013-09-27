@@ -3313,9 +3313,14 @@ static float collision_newton_rhapson(ParticleCollision *col, float radius, Part
 
 	pce->inv_nor = -1;
 
-	/* Initial step size should be small, but not too small or floating point
-	 * precision errors will appear. - z0r */
-	dt_init = COLLISION_INIT_STEP * col->inv_total_time;
+	if (col->inv_total_time > 0.0f) {
+		/* Initial step size should be small, but not too small or floating point
+		 * precision errors will appear. - z0r */
+		dt_init = COLLISION_INIT_STEP * col->inv_total_time;
+	}
+	else {
+		dt_init = 0.001f;
+	}
 
 	/* start from the beginning */
 	t0 = 0.f;

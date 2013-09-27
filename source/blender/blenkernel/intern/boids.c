@@ -206,6 +206,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		BVHTreeRayHit hit;
 		float radius = val->personal_space * pa->size, ray_dir[3];
 
+		memset(&col, 0, sizeof(ParticleCollision));
+
 		copy_v3_v3(col.co1, pa->prev_state.co);
 		add_v3_v3v3(col.co2, pa->prev_state.co, pa->prev_state.vel);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
@@ -776,6 +778,8 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 
 		if (!bbd->sim->colliders)
 			return NULL;
+
+		memset(&col, 0, sizeof(ParticleCollision));
 
 		/* first try to find below boid */
 		copy_v3_v3(col.co1, pa->state.co);
