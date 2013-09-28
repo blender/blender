@@ -306,6 +306,15 @@ class _GenericBone:
 class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
+    @property
+    def children(self):
+        obj = self.id_data
+        pbones = obj.pose.bones
+        self_bone = self.bone
+
+        return tuple(pbones[bone.name] for bone in obj.data.bones
+                     if bone.parent == self_bone)
+
 
 class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
