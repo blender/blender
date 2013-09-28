@@ -2409,7 +2409,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 					float voxelCenter[3] = {0, 0, 0}, vel[3] = {0, 0, 0}, retvel[3] = {0, 0, 0};
 					unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
 
-					if ((MAX2(density[index], fuel[index]) < FLT_EPSILON) || obstacle[index])
+					if (((fuel ? MAX2(density[index], fuel[index]) : density[index]) < FLT_EPSILON) || obstacle[index])
 						continue;
 
 					vel[0] = velocity_x[index];
