@@ -1018,12 +1018,20 @@ void GHOST_SystemCocoa::notifyExternalEventProcessed()
 //Note: called from NSWindow delegate
 GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window)
 {
+	NSArray *windowsList;
+	windowsList = [NSApp orderedWindows];
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
 		switch (eventType) {
 			case GHOST_kEventWindowClose:
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
+				// make sure index 1 exists and compare window adress
+				if ([windowsList count] > 1 && (window->m_window != [windowsList objectAtIndex:1])) {
+					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
+				}
+				else {
+					handleQuitRequest(); // -> quit dialog
+				}
 				break;
 			case GHOST_kEventWindowActivate:
 				m_windowManager->setActiveWindow(window);

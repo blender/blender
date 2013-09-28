@@ -269,6 +269,9 @@ public:
 	GHOST_TSuccess beginFullScreen() const {return GHOST_kFailure;}
 
 	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
+	
+	/** The window containing the OpenGL view */
+	CocoaWindow *m_window;
 
 	
 protected:
@@ -318,8 +321,8 @@ protected:
 					
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
 
-	/** The window containing the OpenGL view */
-	CocoaWindow *m_window;
+//	/** The window containing the OpenGL view */
+//	CocoaWindow *m_window;
 	
 	/** The openGL view */
 	CocoaOpenGLView *m_openGLView; 
