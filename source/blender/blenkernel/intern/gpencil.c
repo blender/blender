@@ -42,6 +42,7 @@
 #include "BLF_translation.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -125,8 +126,8 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 	bGPDframe *gpf, *gf;
 	short state = 0;
 	
-	/* error checking */
-	if ((gpl == NULL) || (cframe <= 0))
+	/* error checking (neg frame only if they are not allowed in Blender!) */
+	if ((gpl == NULL) || ((U.flag & USER_NONEGFRAMES) && (cframe <= 0)))
 		return NULL;
 		
 	/* allocate memory for this frame */
@@ -349,7 +350,8 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 	
 	/* error checking */
 	if (gpl == NULL) return NULL;
-	if (cframe <= 0) cframe = 1;
+	/* No reason to forbid negative frames when they are allowed in Blender! */
+	if ((U.flag & USER_NONEGFRAMES) && cframe <= 0) cframe = 1;
 	
 	/* check if there is already an active frame */
 	if (gpl->actframe) {
