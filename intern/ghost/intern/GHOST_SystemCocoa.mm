@@ -1026,7 +1026,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 		switch (eventType) {
 			case GHOST_kEventWindowClose:
 				// make sure index 1 exists and compare window adress
-				if ([windowsList count] > 1 && (window->m_window != [windowsList objectAtIndex:1])) {
+				if ([windowsList count] > 1 && (window->get_m_window() != [windowsList objectAtIndex:1])) {
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
 				}
 				else {
