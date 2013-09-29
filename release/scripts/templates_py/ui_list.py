@@ -1,7 +1,7 @@
 import bpy
 
 
-class MESH_UL_mylist(UIList):
+class MESH_UL_mylist(bpy.types.UIList):
     # Constants (flags)
     # Be careful not to shadow FILTER_ITEM (i.e. UIList().bitflag_filter_item)!
     # E.g. VGROUP_EMPTY = 1 << 0

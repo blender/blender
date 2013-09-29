@@ -8,7 +8,7 @@ example of how to create/use filtering/reordering callbacks.
 import bpy
 
 
-class MESH_UL_vgroups_slow(UIList):
+class MESH_UL_vgroups_slow(bpy.types.UIList):
     # Constants (flags)
     # Be careful not to shadow FILTER_ITEM!
     VGROUP_EMPTY = 1 << 0
