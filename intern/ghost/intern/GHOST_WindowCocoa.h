@@ -271,7 +271,7 @@ public:
 	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
 	
 	/** public function to get the window containing the OpenGL view */
-	CocoaWindow *get_m_window() const {return m_window;};
+	CocoaWindow *getCocoaWindow() const {return m_window;};
 	
 protected:
 	/**
