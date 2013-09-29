@@ -112,7 +112,7 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 		if (art->regionid == regionid)
 			return art;
 	
-	printf("Error, region type missing in - name:\"%s\", id:%d\n", st->name, st->spaceid);
+	printf("Error, region type %d missing in - name:\"%s\", id:%d\n", regionid, st->name, st->spaceid);
 	return st->regiontypes.first;
 }
 
