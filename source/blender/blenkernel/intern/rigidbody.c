@@ -1166,7 +1166,7 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 		if (ob) {
 			RigidBodyOb *rbo = ob->rigidbody_object;
 			/* reset kinematic state for transformed objects */
-			if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
+			if (rbo && (ob->flag & SELECT) && (G.moving & G_TRANSFORM_OBJ)) {
 				RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
 				RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
 				/* deactivate passive objects so they don't interfere with deactivation of active objects */
