@@ -134,12 +134,16 @@ normal mod (normal a, float  b) { return a - b*floor(a/b); }
 color  mod (color  a, float  b) { return a - b*floor(a/b); }
 float  mod (float  a, float  b) { return a - b*floor(a/b); }
 PERCOMP2 (min)
+int min (int a, int b) BUILTIN;
 PERCOMP2 (max)
+int max (int a, int b) BUILTIN;
 normal clamp (normal x, normal minval, normal maxval) { return max(min(x,maxval),minval); }
 vector clamp (vector x, vector minval, vector maxval) { return max(min(x,maxval),minval); }
 point  clamp (point x, point minval, point maxval) { return max(min(x,maxval),minval); }
 color  clamp (color x, color minval, color maxval) { return max(min(x,maxval),minval); }
 float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+int    clamp (int x, int minval, int maxval) { return max(min(x,maxval),minval); }
+#if 0
 normal mix (normal x, normal y, normal a) { return x*(1-a) + y*a; }
 normal mix (normal x, normal y, float  a) { return x*(1-a) + y*a; }
 vector mix (vector x, vector y, vector a) { return x*(1-a) + y*a; }
@@ -149,6 +153,17 @@ point  mix (point  x, point  y, float  a) { return x*(1-a) + y*a; }
 color  mix (color  x, color  y, color  a) { return x*(1-a) + y*a; }
 color  mix (color  x, color  y, float  a) { return x*(1-a) + y*a; }
 float  mix (float  x, float  y, float  a) { return x*(1-a) + y*a; }
+#else
+normal mix (normal x, normal y, normal a) BUILTIN;
+normal mix (normal x, normal y, float  a) BUILTIN;
+vector mix (vector x, vector y, vector a) BUILTIN;
+vector mix (vector x, vector y, float  a) BUILTIN;
+point  mix (point  x, point  y, point  a) BUILTIN;
+point  mix (point  x, point  y, float  a) BUILTIN;
+color  mix (color  x, color  y, color  a) BUILTIN;
+color  mix (color  x, color  y, float  a) BUILTIN;
+float  mix (float  x, float  y, float  a) BUILTIN;
+#endif
 int isnan (float x) BUILTIN;
 int isinf (float x) BUILTIN;
 int isfinite (float x) BUILTIN;
@@ -418,8 +433,8 @@ int startswith (string s, string prefix) BUILTIN;
 int endswith (string s, string suffix) BUILTIN;
 string substr (string s, int start, int len) BUILTIN;
 string substr (string s, int start) { return substr (s, start, strlen(s)); }
-float strtof (string str) BUILTIN;
-int strtoi (string str) BUILTIN;
+float stof (string str) BUILTIN;
+int stoi (string str) BUILTIN;
 
 // Define concat in terms of shorter concat
 string concat (string a, string b, string c) {
