@@ -673,48 +673,61 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 
 bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_name, bool do_tessface)
 {
-	CustomData *pdata = &me->pdata, *ldata = &me->ldata, *fdata = &me->fdata;
-	const int pidx_start = CustomData_get_layer_index(pdata, CD_MTEXPOLY);
-	const int lidx_start = CustomData_get_layer_index(ldata, CD_MLOOPUV);
-	const int fidx_start = do_tessface ? CustomData_get_layer_index(fdata, CD_MTFACE) : -1;
-	int pidx, lidx, fidx;
-
-	do_tessface = (do_tessface && fdata->totlayer && !me->edit_btmesh);
-	pidx = CustomData_get_named_layer(pdata, CD_MTEXPOLY, old_name);
-	lidx = CustomData_get_named_layer(ldata, CD_MLOOPUV, old_name);
-	fidx = do_tessface ? CustomData_get_named_layer(fdata, CD_MTFACE, old_name) : -1;
-
-	/* None of those cases should happen, in theory!
-	 * Note this assume we have the same number of mtexpoly, mloopuv and mtface layers!
-	 */
-	if (pidx == -1) {
-		if (lidx == -1) {
-			if (fidx == -1) {
-				/* No layer found with this name! */
-				return false;
-			}
-			else {
-				lidx = lidx_start + (fidx - fidx_start);
-			}
-		}
-		pidx = pidx_start + (lidx - lidx_start);
+	CustomData *pdata, *ldata, *fdata;
+	if (me->edit_btmesh) {
+		pdata = &me->edit_btmesh->bm->pdata;
+		ldata = &me->edit_btmesh->bm->ldata;
+		/* No tessellated data in BMesh! */
+		fdata = NULL;
+		do_tessface = false;
 	}
 	else {
-		if (lidx == -1) {
+		pdata = &me->pdata;
+		ldata = &me->ldata;
+		fdata = &me->fdata;
+		do_tessface = (do_tessface && fdata->totlayer);
+	}
+
+	{
+		const int pidx_start = CustomData_get_layer_index(pdata, CD_MTEXPOLY);
+		const int lidx_start = CustomData_get_layer_index(ldata, CD_MLOOPUV);
+		const int fidx_start = do_tessface ? CustomData_get_layer_index(fdata, CD_MTFACE) : -1;
+		int pidx = CustomData_get_named_layer(pdata, CD_MTEXPOLY, old_name);
+		int lidx = CustomData_get_named_layer(ldata, CD_MLOOPUV, old_name);
+		int fidx = do_tessface ? CustomData_get_named_layer(fdata, CD_MTFACE, old_name) : -1;
+
+		/* None of those cases should happen, in theory!
+		 * Note this assume we have the same number of mtexpoly, mloopuv and mtface layers!
+		 */
+		if (pidx == -1) {
+			if (lidx == -1) {
+				if (fidx == -1) {
+					/* No layer found with this name! */
+					return false;
+				}
+				else {
+					lidx = lidx_start + (fidx - fidx_start);
+				}
+			}
+			pidx = pidx_start + (lidx - lidx_start);
+		}
+		else {
+			if (lidx == -1) {
+				lidx = lidx_start + (pidx - pidx_start);
+			}
+			if (fidx == -1 && do_tessface) {
+				fidx = fidx_start + (pidx - pidx_start);
+			}
+		}
+#if 0
+		/* For now, we do not consider mismatch in indices (i.e. same name leading to (relative) different indices). */
+		else if ((pidx - pidx_start) != (lidx - lidx_start)) {
 			lidx = lidx_start + (pidx - pidx_start);
 		}
-		if (fidx == -1 && do_tessface) {
-			fidx = fidx_start + (pidx - pidx_start);
-		}
-	}
-#if 0
-	/* For now, we do not consider mismatch in indices (i.e. same name leading to (relative) different indices). */
-	else if ((pidx - pidx_start) != (lidx - lidx_start)) {
-		lidx = lidx_start + (pidx - pidx_start);
-	}
 #endif
 
-	return BKE_mesh_uv_cdlayer_rename_index(me, pidx, lidx, fidx, new_name, do_tessface);
+		return BKE_mesh_uv_cdlayer_rename_index(me, pidx, lidx, fidx, new_name, do_tessface);
+	}
 }
 
 void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
