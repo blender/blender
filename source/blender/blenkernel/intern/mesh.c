@@ -628,12 +628,24 @@ void BKE_mesh_make_local(Mesh *me)
 bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int loop_index, const int face_index,
                                       const char *new_name, const bool do_tessface)
 {
-	CustomData *pdata = &me->pdata, *ldata = &me->ldata, *fdata = &me->fdata;
-	CustomDataLayer *cdlp = &pdata->layers[poly_index];
-	CustomDataLayer *cdlu = &ldata->layers[loop_index];
-	CustomDataLayer *cdlf = do_tessface ? &fdata->layers[face_index] : NULL;
+	CustomData *pdata, *ldata, *fdata;
+	CustomDataLayer *cdlp, *cdlu, *cdlf;
 	const int step = do_tessface ? 3 : 2;
 	int i;
+
+	if (me->edit_btmesh) {
+		pdata = &me->edit_btmesh->bm->pdata;
+		ldata = &me->edit_btmesh->bm->ldata;
+		fdata = NULL;  /* No tessellated data in BMesh! */
+	}
+	else {
+		pdata = &me->pdata;
+		ldata = &me->ldata;
+		fdata = &me->fdata;
+	}
+	cdlp = &pdata->layers[poly_index];
+	cdlu = &ldata->layers[loop_index];
+	cdlf = do_tessface ? &fdata->layers[face_index] : NULL;
 
 	BLI_strncpy(cdlp->name, new_name, sizeof(cdlp->name));
 	CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
@@ -667,7 +679,7 @@ bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_
 	const int fidx_start = do_tessface ? CustomData_get_layer_index(fdata, CD_MTFACE) : -1;
 	int pidx, lidx, fidx;
 
-	do_tessface = (do_tessface && fdata->totlayer);
+	do_tessface = (do_tessface && fdata->totlayer && !me->edit_btmesh);
 	pidx = CustomData_get_named_layer(pdata, CD_MTEXPOLY, old_name);
 	lidx = CustomData_get_named_layer(ldata, CD_MLOOPUV, old_name);
 	fidx = do_tessface ? CustomData_get_named_layer(fdata, CD_MTFACE, old_name) : -1;
