@@ -4421,7 +4421,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 	ParticleSystem *psys = psys_get_current(ob);
 	
 	if (psys->edit) {
-		if (psys->edit->edited || 1) { // XXX okee("Lose changes done in particle mode?"))
+		if (psys->edit->edited || 1) {
 			PE_free_ptcache_edit(psys->edit);
 
 			psys->edit = NULL;
@@ -4447,6 +4447,11 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
+static int clear_edited_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	return WM_operator_confirm_message(C, op, "Lose changes done in particle mode? (no undo)");
+}
+
 void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -4457,6 +4462,7 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = clear_edited_exec;
 	ot->poll = particle_edit_toggle_poll;
+	ot->invoke = clear_edited_invoke;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
