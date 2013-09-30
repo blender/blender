@@ -61,161 +61,6 @@ Mat3 IntrinsicsNormalizationMatrix(const CameraIntrinsics &intrinsics) {
   return S * T;
 }
 
-class HomographySymmetricGeometricCostFunctor {
- public:
-  HomographySymmetricGeometricCostFunctor(const Vec2 &x,
-                                          const Vec2 &y)
-      : x_(x), y_(y) { }
-
-  template<typename T>
-  bool operator()(const T *homography_parameters, T *residuals) const {
-    typedef Eigen::Matrix<T, 3, 3> Mat3;
-    typedef Eigen::Matrix<T, 3, 1> Vec3;
-
-    Mat3 H(homography_parameters);
-
-    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
-    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
-
-    Vec3 H_x = H * x;
-    Vec3 Hinv_y = H.inverse() * y;
-
-    H_x /= H_x(2);
-    Hinv_y /= Hinv_y(2);
-
-    residuals[0] = H_x(0) - T(y_(0));
-    residuals[1] = H_x(1) - T(y_(1));
-
-    residuals[2] = Hinv_y(0) - T(x_(0));
-    residuals[3] = Hinv_y(1) - T(x_(1));
-
-    return true;
-  }
-
-  const Vec2 x_;
-  const Vec2 y_;
-};
-
-void ComputeHomographyFromCorrespondences(const Mat &x1, const Mat &x2,
-                                          CameraIntrinsics &intrinsics,
-                                          Mat3 *H) {
-  // Algebraic homography estimation, happens with normalized coordinates
-  Homography2DFromCorrespondencesLinear(x1, x2, H, 1e-12);
-
-  // Refine matrix using Ceres minimizer
-
-  // TODO(sergey): look into refinement in pixel space.
-  ceres::Problem problem;
-
-  for (int i = 0; i < x1.cols(); i++) {
-    HomographySymmetricGeometricCostFunctor
-        *homography_symmetric_geometric_cost_function =
-            new HomographySymmetricGeometricCostFunctor(x1.col(i),
-                                                        x2.col(i));
-
-    problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<
-            HomographySymmetricGeometricCostFunctor,
-            4, /* num_residuals */
-            9>(homography_symmetric_geometric_cost_function),
-        NULL,
-        H->data());
-  }
-
-  // Configure the solve.
-  ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_QR;
-  solver_options.max_num_iterations = 50;
-  solver_options.update_state_every_iteration = true;
-  solver_options.parameter_tolerance = 1e-16;
-  solver_options.function_tolerance = 1e-16;
-
-  // Run the solve.
-  ceres::Solver::Summary summary;
-  ceres::Solve(solver_options, &problem, &summary);
-
-  VLOG(1) << "Summary:\n" << summary.FullReport();
-
-  // Convert homography to original pixel space
-  Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
-  *H = N.inverse() * (*H) * N;
-}
-
-class FundamentalSymmetricEpipolarCostFunctor {
- public:
-  FundamentalSymmetricEpipolarCostFunctor(const Vec2 &x,
-                                          const Vec2 &y)
-    : x_(x), y_(y) {}
-
-  template<typename T>
-  bool operator()(const T *fundamental_parameters, T *residuals) const {
-    typedef Eigen::Matrix<T, 3, 3> Mat3;
-    typedef Eigen::Matrix<T, 3, 1> Vec3;
-
-    Mat3 F(fundamental_parameters);
-
-    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
-    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
-
-    Vec3 F_x = F * x;
-    Vec3 Ft_y = F.transpose() * y;
-    T y_F_x = y.dot(F_x);
-
-    residuals[0] = y_F_x * T(1) / F_x.head(2).norm();
-    residuals[1] = y_F_x * T(1) / Ft_y.head(2).norm();
-
-    return true;
-  }
-
-  const Mat x_;
-  const Mat y_;
-};
-
-void ComputeFundamentalFromCorrespondences(const Mat &x1, const Mat &x2,
-                                           CameraIntrinsics &intrinsics,
-                                           Mat3 *F) {
-  // Algebraic fundamental estimation, happens with normalized coordinates
-  NormalizedEightPointSolver(x1, x2, F);
-
-  // Refine matrix using Ceres minimizer
-
-  // TODO(sergey): look into refinement in pixel space.
-  ceres::Problem problem;
-
-  for (int i = 0; i < x1.cols(); i++) {
-    FundamentalSymmetricEpipolarCostFunctor
-        *fundamental_symmetric_epipolar_cost_function =
-            new FundamentalSymmetricEpipolarCostFunctor(x1.col(i),
-                                                        x2.col(i));
-
-    problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<
-            FundamentalSymmetricEpipolarCostFunctor,
-            2, /* num_residuals */
-            9>(fundamental_symmetric_epipolar_cost_function),
-        NULL,
-        F->data());
-  }
-
-  // Configure the solve.
-  ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
-  solver_options.max_num_iterations = 50;
-  solver_options.update_state_every_iteration = true;
-  solver_options.parameter_tolerance = 1e-16;
-  solver_options.function_tolerance = 1e-16;
-
-  // Run the solve.
-  ceres::Solver::Summary summary;
-  ceres::Solve(solver_options, &problem, &summary);
-
-  VLOG(1) << "Summary:\n" << summary.FullReport();
-
-  // Convert fundamental to original pixel space
-  Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
-  *F = N.inverse() * (*F) * N;
-}
-
 // P.H.S. Torr
 // Geometric Motion Segmentation and Model Selection
 //
@@ -360,8 +205,26 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
         continue;
 
       Mat3 H, F;
-      ComputeHomographyFromCorrespondences(x1, x2, intrinsics, &H);
-      ComputeFundamentalFromCorrespondences(x1, x2, intrinsics, &F);
+
+      // Estimate homography using default options.
+      HomographyEstimationOptions homography_estimation_options;
+      Homography2DFromCorrespondencesEuc(x1,
+                                         x2,
+                                         homography_estimation_options,
+                                         &H);
+
+      // Convert homography to original pixel space.
+      Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
+      H = N.inverse() * H * N;
+
+      FundamentalEstimationOptions fundamental_estimation_options;
+      FundamentalFromCorrespondencesEuc(x1,
+                                        x2,
+                                        fundamental_estimation_options,
+                                        &F);
+
+      // Convert fundamental to original pixel space.
+      F = N.inverse() * F * N;
 
       // TODO(sergey): STEP 2: Discard outlier matches
 

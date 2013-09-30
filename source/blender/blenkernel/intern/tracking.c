@@ -3340,7 +3340,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 			break;
 		}
 
-		libmv_homography2DFromCorrespondencesLinear(x1, x2, num_correspondences, H_double, 1e-8);
+		libmv_homography2DFromCorrespondencesEuc(x1, x2, num_correspondences, H_double);
 
 		mat3f_from_mat3d(H, H_double);
 
@@ -3444,7 +3444,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 	float_corners_to_double(reference_corners, x1);
 	float_corners_to_double(corners, x2);
 
-	libmv_homography2DFromCorrespondencesLinear(x1, x2, 4, H_double, 1e-8);
+	libmv_homography2DFromCorrespondencesEuc(x1, x2, 4, H_double);
 
 	mat3f_from_mat3d(H, H_double);
 }

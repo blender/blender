@@ -20,6 +20,7 @@
 
 #include "libmv/multiview/fundamental.h"
 
+#include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/poly.h"
@@ -405,6 +406,95 @@ void FundamentalToEssential(const Mat3 &F, Mat3 *E) {
   diag << s, s, 0;
 
   *E = svd.matrixU() * diag.asDiagonal() * svd.matrixV().transpose();
+}
+
+FundamentalEstimationOptions::FundamentalEstimationOptions(void) :
+    use_refine_if_algebraic_fails(true),
+    max_num_iterations(50),
+    parameter_tolerance(1e-16),
+    function_tolerance(1e-16) {
+}
+
+class FundamentalSymmetricEpipolarCostFunctor {
+ public:
+  FundamentalSymmetricEpipolarCostFunctor(const Vec2 &x,
+                                          const Vec2 &y)
+    : x_(x), y_(y) {}
+
+  template<typename T>
+  bool operator()(const T *fundamental_parameters, T *residuals) const {
+    typedef Eigen::Matrix<T, 3, 3> Mat3;
+    typedef Eigen::Matrix<T, 3, 1> Vec3;
+
+    Mat3 F(fundamental_parameters);
+
+    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
+    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
+
+    Vec3 F_x = F * x;
+    Vec3 Ft_y = F.transpose() * y;
+    T y_F_x = y.dot(F_x);
+
+    residuals[0] = y_F_x * T(1) / F_x.head(2).norm();
+    residuals[1] = y_F_x * T(1) / Ft_y.head(2).norm();
+
+    return true;
+  }
+
+  const Mat x_;
+  const Mat y_;
+};
+
+/* Fundamental transformation estimation. */
+bool FundamentalFromCorrespondencesEuc(const Mat &x1,
+                                       const Mat &x2,
+                                       const FundamentalEstimationOptions &options,
+                                       Mat3 *F) {
+  // Step 1: Algebraic fundamental estimation.
+  bool algebraic_success = NormalizedEightPointSolver(x1, x2, F);
+
+  LG << "Algebraic result " << algebraic_success << ", estimated matrix " << F;
+
+  if (!algebraic_success && !options.use_refine_if_algebraic_fails) {
+    return false;
+  }
+
+  // Step 2: Refine matrix using Ceres minimizer.
+  ceres::Problem problem;
+  for (int i = 0; i < x1.cols(); i++) {
+    FundamentalSymmetricEpipolarCostFunctor
+        *fundamental_symmetric_epipolar_cost_function =
+            new FundamentalSymmetricEpipolarCostFunctor(x1.col(i),
+                                                        x2.col(i));
+
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            FundamentalSymmetricEpipolarCostFunctor,
+            2, /* num_residuals */
+            9>(fundamental_symmetric_epipolar_cost_function),
+        NULL,
+        F->data());
+  }
+
+  // Configure the solve.
+  ceres::Solver::Options solver_options;
+  solver_options.linear_solver_type = ceres::DENSE_QR;
+  solver_options.max_num_iterations = options.max_num_iterations;
+  solver_options.update_state_every_iteration = true;
+  solver_options.parameter_tolerance = options.parameter_tolerance;
+  solver_options.function_tolerance = options.function_tolerance;
+
+  // Run the solve.
+  ceres::Solver::Summary summary;
+  ceres::Solve(solver_options, &problem, &summary);
+
+  VLOG(1) << "Summary:\n" << summary.FullReport();
+
+  LG << "Final refined matrix: " << F;
+
+  return !(summary.termination_type == ceres::DID_NOT_RUN ||
+           summary.termination_type == ceres::NO_CONVERGENCE ||
+           summary.termination_type == ceres::NUMERICAL_FAILURE);
 }
 
 }  // namespace libmv

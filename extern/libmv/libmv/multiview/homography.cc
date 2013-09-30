@@ -20,6 +20,7 @@
 
 #include "libmv/multiview/homography.h"
 
+#include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/homography_parameterization.h"
 
@@ -153,6 +154,113 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
     return false;
   }
 }
+
+HomographyEstimationOptions::HomographyEstimationOptions(void) :
+    expected_algebraic_precision(EigenDouble::dummy_precision()),
+    use_refine_if_algebraic_fails(true),
+    max_num_iterations(50),
+    parameter_tolerance(1e-16),
+    function_tolerance(1e-16) {
+}
+
+class HomographySymmetricGeometricCostFunctor {
+ public:
+  HomographySymmetricGeometricCostFunctor(const Vec2 &x,
+                                          const Vec2 &y)
+      : x_(x), y_(y) { }
+
+  template<typename T>
+  bool operator()(const T *homography_parameters, T *residuals) const {
+    typedef Eigen::Matrix<T, 3, 3> Mat3;
+    typedef Eigen::Matrix<T, 3, 1> Vec3;
+
+    Mat3 H(homography_parameters);
+
+    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
+    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
+
+    Vec3 H_x = H * x;
+    Vec3 Hinv_y = H.inverse() * y;
+
+    H_x /= H_x(2);
+    Hinv_y /= Hinv_y(2);
+
+    residuals[0] = H_x(0) - T(y_(0));
+    residuals[1] = H_x(1) - T(y_(1));
+
+    residuals[2] = Hinv_y(0) - T(x_(0));
+    residuals[3] = Hinv_y(1) - T(x_(1));
+
+    return true;
+  }
+
+  const Vec2 x_;
+  const Vec2 y_;
+};
+
+/** 2D Homography transformation estimation in the case that points are in
+ * euclidean coordinates.
+ */
+bool Homography2DFromCorrespondencesEuc(const Mat &x1,
+                                        const Mat &x2,
+                                        const HomographyEstimationOptions &options,
+                                        Mat3 *H) {
+  /* TODO(sergey): Support homogenous coordinates, not just euclidean. */
+
+  assert(2 == x1.rows());
+  assert(4 <= x1.cols());
+  assert(x1.rows() == x2.rows());
+  assert(x1.cols() == x2.cols());
+
+  // Step 1: Algebraic homography estimation.
+  bool algebraic_success =
+      Homography2DFromCorrespondencesLinear(x1, x2, H,
+          options.expected_algebraic_precision);
+
+  LG << "Algebraic result " << algebraic_success << ", estimated matrix " << H;
+
+  if (!algebraic_success && !options.use_refine_if_algebraic_fails) {
+    return false;
+  }
+
+  // Step 2: Refine matrix using Ceres minimizer.
+  ceres::Problem problem;
+  for (int i = 0; i < x1.cols(); i++) {
+    HomographySymmetricGeometricCostFunctor
+        *homography_symmetric_geometric_cost_function =
+            new HomographySymmetricGeometricCostFunctor(x1.col(i),
+                                                        x2.col(i));
+
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            HomographySymmetricGeometricCostFunctor,
+            4, /* num_residuals */
+            9>(homography_symmetric_geometric_cost_function),
+        NULL,
+        H->data());
+  }
+
+  // Configure the solve.
+  ceres::Solver::Options solver_options;
+  solver_options.linear_solver_type = ceres::DENSE_QR;
+  solver_options.max_num_iterations = options.max_num_iterations;
+  solver_options.update_state_every_iteration = true;
+  solver_options.parameter_tolerance = options.parameter_tolerance;
+  solver_options.function_tolerance = options.function_tolerance;
+
+  // Run the solve.
+  ceres::Solver::Summary summary;
+  ceres::Solve(solver_options, &problem, &summary);
+
+  VLOG(1) << "Summary:\n" << summary.FullReport();
+
+  LG << "Final refined matrix: " << H;
+
+  return !(summary.termination_type == ceres::DID_NOT_RUN ||
+           summary.termination_type == ceres::NO_CONVERGENCE ||
+           summary.termination_type == ceres::NUMERICAL_FAILURE);
+}
+
 /**
  * x2 ~ A * x1
  * x2^t * Hi * A *x1 = 0

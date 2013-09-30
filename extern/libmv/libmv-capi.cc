@@ -1082,8 +1082,7 @@ void libmv_cameraIntrinsicsInvert(const libmv_CameraIntrinsicsOptions *libmv_cam
 	}
 }
 
-void libmv_homography2DFromCorrespondencesLinear(double (*x1)[2], double (*x2)[2], int num_points,
-                                                 double H[3][3], double expected_precision)
+void libmv_homography2DFromCorrespondencesEuc(double (*x1)[2], double (*x2)[2], int num_points, double H[3][3])
 {
 	libmv::Mat x1_mat, x2_mat;
 	libmv::Mat3 H_mat;
@@ -1099,7 +1098,8 @@ void libmv_homography2DFromCorrespondencesLinear(double (*x1)[2], double (*x2)[2
 	LG << "x1: " << x1_mat;
 	LG << "x2: " << x2_mat;
 
-	libmv::Homography2DFromCorrespondencesLinear(x1_mat, x2_mat, &H_mat, expected_precision);
+	libmv::HomographyEstimationOptions options;
+	libmv::Homography2DFromCorrespondencesEuc(x1_mat, x2_mat, options, &H_mat);
 
 	LG << "H: " << H_mat;
 

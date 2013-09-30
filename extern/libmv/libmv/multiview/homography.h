@@ -54,6 +54,45 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
                                              EigenDouble::dummy_precision());
 
 /**
+ * This structure contains options that controls how the homography
+ * estimation operates.
+ *
+ * Defaults should be suitable for a wide range of use cases, but
+ * better performance and accuracy might require tweaking/
+ */
+typedef struct HomographyEstimationOptions {
+  /* Default constructor which sets up a options for generic usage. */
+  HomographyEstimationOptions(void);
+
+  /* Expected precision of algebraic estimation. */
+  double expected_algebraic_precision;
+
+  /* Refine homography even if algebraic estimation reported failure. */
+  bool use_refine_if_algebraic_fails;
+
+  /* Maximal number of iterations for refinement step. */
+  int max_num_iterations;
+
+  /* Paramaneter tolerance used by minimizer termination criteria. */
+  float parameter_tolerance;
+
+  /* Function tolerance used  by minimizer termination criteria. */
+  float function_tolerance;
+} HomographyEstimationOptions;
+
+/**
+ * 2D homography transformation estimation.
+ *
+ * This function estimates the homography transformation from a list of 2D
+ * correspondences by doing algebraic estimation first followed with result
+ * refinement.
+ */
+bool Homography2DFromCorrespondencesEuc(const Mat &x1,
+                                        const Mat &x2,
+                                        const HomographyEstimationOptions &options,
+                                        Mat3 *H);
+
+/**
  * 3D Homography transformation estimation.
  *
  * This function can be used in order to estimate the homography transformation

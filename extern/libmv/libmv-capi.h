@@ -159,8 +159,7 @@ void libmv_cameraIntrinsicsApply(const libmv_CameraIntrinsicsOptions *libmv_came
 void libmv_cameraIntrinsicsInvert(const libmv_CameraIntrinsicsOptions *libmv_camera_intrinsics_options,
                                   double x, double y, double *x1, double *y1);
 
-void libmv_homography2DFromCorrespondencesLinear(double (*x1)[2], double (*x2)[2], int num_points,
-                                                 double H[3][3], double expected_precision);
+void libmv_homography2DFromCorrespondencesEuc(double (*x1)[2], double (*x2)[2], int num_points, double H[3][3]);
 
 #ifdef __cplusplus
 }
