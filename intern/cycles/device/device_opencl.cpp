@@ -1086,7 +1086,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					//task->update_progress(tile);
+					task->update_progress(tile);
 				}
 
 				task->release_tile(tile);
