@@ -384,17 +384,21 @@ static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce,
 
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
-			lineset->linestyle->id.flag |= LIB_DOIT;
+			FreestyleLineStyle *linestyle = lineset->linestyle;
+			if (linestyle) {
+				linestyle->id.flag |= LIB_DOIT;
+			}
 		}
 	}
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
-
-			if (!(linestyle->id.flag & LIB_DOIT))
-				continue;
-			linestyle->id.flag &= ~LIB_DOIT;
-			outliner_add_element(soops, lb, linestyle, te, 0, 0);
+			if (linestyle) {
+				if (!(linestyle->id.flag & LIB_DOIT))
+					continue;
+				linestyle->id.flag &= ~LIB_DOIT;
+				outliner_add_element(soops, lb, linestyle, te, 0, 0);
+			}
 		}
 	}
 }
