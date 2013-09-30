@@ -963,6 +963,11 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int sample_color_poll(bContext *C)
+{
+	return (image_paint_poll(C) || vertex_paint_poll(C));
+}
+
 void PAINT_OT_sample_color(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -974,7 +979,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->exec = sample_color_exec;
 	ot->invoke = sample_color_invoke;
 	ot->modal = sample_color_modal;
-	ot->poll = image_paint_poll;
+	ot->poll = sample_color_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
