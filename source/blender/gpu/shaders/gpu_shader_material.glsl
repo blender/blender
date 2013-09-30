@@ -2134,6 +2134,20 @@ void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 	result = fresnel_dielectric(I, N, (gl_FrontFacing)? eta: 1.0/eta);
 }
 
+/* gamma */
+
+void node_gamma(vec4 col, float gamma, out vec4 outcol)
+{
+	outcol = col;
+
+	if(col.r > 0.0)
+		outcol.r = compatible_pow(col.r, gamma);
+	if(col.g > 0.0)
+		outcol.g = compatible_pow(col.g, gamma);
+	if(col.b > 0.0)
+		outcol.b = compatible_pow(col.b, gamma);
+}
+
 /* geometry */
 
 void node_attribute(vec3 attr_uv, out vec4 outcol, out vec3 outvec, out float outf)
