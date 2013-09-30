@@ -220,7 +220,8 @@ static int sample_cancel(bContext *C, wmOperator *op)
 
 static int sample_poll(bContext *C)
 {
-	return BKE_sequencer_editing_get(CTX_data_scene(C), FALSE) != NULL;
+	SpaceSeq *sseq = CTX_wm_space_seq(C);
+	return sseq && BKE_sequencer_editing_get(CTX_data_scene(C), FALSE) != NULL;
 }
 
 void SEQUENCER_OT_sample(wmOperatorType *ot)
