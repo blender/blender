@@ -1895,7 +1895,7 @@ class WM_OT_addon_install(Operator):
 
 
 class WM_OT_addon_remove(Operator):
-    "Delete the addon from the filesystem"
+    "Delete the addon from the file system"
     bl_idname = "wm.addon_remove"
     bl_label = "Remove Addon"
 

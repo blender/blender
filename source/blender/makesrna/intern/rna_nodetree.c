@@ -3136,10 +3136,10 @@ static void def_sh_material(StructRNA *srna)
 static void def_sh_mapping(StructRNA *srna)
 {
 	static EnumPropertyItem prop_vect_type_items[] = {
-		{TEXMAP_TYPE_TEXTURE, "TEXTURE",  0, "Texture", "Transforms a texture by inverse mapping the texture coordinate"},
-		{TEXMAP_TYPE_POINT,   "POINT",    0, "Point",   "Transforms a point"},
-		{TEXMAP_TYPE_VECTOR,  "VECTOR",   0, "Vector",  "Transforms a direction vector"},
-		{TEXMAP_TYPE_NORMAL,  "NORMAL",   0, "Normal",  "Transforms a normal vector with unit length"},
+		{TEXMAP_TYPE_TEXTURE, "TEXTURE", 0, "Texture", "Transform a texture by inverse mapping the texture coordinate"},
+		{TEXMAP_TYPE_POINT,   "POINT",   0, "Point",   "Transform a point"},
+		{TEXMAP_TYPE_VECTOR,  "VECTOR",  0, "Vector",  "Transform a direction vector"},
+		{TEXMAP_TYPE_NORMAL,  "NORMAL",  0, "Normal",  "Transform a normal vector with unit length"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3536,9 +3536,9 @@ static void def_sh_tex_coord(StructRNA *srna)
 static void def_sh_vect_transform(StructRNA *srna)
 {
 	static EnumPropertyItem prop_vect_type_items[] = {
-		{SHD_VECT_TRANSFORM_TYPE_POINT,  "POINT",   0, "Point",    "Transforms a point"},
-		{SHD_VECT_TRANSFORM_TYPE_VECTOR, "VECTOR",  0, "Vector",   "Transforms a direction vector"},
-		{SHD_VECT_TRANSFORM_TYPE_NORMAL, "NORMAL",  0, "Normal",   "Transforms a normal vector with unit length"},
+		{SHD_VECT_TRANSFORM_TYPE_POINT,  "POINT",   0, "Point",    "Transform a point"},
+		{SHD_VECT_TRANSFORM_TYPE_VECTOR, "VECTOR",  0, "Vector",   "Transform a direction vector"},
+		{SHD_VECT_TRANSFORM_TYPE_NORMAL, "NORMAL",  0, "Normal",   "Transform a normal vector with unit length"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
