@@ -655,8 +655,10 @@ kmi = km.keymap_items.new('mesh.duplicate_move', 'D', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
 kmi.properties.name = 'INFO_MT_mesh_add'
 kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'MIDDLEMOUSE', 'CLICK', ctrl=True)
-kmi = km.keymap_items.new('mesh.delete', 'BACK_SPACE', 'PRESS')
-kmi = km.keymap_items.new('mesh.delete', 'DEL', 'PRESS')
+kmi = km.keymap_items.new('wm.call_menu', 'BACK_SPACE', 'PRESS')
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
+kmi = km.keymap_items.new('wm.call_menu', 'DEL', 'PRESS')
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
 kmi = km.keymap_items.new('mesh.knife_tool', 'LEFTMOUSE', 'PRESS', key_modifier='K')
 kmi = km.keymap_items.new('object.vertex_parent_set', 'P', 'PRESS')
 kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS', ctrl=True)
