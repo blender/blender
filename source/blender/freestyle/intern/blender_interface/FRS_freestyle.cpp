@@ -369,7 +369,7 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 			if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
 				if (G.debug & G_DEBUG_FREESTYLE) {
 					cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
-					        lineset->linestyle->id.name + 2 << endl;
+					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 				}
 				Text *text = create_lineset_handler(bmain, srl->name, lineset->name);
 				controller->InsertStyleModule(layer_count, lineset->name, text);
@@ -680,9 +680,11 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
-		lineset->linestyle->id.us--;
+		if (lineset->linestyle)
+			lineset->linestyle->id.us--;
 		lineset->linestyle = lineset_buffer.linestyle;
-		lineset->linestyle->id.us++;
+		if (lineset->linestyle)
+			lineset->linestyle->id.us++;
 		lineset->flags = lineset_buffer.flags;
 		lineset->selection = lineset_buffer.selection;
 		lineset->qi = lineset_buffer.qi;
@@ -711,10 +713,10 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 	if (lineset) {
 		if (lineset->group) {
 			lineset->group->id.us--;
-			lineset->group = NULL;
 		}
-		lineset->linestyle->id.us--;
-		lineset->linestyle = NULL;
+		if (lineset->linestyle) {
+			lineset->linestyle->id.us--;
+		}
 		BLI_remlink(&config->linesets, lineset);
 		MEM_freeN(lineset);
 		BKE_freestyle_lineset_set_active_index(config, 0);

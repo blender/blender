@@ -107,7 +107,8 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset)
 {
 	new_lineset->linestyle = lineset->linestyle;
-	new_lineset->linestyle->id.us++;
+	if (lineset->linestyle)
+		new_lineset->linestyle->id.us++;
 	new_lineset->flags = lineset->flags;
 	new_lineset->selection = lineset->selection;
 	new_lineset->qi = lineset->qi;

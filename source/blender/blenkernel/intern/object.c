@@ -643,7 +643,9 @@ void BKE_object_unlink(Object *ob)
 				for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first;
 				     lineset; lineset = lineset->next)
 				{
-					BKE_unlink_linestyle_target_object(lineset->linestyle, ob);
+					if (lineset->linestyle) {
+						BKE_unlink_linestyle_target_object(lineset->linestyle, ob);
+					}
 				}
 			}
 		}
