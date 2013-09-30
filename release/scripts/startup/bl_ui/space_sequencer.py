@@ -685,9 +685,14 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         layout.prop(strip, "pan")
 
         col = layout.column(align=True)
-        col.label(text="Trim Duration:")
+        col.label(text="Trim Duration (hard):")
         col.prop(strip, "animation_offset_start", text="Start")
         col.prop(strip, "animation_offset_end", text="End")
+
+        col = layout.column(align=True)
+        col.label(text="Trim Duration (soft):")
+        col.prop(strip, "frame_offset_start", text="Start")
+        col.prop(strip, "frame_offset_end", text="End")
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
