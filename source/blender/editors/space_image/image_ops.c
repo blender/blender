@@ -1804,7 +1804,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
 	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 	
-	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+	WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 	
 	return OPERATOR_FINISHED;
 }
