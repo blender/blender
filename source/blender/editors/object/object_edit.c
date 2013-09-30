@@ -1471,12 +1471,14 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 
 	ob = CTX_data_active_object(C);
 	if (ob) {
+		const bool use_mode_particle_edit = (ob->particlesystem.first != NULL) || (ob->soft != NULL) ||
+		                                    (modifiers_findByType(ob, eModifierType_Cloth) != NULL);
 		while (input->identifier) {
 			if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
 			    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
-			    (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
-			    ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
-			      input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+			    (input->value == OB_MODE_PARTICLE_EDIT && use_mode_particle_edit) ||
+			    (ELEM4(input->value, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT,
+			           OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
 			    (input->value == OB_MODE_OBJECT))
 			{
 				RNA_enum_item_add(&item, &totitem, input);
