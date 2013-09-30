@@ -556,8 +556,6 @@ def lightmap_uvpack(meshes,
 
     print("finished all %.2f " % (time.time() - t))
 
-    # Window.RedrawAll()
-
 
 def unwrap(operator, context, **kwargs):
 
@@ -590,7 +588,7 @@ from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(Operator):
-    """Follow UVs from active quads along continuous face loops"""
+    """Pack each faces UV's into the UV bounds"""
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 

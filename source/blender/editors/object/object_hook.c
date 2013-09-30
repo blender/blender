@@ -569,7 +569,7 @@ void OBJECT_OT_hook_add_selob(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Hook to Selected Object";
-	ot->description = "Hook selected vertices to the first selected Object";
+	ot->description = "Hook selected vertices to the first selected object";
 	ot->idname = "OBJECT_OT_hook_add_selob";
 	
 	/* api callbacks */
@@ -603,7 +603,7 @@ void OBJECT_OT_hook_add_newob(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Hook to New Object";
-	ot->description = "Hook selected vertices to the first selected Object";
+	ot->description = "Hook selected vertices to a newly created object";
 	ot->idname = "OBJECT_OT_hook_add_newob";
 	
 	/* api callbacks */

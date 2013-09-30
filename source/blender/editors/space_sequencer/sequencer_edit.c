@@ -2960,7 +2960,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Border Offset View";
 	ot->idname = "SEQUENCER_OT_view_ghost_border";
-	ot->description = "Enable border select mode";
+	ot->description = "Set the boundaries of the border used for offset-view";
 
 	/* api callbacks */
 	ot->invoke = WM_border_select_invoke;

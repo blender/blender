@@ -354,15 +354,15 @@ static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "GPencilStrokes");
 	srna = RNA_def_struct(brna, "GPencilStrokes", NULL);
 	RNA_def_struct_sdna(srna, "bGPDframe");
-	RNA_def_struct_ui_text(srna, "Grease Pencil Frames", "Collection of grease pencil frames");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Frames", "Collection of grease pencil stroke");
 
 	func = RNA_def_function(srna, "new", "rna_GPencil_stroke_new");
-	RNA_def_function_ui_description(func, "Add a new grease pencil frame");
+	RNA_def_function_ui_description(func, "Add a new grease pencil stroke");
 	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "", "The newly created stroke");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_GPencil_stroke_remove");
-	RNA_def_function_ui_description(func, "Remove a grease pencil frame");
+	RNA_def_function_ui_description(func, "Remove a grease pencil stroke");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);

@@ -373,7 +373,7 @@ void NODE_OT_backimage_fit(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Background Image Fit";
 	ot->idname = "NODE_OT_backimage_fit";
-	ot->description = "Zoom in/out the background image";
+	ot->description = "Fit the background image to the view";
 
 	/* api callbacks */
 	ot->exec = backimage_fit_exec;

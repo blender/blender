@@ -892,7 +892,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Border Select";
 	ot->idname = "SEQUENCER_OT_select_border";
-	ot->description = "Enable border select mode";
+	ot->description = "Select strips using border selection";
 	
 	/* api callbacks */
 	ot->invoke = WM_border_select_invoke;

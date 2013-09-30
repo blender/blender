@@ -2072,8 +2072,8 @@ static void rna_def_statvis(BlenderRNA  *brna)
 		{SCE_STATVIS_OVERHANG,  "OVERHANG",  0, "Overhang",  ""},
 		{SCE_STATVIS_THICKNESS, "THICKNESS", 0, "Thickness", ""},
 		{SCE_STATVIS_INTERSECT, "INTERSECT", 0, "Intersect", ""},
-		{SCE_STATVIS_DISTORT,   "DISTORT",   0, "Distort", ""},
-	    {SCE_STATVIS_SHARP, "SHARP", 0, "Sharp", ""},
+		{SCE_STATVIS_DISTORT,   "DISTORT",   0, "Distortion", ""},
+		{SCE_STATVIS_SHARP, "SHARP", 0, "Sharp", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "MeshStatVis", NULL);

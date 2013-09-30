@@ -44,10 +44,7 @@
 #define EDGE_MARK	1
 #define EDGE_VIS	2
 
-#define FACE_NEW	1
-
 #define ELE_NEW		1
-#define ELE_ORIG	4
 
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {

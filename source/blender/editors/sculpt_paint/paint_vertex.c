@@ -3480,7 +3480,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Gradient";
 	ot->idname = "PAINT_OT_weight_gradient";
-	ot->description = "Sample a line and show it in Scope panels";
+	ot->description = "Draw a line to apply a weight gradient to selected vertices";
 
 	/* api callbacks */
 	ot->invoke = paint_weight_gradient_invoke;

@@ -182,6 +182,7 @@ help:
 	@echo "  * check_spelling_c_qtc - same as check_spelling_c but outputs QtCreator tasks format"
 	@echo "  * check_spelling_osl   - check for spelling errors (OSL only)"
 	@echo "  * check_spelling_py    - check for spelling errors (Python only)"
+	@echo "  * check_descriptions   - check for duplicate/invalid descriptions"
 	@echo ""
 	@echo "Utilities (not associated with building blender)"
 	@echo "  * icons    - updates PNG icons from SVG files."
@@ -312,6 +313,9 @@ check_spelling_c_qtc:
 
 check_spelling_osl:
 	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/intern/cycles/kernel/shaders
+
+check_descriptions:
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python $(BLENDER_DIR)/source/tools/check_descriptions.py
 
 # -----------------------------------------------------------------------------
 # Utilities

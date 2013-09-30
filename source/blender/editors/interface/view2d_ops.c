@@ -1374,13 +1374,15 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth View 2D";
-	ot->description = "Zoom in the view to the nearest item contained in the border";
+	ot->description = "";
 	ot->idname = "VIEW2D_OT_smoothview";
 
 	/* api callbacks */
 	ot->invoke = view2d_smoothview_invoke;
-
 	ot->poll = view2d_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);

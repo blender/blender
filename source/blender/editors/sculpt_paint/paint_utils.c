@@ -441,7 +441,7 @@ static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, const wm
 void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 {
 	ot->name = "Select Linked Pick";
-	ot->description = "Select linked faces";
+	ot->description = "Select linked faces under the cursor";
 	ot->idname = "PAINT_OT_face_select_linked_pick";
 
 	ot->invoke = paint_select_linked_pick_invoke;

@@ -3342,7 +3342,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Dissolve Vertices";
-	ot->description = "Dissolve geometry";
+	ot->description = "Dissolve verts, merge edges and faces";
 	ot->idname = "MESH_OT_dissolve_verts";
 
 	/* api callbacks */
@@ -3379,7 +3379,7 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Dissolve Edges";
-	ot->description = "Dissolve geometry";
+	ot->description = "Dissolve edges, merging faces";
 	ot->idname = "MESH_OT_dissolve_edges";
 
 	/* api callbacks */
@@ -3418,7 +3418,7 @@ void MESH_OT_dissolve_faces(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Dissolve Faces";
-	ot->description = "Dissolve geometry";
+	ot->description = "Dissolve faces";
 	ot->idname = "MESH_OT_dissolve_faces";
 
 	/* api callbacks */
@@ -4519,7 +4519,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Wire Frame";
 	ot->idname = "MESH_OT_wireframe";
-	ot->description = "Inset new faces into selected faces";
+	ot->description = "Create a solid wire-frame from faces";
 
 	/* api callbacks */
 	ot->exec = edbm_wireframe_exec;

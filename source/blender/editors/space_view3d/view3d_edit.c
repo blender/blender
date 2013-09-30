@@ -1257,7 +1257,7 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Orbit View";
-	ot->description = "Explore every angle of an object using the 3D mouse";
+	ot->description = "Orbit the view using the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_orbit";
 
 	/* api callbacks */
@@ -1355,7 +1355,7 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Orbit View with Zoom";
-	ot->description = "Explore every angle of an object using the 3D mouse";
+	ot->description = "Orbit and zoom the view using the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_orbit_zoom";
 
 	/* api callbacks */
@@ -1452,7 +1452,7 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Pan View";
-	ot->description = "Position your viewpoint with the 3D mouse";
+	ot->description = "Pan the view with the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_pan";
 
 	/* api callbacks */
@@ -1543,7 +1543,7 @@ void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Move View";
-	ot->description = "Position your viewpoint with the 3D mouse";
+	ot->description = "Pan and rotate the view with the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_all";
 
 	/* api callbacks */

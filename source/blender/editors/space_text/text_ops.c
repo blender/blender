@@ -1943,7 +1943,7 @@ void TEXT_OT_move_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Move Select";
 	ot->idname = "TEXT_OT_move_select";
-	ot->description = "Make selection from current cursor position to new cursor position type";
+	ot->description = "Move the cursor while selecting";
 	
 	/* api callbacks */
 	ot->exec = text_move_select_exec;
@@ -2291,7 +2291,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	 * scroll_bar. Both do basically the same thing (aside 
 	 * from keymaps).*/
 	ot->idname = "TEXT_OT_scroll";
-	ot->description = "Scroll text screen";
+	ot->description = "";
 	
 	/* api callbacks */
 	ot->exec = text_scroll_exec;
@@ -2301,7 +2301,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->poll = text_scroll_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
@@ -2385,7 +2385,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	 * scroll. Both do basically the same thing (aside 
 	 * from keymaps).*/
 	ot->idname = "TEXT_OT_scroll_bar";
-	ot->description = "Scroll text screen";
+	ot->description = "";
 	
 	/* api callbacks */
 	ot->invoke = text_scroll_bar_invoke;
@@ -2394,7 +2394,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->poll = text_region_scroll_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);

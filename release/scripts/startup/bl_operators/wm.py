@@ -498,7 +498,7 @@ class WM_OT_context_menu_enum(Operator):
 
 
 class WM_OT_context_set_id(Operator):
-    """Toggle a context value"""
+    """Set a context value to an ID data-block"""
     bl_idname = "wm.context_set_id"
     bl_label = "Set Library ID"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -903,8 +903,9 @@ class WM_OT_doc_view(Operator):
         return {'FINISHED'}
 
 
+'''
 class WM_OT_doc_edit(Operator):
-    """Load online reference docs"""
+    """Edit online reference docs"""
     bl_idname = "wm.doc_edit"
     bl_label = "Edit Documentation"
 
@@ -972,6 +973,7 @@ class WM_OT_doc_edit(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
+'''
 
 
 rna_path = StringProperty(
@@ -1893,7 +1895,7 @@ class WM_OT_addon_install(Operator):
 
 
 class WM_OT_addon_remove(Operator):
-    "Disable an addon"
+    "Delete the addon from the filesystem"
     bl_idname = "wm.addon_remove"
     bl_label = "Remove Addon"
 

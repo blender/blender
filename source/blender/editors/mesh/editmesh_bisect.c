@@ -300,7 +300,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Bisect";
-	ot->description = "Enforce symmetry (both form and topological) across an axis";
+	ot->description = "Cuts geometry along a plane";
 	ot->idname = "MESH_OT_bisect";
 
 	/* api callbacks */

@@ -981,7 +981,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Move Select";
-	ot->description = "Make selection from current cursor position to new cursor position type";
+	ot->description = "Move the cursor while selecting";
 	ot->idname = "FONT_OT_move_select";
 	
 	/* api callbacks */

@@ -648,7 +648,8 @@ def BuildRNAInfo():
             for prop in func.return_values:
                 prop.build()
 
-    if 1:
+    # there are too many invalid defaults, unless we intend to fix, leave this off
+    if 0:
         for rna_info in InfoStructRNA.global_lookup.values():
             for prop in rna_info.properties:
                 # ERROR CHECK

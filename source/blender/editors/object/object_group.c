@@ -289,7 +289,7 @@ void GROUP_OT_objects_remove_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove From All Groups";
-	ot->description = "Remove selected objects from all groups or a selected group";
+	ot->description = "Remove selected objects from all groups";
 	ot->idname = "GROUP_OT_objects_remove_all";
 	
 	/* api callbacks */
@@ -335,7 +335,7 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Remove From Group";
-	ot->description = "Remove selected objects from all groups or a selected group";
+	ot->description = "Remove selected objects from a group";
 	ot->idname = "GROUP_OT_objects_remove";
 
 	/* api callbacks */

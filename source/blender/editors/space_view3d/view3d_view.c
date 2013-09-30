@@ -378,12 +378,15 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name = "Smooth View";
+	ot->description = "";
 	ot->idname = "VIEW3D_OT_smoothview";
-	ot->description = "The time to animate the change of view (in milliseconds)";
 	
 	/* api callbacks */
 	ot->invoke = view3d_smoothview_invoke;
 	
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
+
 	ot->poll = ED_operator_view3d_active;
 }
 
