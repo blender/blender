@@ -56,7 +56,13 @@ static char idp_size_table[] = {
 	sizeof(double)
 };
 
-/* ------------Property Array Type ----------- */
+
+/* -------------------------------------------------------------------- */
+/* Array Functions */
+
+/** \name IDP Array API
+ * \{ */
+
 #define GETPROP(prop, i) (((IDProperty *)(prop)->data.pointer) + (i))
 
 /* --------- property array type -------------*/
@@ -78,9 +84,12 @@ IDProperty *IDP_NewIDPArray(const char *name)
 IDProperty *IDP_CopyIDPArray(IDProperty *array)
 {
 	/* don't use MEM_dupallocN because this may be part of an array */
-	IDProperty *narray = MEM_mallocN(sizeof(IDProperty), "IDP_CopyIDPArray"), *tmp;
+	IDProperty *narray, *tmp;
 	int i;
 
+	BLI_assert(array->type == IDP_IDPARRAY);
+
+	narray = MEM_mallocN(sizeof(IDProperty), __func__);
 	*narray = *array;
 
 	narray->data.pointer = MEM_dupallocN(array->data.pointer);
@@ -103,6 +112,8 @@ void IDP_FreeIDPArray(IDProperty *prop)
 {
 	int i;
 	
+	BLI_assert(prop->type == IDP_IDPARRAY);
+
 	for (i = 0; i < prop->len; i++)
 		IDP_FreeProperty(GETPROP(prop, i));
 
@@ -113,7 +124,11 @@ void IDP_FreeIDPArray(IDProperty *prop)
 /*shallow copies item*/
 void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 {
-	IDProperty *old = GETPROP(prop, index);
+	IDProperty *old;
+
+	BLI_assert(prop->type == IDP_IDPARRAY);
+
+	old = GETPROP(prop, index);
 	if (index >= prop->len || index < 0) return;
 	if (item != old) IDP_FreeProperty(old);
 	
@@ -122,11 +137,15 @@ void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 
 IDProperty *IDP_GetIndexArray(IDProperty *prop, int index)
 {
+	BLI_assert(prop->type == IDP_IDPARRAY);
+
 	return GETPROP(prop, index);
 }
 
 void IDP_AppendArray(IDProperty *prop, IDProperty *item)
 {
+	BLI_assert(prop->type == IDP_IDPARRAY);
+
 	IDP_ResizeIDPArray(prop, prop->len + 1);
 	IDP_SetIndexArray(prop, prop->len - 1, item);
 }
@@ -134,6 +153,8 @@ void IDP_AppendArray(IDProperty *prop, IDProperty *item)
 void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 {
 	int newsize;
+
+	BLI_assert(prop->type == IDP_IDPARRAY);
 
 	/* first check if the array buffer size has room */
 	/* if newlen is 200 items less then totallen, reallocate anyway */
@@ -286,8 +307,14 @@ static IDProperty *IDP_CopyArray(IDProperty *prop)
 
 	return newp;
 }
+/** \} */
 
-/* ---------- String Type ------------ */
+
+/* -------------------------------------------------------------------- */
+/* String Functions */
+
+/** \name IDProperty String API
+ * \{ */
 
 /**
  *
@@ -327,9 +354,13 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 
 static IDProperty *IDP_CopyString(IDProperty *prop)
 {
-	IDProperty *newp = idp_generic_copy(prop);
+	IDProperty *newp;
 
-	if (prop->data.pointer) newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+	BLI_assert(prop->type == IDP_STRING);
+	newp = idp_generic_copy(prop);
+
+	if (prop->data.pointer)
+		newp->data.pointer = MEM_dupallocN(prop->data.pointer);
 	newp->len = prop->len;
 	newp->subtype = prop->subtype;
 	newp->totallen = prop->totallen;
@@ -340,8 +371,10 @@ static IDProperty *IDP_CopyString(IDProperty *prop)
 
 void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
-	int stlen = strlen(st);
+	int stlen;
 
+	BLI_assert(prop->type == IDP_STRING);
+	stlen = strlen(st);
 	if (maxlen > 0 && maxlen < stlen)
 		stlen = maxlen;
 
@@ -360,6 +393,8 @@ void IDP_ConcatStringC(IDProperty *prop, const char *st)
 {
 	int newlen;
 
+	BLI_assert(prop->type == IDP_STRING);
+
 	newlen = prop->len + strlen(st);
 	/* we have to remember that prop->len includes the null byte for strings.
 	 * so there's no need to add +1 to the resize function.*/
@@ -371,6 +406,8 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 {
 	int newlen;
 
+	BLI_assert(append->type == IDP_STRING);
+
 	/* since ->len for strings includes the NULL byte, we have to subtract one or
 	 * we'll get an extra null byte after each concatenation operation.*/
 	newlen = str1->len + append->len - 1;
@@ -380,13 +417,19 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 
 void IDP_FreeString(IDProperty *prop)
 {
+	BLI_assert(prop->type == IDP_STRING);
+
 	if (prop->data.pointer)
 		MEM_freeN(prop->data.pointer);
 }
+/** \} */
 
 
-/*-------- ID Type, not in use yet -------*/
+/* -------------------------------------------------------------------- */
+/* ID Type (not in use yet) */
 
+/** \name IDProperty ID API (unused)
+ * \{ */
 void IDP_LinkID(IDProperty *prop, ID *id)
 {
 	if (prop->data.pointer) ((ID *)prop->data.pointer)->us--;
@@ -398,15 +441,26 @@ void IDP_UnlinkID(IDProperty *prop)
 {
 	((ID *)prop->data.pointer)->us--;
 }
+/** \} */
 
-/*-------- Group Functions -------*/
 
-/*checks if a property with the same name as prop exists, and if so replaces it.*/
+/* -------------------------------------------------------------------- */
+/* Group Functions */
+
+/** \name IDProperty Group API
+ * \{ */
+
+/**
+ * Checks if a property with the same name as prop exists, and if so replaces it.
+ */
 static IDProperty *IDP_CopyGroup(IDProperty *prop)
 {
-	IDProperty *newp = idp_generic_copy(prop), *link;
-	newp->len = prop->len;
+	IDProperty *newp, *link;
 	
+	BLI_assert(prop->type == IDP_GROUP);
+	newp = idp_generic_copy(prop);
+	newp->len = prop->len;
+
 	for (link = prop->data.group.first; link; link = link->next) {
 		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
 	}
@@ -419,6 +473,10 @@ static IDProperty *IDP_CopyGroup(IDProperty *prop)
 void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 {
 	IDProperty *other, *prop;
+
+	BLI_assert(dest->type == IDP_GROUP);
+	BLI_assert(src->type == IDP_GROUP);
+
 	for (prop = src->data.group.first; prop; prop = prop->next) {
 		other = BLI_findstring(&dest->data.group, prop->name, offsetof(IDProperty, name));
 		if (other && prop->type == other->type) {
@@ -454,6 +512,10 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 {
 	IDProperty *loop, *prop;
+
+	BLI_assert(dest->type == IDP_GROUP);
+	BLI_assert(src->type == IDP_GROUP);
+
 	for (prop = src->data.group.first; prop; prop = prop->next) {
 		for (loop = dest->data.group.first; loop; loop = loop->next) {
 			if (STREQ(loop->name, prop->name)) {
@@ -484,6 +546,9 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
+
+	BLI_assert(group->type == IDP_GROUP);
+
 	if ((loop = IDP_GetPropertyFromGroup(group, prop->name))) {
 		BLI_insertlinkafter(&group->data.group, loop, prop);
 		
@@ -497,12 +562,15 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 	}
 }
 
-/*
+/**
  * If a property is missing in \a dest, add it.
  */
 void IDP_MergeGroup(IDProperty *dest, IDProperty *src, const int do_overwrite)
 {
 	IDProperty *prop;
+
+	BLI_assert(dest->type == IDP_GROUP);
+	BLI_assert(src->type == IDP_GROUP);
 
 	if (do_overwrite) {
 		for (prop = src->data.group.first; prop; prop = prop->next) {
@@ -538,6 +606,8 @@ void IDP_MergeGroup(IDProperty *dest, IDProperty *src, const int do_overwrite)
  */
 int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
+	BLI_assert(group->type == IDP_GROUP);
+
 	if (IDP_GetPropertyFromGroup(group, prop->name) == NULL) {
 		group->len++;
 		BLI_addtail(&group->data.group, prop);
@@ -553,6 +623,8 @@ int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
  */
 int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
 {
+	BLI_assert(group->type == IDP_GROUP);
+
 	if (IDP_GetPropertyFromGroup(group, pnew->name) == NULL) {
 		group->len++;
 		BLI_insertlinkafter(&group->data.group, previous, pnew);
@@ -571,12 +643,16 @@ int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
  */
 void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
 {
+	BLI_assert(group->type == IDP_GROUP);
+
 	group->len--;
 	BLI_remlink(&group->data.group, prop);
 }
 
 IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
 {
+	BLI_assert(prop->type == IDP_GROUP);
+
 	return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
 }
 /** same as above but ensure type match */
@@ -599,7 +675,10 @@ typedef struct IDPIter {
  */
 void *IDP_GetGroupIterator(IDProperty *prop)
 {
-	IDPIter *iter = MEM_callocN(sizeof(IDPIter), "IDPIter");
+	IDPIter *iter;
+
+	BLI_assert(prop->type == IDP_GROUP);
+	iter = MEM_mallocN(sizeof(IDPIter), "IDPIter");
 	iter->next = prop->data.group.first;
 	iter->parent = prop;
 	return (void *) iter;
@@ -640,14 +719,21 @@ void IDP_FreeIterBeforeEnd(void *vself)
 static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop;
+
+	BLI_assert(prop->type == IDP_GROUP);
 	for (loop = prop->data.group.first; loop; loop = loop->next) {
 		IDP_FreeProperty(loop);
 	}
 	BLI_freelistN(&prop->data.group);
 }
+/** \} */
 
 
-/*-------- Main Functions --------*/
+/* -------------------------------------------------------------------- */
+/* Main Functions */
+
+/** \name IDProperty Main API
+ * \{ */
 IDProperty *IDP_CopyProperty(IDProperty *prop)
 {
 	switch (prop->type) {
@@ -909,3 +995,5 @@ void IDP_UnlinkProperty(IDProperty *prop)
 			break;
 	}
 }
+
+/** \} */
