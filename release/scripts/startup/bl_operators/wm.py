@@ -1937,6 +1937,8 @@ class WM_OT_addon_remove(Operator):
         else:
             os.remove(path)
 
+        addon_utils.modules_refresh()
+
         context.area.tag_redraw()
         return {'FINISHED'}
 
