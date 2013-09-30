@@ -1373,7 +1373,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 
 /* printf("start %x %x	\n", (int)(0x7FFFFFFF*zf1), (int)(0x7FFFFFFF*zf2)); */
 
-	while (1) {
+	do {
 		lambda_o= lambda;
 		
 		if (lambda_x==lambda_y) {
@@ -1394,7 +1394,13 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 		}
 		
 		lambda = min_ff(lambda_x, lambda_y);
-		
+
+		/* not making any progress? */
+		if (lambda==lambda_o) break;
+
+		/* clip to end of volume */
+		lambda = min_ff(lambda, 1.0f);
+
 		zf= zf1 + lambda*(zf2-zf1);
 		count+= (float)shb->totbuf;
 
@@ -1409,10 +1415,9 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 				lightcount+= readshadowbuf_halo(shb, shsample, x, y, z);
 			
 		}
-		/* break after sample, so it takes at least one */
-		if (lambda==lambda_o || lambda>=1.0f) break;
 	}
-	
+	while (lambda < 1.0f);
+
 	if (count!=0.0f) return (lightcount/count);
 	return 0.0f;
 	
