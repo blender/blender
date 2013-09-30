@@ -2406,12 +2406,12 @@ static void paint_facesel_circle_select(ViewContext *vc, const bool select, cons
 {
 	Object *ob = vc->obact;
 	Mesh *me = ob ? ob->data : NULL;
-	/* int bbsel; */ /* UNUSED */
+	bool bbsel;
 
-	if (me) {
-		bm_vertoffs = me->totpoly + 1; /* max index array */
+	bm_vertoffs = me->totpoly + 1; /* max index array */
 
-		/* bbsel = */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
+	bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
+	if (bbsel) {
 		edbm_backbuf_check_and_select_tfaces(me, select);
 		EDBM_backbuf_free();
 		paintface_flush_flags(ob);
@@ -2431,15 +2431,17 @@ static void paint_vertsel_circle_select(ViewContext *vc, const bool select, cons
 	const int use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT);
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
-	/* int bbsel; */ /* UNUSED */
+	bool bbsel;
 	/* CircleSelectUserData data = {NULL}; */ /* UNUSED */
 
 	if (use_zbuf) {
 		bm_vertoffs = me->totvert + 1; /* max index array */
 
-		/* bbsel = */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
-		edbm_backbuf_check_and_select_verts_obmode(me, select);
-		EDBM_backbuf_free();
+		bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
+		if (bbsel) {
+			edbm_backbuf_check_and_select_verts_obmode(me, select);
+			EDBM_backbuf_free();
+		}
 	}
 	else {
 		CircleSelectUserData data;
