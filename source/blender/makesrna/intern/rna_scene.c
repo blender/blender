@@ -1541,7 +1541,8 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 {
 	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
-	lineset->linestyle->id.us--;
+	if (lineset->linestyle)
+		lineset->linestyle->id.us--;
 	lineset->linestyle = (FreestyleLineStyle *)value.data;
 	lineset->linestyle->id.us++;
 }
