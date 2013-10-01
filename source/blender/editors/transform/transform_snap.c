@@ -134,7 +134,8 @@ bool validSnap(TransInfo *t)
 
 bool activeSnap(TransInfo *t)
 {
-	return (t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP || (t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT;
+	return ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
+	       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
 }
 
 void drawSnapping(const struct bContext *C, TransInfo *t)

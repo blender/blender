@@ -194,9 +194,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 				a = nu->pntsu;
 				while (a--) {
 					stats->totvert += 3;
-					if (bezt->f1) stats->totvertsel++;
-					if (bezt->f2) stats->totvertsel++;
-					if (bezt->f3) stats->totvertsel++;
+					if (bezt->f1 & SELECT) stats->totvertsel++;
+					if (bezt->f2 & SELECT) stats->totvertsel++;
+					if (bezt->f3 & SELECT) stats->totvertsel++;
 					bezt++;
 				}
 			}
