@@ -1118,9 +1118,10 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	
 	if (bmain) {
 		/* is ntree part of library? */
-		if (BLI_findindex(&bmain->nodetree, ntree) != -1) {
+		if (BLI_findindex(&bmain->nodetree, ntree) != -1)
 			newtree = BKE_libblock_copy(&ntree->id);
-		}
+		else
+			newtree = NULL;
 	}
 	else
 		newtree = NULL;
