@@ -4561,7 +4561,8 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
+
 	/* Delete unused vertices, edges, and faces */
 	if (RNA_boolean_get(op->ptr, "delete_unused")) {
 		if (!EDBM_op_callf(em, op, "delete geom=%S context=%i",
@@ -4584,9 +4585,11 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Merge adjacent triangles */
 	if (RNA_boolean_get(op->ptr, "join_triangles")) {
-		if (!EDBM_op_callf(em, op, "join_triangles faces=%S limit=%f",
-		                   &bmop, "geom.out",
-		                   RNA_float_get(op->ptr, "limit")))
+		if (!EDBM_op_call_and_selectf(em, op,
+		                              "faces.out", true,
+		                              "join_triangles faces=%S limit=%f",
+		                              &bmop, "geom.out",
+		                              RNA_float_get(op->ptr, "limit")))
 		{
 			EDBM_op_finish(em, &bmop, op, true);
 			return OPERATOR_CANCELLED;
