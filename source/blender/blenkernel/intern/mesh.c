@@ -645,7 +645,7 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 	}
 	cdlp = &pdata->layers[poly_index];
 	cdlu = &ldata->layers[loop_index];
-	cdlf = do_tessface ? &fdata->layers[face_index] : NULL;
+	cdlf = fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
 	BLI_strncpy(cdlp->name, new_name, sizeof(cdlp->name));
 	CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
@@ -662,8 +662,10 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 				CustomData_set_layer_unique_name(ldata, cdlu - ldata->layers);
 				break;
 			case 2:
-				BLI_strncpy(cdlf->name, cdlp->name, sizeof(cdlf->name));
-				CustomData_set_layer_unique_name(fdata, cdlf - fdata->layers);
+				if (cdlf) {
+					BLI_strncpy(cdlf->name, cdlp->name, sizeof(cdlf->name));
+					CustomData_set_layer_unique_name(fdata, cdlf - fdata->layers);
+				}
 				break;
 		}
 	}

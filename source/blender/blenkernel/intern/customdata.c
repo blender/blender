@@ -1463,8 +1463,7 @@ int CustomData_get_named_layer_index(const CustomData *data, int type, const cha
 
 	for (i = 0; i < data->totlayer; ++i)
 		if (data->layers[i].type == type)
-			if ((!name && !data->layers[i].name) ||
-			    (strcmp(data->layers[i].name, name) == 0))
+			if (strcmp(data->layers[i].name, name) == 0)
 				return i;
 
 	return -1;
@@ -1970,11 +1969,9 @@ static void CustomData_copy_data_layer(const CustomData *source, CustomData *des
 	dest_offset = dest_index * typeInfo->size;
 
 	if (!src_data || !dest_data) {
-		if (src_data != NULL && dest_data != NULL) {
-			printf("%s: warning null data for %s type (%p --> %p), skipping\n",
-			       __func__, layerType_getName(source->layers[src_i].type),
-			       (void *)src_data, (void *)dest_data);
-		}
+		printf("%s: warning null data for %s type (%p --> %p), skipping\n",
+			   __func__, layerType_getName(source->layers[src_i].type),
+			   (void *)src_data, (void *)dest_data);
 		return;
 	}
 
