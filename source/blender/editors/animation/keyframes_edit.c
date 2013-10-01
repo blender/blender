@@ -396,7 +396,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	int filter;
 	/* when not in graph view, don't use handles */
 	SpaceIpo *sipo = (ac->spacetype == SPACE_IPO) ? (SpaceIpo *)ac->sl : NULL;
-	const short use_handle = sipo ? !(sipo->flag & SIPO_NOHANDLES) : FALSE;
+	const bool use_handle = sipo ? !(sipo->flag & SIPO_NOHANDLES) : false;
 	
 	/* filter animation data */
 	filter = ANIMFILTER_DATA_VISIBLE;

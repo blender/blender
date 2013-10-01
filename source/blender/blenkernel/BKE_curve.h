@@ -155,6 +155,7 @@ void BKE_nurb_handle_calc_simple(struct Nurb *nu, struct BezTriple *bezt);
 
 void BKE_nurb_handles_calc(struct Nurb *nu);
 void BKE_nurb_handles_autocalc(struct Nurb *nu, int flag);
-void BKE_nurb_handles_test(struct Nurb *nu);
+void BKE_nurb_bezt_handle_test(struct BezTriple *bezt, const bool use_handle);
+void BKE_nurb_handles_test(struct Nurb *nu, const bool use_handles);
 
 #endif  /* __BKE_CURVE_H__ */

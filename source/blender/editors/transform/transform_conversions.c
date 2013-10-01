@@ -1571,7 +1571,7 @@ static void createTransCurveVerts(TransInfo *t)
 			 * but for now just don't change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0) {
 				/* sets the handles based on their selection, do this after the data is copied to the TransData */
-				BKE_nurb_handles_test(nu);
+				BKE_nurb_handles_test(nu, !hide_handles);
 			}
 		}
 		else {

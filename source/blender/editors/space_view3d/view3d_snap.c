@@ -143,7 +143,7 @@ static void special_transvert_update(Object *obedit)
 				}
 
 				BKE_nurb_test2D(nu);
-				BKE_nurb_handles_test(nu); /* test for bezier too */
+				BKE_nurb_handles_test(nu, true); /* test for bezier too */
 				nu = nu->next;
 			}
 		}

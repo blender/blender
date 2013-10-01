@@ -841,14 +841,7 @@ void calchandles_fcurve(FCurve *fcu)
 	}
 }
 
-/* Use when F-Curve with handles has changed
- * It treats all BezTriples with the following rules:
- *  - PHASE 1: do types have to be altered?
- *      -> Auto handles: become aligned when selection status is NOT(000 || 111)
- *      -> Vector handles: become 'nothing' when (one half selected AND other not)
- *  - PHASE 2: recalculate handles
- */
-void testhandles_fcurve(FCurve *fcu, const short use_handle)
+void testhandles_fcurve(FCurve *fcu, const bool use_handle)
 {
 	BezTriple *bezt;
 	unsigned int a;
@@ -856,45 +849,10 @@ void testhandles_fcurve(FCurve *fcu, const short use_handle)
 	/* only beztriples have handles (bpoints don't though) */
 	if (ELEM(NULL, fcu, fcu->bezt))
 		return;
-	
+
 	/* loop over beztriples */
 	for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
-		short flag = 0;
-		
-		/* flag is initialized as selection status
-		 * of beztriple control-points (labelled 0, 1, 2)
-		 */
-		if (bezt->f2 & SELECT) flag |= (1 << 1);  // == 2
-		if (use_handle == FALSE) {
-			if (flag & 2) {
-				flag |= (1 << 0) | (1 << 2);
-			}
-		}
-		else {
-			if (bezt->f1 & SELECT) flag |= (1 << 0);  // == 1
-			if (bezt->f3 & SELECT) flag |= (1 << 2);  // == 4
-		}
-		
-		/* one or two handles selected only */
-		if (ELEM(flag, 0, 7) == 0) {
-			/* auto handles become aligned */
-			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM))
-				bezt->h1 = HD_ALIGN;
-			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM))
-				bezt->h2 = HD_ALIGN;
-			
-			/* vector handles become 'free' when only one half selected */
-			if (bezt->h1 == HD_VECT) {
-				/* only left half (1 or 2 or 1+2) */
-				if (flag < 4) 
-					bezt->h1 = 0;
-			}
-			if (bezt->h2 == HD_VECT) {
-				/* only right half (4 or 2+4) */
-				if (flag > 3) 
-					bezt->h2 = 0;
-			}
-		}
+		BKE_nurb_bezt_handle_test(bezt, use_handle);
 	}
 
 	/* recalculate handles */

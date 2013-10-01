@@ -3102,46 +3102,67 @@ void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
 	}
 }
 
-void BKE_nurb_handles_test(Nurb *nu)
+/**
+ * Use when something has changed handle positions.
+ *
+ * The caller needs to recalculate handles.
+ */
+void BKE_nurb_bezt_handle_test(BezTriple *bezt, const bool use_handle)
 {
-	/* use when something has changed with handles.
-	 * it treats all BezTriples with the following rules:
-	 * PHASE 1: do types have to be altered?
-	 *    Auto handles: become aligned when selection status is NOT(000 || 111)
-	 *    Vector handles: become 'nothing' when (one half selected AND other not)
-	 * PHASE 2: recalculate handles
-	 */
-	BezTriple *bezt;
-	short flag, a;
+	short flag = 0;
 
-	if (nu->type != CU_BEZIER) return;
+#define SEL_F1 (1 << 0)
+#define SEL_F2 (1 << 1)
+#define SEL_F3 (1 << 2)
+
+	if (use_handle) {
+		if (bezt->f1 & SELECT) flag |= SEL_F1;
+		if (bezt->f2 & SELECT) flag |= SEL_F2;
+		if (bezt->f3 & SELECT) flag |= SEL_F3;
+	}
+	else {
+		flag = (bezt->f2 & SELECT) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
+	}
+
+	/* check for partial selection */
+	if (!ELEM(flag, 0, SEL_F1 | SEL_F2 | SEL_F3)) {
+		if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {
+			bezt->h1 = HD_ALIGN;
+		}
+		if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
+			bezt->h2 = HD_ALIGN;
+		}
+
+		if (bezt->h1 == HD_VECT) {
+			if ((!(flag & SEL_F1)) != (!(flag & SEL_F2))) {
+				bezt->h1 = HD_FREE;
+			}
+		}
+		if (bezt->h2 == HD_VECT) {
+			if ((!(flag & SEL_F3)) != (!(flag & SEL_F2))) {
+				bezt->h2 = HD_FREE;
+			}
+		}
+	}
+
+#undef SEL_F1
+#undef SEL_F2
+#undef SEL_F3
+
+}
+
+void BKE_nurb_handles_test(Nurb *nu, const bool use_handle)
+{
+	BezTriple *bezt;
+	short a;
+
+	if (nu->type != CU_BEZIER)
+		return;
 
 	bezt = nu->bezt;
 	a = nu->pntsu;
 	while (a--) {
-		flag = 0;
-		if (bezt->f1 & SELECT)
-			flag++;
-		if (bezt->f2 & SELECT)
-			flag += 2;
-		if (bezt->f3 & SELECT)
-			flag += 4;
-
-		if (!(flag == 0 || flag == 7) ) {
-			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
-				bezt->h1 = HD_ALIGN;
-			}
-			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
-				bezt->h2 = HD_ALIGN;
-			}
-
-			if (bezt->h1 == HD_VECT) {   /* vector */
-				if (flag < 4) bezt->h1 = 0;
-			}
-			if (bezt->h2 == HD_VECT) {   /* vector */
-				if (flag > 3) bezt->h2 = 0;
-			}
-		}
+		BKE_nurb_bezt_handle_test(bezt, use_handle);
 		bezt++;
 	}
 
@@ -3168,7 +3189,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 
 		/* left handle: */
 		if (flag == 0 || (bezt1->f1 & flag) ) {
-			bezt1->h1 = 0;
+			bezt1->h1 = HD_FREE;
 			/* distance too short: vectorhandle */
 			if (len_v3v3(bezt1->vec[1], bezt0->vec[1]) < 0.0001f) {
 				bezt1->h1 = HD_VECT;
@@ -3187,7 +3208,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		}
 		/* right handle: */
 		if (flag == 0 || (bezt1->f3 & flag) ) {
-			bezt1->h2 = 0;
+			bezt1->h2 = HD_FREE;
 			/* distance too short: vectorhandle */
 			if (len_v3v3(bezt1->vec[1], bezt2->vec[1]) < 0.0001f) {
 				bezt1->h2 = HD_VECT;
@@ -3203,15 +3224,15 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 			}
 		}
 		if (leftsmall && bezt1->h2 == HD_ALIGN)
-			bezt1->h2 = 0;
+			bezt1->h2 = HD_FREE;
 		if (rightsmall && bezt1->h1 == HD_ALIGN)
-			bezt1->h1 = 0;
+			bezt1->h1 = HD_FREE;
 
 		/* undesired combination: */
 		if (bezt1->h1 == HD_ALIGN && bezt1->h2 == HD_VECT)
-			bezt1->h1 = 0;
+			bezt1->h1 = HD_FREE;
 		if (bezt1->h2 == HD_ALIGN && bezt1->h1 == HD_VECT)
-			bezt1->h2 = 0;
+			bezt1->h2 = HD_FREE;
 
 		bezt0 = bezt1;
 		bezt1 = bezt2;
