@@ -248,7 +248,7 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void)
 
 /***/
 
-int ccg_gridsize(int level)
+BLI_INLINE int ccg_gridsize(int level)
 {
 	BLI_assert(level > 0);
 	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
@@ -256,7 +256,12 @@ int ccg_gridsize(int level)
 	return (1 << (level - 1)) + 1;
 }
 
-int ccg_factor(int low_level, int high_level)
+int BKE_ccg_gridsize(int level)
+{
+	return ccg_gridsize(level);
+}
+
+int BKE_ccg_factor(int low_level, int high_level)
 {
 	BLI_assert(low_level > 0 && high_level > 0);
 	BLI_assert(low_level <= high_level);
@@ -264,7 +269,7 @@ int ccg_factor(int low_level, int high_level)
 	return 1 << (high_level - low_level);
 }
 
-static int ccg_edgesize(int level)
+BLI_INLINE int ccg_edgesize(int level)
 {
 	BLI_assert(level > 0);
 	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
@@ -272,7 +277,7 @@ static int ccg_edgesize(int level)
 	return 1 + (1 << level);
 }
 
-static int ccg_spacing(int high_level, int low_level)
+BLI_INLINE int ccg_spacing(int high_level, int low_level)
 {
 	BLI_assert(high_level > 0 && low_level > 0);
 	BLI_assert(high_level >= low_level);
@@ -281,7 +286,7 @@ static int ccg_spacing(int high_level, int low_level)
 	return 1 << (high_level - low_level);
 }
 
-static int ccg_edgebase(int level)
+BLI_INLINE int ccg_edgebase(int level)
 {
 	BLI_assert(level > 0);
 	BLI_assert(level <= CCGSUBSURF_LEVEL_MAX + 1);
@@ -742,7 +747,7 @@ BLI_INLINE float *_face_getIFNo(CCGFace *f, int lvl, int S, int x, int y, int le
 	byte *gridBase = FACE_getCenterData(f) + dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
 	return (float *) &gridBase[dataSize * (maxGridSize + (y * maxGridSize + x) * spacing) + normalDataOffset];
 }
-static int _face_getVertIndex(CCGFace *f, CCGVert *v)
+BLI_INLINE int _face_getVertIndex(CCGFace *f, CCGVert *v)
 {
 	int i;
 	for (i = 0; i < f->numVerts; i++)
@@ -750,7 +755,7 @@ static int _face_getVertIndex(CCGFace *f, CCGVert *v)
 			return i;
 	return -1;
 }
-static int _face_getEdgeIndex(CCGFace *f, CCGEdge *e)
+BLI_INLINE int _face_getEdgeIndex(CCGFace *f, CCGEdge *e)
 {
 	int i;
 	for (i = 0; i < f->numVerts; i++)

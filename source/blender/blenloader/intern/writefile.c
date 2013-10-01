@@ -1736,7 +1736,7 @@ static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_
 		for (i = 0; i < count; ++i) {
 			GridPaintMask *gpm = &grid_paint_mask[i];
 			if (gpm->data) {
-				const int gridsize = ccg_gridsize(gpm->level);
+				const int gridsize = BKE_ccg_gridsize(gpm->level);
 				writedata(wd, DATA,
 				          sizeof(*gpm->data) * gridsize * gridsize,
 				          gpm->data);

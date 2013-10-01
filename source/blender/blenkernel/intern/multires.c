@@ -114,8 +114,8 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
                                                    BLI_bitmap *prev_hidden)
 {
 	BLI_bitmap *subd;
-	int hi_gridsize = ccg_gridsize(hi_level);
-	int lo_gridsize = ccg_gridsize(lo_level);
+	int hi_gridsize = BKE_ccg_gridsize(hi_level);
+	int lo_gridsize = BKE_ccg_gridsize(lo_level);
 	int yh, xh, xl, yl, xo, yo, hi_ndx;
 	int offset, factor;
 
@@ -127,7 +127,7 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
 
 	subd = BLI_BITMAP_NEW(hi_gridsize * hi_gridsize, "MDisps.hidden upsample");
 
-	factor = ccg_factor(lo_level, hi_level);
+	factor = BKE_ccg_factor(lo_level, hi_level);
 	offset = 1 << (hi_level - lo_level - 1);
 
 	/* low-res blocks */
@@ -173,12 +173,12 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(BLI_bitmap *old_hidden,
                                                      int new_level)
 {
 	BLI_bitmap *new_hidden;
-	int new_gridsize = ccg_gridsize(new_level);
-	int old_gridsize = ccg_gridsize(old_level);
+	int new_gridsize = BKE_ccg_gridsize(new_level);
+	int old_gridsize = BKE_ccg_gridsize(old_level);
 	int x, y, factor, old_value;
 
 	BLI_assert(new_level <= old_level);
-	factor = ccg_factor(new_level, old_level);
+	factor = BKE_ccg_factor(new_level, old_level);
 	new_hidden = BLI_BITMAP_NEW(new_gridsize * new_gridsize,
 	                            "downsample hidden");
 
@@ -246,7 +246,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 {
 	MDisps *mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS,
 	                                      CD_CALLOC, NULL, me->totloop);
-	int gridsize = ccg_gridsize(level);
+	int gridsize = BKE_ccg_gridsize(level);
 	int gridarea = gridsize * gridsize;
 	int i, j, k;
 	
@@ -594,7 +594,7 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, int level)
 {
 	if (level < gpm->level) {
-		int gridsize = ccg_gridsize(level);
+		int gridsize = BKE_ccg_gridsize(level);
 		float *data = MEM_callocN(sizeof(float) * gridsize * gridsize,
 		                          "multires_grid_paint_mask_downsample");
 		int x, y;

@@ -1064,8 +1064,8 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 
 		for (j = 0; j < mpoly[i].totloop; j++) {
 			const MDisps *md = &mdisps[mpoly[i].loopstart + j];
-			int hidden_gridsize = ccg_gridsize(md->level);
-			int factor = ccg_factor(level, md->level);
+			int hidden_gridsize = BKE_ccg_gridsize(md->level);
+			int factor = BKE_ccg_factor(level, md->level);
 			
 			if (!md->hidden)
 				continue;
@@ -1107,8 +1107,8 @@ void subsurf_copy_grid_paint_mask(DerivedMesh *dm, const MPoly *mpoly,
 			if (!gpm->data)
 				continue;
 
-			factor = ccg_factor(level, gpm->level);
-			gpm_gridsize = ccg_gridsize(gpm->level);
+			factor = BKE_ccg_factor(level, gpm->level);
+			gpm_gridsize = BKE_ccg_gridsize(gpm->level);
 			
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {

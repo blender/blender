@@ -359,8 +359,8 @@ int paint_is_bmesh_face_hidden(BMFace *f)
 float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
                             unsigned x, unsigned y)
 {
-	int factor = ccg_factor(level, gpm->level);
-	int gridsize = ccg_gridsize(gpm->level);
+	int factor = BKE_ccg_factor(level, gpm->level);
+	int gridsize = BKE_ccg_gridsize(gpm->level);
 	
 	return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
