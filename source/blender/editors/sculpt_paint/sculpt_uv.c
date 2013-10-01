@@ -539,7 +539,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
 	op->customdata = data;
 
-	curvemapping_initialize (ts->uvsculpt->paint.brush->curve);
+	curvemapping_initialize(ts->uvsculpt->paint.brush->curve);
 
 	if (data) {
 		int counter = 0, i;

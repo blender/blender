@@ -85,7 +85,7 @@ static void screenshot_read_pixels(int x, int y, int w, int h, unsigned char *re
 	glFinish();
 
 	/* clear alpha, it is not set to a meaningful value in opengl */
-	for (i = 0, rect += 3; i < w*h; i++, rect += 4)
+	for (i = 0, rect += 3; i < w * h; i++, rect += 4)
 		*rect = 255;
 }
 
@@ -327,7 +327,7 @@ static void screenshot_updatejob(void *sjv)
 	
 	if (sj->dumprect == NULL) {
 		dumprect = MEM_mallocN(sizeof(int) * sj->dumpsx * sj->dumpsy, "dumprect");
-		screenshot_read_pixels(sj->x, sj->y, sj->dumpsx, sj->dumpsy, (unsigned char*)dumprect);
+		screenshot_read_pixels(sj->x, sj->y, sj->dumpsx, sj->dumpsy, (unsigned char *)dumprect);
 		
 		sj->dumprect = dumprect;
 	}

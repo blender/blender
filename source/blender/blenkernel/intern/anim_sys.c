@@ -774,7 +774,7 @@ static void fcurves_path_remove_fix(const char *prefix, ListBase *curves)
 		fcn = fcu->next;
 
 		if (fcu->rna_path) {
-			if (strncmp(prefix, fcu->rna_path, strlen(prefix)) == 0) {
+			if (STRPREFIX(fcu->rna_path, prefix)) {
 				BLI_remlink(curves, fcu);
 				free_fcurve(fcu);
 			}

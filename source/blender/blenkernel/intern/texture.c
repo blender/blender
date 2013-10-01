@@ -124,11 +124,11 @@ void init_tex_mapping(TexMapping *texmap)
 		if (ELEM(texmap->type, TEXMAP_TYPE_TEXTURE, TEXMAP_TYPE_NORMAL)) {
 			/* keep matrix invertible */
 			if (fabsf(size[0]) < 1e-5f)
-				size[0] = signf(size[0])*1e-5f;
+				size[0] = signf(size[0]) * 1e-5f;
 			if (fabsf(size[1]) < 1e-5f)
-				size[1] = signf(size[1])*1e-5f;
+				size[1] = signf(size[1]) * 1e-5f;
 			if (fabsf(size[2]) < 1e-5f)
-				size[2] = signf(size[2])*1e-5f;
+				size[2] = signf(size[2]) * 1e-5f;
 		}
 		
 		size_to_mat4(smat, texmap->size);
