@@ -1443,7 +1443,9 @@ static void createTransCurveVerts(TransInfo *t)
 					{
 						copy_v3_v3(td->iloc, bezt->vec[0]);
 						td->loc = bezt->vec[0];
-						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1 : 0]);
+						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
+						                                  (t->around == V3D_LOCAL) ||
+						                                  (bezt->f2 & SELECT)) ? 1 : 0]);
 						if (hide_handles) {
 							if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
 							else td->flag = 0;
@@ -1511,7 +1513,9 @@ static void createTransCurveVerts(TransInfo *t)
 					{
 						copy_v3_v3(td->iloc, bezt->vec[2]);
 						td->loc = bezt->vec[2];
-						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1 : 2]);
+						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
+						                                  (t->around == V3D_LOCAL) ||
+						                                  (bezt->f2 & SELECT)) ? 1 : 2]);
 						if (hide_handles) {
 							if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
 							else td->flag = 0;
