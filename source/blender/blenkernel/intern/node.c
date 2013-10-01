@@ -1118,11 +1118,8 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	
 	if (bmain) {
 		/* is ntree part of library? */
-		for (newtree = bmain->nodetree.first; newtree; newtree = newtree->id.next) {
-			if (newtree == ntree) {
-				newtree = BKE_libblock_copy(&ntree->id);
-				break;
-			}
+		if (BLI_findindex(&bmain->nodetree, ntree) != -1) {
+			newtree = BKE_libblock_copy(&ntree->id);
 		}
 	}
 	else
@@ -1669,14 +1666,8 @@ static void free_localized_node_groups(bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP && node->id) {
-			bNodeTree *ngroup = (bNodeTree *)node->id, *tntree;
-			
-			/* is ntree part of library? */
-			for (tntree = G.main->nodetree.first; tntree; tntree = tntree->id.next)
-				if (tntree == ngroup)
-					break;
-			
-			if (tntree == NULL) {
+			bNodeTree *ngroup = (bNodeTree *)node->id;
+			if (BLI_findindex(&G.main->nodetree, ngroup) == -1) {
 				/* ntree is not in library, i.e. localized node group: free it */
 				ntreeFreeTree_ex(ngroup, false);
 				MEM_freeN(ngroup);
