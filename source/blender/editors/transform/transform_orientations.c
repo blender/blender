@@ -728,31 +728,46 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 			else {
+				const bool use_handle = (cu->drawflag & CU_HIDE_HANDLES) == 0;
+
 				for (nu = nurbs->first; nu; nu = nu->next) {
 					/* only bezier has a normal */
 					if (nu->type == CU_BEZIER) {
 						bezt = nu->bezt;
 						a = nu->pntsu;
 						while (a--) {
+							short flag = 0;
+
+#define SEL_F1 (1 << 0)
+#define SEL_F2 (1 << 1)
+#define SEL_F3 (1 << 2)
+
+							if (use_handle) {
+								if (bezt->f1 & SELECT) flag |= SEL_F1;
+								if (bezt->f2 & SELECT) flag |= SEL_F2;
+								if (bezt->f3 & SELECT) flag |= SEL_F3;
+							}
+							else {
+								flag = (bezt->f2 & SELECT) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
+							}
+
 							/* exception */
-							if ((bezt->f1 | bezt->f2 | bezt->f3) & SELECT) {
+							if (flag) {
 								float tvec[3];
-								if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
+								if ((v3d->around == V3D_LOCAL) ||
+								    ELEM3(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
+								{
 									BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
 									add_v3_v3(normal, tvec);
 								}
 								else {
-									if (bezt->f1 & SELECT) {
+									/* ignore bezt->f2 in this case */
+									if (flag & SEL_F1) {
 										sub_v3_v3v3(tvec, bezt->vec[0], bezt->vec[1]);
 										normalize_v3(tvec);
 										add_v3_v3(normal, tvec);
 									}
-									if (bezt->f2 & SELECT) {
-										sub_v3_v3v3(tvec, bezt->vec[0], bezt->vec[2]);
-										normalize_v3(tvec);
-										add_v3_v3(normal, tvec);
-									}
-									if (bezt->f3 & SELECT) {
+									if (flag & SEL_F3) {
 										sub_v3_v3v3(tvec, bezt->vec[1], bezt->vec[2]);
 										normalize_v3(tvec);
 										add_v3_v3(normal, tvec);
@@ -762,6 +777,11 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 								BKE_nurb_bezt_calc_plane(nu, bezt, tvec);
 								add_v3_v3(plane, tvec);
 							}
+
+#undef SEL_F1
+#undef SEL_F2
+#undef SEL_F3
+
 							bezt++;
 						}
 					}
