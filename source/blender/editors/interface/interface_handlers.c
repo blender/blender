@@ -2228,7 +2228,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				
 			case AKEY:
 				/* Ctrl + A: Select all */
+#if !defined(__APPLE__)
 				if (event->ctrl && !(event->alt || event->shift || event->oskey)) {
+#else
+				if (event->oskey && !(event->alt || event->shift || event->ctrl)) { // OSX conformity
+#endif
 					ui_textedit_move(but, data, STRCUR_DIR_PREV,
 					                 false, STRCUR_JUMP_ALL);
 					ui_textedit_move(but, data, STRCUR_DIR_NEXT,
