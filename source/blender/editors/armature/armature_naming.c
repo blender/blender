@@ -294,9 +294,13 @@ static int armature_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 	/* since we renamed stuff... */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+	/* copied from #rna_Bone_update_renamed */
+	/* redraw view */
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+	/* update animation channels */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
+
 	return OPERATOR_FINISHED;
 }
 
