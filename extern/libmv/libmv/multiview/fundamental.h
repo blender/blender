@@ -151,22 +151,22 @@ void FundamentalToEssential(const Mat3 &F, Mat3 *E);
  * Defaults should be suitable for a wide range of use cases, but
  * better performance and accuracy might require tweaking/
  */
-typedef struct FundamentalEstimationOptions {
-  /* Default constructor which sets up a options for generic usage. */
+struct FundamentalEstimationOptions {
+  // Default constructor which sets up a options for generic usage.
   FundamentalEstimationOptions(void);
 
-  /* Refine fundamental matrix even if algebraic estimation reported failure. */
+  // Refine fundamental matrix even if algebraic estimation reported failure.
   bool use_refine_if_algebraic_fails;
 
-  /* Maximal number of iterations for refinement step. */
+  // Maximal number of iterations for refinement step.
   int max_num_iterations;
 
-  /* Paramaneter tolerance used by minimizer termination criteria. */
+  // Paramaneter tolerance used by minimizer termination criteria.
   float parameter_tolerance;
 
-  /* Function tolerance used  by minimizer termination criteria. */
+  // Function tolerance used  by minimizer termination criteria.
   float function_tolerance;
-} FundamentalEstimationOptions;
+};
 
 /**
  * Fundamental transformation estimation.

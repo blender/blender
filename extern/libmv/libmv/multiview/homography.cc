@@ -185,9 +185,11 @@ class HomographySymmetricGeometricCostFunctor {
     H_x /= H_x(2);
     Hinv_y /= Hinv_y(2);
 
+    // This is a forward error.
     residuals[0] = H_x(0) - T(y_(0));
     residuals[1] = H_x(1) - T(y_(1));
 
+    // This is a backward error.
     residuals[2] = Hinv_y(0) - T(x_(0));
     residuals[3] = Hinv_y(1) - T(x_(1));
 
@@ -201,11 +203,12 @@ class HomographySymmetricGeometricCostFunctor {
 /** 2D Homography transformation estimation in the case that points are in
  * euclidean coordinates.
  */
-bool Homography2DFromCorrespondencesEuc(const Mat &x1,
-                                        const Mat &x2,
-                                        const HomographyEstimationOptions &options,
-                                        Mat3 *H) {
-  /* TODO(sergey): Support homogenous coordinates, not just euclidean. */
+bool Homography2DFromCorrespondencesEuc(
+    const Mat &x1,
+    const Mat &x2,
+    const HomographyEstimationOptions &options,
+    Mat3 *H) {
+  // TODO(sergey): Support homogenous coordinates, not just euclidean.
 
   assert(2 == x1.rows());
   assert(4 <= x1.cols());
@@ -234,7 +237,7 @@ bool Homography2DFromCorrespondencesEuc(const Mat &x1,
     problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<
             HomographySymmetricGeometricCostFunctor,
-            4, /* num_residuals */
+            4,  // num_residuals
             9>(homography_symmetric_geometric_cost_function),
         NULL,
         H->data());
@@ -257,7 +260,6 @@ bool Homography2DFromCorrespondencesEuc(const Mat &x1,
   LG << "Final refined matrix: " << H;
 
   return !(summary.termination_type == ceres::DID_NOT_RUN ||
-           summary.termination_type == ceres::NO_CONVERGENCE ||
            summary.termination_type == ceres::NUMERICAL_FAILURE);
 }
 
