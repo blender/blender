@@ -1663,6 +1663,28 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *so
 		MEM_freeN(sock->default_value);
 }
 
+static void free_localized_node_groups(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == NODE_GROUP && node->id) {
+			bNodeTree *ngroup = (bNodeTree *)node->id, *tntree;
+			
+			/* is ntree part of library? */
+			for (tntree = G.main->nodetree.first; tntree; tntree = tntree->id.next)
+				if (tntree == ngroup)
+					break;
+			
+			if (tntree == NULL) {
+				/* ntree is not in library, i.e. localized node group: free it */
+				ntreeFreeTree_ex(ngroup, false);
+				MEM_freeN(ngroup);
+			}
+		}
+	}
+}
+
 /* do not free ntree itself here, BKE_libblock_free calls this function too */
 void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 {
@@ -1688,6 +1710,9 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 				break;
 		}
 	}
+	
+	/* XXX not nice, but needed to free localized node groups properly */
+	free_localized_node_groups(ntree);
 	
 	/* unregister associated RNA types */
 	ntreeInterfaceTypeFree(ntree);
@@ -1990,23 +2015,9 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 /* we have to assume the editor already changed completely */
 void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 {
-	bNode *node;
-	
-	if (localtree) {
-		if (ntree) {
-			if (ntree->typeinfo->local_merge)
-				ntree->typeinfo->local_merge(localtree, ntree);
-		}
-		
-		for (node = localtree->nodes.first; node; node = node->next) {
-			if (node->type == NODE_GROUP && node->id) {
-				bNodeTree *localgroup = (bNodeTree *)node->id;
-				/* not passing original node tree for node group merge,
-				 * because there may be multiple instances using the same group tree.
-				 */
-				ntreeLocalMerge(localgroup, NULL);
-			}
-		}
+	if (ntree && localtree) {
+		if (ntree->typeinfo->local_merge)
+			ntree->typeinfo->local_merge(localtree, ntree);
 		
 		ntreeFreeTree_ex(localtree, FALSE);
 		MEM_freeN(localtree);
