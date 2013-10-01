@@ -3891,7 +3891,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					}
 					
 					/* if handles were not selected, store their selection status */
-					if (!(sel1) && !(sel3)) {
+					if (!(sel1) || !(sel3)) {
 						if (hdata == NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
 					}
