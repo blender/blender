@@ -123,6 +123,17 @@
 #include "transform.h"
 #include "bmesh.h"
 
+/**
+ * Transforming around ourselves is no use, fallback to individual origins,
+ * useful for curve/armatures.
+ */
+static void transform_around_single_fallback(TransInfo *t)
+{
+	if (t->total == 1 && ELEM3(t->around, V3D_CENTER, V3D_CENTROID, V3D_ACTIVE)) {
+		t->around = V3D_LOCAL;
+	}
+}
+
 /* when transforming islands */
 struct TransIslandData {
 	float co[3];
@@ -1084,6 +1095,8 @@ static void createTransArmatureVerts(TransInfo *t)
 
 	if (!t->total) return;
 
+	transform_around_single_fallback(t);
+
 	copy_m3_m4(mtx, t->obedit->obmat);
 	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
@@ -1407,6 +1420,8 @@ static void createTransCurveVerts(TransInfo *t)
 	if (propmode) t->total = count;
 	else t->total = countsel;
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Curve EditMode)");
+
+	transform_around_single_fallback(t);
 
 	copy_m3_m4(mtx, t->obedit->obmat);
 	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
