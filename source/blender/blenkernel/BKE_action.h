@@ -188,6 +188,10 @@ struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);
  */
 struct bPoseChannel *BKE_pose_channel_verify(struct bPose *pose, const char *name);
 
+#ifndef NDEBUG
+bool BKE_pose_channels_is_valid(const struct bPose *pose);
+#endif
+
 /* Copy the data from the action-pose (src) into the pose */
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 

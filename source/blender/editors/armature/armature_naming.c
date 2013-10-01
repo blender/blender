@@ -192,6 +192,8 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 							BLI_ghash_insert(gh, pchan->name, pchan);
 						}
 					}
+
+					BLI_assert(BKE_pose_channels_is_valid(ob->pose) == true);
 				}
 				
 				/* Update any object constraints to use the new bone name */

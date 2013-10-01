@@ -489,6 +489,22 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 	return chan;
 }
 
+#ifndef NDEBUG
+bool BKE_pose_channels_is_valid(const bPose *pose)
+{
+	if (pose->chanhash) {
+		bPoseChannel *pchan;
+		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+			if (BLI_ghash_lookup(pose->chanhash, pchan->name) != pchan) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+#endif
 /* Find the active posechannel for an object (we can't just use pose, as layer info is in armature) */
 bPoseChannel *BKE_pose_channel_active(Object *ob)
 {
