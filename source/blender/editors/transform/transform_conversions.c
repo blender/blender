@@ -129,7 +129,10 @@
  */
 static void transform_around_single_fallback(TransInfo *t)
 {
-	if (t->total == 1 && ELEM3(t->around, V3D_CENTER, V3D_CENTROID, V3D_ACTIVE)) {
+	if ((t->total == 1) &&
+	    (ELEM3(t->around, V3D_CENTER, V3D_CENTROID, V3D_ACTIVE)) &&
+	    (ELEM3(t->mode, TFM_RESIZE, TFM_ROTATION, TFM_TRACKBALL)))
+	{
 		t->around = V3D_LOCAL;
 	}
 }
