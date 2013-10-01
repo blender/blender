@@ -877,7 +877,8 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 	if (lineset->linestyle) {
 		lineset->linestyle->id.us--;
 		lineset->linestyle = BKE_copy_linestyle(lineset->linestyle);
-	} else {
+	}
+	else {
 		lineset->linestyle = BKE_new_linestyle("LineStyle", NULL);
 	}
 
