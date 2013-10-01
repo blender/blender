@@ -214,8 +214,7 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
                                          &H);
 
       // Convert homography to original pixel space.
-      Mat3 N = IntrinsicsNormalizationMatrix(intrinsics);
-      H = N.inverse() * H * N;
+      H = N_inverse * H * N;
 
       FundamentalEstimationOptions fundamental_estimation_options;
       FundamentalFromCorrespondencesEuc(x1,
@@ -224,7 +223,7 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
                                         &F);
 
       // Convert fundamental to original pixel space.
-      F = N.inverse() * F * N;
+      F = N_inverse * F * N;
 
       // TODO(sergey): STEP 2: Discard outlier matches
 
