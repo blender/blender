@@ -1933,7 +1933,13 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		 * Note: previews are not copied here.
 		 */
 		ltree = ntreeCopyTree_internal(ntree, FALSE, FALSE, FALSE);
-	
+		
+		for (node = ltree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_GROUP && node->id) {
+				node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
+			}
+		}
+		
 		if (adt) {
 			AnimData *ladt = BKE_animdata_from_id(&ltree->id);
 	
@@ -1978,9 +1984,23 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 /* we have to assume the editor already changed completely */
 void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 {
-	if (localtree && ntree) {
-		if (ntree->typeinfo->local_merge)
-			ntree->typeinfo->local_merge(localtree, ntree);
+	bNode *node;
+	
+	if (localtree) {
+		if (ntree) {
+			if (ntree->typeinfo->local_merge)
+				ntree->typeinfo->local_merge(localtree, ntree);
+		}
+		
+		for (node = localtree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_GROUP && node->id) {
+				bNodeTree *localgroup = (bNodeTree *)node->id;
+				/* not passing original node tree for node group merge,
+				 * because there may be multiple instances using the same group tree.
+				 */
+				ntreeLocalMerge(localgroup, NULL);
+			}
+		}
 		
 		ntreeFreeTree_ex(localtree, FALSE);
 		MEM_freeN(localtree);
