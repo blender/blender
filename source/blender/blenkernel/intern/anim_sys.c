@@ -42,6 +42,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
+#include "BLI_listbase.h"
 
 #include "BLF_translation.h"
 
@@ -757,6 +758,76 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	/* free the temp names */
 	MEM_freeN(oldN);
 	MEM_freeN(newN);
+}
+
+/* *************************** */
+/* remove of individual paths */
+
+/* Check RNA-Paths for a list of F-Curves */
+static void fcurves_path_remove_fix(const char *prefix, ListBase *curves)
+{
+	FCurve *fcu, *fcn;
+	if (!prefix) return;
+
+	/* we need to check every curve... */
+	for (fcu = curves->first; fcu; fcu = fcn) {
+		fcn = fcu->next;
+
+		if (fcu->rna_path) {
+			if (strncmp(prefix, fcu->rna_path, strlen(prefix)) == 0) {
+				BLI_remlink(curves, fcu);
+				free_fcurve(fcu);
+			}
+		}
+	}
+}
+
+/* Check RNA-Paths for a list of F-Curves */
+static void nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
+{
+	NlaStrip *strip;
+
+	/* recursively check strips, fixing only actions... */
+	for (strip = strips->first; strip; strip = strip->next) {
+
+		/* fix strip's action */
+		if (strip->act)
+			fcurves_path_remove_fix(prefix, &strip->act->curves);
+
+		/* check sub-strips (if metas) */
+		nlastrips_path_remove_fix(prefix, &strip->strips);
+	}
+}
+
+void BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
+{
+	/* Only some ID-blocks have this info for now, so we cast the
+	 * types that do to be of type IdAdtTemplate
+	 */
+	NlaTrack *nlt;
+
+	if (id_type_can_have_animdata(id)) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)id;
+		AnimData *adt = iat->adt;
+
+		/* check if there's any AnimData to start with */
+		if (adt) {
+
+			/* free fcurves */
+			if (adt->action)
+				fcurves_path_remove_fix(prefix, &adt->action->curves);
+
+			if (adt->tmpact)
+				fcurves_path_remove_fix(prefix, &adt->tmpact->curves);
+
+			/* free drivers - stored as a list of F-Curves */
+			fcurves_path_remove_fix(prefix, &adt->drivers);
+
+			/* NLA Data - Animation Data for Strips */
+			for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
+				nlastrips_path_remove_fix(prefix, &nlt->strips);
+		}
+	}
 }
 
 /* Whole Database Ops -------------------------------------------- */

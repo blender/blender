@@ -1594,6 +1594,8 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock, *nextsock;
+	char propname_esc[MAX_IDPROP_NAME * 2];
+	char prefix[MAX_IDPROP_NAME * 2];
 	
 	/* extra free callback */
 	if (node->typeinfo && node->typeinfo->freefunc_api) {
@@ -1613,6 +1615,11 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 		
 		BLI_remlink(&ntree->nodes, node);
 		
+		BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
+		BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
+
+		BKE_animdata_fix_paths_remove((ID *)ntree, prefix);
+
 		if (ntree->typeinfo && ntree->typeinfo->free_node_cache)
 			ntree->typeinfo->free_node_cache(ntree, node);
 		
