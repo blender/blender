@@ -1107,7 +1107,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
  * copying for internal use (threads for eg), where you wont want it to modify the
  * scene data.
  */
-static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_user, const short do_make_extern, const short copy_previews)
+static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_id_user, bool do_make_extern, bool copy_previews)
 {
 	bNodeTree *newtree;
 	bNode *node /*, *nnode */ /* UNUSED */, *last;
@@ -1116,13 +1116,19 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 	
 	if (ntree == NULL) return NULL;
 	
-	/* is ntree part of library? */
-	for (newtree = G.main->nodetree.first; newtree; newtree = newtree->id.next)
-		if (newtree == ntree) break;
-	if (newtree) {
-		newtree = BKE_libblock_copy(&ntree->id);
+	if (bmain) {
+		/* is ntree part of library? */
+		for (newtree = bmain->nodetree.first; newtree; newtree = newtree->id.next) {
+			if (newtree == ntree) {
+				newtree = BKE_libblock_copy(&ntree->id);
+				break;
+			}
+		}
 	}
-	else {
+	else
+		newtree = NULL;
+	
+	if (newtree == NULL) {
 		newtree = MEM_dupallocN(ntree);
 		newtree->id.lib = NULL;	/* same as owning datablock id.lib */
 		BKE_libblock_copy_data(&newtree->id, &ntree->id, true); /* copy animdata and ID props */
@@ -1208,7 +1214,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 
 bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, const short do_id_user)
 {
-	return ntreeCopyTree_internal(ntree, do_id_user, TRUE, TRUE);
+	return ntreeCopyTree_internal(ntree, G.main, do_id_user, TRUE, TRUE);
 }
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
@@ -1932,7 +1938,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* Make full copy.
 		 * Note: previews are not copied here.
 		 */
-		ltree = ntreeCopyTree_internal(ntree, FALSE, FALSE, FALSE);
+		ltree = ntreeCopyTree_internal(ntree, NULL, FALSE, FALSE, FALSE);
 		
 		for (node = ltree->nodes.first; node; node = node->next) {
 			if (node->type == NODE_GROUP && node->id) {
