@@ -574,13 +574,13 @@ void RNA_define_free(BlenderRNA *UNUSED(brna))
 	DefRNA.error = 0;
 }
 
-void RNA_define_verify_sdna(int verify)
+void RNA_define_verify_sdna(bool verify)
 {
 	DefRNA.verify = verify;
 }
 
 #ifndef RNA_RUNTIME
-void RNA_define_animate_sdna(int animate)
+void RNA_define_animate_sdna(bool animate)
 {
 	DefRNA.animate = animate;
 }

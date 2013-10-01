@@ -908,6 +908,15 @@ static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, NULL);
 }
 
+static char *rna_MaterialSlot_path(PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	int index = (Material **)ptr->data - ob->mat;
+
+	/* from armature... */
+	return BLI_sprintfN("material_slots[%d]", index);
+}
+
 /* why does this have to be so complicated?, can't all this crap be
  * moved to in BGE conversion function? - Campbell *
  *
@@ -1553,6 +1562,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Material slot name");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
+
+	RNA_def_struct_path_func(srna, "rna_MaterialSlot_path");
 }
 
 static void rna_def_object_game_settings(BlenderRNA *brna)
@@ -2766,11 +2777,14 @@ static void rna_def_object_base(BlenderRNA *brna)
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
+
+	RNA_define_animate_sdna(false);
 	rna_def_object_game_settings(brna);
 	rna_def_object_base(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);
+	RNA_define_animate_sdna(true);
 }
 
 #endif
