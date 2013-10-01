@@ -182,13 +182,17 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				if (ob->pose) {
 					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, oldname);
 					if (pchan) {
+						GHash *gh = ob->pose->chanhash;
+
+						/* remove the old hash entry, and replace with the new name */
+						if (gh) {
+							BLI_assert(BLI_ghash_haskey(gh, pchan->name));
+							BLI_ghash_remove(gh, pchan->name, NULL, NULL);
+						}
+
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
-						
-						if (ob->pose->chanhash) {
-							GHash *gh = ob->pose->chanhash;
-							
-							/* remove the old hash entry, and replace with the new name */
-							BLI_ghash_remove(gh, oldname, NULL, NULL);
+
+						if (gh) {
 							BLI_ghash_insert(gh, pchan->name, pchan);
 						}
 					}
