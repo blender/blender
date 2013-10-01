@@ -45,6 +45,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_paint.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_depsgraph.h"
@@ -537,6 +538,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 	BMesh *bm = em->bm;
 
 	op->customdata = data;
+
+	curvemapping_initialize (ts->uvsculpt->paint.brush->curve);
 
 	if (data) {
 		int counter = 0, i;
