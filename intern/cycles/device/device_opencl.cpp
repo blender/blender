@@ -892,8 +892,16 @@ public:
 
 	void tex_free(device_memory& mem)
 	{
-		if(mem.data_pointer)
+		if(mem.device_pointer) {
+			foreach(const MemMap::value_type& value, mem_map) {
+				if(value.second == mem.device_pointer) {
+					mem_map.erase(value.first);
+					break;
+				}
+			}
+
 			mem_free(mem);
+		}
 	}
 
 	size_t global_size_round_up(int group_size, int global_size)

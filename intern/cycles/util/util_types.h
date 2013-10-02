@@ -545,10 +545,7 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m12
 
 #ifdef __KERNEL_OPENCL__
 
-__device_inline void float4_store_half(half *h, const float4 *f, float scale)
-{
-	vstore_half4(*f * scale, 0, h);
-}
+#define float4_store_half(h, f, scale) vstore_half4(*(f) * (scale), 0, h);
 
 #else
 

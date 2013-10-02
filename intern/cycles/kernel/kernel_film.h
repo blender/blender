@@ -70,8 +70,8 @@ __device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 	/* buffer offset */
 	int index = offset + x + y*stride;
 
-	float4 *in = (float4*)(buffer + index*kernel_data.film.pass_stride);
-	half *out = (half*)rgba + index*4;
+	__global float4 *in = (__global float4*)(buffer + index*kernel_data.film.pass_stride);
+	__global half *out = (__global half*)rgba + index*4;
 	float scale = kernel_data.film.exposure*sample_scale;
 
 	float4_store_half(out, in, scale);

@@ -468,7 +468,9 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	float min_ray_pdf = FLT_MAX;
 	float ray_pdf = 0.0f;
+#ifdef __LAMP_MIS__
 	float ray_t = 0.0f;
+#endif
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
 #ifdef __CMJ__
