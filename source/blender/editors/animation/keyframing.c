@@ -141,9 +141,18 @@ bAction *verify_adt_action(ID *id, short add)
 	/* init action if none available yet */
 	/* TODO: need some wizardry to handle NLA stuff correct */
 	if ((adt->action == NULL) && (add)) {
+		/* init action name from name of ID block */
 		char actname[sizeof(id->name) - 2];
 		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
+		
+		/* create action */
 		adt->action = add_empty_action(G.main, actname);
+		
+		/* set ID-type from ID-block that this is going to be assigned to
+		 * so that users can't accidentally break actions by assigning them
+		 * to the wrong places
+		 */
+		adt->action->idroot = GS(id->name);
 	}
 		
 	/* return the action */
