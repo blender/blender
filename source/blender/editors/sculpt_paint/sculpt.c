@@ -3801,10 +3801,24 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	ss->cache = cache;
 
 	/* Set scaling adjustment */
-	cache->scale[0] = 1.0f / ob->size[0];
-	cache->scale[1] = 1.0f / ob->size[1];
-	cache->scale[2] = 1.0f / ob->size[2];
 
+	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
+		cache->scale[0] = 1.0f / ob->size[0];
+		cache->scale[1] = 1.0f / ob->size[1];
+		cache->scale[2] = 1.0f / ob->size[2];
+	}
+	else {
+		float max_scale = 0.0f;
+
+		for (i = 0; i < 3; i ++) {
+			if (fabs(ob->size[i]) > max_scale)
+				max_scale = fabs(ob->size[i]);
+		}
+
+		cache->scale[0] = max_scale / ob->size[0];
+		cache->scale[1] = max_scale / ob->size[1];
+		cache->scale[2] = max_scale / ob->size[2];
+	}
 	cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
 
 	cache->flag = 0;
