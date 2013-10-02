@@ -116,7 +116,8 @@ int system_cpu_bits()
 	return (sizeof(void*)*8);
 }
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86)
+/* SSE optimization disabled for now on 32 bit GCC, see bug #36316 */
+#if defined(__x86_64__) || defined(_M_X64) || ((defined(i386) || defined(_M_IX86)) && !defined(__GNUC__))
 
 struct CPUCapabilities {
 	bool x64;

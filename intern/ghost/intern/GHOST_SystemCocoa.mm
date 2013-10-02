@@ -1025,6 +1025,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	}
 		switch (eventType) {
 			case GHOST_kEventWindowClose:
+				// make window that should be closed frontmost
+				[window->getCocoaWindow() makeKeyAndOrderFront:nil];
 				// check for index of mainwindow as it would quit blender without dialog and discard
 				if (window->getCocoaWindow() != [windowsList objectAtIndex:([windowsList count] - 1)]) {
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
