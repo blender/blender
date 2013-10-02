@@ -61,6 +61,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
+#include "BKE_idcode.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_context.h"
@@ -1005,6 +1006,34 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
+
+
+
+/**
+ * \note caller needs to run #BKE_nla_tweakedit_remap to get NLA relative frame.
+ *       caller should also check #BKE_fcurve_is_protected before keying.
+ */
+static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
+{
+	bool found;
+	int i;
+
+	/* try to find index of beztriple to get rid of */
+	i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
+	if (found) {
+		/* delete the key at the index (will sanity check + do recalc afterwards) */
+		delete_fcurve_key(fcu, i, 1);
+
+		/* Only delete curve too if it won't be doing anything anymore */
+		if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
+			ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
+
+		/* return success */
+		return true;
+	}
+	return false;
+}
+
 short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
@@ -1064,32 +1093,20 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
 		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
-		bool found;
-		int i;
-		
+
 		/* check if F-Curve exists and/or whether it can be edited */
 		if (fcu == NULL)
 			continue;
-			
-		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
-			if (G.debug & G_DEBUG)
-				printf("WARNING: not deleting keyframe for locked F-Curve\n");
+
+		if (BKE_fcurve_is_protected(fcu)) {
+			BKE_reportf(reports, RPT_WARNING,
+			            "not deleting keyframe for locked F-Curve '%s' for %s '%s'",
+			            fcu->rna_path, BKE_idcode_to_name(GS(id->name)), id->name + 2);
 			continue;
 		}
-		
-		/* try to find index of beztriple to get rid of */
-		i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
-		if (found) {
-			/* delete the key at the index (will sanity check + do recalc afterwards) */
-			delete_fcurve_key(fcu, i, 1);
-			
-			/* Only delete curve too if it won't be doing anything anymore */
-			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
-				ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
-			
-			/* return success */
-			ret++;
-		}
+
+		ret += delete_keyframe_fcurve(adt, fcu, cfra);
+
 	}
 	
 	/* return success/failure */
@@ -1167,7 +1184,7 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 		if (fcu == NULL)
 			continue;
 
-		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+		if (BKE_fcurve_is_protected(fcu)) {
 			if (G.debug & G_DEBUG)
 				printf("WARNING: not deleting keyframe for locked F-Curve\n");
 			continue;
@@ -1546,14 +1563,22 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 			AnimData *adt = ob->adt;
 			bAction *act = adt->action;
 			FCurve *fcu, *fcn;
+			const float cfra_unmap = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 			
 			for (fcu = act->curves.first; fcu; fcu = fcn) {
 				fcn = fcu->next;
-				
+
+				if (BKE_fcurve_is_protected(fcu)) {
+					BKE_reportf(op->reports, RPT_WARNING,
+					            "not deleting keyframe for locked F-Curve '%s', object '%s'",
+					            fcu->rna_path, id->name + 2);
+					continue;
+				}
+
 				/* delete keyframes on current frame 
 				 * WARNING: this can delete the next F-Curve, hence the "fcn" copying
 				 */
-				success += delete_keyframe(op->reports, id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+				success += delete_keyframe_fcurve(adt, fcu, cfra_unmap);
 			}
 		}
 		

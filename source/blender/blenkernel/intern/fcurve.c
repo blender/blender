@@ -688,21 +688,27 @@ short fcurve_are_keyframes_usable(FCurve *fcu)
 	return 1;
 }
 
+bool BKE_fcurve_is_protected(FCurve *fcu)
+{
+	return ((fcu->flag & FCURVE_PROTECTED) ||
+	        ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)));
+}
+
 /* Can keyframes be added to F-Curve? 
  * Keyframes can only be added if they are already visible
  */
-short fcurve_is_keyframable(FCurve *fcu)
+bool fcurve_is_keyframable(FCurve *fcu)
 {
 	/* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
 	if (fcurve_are_keyframes_usable(fcu) == 0)
-		return 0;
+		return false;
 		
 	/* F-Curve must currently be editable too */
-	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) )
-		return 0;
+	if (BKE_fcurve_is_protected(fcu))
+		return false;
 	
 	/* F-Curve is keyframable */
-	return 1;
+	return true;
 }
 
 /* ***************************** Keyframe Column Tools ********************************* */

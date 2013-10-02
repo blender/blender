@@ -951,7 +951,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 		/* 1) draw curve line */
 		{
 			/* set color/drawing style for curve itself */
-			if (((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED)) {
+			if (BKE_fcurve_is_protected(fcu)) {
 				/* protected curves (non editable) are drawn with dotted lines */
 				setlinestyle(2);
 			}

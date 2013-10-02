@@ -229,7 +229,8 @@ short calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ym
 short fcurve_are_keyframes_usable(struct FCurve *fcu);
 
 /* Can keyframes be added to F-Curve? */
-short fcurve_is_keyframable(struct FCurve *fcu);
+bool fcurve_is_keyframable(struct FCurve *fcu);
+bool BKE_fcurve_is_protected(struct FCurve *fcu);
 
 /* -------- Curve Sanity --------  */
 
