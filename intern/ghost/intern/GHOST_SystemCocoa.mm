@@ -1025,8 +1025,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	}
 		switch (eventType) {
 			case GHOST_kEventWindowClose:
-				// check for index 1 and discard close for mainwindow as it would quit blender without dialog
-				if ([windowsList count] > 1 && (window->getCocoaWindow() != [windowsList objectAtIndex:1])) {
+				// check for index of mainwindow as it would quit blender without dialog and discard
+				if (window->getCocoaWindow() != [windowsList objectAtIndex:([windowsList count] - 1)]) {
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
 				}
 				else {
