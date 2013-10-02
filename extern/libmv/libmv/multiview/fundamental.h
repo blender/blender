@@ -175,10 +175,11 @@ struct FundamentalEstimationOptions {
  * correspondences by doing algebraic estimation first followed with result
  * refinement.
  */
-bool FundamentalFromCorrespondencesEuc(const Mat &x1,
-                                       const Mat &x2,
-                                       const FundamentalEstimationOptions &options,
-                                       Mat3 *F);
+bool FundamentalFromCorrespondencesEuc(
+    const Mat &x1,
+    const Mat &x2,
+    const FundamentalEstimationOptions &options,
+    Mat3 *F);
 
 }  // namespace libmv
 

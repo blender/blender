@@ -220,7 +220,8 @@ bool Homography2DFromCorrespondencesEuc(
       Homography2DFromCorrespondencesLinear(x1, x2, H,
           options.expected_algebraic_precision);
 
-  LG << "Algebraic result " << algebraic_success << ", estimated matrix " << H;
+  LG << "Algebraic result " << algebraic_success
+     << ", estimated matrix:\n" << *H;
 
   if (!algebraic_success && !options.use_refine_if_algebraic_fails) {
     return false;
@@ -257,7 +258,7 @@ bool Homography2DFromCorrespondencesEuc(
 
   VLOG(1) << "Summary:\n" << summary.FullReport();
 
-  LG << "Final refined matrix: " << H;
+  LG << "Final refined matrix:\n" << *H;
 
   return !(summary.termination_type == ceres::DID_NOT_RUN ||
            summary.termination_type == ceres::NUMERICAL_FAILURE);
