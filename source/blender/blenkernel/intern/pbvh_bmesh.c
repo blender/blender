@@ -438,10 +438,6 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 				if (new_node) {
 					pbvh_bmesh_vert_ownership_transfer(bvh, new_node, v);
 				}
-				else {
-					BLI_gset_remove(f_node->bm_unique_verts, v, NULL);
-					BLI_ghash_remove(bvh->bm_vert_to_node, v, NULL, NULL);
-				}
 			}
 			else {
 				/* Remove from other verts */
