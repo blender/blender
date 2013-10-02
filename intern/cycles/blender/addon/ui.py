@@ -1085,7 +1085,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
         mapping = node.texture_mapping
 
-        layout.prop(mapping, "type", expand=True)
+        layout.prop(mapping, "vector_type", expand=True)
 
         row = layout.row()
 

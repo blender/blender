@@ -44,7 +44,7 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexVoronoi *tex = MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_TEXTURE);
+	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
 	default_color_mapping(&tex->base.color_mapping);
 	tex->coloring = SHD_VORONOI_INTENSITY;
 

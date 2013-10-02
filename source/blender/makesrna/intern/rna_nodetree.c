@@ -3147,7 +3147,7 @@ static void def_sh_mapping(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
 
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "vector_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_vect_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of vector that the mapping transforms");
@@ -3553,7 +3553,8 @@ static void def_sh_vect_transform(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeShaderVectTransform", "storage");
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "vector_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_vect_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");

@@ -51,7 +51,7 @@ static bNodeSocketTemplate sh_node_tex_brick_out[] = {
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexBrick *tex = MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_TEXTURE);
+	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
 	default_color_mapping(&tex->base.color_mapping);
 	
 	tex->offset = 0.5f;

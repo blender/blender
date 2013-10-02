@@ -709,7 +709,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 {
 	uiLayout *row;
 	
-	uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "vector_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 	uiItemL(layout, IFACE_("Location:"), ICON_NONE);
 	row = uiLayoutRow(layout, TRUE);
@@ -739,7 +739,7 @@ static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 { 
-	uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "vector_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "convert_from", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "convert_to", 0, "", ICON_NONE);
 }

@@ -517,7 +517,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "TexMapping", NULL);
 	RNA_def_struct_ui_text(srna, "Texture Mapping", "Texture coordinate mapping settings");
 
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "vector_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_vect_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of vector that the mapping transforms");
