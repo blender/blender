@@ -354,7 +354,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, **edges = NULL;
 	BLI_array_declare(edges);
 	float min[3], max[3], center[3];
-	int i, tot;
+	unsigned int i, tot;
 	BMOpSlot *slot_targetmap;
 	
 	BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
@@ -369,6 +369,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	         BMW_NIL_LAY);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BMVert *v_tar;
+
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
@@ -381,19 +383,29 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
 			minmax_v3v3_v3(min, max, e->v1->co);
 			minmax_v3v3_v3(min, max, e->v2->co);
+
+			/* prevent adding to slot_targetmap multiple times */
+			BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
+			BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 		}
 
 		mid_v3_v3v3(center, min, max);
 
 		/* snap edges to a point.  for initial testing purposes anyway */
+		v_tar = edges[0]->v1;
+
 		for (i = 0; i < tot; i++) {
-			copy_v3_v3(edges[i]->v1->co, center);
-			copy_v3_v3(edges[i]->v2->co, center);
-			
-			if (edges[i]->v1 != edges[0]->v1)
-				BMO_slot_map_elem_insert(&weldop, slot_targetmap, edges[i]->v1, edges[0]->v1);
-			if (edges[i]->v2 != edges[0]->v1)
-				BMO_slot_map_elem_insert(&weldop, slot_targetmap, edges[i]->v2, edges[0]->v1);
+			unsigned int j;
+
+			for (j = 0; j < 2; j++) {
+				BMVert *v_src = *((&edges[i]->v1) + j);
+
+				copy_v3_v3(v_src->co, center);
+				if ((v_src != v_tar) && !BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
+					BM_elem_flag_enable(v_src, BM_ELEM_TAG);
+					BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
+				}
+			}
 		}
 	}
 	
