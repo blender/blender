@@ -65,6 +65,14 @@ typedef struct {
 	long input_mode;
 } MotifWmHints;
 
+// Workaround for MESA bug #54080
+// https://bugs.freedesktop.org/show_bug.cgi?id=54080()
+#define SWAP_INTERVALS_WORKAROUND
+
+#ifdef SWAP_INTERVALS_WORKAROUND
+static bool g_swap_interwal_disabled = false;
+#endif  // SWAP_INTERVALS_WORKAROUND
+
 #define MWM_HINTS_DECORATIONS         (1L << 1)
 
 
@@ -1519,18 +1527,67 @@ endFullScreen() const
 GHOST_TSuccess
 GHOST_WindowX11::
 setSwapInterval(int interval) {
-	if (!GLX_EXT_swap_control)
+	if (!GLX_EXT_swap_control || !glXSwapIntervalEXT
+#ifdef SWAP_INTERVALS_WORKAROUND
+	    || g_swap_interwal_disabled
+#endif  // SWAP_INTERVALS_WORKAROUND
+	    )
+	{
 		return GHOST_kFailure;
+	}
 	glXSwapIntervalEXT(m_display, m_window, interval);
 	return GHOST_kSuccess;
 }
+
+#ifdef SWAP_INTERVALS_WORKAROUND
+static int QueryDrawable_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
+{
+	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
+	        theEvent->error_code, theEvent->request_code);
+	if (!g_swap_interwal_disabled) {
+		fprintf(stderr, "Disabling SWAP INTERVALS extension\n");
+		g_swap_interwal_disabled = true;
+	}
+	return 0;
+}
+
+static int QueryDrawable_ApplicationIOErrorHandler(Display *display)
+{
+	fprintf(stderr, "Ignoring Xlib error: error IO\n");
+	if (!g_swap_interwal_disabled) {
+		fprintf(stderr, "Disabling SWAP INTERVALS extension\n");
+		g_swap_interwal_disabled = true;
+	}
+	return 0;
+}
+#endif  // SWAP_INTERVALS_WORKAROUND
 
 int
 GHOST_WindowX11::
 getSwapInterval() {
 	if (GLX_EXT_swap_control) {
-		unsigned int value;
+#ifdef SWAP_INTERVALS_WORKAROUND
+		/* XXX: Current MESA driver will give GLXBadDrawable for all
+		 *      the glXQueryDrawable requests with direct contexts.
+		 *
+		 *      To prevent crashes and unexpected behaviors, we will
+		 *      disable swap interwals extension if query fails here.
+		 *      (because if we will override interval without having
+		 *      old value we couldn't restore it properly).
+		 */
+		XErrorHandler old_handler      = XSetErrorHandler(QueryDrawable_ApplicationErrorHandler);
+		XIOErrorHandler old_handler_io = XSetIOErrorHandler(QueryDrawable_ApplicationIOErrorHandler);
+#endif  // SWAP_INTERVALS_WORKAROUND
+
+		unsigned int value = 0;
 		glXQueryDrawable(m_display, m_window, GLX_SWAP_INTERVAL_EXT, &value);
+
+#ifdef SWAP_INTERVALS_WORKAROUND
+		/* Restore handler */
+		(void) XSetErrorHandler(old_handler);
+		(void) XSetIOErrorHandler(old_handler_io);
+#endif  // SWAP_INTERVALS_WORKAROUND
+
 		return (int)value;
 	}
 	return 0;
