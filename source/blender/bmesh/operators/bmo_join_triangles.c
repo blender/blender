@@ -308,7 +308,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* join 2-tri islands */
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 			BMLoop *l_a, *l_b;
 			BMFace *f_a, *f_b;
