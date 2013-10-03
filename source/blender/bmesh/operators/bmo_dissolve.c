@@ -362,7 +362,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 		bm_face_split(bm, VERT_MARK);
 	}
 
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			/* check if it's a two-valence ver */
 			if (BM_vert_edge_count(v) == 2) {
