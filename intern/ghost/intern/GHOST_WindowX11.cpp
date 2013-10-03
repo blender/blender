@@ -70,7 +70,7 @@ typedef struct {
 #define SWAP_INTERVALS_WORKAROUND
 
 #ifdef SWAP_INTERVALS_WORKAROUND
-static bool g_swap_interwal_disabled = false;
+static bool g_swap_interval_disabled = false;
 #endif  // SWAP_INTERVALS_WORKAROUND
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
@@ -1529,7 +1529,7 @@ GHOST_WindowX11::
 setSwapInterval(int interval) {
 	if (!GLX_EXT_swap_control || !glXSwapIntervalEXT
 #ifdef SWAP_INTERVALS_WORKAROUND
-	    || g_swap_interwal_disabled
+	    || g_swap_interval_disabled
 #endif  // SWAP_INTERVALS_WORKAROUND
 	    )
 	{
@@ -1544,9 +1544,9 @@ static int QueryDrawable_ApplicationErrorHandler(Display *display, XErrorEvent *
 {
 	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
 	        theEvent->error_code, theEvent->request_code);
-	if (!g_swap_interwal_disabled) {
+	if (!g_swap_interval_disabled) {
 		fprintf(stderr, "Disabling SWAP INTERVALS extension\n");
-		g_swap_interwal_disabled = true;
+		g_swap_interval_disabled = true;
 	}
 	return 0;
 }
@@ -1554,9 +1554,9 @@ static int QueryDrawable_ApplicationErrorHandler(Display *display, XErrorEvent *
 static int QueryDrawable_ApplicationIOErrorHandler(Display *display)
 {
 	fprintf(stderr, "Ignoring Xlib error: error IO\n");
-	if (!g_swap_interwal_disabled) {
+	if (!g_swap_interval_disabled) {
 		fprintf(stderr, "Disabling SWAP INTERVALS extension\n");
-		g_swap_interwal_disabled = true;
+		g_swap_interval_disabled = true;
 	}
 	return 0;
 }
@@ -1571,7 +1571,7 @@ getSwapInterval() {
 		 *      the glXQueryDrawable requests with direct contexts.
 		 *
 		 *      To prevent crashes and unexpected behaviors, we will
-		 *      disable swap interwals extension if query fails here.
+		 *      disable swap intervals extension if query fails here.
 		 *      (because if we will override interval without having
 		 *      old value we couldn't restore it properly).
 		 */
