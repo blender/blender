@@ -177,14 +177,17 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	/* identifiers */
-	srna = srna_from_self(macro, "Macro Define:");
-	macroname = RNA_struct_identifier(srna);
+	srna = pyrna_struct_as_srna((PyObject *)macro, false, "Macro Define:");
+	if (srna == NULL) {
+		return NULL;
+	}
 
+	macroname = RNA_struct_identifier(srna);
 	ot = WM_operatortype_find(macroname, true);
 
 	if (!ot) {
 		PyErr_Format(PyExc_ValueError,
-		             "Macro Define: '%s' is not a valid macro or hasn't been registered yet",
+		             "Macro Define: '%s' is not a valid macro",
 		             macroname);
 		return NULL;
 	}
