@@ -37,14 +37,21 @@
 #include "intern/bmesh_operators_private.h"
 
 
+/* ***_ISGC: mark for garbage-collection */
+
 #define FACE_MARK   1
 #define FACE_ORIG   2
 #define FACE_NEW    4
+
 #define EDGE_MARK   1
 #define EDGE_TAG    2
+#define EDGE_ISGC   8
 
 #define VERT_MARK   1
 #define VERT_TAG    2
+#define VERT_ISGC   8
+
+
 
 static bool UNUSED_FUNCTION(check_hole_in_region) (BMesh *bm, BMFace *f)
 {
@@ -232,14 +239,12 @@ cleanup:
 
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
-	/* might want to make this an option or mode - campbell */
-
 	/* BMOperator fop; */
 	BMFace *act_face = bm->act_face;
 	BMOIter eiter;
-	BMEdge *e;
-	BMIter viter;
-	BMVert *v;
+	BMIter iter;
+	BMEdge *e, *e_next;
+	BMVert *v, *v_next;
 
 	const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
 	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
@@ -247,10 +252,10 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	if (use_face_split) {
 		BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_TAG);
 
-		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-			BMIter iter;
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			BMIter itersub;
 			int untag_count = 0;
-			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+			BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, EDGE_TAG)) {
 					untag_count++;
 				}
@@ -266,22 +271,34 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (use_verts) {
-		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
+		}
+	}
+
+	/* tag all verts/edges connected to faces */
+	BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
+		BMFace *f_pair[2];
+		if (BM_edge_face_pair(e, &f_pair[0], &f_pair[1])) {
+			unsigned int j;
+			for (j = 0; j < 2; j++) {
+				BMLoop *l_first, *l_iter;
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f_pair[j]);
+				do {
+					BMO_elem_flag_enable(bm, l_iter->v, VERT_ISGC);
+					BMO_elem_flag_enable(bm, l_iter->e, EDGE_ISGC);
+				} while ((l_iter = l_iter->next) != l_first);
+			}
 		}
 	}
 
 	BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
 		BMFace *fa, *fb;
-
 		if (BM_edge_face_pair(e, &fa, &fb)) {
 			BMFace *f_new;
 
 			/* join faces */
-
-			/* BMESH_TODO - check on delaying edge removal since we may end up removing more than
-			 * one edge, and later reference a removed edge */
-			f_new = BM_faces_join_pair(bm, fa, fb, e, true);
+			f_new = BM_faces_join_pair(bm, fa, fb, e, false);
 
 			if (f_new) {
 				/* maintain active face */
@@ -292,9 +309,23 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	/* Cleanup geometry (#BM_faces_join_pair, but it removes geometry we're looping on)
+	 * so do this in a separate pass instead. */
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
+		if ((e->l == NULL) && BMO_elem_flag_test(bm, e, EDGE_ISGC)) {
+			BM_edge_kill(bm, e);
+		}
+	}
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+		if ((v->e == NULL) && BMO_elem_flag_test(bm, v, VERT_ISGC)) {
+			BM_vert_kill(bm, v);
+		}
+	}
+	/* done with cleanup */
+
+
 	if (use_verts) {
-		BMVert *v_next;
-		BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
 					BM_vert_collapse_edge(bm, v->e, v, true);
