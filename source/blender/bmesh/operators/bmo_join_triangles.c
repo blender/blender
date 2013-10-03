@@ -326,7 +326,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 			    (BMO_elem_flag_test(bm, l_a->next->e, EDGE_MARK) == false) &&
 			    (BMO_elem_flag_test(bm, l_a->prev->e, EDGE_MARK) == false) &&
 			    (BMO_elem_flag_test(bm, l_b->next->e, EDGE_MARK) == false) &&
-			    (BMO_elem_flag_test(bm, l_b->prev->e, EDGE_MARK) == false))
+			    (BMO_elem_flag_test(bm, l_b->prev->e, EDGE_MARK) == false) &&
+			    /* check for faces that use same verts, this is supported but raises an error
+			     * and cancels the operation when performed from editmode, since this is only
+			     * two triangles we only need to compare a single vertex */
+			    (LIKELY(l_a->prev->v != l_b->prev->v)))
 			{
 				BMFace *f_new;
 				f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
