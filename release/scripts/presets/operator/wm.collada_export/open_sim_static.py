@@ -15,4 +15,4 @@ op.use_texture_copies = True
 op.triangulate = True
 op.use_object_instantiation = False
 op.sort_by_name = True
-op.second_life = False
+op.open_sim = False

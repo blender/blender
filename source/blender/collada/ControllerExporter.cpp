@@ -507,8 +507,8 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
-			// SECOND_LIFE_COMPATIBILITY
-			if (export_settings->second_life) {
+			// OPEN_SIM_COMPATIBILITY
+			if (export_settings->open_sim) {
 				// Only translations, no rotation vs armature
 				float temp[4][4];
 				unit_m4(temp);

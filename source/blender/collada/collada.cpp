@@ -79,7 +79,7 @@ int collada_export(Scene *sce,
                    int use_object_instantiation,
                    int sort_by_name,
 				   BC_export_transformation_type export_transformation_type,
-                   int second_life)
+                   int open_sim)
 {
 	ExportSettings export_settings;
 
@@ -102,7 +102,7 @@ int collada_export(Scene *sce,
 	export_settings.use_object_instantiation   = use_object_instantiation != 0;
 	export_settings.sort_by_name               = sort_by_name != 0;
 	export_settings.export_transformation_type = export_transformation_type;
-	export_settings.second_life                = second_life != 0;
+	export_settings.open_sim                   = open_sim != 0;
 
 
 	int includeFilter = OB_REL_NONE;

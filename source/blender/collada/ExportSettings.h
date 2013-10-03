@@ -50,7 +50,7 @@ public:
 	bool use_object_instantiation;
 	bool sort_by_name;
 	BC_export_transformation_type export_transformation_type;
-	bool second_life;
+	bool open_sim;
 
 	char *filepath;
 	LinkNode *export_set;

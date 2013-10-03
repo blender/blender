@@ -193,11 +193,11 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 					// and not it's head, seems arbitrary.
 					(*i)->parentinv[3][1] += bone->length;
 
-					// SECOND_LIFE_COMPATIBILITY
+					// OPEN_SIM_COMPATIBILITY
 					// TODO: when such objects are animated as
 					// single matrix the tweak must be applied
 					// to the result.
-					if (export_settings->second_life) {
+					if (export_settings->open_sim) {
 						// tweak objects parentinverse to match compatibility
 						float temp[4][4];
 
@@ -272,8 +272,8 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		copy_m4_m4(mat, bone->arm_mat);
 	}
 
-	// SECOND_LIFE_COMPATIBILITY
-	if (export_settings->second_life) {
+	// OPEN_SIM_COMPATIBILITY
+	if (export_settings->open_sim) {
 		// Remove rotations vs armature from transform
 		// parent_rest_rot * mat * irest_rot
 		float temp[4][4];

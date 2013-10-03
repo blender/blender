@@ -142,12 +142,12 @@ static void rna_Scene_collada_export(
         int use_object_instantiation,
         int sort_by_name,
         int export_transformation_type,
-        int second_life)
+        int open_sim)
 {
 	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,
 	               include_children, include_armatures, include_shapekeys, deform_bones_only,
 	               active_uv_only, include_uv_textures, include_material_textures,
-	               use_texture_copies, use_ngons, use_object_instantiation, sort_by_name, export_transformation_type, second_life);
+	               use_texture_copies, use_ngons, use_object_instantiation, sort_by_name, export_transformation_type, open_sim);
 }
 
 #endif
@@ -218,7 +218,7 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_boolean(func, "use_ngons", 1, "Use NGons", "Keep NGons in Export");
 	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
 	parm = RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
-	parm = RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");
+	parm = RNA_def_boolean(func, "open_sim", 0, "Export for OpenSim", "Compatibility mode for OpenSim and similar online worlds");
 
 	parm = RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
 	            "Transformation", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);

@@ -963,10 +963,10 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 			else
 				copy_m4_m4(mat, pchan->pose_mat);
 			
-		// SECOND_LIFE_COMPATIBILITY
+		// OPEN_SIM_COMPATIBILITY
 		// AFAIK animation to second life is via BVH, but no
 		// reason to not have the collada-animation be correct
-			if (export_settings->second_life) {
+			if (export_settings->open_sim) {
 				float temp[4][4];
 				copy_m4_m4(temp, bone->arm_mat);
 				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;

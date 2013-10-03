@@ -96,7 +96,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int use_object_instantiation;
 	int sort_by_name;
 	int export_transformation_type;
-	int second_life; 
+	int open_sim; 
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -142,7 +142,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	use_object_instantiation   = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	sort_by_name               = RNA_boolean_get(op->ptr, "sort_by_name");
 	export_transformation_type = RNA_enum_get(op->ptr,    "export_transformation_type_selection");
-	second_life                = RNA_boolean_get(op->ptr, "second_life");
+	open_sim                   = RNA_boolean_get(op->ptr, "open_sim");
 
 	/* get editmode results */
 	ED_object_editmode_load(CTX_data_edit_object(C));
@@ -168,7 +168,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	                   use_object_instantiation,
 	                   sort_by_name,
 	                   export_transformation_type,
-	                   second_life))
+	                   open_sim))
 	{
 		return OPERATOR_FINISHED;
 	}
@@ -236,7 +236,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, FALSE);
-	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "open_sim", 0, NULL, ICON_NONE);
 
 	/* Collada options: */
 	box = uiLayoutBox(layout);
@@ -350,8 +350,8 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "export_transformation_type_selection", prop_bc_export_transformation_type, 0,
 	             "Transform", "Transformation type for translation, scale and rotation");
 
-	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
-	                "Compatibility mode for Second Life");
+	RNA_def_boolean(ot->srna, "open_sim", 0, "Export for OpenSim",
+	                "Compatibility mode for OpenSim and compatible online worlds");
 }
 
 

@@ -77,7 +77,7 @@ int collada_export(Scene *sce,
                    int use_object_instantiation,
                    int sort_by_name,
                    BC_export_transformation_type export_transformation_type,
-                   int second_life);
+                   int open_sim);
 
 
 
