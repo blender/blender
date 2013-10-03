@@ -26,6 +26,8 @@
  * BMesh Walker Code.
  */
 
+#include <string.h>
+
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -33,6 +35,12 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 #include "intern/bmesh_walkers_private.h"
+
+/* pop into stack memory (common operation) */
+#define BMW_state_remove_r(walker, owalk)  { \
+	memcpy(owalk, BMW_current_state(walker), sizeof(*(owalk))); \
+	BMW_state_remove(walker); \
+} (void)0
 
 static bool bmw_mask_check_vert(BMWalker *walker, BMVert *v)
 {
@@ -140,14 +148,16 @@ static void *bmw_ShellWalker_yield(BMWalker *walker)
 
 static void *bmw_ShellWalker_step(BMWalker *walker)
 {
-	BMwShellWalker *swalk = BMW_current_state(walker);
+	BMwShellWalker *swalk, owalk;
 	BMEdge *e, *e2;
 	BMVert *v;
 	BMIter iter;
 	int i;
 
+	BMW_state_remove_r(walker, &owalk);
+	swalk = &owalk;
+
 	e = swalk->curedge;
-	BMW_state_remove(walker);
 
 	for (i = 0; i < 2; i++) {
 		v = i ? e->v2 : e->v1;
@@ -240,14 +250,15 @@ static void *bmw_ConnectedVertexWalker_yield(BMWalker *walker)
 
 static void *bmw_ConnectedVertexWalker_step(BMWalker *walker)
 {
-	BMwConnectedVertexWalker *vwalk = BMW_current_state(walker);
+	BMwConnectedVertexWalker *vwalk, owalk;
 	BMVert *v, *v2;
 	BMEdge *e;
 	BMIter iter;
 
-	v = vwalk->curvert;
+	BMW_state_remove_r(walker, &owalk);
+	vwalk = &owalk;
 
-	BMW_state_remove(walker);
+	v = vwalk->curvert;
 
 	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 		v2 = BM_edge_other_vert(e, v);
@@ -289,14 +300,19 @@ static void *bmw_IslandboundWalker_yield(BMWalker *walker)
 
 static void *bmw_IslandboundWalker_step(BMWalker *walker)
 {
-	BMwIslandboundWalker *iwalk = BMW_current_state(walker), owalk;
+	BMwIslandboundWalker *iwalk, owalk;
 	BMVert *v;
-	BMEdge *e = iwalk->curloop->e;
+	BMEdge *e;
 	BMFace *f;
-	BMLoop *l = iwalk->curloop;
+	BMLoop *l;
 	/* int found = 0; */
 
-	owalk = *iwalk;
+	memcpy(&owalk, BMW_current_state(walker), sizeof(owalk));
+	/* normally we'd remove here, but delay until after error checking */
+	iwalk = &owalk;
+
+	l = iwalk->curloop;
+	e = l->e;
 
 	v = BM_edge_other_vert(e, iwalk->lastv);
 
@@ -307,7 +323,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 		return NULL;
 	}
 	
-	/* pop off current stat */
+	/* pop off current state */
 	BMW_state_remove(walker);
 	
 	f = l->f;
@@ -381,13 +397,13 @@ static void *bmw_IslandWalker_yield(BMWalker *walker)
 
 static void *bmw_IslandWalker_step(BMWalker *walker)
 {
-	BMwIslandWalker *iwalk = BMW_current_state(walker);
-	/* BMwIslandWalker *owalk = iwalk; */ /* UNUSED */
+	BMwIslandWalker *iwalk, owalk;
 	BMIter iter, liter;
-	BMFace *f, *curf = iwalk->cur;
+	BMFace *f;
 	BMLoop *l;
 	
-	BMW_state_remove(walker);
+	BMW_state_remove_r(walker, &owalk);
+	iwalk = &owalk;
 
 	l = BM_iter_new(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
 	for ( ; l; l = BM_iter_step(&liter)) {
@@ -419,7 +435,7 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 		}
 	}
 	
-	return curf;
+	return owalk.cur;
 }
 
 
@@ -507,15 +523,16 @@ static void *bmw_LoopWalker_yield(BMWalker *walker)
 
 static void *bmw_LoopWalker_step(BMWalker *walker)
 {
-	BMwLoopWalker *lwalk = BMW_current_state(walker), owalk;
-	BMEdge *e = lwalk->cur, *nexte = NULL;
+	BMwLoopWalker *lwalk, owalk;
+	BMEdge *e, *nexte = NULL;
 	BMLoop *l;
 	BMVert *v;
 	int i = 0;
 
-	owalk = *lwalk;
-	BMW_state_remove(walker);
+	BMW_state_remove_r(walker, &owalk);
+	lwalk = &owalk;
 
+	e = lwalk->cur;
 	l = e->l;
 
 	if (owalk.f_hub) { /* NGON EDGE */
@@ -770,13 +787,15 @@ static void *bmw_FaceLoopWalker_yield(BMWalker *walker)
 
 static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 {
-	BMwFaceLoopWalker *lwalk = BMW_current_state(walker);
-	BMFace *f = lwalk->l->f;
-	BMLoop *l = lwalk->l, *origl = lwalk->l;
+	BMwFaceLoopWalker *lwalk, owalk;
+	BMFace *f;
+	BMLoop *l;
 
-	BMW_state_remove(walker);
+	BMW_state_remove_r(walker, &owalk);
+	lwalk = &owalk;
 
-	l = l->radial_next;
+	f = lwalk->l->f;
+	l = lwalk->l->radial_next;
 	
 	if (lwalk->no_calc) {
 		return f;
@@ -797,7 +816,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 
 		if (l->f->len != 4) {
 			lwalk->no_calc = true;
-			lwalk->l = origl;
+			lwalk->l = owalk.l;
 		}
 		else {
 			lwalk->no_calc = false;
@@ -878,19 +897,21 @@ static void *bmw_EdgeringWalker_yield(BMWalker *walker)
 
 static void *bmw_EdgeringWalker_step(BMWalker *walker)
 {
-	BMwEdgeringWalker *lwalk = BMW_current_state(walker);
-	BMEdge *e, *wireedge = lwalk->wireedge;
-	BMLoop *l = lwalk->l, *origl = lwalk->l;
+	BMwEdgeringWalker *lwalk, owalk;
+	BMEdge *e;
+	BMLoop *l;
 #ifdef BMW_EDGERING_NGON
 	int i, len;
 #endif
 
 #define EDGE_CHECK(e) (bmw_mask_check_edge(walker, e) && (BM_edge_is_boundary(e) || BM_edge_is_manifold(e)))
 
-	BMW_state_remove(walker);
+	BMW_state_remove_r(walker, &owalk);
+	lwalk = &owalk;
 
+	l = lwalk->l;
 	if (!l)
-		return wireedge;
+		return lwalk->wireedge;
 
 	e = l->e;
 	if (!EDGE_CHECK(e)) {
@@ -913,7 +934,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	if ((len <= 0) || (len % 2 != 0) || !EDGE_CHECK(l->e) ||
 		!bmw_mask_check_face(walker, l->f))
 	{
-		l = origl;
+		l = owalk.l;
 		i = len;
 		while (i > 0) {
 			l = l->next;
@@ -930,7 +951,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	l = l->next->next;
 	
 	if ((l->f->len != 4) || !EDGE_CHECK(l->e) || !bmw_mask_check_face(walker, l->f)) {
-		l = origl->next->next;
+		l = owalk.l->next->next;
 	}
 	/* only walk to manifold edge */
 	if ((l->f->len == 4) && EDGE_CHECK(l->e) &&
@@ -975,17 +996,18 @@ static void *bmw_UVEdgeWalker_yield(BMWalker *walker)
 
 static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 {
-	BMwUVEdgeWalker *lwalk = BMW_current_state(walker);
+	const int type = walker->bm->ldata.layers[walker->layer].type;
+	BMwUVEdgeWalker *lwalk, owalk;
 	BMLoop *l, *l2, *l3, *nl, *cl;
 	BMIter liter;
 	void *d1, *d2;
-	int i, j, rlen, type;
+	int i, j, rlen;
+
+	BMW_state_remove_r(walker, &owalk);
+	lwalk = &owalk;
 
 	l = lwalk->l;
 	nl = l->next;
-	type = walker->bm->ldata.layers[walker->layer].type;
-
-	BMW_state_remove(walker);
 
 	if (!bmw_mask_check_edge(walker, l->e)) {
 		return l;
