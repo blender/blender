@@ -1480,7 +1480,7 @@ bool *ED_vgroup_subset_from_select_type(Object *ob, eVGroupSelect subset_type, i
 			const int def_nr_active = ob->actdef - 1;
 			vgroup_validmap = MEM_mallocN(*r_vgroup_tot * sizeof(*vgroup_validmap), __func__);
 			memset(vgroup_validmap, false, *r_vgroup_tot * sizeof(*vgroup_validmap));
-			if (def_nr_active < *r_vgroup_tot) {
+			if ((def_nr_active >= 0) && (def_nr_active < *r_vgroup_tot)) {
 				*r_subset_count = 1;
 				vgroup_validmap[def_nr_active] = true;
 			}
@@ -2262,7 +2262,8 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 		MEM_freeN(emap_mem);
 	}
 
-	MEM_freeN(dvert_array);
+	if (dvert_array)
+		MEM_freeN(dvert_array);
 	BLI_SMALLSTACK_FREE(dv_stack);
 
 	/* not so efficient to get 'dvert_array' again just so unselected verts are NULL'd */
@@ -2270,7 +2271,8 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 		ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, true);
 		ED_vgroup_parray_mirror_sync(ob, dvert_array, dvert_tot,
 		                             vgroup_validmap, vgroup_tot);
-		MEM_freeN(dvert_array);
+		if (dvert_array)
+			MEM_freeN(dvert_array);
 	}
 }
 
