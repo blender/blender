@@ -45,6 +45,9 @@
 
 #include "BLI_strict_flags.h"  /* keep last */
 
+#ifdef WITH_MEM_VALGRIND
+#  include "valgrind/memcheck.h"
+#endif
 
 /* note: copied from BLO_blend_defs.h, don't use here because we're in BLI */
 #ifdef __BIG_ENDIAN__
@@ -275,6 +278,10 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 		lasttail = mempool_chunk_add(pool, mpchunk, lasttail);
 	}
 
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_CREATE_MEMPOOL(pool, 0, false);
+#endif
+
 	return pool;
 }
 
@@ -297,6 +304,11 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 	}
 
 	pool->free = pool->free->next;
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_MEMPOOL_ALLOC(pool, retval, pool->esize);
+#endif
+
 	return retval;
 }
 
@@ -367,6 +379,10 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		}
 		curnode->next = NULL; /* terminate the list */
 	}
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_MEMPOOL_FREE(pool, addr);
+#endif
 }
 
 int BLI_mempool_count(BLI_mempool *pool)
@@ -581,6 +597,10 @@ void BLI_mempool_clear(BLI_mempool *pool)
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
 	mempool_chunk_free_all(&pool->chunks, pool->flag);
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_DESTROY_MEMPOOL(pool);
+#endif
 
 	if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
 		free(pool);

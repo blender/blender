@@ -278,6 +278,10 @@ mark_as_advanced(LLVM_STATIC)
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 mark_as_advanced(WITH_MEM_JEMALLOC)
 
+# currently only used for BLI_mempool
+option(WITH_MEM_VALGRIND "Enable extended valgrind support for better reporting" OFF)
+mark_as_advanced(WITH_MEM_VALGRIND)
+
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)

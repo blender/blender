@@ -178,6 +178,10 @@ if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
 endif()
 
+if(WITH_MEM_VALGRIND)
+	add_definitions(-DWITH_MEM_VALGRIND)
+endif()
+
 if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv
