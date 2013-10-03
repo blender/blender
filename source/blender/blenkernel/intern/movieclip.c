@@ -62,7 +62,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
-#include "BLI_mempool.h"
 #include "BLI_threads.h"
 
 #include "BKE_animsys.h"

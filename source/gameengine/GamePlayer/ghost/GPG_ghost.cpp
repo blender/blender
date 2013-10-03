@@ -58,11 +58,15 @@ extern "C"
 #endif  // __cplusplus
 #include "MEM_guardedalloc.h"
 #include "BLI_threads.h"
+#include "BLI_mempool.h"
 #include "BLI_blenlib.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+
 #include "BLO_readfile.h"
 #include "BLO_runtime.h"
+
 #include "BKE_blender.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -74,6 +78,7 @@ extern "C"
 #include "BKE_modifier.h"
 #include "BKE_text.h"
 #include "BKE_sound.h"
+
 #include "IMB_imbuf.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
@@ -580,8 +585,11 @@ int main(int argc, char** argv)
 
 			case 'd':
 				i++;
-				G.debug |= G_DEBUG;     /* std output printf's */
+				G.debug |= G_DEBUG;
 				MEM_set_memory_debug();
+#ifdef DEBUG
+				BLI_mempool_set_memory_debug();
+#endif
 				break;
 
 			case 'f':

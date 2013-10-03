@@ -39,7 +39,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
-#include "BLI_mempool.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
