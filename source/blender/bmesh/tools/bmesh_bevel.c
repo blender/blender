@@ -2375,7 +2375,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
                    const struct MDeformVert *dvert, const int vertex_group)
 {
 	BMIter iter;
-	BMVert *v;
+	BMVert *v, *v_next;
 	BMEdge *e;
 	BevelParams bp = {NULL};
 
@@ -2418,7 +2418,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
 			}
 		}
 
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				BLI_assert(find_bevvert(&bp, v) != NULL);
 				BM_vert_kill(bm, v);

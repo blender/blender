@@ -500,10 +500,10 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
  */
 void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 {
-	BMFace *f;
+	BMFace *f, *f_next;
 	BMIter iter;
 
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (f, f_next, &iter, bm, BM_FACES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, f, oflag)) {
 			BM_face_kill(bm, f);
 		}
@@ -512,10 +512,10 @@ void BMO_remove_tagged_faces(BMesh *bm, const short oflag)
 
 void BMO_remove_tagged_edges(BMesh *bm, const short oflag)
 {
-	BMEdge *e;
+	BMEdge *e, *e_next;
 	BMIter iter;
 
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, oflag)) {
 			BM_edge_kill(bm, e);
 		}
@@ -524,10 +524,10 @@ void BMO_remove_tagged_edges(BMesh *bm, const short oflag)
 
 void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
 {
-	BMVert *v;
+	BMVert *v, *v_next;
 	BMIter iter;
 
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			BM_vert_kill(bm, v);
 		}

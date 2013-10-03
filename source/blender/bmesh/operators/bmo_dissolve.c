@@ -293,7 +293,8 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (use_verts) {
-		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+		BMVert *v_next;
+		BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
 					BM_vert_collapse_edge(bm, v->e, v, true);
@@ -349,7 +350,7 @@ static bool test_extra_verts(BMesh *bm, BMVert *v)
 void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, fiter;
-	BMVert *v;
+	BMVert *v, *v_next;
 	BMFace *f;
 
 	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
@@ -409,7 +410,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	/* clean up any remainin */
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			if (!BM_vert_dissolve(bm, v)) {
 				BMO_error_raise(bm, op, BMERR_DISSOLVEVERTS_FAILED, NULL);

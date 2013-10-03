@@ -203,7 +203,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMOIter siter;
 	BMFace *f;
-	BMEdge *e;
+	BMEdge *e, *e_next;
 	/* data: edge-to-join, sort_value: error weight */
 	struct SortPointerByFloat *jedges;
 	unsigned i, totedge;
@@ -291,7 +291,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(jedges);
 
 	/* join best weighted */
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_new;
 		BMFace *f_a, *f_b;
 
