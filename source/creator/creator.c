@@ -76,12 +76,12 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
+#include "BLI_blenlib.h"
+#include "BLI_mempool.h"
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
-
-#include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
 #include "BKE_brush.h"
@@ -412,10 +412,13 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	G.debug |= G_DEBUG;  /* std output printf's */
 	printf(BLEND_VERSION_STRING_FMT);
 	MEM_set_memory_debug();
+#ifdef DEBUG
+	BLI_mempool_set_memory_debug();
+#endif
 
 #ifdef WITH_BUILDINFO
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
-#endif // WITH_BUILDINFO
+#endif
 
 	BLI_argsPrint(data);
 	return 0;

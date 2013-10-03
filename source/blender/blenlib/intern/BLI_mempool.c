@@ -66,6 +66,10 @@
 /* when undefined, merge the allocs for BLI_mempool_chunk and its data */
 // #define USE_DATA_PTR
 
+#ifdef DEBUG
+static bool mempool_debug_memset = false;
+#endif
+
 /**
  * A free element from #BLI_mempool_chunk. Data is cast to this type and stored in
  * #BLI_mempool.free as a single linked list, each item #BLI_mempool.esize large.
@@ -342,6 +346,11 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 			BLI_assert(!"Attempt to free data which is not in pool.\n");
 		}
 	}
+
+	/* enable for debugging */
+	if (UNLIKELY(mempool_debug_memset)) {
+		memset(addr, 255, pool->esize);
+	}
 #endif
 
 	if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
@@ -609,3 +618,10 @@ void BLI_mempool_destroy(BLI_mempool *pool)
 		MEM_freeN(pool);
 	}
 }
+
+#ifdef DEBUG
+void BLI_mempool_set_memory_debug(void)
+{
+	mempool_debug_memset = true;
+}
+#endif
