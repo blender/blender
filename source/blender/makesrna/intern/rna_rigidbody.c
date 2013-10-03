@@ -167,6 +167,14 @@ static void rna_RigidBodyOb_type_set(PointerRNA *ptr, int value)
 	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }
 
+static void rna_RigidBodyOb_shape_set(PointerRNA *ptr, int value)
+{
+	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
+
+	rbo->shape = value;
+	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
+}
+
 static void rna_RigidBodyOb_disabled_set(PointerRNA *ptr, int value)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
@@ -771,6 +779,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_shape", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shape");
 	RNA_def_property_enum_items(prop, rigidbody_object_shape_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_RigidBodyOb_shape_set", NULL);
 	RNA_def_property_ui_text(prop, "Collision Shape", "Collision Shape of object in Rigid Body Simulations");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
