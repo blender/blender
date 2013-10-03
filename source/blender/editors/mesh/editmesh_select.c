@@ -266,8 +266,11 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
 
 int EDBM_backbuf_check(unsigned int index)
 {
-	BLI_assert(selbuf != NULL);
+	/* odd logic, if selbuf is NULL we assume no zbuf-selection is enabled
+	 * and just ignore the depth buffer, this is error prone since its possible
+	 * code doesn't set the depth buffer by accident, but leave for now. - Campbell */
 	if (selbuf == NULL) return 1;
+
 	if (index > 0 && index <= bm_vertoffs)
 		return selbuf[index];
 	return 0;
