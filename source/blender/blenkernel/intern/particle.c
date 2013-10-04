@@ -1792,7 +1792,9 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 	float (*orcodata)[3];
 	int mapindex;
 
+	printf("%s\n", __func__);
 	if (!psys_map_index_on_dm(dm, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
+		printf("psys_map_index_on_dm failed for %d (from mode: %d)!\n", index, from);
 		if (vec) { vec[0] = vec[1] = vec[2] = 0.0; }
 		if (nor) { nor[0] = nor[1] = 0.0; nor[2] = 1.0; }
 		if (orco) { orco[0] = orco[1] = orco[2] = 0.0; }
@@ -1817,8 +1819,8 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 			copy_v3_v3(orco, orcodata[mapindex]);
 
 		if (ornor) {
-			dm->getVertNo(dm, mapindex, nor);
-			normalize_v3(nor);
+			dm->getVertNo(dm, mapindex, ornor);
+			normalize_v3(ornor);
 		}
 
 		if (utan && vtan) {
@@ -1843,7 +1845,7 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 			if (nor)
 				copy_v3_v3(nor, tmpnor);
 
-			normalize_v3(tmpnor);
+			normalize_v3(tmpnor);  /* XXX Why not normalize tmpnor before copying it into nor??? -- mont29 */
 			mul_v3_fl(tmpnor, -foffset);
 			add_v3_v3(vec, tmpnor);
 		}
