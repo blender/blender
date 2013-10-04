@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_icons.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 
@@ -257,6 +258,25 @@ void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d)
 	BLI_ASSERT_ZERO_M4(rv3d->persmatob);
 }
 #endif
+
+void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
+{
+	wmWindowManager *wm = bmain->wm.first;
+
+	if (v3d->drawtype != OB_RENDER) {
+		ARegion *ar;
+
+		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+			RegionView3D *rv3d = ar->regiondata;
+
+			if (rv3d && rv3d->render_engine) {
+				WM_jobs_kill_type(wm, ar, WM_JOB_TYPE_RENDER_PREVIEW);
+				RE_engine_free(rv3d->render_engine);
+				rv3d->render_engine = NULL;
+			}
+		}
+	}
+}
 
 /* ******************** default callbacks for view3d space ***************** */
 

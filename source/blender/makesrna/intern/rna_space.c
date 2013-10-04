@@ -406,23 +406,12 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DAG_on_visible_update(bmain, FALSE);
 }
 
-static void rna_SpaceView3D_viewport_shade_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	ScrArea *sa = rna_area_from_space(ptr);
 
-	if (v3d->drawtype != OB_RENDER) {
-		ARegion *ar;
-
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			RegionView3D *rv3d = ar->regiondata;
-
-			if (rv3d && rv3d->render_engine) {
-				RE_engine_free(rv3d->render_engine);
-				rv3d->render_engine = NULL;
-			}
-		}
-	}
+	ED_view3d_shade_update(bmain, v3d, sa);
 }
 
 static void rna_SpaceView3D_matcap_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

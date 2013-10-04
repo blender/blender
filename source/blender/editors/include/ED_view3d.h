@@ -336,4 +336,7 @@ void ED_view3d_operator_properties_viewmat_set(struct bContext *C, struct wmOper
 void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx, int *winy, float persmat[4][4]);
 #endif
 
+/* render */
+void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
+
 #endif /* __ED_VIEW3D_H__ */
