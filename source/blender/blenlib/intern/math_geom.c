@@ -2012,7 +2012,7 @@ void fill_poly_v2i_n(
 
 		/* Build a list of nodes. */
 		nodes = 0; j = nr - 1;
-		for (i=0; i<nr; i++) {
+		for (i = 0; i < nr; i++) {
 			if ((verts[i][1] < pixel_y && verts[j][1] >= pixel_y) ||
 			    (verts[j][1] < pixel_y && verts[i][1] >= pixel_y))
 			{

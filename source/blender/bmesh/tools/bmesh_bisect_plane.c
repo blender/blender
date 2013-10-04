@@ -121,9 +121,6 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 
 	l_first = BM_FACE_FIRST_LOOP(f);
 
-	(void)bm;
-	(void)plane;
-
 	/* add plane-aligned verts to the stack
 	 * and check we have verts from both sides in this face,
 	 * ... that the face doesn't only have boundry verts on the plane for eg. */

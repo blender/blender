@@ -983,12 +983,6 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static const EnumPropertyItem direction_items[] = {
-	{false, "CW", 0, "Clockwise", ""},
-	{true, "CCW", 0, "Counter Clockwise", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 /* only accepts 1 selected edge, or 2 selected faces */
 static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 {

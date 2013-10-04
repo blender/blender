@@ -130,7 +130,7 @@ void RNA_api_mesh(StructRNA *srna)
 	parm = RNA_def_float(func, "split_angle", M_PI, 0.0f, M_PI, "",
 	                     "Angle between polys' normals above which an edge is always sharp (180° to disable)",
 	                     0.0f, M_PI);
-	RNA_def_property_subtype(parm, PROP_UNIT_ROTATION);
+	RNA_def_property_subtype(parm, (PropertySubType)PROP_UNIT_ROTATION);
 
 	func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
 	RNA_def_function_ui_description(func, "Free split vertex normals");

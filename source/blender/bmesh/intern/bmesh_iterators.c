@@ -73,6 +73,7 @@ int BM_iter_mesh_count(BMesh *bm, const char itype)
 		default:
 			count = 0;
 			BLI_assert(0);
+			break;
 	}
 
 	return count;
