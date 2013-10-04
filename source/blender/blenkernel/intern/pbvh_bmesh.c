@@ -512,10 +512,10 @@ static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 	return ((len_squared_v3v3(q->center, c) <= q->radius_squared));
 }
 
-/* Return true if the vertex mask is less than 0.5, false otherwise */
-static bool check_mask_half(EdgeQueueContext *eq_ctx, BMVert *v)
+/* Return true if the vertex mask is less than 1.0, false otherwise */
+static bool check_mask(EdgeQueueContext *eq_ctx, BMVert *v)
 {
-	return (BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 0.5f);
+	return (BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 1.0f);
 }
 
 static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
@@ -523,11 +523,13 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 {
 	BMVert **pair;
 
-	/* Don't let topology update affect masked vertices. Unlike with
-	 * displacements, can't do 50% topology update, so instead set
-	 * (arbitrary) cutoff: if both vertices' masks are less than 50%,
-	 * topology update can happen. */
-	if (check_mask_half(eq_ctx, e->v1) && check_mask_half(eq_ctx, e->v2)) {
+	/* Don't let topology update affect fully masked vertices. This used to
+	 * have a 50% mask cutoff, with the reasoning that you can't do a 50%
+	 * topology update. But this gives an ugly border in the mesh. The mask
+	 * should already make the brush move the vertices only 50%, which means
+	 * that topology updates will also happen less frequent, that should be
+	 * enough. */
+	if (check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2)) {
 		pair = BLI_mempool_alloc(eq_ctx->pool);
 		pair[0] = e->v1;
 		pair[1] = e->v2;
@@ -674,6 +676,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	BMVert *v_new;
 	float mid[3];
 	int i, node_index;
+	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
 
 	/* Get all faces adjacent to the edge */
 	pbvh_bmesh_edge_loops(edge_loops, e);
@@ -684,6 +687,15 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	node_index = GET_INT_FROM_POINTER(BLI_ghash_lookup(bvh->bm_vert_to_node,
 	                                                   e->v1));
 	v_new = pbvh_bmesh_vert_create(bvh, node_index, mid, e->v1);
+
+	/* update paint mask */
+	if (cd_vert_mask_offset != -1) {
+		float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, cd_vert_mask_offset);
+		float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, cd_vert_mask_offset);
+		float mask_v_new = 0.5f*(mask_v1 + mask_v2);
+
+		BM_ELEM_CD_SET_FLOAT(v_new, cd_vert_mask_offset, mask_v_new);
+	}
 
 	/* For each face, add two new triangles and delete the original */
 	for (i = 0; i < edge_loops->count; i++) {
