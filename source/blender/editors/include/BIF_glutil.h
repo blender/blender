@@ -221,8 +221,5 @@ void glaDrawImBuf_glsl(struct ImBuf *ibuf, float x, float y, int zoomfilter,
 /* Draw imbuf on a screen, preferably using GLSL display transform */
 void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
 
-/* Transform buffer from role to scene linear space using GLSL OCIO conversion */
-int glaBufferTransformFromRole_glsl(float *buffer, int width, int height, int role);
-
 #endif /* __BIF_GLUTIL_H__ */
 
