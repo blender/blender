@@ -2621,7 +2621,10 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM4(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) && event->val == KM_PRESS) {
-			if (but->dt == UI_EMBOSSN && !event->ctrl) {
+			if (ELEM(event->type, PADENTER, RETKEY) && (!ui_is_but_utf8(but))) {
+				/* pass - allow filesel, enter to execute */
+			}
+			else if (but->dt == UI_EMBOSSN && !event->ctrl) {
 				/* pass */
 			}
 			else {
