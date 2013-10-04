@@ -2321,7 +2321,7 @@ bNode *nodeGetActive(bNodeTree *ntree)
 
 static bNode *node_get_active_id_recursive(bNodeInstanceKey active_key, bNodeInstanceKey parent_key, bNodeTree *ntree, short idtype)
 {
-	if (parent_key.value == active_key.value) {
+	if (parent_key.value == active_key.value || active_key.value == 0) {
 		bNode *node;
 		for (node = ntree->nodes.first; node; node = node->next)
 			if (node->id && GS(node->id->name) == idtype)
