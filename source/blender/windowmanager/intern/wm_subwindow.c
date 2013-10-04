@@ -148,6 +148,15 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[4][4])
 	}
 }
 
+void wm_subwindow_getrect(wmWindow *win, int swinid, rcti *r_rect)
+{
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
+
+	if (swin) {
+		*r_rect = swin->winrct;
+	}
+}
+
 /* always sets pixel-precise 2D window/view matrices */
 /* coords is in whole pixels. xmin = 15, xmax = 16: means window is 2 pix big */
 int wm_subwindow_open(wmWindow *win, rcti *winrct)
