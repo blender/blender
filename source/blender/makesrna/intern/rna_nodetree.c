@@ -2847,6 +2847,15 @@ static void rna_ShaderNodeSubsurface_update(Main *bmain, Scene *scene, PointerRN
 	rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+
+	nodeUpdate(ntree, node);
+	rna_Node_update(bmain, scene, ptr);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -4360,7 +4369,7 @@ static void def_cmp_scale(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, space_items);
 	RNA_def_property_ui_text(prop, "Space", "Coordinate space to scale relative to");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_CompositorNodeScale_update");
 
 	/* expose 2 flags as a enum of 3 items */
 	prop = RNA_def_property(srna, "frame_method", PROP_ENUM, PROP_NONE);
