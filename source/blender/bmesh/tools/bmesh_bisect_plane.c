@@ -237,7 +237,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_a)],
 				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_b)]);
 
-				if (isect_point_poly_v2(co_mid, (const float (*)[2])face_verts_proj_2d, f_len_orig)) {
+				if (isect_point_poly_v2(co_mid, (const float (*)[2])face_verts_proj_2d, f_len_orig, false)) {
 					BMLoop *l_a, *l_b;
 					bool found = false;
 					unsigned int j;

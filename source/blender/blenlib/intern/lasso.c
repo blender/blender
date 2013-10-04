@@ -63,7 +63,7 @@ bool BLI_lasso_is_point_inside(const int mcords[][2], const unsigned int moves,
 	}
 	else {
 		int pt[2] = {sx, sy};
-		return isect_point_poly_v2_int(pt, mcords, moves);
+		return isect_point_poly_v2_int(pt, mcords, moves, true);
 	}
 }
 

@@ -712,7 +712,8 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 }
 
 /* point in polygon (keep float and int versions in sync) */
-bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr)
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr,
+                         const bool use_overlap)
 {
 	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
 	float angletot = 0.0;
@@ -749,9 +750,18 @@ bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsign
 		p1 = p2;
 	}
 
-	return (fabsf(angletot) > 4.0f);
+	angletot = fabsf(angletot);
+	if (use_overlap) {
+		const int nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
+		angletot -= nested * (float)(M_PI * 2.0);
+		return (angletot > 4.0f) != (nested % 2);
+	}
+	else {
+		return (angletot > 4.0f);
+	}
 }
-bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr)
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr,
+                             const bool use_overlap)
 {
 	/* we do the angle rule, define that all added angles should be about zero or (2 * PI) */
 	float angletot = 0.0;
@@ -788,7 +798,15 @@ bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsign
 		p1 = p2;
 	}
 
-	return (fabsf(angletot) > 4.0f);
+	angletot = fabsf(angletot);
+	if (use_overlap) {
+		const int nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
+		angletot -= nested * (float)(M_PI * 2.0);
+		return (angletot > 4.0f) != (nested % 2);
+	}
+	else {
+		return (angletot > 4.0f);
+	}
 }
 
 /* point in tri */

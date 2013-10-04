@@ -155,8 +155,8 @@ bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
                               const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float epsilon);
 
 /* point in polygon */
-bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr);
-bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr);
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr, const bool use_overlap);
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr, const bool use_overlap);
 
 int isect_point_quad_v2(const float p[2], const float a[2], const float b[2], const float c[2], const float d[2]);
 

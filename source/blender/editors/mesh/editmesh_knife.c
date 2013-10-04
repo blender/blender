@@ -3525,7 +3525,7 @@ static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, 
 		while (p) {
 			const float (*mval_fl)[2] = p->link;
 			const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-			isect += (int)isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1);
+			isect += (int)isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false);
 			p = p->next;
 		}
 
