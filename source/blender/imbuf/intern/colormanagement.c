@@ -196,6 +196,7 @@ typedef struct ColormanageCacheViewSettings {
 	int view;
 	float exposure;
 	float gamma;
+	float dither;
 	CurveMapping *curve_mapping;
 } ColormanageCacheViewSettings;
 
@@ -213,6 +214,7 @@ typedef struct ColormnaageCacheData {
 	int look;        /* Additional artistics transform */
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
+	float dither;    /* dither value cached buffer is calculated with */
 	CurveMapping *curve_mapping;  /* curve mapping used for cached buffer */
 	int curve_mapping_timestamp;  /* time stamp of curve mapping used for cached buffer */
 } ColormnaageCacheData;
@@ -291,7 +293,8 @@ static void colormanage_cachedata_set(ImBuf *ibuf, ColormnaageCacheData *data)
 	ibuf->colormanage_cache->data = data;
 }
 
-static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cache_view_settings,
+static void colormanage_view_settings_to_cache(ImBuf *ibuf,
+                                               ColormanageCacheViewSettings *cache_view_settings,
                                                const ColorManagedViewSettings *view_settings)
 {
 	int look = IMB_colormanagement_look_get_named_index(view_settings->look);
@@ -301,6 +304,7 @@ static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cac
 	cache_view_settings->view = view;
 	cache_view_settings->exposure = view_settings->exposure;
 	cache_view_settings->gamma = view_settings->gamma;
+	cache_view_settings->dither = ibuf->dither;
 	cache_view_settings->flag = view_settings->flag;
 	cache_view_settings->curve_mapping = view_settings->curve_mapping;
 }
@@ -378,6 +382,7 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		if (cache_data->look != view_settings->look ||
 		    cache_data->exposure != view_settings->exposure ||
 		    cache_data->gamma != view_settings->gamma ||
+		    cache_data->dither != view_settings->dither ||
 		    cache_data->flag != view_settings->flag ||
 		    cache_data->curve_mapping != curve_mapping ||
 		    cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
@@ -424,6 +429,7 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_data->look = view_settings->look;
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
+	cache_data->dither = view_settings->dither;
 	cache_data->flag = view_settings->flag;
 	cache_data->curve_mapping = curve_mapping;
 	cache_data->curve_mapping_timestamp = curve_mapping_timestamp;
@@ -2024,7 +2030,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 				return (unsigned char *) ibuf->rect;
 		}
 
-		colormanage_view_settings_to_cache(&cache_view_settings, applied_view_settings);
+		colormanage_view_settings_to_cache(ibuf, &cache_view_settings, applied_view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
 		if (ibuf->invalid_rect.xmin != ibuf->invalid_rect.xmax) {
@@ -2735,7 +2741,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		unsigned char *display_buffer = NULL;
 		int view_flag, display_index, buffer_width;
 
-		colormanage_view_settings_to_cache(&cache_view_settings, view_settings);
+		colormanage_view_settings_to_cache(ibuf, &cache_view_settings, view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
 		view_flag = 1 << (cache_view_settings.view - 1);
