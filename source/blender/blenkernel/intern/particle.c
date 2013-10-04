@@ -1729,7 +1729,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 		return 0;
 
 	if (dm->deformedOnly || index_dmcache == DMCACHE_ISCHILD) {
-		/* for meshes that are either only defined or for child particles, the
+		/* for meshes that are either only deformed or for child particles, the
 		 * index and fw do not require any mapping, so we can directly use it */
 		if (from == PART_FROM_VERT) {
 			if (index >= dm->getNumVerts(dm))
@@ -1792,9 +1792,7 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 	float (*orcodata)[3];
 	int mapindex;
 
-	printf("%s\n", __func__);
 	if (!psys_map_index_on_dm(dm, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
-		printf("psys_map_index_on_dm failed for %d (from mode: %d)!\n", index, from);
 		if (vec) { vec[0] = vec[1] = vec[2] = 0.0; }
 		if (nor) { nor[0] = nor[1] = 0.0; nor[2] = 1.0; }
 		if (orco) { orco[0] = orco[1] = orco[2] = 0.0; }
