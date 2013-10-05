@@ -1969,11 +1969,11 @@ static void CustomData_copy_data_layer(const CustomData *source, CustomData *des
 	dest_offset = dest_index * typeInfo->size;
 
 	if (!src_data || !dest_data) {
-		//if (!(src_data == NULL && dest_data == NULL)) {
+		if (!(src_data == NULL && dest_data == NULL)) {
 			printf("%s: warning null data for %s type (%p --> %p), skipping\n",
 				   __func__, layerType_getName(source->layers[src_i].type),
 				   (void *)src_data, (void *)dest_data);
-		//}
+		}
 		return;
 	}
 
