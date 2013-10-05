@@ -218,7 +218,7 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_boolean(func, "use_ngons", 1, "Use NGons", "Keep NGons in Export");
 	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
 	parm = RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
-	parm = RNA_def_boolean(func, "open_sim", 0, "Export for OpenSim", "Compatibility mode for OpenSim and similar online worlds");
+	parm = RNA_def_boolean(func, "open_sim", 0, "Export for SL/OpenSim", "Compatibility mode for SL, OpenSim and similar online worlds");
 
 	parm = RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
 	            "Transformation", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
