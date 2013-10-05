@@ -480,7 +480,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed);
 
 		if(b_mesh) {
-			if(render_layer.use_surfaces && !(hide_tris && experimental)) {
+			if(render_layer.use_surfaces && !hide_tris) {
 				if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
 					create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
 				else
