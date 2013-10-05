@@ -355,7 +355,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 
 
 /*
- * BVH from meshs callbacks
+ * BVH from meshes callbacks
  */
 
 /* Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_faces.

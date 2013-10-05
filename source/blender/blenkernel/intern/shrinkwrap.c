@@ -506,7 +506,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	DerivedMesh *ss_mesh    = NULL;
 	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
-	/* remove loop dependencies on derived meshs (TODO should this be done elsewhere?) */
+	/* remove loop dependencies on derived meshes (TODO should this be done elsewhere?) */
 	if (smd->target == ob) smd->target = NULL;
 	if (smd->auxTarget == ob) smd->auxTarget = NULL;
 

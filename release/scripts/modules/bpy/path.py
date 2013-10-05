@@ -163,6 +163,7 @@ def display_name(name):
     """
     # string replacements
     name = name.replace("_colon_", ":")
+    name = name.replace("_plus_", "+")
 
     name = name.replace("_", " ")
 

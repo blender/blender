@@ -1411,7 +1411,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 
 	/* This was in 2.43 and previous releases
 	 * however all data in blender should be sorted, not just duplicate names
-	 * sorting should not hurt, but noting just incause it alters the way other
+	 * sorting should not hurt, but noting just incase it alters the way other
 	 * functions work, so sort every time */
 #if 0
 	if (result)
