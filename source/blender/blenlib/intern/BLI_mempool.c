@@ -366,8 +366,12 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
 	pool->totused--;
 
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_MEMPOOL_FREE(pool, addr);
+#endif
+
 	/* nothing is in use; free all the chunks except the first */
-	if (pool->totused == 0) {
+	if (UNLIKELY(pool->totused == 0)) {
 		BLI_freenode *curnode = NULL;
 		char *tmpaddr = NULL;
 		unsigned int i;
@@ -380,6 +384,10 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		pool->totalloc = pool->pchunk;
 #endif
 
+		/* temp alloc so valgrind doesn't complain when setting free'd blocks 'next' */
+#ifdef WITH_MEM_VALGRIND
+		VALGRIND_MEMPOOL_ALLOC(pool, CHUNK_DATA(first), pool->csize);
+#endif
 		pool->free = CHUNK_DATA(first); /* start of the list */
 		for (tmpaddr = CHUNK_DATA(first), i = 0; i < pool->pchunk; i++) {
 			curnode = ((BLI_freenode *)tmpaddr);
@@ -387,11 +395,11 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 			curnode->next = (BLI_freenode *)tmpaddr;
 		}
 		curnode->next = NULL; /* terminate the list */
-	}
 
 #ifdef WITH_MEM_VALGRIND
-	VALGRIND_MEMPOOL_FREE(pool, addr);
+		VALGRIND_MEMPOOL_FREE(pool, CHUNK_DATA(first));
 #endif
+	}
 }
 
 int BLI_mempool_count(BLI_mempool *pool)

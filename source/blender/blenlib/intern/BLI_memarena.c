@@ -38,6 +38,10 @@
 #include "BLI_linklist.h"
 #include "BLI_strict_flags.h"
 
+#ifdef WITH_MEM_VALGRIND
+#  include "valgrind/memcheck.h"
+#endif
+
 struct MemArena {
 	unsigned char *curbuf;
 	int bufsize, cursize;
@@ -55,6 +59,10 @@ MemArena *BLI_memarena_new(const int bufsize, const char *name)
 	ma->bufsize = bufsize;
 	ma->align = 8;
 	ma->name = name;
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
+#endif
 
 	return ma;
 }
@@ -122,6 +130,10 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 	ma->curbuf += size;
 	ma->cursize -= size;
 
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
+#endif
+
 	return ptr;
 }
 
@@ -152,4 +164,10 @@ void BLI_memarena_clear(MemArena *ma)
 			memset(ma->curbuf, 0, (size_t)curbuf_used);
 		}
 	}
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_DESTROY_MEMPOOL(ma);
+	VALGRIND_CREATE_MEMPOOL(ma, 0, false);
+#endif
+
 }
