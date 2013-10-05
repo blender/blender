@@ -20,12 +20,7 @@
 /* OpenGL header includes, used everywhere we use OpenGL, to deal with
  * platform differences in one central place. */
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
 #include <GL/glew.h>
-#endif
 
 #endif /* __UTIL_OPENGL_H__ */
 

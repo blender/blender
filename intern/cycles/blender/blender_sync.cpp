@@ -34,6 +34,7 @@
 
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_opengl.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -494,7 +495,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 		params.shadingsystem = SessionParams::OSL;
 	
 	/* color managagement */
-	params.display_buffer_linear = b_engine.support_display_space_shader(b_scene);
+	params.display_buffer_linear = GLEW_ARB_half_float_pixel && b_engine.support_display_space_shader(b_scene);
 
 	return params;
 }
