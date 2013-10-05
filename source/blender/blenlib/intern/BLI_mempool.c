@@ -570,6 +570,11 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 	ListBase chunks_temp;
 	BLI_freenode *lasttail = NULL;
 
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_DESTROY_MEMPOOL(pool);
+	VALGRIND_CREATE_MEMPOOL(pool, 0, false);
+#endif
+
 	if (totelem_reserve == -1) {
 		maxchunks = pool->maxchunks;
 	}

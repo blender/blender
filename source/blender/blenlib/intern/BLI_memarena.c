@@ -86,6 +86,11 @@ void BLI_memarena_use_align(struct MemArena *ma, const int align)
 void BLI_memarena_free(MemArena *ma)
 {
 	BLI_linklist_freeN(ma->bufs);
+
+#ifdef WITH_MEM_VALGRIND
+	VALGRIND_DESTROY_MEMPOOL(ma);
+#endif
+
 	MEM_freeN(ma);
 }
 
