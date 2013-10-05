@@ -2285,6 +2285,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
 	info_cfg_option(WITH_MEM_JEMALLOC)
+	info_cfg_option(WITH_MEM_VALGRIND)
 	info_cfg_option(WITH_SYSTEM_GLEW)
 	info_cfg_option(WITH_SYSTEM_OPENJPEG)
 

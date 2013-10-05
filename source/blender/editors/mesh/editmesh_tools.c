@@ -3002,7 +3002,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 		}
 
 		offset = RNA_property_int_get(op->ptr, prop_offset);
-		offset = mod_i(offset, clamp);
+		offset = clamp ? mod_i(offset, clamp) : 0;
 
 		/* in simple cases, move selection for tags, but also support more advanced cases */
 		edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
