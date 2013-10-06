@@ -1731,7 +1731,7 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 		node = nodeGetActive(snode->edittree);
 	}
 
-	if (!node)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
 		return OPERATOR_CANCELLED;
 
 	RNA_string_get(op->ptr, "file_path", file_path);
@@ -1777,7 +1777,7 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *U
 		node = nodeGetActive(snode->edittree);
 	}
 
-	if (!node)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
 		return OPERATOR_CANCELLED;
 	
 	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
@@ -1819,7 +1819,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 	else if (snode && snode->edittree)
 		node = nodeGetActive(snode->edittree);
 
-	if (!node)
+	if (!node || node->type != CMP_NODE_OUTPUT_FILE)
 		return OPERATOR_CANCELLED;
 
 	nimf = node->storage;
