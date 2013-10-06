@@ -131,7 +131,7 @@ static void wm_window_check_position(rcti *rect)
 {
 	int width, height, d;
 	
-	wm_get_desktopsize(&width, &height);
+	wm_get_screensize(&width, &height);
 	
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
 	height -= 70;
@@ -359,7 +359,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	if (multisamples == -1)
 		multisamples = U.ogl_multisamples;
 	
-	wm_get_desktopsize(&scr_w, &scr_h);
+	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
 	ghostwin = GHOST_CreateWindow(g_system, title,
