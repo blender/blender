@@ -920,7 +920,7 @@ static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRN
 	if (scene.data) {
 		PointerRNA cscene = RNA_pointer_get(&scene, "cycles");
 		if (cscene.data && RNA_enum_get(&cscene, "device") == 1)
-			uiItemL(layout, IFACE_("SSS not supported on GPU"), ICON_NONE);
+			uiItemL(layout, IFACE_("SSS not supported on GPU"), ICON_ERROR);
 	}
 
 	uiItemR(layout, ptr, "falloff", 0, "", ICON_NONE);
