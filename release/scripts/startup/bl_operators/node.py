@@ -113,8 +113,11 @@ class NodeAddOperator():
 
     # Default execute simply adds a node
     def execute(self, context):
-        self.create_node(context)
-        return {'FINISHED'}
+        if self.properties.is_property_set("type"):
+            self.create_node(context)
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator
