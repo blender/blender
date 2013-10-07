@@ -358,14 +358,8 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		dx += BLF_width(blf_mono_font, str);
 	}
 	else if (channels >= 3) {
-		if (fp) {
-			rgb_to_hsv(fp[0], fp[1], fp[2], &hue, &sat, &val);
-			rgb_to_yuv(fp[0], fp[1], fp[2], &lum, &u, &v);
-		}
-		else if (cp) {
-			rgb_to_hsv((float)cp[0] / 255.0f, (float)cp[1] / 255.0f, (float)cp[2] / 255.0f, &hue, &sat, &val);
-			rgb_to_yuv((float)cp[0] / 255.0f, (float)cp[1] / 255.0f, (float)cp[2] / 255.0f, &lum, &u, &v);
-		}
+		rgb_to_hsv(finalcol[0], finalcol[1], finalcol[2], &hue, &sat, &val);
+		rgb_to_yuv(finalcol[0], finalcol[1], finalcol[2], &lum, &u, &v);
 
 		BLI_snprintf(str, sizeof(str), "H:%-.4f", hue);
 		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
