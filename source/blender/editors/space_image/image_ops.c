@@ -2417,6 +2417,9 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	hist->co[1][0] = x2f;
 	hist->co[1][1] = y2f;
 
+	/* enable line drawing */
+	hist->flag |= HISTO_FLAG_SAMPLELINE;
+
 	BKE_histogram_update_sample_line(hist, ibuf, &scene->view_settings, &scene->display_settings);
 	
 	/* reset y zoom */

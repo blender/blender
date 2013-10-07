@@ -972,9 +972,6 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const ColorM
 	if (ibuf->rect_float)
 		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
-	/* persistent draw */
-	hist->flag |= HISTO_FLAG_SAMPLELINE; /* keep drawing the flag after */
-
 	for (i = 0; i < 256; i++) {
 		x = (int)(0.5f + x1 + (float)i * (x2 - x1) / 255.0f);
 		y = (int)(0.5f + y1 + (float)i * (y2 - y1) / 255.0f);
