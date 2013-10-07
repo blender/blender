@@ -268,8 +268,6 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			else
 				rgba[3] = linearcol[3];
 
-			(void)color_manage;
-
 			if (use_default_view)
 				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  NULL, &scene->display_settings);
 			else
