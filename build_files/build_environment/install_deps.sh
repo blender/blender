@@ -3145,7 +3145,7 @@ print_info() {
   fi
 
   if $ALL_STATIC; then
-    INFO "LLIB = ["xml2", "expat"] + LLIB"
+    INFO "LLIBS = [\""xml2"\", \""expat"\"] + LLIBS"
   fi
 
   INFO ""
