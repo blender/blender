@@ -66,7 +66,7 @@
 /* when undefined, merge the allocs for BLI_mempool_chunk and its data */
 // #define USE_DATA_PTR
 
-#ifdef DEBUG
+#ifndef NDEBUG
 static bool mempool_debug_memset = false;
 #endif
 
@@ -632,7 +632,7 @@ void BLI_mempool_destroy(BLI_mempool *pool)
 	}
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void BLI_mempool_set_memory_debug(void)
 {
 	mempool_debug_memset = true;
