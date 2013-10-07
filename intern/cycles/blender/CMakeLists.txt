@@ -45,6 +45,8 @@ set(ADDON_FILES
 	addon/ui.py
 )
 
+add_definitions(-DGLEW_STATIC)
+
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}")
 
 add_dependencies(bf_intern_cycles bf_rna)
