@@ -66,9 +66,7 @@ unsigned int GPC_RenderTools::m_numgllights;
 
 GPC_RenderTools::GPC_RenderTools()
 {
-// XXX	m_font = BMF_GetFont(BMF_kHelvetica10);
-
-	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
+	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
 	if (m_numgllights < 8)
 		m_numgllights = 8;
 }
@@ -220,7 +218,7 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 		MT_Vector3 dir = (campos - objpos).safe_normalized();
 		MT_Vector3 up(0,0,1.0);
 
-		KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
+		KX_GameObject* gameobj = (KX_GameObject *)this->m_clientobject;
 		// get scaling of halo object
 		MT_Vector3  size = gameobj->GetSGNode()->GetWorldScaling();
 		
@@ -256,7 +254,7 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 		{
 			// shadow must be cast to the ground, physics system needed here!
 			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
-			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
+			KX_GameObject *gameobj = (KX_GameObject *)this->m_clientobject;
 			MT_Vector3 direction = MT_Vector3(0,0,-1);
 
 			direction.normalize();
@@ -490,7 +488,7 @@ void GPC_RenderTools::RenderText(
 	RAS_IPolyMaterial* polymat,
 	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
 {
-	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+	const STR_String &mytext = ((CValue *)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
 	struct MTFace* tface = 0;
@@ -562,8 +560,7 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 			glAccum(GL_LOAD, 1.0);
 			rasterizer->SetMotionBlurState(2);
 		}
-		else if (motionblurvalue>=0.0 && motionblurvalue<=1.0)
-		{
+		else if (motionblurvalue >= 0.0f && motionblurvalue <= 1.0f) {
 			glAccum(GL_MULT, motionblurvalue);
 			glAccum(GL_ACCUM, 1-motionblurvalue);
 			glAccum(GL_RETURN, 1.0);
