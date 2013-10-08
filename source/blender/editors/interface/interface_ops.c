@@ -326,11 +326,11 @@ static int eyedropper_poll(bContext *C)
 	else return 1;
 }
 
-static void UI_OT_eyedropper(wmOperatorType *ot)
+static void UI_OT_eyedropper_color(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Eyedropper";
-	ot->idname = "UI_OT_eyedropper";
+	ot->idname = "UI_OT_eyedropper_color";
 	ot->description = "Sample a color from the Blender Window to store in a property";
 	
 	/* api callbacks */
@@ -1114,7 +1114,7 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 
 void UI_buttons_operatortypes(void)
 {
-	WM_operatortype_append(UI_OT_eyedropper);
+	WM_operatortype_append(UI_OT_eyedropper_color);
 	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
