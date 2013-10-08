@@ -503,14 +503,14 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_delete_bookmark(wmOperatorType *ot)
+void FILE_OT_bookmark_delete(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "Delete Bookmark";
 	ot->description = "Delete selected bookmark";
-	ot->idname = "FILE_OT_delete_bookmark";
+	ot->idname = "FILE_OT_bookmark_delete";
 	
 	/* api callbacks */
 	ot->exec = bookmark_delete_exec;

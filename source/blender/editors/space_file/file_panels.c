@@ -121,7 +121,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		/* create delete button */
 		if (allow_delete && fsmenu_can_save(fsmenu, category, i)) {
 			uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
+			uiItemIntO(layout, "", ICON_X, "FILE_OT_bookmark_delete", "index", i);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 		}
 	}
