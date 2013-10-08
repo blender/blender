@@ -86,33 +86,13 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     for arch in cuda_archs:
         cubin_file = os.path.join(build_dir, "kernel_%s.cubin" % arch)
 
-		# build flags depending on CUDA version and arch
-        if cuda_version < 50:
-            if arch == "sm_35":
-                print("Can't build kernel for CUDA sm_35 architecture, skipping")
-                continue
-
-            # CUDA 4.x
-            if arch.startswith("sm_1"):
-                # sm_1x
-                cuda_arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0"
-            elif arch.startswith("sm_2"):
-                # sm_2x
-                cuda_arch_flags = "--maxrregcount=24"
-            else:
-                # sm_3x
-                cuda_arch_flags = "--maxrregcount=32"
-        else:
-            # CUDA 5.x
-            if arch.startswith("sm_1"):
-                # sm_1x
-                cuda_arch_flags = "--maxrregcount=24 --opencc-options -OPT:Olimit=0 --use_fast_math"
-            elif arch.startswith("sm_2"):
-                # sm_2x
-                cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
-            else:
-                # sm_3x
-                cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
+        # CUDA 5.x build flags for different archs
+        if arch.startswith("sm_2"):
+            # sm_2x
+            cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
+        elif arch.startswith("sm_3"):
+            # sm_3x
+            cuda_arch_flags = "--maxrregcount=32 --use_fast_math"
 
         command = "\"%s\" -arch=%s %s %s \"%s\" -o \"%s\"" % (nvcc, arch, nvcc_flags, cuda_arch_flags, kernel_file, cubin_file)
 
