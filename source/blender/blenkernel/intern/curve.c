@@ -3176,7 +3176,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 	const float eps_sq = eps * eps;
 
 	BezTriple *bezt2, *bezt1, *bezt0;
-	int i, align, leftsmall, rightsmall;
+	int i;
 
 	if (nu == NULL || nu->bezt == NULL)
 		return;
@@ -3187,7 +3187,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 	i = nu->pntsu;
 
 	while (i--) {
-		align = leftsmall = rightsmall = 0;
+		bool align = false, leftsmall = false, rightsmall = false;
 
 		/* left handle: */
 		if (flag == 0 || (bezt1->f1 & flag) ) {
@@ -3195,12 +3195,12 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 			/* distance too short: vectorhandle */
 			if (len_squared_v3v3(bezt1->vec[1], bezt0->vec[1]) < eps_sq) {
 				bezt1->h1 = HD_VECT;
-				leftsmall = 1;
+				leftsmall = true;
 			}
 			else {
 				/* aligned handle? */
 				if (dist_to_line_v2(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < eps) {
-					align = 1;
+					align = true;
 					bezt1->h1 = HD_ALIGN;
 				}
 				/* or vector handle? */
@@ -3214,7 +3214,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 			/* distance too short: vectorhandle */
 			if (len_squared_v3v3(bezt1->vec[1], bezt2->vec[1]) < eps_sq) {
 				bezt1->h2 = HD_VECT;
-				rightsmall = 1;
+				rightsmall = true;
 			}
 			else {
 				/* aligned handle? */
