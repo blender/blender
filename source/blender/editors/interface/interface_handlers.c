@@ -5405,6 +5405,18 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		else if (event->type == EVT_DROP) {
 			ui_but_drop(C, event, but, data);
 		}
+		/* handle eyedropper */
+		else if ((event->type == EKEY) && (event->val == KM_PRESS)) {
+			if (event->alt || event->shift || event->ctrl || event->oskey) {
+				/* pass */
+			}
+			else {
+				if (but->type == COLOR) {
+					WM_operator_name_call(C, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, NULL);
+					return WM_UI_HANDLER_BREAK;
+				}
+			}
+		}
 		/* handle keyframing */
 		else if ((event->type == IKEY) &&
 		         !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey) &&
