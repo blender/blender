@@ -40,6 +40,7 @@ set(SRC
 	interface.c
 	interface_anim.c
 	interface_draw.c
+	interface_eyedropper.c
 	interface_handlers.c
 	interface_icons.c
 	interface_layout.c

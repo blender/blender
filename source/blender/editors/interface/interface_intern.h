@@ -584,4 +584,7 @@ int ui_but_anim_expression_set(uiBut *but, const char *str);
 int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
-#endif
+/* interface_eyedropper.c */
+void UI_OT_eyedropper_color(struct wmOperatorType *ot);
+
+#endif  /* __INTERFACE_INTERN_H__ */
