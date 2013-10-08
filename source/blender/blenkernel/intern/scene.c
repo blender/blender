@@ -493,23 +493,10 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.border.ymax = 1.0f;
 	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
-	sce->toolsettings->cornertype = 1;
-	sce->toolsettings->degr = 90; 
-	sce->toolsettings->step = 9;
-	sce->toolsettings->turn = 1;
-	sce->toolsettings->extr_offs = 1; 
 	sce->toolsettings->doublimit = 0.001;
-	sce->toolsettings->segments = 32;
-	sce->toolsettings->rings = 32;
-	sce->toolsettings->vertices = 32;
-	sce->toolsettings->uvcalc_radius = 1.0f;
-	sce->toolsettings->uvcalc_cubesize = 1.0f;
-	sce->toolsettings->uvcalc_mapdir = 1;
-	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->uvcalc_margin = 0.001f;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
-	sce->toolsettings->jointrilimit = 0.8f;
 
 	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;

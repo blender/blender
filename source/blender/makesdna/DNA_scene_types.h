@@ -981,17 +981,6 @@ typedef struct ToolSettings {
 	 * paint */
 	float vgroup_weight;
 
-	/* Subdivide Settings */
-	short cornertype;
-	short pad1;
-	/*Triangle to Quad conversion threshold*/
-	float jointrilimit;
-	/* Editmode Tools */
-	float degr; 
-	short step;
-	short turn; 
-	
-	float extr_offs; 	/* extrude offset */
 	float doublimit;	/* remove doubles limit */
 	float normalsize;	/* size of normals */
 	short automerge;
@@ -999,30 +988,21 @@ typedef struct ToolSettings {
 	/* Selection Mode for Mesh */
 	short selectmode;
 
-	/* Primitive Settings */
-	/* UV Sphere */
-	short segments;
-	short rings;
-	
-	/* Cylinder - Tube - Circle */
-	short vertices;
-
 	/* UV Calculation */
-	short unwrapper;
-	float uvcalc_radius;
-	float uvcalc_cubesize;
+	char unwrapper;
+	char uvcalc_flag;
+	char uv_flag;
+	char uv_selectmode;
+
 	float uvcalc_margin;
-	short uvcalc_mapdir;
-	short uvcalc_mapalign;
-	short uvcalc_flag;
-	short uv_flag, uv_selectmode;
-	short pad2;
-	
-	/* Grease Pencil */
-	short gpencil_flags;
-	
+
 	/* Auto-IK */
-	short autoik_chainlen;
+	short autoik_chainlen;  /* runtime only */
+
+	/* Grease Pencil */
+	char gpencil_flags;
+
+	char pad[5];
 
 	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
@@ -1035,16 +1015,13 @@ typedef struct ToolSettings {
 
 	/* Select Group Threshold */
 	float select_thresh;
-	
-	/* Graph Editor */
-	float clean_thresh;
 
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
 
 	/* Multires */
 	char multires_subdiv_type;
-	char pad3[5];
+	char pad3[1];
 
 	/* Skeleton generation */
 	short skgen_resolution;

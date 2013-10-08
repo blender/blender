@@ -1994,15 +1994,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		while (sce) {
 			if (sce->toolsettings == NULL) {
 				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
-				sce->toolsettings->cornertype =0;
-				sce->toolsettings->degr = 90;
-				sce->toolsettings->step = 9;
-				sce->toolsettings->turn = 1;
-				sce->toolsettings->extr_offs = 1;
 				sce->toolsettings->doublimit = 0.001f;
-				sce->toolsettings->segments = 32;
-				sce->toolsettings->rings = 32;
-				sce->toolsettings->vertices = 32;
 			}
 			sce = sce->id.next;
 		}
@@ -2149,9 +2141,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (; sce; sce = sce->id.next) {
-			/* make 'innervert' the default subdivide type, for backwards compat */
-			sce->toolsettings->cornertype = 1;
-
 			if (sce->r.scemode & R_PASSEPARTOUT) {
 				set_passepartout = 1;
 				sce->r.scemode &= ~R_PASSEPARTOUT;
@@ -2238,11 +2227,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				ntree_version_241(sce->nodetree);
 
 			/* uv calculation options moved to toolsettings */
-			if (sce->toolsettings->uvcalc_radius == 0.0f) {
-				sce->toolsettings->uvcalc_radius = 1.0f;
-				sce->toolsettings->uvcalc_cubesize = 1.0f;
-				sce->toolsettings->uvcalc_mapdir = 1;
-				sce->toolsettings->uvcalc_mapalign = 1;
+			if (sce->toolsettings->unwrapper == 0) {
 				sce->toolsettings->uvcalc_flag = UVCALC_FILLHOLES;
 				sce->toolsettings->unwrapper = 1;
 			}
@@ -2343,8 +2328,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh = 0.01f;
-			if (sce->toolsettings->clean_thresh == 0.0f)
-				sce->toolsettings->clean_thresh = 0.1f;
 
 			if (sce->r.threads == 0) {
 				if (sce->r.mode & R_THREADS)
@@ -2552,14 +2535,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				sce->r.bake_filter = 16;
 				sce->r.bake_osa = 5;
 				sce->r.bake_flag = R_BAKE_CLEAR;
-			}
-		}
-
-		if (main->subversionfile < 5) {
-			for (sce = main->scene.first; sce; sce = sce->id.next) {
-				/* improved triangle to quad conversion settings */
-				if (sce->toolsettings->jointrilimit == 0.0f)
-					sce->toolsettings->jointrilimit = 0.8f;
 			}
 		}
 	}
