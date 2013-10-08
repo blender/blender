@@ -14,59 +14,41 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Jacques Beaurain.
+# The Original Code is Copyright (C) 2013, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s):
 #
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenfont
-	../../blenkernel
-	../../blenlib
-	../../imbuf
-	../../bmesh
-	../../makesdna
-	../../makesrna
-	../../render/extern/include
-	../../windowmanager
-	../../../../intern/guardedalloc
+	.
+	..
+	../..
+	../../../blenkernel
+	../../../blenlib
+	../../../makesdna
+	../../../../../intern/guardedalloc
+	../../../../../intern/utfconv
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+
 )
 
 set(SRC
-	image_buttons.c
-	image_draw.c
-	image_edit.c
-	image_ops.c
-	space_image.c
+	openimageio_api.h
 
-	image_intern.h
+	openimageio_api.cpp
 )
 
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-if(WITH_IMAGE_OPENJPEG)
-	add_definitions(-DWITH_OPENJPEG)
-endif()
-
-if(WITH_IMAGE_OPENEXR)
-	add_definitions(-DWITH_OPENEXR)
-endif()
-
 if(WITH_IMAGE_PSD)
+	list(APPEND INC_SYS
+		${OPENIMAGEIO_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_PSD)
 endif()
-if(WITH_IMAGE_TIFF)
-	add_definitions(-DWITH_TIFF)
-endif()
 
-if(WITH_IMAGE_CINEON)
-	add_definitions(-DWITH_CINEON)
-endif()
-
-blender_add_lib(bf_editor_space_image "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_imbuf_openimageio "${SRC}" "${INC}" "${INC_SYS}")

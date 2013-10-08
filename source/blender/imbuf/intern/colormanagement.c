@@ -1915,7 +1915,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 		 * we need to allocate byte buffer and store color managed
 		 * image there
 		 */
-		for (type = IMB_FILE_TYPES; type->is_a; type++) {
+		for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 			if (type->save && type->ftype(type, colormanaged_ibuf)) {
 				if ((type->flag & IM_FTYPE_FLOAT) == 0)
 					make_byte = true;
@@ -2451,7 +2451,7 @@ void IMB_colormanagment_colorspace_from_ibuf_ftype(ColorManagedColorspaceSetting
 {
 	ImFileType *type;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++) {
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->save && type->ftype(type, ibuf)) {
 			const char *role_colorspace;
 

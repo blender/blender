@@ -98,6 +98,16 @@ const char *imb_ext_image[] = {
 #ifdef WITH_OPENEXR
 	".exr",
 #endif
+#ifdef WITH_PSD
+	".psd", ".pdd", ".psb",
+#endif
+	NULL
+};
+
+const char *imb_ext_image_filepath_only[] = {
+#ifdef WITH_PSD
+	".psd", ".pdd", ".psb",
+#endif
 	NULL
 };
 
@@ -188,9 +198,16 @@ static int IMB_ispic_name(const char *name)
 	if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
 		return JPG;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++) {
-		if (type->is_a(buf)) {
-			return type->filetype;
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+		if (type->is_a) {
+			if (type->is_a(buf)) {
+				return type->filetype;
+			}
+		}
+		else if (type->is_a_filepath) {
+			if (type->is_a_filepath(name)) {
+				return type->filetype;
+			}
 		}
 	}
 

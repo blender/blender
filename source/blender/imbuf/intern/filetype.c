@@ -39,6 +39,10 @@
 #include "openexr/openexr_api.h"
 #endif
 
+#ifdef WITH_PSD
+#include "oiio/openimageio_api.h"
+#endif
+
 #ifdef WITH_DDS
 #include "dds/dds_api.h"
 #endif
@@ -71,41 +75,46 @@ void quicktime_exit(void);
 #endif
 
 ImFileType IMB_FILE_TYPES[] = {
-	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG, COLOR_ROLE_DEFAULT_BYTE},
-	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG, COLOR_ROLE_DEFAULT_BYTE},
-	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP, COLOR_ROLE_DEFAULT_BYTE},
-	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA, COLOR_ROLE_DEFAULT_BYTE},
-	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_jpeg, NULL, imb_ftype_default, imb_load_jpeg, NULL, imb_savejpeg, NULL, 0, JPG, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_png, NULL, imb_ftype_default, imb_loadpng, NULL, imb_savepng, NULL, 0, PNG, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_bmp, NULL, imb_ftype_default, imb_bmp_decode, NULL, imb_savebmp, NULL, 0, BMP, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_targa, NULL, imb_ftype_default, imb_loadtarga, NULL, imb_savetarga, NULL, 0, TGA, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_iris, NULL, imb_ftype_iris, imb_loadiris, NULL, imb_saveiris, NULL, 0, IMAGIC, COLOR_ROLE_DEFAULT_BYTE},
 #ifdef WITH_CINEON
-	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_load_dpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX, COLOR_ROLE_DEFAULT_FLOAT},
-	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_load_cineon, imb_save_cineon, NULL, IM_FTYPE_FLOAT, CINEON, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_dpx, NULL, imb_ftype_default, imb_load_dpx, NULL, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_cineon, NULL, imb_ftype_default, imb_load_cineon, NULL, imb_save_cineon, NULL, IM_FTYPE_FLOAT, CINEON, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_TIFF
-	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF, COLOR_ROLE_DEFAULT_BYTE},
+	{imb_inittiff, NULL, imb_is_a_tiff, NULL, imb_ftype_default, imb_loadtiff, NULL, imb_savetiff, imb_loadtiletiff, 0, TIF, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_HDR
-	{NULL, NULL, imb_is_a_hdr, imb_ftype_default, imb_loadhdr, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_a_hdr, NULL, imb_ftype_default, imb_loadhdr, NULL, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_OPENEXR
-	{imb_initopenexr, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR, COLOR_ROLE_DEFAULT_FLOAT},
+	{imb_initopenexr, NULL, imb_is_a_openexr, NULL, imb_ftype_default, imb_load_openexr, NULL, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_OPENJPEG
-	{NULL, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_jp2, NULL, NULL, imb_ftype_default, imb_jp2_decode, NULL, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_DDS
-	{NULL, NULL, imb_is_a_dds, imb_ftype_default, imb_load_dds, NULL, NULL, 0, DDS, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_dds, NULL, imb_ftype_default, imb_load_dds, NULL, NULL, NULL, 0, DDS, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_QUICKTIME
-	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME, COLOR_ROLE_DEFAULT_BYTE},
+	{quicktime_init, quicktime_exit, imb_is_a_quicktime, NULL, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME, COLOR_ROLE_DEFAULT_BYTE},
 #endif
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}
+#ifdef WITH_PSD
+	{NULL, NULL, NULL, imb_is_a_photoshop, imb_ftype_default, NULL, imb_load_photoshop, NULL, NULL, IM_FTYPE_FLOAT, PSD, COLOR_ROLE_DEFAULT_FLOAT},
+#endif
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}
 };
-	
+
+ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES)/sizeof(ImFileType)-1];
+
 void imb_filetypes_init(void)
 {
 	ImFileType *type;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++)
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->init)
 			type->init();
 }
@@ -114,7 +123,7 @@ void imb_filetypes_exit(void)
 {
 	ImFileType *type;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++)
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->exit)
 			type->exit();
 }

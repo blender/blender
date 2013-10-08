@@ -1250,6 +1250,12 @@ static int do_add_image_extension(char *string, const char imtype, const ImageFo
 		}
 	}
 #endif
+#ifdef WITH_PSD
+	else if (imtype == R_IMF_IMTYPE_PSD) {
+		if (!BLI_testextensie(string, ".psd"))
+			extension = ".psd";
+	}
+#endif
 #ifdef WITH_OPENEXR
 	else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
 		if (!BLI_testextensie(string, ".exr"))

@@ -912,6 +912,7 @@ endif()
 		bf_avi
 		bf_imbuf_cineon
 		bf_imbuf_openexr
+		bf_imbuf_openimageio
 		bf_imbuf_dds
 		bf_collada
 		bf_intern_bsp

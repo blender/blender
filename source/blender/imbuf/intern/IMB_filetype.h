@@ -39,8 +39,10 @@ typedef struct ImFileType {
 	void (*exit)(void);
 
 	int (*is_a)(unsigned char *buf);
+	int (*is_a_filepath)(const char *name);
 	int (*ftype)(struct ImFileType *type, struct ImBuf *ibuf);
 	struct ImBuf *(*load)(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+	struct ImBuf *(*load_filepath)(const char *name, int flags, char colorspace[IM_MAX_SPACE]);
 	int (*save)(struct ImBuf *ibuf, const char *name, int flags);
 	void (*load_tile)(struct ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect);
 
@@ -50,6 +52,7 @@ typedef struct ImFileType {
 } ImFileType;
 
 extern ImFileType IMB_FILE_TYPES[];
+extern ImFileType *IMB_FILE_TYPES_LAST;
 
 void imb_filetypes_init(void);
 void imb_filetypes_exit(void);

@@ -246,6 +246,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_CYCLES'] = False
     target_env_defs['WITH_BF_OPENAL'] = False
     target_env_defs['WITH_BF_OPENEXR'] = False
+    target_env_defs['WITH_BF_PSD'] = False
     target_env_defs['WITH_BF_OPENMP'] = False
     target_env_defs['WITH_BF_ICONV'] = False
     target_env_defs['WITH_BF_INTERNATIONAL'] = False

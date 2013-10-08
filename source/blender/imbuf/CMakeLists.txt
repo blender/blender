@@ -105,6 +105,15 @@ if(WITH_IMAGE_TIFF)
 	add_definitions(-DWITH_TIFF)
 endif()
 
+
+if(WITH_IMAGE_PSD)
+	add_definitions(-DWITH_PSD)
+else()
+	list(APPEND SRC
+		intern/oiio/openimageio_stub.cpp
+	)
+endif()
+
 if(WITH_IMAGE_OPENJPEG)
 	list(APPEND INC_SYS
 		${OPENJPEG_INCLUDE_DIRS}

@@ -67,7 +67,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 	if (ibuf == NULL) return (FALSE);
 	ibuf->flags = flags;
 
-	for (type = IMB_FILE_TYPES; type->is_a; type++) {
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->save && type->ftype(type, ibuf)) {
 			ImBuf *write_ibuf;
 			short result = FALSE;

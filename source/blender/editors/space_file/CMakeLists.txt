@@ -58,6 +58,10 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
+if(WITH_IMAGE_PSD)
+	add_definitions(-DWITH_PSD)
+endif()
+
 if(WITH_IMAGE_TIFF)
 	add_definitions(-DWITH_TIFF)
 endif()

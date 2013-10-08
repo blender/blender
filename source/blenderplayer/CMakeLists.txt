@@ -129,6 +129,7 @@ endif()
 		bf_intern_utfconv
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
+		bf_imbuf_openimageio
 		extern_openjpeg
 		extern_redcode
 		bf_imbuf_dds

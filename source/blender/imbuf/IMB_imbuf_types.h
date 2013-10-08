@@ -180,6 +180,10 @@ typedef struct ImBuf {
  */
 #define IB_CUSTOM_FLAGS_MASK 0x7ff
 
+#ifdef WITH_PSD
+#define PSD				(1 << 31)
+#endif
+
 #define PNG				(1 << 30)
 #define TGA				(1 << 28)
 #define JPG				(1 << 27)
@@ -272,6 +276,9 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
+
+/* image formats that can only be loaded via filepath */
+extern const char *imb_ext_image_filepath_only[];
 
 enum {
 	IMB_COLORMANAGE_IS_DATA = (1 << 0)
