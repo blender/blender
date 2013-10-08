@@ -2913,8 +2913,8 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track = tracksbase->first;
 	int placement = RNA_enum_get(op->ptr, "placement");
 	int margin = RNA_int_get(op->ptr, "margin");
-	int min_trackability = RNA_int_get(op->ptr, "min_trackability");
 	int min_distance = RNA_int_get(op->ptr, "min_distance");
+	float threshold = RNA_float_get(op->ptr, "threshold");
 	int place_outside_layer = 0;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	bGPDlayer *layer = NULL;
@@ -2938,8 +2938,8 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 		track = track->next;
 	}
 
-	BKE_tracking_detect_fast(tracking, tracksbase, ibuf, framenr, margin,
-	                         min_trackability, min_distance, layer, place_outside_layer);
+	BKE_tracking_detect_harris(tracking, tracksbase, ibuf, framenr, margin,
+	                           threshold / 100000.0f, min_distance, layer, place_outside_layer);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2972,9 +2972,9 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "placement", placement_items, 0, "Placement", "Placement for detected features");
-	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
-	RNA_def_int(ot->srna, "min_trackability", 16, 0, INT_MAX, "Trackability", "Minimum trackability score to add a corner", 0, 300);
-	RNA_def_int(ot->srna, "min_distance", 120, 0, INT_MAX, "Distance", "Minimal distance accepted between two corners", 0, 300);
+	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only features further than margin pixels from the image edges are considered", 0, 300);
+	RNA_def_float(ot->srna, "threshold", 1.0f, 0.0001f, FLT_MAX, "Threshold", "Threshold level to consider feature good enough for tracking", 0.0001f, FLT_MAX);
+	RNA_def_int(ot->srna, "min_distance", 120, 0, INT_MAX, "Distance", "Minimal distance accepted between two features", 0, 300);
 }
 
 /********************** frame jump operator *********************/

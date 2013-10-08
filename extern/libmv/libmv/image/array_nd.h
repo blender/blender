@@ -471,6 +471,23 @@ void MultiplyElements(const ArrayND<TA, 3> &a,
   }
 }
 
+template <typename TA, typename TB, typename TC>
+void MultiplyElements(const Array3D<TA> &a,
+                      const Array3D<TB> &b,
+                      Array3D<TC> *c) {
+  // Specialization for N==3
+  c->ResizeLike(a);
+  assert(a.Shape(0) == b.Shape(0));
+  assert(a.Shape(1) == b.Shape(1));
+  assert(a.Shape(2) == b.Shape(2));
+  for (int i = 0; i < a.Shape(0); ++i) {
+    for (int j = 0; j < a.Shape(1); ++j) {
+      for (int k = 0; k < a.Shape(2); ++k) {
+        (*c)(i, j, k) = TC(a(i, j, k) * b(i, j, k));
+      }
+    }
+  }
+}
 
 }  // namespace libmv
 

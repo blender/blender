@@ -113,8 +113,11 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking, ListBase *tr
 
 		libmv_getFeature(features, a, &x, &y, &score, &size);
 
-		xu = x / width;
-		yu = y / height;
+		/* In Libmv integer coordinate points to pixel center, in blender
+		 * it's not. Need to add 0.5px offset to center.
+		 */
+		xu = (x + 0.5f) / width;
+		yu = (y + 0.5f) / height;
 
 		if (layer)
 			ok = check_point_in_layer(layer, xu, yu) != place_outside_layer;
@@ -128,36 +131,26 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking, ListBase *tr
 	}
 }
 
-/* Get a gray-scale unsigned char buffer from given image buffer
- * wich will be used for feature detection.
- */
-static unsigned char *detect_get_frame_ucharbuf(ImBuf *ibuf)
+static void run_configured_detector(MovieTracking *tracking, ListBase *tracksbase,
+                                    ImBuf *ibuf, int framenr, bGPDlayer *layer, bool place_outside_layer,
+                                    libmv_DetectOptions *options)
 {
-	int x, y;
-	unsigned char *pixels, *cp;
+	struct libmv_Features *features = NULL;
 
-	cp = pixels = MEM_callocN(ibuf->x * ibuf->y * sizeof(unsigned char), "tracking ucharBuf");
-	for (y = 0; y < ibuf->y; y++) {
-		for (x = 0; x < ibuf->x; x++) {
-			int pixel = ibuf->x * y + x;
-
-			if (ibuf->rect_float) {
-				const float *rrgbf = ibuf->rect_float + pixel * 4;
-				const float gray_f = 0.2126f * rrgbf[0] + 0.7152f * rrgbf[1] + 0.0722f * rrgbf[2];
-
-				*cp = FTOCHAR(gray_f);
-			}
-			else {
-				const unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
-
-				*cp = 0.2126f * rrgb[0] + 0.7152f * rrgb[1] + 0.0722f * rrgb[2];
-			}
-
-			cp++;
-		}
+	if (ibuf->rect_float) {
+		features = libmv_detectFeaturesFloat(ibuf->rect_float, ibuf->x, ibuf->y, 4, options);
+	}
+	else if (ibuf->rect) {
+		features = libmv_detectFeaturesByte((unsigned char *) ibuf->rect, ibuf->x, ibuf->y, 4, options);
 	}
 
-	return pixels;
+	if (features != NULL) {
+		detect_retrieve_libmv_features(tracking, tracksbase, features,
+		                               framenr, ibuf->x, ibuf->y, layer,
+		                               place_outside_layer);
+
+		libmv_featuresDestroy(features);
+	}
 }
 
 /* Detect features using FAST detector */
@@ -165,17 +158,29 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
                               int framenr, int margin, int min_trackness, int min_distance, bGPDlayer *layer,
                               bool place_outside_layer)
 {
-	struct libmv_Features *features;
-	unsigned char *pixels = detect_get_frame_ucharbuf(ibuf);
+	libmv_DetectOptions options = {0};
 
-	features = libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x,
-	                                    margin, min_trackness, min_distance);
+	options.detector = LIBMV_DETECTOR_FAST;
+	options.margin = margin;
+	options.min_distance = min_distance;
+	options.fast_min_trackness = min_trackness;
 
-	MEM_freeN(pixels);
+	run_configured_detector(tracking, tracksbase, ibuf, framenr, layer,
+	                        place_outside_layer, &options);
+}
 
-	detect_retrieve_libmv_features(tracking, tracksbase, features,
-	                               framenr, ibuf->x, ibuf->y, layer,
-	                               place_outside_layer);
+/* Detect features using Harris detector */
+void BKE_tracking_detect_harris(MovieTracking *tracking, ListBase *tracksbase, ImBuf *ibuf,
+                                int framenr, int margin, float threshold, int min_distance, bGPDlayer *layer,
+                                bool place_outside_layer)
+{
+	libmv_DetectOptions options = {0};
 
-	libmv_featuresDestroy(features);
+	options.detector = LIBMV_DETECTOR_HARRIS;
+	options.margin = margin;
+	options.min_distance = min_distance;
+	options.harris_threshold = threshold;
+
+	run_configured_detector(tracking, tracksbase, ibuf, framenr, layer,
+	                        place_outside_layer, &options);
 }

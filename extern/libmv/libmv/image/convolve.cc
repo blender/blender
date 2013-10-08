@@ -182,6 +182,23 @@ void ConvolveGaussian(const Array3Df &in,
   ConvolveHorizontal(tmp, kernel, out_pointer);
 }
 
+void ImageDerivatives(const Array3Df &in,
+                      double sigma,
+                      Array3Df *gradient_x,
+                      Array3Df *gradient_y) {
+  Vec kernel, derivative;
+  ComputeGaussianKernel(sigma, &kernel, &derivative);
+  Array3Df tmp;
+
+  // Compute first derivative in x.
+  ConvolveVertical(in, kernel, &tmp);
+  ConvolveHorizontal(tmp, derivative, gradient_x);
+
+  // Compute first derivative in y.
+  ConvolveHorizontal(in, kernel, &tmp);
+  ConvolveVertical(tmp, derivative, gradient_y);
+}
+
 void BlurredImageAndDerivatives(const Array3Df &in,
                                 double sigma,
                                 Array3Df *blurred_image,

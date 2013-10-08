@@ -242,6 +242,10 @@ void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *t
                               int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
                               bool place_outside_layer);
 
+void BKE_tracking_detect_harris(struct MovieTracking *tracking, struct ListBase *tracksbase, struct ImBuf *ibuf,
+                                int framenr, int margin, float threshold, int min_distance, struct bGPDlayer *layer,
+                                bool place_outside_layer);
+
 /* **** 2D stabilization **** */
 void BKE_tracking_stabilization_data_get(struct MovieTracking *tracking, int framenr, int width, int height,
                                          float translation[2], float *scale, float *angle);

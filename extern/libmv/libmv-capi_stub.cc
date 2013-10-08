@@ -146,15 +146,16 @@ void libmv_reconstructionDestroy(struct libmv_Reconstruction * /*libmv_reconstru
 
 /* ************ feature detector ************ */
 
-struct libmv_Features *libmv_detectFeaturesFAST(const unsigned char * /*data*/, int /*width*/, int /*height*/,
-                                                int /*stride*/, int /*margin*/, int /*min_trackness*/,
-                                                int /*min_distance*/)
+struct libmv_Features *libmv_detectFeaturesByte(const unsigned char */*image_buffer*/,
+                                                int /*width*/, int /*height*/, int /*channels*/,
+                                                libmv_DetectOptions */*options*/)
 {
 	return NULL;
 }
 
-struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char * /*data*/, int /*width*/, int /*height*/,
-                                                   int /*stride*/, int /*margin*/, int /*count*/, int /*min_distance*/)
+struct libmv_Features *libmv_detectFeaturesFloat(const float */*image_buffer*/,
+                                                 int /*width*/, int /*height*/, int /*channels*/,
+                                                 libmv_DetectOptions */*options*/)
 {
 	return NULL;
 }

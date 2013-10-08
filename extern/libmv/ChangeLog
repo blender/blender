@@ -1,3 +1,30 @@
+commit b63b8d6989f460fda7d963a2c8b21e8ffa6f8066
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Jan 24 19:32:34 2014 +0600
+
+    Rework detector API and implement Harris detector
+    
+    Switch the detector API to a single function which accepts
+    a float image and detector options. This makes usage of
+    feature detection more unified across different algorithms.
+    
+    Options structure is pretty much straightforward and contains
+    detector to be used and all the detector-specific settings.
+    
+    Also implemented Harris feature detection algorithm which
+    is not as fast as FAST one but is expected to detect more
+    robust feature points.
+    
+    Reviewers: keir
+    
+    Differential Revision: https://developer.blender.org/D258
+
+commit 6458915f64fceba108c5279b7320ca8c76e8a742
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Jan 24 19:14:18 2014 +0600
+
+    Add arcanist configuration file
+
 commit 0a69fadadc5aacbd339f839ac5bd12c3571278b1
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Jan 9 15:50:11 2014 +0600
@@ -659,29 +686,3 @@ Date:   Sat Apr 6 00:38:40 2013 +0600
     
     Also fixed variable shadowing which lead to wrong
     markers positions (were either zero or undefined).
-
-commit a597ca9291ff7c6e209e0500945568afa84d8b4e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 00:12:12 2013 +0600
-
-    Camera intrinsics unit tests fixes
-    
-    - Existing test ApplyIsInvertibleSimple was not
-      doing right thing - distortion model used there
-      was ininvertible.
-    
-      Tweaked parameters in a way model is invertible now.
-    
-    - Added some own tests which tests;
-    
-      * Principal point always maps from pixel space to
-        zero normalized position.
-    
-      * Some basic tests to check whether individual
-        apply/invert works correct.
-
-commit a9a3016c7beb02e62655221d46783b206010d04c
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 4 02:59:58 2013 +0600
-
-    Suppress strict compiler warnings in glags/glog libraries

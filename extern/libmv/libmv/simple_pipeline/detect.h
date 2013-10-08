@@ -27,6 +27,9 @@
 
 #include <vector>
 
+#include "libmv/base/vector.h"
+#include "libmv/image/image.h"
+
 namespace libmv {
 
 typedef unsigned char ubyte;
@@ -50,47 +53,51 @@ struct Feature {
   float size;
 };
 
-/*!
-    Detect features in an image.
+struct DetectOptions {
+  DetectOptions();
 
-    You need to input a single channel 8-bit image using pointer to image \a data,
-    \a width, \a height and \a stride (i.e bytes per line).
+  // TODO(sergey): Write descriptions to each of algorithms.
+  enum DetectorType {
+    FAST,
+    MORAVEC,
+    HARRIS,
+  };
+  DetectorType type;
 
-    You can tweak the count of detected features using \a min_trackness, which is
-    the minimum score to add a feature, and \a min_distance which is the minimal
-    distance accepted between two featuress.
+  // Margin in pixels from the image boundary.
+  // No features will be detected within the margin.
+  int margin;
 
-    \note You can binary search over \a min_trackness to get a given feature count.
+  // Minimal distance between detected features.
+  int min_distance;
 
-    \note a way to get an uniform distribution of a given feature count is:
-          \a min_distance = \a width * \a height / desired_feature_count ^ 2
+  // Minimum score to add a feature. Only used by FAST detector.
+  //
+  // TODO(sergey): Write more detailed documentation about which
+  // units this value is measured in and so on.
+  int fast_min_trackness;
 
-    \return All detected feartures matching given parameters
-*/
-std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height,
-                           int stride, int min_trackness = 128,
-                           int min_distance = 120);
+  // Maximum count to detect. Only used by MORAVEC detector.
+  int moravec_max_count;
 
-/*!
-    Detect features in an image.
+  // Find only features similar to this pattern. Only used by MORAVEC detector.
+  //
+  // This is an image patch denoted in byte array with dimensions of 16px by 16px
+  // used to filter features by similarity to this patch.
+  unsigned char *moravec_pattern;
 
-    \a image is a single channel 8-bit image of size \a width x \a height
+  // Threshold value of the Harris function to add new featrue
+  // to the result.
+  double harris_threshold;
+};
 
-    \a detected is an array with space to hold \a *count features.
-    \a *count is the maximum count to detect on input and the actual
-    detected count on output.
-
-    \a distance is the minimal distance between detected features.
-
-    if \a pattern is null all good features will be found.
-    if \a pattern is not null only features similar to \a pattern will be found.
-
-    \note \a You can crop the image (to avoid detecting markers near the borders) without copying:
-             image += marginY*stride+marginX, width -= 2*marginX, height -= 2*marginY;
-*/
-void DetectMORAVEC(const ubyte* image, int stride, int width, int height,
-                   Feature* detected, int* count, int distance /*=32*/,
-                   ubyte* pattern /*=0*/);
+// Detect features on a given image using given detector options.
+//
+// Image could have 1-4 channels, it'll be converted to a grayscale
+// by the detector function if needed.
+void Detect(const FloatImage &image,
+            const DetectOptions &options,
+            vector<Feature> *detected_features);
 
 }  // namespace libmv
 

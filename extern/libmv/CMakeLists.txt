@@ -103,6 +103,7 @@ if(WITH_LIBMV)
 		libmv/image/array_nd.h
 		libmv/image/convolve.h
 		libmv/image/correlation.h
+		libmv/image/image_converter.h
 		libmv/image/image.h
 		libmv/image/sample.h
 		libmv/image/tuple.h
