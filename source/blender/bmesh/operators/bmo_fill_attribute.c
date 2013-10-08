@@ -27,8 +27,6 @@
  * Fill in geometry with the attributes of their adjacent data.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_linklist_stack.h"
 

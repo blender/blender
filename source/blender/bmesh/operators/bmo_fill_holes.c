@@ -26,8 +26,6 @@
  * Fill boundary edge loop(s) with faces.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"

@@ -26,9 +26,6 @@
  * Makes the mesh symmetrical by splitting along an axis and duplicating the geometry.
  */
 
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 

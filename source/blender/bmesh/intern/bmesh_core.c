@@ -2282,7 +2282,8 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep)
 
 /**
  * Avoid calling this where possible,
- * low level function for swapping faces.
+ * low level function so both face pointers remain intact but point to swapped data.
+ * \note must be from the same bmesh.
  */
 void bmesh_face_swap_data(BMesh *bm, BMFace *f_a, BMFace *f_b)
 {

@@ -26,7 +26,6 @@
  * Triangulate faces, also defines triangle fill.
  */
 
-#include "MEM_guardedalloc.h"
 #include "DNA_listBase.h"
 
 #include "BLI_math.h"

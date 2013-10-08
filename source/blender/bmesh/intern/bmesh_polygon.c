@@ -30,8 +30,6 @@
 
 #include "DNA_listBase.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -833,10 +831,6 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		f_new = BM_face_split(bm, f, l_first->v, l_first->next->next->v, &l_new, NULL, false);
 		copy_v3_v3(f_new->no, f->no);
 
-		if (UNLIKELY(!l_new || !f_new)) {
-			fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
-		}
-
 		if (use_tag) {
 			BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
 			BM_elem_flag_enable(f, BM_ELEM_TAG);
@@ -905,13 +899,15 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
 			}
 
+			/* add all but the last face which is swapped and removed (below) */
 			if (r_faces_new && sf_tri->prev) {
 				r_faces_new[nf_i++] = f_new;
 			}
 		}
 
 		if (sf_ctx.fillfacebase.first) {
-			/* we can't delete the real face, so swap data and delete */
+			/* we can't delete the real face, because some of the callers expect it to remain valid.
+			 * so swap data and delete the last created tri */
 			bmesh_face_swap_data(bm, f, f_new);
 			BM_face_kill(bm, f_new);
 

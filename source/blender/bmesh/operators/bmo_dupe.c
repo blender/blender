@@ -26,8 +26,6 @@
  * Duplicate, Split, Split operators.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
 #include "BLI_alloca.h"
 

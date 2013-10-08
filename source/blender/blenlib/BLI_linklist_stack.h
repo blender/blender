@@ -151,8 +151,6 @@
 	(void)&(_##var##_type); \
 } (void)0
 
-#include "BLI_alloca.h"
-
 /** \} */
 
 #endif  /* __BLI_LINKLIST_STACK_H__ */
