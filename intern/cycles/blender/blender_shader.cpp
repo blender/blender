@@ -322,9 +322,6 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		SubsurfaceScatteringNode *subsurface = new SubsurfaceScatteringNode();
 
 		switch(b_subsurface_node.falloff()) {
-		case BL::ShaderNodeSubsurfaceScattering::falloff_COMPATIBLE:
-			subsurface->closure = CLOSURE_BSSRDF_COMPATIBLE_ID;
-			break;
 		case BL::ShaderNodeSubsurfaceScattering::falloff_CUBIC:
 			subsurface->closure = CLOSURE_BSSRDF_CUBIC_ID;
 			break;

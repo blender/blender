@@ -378,7 +378,6 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 #endif
 
 #ifdef __SUBSURFACE__
-		case CLOSURE_BSSRDF_COMPATIBLE_ID:
 		case CLOSURE_BSSRDF_CUBIC_ID:
 		case CLOSURE_BSSRDF_GAUSSIAN_ID: {
 			ShaderClosure *sc = &sd->closure[sd->num_closure];
@@ -388,7 +387,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			/* disable in case of diffuse ancestor, can't see it well then and
 			 * adds considerably noise due to probabilities of continuing path
 			 * getting lower and lower */
-			if(type != CLOSURE_BSSRDF_COMPATIBLE_ID && (path_flag & PATH_RAY_DIFFUSE_ANCESTOR))
+			if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR)
 				param1 = 0.0f;
 
 			if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {

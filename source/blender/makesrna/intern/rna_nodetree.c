@@ -3699,7 +3699,6 @@ static void def_sh_tangent(StructRNA *srna)
 static void def_sh_subsurface(StructRNA *srna)
 {
 	static EnumPropertyItem prop_subsurface_falloff_items[] = {
-		{SHD_SUBSURFACE_COMPATIBLE, "COMPATIBLE", 0, "Compatible", "Subsurface scattering falloff compatible with previous versions"},
 		{SHD_SUBSURFACE_CUBIC, "CUBIC", 0, "Cubic", "Simple cubic falloff function"},
 		{SHD_SUBSURFACE_GAUSSIAN, "GAUSSIAN", 0, "Gaussian", "Normal distribution, multiple can be combined to fit more complex profiles"},
 		{0, NULL, 0, NULL, NULL}

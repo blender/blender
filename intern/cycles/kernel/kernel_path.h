@@ -266,14 +266,9 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 			if(sc) {
 				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 
-				if(old_subsurface_scatter_use(&sd)) {
-					old_subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
-				}
-				else {
-					float bssrdf_u, bssrdf_v;
-					path_rng_2D(kg, rng, sample, num_total_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-					subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
-				}
+				float bssrdf_u, bssrdf_v;
+				path_rng_2D(kg, rng, sample, num_total_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
 
 				state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
 			}
@@ -664,41 +659,35 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			if(sc) {
 				uint lcg_state = lcg_init(*rng + rng_offset + sample*0x68bc21eb);
 
-				if(old_subsurface_scatter_use(&sd)) {
-					old_subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, false);
-				}
-				else {
-					ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
-					float bssrdf_u, bssrdf_v;
-					path_rng_2D(kg, rng, sample, num_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-					int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+				ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+				float bssrdf_u, bssrdf_v;
+				path_rng_2D(kg, rng, sample, num_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+				int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
 
-					/* compute lighting with the BSDF closure */
-					for(int hit = 0; hit < num_hits; hit++) {
-						float3 tp = throughput;
-						PathState hit_state = state;
-						Ray hit_ray = ray;
-						float hit_ray_t = ray_t;
-						float hit_ray_pdf = ray_pdf;
-						float hit_min_ray_pdf = min_ray_pdf;
+				/* compute lighting with the BSDF closure */
+				for(int hit = 0; hit < num_hits; hit++) {
+					float3 tp = throughput;
+					PathState hit_state = state;
+					Ray hit_ray = ray;
+					float hit_ray_t = ray_t;
+					float hit_ray_pdf = ray_pdf;
+					float hit_min_ray_pdf = min_ray_pdf;
 
-						hit_state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
-						
-						if(kernel_path_integrate_lighting(kg, rng, sample, num_samples, &bssrdf_sd[hit],
-							&tp, &hit_min_ray_pdf, &hit_ray_pdf, &hit_state, rng_offset+PRNG_BOUNCE_NUM, &L, &hit_ray, &hit_ray_t)) {
-							kernel_path_indirect(kg, rng, sample, hit_ray, buffer,
-								tp, num_samples, num_samples,
-								hit_min_ray_pdf, hit_ray_pdf, hit_state, rng_offset+PRNG_BOUNCE_NUM*2, &L);
+					hit_state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
+					
+					if(kernel_path_integrate_lighting(kg, rng, sample, num_samples, &bssrdf_sd[hit],
+						&tp, &hit_min_ray_pdf, &hit_ray_pdf, &hit_state, rng_offset+PRNG_BOUNCE_NUM, &L, &hit_ray, &hit_ray_t)) {
+						kernel_path_indirect(kg, rng, sample, hit_ray, buffer,
+							tp, num_samples, num_samples,
+							hit_min_ray_pdf, hit_ray_pdf, hit_state, rng_offset+PRNG_BOUNCE_NUM*2, &L);
 
-							/* for render passes, sum and reset indirect light pass variables
-							 * for the next samples */
-							path_radiance_sum_indirect(&L);
-							path_radiance_reset_indirect(&L);
-						}
+						/* for render passes, sum and reset indirect light pass variables
+						 * for the next samples */
+						path_radiance_sum_indirect(&L);
+						path_radiance_reset_indirect(&L);
 					}
-
-					break;
 				}
+				break;
 			}
 		}
 #endif
@@ -1131,17 +1120,6 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 				/* do subsurface scatter step with copy of shader data, this will
 				 * replace the BSSRDF with a diffuse BSDF closure */
 				for(int j = 0; j < num_samples; j++) {
-					if(old_subsurface_scatter_use(&sd)) {
-						ShaderData bssrdf_sd = sd;
-						old_subsurface_scatter_step(kg, &bssrdf_sd, state.flag, sc, &lcg_state, true);
-
-						/* compute lighting with the BSDF closure */
-						kernel_branched_path_integrate_lighting(kg, rng, sample*num_samples + j,
-							aa_samples*num_samples,
-							&bssrdf_sd, throughput, num_samples_inv,
-							ray_pdf, ray_pdf, state, rng_offset, &L, buffer);
-					}
-					else {
 						ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
 						float bssrdf_u, bssrdf_v;
 						path_rng_2D(kg, &bssrdf_rng, sample*num_samples + j, aa_samples*num_samples, rng_offset + PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
@@ -1153,7 +1131,6 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 								aa_samples*num_samples,
 								&bssrdf_sd[hit], throughput, num_samples_inv,
 								ray_pdf, ray_pdf, state, rng_offset+PRNG_BOUNCE_NUM, &L, buffer);
-					}
 				}
 
 				state.flag &= ~PATH_RAY_BSSRDF_ANCESTOR;

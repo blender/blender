@@ -253,7 +253,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 						/* disable in case of diffuse ancestor, can't see it well then and
 						 * adds considerably noise due to probabilities of continuing path
 						 * getting lower and lower */
-						if(sc.type != CLOSURE_BSSRDF_COMPATIBLE_ID && (path_flag & PATH_RAY_DIFFUSE_ANCESTOR))
+						if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR)
 							bssrdf->radius = make_float3(0.0f, 0.0f, 0.0f);
 
 						/* create one closure for each color channel */
