@@ -31,12 +31,15 @@
 
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_report.h"
+#include "BKE_idcode.h"
 
 #include "RNA_access.h"
 
@@ -46,16 +49,25 @@
 
 #include "IMB_colormanagement.h"
 
-#include "interface_intern.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "interface_intern.h"
 
 /* for HDR color sampling */
 #include "ED_image.h"
 #include "ED_node.h"
 #include "ED_clip.h"
 
+/* for ID data eyedropper */
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_view3d.h"
+
+
+/* -------------------------------------------------------------------- */
+/* Eyedropper
+ */
 
 /** \name Eyedropper (RGB Color)
  * \{ */
@@ -323,6 +335,300 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 	ot->cancel = eyedropper_cancel;
 	ot->exec = eyedropper_exec;
 	ot->poll = eyedropper_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING;
+
+	/* properties */
+}
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Data Dropper
+ *
+ * note: datadropper is only internal name to avoid confusion in this file
+ */
+
+/** \name Eyedropper (ID data-blocks)
+ * \{ */
+
+typedef struct DataDropper {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	short idcode;
+	const char *idcode_name;
+
+	ARegionType *art;
+	void *draw_handle_pixel;
+	char name[200];
+} DataDropper;
+
+
+static void datadropper_draw_cb(const struct bContext *C, ARegion *ar, void *arg)
+{
+	DataDropper *ddr = arg;
+	int width;
+	const char *name = ddr->name;
+	wmWindow *win = CTX_wm_window(C);
+	int x = win->eventstate->x;
+	int y = win->eventstate->y;
+
+	if ((name[0] == '\0') ||
+	    (BLI_rcti_isect_pt(&ar->winrct, x, y) == false))
+	{
+		return;
+	}
+
+	width = UI_GetStringWidth(name);
+	x = x - ar->winrct.xmin;
+	y = y - ar->winrct.ymin;
+
+	y += 20;
+
+	glColor4ub(0, 0, 0, 50);
+
+	uiSetRoundBox(UI_CNR_ALL | UI_RB_ALPHA);
+	uiRoundBox(x, y, x + width + 8, y + 15, 4);
+
+	glColor4ub(255, 255, 255, 255);
+	UI_DrawString(x + 4, y + 4, name);
+}
+
+
+static int datadropper_init(bContext *C, wmOperator *op)
+{
+	DataDropper *ddr;
+	int index_dummy;
+	StructRNA *type;
+
+	SpaceType *st;
+	ARegionType *art;
+
+	st = BKE_spacetype_from_id(SPACE_VIEW3D);
+	art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
+
+	op->customdata = ddr = MEM_callocN(sizeof(DataDropper), "DataDropper");
+
+	uiContextActiveProperty(C, &ddr->ptr, &ddr->prop, &index_dummy);
+
+	if ((ddr->ptr.data == NULL) ||
+	    (ddr->prop == NULL) ||
+	    (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
+	    (RNA_property_type(ddr->prop) != PROP_POINTER))
+	{
+		return false;
+	}
+
+	ddr->art = art;
+	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, datadropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
+
+	type = RNA_property_pointer_type(&ddr->ptr, ddr->prop);
+	ddr->idcode = RNA_type_to_ID_code(type);
+	BLI_assert(ddr->idcode != 0);
+	ddr->idcode_name = BKE_idcode_to_name(ddr->idcode);
+
+	return true;
+}
+
+static void datadropper_exit(bContext *C, wmOperator *op)
+{
+	DataDropper *ddr = (DataDropper *)op->customdata;
+
+	WM_cursor_modal_restore(CTX_wm_window(C));
+
+	ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+
+	if (op->customdata)
+		MEM_freeN(op->customdata);
+	op->customdata = NULL;
+}
+
+static int datadropper_cancel(bContext *C, wmOperator *op)
+{
+	datadropper_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
+/* *** datadropper id helper functions *** */
+/**
+ * \brief get the ID from the screen.
+ *
+ */
+static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int my, ID **r_id)
+{
+
+	/* we could use some clever */
+	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa;
+
+	ScrArea *area_prev = CTX_wm_area(C);
+	ARegion *ar_prev = CTX_wm_region(C);
+
+	ddr->name[0] = '\0';
+
+	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
+			if (sa->spacetype == SPACE_VIEW3D) {
+				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+					int mval[2] = {mx - ar->winrct.xmin,
+					               my - ar->winrct.ymin};
+					Base *base;
+
+					CTX_wm_area_set(C, sa);
+					CTX_wm_region_set(C, ar);
+
+					/* grr, always draw else we leave stale text */
+					ED_region_tag_redraw(ar);
+
+					base = ED_view3d_give_base_under_cursor(C, mval);
+					if (base) {
+						Object *ob = base->object;
+						ID *id = NULL;
+						if (ddr->idcode == ID_OB) {
+							id = (ID *)ob;
+						}
+						else if (ob->data) {
+							if (GS(((ID *)ob->data)->name) == ddr->idcode) {
+								id = (ID *)ob->data;
+							}
+							else {
+								BLI_snprintf(ddr->name, sizeof(ddr->name), "Incompatible, expected a %s",
+								             ddr->idcode_name);
+							}
+						}
+
+						if (id) {
+							BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s",
+							             ddr->idcode_name, id->name + 2);
+							*r_id = id;
+						}
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	CTX_wm_area_set(C, area_prev);
+	CTX_wm_region_set(C, ar_prev);
+}
+
+/* sets the ID, returns success */
+static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
+{
+	PointerRNA ptr_value;
+
+	RNA_id_pointer_create(id, &ptr_value);
+
+	RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value);
+
+	RNA_property_update(C, &ddr->ptr, ddr->prop);
+
+	ptr_value = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
+
+	return (ptr_value.id.data == id);
+}
+
+/* single point sample & set */
+static bool datadropper_id_sample(bContext *C, DataDropper *ddr, int mx, int my)
+{
+	ID *id = NULL;
+
+	datadropper_id_sample_pt(C, ddr, mx, my, &id);
+	return datadropper_id_set(C, ddr, id);
+}
+
+/* main modal status check */
+static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	DataDropper *ddr = (DataDropper *)op->customdata;
+
+	switch (event->type) {
+		case ESCKEY:
+		case RIGHTMOUSE:
+			return datadropper_cancel(C, op);
+		case LEFTMOUSE:
+			if (event->val == KM_RELEASE) {
+				bool success;
+
+				success = datadropper_id_sample(C, ddr, event->x, event->y);
+				datadropper_exit(C, op);
+
+				if (success) {
+					return OPERATOR_FINISHED;
+				}
+				else {
+					BKE_report(op->reports, RPT_WARNING, "Failed to set value");
+					return OPERATOR_CANCELLED;
+				}
+			}
+			break;
+		case MOUSEMOVE:
+		{
+			ID *id = NULL;
+			datadropper_id_sample_pt(C, ddr, event->x, event->y, &id);
+			break;
+		}
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Modal Operator init */
+static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	/* init */
+	if (datadropper_init(C, op)) {
+		WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
+
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		datadropper_exit(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Repeat operator */
+static int datadropper_exec(bContext *C, wmOperator *op)
+{
+	/* init */
+	if (datadropper_init(C, op)) {
+		/* cleanup */
+		datadropper_exit(C, op);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int datadropper_poll(bContext *C)
+{
+	if (!CTX_wm_window(C)) return 0;
+	else return 1;
+}
+
+void UI_OT_eyedropper_id(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Eyedropper Datablock";
+	ot->idname = "UI_OT_eyedropper_id";
+	ot->description = "Sample a color from the Blender Window to store in a property";
+
+	/* api callbacks */
+	ot->invoke = datadropper_invoke;
+	ot->modal = datadropper_modal;
+	ot->cancel = datadropper_cancel;
+	ot->exec = datadropper_exec;
+	ot->poll = datadropper_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;

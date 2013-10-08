@@ -5415,6 +5415,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 					WM_operator_name_call(C, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, NULL);
 					return WM_UI_HANDLER_BREAK;
 				}
+				else if (but->type == SEARCH_MENU_UNLINK) {
+					if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_POINTER) {
+						StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
+						const short idcode = RNA_type_to_ID_code(type);
+						if ((idcode == ID_OB) || OB_DATA_SUPPORT_ID(idcode)) {
+							WM_operator_name_call(C, "UI_OT_eyedropper_id", WM_OP_INVOKE_DEFAULT, NULL);
+							return WM_UI_HANDLER_BREAK;
+						}
+					}
+				}
 			}
 		}
 		/* handle keyframing */
