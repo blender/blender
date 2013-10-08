@@ -34,6 +34,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_listbase.h"
 
@@ -801,194 +802,6 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static bool bm_face_goodline(float const (*projectverts)[2], BMFace *f, int v1i, int v2i, int v3i)
-{
-	BMLoop *l_iter;
-	BMLoop *l_first;
-
-	float pv1[2];
-	const float *v1 = projectverts[v1i];
-	const float *v2 = projectverts[v2i];
-	const float *v3 = projectverts[v3i];
-	int i;
-
-	/* v3 must be on the left side of [v1, v2] line, else we know [v1, v3] is outside of f! */
-	if (testedgesidef(v1, v2, v3)) {
-		return false;
-	}
-
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	do {
-		i = BM_elem_index_get(l_iter->v);
-		copy_v2_v2(pv1, projectverts[i]);
-
-		if (ELEM3(i, v1i, v2i, v3i)) {
-#if 0
-			printf("%d in (%d, %d, %d) tri (from indices!), continuing\n", i, v1i, v2i, v3i);
-#endif
-			continue;
-		}
-
-		if (isect_point_tri_v2(pv1, v1, v2, v3) ||
-		    isect_point_tri_v2(pv1, v3, v2, v1))
-		{
-#if 0
-			if (isect_point_tri_v2(pv1, v1, v2, v3))
-				printf("%d in (%d, %d, %d)\n", v3i, i, v1i, v2i);
-			else
-				printf("%d in (%d, %d, %d)\n", v1i, i, v3i, v2i);
-#endif
-			return false;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
-	return true;
-}
-
-/**
- * \brief Find Ear
- *
- * Used by tessellator to find the next triangle to 'clip off' of a polygon while tessellating.
- *
- * \param f The face to search.
- * \param projectverts an array of face vert coords.
- * \param use_beauty Currently only applies to quads, can be extended later on.
- * \param abscoss Must be allocated by caller, and at least f->len length
- *        (allow to avoid allocating a new one for each tri!).
- */
-static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use_beauty, float *abscoss)
-{
-	BMLoop *bestear = NULL;
-
-	BMLoop *l_iter;
-	BMLoop *l_first;
-
-	const float cos_threshold = 0.9f;
-	const float bias = 1.0f + 1e-6f;
-
-	/* just triangulate degenerate faces */
-	if (UNLIKELY(is_zero_v3(f->no))) {
-		return BM_FACE_FIRST_LOOP(f);
-	}
-
-	if (f->len == 4) {
-		BMLoop *larr[4];
-		int i = 0, i4;
-		float cos1, cos2;
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			larr[i] = l_iter;
-			i++;
-		} while ((l_iter = l_iter->next) != l_first);
-
-		/* pick 0/1 based on best length */
-		/* XXX Can't only rely on such test, also must check we do not get (too much) degenerated triangles!!! */
-		i = (((len_squared_v3v3(larr[0]->v->co, larr[2]->v->co) >
-		       len_squared_v3v3(larr[1]->v->co, larr[3]->v->co) * bias)) != use_beauty);
-		i4 = (i + 3) % 4;
-		/* Check produced tris aren't too flat/narrow...
-		 * Probably not the best test, but is quite efficient and should at least avoid null-area faces! */
-		cos1 = fabsf(cos_v3v3v3(larr[i4]->v->co, larr[i]->v->co, larr[i + 1]->v->co));
-		cos2 = fabsf(cos_v3v3v3(larr[i4]->v->co, larr[i + 2]->v->co, larr[i + 1]->v->co));
-#if 0
-		printf("%d, (%f, %f), (%f, %f)\n", i, cos1, cos2,
-		       fabsf(cos_v3v3v3(larr[i]->v->co, larr[i4]->v->co, larr[i + 2]->v->co)),
-		       fabsf(cos_v3v3v3(larr[i]->v->co, larr[i + 1]->v->co, larr[i + 2]->v->co)));
-#endif
-		if (cos1 < cos2)
-			cos1 = cos2;
-
-		if (cos1 > cos_threshold) {
-			if (cos1 > fabsf(cos_v3v3v3(larr[i]->v->co, larr[i4]->v->co, larr[i + 2]->v->co)) &&
-			    cos1 > fabsf(cos_v3v3v3(larr[i]->v->co, larr[i + 1]->v->co, larr[i + 2]->v->co)))
-			{
-				i = !i;
-			}
-		}
-		/* Last check we do not get overlapping triangles
-		 * (as much as possible, there are some cases with no good solution!) */
-		i4 = (i + 3) % 4;
-		if (!bm_face_goodline((float const (*)[2])projectverts, f,
-		                      BM_elem_index_get(larr[i4]->v),
-		                      BM_elem_index_get(larr[i]->v),
-		                      BM_elem_index_get(larr[i + 1]->v)))
-		{
-			i = !i;
-		}
-/*		printf("%d\n", i);*/
-		bestear = larr[i];
-
-	}
-	else {
-		/* float angle, bestangle = 180.0f; */
-		const int len = f->len;
-		float cos, cos_best = 1.0f;
-		int i, j;
-
-		/* Compute cos of all corners! */
-		i = 0;
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			const BMVert *v1 = l_iter->prev->v;
-			const BMVert *v2 = l_iter->v;
-			const BMVert *v3 = l_iter->next->v;
-
-			abscoss[i] = fabsf(cos_v3v3v3(v1->co, v2->co, v3->co));
-/*			printf("tcoss: %f\n", *tcoss);*/
-			i++;
-		} while ((l_iter = l_iter->next) != l_first);
-
-		i = 0;
-		l_iter = l_first;
-		do {
-			const BMVert *v1 = l_iter->prev->v;
-			const BMVert *v2 = l_iter->v;
-			const BMVert *v3 = l_iter->next->v;
-
-			/* Compute highest cos (i.e. narrowest angle) of this tri. */
-			cos = max_fff(abscoss[i],
-			              fabsf(cos_v3v3v3(v2->co, v3->co, v1->co)),
-			              fabsf(cos_v3v3v3(v3->co, v1->co, v2->co)));
-
-			/* Compare to prev best (i.e. lowest) cos. */
-			if (cos < cos_best) {
-				if (bm_face_goodline((float const (*)[2])projectverts, f,
-				                     BM_elem_index_get(v1),
-				                     BM_elem_index_get(v2),
-				                     BM_elem_index_get(v3)))
-				{
-					/* We must check this tri would not leave a (too much) degenerated remaining face! */
-					/* For now just assume if the average of cos of all
-					 * "remaining face"'s corners is below a given threshold, it's OK. */
-					float cos_mean = fabsf(cos_v3v3v3(v1->co, v3->co, l_iter->next->next->v->co));
-					const int i_limit = (i - 1 + len) % len;
-					cos_mean += fabsf(cos_v3v3v3(l_iter->prev->prev->v->co, v1->co, v3->co));
-					j = (i + 2) % len;
-					do {
-						cos_mean += abscoss[j];
-					} while ((j = (j + 1) % len) != i_limit);
-					cos_mean /= len - 1;
-
-					/* We need a best ear in any case... */
-					if (cos_mean < cos_threshold || (!bestear && cos_mean < 1.0f)) {
-						/* OKI, keep this ear (corner...) as a potential best one! */
-						bestear = l_iter;
-						cos_best = cos;
-					}
-#if 0
-					else
-						printf("Had a nice tri (higest cos of %f, current cos_best is %f), "
-						       "but average cos of all \"remaining face\"'s corners is too high (%f)!\n",
-						       cos, cos_best, cos_mean);
-#endif
-				}
-			}
-			i++;
-		} while ((l_iter = l_iter->next) != l_first);
-	}
-
-	return bestear;
-}
-
 /**
  * \brief BMESH TRIANGULATE FACE
  *
@@ -1004,49 +817,25 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
-                         const bool use_beauty, const bool use_tag)
+                         MemArena *sf_arena,
+                         const bool UNUSED(use_beauty), const bool use_tag)
 {
-	const float f_len_orig = f->len;
-	int i, nf_i = 0;
-	BMLoop *l_new;
-	BMLoop *l_iter;
-	BMLoop *l_first;
-	/* BM_face_triangulate: temp absolute cosines of face corners */
-	float (*projectverts)[2] = BLI_array_alloca(projectverts, f_len_orig);
-	float *abscoss = BLI_array_alloca(abscoss, f_len_orig);
-	float mat[3][3];
+	int nf_i = 0;
+	BMLoop *l_iter, *l_first, *l_new;
+	BMFace *f_new;
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
-	axis_dominant_v3_to_m3(mat, f->no);
 
-	/* copy vertex coordinates to vertspace area */
-	i = 0;
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	do {
-		mul_v2_m3v3(projectverts[i], mat, l_iter->v->co);
-		BM_elem_index_set(l_iter->v, i++); /* set dirty! */
-	} while ((l_iter = l_iter->next) != l_first);
+	if (f->len == 4) {
+		l_first = BM_FACE_FIRST_LOOP(f);
 
-	bm->elem_index_dirty |= BM_VERT; /* see above */
+		f_new = BM_face_split(bm, f, l_first->v, l_first->next->next->v, &l_new, NULL, false);
+		copy_v3_v3(f_new->no, f->no);
 
-	while (f->len > 3) {
-		l_iter = poly_find_ear(f, projectverts, use_beauty, abscoss);
-
-		/* force triangulation - if we can't find an ear the face is degenerate */
-		if (l_iter == NULL) {
-			l_iter = BM_FACE_FIRST_LOOP(f);
-		}
-
-/*		printf("Subdividing face...\n");*/
-		f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &l_new, NULL, true);
-
-		if (UNLIKELY(!f)) {
+		if (UNLIKELY(!l_new || !f_new)) {
 			fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
-			break;
 		}
-
-		copy_v3_v3(f->no, l_iter->f->no);
 
 		if (use_tag) {
 			BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
@@ -1054,11 +843,86 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		}
 
 		if (r_faces_new) {
-			r_faces_new[nf_i++] = f;
+			r_faces_new[nf_i++] = f_new;
 		}
 	}
+	else if (f->len > 4) {
+		/* scanfill */
+		ScanFillContext sf_ctx;
+		ScanFillVert *sf_vert, *sf_vert_prev = NULL;
+		ScanFillFace *sf_tri;
+		int totfilltri;
 
-	BLI_assert(f->len == 3);
+		/* populate scanfill */
+		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+		/* step once before entering the loop */
+		sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
+		sf_vert->tmp.p = l_iter;
+		sf_vert_prev = sf_vert;
+		l_iter = l_iter->next;
+
+		do {
+			sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
+			BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
+
+			sf_vert->tmp.p = l_iter;
+			sf_vert_prev = sf_vert;
+		} while ((l_iter = l_iter->next) != l_first);
+
+		BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_ctx.fillvertbase.first);
+
+		/* calculate filled triangles */
+		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
+		BLI_assert(totfilltri <= f->len - 2);
+
+
+		/* loop over calculated triangles and create new geometry */
+		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			/* the order is reverse, otherwise the normal is flipped */
+			BMLoop *l_tri[3] = {
+			    sf_tri->v3->tmp.p,
+			    sf_tri->v2->tmp.p,
+			    sf_tri->v1->tmp.p};
+
+			BMVert *v_tri[3] = {
+			    l_tri[0]->v,
+			    l_tri[1]->v,
+			    l_tri[2]->v};
+
+			f_new = BM_face_create_verts(bm, v_tri, 3, f, false, true);
+			l_new = BM_FACE_FIRST_LOOP(f_new);
+
+			BLI_assert(v_tri[0] == l_new->v);
+
+			/* copy CD data */
+			BM_elem_attrs_copy(bm, bm, l_tri[0], l_new);
+			BM_elem_attrs_copy(bm, bm, l_tri[1], l_new->next);
+			BM_elem_attrs_copy(bm, bm, l_tri[2], l_new->prev);
+
+			if (use_tag) {
+				BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
+			}
+
+			if (r_faces_new && sf_tri->prev) {
+				r_faces_new[nf_i++] = f_new;
+			}
+		}
+
+		if (sf_ctx.fillfacebase.first) {
+			/* we can't delete the real face, so swap data and delete */
+			bmesh_face_swap_data(bm, f, f_new);
+			BM_face_kill(bm, f_new);
+
+			if (use_tag) {
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+			}
+		}
+
+		/* garbage collection */
+		BLI_scanfill_end_arena(&sf_ctx, sf_arena);
+	}
 }
 
 /**

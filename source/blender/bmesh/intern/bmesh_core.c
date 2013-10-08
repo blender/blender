@@ -2279,3 +2279,27 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep)
 	BMLoop *l = BM_face_vert_share_loop(f_sep, v_sep);
 	return bmesh_urmv_loop(bm, l);
 }
+
+/**
+ * Avoid calling this where possible,
+ * low level function for swapping faces.
+ */
+void bmesh_face_swap_data(BMesh *bm, BMFace *f_a, BMFace *f_b)
+{
+	BMLoop *l_iter, *l_first;
+
+	BLI_assert(f_a != f_b);
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
+	do {
+		l_iter->f = f_b;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_b);
+	do {
+		l_iter->f = f_a;
+	} while ((l_iter = l_iter->next) != l_first);
+
+	SWAP(BMFace, (*f_a), (*f_b));
+	bm->elem_index_dirty |= BM_FACE;
+}

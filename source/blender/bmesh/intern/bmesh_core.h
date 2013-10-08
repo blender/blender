@@ -87,4 +87,6 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep);
 BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep);
 
+void    bmesh_face_swap_data(BMesh *bm, BMFace *f_a, BMFace *f_b);
+
 #endif /* __BMESH_CORE_H__ */
