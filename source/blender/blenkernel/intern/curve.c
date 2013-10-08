@@ -3172,6 +3172,8 @@ void BKE_nurb_handles_test(Nurb *nu, const bool use_handle)
 void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 {
 	/* checks handle coordinates and calculates type */
+	const float eps = 0.0001f;
+	const float eps_sq = eps * eps;
 
 	BezTriple *bezt2, *bezt1, *bezt0;
 	int i, align, leftsmall, rightsmall;
@@ -3191,18 +3193,18 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag == 0 || (bezt1->f1 & flag) ) {
 			bezt1->h1 = HD_FREE;
 			/* distance too short: vectorhandle */
-			if (len_v3v3(bezt1->vec[1], bezt0->vec[1]) < 0.0001f) {
+			if (len_squared_v3v3(bezt1->vec[1], bezt0->vec[1]) < eps_sq) {
 				bezt1->h1 = HD_VECT;
 				leftsmall = 1;
 			}
 			else {
 				/* aligned handle? */
-				if (dist_to_line_v2(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < 0.0001f) {
+				if (dist_to_line_v2(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < eps) {
 					align = 1;
 					bezt1->h1 = HD_ALIGN;
 				}
 				/* or vector handle? */
-				if (dist_to_line_v2(bezt1->vec[0], bezt1->vec[1], bezt0->vec[1]) < 0.0001f)
+				if (dist_to_line_v2(bezt1->vec[0], bezt1->vec[1], bezt0->vec[1]) < eps)
 					bezt1->h1 = HD_VECT;
 			}
 		}
@@ -3210,7 +3212,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 		if (flag == 0 || (bezt1->f3 & flag) ) {
 			bezt1->h2 = HD_FREE;
 			/* distance too short: vectorhandle */
-			if (len_v3v3(bezt1->vec[1], bezt2->vec[1]) < 0.0001f) {
+			if (len_squared_v3v3(bezt1->vec[1], bezt2->vec[1]) < eps_sq) {
 				bezt1->h2 = HD_VECT;
 				rightsmall = 1;
 			}
@@ -3219,7 +3221,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 				if (align) bezt1->h2 = HD_ALIGN;
 
 				/* or vector handle? */
-				if (dist_to_line_v2(bezt1->vec[2], bezt1->vec[1], bezt2->vec[1]) < 0.0001f)
+				if (dist_to_line_v2(bezt1->vec[2], bezt1->vec[1], bezt2->vec[1]) < eps)
 					bezt1->h2 = HD_VECT;
 			}
 		}
