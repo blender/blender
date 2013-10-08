@@ -571,7 +571,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	 */
 #if 0
 	/* body */
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	UI_ThemeColor4(TH_NODE);
 	glEnable(GL_BLEND);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);

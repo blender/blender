@@ -1241,7 +1241,7 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 	/* shade node groups to separate them visually */
 	UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
 	glEnable(GL_BLEND);
-	uiSetRoundBox(0);
+	uiSetRoundBox(UI_CNR_NONE);
 	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0);
 	glDisable(GL_BLEND);
 	
