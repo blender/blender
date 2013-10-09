@@ -281,6 +281,7 @@ int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 #define RE_BAKE_MIRROR_INTENSITY	10
 #define RE_BAKE_ALPHA				11
 #define RE_BAKE_EMIT				12
+#define RE_BAKE_DERIVATIVE		13
 
 void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, const int type, struct Object *actob);
 

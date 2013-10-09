@@ -124,7 +124,7 @@ typedef struct {
 	const int *orig_index_mp_to_orig;
 } MAOBakeData;
 
-static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int face_num, const int vert_index)
+static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int face_num, const int vert_index)
 {
 	unsigned int indices[] = {data->mface[face_num].v1, data->mface[face_num].v2,
 	                          data->mface[face_num].v3, data->mface[face_num].v4};
@@ -1231,6 +1231,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 					do_multires_bake(bkr, ima, TRUE, apply_tangmat_callback, init_normal_data, free_normal_data, result);
 					break;
 				case RE_BAKE_DISPLACEMENT:
+				case RE_BAKE_DERIVATIVE:
 					do_multires_bake(bkr, ima, FALSE, apply_heights_callback, init_heights_data, free_heights_data, result);
 					break;
 				case RE_BAKE_AO:
@@ -1248,7 +1249,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
 	LinkData *link;
-	int use_displacement_buffer = bkr->mode == RE_BAKE_DISPLACEMENT;
+	bool use_displacement_buffer = ELEM(bkr->mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE);
 
 	for (link = bkr->image.first; link; link = link->next) {
 		Image *ima = (Image *)link->data;
@@ -1259,8 +1260,14 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 			continue;
 
 		if (use_displacement_buffer) {
-			RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
-			                                    result->height_min, result->height_max);
+			if (bkr->mode == RE_BAKE_DERIVATIVE) {
+				RE_bake_make_derivative(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+				                        result->height_min, result->height_max, bkr->user_scale);
+			}
+			else {
+				RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+				                                    result->height_min, result->height_max);
+			}
 		}
 
 		RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);

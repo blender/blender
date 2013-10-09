@@ -511,6 +511,7 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist;
 	short bake_samples, bake_pad;
+	float bake_user_scale, bake_pad1;
 
 	/* path to render output */
 	char pic[1024]; /* 1024 = FILE_MAX */
@@ -1353,6 +1354,7 @@ typedef struct Scene {
 #define R_BAKE_MULTIRES		16
 #define R_BAKE_LORES_MESH	32
 #define R_BAKE_VCOL			64
+#define R_BAKE_USERSCALE	128
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0

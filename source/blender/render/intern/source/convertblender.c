@@ -5983,6 +5983,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
  * RE_BAKE_AO:     for baking, no lamps, but all objects
  * RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
  * RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
+ * RE_BAKE_DERIVATIVE:for baking, no lamps, only selected objects
  * RE_BAKE_SHADOW: for baking, only shadows, but all objects
  */
 void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
@@ -5991,7 +5992,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	float mat[4][4];
 	float amb[3];
 	const short onlyselected= !ELEM4(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW, RE_BAKE_AO);
-	const short nolamps= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
+	const short nolamps= ELEM4(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE);
 
 	re->main= bmain;
 	re->scene= scene;
@@ -6010,7 +6011,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	if (type==RE_BAKE_NORMALS && re->r.bake_normal_space==R_BAKE_SPACE_TANGENT)
 		re->flag |= R_NEED_TANGENT;
 	
-	if (!actob && ELEM4(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT)) {
+	if (!actob && ELEM5(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE)) {
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
 	}

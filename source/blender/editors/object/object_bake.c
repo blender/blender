@@ -91,20 +91,24 @@
 typedef struct MultiresBakerJobData {
 	struct MultiresBakerJobData *next, *prev;
 	DerivedMesh *lores_dm, *hires_dm;
-	int simple, lvl, tot_lvl;
+	bool simple;
+	int lvl, tot_lvl;
 	ListBase images;
 } MultiresBakerJobData;
 
 /* data passing to multires-baker job */
 typedef struct {
 	ListBase data;
-	int bake_clear, bake_filter;
-	short mode, use_lores_mesh;
-	int number_of_rays;
-	float bias;
-	int raytrace_structure;
-	int octree_resolution;
-	int threads;
+	bool bake_clear;      /* Clear the images before baking */
+	int bake_filter;      /* Bake-filter, aka margin */
+	short mode;           /* mode of baking (displacement, normals, AO) */
+	bool use_lores_mesh;  /* Use low-resolution mesh when baking displacement maps */
+	int number_of_rays;   /* Number of rays to be cast when doing AO baking */
+	float bias;           /* Bias between object and start ray point when doing AO baking */
+	int raytrace_structure;  /* Optimization structure to be used for AO baking */
+	int octree_resolution;   /* Reslution of octotree when using octotree optimization structure */
+	int threads;             /* Number of threads to be used for baking */
+	float user_scale;          /* User scale used to scale displacement when baking derivative map. */
 } MultiresBakeJob;
 
 static bool multiresbake_check(bContext *C, wmOperator *op)
@@ -236,7 +240,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	return dm;
 }
 
-static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *lvl, int *simple)
+static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *lvl, bool *simple)
 {
 	Mesh *me = (Mesh *)ob->data;
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
@@ -253,7 +257,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	CustomData_set_only_copy(&cddm->polyData, CD_MASK_BAREMESH);
 
 	*lvl = mmd->totlvl;
-	*simple = mmd->simple;
+	*simple = mmd->simple != 0;
 
 	tmp_mmd.lvl = mmd->totlvl;
 	tmp_mmd.sculptlvl = mmd->totlvl;
@@ -349,7 +353,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 			if (scene->r.bake_mode == RE_BAKE_NORMALS) {
 				clear_flag = CLEAR_TANGENT_NORMAL;
 			}
-			else if (scene->r.bake_mode == RE_BAKE_DISPLACEMENT) {
+			else if (ELEM(scene->r.bake_mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE)) {
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
@@ -376,6 +380,8 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.raytrace_structure = scene->r.raytrace_structure;
 		bkr.octree_resolution = scene->r.ocres;
 		bkr.threads = BKE_scene_num_threads(scene);
+		bkr.user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
+		//bkr.reports= op->reports;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
@@ -414,6 +420,8 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->raytrace_structure = scene->r.raytrace_structure;
 	bkj->octree_resolution = scene->r.ocres;
 	bkj->threads = BKE_scene_num_threads(scene);
+	bkj->user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
+	//bkj->reports = op->reports;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -453,7 +461,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 			if (bkj->mode == RE_BAKE_NORMALS) {
 				clear_flag = CLEAR_TANGENT_NORMAL;
 			}
-			else if (bkj->mode == RE_BAKE_DISPLACEMENT) {
+			else if (ELEM(bkj->mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE)) {
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
@@ -468,6 +476,8 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 		bkr.bake_filter = bkj->bake_filter;
 		bkr.mode = bkj->mode;
 		bkr.use_lores_mesh = bkj->use_lores_mesh;
+		bkr.user_scale = bkj->user_scale;
+		//bkr.reports = bkj->reports;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		bkr.lores_dm = data->lores_dm;
@@ -773,7 +783,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const 
 
 static int is_multires_bake(Scene *scene)
 {
-	if (ELEM3(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_AO))
+	if (ELEM4(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_AO))
 		return scene->r.bake_flag & R_BAKE_MULTIRES;
 
 	return 0;
