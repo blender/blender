@@ -174,19 +174,16 @@ void IMB_colormanagement_processor_free(struct ColormanageProcessor *cm_processo
 /* ** OpenGL drawing routines using GLSL for color space transform ** */
 
 /* Test if GLSL drawing is supported for combination of graphics card and this configuration */
-bool IMB_colormanagement_support_glsl_draw(const struct ColorManagedViewSettings *view_settings,
-                                           bool skip_curves);
+bool IMB_colormanagement_support_glsl_draw(const struct ColorManagedViewSettings *view_settings);
 /* Configures GLSL shader for conversion from scene linear to display space */
 bool IMB_colormanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
                                          const struct ColorManagedDisplaySettings *display_settings,
-                                         bool predivide,
-                                         bool skip_curves);
+                                         bool predivide);
 /* Same as above, but display space conversion happens from a specified space */
 bool IMB_colormanagement_setup_glsl_draw_from_space(const struct ColorManagedViewSettings *view_settings,
                                                     const struct ColorManagedDisplaySettings *display_settings,
                                                     struct ColorSpace *colorspace,
-                                                    bool predivide,
-                                                    bool skip_curves);
+                                                    bool predivide);
 /* Same as setup_glsl_draw, but color management settings are guessing from a given context */
 bool IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C, bool predivide);
 /* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */

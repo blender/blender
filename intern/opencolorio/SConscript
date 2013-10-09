@@ -39,6 +39,13 @@ if env['WITH_BF_OCIO']:
 
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ' + env['BF_BOOST_INC']
+
+    # generated data files
+    import os
+    sources.extend((
+        os.path.join(env['DATA_SOURCES'], "gpu_shader_display_transform.glsl.c"),
+    ))
+
 else:
     sources.remove('ocio_impl.cc')
     sources.remove('ocio_impl_glsl.cc')

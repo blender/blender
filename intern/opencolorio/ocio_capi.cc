@@ -323,9 +323,10 @@ int OCIO_supportGLSLDraw(void)
 	return (int) impl->supportGLSLDraw();
 }
 
-int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, int predivide)
+int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor,
+                       OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide)
 {
-	return (int) impl->setupGLSLDraw(state_r, processor, (bool) predivide);
+	return (int) impl->setupGLSLDraw(state_r, processor, curve_mapping_settings, predivide);
 }
 
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state)

@@ -62,6 +62,8 @@ if(WITH_OPENCOLORIO)
 			${BOOST_INCLUDE_DIR}
 		)
 	endif()
+
+	data_to_c_simple(gpu_shader_display_transform.glsl SRC)
 endif()
 
 

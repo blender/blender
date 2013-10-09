@@ -66,14 +66,14 @@ static void engine_tag_update(RenderEngine *engine)
 
 static int engine_support_display_space_shader(RenderEngine *UNUSED(engine), Scene *scene)
 {
-	return IMB_colormanagement_support_glsl_draw(&scene->view_settings, true);
+	return IMB_colormanagement_support_glsl_draw(&scene->view_settings);
 }
 
 static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *scene)
 {
 	IMB_colormanagement_setup_glsl_draw(&scene->view_settings,
 	                                    &scene->display_settings,
-	                                    false, true);
+	                                    false);
 }
 
 static void engine_unbind_display_space_shader(RenderEngine *UNUSED(engine))

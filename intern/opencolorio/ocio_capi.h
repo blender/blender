@@ -54,6 +54,62 @@ OCIO_DECLARE_HANDLE(OCIO_ExponentTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_MatrixTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_ConstLookRcPtr);
 
+/* This structure is used to pass curve mapping settings from
+ * blender's DNA structure stored in view transform settings
+ * to a generic OpenColorIO C-API.
+ */
+typedef struct OCIO_CurveMappingSettings {
+	/* This is a LUT which contain values for all 4 curve mapping tables
+	 * (combined, R, G and B).
+	 *
+	 * Element I for table T is stored at I * 4 + T element of this LUT.
+	 *
+	 * This array is usually returned by curvemapping_table_RGBA().
+	 */
+	float *lut;
+
+	/* Size of single curve mapping table, 1/4 size of lut array. */
+	int lut_size;
+
+	/* Extend extrapolation flags for all the tables.
+	 * if use_extend_extrapolate[T] != 0 means extrapolation for
+	 * table T is needed.
+	 */
+	int use_extend_extrapolate[4];
+
+	/* Minimal X value of the curve mapping tables. */
+	float mintable[4];
+
+	/* Per curve mapping table range. */
+	float range[4];
+
+	/* Lower extension value, stored as per-component arrays. */
+	float ext_in_x[4], ext_in_y[4];
+
+	/* Higher extension value, stored as per-component arrays. */
+	float ext_out_x[4], ext_out_y[4];
+
+	/* First points of the tables, both X and Y values.
+	 * Needed for easier and faster access when extrapolating.
+	 */
+	float first_x[4], first_y[4];
+
+	/* Last points of the tables, both X and Y values.
+	 * Needed for easier and faster access when extrapolating.
+	 */
+	float last_x[4], last_y[4];
+
+	/* Premultiplication settings: black level and scale to match
+	 * with white level.
+	 */
+	float black[3], bwmul[3];
+
+	/* Cache id of the original curve mapping, used to detect when
+	 * upload of new settings to GPU is needed.
+	 */
+	size_t cache_id;
+} OCIO_CurveMappingSettings;
+
 void OCIO_init(void);
 void OCIO_exit(void);
 
@@ -132,7 +188,8 @@ void OCIO_matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 void OCIO_matrixTransformScale(float *m44, float *offset4, const float *scale4);
 
 int OCIO_supportGLSLDraw(void);
-int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor, int predivide);
+int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor,
+                       OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide);
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state);
 
