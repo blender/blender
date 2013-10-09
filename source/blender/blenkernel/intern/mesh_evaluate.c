@@ -318,9 +318,9 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  */
-void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *medges, int numEdges,
-                                 MLoop *mloops, float (*r_loopnors)[3], int numLoops,
-                                 MPoly *mpolys, float (*polynors)[3], int numPolys, float split_angle)
+void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdge *medges, const int numEdges,
+                                 MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
+                                 MPoly *mpolys, float (*polynors)[3], const int numPolys, float split_angle)
 {
 #define INDEX_UNSET INT_MIN
 #define INDEX_INVALID -1
@@ -333,7 +333,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 	 *                                                      sharp edge: < 0 (INDEX_INVALID || INDEX_UNSET),
 	 *                                                      unset: INDEX_UNSET
 	 * Note that currently we only have two values for second loop of sharp edges. However, if needed, we can
-	 * store the negated value of loop index instead of INDEX_INVALID to retrieve th real value later in code).
+	 * store the negated value of loop index instead of INDEX_INVALID to retrieve the real value later in code).
 	 * Note also that lose edges always have both values set to 0!
 	 */
 	int (*edge_to_loops)[2] = MEM_callocN(sizeof(int[2]) * (size_t)numEdges, __func__);
@@ -377,7 +377,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 
 			/* Check whether current edge might be smooth or sharp */
 			if ((e2l[0] | e2l[1]) == 0) {
-				/* 'Empty' edge until now, set e2l[0] (and e2l[1] to INT_MIN to tag it as unset). */
+				/* 'Empty' edge until now, set e2l[0] (and e2l[1] to INDEX_UNSET to tag it as unset). */
 				e2l[0] = ml_curr_index;
 				e2l[1] = INDEX_UNSET;
 			}
@@ -397,7 +397,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 				}
 			}
 			else if (!IS_EDGE_SHARP(e2l)) {
-				/* More that two loops using this edge, tag as sharp if not yet done. */
+				/* More than two loops using this edge, tag as sharp if not yet done. */
 				e2l[1] = INDEX_INVALID;
 			}
 			/* Else, edge is already 'disqualified' (i.e. sharp)! */
@@ -448,6 +448,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 				 * it should not be a common case in real-life meshes anyway).
 				 */
 				const unsigned int mv_pivot_index = ml_curr->v;  /* The vertex we are "fanning" around! */
+				const MVert *mv_pivot = &mverts[mv_pivot_index];
 				const int *e2lfan_curr;
 				float vec_curr[3], vec_prev[3];
 				MLoop *mlfan_curr, *mlfan_next;
@@ -464,11 +465,10 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 
 				/* Only need to compute previous edge's vector once, then we can just reuse old current one! */
 				{
-					const MEdge *me_prev = &medges[ml_prev->e];
-					const MVert *mv_1 = &mverts[mv_pivot_index];
+					const MEdge *me_prev = &medges[ml_curr->e];  /* ml_curr would be mlfan_prev if we needed that one */
 					const MVert *mv_2 = (me_prev->v1 == mv_pivot_index) ? &mverts[me_prev->v2] : &mverts[me_prev->v1];
 
-					sub_v3_v3v3(vec_prev, mv_2->co, mv_1->co);
+					sub_v3_v3v3(vec_prev, mv_2->co, mv_pivot->co);
 					normalize_v3(vec_prev);
 				}
 
@@ -479,12 +479,11 @@ void BKE_mesh_normals_loop_split(MVert *mverts, int UNUSED(numVerts), MEdge *med
 					 *       given the fact that this code should not be called that much in real-life meshes...
 					 */
 					{
-						const MEdge *me_curr = &medges[ml_curr->e];
-						const MVert *mv_1 = &mverts[mv_pivot_index];
+						const MEdge *me_curr = &medges[mlfan_curr->e];
 						const MVert *mv_2 = (me_curr->v1 == mv_pivot_index) ? &mverts[me_curr->v2] :
 						                                                      &mverts[me_curr->v1];
 
-						sub_v3_v3v3(vec_curr, mv_2->co, mv_1->co);
+						sub_v3_v3v3(vec_curr, mv_2->co, mv_pivot->co);
 						normalize_v3(vec_curr);
 					}
 
