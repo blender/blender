@@ -48,7 +48,9 @@ using namespace OCIO_NAMESPACE;
 
 static const int LUT3D_EDGE_SIZE = 64;
 
-extern char datatoc_gpu_shader_display_transform_glsl[];
+extern "C" {
+	extern char datatoc_gpu_shader_display_transform_glsl[];
+}
 
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
