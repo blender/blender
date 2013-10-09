@@ -792,6 +792,7 @@ static void toggle_paint_cursor(bContext *C, int enable)
 	if (settings->imapaint.paintcursor && !enable) {
 		WM_paint_cursor_end(wm, settings->imapaint.paintcursor);
 		settings->imapaint.paintcursor = NULL;
+		paint_cursor_delete_textures();
 	}
 	else if (enable)
 		paint_cursor_start(C, image_paint_poll);
@@ -819,6 +820,9 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 		BKE_paint_init(&imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
 
 		paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
+	}
+	else {
+		paint_cursor_delete_textures();
 	}
 }
 

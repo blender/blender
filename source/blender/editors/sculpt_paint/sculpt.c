@@ -5039,6 +5039,8 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		ob->mode &= ~mode_flag;
 
 		free_sculptsession(ob);
+
+		paint_cursor_delete_textures();
 	}
 	else {
 		/* Enter sculptmode */

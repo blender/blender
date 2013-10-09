@@ -2062,6 +2062,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		/* weight paint spesific */
 		mesh_octree_table(NULL, NULL, NULL, 'e');
 		mesh_mirrtopo_table(NULL, 'e');
+
+		paint_cursor_delete_textures();
 	}
 	else {
 		ob->mode |= mode_flag;
@@ -2684,6 +2686,8 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
 		}
+
+		paint_cursor_delete_textures();
 	}
 	else {
 		ob->mode |= mode_flag;
