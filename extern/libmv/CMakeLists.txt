@@ -32,6 +32,7 @@ set(INC
 
 set(SRC
 	libmv-capi.h
+	libmv-capi_intern.h
 )
 
 if(WITH_LIBMV)
