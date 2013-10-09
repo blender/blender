@@ -15,6 +15,7 @@ incs = '.'
 if env['WITH_BF_LIBMV']:
     defs.append('GOOGLE_GLOG_DLL_DECL=')
     defs.append('WITH_LIBMV')
+    defs.append('WITH_LIBMV_GUARDED_ALLOC')
 
     src = env.Glob("libmv-capi.cc")
     src += env.Glob('libmv/image/*.cc')
@@ -25,7 +26,7 @@ if env['WITH_BF_LIBMV']:
     src += env.Glob('third_party/fast/*.c')
     src += env.Glob('third_party/gflags/*.cc')
 
-    incs += ' ../Eigen3 third_party/ceres/include'
+    incs += ' ../Eigen3 third_party/ceres/include ../../intern/guardedalloc'
     incs += ' ' + env['BF_PNG_INC']
     incs += ' ' + env['BF_ZLIB_INC']
 

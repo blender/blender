@@ -244,6 +244,24 @@ public:                                                                       \
 			MEM_freeN(mem);                                                   \
 	}                                                                         \
 
+#if defined __GNUC__ || defined __sun
+#  define OBJECT_GUARDED_NEW(type, args ...) \
+	new(MEM_mallocN(sizeof(type), __func__)) type(args)
+#else
+#  define OBJECT_GUARDED_NEW(type, ...) \
+	new(MEM_mallocN(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
+#endif
+#define OBJECT_GUARDED_DELETE(what, type) \
+	{ if(what) { \
+			((type*)(what))->~type(); \
+			MEM_freeN(what); \
+	} } (void)0
+#define OBJECT_GUARDED_DELETE_ARRAY(what, type, count) \
+	{ if(what) { \
+			for (int i = 0; i < count; i++) ((type*)(what))[i].~type(); \
+			MEM_freeN(what); \
+	} } (void)0
+
 #endif  /* __cplusplus */
 
 #ifdef __cplusplus

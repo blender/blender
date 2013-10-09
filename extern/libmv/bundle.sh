@@ -133,6 +133,8 @@ set(SRC
 if(WITH_LIBMV)
 	add_definitions(
 		-DWITH_LIBMV
+		-DWITH_LIBMV_GUARDED_ALLOC
+		-DGOOGLE_GLOG_DLL_DECL=
 	)
 
 	list(APPEND INC
@@ -203,10 +205,6 @@ ${third_glog_headers}
 			third_party/glog/src
 		)
 	endif()
-
-	add_definitions(
-		-DGOOGLE_GLOG_DLL_DECL=
-	)
 else()
 	list(APPEND SRC
 		libmv-capi_stub.cc
@@ -238,11 +236,12 @@ incs = '.'
 if env['WITH_BF_LIBMV']:
     defs.append('GOOGLE_GLOG_DLL_DECL=')
     defs.append('WITH_LIBMV')
+    defs.append('WITH_LIBMV_GUARDED_ALLOC')
 
     src = env.Glob("libmv-capi.cc")
 $src
 
-    incs += ' ../Eigen3 third_party/ceres/include'
+    incs += ' ../Eigen3 third_party/ceres/include ../../intern/guardedalloc'
     incs += ' ' + env['BF_PNG_INC']
     incs += ' ' + env['BF_ZLIB_INC']
 

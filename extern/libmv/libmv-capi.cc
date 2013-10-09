@@ -43,10 +43,36 @@
 #  include <png.h>
 #endif
 
+#ifdef WITH_LIBMV_GUARDED_ALLOC
+#  include "MEM_guardedalloc.h"
+#  define LIBMV_OBJECT_NEW OBJECT_GUARDED_NEW
+#  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
+#  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
+#  define LIBMV_OBJECT_DELETE_ARRAY OBJECT_GUARDED_DELETE_ARRAY
+#else
+// Need this to keep libmv-capi potentially standalone.
+#  if defined __GNUC__ || defined __sun
+#    define LIBMV_OBJECT_NEW(type, args ...) \
+	new(malloc(sizeof(type))) type(args)
+#  else
+#    define LIBMV_OBJECT_NEW(type, ...) \
+	new(malloc(sizeof(type))) type(__VA_ARGS__)
+#endif
+#  define LIBMV_OBJECT_DELETE(what, type) \
+	{ if(what) { \
+			((type*)(what))->~type(); \
+			free(what); \
+	} } (void)0
+#define LIBMV_OBJECT_DELETE_ARRAY(what, type, count) \
+	{ if(what) { \
+			for (int i = 0; i < count; i++) ((type*)(what))[i].~type(); \
+			free(what); \
+	} } (void)0
+#endif
+
 #include "libmv/logging/logging.h"
-
+#include "libmv/multiview/homography.h"
 #include "libmv/tracking/track_region.h"
-
 #include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
@@ -57,8 +83,6 @@
 #include "libmv/simple_pipeline/modal_solver.h"
 #include "libmv/simple_pipeline/reconstruction_scale.h"
 #include "libmv/simple_pipeline/keyframe_selection.h"
-
-#include "libmv/multiview/homography.h"
 
 #ifdef _MSC_VER
 #  define snprintf _snprintf
@@ -388,14 +412,15 @@ void libmv_samplePlanarPatch(const float *image, int width, int height,
 
 struct libmv_Tracks *libmv_tracksNew(void)
 {
-	libmv::Tracks *libmv_tracks = new libmv::Tracks();
+	libmv::Tracks *libmv_tracks = LIBMV_OBJECT_NEW(libmv::Tracks);
 
 	return (struct libmv_Tracks *)libmv_tracks;
 }
 
 void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks)
 {
-	delete (libmv::Tracks*) libmv_tracks;
+	using libmv::Tracks;
+	LIBMV_OBJECT_DELETE(libmv_tracks, Tracks);
 }
 
 void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y)
@@ -578,7 +603,7 @@ struct libmv_Reconstruction *libmv_solveReconstruction(const struct libmv_Tracks
 		reconstruct_progress_update_cb progress_update_callback,
 		void *callback_customdata)
 {
-	struct libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+	struct libmv_Reconstruction *libmv_reconstruction = LIBMV_OBJECT_NEW(libmv_Reconstruction);
 
 	libmv::Tracks &tracks = *((libmv::Tracks *) libmv_tracks);
 	libmv::EuclideanReconstruction &reconstruction = libmv_reconstruction->reconstruction;
@@ -660,7 +685,7 @@ struct libmv_Reconstruction *libmv_solveModal(const struct libmv_Tracks *libmv_t
 		reconstruct_progress_update_cb progress_update_callback,
 		void *callback_customdata)
 {
-	struct libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+	struct libmv_Reconstruction *libmv_reconstruction = LIBMV_OBJECT_NEW(libmv_Reconstruction);
 
 	libmv::Tracks &tracks = *((libmv::Tracks *) libmv_tracks);
 	libmv::EuclideanReconstruction &reconstruction = libmv_reconstruction->reconstruction;
@@ -703,7 +728,7 @@ struct libmv_Reconstruction *libmv_solveModal(const struct libmv_Tracks *libmv_t
 
 void libmv_reconstructionDestroy(struct libmv_Reconstruction *libmv_reconstruction)
 {
-	delete libmv_reconstruction;
+	LIBMV_OBJECT_DELETE(libmv_reconstruction, libmv_Reconstruction);
 }
 
 int libmv_reprojectionPointForTrack(const struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3])
@@ -850,7 +875,7 @@ struct libmv_Features *libmv_detectFeaturesFAST(const unsigned char *data,
 {
 	libmv::Feature *features = NULL;
 	std::vector<libmv::Feature> v;
-	struct libmv_Features *libmv_features = new libmv_Features();
+	struct libmv_Features *libmv_features = LIBMV_OBJECT_NEW(libmv_Features);
 	int i = 0, count;
 
 	if (margin) {
@@ -864,7 +889,7 @@ struct libmv_Features *libmv_detectFeaturesFAST(const unsigned char *data,
 	count = v.size();
 
 	if (count) {
-		features = new libmv::Feature[count];
+		features = LIBMV_OBJECT_NEW(libmv::Feature[count]);
 
 		for(std::vector<libmv::Feature>::iterator it = v.begin(); it != v.end(); it++) {
 			features[i++] = *it;
@@ -883,7 +908,7 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
                                                    int margin, int count, int min_distance)
 {
 	libmv::Feature *features = NULL;
-	struct libmv_Features *libmv_features = new libmv_Features;
+	struct libmv_Features *libmv_features = LIBMV_OBJECT_NEW(libmv_Features);
 
 	if (count) {
 		if (margin) {
@@ -892,7 +917,7 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
 			height -= 2 * margin;
 		}
 
-		features = new libmv::Feature[count];
+		features = LIBMV_OBJECT_NEW(libmv::Feature[count]);
 		libmv::DetectMORAVEC(data, stride, width, height, features, &count, min_distance, NULL);
 	}
 
@@ -905,10 +930,12 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
 
 void libmv_featuresDestroy(struct libmv_Features *libmv_features)
 {
-	if (libmv_features->features)
-		delete [] libmv_features->features;
+	if (libmv_features->features) {
+		using libmv::Feature;
+		LIBMV_OBJECT_DELETE_ARRAY(libmv_features->features, Feature, libmv_features->count);
+	}
 
-	delete libmv_features;
+	LIBMV_OBJECT_DELETE(libmv_features, libmv_Features);
 }
 
 int libmv_countFeatures(const struct libmv_Features *libmv_features)
@@ -930,14 +957,14 @@ void libmv_getFeature(const struct libmv_Features *libmv_features, int number, d
 
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNewEmpty(void)
 {
-	libmv::CameraIntrinsics *camera_intrinsics = new libmv::CameraIntrinsics();
+	libmv::CameraIntrinsics *camera_intrinsics = LIBMV_OBJECT_NEW(libmv::CameraIntrinsics);
 
 	return (struct libmv_CameraIntrinsics *) camera_intrinsics;
 }
 
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(const libmv_CameraIntrinsicsOptions *libmv_camera_intrinsics_options)
 {
-	libmv::CameraIntrinsics *camera_intrinsics = new libmv::CameraIntrinsics();
+	libmv::CameraIntrinsics *camera_intrinsics = LIBMV_OBJECT_NEW(libmv::CameraIntrinsics);
 
 	cameraIntrinsicsFromOptions(libmv_camera_intrinsics_options, camera_intrinsics);
 
@@ -947,16 +974,15 @@ struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(const libmv_CameraIntri
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsCopy(const libmv_CameraIntrinsics *libmvIntrinsics)
 {
 	libmv::CameraIntrinsics *orig_intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
-	libmv::CameraIntrinsics *new_intrinsics = new libmv::CameraIntrinsics(*orig_intrinsics);
+	libmv::CameraIntrinsics *new_intrinsics = LIBMV_OBJECT_NEW(libmv::CameraIntrinsics, *orig_intrinsics);
 
 	return (struct libmv_CameraIntrinsics *) new_intrinsics;
 }
 
 void libmv_cameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics)
 {
-	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
-
-	delete intrinsics;
+	using libmv::CameraIntrinsics;
+	LIBMV_OBJECT_DELETE(libmvIntrinsics, CameraIntrinsics);
 }
 
 void libmv_cameraIntrinsicsUpdate(const libmv_CameraIntrinsicsOptions *libmv_camera_intrinsics_options,

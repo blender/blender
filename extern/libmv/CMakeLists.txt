@@ -37,10 +37,13 @@ set(SRC
 if(WITH_LIBMV)
 	add_definitions(
 		-DWITH_LIBMV
+		-DWITH_LIBMV_GUARDED_ALLOC
+		-DGOOGLE_GLOG_DLL_DECL=
 	)
 
 	list(APPEND INC
 		third_party/ceres/include
+		../../intern/guardedalloc
 	)
 
 	set(INC_SYS
@@ -224,10 +227,6 @@ if(WITH_LIBMV)
 			third_party/glog/src
 		)
 	endif()
-
-	add_definitions(
-		-DGOOGLE_GLOG_DLL_DECL=
-	)
 else()
 	list(APPEND SRC
 		libmv-capi_stub.cc
