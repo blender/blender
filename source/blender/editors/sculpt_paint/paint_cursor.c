@@ -97,7 +97,7 @@ void paint_cursor_delete_textures()
 
 	memset(&primary_snap, 0, sizeof(TexSnapshot));
 	memset(&secondary_snap, 0, sizeof(TexSnapshot));
-	memset(&cursor_snap, 0, sizeof(TexSnapshot));
+	memset(&cursor_snap, 0, sizeof(CursorSnapshot));
 
 	BKE_paint_invalidate_overlay_all();
 }
