@@ -36,7 +36,7 @@
 
 OIIO_NAMESPACE_USING
 
-#if defined (WIN32) && !defined(FREE_WINDOWS)
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #include "utfconv.h"
 #endif
 
@@ -58,32 +58,31 @@ using namespace std;
 typedef unsigned char uchar;
 
 template <class T, class Q>
-static void
-fill_all_channels(T * pixels, int width, int height, int components, Q alpha)
+static void fill_all_channels(T *pixels, int width, int height, int components, Q alpha)
 {
-	if(components == 2) {
-		for(int i = width*height-1; i >= 0; i--) {
-			pixels[i*4+3] = pixels[i*2+1];
-			pixels[i*4+2] = pixels[i*2+0];
-			pixels[i*4+1] = pixels[i*2+0];
-			pixels[i*4+0] = pixels[i*2+0];
+	if (components == 2) {
+		for (int i = width * height - 1; i >= 0; i--) {
+			pixels[i * 4 + 3] = pixels[i * 2 + 1];
+			pixels[i * 4 + 2] = pixels[i * 2 + 0];
+			pixels[i * 4 + 1] = pixels[i * 2 + 0];
+			pixels[i * 4 + 0] = pixels[i * 2 + 0];
 		}
 	}
-	else if(components == 3) {
-		for(int i = width*height-1; i >= 0; i--) {
-			pixels[i*4+3] = alpha;
-			pixels[i*4+2] = pixels[i*3+2];
-			pixels[i*4+1] = pixels[i*3+1];
-			pixels[i*4+0] = pixels[i*3+0];
+	else if (components == 3) {
+		for (int i = width * height - 1; i >= 0; i--) {
+			pixels[i * 4 + 3] = alpha;
+			pixels[i * 4 + 2] = pixels[i * 3 + 2];
+			pixels[i * 4 + 1] = pixels[i * 3 + 1];
+			pixels[i * 4 + 0] = pixels[i * 3 + 0];
 
 		}
 	}
-	else if(components == 1) {
-		for(int i = width*height-1; i >= 0; i--) {
-			pixels[i*4+3] = alpha;
-			pixels[i*4+2] = pixels[i];
-			pixels[i*4+1] = pixels[i];
-			pixels[i*4+0] = pixels[i];
+	else if (components == 1) {
+		for (int i = width * height - 1; i >= 0; i--) {
+			pixels[i * 4 + 3] = alpha;
+			pixels[i * 4 + 2] = pixels[i];
+			pixels[i * 4 + 1] = pixels[i];
+			pixels[i * 4 + 0] = pixels[i];
 		}
 	}
 
@@ -92,18 +91,18 @@ fill_all_channels(T * pixels, int width, int height, int components, Q alpha)
 static ImBuf *imb_oiio_load_image(ImageInput *in, int width, int height, int components, int flags, bool is_alpha)
 {
 	ImBuf *ibuf;
-	int scanlinesize = width*components*sizeof(uchar);
+	int scanlinesize = width * components * sizeof(uchar);
 
 	/* allocate the memory for the image */
-	ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, flags|IB_rect);
+	ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, flags | IB_rect);
 
 	try
 	{
 		in->read_image(TypeDesc::UINT8,
-					   (uchar *)ibuf->rect + (height-1) * scanlinesize,
-					   AutoStride,
-					   -scanlinesize,
-					   AutoStride);
+		               (uchar *)ibuf->rect + (height - 1) * scanlinesize,
+		               AutoStride,
+		               -scanlinesize,
+		               AutoStride);
 	}
 	catch (const std::exception &exc)
 	{
@@ -122,15 +121,15 @@ static ImBuf *imb_oiio_load_image(ImageInput *in, int width, int height, int com
 static ImBuf *imb_oiio_load_image_float(ImageInput *in, int width, int height, int components, int flags, bool is_alpha)
 {
 	ImBuf *ibuf;
-	int scanlinesize = width*components*sizeof(float);
+	int scanlinesize = width * components * sizeof(float);
 
 	/* allocate the memory for the image */
-	ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, flags|IB_rectfloat);
+	ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, flags | IB_rectfloat);
 
 	try
 	{
 		in->read_image(TypeDesc::FLOAT,
-		               (uchar *)ibuf->rect_float + (height-1) * scanlinesize,
+		               (uchar *)ibuf->rect_float + (height - 1) * scanlinesize,
 		               AutoStride,
 		               -scanlinesize,
 		               AutoStride);
@@ -177,7 +176,7 @@ int imb_save_photoshop(struct ImBuf *ibuf, const char *name, int flags)
 	return(0);
 }
 
-struct ImBuf *imb_load_photoshop (const char *filename, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspace[IM_MAX_SPACE])
 {
 	ImageInput *in = NULL;
 	struct ImBuf *ibuf = NULL;
@@ -195,9 +194,9 @@ struct ImBuf *imb_load_photoshop (const char *filename, int flags, char colorspa
 	if (!in) return NULL;
 
 	ImageSpec spec, config;
-	config.attribute ("oiio:UnassociatedAlpha", (int) 1);
+	config.attribute("oiio:UnassociatedAlpha", (int) 1);
 
-	if(!in->open(filename, spec, config)) {
+	if (!in->open(filename, spec, config)) {
 		delete in;
 		return NULL;
 	}
@@ -213,8 +212,8 @@ struct ImBuf *imb_load_photoshop (const char *filename, int flags, char colorspa
 	is_float = basesize > 1;
 
 	/* we only handle certain number of components */
-	if(!(components >= 1 && components <= 4)) {
-		if(in) {
+	if (!(components >= 1 && components <= 4)) {
+		if (in) {
 			in->close();
 			delete in;
 		}
@@ -241,14 +240,14 @@ struct ImBuf *imb_load_photoshop (const char *filename, int flags, char colorspa
 
 	try
 	{
-		return(ibuf);
+		return ibuf;
 	}
 	catch (const std::exception &exc)
 	{
 		std::cerr << exc.what() << std::endl;
 		if (ibuf) IMB_freeImBuf(ibuf);
 
-		return (0);
+		return NULL;
 	}
 }
 
