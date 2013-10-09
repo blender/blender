@@ -611,6 +611,9 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 
 static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **butpp)
 {
+	/* flags from the buttons we want to refresh, may want to add more here... */
+	const int flag_copy = UI_BUT_REDALERT;
+
 	uiBlock *oldblock;
 	uiBut *oldbut, *but = *butpp;
 	int found = 0;
@@ -667,6 +670,8 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(void *, oldbut->func_argN, but->func_argN);
 				}
 				
+				oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
+
 				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
 				 * when scrolling without moving mouse (see [#28432]) */
 				if (ELEM(oldbut->type, ROW, LISTROW))
