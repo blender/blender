@@ -43,12 +43,17 @@
 #  include <png.h>
 #endif
 
+#if defined(_MSC_VER)
+#  define __func__ __FUNCTION__
+#endif
+
 #ifdef WITH_LIBMV_GUARDED_ALLOC
 #  include "MEM_guardedalloc.h"
 #  define LIBMV_OBJECT_NEW OBJECT_GUARDED_NEW
 #  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
 #  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
-#  define LIBMV_OBJECT_DELETE_ARRAY OBJECT_GUARDED_DELETE_ARRAY
+#  define LIBMV_STRUCT_NEW(type, count) (type*)MEM_mallocN(sizeof(type) * count, __func__)
+#  define LIBMV_STRUCT_DELETE(what) MEM_freeN(what)
 #else
 // Need this to keep libmv-capi potentially standalone.
 #  if defined __GNUC__ || defined __sun
@@ -63,11 +68,8 @@
 			((type*)(what))->~type(); \
 			free(what); \
 	} } (void)0
-#define LIBMV_OBJECT_DELETE_ARRAY(what, type, count) \
-	{ if(what) { \
-			for (int i = 0; i < count; i++) ((type*)(what))[i].~type(); \
-			free(what); \
-	} } (void)0
+#  define LIBMV_STRUCT_NEW(type, count) (type*)malloc(sizeof(type) * count)
+#  define LIBMV_STRUCT_DELETE(what) { if (what) free(what); } (void)0
 #endif
 
 #include "libmv/logging/logging.h"
@@ -875,7 +877,7 @@ struct libmv_Features *libmv_detectFeaturesFAST(const unsigned char *data,
 {
 	libmv::Feature *features = NULL;
 	std::vector<libmv::Feature> v;
-	struct libmv_Features *libmv_features = LIBMV_OBJECT_NEW(libmv_Features);
+	struct libmv_Features *libmv_features = LIBMV_STRUCT_NEW(libmv_Features, 1);
 	int i = 0, count;
 
 	if (margin) {
@@ -889,7 +891,7 @@ struct libmv_Features *libmv_detectFeaturesFAST(const unsigned char *data,
 	count = v.size();
 
 	if (count) {
-		features = LIBMV_OBJECT_NEW(libmv::Feature[count]);
+		features = LIBMV_STRUCT_NEW(libmv::Feature, count);
 
 		for(std::vector<libmv::Feature>::iterator it = v.begin(); it != v.end(); it++) {
 			features[i++] = *it;
@@ -908,7 +910,7 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
                                                    int margin, int count, int min_distance)
 {
 	libmv::Feature *features = NULL;
-	struct libmv_Features *libmv_features = LIBMV_OBJECT_NEW(libmv_Features);
+	struct libmv_Features *libmv_features = LIBMV_STRUCT_NEW(libmv_Features, 1);
 
 	if (count) {
 		if (margin) {
@@ -917,7 +919,7 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
 			height -= 2 * margin;
 		}
 
-		features = LIBMV_OBJECT_NEW(libmv::Feature[count]);
+		features = LIBMV_STRUCT_NEW(libmv::Feature, count);
 		libmv::DetectMORAVEC(data, stride, width, height, features, &count, min_distance, NULL);
 	}
 
@@ -931,11 +933,10 @@ struct libmv_Features *libmv_detectFeaturesMORAVEC(const unsigned char *data,
 void libmv_featuresDestroy(struct libmv_Features *libmv_features)
 {
 	if (libmv_features->features) {
-		using libmv::Feature;
-		LIBMV_OBJECT_DELETE_ARRAY(libmv_features->features, Feature, libmv_features->count);
+		LIBMV_STRUCT_DELETE(libmv_features->features);
 	}
 
-	LIBMV_OBJECT_DELETE(libmv_features, libmv_Features);
+	LIBMV_STRUCT_DELETE(libmv_features);
 }
 
 int libmv_countFeatures(const struct libmv_Features *libmv_features)
