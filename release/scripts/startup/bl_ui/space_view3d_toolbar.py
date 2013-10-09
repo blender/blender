@@ -746,8 +746,8 @@ class IMAGE_PT_tools_brush_overlay(View3DPaintPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        settings = self.paint_settings(context)
+        brush = settings.brush
         tex_slot = brush.texture_slot
         tex_slot_mask = brush.mask_texture_slot
 
