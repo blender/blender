@@ -108,7 +108,7 @@ ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}
 };
 
-ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES)/sizeof(ImFileType)-1];
+ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES) / sizeof(ImFileType) - 1];
 
 void imb_filetypes_init(void)
 {

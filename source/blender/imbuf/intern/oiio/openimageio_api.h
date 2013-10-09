@@ -30,8 +30,8 @@
  */
 
 
-#ifndef __OIIO_API_H__
-#define __OIIO_API_H__
+#ifndef __OPENIMAGEIO_API_H__
+#define __OPENIMAGEIO_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,4 +50,4 @@ struct ImBuf *imb_load_photoshop (const char *name, int flags, char *colorspace)
 
 #endif
 
-#endif /* __OIIO_API_H */
+#endif  /* __OPENIMAGEIO_API_H__ */

@@ -692,7 +692,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	if (cd_vert_mask_offset != -1) {
 		float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, cd_vert_mask_offset);
 		float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, cd_vert_mask_offset);
-		float mask_v_new = 0.5f*(mask_v1 + mask_v2);
+		float mask_v_new = 0.5f * (mask_v1 + mask_v2);
 
 		BM_ELEM_CD_SET_FLOAT(v_new, cd_vert_mask_offset, mask_v_new);
 	}

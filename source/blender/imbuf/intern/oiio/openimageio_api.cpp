@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/imbuf/intern/oiio/openimageio_api.h
+/** \file blender/imbuf/intern/oiio/openimageio_api.cpp
  *  \ingroup openimageio
  */
 
