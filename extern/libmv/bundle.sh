@@ -140,6 +140,7 @@ if(WITH_LIBMV)
 
 	list(APPEND INC
 		third_party/ceres/include
+		../../intern/guardedalloc
 	)
 
 	set(INC_SYS
