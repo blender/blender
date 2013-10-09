@@ -57,7 +57,7 @@ if env['WITH_BF_CYCLES_OSL']:
             osl_file = os.path.join(source_dir, f)
             oso_file = os.path.join(build_dir, f.replace('.osl', '.oso'))
 
-            command = "%s -q -O2 -I%s -o %s %s" % (osl_compiler, source_dir, oso_file, osl_file)
+            command = [osl_compiler, "-q", "-O2", "-I", source_dir, oso_file, osl_file]
 
             shaders.Command(oso_file, f, command)
             shaders.Depends(oso_file, [f] + dependencies)
