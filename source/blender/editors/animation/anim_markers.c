@@ -1380,7 +1380,7 @@ static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, const wm
 		RNA_string_set(op->ptr, "name", marker->name);
 	
 	/* now see if the operator is usable */
-	return ed_markers_opwrap_invoke_custom(C, op, event, WM_operator_props_popup);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_operator_props_popup_confirm);
 }
 
 static void MARKER_OT_rename(wmOperatorType *ot)

@@ -638,7 +638,7 @@ static int poselib_rename_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	}
 	
 	/* part to sync with other similar operators... */
-	return WM_operator_props_popup(C, op, event);
+	return WM_operator_props_popup_confirm(C, op, event);
 }
 
 static int poselib_rename_exec(bContext *C, wmOperator *op)

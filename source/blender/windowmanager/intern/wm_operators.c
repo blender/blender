@@ -1433,7 +1433,8 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
  * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
  *
  * \note operator menu needs undo flag enabled , for redo callback */
-static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_call)
+static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
+                                      const bool do_call, const bool do_redo)
 {
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
@@ -1443,7 +1444,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
-	if (!(U.uiflag & USER_GLOBALUNDO))
+	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO))
 		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
 	uiPupBlockEx(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op);
@@ -1454,18 +1455,26 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* Same as WM_operator_props_popup but don't use operator redo.
+ * just wraps WM_operator_props_dialog_popup.
+ */
+int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	return wm_operator_props_popup_ex(C, op, false, false);
+}
+
 /* Same as WM_operator_props_popup but call the operator first,
  * This way - the button values correspond to the result of the operator.
  * Without this, first access to a button will make the result jump,
  * see [#32452] */
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	return wm_operator_props_popup_ex(C, op, TRUE);
+	return wm_operator_props_popup_ex(C, op, true, true);
 }
 
 int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	return wm_operator_props_popup_ex(C, op, FALSE);
+	return wm_operator_props_popup_ex(C, op, false, true);
 }
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)

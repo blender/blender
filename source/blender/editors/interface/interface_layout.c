@@ -3091,20 +3091,25 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
 
 	/* set various special settings for buttons */
 	{
+		uiBlock *block = uiLayoutGetBlock(layout);
+		const bool is_popup = (block->flag & UI_BLOCK_KEEP_OPEN) != 0;
 		uiBut *but;
+
 		
-		for (but = uiLayoutGetBlock(layout)->buttons.first; but; but = but->next) {
+		for (but = block->buttons.first; but; but = but->next) {
 			/* no undo for buttons for operator redo panels */
 			uiButClearFlag(but, UI_BUT_UNDO);
 			
-#if 0		/* broken, causes freedback loop, see [#36109] */
+			/* only for popups, see [#36109] */
+
 			/* if button is operator's default property, and a text-field, enable focus for it
 			 *	- this is used for allowing operators with popups to rename stuff with fewer clicks
 			 */
-			if ((but->rnaprop == op->type->prop) && (but->type == TEX)) {
-				uiButSetFocusOnEnter(CTX_wm_window(C), but);
+			if (is_popup) {
+				if ((but->rnaprop == op->type->prop) && (but->type == TEX)) {
+					uiButSetFocusOnEnter(CTX_wm_window(C), but);
+				}
 			}
-#endif
 		}
 	}
 }
