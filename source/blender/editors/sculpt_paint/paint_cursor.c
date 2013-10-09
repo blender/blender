@@ -73,7 +73,6 @@ typedef struct TexSnapshot {
 	GLuint overlay_texture;
 	int winx;
 	int winy;
-	bool init;
 	int old_size;
 	float old_zoom;
 	bool old_col;
@@ -417,7 +416,6 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 	if (refresh) {
 		if (!init) {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, size, size, 0, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
-			init = 1;
 		}
 		else {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
