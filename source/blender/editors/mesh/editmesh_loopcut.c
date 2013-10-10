@@ -537,7 +537,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
-				
+				ED_area_headerprint(CTX_wm_area(C), NULL);
+
 				if (lcd->eed) {
 					/* set for redo */
 					BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
@@ -550,9 +551,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				else {
 					return ringcut_cancel(C, op);
 				}
-				
-				ED_area_headerprint(CTX_wm_area(C), NULL);
-				
+
 				return OPERATOR_FINISHED;
 			}
 			
