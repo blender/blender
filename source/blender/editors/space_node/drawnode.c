@@ -86,16 +86,10 @@ static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, Poin
 	uiItemL(layout, text, 0);
 }
 
-static void node_draw_input_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
+static void node_draw_socket_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
 	sock->typeinfo->draw(C, layout, ptr, node_ptr, IFACE_(sock->name));
-}
-
-static void node_draw_output_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
-{
-	bNodeSocket *sock = ptr->data;
-	node_socket_button_label(C, layout, ptr, node_ptr, IFACE_(sock->name));
 }
 
 
@@ -2752,8 +2746,8 @@ void ED_node_init_butfuncs(void)
 	NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
 	NodeTypeUndefined.draw_buttons = NULL;
 	NodeTypeUndefined.draw_buttons_ex = NULL;
-	NodeTypeUndefined.draw_input = node_draw_input_default;
-	NodeTypeUndefined.draw_output = node_draw_output_default;
+	NodeTypeUndefined.draw_input = node_draw_socket_default;
+	NodeTypeUndefined.draw_output = node_draw_socket_default;
 	NodeTypeUndefined.resize_area_func = node_resize_area_default;
 	
 	NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
@@ -2770,8 +2764,8 @@ void ED_node_init_butfuncs(void)
 		ntype->tweak_area_func = node_tweak_area_default;
 		ntype->draw_buttons = NULL;
 		ntype->draw_buttons_ex = NULL;
-		ntype->draw_input = node_draw_input_default;
-		ntype->draw_output = node_draw_output_default;
+		ntype->draw_input = node_draw_socket_default;
+		ntype->draw_output = node_draw_socket_default;
 		ntype->resize_area_func = node_resize_area_default;
 		
 		node_common_set_butfunc(ntype);
@@ -2795,8 +2789,8 @@ void ED_init_custom_node_type(bNodeType *ntype)
 	/* default ui functions */
 	ntype->draw_nodetype = node_draw_default;
 	ntype->draw_nodetype_prepare = node_update_default;
-	ntype->draw_input = node_draw_input_default;
-	ntype->draw_output = node_draw_output_default;
+	ntype->draw_input = node_draw_socket_default;
+	ntype->draw_output = node_draw_socket_default;
 	ntype->resize_area_func = node_resize_area_default;
 	ntype->select_area_func = node_select_area_default;
 	ntype->tweak_area_func = node_tweak_area_default;
@@ -2840,7 +2834,7 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 	int type = sock->typeinfo->type;
 	/*int subtype = sock->typeinfo->subtype;*/
 	
-	if ((sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
+	if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
 		node_socket_button_label(C, layout, ptr, node_ptr, text);
 		return;
 	}

@@ -40,7 +40,7 @@ class MyCustomSocket(NodeSocket):
 
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
-        if self.is_linked:
+        if self.is_output or self.is_linked:
             layout.label(text)
         else:
             layout.prop(self, "myEnumProperty", text=text)
