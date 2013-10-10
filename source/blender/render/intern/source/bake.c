@@ -262,14 +262,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 		else if (bs->type == RE_BAKE_VERTEX_COLORS) {
 			copy_v3_v3(shr.combined, shi->vcol);
-			shr.alpha = 1.0;
+			shr.alpha = shi->vcol[3];
 		}
 	}
 	
 	if (bs->rect_float && !bs->vcol) {
 		float *col = bs->rect_float + 4 * (bs->rectx * y + x);
 		copy_v3_v3(col, shr.combined);
-		if (bs->type == RE_BAKE_ALL || bs->type == RE_BAKE_TEXTURE) {
+		if (bs->type == RE_BAKE_ALL || bs->type == RE_BAKE_TEXTURE || bs->type == RE_BAKE_VERTEX_COLORS) {
 			col[3] = shr.alpha;
 		}
 		else {
@@ -298,7 +298,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			rgb_float_to_uchar(col, shr.combined);
 		}
 		
-		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
+		if (ELEM3(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE, RE_BAKE_VERTEX_COLORS)) {
 			col[3] = FTOCHAR(shr.alpha);
 		}
 		else {
