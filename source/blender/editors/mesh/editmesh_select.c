@@ -1856,7 +1856,6 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
-	BMVert *v;
 	BMEdge *e;
 	BMWalker walker;
 
@@ -1870,8 +1869,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		BMFace *efa;
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_elem_flag_set(efa, BM_ELEM_TAG, (BM_elem_flag_test(efa, BM_ELEM_SELECT) &&
-			                                    !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)));
+			BM_elem_flag_set(efa, BM_ELEM_TAG, BM_elem_flag_test(efa, BM_ELEM_SELECT));
 		}
 
 		if (limit) {
@@ -1891,6 +1889,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 				for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
 					BM_face_select_set(bm, efa, true);
+					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -1901,13 +1900,10 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
+		BMVert *v;
+
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				BM_elem_flag_enable(v, BM_ELEM_TAG);
-			}
-			else {
-				BM_elem_flag_disable(v, BM_ELEM_TAG);
-			}
+			BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
 		}
 
 		BMW_init(&walker, em->bm, BMW_SHELL,
@@ -1919,6 +1915,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				for (e = BMW_begin(&walker, v); e; e = BMW_step(&walker)) {
 					BM_edge_select_set(em->bm, e, true);
+					BM_elem_flag_disable(e, BM_ELEM_TAG);
 				}
 			}
 		}
