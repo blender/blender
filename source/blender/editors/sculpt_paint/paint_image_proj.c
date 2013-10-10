@@ -3129,7 +3129,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->thread_tot = 1;
 
 	for (a = 0; a < ps->thread_tot; a++) {
-		ps->arena_mt[a] = BLI_memarena_new(1 << 16, "project paint arena");
+		ps->arena_mt[a] = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "project paint arena");
 	}
 
 	arena = ps->arena_mt[0];
@@ -3841,10 +3841,10 @@ static void *do_projectpaint_thread(void *ph_v)
 		pos_ofs[0] = pos[0] - lastpos[0];
 		pos_ofs[1] = pos[1] - lastpos[1];
 
-		smearArena = BLI_memarena_new(1 << 16, "paint smear arena");
+		smearArena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "paint smear arena");
 	}
 	else if (tool == PAINT_TOOL_SOFTEN) {
-		softenArena = BLI_memarena_new(1 << 16, "paint soften arena");
+		softenArena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "paint soften arena");
 	}
 
 	/* printf("brush bounds %d %d %d %d\n", bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */

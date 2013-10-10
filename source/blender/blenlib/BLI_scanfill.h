@@ -51,7 +51,7 @@ typedef struct ScanFillContext {
 	struct MemArena *arena;
 } ScanFillContext;
 
-#define BLI_SCANFILL_ARENA_SIZE 16384
+#define BLI_SCANFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)
 
 typedef struct ScanFillVert {
 	struct ScanFillVert *next, *prev;

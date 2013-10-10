@@ -173,6 +173,10 @@ extern "C" {
 
 #define MEM_SAFE_FREE(v) if (v) { MEM_freeN(v); v = NULL; } (void)0
 
+/* overhead for lockfree allocator (use to avoid slop-space) */
+#define MEM_SIZE_OVERHEAD sizeof(size_t)
+#define MEM_SIZE_OPTIMAL(size) ((size) - MEM_SIZE_OVERHEAD)
+
 #ifndef NDEBUG
 extern const char *(*MEM_name_ptr)(void *vmemh);
 #endif

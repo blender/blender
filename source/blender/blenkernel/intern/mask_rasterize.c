@@ -409,7 +409,7 @@ static void layer_bucket_init_dummy(MaskRasterLayer *layer)
 
 static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
-	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
+	MemArena *arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), __func__);
 
 	const float bucket_dim_x = BLI_rctf_size_x(&layer->bounds);
 	const float bucket_dim_y = BLI_rctf_size_y(&layer->bounds);

@@ -170,7 +170,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 
 	if (useArena) {
 		CCGAllocatorIFC allocatorIFC;
-		CCGAllocatorHDL allocator = BLI_memarena_new((1 << 16), "subsurf arena");
+		CCGAllocatorHDL allocator = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "subsurf arena");
 
 		allocatorIFC.alloc = arena_alloc;
 		allocatorIFC.realloc = arena_realloc;

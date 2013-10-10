@@ -2389,7 +2389,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
 	if (bp.offset > 0) {
 		/* primary alloc */
 		bp.vert_hash = BLI_ghash_ptr_new(__func__);
-		bp.mem_arena = BLI_memarena_new((1 << 16), __func__);
+		bp.mem_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), __func__);
 		BLI_memarena_use_calloc(bp.mem_arena);
 
 		if (limit_offset)

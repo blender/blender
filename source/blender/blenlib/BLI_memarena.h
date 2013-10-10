@@ -47,7 +47,7 @@ extern "C" {
  * enough to not cause much internal fragmentation,
  * small enough not to waste resources
  */
-#define BLI_MEMARENA_STD_BUFSIZE    (1 << 14)
+#define BLI_MEMARENA_STD_BUFSIZE MEM_SIZE_OPTIMAL(1 << 14)
 
 struct MemArena;
 typedef struct MemArena MemArena;

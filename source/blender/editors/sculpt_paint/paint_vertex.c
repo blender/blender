@@ -2788,7 +2788,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 	int *origIndex;
 	int i;
 
-	vd->polyfacemap_arena = BLI_memarena_new(1 << 13, "vpaint tmp");
+	vd->polyfacemap_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vpaint tmp");
 	BLI_memarena_use_calloc(vd->polyfacemap_arena);
 
 	vd->polyfacemap = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(ListBase) * me->totpoly);
