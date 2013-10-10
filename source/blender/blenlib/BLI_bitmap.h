@@ -60,6 +60,9 @@ typedef unsigned int BLI_bitmap;
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] & \
 	 (1u << ((_index) & BLI_BITMAP_MASK)))
 
+#define BLI_BITMAP_GET_BOOL(_bitmap, _index) \
+	(BLI_BITMAP_GET(_bitmap, _index) != 0)
+
 /* set the value of a single bit at '_index' */
 #define BLI_BITMAP_SET(_bitmap, _index) \
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] |= \

@@ -160,7 +160,7 @@ static void edbm_backbuf_check_and_select_edges(BMEditMesh *em, const bool selec
 {
 	BMEdge *eed;
 	BMIter iter;
-	int index = bm_solidoffs;
+	unsigned int index = bm_solidoffs;
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -288,12 +288,12 @@ static int view3d_selectable_data(bContext *C)
 
 
 /* helper also for borderselect */
-static int edge_fully_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
+static bool edge_fully_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
 {
 	return BLI_rctf_isect_pt_v(rect, v1) && BLI_rctf_isect_pt_v(rect, v2);
 }
 
-static int edge_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
+static bool edge_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
 {
 	int d1, d2, d3, d4;
 	
