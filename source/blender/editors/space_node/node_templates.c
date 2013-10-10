@@ -207,7 +207,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 			break;
 
 	if (node_from)
-		if (node_from->inputs.first || node_from->typeinfo->uifunc || node_from->typeinfo->uifuncbut)
+		if (node_from->inputs.first || node_from->typeinfo->draw_buttons || node_from->typeinfo->draw_buttons_ex)
 			node_from = NULL;
 
 	if (node_prev && node_prev->type == type && node_link_item_compare(node_prev, item)) {
@@ -586,13 +586,13 @@ static void ui_node_draw_node(uiLayout *layout, bContext *C, bNodeTree *ntree, b
 
 	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
-	if (node->typeinfo->uifunc) {
+	if (node->typeinfo->draw_buttons) {
 		if (node->type != NODE_GROUP) {
 			split = uiLayoutSplit(layout, 0.35f, FALSE);
 			col = uiLayoutColumn(split, FALSE);
 			col = uiLayoutColumn(split, FALSE);
 
-			node->typeinfo->uifunc(col, C, &nodeptr);
+			node->typeinfo->draw_buttons(col, C, &nodeptr);
 		}
 	}
 
@@ -639,7 +639,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	if (depth > 0) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
-		if (lnode && (lnode->inputs.first || (lnode->typeinfo->uifunc && lnode->type != NODE_GROUP))) {
+		if (lnode && (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP))) {
 			int icon = (input->flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT : ICON_DISCLOSURE_TRI_DOWN;
 			uiItemR(row, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
 		}

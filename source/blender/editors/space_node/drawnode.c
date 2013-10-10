@@ -339,7 +339,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
 /* ****************** BUTTON CALLBACKS FOR COMMON NODES ***************** */
 
 
-static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, NULL);
 }
@@ -348,7 +348,7 @@ static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
  * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
  * since the child node totr rects are not updated properly at that point.
  */
-static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
+static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
 {
 	const float margin = 1.5f * U.widget_unit;
 	NodeFrame *data = (NodeFrame *)node->storage;
@@ -511,7 +511,7 @@ static int node_resize_area_frame(bNode *node, int x, int y)
 	return dir;
 }
 
-static void node_buts_frame_details(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "label_size", 0, IFACE_("Label Size"), ICON_NONE);
 	uiItemR(layout, ptr, "shrink", 0, IFACE_("Shrink"), ICON_NONE);
@@ -520,7 +520,7 @@ static void node_buts_frame_details(uiLayout *layout, bContext *UNUSED(C), Point
 
 #define NODE_REROUTE_SIZE   8.0f
 
-static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree), bNode *node)
+static void node_draw_reroute_prepare(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree), bNode *node)
 {
 	bNodeSocket *nsock;
 	float locx, locy;
@@ -632,17 +632,17 @@ static void node_common_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
 		case NODE_GROUP:
-			ntype->uifunc = node_uifunc_group;
+			ntype->draw_buttons = node_draw_buttons_group;
 			break;
 		case NODE_FRAME:
-			ntype->drawfunc = node_draw_frame;
-			ntype->drawupdatefunc = node_update_frame;
-			ntype->uifuncbut = node_buts_frame_details;
+			ntype->draw_nodetype = node_draw_frame;
+			ntype->draw_nodetype_prepare = node_draw_frame_prepare;
+			ntype->draw_buttons_ex = node_buts_frame_ex;
 			ntype->resize_area_func = node_resize_area_frame;
 			break;
 		case NODE_REROUTE:
-			ntype->drawfunc = node_draw_reroute;
-			ntype->drawupdatefunc = node_update_reroute;
+			ntype->draw_nodetype = node_draw_reroute;
+			ntype->draw_nodetype_prepare = node_draw_reroute_prepare;
 			ntype->tweak_area_func = node_tweak_area_reroute;
 			break;
 	}
@@ -792,7 +792,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
 }
 
-static void node_shader_buts_tex_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
@@ -953,7 +953,7 @@ static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
 }
 
-static void node_shader_buts_script_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiItemS(layout);
 
@@ -971,110 +971,110 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 	switch (ntype->type) {
 		case SH_NODE_MATERIAL:
 		case SH_NODE_MATERIAL_EXT:
-			ntype->uifunc = node_shader_buts_material;
+			ntype->draw_buttons = node_shader_buts_material;
 			break;
 		case SH_NODE_TEXTURE:
-			ntype->uifunc = node_buts_texture;
+			ntype->draw_buttons = node_buts_texture;
 			break;
 		case SH_NODE_NORMAL:
-			ntype->uifunc = node_buts_normal;
+			ntype->draw_buttons = node_buts_normal;
 			break;
 		case SH_NODE_CURVE_VEC:
-			ntype->uifunc = node_buts_curvevec;
+			ntype->draw_buttons = node_buts_curvevec;
 			break;
 		case SH_NODE_CURVE_RGB:
-			ntype->uifunc = node_buts_curvecol;
+			ntype->draw_buttons = node_buts_curvecol;
 			break;
 		case SH_NODE_MAPPING:
-			ntype->uifunc = node_shader_buts_mapping;
+			ntype->draw_buttons = node_shader_buts_mapping;
 			break;
 		case SH_NODE_VALUE:
-			ntype->uifunc = node_buts_value;
+			ntype->draw_buttons = node_buts_value;
 			break;
 		case SH_NODE_RGB:
-			ntype->uifunc = node_buts_rgb;
+			ntype->draw_buttons = node_buts_rgb;
 			break;
 		case SH_NODE_MIX_RGB:
-			ntype->uifunc = node_buts_mix_rgb;
+			ntype->draw_buttons = node_buts_mix_rgb;
 			break;
 		case SH_NODE_VALTORGB:
-			ntype->uifunc = node_buts_colorramp;
+			ntype->draw_buttons = node_buts_colorramp;
 			break;
 		case SH_NODE_MATH: 
-			ntype->uifunc = node_buts_math;
+			ntype->draw_buttons = node_buts_math;
 			break; 
 		case SH_NODE_VECT_MATH: 
-			ntype->uifunc = node_shader_buts_vect_math;
+			ntype->draw_buttons = node_shader_buts_vect_math;
 			break; 
 		case SH_NODE_VECT_TRANSFORM: 
-			ntype->uifunc = node_shader_buts_vect_transform;
+			ntype->draw_buttons = node_shader_buts_vect_transform;
 			break; 
 		case SH_NODE_GEOMETRY:
-			ntype->uifunc = node_shader_buts_geometry;
+			ntype->draw_buttons = node_shader_buts_geometry;
 			break;
 		case SH_NODE_ATTRIBUTE:
-			ntype->uifunc = node_shader_buts_attribute;
+			ntype->draw_buttons = node_shader_buts_attribute;
 			break;
 		case SH_NODE_WIREFRAME:
-			ntype->uifunc = node_shader_buts_wireframe;
+			ntype->draw_buttons = node_shader_buts_wireframe;
 			break;
 		case SH_NODE_TEX_SKY:
-			ntype->uifunc = node_shader_buts_tex_sky;
+			ntype->draw_buttons = node_shader_buts_tex_sky;
 			break;
 		case SH_NODE_TEX_IMAGE:
-			ntype->uifunc = node_shader_buts_tex_image;
-			ntype->uifuncbut = node_shader_buts_tex_image_details;
+			ntype->draw_buttons = node_shader_buts_tex_image;
+			ntype->draw_buttons_ex = node_shader_buts_tex_image_ex;
 			break;
 		case SH_NODE_TEX_ENVIRONMENT:
-			ntype->uifunc = node_shader_buts_tex_environment;
+			ntype->draw_buttons = node_shader_buts_tex_environment;
 			break;
 		case SH_NODE_TEX_GRADIENT:
-			ntype->uifunc = node_shader_buts_tex_gradient;
+			ntype->draw_buttons = node_shader_buts_tex_gradient;
 			break;
 		case SH_NODE_TEX_MAGIC:
-			ntype->uifunc = node_shader_buts_tex_magic;
+			ntype->draw_buttons = node_shader_buts_tex_magic;
 			break;
 		case SH_NODE_TEX_BRICK:
-			ntype->uifunc = node_shader_buts_tex_brick;
+			ntype->draw_buttons = node_shader_buts_tex_brick;
 			break;
 		case SH_NODE_TEX_WAVE:
-			ntype->uifunc = node_shader_buts_tex_wave;
+			ntype->draw_buttons = node_shader_buts_tex_wave;
 			break;
 		case SH_NODE_TEX_MUSGRAVE:
-			ntype->uifunc = node_shader_buts_tex_musgrave;
+			ntype->draw_buttons = node_shader_buts_tex_musgrave;
 			break;
 		case SH_NODE_TEX_VORONOI:
-			ntype->uifunc = node_shader_buts_tex_voronoi;
+			ntype->draw_buttons = node_shader_buts_tex_voronoi;
 			break;
 		case SH_NODE_TEX_COORD:
-			ntype->uifunc = node_shader_buts_tex_coord;
+			ntype->draw_buttons = node_shader_buts_tex_coord;
 			break;
 		case SH_NODE_BUMP:
-			ntype->uifunc = node_shader_buts_bump;
+			ntype->draw_buttons = node_shader_buts_bump;
 			break;
 		case SH_NODE_NORMAL_MAP:
-			ntype->uifunc = node_shader_buts_normal_map;
+			ntype->draw_buttons = node_shader_buts_normal_map;
 			break;
 		case SH_NODE_TANGENT:
-			ntype->uifunc = node_shader_buts_tangent;
+			ntype->draw_buttons = node_shader_buts_tangent;
 			break;
 		case SH_NODE_BSDF_GLOSSY:
 		case SH_NODE_BSDF_GLASS:
 		case SH_NODE_BSDF_REFRACTION:
-			ntype->uifunc = node_shader_buts_glossy;
+			ntype->draw_buttons = node_shader_buts_glossy;
 			break;
 		case SH_NODE_SUBSURFACE_SCATTERING:
-			ntype->uifunc = node_shader_buts_subsurface;
+			ntype->draw_buttons = node_shader_buts_subsurface;
 			break;
 		case SH_NODE_BSDF_TOON:
-			ntype->uifunc = node_shader_buts_toon;
+			ntype->draw_buttons = node_shader_buts_toon;
 			break;
 		case SH_NODE_BSDF_HAIR:
-			ntype->uifunc = node_shader_buts_hair;
+			ntype->draw_buttons = node_shader_buts_hair;
 			break;
 		case SH_NODE_SCRIPT:
-			ntype->uifunc = node_shader_buts_script;
-			ntype->uifuncbut = node_shader_buts_script_details;
+			ntype->draw_buttons = node_shader_buts_script;
+			ntype->draw_buttons_ex = node_shader_buts_script_ex;
 			break;
 	}
 }
@@ -1096,7 +1096,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
 }
 
-static void node_composit_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	PointerRNA iuserptr;
@@ -1629,7 +1629,7 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C)
 		uiItemL(layout, IFACE_("Base Path:"), ICON_NONE);
 	uiItemR(layout, ptr, "base_path", 0, "", ICON_NONE);
 }
-static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
 	PointerRNA active_input_ptr, op_ptr;
@@ -1787,7 +1787,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 	}
 
 }
-static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "correction_method", 0, NULL, ICON_NONE);
 
@@ -1841,7 +1841,7 @@ static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerR
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 }
 
-static void node_composit_buts_movieclip_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_movieclip_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	PointerRNA clipptr;
@@ -1945,7 +1945,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
-static void node_composit_buts_colorcorrection_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_colorcorrection_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *row;
 	
@@ -2147,7 +2147,7 @@ static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), Poi
 	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
 }
 
-static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_viewer_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
 	
@@ -2295,222 +2295,222 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
 		case CMP_NODE_IMAGE:
-			ntype->uifunc = node_composit_buts_image;
-			ntype->uifuncbut = node_composit_buts_image_details;
+			ntype->draw_buttons = node_composit_buts_image;
+			ntype->draw_buttons_ex = node_composit_buts_image_ex;
 			break;
 		case CMP_NODE_R_LAYERS:
-			ntype->uifunc = node_composit_buts_renderlayers;
+			ntype->draw_buttons = node_composit_buts_renderlayers;
 			break;
 		case CMP_NODE_NORMAL:
-			ntype->uifunc = node_buts_normal;
+			ntype->draw_buttons = node_buts_normal;
 			break;
 		case CMP_NODE_CURVE_VEC:
-			ntype->uifunc = node_buts_curvevec;
+			ntype->draw_buttons = node_buts_curvevec;
 			break;
 		case CMP_NODE_CURVE_RGB:
-			ntype->uifunc = node_buts_curvecol;
+			ntype->draw_buttons = node_buts_curvecol;
 			break;
 		case CMP_NODE_VALUE:
-			ntype->uifunc = node_buts_value;
+			ntype->draw_buttons = node_buts_value;
 			break;
 		case CMP_NODE_RGB:
-			ntype->uifunc = node_buts_rgb;
+			ntype->draw_buttons = node_buts_rgb;
 			break;
 		case CMP_NODE_FLIP:
-			ntype->uifunc = node_composit_buts_flip;
+			ntype->draw_buttons = node_composit_buts_flip;
 			break;
 		case CMP_NODE_SPLITVIEWER:
-			ntype->uifunc = node_composit_buts_splitviewer;
+			ntype->draw_buttons = node_composit_buts_splitviewer;
 			break;
 		case CMP_NODE_MIX_RGB:
-			ntype->uifunc = node_buts_mix_rgb;
+			ntype->draw_buttons = node_buts_mix_rgb;
 			break;
 		case CMP_NODE_VALTORGB:
-			ntype->uifunc = node_buts_colorramp;
+			ntype->draw_buttons = node_buts_colorramp;
 			break;
 		case CMP_NODE_CROP:
-			ntype->uifunc = node_composit_buts_crop;
+			ntype->draw_buttons = node_composit_buts_crop;
 			break;
 		case CMP_NODE_BLUR:
-			ntype->uifunc = node_composit_buts_blur;
+			ntype->draw_buttons = node_composit_buts_blur;
 			break;
 		case CMP_NODE_DBLUR:
-			ntype->uifunc = node_composit_buts_dblur;
+			ntype->draw_buttons = node_composit_buts_dblur;
 			break;
 		case CMP_NODE_BILATERALBLUR:
-			ntype->uifunc = node_composit_buts_bilateralblur;
+			ntype->draw_buttons = node_composit_buts_bilateralblur;
 			break;
 		case CMP_NODE_DEFOCUS:
-			ntype->uifunc = node_composit_buts_defocus;
+			ntype->draw_buttons = node_composit_buts_defocus;
 			break;
 		case CMP_NODE_GLARE:
-			ntype->uifunc = node_composit_buts_glare;
+			ntype->draw_buttons = node_composit_buts_glare;
 			break;
 		case CMP_NODE_TONEMAP:
-			ntype->uifunc = node_composit_buts_tonemap;
+			ntype->draw_buttons = node_composit_buts_tonemap;
 			break;
 		case CMP_NODE_LENSDIST:
-			ntype->uifunc = node_composit_buts_lensdist;
+			ntype->draw_buttons = node_composit_buts_lensdist;
 			break;
 		case CMP_NODE_VECBLUR:
-			ntype->uifunc = node_composit_buts_vecblur;
+			ntype->draw_buttons = node_composit_buts_vecblur;
 			break;
 		case CMP_NODE_FILTER:
-			ntype->uifunc = node_composit_buts_filter;
+			ntype->draw_buttons = node_composit_buts_filter;
 			break;
 		case CMP_NODE_MAP_VALUE:
-			ntype->uifunc = node_composit_buts_map_value;
+			ntype->draw_buttons = node_composit_buts_map_value;
 			break;
 		case CMP_NODE_MAP_RANGE:
-			ntype->uifunc = node_composit_buts_map_range;
+			ntype->draw_buttons = node_composit_buts_map_range;
 			break;
 		case CMP_NODE_TIME:
-			ntype->uifunc = node_buts_time;
+			ntype->draw_buttons = node_buts_time;
 			break;
 		case CMP_NODE_ALPHAOVER:
-			ntype->uifunc = node_composit_buts_alphaover;
+			ntype->draw_buttons = node_composit_buts_alphaover;
 			break;
 		case CMP_NODE_HUE_SAT:
-			ntype->uifunc = node_composit_buts_hue_sat;
+			ntype->draw_buttons = node_composit_buts_hue_sat;
 			break;
 		case CMP_NODE_TEXTURE:
-			ntype->uifunc = node_buts_texture;
+			ntype->draw_buttons = node_buts_texture;
 			break;
 		case CMP_NODE_DILATEERODE:
-			ntype->uifunc = node_composit_buts_dilateerode;
+			ntype->draw_buttons = node_composit_buts_dilateerode;
 			break;
 		case CMP_NODE_INPAINT:
-			ntype->uifunc = node_composit_buts_inpaint;
+			ntype->draw_buttons = node_composit_buts_inpaint;
 			break;
 		case CMP_NODE_DESPECKLE:
-			ntype->uifunc = node_composit_buts_despeckle;
+			ntype->draw_buttons = node_composit_buts_despeckle;
 			break;
 		case CMP_NODE_OUTPUT_FILE:
-			ntype->uifunc = node_composit_buts_file_output;
-			ntype->uifuncbut = node_composit_buts_file_output_details;
-			ntype->drawinputfunc = node_draw_input_file_output;
+			ntype->draw_buttons = node_composit_buts_file_output;
+			ntype->draw_buttons_ex = node_composit_buts_file_output_ex;
+			ntype->draw_input = node_draw_input_file_output;
 			break;
 		case CMP_NODE_DIFF_MATTE:
-			ntype->uifunc = node_composit_buts_diff_matte;
+			ntype->draw_buttons = node_composit_buts_diff_matte;
 			break;
 		case CMP_NODE_DIST_MATTE:
-			ntype->uifunc = node_composit_buts_distance_matte;
+			ntype->draw_buttons = node_composit_buts_distance_matte;
 			break;
 		case CMP_NODE_COLOR_SPILL:
-			ntype->uifunc = node_composit_buts_color_spill;
+			ntype->draw_buttons = node_composit_buts_color_spill;
 			break;
 		case CMP_NODE_CHROMA_MATTE:
-			ntype->uifunc = node_composit_buts_chroma_matte;
+			ntype->draw_buttons = node_composit_buts_chroma_matte;
 			break;
 		case CMP_NODE_COLOR_MATTE:
-			ntype->uifunc = node_composit_buts_color_matte;
+			ntype->draw_buttons = node_composit_buts_color_matte;
 			break;
 		case CMP_NODE_SCALE:
-			ntype->uifunc = node_composit_buts_scale;
+			ntype->draw_buttons = node_composit_buts_scale;
 			break;
 		case CMP_NODE_ROTATE:
-			ntype->uifunc = node_composit_buts_rotate;
+			ntype->draw_buttons = node_composit_buts_rotate;
 			break;
 		case CMP_NODE_CHANNEL_MATTE:
-			ntype->uifunc = node_composit_buts_channel_matte;
+			ntype->draw_buttons = node_composit_buts_channel_matte;
 			break;
 		case CMP_NODE_LUMA_MATTE:
-			ntype->uifunc = node_composit_buts_luma_matte;
+			ntype->draw_buttons = node_composit_buts_luma_matte;
 			break;
 		case CMP_NODE_MAP_UV:
-			ntype->uifunc = node_composit_buts_map_uv;
+			ntype->draw_buttons = node_composit_buts_map_uv;
 			break;
 		case CMP_NODE_ID_MASK:
-			ntype->uifunc = node_composit_buts_id_mask;
+			ntype->draw_buttons = node_composit_buts_id_mask;
 			break;
 		case CMP_NODE_DOUBLEEDGEMASK:
-			ntype->uifunc = node_composit_buts_double_edge_mask;
+			ntype->draw_buttons = node_composit_buts_double_edge_mask;
 			break;
 		case CMP_NODE_MATH:
-			ntype->uifunc = node_buts_math;
+			ntype->draw_buttons = node_buts_math;
 			break;
 		case CMP_NODE_INVERT:
-			ntype->uifunc = node_composit_buts_invert;
+			ntype->draw_buttons = node_composit_buts_invert;
 			break;
 		case CMP_NODE_PREMULKEY:
-			ntype->uifunc = node_composit_buts_premulkey;
+			ntype->draw_buttons = node_composit_buts_premulkey;
 			break;
 		case CMP_NODE_VIEW_LEVELS:
-			ntype->uifunc = node_composit_buts_view_levels;
+			ntype->draw_buttons = node_composit_buts_view_levels;
 			break;
 		case CMP_NODE_COLORBALANCE:
-			ntype->uifunc = node_composit_buts_colorbalance;
-			ntype->uifuncbut = node_composit_buts_colorbalance_but;
+			ntype->draw_buttons = node_composit_buts_colorbalance;
+			ntype->draw_buttons_ex = node_composit_buts_colorbalance_ex;
 			break;
 		case CMP_NODE_HUECORRECT:
-			ntype->uifunc = node_composit_buts_huecorrect;
+			ntype->draw_buttons = node_composit_buts_huecorrect;
 			break;
 		case CMP_NODE_ZCOMBINE:
-			ntype->uifunc = node_composit_buts_zcombine;
+			ntype->draw_buttons = node_composit_buts_zcombine;
 			break;
 		case CMP_NODE_COMBYCCA:
 		case CMP_NODE_SEPYCCA:
-			ntype->uifunc = node_composit_buts_ycc;
+			ntype->draw_buttons = node_composit_buts_ycc;
 			break;
 		case CMP_NODE_MOVIECLIP:
-			ntype->uifunc = node_composit_buts_movieclip;
-			ntype->uifuncbut = node_composit_buts_movieclip_details;
+			ntype->draw_buttons = node_composit_buts_movieclip;
+			ntype->draw_buttons_ex = node_composit_buts_movieclip_ex;
 			break;
 		case CMP_NODE_STABILIZE2D:
-			ntype->uifunc = node_composit_buts_stabilize2d;
+			ntype->draw_buttons = node_composit_buts_stabilize2d;
 			break;
 		case CMP_NODE_TRANSFORM:
-			ntype->uifunc = node_composit_buts_transform;
+			ntype->draw_buttons = node_composit_buts_transform;
 			break;
 		case CMP_NODE_TRANSLATE:
-			ntype->uifunc = node_composit_buts_translate;
+			ntype->draw_buttons = node_composit_buts_translate;
 			break;
 		case CMP_NODE_MOVIEDISTORTION:
-			ntype->uifunc = node_composit_buts_moviedistortion;
+			ntype->draw_buttons = node_composit_buts_moviedistortion;
 			break;
 		case CMP_NODE_COLORCORRECTION:
-			ntype->uifunc = node_composit_buts_colorcorrection;
-			ntype->uifuncbut = node_composit_buts_colorcorrection_but;
+			ntype->draw_buttons = node_composit_buts_colorcorrection;
+			ntype->draw_buttons_ex = node_composit_buts_colorcorrection_ex;
 			break;
 		case CMP_NODE_SWITCH:
-			ntype->uifunc = node_composit_buts_switch;
+			ntype->draw_buttons = node_composit_buts_switch;
 			break;
 		case CMP_NODE_MASK_BOX:
-			ntype->uifunc = node_composit_buts_boxmask;
-			ntype->uibackdropfunc = node_composit_backdrop_boxmask;
+			ntype->draw_buttons = node_composit_buts_boxmask;
+			ntype->draw_backdrop = node_composit_backdrop_boxmask;
 			break;
 		case CMP_NODE_MASK_ELLIPSE:
-			ntype->uifunc = node_composit_buts_ellipsemask;
-			ntype->uibackdropfunc = node_composit_backdrop_ellipsemask;
+			ntype->draw_buttons = node_composit_buts_ellipsemask;
+			ntype->draw_backdrop = node_composit_backdrop_ellipsemask;
 			break;
 		case CMP_NODE_BOKEHIMAGE:
-			ntype->uifunc = node_composit_buts_bokehimage;
+			ntype->draw_buttons = node_composit_buts_bokehimage;
 			break;
 		case CMP_NODE_BOKEHBLUR:
-			ntype->uifunc = node_composit_buts_bokehblur;
+			ntype->draw_buttons = node_composit_buts_bokehblur;
 			break;
 		case CMP_NODE_VIEWER:
-			ntype->uifunc = node_composit_buts_viewer;
-			ntype->uifuncbut = node_composit_buts_viewer_but;
-			ntype->uibackdropfunc = node_composit_backdrop_viewer;
+			ntype->draw_buttons = node_composit_buts_viewer;
+			ntype->draw_buttons_ex = node_composit_buts_viewer_ex;
+			ntype->draw_backdrop = node_composit_backdrop_viewer;
 			break;
 		case CMP_NODE_COMPOSITE:
-			ntype->uifunc = node_composit_buts_composite;
+			ntype->draw_buttons = node_composit_buts_composite;
 			break;
 		case CMP_NODE_MASK:
-			ntype->uifunc = node_composit_buts_mask;
+			ntype->draw_buttons = node_composit_buts_mask;
 			break;
 		case CMP_NODE_KEYINGSCREEN:
-			ntype->uifunc = node_composit_buts_keyingscreen;
+			ntype->draw_buttons = node_composit_buts_keyingscreen;
 			break;
 		case CMP_NODE_KEYING:
-			ntype->uifunc = node_composit_buts_keying;
+			ntype->draw_buttons = node_composit_buts_keying;
 			break;
 		case CMP_NODE_TRACKPOS:
-			ntype->uifunc = node_composit_buts_trackpos;
+			ntype->draw_buttons = node_composit_buts_trackpos;
 			break;
 		case CMP_NODE_PLANETRACKDEFORM:
-			ntype->uifunc = node_composit_buts_planetrackdeform;
+			ntype->draw_buttons = node_composit_buts_planetrackdeform;
 			break;
 	}
 }
@@ -2615,7 +2615,7 @@ static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *p
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
-static void node_texture_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_texture_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	PointerRNA iuserptr;
@@ -2633,46 +2633,46 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
 	if (ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX) {
-		ntype->uifunc = node_texture_buts_proc;
+		ntype->draw_buttons = node_texture_buts_proc;
 	}
 	else {
 		switch (ntype->type) {
 
 			case TEX_NODE_MATH:
-				ntype->uifunc = node_buts_math;
+				ntype->draw_buttons = node_buts_math;
 				break;
 
 			case TEX_NODE_MIX_RGB:
-				ntype->uifunc = node_buts_mix_rgb;
+				ntype->draw_buttons = node_buts_mix_rgb;
 				break;
 
 			case TEX_NODE_VALTORGB:
-				ntype->uifunc = node_buts_colorramp;
+				ntype->draw_buttons = node_buts_colorramp;
 				break;
 
 			case TEX_NODE_CURVE_RGB:
-				ntype->uifunc = node_buts_curvecol;
+				ntype->draw_buttons = node_buts_curvecol;
 				break;
 
 			case TEX_NODE_CURVE_TIME:
-				ntype->uifunc = node_buts_time;
+				ntype->draw_buttons = node_buts_time;
 				break;
 
 			case TEX_NODE_TEXTURE:
-				ntype->uifunc = node_buts_texture;
+				ntype->draw_buttons = node_buts_texture;
 				break;
 
 			case TEX_NODE_BRICKS:
-				ntype->uifunc = node_texture_buts_bricks;
+				ntype->draw_buttons = node_texture_buts_bricks;
 				break;
 
 			case TEX_NODE_IMAGE:
-				ntype->uifunc = node_texture_buts_image;
-				ntype->uifuncbut = node_texture_buts_image_details;
+				ntype->draw_buttons = node_texture_buts_image;
+				ntype->draw_buttons_ex = node_texture_buts_image_ex;
 				break;
 
 			case TEX_NODE_OUTPUT:
-				ntype->uifunc = node_texture_buts_output;
+				ntype->draw_buttons = node_texture_buts_output;
 				break;
 		}
 	}
@@ -2746,14 +2746,14 @@ void ED_node_init_butfuncs(void)
 	extern bNodeSocketType NodeSocketTypeUndefined;
 	
 	/* default ui functions */
-	NodeTypeUndefined.drawfunc = node_draw_default;
-	NodeTypeUndefined.drawupdatefunc = node_update_default;
+	NodeTypeUndefined.draw_nodetype = node_draw_default;
+	NodeTypeUndefined.draw_nodetype_prepare = node_update_default;
 	NodeTypeUndefined.select_area_func = node_select_area_default;
 	NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
-	NodeTypeUndefined.uifunc = NULL;
-	NodeTypeUndefined.uifuncbut = NULL;
-	NodeTypeUndefined.drawinputfunc = node_draw_input_default;
-	NodeTypeUndefined.drawoutputfunc = node_draw_output_default;
+	NodeTypeUndefined.draw_buttons = NULL;
+	NodeTypeUndefined.draw_buttons_ex = NULL;
+	NodeTypeUndefined.draw_input = node_draw_input_default;
+	NodeTypeUndefined.draw_output = node_draw_output_default;
 	NodeTypeUndefined.resize_area_func = node_resize_area_default;
 	
 	NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
@@ -2764,14 +2764,14 @@ void ED_node_init_butfuncs(void)
 	/* node type ui functions */
 	NODE_TYPES_BEGIN(ntype)
 		/* default ui functions */
-		ntype->drawfunc = node_draw_default;
-		ntype->drawupdatefunc = node_update_default;
+		ntype->draw_nodetype = node_draw_default;
+		ntype->draw_nodetype_prepare = node_update_default;
 		ntype->select_area_func = node_select_area_default;
 		ntype->tweak_area_func = node_tweak_area_default;
-		ntype->uifunc = NULL;
-		ntype->uifuncbut = NULL;
-		ntype->drawinputfunc = node_draw_input_default;
-		ntype->drawoutputfunc = node_draw_output_default;
+		ntype->draw_buttons = NULL;
+		ntype->draw_buttons_ex = NULL;
+		ntype->draw_input = node_draw_input_default;
+		ntype->draw_output = node_draw_output_default;
 		ntype->resize_area_func = node_resize_area_default;
 		
 		node_common_set_butfunc(ntype);
@@ -2793,10 +2793,10 @@ void ED_node_init_butfuncs(void)
 void ED_init_custom_node_type(bNodeType *ntype)
 {
 	/* default ui functions */
-	ntype->drawfunc = node_draw_default;
-	ntype->drawupdatefunc = node_update_default;
-	ntype->drawinputfunc = node_draw_input_default;
-	ntype->drawoutputfunc = node_draw_output_default;
+	ntype->draw_nodetype = node_draw_default;
+	ntype->draw_nodetype_prepare = node_update_default;
+	ntype->draw_input = node_draw_input_default;
+	ntype->draw_output = node_draw_output_default;
 	ntype->resize_area_func = node_resize_area_default;
 	ntype->select_area_func = node_select_area_default;
 	ntype->tweak_area_func = node_tweak_area_default;
@@ -3053,8 +3053,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			rctf *viewer_border = &snode->nodetree->viewer_border;
 			while (node) {
 				if (node->flag & NODE_SELECT) {
-					if (node->typeinfo->uibackdropfunc) {
-						node->typeinfo->uibackdropfunc(snode, ibuf, node, x, y);
+					if (node->typeinfo->draw_backdrop) {
+						node->typeinfo->draw_backdrop(snode, ibuf, node, x, y);
 					}
 				}
 				node = node->next;

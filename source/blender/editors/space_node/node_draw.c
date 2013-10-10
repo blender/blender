@@ -351,7 +351,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		row = uiLayoutRow(layout, 1);
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
 		
-		node->typeinfo->drawoutputfunc((bContext *)C, row, &sockptr, &nodeptr);
+		node->typeinfo->draw_output((bContext *)C, row, &sockptr, &nodeptr);
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
@@ -402,7 +402,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	}
 
 	/* buttons rect? */
-	if (node->typeinfo->uifunc && (node->flag & NODE_OPTIONS)) {
+	if (node->typeinfo->draw_buttons && (node->flag & NODE_OPTIONS)) {
 		dy -= NODE_DYS / 2;
 
 		/* set this for uifunc() that don't use layout engine yet */
@@ -416,7 +416,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		                       locx + NODE_DYS, dy, node->butr.xmax, 0, UI_GetStyle());
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		
-		node->typeinfo->uifunc(layout, (bContext *)C, &nodeptr);
+		node->typeinfo->draw_buttons(layout, (bContext *)C, &nodeptr);
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
@@ -437,7 +437,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
 		
-		node->typeinfo->drawinputfunc((bContext *)C, layout, &sockptr, &nodeptr);
+		node->typeinfo->draw_input((bContext *)C, layout, &sockptr, &nodeptr);
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
@@ -1115,8 +1115,8 @@ void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTr
 
 static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 {
-	if (node->typeinfo->drawupdatefunc)
-		node->typeinfo->drawupdatefunc(C, ntree, node);
+	if (node->typeinfo->draw_nodetype_prepare)
+		node->typeinfo->draw_nodetype_prepare(C, ntree, node);
 }
 
 void node_update_nodetree(const bContext *C, bNodeTree *ntree)
@@ -1131,8 +1131,8 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
 
 static void node_draw(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node, bNodeInstanceKey key)
 {
-	if (node->typeinfo->drawfunc)
-		node->typeinfo->drawfunc(C, ar, snode, ntree, node, key);
+	if (node->typeinfo->draw_nodetype)
+		node->typeinfo->draw_nodetype(C, ar, snode, ntree, node, key);
 }
 
 #define USE_DRAW_TOT_UPDATE

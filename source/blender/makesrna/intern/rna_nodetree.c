@@ -1377,8 +1377,8 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	nt->initfunc_api = (have_function[3]) ? rna_Node_init : NULL;
 	nt->copyfunc_api = (have_function[4]) ? rna_Node_copy : NULL;
 	nt->freefunc_api = (have_function[5]) ? rna_Node_free : NULL;
-	nt->uifunc = (have_function[6]) ? rna_Node_draw_buttons : NULL;
-	nt->uifuncbut = (have_function[7]) ? rna_Node_draw_buttons_ext : NULL;
+	nt->draw_buttons = (have_function[6]) ? rna_Node_draw_buttons : NULL;
+	nt->draw_buttons_ex = (have_function[7]) ? rna_Node_draw_buttons_ext : NULL;
 	
 	/* sanitize size values in case not all have been registered */
 	if (nt->maxwidth < nt->minwidth)
@@ -2336,24 +2336,24 @@ static void rna_NodeInternal_update(ID *id, bNode *node)
 
 static void rna_NodeInternal_draw_buttons(ID *id, bNode *node, struct bContext *C, struct uiLayout *layout)
 {
-	if (node->typeinfo->uifunc) {
+	if (node->typeinfo->draw_buttons) {
 		PointerRNA ptr;
 		RNA_pointer_create(id, &RNA_Node, node, &ptr);
-		node->typeinfo->uifunc(layout, C, &ptr);
+		node->typeinfo->draw_buttons(layout, C, &ptr);
 	}
 }
 
 static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, struct bContext *C, struct uiLayout *layout)
 {
-	if (node->typeinfo->uifuncbut) {
+	if (node->typeinfo->draw_buttons_ex) {
 		PointerRNA ptr;
 		RNA_pointer_create(id, &RNA_Node, node, &ptr);
-		node->typeinfo->uifuncbut(layout, C, &ptr);
+		node->typeinfo->draw_buttons_ex(layout, C, &ptr);
 	}
-	else if (node->typeinfo->uifunc) {
+	else if (node->typeinfo->draw_buttons) {
 		PointerRNA ptr;
 		RNA_pointer_create(id, &RNA_Node, node, &ptr);
-		node->typeinfo->uifunc(layout, C, &ptr);
+		node->typeinfo->draw_buttons(layout, C, &ptr);
 	}
 }
 
