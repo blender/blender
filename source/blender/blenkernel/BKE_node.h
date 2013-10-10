@@ -131,8 +131,6 @@ typedef struct bNodeSocketType {
 	int type, subtype;
 } bNodeSocketType;
 
-typedef void (*NodeSocketDrawFunction)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr, struct PointerRNA *node_ptr);
-
 typedef void *(*NodeInitExecFunction)(struct bNodeExecContext *context, struct bNode *node, bNodeInstanceKey key);
 typedef void (*NodeFreeExecFunction)(struct bNode *node, void *nodedata);
 typedef void (*NodeExecFunction)(void *data, int thread, struct bNode *, struct bNodeExecData *execdata, struct bNodeStack **in, struct bNodeStack **out);
@@ -175,13 +173,6 @@ typedef struct bNodeType {
 
 	/* Additional drawing on backdrop */
 	void (*draw_backdrop)(struct SpaceNode *snode, struct ImBuf *backdrop, struct bNode *node, int x, int y);
-
-	/* Draw a node socket. Default draws the input value button. */
-	/* XXX deprecated, only used for the OutputFile node,
-	 * should be removed at some point.
-	 */
-	NodeSocketDrawFunction draw_input;
-	NodeSocketDrawFunction draw_output;
 
 	/// Optional custom label function for the node header.
 	const char *(*labelfunc)(struct bNode *);

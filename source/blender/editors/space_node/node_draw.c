@@ -351,7 +351,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		row = uiLayoutRow(layout, 1);
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
 		
-		node->typeinfo->draw_output((bContext *)C, row, &sockptr, &nodeptr);
+		nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
@@ -437,7 +437,9 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
 		
-		node->typeinfo->draw_input((bContext *)C, layout, &sockptr, &nodeptr);
+		row = uiLayoutRow(layout, 1);
+		
+		nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);

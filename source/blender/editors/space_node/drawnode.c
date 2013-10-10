@@ -86,12 +86,6 @@ static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, Poin
 	uiItemL(layout, text, 0);
 }
 
-static void node_draw_socket_default(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
-{
-	bNodeSocket *sock = (bNodeSocket *)ptr->data;
-	sock->typeinfo->draw(C, layout, ptr, node_ptr, IFACE_(sock->name));
-}
-
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
 
@@ -1572,46 +1566,6 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 }
 
-/* draw function for file output node sockets, displays only sub-path and format, no value button */
-static void node_draw_input_file_output(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
-{
-	bNodeTree *ntree = ptr->id.data;
-	bNodeSocket *sock = ptr->data;
-	uiLayout *row;
-	PointerRNA inputptr, imfptr;
-	int imtype;
-	
-	row = uiLayoutRow(layout, FALSE);
-	
-	imfptr = RNA_pointer_get(node_ptr, "format");
-	imtype = RNA_enum_get(&imfptr, "file_format");
-	if (imtype == R_IMF_IMTYPE_MULTILAYER) {
-		NodeImageMultiFileSocket *input = sock->storage;
-		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotLayer, input, &inputptr);
-		
-		uiItemL(row, input->layer, ICON_NONE);
-	}
-	else {
-		NodeImageMultiFileSocket *input = sock->storage;
-		PropertyRNA *imtype_prop;
-		const char *imtype_name;
-		uiBlock *block;
-		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotFile, input, &inputptr);
-		
-		uiItemL(row, input->path, ICON_NONE);
-		
-		if (!RNA_boolean_get(&inputptr, "use_node_format"))
-			imfptr = RNA_pointer_get(&inputptr, "format");
-		
-		imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
-		RNA_property_enum_name((bContext *)C, &imfptr, imtype_prop,
-		                       RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
-		block = uiLayoutGetBlock(row);
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		uiItemL(row, imtype_name, ICON_NONE);
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-	}
-}
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
@@ -2382,7 +2336,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->draw_buttons = node_composit_buts_file_output;
 			ntype->draw_buttons_ex = node_composit_buts_file_output_ex;
-			ntype->draw_input = node_draw_input_file_output;
 			break;
 		case CMP_NODE_DIFF_MATTE:
 			ntype->draw_buttons = node_composit_buts_diff_matte;
@@ -2746,8 +2699,6 @@ void ED_node_init_butfuncs(void)
 	NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
 	NodeTypeUndefined.draw_buttons = NULL;
 	NodeTypeUndefined.draw_buttons_ex = NULL;
-	NodeTypeUndefined.draw_input = node_draw_socket_default;
-	NodeTypeUndefined.draw_output = node_draw_socket_default;
 	NodeTypeUndefined.resize_area_func = node_resize_area_default;
 	
 	NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
@@ -2764,8 +2715,6 @@ void ED_node_init_butfuncs(void)
 		ntype->tweak_area_func = node_tweak_area_default;
 		ntype->draw_buttons = NULL;
 		ntype->draw_buttons_ex = NULL;
-		ntype->draw_input = node_draw_socket_default;
-		ntype->draw_output = node_draw_socket_default;
 		ntype->resize_area_func = node_resize_area_default;
 		
 		node_common_set_butfunc(ntype);
@@ -2789,8 +2738,6 @@ void ED_init_custom_node_type(bNodeType *ntype)
 	/* default ui functions */
 	ntype->draw_nodetype = node_draw_default;
 	ntype->draw_nodetype_prepare = node_update_default;
-	ntype->draw_input = node_draw_socket_default;
-	ntype->draw_output = node_draw_socket_default;
 	ntype->resize_area_func = node_resize_area_default;
 	ntype->select_area_func = node_select_area_default;
 	ntype->tweak_area_func = node_tweak_area_default;
@@ -2828,11 +2775,58 @@ static void std_node_socket_interface_draw_color(bContext *UNUSED(C), PointerRNA
 	copy_v4_v4(r_color, std_node_socket_colors[type]);
 }
 
+/* draw function for file output node sockets, displays only sub-path and format, no value button */
+static void node_file_output_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr)
+{
+	bNodeTree *ntree = ptr->id.data;
+	bNodeSocket *sock = ptr->data;
+	uiLayout *row;
+	PointerRNA inputptr, imfptr;
+	int imtype;
+	
+	row = uiLayoutRow(layout, FALSE);
+	
+	imfptr = RNA_pointer_get(node_ptr, "format");
+	imtype = RNA_enum_get(&imfptr, "file_format");
+	if (imtype == R_IMF_IMTYPE_MULTILAYER) {
+		NodeImageMultiFileSocket *input = sock->storage;
+		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotLayer, input, &inputptr);
+		
+		uiItemL(row, input->layer, ICON_NONE);
+	}
+	else {
+		NodeImageMultiFileSocket *input = sock->storage;
+		PropertyRNA *imtype_prop;
+		const char *imtype_name;
+		uiBlock *block;
+		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotFile, input, &inputptr);
+		
+		uiItemL(row, input->path, ICON_NONE);
+		
+		if (!RNA_boolean_get(&inputptr, "use_node_format"))
+			imfptr = RNA_pointer_get(&inputptr, "format");
+		
+		imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
+		RNA_property_enum_name((bContext *)C, &imfptr, imtype_prop,
+		                       RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
+		block = uiLayoutGetBlock(row);
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+		uiItemL(row, imtype_name, ICON_NONE);
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+	}
+}
+
 static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
+	bNode *node = node_ptr->data;
 	bNodeSocket *sock = ptr->data;
 	int type = sock->typeinfo->type;
 	/*int subtype = sock->typeinfo->subtype;*/
+	
+	/* XXX not nice, eventually give this node its own socket type ... */
+	if (node->type == CMP_NODE_OUTPUT_FILE) {
+		node_file_output_socket_draw(C, layout, ptr, node_ptr);
+	}
 	
 	if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
 		node_socket_button_label(C, layout, ptr, node_ptr, text);
