@@ -36,8 +36,6 @@ cflags = ''
 defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
-defines.append('WITH_GUARDEDALLOC')
-
 source_files = ['makesdna.c']
 header_files = env.Glob('../*.h')
 

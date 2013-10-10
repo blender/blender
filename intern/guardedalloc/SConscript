@@ -29,10 +29,12 @@ Import('env')
 
 defs = []
 
-sources = ['intern/mallocn.c', 'intern/mmap_win.c']
-
-# could make this optional
-defs.append('WITH_GUARDEDALLOC')
+sources = [
+    'intern/mallocn.c', 
+    'intern/mallocn_guarded_impl.c',
+	'intern/mallocn_lockfree_impl.c',
+    'intern/mmap_win.c'
+]
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     sources.append('cpp/mallocn.cpp')

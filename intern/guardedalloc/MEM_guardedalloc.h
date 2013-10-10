@@ -62,11 +62,9 @@
 
 #include <stdio.h>          /* needed for FILE* */
 
-/* needed for uintptr_t, exception, dont use BLI anywhere else in MEM_* */
+/* needed for uintptr_t and attributes, exception, dont use BLI anywhere else in MEM_* */
 #include "../../source/blender/blenlib/BLI_sys_types.h"
-
-/* some GNU attributes are only available from GCC 4.3 */
-#define MEM_GNU_ATTRIBUTES (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
+#include "../../source/blender/blenlib/BLI_compiler_attrs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,57 +73,36 @@ extern "C" {
 	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	size_t MEM_allocN_len(const void *vmemh)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((warn_unused_result))
-#endif
-	;
+	extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
-	void MEM_freeN(void *vmemh);
+	extern void (*MEM_freeN)(void *vmemh);
 
 #if 0  /* UNUSED */
 	/**
 	 * Return zero if memory is not in allocated list
 	 */
-	short MEM_testN(void *vmemh);
+	extern short (*MEM_testN)(void *vmemh);
 #endif
 
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(const void *vmemh)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-#endif
-	;
+	extern void *(*MEM_dupallocN)(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 	/**
 	 * Reallocates a block of memory, and returns pointer to the newly
 	 * allocated block, the old one is freed. this is not as optimized
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
-	void *MEM_reallocN_id(void *vmemh, size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-	__attribute__((alloc_size(2)))
-#endif
-	;
+	extern void *(*MEM_reallocN_id)(void *vmemh, size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
 
 	/**
 	 * A variant of realloc which zeros new bytes
 	 */
-	void *MEM_recallocN_id(void *vmemh, size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-	__attribute__((alloc_size(2)))
-#endif
-	;
+	extern void *(*MEM_recallocN_id)(void *vmemh, size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
 
 #define MEM_reallocN(vmemh, len) MEM_reallocN_id(vmemh, len, __func__)
 #define MEM_recallocN(vmemh, len) MEM_recallocN_id(vmemh, len, __func__)
@@ -134,96 +111,74 @@ extern "C" {
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-	__attribute__((nonnull(2)))
-	__attribute__((alloc_size(1)))
-#endif
-	;
+	extern void *(*MEM_callocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
-	void *MEM_mallocN(size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-	__attribute__((nonnull(2)))
-	__attribute__((alloc_size(1)))
-#endif
-	;
+	extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 	/**
 	 * Same as callocN, clears memory and uses mmap (disk cached) if supported.
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
-	void *MEM_mapallocN(size_t len, const char *str)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((malloc))
-	__attribute__((warn_unused_result))
-	__attribute__((nonnull(2)))
-	__attribute__((alloc_size(1)))
-#endif
-	;
+	extern void *(*MEM_mapallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
-	void MEM_printmemlist_pydict(void);
+	extern void (*MEM_printmemlist_pydict)(void);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
-	void MEM_printmemlist(void);
+	extern void (*MEM_printmemlist)(void);
 
 	/** calls the function on all allocated memory blocks. */
-	void MEM_callbackmemlist(void (*func)(void *));
+	extern void (*MEM_callbackmemlist)(void (*func)(void *));
 
 	/** Print statistics about memory usage */
-	void MEM_printmemlist_stats(void);
+	extern void (*MEM_printmemlist_stats)(void);
 	
 	/** Set the callback function for error output. */
-	void MEM_set_error_callback(void (*func)(const char *));
+	extern void (*MEM_set_error_callback)(void (*func)(const char *));
 
 	/**
 	 * Are the start/end block markers still correct ?
 	 *
 	 * @retval 0 for correct memory, 1 for corrupted memory. */
-	bool MEM_check_memory_integrity(void);
+	extern bool (*MEM_check_memory_integrity)(void);
 
 	/** Set thread locking functions for safe memory allocation from multiple
 	 * threads, pass NULL pointers to disable thread locking again. */
-	void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void));
+	extern void (*MEM_set_lock_callback)(void (*lock)(void), void (*unlock)(void));
 	
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
-	void MEM_set_memory_debug(void);
+	extern void (*MEM_set_memory_debug)(void);
 
 	/**
 	 * Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
-	uintptr_t MEM_get_memory_in_use(void);
+	extern uintptr_t (*MEM_get_memory_in_use)(void);
 	/** Get mapped memory usage. */
-	uintptr_t MEM_get_mapped_memory_in_use(void);
+	extern uintptr_t (*MEM_get_mapped_memory_in_use)(void);
 	/** Get amount of memory blocks in use. */
-	unsigned int MEM_get_memory_blocks_in_use(void);
+	extern unsigned int (*MEM_get_memory_blocks_in_use)(void);
 
 	/** Reset the peak memory statistic to zero. */
-	void MEM_reset_peak_memory(void);
+	extern void (*MEM_reset_peak_memory)(void);
 
 	/** Get the peak memory usage in bytes, including mmap allocations. */
-	size_t MEM_get_peak_memory(void)
-#if MEM_GNU_ATTRIBUTES
-	__attribute__((warn_unused_result))
-#endif
-	;
+	extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 #define MEM_SAFE_FREE(v) if (v) { MEM_freeN(v); v = NULL; } (void)0
 
 #ifndef NDEBUG
-const char *MEM_name_ptr(void *vmemh);
+extern const char *(*MEM_name_ptr)(void *vmemh);
 #endif
+
+/* Switch allocator to slower but fully guarded mode. */
+void MEM_use_guarded_allocator(void);
 
 #ifdef __cplusplus
 /* alloc funcs for C++ only */

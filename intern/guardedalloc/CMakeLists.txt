@@ -34,11 +34,11 @@ set(INC_SYS
 
 set(SRC
 	./intern/mallocn.c
+	./intern/mallocn_guarded_impl.c
+	./intern/mallocn_lockfree_impl.c
 
 	MEM_guardedalloc.h
-
-	# include here since its a header-only
-	../atomic/atomic_ops.h
+	./intern/mallocn_intern.h
 )
 
 if(WIN32 AND NOT UNIX)
@@ -47,12 +47,6 @@ if(WIN32 AND NOT UNIX)
 
 		mmap_win.h
 	)
-endif()
-
-if (WITH_GUARDEDALLOC)
-	add_definitions(-DWITH_GUARDEDALLOC)
-else()
-	message(WARNING "Disabling GuardedAlloc is experemental, use at own risk!")
 endif()
 
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}")

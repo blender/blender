@@ -150,8 +150,6 @@ if env['WITH_BF_INTERNATIONAL']:
 if not env['BF_DEBUG']:
     defs.append('NDEBUG')
 
-defs.append('WITH_GUARDEDALLOC')
-
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = Split(incs))
