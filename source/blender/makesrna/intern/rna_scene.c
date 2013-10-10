@@ -940,7 +940,7 @@ static void rna_RenderSettings_qtcodecsettings_codecType_set(PointerRNA *ptr, in
 	settings->codecType = quicktime_videocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                                             PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item = NULL;
@@ -979,7 +979,7 @@ static void rna_RenderSettings_qtcodecsettings_audiocodecType_set(PointerRNA *pt
 	settings->audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *C, PointerRNA *ptr,
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                                                  PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item = NULL;

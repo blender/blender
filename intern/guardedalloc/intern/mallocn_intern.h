@@ -55,6 +55,7 @@
 #  include <malloc.h>
 #  define HAVE_MALLOC_STATS
 #elif defined(__APPLE__)
+#  include <malloc/malloc.h>
 #  define malloc_usable_size malloc_size
 #elif defined(WIN32)
 #  include <malloc.h>
