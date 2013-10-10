@@ -19,8 +19,8 @@
 #include "stdosl.h"
 
 shader node_hair_bsdf(
-    color Color = 0.8,
-    string component = "Reflection",
+	color Color = 0.8,
+	string component = "Reflection",
 	float Offset = 0.0,
 	float RoughnessU = 0.1,
 	float RoughnessV = 1.0,
@@ -28,29 +28,30 @@ shader node_hair_bsdf(
 	output closure color BSDF = 0)
 {
 	float IsStrand;
-	float roughnessh = clamp(RoughnessU, 0.001,1.0);
-	float roughnessv = clamp(RoughnessV, 0.001,1.0);
+	float roughnessh = clamp(RoughnessU, 0.001, 1.0);
+	float roughnessv = clamp(RoughnessV, 0.001, 1.0);
 	getattribute("geom:is_curve", IsStrand);
 
-    if (!IsStrand) {
-		if (backfacing())
-        	BSDF = transparent();
-    	else {
-    		if (component == "Reflection")
-    			BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
-    		else
-    			BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
+	if (!IsStrand) {
+		if (backfacing()) {
+			BSDF = transparent();
+		}
+		else {
+			if (component == "Reflection")
+				BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
+			else
+				BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
 		}
 	}
-    else {
-		if (backfacing())
-        	BSDF = transparent();
-    	else {
-    		if (component == "Reflection")
-    			BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, dPdu, -Offset);
-    		else
-    			BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, dPdu, -Offset);
+	else {
+		if (backfacing()) {
+			BSDF = transparent();
+		}
+		else {
+			if (component == "Reflection")
+				BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, dPdu, -Offset);
+			else
+				BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, dPdu, -Offset);
 		}
 	}
 }
-

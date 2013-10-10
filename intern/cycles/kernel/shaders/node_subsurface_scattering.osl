@@ -26,7 +26,7 @@ shader node_subsurface_scattering(
 	normal Normal = N,
 	output closure color BSSRDF = 0)
 {
-	if(Falloff == "Gaussian")
+	if (Falloff == "Gaussian")
 		BSSRDF = Color * bssrdf_gaussian(N, Scale * Radius, TextureBlur);
 	else
 		BSSRDF = Color * bssrdf_cubic(N, Scale * Radius, TextureBlur, Sharpness);

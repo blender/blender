@@ -89,7 +89,7 @@ static TexSnapshot secondary_snap  = {0};
 static CursorSnapshot cursor_snap  = {0};
 
 /* delete overlay cursor textures to preserve memory and invalidate all overlay flags */
-void paint_cursor_delete_textures()
+void paint_cursor_delete_textures(void)
 {
 	glDeleteTextures(1, &primary_snap.overlay_texture);
 	glDeleteTextures(1, &secondary_snap.overlay_texture);

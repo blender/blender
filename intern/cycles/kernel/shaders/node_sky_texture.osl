@@ -44,8 +44,8 @@ float sky_perez_function(float lam[9], float theta, float gamma)
 }
 
 color sky_radiance_old(normal dir,
-                   float sunphi, float suntheta, color radiance,
-                   float config_x[9], float config_y[9], float config_z[9])
+                       float sunphi, float suntheta, color radiance,
+                       float config_x[9], float config_y[9], float config_z[9])
 {
 	/* convert vector to spherical coordinates */
 	vector spherical = sky_spherical_coordinates(dir);
@@ -76,7 +76,7 @@ float sky_radiance_internal(float config[9], float theta, float gamma)
 	
 	float expM = exp(config[4] * gamma);
 	float rayM = cgamma * cgamma;
-	float mieM = (1.0 + rayM) / pow((1.0 + config[8]*config[8] - 2.0*config[8]*cgamma), 1.5);
+	float mieM = (1.0 + rayM) / pow((1.0 + config[8] * config[8] - 2.0 * config[8] * cgamma), 1.5);
 	float zenith = sqrt(ctheta);
 
 	return (1.0 + config[0] * exp(config[1] / (ctheta + 0.01))) *
@@ -84,8 +84,8 @@ float sky_radiance_internal(float config[9], float theta, float gamma)
 }
 
 color sky_radiance_new(normal dir,
-                   float sunphi, float suntheta, color radiance,
-                   float config_x[9], float config_y[9], float config_z[9])
+                       float sunphi, float suntheta, color radiance,
+                       float config_x[9], float config_y[9], float config_z[9])
 {
 	/* convert vector to spherical coordinates */
 	vector spherical = sky_spherical_coordinates(dir);
@@ -104,7 +104,7 @@ color sky_radiance_new(normal dir,
 	float z = sky_radiance_internal(config_z, theta, gamma) * radiance[2];
 
 	/* convert to RGB and adjust strength */
-	return xyz_to_rgb(x, y, z) * (M_2PI/683);
+	return xyz_to_rgb(x, y, z) * (M_2PI / 683);
 }
 
 shader node_sky_texture(

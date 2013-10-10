@@ -4685,7 +4685,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Scale",
 	                         "Instead of automatically normalizing to 0..1, "
-	                         "apply a user scale to the derivative map.");
+	                         "apply a user scale to the derivative map");
 
 	/* stamp */
 	
