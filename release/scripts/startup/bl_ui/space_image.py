@@ -390,7 +390,7 @@ class IMAGE_HT_header(Header):
             if show_maskedit:
                 sub.menu("MASK_MT_mask")
 
-        layout.template_ID(sima, "image", new="image.new")
+        layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
 
