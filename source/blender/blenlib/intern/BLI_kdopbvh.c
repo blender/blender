@@ -117,7 +117,7 @@ typedef struct BVHRayCastData {
  * Notes: You can choose the tree type --> binary, quad, octree, choose below
  */
 
-static float KDOP_AXES[13][3] = {
+static const float KDOP_AXES[13][3] = {
 	{1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
 	{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
 	{0, 1.0, -1.0}

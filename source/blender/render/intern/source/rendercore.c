@@ -1875,10 +1875,11 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 
 static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 {
-	extern float hashvectf[];
+	extern const float hashvectf[];
 	HaloRen fla;
 	Material *ma;
-	float *rc, rad, alfa, visifac, vec[3];
+	const float *rc;
+	float rad, alfa, visifac, vec[3];
 	int b, type;
 	
 	fla= *har;

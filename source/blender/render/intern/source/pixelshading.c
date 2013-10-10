@@ -73,7 +73,7 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-extern float hashvectf[];
+extern const float hashvectf[];
 
 static void render_lighting_halo(HaloRen *har, float col_r[3])
 {
@@ -341,7 +341,8 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 	if (flarec) har->pixels+= (int)(har->rad-radist);
 
 	if (har->ringc) {
-		float *rc, fac;
+		const float *rc;
+		float fac;
 		int ofs;
 		
 		/* per ring an antialised circle */
@@ -393,7 +394,8 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 		dist= 0.0f;
 	
 	if (har->linec) {
-		float *rc, fac;
+		const float *rc;
+		float fac;
 		int ofs;
 		
 		/* per starpoint an antialiased line */

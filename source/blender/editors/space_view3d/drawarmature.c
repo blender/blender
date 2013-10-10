@@ -304,7 +304,7 @@ static void set_ebone_glColor(const unsigned int boneflag)
 /* *************** Armature drawing, helper calls for parts ******************* */
 
 /* half the cube, in Y */
-static float cube[8][3] = {
+static const float cube[8][3] = {
 	{-1.0,  0.0, -1.0},
 	{-1.0,  0.0,  1.0},
 	{-1.0,  1.0,  1.0},
@@ -440,7 +440,7 @@ static void draw_bonevert_solid(void)
 	glCallList(displist);
 }
 
-static float bone_octahedral_verts[6][3] = {
+static const float bone_octahedral_verts[6][3] = {
 	{ 0.0f, 0.0f,  0.0f},
 	{ 0.1f, 0.1f,  0.1f},
 	{ 0.1f, 0.1f, -0.1f},
@@ -449,10 +449,10 @@ static float bone_octahedral_verts[6][3] = {
 	{ 0.0f, 1.0f,  0.0f}
 };
 
-static unsigned int bone_octahedral_wire_sides[8] = {0, 1, 5, 3, 0, 4, 5, 2};
-static unsigned int bone_octahedral_wire_square[8] = {1, 2, 3, 4, 1};
+static const unsigned int bone_octahedral_wire_sides[8] = {0, 1, 5, 3, 0, 4, 5, 2};
+static const unsigned int bone_octahedral_wire_square[8] = {1, 2, 3, 4, 1};
 
-static unsigned int bone_octahedral_solid_tris[8][3] = {
+static const unsigned int bone_octahedral_solid_tris[8][3] = {
 	{2, 1, 0}, /* bottom */
 	{3, 2, 0},
 	{4, 3, 0},
@@ -465,7 +465,7 @@ static unsigned int bone_octahedral_solid_tris[8][3] = {
 };
 
 /* aligned with bone_octahedral_solid_tris */
-static float bone_octahedral_solid_normals[8][3] = {
+static const float bone_octahedral_solid_normals[8][3] = {
 	{ 0.70710683f, -0.70710683f,  0.00000000f},
 	{-0.00000000f, -0.70710683f, -0.70710683f},
 	{-0.70710683f, -0.70710683f,  0.00000000f},
@@ -599,7 +599,7 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 }
 
 /* 16 values of sin function (still same result!) */
-static float si[16] = {
+static const float si[16] = {
 	0.00000000f,
 	0.20129852f, 0.39435585f,
 	0.57126821f, 0.72479278f,
@@ -611,7 +611,7 @@ static float si[16] = {
 	0.10116832f
 };
 /* 16 values of cos function (still same result!) */
-static float co[16] = {
+static const float co[16] = {
 	1.00000000f,
 	0.97952994f, 0.91895781f,
 	0.82076344f, 0.68896691f,

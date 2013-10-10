@@ -50,7 +50,7 @@ static float noise3_perlin(float vec[3]);
 
 /* needed for voronoi */
 #define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
-static float hashpntf[768] = {
+static const float hashpntf[768] = {
 	0.536902, 0.020915, 0.501445, 0.216316, 0.517036, 0.822466, 0.965315,
 	0.377313, 0.678764, 0.744545, 0.097731, 0.396357, 0.247202, 0.520897,
 	0.613396, 0.542124, 0.146813, 0.255489, 0.810868, 0.638641, 0.980742,
@@ -163,7 +163,7 @@ static float hashpntf[768] = {
 	0.114246, 0.905043, 0.713870, 0.555261, 0.951333
 };
 
-unsigned char hash[512] = {
+const unsigned char hash[512] = {
 	0xA2, 0xA0, 0x19, 0x3B, 0xF8, 0xEB, 0xAA, 0xEE, 0xF3, 0x1C, 0x67, 0x28, 0x1D, 0xED, 0x0,  0xDE, 0x95, 0x2E, 0xDC,
 	0x3F, 0x3A, 0x82, 0x35, 0x4D, 0x6C, 0xBA, 0x36, 0xD0, 0xF6, 0xC,  0x79, 0x32, 0xD1, 0x59, 0xF4, 0x8,  0x8B, 0x63,
 	0x89, 0x2F, 0xB8, 0xB4, 0x97, 0x83, 0xF2, 0x8F, 0x18, 0xC7, 0x51, 0x14, 0x65, 0x87, 0x48, 0x20, 0x42, 0xA8, 0x80,
@@ -194,7 +194,7 @@ unsigned char hash[512] = {
 };
 
 
-float hashvectf[768] = {
+const float hashvectf[768] = {
 	0.33783, 0.715698, -0.611206, -0.944031, -0.326599, -0.045624, -0.101074, -0.416443, -0.903503, 0.799286, 0.49411,
 	-0.341949, -0.854645, 0.518036, 0.033936, 0.42514, -0.437866, -0.792114, -0.358948, 0.597046, 0.717377, -0.985413,
 	0.144714, 0.089294, -0.601776, -0.33728, -0.723907, -0.449921, 0.594513, 0.666382, 0.208313, -0.10791, 0.972076,
@@ -327,7 +327,8 @@ static float newPerlinU(float x, float y, float z)
 /* Was BLI_hnoise(), removed noisesize, so other functions can call it without scaling. */
 static float orgBlenderNoise(float x, float y, float z)
 {
-	register float cn1, cn2, cn3, cn4, cn5, cn6, i, *h;
+	register float cn1, cn2, cn3, cn4, cn5, cn6, i;
+	register const float *h;
 	float fx, fy, fz, ox, oy, oz, jx, jy, jz;
 	float n = 0.5;
 	int ix, iy, iz, b00, b01, b10, b11, b20, b21;
@@ -504,7 +505,7 @@ static const char p[512 + 2] = {
 };
 
 
-static float g[512 + 2][3] = {
+static const float g[512 + 2][3] = {
 	{0.33783, 0.715698, -0.611206},
 	{-0.944031, -0.326599, -0.045624},
 	{-0.101074, -0.416443, -0.903503},
@@ -1034,7 +1035,8 @@ static float g[512 + 2][3] = {
 static float noise3_perlin(float vec[3])
 {
 	int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
-	float rx0, rx1, ry0, ry1, rz0, rz1, *q, sx, sy, sz, a, b, c, d, t, u, v;
+	float rx0, rx1, ry0, ry1, rz0, rz1, sx, sy, sz, a, b, c, d, t, u, v;
+	const float *q;
 	register int i, j;
 
 
@@ -1227,7 +1229,7 @@ static float dist_Minkovsky(float x, float y, float z, float e)
 void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype)
 {
 	int xx, yy, zz, xi, yi, zi;
-	float xd, yd, zd, d, *p;
+	float xd, yd, zd, d;
 
 	float (*distfunc)(float, float, float, float);
 	switch (dtype) {
@@ -1262,7 +1264,7 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 	for (xx = xi - 1; xx <= xi + 1; xx++) {
 		for (yy = yi - 1; yy <= yi + 1; yy++) {
 			for (zz = zi - 1; zz <= zi + 1; zz++) {
-				p = HASHPNT(xx, yy, zz);
+				const float *p = HASHPNT(xx, yy, zz);
 				xd = x - (p[0] + xx);
 				yd = y - (p[1] + yy);
 				zd = z - (p[2] + zz);
@@ -1416,7 +1418,7 @@ void cellNoiseV(float x, float y, float z, float *ca)
 	int xi = (int)(floor(x));
 	int yi = (int)(floor(y));
 	int zi = (int)(floor(z));
-	float *p = HASHPNT(xi, yi, zi);
+	const float *p = HASHPNT(xi, yi, zi);
 	ca[0] = p[0];
 	ca[1] = p[1];
 	ca[2] = p[2];

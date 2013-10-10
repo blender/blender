@@ -58,7 +58,7 @@
 
 #include "curve_intern.h"
 
-static float nurbcircle[8][2] = {
+static const float nurbcircle[8][2] = {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
 	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
 };

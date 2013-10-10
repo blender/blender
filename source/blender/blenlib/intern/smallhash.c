@@ -55,7 +55,7 @@
 	((h) + (((hoff) = ((hoff) * 2) + 1), (hoff))) \
 	)
 
-extern unsigned int hashsizes[];
+extern const unsigned int hashsizes[];
 
 void BLI_smallhash_init(SmallHash *hash)
 {

@@ -55,12 +55,12 @@
 #endif
 
 
-static char magic[] = "BlenMIdx";
-static char temp_ext[] = "_part";
+static const char magic[] = "BlenMIdx";
+static const char temp_ext[] = "_part";
 
-static int proxy_sizes[] = { IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75,
+static const int proxy_sizes[] = { IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75,
 	                         IMB_PROXY_100 };
-static float proxy_fac[] = { 0.25, 0.50, 0.75, 1.00 };
+static const float proxy_fac[] = { 0.25, 0.50, 0.75, 1.00 };
 
 #ifdef WITH_FFMPEG
 static int tc_types[] = {IMB_TC_RECORD_RUN,

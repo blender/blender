@@ -968,7 +968,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setTexture , "setTexture( index, tex)")
 	return NULL;
 }
 
-static unsigned int GL_array[11] = {
+static const unsigned int GL_array[11] = {
 	GL_ZERO,
 	GL_ONE,
 	GL_SRC_COLOR,

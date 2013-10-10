@@ -799,7 +799,7 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 /* table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
  * used instead of actual gaussian, otherwise at high texture magnifications circular artifacts are visible */
 #define EWA_MAXIDX 255
-static float EWA_WTS[EWA_MAXIDX + 1] = {
+static const float EWA_WTS[EWA_MAXIDX + 1] = {
 	1.f, 0.990965f, 0.982f, 0.973105f, 0.96428f, 0.955524f, 0.946836f, 0.938216f, 0.929664f,
 	0.921178f, 0.912759f, 0.904405f, 0.896117f, 0.887893f, 0.879734f, 0.871638f, 0.863605f,
 	0.855636f, 0.847728f, 0.839883f, 0.832098f, 0.824375f, 0.816712f, 0.809108f, 0.801564f,

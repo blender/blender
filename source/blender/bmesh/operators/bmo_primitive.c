@@ -36,7 +36,7 @@
 
 /* ************************ primitives ******************* */
 
-static float icovert[12][3] = {
+static const float icovert[12][3] = {
 	{0.0f, 0.0f, -200.0f},
 	{144.72f, -105.144f, -89.443f},
 	{-55.277f, -170.128, -89.443f},
@@ -51,7 +51,7 @@ static float icovert[12][3] = {
 	{0.0f, 0.0f, 200.0f}
 };
 
-static short icoface[20][3] = {
+static const short icoface[20][3] = {
 	{0, 1, 2},
 	{1, 0, 5},
 	{0, 2, 3},
@@ -78,10 +78,10 @@ static short icoface[20][3] = {
  * this hack is only used so that scons & mingw + split-sources hack works
  * ------------------------------- start copied code */
 /* these are not the monkeys you are looking for */
-static int monkeyo = 4;
-static int monkeynv = 271;
-static int monkeynf = 250;
-static signed char monkeyv[271][3] = {
+static const int monkeyo = 4;
+static const int monkeynv = 271;
+static const int monkeynf = 250;
+static const signed char monkeyv[271][3] = {
 	{-71, 21, 98}, {-63, 12, 88}, {-57, 7, 74}, {-82, -3, 79}, {-82, 4, 92},
 	{-82, 17, 100}, {-92, 21, 102}, {-101, 12, 95}, {-107, 7, 83},
 	{-117, 31, 84}, {-109, 31, 95}, {-96, 31, 102}, {-92, 42, 102},

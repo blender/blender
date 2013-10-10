@@ -60,7 +60,7 @@ typedef struct TransformModeItem {
 	void (*opfunc)(wmOperatorType *);
 } TransformModeItem;
 
-static float VecOne[3] = {1, 1, 1};
+static const float VecOne[3] = {1, 1, 1};
 
 static char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
 static char OP_ROTATION[] = "TRANSFORM_OT_rotate";

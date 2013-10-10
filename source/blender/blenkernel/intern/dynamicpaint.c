@@ -98,12 +98,13 @@
 #endif
 
 /* precalculated gaussian factors for 5x super sampling	*/
-static float gaussianFactors[5] = {0.996849f,
-                                   0.596145f,
-                                   0.596145f,
-                                   0.596145f,
-                                   0.524141f};
-static float gaussianTotal = 3.309425f;
+static const float gaussianFactors[5] = {
+    0.996849f,
+    0.596145f,
+    0.596145f,
+    0.596145f,
+    0.524141f};
+static const float gaussianTotal = 3.309425f;
 
 /* UV Image neighboring pixel table x and y list */
 static int neighX[8] = {1, 1, 0, -1, -1, -1, 0, 1};
