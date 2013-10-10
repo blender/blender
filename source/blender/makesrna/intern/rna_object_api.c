@@ -430,8 +430,6 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static int rna_matrix_dimsize_4x4[] = {4, 4};
-
 #ifndef NDEBUG
 	static EnumPropertyItem mesh_dm_info_items[] = {
 		{0, "SOURCE", 0, "Source", "Source mesh"},

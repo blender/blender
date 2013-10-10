@@ -1460,8 +1460,6 @@ int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 
 #else
 
-static int rna_matrix_dimsize_4x4[] = {4, 4};
-
 static void rna_def_vertex_group(BlenderRNA *brna)
 {
 	StructRNA *srna;

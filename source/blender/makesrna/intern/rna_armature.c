@@ -471,9 +471,6 @@ static int rna_Armature_is_editmode_get(PointerRNA *ptr)
 
 #else
 
-static int rna_matrix_dimsize_4x4[] = {4, 4};
-static int rna_matrix_dimsize_3x3[] = {3, 3};
-
 static void rna_def_bone_common(StructRNA *srna, int editbone)
 {
 	PropertyRNA *prop;

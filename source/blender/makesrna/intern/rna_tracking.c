@@ -711,9 +711,6 @@ static EnumPropertyItem pattern_match_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int rna_matrix_dimsize_4x4[] = {4, 4};
-static int rna_matrix_dimsize_4x2[] = {4, 2};
-
 static void rna_def_trackingSettings(BlenderRNA *brna)
 {
 	StructRNA *srna;

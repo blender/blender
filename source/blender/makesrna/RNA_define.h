@@ -225,6 +225,10 @@ const char *RNA_property_typename(PropertyType type);
 
 void RNA_identifier_sanitize(char *identifier, int property);
 
+extern const int rna_matrix_dimsize_3x3[];
+extern const int rna_matrix_dimsize_4x4[];
+extern const int rna_matrix_dimsize_4x2[];
+
 /* max size for dynamic defined type descriptors,
  * this value is arbitrary */
 #define RNA_DYN_DESCR_MAX 240

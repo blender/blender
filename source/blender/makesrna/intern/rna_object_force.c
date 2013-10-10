@@ -1540,8 +1540,6 @@ static void rna_def_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	const int matrix_dimsize[] = {3, 3};
-
 	
 	static EnumPropertyItem collision_type_items[] = {
 		{SBC_MODE_MANUAL, "MANUAL", 0, "Manual", "Manual adjust"},
@@ -1784,12 +1782,12 @@ static void rna_def_softbody(BlenderRNA *brna)
 	/* matrix */
 	prop = RNA_def_property(srna, "rotation_estimate", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "lrot");
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
 	RNA_def_property_ui_text(prop, "Rot Matrix", "Estimated rotation matrix");
 
 	prop = RNA_def_property(srna, "scale_estimate", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "lscale");
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
 	RNA_def_property_ui_text(prop, "Scale Matrix", "Estimated scale matrix");
 	/***********************************************************************************/
 

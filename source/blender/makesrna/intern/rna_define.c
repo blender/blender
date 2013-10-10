@@ -1253,6 +1253,11 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 	}
 }
 
+/* common args for length */
+const int rna_matrix_dimsize_3x3[] = {3, 3};
+const int rna_matrix_dimsize_4x4[] = {4, 4};
+const int rna_matrix_dimsize_4x2[] = {4, 2};
+
 void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int length[])
 {
 	StructRNA *srna = DefRNA.laststruct;

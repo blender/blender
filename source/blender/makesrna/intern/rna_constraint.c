@@ -505,7 +505,6 @@ static void rna_def_constrainttarget(BlenderRNA *brna)
 
 static void rna_def_constraint_childof(BlenderRNA *brna)
 {
-	static int rna_matrix_dimsize_4x4[] = {4, 4};
 	StructRNA *srna;
 	PropertyRNA *prop;
 
