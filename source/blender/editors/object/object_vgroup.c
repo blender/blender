@@ -2001,7 +2001,11 @@ static void vgroup_levels_subset(Object *ob, const bool *vgroup_validmap, const 
 	}
 }
 
-static void vgroup_normalize_all(Object *ob, const bool lock_active)
+static void vgroup_normalize_all(Object *ob,
+                                 const bool *vgroup_validmap,
+                                 const int vgroup_tot,
+                                 const int subset_count,
+                                 const bool lock_active)
 {
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
@@ -2009,7 +2013,7 @@ static void vgroup_normalize_all(Object *ob, const bool lock_active)
 
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	if (lock_active && !BLI_findlink(&ob->defbase, def_nr)) {
+	if ((lock_active && !BLI_findlink(&ob->defbase, def_nr)) || subset_count == 0) {
 		return;
 	}
 
@@ -2030,13 +2034,15 @@ static void vgroup_normalize_all(Object *ob, const bool lock_active)
 			/* in case its not selected */
 			if ((dv = dvert_array[i])) {
 				if (lock_flags) {
-					defvert_normalize_lock_map(dv, lock_flags, defbase_tot);
+					defvert_normalize_lock_map(dv, vgroup_validmap, vgroup_tot,
+					                           lock_flags, defbase_tot);
 				}
 				else if (lock_active) {
-					defvert_normalize_lock_single(dv, def_nr);
+					defvert_normalize_lock_single(dv, vgroup_validmap, vgroup_tot,
+					                              def_nr);
 				}
 				else {
-					defvert_normalize(dv);
+					defvert_normalize_subset(dv, vgroup_validmap, vgroup_tot);
 				}
 			}
 		}
@@ -3474,8 +3480,13 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 
-	vgroup_normalize_all(ob, lock_active);
+	int subset_count, vgroup_tot;
+
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_normalize_all(ob, vgroup_validmap, vgroup_tot, subset_count, lock_active);
+	MEM_freeN((void *)vgroup_validmap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3499,6 +3510,7 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	vgroup_operator_subset_select_props(ot, false);
 	RNA_def_boolean(ot->srna, "lock_active", true, "Lock Active",
 	                "Keep the values of the active group while normalizing others");
 }
