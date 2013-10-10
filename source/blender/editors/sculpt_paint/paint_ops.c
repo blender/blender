@@ -728,9 +728,16 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
 static int stencil_control_poll(bContext *C)
 {
-	Paint *paint = BKE_paint_get_active_from_context(C);
-	Brush *br = BKE_paint_brush(paint);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
+	Paint *paint;
+	Brush *br;
+
+	if (!paint_supports_texture(mode))
+		return false;
+
+	paint = BKE_paint_get_active_from_context(C);
+	br = BKE_paint_brush(paint);
 	return (br &&
 	        (br->mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL ||
 	         br->mask_mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL));

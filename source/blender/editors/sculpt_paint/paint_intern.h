@@ -74,6 +74,7 @@ bool paint_space_stroke_enabled(struct Brush *br, enum PaintMode mode);
 bool paint_supports_dynamic_size(struct Brush *br, enum PaintMode mode);
 bool paint_supports_dynamic_tex_coords(struct Brush *br, enum PaintMode mode);
 bool paint_supports_smooth_stroke(struct Brush *br, enum PaintMode mode);
+bool paint_supports_texture(enum PaintMode mode);
 bool paint_supports_jitter(enum PaintMode mode);
 
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
