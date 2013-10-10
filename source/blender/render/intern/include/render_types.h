@@ -621,6 +621,7 @@ typedef struct LampRen {
 #define R_BAKE_TRACE	32
 #define R_BAKING		64
 #define R_ANIMATION		128
+#define R_NEED_VCOL		256
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

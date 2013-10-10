@@ -4089,6 +4089,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{RE_BAKE_TEXTURE, "TEXTURE", 0, "Textures", "Bake textures"},
 		{RE_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
 		{RE_BAKE_DERIVATIVE, "DERIVATIVE", 0, "Derivative", "Bake derivative map"},
+		{RE_BAKE_VERTEX_COLORS, "VERTEX_COLORS", 0, "Vertex Colors", "Bake vertex colors"},
 		{RE_BAKE_EMIT, "EMIT", 0, "Emission", "Bake Emit values (glow)"},
 		{RE_BAKE_ALPHA, "ALPHA", 0, "Alpha", "Bake Alpha values (transparency)"},
 		{RE_BAKE_MIRROR_INTENSITY, "MIRROR_INTENSITY", 0, "Mirror Intensity", "Bake Mirror values"},

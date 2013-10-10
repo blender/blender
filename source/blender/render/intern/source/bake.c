@@ -168,7 +168,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 	else {
 		if (bs->type == RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */
 			shi->r = shi->g = shi->b = 1.0f;
-	
+
 		shade_input_set_shade_texco(shi);
 		
 		/* only do AO for a full bake (and obviously AO bakes)
@@ -259,6 +259,10 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		else if (bs->type == RE_BAKE_EMIT) {
 			copy_v3_fl(shr.combined, shi->emit);
 			shr.alpha = 1.0f;
+		}
+		else if (bs->type == RE_BAKE_VERTEX_COLORS) {
+			copy_v3_v3(shr.combined, shi->vcol);
+			shr.alpha = 1.0;
 		}
 	}
 	

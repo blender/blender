@@ -1002,7 +1002,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	}
 
 	/* pass option forces UV calc */
-	if (shi->passflag & SCE_PASS_UV)
+	if ((shi->passflag & SCE_PASS_UV) || (R.flag & R_NEED_VCOL))
 		texco |= (NEED_UV | TEXCO_UV);
 	
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
@@ -1056,7 +1056,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 				
-		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE))) {
+		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) || (R.flag & R_NEED_VCOL)) {
 			VlakRen *vlr = shi->vlr;
 			MTFace *tface;
 			MCol *mcol;
@@ -1071,7 +1071,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->actuv = obr->actmtface;
 			shi->actcol = obr->actmcol;
 
-			if (mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) {
+			if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) || (R.flag & R_NEED_VCOL)) {
 				for (i = 0; (mcol = RE_vlakren_get_mcol(obr, vlr, i, &name, 0)); i++) {
 					ShadeInputCol *scol = &shi->col[i];
 					char *cp1, *cp2, *cp3;
@@ -1213,7 +1213,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					}
 
 					if ((mode & MA_FACETEXTURE) && i == obr->actmtface) {
-						if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) {
+						if (((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) && ((R.flag & R_NEED_VCOL) == 0)) {
 							shi->vcol[0] = 1.0f;
 							shi->vcol[1] = 1.0f;
 							shi->vcol[2] = 1.0f;
@@ -1299,7 +1299,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	 * else un-initialized values are used
 	 */
 	if (shi->do_manage) {
-		if (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) {
+		if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) || (R.flag & R_NEED_VCOL)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
 	}
