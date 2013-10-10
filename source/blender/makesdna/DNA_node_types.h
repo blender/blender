@@ -149,23 +149,16 @@ typedef enum eNodeSocketInOut {
 } eNodeSocketInOut;
 
 /* sock->flag, first bit is select */
-	/* hidden is user defined, to hide unused */
-#define SOCK_HIDDEN				2
-	/* for quick check if socket is linked */
-#define SOCK_IN_USE				4
-	/* unavailable is for dynamic sockets */
-#define SOCK_UNAVAIL			8
-	/* DEPRECATED  dynamic socket (can be modified by user) */
-#define __SOCK_DYNAMIC			16
-	/* DEPRECATED  group socket should not be exposed */
-#define __SOCK_INTERNAL			32
-	/* socket collapsed in UI */
-#define SOCK_COLLAPSED			64
-	/* hide socket value, if it gets auto default */
-#define SOCK_HIDE_VALUE			128
-	/* socket hidden automatically, to distinguish from manually hidden */
-	/* DEPRECATED, only kept here to avoid reusing the flag */
-#define SOCK_AUTO_HIDDEN__DEPRECATED	256
+typedef enum eNodeSocketFlag {
+	SOCK_HIDDEN = 2,					/* hidden is user defined, to hide unused */
+	SOCK_IN_USE = 4,					/* for quick check if socket is linked */
+	SOCK_UNAVAIL = 8,					/* unavailable is for dynamic sockets */
+	__SOCK_DYNAMIC = 16,				/* DEPRECATED  dynamic socket (can be modified by user) */
+	__SOCK_INTERNAL = 32,				/* DEPRECATED  group socket should not be exposed */
+	SOCK_COLLAPSED = 64,				/* socket collapsed in UI */
+	SOCK_HIDE_VALUE = 128,				/* hide socket value, if it gets auto default */
+	SOCK_AUTO_HIDDEN__DEPRECATED = 256	/* socket hidden automatically, to distinguish from manually hidden */
+} eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
