@@ -407,13 +407,13 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
             row = layout.row(align=True)
 
             # inputs get icon on the left
-            if socket.in_out == 'IN':
+            if not socket.is_output:
                 row.template_node_socket(color)
 
             row.label(text=socket.name, icon_value=icon)
 
             # outputs get icon on the right
-            if socket.in_out == 'OUT':
+            if socket.is_output:
                 row.template_node_socket(color)
 
         elif self.layout_type in {'GRID'}:

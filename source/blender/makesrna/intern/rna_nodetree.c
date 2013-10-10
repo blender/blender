@@ -1889,6 +1889,12 @@ static void rna_NodeSocket_update(Main *bmain, Scene *UNUSED(scene), PointerRNA 
 	ED_node_tag_update_nodetree(bmain, ntree);
 }
 
+static int rna_NodeSocket_is_output_get(PointerRNA *ptr)
+{
+	bNodeSocket *sock = ptr->data;
+	return sock->in_out == SOCK_OUT;
+}
+
 static void rna_NodeSocket_link_limit_set(PointerRNA *ptr, int value)
 {
 	bNodeSocket *sock = ptr->data;
@@ -6181,12 +6187,10 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique identifier for mapping sockets");
 
-	prop = RNA_def_property(srna, "in_out", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "in_out");
-	RNA_def_property_enum_items(prop, node_socket_in_out_items);
-	RNA_def_property_enum_default(prop, SOCK_IN);
+	prop = RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_output_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Input or Output", "Input or Output type");
+	RNA_def_property_ui_text(prop, "Is Output", "True if the socket is an output, otherwise input");
 
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_HIDDEN);
@@ -6308,12 +6312,10 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique identifier for mapping sockets");
 
-	prop = RNA_def_property(srna, "in_out", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "in_out");
-	RNA_def_property_enum_items(prop, node_socket_in_out_items);
-	RNA_def_property_enum_default(prop, SOCK_IN);
+	prop = RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_output_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Input or Output", "Input or Output type");
+	RNA_def_property_ui_text(prop, "Is Output", "True if the socket is an output, otherwise input");
 
 	/* registration */
 	prop = RNA_def_property(srna, "bl_socket_idname", PROP_STRING, PROP_NONE);
