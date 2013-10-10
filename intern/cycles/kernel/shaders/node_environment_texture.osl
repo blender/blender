@@ -19,7 +19,7 @@
 
 vector environment_texture_direction_to_equirectangular(vector dir)
 {
-	float u = -atan2(dir[1], dir[0]) / (2.0 * M_PI) + 0.5;
+	float u = -atan2(dir[1], dir[0]) / (M_2PI) + 0.5;
 	float v = atan2(dir[2], hypot(dir[0], dir[1])) / M_PI + 0.5;
 
 	return vector(u, v, 0.0);
