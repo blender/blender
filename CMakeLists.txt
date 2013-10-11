@@ -203,10 +203,10 @@ option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
 # Image format support
+option(WITH_IMAGE_OPENIMAGEIO   "Enable OpenImageIO Support" OFF)
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
 option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
-option(WITH_IMAGE_PSD           "Enable Photoshop PSD Support" ON)
 option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
@@ -420,6 +420,10 @@ if(WITH_IMAGE_REDCODE AND ((NOT WITH_IMAGE_OPENJPEG) OR (NOT WITH_CODEC_FFMPEG))
 	message(FATAL_ERROR "WITH_IMAGE_REDCODE requires WITH_IMAGE_OPENJPEG and WITH_CODEC_FFMPEG")
 endif()
 
+if(WITH_IMAGE_OPENIMAGEIO)
+	set(WITH_OPENIMAGEIO ON)
+endif()
+
 # python module, needs some different options
 if(WITH_PYTHON_MODULE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PLAYER to be OFF")
@@ -437,11 +441,6 @@ endif()
 
 if(NOT WITH_PYTHON)
 	set(WITH_CYCLES OFF)
-endif()
-
-# auto enable openimageio for photoshop psd
-if(WITH_IMAGE_PSD)
-	set(WITH_OPENIMAGEIO ON)
 endif()
 
 # enable boost for cycles, booleans, audaspace or i18n
@@ -2293,6 +2292,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_SYSTEM_OPENJPEG)
 
 	info_cfg_text("Image Formats:")
+	info_cfg_option(WITH_IMAGE_OPENIMAGEIO)
 	info_cfg_option(WITH_IMAGE_CINEON)
 	info_cfg_option(WITH_IMAGE_DDS)
 	info_cfg_option(WITH_IMAGE_HDR)
@@ -2300,7 +2300,6 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_IMAGE_OPENJPEG)
 	info_cfg_option(WITH_IMAGE_REDCODE)
 	info_cfg_option(WITH_IMAGE_TIFF)
-	info_cfg_option(WITH_IMAGE_PSD)
 
 	info_cfg_text("Audio:")
 	info_cfg_option(WITH_OPENAL)

@@ -219,7 +219,7 @@ EnumPropertyItem snap_uv_element_items[] = {
 #  define R_IMF_ENUM_TIFF
 #endif
 
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 #  define R_IMF_ENUM_PSD     {R_IMF_IMTYPE_PSD, "PSD", ICON_FILE_IMAGE, "Photosp PSD", \
                                                 "Output image in Photoshop PSD format"},
 #else

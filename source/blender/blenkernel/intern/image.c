@@ -1250,7 +1250,7 @@ static int do_add_image_extension(char *string, const char imtype, const ImageFo
 		}
 	}
 #endif
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 	else if (imtype == R_IMF_IMTYPE_PSD) {
 		if (!BLI_testextensie(string, ".psd"))
 			extension = ".psd";

@@ -98,14 +98,14 @@ const char *imb_ext_image[] = {
 #ifdef WITH_OPENEXR
 	".exr",
 #endif
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 	".psd", ".pdd", ".psb",
 #endif
 	NULL
 };
 
 const char *imb_ext_image_filepath_only[] = {
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 	".psd", ".pdd", ".psb",
 #endif
 	NULL

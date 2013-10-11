@@ -106,8 +106,8 @@ if(WITH_IMAGE_TIFF)
 endif()
 
 
-if(WITH_IMAGE_PSD)
-	add_definitions(-DWITH_PSD)
+if(WITH_OPENIMAGEIO)
+	add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)

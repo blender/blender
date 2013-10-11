@@ -35,12 +35,12 @@
 
 #include "IMB_colormanagement.h"
 
-#ifdef WITH_OPENEXR
-#include "openexr/openexr_api.h"
+#ifdef WITH_OPENIMAGEIO
+#include "oiio/openimageio_api.h"
 #endif
 
-#ifdef WITH_PSD
-#include "oiio/openimageio_api.h"
+#ifdef WITH_OPENEXR
+#include "openexr/openexr_api.h"
 #endif
 
 #ifdef WITH_DDS
@@ -102,7 +102,7 @@ ImFileType IMB_FILE_TYPES[] = {
 #ifdef WITH_QUICKTIME
 	{quicktime_init, quicktime_exit, imb_is_a_quicktime, NULL, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME, COLOR_ROLE_DEFAULT_BYTE},
 #endif
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 	{NULL, NULL, NULL, imb_is_a_photoshop, imb_ftype_default, NULL, imb_load_photoshop, NULL, NULL, IM_FTYPE_FLOAT, PSD, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}

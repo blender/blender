@@ -180,7 +180,7 @@ typedef struct ImBuf {
  */
 #define IB_CUSTOM_FLAGS_MASK 0x7ff
 
-#ifdef WITH_PSD
+#ifdef WITH_OPENIMAGEIO
 #define PSD				(1 << 31)
 #endif
 

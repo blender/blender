@@ -58,8 +58,8 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_IMAGE_PSD)
-	add_definitions(-DWITH_PSD)
+if(WITH_OPENIMAGEIO)
+		add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_TIFF)
