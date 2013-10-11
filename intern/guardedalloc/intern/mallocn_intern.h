@@ -54,6 +54,8 @@
 #if defined(__linux__)
 #  include <malloc.h>
 #  define HAVE_MALLOC_STATS
+#elif defined(__FreeBSD__)
+#  include <malloc_np.h>
 #elif defined(__APPLE__)
 #  include <malloc/malloc.h>
 #  define malloc_usable_size malloc_size
