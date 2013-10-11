@@ -203,7 +203,7 @@ option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
 # Image format support
-option(WITH_IMAGE_OPENIMAGEIO   "Enable OpenImageIO Support" OFF)
+option(WITH_IMAGE_OPENIMAGEIO   "Enable OpenImageIO Support (http://www.openimageio.org)" OFF)
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
 option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
