@@ -39,14 +39,15 @@ typedef struct BoxPack {
 	float y;
 	float w;
 	float h;
-	int index;
 	
 	/* Verts this box uses
 	 * (BL,TR,TL,BR) / 0,1,2,3 */
 	struct BoxVert *v[4];
+
+	int index;
 } BoxPack;
 
-void BLI_box_pack_2d(BoxPack *boxarray, const int len, float *tot_width, float *tot_height);
+void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width, float *tot_height);
 
 #endif
 
