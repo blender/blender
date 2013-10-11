@@ -56,7 +56,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
     incs += ' ../../../intern/utfconv'
 
 if env['WITH_BF_OIIO']:
-    defs.append('WITH_OIIO')
+    defs.append('WITH_OPENIMAGEIO')
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
