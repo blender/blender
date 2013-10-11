@@ -67,7 +67,7 @@ if env['WITH_BF_BULLET']:
     incs += ' #/intern/rigidbody'
 
 if env['WITH_BF_OIIO']:
-    defs.append('WITH_OIIO')
+    defs.append('WITH_OPENIMAGEIO')
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')

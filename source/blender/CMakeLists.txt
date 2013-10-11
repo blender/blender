@@ -117,7 +117,7 @@ if(WITH_IMAGE_OPENEXR)
 	add_subdirectory(imbuf/intern/openexr)
 endif()
 
-if(WITH_IMAGE_PSD)
+if(WITH_IMAGE_OPENIMAGEIO)
 	add_subdirectory(imbuf/intern/oiio)
 endif()
 

@@ -106,7 +106,7 @@ if(WITH_IMAGE_TIFF)
 endif()
 
 
-if(WITH_OPENIMAGEIO)
+if(WITH_IMAGE_OPENIMAGEIO)
 	add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
