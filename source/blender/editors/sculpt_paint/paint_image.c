@@ -926,9 +926,15 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 }
 
 /******************** sample color operator ********************/
+typedef struct {
+	bool show_cursor;
+	short event_type;
+} SampleColorData;
+
 static int sample_color_exec(bContext *C, wmOperator *op)
 {
-	Brush *brush = image_paint_brush(C);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
 	ARegion *ar = CTX_wm_region(C);
 	int location[2];
 
@@ -942,10 +948,16 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 
 static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	SampleColorData *data = MEM_mallocN(sizeof(SampleColorData), "sample color custom data");
+
+	data->event_type = event->type;
+	data->show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
+	op->customdata = data;
+	paint->flags &= ~PAINT_SHOW_BRUSH;
+
 	RNA_int_set_array(op->ptr, "location", event->mval);
 	sample_color_exec(C, op);
-
-	op->customdata = SET_INT_IN_POINTER(event->type);
 
 	WM_event_add_modal_handler(C, op);
 
@@ -954,8 +966,18 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (event->type == (intptr_t)(op->customdata) && event->val == KM_RELEASE)
+	SampleColorData *data = op->customdata;
+
+	if ((event->type == data->event_type) && (event->val == KM_RELEASE)) {
+		Paint *paint = BKE_paint_get_active_from_context(C);
+
+		if(data->show_cursor) {
+			paint->flags |= PAINT_SHOW_BRUSH;
+		}
+
+		MEM_freeN(data);
 		return OPERATOR_FINISHED;
+	}
 
 	switch (event->type) {
 		case MOUSEMOVE:
