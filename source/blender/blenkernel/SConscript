@@ -101,6 +101,9 @@ if env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
     defs.append('WITH_SDL')
 
+if env['WITH_BF_OIIO']:
+    defs.append('WITH_OIIO')
+
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 

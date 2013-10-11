@@ -49,6 +49,9 @@ makesrna = SConscript('makesrna/SConscript')
 if env['WITH_BF_PYTHON']:
     SConscript(['python/SConscript'])
 
+if env['WITH_BF_OIIO']:
+    SConscript (['imbuf/intern/oiio/SConscript'])
+
 if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
 

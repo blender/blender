@@ -576,7 +576,7 @@ def read_opts(env, cfg, args):
         ('BF_CYCLES_CUDA_BINARIES_ARCH', 'CUDA architectures to compile binaries for', []),
 
         (BoolVariable('WITH_BF_OIIO', 'Build with OpenImageIO', False)),
-        (BoolVariable('WITH_BF_STATICOIIO', 'Staticly link to OpenImageIO', False)),
+        (BoolVariable('WITH_BF_STATICOIIO', 'Statically link to OpenImageIO', False)),
         ('BF_OIIO', 'OIIO root path', ''),
         ('BF_OIIO_INC', 'OIIO include path', ''),
         ('BF_OIIO_LIB', 'OIIO library', ''),
