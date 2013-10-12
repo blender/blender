@@ -44,7 +44,7 @@ set(SRC
 	openimageio_api.cpp
 )
 
-if(WITH_IMAGE_OPENIMAGEIO)
+if(WITH_OPENIMAGEIO)
 	list(APPEND INC_SYS
 		${OPENIMAGEIO_INCLUDE_DIRS}
 	)

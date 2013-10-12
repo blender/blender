@@ -50,7 +50,7 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-if(WITH_IMAGE_OPENIMAGEIO)
+if(WITH_OPENIMAGEIO)
 	add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 

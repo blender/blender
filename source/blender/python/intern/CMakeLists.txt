@@ -174,7 +174,7 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_IMAGE_OPENIMAGEIO)
+if(WITH_OPENIMAGEIO)
 	add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
