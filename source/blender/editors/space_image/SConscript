@@ -57,6 +57,8 @@ if env['WITH_BF_TIFF']:
     defs.append('WITH_TIFF')
 if env['WITH_BF_CINEON']:
     defs.append('WITH_CINEON')
+if env['WITH_BF_OIIO']:
+    defs.append('WITH_OPENIMAGEIO')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']

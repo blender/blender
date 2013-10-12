@@ -55,6 +55,9 @@ if env['WITH_BF_OPENEXR']:
 if env['WITH_BF_TIFF']:
     defs.append('WITH_TIFF')
 
+if env['WITH_BF_OIIO']:
+    defs.append('WITH_OPENIMAGEIO')
+
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
