@@ -68,7 +68,7 @@ typedef struct {
 	NumInput num_input;
 
 	/* modal only */
-	int mcenter[2];
+	float mcenter[2];
 	BMBackup mesh_backup;
 	void *draw_handle_pixel;
 	short twtype;

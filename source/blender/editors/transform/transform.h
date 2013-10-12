@@ -271,7 +271,7 @@ typedef struct MouseInput {
 	int     imval[2];       	/* initial mouse position                */
 	char	precision;
 	int     precision_mval[2];	/* mouse position when precision key was pressed */
-	int		center[2];
+	float	center[2];
 	float	factor;
 	void 	*data; /* additional data, if needed by the particular function */
 } MouseInput;
@@ -300,7 +300,7 @@ typedef struct TransInfo {
 	float		prop_size;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
 	float       center[3];      /* center of transformation             */
-	int         center2d[2];    /* center in screen coordinates         */
+	float       center2d[2];    /* center in screen coordinates         */
 	int         imval[2];       /* initial mouse position               */
 	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
@@ -687,7 +687,7 @@ typedef enum {
 	INPUT_CUSTOM_RATIO_FLIP
 } MouseInputMode;
 
-void initMouseInput(TransInfo *t, MouseInput *mi, const int center[2], const int mval[2]);
+void initMouseInput(TransInfo *t, MouseInput *mi, const float center[2], const int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);

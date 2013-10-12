@@ -258,7 +258,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info)
 {
 	wmWindow *win = CTX_wm_window(C);
-	const int *mval_src = (int *)arg_info;
+	const float *mval_src = (float *)arg_info;
 	const int mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
 	                         win->eventstate->y - ar->winrct.ymin};
 
@@ -266,7 +266,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	setlinestyle(3);
 	glBegin(GL_LINE_STRIP);
 	glVertex2iv(mval_dst);
-	glVertex2iv(mval_src);
+	glVertex2fv(mval_src);
 	glEnd();
 	setlinestyle(0);
 }

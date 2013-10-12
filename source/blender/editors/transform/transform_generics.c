@@ -1484,10 +1484,10 @@ void calculateCenter2D(TransInfo *t)
 		
 		copy_v3_v3(vec, t->center);
 		mul_m4_v3(ob->obmat, vec);
-		projectIntView(t, vec, t->center2d);
+		projectFloatView(t, vec, t->center2d);
 	}
 	else {
-		projectIntView(t, t->center, t->center2d);
+		projectFloatView(t, t->center, t->center2d);
 	}
 }
 
@@ -1691,7 +1691,7 @@ void calculateCenter(TransInfo *t)
 				Object *ob = OBACT;
 				if (ob) {
 					copy_v3_v3(t->center, ob->obmat[3]);
-					projectIntView(t, t->center, t->center2d);
+					projectFloatView(t, t->center, t->center2d);
 				}
 			}
 			break;
@@ -1723,7 +1723,7 @@ void calculateCenter(TransInfo *t)
 				axis[1] = t->center[1] - 6.0f * axis[1];
 				axis[2] = t->center[2] - 6.0f * axis[2];
 				
-				projectIntView(t, axis, t->center2d);
+				projectFloatView(t, axis, t->center2d);
 				
 				/* rotate only needs correct 2d center, grab needs ED_view3d_calc_zfac() value */
 				if (t->mode == TFM_TRANSLATION) {

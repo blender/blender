@@ -1360,7 +1360,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 	}
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int cent2d[2])
+int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	int success;
@@ -1390,7 +1390,7 @@ int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int c
 		calculateCenter(t);
 
 		if (cent2d) {
-			copy_v2_v2_int(cent2d, t->center2d);
+			copy_v2_v2(cent2d, t->center2d);
 		}
 
 		if (cent3d) {
@@ -7238,7 +7238,7 @@ int TimeSlide(TransInfo *t, const int mval[2])
 
 void initTimeScale(TransInfo *t)
 {
-	int center[2];
+	float center[2];
 
 	/* this tool is only really available in the Action Editor
 	 * AND NLA Editor (for strip scaling)
@@ -7253,7 +7253,7 @@ void initTimeScale(TransInfo *t)
 	/* recalculate center2d to use CFRA and mouse Y, since that's
 	 * what is used in time scale */
 	t->center[0] = t->scene->r.cfra;
-	projectIntView(t, t->center, center);
+	projectFloatView(t, t->center, center);
 	center[1] = t->imval[1];
 
 	/* force a reinit with the center2d used here */

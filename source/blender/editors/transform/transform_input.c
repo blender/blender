@@ -279,7 +279,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	output[0] = *angle;
 }
 
-void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, const int center[2], const int mval[2])
+void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, const float center[2], const int mval[2])
 {
 	mi->factor = 0;
 	mi->precision = 0;

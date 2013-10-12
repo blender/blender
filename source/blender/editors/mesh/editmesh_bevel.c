@@ -64,7 +64,7 @@ typedef struct {
 	float shift_factor; /* The current factor when shift is pressed. Negative when shift not active. */
 
 	/* modal only */
-	int mcenter[2];
+	float mcenter[2];
 	BMBackup mesh_backup;
 	void *draw_handle_pixel;
 	short twtype;
