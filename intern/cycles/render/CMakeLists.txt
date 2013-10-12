@@ -18,7 +18,6 @@ set(SRC
 	background.cpp
 	blackbody.cpp
 	buffers.cpp
-	bssrdf.cpp
 	camera.cpp
 	film.cpp
 	graph.cpp
@@ -47,7 +46,6 @@ set(SRC_HEADERS
 	background.h
 	blackbody.h
 	buffers.h
-	bssrdf.h
 	camera.h
 	film.h
 	graph.h

@@ -141,7 +141,6 @@ protected:
 	typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
 	AttributeIDMap unique_attribute_id;
 
-	size_t bssrdf_table_offset;
 	size_t blackbody_table_offset;
 };
 

@@ -15,7 +15,6 @@
  */
 
 #include "background.h"
-#include "bssrdf.h"
 #include "blackbody.h"
 #include "device.h"
 #include "graph.h"
@@ -127,7 +126,6 @@ void Shader::tag_used(Scene *scene)
 ShaderManager::ShaderManager()
 {
 	need_update = true;
-	bssrdf_table_offset = TABLE_OFFSET_INVALID;
 	blackbody_table_offset = TABLE_OFFSET_INVALID;
 }
 
@@ -254,23 +252,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
 
-	/* bssrdf lookup table */
-	KernelBSSRDF *kbssrdf = &dscene->data.bssrdf;
-
-	if(has_surface_bssrdf && bssrdf_table_offset == TABLE_OFFSET_INVALID) {
-		vector<float> table;
-
-		bssrdf_table_build(table);
-		bssrdf_table_offset = scene->lookup_tables->add_table(dscene, table);
-
-		kbssrdf->table_offset = (int)bssrdf_table_offset;
-		kbssrdf->num_attempts = BSSRDF_MAX_ATTEMPTS;
-	}
-	else if(!has_surface_bssrdf && bssrdf_table_offset != TABLE_OFFSET_INVALID) {
-		scene->lookup_tables->remove_table(bssrdf_table_offset);
-		bssrdf_table_offset = TABLE_OFFSET_INVALID;
-	}
-
 	/* blackbody lookup table */
 	KernelBlackbody *kblackbody = &dscene->data.blackbody;
 	
@@ -289,11 +270,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 
 void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	if(bssrdf_table_offset != TABLE_OFFSET_INVALID) {
-		scene->lookup_tables->remove_table(bssrdf_table_offset);
-		bssrdf_table_offset = TABLE_OFFSET_INVALID;
-	}
-
 	if(blackbody_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(blackbody_table_offset);
 		blackbody_table_offset = TABLE_OFFSET_INVALID;
