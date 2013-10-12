@@ -116,9 +116,10 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
 {
 	WM_cursor_modal_restore(CTX_wm_window(C));
 
-	if (op->customdata)
+	if (op->customdata) {
 		MEM_freeN(op->customdata);
-	op->customdata = NULL;
+		op->customdata = NULL;
+	}
 }
 
 static int eyedropper_cancel(bContext *C, wmOperator *op)
@@ -433,15 +434,17 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
 static void datadropper_exit(bContext *C, wmOperator *op)
 {
-	DataDropper *ddr = (DataDropper *)op->customdata;
-
 	WM_cursor_modal_restore(CTX_wm_window(C));
 
-	ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+	if (op->customdata) {
+		DataDropper *ddr = (DataDropper *)op->customdata;
 
-	if (op->customdata)
+		ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+
 		MEM_freeN(op->customdata);
-	op->customdata = NULL;
+
+		op->customdata = NULL;
+	}
 }
 
 static int datadropper_cancel(bContext *C, wmOperator *op)
