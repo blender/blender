@@ -35,12 +35,7 @@ CCL_NAMESPACE_BEGIN
 #define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
 
-#define BSSRDF_RADIUS_TABLE_SIZE	1024
-#define BSSRDF_REFL_TABLE_SIZE		256
-#define BSSRDF_PDF_TABLE_OFFSET		(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE)
-#define BSSRDF_LOOKUP_TABLE_SIZE	(BSSRDF_RADIUS_TABLE_SIZE*BSSRDF_REFL_TABLE_SIZE*2)
 #define BSSRDF_MIN_RADIUS			1e-8f
-#define BSSRDF_MAX_ATTEMPTS			8
 #define BSSRDF_MAX_HITS				4
 
 #define BB_DRAPPER				800.0f
@@ -815,12 +810,6 @@ typedef struct KernelCurves {
 	int pad2;
 } KernelCurves;
 
-typedef struct KernelBSSRDF {
-	int table_offset;
-	int num_attempts;
-	int pad1, pad2;
-} KernelBSSRDF;
-
 typedef struct KernelBlackbody {
 	int table_offset;
 	int pad1, pad2, pad3;
@@ -834,7 +823,6 @@ typedef struct KernelData {
 	KernelIntegrator integrator;
 	KernelBVH bvh;
 	KernelCurves curve;
-	KernelBSSRDF bssrdf;
 	KernelBlackbody blackbody;
 } KernelData;
 
