@@ -503,22 +503,22 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 	}
 }
 static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop,
-                                const char *UNUSED(uiname), int h, int icon_only)
+                                const char *uiname, int h, int icon_only)
 {
+	/* XXX The way this function currently handles uiname parameter is insane and inconsistent with general UI API:
+	 *     * uiname is the *enum property* label.
+	 *     * when it is NULL or empty, we do not draw *enum items* labels, this doubles the icon_only parameter.
+	 *     * we *never* draw (i.e. really use) the enum label uiname, it is just used as a mere flag!
+	 *     Unfortunately, fixing this implies an API "soft break", so better to defer it for later... :/
+	 *     --mont29
+	 */
+
 	uiBut *but;
 	EnumPropertyItem *item, *item_array;
 	const char *name;
 	int itemw, icon, value, free;
 
 	RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item_array, NULL, &free);
-
-#if 0  /* XXX This would be consistent with general uiItemR (i.e. layout.prop() in py) behavior.
-        *     However, so far we never ever shown the label of an expanded enum prop, so for now disable this.
-        */
-	if (uiname && uiname[0]) {
-		uiItemL(layout, uiname, ICON_NONE);
-	}
-#endif
 
 	/* we dont want nested rows, cols in menus */
 	if (layout->root->type != UI_LAYOUT_MENU) {
@@ -532,7 +532,7 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		if (!item->identifier[0])
 			continue;
 
-		name = item->name;
+		name = (!uiname || uiname[0]) ? item->name : "";
 		icon = item->icon;
 		value = item->value;
 		itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
