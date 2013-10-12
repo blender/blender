@@ -82,7 +82,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f, StructRNA *srna, F
 		fprintf(f, param); \
 	} (void)0
 
-static int replace_if_different(char *tmpfile, const char *dep_files[])
+static int replace_if_different(const char *tmpfile, const char *dep_files[])
 {
 	/* return 0;  *//* use for testing had edited rna */
 

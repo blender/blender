@@ -2600,8 +2600,8 @@ void initWarp(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = 5.0f / 180.0f * (float)M_PI;
-	t->snap[2] = 1.0f / 180.0f * (float)M_PI;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
 	
 	t->num.increment = 1.0f;
 
@@ -3369,8 +3369,8 @@ void initRotation(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (float)((5.0 / 180) * M_PI);
-	t->snap[2] = t->snap[1] * 0.2f;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
 	
 	t->num.increment = 1.0f;
 
@@ -3701,8 +3701,8 @@ void initTrackball(TransInfo *t)
 	t->idx_max = 1;
 	t->num.idx_max = 1;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (float)((5.0 / 180) * M_PI);
-	t->snap[2] = t->snap[1] * 0.2f;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
 
 	t->num.increment = 1.0f;
 
@@ -4149,8 +4149,8 @@ void initTilt(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (float)((5.0 / 180) * M_PI);
-	t->snap[2] = t->snap[1] * 0.2f;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
 
 	t->num.increment = t->snap[1];
 
@@ -6435,8 +6435,8 @@ void initBoneRoll(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (float)((5.0 / 180) * M_PI);
-	t->snap[2] = t->snap[1] * 0.2f;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
 
 	t->num.increment = 1.0f;
 
