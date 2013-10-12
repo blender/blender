@@ -286,7 +286,7 @@ void mat3_to_quat(float q[4], float wmat[3][3])
 
 	tr = 0.25 * (double)(1.0f + mat[0][0] + mat[1][1] + mat[2][2]);
 
-	if (tr > (double)FLT_EPSILON) {
+	if (tr > (double)1e-6f) {
 		s = sqrt(tr);
 		q[0] = (float)s;
 		s = 1.0 / (4.0 * s);
@@ -300,7 +300,7 @@ void mat3_to_quat(float q[4], float wmat[3][3])
 			q[1] = (float)(0.25 * s);
 
 			s = 1.0 / s;
-			q[0] = (float)((double)(mat[2][1] - mat[1][2]) * s);
+			q[0] = (float)((double)(mat[1][2] - mat[2][1]) * s);
 			q[2] = (float)((double)(mat[1][0] + mat[0][1]) * s);
 			q[3] = (float)((double)(mat[2][0] + mat[0][2]) * s);
 		}
@@ -318,7 +318,7 @@ void mat3_to_quat(float q[4], float wmat[3][3])
 			q[3] = (float)(0.25 * s);
 
 			s = 1.0 / s;
-			q[0] = (float)((double)(mat[1][0] - mat[0][1]) * s);
+			q[0] = (float)((double)(mat[0][1] - mat[1][0]) * s);
 			q[1] = (float)((double)(mat[2][0] + mat[0][2]) * s);
 			q[2] = (float)((double)(mat[2][1] + mat[1][2]) * s);
 		}
