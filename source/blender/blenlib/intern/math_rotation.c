@@ -286,7 +286,7 @@ void mat3_to_quat(float q[4], float wmat[3][3])
 
 	tr = 0.25 * (double)(1.0f + mat[0][0] + mat[1][1] + mat[2][2]);
 
-	if (tr > (double)1e-6f) {
+	if (tr > (double)1e-4f) {
 		s = sqrt(tr);
 		q[0] = (float)s;
 		s = 1.0 / (4.0 * s);
