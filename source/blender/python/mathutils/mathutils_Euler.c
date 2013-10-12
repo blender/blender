@@ -707,7 +707,7 @@ PyTypeObject euler_Type = {
  * (i.e. it was allocated elsewhere by MEM_mallocN())
  * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  * (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Euler_CreatePyObject(float *eul, const short order, int type, PyTypeObject *base_type)
+PyObject *Euler_CreatePyObject(float eul[3], const short order, int type, PyTypeObject *base_type)
 {
 	EulerObject *self;
 

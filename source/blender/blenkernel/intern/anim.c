@@ -530,7 +530,7 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		path->len = nu->resolu * SEGMENTSU(nu);
 	}
 	
-	dist = (float *)MEM_mallocN((tot + 1) * 4, "calcpathdist");
+	dist = (float *)MEM_mallocN(sizeof(float) * (tot + 1), "calcpathdist");
 
 	/* all lengths in *dist */
 	bevp = bevpfirst = (BevPoint *)(bl + 1);

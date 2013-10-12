@@ -42,7 +42,7 @@
 
 /* local */
 static float noise3_perlin(float vec[3]);
-//static float turbulence_perlin(float *point, float lofreq, float hifreq);
+//static float turbulence_perlin(const float point[3], float lofreq, float hifreq);
 //static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
 /* UNUSED */
@@ -1097,7 +1097,7 @@ static float noise3_perlin(float vec[3])
 }
 
 #if 0
-static float turbulence_perlin(float *point, float lofreq, float hifreq)
+static float turbulence_perlin(const float point[3], float lofreq, float hifreq)
 {
 	float freq, t, p[3];
 

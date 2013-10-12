@@ -1853,7 +1853,7 @@ static PyObject *Vector_neg(VectorObject *self)
 }
 
 /*------------------------vec_magnitude_nosqrt (internal) - for comparing only */
-static double vec_magnitude_nosqrt(float *data, int size)
+static double vec_magnitude_nosqrt(const float *data, int size)
 {
 	/* return (double)sqrt(dot);*/
 	/* warning, line above removed because we are not using the length,
@@ -2940,10 +2940,10 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, unsigned char cb
 	return (PyObject *)self;
 }
 
-PyObject *Vector_CreatePyObject_alloc(float *vec, const int size, PyTypeObject *base_type)
+PyObject *Vector_CreatePyObject_alloc(const float *vec, const int size, PyTypeObject *base_type)
 {
 	VectorObject *vect_ob;
-	vect_ob = (VectorObject *)Vector_CreatePyObject(vec, size, Py_WRAP, base_type);
+	vect_ob = (VectorObject *)Vector_CreatePyObject((float *)vec, size, Py_WRAP, base_type);
 	vect_ob->wrapped = Py_NEW;
 
 	return (PyObject *)vect_ob;

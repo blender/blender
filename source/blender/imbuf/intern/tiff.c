@@ -315,7 +315,7 @@ int imb_is_a_tiff(unsigned char *mem)
 	         (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0) );
 }
 
-static void scanline_contig_16bit(float *rectf, unsigned short *sbuf, int scanline_w, int spp)
+static void scanline_contig_16bit(float *rectf, const unsigned short *sbuf, int scanline_w, int spp)
 {
 	int i;
 	for (i = 0; i < scanline_w; i++) {
@@ -326,7 +326,7 @@ static void scanline_contig_16bit(float *rectf, unsigned short *sbuf, int scanli
 	}
 }
 
-static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int spp)
+static void scanline_contig_32bit(float *rectf, const float *fbuf, int scanline_w, int spp)
 {
 	int i;
 	for (i = 0; i < scanline_w; i++) {
@@ -337,14 +337,14 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 	}
 }
 
-static void scanline_separate_16bit(float *rectf, unsigned short *sbuf, int scanline_w, int chan)
+static void scanline_separate_16bit(float *rectf, const unsigned short *sbuf, int scanline_w, int chan)
 {
 	int i;
 	for (i = 0; i < scanline_w; i++)
 		rectf[i * 4 + chan] = sbuf[i] / 65535.0;
 }
 
-static void scanline_separate_32bit(float *rectf, float *fbuf, int scanline_w, int chan)
+static void scanline_separate_32bit(float *rectf, const float *fbuf, int scanline_w, int chan)
 {
 	int i;
 	for (i = 0; i < scanline_w; i++)

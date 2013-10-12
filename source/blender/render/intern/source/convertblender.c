@@ -167,7 +167,7 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float h
  */
 
 void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
-                   void (*vertexfunc)(float *),  void (*termfunc)(void))
+                   void (*vertexfunc)(const float *),  void (*termfunc)(void))
 {
 	extern unsigned char hash[512];
 	ObjectRen *obr= NULL;

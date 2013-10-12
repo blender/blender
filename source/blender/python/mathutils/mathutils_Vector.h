@@ -41,6 +41,6 @@ typedef struct {
 PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTypeObject *base_type);
 PyObject *Vector_CreatePyObject_cb(PyObject *user, int size,
                                    unsigned char cb_type, unsigned char subtype);
-PyObject *Vector_CreatePyObject_alloc(float *vec, const int size, PyTypeObject *base_type);
+PyObject *Vector_CreatePyObject_alloc(const float *vec, const int size, PyTypeObject *base_type);
 
-#endif				/* __MATHUTILS_VECTOR_H__ */
+#endif  /* __MATHUTILS_VECTOR_H__ */

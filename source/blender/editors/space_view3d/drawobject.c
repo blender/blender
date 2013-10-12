@@ -2043,7 +2043,7 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, const float
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		if (!data->uniform_scale) {
-			mul_v3_m3v3(n, data->tmat, (float *) no);
+			mul_v3_m3v3(n, data->tmat, no);
 			normalize_v3(n);
 			mul_m3_v3(data->imat, n);
 		}
@@ -2108,7 +2108,7 @@ static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float
 		}
 
 		if (!data->uniform_scale) {
-			mul_v3_m3v3(n, data->tmat, (float *) no);
+			mul_v3_m3v3(n, data->tmat, no);
 			normalize_v3(n);
 			mul_m3_v3(data->imat, n);
 		}

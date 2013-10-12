@@ -113,9 +113,9 @@ static void star_stuff_init_func(void)
 	glPointSize(1.0);
 	glBegin(GL_POINTS);
 }
-static void star_stuff_vertex_func(float *i)
+static void star_stuff_vertex_func(const float vec[3])
 {
-	glVertex3fv(i);
+	glVertex3fv(vec);
 }
 static void star_stuff_term_func(void)
 {

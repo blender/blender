@@ -1246,7 +1246,7 @@ PyTypeObject quaternion_Type = {
  * (i.e. it was allocated elsewhere by MEM_mallocN())
  *  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  * (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Quaternion_CreatePyObject(float *quat, int type, PyTypeObject *base_type)
+PyObject *Quaternion_CreatePyObject(float quat[4], int type, PyTypeObject *base_type)
 {
 	QuaternionObject *self;
 
