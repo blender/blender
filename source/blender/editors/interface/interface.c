@@ -662,6 +662,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				/* drawing */
 				oldbut->icon = but->icon;
 				oldbut->iconadd = but->iconadd;
+				oldbut->alignnr = but->alignnr;
 				
 				/* typically the same pointers, but not on undo/redo */
 				/* XXX some menu buttons store button itself in but->poin. Ugly */
