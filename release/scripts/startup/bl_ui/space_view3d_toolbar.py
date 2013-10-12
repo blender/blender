@@ -743,6 +743,17 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
     bl_label = "Overlay"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
+        return (settings and
+                settings.brush and
+                (context.sculpt_object or
+                 context.vertex_paint_object or
+                 context.weight_paint_object or
+                 context.image_paint_object))
+				 
+				 
     def draw(self, context):
         layout = self.layout
 
