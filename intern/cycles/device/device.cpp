@@ -56,18 +56,6 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 {
 	pixels_copy_from(rgba, y, w, h);
 
-	GLuint texid;
-	glGenTextures(1, &texid);
-	glBindTexture(GL_TEXTURE_2D, texid);
-	if(rgba.data_type == TYPE_HALF)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, (void*)rgba.data_pointer);
-	else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)rgba.data_pointer);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glEnable(GL_TEXTURE_2D);
-	
 	if(transparent) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -75,30 +63,57 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	glPushMatrix();
-	glTranslatef(0.0f, (float)dy, 0.0f);
+	if(rgba.data_type == TYPE_HALF) {
+		/* draw half float texture, GLSL shader for display transform assumed to be bound */
+		GLuint texid;
+		glGenTextures(1, &texid);
+		glBindTexture(GL_TEXTURE_2D, texid);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, (void*)rgba.data_pointer);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glBegin(GL_QUADS);
-	
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex2f(0.0f, 0.0f);
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex2f((float)width, 0.0f);
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex2f((float)width, (float)height);
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex2f(0.0f, (float)height);
+		glEnable(GL_TEXTURE_2D);
 
-	glEnd();
+		glPushMatrix();
+		glTranslatef(0.0f, (float)dy, 0.0f);
 
-	glPopMatrix();
+		glBegin(GL_QUADS);
+		
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex2f(0.0f, 0.0f);
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex2f((float)width, 0.0f);
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex2f((float)width, (float)height);
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex2f(0.0f, (float)height);
+
+		glEnd();
+
+		glPopMatrix();
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+		glDeleteTextures(1, &texid);
+	}
+	else {
+		/* fallback for old graphics cards that don't support GLSL, half float,
+		 * and non-power-of-two textures */
+		glPixelZoom((float)width/(float)w, (float)height/(float)h);
+		glRasterPos2f(0, dy);
+
+		uint8_t *pixels = (uint8_t*)rgba.data_pointer;
+
+		pixels += 4*y*w;
+
+		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		glRasterPos2f(0.0f, 0.0f);
+		glPixelZoom(1.0f, 1.0f);
+	}
 
 	if(transparent)
 		glDisable(GL_BLEND);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
-	glDeleteTextures(1, &texid);
 }
 
 Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
