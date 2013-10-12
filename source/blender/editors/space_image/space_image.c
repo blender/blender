@@ -674,7 +674,6 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else if (sima->mode == SI_MODE_MASK) {
 		mask = ED_space_image_get_mask(sima);
-		draw_image_cursor(ar, sima->cursor);
 	}
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -715,7 +714,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 			BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 		ED_mask_draw_region(mask, ar,
-		                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
+		                    sima->mask_info.draw_flag,
+		                    sima->mask_info.draw_type,
+		                    sima->mask_info.overlay_mode,
 		                    width, height,
 		                    aspx, aspy,
 		                    TRUE, FALSE,
@@ -723,7 +724,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 		ED_mask_draw_frames(mask, ar, CFRA, mask->sfra, mask->efra);
 
+		UI_view2d_view_ortho(v2d);
 		draw_image_cursor(ar, sima->cursor);
+		UI_view2d_view_restore(C);
 	}
 
 	/* scrollers? */

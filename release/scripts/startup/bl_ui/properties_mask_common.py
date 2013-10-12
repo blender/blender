@@ -222,6 +222,11 @@ class MASK_PT_display():
         layout.prop(space_data, "mask_draw_type", text="")
         layout.prop(space_data, "show_mask_smooth")
 
+        layout.prop(space_data, "show_mask_overlay")
+        row = layout.row()
+        row.active = space_data.show_mask_overlay
+        row.prop(space_data, "mask_overlay_mode", text="")
+
 
 class MASK_PT_tools():
     # subclasses must define...

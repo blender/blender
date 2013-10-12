@@ -1251,7 +1251,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			height = (scene->r.size * scene->r.ysch) / 100;
 
 			ED_mask_draw_region(mask, ar,
-			                    0, 0,  /* TODO */
+			                    0, 0, 0,  /* TODO */
 			                    width, height,
 			                    aspx, aspy,
 			                    FALSE, TRUE,

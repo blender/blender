@@ -546,7 +546,8 @@ typedef struct MaskSpaceInfo
 	/* draw options */
 	char draw_flag;
 	char draw_type;
-	char pad3[6];
+	char overlay_mode;
+	char pad3[5];
 } MaskSpaceInfo;
 
 /* sseq->mainb */

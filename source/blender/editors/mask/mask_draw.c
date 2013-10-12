@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -48,6 +49,7 @@
 #include "ED_mask.h"  /* own include */
 #include "ED_space_api.h"
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -535,10 +537,93 @@ void ED_mask_draw(const bContext *C,
 	draw_masklays(C, mask, draw_flag, draw_type, width, height);
 }
 
+typedef struct ThreadedMaskRasterizeState {
+	MaskRasterHandle *handle;
+	float *buffer;
+	int width, height;
+} ThreadedMaskRasterizeState;
+
+typedef struct ThreadedMaskRasterizeData {
+	int start_scanline;
+	int num_scanlines;
+} ThreadedMaskRasterizeData;
+
+static void mask_rasterize_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+{
+	ThreadedMaskRasterizeState *state = (ThreadedMaskRasterizeState *) BLI_task_pool_userdata(pool);
+	ThreadedMaskRasterizeData *data = (ThreadedMaskRasterizeData *) taskdata;
+	int scanline;
+
+	for (scanline = 0; scanline < data->num_scanlines; scanline++) {
+		int x, y = data->start_scanline + scanline;
+		for (x = 0; x < state->width; x++) {
+			int index = y * state->width + x;
+			float xy[2];
+
+			xy[0] = (float) x / state->width;
+			xy[1] = (float) y / state->height;
+
+			state->buffer[index] = BKE_maskrasterize_handle_sample(state->handle, xy);
+		}
+	}
+}
+
+static float *threaded_mask_rasterize(Mask *mask, const int width, const int height)
+{
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool;
+	MaskRasterHandle *handle;
+	ThreadedMaskRasterizeState state;
+	float *buffer;
+	int i, num_threads = BLI_task_scheduler_num_threads(task_scheduler), scanlines_per_thread;
+
+	buffer = MEM_mallocN(sizeof(float) * height * width, "rasterized mask buffer");
+
+	/* Initialize rasterization handle. */
+	handle = BKE_maskrasterize_handle_new();
+	BKE_maskrasterize_handle_init(handle, mask, width, height, TRUE, TRUE, TRUE);
+
+	state.handle = handle;
+	state.buffer = buffer;
+	state.width = width;
+	state.height = height;
+
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+
+	BLI_begin_threaded_malloc();
+
+	scanlines_per_thread = height / num_threads;
+	for (i = 0; i < num_threads; i++) {
+		ThreadedMaskRasterizeData *data = MEM_mallocN(sizeof(ThreadedMaskRasterizeData),
+		                                                "threaded mask rasterize data");
+
+		data->start_scanline = i * scanlines_per_thread;
+
+		if (i < num_threads - 1) {
+			data->num_scanlines = scanlines_per_thread;
+		}
+		else {
+			data->num_scanlines = height - data->start_scanline;
+		}
+
+		BLI_task_pool_push(task_pool, mask_rasterize_func, data, true, TASK_PRIORITY_LOW);
+	}
+
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
+
+	/* Free memory. */
+	BLI_task_pool_free(task_pool);
+	BLI_end_threaded_malloc();
+	BKE_maskrasterize_handle_free(handle);
+
+	return buffer;
+}
+
 /* sets up the opengl context.
  * width, height are to match the values from ED_mask_get_size() */
 void ED_mask_draw_region(Mask *mask, ARegion *ar,
-                         const char draw_flag, const char draw_type,
+                         const char draw_flag, const char draw_type, const char overlay_mode,
                          const int width_i, const int height_i,  /* convert directly into aspect corrected vars */
                          const float aspx, const float aspy,
                          const short do_scale_applied, const short do_draw_cb,
@@ -590,6 +675,37 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	else { /* (width > height) */
 		xofs = 0.0f;
 		yofs = ((width - height) / -2.0f) * zoomy;
+	}
+
+	if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
+		float *buffer = threaded_mask_rasterize(mask, width, height);
+		int format;
+
+		if (overlay_mode == MASK_OVERLAY_ALPHACHANNEL) {
+			glColor3f(1.0f, 1.0f, 1.0f);
+			format = GL_LUMINANCE;
+		}
+		else {
+			/* More blending types could be supported in the future. */
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
+			format = GL_ALPHA;
+		}
+
+		glPushMatrix();
+		glTranslatef(x, y, 0);
+		glScalef(zoomx, zoomy, 0);
+		if (stabmat) {
+			glMultMatrixf(stabmat);
+		}
+		glaDrawPixelsTex(0.0f, 0.0f, width, height, format, GL_FLOAT, GL_NEAREST, buffer);
+		glPopMatrix();
+
+		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
+			glDisable(GL_BLEND);
+		}
+
+		MEM_freeN(buffer);
 	}
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */

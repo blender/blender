@@ -531,7 +531,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 		components = 4;
 	else if (format == GL_RGB)
 		components = 3;
-	else if (format == GL_LUMINANCE)
+	else if (ELEM(format,  GL_LUMINANCE, GL_ALPHA))
 		components = 1;
 	else {
 		BLI_assert(!"Incompatible format passed to glaDrawPixelsTexScaled");

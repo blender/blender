@@ -1336,6 +1336,12 @@ static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *m
 {
 	PropertyRNA *prop;
 
+	static EnumPropertyItem overlay_mode_items[] = {
+		{MASK_OVERLAY_ALPHACHANNEL, "ALPHACHANNEL", ICON_NONE, "Alpha Channel", "Show alpha channel of the mask"},
+		{MASK_OVERLAY_COMBINED,     "COMBINED",     ICON_NONE, "Combined",      "Combine space background image with the mask"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "mask_info.mask");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -1353,6 +1359,17 @@ static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *m
 	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_SMOOTH);
 	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, noteflag, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_overlay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_OVERLAY);
+	RNA_def_property_ui_text(prop, "Show Mask Overlay", "");
+	RNA_def_property_update(prop, noteflag, NULL);
+
+	prop = RNA_def_property(srna, "mask_overlay_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_info.overlay_mode");
+	RNA_def_property_enum_items(prop, overlay_mode_items);
+	RNA_def_property_ui_text(prop, "Overlay Mode", "Overlay mode of rasterized mask");
 	RNA_def_property_update(prop, noteflag, NULL);
 }
 

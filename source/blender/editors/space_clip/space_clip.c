@@ -1191,7 +1191,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			int mask_width, mask_height;
 			ED_mask_get_size(sa, &mask_width, &mask_height);
 			ED_mask_draw_region(mask, ar,
-			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
+			                    sc->mask_info.draw_flag,
+			                    sc->mask_info.draw_type,
+			                    sc->mask_info.overlay_mode,
 			                    mask_width, mask_height,
 			                    aspx, aspy,
 			                    TRUE, TRUE,
