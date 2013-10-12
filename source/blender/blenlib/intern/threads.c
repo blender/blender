@@ -37,6 +37,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_gsqueue.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "PIL_time.h"
@@ -62,6 +63,9 @@
 extern pthread_key_t gomp_tls_key;
 static void *thread_tls_data;
 #endif
+
+/* We're using one global task scheduler for all kind of tasks. */
+static TaskScheduler *task_scheduler = NULL;
 
 /* ********** basic thread control API ************ 
  * 
@@ -151,7 +155,24 @@ void BLI_threadapi_init(void)
 
 void BLI_threadapi_exit(void)
 {
+	if (task_scheduler) {
+		BLI_task_scheduler_free(task_scheduler);
+	}
 	BLI_spin_end(&_malloc_lock);
+}
+
+TaskScheduler *BLI_task_scheduler_get(void)
+{
+	if (task_scheduler == NULL) {
+		int tot_thread = BLI_system_thread_count();
+
+		/* Do a lazy initialization, so it happes after
+		 * command line arguments parsing
+		 */
+		task_scheduler = BLI_task_scheduler_create(tot_thread);
+	}
+
+	return task_scheduler;
 }
 
 /* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
@@ -419,6 +440,11 @@ void BLI_mutex_unlock(ThreadMutex *mutex)
 	pthread_mutex_unlock(mutex);
 }
 
+bool BLI_mutex_trylock(ThreadMutex *mutex)
+{
+	return (pthread_mutex_trylock(mutex) == 0);
+}
+
 void BLI_mutex_end(ThreadMutex *mutex)
 {
 	pthread_mutex_destroy(mutex);
@@ -563,97 +589,31 @@ void BLI_ticket_mutex_unlock(TicketMutex *ticket)
 
 /* ************************************************ */
 
-typedef struct ThreadedWorker {
-	ListBase threadbase;
-	void *(*work_fnct)(void *);
-	char busy[RE_MAX_THREAD];
-	int total;
-	int sleep_time;
-} ThreadedWorker;
+/* Condition */
 
-typedef struct WorkParam {
-	ThreadedWorker *worker;
-	void *param;
-	int index;
-} WorkParam;
-
-static void *exec_work_fnct(void *v_param)
+void BLI_condition_init(ThreadCondition *cond)
 {
-	WorkParam *p = (WorkParam *)v_param;
-	void *value;
-	
-	value = p->worker->work_fnct(p->param);
-	
-	p->worker->busy[p->index] = 0;
-	MEM_freeN(p);
-	
-	return value;
+	pthread_cond_init(cond, NULL);
 }
 
-ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep_time)
+void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex)
 {
-	ThreadedWorker *worker;
-	
-	(void)sleep_time; /* unused */
-	
-	worker = MEM_callocN(sizeof(ThreadedWorker), "threadedworker");
-	
-	if (tot > RE_MAX_THREAD) {
-		tot = RE_MAX_THREAD;
-	}
-	else if (tot < 1) {
-		tot = 1;
-	}
-	
-	worker->total = tot;
-	worker->work_fnct = do_thread;
-	
-	BLI_init_threads(&worker->threadbase, exec_work_fnct, tot);
-	
-	return worker;
+	pthread_cond_wait(cond, mutex);
 }
 
-void BLI_end_worker(ThreadedWorker *worker)
+void BLI_condition_notify_one(ThreadCondition *cond)
 {
-	BLI_remove_threads(&worker->threadbase);
+	pthread_cond_signal(cond);
 }
 
-void BLI_destroy_worker(ThreadedWorker *worker)
+void BLI_condition_notify_all(ThreadCondition *cond)
 {
-	BLI_end_worker(worker);
-	BLI_freelistN(&worker->threadbase);
-	MEM_freeN(worker);
+	pthread_cond_broadcast(cond);
 }
 
-void BLI_insert_work(ThreadedWorker *worker, void *param)
+void BLI_condition_end(ThreadCondition *cond)
 {
-	WorkParam *p = MEM_callocN(sizeof(WorkParam), "workparam");
-	int index;
-	
-	if (BLI_available_threads(&worker->threadbase) == 0) {
-		index = worker->total;
-		while (index == worker->total) {
-			PIL_sleep_ms(worker->sleep_time);
-			
-			for (index = 0; index < worker->total; index++) {
-				if (worker->busy[index] == 0) {
-					BLI_remove_thread_index(&worker->threadbase, index);
-					break;
-				}
-			}
-		}
-	}
-	else {
-		index = BLI_available_thread_index(&worker->threadbase);
-	}
-	
-	worker->busy[index] = 1;
-	
-	p->param = param;
-	p->index = index;
-	p->worker = worker;
-	
-	BLI_insert_thread(&worker->threadbase, p);
+	pthread_cond_destroy(cond);
 }
 
 /* ************************************************ */

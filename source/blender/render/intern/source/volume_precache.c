@@ -39,6 +39,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_voxel.h"
 #include "BLI_utildefines.h"
@@ -483,81 +484,95 @@ static void *vol_precache_part_test(void *data)
 }
 #endif
 
-typedef struct VolPrecacheQueue {
-	ThreadQueue *work;
-	ThreadQueue *done;
-} VolPrecacheQueue;
-
 /* Iterate over the 3d voxel grid, and fill the voxels with scattering information
  *
  * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
  * I'm guessing the memory alignment may work out better this way for the purposes
  * of doing linear interpolation, but I haven't actually tested this theory! :)
  */
-static void *vol_precache_part(void *data)
+typedef struct VolPrecacheState {
+	double lasttime;
+	int totparts;
+} VolPrecacheState;
+
+static void vol_precache_part(TaskPool *pool, void *taskdata, int threadid)
 {
-	VolPrecacheQueue *queue = (VolPrecacheQueue *)data;
-	VolPrecachePart *pa;
+	VolPrecacheState *state = (VolPrecacheState *)BLI_task_pool_userdata(pool);
+	VolPrecachePart *pa = (VolPrecachePart *)taskdata;
+	Render *re = pa->re;
 
-	while ((pa = BLI_thread_queue_pop(queue->work))) {
-		ObjectInstanceRen *obi = pa->obi;
-		RayObject *tree = pa->tree;
-		ShadeInput *shi = pa->shi;
-		float scatter_col[3] = {0.f, 0.f, 0.f};
-		float co[3], cco[3], view[3];
-		int x, y, z, i;
-		int res[3];
+	ObjectInstanceRen *obi = pa->obi;
+	RayObject *tree = pa->tree;
+	ShadeInput *shi = pa->shi;
+	float scatter_col[3] = {0.f, 0.f, 0.f};
+	float co[3], cco[3], view[3];
+	int x, y, z, i;
+	int res[3];
+	double time;
 
-		if (pa->re->test_break && pa->re->test_break(pa->re->tbh))
-			break;
+	if (re->test_break && re->test_break(re->tbh))
+		return;
+	
+	printf("thread id %d\n", threadid);
 
-		res[0]= pa->res[0];
-		res[1]= pa->res[1];
-		res[2]= pa->res[2];
+	res[0]= pa->res[0];
+	res[1]= pa->res[1];
+	res[2]= pa->res[2];
 
-		for (z= pa->minz; z < pa->maxz; z++) {
-			co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));
+	for (z= pa->minz; z < pa->maxz; z++) {
+		co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));
+		
+		for (y= pa->miny; y < pa->maxy; y++) {
+			co[1] = pa->bbmin[1] + (pa->voxel[1] * (y + 0.5f));
 			
-			for (y= pa->miny; y < pa->maxy; y++) {
-				co[1] = pa->bbmin[1] + (pa->voxel[1] * (y + 0.5f));
+			for (x=pa->minx; x < pa->maxx; x++) {
+				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
 				
-				for (x=pa->minx; x < pa->maxx; x++) {
-					co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
-					
-					if (pa->re->test_break && pa->re->test_break(pa->re->tbh))
-						break;
-					
-					/* convert from world->camera space for shading */
-					mul_v3_m4v3(cco, pa->viewmat, co);
-
-					i = BLI_VOXEL_INDEX(x, y, z, res);
-
-					/* don't bother if the point is not inside the volume mesh */
-					if (!point_inside_obi(tree, obi, cco)) {
-						obi->volume_precache->data_r[i] = -1.0f;
-						obi->volume_precache->data_g[i] = -1.0f;
-						obi->volume_precache->data_b[i] = -1.0f;
-						continue;
-					}
-					
-					copy_v3_v3(view, cco);
-					normalize_v3(view);
-					vol_get_scattering(shi, scatter_col, cco, view);
+				if (re->test_break && re->test_break(re->tbh))
+					break;
 				
-					obi->volume_precache->data_r[i] = scatter_col[0];
-					obi->volume_precache->data_g[i] = scatter_col[1];
-					obi->volume_precache->data_b[i] = scatter_col[2];
-					
+				/* convert from world->camera space for shading */
+				mul_v3_m4v3(cco, pa->viewmat, co);
+
+				i = BLI_VOXEL_INDEX(x, y, z, res);
+
+				/* don't bother if the point is not inside the volume mesh */
+				if (!point_inside_obi(tree, obi, cco)) {
+					obi->volume_precache->data_r[i] = -1.0f;
+					obi->volume_precache->data_g[i] = -1.0f;
+					obi->volume_precache->data_b[i] = -1.0f;
+					continue;
 				}
+				
+				copy_v3_v3(view, cco);
+				normalize_v3(view);
+				vol_get_scattering(shi, scatter_col, cco, view);
+			
+				obi->volume_precache->data_r[i] = scatter_col[0];
+				obi->volume_precache->data_g[i] = scatter_col[1];
+				obi->volume_precache->data_b[i] = scatter_col[2];
+				
 			}
 		}
-
-		BLI_thread_queue_push(queue->done, pa);
 	}
-	
-	return NULL;
-}
 
+	time = PIL_check_seconds_timer();
+	if (time - state->lasttime > 1.0) {
+		ThreadMutex *mutex = BLI_task_pool_user_mutex(pool);
+
+		if (BLI_mutex_trylock(mutex)) {
+			char str[64];
+			float ratio = (float)BLI_task_pool_tasks_done(pool)/(float)state->totparts;
+			BLI_snprintf(str, sizeof(str), IFACE_("Precaching volume: %d%%"), (int)(100.0f * ratio));
+			re->i.infostr = str;
+			re->stats_draw(re->sdh, &re->i);
+			re->i.infostr = NULL;
+			state->lasttime = time;
+
+			BLI_mutex_unlock(mutex);
+		}
+	}
+}
 
 static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
 {
@@ -573,9 +588,12 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	shi->lay = re->lay;
 }
 
-static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, ObjectInstanceRen *obi, int totthread, int *parts)
+static void precache_launch_parts(Render *re, RayObject *tree, ShadeInput *shi, ObjectInstanceRen *obi)
 {
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
 	VolumePrecache *vp = obi->volume_precache;
+	VolPrecacheState state;
 	int i=0, x, y, z;
 	float voxel[3];
 	int sizex, sizey, sizez;
@@ -584,15 +602,23 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 	int minx, maxx;
 	int miny, maxy;
 	int minz, maxz;
+	int totthread = re->r.threads;
+	int parts[3];
 	
 	if (!vp) return;
 
-	BLI_freelistN(&re->volume_precache_parts);
-	
 	/* currently we just subdivide the box, number of threads per side */
 	parts[0] = parts[1] = parts[2] = totthread;
 	res = vp->res;
 	
+	/* setup task scheduler */
+	memset(&state, 0, sizeof(state));
+	state.totparts = parts[0]*parts[1]*parts[2];
+	state.lasttime = PIL_check_seconds_timer();
+	
+	task_scheduler = BLI_task_scheduler_create(totthread);
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+
 	/* using boundbox in worldspace */
 	global_bounds_obi(re, obi, bbmin, bbmax);
 	sub_v3_v3v3(voxel, bbmax, bbmin);
@@ -636,13 +662,19 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				pa->miny = miny; pa->maxy = maxy;
 				pa->minz = minz; pa->maxz = maxz;
 				
-				
-				BLI_addtail(&re->volume_precache_parts, pa);
+				BLI_task_pool_push(task_pool, vol_precache_part, pa, true, TASK_PRIORITY_HIGH);
 				
 				i++;
 			}
 		}
 	}
+
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
+
+	/* free */
+	BLI_task_pool_free(task_pool);
+	BLI_task_scheduler_free(task_scheduler);
 }
 
 /* calculate resolution from bounding box in world space */
@@ -678,17 +710,8 @@ static int precache_resolution(Render *re, VolumePrecache *vp, ObjectInstanceRen
 static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Material *ma)
 {
 	VolumePrecache *vp;
-	VolPrecachePart *pa;
 	RayObject *tree;
 	ShadeInput shi;
-	ListBase threads;
-	VolPrecacheQueue queue;
-	int parts[3] = {1, 1, 1}, totparts;
-	
-	int counter=0;
-	int totthread = re->r.threads, thread;
-	
-	double time, lasttime= PIL_check_seconds_timer();
 	
 	R = *re;
 
@@ -717,49 +740,8 @@ static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *o
 	/* Need a shadeinput to calculate scattering */
 	precache_setup_shadeinput(re, obi, ma, &shi);
 	
-	precache_init_parts(re, tree, &shi, obi, totthread, parts);
-	totparts = parts[0] * parts[1] * parts[2];
+	precache_launch_parts(re, tree, &shi, obi);
 
-	/* setup work and done queues */
-	queue.work = BLI_thread_queue_init();
-	queue.done = BLI_thread_queue_init();
-	BLI_thread_queue_nowait(queue.work);
-
-	for (pa= re->volume_precache_parts.first; pa; pa= pa->next)
-		BLI_thread_queue_push(queue.work, pa);
-	
-	/* launch threads */
-	BLI_init_threads(&threads, vol_precache_part, totthread);
-
-	for (thread= 0; thread<totthread; thread++)
-		BLI_insert_thread(&threads, &queue);
-	
-	/* loop waiting for work to be done */
-	while (counter < totparts) {
-		if (re->test_break && re->test_break(re->tbh))
-			break;
-
-		if (BLI_thread_queue_pop_timeout(queue.done, 50))
-			counter++;
-
-		time= PIL_check_seconds_timer();
-		if (time-lasttime>1.0) {
-			char str[64];
-			BLI_snprintf(str, sizeof(str), IFACE_("Precaching volume: %d%%"),
-			             (int)(100.0f * ((float)counter / (float)totparts)));
-			re->i.infostr = str;
-			re->stats_draw(re->sdh, &re->i);
-			re->i.infostr = NULL;
-			lasttime = time;
-		}
-	}
-	
-	/* free */
-	BLI_end_threads(&threads);
-	BLI_thread_queue_free(queue.work);
-	BLI_thread_queue_free(queue.done);
-	BLI_freelistN(&re->volume_precache_parts);
-	
 	if (tree) {
 		/* TODO: makeraytree_object creates a tree and saves it on OBI,
 		 * if we free this tree we should also clear other pointers to it */

@@ -94,6 +94,7 @@ set(SRC
 	intern/string.c
 	intern/string_cursor_utf8.c
 	intern/string_utf8.c
+	intern/task.c
 	intern/threads.c
 	intern/time.c
 	intern/uvproject.c
@@ -160,6 +161,7 @@ set(SRC
 	BLI_string_cursor_utf8.h
 	BLI_string_utf8.h
 	BLI_sys_types.h
+	BLI_task.h
 	BLI_threads.h
 	BLI_utildefines.h
 	BLI_uvproject.h

@@ -236,7 +236,6 @@ struct Render
 	struct Object *excludeob;
 	ListBase render_volumes_inside;
 	ListBase volumes;
-	ListBase volume_precache_parts;
 
 #ifdef WITH_FREESTYLE
 	struct Main freestyle_bmain;

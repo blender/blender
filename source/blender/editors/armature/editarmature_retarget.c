@@ -83,7 +83,7 @@ static RigGraph *GLOBAL_RIGG = NULL;
 
 /*******************************************************************************************************/
 
-void *exec_retargetArctoArc(void *param);
+void exec_retargetArctoArc(TaskPool *pool, void *taskdata, int threadid);
 
 static void RIG_calculateEdgeAngles(RigEdge *edge_first, RigEdge *edge_second);
 float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4]);
@@ -235,9 +235,8 @@ void RIG_freeRigGraph(BGraph *rg)
 	BNode *node;
 	BArc *arc;
 	
-#ifdef USE_THREADS
-	BLI_destroy_worker(rigg->worker);
-#endif
+	BLI_task_pool_free(rigg->task_pool);
+	BLI_task_scheduler_free(rigg->task_scheduler);
 	
 	if (rigg->link_mesh) {
 		REEB_freeGraph(rigg->link_mesh);
@@ -284,12 +283,14 @@ static RigGraph *newRigGraph(void)
 	rg->free_node = NULL;
 	
 #ifdef USE_THREADS
-	//totthread = BKE_scene_num_threads(G.scene);
-	totthread = BLI_system_thread_count();
-	
-	rg->worker = BLI_create_worker(exec_retargetArctoArc, totthread, 20); /* fix number of threads */
+	totthread = TASK_SCHEDULER_AUTO_THREADS;
+#else
+	totthread = TASK_SCHEDULER_SINGLE_THREAD;
 #endif
-	
+
+	rg->task_scheduler = BLI_task_scheduler_create(totthread);
+	rg->task_pool = BLI_task_pool_create(rg->task_scheduler, NULL);
+
 	return rg;
 }
 
@@ -2133,7 +2134,6 @@ static void retargetArctoArcLength(bContext *C, RigGraph *rigg, RigArc *iarc, Ri
 
 static void retargetArctoArc(bContext *C, RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
-#ifdef USE_THREADS
 	RetargetParam *p = MEM_callocN(sizeof(RetargetParam), "RetargetParam");
 	
 	p->rigg = rigg;
@@ -2141,22 +2141,12 @@ static void retargetArctoArc(bContext *C, RigGraph *rigg, RigArc *iarc, RigNode 
 	p->inode_start = inode_start;
 	p->context = C;
 	
-	BLI_insert_work(rigg->worker, p);
-#else
-	RetargetParam p;
-
-	p.rigg = rigg;
-	p.iarc = iarc;
-	p.inode_start = inode_start;
-	p.context = C;
-	
-	exec_retargetArctoArc(&p);
-#endif
+	BLI_task_pool_push(rigg->task_pool, exec_retargetArctoArc, p, true, TASK_PRIORITY_HIGH);
 }
 
-void *exec_retargetArctoArc(void *param)
+void exec_retargetArctoArc(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
-	RetargetParam *p = (RetargetParam *)param;
+	RetargetParam *p = (RetargetParam *)taskdata;
 	RigGraph *rigg = p->rigg;
 	RigArc *iarc = p->iarc;
 	bContext *C = p->context;
@@ -2183,12 +2173,6 @@ void *exec_retargetArctoArc(void *param)
 			retargetArctoArcLength(C, rigg, iarc, inode_start);
 		}
 	}
-
-#ifdef USE_THREADS
-	MEM_freeN(p);
-#endif
-	
-	return NULL;
 }
 
 static void matchMultiResolutionNode(RigGraph *rigg, RigNode *inode, ReebNode *top_node)
@@ -2414,9 +2398,7 @@ static void retargetSubgraph(bContext *C, RigGraph *rigg, RigArc *start_arc, Rig
 
 static void finishRetarget(RigGraph *rigg)
 {
-#ifdef USE_THREADS
-	BLI_end_worker(rigg->worker);
-#endif
+	BLI_task_pool_work_and_wait(rigg->task_pool);
 }
 
 static void adjustGraphs(bContext *C, RigGraph *rigg)

@@ -29,6 +29,7 @@
 
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "reeb.h"
@@ -68,7 +69,8 @@ typedef struct RigGraph {
 	ReebGraph *link_mesh;
 	
 	
-	struct ThreadedWorker *worker;
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
 	
 	GHash *bones_map;     /* map of editbones by name */
 	GHash *controls_map;  /* map of rigcontrols by bone pointer */
