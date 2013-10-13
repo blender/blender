@@ -191,7 +191,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         ob = context.object
         group = ob.vertex_groups.active
 
-        rows = 2
+        rows = 1
         if group:
             rows = 5
 
@@ -250,7 +250,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         row = layout.row()
 
-        rows = 2
+        rows = 1
         if kb:
             rows = 5
         row.template_list("MESH_UL_shape_keys", "", key, "key_blocks", ob, "active_shape_key_index", rows=rows)
@@ -329,17 +329,17 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         layout = self.layout
 
         me = context.mesh
+        lay = me.uv_textures.active
 
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps_vcols", "uvmaps", me, "uv_textures", me.uv_textures, "active_index", rows=2)
+        col.template_list("MESH_UL_uvmaps_vcols", "uvmaps", me, "uv_textures", me.uv_textures, "active_index", rows=1)
 
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
         col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
-
-        lay = me.uv_textures.active
+        
         if lay:
             layout.prop(lay, "name")
 
@@ -352,17 +352,17 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         layout = self.layout
 
         me = context.mesh
+        lay = me.vertex_colors.active
 
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=2)
+        col.template_list("MESH_UL_uvmaps_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
 
         col = row.column(align=True)
         col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
         col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
-
-        lay = me.vertex_colors.active
+        
         if lay:
             layout.prop(lay, "name")
 
