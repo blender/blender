@@ -98,7 +98,8 @@ class CLIP_HT_header(Header):
                     sub.active = clip.tracking.reconstruction.is_valid
                     sub.prop(sc, "show_graph_frames", icon='SEQUENCE', text="")
 
-                    row.prop(sc, "show_graph_tracks", icon='ANIM', text="")
+                    row.prop(sc, "show_graph_tracks_motion", icon='IPO', text="")
+                    row.prop(sc, "show_graph_tracks_error", icon='ANIM', text="")
                 else:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
                              text="Filters")

@@ -125,12 +125,12 @@ void ED_clip_tool_props_register(struct ARegionType *art);
 void clip_graph_tracking_values_iterate_track(struct SpaceClip *sc, struct MovieTrackingTrack *track, void *userdata,
                                               void (*func)(void *userdata, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
                                               void (*segment_start)(void *userdata, struct MovieTrackingTrack *track, int coord),
-                                              void (*segment_end)(void *userdata));
+                                              void (*segment_end)(void *userdata, int coord));
 
 void clip_graph_tracking_values_iterate(struct SpaceClip *sc, bool selected_only, bool include_hidden, void *userdata,
                                         void (*func)(void *userdata, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
                                         void (*segment_start)(void *userdata, struct MovieTrackingTrack *track, int coord),
-                                        void (*segment_end)(void *userdata));
+                                        void (*segment_end)(void *userdata, int coord));
 
 void clip_graph_tracking_iterate(struct SpaceClip *sc, bool selected_only, bool include_hidden, void *userdata,
                                  void (*func)(void *userdata, struct MovieTrackingMarker *marker));
