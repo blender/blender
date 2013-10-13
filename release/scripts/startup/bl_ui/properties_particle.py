@@ -98,7 +98,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             row = layout.row()
 
             row.template_list("UI_UL_list", "particle_systems", ob, "particle_systems",
-                              ob.particle_systems, "active_index", rows=2)
+                              ob.particle_systems, "active_index", rows=1)
 
             col = row.column(align=True)
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")
