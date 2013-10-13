@@ -118,13 +118,21 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 static int frame_from_event(bContext *C, const wmEvent *event)
 {
 	ARegion *region = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
 	float viewx;
+	int frame;
 
 	/* convert from region coordinates to View2D 'tot' space */
 	UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, NULL);
 	
 	/* round result to nearest int (frames are ints!) */
-	return (int)floor(viewx + 0.5f);
+	frame = (int)floor(viewx + 0.5f);
+
+	if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
+		CLAMP(frame, PSFRA, PEFRA);
+	}
+
+	return frame;
 }
 
 /* Modal Operator init */

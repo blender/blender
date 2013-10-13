@@ -1212,6 +1212,7 @@ typedef struct Scene {
 /* flag */
 	/* use preview range */
 #define SCER_PRV_RANGE	(1<<0)
+#define SCER_LOCK_FRAME_SELECTION	(1<<1)
 
 /* mode (int now) */
 #define R_OSA			0x0001
