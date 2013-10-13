@@ -813,6 +813,7 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
  *
  * \note use_tag tags new flags and edges.
  */
+#define SF_EDGE_IS_BOUNDARY 0xff
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
                          MemArena *sf_arena,
@@ -833,7 +834,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 		if (use_tag) {
 			BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
-			BM_elem_flag_enable(f, BM_ELEM_TAG);
+			BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 		}
 
 		if (r_faces_new) {
@@ -844,6 +845,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		/* scanfill */
 		ScanFillContext sf_ctx;
 		ScanFillVert *sf_vert, *sf_vert_prev = NULL;
+		ScanFillEdge *sf_edge;
 		ScanFillFace *sf_tri;
 		int totfilltri;
 
@@ -859,13 +861,15 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 		do {
 			sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
-			BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
+			sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
+			sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
 
 			sf_vert->tmp.p = l_iter;
 			sf_vert_prev = sf_vert;
 		} while ((l_iter = l_iter->next) != l_first);
 
-		BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_ctx.fillvertbase.first);
+		sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_ctx.fillvertbase.first);
+		sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
 
 		/* calculate filled triangles */
 		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
@@ -895,13 +899,27 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			BM_elem_attrs_copy(bm, bm, l_tri[1], l_new->next);
 			BM_elem_attrs_copy(bm, bm, l_tri[2], l_new->prev);
 
-			if (use_tag) {
-				BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
-			}
-
 			/* add all but the last face which is swapped and removed (below) */
-			if (r_faces_new && sf_tri->next) {
-				r_faces_new[nf_i++] = f_new;
+			if (sf_tri->next) {
+				if (use_tag) {
+					BM_elem_flag_enable(f_new, BM_ELEM_TAG);
+				}
+				if (r_faces_new && sf_tri->next) {
+					r_faces_new[nf_i++] = f_new;
+				}
+			}
+		}
+
+		if (use_tag) {
+			ScanFillEdge *sf_edge;
+			for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
+				if (sf_edge->tmp.c != SF_EDGE_IS_BOUNDARY) {
+					BMLoop *l1 = sf_edge->v1->tmp.p;
+					BMLoop *l2 = sf_edge->v2->tmp.p;
+
+					BMEdge *e = BM_edge_exists(l1->v, l2->v);
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
+				}
 			}
 		}
 
@@ -910,10 +928,6 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			 * so swap data and delete the last created tri */
 			bmesh_face_swap_data(bm, f, f_new);
 			BM_face_kill(bm, f_new);
-
-			if (use_tag) {
-				BM_elem_flag_enable(f, BM_ELEM_TAG);
-			}
 		}
 
 		/* garbage collection */
