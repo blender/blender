@@ -230,10 +230,10 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, "
 	                                           "E: new cut, Ctrl: midpoint snap (%s), Shift: ignore snap (%s), "
 	                                           "C: angle constrain (%s), Z: cut through (%s)"),
-	             kcd->snap_midpoints ? IFACE_("On") : IFACE_("Off"),
-	             kcd->ignore_edge_snapping ?  IFACE_("On") : IFACE_("Off"),
-	             kcd->angle_snapping ? IFACE_("On") : IFACE_("Off"),
-	             kcd->cut_through ? IFACE_("On") : IFACE_("Off"));
+	             WM_bool_as_string(kcd->snap_midpoints),
+	             WM_bool_as_string(kcd->ignore_edge_snapping),
+	             WM_bool_as_string(kcd->angle_snapping),
+	             WM_bool_as_string(kcd->cut_through));
 
 	ED_area_headerprint(CTX_wm_area(C), header);
 }

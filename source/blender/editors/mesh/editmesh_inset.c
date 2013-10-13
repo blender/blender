@@ -96,10 +96,10 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             flts_str,
 		             flts_str + NUM_STR_REP_LEN,
-		             opdata->modify_depth ? IFACE_("On") : IFACE_("Off"),
-		             RNA_boolean_get(op->ptr, "use_outset") ? IFACE_("On") : IFACE_("Off"),
-		             RNA_boolean_get(op->ptr, "use_boundary") ? IFACE_("On") : IFACE_("Off"),
-		             RNA_boolean_get(op->ptr, "use_individual") ? IFACE_("On") : IFACE_("Off")
+		             WM_bool_as_string(opdata->modify_depth),
+		             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_outset")),
+		             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_boundary")),
+		             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_individual"))
 		            );
 
 		ED_area_headerprint(sa, msg);

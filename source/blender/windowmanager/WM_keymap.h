@@ -98,6 +98,8 @@ const char	*WM_key_event_string(short type);
 int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, const bool strict, char *str, int len);
 
+const char *WM_bool_as_string(bool test);
+
 #ifdef __cplusplus
 }
 #endif

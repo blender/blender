@@ -4107,7 +4107,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		}
 	}
 	BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Even Thickness %s"),
-	             (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
+	             WM_bool_as_string(t->flag & T_ALT_TRANSFORM));
 	/* done with header string */
 
 
@@ -5875,9 +5875,6 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	bool flipped = sld->flipped_vtx;
 	bool is_proportional = sld->is_proportional;
 
-	const char *on_str = IFACE_("ON");
-	const char *off_str = IFACE_("OFF");
-
 	final = t->values[0];
 
 	snapGrid(t, &final);
@@ -5893,11 +5890,11 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 		outputNumInput(&(t->num), c);
 
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %s (E)ven: %s, (F)lipped: %s"),
-		             &c[0], !is_proportional ? on_str : off_str, flipped ? on_str : off_str);
+		             &c[0], WM_bool_as_string(!is_proportional), WM_bool_as_string(flipped));
 	}
 	else {
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %.4f (E)ven: %s, (F)lipped: %s"),
-		             final, !is_proportional ? on_str : off_str, flipped ? on_str : off_str);
+		             final, WM_bool_as_string(!is_proportional), WM_bool_as_string(flipped));
 	}
 
 	CLAMP(final, -1.0f, 1.0f);
@@ -6382,9 +6379,6 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 	const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
 
-	const char *on_str = IFACE_("ON");
-	const char *off_str = IFACE_("OFF");
-
 	final = t->values[0];
 
 	snapGrid(t, &final);
@@ -6405,11 +6399,11 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	else {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);
 	}
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), !is_proportional ? on_str : off_str);
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), WM_bool_as_string(!is_proportional));
 	if (!is_proportional) {
-		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), flipped ? on_str : off_str);
+		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), WM_bool_as_string(flipped));
 	}
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), is_clamp ? on_str : off_str);
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
 	/* done with header string */
 
 	/* do stuff here */
@@ -6741,7 +6735,7 @@ static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 		}
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Expand to fit %s"),
-	                    (t->flag & T_ALT_TRANSFORM) ? IFACE_("ON") : IFACE_("OFF"));
+	                    WM_bool_as_string(t->flag & T_ALT_TRANSFORM));
 }
 
 static void applySeqSlide(TransInfo *t, const float val[2])

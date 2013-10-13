@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#include "BLF_translation.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -1479,3 +1480,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	return km;
 }
 
+const char *WM_bool_as_string(bool test)
+{
+	return test ? IFACE_("ON") : IFACE_("OFF");
+}
