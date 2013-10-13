@@ -402,8 +402,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 		/* Get mounted volumes better method OSX 10.5 and higher, see: */
 		/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
-		/* we get all volumes here including network and do not relay on user-defined finder visibility anymore -> less confusing */
-		/* TODO: find out why network volumes only show up when "touched" once and implement a "mount" perhaps */
+		/* we get all volumes sorted including network and do not relay on user-defined finder visibility, less confusing */
 		
 		CFURLRef cfURL = NULL;
 		CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
