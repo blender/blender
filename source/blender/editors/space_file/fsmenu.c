@@ -425,42 +425,29 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			if (err != noErr)
 				continue;
 			
-			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
+			/* Get mounted volumes better method see: */
+			/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
+			/* we get all volumes here including network and do not relay on user-defined finder visibility anymore -> less confusing */
+			/* TODO: find out why network volumes only show up when "touched" once and implement a "mount" perhaps */
+
+			CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
+			CFURLEnumeratorRef volEnum = CFURLEnumeratorCreateForMountedVolumes(NULL, kCFURLEnumeratorSkipInvisibles, NULL);
 			
-			if (!CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
-				continue;
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, FS_INSERT_SORTED);
-			
-			CFRelease(pathString);
-			CFRelease(cfURL);
+			while (result != kCFURLEnumeratorEnd) {
+				unsigned char defPath[FILE_MAX];
+
+				result = CFURLEnumeratorGetNextURL(volEnum, &cfURL, NULL);
+				if (result != kCFURLEnumeratorSuccess)
+					continue;
+				
+				CFURLGetFileSystemRepresentation(cfURL, false, (UInt8*)defPath, FILE_MAX);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)defPath, FS_INSERT_SORTED);
+			}
+			CFRelease(volEnum);
 		}
 		
 		CFRelease(pathesArray);
 		CFRelease(list);
-		
-		/* Then get network volumes */
-		err = noErr;
-		for (i = 1; err != nsvErr; i++) {
-			FSRef dir;
-			FSVolumeRefNum volRefNum;
-			struct GetVolParmsInfoBuffer volParmsBuffer;
-			unsigned char path[FILE_MAX];
-			
-			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, &volRefNum, kFSVolInfoNone, NULL, NULL, &dir);
-			if (err != noErr)
-				continue;
-			
-			err = FSGetVolumeParms(volRefNum, &volParmsBuffer, sizeof(volParmsBuffer));
-			if ((err != noErr) || (volParmsBuffer.vMServerAdr == 0)) /* Exclude local devices */
-				continue;
-			
-			
-			FSRefMakePath(&dir, path, FILE_MAX);
-			if (strcmp((char *)path, "/home") && strcmp((char *)path, "/net")) {
-				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
-			}
-		}
 		
 		/* Finally get user favorite places */
 		if (read_bookmarks) {
