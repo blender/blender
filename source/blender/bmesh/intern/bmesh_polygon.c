@@ -900,7 +900,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			}
 
 			/* add all but the last face which is swapped and removed (below) */
-			if (r_faces_new && sf_tri->prev) {
+			if (r_faces_new && sf_tri->next) {
 				r_faces_new[nf_i++] = f_new;
 			}
 		}
