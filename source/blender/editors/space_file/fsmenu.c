@@ -400,57 +400,38 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			}
 		}
 #else
-		/* 10.5 provides ability to retrieve Finder favorite places */
-		UInt32 seed;
-		OSErr err = noErr;
-		CFArrayRef pathesArray;
-		LSSharedFileListRef list;
-		LSSharedFileListItemRef itemRef;
-		CFIndex i, pathesCount;
+		/* Get mounted volumes better method OSX 10.5 and higher, see: */
+		/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
+		/* we get all volumes here including network and do not relay on user-defined finder visibility anymore -> less confusing */
+		/* TODO: find out why network volumes only show up when "touched" once and implement a "mount" perhaps */
+		
 		CFURLRef cfURL = NULL;
-		CFStringRef pathString = NULL;
+		CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
+		CFURLEnumeratorRef volEnum = CFURLEnumeratorCreateForMountedVolumes(NULL, kCFURLEnumeratorSkipInvisibles, NULL);
 		
-		/* First get local mounted volumes */
-		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteVolumes, NULL);
-		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
-		pathesCount = CFArrayGetCount(pathesArray);
-		
-		for (i = 0; i < pathesCount; i++) {
-			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
-			
-			err = LSSharedFileListItemResolve(itemRef, 
-			                                  kLSSharedFileListNoUserInteraction |
-			                                  kLSSharedFileListDoNotMountVolumes,
-			                                  &cfURL, NULL);
-			if (err != noErr)
+		while (result != kCFURLEnumeratorEnd) {
+			unsigned char defPath[FILE_MAX];
+
+			result = CFURLEnumeratorGetNextURL(volEnum, &cfURL, NULL);
+			if (result != kCFURLEnumeratorSuccess)
 				continue;
 			
-			/* Get mounted volumes better method see: */
-			/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
-			/* we get all volumes here including network and do not relay on user-defined finder visibility anymore -> less confusing */
-			/* TODO: find out why network volumes only show up when "touched" once and implement a "mount" perhaps */
-
-			CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
-			CFURLEnumeratorRef volEnum = CFURLEnumeratorCreateForMountedVolumes(NULL, kCFURLEnumeratorSkipInvisibles, NULL);
-			
-			while (result != kCFURLEnumeratorEnd) {
-				unsigned char defPath[FILE_MAX];
-
-				result = CFURLEnumeratorGetNextURL(volEnum, &cfURL, NULL);
-				if (result != kCFURLEnumeratorSuccess)
-					continue;
-				
-				CFURLGetFileSystemRepresentation(cfURL, false, (UInt8*)defPath, FILE_MAX);
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)defPath, FS_INSERT_SORTED);
+			CFURLGetFileSystemRepresentation(cfURL, false, (UInt8*)defPath, FILE_MAX);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)defPath, FS_INSERT_SORTED);
 			}
-			CFRelease(volEnum);
-		}
 		
-		CFRelease(pathesArray);
-		CFRelease(list);
+		CFRelease(volEnum);
 		
 		/* Finally get user favorite places */
 		if (read_bookmarks) {
+			UInt32 seed;
+			OSErr err = noErr;
+			CFArrayRef pathesArray;
+			LSSharedFileListRef list;
+			LSSharedFileListItemRef itemRef;
+			CFIndex i, pathesCount;
+			CFURLRef cfURL = NULL;
+			CFStringRef pathString = NULL;
 			list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
 			pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 			pathesCount = CFArrayGetCount(pathesArray);
