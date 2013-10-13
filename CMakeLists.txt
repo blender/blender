@@ -2288,7 +2288,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_SYSTEM_OPENJPEG)
 
 	info_cfg_text("Image Formats:")
-	info_cfg_option(WITH_IMAGE_OPENIMAGEIO)
+	info_cfg_option(WITH_OPENIMAGEIO)
 	info_cfg_option(WITH_IMAGE_CINEON)
 	info_cfg_option(WITH_IMAGE_DDS)
 	info_cfg_option(WITH_IMAGE_HDR)
