@@ -324,7 +324,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         rl = rd.layers.active
 
         row = layout.row()
-        row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
+        row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=1)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
@@ -503,7 +503,7 @@ class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
         if ob:
             row = layout.row()
 
-            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=2)
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=1)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
