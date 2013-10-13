@@ -56,7 +56,7 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 	copy_v3_fl(plane_no, 0.0f);
 	copy_v3_fl(scale, 1.0f);
 
-	plane_no[axis] = direction > 2 ? 1.0f : -1.0f;
+	plane_no[axis] = direction > 2 ? -1.0f : 1.0f;
 	scale[axis] *= -1.0f;
 
 	/* Cut in half */
