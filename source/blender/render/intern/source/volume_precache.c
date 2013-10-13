@@ -513,7 +513,7 @@ static void vol_precache_part(TaskPool *pool, void *taskdata, int threadid)
 	if (re->test_break && re->test_break(re->tbh))
 		return;
 	
-	printf("thread id %d\n", threadid);
+	//printf("thread id %d\n", threadid);
 
 	res[0]= pa->res[0];
 	res[1]= pa->res[1];
