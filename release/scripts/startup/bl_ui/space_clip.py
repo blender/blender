@@ -507,7 +507,7 @@ class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
 
         row = layout.row()
         row.template_list("CLIP_UL_tracking_objects", "", tracking, "objects",
-                          tracking, "active_object_index", rows=3)
+                          tracking, "active_object_index", rows=1)
 
         sub = row.column(align=True)
 
@@ -783,7 +783,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
         row = layout.row()
         row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
-                          stab, "active_track_index", rows=3)
+                          stab, "active_track_index", rows=2)
 
         sub = row.column(align=True)
 

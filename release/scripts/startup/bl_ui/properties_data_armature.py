@@ -121,9 +121,9 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
         row = layout.row()
 
-        rows = 2
+        rows = 1
         if group:
-            rows = 5
+            rows = 4
         row.template_list("UI_UL_list", "bone_groups", pose, "bone_groups", pose.bone_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
@@ -184,7 +184,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
             # list of poses in pose library
             row = layout.row()
             row.template_list("UI_UL_list", "pose_markers", poselib, "pose_markers",
-                              poselib.pose_markers, "active_index", rows=5)
+                              poselib.pose_markers, "active_index", rows=3)
 
             # column of operators for active pose
             # - goes beside list

@@ -642,7 +642,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                 layout.label(text="Fluid interaction:")
 
             row = layout.row()
-            row.template_list("UI_UL_list", "particle_targets", psys, "targets", psys, "active_particle_target_index")
+            row.template_list("UI_UL_list", "particle_targets", psys, "targets", psys, "active_particle_target_index", rows=4)
 
             col = row.column()
             sub = col.row()
@@ -730,7 +730,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
             row.label(text="")
 
         row = layout.row()
-        row.template_list("UI_UL_list", "particle_boids_rules", state, "rules", state, "active_boid_rule_index")
+        row.template_list("UI_UL_list", "particle_boids_rules", state, "rules", state, "active_boid_rule_index", rows=4)
 
         col = row.column()
         sub = col.row()

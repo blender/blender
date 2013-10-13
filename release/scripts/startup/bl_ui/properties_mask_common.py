@@ -82,7 +82,7 @@ class MASK_PT_layers:
         mask = sc.mask
         active_layer = mask.layers.active
 
-        rows = 5 if active_layer else 2
+        rows = 4 if active_layer else 1
 
         row = layout.row()
         row.template_list("MASK_UL_layers", "", mask, "layers",

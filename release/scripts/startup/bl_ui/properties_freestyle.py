@@ -193,7 +193,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         layout.active = rl.use_freestyle
 
         row = layout.row()
-        rows = 5 if lineset else 2
+        rows = 4 if lineset else 1
         row.template_list("RENDERLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
         sub = row.column(align=True)

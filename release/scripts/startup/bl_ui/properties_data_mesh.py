@@ -193,7 +193,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
         rows = 1
         if group:
-            rows = 5
+            rows = 4
 
         row = layout.row()
         row.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
@@ -252,7 +252,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         rows = 1
         if kb:
-            rows = 5
+            rows = 4
         row.template_list("MESH_UL_shape_keys", "", key, "key_blocks", ob, "active_shape_key_index", rows=rows)
 
         col = row.column()
