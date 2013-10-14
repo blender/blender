@@ -300,7 +300,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Bisect";
-	ot->description = "Cut geometry along a plane";
+	ot->description = "Cut geometry along a plane (click-drag to define plane)";
 	ot->idname = "MESH_OT_bisect";
 
 	/* api callbacks */
