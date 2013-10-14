@@ -959,9 +959,6 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link, *link_next;
 	
-	if (node->internal_links.first == NULL)
-		return;
-	
 	/* store link pointers in output sockets, for efficient lookup */
 	for (link = node->internal_links.first; link; link = link->next)
 		link->tosock->link = link;
