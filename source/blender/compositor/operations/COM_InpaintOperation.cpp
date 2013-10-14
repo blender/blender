@@ -48,7 +48,6 @@ void InpaintSimpleOperation::initExecution()
 {
 	this->m_inputImageProgram = this->getInputSocketReader(0);
 
-	this->m_cached_buffer = NULL;
 	this->m_pixelorder = NULL;
 	this->m_manhatten_distance = NULL;
 	this->m_cached_buffer = NULL;

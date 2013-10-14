@@ -3183,9 +3183,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	/* reuse of ccgDM_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
 	ccgdm->dm.getNumPolys = ccgDM_getNumTessFaces;
 
-	ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
-	ccgdm->dm.getPBVH = ccgDM_getPBVH;
-
 	ccgdm->dm.getVert = ccgDM_getFinalVert;
 	ccgdm->dm.getEdge = ccgDM_getFinalEdge;
 	ccgdm->dm.getTessFace = ccgDM_getFinalFace;
