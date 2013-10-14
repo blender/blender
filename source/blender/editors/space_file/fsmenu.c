@@ -350,7 +350,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 #ifdef __APPLE__
 	{
-#if (MAC_OS_X_VERSION_MIN_REQUIRED <= 1040)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED <= 1050)
 		OSErr err = noErr;
 		int i;
 		const char *home;
@@ -399,8 +399,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 		}
-#else
-		/* Get mounted volumes better method OSX 10.5 and higher, see: */
+#else /* OSX 10.6+ */
+		/* Get mounted volumes better method OSX 10.6 and higher, see: */
 		/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
 		/* we get all volumes sorted including network and do not relay on user-defined finder visibility, less confusing */
 		
@@ -458,7 +458,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			CFRelease(pathesArray);
 			CFRelease(list);
 		}
-#endif /* OSX 10.5+ */
+#endif /* OSX 10.6+ */
 	}
 #else
 	/* unix */
