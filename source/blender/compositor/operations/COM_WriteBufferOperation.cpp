@@ -157,14 +157,14 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti *rect,
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
 
 	// STEP 4
-	while (clMemToCleanUp->size() > 0) {
+	while (!clMemToCleanUp->empty()) {
 		cl_mem mem = clMemToCleanUp->front();
 		error = clReleaseMemObject(mem);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 		clMemToCleanUp->pop_front();
 	}
 
-	while (clKernelsToCleanUp->size() > 0) {
+	while (!clKernelsToCleanUp->empty()) {
 		cl_kernel kernel = clKernelsToCleanUp->front();
 		error = clReleaseKernel(kernel);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }

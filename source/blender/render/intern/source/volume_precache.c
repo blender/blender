@@ -495,7 +495,7 @@ typedef struct VolPrecacheState {
 	int totparts;
 } VolPrecacheState;
 
-static void vol_precache_part(TaskPool *pool, void *taskdata, int threadid)
+static void vol_precache_part(TaskPool *pool, void *taskdata, int UNUSED(threadid))
 {
 	VolPrecacheState *state = (VolPrecacheState *)BLI_task_pool_userdata(pool);
 	VolPrecachePart *pa = (VolPrecachePart *)taskdata;
