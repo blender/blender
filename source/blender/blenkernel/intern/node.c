@@ -1672,8 +1672,8 @@ static void free_localized_node_groups(bNodeTree *ntree)
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP && node->id) {
 			bNodeTree *ngroup = (bNodeTree *)node->id;
-			if (BLI_findindex(&G.main->nodetree, ngroup) == -1) {
-				/* ntree is not in library, i.e. localized node group: free it */
+			if (ngroup->flag & NTREE_IS_LOCALIZED) {
+				/* ntree is a localized copy: free it */
 				ntreeFreeTree_ex(ngroup, false);
 				MEM_freeN(ngroup);
 			}
@@ -1960,6 +1960,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		 * Note: previews are not copied here.
 		 */
 		ltree = ntreeCopyTree_internal(ntree, NULL, FALSE, FALSE, FALSE);
+		ltree->flag |= NTREE_IS_LOCALIZED;
 		
 		for (node = ltree->nodes.first; node; node = node->next) {
 			if (node->type == NODE_GROUP && node->id) {
