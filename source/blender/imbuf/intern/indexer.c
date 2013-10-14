@@ -656,7 +656,6 @@ static int add_to_proxy_output_ffmpeg(
 static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx,
                                      int rollback)
 {
-	int i;
 	char fname[FILE_MAX];
 	char fname_tmp[FILE_MAX];
 
@@ -674,18 +673,12 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx,
 	
 	avcodec_close(ctx->c);
 	
-	for (i = 0; i < ctx->of->nb_streams; i++) {
-		if (&ctx->of->streams[i]) {
-			av_freep(&ctx->of->streams[i]);
-		}
-	}
-
 	if (ctx->of->oformat) {
 		if (!(ctx->of->oformat->flags & AVFMT_NOFILE)) {
 			avio_close(ctx->of->pb);
 		}
 	}
-	av_free(ctx->of);
+	avformat_free_context(ctx->of);
 
 	MEM_freeN(ctx->video_buffer);
 
@@ -853,6 +846,9 @@ static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, int 
 			free_proxy_output_ffmpeg(context->proxy_ctx[i], stop);
 		}
 	}
+
+	avcodec_close(context->iCodecCtx);
+	avformat_close_input(&context->iFormatCtx);
 
 	MEM_freeN(context);
 }

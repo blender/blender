@@ -106,7 +106,6 @@ class IMAGE_MT_select(Menu):
 
         layout.operator("uv.select_all").action = 'TOGGLE'
         layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
-        layout.operator("uv.select_split")
 
         layout.separator()
 

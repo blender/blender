@@ -198,6 +198,7 @@ bool        WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct I
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
+int			WM_operator_props_popup_confirm(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int 		WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height);

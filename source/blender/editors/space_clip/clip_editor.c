@@ -710,8 +710,14 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 		if (queue->direction > 0) {
 			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame + 1, queue->end_frame,
 			                                             queue->render_size, queue->render_flag, 1);
+			/* switch direction if read frames from current up to scene end frames */
+			if (current_frame >= queue->end_frame) {
+				queue->current_frame = queue->initial_frame;
+				queue->direction = -1;
+			}
 		}
-		else {
+
+		if (queue->direction < 0) {
 			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame - 1, queue->start_frame,
 			                                             queue->render_size, queue->render_flag, -1);
 		}
@@ -736,12 +742,6 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 
 			*queue->do_update = 1;
 			*queue->progress = (float)frames_processed / (queue->end_frame - queue->start_frame);
-
-			/* switch direction if read frames from current up to scene end frames */
-			if (current_frame == queue->end_frame) {
-				queue->current_frame = queue->initial_frame;
-				queue->direction = -1;
-			}
 		}
 	}
 	BLI_spin_unlock(&queue->spin);

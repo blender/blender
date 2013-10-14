@@ -1309,6 +1309,10 @@ static void do_render_blur_3d(Render *re)
 	re->mblur_offs = 0.0f;
 	re->i.curblur = 0;   /* stats */
 	
+	/* make sure motion blur changes get reset to current frame */
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0)
+		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
+	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
 	re->display_draw(re->ddh, re->result, NULL);

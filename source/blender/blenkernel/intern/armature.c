@@ -405,7 +405,7 @@ static void equalize_bezier(float *data, int desired)
 		dist = ((float)a) * ddist;
 
 		/* we're looking for location (distance) 'dist' in the array */
-		while ((dist >= pdist[nr]) && nr < MAX_BBONE_SUBDIV)
+		while ((nr < MAX_BBONE_SUBDIV) && (dist >= pdist[nr]))
 			nr++;
 
 		fac1 = pdist[nr] - pdist[nr - 1];

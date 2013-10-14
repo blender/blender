@@ -32,7 +32,7 @@ from freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicat
     FalseBP1D, FalseUP1D, GuidingLinesShader, Interface0DIterator, Nature, Noise, Normal2DF0D, Operators, \
     PolygonalizationShader, QuantitativeInvisibilityF1D, QuantitativeInvisibilityUP1D, SamplingShader, \
     SpatialNoiseShader, StrokeAttribute, StrokeShader, TipRemoverShader, TrueBP1D, TrueUP1D, UnaryPredicate0D, \
-    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D, ContextFunctions
+    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D, ContextFunctions, TVertex
 from Functions0D import CurveMaterialF0D
 from PredicatesU1D import pyNatureUP1D
 from logical_operators import AndUP1D, NotUP1D, OrUP1D
@@ -1085,6 +1085,8 @@ def iter_three_segments(stroke):
             it3.increment()
             it4.increment()
 
+def is_tvertex(svertex):
+    return type(svertex.viewvertex) is TVertex
 
 class StrokeCleaner(StrokeShader):
     def shade(self, stroke):
@@ -1092,7 +1094,10 @@ class StrokeCleaner(StrokeShader):
             seg1 = sv2.point - sv1.point
             seg2 = sv3.point - sv2.point
             seg3 = sv4.point - sv3.point
-            if seg1.dot(seg2) < 0.0 and seg2.dot(seg3) < 0.0:
+            if not ((is_tvertex(sv2.first_svertex) and is_tvertex(sv2.second_svertex)) or
+                    (is_tvertex(sv3.first_svertex) and is_tvertex(sv3.second_svertex))):
+                continue
+            if seg1.dot(seg2) < 0.0 and seg2.dot(seg3) < 0.0 and seg2.length < 0.01:
                 #print(sv2.first_svertex.viewvertex)
                 #print(sv2.second_svertex.viewvertex)
                 #print(sv3.first_svertex.viewvertex)

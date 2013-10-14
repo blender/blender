@@ -361,6 +361,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 			}
 			break;
 		case RETKEY:
+		case PADENTER:
 			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
 					confirm_suggestion(st->text);

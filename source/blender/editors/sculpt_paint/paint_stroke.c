@@ -572,6 +572,12 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 	return true;
 }
 
+bool paint_supports_texture(PaintMode mode)
+{
+	/* ommit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
+	return ELEM4(mode, PAINT_SCULPT, PAINT_VERTEX, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
+}
+
 /* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 {

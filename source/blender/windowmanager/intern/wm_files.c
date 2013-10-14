@@ -865,9 +865,10 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 
 	/* first time saving */
 	/* XXX temp solution to solve bug, real fix coming (ton) */
-	if (G.main->name[0] == 0)
+	if ((G.main->name[0] == '\0' && !(fileflags & G_FILE_SAVE_COPY))) {
 		BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));
-	
+	}
+
 	/* XXX temp solution to solve bug, real fix coming (ton) */
 	G.main->recovered = 0;
 	

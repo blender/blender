@@ -611,6 +611,9 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 
 static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **butpp)
 {
+	/* flags from the buttons we want to refresh, may want to add more here... */
+	const int flag_copy = UI_BUT_REDALERT;
+
 	uiBlock *oldblock;
 	uiBut *oldbut, *but = *butpp;
 	int found = 0;
@@ -659,6 +662,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				/* drawing */
 				oldbut->icon = but->icon;
 				oldbut->iconadd = but->iconadd;
+				oldbut->alignnr = but->alignnr;
 				
 				/* typically the same pointers, but not on undo/redo */
 				/* XXX some menu buttons store button itself in but->poin. Ugly */
@@ -667,6 +671,8 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(void *, oldbut->func_argN, but->func_argN);
 				}
 				
+				oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
+
 				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
 				 * when scrolling without moving mouse (see [#28432]) */
 				if (ELEM(oldbut->type, ROW, LISTROW))
@@ -2869,7 +2875,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if      (ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, BUTM, SCROLL, SEPR)) {}
+	if      (ELEM9(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR)) {}
 	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 

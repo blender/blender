@@ -4901,6 +4901,7 @@ int RNA_collection_length(PointerRNA *ptr, const char *name)
 
 bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost)
 {
+	prop = rna_ensure_property(prop);
 	if (prop->flag & PROP_IDPROPERTY) {
 		IDProperty *idprop = rna_idproperty_find(ptr, prop->identifier);
 		return ((idprop != NULL) && (use_ghost == false || !(idprop->flag & IDP_FLAG_GHOST)));
@@ -4912,6 +4913,7 @@ bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost)
 
 bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 {
+	prop = rna_ensure_property(prop);
 	if (prop->flag & PROP_IDPROPERTY) {
 		IDProperty *idprop = rna_idproperty_find(ptr, prop->identifier);
 		return ((idprop != NULL) && !(idprop->flag & IDP_FLAG_GHOST));
@@ -4923,6 +4925,7 @@ bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop)
 {
+	prop = rna_ensure_property(prop);
 	if (prop->flag & PROP_IDPROPERTY) {
 		rna_idproperty_free(ptr, prop->identifier);
 	}
