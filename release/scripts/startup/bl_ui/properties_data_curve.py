@@ -306,6 +306,10 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
         row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
         #layout.prop(text, "font")
+        
+        row = layout.split(percentage=0.25)
+        row.label(text="Body Text:")
+        row.prop(text, "body", text="")
 
         split = layout.split()
 
