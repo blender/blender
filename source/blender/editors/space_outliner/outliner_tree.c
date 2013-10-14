@@ -428,8 +428,8 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
 	
 	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
-	
-	if (sce->r.mode & R_EDGE_FRS)
+
+	if (STREQ(sce->r.engine, "BLENDER_RENDER") && (sce->r.mode & R_EDGE_FRS))
 		outliner_add_line_styles(soops, lb, sce, te);
 }
 
