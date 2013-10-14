@@ -290,6 +290,17 @@ static int shape_key_mode_poll(bContext *C)
 	return (ob && !ob->id.lib && data && !data->lib && ob->mode != OB_MODE_EDIT);
 }
 
+static int shape_key_mode_exists_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data : NULL;
+
+	/* same as shape_key_mode_poll */
+	return (ob && !ob->id.lib && data && !data->lib && ob->mode != OB_MODE_EDIT) &&
+	       /* check a keyblock exists */
+	       (BKE_keyblock_from_object(ob) != NULL);
+}
+
 static int shape_key_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
@@ -359,6 +370,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->poll = shape_key_mode_poll;
+	ot->poll = shape_key_mode_exists_poll;
 	ot->exec = shape_key_remove_exec;
 
 	/* flags */
