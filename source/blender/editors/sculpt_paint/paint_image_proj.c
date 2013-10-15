@@ -611,7 +611,9 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
  *  1	: occluded
  *  2	: occluded with w[3] weights set (need to know in some cases) */
 
-static int project_paint_occlude_ptv(float pt[3], float v1[4], float v2[4], float v3[4], float w[3], int is_ortho)
+static int project_paint_occlude_ptv(const float pt[3],
+                                     const float v1[4], const float v2[4], const float v3[4],
+                                     float w[3], const bool is_ortho)
 {
 	/* if all are behind us, return false */
 	if (v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
@@ -642,7 +644,7 @@ static int project_paint_occlude_ptv(float pt[3], float v1[4], float v2[4], floa
 
 
 static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace *mf,
-                                          float pt[3], float v1[4], float v2[4], float v3[4],
+                                          const float pt[3], const float v1[4], const float v2[4], const float v3[4],
                                           const int side)
 {
 	float w[3], wco[3];
@@ -671,7 +673,8 @@ static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace 
 /* Check if a screenspace location is occluded by any other faces
  * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
  * and doesn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
-static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace, const int orig_face, float pixelScreenCo[4])
+static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace,
+                                         const int orig_face, const float pixelScreenCo[4])
 {
 	MFace *mf;
 	int face_index;
@@ -811,7 +814,7 @@ static int pixel_bounds_uv(
         const float uv1[2], const float uv2[2], const float uv3[2], const float uv4[2],
         rcti *bounds_px,
         const int ibuf_x, const int ibuf_y,
-        int is_quad
+        const bool is_quad
         )
 {
 	float min_uv[2], max_uv[2]; /* UV bounds */
@@ -941,7 +944,7 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
 static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const float scaler,
-                            const int ibuf_x, const int ibuf_y, const int is_quad)
+                            const int ibuf_x, const int ibuf_y, const bool is_quad)
 {
 	float a1, a2, a3, a4 = 0.0f;
 	float puv[4][2]; /* pixelspace uv's */
@@ -2410,7 +2413,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 
 
 			if (outset_uv[0][0] == FLT_MAX) /* first time initialize */
-				uv_image_outset(tf_uv_pxoffset, outset_uv, ps->seam_bleed_px, ibuf->x, ibuf->y, mf->v4);
+				uv_image_outset(tf_uv_pxoffset, outset_uv, ps->seam_bleed_px, ibuf->x, ibuf->y, mf->v4 != 0);
 
 			/* ps->faceSeamUVs cant be modified when threading, now this is done we can unlock */
 			if (ps->thread_tot > 1)
@@ -2465,7 +2468,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						interp_v3_v3v3(edge_verts_inset_clip[1], insetCos[fidx1], insetCos[fidx2], fac2);
 
 
-						if (pixel_bounds_uv(seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3], &bounds_px, ibuf->x, ibuf->y, 1)) {
+						if (pixel_bounds_uv(seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3], &bounds_px, ibuf->x, ibuf->y, true)) {
 							/* bounds between the seam rect and the uvspace bucket pixels */
 
 							has_isect = 0;
@@ -3815,7 +3818,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 	float falloff;
 	int bucket_index;
-	int is_floatbuf = 0;
+	bool is_floatbuf = false;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 
@@ -3870,7 +3873,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					last_projIma = projImages + last_index;
 
 					last_projIma->touch = 1;
-					is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+					is_floatbuf = (last_projIma->ibuf->rect_float != NULL);
 				}
 				/* end copy */
 
@@ -3996,7 +3999,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								last_projIma = projImages + last_index;
 
 								last_projIma->touch = 1;
-								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+								is_floatbuf = (last_projIma->ibuf->rect_float != NULL);
 							}
 							/* end copy */
 
