@@ -219,14 +219,6 @@ EnumPropertyItem snap_uv_element_items[] = {
 #  define R_IMF_ENUM_TIFF
 #endif
 
-#ifdef WITH_OPENIMAGEIO
-#  define R_IMF_ENUM_PSD     {R_IMF_IMTYPE_PSD, "PSD", ICON_FILE_IMAGE, "Photosp PSD", \
-                                                "Output image in Photoshop PSD format"},
-#else
-#  define R_IMF_ENUM_PSD
-#endif
-
-
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY                                           \
 	R_IMF_ENUM_BMP                                                            \
 	/* DDS save not supported yet R_IMF_ENUM_DDS */                           \
@@ -243,7 +235,6 @@ EnumPropertyItem snap_uv_element_items[] = {
 	R_IMF_ENUM_EXR                                                            \
 	R_IMF_ENUM_HDR                                                            \
 	R_IMF_ENUM_TIFF                                                           \
-	R_IMF_ENUM_PSD                                                            \
 
 
 EnumPropertyItem image_only_type_items[] = {
