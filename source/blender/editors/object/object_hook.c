@@ -65,6 +65,7 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -689,19 +690,8 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->prop = prop;
 }
 
-static int object_hook_reset_exec(bContext *C, wmOperator *op)
+void ED_object_hook_reset_do(Object *ob, HookModifierData *hmd)
 {
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
-	int num = RNA_enum_get(op->ptr, "modifier");
-	Object *ob = NULL;
-	HookModifierData *hmd = NULL;
-
-	object_hook_from_context(C, &ptr, num, &ob, &hmd);
-	if (hmd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
-		return OPERATOR_CANCELLED;
-	}
-	
 	/* reset functionality */
 	if (hmd->object) {
 		bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
@@ -720,7 +710,23 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 			mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
 		}
 	}
-	
+}
+
+static int object_hook_reset_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	int num = RNA_enum_get(op->ptr, "modifier");
+	Object *ob = NULL;
+	HookModifierData *hmd = NULL;
+
+	object_hook_from_context(C, &ptr, num, &ob, &hmd);
+	if (hmd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
+		return OPERATOR_CANCELLED;
+	}
+
+	ED_object_hook_reset_do(ob, hmd);
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
