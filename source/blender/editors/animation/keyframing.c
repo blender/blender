@@ -1225,7 +1225,7 @@ static int modify_key_op_poll(bContext *C)
 	
 	/* if Outliner, don't allow in some views */
 	if (so) {
-		if (ELEM5(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP)) {
+		if (ELEM4(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_USERDEF)) {
 			return 0;
 		}
 	}

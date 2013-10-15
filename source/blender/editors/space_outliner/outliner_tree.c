@@ -1676,14 +1676,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			tselem->flag &= ~TSE_CLOSED;
 		}
 	}
-	else if (soops->outlinevis == SO_KEYMAP) {
-		wmWindowManager *wm = mainvar->wm.first;
-		wmKeyMap *km;
-		
-		for (km = wm->defaultconf->keymaps.first; km; km = km->next) {
-			/* ten = */ outliner_add_element(soops, &soops->tree, (void *)km, NULL, TSE_KEYMAP, 0);
-		}
-	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 		if (ten) ten->directdata = BASACT;

@@ -263,6 +263,16 @@ enum {
 	KMI_UPDATE         = (1 << 3),
 };
 
+/* wmKeyMapItem.maptype */
+enum {
+	KMI_TYPE_KEYBOARD   = 0,
+	KMI_TYPE_MOUSE      = 1,
+	KMI_TYPE_TWEAK      = 2,
+	KMI_TYPE_TEXTINPUT  = 3,
+	KMI_TYPE_TIMER      = 4,
+	KMI_TYPE_NDOF       = 5,
+};
+
 /* stored in WM, the actively used keymaps */
 typedef struct wmKeyMap {
 	struct wmKeyMap *next, *prev;

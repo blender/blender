@@ -902,7 +902,7 @@ int outliner_item_do_activate(bContext *C, int x, int y, bool extend, bool recur
 
 	UI_view2d_region_to_view(&ar->v2d, x, y, fmval, fmval + 1);
 
-	if (!ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP) &&
+	if (!ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF) &&
 	    !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
 	    (fmval[0] > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX))
 	{

@@ -139,6 +139,29 @@ void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties
 	wm_keymap_item_properties_set(kmi);
 }
 
+int WM_keymap_map_type_get(wmKeyMapItem *kmi) {
+	if (ISTIMER(kmi->type)) {
+		return KMI_TYPE_TIMER;
+	}
+	if (ISKEYBOARD(kmi->type)) {
+		return KMI_TYPE_KEYBOARD;
+	}
+	if (ISTWEAK(kmi->type)) {
+		return KMI_TYPE_TWEAK;
+	}
+	if (ISMOUSE(kmi->type)) {
+		return KMI_TYPE_MOUSE;
+	}
+	if (ISNDOF(kmi->type)) {
+		return KMI_TYPE_NDOF;
+	}
+	if (kmi->type == KM_TEXTINPUT) {
+		return KMI_TYPE_TEXTINPUT;
+	}
+	return KMI_TYPE_KEYBOARD;
+}
+
+
 /**************************** Keymap Diff Item *********************************
  * Item in a diff keymap, used for saving diff of keymaps in user preferences */
 
