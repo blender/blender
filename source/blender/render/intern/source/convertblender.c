@@ -860,28 +860,13 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], int 
 /* Orco hash and Materials                                                   */
 /* ------------------------------------------------------------------------- */
 
-static float *get_object_orco(Render *re, Object *ob)
+static float *get_object_orco(Render *re, void *ob)
 {
-	float *orco;
-
-	if (!re->orco_hash)
-		re->orco_hash = BLI_ghash_ptr_new("get_object_orco gh");
-
-	orco = BLI_ghash_lookup(re->orco_hash, ob);
-
-	if (!orco) {
-		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = BKE_curve_make_orco(re->scene, ob, NULL);
-		}
-		else if (ob->type==OB_SURF) {
-			orco = BKE_curve_surf_make_orco(ob);
-		}
-
-		if (orco)
-			BLI_ghash_insert(re->orco_hash, ob, orco);
+	if (!re->orco_hash) {
+		return NULL;
 	}
 
-	return orco;
+	return BLI_ghash_lookup(re->orco_hash, ob);
 }
 
 static void set_object_orco(Render *re, void *ob, float *orco)
@@ -1676,8 +1661,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 		if (path_nbr) {
 			if (!ELEM(ma->material_type, MA_TYPE_HALO, MA_TYPE_WIRE)) {
-				sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
-				set_object_orco(re, psys, sd.orco);
+				sd.orco = get_object_orco(re, psys);
+				if (!sd.orco) {
+					sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
+					set_object_orco(re, psys, sd.orco);
+				}
 			}
 		}
 
@@ -2829,9 +2817,12 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (dm) {
 		if (need_orco) {
-			orco= BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
-			if (orco) {
-				set_object_orco(re, ob, orco);
+			orco = get_object_orco(re, ob);
+			if (!orco) {
+				orco= BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
+				if (orco) {
+					set_object_orco(re, ob, orco);
+				}
 			}
 		}
 
@@ -2840,7 +2831,11 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 	}
 	else {
 		if (need_orco) {
-			orco= get_object_orco(re, ob);
+			orco = get_object_orco(re, ob);
+			if (!orco) {
+				orco = BKE_curve_surf_make_orco(ob);
+				set_object_orco(re, ob, orco);
+			}
 		}
 
 		/* walk along displaylist and create rendervertices/-faces */
@@ -2900,9 +2895,12 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (dm) {
 		if (need_orco) {
-			orco= BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
-			if (orco) {
-				set_object_orco(re, ob, orco);
+			orco = get_object_orco(re, ob);
+			if (!orco) {
+				orco = BKE_displist_make_orco(re->scene, ob, dm, 1, 1);
+				if (orco) {
+					set_object_orco(re, ob, orco);
+				}
 			}
 		}
 
@@ -2912,6 +2910,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	else {
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
+			if (!orco) {
+				orco = BKE_curve_make_orco(re->scene, ob, NULL);
+				set_object_orco(re, ob, orco);
+			}
 		}
 
 		while (dl) {
@@ -3401,10 +3403,13 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
 	if (mask & CD_MASK_ORCO) {
-		orco= dm->getVertDataArray(dm, CD_ORCO);
-		if (orco) {
-			orco= MEM_dupallocN(orco);
-			set_object_orco(re, ob, orco);
+		orco = get_object_orco(re, ob);
+		if (!orco) {
+			orco= dm->getVertDataArray(dm, CD_ORCO);
+			if (orco) {
+				orco= MEM_dupallocN(orco);
+				set_object_orco(re, ob, orco);
+			}
 		}
 	}
 
