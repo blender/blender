@@ -190,8 +190,10 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
 				if (!extend) {
 					SelectUserData selectdata = {SEL_DESELECT};
 
-					clip_graph_tracking_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
-					                            sc->flag & SC_SHOW_GRAPH_HIDDEN, &selectdata,
+					clip_graph_tracking_iterate(sc,
+					                            (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+					                            (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
+					                            &selectdata,
 					                            toggle_selection_cb);
 				}
 
@@ -217,7 +219,9 @@ static bool mouse_select_curve(bContext *C, float co[2], bool extend)
 	MouseSelectUserData userdata;
 
 	mouse_select_init_data(&userdata, co);
-	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,
+	clip_graph_tracking_values_iterate(sc,
+	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
 	                                   &userdata, find_nearest_tracking_segment_cb,
 	                                   NULL, find_nearest_tracking_segment_end_cb);
 
@@ -237,9 +241,10 @@ static bool mouse_select_curve(bContext *C, float co[2], bool extend)
 			BKE_tracking_track_select(tracksbase, userdata.track, TRACK_AREA_ALL, TRUE);
 
 			/* deselect all knots on newly selected curve */
-			clip_graph_tracking_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
-			                            sc->flag & SC_SHOW_GRAPH_HIDDEN, &selectdata,
-			                            toggle_selection_cb);
+			clip_graph_tracking_iterate(sc,
+			                            (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+			                            (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
+			                            &selectdata, toggle_selection_cb);
 		}
 
 		return true;
@@ -565,9 +570,10 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	userdata.max = -FLT_MAX;
 	userdata.min = FLT_MAX;
 
-	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
-	                                   sc->flag & SC_SHOW_GRAPH_HIDDEN, &userdata,
-	                                   view_all_cb, NULL, NULL);
+	clip_graph_tracking_values_iterate(sc,
+	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
+	                                   &userdata, view_all_cb, NULL, NULL);
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float) SFRA;

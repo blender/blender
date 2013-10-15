@@ -125,7 +125,7 @@ void clip_graph_tracking_values_iterate_track(
 }
 
 void clip_graph_tracking_values_iterate(
-        SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
+        SpaceClip *sc, bool selected_only, bool include_hidden, void *userdata,
         void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker,
                      int coord, int scene_framenr, float val),
         void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
@@ -147,7 +147,7 @@ void clip_graph_tracking_values_iterate(
 	}
 }
 
-void clip_graph_tracking_iterate(SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
+void clip_graph_tracking_iterate(SpaceClip *sc, bool selected_only, bool include_hidden, void *userdata,
                                  void (*func)(void *userdata, MovieTrackingMarker *marker))
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
