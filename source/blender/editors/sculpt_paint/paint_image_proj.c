@@ -514,8 +514,8 @@ static void uvco_to_wrapped_pxco(const float uv[2], int ibuf_x, int ibuf_y, floa
 }
 
 /* Set the top-most face color that the screen space coord 'pt' touches (or return 0 if none touch) */
-static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
-                                   float *rgba_fp, unsigned char *rgba, const int interp)
+static bool project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
+                                    float *rgba_fp, unsigned char *rgba, const bool interp)
 {
 	float w[3], uv[2];
 	int side;
@@ -575,11 +575,8 @@ static int project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 		//if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return 0;
 
 		/* wrap */
-		xi = ((int)(uv[0] * ibuf->x)) % ibuf->x;
-		if (xi < 0) xi += ibuf->x;
-		yi = ((int)(uv[1] * ibuf->y)) % ibuf->y;
-		if (yi < 0) yi += ibuf->y;
-
+		xi = mod_i((int)(uv[0] * ibuf->x), ibuf->x);
+		yi = mod_i((int)(uv[1] * ibuf->y), ibuf->y);
 
 		if (rgba) {
 			if (ibuf->rect_float) {
@@ -673,8 +670,8 @@ static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace 
 /* Check if a screenspace location is occluded by any other faces
  * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
  * and doesn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
-static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace,
-                                         const int orig_face, const float pixelScreenCo[4])
+static bool project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace,
+                                          const int orig_face, const float pixelScreenCo[4])
 {
 	MFace *mf;
 	int face_index;
@@ -705,11 +702,11 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 			if (isect_ret >= 1) {
 				/* TODO - we may want to cache the first hit,
 				 * it is not possible to swap the face order in the list anymore */
-				return 1;
+				return true;
 			}
 		}
 	}
-	return 0;
+	return false;
 }
 
 /* basic line intersection, could move to math_geom.c, 2 points with a horiz line
@@ -788,7 +785,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
  * tile, but do not do this for the adjacent face, it could return a false positive.
  * This is so unlikely that Id not worry about it. */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-static int cmp_uv(const float vec2a[2], const float vec2b[2])
+static bool cmp_uv(const float vec2a[2], const float vec2b[2])
 {
 	/* if the UV's are not between 0.0 and 1.0 */
 	float xa = (float)fmodf(vec2a[0], 1.0f);
@@ -810,7 +807,7 @@ static int cmp_uv(const float vec2a[2], const float vec2b[2])
 /* set min_px and max_px to the image space bounds of the UV coords
  * return zero if there is no area in the returned rectangle */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-static int pixel_bounds_uv(
+static bool pixel_bounds_uv(
         const float uv1[2], const float uv2[2], const float uv3[2], const float uv4[2],
         rcti *bounds_px,
         const int ibuf_x, const int ibuf_y,
@@ -840,7 +837,7 @@ static int pixel_bounds_uv(
 }
 #endif
 
-static int pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
+static bool pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
 {
 	float min_uv[2], max_uv[2]; /* UV bounds */
 
@@ -871,7 +868,9 @@ static int pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x,
 
 /* This function returns 1 if this face has a seam along the 2 face-vert indices
  * 'orig_i1_fidx' and 'orig_i2_fidx' */
-static int check_seam(const ProjPaintState *ps, const int orig_face, const int orig_i1_fidx, const int orig_i2_fidx, int *other_face, int *orig_fidx)
+static bool check_seam(const ProjPaintState *ps,
+                       const int orig_face, const int orig_i1_fidx, const int orig_i2_fidx,
+                       int *other_face, int *orig_fidx)
 {
 	LinkNode *node;
 	int face_index;
@@ -1342,7 +1341,7 @@ static ProjPixel *project_paint_uvpixel_init(
         const ProjPaintState *ps,
         MemArena *arena,
         const ImBuf *ibuf,
-        short x_px, short y_px,
+        int x_px, int y_px,
         const float mask,
         const int face_index,
         const int image_index,
@@ -1354,10 +1353,9 @@ static ProjPixel *project_paint_uvpixel_init(
 	ProjPixel *projPixel;
 
 	/* wrap pixel location */
-	x_px = x_px % ibuf->x;
-	if (x_px < 0) x_px += ibuf->x;
-	y_px = y_px % ibuf->y;
-	if (y_px < 0) y_px += ibuf->y;
+
+	x_px = mod_i(x_px, ibuf->x);
+	y_px = mod_i(y_px, ibuf->y);
 
 	BLI_assert(ps->pixel_sizeof == project_paint_pixel_sizeof(ps->tool));
 	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, ps->pixel_sizeof);
@@ -1468,7 +1466,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	return projPixel;
 }
 
-static int line_clip_rect2f(
+static bool line_clip_rect2f(
         rctf *rect,
         const float l1[2], const float l2[2],
         float l1_clip[2], float l2_clip[2])
@@ -1684,7 +1682,7 @@ static float len_squared_v2v2_alt(const float *v1, const float v2_1, const float
 /* note, use a squared value so we can use len_squared_v2v2
  * be sure that you have done a bounds check first or this may fail */
 /* only give bucket_bounds as an arg because we need it elsewhere */
-static int project_bucket_isect_circle(const float cent[2], const float radius_squared, rctf *bucket_bounds)
+static bool project_bucket_isect_circle(const float cent[2], const float radius_squared, rctf *bucket_bounds)
 {
 
 	/* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect
@@ -1826,9 +1824,11 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 #define ISECT_ALL4 ((1 << 4) - 1)
 
 /* limit must be a fraction over 1.0f */
-static int IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
+static bool IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
 {
-	return ((area_tri_v2(pt, v1, v2) + area_tri_v2(pt, v2, v3) + area_tri_v2(pt, v3, v1)) / (area_tri_v2(v1, v2, v3))) < limit;
+	return ((area_tri_v2(pt, v1, v2) +
+	         area_tri_v2(pt, v2, v3) +
+	         area_tri_v2(pt, v3, v1)) / (area_tri_v2(v1, v2, v3))) < limit;
 }
 
 /* Clip the face by a bucket and set the uv-space bucket_bounds_uv
@@ -2139,7 +2139,7 @@ static void project_bucket_clip_face(
 
 /* checks if pt is inside a convex 2D polyline, the polyline must be ordered rotating clockwise
  * otherwise it would have to test for mixed (line_point_side_v2 > 0.0f) cases */
-static int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
+static bool IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
 	if (line_point_side_v2(uv[tot - 1], uv[0], pt) < 0.0f)
@@ -2153,7 +2153,7 @@ static int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 
 	return 1;
 }
-static int IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
+static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
 	int side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
@@ -2674,7 +2674,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
  * calculated when it might not be needed later, (at the moment at least)
  * obviously it shouldn't have bugs though */
 
-static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucket_y, const MFace *mf)
+static bool project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucket_y, const MFace *mf)
 {
 	/* TODO - replace this with a tricker method that uses sideofline for all screenCoords's edges against the closest bucket corner */
 	rctf bucket_bounds;
@@ -3468,9 +3468,9 @@ static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 }
 
 
-static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPartialRedraw *pr_other, int tot)
+static bool partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPartialRedraw *pr_other, int tot)
 {
-	int touch = 0;
+	bool touch = 0;
 	while (tot--) {
 		pr->x1 = min_ii(pr->x1, pr_other->x1);
 		pr->y1 = min_ii(pr->y1, pr_other->y1);
@@ -3488,12 +3488,12 @@ static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPar
 }
 
 /* Loop over all images on this mesh and update any we have touched */
-static int project_image_refresh_tagged(ProjPaintState *ps)
+static bool project_image_refresh_tagged(ProjPaintState *ps)
 {
 	ImagePaintPartialRedraw *pr;
 	ProjPaintImage *projIma;
 	int a, i;
-	int redraw = 0;
+	bool redraw = false;
 
 
 	for (a = 0, projIma = ps->projImages; a < ps->image_tot; a++, projIma++) {
@@ -3516,7 +3516,7 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 }
 
 /* run this per painting onto each mouse location */
-static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
+static bool project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 {
 	if (ps->source == PROJ_SRC_VIEW) {
 		float min_brush[2], max_brush[2];
@@ -3556,7 +3556,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 }
 
 
-static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
+static bool project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
 {
 	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
 
@@ -4078,11 +4078,11 @@ static void *do_projectpaint_thread(void *ph_v)
 	return NULL;
 }
 
-static int project_paint_op(void *state, const float lastpos[2], const float pos[2])
+static bool project_paint_op(void *state, const float lastpos[2], const float pos[2])
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
-	int touch_any = 0;
+	bool touch_any = false;
 
 	ProjectHandle handles[BLENDER_MAX_THREADS];
 	ListBase threads;
