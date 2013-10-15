@@ -62,7 +62,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     bl_label = "Extrude and Move on Normals"
     bl_idname = "view3d.edit_mesh_extrude_move_normal"
 
-    def execute(self, context):
+    @staticmethod
+    def extrude_region(context, use_vert_normals):
         mesh = context.object.data
 
         totface = mesh.total_face_sel
@@ -70,10 +71,15 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         #~ totvert = mesh.total_vert_sel
 
         if totface >= 1:
-            bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN',
-                    TRANSFORM_OT_translate={
-                        "constraint_orientation": 'NORMAL',
-                        "constraint_axis": (False, False, True)})
+            if use_vert_normals:
+                bpy.ops.mesh.extrude_region_shrink_fatten('INVOKE_REGION_WIN',
+                        TRANSFORM_OT_shrink_fatten={})
+            else:
+                bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN',
+                        TRANSFORM_OT_translate={
+                            "constraint_orientation": 'NORMAL',
+                            "constraint_axis": (False, False, True)})
+
         elif totedge == 1:
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN',
                     TRANSFORM_OT_translate={
@@ -87,6 +93,22 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         # ignore return from operators above because they are 'RUNNING_MODAL',
         # and cause this one not to be freed. [#24671]
         return {'FINISHED'}
+
+    def execute(self, context):
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, False)
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+
+
+class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
+    "Extrude and move along individual normals"
+    bl_label = "Extrude and Move on Individual Normals"
+    bl_idname = "view3d.edit_mesh_extrude_move_shrink_fatten"
+
+    def execute(self, context):
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True)
 
     def invoke(self, context, event):
         return self.execute(context)
