@@ -124,6 +124,23 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
                             const Mat3X &X_world,
                             Mat3 *R, Vec3 *t);
 
+/**
+ * Computes the extrinsic parameters, R and t for a calibrated camera from 4 or
+ * more 3D points and their images.
+ *
+ * \param x_camera Image points in normalized camera coordinates,
+ *                 e.g. x_camera = inv(K) * x_image
+ * \param X_world 3D points in the world coordinate system
+ * \param R       Solution for the camera rotation matrix
+ * \param t       Solution for the camera translation vector
+ *
+ * Straight from the paper:
+ * http://www.diegm.uniud.it/fusiello/papers/3dimpvt12-b.pdf
+ */
+bool EuclideanResectionPPnP(const Mat2X &x_camera,
+                            const Mat3X &X_world,
+                            Mat3 *R, Vec3 *t);
+
 }  // namespace euclidean_resection
 }  // namespace libmv
 
