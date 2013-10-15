@@ -690,28 +690,6 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->prop = prop;
 }
 
-void ED_object_hook_reset_do(Object *ob, HookModifierData *hmd)
-{
-	/* reset functionality */
-	if (hmd->object) {
-		bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
-		
-		if (hmd->subtarget[0] && pchan) {
-			float imat[4][4], mat[4][4];
-			
-			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
-			mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
-			
-			invert_m4_m4(imat, mat);
-			mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
-		}
-		else {
-			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
-			mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
-		}
-	}
-}
-
 static int object_hook_reset_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
@@ -725,7 +703,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_object_hook_reset_do(ob, hmd);
+	BKE_object_modifier_hook_reset(ob, hmd);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

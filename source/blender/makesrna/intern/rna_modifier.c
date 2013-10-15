@@ -118,9 +118,8 @@ EnumPropertyItem modifier_type_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
-
-#include "ED_object.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -543,7 +542,7 @@ static void rna_HookModifier_object_set(PointerRNA *ptr, PointerRNA value)
 	HookModifierData *hmd = ptr->data;
 
 	hmd->object = (Object *)value.data;
-	ED_object_hook_reset_do((Object *)ptr->id.data, hmd);
+	BKE_object_modifier_hook_reset((Object *)ptr->id.data, hmd);
 }
 
 static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRNA value)

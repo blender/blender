@@ -48,6 +48,7 @@ struct rctf;
 struct MovieClip;
 struct Main;
 struct RigidBodyWorld;
+struct HookModifierData;
 
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -65,6 +66,8 @@ void BKE_object_update_base_layer(struct Scene *scene, struct Object *ob);
 
 void BKE_object_free(struct Object *ob);
 void BKE_object_free_derived_caches(struct Object *ob);
+
+void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
 
 bool BKE_object_support_modifier_type_check(struct Object *ob, int modifier_type);
 

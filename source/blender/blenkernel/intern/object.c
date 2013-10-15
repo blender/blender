@@ -194,6 +194,28 @@ void BKE_object_free_modifiers(Object *ob)
 	BKE_object_free_softbody(ob);
 }
 
+void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
+{
+	/* reset functionality */
+	if (hmd->object) {
+		bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
+
+		if (hmd->subtarget[0] && pchan) {
+			float imat[4][4], mat[4][4];
+
+			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
+			mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
+
+			invert_m4_m4(imat, mat);
+			mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
+		}
+		else {
+			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
+			mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
+		}
+	}
+}
+
 bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 {
 	ModifierTypeInfo *mti;

@@ -233,7 +233,6 @@ void object_test_constraints(struct Object *owner) {STUB_ASSERT(0);}
 void ED_armature_ebone_to_mat4(struct EditBone *ebone, float mat[4][4]) {STUB_ASSERT(0);}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr) {STUB_ASSERT(0);}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con) {STUB_ASSERT(0);}
-void ED_object_hook_reset_do(struct Object *ob, struct HookModifierData *hmd) {STUB_ASSERT(0);}
 void ED_node_composit_default(struct bContext *C, struct Scene *scene) {STUB_ASSERT(0);}
 void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type) {STUB_ASSERT(0); return 0;} /* XXX this one looks weird */
 void *ED_region_draw_cb_customdata(void *handle) {STUB_ASSERT(0); return 0;} /* XXX This one looks wrong also */

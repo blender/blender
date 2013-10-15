@@ -219,9 +219,6 @@ struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         int *free,
         const unsigned int selection_mask);
 
-/* object_hook.c */
-void ED_object_hook_reset_do(struct Object *ob, struct HookModifierData *hmd);
-
 #ifdef __cplusplus
 }
 #endif
