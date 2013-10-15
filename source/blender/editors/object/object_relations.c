@@ -2211,6 +2211,8 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	int flag = RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
 	bool copy_groups = false;
 
+	clear_id_newpoins();
+
 	if (RNA_boolean_get(op->ptr, "object"))
 		single_object_users(bmain, scene, v3d, flag, copy_groups);
 
@@ -2227,6 +2229,11 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "animation"))
 		single_object_action_users(scene, flag);
 
+	/* TODO(sergey): This should not be needed, however some tool still could rely
+	 *               on the fact, that id->newid is kept NULL by default.
+	 *               Need to make sure all the guys are learing newid before they're
+	 *               using it, not after.
+	 */
 	clear_id_newpoins();
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
