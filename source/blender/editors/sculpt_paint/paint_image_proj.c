@@ -164,6 +164,7 @@ BLI_INLINE unsigned char f_to_char(const float val)
 
 /* used for testing doubles, if a point is on a line etc */
 #define PROJ_GEOM_TOLERANCE 0.00075f
+#define PROJ_PIXEL_TOLERANCE 0.01f
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
@@ -2007,8 +2008,8 @@ static void project_bucket_clip_face(
 
 		/* remove doubles */
 		/* first/last check */
-		if (fabsf(isectVCosSS[0][0] - isectVCosSS[(*tot) - 1][0]) < PROJ_GEOM_TOLERANCE &&
-		    fabsf(isectVCosSS[0][1] - isectVCosSS[(*tot) - 1][1]) < PROJ_GEOM_TOLERANCE)
+		if (fabsf(isectVCosSS[0][0] - isectVCosSS[(*tot) - 1][0]) < PROJ_PIXEL_TOLERANCE &&
+		    fabsf(isectVCosSS[0][1] - isectVCosSS[(*tot) - 1][1]) < PROJ_PIXEL_TOLERANCE)
 		{
 			(*tot)--;
 		}
@@ -2024,8 +2025,8 @@ static void project_bucket_clip_face(
 		while (doubles == TRUE) {
 			doubles = FALSE;
 			for (i = 1; i < (*tot); i++) {
-				if (fabsf(isectVCosSS[i - 1][0] - isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&
-				    fabsf(isectVCosSS[i - 1][1] - isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE)
+				if (fabsf(isectVCosSS[i - 1][0] - isectVCosSS[i][0]) < PROJ_PIXEL_TOLERANCE &&
+				    fabsf(isectVCosSS[i - 1][1] - isectVCosSS[i][1]) < PROJ_PIXEL_TOLERANCE)
 				{
 					int j;
 					for (j = i + 1; j < (*tot); j++) {
