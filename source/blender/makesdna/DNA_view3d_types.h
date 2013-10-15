@@ -280,6 +280,7 @@ typedef struct View3D {
 #define V3D_SOLID_MATCAP		4096	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	8192	/* runtime flag */
 #define V3D_OCCLUDE_WIRE		16384
+#define V3D_SHADELESS_TEX		32768
 
 
 /* View3D->around */
