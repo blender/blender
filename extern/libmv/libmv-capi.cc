@@ -498,7 +498,6 @@ static bool selectTwoKeyframesBasedOnGRICAndVariance(
                           libmv::Tracks &tracks,
                           libmv::Tracks &normalized_tracks,
                           libmv::CameraIntrinsics &camera_intrinsics,
-                          libmv::ReconstructionOptions &reconstruction_options,
                           int &keyframe1,
                           int &keyframe2)
 {
@@ -542,8 +541,7 @@ static bool selectTwoKeyframesBasedOnGRICAndVariance(
 		/* get a solution from two keyframes only */
 		libmv::EuclideanReconstructTwoFrames(keyframe_markers, &reconstruction);
 		libmv::EuclideanBundle(keyframe_tracks, &reconstruction);
-		libmv::EuclideanCompleteReconstruction(reconstruction_options,
-		                                       keyframe_tracks,
+		libmv::EuclideanCompleteReconstruction(keyframe_tracks,
 		                                       &reconstruction, NULL);
 
 		double current_error =
@@ -585,10 +583,6 @@ struct libmv_Reconstruction *libmv_solveReconstruction(const struct libmv_Tracks
 	/* Retrieve reconstruction options from C-API to libmv API */
 	cameraIntrinsicsFromOptions(libmv_camera_intrinsics_options, &camera_intrinsics);
 
-	libmv::ReconstructionOptions reconstruction_options;
-	reconstruction_options.success_threshold = libmv_reconstruction_options->success_threshold;
-	reconstruction_options.use_fallback_reconstruction = libmv_reconstruction_options->use_fallback_reconstruction;
-
 	/* Invert the camera intrinsics */
 	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
 
@@ -604,7 +598,6 @@ struct libmv_Reconstruction *libmv_solveReconstruction(const struct libmv_Tracks
 		selectTwoKeyframesBasedOnGRICAndVariance(tracks,
 		                                         normalized_tracks,
 		                                         camera_intrinsics,
-		                                         reconstruction_options,
 		                                         keyframe1,
 		                                         keyframe2);
 
@@ -625,7 +618,7 @@ struct libmv_Reconstruction *libmv_solveReconstruction(const struct libmv_Tracks
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, &reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, &reconstruction);
-	libmv::EuclideanCompleteReconstruction(reconstruction_options, normalized_tracks,
+	libmv::EuclideanCompleteReconstruction(normalized_tracks,
 	                                       &reconstruction, &update_callback);
 
 	/* refinement */

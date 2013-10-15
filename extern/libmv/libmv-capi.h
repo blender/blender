@@ -94,9 +94,6 @@ typedef struct libmv_ReconstructionOptions {
 	int keyframe1, keyframe2;
 
 	int refine_intrinsics;
-
-	double success_threshold;
-	int use_fallback_reconstruction;
 } libmv_ReconstructionOptions;
 
 typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);

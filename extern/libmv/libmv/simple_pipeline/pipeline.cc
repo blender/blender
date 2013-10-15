@@ -51,10 +51,9 @@ struct EuclideanPipelineRoutines {
     EuclideanBundle(tracks, reconstruction);
   }
 
-  static bool Resect(const ReconstructionOptions &options,
-                     const vector<Marker> &markers,
+  static bool Resect(const vector<Marker> &markers,
                      EuclideanReconstruction *reconstruction, bool final_pass) {
-    return EuclideanResect(options, markers, reconstruction, final_pass);
+    return EuclideanResect(markers, reconstruction, final_pass);
   }
 
   static bool Intersect(const vector<Marker> &markers,
@@ -90,10 +89,8 @@ struct ProjectivePipelineRoutines {
     ProjectiveBundle(tracks, reconstruction);
   }
 
-  static bool Resect(const ReconstructionOptions &options,
-                     const vector<Marker> &markers,
+  static bool Resect(const vector<Marker> &markers,
                      ProjectiveReconstruction *reconstruction, bool final_pass) {
-    (void) options;  // Ignored.
     (void) final_pass;  // Ignored.
 
     return ProjectiveResect(markers, reconstruction);
@@ -144,7 +141,6 @@ static void CompleteReconstructionLogProgress(
 
 template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
-    const ReconstructionOptions &options,
     const Tracks &tracks,
     typename PipelineRoutines::Reconstruction *reconstruction,
     ProgressUpdateCallback *update_callback = NULL) {
@@ -217,7 +213,7 @@ void InternalCompleteReconstruction(
       if (reconstructed_markers.size() >= 5) {
         CompleteReconstructionLogProgress(update_callback,
                                           (double)tot_resects/(max_image));
-        if (PipelineRoutines::Resect(options, reconstructed_markers,
+        if (PipelineRoutines::Resect(reconstructed_markers,
                                      reconstruction, false)) {
           num_resects++;
           tot_resects++;
@@ -254,7 +250,7 @@ void InternalCompleteReconstruction(
     if (reconstructed_markers.size() >= 5) {
       CompleteReconstructionLogProgress(update_callback,
                                         (double)tot_resects/(max_image));
-      if (PipelineRoutines::Resect(options, reconstructed_markers,
+      if (PipelineRoutines::Resect(reconstructed_markers,
                                    reconstruction, true)) {
         num_resects++;
         LG << "Ran final Resect() for image " << image;
@@ -341,21 +337,17 @@ double ProjectiveReprojectionError(
                                                                intrinsics);
 }
 
-void EuclideanCompleteReconstruction(const ReconstructionOptions &options,
-                                     const Tracks &tracks,
+void EuclideanCompleteReconstruction(const Tracks &tracks,
                                      EuclideanReconstruction *reconstruction,
                                      ProgressUpdateCallback *update_callback) {
-  InternalCompleteReconstruction<EuclideanPipelineRoutines>(options,
-                                                            tracks,
+  InternalCompleteReconstruction<EuclideanPipelineRoutines>(tracks,
                                                             reconstruction,
                                                             update_callback);
 }
 
-void ProjectiveCompleteReconstruction(const ReconstructionOptions &options,
-                                      const Tracks &tracks,
+void ProjectiveCompleteReconstruction(const Tracks &tracks,
                                       ProjectiveReconstruction *reconstruction) {
-  InternalCompleteReconstruction<ProjectivePipelineRoutines>(options,
-                                                             tracks,
+  InternalCompleteReconstruction<ProjectivePipelineRoutines>(tracks,
                                                              reconstruction);
 }
 

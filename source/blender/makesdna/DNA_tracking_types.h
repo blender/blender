@@ -207,8 +207,7 @@ typedef struct MovieTrackingSettings {
 		                             * were moved to per-tracking object settings
 		                             */
 
-	float reconstruction_success_threshold;
-	int reconstruction_flag;
+	int reconstruction_flag, pad;
 
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics, pad2;
@@ -409,7 +408,7 @@ enum {
 
 /* MovieTrackingSettings->reconstruction_flag */
 enum {
-	TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0),
+	/* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */  /* DEPRECATED */
 	TRACKING_USE_KEYFRAME_SELECTION      = (1 << 1)
 };
 

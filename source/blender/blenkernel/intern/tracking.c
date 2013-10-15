@@ -212,7 +212,6 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->settings.default_algorithm_flag |= TRACK_ALGORITHM_FLAG_USE_BRUTE;
 	tracking->settings.dist = 1;
 	tracking->settings.object_distance = 1;
-	tracking->settings.reconstruction_success_threshold = 1e-3f;
 
 	tracking->stabilization.scaleinf = 1.0f;
 	tracking->stabilization.locinf = 1.0f;
@@ -3473,9 +3472,6 @@ typedef struct MovieReconstructContext {
 
 	TracksMap *tracks_map;
 
-	float success_threshold;
-	bool use_fallback_reconstruction;
-
 	int sfra, efra;
 } MovieReconstructContext;
 
@@ -3780,9 +3776,6 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 	context->k2 = camera->k2;
 	context->k3 = camera->k3;
 
-	context->success_threshold = tracking->settings.reconstruction_success_threshold;
-	context->use_fallback_reconstruction = tracking->settings.reconstruction_flag & TRACKING_USE_FALLBACK_RECONSTRUCTION;
-
 	context->tracks_map = tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);
 
 	track = tracksbase->first;
@@ -3877,9 +3870,6 @@ static void reconstructionOptionsFromContext(libmv_ReconstructionOptions *recons
 	reconstruction_options->keyframe2 = context->keyframe2;
 
 	reconstruction_options->refine_intrinsics = context->refine_flags;
-
-	reconstruction_options->success_threshold = context->success_threshold;
-	reconstruction_options->use_fallback_reconstruction = context->use_fallback_reconstruction;
 }
 
 /* Solve camera/object motion and reconstruct 3D markers position

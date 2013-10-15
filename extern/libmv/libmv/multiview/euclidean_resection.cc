@@ -37,23 +37,21 @@ typedef unsigned int uint;
   
 bool EuclideanResectionPPnP(const Mat2X &x_camera,
                             const Mat3X &X_world,
-                            Mat3 *R, Vec3 *t,
-                            double tolerance);
+                            Mat3 *R, Vec3 *t);
 
 bool EuclideanResection(const Mat2X &x_camera,
                         const Mat3X &X_world,
                         Mat3 *R, Vec3 *t,
-                        ResectionMethod method,
-                        double success_threshold) {
+                        ResectionMethod method) {
   switch (method) {
     case RESECTION_ANSAR_DANIILIDIS:
       EuclideanResectionAnsarDaniilidis(x_camera, X_world, R, t);
       break;
     case RESECTION_EPNP:
-      return EuclideanResectionEPnP(x_camera, X_world, R, t, success_threshold);
+      return EuclideanResectionEPnP(x_camera, X_world, R, t);
       break;
     case RESECTION_PPNP:
-      return EuclideanResectionPPnP(x_camera, X_world, R, t, success_threshold);
+      return EuclideanResectionPPnP(x_camera, X_world, R, t);
       break;
     default:
       LOG(FATAL) << "Unknown resection method.";
@@ -444,8 +442,7 @@ static void ComputePointsCoordinatesInCameraFrame(
 
 bool EuclideanResectionEPnP(const Mat2X &x_camera,
                             const Mat3X &X_world,
-                            Mat3 *R, Vec3 *t,
-                            double success_threshold) {
+                            Mat3 *R, Vec3 *t) {
   CHECK(x_camera.cols() == X_world.cols());
   CHECK(x_camera.cols() > 3);
   size_t num_points = X_world.cols();
@@ -553,13 +550,7 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   //
   // TODO(keir): Decide if setting this to infinity, effectively disabling the
   // check, is the right approach. So far this seems the case.
-  //
-  // TODO(sergey): Made it an option for now, in some cases it makes sense to
-  // still fallback to reprojection solution
-  // For details see bug [#32765] from Blender bug tracker
-
-  // double kSuccessThreshold = std::numeric_limits<double>::max();
-  double kSuccessThreshold = success_threshold;
+   double kSuccessThreshold = std::numeric_limits<double>::max();
 
   // Find the first possible solution for R, t corresponding to:
   // Betas          = [b00 b01 b11 b02 b12 b22 b03 b13 b23 b33]
@@ -728,8 +719,7 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
 // other hand, it did work on the first try.
 bool EuclideanResectionPPnP(const Mat2X &x_camera,
                             const Mat3X &X_world,
-                            Mat3 *R, Vec3 *t,
-                            double tolerance) {
+                            Mat3 *R, Vec3 *t) {
   int n = x_camera.cols();
   Mat Z = Mat::Zero(n, n);
   Vec e = Vec::Ones(n);
@@ -750,7 +740,7 @@ bool EuclideanResectionPPnP(const Mat2X &x_camera,
   Mat E(n, 3);
   
   int iteration = 0;
-  tolerance = 1e-5;
+  double tolerance = 1e-5;
   // TODO(keir): The limit of 100 can probably be reduced, but this will require
   // some investigation.
   while (error > tolerance && iteration < 100) {

@@ -39,9 +39,6 @@ namespace libmv {
     repeated until all points and cameras are estimated. Periodically, bundle
     adjustment is run to ensure a quality reconstruction.
 
-    \a options are used to define some specific befaviours based on settings
-    see documentation for ReconstructionOptions
-
     \a tracks should contain markers used in the reconstruction.
     \a reconstruction should contain at least some 3D points or some estimated
     cameras. The minimum number of cameras is two (with no 3D points) and the
@@ -50,7 +47,6 @@ namespace libmv {
     \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
 void EuclideanCompleteReconstruction(
-        const ReconstructionOptions &options,
         const Tracks &tracks,
         EuclideanReconstruction *reconstruction,
         ProgressUpdateCallback *update_callback = NULL);
@@ -68,9 +64,6 @@ void EuclideanCompleteReconstruction(
     repeated until all points and cameras are estimated. Periodically, bundle
     adjustment is run to ensure a quality reconstruction.
 
-    \a options are used to define some specific befaviours based on settings
-    see documentation for ReconstructionOptions
-
     \a tracks should contain markers used in the reconstruction.
     \a reconstruction should contain at least some 3D points or some estimated
     cameras. The minimum number of cameras is two (with no 3D points) and the
@@ -78,8 +71,7 @@ void EuclideanCompleteReconstruction(
 
     \sa ProjectiveResect, ProjectiveIntersect, ProjectiveBundle
 */
-void ProjectiveCompleteReconstruction(const ReconstructionOptions &options,
-                                      const Tracks &tracks,
+void ProjectiveCompleteReconstruction(const Tracks &tracks,
                                       ProjectiveReconstruction *reconstruction);
 
 
