@@ -3124,7 +3124,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 void MESH_OT_beautify_fill(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Beautify Fill";
+	ot->name = "Beautify Faces";
 	ot->idname = "MESH_OT_beautify_fill";
 	ot->description = "Rearrange some faces to try to get less degenerated geometry";
 
