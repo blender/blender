@@ -466,7 +466,9 @@ ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
-from types import MemberDescriptorType
+from types import (MemberDescriptorType,
+                   MethodType,
+                   )
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
@@ -629,12 +631,12 @@ def pymethod2sphinx(ident, fw, identifier, py_func):
         fw("\n")
 
 
-def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
+def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_class=True):
     '''
     function or class method to sphinx
     '''
 
-    if type(py_func) == type(bpy.types.Space.draw_handler_add):
+    if type(py_func) == MethodType:
         return
 
     arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
@@ -656,6 +658,11 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
     if py_func.__doc__:
         write_indented_lines(ident + "   ", fw, py_func.__doc__)
         fw("\n")
+
+    if is_class:
+        write_example_ref(ident + "   ", fw, module_name + "." + type_name + "." + identifier)
+    else:
+        write_example_ref(ident + "   ", fw, module_name + "." + identifier)
 
 
 def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
@@ -867,7 +874,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
     for attribute, value, value_type in module_dir_value_type:
         if value_type == types.FunctionType:
-            pyfunc2sphinx("", fw, attribute, value, is_class=False)
+            pyfunc2sphinx("", fw, module_name, None, attribute, value, is_class=False)
         elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType):  # both the same at the moment but to be future proof
             # note: can't get args from these, so dump the string as is
             # this means any module used like this must have fully formatted docstrings.
@@ -1316,7 +1323,7 @@ def pyrna2sphinx(basepath):
         py_func = None
 
         for identifier, py_func in py_funcs:
-            pyfunc2sphinx("   ", fw, identifier, py_func, is_class=True)
+            pyfunc2sphinx("   ", fw, "bpy.types", struct_id, identifier, py_func, is_class=True)
         del py_funcs, py_func
 
         py_funcs = struct.get_py_c_functions()

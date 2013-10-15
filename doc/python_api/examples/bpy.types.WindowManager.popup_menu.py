@@ -1,6 +1,4 @@
 """
-Popup Menus
-+++++++++++
 Popup menus can be useful for creating menus without having to register menu classes.
 
 Note that they will not block the scripts execution, so the caller can't wait for user input.
