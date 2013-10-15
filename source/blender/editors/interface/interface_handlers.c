@@ -2648,7 +2648,9 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	/* unlink icon is on right */
-	if (ELEM4(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) && event->val == KM_PRESS) {
+	if (ELEM4(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) && event->val == KM_PRESS &&
+	    ui_is_but_search_unlink_visible(but))
+	{
 		ARegion *ar = data->region;
 		rcti rect;
 		int x = event->x, y = event->y;
@@ -5759,6 +5761,13 @@ bool ui_is_but_interactive(uiBut *but)
 		return false;
 
 	return true;
+}
+
+bool ui_is_but_search_unlink_visible(uiBut *but)
+{
+	BLI_assert(but->type == SEARCH_MENU_UNLINK);
+	return ((but->editstr == NULL) &&
+	        (but->drawstr[0] != '\0'));
 }
 
 uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)

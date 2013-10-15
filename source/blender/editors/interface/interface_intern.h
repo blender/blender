@@ -402,6 +402,7 @@ extern bool ui_is_but_unit(uiBut *but);
 extern bool ui_is_but_rna_valid(uiBut *but);
 extern bool ui_is_but_utf8(uiBut *but);
 extern bool ui_is_but_interactive(uiBut *but);
+extern bool ui_is_but_search_unlink_visible(uiBut *but);
 
 extern int  ui_is_but_push_ex(uiBut *but, double *value);
 extern int  ui_is_but_push(uiBut *but);

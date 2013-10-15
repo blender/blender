@@ -961,7 +961,7 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 
 	if (but->flag & UI_HAS_ICON)
 		okwidth -= UI_DPI_ICON_SIZE;
-	if (but->type == SEARCH_MENU_UNLINK && !but->editstr)
+	if ((but->type == SEARCH_MENU_UNLINK) && ui_is_but_search_unlink_visible(but))
 		okwidth -= BLI_rcti_size_y(rect);
 
 	okwidth = max_ii(okwidth, 0);
@@ -1325,7 +1325,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 	
 	/* unlink icon for this button type */
-	if (but->type == SEARCH_MENU_UNLINK && !but->editstr && but->drawstr[0]) {
+	if ((but->type == SEARCH_MENU_UNLINK) && ui_is_but_search_unlink_visible(but)) {
 		rcti temp = *rect;
 
 		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
