@@ -1376,6 +1376,32 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		}
 	}
 
+	/* NORMAL button */
+	else if (but->type == BUT_NORMAL) {
+		float xyz[3];
+
+		if (but->poin == NULL && but->rnapoin.data == NULL) {
+			/* pass */
+		}
+		else if (mode == 'c') {
+			ui_get_but_vectorf(but, xyz);
+			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", xyz[0], xyz[1], xyz[2]);
+			WM_clipboard_text_set(buf, 0);
+		}
+		else {
+			if (sscanf(buf, "[%f, %f, %f]", &xyz[0], &xyz[1], &xyz[2]) == 3) {
+				if (normalize_v3(xyz) == 0.0f) {
+					/* better set Z up then have a zero vector */
+					xyz[2] = 1.0;
+				}
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				ui_set_but_vectorf(but, xyz);
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+		}
+	}
+
+
 	/* RGB triple */
 	else if (but->type == COLOR) {
 		float rgba[4];
