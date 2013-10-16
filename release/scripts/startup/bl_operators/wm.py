@@ -1298,10 +1298,10 @@ class WM_OT_blenderplayer_start(Operator):
 
         # handle some UI options as command line arguments
         args.extend([
-            "-g", "show_framerate=%d" % gs.show_framerate_profile,
-            "-g", "show_profile=%d" % gs.show_framerate_profile,
-            "-g", "show_properties=%d" % gs.show_debug_properties,
-            "-g", "ignore_deprecation_warnings=%d" % (not gs.use_deprecation_warnings),
+            "-g", "show_framerate", "=", "%d" % gs.show_framerate_profile,
+            "-g", "show_profile", "=", "%d" % gs.show_framerate_profile,
+            "-g", "show_properties", "=", "%d" % gs.show_debug_properties,
+            "-g", "ignore_deprecation_warnings", "=", "%d" % (not gs.use_deprecation_warnings),
             ])
 
         # finish the call with the path to the blend file
