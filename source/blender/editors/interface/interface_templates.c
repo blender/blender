@@ -1921,7 +1921,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 		case UICURVE_FUNC_RESET_NEG:
 		case UICURVE_FUNC_RESET_POS: /* reset */
 			curvemap_reset(cuma, &cumap->clipr, cumap->preset,
-			               (event == -1) ? CURVEMAP_SLOPE_NEGATIVE : CURVEMAP_SLOPE_POSITIVE);
+			               (event == UICURVE_FUNC_RESET_NEG) ? CURVEMAP_SLOPE_NEGATIVE : CURVEMAP_SLOPE_POSITIVE);
 			curvemapping_changed(cumap, FALSE);
 			break;
 		case UICURVE_FUNC_RESET_VIEW:
