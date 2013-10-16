@@ -37,6 +37,7 @@
 #include "BLI_listbase.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "intern/bmesh_private.h"
 
@@ -803,13 +804,13 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 /**
  * \brief BMESH TRIANGULATE FACE
  *
- * Currently repeatedly find the best triangle (i.e. the most "open" one), provided it does not
- * produces a "remaining" face with too much wide/narrow angles
- * (using cos (i.e. dot product of normalized vectors) of angles).
+ * Breaks all quads and ngons down to triangles.
+ * It uses scanfill for the ngons splitting, and
+ * the beautify operator when use_beauty is true.
  *
  * \param r_faces_new if non-null, must be an array of BMFace pointers,
- * with a length equal to (f->len - 2). It will be filled with the new
- * triangles.
+ * with a length equal to (f->len - 3). It will be filled with the new
+ * triangles (not including the original triangle).
  *
  * \note use_tag tags new flags and edges.
  */
@@ -817,11 +818,14 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
                          MemArena *sf_arena,
-                         const bool UNUSED(use_beauty), const bool use_tag)
+                         const bool use_beauty, const bool use_tag)
 {
-	int nf_i = 0;
 	BMLoop *l_iter, *l_first, *l_new;
 	BMFace *f_new;
+	int orig_f_len = f->len;
+	int nf_i = 0;
+	BMEdge **edge_array;
+	int edge_array_len;
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
@@ -904,30 +908,94 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				if (use_tag) {
 					BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 				}
-				if (r_faces_new && sf_tri->next) {
+				if (r_faces_new) {
 					r_faces_new[nf_i++] = f_new;
 				}
 			}
 		}
 
-		if (use_tag) {
+		if (use_beauty || use_tag) {
 			ScanFillEdge *sf_edge;
-			for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
-				if (sf_edge->tmp.c != SF_EDGE_IS_BOUNDARY) {
-					BMLoop *l1 = sf_edge->v1->tmp.p;
-					BMLoop *l2 = sf_edge->v2->tmp.p;
+			edge_array = BLI_array_alloca(edge_array, orig_f_len - 3);
+			edge_array_len = 0;
 
-					BMEdge *e = BM_edge_exists(l1->v, l2->v);
-					BM_elem_flag_enable(e, BM_ELEM_TAG);
+			for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
+				BMLoop *l1 = sf_edge->v1->tmp.p;
+				BMLoop *l2 = sf_edge->v2->tmp.p;
+
+				BMEdge *e = BM_edge_exists(l1->v, l2->v);
+				if (sf_edge->tmp.c != SF_EDGE_IS_BOUNDARY) {
+
+					if (use_beauty) {
+						BM_elem_index_set(e, edge_array_len);  /* set_dirty */
+						edge_array[edge_array_len] = e;
+						edge_array_len++;
+					}
+
+					if (use_tag) {
+						BM_elem_flag_enable(e, BM_ELEM_TAG);
+					}
+				}
+				else if (use_tag) {
+					BM_elem_flag_disable(e, BM_ELEM_TAG);
 				}
 			}
+
 		}
 
-		if (sf_ctx.fillfacebase.first) {
+		if ((!use_beauty) || (!r_faces_new)){
 			/* we can't delete the real face, because some of the callers expect it to remain valid.
 			 * so swap data and delete the last created tri */
 			bmesh_face_swap_data(bm, f, f_new);
 			BM_face_kill(bm, f_new);
+		}
+
+		if (use_beauty) {
+			bm->elem_index_dirty |= BM_EDGE;
+			BM_mesh_beautify_fill(bm, edge_array, edge_array_len, 0, 0, 0, 0);
+
+			if (r_faces_new) {
+				/* beautify deletes and creates new faces
+				 * we need to re-populate the r_faces_new array
+				 * with the new faces
+				 */
+				BMEdge *e;
+				BMFace *fa, *fb;
+				int i;
+
+				nf_i = 0;
+				for (i = 0; i < edge_array_len; i++) {
+					e = edge_array[i];
+					BLI_assert(BM_edge_face_pair(e, &fa, &fb));
+
+					if (i == edge_array_len - 1) {
+						if (BM_elem_index_get(fa) != -2)
+							f_new = fa;
+						else if (BM_elem_index_get(fb) != -2)
+							f_new = fb;
+						else
+							BLI_assert(false);
+					}
+					else {
+						if (BM_elem_index_get(fa) != -2) {
+							r_faces_new[nf_i++] = fa;
+							BM_elem_index_set(fa, -2);
+						}
+
+						if (BM_elem_index_get(fb) != -2) {
+							r_faces_new[nf_i++] = fb;
+							BM_elem_index_set(fb, -2);
+						}
+					}
+				}
+				/* nf_i doesn't include the last face */
+				BLI_assert(nf_i == orig_f_len - 3);
+
+				/* we can't delete the real face, because some of the callers expect it to remain valid.
+				 * so swap data and delete the last created tri */
+				bmesh_face_swap_data(bm, f, f_new);
+				BM_face_kill(bm, f_new);
+			}
 		}
 
 		/* garbage collection */
