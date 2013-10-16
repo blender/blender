@@ -45,7 +45,10 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	vector<Node *>& nodes = system.getNodes();
 	vector<SocketConnection *>& links = system.getConnections();
 	
-	bool is_active_group = (parent_key.value == system.getContext().getbNodeTree()->active_viewer_key.value);
+	const bNodeTree *basetree = system.getContext().getbNodeTree();
+	/* update viewers in the active edittree as well the base tree (for backdrop) */
+	bool is_active_group = (parent_key.value == basetree->active_viewer_key.value
+	                        || tree == basetree);
 	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
