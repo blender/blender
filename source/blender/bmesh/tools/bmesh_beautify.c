@@ -357,7 +357,8 @@ static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_
  * have their index values set according to their position in the array.
  */
 void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
-                                  const short flag, const short method)
+                                  const short flag, const short method,
+                                  const short oflag_edge, const short oflag_face)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
@@ -416,9 +417,12 @@ void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_
 			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr, flag, method);
 
 			/* update flags */
-			BMO_elem_flag_enable(bm, e, ELE_NEW);
-			BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
-			BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
+			if (oflag_edge)
+				BMO_elem_flag_enable(bm, e, oflag_edge);
+			if (oflag_face) {
+				BMO_elem_flag_enable(bm, e->l->f, oflag_face);
+				BMO_elem_flag_enable(bm, e->l->radial_next->f, oflag_face);
+			}
 		}
 	}
 

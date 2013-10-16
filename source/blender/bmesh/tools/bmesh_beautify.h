@@ -32,6 +32,7 @@ enum {
 };
 
 void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
-                           const short flag, const short method);
+                           const short flag, const short method,
+                           const short oflag_edge, const short oflag_face);
 
 #endif /* __BMESH_BEAUTIFY_H__ */

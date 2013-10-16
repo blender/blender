@@ -79,7 +79,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	bm->elem_index_dirty |= BM_EDGE;
 
-	BM_mesh_beautify_fill(bm, edge_array, edge_array_len, flag, method);
+	BM_mesh_beautify_fill(bm, edge_array, edge_array_len, flag, method, ELE_NEW, FACE_MARK | ELE_NEW);
 
 	MEM_freeN(edge_array);
 
