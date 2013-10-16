@@ -814,7 +814,6 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
  *
  * \note use_tag tags new flags and edges.
  */
-#define SF_EDGE_IS_BOUNDARY 0xff
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
                          MemArena *sf_arena,
@@ -826,6 +825,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	int nf_i = 0;
 	BMEdge **edge_array;
 	int edge_array_len;
+
+#define SF_EDGE_IS_BOUNDARY 0xff
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
@@ -959,35 +960,47 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				 * we need to re-populate the r_faces_new array
 				 * with the new faces
 				 */
-				BMEdge *e;
-				BMFace *fa, *fb;
 				int i;
+
+
+#define FACE_USED_TEST(f) (BM_elem_index_get(f) == -2)
+#define FACE_USED_SET(f)   BM_elem_index_set(f,    -2)
 
 				nf_i = 0;
 				for (i = 0; i < edge_array_len; i++) {
-					e = edge_array[i];
-					BLI_assert(BM_edge_face_pair(e, &fa, &fb));
+					BMFace *f_a, *f_b;
+					BMEdge *e = edge_array[i];
+					const bool ok = BM_edge_face_pair(e, &f_a, &f_b);
+
+					BLI_assert(ok);
 
 					if (i == edge_array_len - 1) {
-						if (BM_elem_index_get(fa) != -2)
-							f_new = fa;
-						else if (BM_elem_index_get(fb) != -2)
-							f_new = fb;
-						else
+						if (FACE_USED_TEST(f_a) == false) {
+							f_new = f_a;
+						}
+						else if (FACE_USED_TEST(f_b) == false) {
+							f_new = f_b;
+						}
+						else {
 							BLI_assert(false);
+						}
 					}
 					else {
-						if (BM_elem_index_get(fa) != -2) {
-							r_faces_new[nf_i++] = fa;
-							BM_elem_index_set(fa, -2);
+						if (FACE_USED_TEST(f_a) == false) {
+							FACE_USED_SET(f_a);
+							r_faces_new[nf_i++] = f_a;
 						}
 
-						if (BM_elem_index_get(fb) != -2) {
-							r_faces_new[nf_i++] = fb;
-							BM_elem_index_set(fb, -2);
+						if (FACE_USED_TEST(f_b) == false) {
+							FACE_USED_SET(f_b);
+							r_faces_new[nf_i++] = f_b;
 						}
 					}
 				}
+
+#undef FACE_USED_TEST
+#undef FACE_USED_SET
+
 				/* nf_i doesn't include the last face */
 				BLI_assert(nf_i == orig_f_len - 3);
 
@@ -1001,6 +1014,9 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		/* garbage collection */
 		BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 	}
+
+#undef SF_EDGE_IS_BOUNDARY
+
 }
 
 /**
