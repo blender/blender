@@ -1141,7 +1141,7 @@ struct Image *RE_bake_shade_get_image(void)
 
 static void add_single_heights_margin(const ImBuf *ibuf, const char *mask, float *heights_buffer)
 {
-	int x ,y;
+	int x, y;
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
@@ -1200,11 +1200,11 @@ float RE_bake_make_derivative(ImBuf *ibuf, float *heights_buffer, const char *ma
 	if (auto_range_fit) {
 		/* If automatic range fitting is enabled. */
 		for (y = 0; y < ibuf->y; y++) {
-			const int Yu = y == (ibuf->y - 1) ? (ibuf->y - 1) : (y+1);
+			const int Yu = y == (ibuf->y - 1) ? (ibuf->y - 1) : (y + 1);
 			const int Yc = y;
 			const int Yd = y == 0 ? 0 : (y - 1);
 
-			for (x= 0; x < ibuf->x; x++) {
+			for (x = 0; x < ibuf->x; x++) {
 				const int Xl = x == 0 ? 0 : (x - 1);
 				const int Xc = x;
 				const int Xr = x == (ibuf->x - 1) ? (ibuf->x - 1) : (x + 1);
@@ -1244,11 +1244,11 @@ float RE_bake_make_derivative(ImBuf *ibuf, float *heights_buffer, const char *ma
 	/* Output derivatives. */
 	auto_range_fit &= (max_num_deriv > 0);
 	for (y = 0; y < ibuf->y; y++) {
-		const int Yu= y==(ibuf->y-1) ? (ibuf->y-1) : (y+1);
-		const int Yc= y;
-		const int Yd= y==0 ? 0 : (y-1);
+		const int Yu = y == (ibuf->y - 1) ? (ibuf->y - 1) : (y + 1);
+		const int Yc = y;
+		const int Yd = y == 0 ? 0 : (y - 1);
 
-		for(x= 0; x<ibuf->x; x++) {
+		for (x = 0; x < ibuf->x; x++) {
 			const int Xl = x == 0 ? 0 : (x - 1);
 			const int Xc = x;
 			const int Xr = x == (ibuf->x - 1) ? (ibuf->x - 1) : (x + 1);
@@ -1269,14 +1269,15 @@ float RE_bake_make_derivative(ImBuf *ibuf, float *heights_buffer, const char *ma
 
 			/* Early out. */
 			index = ibuf->x * y + x;
-			if (mask[index] != FILTER_MASK_USED){
+			if (mask[index] != FILTER_MASK_USED) {
 				continue;
 			}
 
 			if (auto_range_fit) {
 				deriv_x /= max_num_deriv;
 				deriv_y /= max_num_deriv;
-			} else {
+			}
+			else {
 				deriv_x *= (fmult / denom);
 				deriv_y *= (fmult / denom);
 			}
@@ -1296,8 +1297,9 @@ float RE_bake_make_derivative(ImBuf *ibuf, float *heights_buffer, const char *ma
 				rrgbf[1] = deriv_y;
 				rrgbf[2] = 0.0f;
 				rrgbf[3] = 1.0f;
-			} else {
-				char *rrgb = (char*)ibuf->rect + index * 4;
+			}
+			else {
+				char *rrgb = (char *)ibuf->rect + index * 4;
 
 				rrgb[0] = FTOCHAR(deriv_x);
 				rrgb[1] = FTOCHAR(deriv_y);

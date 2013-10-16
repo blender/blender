@@ -949,7 +949,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 	RNA_int_get_array(op->ptr, "location", location);
 	paint_sample_color(C, ar, location[0], location[1]);
 
-	if(show_cursor) {
+	if (show_cursor) {
 		paint->flags |= PAINT_SHOW_BRUSH;
 	}
 
@@ -989,7 +989,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	Brush *brush = BKE_paint_brush(paint);
 
 	if ((event->type == data->event_type) && (event->val == KM_RELEASE)) {
-		if(data->show_cursor) {
+		if (data->show_cursor) {
 			paint->flags |= PAINT_SHOW_BRUSH;
 		}
 

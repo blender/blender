@@ -65,7 +65,7 @@ static char *glsl_material_library = NULL;
 
 /* structs and defines */
 
-static const char* GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
+static const char *GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"};
 
 #define LINK_IMAGE_BLENDER	1

@@ -677,7 +677,7 @@ def make_rna_paths(struct_name, prop_name, enum_name):
         if prop_name:
             src = src_rna = ".".join((struct_name, prop_name))
             if enum_name:
-                src = src_enum = "{}:'{}'".format(src_rna, enum_name)
+                src = src_enum = "%s:'%s'" % (src_rna, enum_name)
         else:
             src = src_rna = struct_name
     return src, src_rna, src_enum

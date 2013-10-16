@@ -405,7 +405,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 			}
 			
 			/* determine where end of array is
-			 *	- elemsize is in bytes, so use char* cast to get array in terms of bytes
+			 *	- elemsize is in bytes, so use (char *) cast to get array in terms of bytes
 			 */
 			end = (float *)((char *)start + (key->elemsize * kb->totelem));
 			
@@ -422,7 +422,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 
 static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
 {
-	/* if we frame the data array and point pointers as char*, then the difference between
+	/* if we frame the data array and point pointers as (char *), then the difference between
 	 * them will be in bytes. Thus, dividing through by key->elemsize (number of bytes per point)
 	 * gives us the offset of point from start of array.
 	 */

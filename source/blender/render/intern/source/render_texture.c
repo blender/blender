@@ -1724,7 +1724,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	const float bf = -0.04f*Tnor*mtex->norfac;
 	int rgbnor;
 	/* disable internal bump eval */
-	float* nvec = texres->nor;
+	float *nvec = texres->nor;
 	texres->nor = NULL;
 	/* du & dv estimates, constant value defaults */
 	du = dv = 0.01f;
