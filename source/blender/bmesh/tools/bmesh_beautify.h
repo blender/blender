@@ -15,36 +15,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s):
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMESH_TOOLS_H__
-#define __BMESH_TOOLS_H__
+#ifndef __BMESH_BEAUTIFY_H__
+#define __BMESH_BEAUTIFY_H__
 
-/** \file blender/bmesh/bmesh_tools.h
+/** \file blender/bmesh/tools/bmesh_beautify.h
  *  \ingroup bmesh
- *
- * Utility functions that operate directly on the BMesh,
- * These can be used by both Modifiers and BMesh-Operators.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+enum {
+	VERT_RESTRICT_TAG = (1 << 0),
+};
 
-#include "tools/bmesh_beautify.h"
-#include "tools/bmesh_bevel.h"
-#include "tools/bmesh_bisect_plane.h"
-#include "tools/bmesh_decimate.h"
-#include "tools/bmesh_edgenet.h"
-#include "tools/bmesh_edgesplit.h"
-#include "tools/bmesh_path.h"
-#include "tools/bmesh_triangulate.h"
+void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
+                           const short flag, const short method);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __BMESH_TOOLS_H__ */
+#endif /* __BMESH_BEAUTIFY_H__ */

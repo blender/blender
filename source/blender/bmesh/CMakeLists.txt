@@ -119,6 +119,8 @@ set(SRC
 	intern/bmesh_operator_api.h
 	intern/bmesh_error.h
 
+	tools/bmesh_beautify.c
+	tools/bmesh_beautify.h
 	tools/bmesh_bevel.c
 	tools/bmesh_bevel.h
 	tools/bmesh_bisect_plane.c
