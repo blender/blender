@@ -290,9 +290,7 @@ static void rna_idproperty_free(PointerRNA *ptr, const char *name)
 	if (group) {
 		IDProperty *idprop = IDP_GetPropertyFromGroup(group, name);
 		if (idprop) {
-			IDP_RemFromGroup(group, idprop);
-			IDP_FreeProperty(idprop);
-			MEM_freeN(idprop);
+			IDP_FreeFromGroup(group, idprop);
 		}
 	}
 }
@@ -423,9 +421,7 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			if (idprop && !rna_idproperty_verify_valid(ptr, *prop, idprop)) {
 				IDProperty *group = RNA_struct_idprops(ptr, 0);
 
-				IDP_RemFromGroup(group, idprop);
-				IDP_FreeProperty(idprop);
-				MEM_freeN(idprop);
+				IDP_FreeFromGroup(group, idprop);
 				return NULL;
 			}
 
@@ -596,9 +592,7 @@ bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier)
 	if (group) {
 		IDProperty *idp = IDP_GetPropertyFromGroup(group, identifier);
 		if (idp) {
-			IDP_RemFromGroup(group, idp);
-			IDP_FreeProperty(idp);
-			MEM_freeN(idp);
+			IDP_FreeFromGroup(group, idp);
 
 			return true;
 		}
@@ -2771,9 +2765,7 @@ void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop)
 		group = RNA_struct_idprops(ptr, 0);
 		
 		if (group) {
-			IDP_RemFromGroup(group, idprop);
-			IDP_FreeProperty(idprop);
-			MEM_freeN(idprop);
+			IDP_FreeFromGroup(group, idprop);
 		}
 	}
 	else

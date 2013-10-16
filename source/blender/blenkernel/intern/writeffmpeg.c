@@ -1254,9 +1254,7 @@ void BKE_ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 
 	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);
 	if (group && prop) {
-		IDP_RemFromGroup(group, prop);
-		IDP_FreeProperty(prop);
-		MEM_freeN(prop);
+		IDP_FreeFromGroup(group, prop);
 	}
 }
 

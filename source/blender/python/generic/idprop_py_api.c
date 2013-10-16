@@ -496,9 +496,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 	if (val == NULL) { /* del idprop[key] */
 		IDProperty *pkey = IDP_GetPropertyFromGroup(prop, _PyUnicode_AsString(key));
 		if (pkey) {
-			IDP_RemFromGroup(prop, pkey);
-			IDP_FreeProperty(pkey);
-			MEM_freeN(pkey);
+			IDP_FreeFromGroup(prop, pkey);
 			return 0;
 		}
 		else {
@@ -670,7 +668,7 @@ static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 			return NULL;
 		}
 
-		IDP_RemFromGroup(self->prop, idprop);
+		IDP_RemoveFromGroup(self->prop, idprop);
 		return pyform;
 	}
 

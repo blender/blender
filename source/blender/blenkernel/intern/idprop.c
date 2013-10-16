@@ -641,12 +641,22 @@ int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
  * IDP_FreeProperty(prop); //free all subdata
  * MEM_freeN(prop); //free property struct itself
  */
-void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
+void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop)
 {
 	BLI_assert(group->type == IDP_GROUP);
 
 	group->len--;
 	BLI_remlink(&group->data.group, prop);
+}
+
+/**
+ * Removes the property from the group and frees it.
+ */
+void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
+{
+	IDP_RemoveFromGroup(group, prop);
+	IDP_FreeProperty(prop);
+	MEM_freeN(prop);
 }
 
 IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
