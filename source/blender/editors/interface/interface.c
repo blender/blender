@@ -4186,5 +4186,6 @@ void UI_reinit_font(void)
 void UI_exit(void)
 {
 	ui_resources_free();
+	ui_button_clipboard_free();
 }
 
