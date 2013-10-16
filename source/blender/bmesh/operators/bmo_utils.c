@@ -145,19 +145,23 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == false)
 				{
 
+					/* don't touch again (faces will be freed so run before rotating the edge) */
+					BMO_elem_flag_enable(bm, fa, FACE_TAINT);
+					BMO_elem_flag_enable(bm, fb, FACE_TAINT);
+
 					if (!(e2 = BM_edge_rotate(bm, e, use_ccw, check_flag))) {
+
+						BMO_elem_flag_disable(bm, fa, FACE_TAINT);
+						BMO_elem_flag_disable(bm, fb, FACE_TAINT);
 #if 0
 						BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
 						return;
 #endif
+
 						continue;
 					}
 
 					BMO_elem_flag_enable(bm, e2, EDGE_OUT);
-
-					/* don't touch again */
-					BMO_elem_flag_enable(bm, fa, FACE_TAINT);
-					BMO_elem_flag_enable(bm, fb, FACE_TAINT);
 				}
 			}
 		}
