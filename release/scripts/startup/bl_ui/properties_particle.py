@@ -211,12 +211,12 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
         row.active = part.distribution != 'GRID'
         row.prop(part, "count")
 
-        if part.type == 'HAIR' and not part.use_advanced_hair:
+        if part.type == 'HAIR':
             row.prop(part, "hair_length")
-
-            row = layout.row()
-            row.prop(part, "use_modifier_stack")
-            return
+            if not part.use_advanced_hair:
+                row = layout.row()
+                row.prop(part, "use_modifier_stack")
+                return
 
         if part.type != 'HAIR':
             split = layout.split()
