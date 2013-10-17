@@ -579,6 +579,26 @@ Nurb *BKE_nurb_duplicate(Nurb *nu)
 	return newnu;
 }
 
+/* copy the nurb but allow for different number of points (to be copied after this) */
+Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
+{
+	Nurb *newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "copyNurb");
+	memcpy(newnu, src, sizeof(Nurb));
+
+	if (pntsu == 1) SWAP(int, pntsu, pntsv);
+	newnu->pntsu = pntsu;
+	newnu->pntsv = pntsv;
+
+	if (src->bezt) {
+		newnu->bezt = (BezTriple *)MEM_mallocN(pntsu * pntsv * sizeof(BezTriple), "copyNurb2");
+	}
+	else {
+		newnu->bp = (BPoint *)MEM_mallocN(pntsu * pntsv * sizeof(BPoint), "copyNurb3");
+	}
+
+	return newnu;
+}
+
 void BKE_nurbList_duplicate(ListBase *lb1, ListBase *lb2)
 {
 	Nurb *nu, *nun;

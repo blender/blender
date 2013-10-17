@@ -364,6 +364,8 @@ typedef enum eBezTriple_KeyframeType {
 /* mixed with KEY_LINEAR but define here since only curve supports */
 #define KEY_CU_EASE			3
 
+/* indicates point has been seen during surface duplication */
+#define SURF_SEEN			4
 
 #endif
 

@@ -111,7 +111,7 @@ typedef enum eCurveElem_Types {
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
 static void select_adjacent_cp(ListBase *editnurb, short next, const bool cont, const bool selstatus);
 static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
-static int curve_delete_selected(Object *obedit, const eCurveElem_Types type, const bool split);
+static int curve_delete_segments(Object *obedit, const bool split);
 
 ListBase *object_editcurve_get(Object *ob)
 {
@@ -1373,16 +1373,15 @@ static int separate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Nurb *nu, *nu1;
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
 	Curve *oldcu, *newcu;
-	EditNurb *oldedit, *newedit;
+	EditNurb *newedit;
+	ListBase newnurb = {NULL, NULL};
 
 	oldbase = CTX_data_active_base(C);
 	oldob = oldbase->object;
 	oldcu = oldob->data;
-	oldedit = oldcu->editnurb;
 
 	if (oldcu->key) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot separate a curve with vertex keys");
@@ -1390,44 +1389,43 @@ static int separate_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_cursor_wait(1);
-	
-	/* 1. duplicate the object and data */
+
+	/* 1. duplicate geometry and check for valid selection for separate */
+	adduplicateflagNurb(oldob, &newnurb, SELECT, true);
+
+	if (newnurb.first == NULL) {
+		WM_cursor_wait(0);
+		BKE_report(op->reports, RPT_ERROR, "Cannot separate current selection");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* 2. duplicate the object and data */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, 0); /* 0 = fully linked */
 	DAG_relations_tag_update(bmain);
 
-	ED_base_object_select(newbase, BA_DESELECT);
 	newob = newbase->object;
-
 	newcu = newob->data = BKE_curve_copy(oldcu);
 	newcu->editnurb = NULL;
 	oldcu->id.us--; /* because new curve is a copy: reduce user count */
 
-	/* 2. put new object in editmode and clear it */
+	/* 3. put new object in editmode, clear it and set separated nurbs */
 	make_editNurb(newob);
 	newedit = newcu->editnurb;
 	BKE_nurbList_free(&newedit->nurbs);
 	BKE_curve_editNurb_keyIndex_free(newedit);
 	newedit->keyindex = NULL;
+	BLI_movelisttolist(&newedit->nurbs, &newnurb);
 
-	/* 3. move over parts from old object */
-	for (nu = oldedit->nurbs.first; nu; nu = nu1) {
-		nu1 = nu->next;
-
-		if (isNurbsel(nu)) {
-			keyIndex_delNurb(oldedit, nu);
-			BLI_remlink(&oldedit->nurbs, nu);
-			BLI_addtail(&newedit->nurbs, nu);
-		}
-	}
-
-	/* 4. put old object out of editmode */
+	/* 4. put old object out of editmode and delete separated geometry */
 	load_editNurb(newob);
 	free_editNurb(newob);
+	curve_delete_segments(oldob, true);
 
 	DAG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
 	DAG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, oldob->data);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, newob);
 
 	WM_cursor_wait(0);
 
@@ -1439,7 +1437,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Separate";
 	ot->idname = "CURVE_OT_separate";
-	ot->description = "Separate (partly) selected curves or surfaces into a new object";
+	ot->description = "Separate selected points from connected unselected points into a new object";
 	
 	/* api callbacks */
 	ot->exec = separate_exec;
@@ -1460,7 +1458,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
 	adduplicateflagNurb(obedit, &newnurb, SELECT, true);
 
 	if (newnurb.first != NULL) {
-		curve_delete_selected(obedit, CURVE_SEGMENT, true);
+		curve_delete_segments(obedit, true);
 		BLI_movelisttolist(editnurb, &newnurb);
 
 		if (ED_curve_updateAnimPaths(obedit->data))
@@ -1486,7 +1484,7 @@ void CURVE_OT_split(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = curve_split_exec;
-	ot->poll = ED_operator_editcurve;
+	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1537,6 +1535,57 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 	if (*u == -1 && *v > -1) return 1;
 	if (*v == -1 && *u > -1) return 1;
 	return 0;
+}
+
+/* return true if U direction is selected and number of selected columns v */
+static bool isNurbselU(Nurb *nu, int *v, int flag)
+{
+	BPoint *bp;
+	int a, b, sel;
+
+	*v = 0;
+
+	for (b = 0, bp = nu->bp; b < nu->pntsv; b++) {
+		sel = 0;
+		for (a = 0; a < nu->pntsu; a++, bp++) {
+			if (bp->f1 & flag) sel++;
+		}
+		if (sel == nu->pntsu) {
+			(*v)++;
+		}
+		else if (sel >= 1) {
+			*v = 0;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+/* return true if V direction is selected and number of selected rows u */
+static bool isNurbselV(Nurb *nu, int *u, int flag)
+{
+	BPoint *bp;
+	int a, b, sel;
+
+	*u = 0;
+
+	for (a = 0; a < nu->pntsu; a++) {
+		bp = &nu->bp[a];
+		sel = 0;
+		for (b = 0; b < nu->pntsv; b++, bp += nu->pntsu) {
+			if (bp->f1 & flag) sel++;
+		}
+		if (sel == nu->pntsv) {
+			(*u)++;
+		}
+		else if (sel >= 1) {
+			*u = 0;
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 static void rotateflagNurb(ListBase *editnurb, short flag, const float cent[3], float rotmat[3][3])
@@ -1622,7 +1671,7 @@ static int deleteflagNurb(Object *obedit, short flag)
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu, *next;
 	BPoint *bp, *bpn, *newbp;
-	int a, b, newu, newv, sel;
+	int a, b, newu, newv;
 
 	if (obedit->type != OB_SURF) {
 		return OPERATOR_CANCELLED;
@@ -1653,62 +1702,36 @@ static int deleteflagNurb(Object *obedit, short flag)
 			BKE_nurb_free(nu); nu = NULL;
 		}
 		else {
-			/* is nurb in U direction selected */
-			newv = nu->pntsv;
-			bp = nu->bp;
-			for (b = 0; b < nu->pntsv; b++) {
-				sel = 0;
-				for (a = 0; a < nu->pntsu; a++, bp++) {
-					if (bp->f1 & flag) sel++;
-				}
-				if (sel == nu->pntsu) {
-					newv--;
-				}
-				else if (sel >= 1) {
-					/* don't delete */
-					break;
-				}
-			}
-			if (newv != nu->pntsv && b == nu->pntsv) {
-				/* delete */
-				bp = nu->bp;
-				bpn = newbp = (BPoint *)MEM_mallocN(newv * nu->pntsu * sizeof(BPoint), "deleteNurb");
-				for (b = 0; b < nu->pntsv; b++) {
-					if ((bp->f1 & flag) == 0) {
-						memcpy(bpn, bp, nu->pntsu * sizeof(BPoint));
-						keyIndex_updateBP(cu->editnurb, bp, bpn, nu->pntsu);
-						bpn += nu->pntsu;
+			if (isNurbselU(nu, &newv, flag)) {
+				/* U direction selected */
+				newv = nu->pntsv - newv;
+				if (newv != nu->pntsv) {
+					/* delete */
+					bp = nu->bp;
+					bpn = newbp = (BPoint *)MEM_mallocN(newv * nu->pntsu * sizeof(BPoint), "deleteNurb");
+					for (b = 0; b < nu->pntsv; b++) {
+						if ((bp->f1 & flag) == 0) {
+							memcpy(bpn, bp, nu->pntsu * sizeof(BPoint));
+							keyIndex_updateBP(cu->editnurb, bp, bpn, nu->pntsu);
+							bpn += nu->pntsu;
+						}
+						else {
+							keyIndex_delBP(cu->editnurb, bp);
+						}
+						bp += nu->pntsu;
 					}
-					else {
-						keyIndex_delBP(cu->editnurb, bp);
-					}
-					bp += nu->pntsu;
-				}
-				nu->pntsv = newv;
-				MEM_freeN(nu->bp);
-				nu->bp = newbp;
-				BKE_nurb_order_clamp_v(nu);
+					nu->pntsv = newv;
+					MEM_freeN(nu->bp);
+					nu->bp = newbp;
+					BKE_nurb_order_clamp_v(nu);
 
-				BKE_nurb_knot_calc_v(nu);
-			}
-			else {
-				/* is the nurb in V direction selected */
-				newu = nu->pntsu;
-				for (a = 0; a < nu->pntsu; a++) {
-					bp = &nu->bp[a];
-					sel = 0;
-					for (b = 0; b < nu->pntsv; b++, bp += nu->pntsu) {
-						if (bp->f1 & flag) sel++;
-					}
-					if (sel == nu->pntsv) {
-						newu--;
-					}
-					else if (sel >= 1) {
-						/* don't delete */
-						break;
-					}
+					BKE_nurb_knot_calc_v(nu);
 				}
-				if (newu != nu->pntsu && a == nu->pntsu) {
+			}
+			else if (isNurbselV(nu, &newu, flag)) {
+				/* V direction selected */
+				newu = nu->pntsu - newu;
+				if (newu != nu->pntsu) {
 					/* delete */
 					bp = nu->bp;
 					bpn = newbp = (BPoint *)MEM_mallocN(newu * nu->pntsv * sizeof(BPoint), "deleteNurb");
@@ -1872,21 +1895,18 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
                                 const short flag, const bool split)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
-	Nurb *nu, *newnu, *startnu;
+	Nurb *nu = editnurb->last, *newnu;
 	BezTriple *bezt, *bezt1;
-	BPoint *bp, *bp1;
+	BPoint *bp, *bp1, *bp2, *bp3;
 	Curve *cu = (Curve *)obedit->data;
-	int a, b, starta, enda, diffa, newu, newv;
+	int a, b, c, starta, enda, diffa, cyclicu, cyclicv, newu, newv;
 	char *usel;
 
 	cu->lastsel = NULL;
-
-	nu = editnurb->last;
 	while (nu) {
-		startnu = NULL;
+		cyclicu = cyclicv = 0;
 		if (nu->type == CU_BEZIER) {
-			bezt = nu->bezt;
-			for (a = 0; a < nu->pntsu; a++) {
+			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 				enda = -1;
 				starta = a;
 				while ((bezt->f1 & flag) || (bezt->f2 & flag) || (bezt->f3 & flag)) {
@@ -1897,46 +1917,45 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 					bezt++;
 				}
 				if (enda >= starta) {
-					diffa = enda - starta + 1;
+					newu = diffa = enda - starta + 1; /* set newu and diffa, may use both */
 
-					if (startnu != NULL && enda == nu->pntsu - 1) {
-						/* end point of cyclic spline selected, so merge end points with start points */
-						bezt1 = (BezTriple *)MEM_mallocN((startnu->pntsu + diffa) * sizeof(BezTriple), "adduplicateN");
-						memcpy(bezt1, &nu->bezt[starta], diffa * sizeof(BezTriple));
-						memcpy(&bezt1[diffa], startnu->bezt, startnu->pntsu * sizeof(BezTriple));
-
-						MEM_freeN(startnu->bezt);
-						startnu->bezt = bezt1;
-						startnu->pntsu += diffa;
-						newnu = startnu;
+					if (starta == 0 && newu != nu->pntsu && (nu->flagu & CU_NURB_CYCLIC)) {
+						cyclicu = newu;
 					}
 					else {
-						newnu = ED_curve_nurbcpy(nu, diffa);
+						if (enda == nu->pntsu - 1) newu += cyclicu;
+
+						newnu = BKE_nurb_copy(nu, newu, 1);
 						BLI_addtail(newnurb, newnu);
 						set_actNurb(obedit, newnu);
-						memcpy(newnu->bezt, &nu->bezt[starta], newnu->pntsu * sizeof(BezTriple));
-					}
+						memcpy(newnu->bezt, &nu->bezt[starta], diffa * sizeof(BezTriple));
+						if (newu != diffa) {
+							memcpy(&newnu->bezt[diffa], nu->bezt, cyclicu * sizeof(BezTriple));
+							cyclicu = 0;
+						}
 
-					b = newnu->pntsu;
-					bezt1 = newnu->bezt;
-					while (b--) {
-						select_beztriple(bezt1, SELECT, flag, HIDDEN);
-						bezt1++;
-					}
+						if (newu != nu->pntsu) newnu->flagu &= ~CU_NURB_CYCLIC;
 
-					if (nu->flagu & CU_NURB_CYCLIC) {
-						if (starta != 0 || enda != nu->pntsu - 1) {
-							newnu->flagu &= ~CU_NURB_CYCLIC;
-							if (starta == 0) startnu = newnu;
+						for (b = 0, bezt1 = newnu->bezt; b < newnu->pntsu; b++, bezt1++) {
+							select_beztriple(bezt1, SELECT, flag, HIDDEN);
 						}
 					}
 				}
-				bezt++;
+			}
+
+			if (cyclicu != 0) {
+				newnu = BKE_nurb_copy(nu, cyclicu, 1);
+				BLI_addtail(newnurb, newnu);
+				memcpy(newnu->bezt, nu->bezt, cyclicu * sizeof(BezTriple));
+				newnu->flagu &= ~CU_NURB_CYCLIC;
+
+				for (b = 0, bezt1 = newnu->bezt; b < newnu->pntsu; b++, bezt1++) {
+					select_beztriple(bezt1, SELECT, flag, HIDDEN);
+				}
 			}
 		}
 		else if (nu->pntsv == 1) {    /* because UV Nurb has a different method for dupli */
-			bp = nu->bp;
-			for (a = 0; a < nu->pntsu; a++) {
+			for (a = 0, bp = nu->bp; a < nu->pntsu; a++, bp++) {
 				enda = -1;
 				starta = a;
 				while (bp->f1 & flag) {
@@ -1947,46 +1966,48 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 					bp++;
 				}
 				if (enda >= starta) {
-					diffa = enda - starta + 1;
+					newu = diffa = enda - starta + 1; /* set newu and diffa, may use both */
 
-					if (startnu != NULL && enda == nu->pntsu - 1) {
-						/* end point of cyclic spline selected, so merge end points with start points */
-						bp1 = (BPoint *)MEM_mallocN((startnu->pntsu + diffa)  * sizeof(BPoint), "adduplicateN2");
-						memcpy(bp1, &nu->bp[starta], diffa * sizeof(BPoint));
-						memcpy(&bp1[diffa], startnu->bp, startnu->pntsu * sizeof(BPoint));
-
-						MEM_freeN(startnu->bp);
-						startnu->bp = bp1;
-						startnu->pntsu += diffa;
-						newnu = startnu;
+					if (starta == 0 && newu != nu->pntsu && (nu->flagu & CU_NURB_CYCLIC)) {
+						cyclicu = newu;
 					}
 					else {
-						newnu = ED_curve_nurbcpy(nu, diffa);
+						if (enda == nu->pntsu - 1) newu += cyclicu;
+
+						newnu = BKE_nurb_copy(nu, newu, 1);
 						BLI_addtail(newnurb, newnu);
 						set_actNurb(obedit, newnu);
-						memcpy(newnu->bp, &nu->bp[starta], newnu->pntsu * sizeof(BPoint));
-					}
+						memcpy(newnu->bp, &nu->bp[starta], diffa * sizeof(BPoint));
+						if (newu != diffa) {
+							memcpy(&newnu->bp[diffa], nu->bp, cyclicu * sizeof(BPoint));
+							cyclicu = 0;
+						}
 
-					b = newnu->pntsu;
-					bp1 = newnu->bp;
-					while (b--) {
-						select_bpoint(bp1, SELECT, flag, HIDDEN);
-						bp1++;
-					}
+						if (newu != nu->pntsu) newnu->flagu &= ~CU_NURB_CYCLIC;
 
-					if (nu->flagu & CU_NURB_CYCLIC) {
-						if (starta != 0 || enda != nu->pntsu - 1) {
-							newnu->flagu &= ~CU_NURB_CYCLIC;
-							if (starta == 0) startnu = newnu;
+						for (b = 0, bp1 = newnu->bp; b < newnu->pntsu; b++, bp1++) {
+							select_bpoint(bp1, SELECT, flag, HIDDEN);
 						}
 					}
 				}
-				bp++;
+			}
+
+			if (cyclicu != 0) {
+				newnu = BKE_nurb_copy(nu, cyclicu, 1);
+				BLI_addtail(newnurb, newnu);
+				set_actNurb(obedit, newnu);
+
+				memcpy(newnu->bp, nu->bp, cyclicu * sizeof(BPoint));
+				newnu->flagu &= ~CU_NURB_CYCLIC;
+
+				for (b = 0, bp1 = newnu->bp; b < newnu->pntsu; b++, bp1++) {
+					select_bpoint(bp1, SELECT, flag, HIDDEN);
+				}
 			}
 		}
 		else {
-			/* a rectangular area in nurb has to be selected */
 			if (isNurbsel(nu)) {
+				/* a rectangular area in nurb has to be selected and if splitting must be in U or V direction */
 				usel = MEM_callocN(nu->pntsu, "adduplicateN3");
 				bp = nu->bp;
 				for (a = 0; a < nu->pntsv; a++) {
@@ -2008,73 +2029,124 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 						}
 					}
 				}
-				if (newu == 0 || newv == 0) {
+				MEM_freeN(usel);
+
+				if ((newu == 0 || newv == 0) ||
+					(split && !isNurbselU(nu, &newv, SELECT) && !isNurbselV(nu, &newu, SELECT))) {
 					if (G.debug & G_DEBUG)
 						printf("Can't duplicate Nurb\n");
 				}
 				else {
+					for (a = 0, bp1 = nu->bp; a < nu->pntsu * nu->pntsv; a++, bp1++) {
+						newv = newu = 0;
 
-					if (newu == 1) SWAP(int, newu, newv);
-
-					newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "adduplicateN4");
-					memcpy(newnu, nu, sizeof(Nurb));
-					BLI_addtail(newnurb, newnu);
-					set_actNurb(obedit, newnu);
-					newnu->pntsu = newu;
-					newnu->pntsv = newv;
-					newnu->bp = (BPoint *)MEM_mallocN(newu * newv * sizeof(BPoint), "adduplicateN5");
-					BKE_nurb_order_clamp_u(newnu);
-					BKE_nurb_order_clamp_v(newnu);
-					
-					newnu->knotsu = newnu->knotsv = NULL;
-					
-					bp = newnu->bp;
-					bp1 = nu->bp;
-					for (a = 0; a < nu->pntsv; a++) {
-						for (b = 0; b < nu->pntsu; b++, bp1++) {
-							if (bp1->f1 & flag) {
-								memcpy(bp, bp1, sizeof(BPoint));
-								select_bpoint(bp1, DESELECT, flag, HIDDEN);
-								bp++;
+						if ((bp1->f1 & flag) && !(bp1->f1 & SURF_SEEN)) {
+							/* point selected, now loop over points in U and V directions */
+							for (b = a % nu->pntsu, bp2 = bp1; b < nu->pntsu; b++, bp2++) {
+								if (bp2->f1 & flag) {
+									newu++;
+									for (c = a / nu->pntsu, bp3 = bp2; c < nu->pntsv; c++, bp3 += nu->pntsu) {
+										if (bp3->f1 & flag) {
+											bp3->f1 |= SURF_SEEN; /* flag as seen so skipped on future iterations */
+											if (newu == 1) newv++;
+										}
+										else {
+											break;
+										}
+									}
+								}
+								else {
+									break;
+								}
 							}
 						}
+
+						if ((newu + newv) > 2) {
+							/* ignore single points */
+							if (a == 0) {
+								/* check if need to save cyclic selection and continue if so */
+								if (newu == nu->pntsu && (nu->flagv & CU_NURB_CYCLIC)) cyclicv = newv;
+								if (newv == nu->pntsv && (nu->flagu & CU_NURB_CYCLIC)) cyclicu = newu;
+								if (cyclicu != 0 || cyclicv != 0) continue;
+							}
+
+							if (a + newu == nu->pntsu && cyclicu != 0) {
+								/* cyclic in U direction */
+								newnu = BKE_nurb_copy(nu, newu + cyclicu, newv);
+								for (b = 0; b < newv; b++) {
+									memcpy(&newnu->bp[b * newnu->pntsu], &nu->bp[b * nu->pntsu + a], newu * sizeof(BPoint));
+									memcpy(&newnu->bp[b * newnu->pntsu + newu], &nu->bp[b * nu->pntsu], cyclicu * sizeof(BPoint));
+								}
+								cyclicu = cyclicv = 0;
+							}
+							else if ((a / nu->pntsu) + newv == nu->pntsv && cyclicv != 0) {
+								/* cyclic in V direction */
+								newnu = BKE_nurb_copy(nu, newu, newv + cyclicv);
+								memcpy(newnu->bp, &nu->bp[a], newu * newv * sizeof(BPoint));
+								memcpy(&newnu->bp[newu * newv], nu->bp, newu * cyclicv * sizeof(BPoint));
+								cyclicu = cyclicv = 0;
+							}
+							else {
+								newnu = BKE_nurb_copy(nu, newu, newv);
+								for (b = 0; b < newv; b++) {
+									memcpy(&newnu->bp[b * newu], &nu->bp[b * nu->pntsu + a], newu * sizeof(BPoint));
+								}
+							}
+							set_actNurb(obedit, newnu);
+							BLI_addtail(newnurb, newnu);
+
+							if (newu != nu->pntsu) newnu->flagu &= ~CU_NURB_CYCLIC;
+							if (newv != nu->pntsv) newnu->flagv &= ~CU_NURB_CYCLIC;
+						}
 					}
-					if (BKE_nurb_check_valid_u(newnu)) {
-						if (nu->pntsu == newnu->pntsu && nu->knotsu) {
-							newnu->knotsu = MEM_dupallocN(nu->knotsu);
+
+					if (cyclicu != 0 || cyclicv != 0) {
+						/* copy start of a cyclic surface, or copying all selected points */
+						newu = cyclicu == 0 ? nu->pntsu : cyclicu;
+						newv = cyclicv == 0 ? nu->pntsv : cyclicv;
+
+						newnu = BKE_nurb_copy(nu, newu, newv);
+						for (b = 0; b < newv; b++) {
+							memcpy(&newnu->bp[b * newu], &nu->bp[b * nu->pntsu], newu * sizeof(BPoint));
 						}
-						else {
-							BKE_nurb_knot_calc_u(newnu);
-						}
+						set_actNurb(obedit, newnu);
+						BLI_addtail(newnurb, newnu);
+
+						if (newu != nu->pntsu) newnu->flagu &= ~CU_NURB_CYCLIC;
+						if (newv != nu->pntsv) newnu->flagv &= ~CU_NURB_CYCLIC;
 					}
-					if (BKE_nurb_check_valid_v(newnu)) {
-						if (nu->pntsv == newnu->pntsv && nu->knotsv) {
-							newnu->knotsv = MEM_dupallocN(nu->knotsv);
-						}
-						else {
-							BKE_nurb_knot_calc_v(newnu);
-						}
+
+					for (b = 0, bp1 = nu->bp; b < nu->pntsu * nu->pntsv; b++, bp1++) {
+						bp1->f1 &= ~SURF_SEEN;
+						if (!split) select_bpoint(bp1, DESELECT, flag, HIDDEN);
 					}
 				}
-				MEM_freeN(usel);
 			}
 		}
-
 		nu = nu->prev;
 	}
-	
-	for (nu = newnurb->first; nu; nu = nu->next) {
-		/* knots done after duplicate as pntsu may change */
-		if (nu->pntsv == 1) {
-			nu->knotsu = NULL;
-			BKE_nurb_knot_calc_u(nu);
-		}
 
-		if (split) {
-			if (nu->type == CU_BEZIER) {
+	for (nu = newnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			if (split) {
 				/* recalc first and last */
 				BKE_nurb_handle_calc_simple(nu, &nu->bezt[0]);
 				BKE_nurb_handle_calc_simple(nu, &nu->bezt[nu->pntsu - 1]);
+			}
+		}
+		else {
+			/* knots done after duplicate as pntsu may change */
+			nu->knotsu = nu->knotsv = NULL;
+			BKE_nurb_order_clamp_u(nu);
+			BKE_nurb_knot_calc_u(nu);
+
+			if (obedit->type == OB_SURF) {
+				for (a = 0, bp = nu->bp; a < nu->pntsu * nu->pntsv; a++, bp++) {
+					bp->f1 &= ~SURF_SEEN;
+				}
+
+				BKE_nurb_order_clamp_v(nu);
+				BKE_nurb_knot_calc_v(nu);
 			}
 		}
 	}
@@ -5708,7 +5780,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 
 /********************** add duplicate operator *********************/
 
-static int duplicate_exec(bContext *C, wmOperator *UNUSED(op))
+static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase newnurb = {NULL, NULL};
@@ -5719,6 +5791,10 @@ static int duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
+		return OPERATOR_CANCELLED;
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -5727,7 +5803,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Duplicate Curve";
-	ot->description = "Duplicate selected control points and segments between them";
+	ot->description = "Duplicate selected control points";
 	ot->idname = "CURVE_OT_duplicate";
 	
 	/* api callbacks */
@@ -5740,312 +5816,294 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 
 /********************** delete operator *********************/
 
-static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bool split)
+static int curve_delete_vertices(Object *obedit)
 {
 	Curve *cu = obedit->data;
 	EditNurb *editnurb = cu->editnurb;
 	ListBase *nubase = &editnurb->nurbs;
-	Nurb *nu, *nu1, *startnu;
-	BezTriple *bezt, *bezt1, *bezt2;
-	BPoint *bp, *bp1, *bp2;
-	int a, b, starta, enda, cut = 0;
-	int nuindex = 0;
-	ListBase newnurb = {NULL, NULL};
+	Nurb *nu, *next;
+	BezTriple *bezt, *bezt1;
+	BPoint *bp, *bp1;
+	int a, type, nuindex = 0;
 
 	if (obedit->type == OB_SURF) {
-		if (type == CURVE_VERTEX) {
-			return deleteflagNurb(obedit, SELECT);
+		return deleteflagNurb(obedit, SELECT);
+	}
+
+	/* first loop, can we remove entire pieces? */
+	nu = nubase->first;
+	while (nu) {
+		next = nu->next;
+		if (nu->type == CU_BEZIER) {
+			bezt = nu->bezt;
+			a = nu->pntsu;
+			if (a) {
+				while (a) {
+					if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+						/* pass */
+					}
+					else {
+						break;
+					}
+					a--;
+					bezt++;
+				}
+				if (a == 0) {
+					if (cu->actnu == nuindex)
+						cu->actnu = -1;
+
+					BLI_remlink(nubase, nu);
+					keyIndex_delNurb(editnurb, nu);
+					BKE_nurb_free(nu); nu = NULL;
+				}
+			}
 		}
 		else {
-			keyIndex_delNurbList(editnurb, nubase);
-			BKE_nurbList_free(nubase);
-
-			return OPERATOR_FINISHED;
-		}
-	}
-
-	if (type == CURVE_VERTEX) {
-		/* first loop, can we remove entire pieces? */
-		Nurb *next;
-		nu = nubase->first;
-		while (nu) {
-			next = nu->next;
-			if (nu->type == CU_BEZIER) {
-				bezt = nu->bezt;
-				a = nu->pntsu;
-				if (a) {
-					while (a) {
-						if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
-							/* pass */
-						}
-						else {
-							break;
-						}
-						a--;
-						bezt++;
-					}
-					if (a == 0) {
-						if (cu->actnu == nuindex)
-							cu->actnu = -1;
-
-						BLI_remlink(nubase, nu);
-						keyIndex_delNurb(editnurb, nu);
-						BKE_nurb_free(nu); nu = NULL;
-					}
-				}
-			}
-			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-				if (a) {
-					while (a) {
-						if (bp->f1 & SELECT) {
-							/* pass */
-						}
-						else {
-							break;
-						}
-						a--;
-						bp++;
-					}
-					if (a == 0) {
-						if (cu->actnu == nuindex)
-							cu->actnu = -1;
-
-						BLI_remlink(nubase, nu);
-						keyIndex_delNurb(editnurb, nu);
-						BKE_nurb_free(nu); nu = NULL;
-					}
-				}
-			}
-			
-			/* Never allow the order to exceed the number of points
-			 * - note, this is ok but changes unselected nurbs, disable for now */
-#if 0
-			if ((nu != NULL) && (nu->type == CU_NURBS)) {
-				clamp_nurb_order_u(nu);
-			}
-#endif
-			nu = next;
-			nuindex++;
-		}
-		/* 2nd loop, delete small pieces: just for curves */
-		nu = nubase->first;
-		while (nu) {
-			next = nu->next;
-			type = 0;
-			if (nu->type == CU_BEZIER) {
-				int delta = 0;
-				bezt = nu->bezt;
-				for (a = 0; a < nu->pntsu; a++) {
-					if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
-						memmove(bezt, bezt + 1, (nu->pntsu - a - 1) * sizeof(BezTriple));
-						keyIndex_delBezt(editnurb, bezt + delta);
-						keyIndex_updateBezt(editnurb, bezt + 1, bezt, nu->pntsu - a - 1);
-						nu->pntsu--;
-						a--;
-						type = 1;
-						delta++;
-					}
-					else {
-						bezt++;
-					}
-				}
-				if (type) {
-					bezt1 = (BezTriple *)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
-					memcpy(bezt1, nu->bezt, (nu->pntsu) * sizeof(BezTriple));
-					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
-					MEM_freeN(nu->bezt);
-					nu->bezt = bezt1;
-					BKE_nurb_handles_calc(nu);
-				}
-			}
-			else if (nu->pntsv == 1) {
-				int delta = 0;
-				bp = nu->bp;
-
-				for (a = 0; a < nu->pntsu; a++) {
+			bp = nu->bp;
+			a = nu->pntsu * nu->pntsv;
+			if (a) {
+				while (a) {
 					if (bp->f1 & SELECT) {
-						memmove(bp, bp + 1, (nu->pntsu - a - 1) * sizeof(BPoint));
-						keyIndex_delBP(editnurb, bp + delta);
-						keyIndex_updateBP(editnurb, bp + 1, bp, nu->pntsu - a - 1);
-						nu->pntsu--;
-						a--;
-						type = 1;
-						delta++;
+						/* pass */
 					}
 					else {
-						bp++;
+						break;
 					}
+					a--;
+					bp++;
 				}
-				if (type) {
-					bp1 = (BPoint *)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
-					memcpy(bp1, nu->bp, (nu->pntsu) * sizeof(BPoint));
-					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
-					MEM_freeN(nu->bp);
-					nu->bp = bp1;
-					
-					/* Never allow the order to exceed the number of points
-					 * - note, this is ok but changes unselected nurbs, disable for now */
-#if 0
-					if (nu->type == CU_NURBS) {
-						clamp_nurb_order_u(nu);
-					}
-#endif
+				if (a == 0) {
+					if (cu->actnu == nuindex)
+						cu->actnu = -1;
+
+					BLI_remlink(nubase, nu);
+					keyIndex_delNurb(editnurb, nu);
+					BKE_nurb_free(nu); nu = NULL;
 				}
-				BKE_nurb_order_clamp_u(nu);
-				BKE_nurb_knot_calc_u(nu);
 			}
-			nu = next;
 		}
+
+		/* Never allow the order to exceed the number of points
+		 * - note, this is ok but changes unselected nurbs, disable for now */
+#if 0
+		if ((nu != NULL) && (nu->type == CU_NURBS)) {
+			clamp_nurb_order_u(nu);
+		}
+#endif
+		nu = next;
+		nuindex++;
 	}
-	else if (type == CURVE_SEGMENT) {
-		for (nu = nubase->first; nu; nu = nu->next) {
-			startnu = nu1 = NULL;
-			starta = enda = cut = -1;
+	/* 2nd loop, delete small pieces: just for curves */
+	nu = nubase->first;
+	while (nu) {
+		next = nu->next;
+		type = 0;
+		if (nu->type == CU_BEZIER) {
+			int delta = 0;
+			bezt = nu->bezt;
+			for (a = 0; a < nu->pntsu; a++) {
+				if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+					memmove(bezt, bezt + 1, (nu->pntsu - a - 1) * sizeof(BezTriple));
+					keyIndex_delBezt(editnurb, bezt + delta);
+					keyIndex_updateBezt(editnurb, bezt + 1, bezt, nu->pntsu - a - 1);
+					nu->pntsu--;
+					a--;
+					type = 1;
+					delta++;
+				}
+				else {
+					bezt++;
+				}
+			}
+			if (type) {
+				bezt1 = (BezTriple *)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
+				memcpy(bezt1, nu->bezt, (nu->pntsu) * sizeof(BezTriple));
+				keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
+				MEM_freeN(nu->bezt);
+				nu->bezt = bezt1;
+				BKE_nurb_handles_calc(nu);
+			}
+		}
+		else if (nu->pntsv == 1) {
+			int delta = 0;
+			bp = nu->bp;
 
-			if (nu->type == CU_BEZIER) {
-				for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
-					if (!BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+			for (a = 0; a < nu->pntsu; a++) {
+				if (bp->f1 & SELECT) {
+					memmove(bp, bp + 1, (nu->pntsu - a - 1) * sizeof(BPoint));
+					keyIndex_delBP(editnurb, bp + delta);
+					keyIndex_updateBP(editnurb, bp + 1, bp, nu->pntsu - a - 1);
+					nu->pntsu--;
+					a--;
+					type = 1;
+					delta++;
+				}
+				else {
+					bp++;
+				}
+			}
+			if (type) {
+				bp1 = (BPoint *)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
+				memcpy(bp1, nu->bp, (nu->pntsu) * sizeof(BPoint));
+				keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
+				MEM_freeN(nu->bp);
+				nu->bp = bp1;
+
+				/* Never allow the order to exceed the number of points
+				 * - note, this is ok but changes unselected nurbs, disable for now */
+#if 0
+				if (nu->type == CU_NURBS) {
+					clamp_nurb_order_u(nu);
+				}
+#endif
+			}
+			BKE_nurb_order_clamp_u(nu);
+			BKE_nurb_knot_calc_u(nu);
+		}
+		nu = next;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static int curve_delete_segments(Object *obedit, const bool split)
+{
+	Curve *cu = obedit->data;
+	EditNurb *editnurb = cu->editnurb;
+	ListBase *nubase = &editnurb->nurbs, newnurb = {NULL, NULL};
+	Nurb *nu, *nu1;
+	BezTriple *bezt, *bezt1, *bezt2;
+	BPoint *bp, *bp1, *bp2;
+	int a, b, starta, enda, cut, cyclicut;
+
+	for (nu = nubase->first; nu; nu = nu->next) {
+		nu1 = NULL;
+		starta = enda = cut = -1;
+		cyclicut = 0;
+
+		if (nu->type == CU_BEZIER) {
+			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
+				if (!BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+					enda = a;
+					if (starta == -1) starta = a;
+					if (a < nu->pntsu - 1) continue;
+				}
+				else if (a < nu->pntsu - 1 && !BEZSELECTED_HIDDENHANDLES(cu, bezt + 1)) {
+					/* if just single selected point then continue */
+					continue;
+				}
+
+				if (starta >= 0) {
+					/* got selected segment, now check where and copy */
+					if (starta <= 1 && a == nu->pntsu - 1) {
+						/* copying all points in spline */
+						if (starta == 1 && enda != a) nu->flagu &= ~CU_NURB_CYCLIC;
+
+						starta = 0;
 						enda = a;
-						if (starta == -1) starta = a;
-						if (a < nu->pntsu - 1) continue;
+						cut = enda - starta + 1;
+						nu1 = BKE_nurb_copy(nu, cut, 1);
 					}
-					else if (a < nu->pntsu - 1 && !BEZSELECTED_HIDDENHANDLES(cu, bezt + 1)) {
-						/* if just single selected point then continue */
-						continue;
-					}
+					else if (starta == 0) {
+						/* if start of curve copy next end point */
+						enda++;
+						cut = enda - starta + 1;
+						bezt1 = &nu->bezt[nu->pntsu - 1];
+						bezt2 = &nu->bezt[nu->pntsu - 2];
 
-					if (starta >= 0) {
-						/* got selected segment, now check where and copy */
-						if (starta <= 1 && a == nu->pntsu - 1) {
-							/* copying all points in spline */
-							if (starta == 1 && enda != a) nu->flagu &= ~CU_NURB_CYCLIC;
-
-							starta = 0;
-							enda = a;
-							cut = enda - starta + 1;
-
-							nu1 = ED_curve_nurbcpy(nu, cut);
-						}
-						else if (starta == 0) {
-							/* if start of curve copy next end point */
-							enda++;
-							cut = enda - starta + 1;
-
-							bezt1 = &nu->bezt[nu->pntsu - 1];
-							bezt2 = &nu->bezt[nu->pntsu - 2];
-
-							if ((nu->flagu & CU_NURB_CYCLIC) &&
-								BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-								BEZSELECTED_HIDDENHANDLES(cu, bezt2))
-							{
-								/* check if need to join start of spline to end */
-								nu1 = ED_curve_nurbcpy(nu, cut + 1);
-								ED_curve_beztcpy(editnurb, &nu1->bezt[1], nu->bezt, cut);
-								starta = nu->pntsu - 1;
-								cut = 1;
-							}
-							else {
-								nu1 = ED_curve_nurbcpy(nu, cut);
-
-								if (nu->flagu & CU_NURB_CYCLIC) startnu = nu1;
-							}
-						}
-						else if (enda == nu->pntsu - 1) {
-							/* if end of curve copy previous start point */
-							starta--;
-							cut = enda - starta + 1;
-
-							bezt1 = nu->bezt;
-							bezt2 = &nu->bezt[1];
-
-							if ((nu->flagu & CU_NURB_CYCLIC) &&
-								BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-								BEZSELECTED_HIDDENHANDLES(cu, bezt2))
-							{
-								/* check if need to join start of spline to end */
-								nu1 = ED_curve_nurbcpy(nu, cut + 1);
-								ED_curve_beztcpy(editnurb, &nu1->bezt[cut], nu->bezt, 1);
-							}
-							else if (startnu != NULL) {
-								/* if startnu exists it is a cyclic spline, start and end should be connected */
-								bezt1 = (BezTriple *)MEM_mallocN((cut + startnu->pntsu) * sizeof(BezTriple), "delNurb3");
-								ED_curve_beztcpy(editnurb, bezt1, &nu->bezt[starta], cut);
-								ED_curve_beztcpy(editnurb, &bezt1[cut], nu->bezt, startnu->pntsu);
-
-								MEM_freeN(startnu->bezt);
-								startnu->bezt = bezt1;
-								startnu->pntsu += cut;
-
-								if (split) {
-									for (b = 0; b < startnu->pntsu; b++, bezt1++) {
-										select_beztriple(bezt1, DESELECT, SELECT, true);
-									}
-								}
-
-								BKE_nurb_handles_calc(startnu);
-							}
-							else {
-								nu1 = ED_curve_nurbcpy(nu, cut);
-							}
+						if ((nu->flagu & CU_NURB_CYCLIC) &&
+							BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+							BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+						{
+							/* check if need to join start of spline to end */
+							nu1 = BKE_nurb_copy(nu, cut + 1, 1);
+							ED_curve_beztcpy(editnurb, &nu1->bezt[1], nu->bezt, cut);
+							starta = nu->pntsu - 1;
+							cut = 1;
 						}
 						else {
-							/* mid spline selection, copy adjacent start and end */
-							starta--;
-							enda++;
-							cut = enda - starta + 1;
-
-							nu1 = ED_curve_nurbcpy(nu, cut);
+							if (nu->flagu & CU_NURB_CYCLIC) cyclicut = cut;
+							else nu1 = BKE_nurb_copy(nu, cut, 1);
 						}
+					}
+					else if (enda == nu->pntsu - 1) {
+						/* if end of curve copy previous start point */
+						starta--;
+						cut = enda - starta + 1;
+						bezt1 = nu->bezt;
+						bezt2 = &nu->bezt[1];
 
-						if (nu1 != NULL) {
-							ED_curve_beztcpy(editnurb, nu1->bezt, &nu->bezt[starta], cut);
-
-							if (starta != 0 || enda != nu->pntsu - 1) nu1->flagu &= ~CU_NURB_CYCLIC;
-
-							if (split) {
-								/* deselect for split operator */
-								for (b = 0, bezt1 = nu1->bezt; b < nu1->pntsu; b++, bezt1++) {
-									select_beztriple(bezt1, DESELECT, SELECT, true);
-								}
-							}
-
-							BLI_addtail(&newnurb, nu1);
-							BKE_nurb_handles_calc(nu1);
-							nu1 = NULL;
+						if ((nu->flagu & CU_NURB_CYCLIC) &&
+							BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+							BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+						{
+							/* check if need to join start of spline to end */
+							nu1 = BKE_nurb_copy(nu, cut + 1, 1);
+							ED_curve_beztcpy(editnurb, &nu1->bezt[cut], nu->bezt, 1);
 						}
-						starta = enda = -1;
+						else if (cyclicut != 0) {
+							/* if cyclicut exists it is a cyclic spline, start and end should be connected */
+							nu1 = BKE_nurb_copy(nu, cut + cyclicut, 1);
+							ED_curve_beztcpy(editnurb, &nu1->bezt[cut], nu->bezt, cyclicut);
+							cyclicut = 0;
+						}
+						else {
+							nu1 = BKE_nurb_copy(nu, cut, 1);
+						}
 					}
-				}
+					else {
+						/* mid spline selection, copy adjacent start and end */
+						starta--;
+						enda++;
+						cut = enda - starta + 1;
+						nu1 = BKE_nurb_copy(nu, cut, 1);
+					}
 
-				if (!split && cut != -1 && nu->pntsu > 2 && !(nu->flagu & CU_NURB_CYCLIC)) {
-					/* start and points copied if connecting segment was deleted and not cylic spline */
-					bezt1 = nu->bezt;
-					bezt2 = &nu->bezt[1];
-					if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) && BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
-						nu1 = ED_curve_nurbcpy(nu, 1);
-						ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
+					if (nu1 != NULL) {
+						ED_curve_beztcpy(editnurb, nu1->bezt, &nu->bezt[starta], cut);
 						BLI_addtail(&newnurb, nu1);
-					}
 
-					bezt1 = &nu->bezt[nu->pntsu - 1];
-					bezt2 = &nu->bezt[nu->pntsu - 2];
-					if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) && BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
-						nu1 = ED_curve_nurbcpy(nu, 1);
-						ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
-						BLI_addtail(&newnurb, nu1);
+						if (starta != 0 || enda != nu->pntsu - 1) nu1->flagu &= ~CU_NURB_CYCLIC;
+						nu1 = NULL;
 					}
+					starta = enda = -1;
 				}
 			}
-			else if (nu->pntsv == 1) {
+
+			if (!split && cut != -1 && nu->pntsu > 2 && !(nu->flagu & CU_NURB_CYCLIC)) {
+				/* start and points copied if connecting segment was deleted and not cylic spline */
+				bezt1 = nu->bezt;
+				bezt2 = &nu->bezt[1];
+
+				if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+					BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
+					nu1 = BKE_nurb_copy(nu, 1, 1);
+					ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
+					BLI_addtail(&newnurb, nu1);
+				}
+
+				bezt1 = &nu->bezt[nu->pntsu - 1];
+				bezt2 = &nu->bezt[nu->pntsu - 2];
+
+				if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+					BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
+					nu1 = BKE_nurb_copy(nu, 1, 1);
+					ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
+					BLI_addtail(&newnurb, nu1);
+				}
+			}
+		}
+		else if (nu->pntsv >= 1) {
+			int u, v;
+
+			if (isNurbselV(nu, &u, SELECT)) {
 				for (a = 0, bp = nu->bp; a < nu->pntsu; a++, bp++) {
 					if (!(bp->f1 & SELECT)) {
 						enda = a;
 						if (starta == -1) starta = a;
 						if (a < nu->pntsu - 1) continue;
 					}
-					else if (a < nu->pntsu - 1 && !((bp + 1)->f1  & SELECT)) {
+					else if (a < nu->pntsu - 1 && !((bp + 1)->f1 & SELECT)) {
 						/* if just single selected point then continue */
 						continue;
 					}
@@ -6059,64 +6117,52 @@ static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bo
 							starta = 0;
 							enda = a;
 							cut = enda - starta + 1;
-
-							nu1 = ED_curve_nurbcpy(nu, cut);
+							nu1 = BKE_nurb_copy(nu, cut, nu->pntsv);
 						}
 						else if (starta == 0) {
 							/* if start of curve copy next end point */
 							enda++;
 							cut = enda - starta + 1;
-
 							bp1 = &nu->bp[nu->pntsu - 1];
 							bp2 = &nu->bp[nu->pntsu - 2];
 
 							if ((nu->flagu & CU_NURB_CYCLIC) && (bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
 								/* check if need to join start of spline to end */
-								nu1 = ED_curve_nurbcpy(nu, cut + 1);
-								ED_curve_bpcpy(editnurb, &nu1->bp[1], nu->bp, cut);
+								nu1 = BKE_nurb_copy(nu, cut + 1, nu->pntsv);
+								for (b = 0; b < nu->pntsv; b++) {
+									ED_curve_bpcpy(editnurb, &nu1->bp[b * nu1->pntsu + 1], &nu->bp[b * nu->pntsu], cut);
+								}
 								starta = nu->pntsu - 1;
 								cut = 1;
 							}
 							else {
-								nu1 = ED_curve_nurbcpy(nu, cut);
-
-								if (nu->flagu & CU_NURB_CYCLIC) startnu = nu1;
+								if (nu->flagu & CU_NURB_CYCLIC) cyclicut = cut;
+								else nu1 = BKE_nurb_copy(nu, cut, nu->pntsv);
 							}
 						}
 						else if (enda == nu->pntsu - 1) {
 							/* if end of curve copy previous start point */
 							starta--;
 							cut = enda - starta + 1;
-
 							bp1 = nu->bp;
 							bp2 = &nu->bp[1];
 
 							if ((nu->flagu & CU_NURB_CYCLIC) && (bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
 								/* check if need to join start of spline to end */
-								nu1 = ED_curve_nurbcpy(nu, cut + 1);
-								ED_curve_bpcpy(editnurb, &nu1->bp[cut], nu->bp, 1);
-							}
-							else if (startnu != NULL) {
-								/* if startnu exists it is a cyclic spline, start and end should be connected */
-								bp1 = (BPoint *)MEM_mallocN((cut + startnu->pntsu) * sizeof(BPoint), "delNurb4");
-								ED_curve_bpcpy(editnurb, bp1, &nu->bp[starta], cut);
-								ED_curve_bpcpy(editnurb, &bp1[cut], nu->bp, startnu->pntsu);
-
-								MEM_freeN(startnu->bp);
-								startnu->bp = bp1;
-								startnu->pntsu += cut;
-
-								if (split) {
-									for (b = 0; b < startnu->pntsu; b++, bp1++) {
-										select_bpoint(bp1, DESELECT, SELECT, HIDDEN);
-									}
+								nu1 = BKE_nurb_copy(nu, cut + 1, nu->pntsv);
+								for (b = 0; b < nu->pntsv; b++) {
+									ED_curve_bpcpy(editnurb, &nu1->bp[b * nu1->pntsu + cut], &nu->bp[b * nu->pntsu], 1);
 								}
-
-								BKE_nurb_order_clamp_u(startnu);
-								BKE_nurb_knot_calc_u(startnu);
+							}
+							else if (cyclicut != 0) {
+								/* if cyclicut exists it is a cyclic spline, start and end should be connected */
+								nu1 = BKE_nurb_copy(nu, cut + cyclicut, nu->pntsv);
+								for (b = 0; b < nu->pntsv; b++) {
+									ED_curve_bpcpy(editnurb, &nu1->bp[b * nu1->pntsu + cut], &nu->bp[b * nu->pntsu], cyclicut);
+								}
 							}
 							else {
-								nu1 = ED_curve_nurbcpy(nu, cut);
+								nu1 = BKE_nurb_copy(nu, cut, nu->pntsv);
 							}
 						}
 						else {
@@ -6124,26 +6170,16 @@ static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bo
 							starta--;
 							enda++;
 							cut = enda - starta + 1;
-
-							nu1 = ED_curve_nurbcpy(nu, cut);
+							nu1 = BKE_nurb_copy(nu, cut, nu->pntsv);
 						}
 
 						if (nu1 != NULL) {
-							ED_curve_bpcpy(editnurb, nu1->bp, &nu->bp[starta], cut);
+							for (b = 0; b < nu->pntsv; b++) {
+								ED_curve_bpcpy(editnurb, &nu1->bp[b * nu1->pntsu], &nu->bp[b * nu->pntsu + starta], cut);
+							}
+							BLI_addtail(&newnurb, nu1);
 
 							if (starta != 0 || enda != nu->pntsu - 1) nu1->flagu &= ~CU_NURB_CYCLIC;
-
-							if (split) {
-								/* deselect for split operator */
-								for (b = 0, bp1 = nu1->bp; b < nu1->pntsu; b++, bp1++) {
-									select_bpoint(bp1, DESELECT, SELECT, HIDDEN);
-								}
-							}
-
-							BLI_addtail(&newnurb, nu1);
-							nu1->knotsu = NULL;
-							BKE_nurb_order_clamp_u(nu1);
-							BKE_nurb_knot_calc_u(nu1);
 							nu1 = NULL;
 						}
 						starta = enda = -1;
@@ -6154,31 +6190,173 @@ static int curve_delete_selected(Object *obedit, eCurveElem_Types type, const bo
 					/* start and points copied if connecting segment was deleted and not cylic spline */
 					bp1 = nu->bp;
 					bp2 = &nu->bp[1];
+
 					if ((bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
-						nu1 = ED_curve_nurbcpy(nu, 1);
-						ED_curve_bpcpy(editnurb, nu1->bp, bp1, 1);
+						nu1 = BKE_nurb_copy(nu, 1, nu->pntsv);
+						for (b = 0; b < nu->pntsv; b++) {
+							ED_curve_bpcpy(editnurb, &nu1->bp[b], &nu->bp[b * nu->pntsu], 1);
+						}
 						BLI_addtail(&newnurb, nu1);
-						nu1->knotsu = NULL;
 					}
 
 					bp1 = &nu->bp[nu->pntsu - 1];
 					bp2 = &nu->bp[nu->pntsu - 2];
+
 					if ((bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
-						nu1 = ED_curve_nurbcpy(nu, 1);
-						ED_curve_bpcpy(editnurb, nu1->bp, bp1, 1);
+						nu1 = BKE_nurb_copy(nu, 1, nu->pntsv);
+						for (b = 0; b < nu->pntsv; b++) {
+							ED_curve_bpcpy(editnurb, &nu1->bp[b], &nu->bp[b * nu->pntsu + nu->pntsu - 1], 1);
+						}
 						BLI_addtail(&newnurb, nu1);
-						nu1->knotsu = NULL;
 					}
 				}
 			}
-		}
+			else if (isNurbselU(nu, &v, SELECT)) {
+				for (a = 0, bp = nu->bp; a < nu->pntsv; a++, bp += nu->pntsu) {
+					if (!(bp->f1 & SELECT)) {
+						enda = a;
+						if (starta == -1) starta = a;
+						if (a < nu->pntsv - 1) continue;
+					}
+					else if (a < nu->pntsv - 1 && !((bp + nu->pntsu)->f1 & SELECT)) {
+						/* if just single selected point then continue */
+						continue;
+					}
 
-		BKE_nurbList_free(nubase);
-		BLI_movelisttolist(nubase, &newnurb);
+					if (starta >= 0) {
+						/* got selected segment, now check where and copy */
+						if (starta <= 1 && a == nu->pntsv - 1) {
+							/* copying all points in spline */
+							if (starta == 1 && enda != a) nu->flagv &= ~CU_NURB_CYCLIC;
+
+							starta = 0;
+							enda = a;
+							cut = enda - starta + 1;
+							nu1 = BKE_nurb_copy(nu, nu->pntsu, cut);
+						}
+						else if (starta == 0) {
+							/* if start of curve copy next end point */
+							enda++;
+							cut = enda - starta + 1;
+							bp1 = &nu->bp[nu->pntsv * nu->pntsu - nu->pntsu];
+							bp2 = &nu->bp[nu->pntsv * nu->pntsu - (nu->pntsu * 2)];
+
+							if ((nu->flagv & CU_NURB_CYCLIC) && (bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
+								/* check if need to join start of spline to end */
+								nu1 = BKE_nurb_copy(nu, nu->pntsu, cut + 1);
+								ED_curve_bpcpy(editnurb, &nu1->bp[nu->pntsu], nu->bp, cut * nu->pntsu);
+								starta = nu->pntsv - 1;
+								cut = 1;
+							}
+							else {
+								if (nu->flagv & CU_NURB_CYCLIC) cyclicut = cut;
+								else nu1 = BKE_nurb_copy(nu, nu->pntsu, cut);
+							}
+						}
+						else if (enda == nu->pntsv - 1) {
+							/* if end of curve copy previous start point */
+							starta--;
+							cut = enda - starta + 1;
+							bp1 = nu->bp;
+							bp2 = &nu->bp[nu->pntsu];
+
+							if ((nu->flagv & CU_NURB_CYCLIC) && (bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
+								/* check if need to join start of spline to end */
+								nu1 = BKE_nurb_copy(nu, nu->pntsu, cut + 1);
+								ED_curve_bpcpy(editnurb, &nu1->bp[cut * nu->pntsu], nu->bp, nu->pntsu);
+							}
+							else if (cyclicut != 0) {
+								/* if cyclicut exists it is a cyclic spline, start and end should be connected */
+								nu1 = BKE_nurb_copy(nu, nu->pntsu, cut + cyclicut);
+								ED_curve_bpcpy(editnurb, &nu1->bp[cut * nu->pntsu], nu->bp, nu->pntsu * cyclicut);
+								cyclicut = 0;
+							}
+							else {
+								nu1 = BKE_nurb_copy(nu, nu->pntsu, cut);
+							}
+						}
+						else {
+							/* mid spline selection, copy adjacent start and end */
+							starta--;
+							enda++;
+							cut = enda - starta + 1;
+							nu1 = BKE_nurb_copy(nu, nu->pntsu, cut);
+						}
+
+						if (nu1 != NULL) {
+							ED_curve_bpcpy(editnurb, nu1->bp, &nu->bp[starta * nu->pntsu], cut * nu->pntsu);
+							BLI_addtail(&newnurb, nu1);
+
+							if (starta != 0 || enda != nu->pntsv - 1) nu1->flagv &= ~CU_NURB_CYCLIC;
+							nu1 = NULL;
+						}
+						starta = enda = -1;
+					}
+				}
+
+				if (!split && cut != -1 && nu->pntsv > 2 && !(nu->flagv & CU_NURB_CYCLIC)) {
+					/* start and points copied if connecting segment was deleted and not cylic spline */
+					bp1 = nu->bp;
+					bp2 = &nu->bp[nu->pntsu];
+
+					if ((bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
+						nu1 = BKE_nurb_copy(nu, nu->pntsu, 1);
+						ED_curve_bpcpy(editnurb, nu1->bp, nu->bp, nu->pntsu);
+						BLI_addtail(&newnurb, nu1);
+					}
+
+					bp1 = &nu->bp[nu->pntsu * nu->pntsv - nu->pntsu];
+					bp2 = &nu->bp[nu->pntsu * nu->pntsv - (nu->pntsu * 2)];
+
+					if ((bp1->f1 & SELECT) && (bp2->f1 & SELECT)) {
+						nu1 = BKE_nurb_copy(nu, nu->pntsu, 1);
+						ED_curve_bpcpy(editnurb, nu1->bp, &nu->bp[nu->pntsu * nu->pntsv - nu->pntsu], nu->pntsu);
+						BLI_addtail(&newnurb, nu1);
+					}
+				}
+			}
+			else {
+				/* selection not valid, just copy nurb to new list */
+				nu1 = BKE_nurb_copy(nu, nu->pntsu, nu->pntsv);
+				ED_curve_bpcpy(editnurb, nu1->bp, nu->bp, nu->pntsu * nu->pntsv);
+				BLI_addtail(&newnurb, nu1);
+			}
+		}
 	}
-	else {
-		BLI_assert(0);
+
+	for (nu = newnurb.first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			if (split) {
+				/* deselect for split operator */
+				for (b = 0, bezt1 = nu->bezt; b < nu->pntsu; b++, bezt1++) {
+					select_beztriple(bezt1, DESELECT, SELECT, true);
+				}
+			}
+
+			BKE_nurb_handles_calc(nu);
+		}
+		else {
+			if (split) {
+				/* deselect for split operator */
+				for (b = 0, bp1 = nu->bp; b < nu->pntsu * nu->pntsv; b++, bp1++) {
+					select_bpoint(bp1, DESELECT, SELECT, HIDDEN);
+				}
+			}
+
+			nu->knotsu = nu->knotsv = NULL;
+			BKE_nurb_order_clamp_u(nu);
+			BKE_nurb_knot_calc_u(nu);
+
+			if (nu->pntsv > 1) {
+				BKE_nurb_order_clamp_v(nu);
+				BKE_nurb_knot_calc_v(nu);
+			}
+		}
 	}
+
+	keyIndex_delNurbList(editnurb, nubase);
+	BKE_nurbList_free(nubase);
+	BLI_movelisttolist(nubase, &newnurb);
 
 	return OPERATOR_FINISHED;
 }
@@ -6187,7 +6365,11 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
-	int retval = curve_delete_selected(obedit, type, false);
+	int retval;
+
+	if (type == CURVE_VERTEX) retval = curve_delete_vertices(obedit);
+	else if (type == CURVE_SEGMENT) retval = curve_delete_segments(obedit, false);
+	else BLI_assert(0);
 
 	if (retval == OPERATOR_FINISHED) {
 		if (ED_curve_updateAnimPaths(obedit->data)) WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
@@ -6210,23 +6392,14 @@ static EnumPropertyItem curve_delete_type_items[] = {
 static EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                             PropertyRNA *UNUSED(prop), int *free)
 {
-	Object *obedit;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
-
 
 	if (!C) /* needed for docs and i18n tools */
 		return curve_delete_type_items;
 
-	obedit = CTX_data_edit_object(C);
-	if (obedit->type == OB_SURF) {
-		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
-	}
-	else {
-		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
-		RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_SEGMENT);
-	}
-
+	RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
+	RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_SEGMENT);
 	RNA_enum_item_end(&item, &totitem);
 	*free = true;
 
@@ -6613,22 +6786,6 @@ void ED_curve_bpcpy(EditNurb *editnurb, BPoint *dst, BPoint *src, int count)
 {
 	memcpy(dst, src, count * sizeof(BPoint));
 	keyIndex_updateBP(editnurb, src, dst, count);
-}
-
-Nurb *ED_curve_nurbcpy(Nurb *src, int count)
-{
-	Nurb *newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "copyNurb");
-	memcpy(newnu, src, sizeof(Nurb));
-	newnu->pntsu = count;
-
-	if (src->bezt) {
-		newnu->bezt = (BezTriple *)MEM_mallocN(count * sizeof(BezTriple), "copyNurb2");
-	}
-	else {
-		newnu->bp = (BPoint *)MEM_mallocN(count * sizeof(BPoint), "copyNurb3");
-	}
-
-	return newnu;
 }
 
 int ED_curve_actSelection(Curve *cu, float center[3])
