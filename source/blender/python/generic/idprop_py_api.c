@@ -346,6 +346,14 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 	if (name_obj) {
 		Py_ssize_t name_size;
 		name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
+
+		if (name == NULL) {
+			PyErr_Format(PyExc_KeyError,
+			             "invalid id-property key, expected a string, not a %.200s",
+			             Py_TYPE(name_obj)->tp_name);
+			return false;
+		}
+
 		if (name_size > MAX_IDPROP_NAME) {
 			PyErr_SetString(PyExc_KeyError, "the length of IDProperty names is limited to 63 characters");
 			return false;
@@ -410,32 +418,47 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 
 		switch (val.array.type) {
 			case IDP_DOUBLE:
-				prop = IDP_New(IDP_ARRAY, &val, name);
-				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					((double *)IDP_Array(prop))[i] = (float)PyFloat_AsDouble(item);
-				}
-				break;
-			case IDP_INT:
-				prop = IDP_New(IDP_ARRAY, &val, name);
-				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					((int *)IDP_Array(prop))[i] = _PyLong_AsInt(item);
-				}
-				break;
-			case IDP_IDPARRAY:
-				prop = IDP_NewIDPArray(name);
-				for (i = 0; i < val.array.len; i++) {
-					bool ok;
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					ok = BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
+			{
+				double *prop_data;
 
-					if (ok == false) {
+				prop = IDP_New(IDP_ARRAY, &val, name);
+				prop_data = IDP_Array(prop);
+				for (i = 0; i < val.array.len; i++) {
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+					if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
 						Py_DECREF(ob_seq_fast);
-						return ok;
+						return false;
 					}
 				}
 				break;
+			}
+			case IDP_INT:
+			{
+				int *prop_data;
+				prop = IDP_New(IDP_ARRAY, &val, name);
+				prop_data = IDP_Array(prop);
+				for (i = 0; i < val.array.len; i++) {
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+					if (((prop_data[i] = _PyLong_AsInt(item)) == -1) && PyErr_Occurred()) {
+						Py_DECREF(ob_seq_fast);
+						return false;
+					}
+				}
+				break;
+			}
+			case IDP_IDPARRAY:
+			{
+				prop = IDP_NewIDPArray(name);
+				for (i = 0; i < val.array.len; i++) {
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+
+					if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
+						Py_DECREF(ob_seq_fast);
+						return false;
+					}
+				}
+				break;
+			}
 			default:
 				/* should never happen */
 				Py_DECREF(ob_seq_fast);
@@ -459,18 +482,6 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 		for (i = 0; i < len; i++) {
 			key = PySequence_GetItem(keys, i);
 			pval = PySequence_GetItem(vals, i);
-			if (!PyUnicode_Check(key)) {
-				IDP_FreeProperty(prop);
-				MEM_freeN(prop);
-				Py_XDECREF(keys);
-				Py_XDECREF(vals);
-				Py_XDECREF(key);
-				Py_XDECREF(pval);
-				PyErr_Format(PyExc_TypeError,
-				             "invalid id-property key type expected a string, not %.200s",
-				             Py_TYPE(key)->tp_name);
-				return false;
-			}
 			if (BPy_IDProperty_Map_ValidateAndCreate(key, prop, pval) == false) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
@@ -526,11 +537,6 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 	}
 	else {
 		bool ok;
-
-		if (!PyUnicode_Check(key)) {
-			PyErr_SetString(PyExc_TypeError, "only strings are allowed as subgroup keys");
-			return -1;
-		}
 
 		ok = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
 		if (ok == false) {
