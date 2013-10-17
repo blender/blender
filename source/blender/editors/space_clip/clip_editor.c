@@ -639,7 +639,7 @@ static unsigned char *prefetch_read_file_to_memory(MovieClip *clip, int current_
 
 	BKE_movieclip_filename_for_frame(clip, &user, name);
 
-	file = open(name, O_BINARY | O_RDONLY, 0);
+	file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 	if (file < 0) {
 		return NULL;
 	}
