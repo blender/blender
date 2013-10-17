@@ -95,6 +95,7 @@ typedef struct {
 	char *texels;
 	const MResolvePixelData *data;
 	MFlushPixel flush_pixel;
+	short *do_update;
 } MBakeRast;
 
 typedef struct {
@@ -162,7 +163,8 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 	}
 }
 
-static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResolvePixelData *data, MFlushPixel flush_pixel)
+static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResolvePixelData *data,
+                           MFlushPixel flush_pixel, short *do_update)
 {
 	BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
 
@@ -173,6 +175,7 @@ static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResol
 	bake_rast->h = ibuf->y;
 	bake_rast->data = data;
 	bake_rast->flush_pixel = flush_pixel;
+	bake_rast->do_update = do_update;
 }
 
 static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
@@ -240,6 +243,9 @@ static void set_rast_triangle(const MBakeRast *bake_rast, const int x, const int
 		if ((bake_rast->texels[y * w + x]) == 0) {
 			bake_rast->texels[y * w + x] = FILTER_MASK_USED;
 			flush_pixel(bake_rast->data, x, y);
+			if (bake_rast->do_update) {
+				*bake_rast->do_update = true;
+			}
 		}
 	}
 }
@@ -529,7 +535,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 			handle->height_min = FLT_MAX;
 			handle->height_max = -FLT_MAX;
 
-			init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel);
+			init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
 
 			if (tot_thread > 1)
 				BLI_insert_thread(&threads, handle);

@@ -322,6 +322,10 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 	if (bs->rect_mask) {
 		bs->rect_mask[bs->rectx * y + x] = FILTER_MASK_USED;
 	}
+
+	if (bs->do_update) {
+		*bs->do_update = true;
+	}
 }
 
 static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist, int x, int y)
