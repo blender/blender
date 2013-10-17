@@ -3806,7 +3806,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 			for (; pt; pt=pt->next)
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 			
-			psys->parent = newlibadr_us(fd, id->lib, psys->parent);
+			psys->parent = newlibadr(fd, id->lib, psys->parent);
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
 			
 			if (psys->clmd) {
