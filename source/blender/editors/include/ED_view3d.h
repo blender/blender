@@ -328,6 +328,8 @@ float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float
 float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
 
+void ED_scene_draw_fps(struct Scene *scene, struct rcti *rect);
+
 /* view matrix properties utilities */
 /* unused */
 #if 0
