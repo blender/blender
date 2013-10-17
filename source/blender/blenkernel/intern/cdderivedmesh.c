@@ -1068,7 +1068,7 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 
 	/* orco texture coordinates */
 	if (attribs->totorco) {
-		const float (*array)[3] = attribs->orco.array;
+		/*const*/ float (*array)[3] = attribs->orco.array;
 		const float *orco = (array) ? array[index] : zero;
 
 		if (attribs->orco.gl_texco)
@@ -1112,7 +1112,7 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 
 	/* tangent for normal mapping */
 	if (attribs->tottang) {
-		const float (*array)[4] = attribs->tang.array;
+		/*const*/ float (*array)[4] = attribs->tang.array;
 		const float *tang = (array) ? array[a * 4 + vert] : zero;
 		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
 	}

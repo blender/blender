@@ -1824,7 +1824,7 @@ static void ccgdm_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index,
 
 	/* orco texture coordinates */
 	if (attribs->totorco) {
-		const float (*array)[3] = attribs->orco.array;
+		/*const*/ float (*array)[3] = attribs->orco.array;
 		const float *orco = (array) ? array[index] : zero;
 
 		if (attribs->orco.gl_texco)
@@ -1868,7 +1868,7 @@ static void ccgdm_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index,
 
 	/* tangent for normal mapping */
 	if (attribs->tottang) {
-		const float (*array)[4] = attribs->tang.array;
+		/*const*/ float (*array)[4] = attribs->tang.array;
 		const float *tang = (array) ? array[a * 4 + vert] : zero;
 
 		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
@@ -2028,7 +2028,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	int a, b, i, numVerts, matnr, new_matnr, totface;
+	int a, i, numVerts, matnr, new_matnr, totface;
 
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
