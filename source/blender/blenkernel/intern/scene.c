@@ -876,7 +876,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
 	int frame = -(MAXFRAME + 1);
 	int min_frame = MAXFRAME + 1;
 	Object *camera = NULL;
-	Object *first_camera;
+	Object *first_camera = NULL;
 
 	for (m = scene->markers.first; m; m = m->next) {
 		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
