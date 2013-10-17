@@ -752,6 +752,7 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 static void *do_prefetch_thread(void *data_v)
 {
 	PrefetchThread *data = (PrefetchThread *) data_v;
+	MovieClip *clip = data->clip;
 	unsigned char *mem;
 	size_t size;
 	int current_frame;
@@ -766,7 +767,7 @@ static void *do_prefetch_thread(void *data_v)
 		user.render_size = data->queue->render_size;
 		user.render_flag = data->queue->render_flag;
 
-		ibuf = IMB_ibImageFromMemory(mem, size, flag, NULL, "prefetch frame");
+		ibuf = IMB_ibImageFromMemory(mem, size, flag, clip->colorspace_settings.name, "prefetch frame");
 
 		result = BKE_movieclip_put_frame_if_possible(data->clip, &user, ibuf);
 
