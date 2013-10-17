@@ -108,6 +108,7 @@ private:
 	id_map<ObjectKey, Light> light_map;
 	id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
 	set<Mesh*> mesh_synced;
+	set<Mesh*> mesh_motion_synced;
 	void *world_map;
 	bool world_recalc;
 

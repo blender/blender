@@ -539,6 +539,12 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 	if(!size || !ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview))
 		return;
 
+	/* ensure we only sync instanced meshes once */
+	if(mesh_motion_synced.find(mesh) != mesh_motion_synced.end())
+		return;
+
+	mesh_motion_synced.insert(mesh);
+
 	/* get derived mesh */
 	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, false);
 

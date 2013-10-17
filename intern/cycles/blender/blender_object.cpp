@@ -405,6 +405,9 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 		mesh_synced.clear();
 		particle_system_map.pre_sync();
 	}
+	else {
+		mesh_motion_synced.clear();
+	}
 
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
@@ -492,6 +495,9 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			scene->particle_system_manager->tag_update(scene);
 		mesh_synced.clear();
 	}
+
+	if(motion)
+		mesh_motion_synced.clear();
 }
 
 void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
