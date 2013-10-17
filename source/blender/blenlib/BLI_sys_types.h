@@ -116,7 +116,7 @@ typedef uint64_t u_int64_t;
  * use (bool, true / false) instead */
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
-#else
+#elif !defined(__bool_true_false_are_defined) && !defined(__BOOL_DEFINED)
 # ifndef HAVE__BOOL
 #  ifdef __cplusplus
 typedef bool _BLI_Bool;
