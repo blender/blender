@@ -25,14 +25,15 @@
  *  \ingroup pygen
  */
 
-
 #include <Python.h>
 
-#include "idprop_py_api.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+
+#include "idprop_py_api.h"
+
 
 #include "BKE_idprop.h"
 
@@ -329,21 +330,29 @@ static int idp_sequence_type(PyObject *seq_fast)
 	return type;
 }
 
-/* note: group can be a pointer array or a group.
- * assume we already checked key is a string. */
-const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
+/**
+ * \note group can be a pointer array or a group.
+ * assume we already checked key is a string.
+ *
+ * \return success.
+ */
+bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
 {
 	IDProperty *prop = NULL;
 	IDPropertyTemplate val = {0};
 
-	const char *name = "";
+	const char *name;
 
 	if (name_obj) {
 		Py_ssize_t name_size;
 		name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
 		if (name_size > MAX_IDPROP_NAME) {
-			return "the length of IDProperty names is limited to 63 characters";
+			PyErr_SetString(PyExc_KeyError, "the length of IDProperty names is limited to 63 characters");
+			return false;
 		}
+	}
+	else {
+		name = "";
 	}
 
 	if (PyFloat_Check(ob)) {
@@ -353,7 +362,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 	else if (PyLong_Check(ob)) {
 		val.i = _PyLong_AsInt(ob);
 		if (val.i == -1 && PyErr_Occurred()) {
-			return "error converting to an int";
+			return false;
 		}
 		prop = IDP_New(IDP_INT, &val, name);
 	}
@@ -384,14 +393,13 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		int i;
 
 		if (ob_seq_fast == NULL) {
-			PyErr_Print();
-			PyErr_Clear();
-			return "error converting the sequence";
+			return false;
 		}
 
 		if ((val.array.type = idp_sequence_type(ob_seq_fast)) == -1) {
 			Py_DECREF(ob_seq_fast);
-			return "only floats, ints and dicts are allowed in ID property arrays";
+			PyErr_SetString(PyExc_TypeError, "only floats, ints and dicts are allowed in ID property arrays");
+			return false;
 		}
 
 		/* validate sequence and derive type.
@@ -418,19 +426,21 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 			case IDP_IDPARRAY:
 				prop = IDP_NewIDPArray(name);
 				for (i = 0; i < val.array.len; i++) {
-					const char *error;
+					bool ok;
 					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					error = BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
+					ok = BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
 
-					if (error) {
+					if (ok == false) {
 						Py_DECREF(ob_seq_fast);
-						return error;
+						return ok;
 					}
 				}
 				break;
 			default:
+				/* should never happen */
 				Py_DECREF(ob_seq_fast);
-				return "internal error with idp array.type";
+				PyErr_SetString(PyExc_RuntimeError, "internal error with idp array.type");
+				return false;
 		}
 
 		Py_DECREF(ob_seq_fast);
@@ -456,16 +466,20 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 				Py_XDECREF(vals);
 				Py_XDECREF(key);
 				Py_XDECREF(pval);
-				return "invalid element in subgroup dict template!";
+				PyErr_Format(PyExc_TypeError,
+				             "invalid id-property key type expected a string, not %.200s",
+				             Py_TYPE(key)->tp_name);
+				return false;
 			}
-			if (BPy_IDProperty_Map_ValidateAndCreate(key, prop, pval)) {
+			if (BPy_IDProperty_Map_ValidateAndCreate(key, prop, pval) == false) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
 				Py_XDECREF(keys);
 				Py_XDECREF(vals);
 				Py_XDECREF(key);
 				Py_XDECREF(pval);
-				return "invalid element in subgroup dict template!";
+				/* error is already set */
+				return false;
 			}
 			Py_XDECREF(key);
 			Py_XDECREF(pval);
@@ -474,7 +488,10 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		Py_XDECREF(vals);
 	}
 	else {
-		return "invalid property value";
+		PyErr_Format(PyExc_TypeError,
+		             "invalid id-property type %.200s not supported",
+		             Py_TYPE(ob)->tp_name);
+		return false;
 	}
 
 	if (group->type == IDP_IDPARRAY) {
@@ -486,7 +503,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		IDP_ReplaceInGroup(group, prop);
 	}
 
-	return NULL;
+	return true;
 }
 
 int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
@@ -508,16 +525,15 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 		}
 	}
 	else {
-		const char *err;
+		bool ok;
 
 		if (!PyUnicode_Check(key)) {
 			PyErr_SetString(PyExc_TypeError, "only strings are allowed as subgroup keys");
 			return -1;
 		}
 
-		err = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
-		if (err) {
-			PyErr_SetString(PyExc_KeyError, err);
+		ok = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
+		if (ok == false) {
 			return -1;
 		}
 
