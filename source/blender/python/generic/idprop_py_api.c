@@ -351,7 +351,10 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		prop = IDP_New(IDP_DOUBLE, &val, name);
 	}
 	else if (PyLong_Check(ob)) {
-		val.i = (int)PyLong_AsLong(ob);
+		val.i = _PyLong_AsInt(ob);
+		if (val.i == -1 && PyErr_Occurred()) {
+			return "error converting to an int";
+		}
 		prop = IDP_New(IDP_INT, &val, name);
 	}
 	else if (PyUnicode_Check(ob)) {
@@ -409,7 +412,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				for (i = 0; i < val.array.len; i++) {
 					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					((int *)IDP_Array(prop))[i] = (int)PyLong_AsLong(item);
+					((int *)IDP_Array(prop))[i] = _PyLong_AsInt(item);
 				}
 				break;
 			case IDP_IDPARRAY:
@@ -1052,10 +1055,6 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 
 static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 {
-	int i;
-	float f;
-	double d;
-
 	if (index < 0 || index >= self->prop->len) {
 		PyErr_SetString(PyExc_RuntimeError, "index out of range!");
 		return -1;
@@ -1063,30 +1062,33 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			f = (float)PyFloat_AsDouble(value);
+		{
+			const float f = (float)PyFloat_AsDouble(value);
 			if (f == -1 && PyErr_Occurred()) {
-				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
 			((float *)IDP_Array(self->prop))[index] = f;
 			break;
+		}
 		case IDP_DOUBLE:
-			d = PyFloat_AsDouble(value);
+		{
+			const double d = PyFloat_AsDouble(value);
 			if (d == -1 && PyErr_Occurred()) {
-				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
 			((double *)IDP_Array(self->prop))[index] = d;
 			break;
+		}
 		case IDP_INT:
-			i = PyLong_AsLong(value);
+		{
+			const int i = _PyLong_AsInt(value);
 			if (i == -1 && PyErr_Occurred()) {
-				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;
 			}
 
 			((int *)IDP_Array(self->prop))[index] = i;
 			break;
+		}
 	}
 	return 0;
 }
