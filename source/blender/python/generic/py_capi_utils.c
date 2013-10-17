@@ -887,3 +887,19 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
 
 	return ret;
 }
+
+/* compat only */
+#if PY_VERSION_HEX <  0x03030200
+int
+_PyLong_AsInt(PyObject *obj)
+{
+	int overflow;
+	long result = PyLong_AsLongAndOverflow(obj, &overflow);
+	if (overflow || result > INT_MAX || result < INT_MIN) {
+		PyErr_SetString(PyExc_OverflowError,
+		                "Python int too large to convert to C int");
+		return -1;
+	}
+	return (int)result;
+}
+#endif
