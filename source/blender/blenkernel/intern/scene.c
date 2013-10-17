@@ -874,18 +874,35 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
 	TimeMarker *m;
 	int cfra = scene->r.cfra;
 	int frame = -(MAXFRAME + 1);
+	int min_frame = MAXFRAME + 1;
 	Object *camera = NULL;
+	Object *first_camera;
 
 	for (m = scene->markers.first; m; m = m->next) {
-		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0 && (m->frame <= cfra) && (m->frame > frame)) {
-			camera = m->camera;
-			frame = m->frame;
+		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
+			if ((m->frame <= cfra) && (m->frame > frame)) {
+				camera = m->camera;
+				frame = m->frame;
 
-			if (frame == cfra)
-				break;
+				if (frame == cfra)
+					break;
+			}
 
+			if (m->frame < min_frame) {
+				first_camera = m->camera;
+				min_frame = m->frame;
+			}
 		}
 	}
+
+	if (camera == NULL) {
+		/* If there's no marker to the left of current frame,
+		 * use camera from left-most marker to solve all sort
+		 * of Schrodinger uncertainties.
+		 */
+		return first_camera;
+	}
+
 	return camera;
 }
 #endif
