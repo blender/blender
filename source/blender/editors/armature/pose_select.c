@@ -64,6 +64,36 @@
 
 /* ***************** Pose Select Utilities ********************* */
 
+/* Utility method for changing the selection status of a bone */
+void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
+{
+	bArmature *arm;
+
+	/* sanity checks */
+	// XXX: actually, we can probably still get away with no object - at most we have no updates
+	if (ELEM4(NULL, ob, ob->pose, pchan, pchan->bone))
+		return;
+	
+	arm = ob->data;
+	/* can only change selection state if bone can be modified */
+	if (PBONE_SELECTABLE(arm, pchan->bone)) {
+		/* change selection state */
+		if (select)
+			pchan->bone->flag |= BONE_SELECTED;
+		else
+			pchan->bone->flag &= ~BONE_SELECTED;
+		
+		// TODO: select and activate corresponding vgroup?
+		
+		/* tag necessary depsgraph updates 
+		 * (see rna_Bone_select_update() in rna_armature.c for details)
+		 */
+		if (arm->flag & ARM_HAS_VIZ_DEPS) {
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+	}
+}
+
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits,

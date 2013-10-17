@@ -168,6 +168,7 @@ void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag);
 void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 void ED_pose_deselectall(struct Object *ob, int test);
+void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 void ED_pose_recalculate_paths(struct Scene *scene, struct Object *ob);
 struct Object *ED_pose_object_from_context(struct bContext *C);
 
