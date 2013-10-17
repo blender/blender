@@ -590,6 +590,9 @@ void BKE_object_unlink(Object *ob)
 						}
 					}
 				}
+				
+				if (tpsys->parent == ob)
+					tpsys->parent = NULL;
 			}
 			if (ob->pd)
 				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
