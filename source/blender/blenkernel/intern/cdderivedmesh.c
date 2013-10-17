@@ -1063,37 +1063,57 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
 
 static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert, int smoothnormal)
 {
+	const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	int b;
 
 	/* orco texture coordinates */
 	if (attribs->totorco) {
+		const float (*array)[3] = attribs->orco.array;
+		const float *orco = (array) ? array[index] : zero;
+
 		if (attribs->orco.gl_texco)
-			glTexCoord3fv(attribs->orco.array[index]);
+			glTexCoord3fv(orco);
 		else
-			glVertexAttrib3fvARB(attribs->orco.gl_index, attribs->orco.array[index]);
+			glVertexAttrib3fvARB(attribs->orco.gl_index, orco);
 	}
 
 	/* uv texture coordinates */
 	for (b = 0; b < attribs->tottface; b++) {
-		MTFace *tf = &attribs->tface[b].array[a];
+		const float *uv;
+
+		if (attribs->tface[b].array) {
+			MTFace *tf = &attribs->tface[b].array[a];
+			uv = tf->uv[vert];
+		}
+		else {
+			uv = zero;
+		}
 
 		if (attribs->tface[b].gl_texco)
-			glTexCoord2fv(tf->uv[vert]);
+			glTexCoord2fv(uv);
 		else
-			glVertexAttrib2fvARB(attribs->tface[b].gl_index, tf->uv[vert]);
+			glVertexAttrib2fvARB(attribs->tface[b].gl_index, uv);
 	}
 
 	/* vertex colors */
 	for (b = 0; b < attribs->totmcol; b++) {
-		MCol *cp = &attribs->mcol[b].array[a * 4 + vert];
 		GLubyte col[4];
-		col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+
+		if (attribs->mcol[b].array) {
+			MCol *cp = &attribs->mcol[b].array[a * 4 + vert];
+			col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+		}
+		else {
+			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
+		}
+
 		glVertexAttrib4ubvARB(attribs->mcol[b].gl_index, col);
 	}
 
 	/* tangent for normal mapping */
 	if (attribs->tottang) {
-		float *tang = attribs->tang.array[a * 4 + vert];
+		const float (*array)[4] = attribs->tang.array;
+		const float *tang = (array) ? array[a * 4 + vert] : zero;
 		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
 	}
 
@@ -1264,25 +1284,29 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					if (do_draw) {
 						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
-						if (attribs.totorco) {
+						if (attribs.totorco && attribs.orco.array) {
 							datatypes[numdata].index = attribs.orco.gl_index;
 							datatypes[numdata].size = 3;
 							datatypes[numdata].type = GL_FLOAT;
 							numdata++;
 						}
 						for (b = 0; b < attribs.tottface; b++) {
-							datatypes[numdata].index = attribs.tface[b].gl_index;
-							datatypes[numdata].size = 2;
-							datatypes[numdata].type = GL_FLOAT;
-							numdata++;
+							if (attribs.tface[b].array) {
+								datatypes[numdata].index = attribs.tface[b].gl_index;
+								datatypes[numdata].size = 2;
+								datatypes[numdata].type = GL_FLOAT;
+								numdata++;
+							}
 						}
 						for (b = 0; b < attribs.totmcol; b++) {
-							datatypes[numdata].index = attribs.mcol[b].gl_index;
-							datatypes[numdata].size = 4;
-							datatypes[numdata].type = GL_UNSIGNED_BYTE;
-							numdata++;
+							if (attribs.mcol[b].array) {
+								datatypes[numdata].index = attribs.mcol[b].gl_index;
+								datatypes[numdata].size = 4;
+								datatypes[numdata].type = GL_UNSIGNED_BYTE;
+								numdata++;
+							}
 						}
-						if (attribs.tottang) {
+						if (attribs.tottang && attribs.tang.array) {
 							datatypes[numdata].index = attribs.tang.gl_index;
 							datatypes[numdata].size = 4;
 							datatypes[numdata].type = GL_FLOAT;
@@ -1315,34 +1339,38 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 				if (do_draw && numdata != 0) {
 					offset = 0;
-					if (attribs.totorco) {
+					if (attribs.totorco && attribs.orco.array) {
 						copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v1]);
 						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v2]);
 						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v3]);
 						offset += sizeof(float) * 3;
 					}
 					for (b = 0; b < attribs.tottface; b++) {
-						MTFace *tf = &attribs.tface[b].array[a];
-						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[0]);
-						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[1]);
+						if (attribs.tface[b].array) {
+							MTFace *tf = &attribs.tface[b].array[a];
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[0]);
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[1]);
 
-						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[2]);
-						offset += sizeof(float) * 2;
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[2]);
+							offset += sizeof(float) * 2;
+						}
 					}
 					for (b = 0; b < attribs.totmcol; b++) {
-						MCol *cp = &attribs.mcol[b].array[a * 4 + 0];
-						GLubyte col[4];
-						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
-						cp = &attribs.mcol[b].array[a * 4 + 1];
-						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
-						cp = &attribs.mcol[b].array[a * 4 + 2];
-						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
-						offset += sizeof(unsigned char) * 4;
+						if (attribs.mcol[b].array) {
+							MCol *cp = &attribs.mcol[b].array[a * 4 + 0];
+							GLubyte col[4];
+							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
+							cp = &attribs.mcol[b].array[a * 4 + 1];
+							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
+							cp = &attribs.mcol[b].array[a * 4 + 2];
+							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
+							offset += sizeof(unsigned char) * 4;
+						}
 					}
-					if (attribs.tottang) {
+					if (attribs.tottang && attribs.tang.array) {
 						float *tang = attribs.tang.array[a * 4 + 0];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
 						tang = attribs.tang.array[a * 4 + 1];
@@ -1357,33 +1385,37 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				if (mface->v4) {
 					if (do_draw && numdata != 0) {
 						offset = 0;
-						if (attribs.totorco) {
+						if (attribs.totorco && attribs.orco.array) {
 							copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v3]);
 							copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v4]);
 							copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v1]);
 							offset += sizeof(float) * 3;
 						}
 						for (b = 0; b < attribs.tottface; b++) {
-							MTFace *tf = &attribs.tface[b].array[a];
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[2]);
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[3]);
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[0]);
-							offset += sizeof(float) * 2;
+							if (attribs.tface[b].array) {
+								MTFace *tf = &attribs.tface[b].array[a];
+								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[2]);
+								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[3]);
+								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[0]);
+								offset += sizeof(float) * 2;
+							}
 						}
 						for (b = 0; b < attribs.totmcol; b++) {
-							MCol *cp = &attribs.mcol[b].array[a * 4 + 2];
-							GLubyte col[4];
-							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
-							cp = &attribs.mcol[b].array[a * 4 + 3];
-							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
-							cp = &attribs.mcol[b].array[a * 4 + 0];
-							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
-							offset += sizeof(unsigned char) * 4;
+							if (attribs.mcol[b].array) {
+								MCol *cp = &attribs.mcol[b].array[a * 4 + 2];
+								GLubyte col[4];
+								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
+								cp = &attribs.mcol[b].array[a * 4 + 3];
+								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
+								cp = &attribs.mcol[b].array[a * 4 + 0];
+								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
+								offset += sizeof(unsigned char) * 4;
+							}
 						}
-						if (attribs.tottang) {
+						if (attribs.tottang && attribs.tang.array) {
 							float *tang = attribs.tang.array[a * 4 + 2];
 							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
 							tang = attribs.tang.array[a * 4 + 3];

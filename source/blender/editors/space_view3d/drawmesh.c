@@ -982,7 +982,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
-		if (glsl || picking || !CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
+		if (glsl || picking) {
 			/* draw glsl or solid */
 			dm->drawMappedFacesMat(dm,
 			                       tex_mat_set_material_cb,

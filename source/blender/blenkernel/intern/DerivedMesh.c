@@ -2859,14 +2859,19 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				else
 					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 
-				if (layer != -1) {
-					a = attribs->tottface++;
+				a = attribs->tottface++;
 
+				if (layer != -1) {
 					attribs->tface[a].array = tfdata->layers[layer].data;
 					attribs->tface[a].em_offset = ldata->layers[layer].offset;
-					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
-					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
+				else {
+					attribs->tface[a].array = NULL;
+					attribs->tface[a].em_offset = -1;
+				}
+
+				attribs->tface[a].gl_index = gattribs->layer[b].glindex;
+				attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 			}
 			else {
 				if (gattribs->layer[b].name[0])
@@ -2875,14 +2880,19 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				else
 					layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
 
-				if (layer != -1) {
-					a = attribs->tottface++;
+				a = attribs->tottface++;
 
+				if (layer != -1) {
 					attribs->tface[a].array = tfdata->layers[layer].data;
 					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
-					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
-					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
+				else {
+					attribs->tface[a].array = NULL;
+					attribs->tface[a].em_offset = -1;
+				}
+
+				attribs->tface[a].gl_index = gattribs->layer[b].glindex;
+				attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 			}
 		}
 		else if (gattribs->layer[b].type == CD_MCOL) {
@@ -2896,14 +2906,19 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				else
 					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
 
-				if (layer != -1) {
-					a = attribs->totmcol++;
+				a = attribs->totmcol++;
 
+				if (layer != -1) {
 					attribs->mcol[a].array = tfdata->layers[layer].data;
 					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
 					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
-					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
+				else {
+					attribs->mcol[a].array = NULL;
+					attribs->mcol[a].em_offset = -1;
+				}
+
+				attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 			}
 			else {
 				/* vertex colors */
@@ -2913,40 +2928,54 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				else
 					layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
 
-				if (layer != -1) {
-					a = attribs->totmcol++;
+				a = attribs->totmcol++;
 
+				if (layer != -1) {
 					attribs->mcol[a].array = tfdata->layers[layer].data;
 					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
 					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
-					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
+				else {
+					attribs->mcol[a].array = NULL;
+					attribs->mcol[a].em_offset = -1;
+				}
+
+				attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 			}
 		}
 		else if (gattribs->layer[b].type == CD_TANGENT) {
 			/* tangents */
 			layer = CustomData_get_layer_index(fdata, CD_TANGENT);
 
-			if (layer != -1) {
-				attribs->tottang = 1;
+			attribs->tottang = 1;
 
+			if (layer != -1) {
 				attribs->tang.array = fdata->layers[layer].data;
 				attribs->tang.em_offset = fdata->layers[layer].offset;
-				attribs->tang.gl_index = gattribs->layer[b].glindex;
 			}
+			else {
+				attribs->tang.array = NULL;
+				attribs->tang.em_offset = -1;
+			}
+
+			attribs->tang.gl_index = gattribs->layer[b].glindex;
 		}
 		else if (gattribs->layer[b].type == CD_ORCO) {
 			/* original coordinates */
 			layer = CustomData_get_layer_index(vdata, CD_ORCO);
+			attribs->totorco = 1;
 
 			if (layer != -1) {
-				attribs->totorco = 1;
-
 				attribs->orco.array = vdata->layers[layer].data;
 				attribs->orco.em_offset = vdata->layers[layer].offset;
-				attribs->orco.gl_index = gattribs->layer[b].glindex;
-				attribs->orco.gl_texco = gattribs->layer[b].gltexco;
 			}
+			else {
+				attribs->orco.array = NULL;
+				attribs->orco.em_offset = -1;
+			}
+
+			attribs->orco.gl_index = gattribs->layer[b].glindex;
+			attribs->orco.gl_texco = gattribs->layer[b].gltexco;
 		}
 	}
 }
