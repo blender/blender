@@ -628,7 +628,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 	}
 }
 
-void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int motion)
+static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int motion)
 {
 	/* export motion vectors for curve keys */
 	AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
