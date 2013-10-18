@@ -628,6 +628,47 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 	}
 }
 
+void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int motion)
+{
+	/* export motion vectors for curve keys */
+	AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
+	Attribute *attr_motion = mesh->curve_attributes.add(std);
+	float3 *data_motion = attr_motion->data_float3();
+	float3 *current_motion = data_motion;
+	size_t size = mesh->curve_keys.size();
+	size_t i = 0;
+	bool have_motion = false;
+
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		if(CData->psys_curvenum[sys] == 0)
+			continue;
+
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
+			if(CData->curve_keynum[curve] <= 1)
+				continue;
+
+			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
+				if(i < mesh->curve_keys.size()) {
+					*current_motion = CData->curvekey_co[curvekey];
+
+					/* unlike mesh coordinates, these tend to be slightly different
+					 * between frames due to particle transforms into/out of object
+					 * space, so we use an epsilon to detect actual changes */
+					if(len_squared(*current_motion - mesh->curve_keys[i].co) > 1e-5f*1e-5f)
+						have_motion = true;
+
+					current_motion++;
+				}
+
+				i++;
+			}
+		}
+	}
+
+	if(i != size || !have_motion)
+		mesh->curve_attributes.remove(std);
+}
+
 void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata)
 {
 	if(uvdata == NULL)
@@ -778,18 +819,21 @@ void BlenderSync::sync_curve_settings()
 
 }
 
-void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool object_updated)
+void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, int motion)
 {
-	/* Clear stored curve data */
-	mesh->curve_keys.clear();
-	mesh->curves.clear();
-	mesh->curve_attributes.clear();
+	if(!motion) {
+		/* Clear stored curve data */
+		mesh->curve_keys.clear();
+		mesh->curves.clear();
+		mesh->curve_attributes.clear();
+	}
 
 	/* obtain general settings */
 	bool use_curves = scene->curve_system_manager->use_curves;
 
 	if(!(use_curves && b_ob.mode() == b_ob.mode_OBJECT)) {
-		mesh->compute_bounds();
+		if(!motion)
+			mesh->compute_bounds();
 		return;
 	}
 
@@ -829,13 +873,15 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 		}
 	}
 	else {
-		ExportCurveSegments(scene, mesh, &CData);
+		if(motion)
+			ExportCurveSegmentsMotion(scene, mesh, &CData, motion);
+		else
+			ExportCurveSegments(scene, mesh, &CData);
 	}
-
 
 	/* generated coordinates from first key. we should ideally get this from
 	 * blender to handle deforming objects */
-	{
+	if(!motion) {
 		if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 			float3 loc, size;
 			mesh_texture_space(b_mesh, loc, size);
@@ -861,7 +907,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 
 	/* create vertex color attributes */
-	{
+	if(!motion) {
 		BL::Mesh::tessface_vertex_colors_iterator l;
 		int vcol_num = 0;
 
@@ -895,7 +941,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 
 	/* create UV attributes */
-	{
+	if(!motion) {
 		BL::Mesh::tessface_uv_textures_iterator l;
 		int uv_num = 0;
 
@@ -942,7 +988,6 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 	mesh->compute_bounds();
 }
-
 
 CCL_NAMESPACE_END
 

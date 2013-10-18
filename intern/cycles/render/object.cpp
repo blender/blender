@@ -253,9 +253,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 			Transform mtfm_pre = ob->motion.pre;
 			Transform mtfm_post = ob->motion.post;
 
-			if(!mesh->attributes.find(ATTR_STD_MOTION_PRE))
+			if(!(mesh->attributes.find(ATTR_STD_MOTION_PRE) || mesh->curve_attributes.find(ATTR_STD_MOTION_PRE)))
 				mtfm_pre = mtfm_pre * itfm;
-			if(!mesh->attributes.find(ATTR_STD_MOTION_POST))
+			if(!(mesh->attributes.find(ATTR_STD_MOTION_POST) || mesh->curve_attributes.find(ATTR_STD_MOTION_POST)))
 				mtfm_post = mtfm_post * itfm;
 
 			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);

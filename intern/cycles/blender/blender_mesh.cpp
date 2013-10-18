@@ -488,7 +488,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 			}
 
 			if(render_layer.use_hair)
-				sync_curves(mesh, b_mesh, b_ob, object_updated);
+				sync_curves(mesh, b_mesh, b_ob, 0);
 
 			/* free derived mesh */
 			b_data.meshes.remove(b_mesh);
@@ -561,6 +561,10 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 		/* if number of vertices changed, or if coordinates stayed the same, drop it */
 		if(i != size || memcmp(M, &mesh->verts[0], sizeof(float3)*size) == 0)
 			mesh->attributes.remove(std);
+
+		/* hair motion */
+		if(render_layer.use_hair)
+			sync_curves(mesh, b_mesh, b_ob, motion);
 
 		/* free derived mesh */
 		b_data.meshes.remove(b_mesh);
