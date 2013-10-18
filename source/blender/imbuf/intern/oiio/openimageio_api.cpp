@@ -98,11 +98,17 @@ static ImBuf *imb_oiio_load_image(ImageInput *in, int width, int height, int com
 
 	try
 	{
-		in->read_image(TypeDesc::UINT8,
-		               (uchar *)ibuf->rect + (height - 1) * scanlinesize,
-		               AutoStride,
-		               -scanlinesize,
-		               AutoStride);
+		if (!in->read_image(TypeDesc::UINT8,
+				    (uchar *)ibuf->rect + (height - 1) * scanlinesize,
+				    AutoStride,
+				    -scanlinesize,
+				    AutoStride)) {
+			std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
+				  << in->geterror() << std::endl;
+			if (ibuf) IMB_freeImBuf(ibuf);
+
+			return NULL;
+		}
 	}
 	catch (const std::exception &exc)
 	{
@@ -128,11 +134,17 @@ static ImBuf *imb_oiio_load_image_float(ImageInput *in, int width, int height, i
 
 	try
 	{
-		in->read_image(TypeDesc::FLOAT,
-		               (uchar *)ibuf->rect_float + (height - 1) * scanlinesize,
-		               AutoStride,
-		               -scanlinesize,
-		               AutoStride);
+		if (!in->read_image(TypeDesc::FLOAT,
+				    (uchar *)ibuf->rect_float + (height - 1) * scanlinesize,
+				    AutoStride,
+				    -scanlinesize,
+				    AutoStride)) {
+			std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
+				  << in->geterror() << std::endl;
+			if (ibuf) IMB_freeImBuf(ibuf);
+
+			return NULL;
+		}
 	}
 	catch (const std::exception &exc)
 	{
@@ -191,12 +203,18 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	in = ImageInput::create(filename);
-	if (!in) return NULL;
+	if (!in) {
+		std::cerr << __func__ << ": ImageInput::create() failed:" << std::endl
+			  << OpenImageIO::geterror() << std::endl;
+		return NULL;
+	}
 
 	ImageSpec spec, config;
 	config.attribute("oiio:UnassociatedAlpha", (int) 1);
 
 	if (!in->open(filename, spec, config)) {
+		std::cerr << __func__ << ": ImageInput::open() failed:" << std::endl
+			  << in->geterror() << std::endl;
 		delete in;
 		return NULL;
 	}
