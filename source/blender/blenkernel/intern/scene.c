@@ -157,6 +157,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		lb = scen->r.layers;
 		scen->r = sce->r;
 		scen->r.layers = lb;
+		scen->r.actlay = 0;
 		scen->unit = sce->unit;
 		scen->physics_settings = sce->physics_settings;
 		scen->gm = sce->gm;

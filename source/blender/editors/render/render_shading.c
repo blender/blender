@@ -739,6 +739,10 @@ static int freestyle_active_lineset_poll(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
+	if (!srl) {
+		return FALSE;
+	}
+
 	return BKE_freestyle_lineset_get_active(&srl->freestyleConfig) != NULL;
 }
 
