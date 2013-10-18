@@ -2070,3 +2070,9 @@ void pseudoinverse_m3_m3(float Ainv[3][3], float A[3][3], float epsilon)
 	}
 }
 
+bool has_zero_axis_m4(float matrix[4][4])
+{
+	return len_squared_v3(matrix[0]) < FLT_EPSILON ||
+	       len_squared_v3(matrix[1]) < FLT_EPSILON ||
+	       len_squared_v3(matrix[2]) < FLT_EPSILON;
+}

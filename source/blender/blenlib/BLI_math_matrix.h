@@ -160,6 +160,8 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A[4][4]);
 void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon);
 void pseudoinverse_m3_m3(float Ainv[3][3], float A[3][3], float epsilon);
 
+bool has_zero_axis_m4(float matrix[4][4]);
+
 /****************************** Transformations ******************************/
 
 void scale_m3_fl(float R[3][3], float scale);

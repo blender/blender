@@ -1637,22 +1637,6 @@ static void polygonize(PROCESS *process, MetaBall *mb)
 	}
 }
 
-/* could move to math api */
-BLI_INLINE void copy_v3_fl3(float v[3], float x, float y, float z)
-{
-	v[0] = x;
-	v[1] = y;
-	v[2] = z;
-}
-
-/* TODO(sergey): Perhaps it could be general utility function in mathutils. */
-static bool has_zero_axis_m4(float matrix[4][4])
-{
-	return len_squared_v3(matrix[0]) < FLT_EPSILON ||
-	       len_squared_v3(matrix[1]) < FLT_EPSILON ||
-	       len_squared_v3(matrix[2]) < FLT_EPSILON;
-}
-
 static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return totsize */
 {
 	Scene *sce_iter = scene;
