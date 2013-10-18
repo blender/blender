@@ -1502,16 +1502,6 @@ void BKE_scene_disable_color_management(Scene *scene)
 
 int BKE_scene_check_color_management_enabled(const Scene *scene)
 {
-	/* TODO(sergey): shouldn't be needed. but we're currently far to close to the release,
-	 *               so better be extra-safe than sorry.
-	 *
-	 *               Will remove the check after the release.
-	 */
-	if (!scene) {
-		BLI_assert(!"Shouldn't happen!");
-		return TRUE;
-	}
-
 	return strcmp(scene->display_settings.display_device, "None") != 0;
 }
 
