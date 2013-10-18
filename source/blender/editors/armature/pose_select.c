@@ -75,13 +75,18 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 		return;
 	
 	arm = ob->data;
+	
 	/* can only change selection state if bone can be modified */
 	if (PBONE_SELECTABLE(arm, pchan->bone)) {
-		/* change selection state */
-		if (select)
+		/* change selection state - activate too if selected */
+		if (select) {
 			pchan->bone->flag |= BONE_SELECTED;
-		else
+			arm->act_bone = pchan->bone;
+		}
+		else {
 			pchan->bone->flag &= ~BONE_SELECTED;
+			arm->act_bone = NULL;
+		}
 		
 		// TODO: select and activate corresponding vgroup?
 		
@@ -91,6 +96,9 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 		if (arm->flag & ARM_HAS_VIZ_DEPS) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
+		
+		/* send necessary notifiers */
+		WM_main_add_notifier(NC_GEOM | ND_DATA, ob);
 	}
 }
 
