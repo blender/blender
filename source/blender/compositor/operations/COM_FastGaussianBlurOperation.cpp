@@ -82,8 +82,8 @@ void FastGaussianBlurOperation::deinitExecution()
 void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
-	if (!this->m_iirgaus) {
-		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
+    if (!this->m_iirgaus) {
+        MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
 		MemoryBuffer *copy = newBuf->duplicate();
 		updateSize();
 
@@ -194,25 +194,41 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 	X = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss X buf");
 	Y = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss Y buf");
 	W = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss W buf");
-	if (xy & 1) {   // H
+    if (xy & 1) {   // H
+        int offset;
 		for (y = 0; y < src_height; ++y) {
-			const int yx = y * src_width;
-			for (x = 0; x < src_width; ++x)
-				X[x] = buffer[(x + yx) * COM_NUMBER_OF_CHANNELS + chan];
+            const int yx = y * src_width;
+            offset = yx*COM_NUMBER_OF_CHANNELS + chan;
+            for (x = 0; x < src_width; ++x) {
+                X[x] = buffer[offset];
+                offset += COM_NUMBER_OF_CHANNELS;
+            }
 			YVV(src_width);
-			for (x = 0; x < src_width; ++x)
-				buffer[(x + yx) * COM_NUMBER_OF_CHANNELS + chan] = Y[x];
-		}
+            offset = yx*COM_NUMBER_OF_CHANNELS + chan;
+            for (x = 0; x < src_width; ++x) {
+                buffer[offset] = Y[x];
+                offset += COM_NUMBER_OF_CHANNELS;
+            }
+        }
 	}
-	if (xy & 2) {   // V
-		for (x = 0; x < src_width; ++x) {
-			for (y = 0; y < src_height; ++y)
-				X[y] = buffer[(x + y * src_width) * COM_NUMBER_OF_CHANNELS + chan];
+    if (xy & 2) {   // V
+        int offset;
+        const int add = src_width * COM_NUMBER_OF_CHANNELS;
+
+        for (x = 0; x < src_width; ++x) {
+            offset = x * COM_NUMBER_OF_CHANNELS + chan;
+            for (y = 0; y < src_height; ++y) {
+                X[y] = buffer[offset];
+                offset += add;
+            }
 			YVV(src_height);
-			for (y = 0; y < src_height; ++y)
-				buffer[(x + y * src_width) * COM_NUMBER_OF_CHANNELS + chan] = Y[y];
-		}
-	}
+            offset = x * COM_NUMBER_OF_CHANNELS + chan;
+            for (y = 0; y < src_height; ++y) {
+                buffer[offset] = Y[y];
+                offset += add;
+            }
+        }
+    }
 	
 	MEM_freeN(X);
 	MEM_freeN(W);
