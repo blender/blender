@@ -211,8 +211,9 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
 		TimeMarker *fm = markers->first;
 		TimeMarker *lm = markers->last;
 		
-		min = (float)fm->frame;
-		max = (float)lm->frame;
+		/* Store last marker in min, and first marker in max, so that later real value calc actually works! [#37146]. */
+		min = (float)lm->frame;
+		max = (float)fm->frame;
 	}
 	else {
 		*first = 0.0f;
