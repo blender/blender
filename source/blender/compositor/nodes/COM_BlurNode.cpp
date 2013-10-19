@@ -53,6 +53,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
+		operationfgb->setChunksize(context->getChunksize());
 		operationfgb->setbNode(editorNode);
 		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
 		graph->addOperation(operationfgb);
