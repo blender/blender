@@ -974,26 +974,25 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 					BLI_assert(ok);
 
-					if (i == edge_array_len - 1) {
-						if (FACE_USED_TEST(f_a) == false) {
+					if (FACE_USED_TEST(f_a) == false) {
+						FACE_USED_SET(f_a);
+
+						if (nf_i < edge_array_len) {
+							r_faces_new[nf_i++] = f_a;
+						} else {
 							f_new = f_a;
-						}
-						else if (FACE_USED_TEST(f_b) == false) {
-							f_new = f_b;
-						}
-						else {
-							BLI_assert(false);
+							break;
 						}
 					}
-					else {
-						if (FACE_USED_TEST(f_a) == false) {
-							FACE_USED_SET(f_a);
-							r_faces_new[nf_i++] = f_a;
-						}
 
-						if (FACE_USED_TEST(f_b) == false) {
-							FACE_USED_SET(f_b);
+					if (FACE_USED_TEST(f_b) == false) {
+						FACE_USED_SET(f_b);
+
+						if (nf_i < edge_array_len) {
 							r_faces_new[nf_i++] = f_b;
+						} else {
+							f_new = f_b;
+							break;
 						}
 					}
 				}
