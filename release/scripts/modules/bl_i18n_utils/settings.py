@@ -257,6 +257,16 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("BLF_I18N_MSGID_MULTI_CTXT",))
 )
 
+# Check printf mismatches between msgid and msgstr.
+CHECK_PRINTF_FORMAT = (
+    r"(?!<%)(?:%%)*%"          # Begining, with handling for crazy things like '%%%%%s'
+    r"[-+#0]?"                 # Flags (note: do not add the ' ' (space) flag here, generates too much false positives!)
+    r"(?:\*|[0-9]+)?"          # Width
+    r"(?:\.(?:\*|[0-9]+))?"    # Precision
+    r"(?:[hljztL]|hh|ll)?"     # Length
+    r"[tldiuoxXfFeEgGaAcspn]"  # Specifiers (note we have Blender-specific %t and %l ones too)
+)
+
 # Should po parser warn when finding a first letter not capitalized?
 WARN_MSGID_NOT_CAPITALIZED = True
 
