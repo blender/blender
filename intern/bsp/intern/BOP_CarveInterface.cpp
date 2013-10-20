@@ -711,6 +711,47 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 	return outputMesh;
 }
 
+static void meshSetMinMax(const MeshSet<3> *mesh,
+                          carve::geom3d::Vector *min,
+                          carve::geom3d::Vector *max)
+{
+	for (uint i = 0; i < mesh->vertex_storage.size(); ++i) {
+		min->x = MIN(min->x, mesh->vertex_storage[i].v.x);
+		min->y = MIN(min->y, mesh->vertex_storage[i].v.y);
+		min->z = MIN(min->z, mesh->vertex_storage[i].v.z);
+		max->x = MAX(max->x, mesh->vertex_storage[i].v.x);
+		max->y = MAX(max->y, mesh->vertex_storage[i].v.y);
+		max->z = MAX(max->z, mesh->vertex_storage[i].v.z);
+	}
+}
+
+static void getRescaleMinMax(const MeshSet<3> *left,
+                             const MeshSet<3> *right,
+                             carve::geom3d::Vector *min,
+                             carve::geom3d::Vector *max)
+{
+	min->x = max->x = left->vertex_storage[0].v.x;
+	min->y = max->y = left->vertex_storage[0].v.y;
+	min->z = max->z = left->vertex_storage[0].v.z;
+
+	meshSetMinMax(left, min, max);
+	meshSetMinMax(right, min, max);
+
+	// Make sure we don't scale object with zer oscale
+	if ((min->x - max->x) < DBL_EPSILON) {
+		min->x = -1.0;
+		max->x = 1.0;
+	}
+	if ((min->y - max->y) < DBL_EPSILON) {
+		min->y = -1.0;
+		max->y = 1.0;
+	}
+	if ((min->z - max->z) < DBL_EPSILON) {
+		min->z = -1.0;
+		max->z = 1.0;
+	}
+}
+
 /**
  * Performs a generic booleam operation, the entry point for external modules.
  * @param opType Boolean operation type BOP_INTERSECTION, BOP_UNION, BOP_DIFFERENCE
@@ -753,29 +794,11 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	left = Carve_addMesh(obAFaces, obAVertices, oface_num, num_origfaces );
 	right = Carve_addMesh(obBFaces, obBVertices, oface_num, num_origfaces );
 
-	min.x = max.x = left->vertex_storage[0].v.x;
-	min.y = max.y = left->vertex_storage[0].v.y;
-	min.z = max.z = left->vertex_storage[0].v.z;
-	for (uint i = 1; i < left->vertex_storage.size(); ++i) {
-		min.x = MIN(min.x,left->vertex_storage[i].v.x);
-		min.y = MIN(min.y,left->vertex_storage[i].v.y);
-		min.z = MIN(min.z,left->vertex_storage[i].v.z);
-		max.x = MAX(max.x,left->vertex_storage[i].v.x);
-		max.y = MAX(max.y,left->vertex_storage[i].v.y);
-		max.z = MAX(max.z,left->vertex_storage[i].v.z);
-	}
-	for (uint i = 0; i < right->vertex_storage.size(); ++i) {
-		min.x = MIN(min.x,right->vertex_storage[i].v.x);
-		min.y = MIN(min.y,right->vertex_storage[i].v.y);
-		min.z = MIN(min.z,right->vertex_storage[i].v.z);
-		max.x = MAX(max.x,right->vertex_storage[i].v.x);
-		max.y = MAX(max.y,right->vertex_storage[i].v.y);
-		max.z = MAX(max.z,right->vertex_storage[i].v.z);
-	}
+	getRescaleMinMax(left, right, &min, &max);
 
 	carve::rescale::rescale scaler(min.x, min.y, min.z, max.x, max.y, max.z);
 	carve::rescale::fwd fwd_r(scaler);
-	carve::rescale::rev rev_r(scaler); 
+	carve::rescale::rev rev_r(scaler);
 
 	left->transform(fwd_r);
 	right->transform(fwd_r);
