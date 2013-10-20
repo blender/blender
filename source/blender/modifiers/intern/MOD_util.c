@@ -70,30 +70,6 @@ void modifier_init_texture(Scene *scene, Tex *tex)
 		BKE_image_user_frame_calc(&tex->iuser, scene->r.cfra, 0);
 }
 
-void get_texture_value(Scene *scene, Tex *texture, float *tex_co, TexResult *texres, bool use_color_management)
-{
-	int result_type;
-	bool do_color_manage = false;
-
-	if (use_color_management) {
-		do_color_manage = BKE_scene_check_color_management_enabled(scene);
-	}
-
-	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage);
-
-	/* if the texture gave an RGB value, we assume it didn't give a valid
-	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
-	 * if the texture didn't give an RGB value, copy the intensity across
-	 */
-	if (result_type & TEX_RGB) {
-		texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
-	}
-	else {
-		copy_v3_fl(&texres->tr, texres->tin);
-	}
-}
-
 void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
                         DerivedMesh *dm,
                         float (*co)[3], float (*texco)[3],

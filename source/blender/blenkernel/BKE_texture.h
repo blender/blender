@@ -52,6 +52,7 @@ struct ParticleSettings;
 struct PointDensity;
 struct Tex;
 struct TexMapping;
+struct TexResult;
 struct VoxelData;
 struct World;
 
@@ -128,6 +129,8 @@ struct OceanTex *BKE_add_oceantex(void);
 struct OceanTex *BKE_copy_oceantex(struct OceanTex *ot);
 	
 bool    BKE_texture_dependsOnTime(const struct Tex *texture);
+
+void BKE_texture_get_value(struct Scene *scene, struct Tex *texture, float *tex_co, struct TexResult *texres, bool use_color_management);
 
 #ifdef __cplusplus
 }

@@ -84,6 +84,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
+#include "BKE_texture.h"
 
 #include "RE_shader_ext.h"
 
@@ -1418,27 +1419,6 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 	}
 }
 
-/* TODO(sergey): de-duplicate with get_texture_value from modifier utils */
-/* NOTE: Skips color management, because result is only used for value now, not for color. */
-static void get_texture_value(Tex *texture, float tex_co[3], TexResult *texres)
-{
-	int result_type;
-
-	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, false);
-
-	/* if the texture gave an RGB value, we assume it didn't give a valid
-	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
-	 * if the texture didn't give an RGB value, copy the intensity across
-	 */
-	if (result_type & TEX_RGB) {
-		texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
-	}
-	else {
-		copy_v3_fl(&texres->tr, texres->tin);
-	}
-}
-
 static void sample_derivedmesh(SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface, float *influence_map, float *velocity_map, int index, int base_res[3], float flow_center[3], BVHTreeFromMesh *treeData, float ray_start[3],
 								float *vert_vel, int has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
 {
@@ -1550,7 +1530,7 @@ static void sample_derivedmesh(SmokeFlowSettings *sfs, MVert *mvert, MTFace *tfa
 				tex_co[2] = sfs->texture_offset;
 			}
 			texres.nor = NULL;
-			get_texture_value(sfs->noise_texture, tex_co, &texres);
+			BKE_texture_get_value(NULL, sfs->noise_texture, tex_co, &texres, false);
 			sample_str *= texres.tin;
 		}
 	}

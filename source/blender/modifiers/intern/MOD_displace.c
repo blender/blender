@@ -219,7 +219,7 @@ static void displaceModifier_do(
 
 		if (dmd->texture) {
 			texres.nor = NULL;
-			get_texture_value(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, false);
+			BKE_texture_get_value(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, false);
 			delta = texres.tin - dmd->midlevel;
 		}
 		else {

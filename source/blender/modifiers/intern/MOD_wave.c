@@ -48,6 +48,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_texture.h"
 
 #include "depsgraph_private.h"
 
@@ -306,7 +307,7 @@ static void waveModifier_do(WaveModifierData *md,
 				if (wmd->texture) {
 					TexResult texres;
 					texres.nor = NULL;
-					get_texture_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
+					BKE_texture_get_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
 					amplit *= texres.tin;
 				}
 

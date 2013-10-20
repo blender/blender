@@ -282,7 +282,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 			if (tex_co) {
 				TexResult texres;
 				texres.nor = NULL;
-				get_texture_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
+				BKE_texture_get_value(wmd->modifier.scene, wmd->texture, tex_co[i], &texres, false);
 				fac *= texres.tin;
 			}
 

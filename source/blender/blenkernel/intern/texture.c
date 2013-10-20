@@ -68,6 +68,9 @@
 #include "BKE_node.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
+#include "BKE_scene.h"
+
+#include "RE_shader_ext.h"
 
 /* ****************** Mapping ******************* */
 
@@ -1436,3 +1439,27 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
 }
 
 /* ------------------------------------------------------------------------- */
+
+void BKE_texture_get_value(Scene *scene, Tex *texture, float *tex_co, TexResult *texres, bool use_color_management)
+{
+	int result_type;
+	bool do_color_manage = false;
+
+	if (scene && use_color_management) {
+		do_color_manage = BKE_scene_check_color_management_enabled(scene);
+	}
+
+	/* no node textures for now */
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage);
+
+	/* if the texture gave an RGB value, we assume it didn't give a valid
+	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
+	 * if the texture didn't give an RGB value, copy the intensity across
+	 */
+	if (result_type & TEX_RGB) {
+		texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
+	}
+	else {
+		copy_v3_fl(&texres->tr, texres->tin);
+	}
+}

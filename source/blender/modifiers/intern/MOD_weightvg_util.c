@@ -164,7 +164,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 			do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
 
 			texres.nor = NULL;
-			get_texture_value(scene, texture, tex_co[idx], &texres, do_color_manage);
+			BKE_texture_get_value(scene, texture, tex_co[idx], &texres, do_color_manage);
 			/* Get the good channel value... */
 			switch (tex_use_channel) {
 				case MOD_WVG_MASK_TEX_USE_INT:
