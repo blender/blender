@@ -3263,23 +3263,6 @@ static int point_markers_correspondences_on_both_image(MovieTrackingPlaneTrack *
 	return correspondence_index;
 }
 
-/* TODO(sergey): Make it generic function available for everyone. */
-BLI_INLINE void mat3f_from_mat3d(float mat_float[3][3], double mat_double[3][3])
-{
-	/* Keep it stupid simple for better data flow in CPU. */
-	mat_float[0][0] = mat_double[0][0];
-	mat_float[0][1] = mat_double[0][1];
-	mat_float[0][2] = mat_double[0][2];
-
-	mat_float[1][0] = mat_double[1][0];
-	mat_float[1][1] = mat_double[1][1];
-	mat_float[1][2] = mat_double[1][2];
-
-	mat_float[2][0] = mat_double[2][0];
-	mat_float[2][1] = mat_double[2][1];
-	mat_float[2][2] = mat_double[2][2];
-}
-
 /* NOTE: frame number should be in clip space, not scene space */
 static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_track, int start_frame,
                                              int direction, bool retrack)
@@ -3341,7 +3324,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
 		libmv_homography2DFromCorrespondencesEuc(x1, x2, num_correspondences, H_double);
 
-		mat3f_from_mat3d(H, H_double);
+		copt_m3_m3d(H, H_double);
 
 		for (i = 0; i < 4; i++) {
 			float vec[3] = {0.0f, 0.0f, 1.0f}, vec2[3];
@@ -3445,7 +3428,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 
 	libmv_homography2DFromCorrespondencesEuc(x1, x2, 4, H_double);
 
-	mat3f_from_mat3d(H, H_double);
+	copt_m3_m3d(H, H_double);
 }
 
 /*********************** Camera solving *************************/
