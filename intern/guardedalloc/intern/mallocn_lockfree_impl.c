@@ -61,6 +61,7 @@ static void (*thread_unlock_callback)(void) = NULL;
 
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead*) vmemh) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
+#define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) 1)
 
 #ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
@@ -112,13 +113,13 @@ void MEM_lockfree_freeN(void *vmemh)
 	atomic_sub_u(&totblock, 1);
 	atomic_sub_z(&mem_in_use, len);
 
-	if (memh->len & (size_t) 1) {
+	if (MEMHEAD_IS_MMAP(memh)) {
 		atomic_sub_z(&mmap_in_use, len);
 #if defined(WIN32)
 		/* our windows mmap implementation is not thread safe */
 		mem_lock_thread();
 #endif
-		if (munmap(memh, memh->len + sizeof(MemHead)))
+		if (munmap(memh, len + sizeof(MemHead)))
 			printf("Couldn't unmap memory\n");
 #if defined(WIN32)
 		mem_unlock_thread();
@@ -136,8 +137,14 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
 {
 	void *newp = NULL;
 	if (vmemh) {
+		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
 		const size_t prev_size = MEM_allocN_len(vmemh);
-		newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
+		if (MEMHEAD_IS_MMAP(memh)) {
+			newp = MEM_lockfree_mapallocN(prev_size, "dupli_mapalloc");
+		}
+		else {
+			newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
+		}
 		memcpy(newp, vmemh, prev_size);
 	}
 	return newp;
