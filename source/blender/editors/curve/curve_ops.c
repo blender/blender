@@ -137,6 +137,8 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_vertex_add);
 	WM_operatortype_append(CURVE_OT_extrude);
 	WM_operatortype_append(CURVE_OT_cyclic_toggle);
+
+	WM_operatortype_append(CURVE_OT_match_texture_space);
 }
 
 void ED_operatormacros_curve(void)

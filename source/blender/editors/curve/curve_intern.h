@@ -118,6 +118,8 @@ void CURVE_OT_vertex_add(struct wmOperatorType *ot);
 void CURVE_OT_extrude(struct wmOperatorType *ot);
 void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 
+void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
+
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, short flag);

@@ -3414,7 +3414,6 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
-	cu->disp.first = cu->disp.last = NULL;
 	cu->editnurb = NULL;
 	cu->lastsel = NULL;
 	cu->editfont = NULL;

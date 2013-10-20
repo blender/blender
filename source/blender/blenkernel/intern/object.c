@@ -312,6 +312,11 @@ void BKE_object_free_derived_caches(Object *ob)
 	
 	if (ob->curve_cache) {
 		BKE_displist_free(&ob->curve_cache->disp);
+		BLI_freelistN(&ob->curve_cache->bev);
+		if (ob->curve_cache->path) {
+			free_path(ob->curve_cache->path);
+			ob->curve_cache->path = NULL;
+		}
 	}
 }
 

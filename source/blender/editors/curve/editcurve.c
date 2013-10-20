@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_displist.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -6806,4 +6807,66 @@ int ED_curve_actSelection(Curve *cu, float center[3])
 	}
 
 	return 1;
+}
+
+/******************** Match texture space operator ***********************/
+
+static int match_texture_space_poll(bContext *C)
+{
+	Object *object = CTX_data_active_object(C);
+
+	return object && ELEM3(object->type, OB_CURVE, OB_SURF, OB_FONT);
+}
+
+static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *object = CTX_data_active_object(C);
+	Curve *curve = (Curve *) object->data;
+	float min[3], max[3], size[3], loc[3];
+	int a;
+
+	if (ELEM(NULL, object->curve_cache, object->curve_cache->disp.first)) {
+		BKE_displist_make_curveTypes(scene, object, FALSE);
+	}
+
+	INIT_MINMAX(min, max);
+	BKE_displist_minmax(&object->curve_cache->disp, min, max);
+
+	mid_v3_v3v3(loc, min, max);
+
+	size[0] = (max[0] - min[0]) / 2.0f;
+	size[1] = (max[1] - min[1]) / 2.0f;
+	size[2] = (max[2] - min[2]) / 2.0f;
+
+	for (a = 0; a < 3; a++) {
+		if (size[a] == 0.0f) size[a] = 1.0f;
+		else if (size[a] > 0.0f && size[a] < 0.00001f) size[a] = 0.00001f;
+		else if (size[a] < 0.0f && size[a] > -0.00001f) size[a] = -0.00001f;
+	}
+
+	copy_v3_v3(curve->loc, loc);
+	copy_v3_v3(curve->size, size);
+	zero_v3(curve->rot);
+
+	curve->texflag &= ~CU_AUTOSPACE;
+
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, curve);
+
+	return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_match_texture_space(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Match Texture Space";
+	ot->idname = "CURVE_OT_match_texture_space";
+	ot->description = "Match texture space to object's bounding box";
+
+	/* api callbacks */
+	ot->exec = match_texture_space_exec;
+	ot->poll = match_texture_space_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
