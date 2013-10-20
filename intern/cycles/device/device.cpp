@@ -64,11 +64,16 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	if(rgba.data_type == TYPE_HALF) {
+		/* for multi devices, this assumes the ineffecient method that we allocate
+		 * all pixels on the device even though we only render to a subset */
+		GLhalf *data_pointer = (GLhalf*)rgba.data_pointer;
+		data_pointer += 4*y*w;
+
 		/* draw half float texture, GLSL shader for display transform assumed to be bound */
 		GLuint texid;
 		glGenTextures(1, &texid);
 		glBindTexture(GL_TEXTURE_2D, texid);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, (void*)rgba.data_pointer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, data_pointer);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 

@@ -711,7 +711,7 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame + 1, queue->end_frame,
 			                                             queue->render_size, queue->render_flag, 1);
 			/* switch direction if read frames from current up to scene end frames */
-			if (current_frame >= queue->end_frame) {
+			if (current_frame > queue->end_frame) {
 				queue->current_frame = queue->initial_frame;
 				queue->direction = -1;
 			}
