@@ -228,6 +228,11 @@ def marker_menu_generic(layout):
 
     layout.operator("marker.rename", text="Rename Marker")
     layout.operator("marker.move", text="Grab/Move Marker")
+    
+    layout.separator()
+    
+    layout.operator("screen.marker_jump", text="Jump to Next Marker").next = True
+    layout.operator("screen.marker_jump", text="Jump to Previous Marker").next = False
 
 
 if __name__ == "__main__":  # only for live edit.

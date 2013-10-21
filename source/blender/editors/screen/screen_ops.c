@@ -2123,6 +2123,65 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "next", TRUE, "Next Keyframe", "");
 }
 
+/* ************** jump to marker operator ***************************** */
+
+/* function to be called outside UI context, or for redo */
+static int marker_jump_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	TimeMarker *marker;
+	int closest;
+	short next = RNA_boolean_get(op->ptr, "next");
+	bool found = false;
+
+	/* find matching marker in the right direction */
+	for (marker = scene->markers.first; marker; marker = marker->next) {
+		if (next) {
+			if (marker->frame > CFRA && (!found || closest > marker->frame)) {
+				closest = marker->frame;
+				found = true;
+			}
+		} else {
+			if (marker->frame < CFRA && (!found || closest < marker->frame)) {
+				closest = marker->frame;
+				found = true;
+			}
+		}
+	}
+
+	/* any success? */
+	if (!found) {
+		BKE_report(op->reports, RPT_INFO, "No more markers to jump to in this direction");
+
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		CFRA = closest;
+
+		sound_seek_scene(bmain, scene);
+
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+		return OPERATOR_FINISHED;
+	}
+}
+
+static void SCREEN_OT_marker_jump(wmOperatorType *ot)
+{
+	ot->name = "Jump to Marker";
+	ot->description = "Jump to previous/next marker";
+	ot->idname = "SCREEN_OT_marker_jump";
+
+	ot->exec = marker_jump_exec;
+
+	ot->poll = ED_operator_screenactive_norender;
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "next", TRUE, "Next Marker", "");
+}
+
 /* ************** switch screen operator ***************************** */
 
 static int screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
@@ -3807,6 +3866,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_frame_offset);
 	WM_operatortype_append(SCREEN_OT_frame_jump);
 	WM_operatortype_append(SCREEN_OT_keyframe_jump);
+	WM_operatortype_append(SCREEN_OT_marker_jump);
 	
 	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
@@ -3984,6 +4044,13 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIAFIRST, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "next", FALSE);
+
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_marker_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_marker_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
+
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
