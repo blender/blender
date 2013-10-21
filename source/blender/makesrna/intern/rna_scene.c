@@ -1443,6 +1443,12 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
+static void rna_UnifiedPaintSettings_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene));
+	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
+}
+
 static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 {
 	UnifiedPaintSettings *ups = ptr->data;
@@ -1462,10 +1468,11 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
-static void rna_UnifiedPaintSettings_radius_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_UnifiedPaintSettings_radius_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	/* changing the unified size should invalidate */
+	/* changing the unified size should invalidate the overlay but also update the brush */
 	BKE_paint_invalidate_overlay_all();
+	rna_UnifiedPaintSettings_update(bmain, scene, ptr);
 }
 
 static char *rna_UnifiedPaintSettings_path(PointerRNA *UNUSED(ptr))
@@ -2036,6 +2043,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
+	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
 	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "weight");
@@ -2043,6 +2051,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Weight", "Weight to assign in vertex groups");
+	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_SIZE_PRESSURE);
