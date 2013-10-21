@@ -89,7 +89,7 @@ static PyObject *make_ffmpeg_info(void)
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, obj)
 
 #ifdef WITH_FFMPEG
-#  define FFMPEG_LIB_VERSION(lib)  { \
+#  define FFMPEG_LIB_VERSION(lib) { \
 		curversion = lib ## _version(); \
 		SetObjItem(Py_BuildValue("(iii)", \
 		                         curversion >> 16, (curversion >> 8) % 256, curversion % 256)); \
@@ -97,7 +97,7 @@ static PyObject *make_ffmpeg_info(void)
 		                                curversion >> 16, (curversion >> 8) % 256, curversion % 256)); \
 } (void)0
 #else
-#  define FFMPEG_LIB_VERSION(lib)  { \
+#  define FFMPEG_LIB_VERSION(lib) { \
 		SetStrItem("Unknown"); \
 		SetStrItem("Unknown"); \
 } (void)0

@@ -142,11 +142,11 @@ static void bm_loop_pair_from_verts(BMVert *v_a, BMVert *v_b,
 static void bm_loop_pair_test_copy(BMLoop *l_pair_a[2], BMLoop *l_pair_b[2])
 {
 	/* if the first one is set, we know the second is too */
-	if (l_pair_a[0] && l_pair_b[0] == NULL)  {
+	if (l_pair_a[0] && l_pair_b[0] == NULL) {
 		l_pair_b[0] = l_pair_a[1];
 		l_pair_b[1] = l_pair_a[0];
 	}
-	else if (l_pair_b[0] && l_pair_a[0] == NULL)  {
+	else if (l_pair_b[0] && l_pair_a[0] == NULL) {
 		l_pair_a[0] = l_pair_b[1];
 		l_pair_a[1] = l_pair_b[0];
 	}

@@ -902,7 +902,7 @@ static void emdm_pass_attrib_vertex_glsl(DMVertexAttribs *attribs, BMLoop *loop,
 	for (i = 0; i < attribs->tottface; i++) {
 		const float *uv;
 
-		if(attribs->tface[i].em_offset != -1) {
+		if (attribs->tface[i].em_offset != -1) {
 			const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(loop, attribs->tface[i].em_offset);
 			uv = luv->uv;
 		}
@@ -917,7 +917,7 @@ static void emdm_pass_attrib_vertex_glsl(DMVertexAttribs *attribs, BMLoop *loop,
 	}
 	for (i = 0; i < attribs->totmcol; i++) {
 		GLubyte col[4];
-		if(attribs->mcol[i].em_offset != -1) {
+		if (attribs->mcol[i].em_offset != -1) {
 			const MLoopCol *cp = BM_ELEM_CD_GET_VOID_P(loop, attribs->mcol[i].em_offset);
 			col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 		}

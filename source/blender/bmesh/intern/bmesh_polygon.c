@@ -944,7 +944,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 		}
 
-		if ((!use_beauty) || (!r_faces_new)){
+		if ((!use_beauty) || (!r_faces_new)) {
 			/* we can't delete the real face, because some of the callers expect it to remain valid.
 			 * so swap data and delete the last created tri */
 			bmesh_face_swap_data(bm, f, f_new);
@@ -979,7 +979,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 						if (nf_i < edge_array_len) {
 							r_faces_new[nf_i++] = f_a;
-						} else {
+						}
+						else {
 							f_new = f_a;
 							break;
 						}
@@ -990,7 +991,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 						if (nf_i < edge_array_len) {
 							r_faces_new[nf_i++] = f_b;
-						} else {
+						}
+						else {
 							f_new = f_b;
 							break;
 						}

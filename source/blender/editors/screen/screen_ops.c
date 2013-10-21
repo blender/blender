@@ -2142,7 +2142,8 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 				closest = marker->frame;
 				found = true;
 			}
-		} else {
+		}
+		else {
 			if (marker->frame < CFRA && (!found || closest < marker->frame)) {
 				closest = marker->frame;
 				found = true;

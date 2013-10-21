@@ -37,7 +37,7 @@
 #include "intern/bmesh_walkers_private.h"
 
 /* pop into stack memory (common operation) */
-#define BMW_state_remove_r(walker, owalk)  { \
+#define BMW_state_remove_r(walker, owalk) { \
 	memcpy(owalk, BMW_current_state(walker), sizeof(*(owalk))); \
 	BMW_state_remove(walker); \
 } (void)0

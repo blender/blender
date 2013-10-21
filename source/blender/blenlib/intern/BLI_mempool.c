@@ -584,7 +584,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 
 	/* free all after pool->maxchunks  */
 
-	for (mpchunk = BLI_findlink(&pool->chunks, (int)maxchunks); mpchunk; mpchunk = mpchunk_next)  {
+	for (mpchunk = BLI_findlink(&pool->chunks, (int)maxchunks); mpchunk; mpchunk = mpchunk_next) {
 		mpchunk_next = mpchunk->next;
 		BLI_remlink(&pool->chunks, mpchunk);
 		mempool_chunk_free(mpchunk, pool->flag);

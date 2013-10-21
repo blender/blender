@@ -116,9 +116,10 @@ void FastGaussianBlurOperation::deinitExecution()
 
 void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 {
-/*	lockMutex();
-    if (!this->m_iirgaus) {
-        MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
+#if 0
+	lockMutex();
+	if (!this->m_iirgaus) {
+		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
 		MemoryBuffer *copy = newBuf->duplicate();
 		updateSize();
 
@@ -144,9 +145,9 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 	}
 	unlockMutex();
 	return this->m_iirgaus;
-}*/
+#else
 
- 	lockMutex();
+	lockMutex();
 	if (this->m_iirgaus) {
 		// if this->m_iirgaus is set, we don't do tile rendering, so
 		// we can return the already calculated cache
@@ -159,7 +160,7 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 	if (use_tiles) {
 		unlockMutex();
 	}
- 
+
 	MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
 	rcti *buf_rect = buffer->getRect();
 
@@ -181,19 +182,20 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 	}
 	else {
 		if (sx > 0.0f) {
- 			for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
+			for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
 				IIR_gauss(tile, sx, c, 1);
- 		}
+		}
 		if (sy > 0.0f) {
 			for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
 				IIR_gauss(tile, sy, c, 2);
- 		}
- 	}
+		}
+	}
 	if (!use_tiles) {
 		this->m_iirgaus = tile;
 		unlockMutex();
 	}
 	return tile;
+#endif
 }
 
 void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, void *data)

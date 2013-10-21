@@ -3158,9 +3158,14 @@ uiBut *uiDefBut(uiBlock *block, int type, int retval, const char *str, int x, in
 	return but;
 }
 
-/* if _x_ is a power of two (only one bit) return the power,
+/**
+ * if \a _x_ is a power of two (only one bit) return the power,
  * otherwise return -1.
- * (1<<findBitIndex(x))==x for powers of two.
+ *
+ * for powers of two:
+ * \code{.c}
+ *     ((1 << findBitIndex(x)) == x);
+ * \endcode
  */
 static int findBitIndex(unsigned int x)
 {
