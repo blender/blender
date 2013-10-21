@@ -372,7 +372,7 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 			BM_VERT_DIR(v_new) = 0;
 			BM_VERT_DIST(v_new) = 0.0f;
 		}
-		else {
+		else if (side[0] == 0 || side[1] == 0) {
 			/* check if either edge verts are aligned,
 			 * if so - tag and push all faces that use it into the stack */
 			unsigned int j;
@@ -392,6 +392,13 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 						}
 
 					}
+				}
+			}
+
+			/* if both verts are on the center - tag it */
+			if (oflag_center) {
+				if (side[0] == 0 && side[1] == 0) {
+					BMO_elem_flag_enable(bm, e, oflag_center);
 				}
 			}
 		}

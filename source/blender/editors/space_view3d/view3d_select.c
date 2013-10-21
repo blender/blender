@@ -1374,13 +1374,15 @@ static void deselect_all_tracks(MovieTracking *tracking)
 }
 
 /* mval is region coords */
-static bool mouse_select(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool obcenter, short enumerate)
+static bool mouse_select(bContext *C, const int mval[2],
+                         bool extend, bool deselect, bool toggle, bool obcenter, bool enumerate, bool object)
 {
 	ViewContext vc;
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
+	bool is_obedit;
 	float dist = 100.0f;
 	int retval = false;
 	short hits;
@@ -1389,6 +1391,12 @@ static bool mouse_select(bContext *C, const int mval[2], bool extend, bool desel
 	
 	/* setup view context for argument to callbacks */
 	view3d_set_viewcontext(C, &vc);
+
+	is_obedit = (vc.obedit != NULL);
+	if (object) {
+		/* signal for view3d_opengl_select to skip editmode objects */
+		vc.obedit = NULL;
+	}
 	
 	/* always start list from basact in wire mode */
 	startbase =  FIRSTBASE;
@@ -1564,7 +1572,7 @@ static bool mouse_select(bContext *C, const int mval[2], bool extend, bool desel
 				ED_base_object_select(basact, BA_SELECT);
 			}
 
-			if (oldbasact != basact) {
+			if ((oldbasact != basact) && (is_obedit == false)) {
 				ED_base_object_activate(C, basact); /* adds notifier */
 			}
 		}
@@ -2256,7 +2264,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 	else if (paint_vertsel_test(obact))
 		retval = mouse_weight_paint_vertex_select(C, location, extend, deselect, toggle, obact);
 	else
-		retval = mouse_select(C, location, extend, deselect, toggle, center, enumerate);
+		retval = mouse_select(C, location, extend, deselect, toggle, center, enumerate, object);
 
 	/* passthrough allows tweaks
 	 * FINISHED to signal one operator worked
