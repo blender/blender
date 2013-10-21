@@ -6581,6 +6581,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	char  dt;
 	short zbufoff = 0;
 	const bool is_obact = (ob == OBACT);
+	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
+	bool particle_skip_object = false;  /* Draw particles but not their emitter object. */
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -6589,16 +6591,31 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (ob->restrictflag & OB_RESTRICT_VIEW) {
 			return;
 		}
-		else if ((ob->restrictflag & OB_RESTRICT_RENDER) &&
-		         (v3d->flag2 & V3D_RENDER_OVERRIDE))
+		else if ((ob->restrictflag & OB_RESTRICT_RENDER) && render_override)
 		{
 			return;
 		}
 	}
 
-	/* XXX particles are not safe for simultaneous threaded render */
-	if (G.is_rendering && ob->particlesystem.first)
-		return;
+	if (ob->particlesystem.first) {
+		/* XXX particles are not safe for simultaneous threaded render */
+		if (G.is_rendering) {
+			return;
+		}
+
+		if (ob->mode == OB_MODE_OBJECT) {
+			ParticleSystem *psys;
+
+			particle_skip_object = render_override;
+			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+				/* Once we have found a psys which renders its emitter object, we are done. */
+				if (psys->part->draw & PART_DRAW_EMITTER) {
+					particle_skip_object = false;
+					break;
+				}
+			}
+		}
+	}
 
 	/* xray delay? */
 	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
@@ -6624,7 +6641,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	view3d_cached_text_draw_begin();
 	
 	/* draw motion paths (in view space) */
-	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if (ob->mpath && !render_override) {
 		bAnimVizSettings *avs = &ob->avs;
 		
 		/* setup drawing environment for paths */
@@ -6665,7 +6682,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
 	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
-		if (ob->type == OB_MESH) {			
+		if (ob->type == OB_MESH) {
 			if (dt < OB_SOLID) {
 				zbufoff = 1;
 				dt = OB_SOLID;
@@ -6688,7 +6705,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	
 	/* draw-extra supported for boundbox drawmode too */
 	if (dt >= OB_BOUNDBOX) {
-
 		dtx = ob->dtx;
 		if (ob->mode & OB_MODE_EDIT) {
 			// the only 2 extra drawtypes alowed in editmode
@@ -6697,240 +6713,241 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	}
 
-	/* bad exception, solve this! otherwise outline shows too late */
-	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first)) {
-			BKE_displist_make_curveTypes(scene, ob, 0);
-		}
-	}
-	
-	/* draw outline for selected objects, mesh does itself */
-	if ((v3d->flag & V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) && ob->type != OB_MESH) {
-		if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
-			if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-				drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
+	if (!particle_skip_object) {
+		/* bad exception, solve this! otherwise outline shows too late */
+		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
+			if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first)) {
+				BKE_displist_make_curveTypes(scene, ob, 0);
 			}
 		}
-	}
-
-	switch (ob->type) {
-		case OB_MESH:
-			empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
-			if (dflag != DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE;  // mesh draws wire itself
-
-			break;
-		case OB_FONT:
-			cu = ob->data;
-			if (cu->editfont) {
-				draw_textcurs(rv3d, cu->editfont->textcurs);
-
-				if (cu->flag & CU_FAST) {
-					cpack(0xFFFFFF);
-					set_inverted_drawing(1);
-					drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
-					set_inverted_drawing(0);
+		
+		/* draw outline for selected objects, mesh does itself */
+		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
+			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
+				if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
+					drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
 				}
-				else {
-					drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				}
+			}
+		}
 
-				if (cu->linewidth != 0.0f) {
-					UI_ThemeColor(TH_WIRE_EDIT);
-					copy_v3_v3(vec1, ob->orig);
-					copy_v3_v3(vec2, ob->orig);
-					vec1[0] += cu->linewidth;
-					vec2[0] += cu->linewidth;
-					vec1[1] += cu->linedist * cu->fsize;
-					vec2[1] -= cu->lines * cu->linedist * cu->fsize;
-					setlinestyle(3);
-					glBegin(GL_LINE_STRIP);
-					glVertex2fv(vec1);
-					glVertex2fv(vec2);
-					glEnd();
-					setlinestyle(0);
-				}
+		switch (ob->type) {
+			case OB_MESH:
+				empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+				if (dflag != DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE;  // mesh draws wire itself
 
-				setlinestyle(3);
-				for (i = 0; i < cu->totbox; i++) {
-					if (cu->tb[i].w != 0.0f) {
-						UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
-						vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
-						vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
-						vec1[2] = 0.001;
+				break;
+			case OB_FONT:
+				cu = ob->data;
+				if (cu->editfont) {
+					draw_textcurs(rv3d, cu->editfont->textcurs);
+
+					if (cu->flag & CU_FAST) {
+						cpack(0xFFFFFF);
+						set_inverted_drawing(1);
+						drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
+						set_inverted_drawing(0);
+					}
+					else {
+						drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					}
+
+					if (cu->linewidth != 0.0f) {
+						UI_ThemeColor(TH_WIRE_EDIT);
+						copy_v3_v3(vec1, ob->orig);
+						copy_v3_v3(vec2, ob->orig);
+						vec1[0] += cu->linewidth;
+						vec2[0] += cu->linewidth;
+						vec1[1] += cu->linedist * cu->fsize;
+						vec2[1] -= cu->lines * cu->linedist * cu->fsize;
+						setlinestyle(3);
 						glBegin(GL_LINE_STRIP);
-						glVertex3fv(vec1);
-						vec1[0] += cu->tb[i].w;
-						glVertex3fv(vec1);
-						vec1[1] -= cu->tb[i].h;
-						glVertex3fv(vec1);
-						vec1[0] -= cu->tb[i].w;
-						glVertex3fv(vec1);
-						vec1[1] += cu->tb[i].h;
-						glVertex3fv(vec1);
+						glVertex2fv(vec1);
+						glVertex2fv(vec2);
 						glEnd();
+						setlinestyle(0);
 					}
-				}
-				setlinestyle(0);
+
+					setlinestyle(3);
+					for (i = 0; i < cu->totbox; i++) {
+						if (cu->tb[i].w != 0.0f) {
+							UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
+							vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
+							vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
+							vec1[2] = 0.001;
+							glBegin(GL_LINE_STRIP);
+							glVertex3fv(vec1);
+							vec1[0] += cu->tb[i].w;
+							glVertex3fv(vec1);
+							vec1[1] -= cu->tb[i].h;
+							glVertex3fv(vec1);
+							vec1[0] -= cu->tb[i].w;
+							glVertex3fv(vec1);
+							vec1[1] += cu->tb[i].h;
+							glVertex3fv(vec1);
+							glEnd();
+						}
+					}
+					setlinestyle(0);
 
 
-				if (BKE_vfont_select_get(ob, &selstart, &selend) && cu->selboxes) {
-					float selboxw;
+					if (BKE_vfont_select_get(ob, &selstart, &selend) && cu->selboxes) {
+						float selboxw;
 
-					cpack(0xffffff);
-					set_inverted_drawing(1);
-					for (i = 0; i <= (selend - selstart); i++) {
-						SelBox *sb = &(cu->selboxes[i]);
+						cpack(0xffffff);
+						set_inverted_drawing(1);
+						for (i = 0; i <= (selend - selstart); i++) {
+							SelBox *sb = &(cu->selboxes[i]);
 
-						if (i < (selend - selstart)) {
-							if (cu->selboxes[i + 1].y == sb->y)
-								selboxw = cu->selboxes[i + 1].x - sb->x;
-							else
+							if (i < (selend - selstart)) {
+								if (cu->selboxes[i + 1].y == sb->y)
+									selboxw = cu->selboxes[i + 1].x - sb->x;
+								else
+									selboxw = sb->w;
+							}
+							else {
 								selboxw = sb->w;
+							}
+							glBegin(GL_QUADS);
+							glVertex3f(sb->x, sb->y, 0.001);
+							glVertex3f(sb->x + selboxw, sb->y, 0.001);
+							glVertex3f(sb->x + selboxw, sb->y + sb->h, 0.001);
+							glVertex3f(sb->x, sb->y + sb->h, 0.001);
+							glEnd();
 						}
-						else {
-							selboxw = sb->w;
-						}
-						glBegin(GL_QUADS);
-						glVertex3f(sb->x, sb->y, 0.001);
-						glVertex3f(sb->x + selboxw, sb->y, 0.001);
-						glVertex3f(sb->x + selboxw, sb->y + sb->h, 0.001);
-						glVertex3f(sb->x, sb->y + sb->h, 0.001);
-						glEnd();
+						set_inverted_drawing(0);
 					}
-					set_inverted_drawing(0);
 				}
-			}
-			else if (dt == OB_BOUNDBOX) {
-				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_WIRE) == 0) {
-					draw_bounding_volume(scene, ob, ob->boundtype);
+				else if (dt == OB_BOUNDBOX) {
+					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
+						draw_bounding_volume(scene, ob, ob->boundtype);
+					}
 				}
-			}
-			else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
-				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-			}
+				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+				}
 
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			cu = ob->data;
+				break;
+			case OB_CURVE:
+			case OB_SURF:
+				cu = ob->data;
 
-			if (cu->editnurb) {
-				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
-			}
-			else if (dt == OB_BOUNDBOX) {
-				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
-					draw_bounding_volume(scene, ob, ob->boundtype);
+				if (cu->editnurb) {
+					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+					drawnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
 				}
-			}
-			else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
-				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+				else if (dt == OB_BOUNDBOX) {
+					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
+						draw_bounding_volume(scene, ob, ob->boundtype);
+					}
+				}
+				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 //XXX old animsys				if (cu->path)
 //                                  curve_draw_speed(scene, ob);
-			}
-			break;
-		case OB_MBALL:
-		{
-			MetaBall *mb = ob->data;
-			
-			if (mb->editelems)
-				drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-			else if (dt == OB_BOUNDBOX) {
-				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
-					draw_bounding_volume(scene, ob, ob->boundtype);
 				}
-			}
-			else
-				empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-			break;
-		}
-		case OB_EMPTY:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-					draw_empty_image(ob, dflag, ob_wire_col);
-				}
-				else {
-					drawaxes(ob->empty_drawsize, ob->empty_drawtype);
-				}
-			}
-			break;
-		case OB_LAMP:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				drawlamp(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				if (dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
-			}
-			break;
-		case OB_CAMERA:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 ||
-			    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
+				break;
+			case OB_MBALL:
 			{
-				drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
-			}
-			break;
-		case OB_SPEAKER:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
-				drawspeaker(scene, v3d, rv3d, ob, dflag);
-			break;
-		case OB_LATTICE:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				/* Do not allow boundbox in edit nor pose mode! */
-				if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
-					dt = OB_WIRE;
-				if (dt == OB_BOUNDBOX) {
-					draw_bounding_volume(scene, ob, ob->boundtype);
+				MetaBall *mb = ob->data;
+				
+				if (mb->editelems)
+					drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+				else if (dt == OB_BOUNDBOX) {
+					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
+						draw_bounding_volume(scene, ob, ob->boundtype);
+					}
 				}
-				else {
-					drawlattice(scene, v3d, ob);
-				}
+				else
+					empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+				break;
 			}
-			break;
-		case OB_ARMATURE:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				/* Do not allow boundbox in edit nor pose mode! */
-				if ((dt == OB_BOUNDBOX) && (ob->mode & (OB_MODE_EDIT | OB_MODE_POSE)))
-					dt = OB_WIRE;
-				if (dt == OB_BOUNDBOX) {
-					draw_bounding_volume(scene, ob, ob->boundtype);
+			case OB_EMPTY:
+				if (!render_override) {
+					if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+						draw_empty_image(ob, dflag, ob_wire_col);
+					}
+					else {
+						drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+					}
 				}
-				else {
-					if (dt > OB_WIRE)
-						GPU_enable_material(0, NULL);  /* we use default material */
-					empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
-					if (dt > OB_WIRE)
-						GPU_disable_material();
+				break;
+			case OB_LAMP:
+				if (!render_override) {
+					drawlamp(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					if (dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
 				}
-			}
-			break;
-		default:
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-				drawaxes(1.0, OB_ARROWS);
-			}
-			break;
-	}
-
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-
-		if (ob->soft /*&& dflag & OB_SBMOTION*/) {
-			float mrt[3][3], msc[3][3], mtr[3][3];
-			SoftBody *sb = NULL;
-			float tipw = 0.5f, tiph = 0.5f, drawsize = 4.0f;
-			if ((sb = ob->soft)) {
-				if (sb->solverflags & SBSO_ESTIMATEIPO) {
-
-					glLoadMatrixf(rv3d->viewmat);
-					copy_m3_m3(msc, sb->lscale);
-					copy_m3_m3(mrt, sb->lrot);
-					mul_m3_m3m3(mtr, mrt, msc);
-					ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
-					glMultMatrixf(ob->obmat);
+				break;
+			case OB_CAMERA:
+				if (!render_override ||
+				    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
+				{
+					drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
 				}
-			}
+				break;
+			case OB_SPEAKER:
+				if (!render_override)
+					drawspeaker(scene, v3d, rv3d, ob, dflag);
+				break;
+			case OB_LATTICE:
+				if (!render_override) {
+					/* Do not allow boundbox in edit nor pose mode! */
+					if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
+						dt = OB_WIRE;
+					if (dt == OB_BOUNDBOX) {
+						draw_bounding_volume(scene, ob, ob->boundtype);
+					}
+					else {
+						drawlattice(scene, v3d, ob);
+					}
+				}
+				break;
+			case OB_ARMATURE:
+				if (!render_override) {
+					/* Do not allow boundbox in edit nor pose mode! */
+					if ((dt == OB_BOUNDBOX) && (ob->mode & (OB_MODE_EDIT | OB_MODE_POSE)))
+						dt = OB_WIRE;
+					if (dt == OB_BOUNDBOX) {
+						draw_bounding_volume(scene, ob, ob->boundtype);
+					}
+					else {
+						if (dt > OB_WIRE)
+							GPU_enable_material(0, NULL);  /* we use default material */
+						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
+						if (dt > OB_WIRE)
+							GPU_disable_material();
+					}
+				}
+				break;
+			default:
+				if (!render_override) {
+					drawaxes(1.0, OB_ARROWS);
+				}
+				break;
 		}
 
-		if (ob->pd && ob->pd->forcefield) {
-			draw_forcefield(ob, rv3d, dflag, ob_wire_col);
+		if (!render_override) {
+			if (ob->soft /*&& dflag & OB_SBMOTION*/) {
+				float mrt[3][3], msc[3][3], mtr[3][3];
+				SoftBody *sb = NULL;
+				float tipw = 0.5f, tiph = 0.5f, drawsize = 4.0f;
+				if ((sb = ob->soft)) {
+					if (sb->solverflags & SBSO_ESTIMATEIPO) {
+
+						glLoadMatrixf(rv3d->viewmat);
+						copy_m3_m3(msc, sb->lscale);
+						copy_m3_m3(mrt, sb->lrot);
+						mul_m3_m3m3(mtr, mrt, msc);
+						ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
+						glMultMatrixf(ob->obmat);
+					}
+				}
+			}
+
+			if (ob->pd && ob->pd->forcefield) {
+				draw_forcefield(ob, rv3d, dflag, ob_wire_col);
+			}
 		}
 	}
 
@@ -7093,7 +7110,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if (!render_override) {
 		bConstraint *con;
 
 		for (con = ob->constraints.first; con; con = con->next) {
@@ -7145,9 +7162,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
-	if ((dt <= OB_SOLID) &&
-	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0))
-	{
+	if ((dt <= OB_SOLID) && !render_override) {
 		if (((ob->gameflag & OB_DYNAMIC) &&
 		     !ELEM(ob->collision_boundtype, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL)) ||
 
@@ -7181,9 +7196,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	if ((base->flag & OB_FROMDUPLI) ||
-	    (v3d->flag2 & V3D_RENDER_OVERRIDE))
-	{
+	if ((base->flag & OB_FROMDUPLI) || render_override) {
 		ED_view3d_clear_mats_rv3d(rv3d);
 		return;
 	}
@@ -7192,7 +7205,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	if (!is_obact || !(ob->mode & OB_MODE_ALL_PAINT)) {
 		int do_draw_center = -1; /* defines below are zero or positive... */
 
-		if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		if (render_override) {
 			/* don't draw */
 		}
 		else if ((scene->basact) == base)
@@ -7220,7 +7233,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* not for sets, duplicators or picking */
-	if (dflag == 0 && (v3d->flag & V3D_HIDE_HELPLINES) == 0 && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if (dflag == 0 && (v3d->flag & V3D_HIDE_HELPLINES) == 0 && !render_override) {
 		ListBase *list;
 		RigidBodyCon *rbc = ob->rigidbody_constraint;
 		
