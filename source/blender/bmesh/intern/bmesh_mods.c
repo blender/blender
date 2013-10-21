@@ -849,7 +849,7 @@ void BM_edge_calc_rotate(BMEdge *e, const bool ccw,
 	/* we could swap the verts _or_ the faces, swapping faces
 	 * gives more predictable results since that way the next vert
 	 * just stitches from face fa / fb */
-	if (ccw) {
+	if (!ccw) {
 		SWAP(BMFace *, fa, fb);
 	}
 
