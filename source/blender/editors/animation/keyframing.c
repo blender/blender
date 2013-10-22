@@ -1100,7 +1100,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 
 		if (BKE_fcurve_is_protected(fcu)) {
 			BKE_reportf(reports, RPT_WARNING,
-			            "not deleting keyframe for locked F-Curve '%s' for %s '%s'",
+			            "Not deleting keyframe for locked F-Curve '%s' for %s '%s'",
 			            fcu->rna_path, BKE_idcode_to_name(GS(id->name)), id->name + 2);
 			continue;
 		}
@@ -1570,7 +1570,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 
 				if (BKE_fcurve_is_protected(fcu)) {
 					BKE_reportf(op->reports, RPT_WARNING,
-					            "not deleting keyframe for locked F-Curve '%s', object '%s'",
+					            "Not deleting keyframe for locked F-Curve '%s', object '%s'",
 					            fcu->rna_path, id->name + 2);
 					continue;
 				}
