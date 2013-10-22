@@ -930,6 +930,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
  *	- 1) keyframe under mouse - no special modifiers
  *	- 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
  *	- 3) column select all keyframes in frame under mouse - CTRL modifier
+ *  - 4) all keyframes in channel under mouse - CTRL+ALT modifiers
  *
  * In addition to these basic options, the SHIFT modifier can be used to toggle the 
  * selection mode between replacing the selection (without) and inverting the selection (with).
@@ -949,24 +950,31 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	ked.f1 = selx;
 	
 	/* select the nominated keyframe on the given frame */
-	if (ale->type == ANIMTYPE_GPLAYER)
+	if (ale->type == ANIMTYPE_GPLAYER) {
 		ED_gpencil_select_frame(ale->data, selx, select_mode);
-	else if (ale->type == ANIMTYPE_MASKLAYER)
+	}
+	else if (ale->type == ANIMTYPE_MASKLAYER) {
 		ED_mask_select_frame(ale->data, selx, select_mode);
+	}
 	else {
 		if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK) &&
 		    (ale->type == ANIMTYPE_SUMMARY) && (ale->datatype == ALE_ALL))
 		{
 			ListBase anim_data = {NULL, NULL};
 			int filter;
+			
 			filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
 			ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+			
 			for (ale = anim_data.first; ale; ale = ale->next) {
-				if (ale->type == ANIMTYPE_GPLAYER)
+				if (ale->type == ANIMTYPE_GPLAYER) {
 					ED_gpencil_select_frame(ale->data, selx, select_mode);
-				else if (ale->type == ANIMTYPE_MASKLAYER)
+				}
+				else if (ale->type == ANIMTYPE_MASKLAYER) {
 					ED_mask_select_frame(ale->data, selx, select_mode);
+				}
 			}
+			
 			BLI_freelistN(&anim_data);
 		}
 		else {
@@ -1023,10 +1031,55 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	BLI_freelistN(&ked.list);
 	BLI_freelistN(&anim_data);
 }
+
+/* option 4) select all keyframes in same channel */
+static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, short select_mode)
+{
+	KeyframeEditFunc select_cb;
+	
+	printf("select all in channel - %d\n", select_mode);
+	
+	/* get functions for selecting keyframes */
+	select_cb = ANIM_editkeyframes_select(select_mode);
+	
+	/* select all keyframes in this channel */
+	if (ale->type == ANIMTYPE_GPLAYER) {
+		ED_gpencil_select_frames(ale->data, select_mode);
+	}
+	else if (ale->type == ANIMTYPE_MASKLAYER) {
+		ED_mask_select_frames(ale->data, select_mode);
+	}
+	else {
+		if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK) &&
+		    (ale->type == ANIMTYPE_SUMMARY) && (ale->datatype == ALE_ALL))
+		{
+			ListBase anim_data = {NULL, NULL};
+			int filter;
+			
+			filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
+			ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+			
+			for (ale = anim_data.first; ale; ale = ale->next) {
+				if (ale->type == ANIMTYPE_GPLAYER) {
+					ED_gpencil_select_frames(ale->data, select_mode);
+				}
+				else if (ale->type == ANIMTYPE_MASKLAYER) {
+					ED_mask_select_frames(ale->data, select_mode);
+				}
+			}
+			
+			BLI_freelistN(&anim_data);
+		}
+		else {
+			int res = ANIM_animchannel_keyframes_loop(NULL, ac->ads, ale, NULL, select_cb, NULL);
+			printf("\tresult = %d\n", res);
+		}
+	}
+}
  
 /* ------------------- */
 
-static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_mode, short column)
+static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_mode, bool column, bool same_channel)
 {
 	ListBase anim_data = {NULL, NULL};
 	DLRBT_Tree anim_keys;
@@ -1151,6 +1204,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	/* for replacing selection, firstly need to clear existing selection */
 	if (select_mode == SELECT_REPLACE) {
 		/* reset selection mode for next steps */
+		printf("selectmode = replace\n");
 		select_mode = SELECT_ADD;
 		
 		/* deselect all keyframes */
@@ -1211,6 +1265,10 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 				/* select all keyframes in the same frame as the one we hit on the active channel */
 				actkeys_mselect_column(ac, select_mode, selx);
 			}
+			else if (same_channel) {
+				/* select all keyframes in the active channel */
+				actkeys_mselect_channel_only(ac, ale, select_mode);	
+			}
 			else {
 				/* select the nominated keyframe on the given frame */
 				actkeys_mselect_single(ac, ale, select_mode, selx);
@@ -1227,7 +1285,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
 {
 	bAnimContext ac;
 	/* ARegion *ar; */ /* UNUSED */
-	short selectmode, column;
+	short selectmode;
+	bool column, channel;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1244,9 +1303,10 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
 		
 	/* column selection */
 	column = RNA_boolean_get(op->ptr, "column");
+	channel = RNA_boolean_get(op->ptr, "channel");
 	
 	/* select keyframe(s) based upon mouse position*/
-	mouse_action_keys(&ac, event->mval, selectmode, column);
+	mouse_action_keys(&ac, event->mval, selectmode, column, channel);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | ND_ANIMCHAN | NA_SELECTED, NULL);
@@ -1272,10 +1332,16 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", 
+	                       "Toggle keyframe selection instead of leaving newly selected keyframes only"); // SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
-	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", 
+	                       "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "channel", 0, "Only Channel", 
+	                       "Select all the keyframes in the channel under the mouse"); // CTRLKEY + ALTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

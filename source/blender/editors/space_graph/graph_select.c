@@ -1365,7 +1365,8 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select",
+	                       "Toggle keyframe selection instead of leaving newly selected keyframes only"); // SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
 	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", 

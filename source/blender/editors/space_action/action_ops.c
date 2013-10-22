@@ -116,18 +116,32 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	RNA_boolean_set(kmi->ptr, "channel", FALSE);
 	/* click-select: all on same frame (replace) */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", TRUE);
+	RNA_boolean_set(kmi->ptr, "channel", FALSE);
 	/* click-select: keyframe (add) */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
-	/* click-select: all on same frame (replace) */
+	RNA_boolean_set(kmi->ptr, "channel", FALSE);
+	/* click-select: all on same frame (add) */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "column", TRUE);
+	RNA_boolean_set(kmi->ptr, "channel", FALSE);
+	/* click-select: all on same channel (replace) */
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	RNA_boolean_set(kmi->ptr, "channel", TRUE);
+	/* click-select: all on same channel (add) */
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	RNA_boolean_set(kmi->ptr, "channel", TRUE);
 		
 	/* click-select: left/right */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
