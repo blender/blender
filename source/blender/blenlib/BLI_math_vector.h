@@ -82,8 +82,9 @@ MINLINE void copy_v4fl_v4db(float r[4], const double a[4]);
 MINLINE void copy_v2db_v2fl(double r[2], const float a[2]);
 MINLINE void copy_v3db_v3fl(double r[3], const float a[3]);
 MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
-/* 3 float -> vec */
+/* float args -> vec */
 MINLINE void copy_v3_fl3(float v[3], float x, float y, float z);
+MINLINE void copy_v4_fl4(float v[4], float x, float y, float z, float w);
 
 /********************************* Arithmetic ********************************/
 

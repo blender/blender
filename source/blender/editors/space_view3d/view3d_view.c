@@ -774,33 +774,31 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 	mat3_to_quat(rv3d->viewquat, tmat);
 }
 
-#define QUATSET(a, b, c, d, e) { a[0] = b; a[1] = c; a[2] = d; a[3] = e; } (void)0
-
 bool ED_view3d_lock(RegionView3D *rv3d)
 {
 	switch (rv3d->view) {
 		case RV3D_VIEW_BOTTOM:
-			QUATSET(rv3d->viewquat, 0.0, -1.0, 0.0, 0.0);
+			copy_v4_fl4(rv3d->viewquat, 0.0, -1.0, 0.0, 0.0);
 			break;
 
 		case RV3D_VIEW_BACK:
-			QUATSET(rv3d->viewquat, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2);
+			copy_v4_fl4(rv3d->viewquat, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			QUATSET(rv3d->viewquat, 0.5, -0.5, 0.5, 0.5);
+			copy_v4_fl4(rv3d->viewquat, 0.5, -0.5, 0.5, 0.5);
 			break;
 
 		case RV3D_VIEW_TOP:
-			QUATSET(rv3d->viewquat, 1.0, 0.0, 0.0, 0.0);
+			copy_v4_fl4(rv3d->viewquat, 1.0, 0.0, 0.0, 0.0);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			QUATSET(rv3d->viewquat, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0);
+			copy_v4_fl4(rv3d->viewquat, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			QUATSET(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
+			copy_v4_fl4(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
 			break;
 		default:
 			return false;

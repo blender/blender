@@ -315,25 +315,13 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 		MEM_freeN(nu2);
 		return;
 	}
-	nu2->bp = bp;
 
-	nu2->bp[0].vec[0] = x1;
-	nu2->bp[0].vec[1] = y1;
-	nu2->bp[0].vec[2] = 0;
-	nu2->bp[0].vec[3] = 1.0f;
-	nu2->bp[1].vec[0] = x2;
-	nu2->bp[1].vec[1] = y1;
-	nu2->bp[1].vec[2] = 0;
-	nu2->bp[1].vec[3] = 1.0f;
-	nu2->bp[2].vec[0] = x2;
-	nu2->bp[2].vec[1] = y2;
-	nu2->bp[2].vec[2] = 0;
-	nu2->bp[2].vec[3] = 1.0f;
-	nu2->bp[3].vec[0] = x1;
-	nu2->bp[3].vec[1] = y2;
-	nu2->bp[3].vec[2] = 0;
-	nu2->bp[3].vec[3] = 1.0f;
-	
+	copy_v4_fl4(bp[0].vec, x1, y1, 0.0f, 1.0f);
+	copy_v4_fl4(bp[1].vec, x2, y1, 0.0f, 1.0f);
+	copy_v4_fl4(bp[2].vec, x2, y2, 0.0f, 1.0f);
+	copy_v4_fl4(bp[3].vec, x1, y2, 0.0f, 1.0f);
+
+	nu2->bp = bp;
 	BLI_addtail(&(cu->nurb), nu2);
 
 }
