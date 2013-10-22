@@ -113,6 +113,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *
 		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
 		ListBase targets = {NULL, NULL};
 		
+		/* constraint targets */
 		if (cti && cti->get_constraint_targets) {
 			cti->get_constraint_targets(curcon, &targets);
 			
@@ -125,6 +126,12 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *
 			
 			if (cti->flush_constraint_targets)
 				cti->flush_constraint_targets(curcon, &targets, 0);
+		}
+		
+		/* action constraints */
+		if (curcon->type == CONSTRAINT_TYPE_ACTION) {
+			bActionConstraint *actcon = (bActionConstraint *)curcon->data;
+			BKE_action_fix_paths_rename(&ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, 1);
 		}
 	}
 }

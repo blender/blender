@@ -1037,8 +1037,6 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 {
 	KeyframeEditFunc select_cb;
 	
-	printf("select all in channel - %d\n", select_mode);
-	
 	/* get functions for selecting keyframes */
 	select_cb = ANIM_editkeyframes_select(select_mode);
 	
@@ -1071,8 +1069,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 			BLI_freelistN(&anim_data);
 		}
 		else {
-			int res = ANIM_animchannel_keyframes_loop(NULL, ac->ads, ale, NULL, select_cb, NULL);
-			printf("\tresult = %d\n", res);
+			ANIM_animchannel_keyframes_loop(NULL, ac->ads, ale, NULL, select_cb, NULL);
 		}
 	}
 }
@@ -1204,7 +1201,6 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	/* for replacing selection, firstly need to clear existing selection */
 	if (select_mode == SELECT_REPLACE) {
 		/* reset selection mode for next steps */
-		printf("selectmode = replace\n");
 		select_mode = SELECT_ADD;
 		
 		/* deselect all keyframes */
