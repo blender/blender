@@ -2450,20 +2450,25 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			 * Since groups are used to collect F-Curves of the same Bone by default
 			 * (via Keying Sets) so that they can be managed better, we try to make
 			 * things here easier for animators by mapping group selection to bone
-			 * selection
+			 * selection. 
+			 *
+			 * Only do this if "Only Selected" dopesheet filter is not active, or else it
+			 * becomes too unpredictable/tricky to manage
 			 */
-			if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
-				ob = (Object *)ale->id;
-				
-				if (ob->type == OB_ARMATURE) {
-					/* Assume for now that any group with corresponding name is what we want
-					 * (i.e. for an armature whose location is animated, things would break
-					 * if the user were to add a bone named "Location").
-					 *
-					 * TODO: check the first F-Curve or so to be sure...
-					 */
-					pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
-				}	
+			if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL)==0) {
+				if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
+					ob = (Object *)ale->id;
+					
+					if (ob->type == OB_ARMATURE) {
+						/* Assume for now that any group with corresponding name is what we want
+						 * (i.e. for an armature whose location is animated, things would break
+						 * if the user were to add a bone named "Location").
+						 *
+						 * TODO: check the first F-Curve or so to be sure...
+						 */
+						pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
+					}	
+				}
 			}
 			
 			/* select/deselect group */
