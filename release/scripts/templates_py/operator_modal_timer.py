@@ -9,7 +9,7 @@ class ModalTimerOperator(bpy.types.Operator):
     _timer = None
 
     def modal(self, context, event):
-        if event.type == 'ESC':
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
             return self.cancel(context)
 
         if event.type == 'TIMER':
@@ -21,12 +21,14 @@ class ModalTimerOperator(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        self._timer = context.window_manager.event_timer_add(0.1, context.window)
-        context.window_manager.modal_handler_add(self)
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, context.window)
+        wm.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):
-        context.window_manager.event_timer_remove(self._timer)
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
 
 
