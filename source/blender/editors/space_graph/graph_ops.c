@@ -279,33 +279,38 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	
 	/* graph_select.c - selection tools */
-	/* click-select */
+	/* click-select: keyframe (replace)  */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_boolean_set(kmi->ptr, "curves", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	/* click-select: all keyframes on same frame (replace) */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_boolean_set(kmi->ptr, "curves", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", TRUE);
+	/* click-select: keyframe (add) */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "curves", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	/* click-select: all keyframes on same frame (add) */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "curves", FALSE);
 	RNA_boolean_set(kmi->ptr, "column", TRUE);
+	/* click-select: all keyframes in same curve (replace) */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_boolean_set(kmi->ptr, "curves", TRUE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	/* click-select: all keyframes in same curve (add) */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(kmi->ptr, "curves", TRUE);
 	RNA_boolean_set(kmi->ptr, "column", FALSE);
 	
-	/* select left/right */
+	/* click-select left/right */
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	RNA_enum_set(kmi->ptr, "mode", GRAPHKEYS_LRSEL_TEST);
