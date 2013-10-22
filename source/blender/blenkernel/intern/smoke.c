@@ -1109,7 +1109,7 @@ static void em_freeData(EmissionMap *em)
 
 static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_multiplier, int additive, float sample_size)
 {
-	int i, x,y,z;
+	int i, x, y, z;
 
 	/* copyfill input 1 struct and clear output for new allocation */
 	EmissionMap em1;
@@ -1227,7 +1227,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 		float solid = sfs->particle_size * 0.5f;
 		float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
 		int hires_multiplier = 1;
-		int i,z;
+		int i, z;
 		KDTree *tree;
 
 		sim.scene = scene;

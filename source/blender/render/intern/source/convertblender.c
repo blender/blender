@@ -334,7 +334,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
  * cleanup      */
 /* ------------------------------------------------------------------------- */
 
-#define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
+#define UVTOINDEX(u, v) (startvlak + (u) * sizev + (v))
 /*
  *
  * NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
