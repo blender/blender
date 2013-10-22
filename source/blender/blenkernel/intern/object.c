@@ -1302,6 +1302,11 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 	obn->mode = 0;
 	obn->sculpt = NULL;
 
+	/* Proxies are not to be copied. */
+	obn->proxy_from = NULL;
+	obn->proxy_group = NULL;
+	obn->proxy = NULL;
+
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->gpd);
