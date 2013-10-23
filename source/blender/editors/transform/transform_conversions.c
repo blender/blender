@@ -2098,9 +2098,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 	else if (t->around == V3D_LOCAL) {
 		copy_v3_v3(td->center, td->loc);
-
-		axis_dominant_v3_to_m3(td->axismtx, eve->no);
-		invert_m3(td->axismtx);
+		createSpaceNormal(td->axismtx, eve->no);
 	}
 	else {
 		copy_v3_v3(td->center, td->loc);
