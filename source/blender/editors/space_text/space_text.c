@@ -475,14 +475,14 @@ static void text_drop_copy(wmDrag *drag, wmDropBox *drop)
 static int text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_ID)
-			return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
 {
-	RNA_string_set(drop->ptr, "text", ((ID*)drag->poin)->name + 2);
+	RNA_string_set(drop->ptr, "text", ((ID *)drag->poin)->name + 2);
 }
 
 /* this region dropbox definition */

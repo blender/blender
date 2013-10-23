@@ -6591,8 +6591,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (ob->restrictflag & OB_RESTRICT_VIEW) {
 			return;
 		}
-		else if ((ob->restrictflag & OB_RESTRICT_RENDER) && render_override)
-		{
+		else if ((ob->restrictflag & OB_RESTRICT_RENDER) && render_override) {
 			return;
 		}
 	}

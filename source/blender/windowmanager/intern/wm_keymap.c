@@ -139,7 +139,8 @@ void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties
 	wm_keymap_item_properties_set(kmi);
 }
 
-int WM_keymap_map_type_get(wmKeyMapItem *kmi) {
+int WM_keymap_map_type_get(wmKeyMapItem *kmi)
+{
 	if (ISTIMER(kmi->type)) {
 		return KMI_TYPE_TIMER;
 	}

@@ -2032,7 +2032,8 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 				MEM_freeN(usel);
 
 				if ((newu == 0 || newv == 0) ||
-					(split && !isNurbselU(nu, &newv, SELECT) && !isNurbselV(nu, &newu, SELECT))) {
+				    (split && !isNurbselU(nu, &newv, SELECT) && !isNurbselV(nu, &newu, SELECT)))
+				{
 					if (G.debug & G_DEBUG)
 						printf("Can't duplicate Nurb\n");
 				}
@@ -6076,7 +6077,8 @@ static int curve_delete_segments(Object *obedit, const bool split)
 				bezt2 = &nu->bezt[1];
 
 				if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-					BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
+				    BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+				{
 					nu1 = BKE_nurb_copy(nu, 1, 1);
 					ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
 					BLI_addtail(&newnurb, nu1);
@@ -6086,7 +6088,8 @@ static int curve_delete_segments(Object *obedit, const bool split)
 				bezt2 = &nu->bezt[nu->pntsu - 2];
 
 				if (BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-					BEZSELECTED_HIDDENHANDLES(cu, bezt2)) {
+				    BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+				{
 					nu1 = BKE_nurb_copy(nu, 1, 1);
 					ED_curve_beztcpy(editnurb, nu1->bezt, bezt1, 1);
 					BLI_addtail(&newnurb, nu1);

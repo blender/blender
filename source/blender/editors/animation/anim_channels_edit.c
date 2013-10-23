@@ -1107,7 +1107,6 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 					break;
 				
 				case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
-					
 				default: /* some collection of actions */
 					if (adt->action)
 						rearrange_action_channels(&ac, adt->action, mode);
@@ -2455,7 +2454,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			 * Only do this if "Only Selected" dopesheet filter is not active, or else it
 			 * becomes too unpredictable/tricky to manage
 			 */
-			if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL)==0) {
+			if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
 				if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
 					ob = (Object *)ale->id;
 					

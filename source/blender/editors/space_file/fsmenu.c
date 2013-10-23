@@ -415,9 +415,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			if (result != kCFURLEnumeratorSuccess)
 				continue;
 			
-			CFURLGetFileSystemRepresentation(cfURL, false, (UInt8*)defPath, FILE_MAX);
+			CFURLGetFileSystemRepresentation(cfURL, false, (UInt8 *)defPath, FILE_MAX);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)defPath, FS_INSERT_SORTED);
-			}
+		}
 		
 		CFRelease(volEnum);
 		
