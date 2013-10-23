@@ -60,7 +60,7 @@ void RenderLayersBaseProg::initExecution()
 			if (rl && rl->rectf) {
 				this->m_inputBuffer = RE_RenderLayerGetPass(rl, this->m_renderpass);
 
-				if (this->m_inputBuffer == NULL || this->m_renderpass == SCE_PASS_COMBINED) {
+				if (this->m_inputBuffer == NULL && this->m_renderpass == SCE_PASS_COMBINED) {
 					this->m_inputBuffer = rl->rectf;
 				}
 			}
