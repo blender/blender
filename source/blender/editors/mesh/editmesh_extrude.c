@@ -377,7 +377,6 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		BKE_object_handle_update(scene, obedit);
 
 		/* individual faces? */
-//		BIF_TransformSetUndo("Extrude");
 		if (nr == 2) {
 //			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_MIRROR);
 //			Transform();

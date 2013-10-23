@@ -130,8 +130,6 @@ void ED_getTransformOrientationMatrix(const struct bContext *C, float orientatio
 
 int BIF_countTransformOrientation(const struct bContext *C);
 
-void BIF_TransformSetUndo(const char *str);
-
 /* to be able to add operator properties to other operators */
 
 #define P_MIRROR        (1 << 0)

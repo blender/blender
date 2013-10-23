@@ -284,7 +284,7 @@ typedef struct TransInfo {
 	int         options;        /* current context/options for transform                      */
 	float       val;            /* init value for some transformations (and rotation angle)  */
 	float       fac;            /* factor for distance based transform  */
-	int       (*transform)(struct TransInfo *, const int *);
+	void      (*transform)(struct TransInfo *, const int[2]);
 								/* transform function pointer           */
 	int       (*handleEvent)(struct TransInfo *, const struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
@@ -493,91 +493,6 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
 void applyAspectRatio(TransInfo *t, float *vec);
 void removeAspectRatio(TransInfo *t, float *vec);
-
-void initWarp(TransInfo *t);
-int handleEventWarp(TransInfo *t, const struct wmEvent *event);
-int Warp(TransInfo *t, const int mval[2]);
-
-void initShear(TransInfo *t);
-int handleEventShear(TransInfo *t, const struct wmEvent *event);
-int Shear(TransInfo *t, const int mval[2]);
-
-void initResize(TransInfo *t);
-int Resize(TransInfo *t, const int mval[2]);
-
-void initSkinResize(TransInfo *t);
-int SkinResize(TransInfo *t, const int mval[2]);
-
-void initTranslation(TransInfo *t);
-int Translation(TransInfo *t, const int mval[2]);
-
-void initToSphere(TransInfo *t);
-int ToSphere(TransInfo *t, const int mval[2]);
-
-void initRotation(TransInfo *t);
-int Rotation(TransInfo *t, const int mval[2]);
-
-void initShrinkFatten(TransInfo *t);
-int ShrinkFatten(TransInfo *t, const int mval[2]);
-
-void initTilt(TransInfo *t);
-int Tilt(TransInfo *t, const int mval[2]);
-
-void initCurveShrinkFatten(TransInfo *t);
-int CurveShrinkFatten(TransInfo *t, const int mval[2]);
-
-void initMaskShrinkFatten(TransInfo *t);
-int MaskShrinkFatten(TransInfo *t, const int mval[2]);
-
-void initTrackball(TransInfo *t);
-int Trackball(TransInfo *t, const int mval[2]);
-
-void initPushPull(TransInfo *t);
-int PushPull(TransInfo *t, const int mval[2]);
-
-void initBevelWeight(TransInfo *t);
-int BevelWeight(TransInfo *t, const int mval[2]);
-
-void initCrease(TransInfo *t);
-int Crease(TransInfo *t, const int mval[2]);
-
-void initBoneSize(TransInfo *t);
-int BoneSize(TransInfo *t, const int mval[2]);
-
-void initBoneEnvelope(TransInfo *t);
-int BoneEnvelope(TransInfo *t, const int mval[2]);
-
-void initBoneRoll(TransInfo *t);
-int BoneRoll(TransInfo *t, const int mval[2]);
-
-void initEdgeSlide(TransInfo *t);
-int handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
-int EdgeSlide(TransInfo *t, const int mval[2]);
-
-void initVertSlide(TransInfo *t);
-int handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
-int VertSlide(TransInfo *t, const int mval[2]);
-
-void initTimeTranslate(TransInfo *t);
-int TimeTranslate(TransInfo *t, const int mval[2]);
-
-void initTimeSlide(TransInfo *t);
-int TimeSlide(TransInfo *t, const int mval[2]);
-
-void initTimeScale(TransInfo *t);
-int TimeScale(TransInfo *t, const int mval[2]);
-
-void initBakeTime(TransInfo *t);
-int BakeTime(TransInfo *t, const int mval[2]);
-
-void initMirror(TransInfo *t);
-int Mirror(TransInfo *t, const int mval[2]);
-
-void initAlign(TransInfo *t);
-int Align(TransInfo *t, const int mval[2]);
-
-void initSeqSlide(TransInfo *t);
-int SeqSlide(TransInfo *t, const int mval[2]);
 
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
