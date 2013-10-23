@@ -95,6 +95,6 @@ shader node_math(
 		Value = safe_modulo(Value1, Value2);
 
 	if (Clamp)
-		Value = clamp(Value1, 0.0, 1.0);
+		Value = clamp(Value, 0.0, 1.0);
 }
 
