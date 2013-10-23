@@ -792,6 +792,13 @@ static void drawObjectConstraint(TransInfo *t)
 		float co[3];
 		float (*axismtx)[3];
 
+		if (t->flag & T_PROP_EDIT) {
+			/* we're sorted, so skip the rest */
+			if (td->factor == 0.0f) {
+				break;
+			}
+		}
+
 		if (t->flag & T_OBJECT) {
 			copy_v3_v3(co, td->ob->obmat[3]);
 			axismtx = td->axismtx;
