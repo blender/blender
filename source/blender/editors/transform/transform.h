@@ -62,6 +62,13 @@ struct wmTimer;
 struct ARegion;
 struct ReportList;
 
+/* transinfo->redraw */
+typedef enum {
+	TREDRAW_NOTHING   = 0,
+	TREDRAW_HARD      = 1,
+	TREDRAW_SOFT      = 2,
+} eRedrawFlag;
+
 typedef struct TransSnapPoint {
 	struct TransSnapPoint *next, *prev;
 	float co[3];
@@ -286,7 +293,7 @@ typedef struct TransInfo {
 	float       fac;            /* factor for distance based transform  */
 	void      (*transform)(struct TransInfo *, const int[2]);
 								/* transform function pointer           */
-	int       (*handleEvent)(struct TransInfo *, const struct wmEvent *);
+	eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
 	int         total;          /* total number of transformed data     */
 	TransData  *data;           /* transformed data (array)             */
@@ -296,7 +303,7 @@ typedef struct TransInfo {
 	TransSnap	tsnap;
 	NumInput    num;            /* numerical input                      */
 	MouseInput	mouse;			/* mouse input                          */
-	char        redraw;         /* redraw flag                          */
+	eRedrawFlag redraw;         /* redraw flag                          */
 	float		prop_size;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
 	float       center[3];      /* center of transformation             */
@@ -371,12 +378,6 @@ typedef struct TransInfo {
 #define TRANS_RUNNING	1
 #define TRANS_CONFIRM	2
 #define TRANS_CANCEL	3
-
-/* transinfo->redraw */
-#define TREDRAW_NOTHING  	0
-#define TREDRAW_HARD		1
-#define TREDRAW_SOFT		2
-
 
 /* transinfo->flag */
 #define T_OBJECT		(1 << 0)
@@ -575,14 +576,14 @@ void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
-bool handleSnapping(TransInfo *t, const struct wmEvent *event);
+eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
 bool usingSnappingNormal(TransInfo *t);
 bool validSnappingNormal(TransInfo *t);
 
 void getSnapPoint(TransInfo *t, float vec[3]);
 void addSnapPoint(TransInfo *t);
-bool updateSelectedSnapPoint(TransInfo *t);
+eRedrawFlag updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
@@ -605,7 +606,7 @@ typedef enum {
 
 void initMouseInput(TransInfo *t, MouseInput *mi, const float center[2], const int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const struct wmEvent *event);
+eRedrawFlag handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);

@@ -407,9 +407,9 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 	}
 }
 
-int handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
+eRedrawFlag handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
 {
-	int redraw = TREDRAW_NOTHING;
+	eRedrawFlag redraw = TREDRAW_NOTHING;
 
 	switch (event->type) {
 		case LEFTSHIFTKEY:

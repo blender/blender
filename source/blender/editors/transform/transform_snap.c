@@ -267,16 +267,16 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-bool handleSnapping(TransInfo *t, const wmEvent *event)
+eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 {
-	bool status = false;
+	eRedrawFlag status = TREDRAW_NOTHING;
 
 #if 0 // XXX need a proper selector for all snap mode
 	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift) {
 		/* toggle snap and reinit */
 		t->settings->snap_flag ^= SCE_SNAP;
 		initSnapping(t, NULL);
-		status = 1;
+		status = TREDRAW_HARD;
 	}
 #endif
 	if (event->type == MOUSEMOVE) {
@@ -606,9 +606,10 @@ void addSnapPoint(TransInfo *t)
 	}
 }
 
-bool updateSelectedSnapPoint(TransInfo *t)
+eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
 {
-	bool status = false;
+	eRedrawFlag status = TREDRAW_NOTHING;
+
 	if (t->tsnap.status & MULTI_POINTS) {
 		TransSnapPoint *p, *closest_p = NULL;
 		float closest_dist = TRANSFORM_SNAP_MAX_PX;
@@ -631,7 +632,10 @@ bool updateSelectedSnapPoint(TransInfo *t)
 		}
 
 		if (closest_p) {
-			status = (t->tsnap.selectedPoint != closest_p);
+			if (t->tsnap.selectedPoint != closest_p) {
+				status = TREDRAW_HARD;
+			}
+
 			t->tsnap.selectedPoint = closest_p;
 		}
 	}

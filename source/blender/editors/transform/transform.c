@@ -111,11 +111,11 @@ static void postInputRotation(TransInfo *t, float values[3]);
 
 /* Transform Callbacks */
 static void initWarp(TransInfo *t);
-static int handleEventWarp(TransInfo *t, const struct wmEvent *event);
+static eRedrawFlag handleEventWarp(TransInfo *t, const struct wmEvent *event);
 static void Warp(TransInfo *t, const int mval[2]);
 
 static void initShear(TransInfo *t);
-static int handleEventShear(TransInfo *t, const struct wmEvent *event);
+static eRedrawFlag handleEventShear(TransInfo *t, const struct wmEvent *event);
 static void applyShear(TransInfo *t, const int mval[2]);
 
 static void initResize(TransInfo *t);
@@ -167,11 +167,11 @@ static void initBoneRoll(TransInfo *t);
 static void applyBoneRoll(TransInfo *t, const int mval[2]);
 
 static void initEdgeSlide(TransInfo *t);
-static int handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
+static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
 static void applyEdgeSlide(TransInfo *t, const int mval[2]);
 
 static void initVertSlide(TransInfo *t);
-static int handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
+static eRedrawFlag handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
 static void applyVertSlide(TransInfo *t, const int mval[2]);
 
 static void initTimeTranslate(TransInfo *t);
@@ -1220,8 +1220,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 		}
 
-		// Modal numinput events
-		t->redraw |= handleNumInput(&(t->num), event);
+		/* Modal numinput events */
+		if (handleNumInput(&(t->num), event)) {
+			t->redraw |= TREDRAW_HARD;
+		}
 	}
 	/* else do non-mapped events */
 	else if (event->val == KM_PRESS) {
@@ -1325,7 +1327,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					t->flag ^= T_PROP_CONNECTED;
 					sort_trans_data_dist(t);
 					calculatePropRatio(t);
-					t->redraw = 1;
+					t->redraw = TREDRAW_HARD;
 				}
 				else {
 					stopConstraint(t);
@@ -1351,7 +1353,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
-				t->redraw = 1;
+				t->redraw = TREDRAW_HARD;
 				break;
 			case PAGEUPKEY:
 			case WHEELDOWNMOUSE:
@@ -1361,14 +1363,14 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				else {
 					view_editmove(event->type);
 				}
-				t->redraw = 1;
+				t->redraw = TREDRAW_HARD;
 				break;
 			case PADMINUS:
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= 0.90909090f;
 					calculatePropRatio(t);
 				}
-				t->redraw = 1;
+				t->redraw = TREDRAW_HARD;
 				break;
 			case PAGEDOWNKEY:
 			case WHEELUPMOUSE:
@@ -1378,7 +1380,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				else {
 					view_editmove(event->type);
 				}
-				t->redraw = 1;
+				t->redraw = TREDRAW_HARD;
 				break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
@@ -1393,10 +1395,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 		}
 
-		// Numerical input events
-		t->redraw |= handleNumInput(&(t->num), event);
+		/* Numerical input events */
+		if (handleNumInput(&(t->num), event)) {
+			t->redraw |= TREDRAW_HARD;
+		}
 
-		// Snapping key events
+		/* Snapping key events */
 		t->redraw |= handleSnapping(t, event);
 
 	}
@@ -2735,9 +2739,9 @@ static void initWarp(TransInfo *t)
 	t->customData = data;
 }
 
-static int handleEventWarp(TransInfo *UNUSED(t), const wmEvent *event)
+static eRedrawFlag handleEventWarp(TransInfo *UNUSED(t), const wmEvent *event)
 {
-	int status = TREDRAW_NOTHING;
+	eRedrawFlag status = TREDRAW_NOTHING;
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		status = TREDRAW_HARD;
@@ -2898,9 +2902,9 @@ static void initShear(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-static int handleEventShear(TransInfo *t, const wmEvent *event)
+static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 {
-	int status = TREDRAW_NOTHING;
+	eRedrawFlag status = TREDRAW_NOTHING;
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
@@ -5867,7 +5871,7 @@ static void initEdgeSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-static int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
+static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
 		EdgeSlideData *sld = t->customData;
@@ -5877,7 +5881,7 @@ static int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event
 				case EKEY:
 					if (event->val == KM_PRESS) {
 						sld->is_proportional = !sld->is_proportional;
-						return 1;
+						return TREDRAW_HARD;
 					}
 					break;
 				case FKEY:
@@ -5886,7 +5890,7 @@ static int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event
 						if (sld->is_proportional == FALSE) {
 							sld->flipped_vtx = !sld->flipped_vtx;
 						}
-						return 1;
+						return TREDRAW_HARD;
 					}
 					break;
 				}
@@ -5911,7 +5915,7 @@ static int handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event
 			}
 		}
 	}
-	return 0;
+	return TREDRAW_NOTHING;
 }
 
 static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
@@ -6338,7 +6342,7 @@ void freeVertSlideVerts(TransInfo *t)
 	recalcData(t);
 }
 
-void initVertSlide(TransInfo *t)
+static void initVertSlide(TransInfo *t)
 {
 	VertSlideData *sld;
 
@@ -6373,7 +6377,7 @@ void initVertSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
+static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_VERT_SLIDE) {
 		VertSlideData *sld = t->customData;
@@ -6386,7 +6390,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 						if (sld->flipped_vtx) {
 							calcVertSlideCustomPoints(t);
 						}
-						return 1;
+						return TREDRAW_HARD;
 					}
 					break;
 				case FKEY:
@@ -6394,7 +6398,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 					if (event->val == KM_PRESS) {
 						sld->flipped_vtx = !sld->flipped_vtx;
 						calcVertSlideCustomPoints(t);
-						return 1;
+						return TREDRAW_HARD;
 					}
 					break;
 				}
@@ -6404,7 +6408,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 					if (event->val == KM_PRESS) {
 						t->flag ^= T_ALT_TRANSFORM;
 						calcVertSlideCustomPoints(t);
-						return 1;
+						return TREDRAW_HARD;
 					}
 					break;
 				}
@@ -6440,7 +6444,7 @@ int handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 			}
 		}
 	}
-	return 0;
+	return TREDRAW_NOTHING;
 }
 
 static void drawVertSlide(const struct bContext *C, TransInfo *t)
@@ -6557,7 +6561,7 @@ static int doVertSlide(TransInfo *t, float perc)
 	return 1;
 }
 
-void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
+static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[MAX_INFO_LEN];
 	size_t ofs = 0;

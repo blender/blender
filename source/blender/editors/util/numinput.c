@@ -114,16 +114,16 @@ void outputNumInput(NumInput *n, char *str)
 	}
 }
 
-short hasNumInput(NumInput *n)
+bool hasNumInput(const NumInput *n)
 {
 	short i;
 
 	for (i = 0; i <= n->idx_max; i++) {
 		if (n->ctrl[i])
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /**
@@ -159,7 +159,7 @@ void applyNumInput(NumInput *n, float *vec)
 	}
 }
 
-char handleNumInput(NumInput *n, const wmEvent *event)
+bool handleNumInput(NumInput *n, const wmEvent *event)
 {
 	float Val = 0;
 	short idx = n->idx, idx_max = n->idx_max;

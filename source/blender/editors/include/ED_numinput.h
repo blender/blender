@@ -27,7 +27,6 @@
 #ifndef __ED_NUMINPUT_H__
 #define __ED_NUMINPUT_H__
 
-
 /*
  *  The ctrl value has different meaning:
  *      0           : No value has been typed
@@ -59,11 +58,11 @@ typedef struct NumInput {
 void initNumInput(NumInput *n);
 #define NUM_STR_REP_LEN 20 /* str must be NUM_STR_LEN * (idx_max + 1) length. */
 void outputNumInput(NumInput *n, char *str);
-short hasNumInput(NumInput *n);
+bool hasNumInput(const NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
-char handleNumInput(NumInput *n, const struct wmEvent *event);
+bool handleNumInput(NumInput *n, const struct wmEvent *event);
 
 #define NUM_MODAL_INCREMENT_UP   18
 #define NUM_MODAL_INCREMENT_DOWN 19
 
-#endif
+#endif  /* __ED_NUMINPUT_H__ */

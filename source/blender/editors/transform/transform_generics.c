@@ -1066,7 +1066,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 	
 	t->flag = 0;
 	
-	t->redraw = 1; /* redraw first time */
+	t->redraw = TREDRAW_HARD;  /* redraw first time */
 	
 	if (event) {
 		copy_v2_v2_int(t->imval, event->mval);

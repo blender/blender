@@ -569,7 +569,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
-	t->redraw = 1;
+	t->redraw = TREDRAW_HARD;
 }
 
 /* applies individual td->axismtx constraints */
@@ -590,7 +590,7 @@ void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 		t->con.applyVec = applyObjectConstraintVec;
 		t->con.applySize = applyObjectConstraintSize;
 		t->con.applyRot = applyObjectConstraintRot;
-		t->redraw = 1;
+		t->redraw = TREDRAW_HARD;
 	}
 }
 
@@ -911,7 +911,7 @@ void postSelectConstraint(TransInfo *t)
 	setNearestAxis(t);
 
 	startConstraint(t);
-	t->redraw = 1;
+	t->redraw = TREDRAW_HARD;
 }
 
 static void setNearestAxis2d(TransInfo *t)
