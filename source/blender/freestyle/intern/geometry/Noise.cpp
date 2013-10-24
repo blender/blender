@@ -62,10 +62,10 @@ namespace Freestyle {
 #define SETUP(i, b0, b1, r0, r1) \
 	{                            \
 		(t) = (i) + (N);         \
-		(b0) = ((int)(t)) & BM;  \
-		(b1) = ((b0) + 1) & BM;  \
-		(r0) = (t) - (int)(t);   \
+		(r0) = modff((t), &(u));  \
 		(r1) = (r0) - 1.0;       \
+		(b0) = ((int)(u)) & BM;  \
+		(b1) = ((b0) + 1) & BM;  \
 	} (void)0
 
 static void normalize2(float v[2])
