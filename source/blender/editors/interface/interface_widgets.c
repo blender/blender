@@ -2004,10 +2004,11 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 /* ************ custom buttons, old stuff ************** */
 
-/* draws in resolution of 20x4 colors */
+/* draws in resolution of 48x4 colors */
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha)
 {
-	const float color_step = (type == UI_GRAD_H) ? 0.02f : 0.05f;
+	/* allows for 4 steps (red->yellow) */
+	const float color_step = (1.0 / 48.0);
 	int a;
 	float h = hsv[0], s = hsv[1], v = hsv[2];
 	float dx, dy, sx1, sx2, sy;
@@ -2066,6 +2067,8 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	/* old below */
 	
 	for (dx = 0.0f; dx < 0.999f; dx += color_step) { /* 0.999 = prevent float inaccuracy for steps */
+		const float dx_next = dx + color_step;
+
 		/* previous color */
 		copy_v3_v3(col0[0], col1[0]);
 		copy_v3_v3(col0[1], col1[1]);
@@ -2081,22 +2084,22 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 				hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
 				break;
 			case UI_GRAD_HV:
-				hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-				hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-				hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-				hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+				hsv_to_rgb(dx_next, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx_next, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(dx_next, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(dx_next, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 				break;
 			case UI_GRAD_HS:
-				hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-				hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-				hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-				hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+				hsv_to_rgb(dx_next, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx_next, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(dx_next, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(dx_next, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 				break;
 			case UI_GRAD_H:
 			{
 				/* annoying but without this the color shifts - could be solved some other way
 				 * - campbell */
-				hsv_to_rgb(dx + color_step, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx_next, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 				copy_v3_v3(col1[1], col1[0]);
 				copy_v3_v3(col1[2], col1[0]);
 				copy_v3_v3(col1[3], col1[0]);
@@ -2117,8 +2120,8 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 		}
 		
 		/* rect */
-		sx1 = rect->xmin +  dx               * BLI_rcti_size_x(rect);
-		sx2 = rect->xmin + (dx + color_step) * BLI_rcti_size_x(rect);
+		sx1 = rect->xmin + dx      * BLI_rcti_size_x(rect);
+		sx2 = rect->xmin + dx_next * BLI_rcti_size_x(rect);
 		sy = rect->ymin;
 		dy = (float)BLI_rcti_size_y(rect) / 3.0f;
 		
