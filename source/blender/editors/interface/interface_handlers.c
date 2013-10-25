@@ -3664,7 +3664,8 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, int my)
+static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, int my,
+                                  const bool snap)
 {
 	float dx, dy, rad, radsq, mrad, *fp;
 	int mdx, mdy;
@@ -3719,6 +3720,23 @@ static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, 
 		}
 	}
 	normalize_v3(fp);
+
+	if (snap) {
+		const int snap_steps = 4;  /* 45deg increments */
+		const float snap_steps_angle = M_PI / snap_steps;
+		float angle, angle_snap;
+		int i;
+
+		/* round each axis of 'fp' to the next increment
+		 * do this in "angle" space - this gives increments of same size */
+		for (i = 0; i < 3; i++) {
+			angle = asinf(fp[i]);
+			angle_snap = floorf(0.5f + (angle / snap_steps_angle)) * snap_steps_angle;
+			fp[i] = sinf(angle_snap);
+		}
+		normalize_v3(fp);
+		changed = !compare_v3v3(fp, data->origvec, FLT_EPSILON);
+	}
 
 	data->draglastx = mx;
 	data->draglasty = my;
@@ -3778,7 +3796,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if (ui_numedit_but_NORMAL(but, data, mx, my))
+			if (ui_numedit_but_NORMAL(but, data, mx, my, event->ctrl != 0))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -3787,7 +3805,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
 		if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_NORMAL(but, data, mx, my))
+				if (ui_numedit_but_NORMAL(but, data, mx, my, event->ctrl != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
