@@ -28,7 +28,7 @@ subject to the following restrictions:
 #include <float.h>
 
 /* SVN $Revision$ on $Date$ from http://bullet.googlecode.com*/
-#define BT_BULLET_VERSION 281
+#define BT_BULLET_VERSION 282
 
 inline int	btGetVersion()
 {
@@ -180,7 +180,7 @@ inline int	btGetVersion()
                 #include <emmintrin.h>
             #endif
         #endif //BT_USE_SSE
-    #elif defined( __armv7__ )
+    #elif defined( __ARM_NEON__ )
         #ifdef __clang__
             #define BT_USE_NEON 1
 			#define BT_USE_SIMD_VECTOR3
@@ -257,10 +257,12 @@ inline int	btGetVersion()
 
 ///The btScalar type abstracts floating point numbers, to easily switch between double and single floating point precision.
 #if defined(BT_USE_DOUBLE_PRECISION)
+
 typedef double btScalar;
 //this number could be bigger in double precision
 #define BT_LARGE_FLOAT 1e30
 #else
+
 typedef float btScalar;
 //keep BT_LARGE_FLOAT*BT_LARGE_FLOAT < FLT_MAX
 #define BT_LARGE_FLOAT 1e18f
@@ -284,6 +286,8 @@ static  int btInfinityMask = 0x7F800000;
 #define BT_INFINITY (*(float*)&btInfinityMask)
 #endif
 
+//use this, in case there are clashes (such as xnamath.h)
+#ifndef BT_NO_SIMD_OPERATOR_OVERLOADS
 inline __m128 operator + (const __m128 A, const __m128 B)
 {
     return _mm_add_ps(A, B);
@@ -298,6 +302,7 @@ inline __m128 operator * (const __m128 A, const __m128 B)
 {
     return _mm_mul_ps(A, B);
 }
+#endif //BT_NO_SIMD_OPERATOR_OVERLOADS
 
 #define btCastfTo128i(a) (_mm_castps_si128(a))
 #define btCastfTo128d(a) (_mm_castps_pd(a))
@@ -317,7 +322,24 @@ inline __m128 operator * (const __m128 A, const __m128 B)
 #define BT_INFINITY INFINITY
 #define BT_NAN NAN
 #endif//_WIN32
-#endif //BT_USE_SSE_IN_API
+#else
+
+#ifdef BT_USE_NEON
+	#include <arm_neon.h>
+
+	typedef float32x4_t btSimdFloat4;
+	#define BT_INFINITY INFINITY
+	#define BT_NAN NAN
+	#define btAssign128(r0,r1,r2,r3) (float32x4_t){r0,r1,r2,r3}
+#else//BT_USE_NEON
+
+	#ifndef BT_INFINITY
+	static  int btInfinityMask = 0x7F800000;
+	#define BT_INFINITY (*(float*)&btInfinityMask)
+	#endif
+#endif//BT_USE_NEON
+
+#endif //BT_USE_SSE
 
 #ifdef BT_USE_NEON
 #include <arm_neon.h>
@@ -409,15 +431,15 @@ SIMD_FORCE_INLINE btScalar btFmod(btScalar x,btScalar y) { return fmodf(x,y); }
 	
 #endif
 
-#define SIMD_2_PI         btScalar(6.283185307179586232)
-#define SIMD_PI           (SIMD_2_PI * btScalar(0.5))
-#define SIMD_HALF_PI      (SIMD_2_PI * btScalar(0.25))
+#define SIMD_PI           btScalar(3.1415926535897932384626433832795029)
+#define SIMD_2_PI         btScalar(2.0) * SIMD_PI
+#define SIMD_HALF_PI      (SIMD_PI * btScalar(0.5))
 #define SIMD_RADS_PER_DEG (SIMD_2_PI / btScalar(360.0))
 #define SIMD_DEGS_PER_RAD  (btScalar(360.0) / SIMD_2_PI)
 #define SIMDSQRT12 btScalar(0.7071067811865475244008443621048490)
 
 #define btRecipSqrt(x) ((btScalar)(btScalar(1.0)/btSqrt(btScalar(x))))		/* reciprocal square root */
-
+#define btRecip(x) (btScalar(1.0)/btScalar(x))
 
 #ifdef BT_USE_DOUBLE_PRECISION
 #define SIMD_EPSILON      DBL_EPSILON
@@ -608,6 +630,46 @@ SIMD_FORCE_INLINE double btUnswapEndianDouble(const unsigned char *src)
 	return d;
 }
 
+template<typename T>
+SIMD_FORCE_INLINE void btSetZero(T* a, int n)
+{
+  T* acurr = a;
+  size_t ncurr = n;
+  while (ncurr > 0) 
+  {
+    *(acurr++) = 0;
+    --ncurr;
+  }
+}
+
+
+SIMD_FORCE_INLINE btScalar btLargeDot(const btScalar *a, const btScalar *b, int n)
+{  
+  btScalar p0,q0,m0,p1,q1,m1,sum;
+  sum = 0;
+  n -= 2;
+  while (n >= 0) {
+    p0 = a[0]; q0 = b[0];
+    m0 = p0 * q0;
+    p1 = a[1]; q1 = b[1];
+    m1 = p1 * q1;
+    sum += m0;
+    sum += m1;
+    a += 2;
+    b += 2;
+    n -= 2;
+  }
+  n += 2;
+  while (n > 0) {
+    sum += (*a) * (*b);
+    a++;
+    b++;
+    n--;
+  }
+  return sum;
+}
+
+
 // returns normalized value in range [-SIMD_PI, SIMD_PI]
 SIMD_FORCE_INLINE btScalar btNormalizeAngle(btScalar angleInRadians) 
 {
@@ -625,6 +687,8 @@ SIMD_FORCE_INLINE btScalar btNormalizeAngle(btScalar angleInRadians)
 		return angleInRadians;
 	}
 }
+
+
 
 ///rudimentary class to provide type info
 struct btTypedObject

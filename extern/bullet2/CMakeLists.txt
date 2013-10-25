@@ -67,6 +67,8 @@ set(SRC
 	src/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
 	src/BulletCollision/CollisionDispatch/btUnionFind.cpp
 	src/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
+	src/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp
+	src/BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp
 	src/BulletCollision/CollisionShapes/btBoxShape.cpp
 	src/BulletCollision/CollisionShapes/btBox2dShape.cpp
 	src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
@@ -140,6 +142,7 @@ set(SRC
 	src/BulletDynamics/ConstraintSolver/btTypedConstraint.cpp
 	src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp
 	src/BulletDynamics/ConstraintSolver/btGearConstraint.cpp
+	src/BulletDynamics/ConstraintSolver/btFixedConstraint.cpp
 	src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp
 	src/BulletDynamics/Dynamics/btRigidBody.cpp
 	src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp
@@ -147,6 +150,15 @@ set(SRC
 	src/BulletDynamics/Vehicle/btRaycastVehicle.cpp
 	src/BulletDynamics/Vehicle/btWheelInfo.cpp
 	src/BulletDynamics/Character/btKinematicCharacterController.cpp
+	src/BulletDynamics/Featherstone/btMultiBody.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyConstraint.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyJointMotor.cpp
+	src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp
+	src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
+	src/BulletDynamics/MLCPSolvers/btMLCPSolver.cpp
 	
 	src/BulletSoftBody/btSoftBody.cpp
 	src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.cpp
@@ -204,6 +216,8 @@ set(SRC
 	src/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.h
 	src/BulletCollision/CollisionDispatch/btUnionFind.h
 	src/BulletCollision/CollisionDispatch/SphereTriangleDetector.h
+	src/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.h
+	src/BulletCollision/CollisionDispatch/btHashedSimplePairCache.h
 	src/BulletCollision/CollisionShapes/btBoxShape.h
 	src/BulletCollision/CollisionShapes/btBox2dShape.h
 	src/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h
@@ -308,6 +322,7 @@ set(SRC
 	src/BulletDynamics/ConstraintSolver/btTypedConstraint.h
 	src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h
 	src/BulletDynamics/ConstraintSolver/btGearConstraint.h
+	src/BulletDynamics/ConstraintSolver/btFixedConstraint.h
 	src/BulletDynamics/Dynamics/btActionInterface.h
 	src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h
 	src/BulletDynamics/Dynamics/btDynamicsWorld.h
@@ -318,6 +333,22 @@ set(SRC
 	src/BulletDynamics/Vehicle/btWheelInfo.h
 	src/BulletDynamics/Character/btCharacterControllerInterface.h
 	src/BulletDynamics/Character/btKinematicCharacterController.h
+	src/BulletDynamics/Featherstone/btMultiBody.h
+	src/BulletDynamics/Featherstone/btMultiBodyConstraint.h
+	src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h
+	src/BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h
+	src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h
+	src/BulletDynamics/Featherstone/btMultiBodyJointMotor.h
+	src/BulletDynamics/Featherstone/btMultiBodyLink.h
+	src/BulletDynamics/Featherstone/btMultiBodyLinkCollider.h
+	src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.h
+	src/BulletDynamics/Featherstone/btMultiBodySolverConstraint.h
+	src/BulletDynamics/MLCPSolvers/btDantzigLCP.h
+	src/BulletDynamics/MLCPSolvers/btDantzigSolver.h
+	src/BulletDynamics/MLCPSolvers/btMLCPSolver.h
+	src/BulletDynamics/MLCPSolvers/btMLCPSolverInterface.h
+	src/BulletDynamics/MLCPSolvers/btPATHSolver.h
+	src/BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h
 	
 	src/BulletSoftBody/btSoftBody.h
 	src/BulletSoftBody/btSoftBodyInternals.h
@@ -359,6 +390,7 @@ set(SRC
 	src/LinearMath/btTransformUtil.h
 	src/LinearMath/btVector3.h
 	src/LinearMath/btPolarDecomposition.h
+	src/LinearMath/btMatrixX.h
 	
 	
 	src/btBulletCollisionCommon.h

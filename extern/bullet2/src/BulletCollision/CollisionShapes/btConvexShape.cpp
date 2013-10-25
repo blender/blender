@@ -21,6 +21,7 @@ subject to the following restrictions:
 #include "btTriangleShape.h"
 #include "btSphereShape.h"
 #include "btCylinderShape.h"
+#include "btConeShape.h"
 #include "btCapsuleShape.h"
 #include "btConvexHullShape.h"
 #include "btConvexPointCloudShape.h"
@@ -335,6 +336,11 @@ btScalar btConvexShape::getMarginNonVirtual () const
 	{
 		btCylinderShape* cylShape = (btCylinderShape*)this;
 		return cylShape->getMarginNV();
+	}
+	case CONE_SHAPE_PROXYTYPE:
+	{
+		btConeShape* conShape = (btConeShape*)this;
+		return conShape->getMarginNV();
 	}
 	case CAPSULE_SHAPE_PROXYTYPE:
 	{

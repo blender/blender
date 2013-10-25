@@ -53,19 +53,24 @@ subject to the following restrictions:
 #define btvxyzMaskf btvFFF0fMask
 #define btvAbsfMask btCastiTo128f(btvAbsMask)
 
+//there is an issue with XCode 3.2 (LCx errors)
+#define btvMzeroMask (_mm_set_ps(-0.0f, -0.0f, -0.0f, -0.0f))
+#define v1110		 (_mm_set_ps(0.0f, 1.0f, 1.0f, 1.0f))
+#define vHalf		 (_mm_set_ps(0.5f, 0.5f, 0.5f, 0.5f))
+#define v1_5		 (_mm_set_ps(1.5f, 1.5f, 1.5f, 1.5f))
 
-
-const __m128 ATTRIBUTE_ALIGNED16(btvMzeroMask) = {-0.0f, -0.0f, -0.0f, -0.0f};
-const __m128 ATTRIBUTE_ALIGNED16(v1110) = {1.0f, 1.0f, 1.0f, 0.0f};
-const __m128 ATTRIBUTE_ALIGNED16(vHalf) = {0.5f, 0.5f, 0.5f, 0.5f};
-const __m128 ATTRIBUTE_ALIGNED16(v1_5)  = {1.5f, 1.5f, 1.5f, 1.5f};
+//const __m128 ATTRIBUTE_ALIGNED16(btvMzeroMask) = {-0.0f, -0.0f, -0.0f, -0.0f};
+//const __m128 ATTRIBUTE_ALIGNED16(v1110) = {1.0f, 1.0f, 1.0f, 0.0f};
+//const __m128 ATTRIBUTE_ALIGNED16(vHalf) = {0.5f, 0.5f, 0.5f, 0.5f};
+//const __m128 ATTRIBUTE_ALIGNED16(v1_5)  = {1.5f, 1.5f, 1.5f, 1.5f};
 
 #endif
 
 #ifdef BT_USE_NEON
 
 const float32x4_t ATTRIBUTE_ALIGNED16(btvMzeroMask) = (float32x4_t){-0.0f, -0.0f, -0.0f, -0.0f};
-const int32x4_t ATTRIBUTE_ALIGNED16(btvFFF0Mask) = (int32x4_t){0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x0};
+const int32x4_t ATTRIBUTE_ALIGNED16(btvFFF0Mask) = (int32x4_t){static_cast<int32_t>(0xFFFFFFFF),
+	static_cast<int32_t>(0xFFFFFFFF), static_cast<int32_t>(0xFFFFFFFF), 0x0};
 const int32x4_t ATTRIBUTE_ALIGNED16(btvAbsMask) = (int32x4_t){0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
 const int32x4_t ATTRIBUTE_ALIGNED16(btv3AbsMask) = (int32x4_t){0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x0};
 
@@ -260,6 +265,12 @@ public:
 		return btSqrt(length2());
 	}
 
+	/**@brief Return the norm (length) of the vector */
+	SIMD_FORCE_INLINE btScalar norm() const
+	{
+		return length();
+	}
+
   /**@brief Return the distance squared between the ends of this and another vector
    * This is symantically treating the vector like a point */
 	SIMD_FORCE_INLINE btScalar distance2(const btVector3& v) const;
@@ -285,6 +296,9 @@ public:
    * x^2 + y^2 + z^2 = 1 */
 	SIMD_FORCE_INLINE btVector3& normalize() 
 	{
+		
+		btAssert(length() != btScalar(0));
+
 #if defined(BT_USE_SSE_IN_API) && defined (BT_USE_SSE)		
         // dot product first
 		__m128 vd = _mm_mul_ps(mVec128, mVec128);
@@ -718,7 +732,7 @@ public:
         return btVector3(r);
         
 #elif defined(BT_USE_NEON)
-        static const uint32x4_t xyzMask = (const uint32x4_t){ -1, -1, -1, 0 };
+        static const uint32x4_t xyzMask = (const uint32x4_t){ static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), 0 };
         float32x4_t a0 = vmulq_f32( v0.mVec128, this->mVec128);
         float32x4_t a1 = vmulq_f32( v1.mVec128, this->mVec128);
         float32x4_t a2 = vmulq_f32( v2.mVec128, this->mVec128);
@@ -936,13 +950,9 @@ SIMD_FORCE_INLINE btScalar btVector3::distance(const btVector3& v) const
 
 SIMD_FORCE_INLINE btVector3 btVector3::normalized() const
 {
-#if defined(BT_USE_SSE_IN_API) && defined (BT_USE_SSE)
 	btVector3 norm = *this;
 
 	return norm.normalize();
-#else
-	return *this / length();
-#endif
 } 
 
 SIMD_FORCE_INLINE btVector3 btVector3::rotate( const btVector3& wAxis, const btScalar _angle ) const

@@ -76,20 +76,26 @@ void	btConvexTriangleCallback::clearCache()
 }
 
 
-
-void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, int triangleIndex)
+void btConvexTriangleCallback::processTriangle(btVector3* triangle,int
+partId, int triangleIndex)
 {
- 
-	//just for debugging purposes
-	//printf("triangle %d",m_triangleCount++);
 
+	if (!TestTriangleAgainstAabb2(triangle, m_aabbMin, m_aabbMax))
+	{
+		return;
+	}
 
-	//aabb filter is already applied!	
+        //just for debugging purposes
+        //printf("triangle %d",m_triangleCount++);
+
+        const btCollisionObject* ob = const_cast<btCollisionObject*>(m_triBodyWrap->getCollisionObject());
 
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher1 = m_dispatcher;
 
 	//const btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBodyWrap->getCollisionObject());
+
+	
 
 
 #if 0	

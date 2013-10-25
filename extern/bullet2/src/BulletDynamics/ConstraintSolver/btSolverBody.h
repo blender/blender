@@ -118,6 +118,8 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 	btVector3		m_turnVelocity;
 	btVector3		m_linearVelocity;
 	btVector3		m_angularVelocity;
+	btVector3		m_externalForceImpulse;
+	btVector3		m_externalTorqueImpulse;
 
 	btRigidBody*	m_originalBody;
 	void	setWorldTransform(const btTransform& worldTransform)
@@ -130,6 +132,17 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 		return m_worldTransform;
 	}
 	
+	
+
+	SIMD_FORCE_INLINE void	getVelocityInLocalPointNoDelta(const btVector3& rel_pos, btVector3& velocity ) const
+	{
+		if (m_originalBody)
+			velocity = m_linearVelocity + m_externalForceImpulse + (m_angularVelocity+m_externalTorqueImpulse).cross(rel_pos);
+		else
+			velocity.setValue(0,0,0);
+	}
+
+
 	SIMD_FORCE_INLINE void	getVelocityInLocalPointObsolete(const btVector3& rel_pos, btVector3& velocity ) const
 	{
 		if (m_originalBody)

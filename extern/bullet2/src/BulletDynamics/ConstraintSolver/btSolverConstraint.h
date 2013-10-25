@@ -55,6 +55,7 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverConstraint
 	{
 		void*		m_originalContactPoint;
 		btScalar	m_unusedPadding4;
+		int			m_numRowsForNonContactConstraint;
 	};
 
 	int	m_overrideNumSolverIterations;
