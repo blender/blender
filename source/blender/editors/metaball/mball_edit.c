@@ -178,6 +178,192 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+
+/* -------------------------------------------------------------------- */
+/* Select Similar */
+
+enum {
+	SIMMBALL_TYPE = 1,
+	SIMMBALL_RADIUS,
+	SIMMBALL_STIFFNESS,
+	SIMMBALL_ROTATION
+};
+
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMMBALL_TYPE, "TYPE", 0, "Type", ""},
+	{SIMMBALL_RADIUS, "RADIUS", 0, "Radius", ""},
+    {SIMMBALL_STIFFNESS, "STIFFNESS", 0, "Stiffness", ""},
+	{SIMMBALL_ROTATION, "ROTATION", 0, "Rotation", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static bool mball_select_similar_type(MetaBall *mb)
+{
+	MetaElem *ml;
+	bool change = false;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & SELECT) {
+			MetaElem *ml_iter;
+
+			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
+				if ((ml_iter->flag & SELECT) == 0) {
+					if (ml->type == ml_iter->type) {
+						ml_iter->flag |=SELECT;
+						change = true;
+					}
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static bool mball_select_similar_radius(MetaBall *mb, const float thresh)
+{
+	MetaElem *ml;
+	bool change = false;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & SELECT) {
+			MetaElem *ml_iter;
+
+			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
+				if ((ml_iter->flag & SELECT) == 0) {
+					if (fabsf(ml_iter->rad - ml->rad) <= (thresh * ml->rad)) {
+						ml_iter->flag |= SELECT;
+						change = true;
+					}
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static bool mball_select_similar_stiffness(MetaBall *mb, const float thresh)
+{
+	MetaElem *ml;
+	bool change = false;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & SELECT) {
+			MetaElem *ml_iter;
+
+			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
+				if ((ml_iter->flag & SELECT) == 0) {
+					if (fabsf(ml_iter->s - ml->s) <= thresh) {
+						ml_iter->flag |= SELECT;
+						change = true;
+					}
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static bool mball_select_similar_rotation(MetaBall *mb, const float thresh)
+{
+	const float thresh_rad = thresh * (float)M_PI_2;
+	MetaElem *ml;
+	bool change = false;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & SELECT) {
+			MetaElem *ml_iter;
+
+			float ml_mat[3][3];
+
+			unit_m3(ml_mat);
+			mul_qt_v3(ml->quat, ml_mat[0]);
+			mul_qt_v3(ml->quat, ml_mat[1]);
+			mul_qt_v3(ml->quat, ml_mat[2]);
+			normalize_m3(ml_mat);
+
+			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
+				if ((ml_iter->flag & SELECT) == 0) {
+					float ml_iter_mat[3][3];
+
+					unit_m3(ml_iter_mat);
+					mul_qt_v3(ml_iter->quat, ml_iter_mat[0]);
+					mul_qt_v3(ml_iter->quat, ml_iter_mat[1]);
+					mul_qt_v3(ml_iter->quat, ml_iter_mat[2]);
+					normalize_m3(ml_iter_mat);
+
+					if ((angle_normalized_v3v3(ml_mat[0], ml_iter_mat[0]) +
+					     angle_normalized_v3v3(ml_mat[1], ml_iter_mat[1]) +
+					     angle_normalized_v3v3(ml_mat[2], ml_iter_mat[2])) < thresh_rad)
+					{
+						ml_iter->flag |= SELECT;
+						change = true;
+					}
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static int mball_select_similar_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall*)obedit->data;
+
+	int type = RNA_enum_get(op->ptr, "type");
+	float thresh = RNA_float_get(op->ptr, "threshold");
+	bool change = false;
+
+	switch (type) {
+		case SIMMBALL_TYPE:
+			change = mball_select_similar_type(mb);
+			break;
+		case SIMMBALL_RADIUS:
+			change = mball_select_similar_radius(mb, thresh);
+			break;
+		case SIMMBALL_STIFFNESS:
+			change = mball_select_similar_stiffness(mb, thresh);
+			break;
+		case SIMMBALL_ROTATION:
+			change = mball_select_similar_rotation(mb, thresh);
+			break;
+		default:
+			BLI_assert(0);
+	}
+
+	if (change) {
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MBALL_OT_select_similar(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Similar";
+	ot->idname = "MBALL_OT_select_similar";
+
+	/* callback functions */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = mball_select_similar_exec;
+	ot->poll = ED_operator_editmball;
+	ot->description = "Select similar metaballs by property types";
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, 0, "Type", "");
+
+	RNA_def_float(ot->srna, "threshold", 0.1, 0.0, 1.0, "Threshold", "", 0.01, 1.0);
+}
+
+
 /***************************** Select random operator *****************************/
 
 /* Random metaball selection */

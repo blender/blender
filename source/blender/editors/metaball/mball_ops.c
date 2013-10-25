@@ -52,6 +52,7 @@ void ED_operatortypes_metaball(void)
 	WM_operatortype_append(MBALL_OT_reveal_metaelems);
 	
 	WM_operatortype_append(MBALL_OT_select_all);
+	WM_operatortype_append(MBALL_OT_select_similar);
 	WM_operatortype_append(MBALL_OT_select_random_metaelems);
 }
 
@@ -79,6 +80,8 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	WM_keymap_add_item(keymap, "MBALL_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_editmode(keyconf, keymap, TRUE);
