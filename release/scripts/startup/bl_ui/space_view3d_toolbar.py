@@ -135,6 +135,7 @@ class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
         col.operator("rigidbody.shape_change", text="Change Shape")
         col.operator("rigidbody.mass_calculate", text="Calculate Mass")
         col.operator("rigidbody.object_settings_copy", text="Copy from Active")
+        col.operator("object.visual_transform_apply", text="Apply Transformation")
         col.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
         col.label(text="Constraints:")
         col.operator("rigidbody.connect", text="Connect")
