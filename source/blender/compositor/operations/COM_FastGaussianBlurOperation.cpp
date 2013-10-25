@@ -294,13 +294,13 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 		int offset;
 		for (y = 0; y < src_height; ++y) {
 			const int yx = y * src_width;
-			offset = yx*COM_NUMBER_OF_CHANNELS + chan;
+			offset = yx * COM_NUMBER_OF_CHANNELS + chan;
 			for (x = 0; x < src_width; ++x) {
 				X[x] = buffer[offset];
 				offset += COM_NUMBER_OF_CHANNELS;
 			}
 			YVV(src_width);
-			offset = yx*COM_NUMBER_OF_CHANNELS + chan;
+			offset = yx * COM_NUMBER_OF_CHANNELS + chan;
 			for (x = 0; x < src_width; ++x) {
 				buffer[offset] = Y[x];
 				offset += COM_NUMBER_OF_CHANNELS;

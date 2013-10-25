@@ -716,6 +716,10 @@ class VIEW3D_MT_select_edit_metaball(Menu):
 
         layout.operator("mball.select_random_metaelems")
 
+        layout.separator()
+
+        layout.operator_menu_enum("mball.select_similar", "type", text="Similar")
+
 
 class VIEW3D_MT_select_edit_lattice(Menu):
     bl_label = "Select"
