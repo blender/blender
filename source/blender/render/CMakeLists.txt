@@ -98,7 +98,6 @@ set(SRC
 	intern/include/raycounter.h
 	intern/include/rayobject.h
 	intern/include/rayintersection.h
-	intern/include/raycounter.h
 	intern/include/render_types.h
 	intern/include/render_result.h
 	intern/include/rendercore.h

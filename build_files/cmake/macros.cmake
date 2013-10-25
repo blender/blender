@@ -48,6 +48,24 @@ macro(list_insert_before
 	unset(_index)
 endmacro()
 
+function (list_assert_duplicates
+	list_id
+	)
+	
+	# message(STATUS "list data: ${list_id}")
+
+	list(LENGTH list_id _len_before)
+	list(REMOVE_DUPLICATES list_id)
+	list(LENGTH list_id _len_after)
+	# message(STATUS "list size ${_len_before} -> ${_len_after}")
+	if(NOT _len_before EQUAL _len_after)
+		message(FATAL_ERROR "duplicate found in list which should not contain duplicates: ${list_id}")
+	endif()
+	unset(_len_before)
+	unset(_len_after)
+endfunction()
+
+
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix
 	file_name_new file_name file_suffix
@@ -176,6 +194,11 @@ macro(blender_add_lib_nolist
 	# works fine without having the includes
 	# listed is helpful for IDE's (QtCreator/MSVC)
 	blender_source_group("${sources}")
+
+	list_assert_duplicates("${sources}")
+	list_assert_duplicates("${includes}")
+	# Not for system includes because they can resolve to the same path
+	# list_assert_duplicates("${includes_sys}")
 
 endmacro()
 
