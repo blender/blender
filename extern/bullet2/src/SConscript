@@ -31,6 +31,8 @@ bullet2_src += env.Glob("BulletDynamics/Vehicle/*.cpp")
 bullet2_src += env.Glob("BulletDynamics/ConstraintSolver/*.cpp")
 bullet2_src += env.Glob("BulletDynamics/Dynamics/*.cpp")
 bullet2_src += env.Glob("BulletDynamics/Character/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/Featherstone/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/MLCPSolvers/*.cpp")
 bullet2_src += env.Glob("BulletSoftBody/*.cpp")
 
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
