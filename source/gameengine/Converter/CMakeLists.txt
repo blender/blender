@@ -37,7 +37,6 @@ set(INC
 	../Physics/common
 	../Rasterizer
 	../Rasterizer/RAS_OpenGLRasterizer
-	../Rasterizer/RAS_OpenGLRasterizer
 	../SceneGraph
 	../../blender
 	../../blender/blenkernel

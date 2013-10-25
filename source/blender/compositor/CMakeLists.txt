@@ -30,7 +30,6 @@ set(INC
 	operations
 	../blenkernel
 	../blenlib
-	../blenlib
 	../imbuf
 	../makesdna
 	../makesrna
@@ -230,8 +229,6 @@ set(SRC
 	nodes/COM_SetAlphaNode.h
 	nodes/COM_ConvertAlphaNode.cpp
 	nodes/COM_ConvertAlphaNode.h
-	nodes/COM_AlphaOverNode.cpp
-	nodes/COM_AlphaOverNode.h
 	nodes/COM_HueSaturationValueNode.cpp
 	nodes/COM_HueSaturationValueNode.h
 	nodes/COM_HueSaturationValueCorrectNode.cpp
