@@ -259,6 +259,13 @@ static enum eSnapType ui_event_to_snap(const wmEvent *event)
 	return (event->ctrl) ? (event->shift) ? SNAP_ON_SMALL : SNAP_ON : SNAP_OFF;
 }
 
+static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
+{
+	const float snap_increment = (snap == SNAP_ON_SMALL) ? 24 : 12;
+	BLI_assert(snap != SNAP_OFF);
+	*r_hue = floorf(0.5f + ((*r_hue) * snap_increment)) / snap_increment;
+}
+
 /* assumes event type is MOUSEPAN */
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
@@ -3853,7 +3860,7 @@ static void clamp_axis_max_v3(float v[3], const float max)
 
 static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                    int mx, int my,
-                                   const bool shift)
+                                   const enum eSnapType snap, const bool shift)
 {
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
@@ -3947,6 +3954,12 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 			break;
 	}
 
+	if (snap != SNAP_OFF) {
+		if (ELEM3((int)but->a1, UI_GRAD_HV, UI_GRAD_HS, UI_GRAD_H)) {
+			ui_color_snap_hue(snap, &hsv[0]);
+		}
+	}
+
 	hsv_to_rgb_v(hsv, rgb);
 
 	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
@@ -3967,7 +3980,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 
 static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                     wmNDOFMotionData *ndof,
-                                    const bool shift)
+                                    const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -4022,6 +4035,12 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 			break;
 	}
 
+	if (snap != SNAP_OFF) {
+		if (ELEM3((int)but->a1, UI_GRAD_HV, UI_GRAD_HS, UI_GRAD_H)) {
+			ui_color_snap_hue(snap, &hsv[0]);
+		}
+	}
+
 	hsv_to_rgb_v(hsv, rgb);
 
 	if (color_profile && (int)but->a1 != UI_GRAD_SV)
@@ -4041,6 +4060,8 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+			const enum eSnapType snap = ui_event_to_snap(event);
+
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4048,15 +4069,16 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift != 0))
+			if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (event->type == NDOF_MOTION) {
 			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+			const enum eSnapType snap = ui_event_to_snap(event);
 			
-			ui_ndofedit_but_HSVCUBE(but, data, ndof, event->shift != 0);
+			ui_ndofedit_but_HSVCUBE(but, data, ndof, snap, event->shift != 0);
 			
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			ui_apply_button(C, but->block, but, data, true);
@@ -4107,7 +4129,9 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift != 0))
+				const enum eSnapType snap = ui_event_to_snap(event);
+
+				if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->shift != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -4123,7 +4147,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
                                      float mx, float my,
-                                     const bool shift)
+                                     const enum eSnapType snap, const bool shift)
 {
 	rcti rect;
 	bool changed = true;
@@ -4181,6 +4205,10 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	if (but->flag & UI_BUT_COLOR_CUBIC)
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
 
+	if (snap != SNAP_OFF) {
+		ui_color_snap_hue(snap, &hsv[0]);
+	}
+
 	hsv_to_rgb_v(hsv, rgb);
 
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
@@ -4198,7 +4226,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 
 static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
                                       wmNDOFMotionData *ndof,
-                                      const bool shift)
+                                      const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -4239,7 +4267,11 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
 		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
 	}
-	
+
+	if (snap != SNAP_OFF) {
+		ui_color_snap_hue(snap, &hsv[0]);
+	}
+
 	hsv_to_rgb_v(hsv, data->vec);
 	
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
@@ -4260,6 +4292,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+			const enum eSnapType snap = ui_event_to_snap(event);
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4267,15 +4300,16 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			
 			/* also do drag the first time */
-			if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift != 0))
+			if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (event->type == NDOF_MOTION) {
+			const enum eSnapType snap = ui_event_to_snap(event);
 			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 			
-			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, event->shift != 0);
+			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->shift != 0);
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			ui_apply_button(C, but->block, but, data, true);
@@ -4337,8 +4371,11 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift != 0))
+				const enum eSnapType snap = ui_event_to_snap(event);
+
+				if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->shift != 0)) {
 					ui_numedit_apply(C, block, but, data);
+				}
 			}
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
