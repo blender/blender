@@ -44,7 +44,6 @@ set(SRC
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
 	intern/GHOST_Path-api.cpp
-	intern/GHOST_Path-api.cpp
 	intern/GHOST_Rect.cpp
 	intern/GHOST_System.cpp
 	intern/GHOST_TimerManager.cpp

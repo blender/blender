@@ -209,7 +209,7 @@ static bool mball_select_similar_type(MetaBall *mb)
 			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
 				if ((ml_iter->flag & SELECT) == 0) {
 					if (ml->type == ml_iter->type) {
-						ml_iter->flag |=SELECT;
+						ml_iter->flag |= SELECT;
 						change = true;
 					}
 				}
@@ -311,8 +311,8 @@ static bool mball_select_similar_rotation(MetaBall *mb, const float thresh)
 
 static int mball_select_similar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 
 	int type = RNA_enum_get(op->ptr, "type");
 	float thresh = RNA_float_get(op->ptr, "threshold");
@@ -355,7 +355,7 @@ void MBALL_OT_select_similar(wmOperatorType *ot)
 	ot->description = "Select similar metaballs by property types";
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, 0, "Type", "");
