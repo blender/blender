@@ -826,11 +826,7 @@ rbConstraint *RB_constraint_new_fixed(float pivot[3], float orn[4], rbRigidBody 
 	
 	make_constraint_transforms(transform1, transform2, body1, body2, pivot, orn);
 	
-	btGeneric6DofConstraint *con = new btGeneric6DofConstraint(*body1, *body2, transform1, transform2, true);
-	
-	/* lock all axes */
-	for (int i = 0; i < 6; i++)
-		con->setLimit(i, 0, 0);
+	btFixedConstraint *con = new btFixedConstraint(*body1, *body2, transform1, transform2);
 	
 	return (rbConstraint *)con;
 }
