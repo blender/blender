@@ -112,7 +112,7 @@ void copy_m4_m3(float m1[4][4], float m2[3][3]) /* no clear */
 
 }
 
-void copt_m3_m3d(float R[3][3], double A[3][3])
+void copy_m3_m3d(float R[3][3], double A[3][3])
 {
 	/* Keep it stupid simple for better data flow in CPU. */
 	R[0][0] = A[0][0];

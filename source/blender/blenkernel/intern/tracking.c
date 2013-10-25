@@ -3324,7 +3324,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
 		libmv_homography2DFromCorrespondencesEuc(x1, x2, num_correspondences, H_double);
 
-		copt_m3_m3d(H, H_double);
+		copy_m3_m3d(H, H_double);
 
 		for (i = 0; i < 4; i++) {
 			float vec[3] = {0.0f, 0.0f, 1.0f}, vec2[3];
@@ -3428,7 +3428,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 
 	libmv_homography2DFromCorrespondencesEuc(x1, x2, 4, H_double);
 
-	copt_m3_m3d(H, H_double);
+	copy_m3_m3d(H, H_double);
 }
 
 /*********************** Camera solving *************************/
