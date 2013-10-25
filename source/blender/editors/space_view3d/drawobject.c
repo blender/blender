@@ -6216,8 +6216,9 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 	
 	glPushMatrix();
 	if (type == OB_BOUND_SPHERE) {
+		float scale = MAX3(size[0], size[1], size[2]);
 		glTranslatef(cent[0], cent[1], cent[2]);
-		glScalef(size[0], size[1], size[2]);
+		glScalef(scale, scale, scale);
 		gluSphere(qobj, 1.0, 8, 5);
 	}
 	else if (type == OB_BOUND_CYLINDER) {
