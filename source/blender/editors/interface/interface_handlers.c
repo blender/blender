@@ -350,7 +350,7 @@ static bool ui_is_a_warp_but(uiBut *but)
 	return false;
 }
 
-static float ui_mouse_scale_warp_factor(const short shift)
+static float ui_mouse_scale_warp_factor(const bool shift)
 {
 	return shift ? 0.05f : 1.0f;
 }
@@ -358,7 +358,7 @@ static float ui_mouse_scale_warp_factor(const short shift)
 static void ui_mouse_scale_warp(uiHandleButtonData *data,
                                 const float mx, const float my,
                                 float *r_mx, float *r_my,
-                                const short shift)
+                                const bool shift)
 {
 	const float fac = ui_mouse_scale_warp_factor(shift);
 	
@@ -1778,7 +1778,7 @@ static bool ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char as
 }
 
 static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction,
-                             int select, strCursorJumpType jump)
+                             const bool select, strCursorJumpType jump)
 {
 	const char *str = data->str;
 	const int len = strlen(str);
@@ -2199,7 +2199,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			
 			/* only select a word in button if there was no selection before */
 			if (event->val == KM_DBL_CLICK && had_selection == false) {
-				ui_textedit_move(but, data, STRCUR_DIR_PREV, 0, STRCUR_JUMP_DELIM);
+				ui_textedit_move(but, data, STRCUR_DIR_PREV, false, STRCUR_JUMP_DELIM);
 				ui_textedit_move(but, data, STRCUR_DIR_NEXT, true, STRCUR_JUMP_DELIM);
 				retval = WM_UI_HANDLER_BREAK;
 				changed = true;
@@ -2233,12 +2233,12 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 			case RIGHTARROWKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
-				                 event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				                 event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_PREV,
-				                 event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				                 event->shift != 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case WHEELDOWNMOUSE:
@@ -2253,7 +2253,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				/* fall-through */
 			case ENDKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
-				                 event->shift, STRCUR_JUMP_ALL);
+				                 event->shift != 0, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case WHEELUPMOUSE:
@@ -2268,7 +2268,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				/* fall-through */
 			case HOMEKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_PREV,
-				                 event->shift, STRCUR_JUMP_ALL);
+				                 event->shift != 0, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
@@ -2897,8 +2897,9 @@ static float ui_numedit_apply_snap(int temp, float softmin, float softmax,
 	return temp;
 }
 
-static bool ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac,
-                               const enum eSnapType snap, int mx)
+static bool ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data,
+                               int mx,
+                               const enum eSnapType snap, float fac)
 {
 	float deler, tempf, softmin, softmax, softrange;
 	int lvalue, temp;
@@ -3114,7 +3115,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			if (event->shift) fac /= 10.0f;
 			if (event->alt)   fac /= 20.0f;
 
-			if (ui_numedit_but_NUM(but, data, fac, snap, (ui_is_a_warp_but(but) ? screen_mx : mx)))
+			if (ui_numedit_but_NUM(but, data, (ui_is_a_warp_but(but) ? screen_mx : mx), snap, fac))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval = WM_UI_HANDLER_BREAK;
@@ -3195,7 +3196,8 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 }
 
 static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
-                               const bool is_horizontal, const bool shift, const bool ctrl, int mx)
+                               int mx, const bool is_horizontal,
+                               const bool snap, const bool shift)
 {
 	float deler, f, tempf, softmin, softmax, softrange;
 	int temp, lvalue;
@@ -3250,7 +3252,7 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 	tempf = softmin + f * softrange;
 	temp = floorf(tempf + 0.5f);
 
-	if (ctrl) {
+	if (snap) {
 		if (tempf == softmin || tempf == softmax) {
 			/* pass */
 		}
@@ -3371,7 +3373,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				click = 1;
 		}
 		else if (event->type == MOUSEMOVE) {
-			if (ui_numedit_but_SLI(but, data, true, event->shift, event->ctrl, mx))
+			if (ui_numedit_but_SLI(but, data, mx, true, event->ctrl != 0, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval = WM_UI_HANDLER_BREAK;
@@ -3487,7 +3489,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		else if (event->type == MOUSEMOVE) {
-			if (ui_numedit_but_SLI(but, data, horizontal, false, false, (horizontal) ? mx : my))
+			if (ui_numedit_but_SLI(but, data, (horizontal) ? mx : my, horizontal, false, false))
 				ui_numedit_apply(C, block, but, data);
 		}
 
@@ -3678,7 +3680,8 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, int my,
+static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data,
+                                  int mx, int my,
                                   const enum eSnapType snap)
 {
 	float dx, dy, rad, radsq, mrad, *fp;
@@ -3848,7 +3851,9 @@ static void clamp_axis_max_v3(float v[3], const float max)
 	}
 }
 
-static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my, const short shift)
+static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
+                                   int mx, int my,
+                                   const bool shift)
 {
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
@@ -3960,7 +3965,9 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx,
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, const short shift)
+static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
+                                    wmNDOFMotionData *ndof,
+                                    const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -4041,7 +4048,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift))
+			if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -4049,7 +4056,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		else if (event->type == NDOF_MOTION) {
 			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 			
-			ui_ndofedit_but_HSVCUBE(but, data, ndof, event->shift);
+			ui_ndofedit_but_HSVCUBE(but, data, ndof, event->shift != 0);
 			
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			ui_apply_button(C, but->block, but, data, true);
@@ -4100,7 +4107,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift))
+				if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -4114,7 +4121,9 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float mx, float my, int shift)
+static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
+                                     float mx, float my,
+                                     const bool shift)
 {
 	rcti rect;
 	bool changed = true;
@@ -4187,7 +4196,9 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, const short shift)
+static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
+                                      wmNDOFMotionData *ndof,
+                                      const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -4256,7 +4267,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			
 			/* also do drag the first time */
-			if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
+			if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -4264,7 +4275,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		else if (event->type == NDOF_MOTION) {
 			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 			
-			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, event->shift);
+			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, event->shift != 0);
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			ui_apply_button(C, but->block, but, data, true);
@@ -4326,7 +4337,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
+				if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -4422,8 +4433,9 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData *data, bool snap,
-                                int evtx, int evty, const short shift)
+static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData *data,
+                                 int evtx, int evty,
+                                 bool snap, const bool shift)
 {
 	CurveMapping *cumap = (CurveMapping *)but->poin;
 	CurveMap *cuma = cumap->cm + cumap->cur;
@@ -4646,7 +4658,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 		if (event->type == MOUSEMOVE) {
 			if (event->x != data->draglastx || event->y != data->draglasty) {
 				
-				if (ui_numedit_but_CURVE(block, but, data, event->ctrl != 0, event->x, event->y, event->shift))
+				if (ui_numedit_but_CURVE(block, but, data, event->x, event->y, event->ctrl != 0, event->shift != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -4955,7 +4967,8 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, con
 }
 
 static bool ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data,
-                                        int mx, int my, const short shift)
+                                        int mx, int my,
+                                        const bool shift)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 	bool changed = true;
@@ -5011,7 +5024,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+			if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
 
 			return WM_UI_HANDLER_BREAK;
@@ -5027,7 +5040,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+				if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift != 0))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
