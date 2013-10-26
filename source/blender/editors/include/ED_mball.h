@@ -37,6 +37,7 @@ struct Object;
 struct wmKeyConfig;
 
 void ED_operatortypes_metaball(void);
+void ED_operatormacros_metaball(void);
 void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
 struct MetaElem *add_metaball_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], float dia, int type);

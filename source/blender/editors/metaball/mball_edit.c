@@ -441,19 +441,6 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	int retv = duplicate_metaelems_exec(C, op);
-	
-	if (retv == OPERATOR_FINISHED) {
-		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	}
-	
-	return retv;
-}
-
-
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -463,14 +450,10 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 
 	/* callback functions */
 	ot->exec = duplicate_metaelems_exec;
-	ot->invoke = duplicate_metaelems_invoke;
 	ot->poll = ED_operator_editmball;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /***************************** Delete operator *****************************/
