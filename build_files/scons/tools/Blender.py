@@ -675,6 +675,15 @@ def AppIt(target=None, source=None, env=None):
         cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
+    if env['XCODE_CUR_VER'] >= 5:
+        # For OSX 10.9/Xcode5 subcomponents also must be codesigned. To make this work we need a plist in the versioned libdir
+        # We copy for now the plist from main bundle, note: Blender must be run once before codesigning to have the py caches generated and taken into account
+		# After this we can run: codesign -s IDENTITY blender.app --deep
+        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/Resources/'%(installdir,binary, VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp %s/%s.app/Contents/Info.plist %s/%s.app/Contents/MacOS/%s/Resources'%(installdir,binary,installdir,binary, VERSION)
+        commands.getoutput(cmd)
+
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(installdir, binary)

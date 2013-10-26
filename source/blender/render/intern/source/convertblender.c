@@ -1836,9 +1836,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if (strandbuf) {
 				int orignum = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, cpa->num) : cpa->num;
 
-				if (orignum > sbound - strandbuf->bound) {
-					sbound= strandbuf->bound + orignum;
-					sbound->start= sbound->end= obr->totstrand;
+				if ((orignum > sbound - strandbuf->bound) &&
+				    (orignum < strandbuf->totbound))
+				{
+					sbound = &strandbuf->bound[orignum];
+					sbound->start = sbound->end = obr->totstrand;
 				}
 			}
 		}
