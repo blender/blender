@@ -1615,7 +1615,7 @@ static bool merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 	const float *vco = NULL;
 
 	if (use_cursor) {
-		vco = give_cursor(scene, v3d);
+		vco = ED_view3d_cursor3d_get(scene, v3d);
 		copy_v3_v3(co, vco);
 		mul_m4_v3(ob->imat, co);
 	}

@@ -192,7 +192,7 @@ void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame) {STUB_AS
 int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) {STUB_ASSERT(0); return 0; }
 
 /* rna */
-float *give_cursor(struct Scene *scene, struct View3D *v3d) {STUB_ASSERT(0); return (float *) NULL;}
+float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d) {STUB_ASSERT(0); return (float *) NULL;}
 void WM_menutype_free(void) {STUB_ASSERT(0);}
 void WM_menutype_freelink(struct MenuType *mt) {STUB_ASSERT(0);}
 int WM_menutype_add(struct MenuType *mt) {STUB_ASSERT(0); return 0;}

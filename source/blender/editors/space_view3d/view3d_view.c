@@ -104,7 +104,7 @@ void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 	}
 }
 
-float *give_cursor(Scene *scene, View3D *v3d)
+float *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
 {
 	if (v3d && v3d->localvd) return v3d->cursor;
 	else return scene->cursor;
@@ -847,7 +847,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		}
 		else if (v3d->ob_centre_cursor) {
 			float vec[3];
-			copy_v3_v3(vec, give_cursor(scene, v3d));
+			copy_v3_v3(vec, ED_view3d_cursor3d_get(scene, v3d));
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
 			use_lock_ofs = true;
 		}

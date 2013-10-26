@@ -370,7 +370,7 @@ static void rna_View3D_CursorLocation_get(PointerRNA *ptr, float *values)
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	Scene *scene = (Scene *)sc->scene;
-	const float *loc = give_cursor(scene, v3d);
+	const float *loc = ED_view3d_cursor3d_get(scene, v3d);
 	
 	copy_v3_v3(values, loc);
 }
@@ -380,7 +380,7 @@ static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	Scene *scene = (Scene *)sc->scene;
-	float *cursor = give_cursor(scene, v3d);
+	float *cursor = ED_view3d_cursor3d_get(scene, v3d);
 	
 	copy_v3_v3(cursor, values);
 }

@@ -176,7 +176,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 			newbone->flag |= BONE_CONNECTED;
 		}
 		
-		curs = give_cursor(scene, v3d);
+		curs = ED_view3d_cursor3d_get(scene, v3d);
 		copy_v3_v3(newbone->tail, curs);
 		sub_v3_v3v3(newbone->tail, newbone->tail, obedit->obmat[3]);
 		
@@ -216,7 +216,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
 	ar = CTX_wm_region(C);
 	v3d = CTX_wm_view3d(C);
 	
-	fp = give_cursor(scene, v3d);
+	fp = ED_view3d_cursor3d_get(scene, v3d);
 	
 	copy_v3_v3(oldcurs, fp);
 
@@ -691,7 +691,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	copy_v3_v3(curs, give_cursor(CTX_data_scene(C), CTX_wm_view3d(C)));
+	copy_v3_v3(curs, ED_view3d_cursor3d_get(CTX_data_scene(C), CTX_wm_view3d(C)));
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);

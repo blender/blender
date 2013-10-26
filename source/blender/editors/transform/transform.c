@@ -2711,14 +2711,14 @@ static void initWarp(TransInfo *t)
 
 	t->flag |= T_NO_CONSTRAINT;
 
-	//copy_v3_v3(t->center, give_cursor(t->scene, t->view));
+	//copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
 	calculateCenterCursor(t);
 
 	t->val = 0.0f;
 
 	data = MEM_callocN(sizeof(*data), __func__);
 
-	curs = give_cursor(t->scene, t->view);
+	curs = ED_view3d_cursor3d_get(t->scene, t->view);
 	copy_v3_v3(data->warp_sta, curs);
 	ED_view3d_win_to_3d(t->ar, curs, mval_fl, data->warp_end);
 

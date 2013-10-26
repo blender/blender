@@ -3307,7 +3307,7 @@ static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
-		copy_v3_v3(projCo, give_cursor(ps->scene, ps->v3d));
+		copy_v3_v3(projCo, ED_view3d_cursor3d_get(ps->scene, ps->v3d));
 		mul_m4_v3(ps->ob->imat, projCo);
 
 		projCo[3] = 1.0f;
@@ -4163,7 +4163,7 @@ void paint_proj_stroke(bContext *C, void *pps, const float prev_pos[2], const fl
 	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
 		Scene *scene = ps->scene;
 		View3D *v3d = ps->v3d;
-		float *cursor = give_cursor(scene, v3d);
+		float *cursor = ED_view3d_cursor3d_get(scene, v3d);
 		int mval_i[2] = {(int)pos[0], (int)pos[1]};
 
 		view3d_operator_needs_opengl(C);

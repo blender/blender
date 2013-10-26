@@ -890,7 +890,7 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 		}
 		case V3D_CURSOR:  /* cursor center */
 		{
-			const float *curs = give_cursor(scene, v3d);
+			const float *curs = ED_view3d_cursor3d_get(scene, v3d);
 			/* shift to objects world */
 			sub_v3_v3v3(result, curs, ob->obmat[3]);
 			break;

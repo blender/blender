@@ -1635,7 +1635,7 @@ void BIF_draw_manipulator(const bContext *C)
 				copy_v3_v3(rv3d->twmat[3], scene->twcent);
 				break;
 			case V3D_CURSOR:
-				copy_v3_v3(rv3d->twmat[3], give_cursor(scene, v3d));
+				copy_v3_v3(rv3d->twmat[3], ED_view3d_cursor3d_get(scene, v3d));
 				break;
 		}
 

@@ -2476,7 +2476,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 	if (center) {
 		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
-		curs = give_cursor(scene, v3d);
+		curs = ED_view3d_cursor3d_get(scene, v3d);
 		zero_v3(min);
 		zero_v3(max);
 		zero_v3(curs);
@@ -2757,7 +2757,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 
 		/* non camera center */
 		float new_ofs[3];
-		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
+		negate_v3_v3(new_ofs, ED_view3d_cursor3d_get(scene, v3d));
 		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
 		                      new_ofs, NULL, NULL, NULL,
 		                      smooth_viewtx);
@@ -4172,7 +4172,7 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	float *fp = give_cursor(scene, v3d);
+	float *fp = ED_view3d_cursor3d_get(scene, v3d);
 
 	ED_view3d_cursor3d_position(C, fp, event->mval);
 	
