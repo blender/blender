@@ -132,60 +132,19 @@ struct bActionGroup *BKE_action_group_find_name(struct bAction *act, const char 
 void action_groups_clear_tempflags(struct bAction *act);
 
 /* Pose API ----------------- */	
-	
-/**
- * Deallocates a pose channel.
- * Does not free the pose channel itself.
- */
-void BKE_pose_channel_free(struct bPoseChannel *pchan);
 
-/**
- * Removes and deallocates all channels from a pose.
- * Does not free the pose itself.
- */
-void BKE_pose_channels_free(struct bPose *pose);
+void                 BKE_pose_channel_free(struct bPoseChannel *pchan);
 
-/**
- * Removes the hash for quick lookup of channels, must
- * be done when adding/removing channels.
- */
-void BKE_pose_channels_hash_make(struct bPose *pose);
-void BKE_pose_channels_hash_free(struct bPose *pose);
+void                 BKE_pose_channels_free(struct bPose *pose);
 
-/** 
- * Removes and deallocates all data from a pose, and also frees the pose.
- */
-void BKE_pose_free(struct bPose *pose);
+void                 BKE_pose_channels_hash_make(struct bPose *pose);
+void                 BKE_pose_channels_hash_free(struct bPose *pose);
 
-/**
- * Allocate a new pose on the heap, and copy the src pose and it's channels
- * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
- */ 
-void BKE_pose_copy_data(struct bPose **dst, struct bPose *src, int copyconstraints);
-
-/**
- * Copy the internal members of each pose channel including constraints
- * and ID-Props, used when duplicating bones in editmode.
- */
-void BKE_pose_channel_copy_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
-
-/**
- * Return a pointer to the pose channel of the given name
- * from this pose.
- */
+void                 BKE_pose_free(struct bPose *pose);
+void                 BKE_pose_copy_data(struct bPose **dst, struct bPose *src, const bool copy_constraints);
+void                 BKE_pose_channel_copy_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
-
-/**
- * Return a pointer to the active pose channel from this Object.
- * (Note: Object, not bPose is used here, as we need layer info from Armature)
- */
 struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);
-
-/** 
- * Looks to see if the channel with the given name
- * already exists in this pose - if not a new one is
- * allocated and initialized.
- */
 struct bPoseChannel *BKE_pose_channel_verify(struct bPose *pose, const char *name);
 
 #ifndef NDEBUG
