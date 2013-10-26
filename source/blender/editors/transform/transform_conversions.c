@@ -4589,7 +4589,7 @@ static void freeSeqData(TransInfo *t)
 			BKE_sequencer_sort(t->scene);
 		}
 		else {
-			/* Cancelled, need to update the strips display */
+			/* Canceled, need to update the strips display */
 			for (a = 0; a < t->total; a++, td++) {
 				seq = ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth == 0)) {

@@ -190,7 +190,7 @@ static void keyboard(unsigned char key)
 	if(key == 'r')
 		options.session->reset(session_buffer_params(), options.session_params.samples);
 	else if(key == 27) // escape
-		options.session->progress.set_cancel("Cancelled");
+		options.session->progress.set_cancel("Canceled");
 }
 #endif
 

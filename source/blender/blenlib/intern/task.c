@@ -402,7 +402,7 @@ void BLI_task_pool_stop(TaskPool *pool)
 	BLI_assert(pool->num == 0);
 }
 
-bool BLI_task_pool_cancelled(TaskPool *pool)
+bool BLI_task_pool_canceled(TaskPool *pool)
 {
 	return pool->do_cancel;
 }

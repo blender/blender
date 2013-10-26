@@ -349,7 +349,7 @@ typedef struct TransInfo {
 	float		axis[3];
 	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */
 
-	short		remove_on_cancel; /* remove elements if operator is cancelled */
+	short		remove_on_cancel; /* remove elements if operator is canceled */
 
 	void		*view;
 	struct bContext *context; /* Only valid (non null) during an operator called function. */

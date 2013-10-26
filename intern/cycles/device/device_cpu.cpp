@@ -144,7 +144,7 @@ public:
 
 	void thread_path_trace(DeviceTask& task)
 	{
-		if(task_pool.cancelled()) {
+		if(task_pool.canceled()) {
 			if(task.need_finish_queue == false)
 				return;
 		}
@@ -166,7 +166,7 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 			if(system_cpu_support_sse3()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled()) {
+					if (task.get_cancel() || task_pool.canceled()) {
 						if(task.need_finish_queue == false)
 							break;
 					}
@@ -185,7 +185,7 @@ public:
 			}
 			else if(system_cpu_support_sse2()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled()) {
+					if (task.get_cancel() || task_pool.canceled()) {
 						if(task.need_finish_queue == false)
 							break;
 					}
@@ -206,7 +206,7 @@ public:
 #endif
 			{
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled()) {
+					if (task.get_cancel() || task_pool.canceled()) {
 						if(task.need_finish_queue == false)
 							break;
 					}
@@ -226,7 +226,7 @@ public:
 
 			task.release_tile(tile);
 
-			if(task_pool.cancelled()) {
+			if(task_pool.canceled()) {
 				if(task.need_finish_queue == false)
 					break;
 			}
@@ -302,7 +302,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.cancelled())
+				if(task_pool.canceled())
 					break;
 			}
 		}
@@ -310,7 +310,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.cancelled())
+				if(task_pool.canceled())
 					break;
 			}
 		}
@@ -320,7 +320,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.cancelled())
+				if(task_pool.canceled())
 					break;
 			}
 		}

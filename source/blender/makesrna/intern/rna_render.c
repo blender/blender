@@ -395,7 +395,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
-	RNA_def_function_ui_description(func, "Test if the render operation should been cancelled, this is a fast call that should be used regularly for responsiveness");
+	RNA_def_function_ui_description(func, "Test if the render operation should been canceled, this is a fast call that should be used regularly for responsiveness");
 	prop = RNA_def_boolean(func, "do_break", 0, "Break", "");
 	RNA_def_function_return(func, prop);
 

@@ -517,7 +517,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
-	//TODO: implement graceful termination through Cocoa mechanism to avoid session log off to be cancelled
+	//TODO: implement graceful termination through Cocoa mechanism to avoid session log off to be canceled
 	//Note that Cmd+Q is already handled by keyhandler
     if (systemCocoa->handleQuitRequest() == GHOST_kExitNow)
 		return NSTerminateCancel;//NSTerminateNow;

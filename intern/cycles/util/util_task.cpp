@@ -136,7 +136,7 @@ void TaskPool::stop()
 	assert(num == 0);
 }
 
-bool TaskPool::cancelled()
+bool TaskPool::canceled()
 {
 	return do_cancel;
 }
@@ -366,7 +366,7 @@ void DedicatedTaskPool::stop()
 	assert(num == 0);
 }
 
-bool DedicatedTaskPool::cancelled()
+bool DedicatedTaskPool::canceled()
 {
 	return do_cancel;
 }

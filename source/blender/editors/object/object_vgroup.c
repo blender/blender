@@ -3777,7 +3777,7 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		/* note, would normally return cancelled, except we want the redo
+		/* note, would normally return canceled, except we want the redo
 		 * UI to show up for users to change */
 		return OPERATOR_FINISHED;
 	}

@@ -66,7 +66,7 @@ public:
 	void cancel();		/* cancel all tasks, keep worker threads running */
 	void stop();		/* stop all worker threads */
 
-	bool cancelled();	/* for worker threads, test if cancelled */
+	bool canceled();	/* for worker threads, test if canceled */
 
 protected:
 	friend class TaskScheduler;
@@ -142,7 +142,7 @@ public:
 	void cancel();		/* cancel all tasks, keep worker thread running */
 	void stop();		/* stop worker thread */
 
-	bool cancelled();	/* for worker thread, test if cancelled */
+	bool canceled();	/* for worker thread, test if canceled */
 
 protected:
 	void num_decrease(int done);

@@ -624,7 +624,7 @@ struct ThreadQueue {
 	pthread_cond_t push_cond;
 	pthread_cond_t finish_cond;
 	volatile int nowait;
-	volatile int cancelled;
+	volatile int canceled;
 };
 
 ThreadQueue *BLI_thread_queue_init(void)

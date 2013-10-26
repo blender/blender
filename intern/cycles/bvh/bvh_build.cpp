@@ -225,7 +225,7 @@ BVHNode* BVHBuild::run()
 		task_pool.wait_work();
 	}
 
-	/* delete if we cancelled */
+	/* delete if we canceled */
 	if(rootnode) {
 		if(progress.get_cancel()) {
 			rootnode->deleteSubtree();

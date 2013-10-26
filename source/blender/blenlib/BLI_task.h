@@ -88,8 +88,8 @@ void BLI_task_pool_cancel(TaskPool *pool);
 /* stop all worker threads */
 void BLI_task_pool_stop(TaskPool *pool);
 
-/* for worker threads, test if cancelled */
-bool BLI_task_pool_cancelled(TaskPool *pool);
+/* for worker threads, test if canceled */
+bool BLI_task_pool_canceled(TaskPool *pool);
 
 /* optional userdata pointer to pass along to run function */
 void *BLI_task_pool_userdata(TaskPool *pool);
