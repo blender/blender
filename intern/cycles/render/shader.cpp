@@ -217,7 +217,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	uint shader_flag_size = scene->shaders.size()*4;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
-	bool has_surface_bssrdf = false;
 	bool has_converter_blackbody = false;
 
 	foreach(Shader *shader, scene->shaders) {
@@ -231,8 +230,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HAS_VOLUME;
 		if(shader->homogeneous_volume)
 			flag |= SD_HOMOGENEOUS_VOLUME;
-		if(shader->has_surface_bssrdf)
-			has_surface_bssrdf = true;
 		if(shader->has_bssrdf_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 		if(shader->has_converter_blackbody)
