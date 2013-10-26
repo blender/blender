@@ -231,49 +231,24 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
  * to be reconsidered.
  *
  * If the windings do not match the winding of the new face will follow
- * \a f1's winding (i.e. \a f2 will be reversed before the join).
+ * \a f_a's winding (i.e. \a f_b will be reversed before the join).
  *
  * \return pointer to the combined face
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const bool do_del)
+BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f_a, BMFace *f_b, BMEdge *e, const bool do_del)
 {
-	BMLoop *l1, *l2;
-	BMEdge *jed = NULL;
-	BMFace *faces[2] = {f1, f2};
-	
-	jed = e;
-	if (!jed) {
-		BMLoop *l_first;
-		/* search for an edge that has both these faces in its radial cycle */
-		l1 = l_first = BM_FACE_FIRST_LOOP(f1);
-		do {
-			if (l1->radial_next->f == f2) {
-				jed = l1->e;
-				break;
-			}
-		} while ((l1 = l1->next) != l_first);
-	}
+	BMFace *faces[2] = {f_a, f_b};
 
-	if (UNLIKELY(!jed)) {
-		BMESH_ASSERT(0);
-		return NULL;
-	}
-	
-	l1 = jed->l;
-	
-	if (UNLIKELY(!l1)) {
-		BMESH_ASSERT(0);
-		return NULL;
-	}
-	
-	l2 = l1->radial_next;
-	if (l1->v == l2->v) {
-		bmesh_loop_reverse(bm, f2);
-	}
+	BMLoop *l_a = BM_face_edge_share_loop(f_a, e);
+	BMLoop *l_b = BM_face_edge_share_loop(f_b, e);
 
-	f1 = BM_faces_join(bm, faces, 2, do_del);
+	BLI_assert(l_a && l_b);
+
+	if (l_a->v == l_b->v) {
+		bmesh_loop_reverse(bm, f_b);
+	}
 	
-	return f1;
+	return BM_faces_join(bm, faces, 2, do_del);
 }
 
 /**
@@ -1074,7 +1049,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	f_hflag_prev_2 = l2->f->head.hflag;
 
 	/* don't delete the edge, manually remove the edge after so we can copy its attributes */
-	f = BM_faces_join_pair(bm, l1->f, l2->f, NULL, true);
+	f = BM_faces_join_pair(bm, l1->f, l2->f, e, true);
 
 	if (f == NULL) {
 		return NULL;
