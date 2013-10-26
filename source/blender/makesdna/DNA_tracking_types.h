@@ -142,6 +142,17 @@ typedef struct MovieTrackingTrack {
 	float minimum_correlation;          /* minimal correlation which is still treated as successful tracking */
 
 	struct bGPdata *gpd;        /* grease-pencil data */
+
+	/* Weight of this track.
+	 *
+	 * Weight defines how much the track affects on the final reconstruction,
+	 * usually gets animated in a way so when track has just appeared it's
+	 * weight is zero and then it gets faded up.
+	 *
+	 * Used to prevent jumps of the camera when tracks are appearing or
+	 * disappearing.
+	 */
+	float weight, pad;
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingPlaneMarker {

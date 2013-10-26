@@ -57,8 +57,10 @@ void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
 struct ModalReprojectionError {
   ModalReprojectionError(double observed_x,
                          double observed_y,
+                         const double weight,
                          const Vec3 &bundle)
-    : observed_x(observed_x), observed_y(observed_y), bundle(bundle) { }
+    : observed_x_(observed_x), observed_y_(observed_y),
+      weight_(weight), bundle_(bundle) { }
 
   template <typename T>
   bool operator()(const T* quaternion,   // Rotation quaternion
@@ -68,9 +70,9 @@ struct ModalReprojectionError {
 
     // Convert bundle position from double to T.
     T X[3];
-    X[0] = T(bundle(0));
-    X[1] = T(bundle(1));
-    X[2] = T(bundle(2));
+    X[0] = T(bundle_(0));
+    X[1] = T(bundle_(1));
+    X[2] = T(bundle_(2));
 
     // Compute projective coordinates: x = RX.
     T x[3];
@@ -84,15 +86,16 @@ struct ModalReprojectionError {
 
     // The error is the difference between reprojected
     // and observed marker position.
-    residuals[0] = xn - T(observed_x);
-    residuals[1] = yn - T(observed_y);
+    residuals[0] = xn - T(observed_x_);
+    residuals[1] = yn - T(observed_y_);
 
     return true;
   }
 
-  double observed_x;
-  double observed_y;
-  Vec3 bundle;
+  double observed_x_;
+  double observed_y_;
+  double weight_;
+  Vec3 bundle_;
 };
 }  // namespace
 
@@ -180,11 +183,13 @@ void ModalSolver(const Tracks &tracks,
       Marker &marker = all_markers[i];
       EuclideanPoint *point = reconstruction->PointForTrack(marker.track);
 
-      if (point) {
+      if (point && marker.weight != 0.0) {
         problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
             ModalReprojectionError,
             2, /* num_residuals */
-            4>(new ModalReprojectionError(marker.x, marker.y,
+            4>(new ModalReprojectionError(marker.x,
+                                          marker.y,
+                                          marker.weight,
                                           point->X)),
             NULL,
             &quaternion(0));

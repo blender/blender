@@ -1550,7 +1550,7 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->reports = op->reports;
 	scj->user = sc->user;
 
-	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
+	scj->context = BKE_tracking_reconstruction_context_new(clip, object,
 	                                                       object->keyframe1, object->keyframe2, width, height);
 
 	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");

@@ -34,7 +34,7 @@ Tracks::Tracks(const Tracks &other) {
 
 Tracks::Tracks(const vector<Marker> &markers) : markers_(markers) {}
 
-void Tracks::Insert(int image, int track, double x, double y) {
+void Tracks::Insert(int image, int track, double x, double y, double weight) {
   // TODO(keir): Wow, this is quadratic for repeated insertions. Fix this by
   // adding a smarter data structure like a set<>.
   for (int i = 0; i < markers_.size(); ++i) {
@@ -45,7 +45,7 @@ void Tracks::Insert(int image, int track, double x, double y) {
       return;
     }
   }
-  Marker marker = { image, track, x, y };
+  Marker marker = { image, track, x, y, weight };
   markers_.push_back(marker);
 }
 
@@ -122,7 +122,7 @@ Marker Tracks::MarkerInImageForTrack(int image, int track) const {
       return markers_[i];
     }
   }
-  Marker null = { -1, -1, -1, -1 };
+  Marker null = { -1, -1, -1, -1, 0.0 };
   return null;
 }
 

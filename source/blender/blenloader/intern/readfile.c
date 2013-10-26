@@ -9735,6 +9735,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
+			MovieClip *clip;
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				MovieTracking *tracking = &clip->tracking;
+				MovieTrackingObject *tracking_object;
+				for (tracking_object = tracking->objects.first;
+				     tracking_object;
+				     tracking_object = tracking_object->next)
+				{
+					ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+					MovieTrackingTrack *track;
+					for (track = tracksbase->first;
+					     track;
+					     track = track->next)
+					{
+						track->weight = 1.0f;
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

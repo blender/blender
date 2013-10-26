@@ -37,7 +37,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -184,8 +186,8 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	MovieTrackingPlaneTrack *plane_track, *next_plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-
 	bool has_bundle = false, update_stab = false;
+	char track_name_escaped[MAX_NAME], prefix[MAX_NAME * 2];
 
 	if (track == act_track)
 		tracking->act_track = NULL;
@@ -244,6 +246,11 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 			BLI_freelinkN(plane_tracks_base, plane_track);
 		}
 	}
+
+	/* Delete f-curves associated with the track (such as weight, i.e.) */
+	BLI_strescape(track_name_escaped, track->name, sizeof(track_name_escaped));
+	BLI_snprintf(prefix, sizeof(prefix), "tracks[\"%s\"]", track_name_escaped);
+	BKE_animdata_fix_paths_remove(&clip->id, prefix);
 
 	BKE_tracking_track_free(track);
 	BLI_freelinkN(tracksbase, track);

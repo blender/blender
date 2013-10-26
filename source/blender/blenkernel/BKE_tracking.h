@@ -225,7 +225,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 bool BKE_tracking_reconstruction_check(struct MovieTracking *tracking, struct MovieTrackingObject *object,
                                        char *error_msg, int error_size);
 
-struct MovieReconstructContext *BKE_tracking_reconstruction_context_new(struct MovieTracking *tracking,
+struct MovieReconstructContext *BKE_tracking_reconstruction_context_new(struct MovieClip *clip,
                                                                         struct MovieTrackingObject *object,
                                                                         int keyframe1, int keyframe2,
                                                                         int width, int height);

@@ -569,6 +569,8 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         if act_track.use_custom_color:
             row.prop(act_track, "color", text="")
 
+        layout.prop(act_track, "weight")
+
         if act_track.has_bundle:
             label_text = "Average Error: %.4f" % (act_track.average_error)
             layout.label(text=label_text)

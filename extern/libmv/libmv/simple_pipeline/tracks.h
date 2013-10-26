@@ -33,14 +33,20 @@ namespace libmv {
     in the image identified by \a image. All markers for to the same target
     form a track identified by a common \a track number.
 
+    \a weight is used by bundle adjustment and weight means how much the
+    track affects on a final solution.
+
     \note Markers are typically aggregated with the help of the \l Tracks class.
 
     \sa Tracks
 */
+// TODO(sergey): Consider using comment for every member separately
+//               instead of having one giantic comment block.
 struct Marker {
   int image;
   int track;
   double x, y;
+  double weight;
 };
 
 /*!
@@ -72,9 +78,14 @@ class Tracks {
       \a image and \a track are the keys used to retrieve the markers with the
       other methods in this class.
 
+      \a weight is used by bundle adjustment and weight means how much the
+      track affects on a final solution.
+
       \note To get an identifier for a new track, use \l MaxTrack() + 1.
   */
-  void Insert(int image, int track, double x, double y);
+  // TODO(sergey): Consider using InsetWeightedMarker istead of using
+  //               stupid default value?
+  void Insert(int image, int track, double x, double y, double weight = 1.0);
 
   /// Returns all the markers.
   vector<Marker> AllMarkers() const;

@@ -60,8 +60,11 @@ namespace {
 //
 // This functor uses a radial distortion model.
 struct OpenCVReprojectionError {
-  OpenCVReprojectionError(const double observed_x, const double observed_y)
-      : observed_x(observed_x), observed_y(observed_y) {}
+  OpenCVReprojectionError(const double observed_x,
+                          const double observed_y,
+                          const double weight)
+      : observed_x_(observed_x), observed_y_(observed_y),
+        weight_(weight) {}
 
   template <typename T>
   bool operator()(const T* const intrinsics,
@@ -112,13 +115,14 @@ struct OpenCVReprojectionError {
                                           &predicted_y);
 
     // The error is the difference between the predicted and observed position.
-    residuals[0] = predicted_x - T(observed_x);
-    residuals[1] = predicted_y - T(observed_y);
+    residuals[0] = (predicted_x - T(observed_x_)) * weight_;
+    residuals[1] = (predicted_y - T(observed_y_)) * weight_;
     return true;
   }
 
-  const double observed_x;
-  const double observed_y;
+  const double observed_x_;
+  const double observed_y_;
+  const double weight_;
 };
 
 // Print a message to the log which camera intrinsics are gonna to be optimixed.
@@ -378,25 +382,31 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     // camera translaiton.
     double *current_camera_R_t = &all_cameras_R_t[camera->image](0);
 
-    problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-        OpenCVReprojectionError, 2, 8, 6, 3>(
-            new OpenCVReprojectionError(
-                marker.x,
-                marker.y)),
-        NULL,
-        ceres_intrinsics,
-        current_camera_R_t,
-        &point->X(0));
+    // Skip residual block for markers which does have absolutely
+    // no affect on the final solution.
+    // This way ceres is not gonna to go crazy.
+    if (marker.weight != 0.0) {
+      problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
+          OpenCVReprojectionError, 2, 8, 6, 3>(
+              new OpenCVReprojectionError(
+                  marker.x,
+                  marker.y,
+                  marker.weight)),
+          NULL,
+          ceres_intrinsics,
+          current_camera_R_t,
+          &point->X(0));
 
-    // We lock the first camera to better deal with scene orientation ambiguity.
-    if (!have_locked_camera) {
-      problem.SetParameterBlockConstant(current_camera_R_t);
-      have_locked_camera = true;
-    }
+      // We lock the first camera to better deal with scene orientation ambiguity.
+      if (!have_locked_camera) {
+        problem.SetParameterBlockConstant(current_camera_R_t);
+        have_locked_camera = true;
+      }
 
-    if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
-      problem.SetParameterization(current_camera_R_t,
+      if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
+        problem.SetParameterization(current_camera_R_t,
                                   constant_translation_parameterization);
+      }
     }
 
     num_residuals++;

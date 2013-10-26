@@ -393,9 +393,9 @@ void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks)
 	LIBMV_OBJECT_DELETE(libmv_tracks, Tracks);
 }
 
-void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y)
+void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y, double weight)
 {
-	((libmv::Tracks*) libmv_tracks)->Insert(image, track, x, y);
+	((libmv::Tracks*) libmv_tracks)->Insert(image, track, x, y, weight);
 }
 
 /* ************ Reconstruction ************ */
