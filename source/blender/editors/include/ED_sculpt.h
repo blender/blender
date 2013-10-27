@@ -37,6 +37,8 @@ struct Object;
 struct RegionView3D;
 struct wmKeyConfig;
 struct wmWindowManager;
+struct ViewContext;
+struct rcti;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);
@@ -48,6 +50,8 @@ void ED_sculpt_get_average_stroke(struct Object *ob, float stroke[3]);
 int ED_sculpt_minmax(struct bContext *C, float min[3], float max[3]);
 int ED_sculpt_mask_layers_ensure(struct Object *ob,
                                   struct MultiresModifierData *mmd);
+int do_sculpt_mask_box_select(struct ViewContext *vc, struct rcti *rect, bool select, bool extend);
+
 enum {
 	ED_SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
 	ED_SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1)

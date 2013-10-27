@@ -89,6 +89,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_mball.h"
 
 #include "UI_interface.h"
@@ -272,9 +273,6 @@ static int view3d_selectable_data(bContext *C)
 			}
 		}
 		else {
-			if (ob->mode & OB_MODE_SCULPT) {
-				return 0;
-			}
 			if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) &&
 			    !paint_facesel_test(ob) && !paint_vertsel_test(ob))
 			{
@@ -2125,7 +2123,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	}
 	else {  /* no editmode, unified for bones and objects */
 		if (vc.obact && vc.obact->mode & OB_MODE_SCULPT) {
-			/* pass */
+			ret = do_sculpt_mask_box_select(&vc, &rect, select, extend);
 		}
 		else if (vc.obact && paint_facesel_test(vc.obact)) {
 			ret = do_paintface_box_select(&vc, &rect, select, extend);
