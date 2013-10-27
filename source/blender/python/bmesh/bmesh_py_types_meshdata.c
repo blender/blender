@@ -248,6 +248,115 @@ PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 
 /* --- End Mesh Loop UV --- */
 
+/* Mesh Vert Skin
+ * ************ */
+
+#define BPy_BMVertSkin_Check(v)  (Py_TYPE(v) == &BPy_BMVertSkin_Type)
+
+typedef struct BPy_BMVertSkin {
+	PyObject_VAR_HEAD
+	MVertSkin *data;
+} BPy_BMVertSkin;
+
+PyDoc_STRVAR(bpy_bmvertskin_radius_doc,
+"Vert skin radii (as a 2D Vector).\n\n:type: :class:`mathutils.Vector`"
+);
+static PyObject *bpy_bmvertskin_radius_get(BPy_BMVertSkin *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject(self->data->radius, 2, Py_WRAP, NULL);
+}
+
+static int bpy_bmvertskin_radius_set(BPy_BMVertSkin *self, PyObject *value, void *UNUSED(closure))
+{
+	float tvec[2];
+	if (mathutils_array_parse(tvec, 2, 2, value, "BMVertSkin.radius") != -1) {
+		copy_v2_v2(self->data->radius, tvec);
+		return 0;
+	}
+	else {
+		return -1;
+	}
+}
+
+PyDoc_STRVAR(bpy_bmvertskin_flag__use_root_doc,
+"Use as root vertex.\n\n:type: boolean"
+);
+PyDoc_STRVAR(bpy_bmvertskin_flag__use_loose_doc,
+"Use loose vertex.\n\n:type: boolean"
+);
+
+static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
+{
+	const int flag = GET_INT_FROM_POINTER(flag_p);
+	return PyBool_FromLong(self->data->flag & flag);
+}
+
+static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *flag_p)
+{
+	const int flag = GET_INT_FROM_POINTER(flag_p);
+
+	switch (PyLong_AsLong(value)) {
+		case true:
+			self->data->flag |= flag;
+			return 0;
+		case false:
+			self->data->flag &= ~flag;
+			return 0;
+		default:
+			PyErr_SetString(PyExc_TypeError,
+			                "expected a boolean type 0/1");
+			return -1;
+	}
+}
+
+/* XXX Todo: Make root settable, currently the code to disable all other verts as roots sits within the modifier */
+static PyGetSetDef bpy_bmvertskin_getseters[] = {
+	/* attributes match rna_mesh_gen  */
+	{(char *)"radius",    (getter)bpy_bmvertskin_radius_get, (setter)bpy_bmvertskin_radius_set, (char *)bpy_bmvertskin_radius_doc, NULL},
+	{(char *)"use_root",  (getter)bpy_bmvertskin_flag_get,   (setter)NULL,					   (char *)bpy_bmvertskin_flag__use_root_doc,  (void *)MVERT_SKIN_ROOT},
+	{(char *)"use_loose", (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_loose_doc, (void *)MVERT_SKIN_LOOSE},
+
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+PyTypeObject BPy_BMVertSkin_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+
+static void bm_init_types_bmvertskin(void)
+{
+	BPy_BMVertSkin_Type.tp_basicsize = sizeof(BPy_BMVertSkin);
+
+	BPy_BMVertSkin_Type.tp_name = "BMVertSkin";
+
+	BPy_BMVertSkin_Type.tp_doc = NULL; // todo
+
+	BPy_BMVertSkin_Type.tp_getset = bpy_bmvertskin_getseters;
+
+	BPy_BMVertSkin_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+
+	PyType_Ready(&BPy_BMVertSkin_Type);
+}
+
+int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value)
+{
+	if (UNLIKELY(!BPy_BMVertSkin_Check(value))) {
+		PyErr_Format(PyExc_TypeError, "expected BMVertSkin, not a %.200s", Py_TYPE(value)->tp_name);
+		return -1;
+	}
+	else {
+		*((MVertSkin *)mvertskin) = *(((BPy_BMVertSkin *)value)->data);
+		return 0;
+	}
+}
+
+PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
+{
+	BPy_BMVertSkin *self = PyObject_New(BPy_BMVertSkin, &BPy_BMVertSkin_Type);
+	self->data = mvertskin;
+	return (PyObject *)self;
+}
+
+/* --- End Mesh Vert Skin --- */
+
 /* Mesh Loop Color
  * *************** */
 
@@ -692,5 +801,6 @@ void BPy_BM_init_types_meshdata(void)
 	bm_init_types_bmloopuv();
 	bm_init_types_bmloopcol();
 	bm_init_types_bmdvert();
+	bm_init_types_bmvertskin();
 }
 

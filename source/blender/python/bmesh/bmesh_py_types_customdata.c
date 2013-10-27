@@ -113,6 +113,9 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__uv_doc,
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__color_doc,
 "Accessor for vertex color layer.\n\ntype: :class:`BMLayerCollection`"
 );
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__skin_doc,
+"Accessor for skin layer.\n\ntype: :class:`BMLayerCollection`"
+);
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_edge_doc,
 "Accessor for Freestyle edge layer.\n\ntype: :class:`BMLayerCollection`"
@@ -192,6 +195,7 @@ static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
 
 	{(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__shape_doc, (void *)CD_SHAPEKEY},
 	{(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
+	{(char *)"skin",         (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__skin_doc, (void *)CD_MVERT_SKIN},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -1030,6 +1034,11 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 			ret = PyFloat_FromDouble(*(float *)value);
 			break;
 		}
+		case CD_MVERT_SKIN:
+		{
+			ret = BPy_BMVertSkin_CreatePyObject(value);
+			break;
+		}
 		default:
 		{
 			ret = Py_NotImplemented; /* TODO */
@@ -1145,6 +1154,11 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 			else {
 				*(float *)value = CLAMPIS(tmp_val, 0.0f, 1.0f);
 			}
+			break;
+		}
+		case CD_MVERT_SKIN:
+		{
+			ret = BPy_BMVertSkin_AssignPyObject(value, py_value);
 			break;
 		}
 		default:
