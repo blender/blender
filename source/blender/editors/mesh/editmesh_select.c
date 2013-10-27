@@ -392,7 +392,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
 static bool findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
 	BMEditMesh *em = (BMEditMesh *)handle;
-	BMVert *eve = BM_vert_at_index(em->bm, index - 1);
+	BMVert *eve = BM_vert_at_index_find(em->bm, index - 1);
 	return !(eve && BM_elem_flag_test(eve, BM_ELEM_SELECT));
 }
 /**
@@ -420,7 +420,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const bool sel, c
 			                                   0, NULL, NULL);
 		}
 		
-		eve = index ? BM_vert_at_index(vc->em->bm, index - 1) : NULL;
+		eve = index ? BM_vert_at_index_find(vc->em->bm, index - 1) : NULL;
 		
 		if (eve && distance < *r_dist) {
 			*r_dist = distance;
@@ -436,7 +436,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const bool sel, c
 		static int lastSelectedIndex = 0;
 		static BMVert *lastSelected = NULL;
 		
-		if (lastSelected && BM_vert_at_index(vc->em->bm, lastSelectedIndex) != lastSelected) {
+		if (lastSelected && BM_vert_at_index_find(vc->em->bm, lastSelectedIndex) != lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}
@@ -512,7 +512,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 		
 		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
-		eed = index ? BM_edge_at_index(vc->em->bm, index - 1) : NULL;
+		eed = index ? BM_edge_at_index_find(vc->em->bm, index - 1) : NULL;
 		
 		if (eed && distance < *r_dist) {
 			*r_dist = distance;
@@ -585,7 +585,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 
 		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
-		efa = index ? BM_face_at_index(vc->em->bm, index - 1) : NULL;
+		efa = index ? BM_face_at_index_find(vc->em->bm, index - 1) : NULL;
 		
 		if (efa) {
 			struct { float mval_fl[2]; float dist; BMFace *toFace; } data;
@@ -612,7 +612,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		static int lastSelectedIndex = 0;
 		static BMFace *lastSelected = NULL;
 
-		if (lastSelected && BM_face_at_index(vc->em->bm, lastSelectedIndex) != lastSelected) {
+		if (lastSelected && BM_face_at_index_find(vc->em->bm, lastSelectedIndex) != lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}

@@ -400,7 +400,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
 		BMVert *v0;
 
 		knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
-		v0 = BM_vert_at_index(kcd->em->bm, 0);
+		v0 = BM_vert_at_index_find(kcd->em->bm, 0);
 		if (v0) {
 			closest_to_line_v3(kcd->prev.cage, v0->co, origin_ofs, origin);
 			copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */

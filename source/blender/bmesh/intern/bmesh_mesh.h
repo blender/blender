@@ -49,9 +49,9 @@ int  BM_mesh_elem_count(BMesh *bm, const char htype);
 
 void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx);
 
-BMVert *BM_vert_at_index(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index(BMesh *bm, const int index);
-BMFace *BM_face_at_index(BMesh *bm, const int index);
+BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
+BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
+BMFace *BM_face_at_index_find(BMesh *bm, const int index);
 
 typedef struct BMAllocTemplate {
 	int totvert, totedge, totloop, totface;

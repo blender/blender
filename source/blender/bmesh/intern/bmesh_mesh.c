@@ -829,17 +829,17 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		BLI_ghash_free(fptr_map, NULL, NULL);
 }
 
-BMVert *BM_vert_at_index(BMesh *bm, const int index)
+BMVert *BM_vert_at_index_find(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->vpool, index);
 }
 
-BMEdge *BM_edge_at_index(BMesh *bm, const int index)
+BMEdge *BM_edge_at_index_find(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->epool, index);
 }
 
-BMFace *BM_face_at_index(BMesh *bm, const int index)
+BMFace *BM_face_at_index_find(BMesh *bm, const int index)
 {
 	return BLI_mempool_findelem(bm->fpool, index);
 }
