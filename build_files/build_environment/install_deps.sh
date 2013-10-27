@@ -200,10 +200,10 @@ OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.0.0"
+OPENEXR_VERSION="2.0.1"
 OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
 OPENEXR_VERSION_MIN="2.0"
-ILMBASE_VERSION="2.0.0"
+ILMBASE_VERSION="2.0.1"
 ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
@@ -855,7 +855,7 @@ clean_ILMBASE() {
 
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  ilmbase_magic=5
+  ilmbase_magic=6
   _init_ilmbase
 
   # Clean install if needed!
@@ -958,7 +958,7 @@ clean_OPENEXR() {
 
 compile_OPENEXR() {
   # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=10
+  openexr_magic=11
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
@@ -1033,12 +1033,13 @@ compile_OPENEXR() {
  TARGET_LINK_LIBRARIES ( IlmImfFuzzTest IlmImf Iex Imath Half IlmThread ${PTHREAD_LIB} ${Z_LIB})
 --- a/IlmImfTest/CMakeLists.txt
 +++ b/IlmImfTest/CMakeLists.txt
-@@ -19,22 +19,26 @@
+@@ -19,22 +19,28 @@
    testCustomAttributes.cpp
    testDeepScanLineBasic.cpp
    testDeepScanLineHuge.cpp
 +  testDeepScanLineMultipleRead.cpp
    testDeepTiledBasic.cpp
++  testBadTypeAttributes.cpp
    testExistingStreams.cpp
 +  testFutureProofing.cpp
    testHuf.cpp
@@ -1056,6 +1057,7 @@ compile_OPENEXR() {
    testMultiView.cpp
    testNativeFormat.cpp
 +  testOptimized.cpp
++  testOptimizedInterleavePatterns.cpp
 +  testPartHelper.cpp
    testPreviewImage.cpp
    testRgba.cpp
