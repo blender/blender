@@ -421,11 +421,11 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	faceMap = MEM_mallocN(numOfFaces * sizeof(BMFace *), "unwrap_edit_face_map");
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-	EDBM_index_arrays_ensure(em, BM_EDGE | BM_FACE);
+	BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_FACE);
 
 	/* map subsurfed faces to original editFaces */
 	for (i = 0; i < numOfFaces; i++)
-		faceMap[i] = EDBM_face_at_index(em, DM_origindex_mface_mpoly(origFaceIndices, origPolyIndices, i));
+		faceMap[i] = BM_face_at_index(em->bm, DM_origindex_mface_mpoly(origFaceIndices, origPolyIndices, i));
 
 	edgeMap = MEM_mallocN(numOfEdges * sizeof(BMEdge *), "unwrap_edit_edge_map");
 
@@ -433,7 +433,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	for (i = 0; i < numOfEdges; i++) {
 		/* not all edges correspond to an old edge */
 		edgeMap[i] = (origEdgeIndices[i] != ORIGINDEX_NONE) ?
-		             EDBM_edge_at_index(em, origEdgeIndices[i]) : NULL;
+		             BM_edge_at_index(em->bm, origEdgeIndices[i]) : NULL;
 	}
 
 	/* Prepare and feed faces to the solver */

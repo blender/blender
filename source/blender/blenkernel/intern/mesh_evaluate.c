@@ -946,7 +946,7 @@ bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
  * \{ */
 
 
-/* ngon version wip, based on EDBM_uv_vert_map_create */
+/* ngon version wip, based on BM_uv_vert_map_create */
 /* this replaces the non bmesh function (in trunk) which takes MTFace's, if we ever need it back we could
  * but for now this replaces it because its unused. */
 

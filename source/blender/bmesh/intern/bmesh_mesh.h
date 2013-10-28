@@ -45,13 +45,28 @@ void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
 void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
                                  const char *msg_a, const char *msg_b);
-int  BM_mesh_elem_count(BMesh *bm, const char htype);
 
-void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx);
+#ifndef NDEBUG
+bool BM_mesh_elem_table_check(BMesh *em);
+#endif
+
+void           BM_mesh_elem_table_ensure(BMesh *bm, const char htype);
+void           BM_mesh_elem_table_init(BMesh *bm, const char htype);
+void           BM_mesh_elem_table_free(BMesh *bm, const char htype);
+
+BMVert *BM_vert_at_index(BMesh *bm, const int index);
+BMEdge *BM_edge_at_index(BMesh *bm, const int index);
+BMFace *BM_face_at_index(BMesh *bm, const int index);
 
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
 BMFace *BM_face_at_index_find(BMesh *bm, const int index);
+
+// XXX
+
+int  BM_mesh_elem_count(BMesh *bm, const char htype);
+
+void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx);
 
 typedef struct BMAllocTemplate {
 	int totvert, totedge, totloop, totface;

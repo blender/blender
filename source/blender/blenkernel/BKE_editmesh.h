@@ -71,13 +71,6 @@ typedef struct BMEditMesh {
 	unsigned char (*derivedFaceColor)[4];
 	int derivedFaceColorLen;
 
-	/* index tables, to map indices to elements via
-	 * EDBM_index_arrays_init and associated functions.  don't
-	 * touch this or read it directly.*/
-	struct BMVert **vert_index;
-	struct BMEdge **edge_index;
-	struct BMFace **face_index;
-
 	/*selection mode*/
 	short selectmode;
 	short mat_nr;

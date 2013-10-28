@@ -183,8 +183,27 @@ typedef struct BMesh {
 	 * BM_LOOP isn't handled so far. */
 	char elem_index_dirty;
 
+	/* flag array table as being dirty so we know when its safe to use it,
+	 * or when it needs to be re-created */
+	char elem_table_dirty;
+
+
 	/* element pools */
 	struct BLI_mempool *vpool, *epool, *lpool, *fpool;
+
+	/* mempool lookup tables (optional)
+	 * index tables, to map indices to elements via
+	 * BM_mesh_elem_table_ensure and associated functions.  don't
+	 * touch this or read it directly.\
+	 * Use BM_mesh_elem_table_ensure(), BM_vert/edge/face_at_index() */
+	BMVert **vtable;
+	BMEdge **etable;
+	BMFace **ftable;
+
+	/* size of allocated tables */
+	int vtable_tot;
+	int etable_tot;
+	int ftable_tot;
 
 	/* operator api stuff (must be all NULL or all alloc'd) */
 	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;

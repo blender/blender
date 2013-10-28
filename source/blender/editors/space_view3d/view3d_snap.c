@@ -214,7 +214,7 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3],
 	void **userdata = vuserdata;
 	BMEditMesh *em = userdata[0];
 	TransVert *tv = userdata[1];
-	BMVert *eve = EDBM_vert_at_index(em, index);
+	BMVert *eve = BM_vert_at_index(em->bm, index);
 	
 	if (BM_elem_index_get(eve) != TM_INDEX_SKIP) {
 		tv = &tv[BM_elem_index_get(eve)];
@@ -342,7 +342,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		}
 		
 		if (transvmain && em->derivedCage) {
-			EDBM_index_arrays_ensure(em, BM_VERT);
+			BM_mesh_elem_table_ensure(bm, BM_VERT);
 			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata, DM_FOREACH_NOP);
 		}
 	}

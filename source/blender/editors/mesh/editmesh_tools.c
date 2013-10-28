@@ -4712,7 +4712,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 
 	EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, use_topology, thresh, index);
 
-	EDBM_index_arrays_ensure(em, BM_VERT);
+	BM_mesh_elem_table_ensure(bm, BM_VERT);
 
 	BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
@@ -4724,7 +4724,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 			int i_mirr = index[i];
 			if (i_mirr != -1) {
 
-				BMVert *v_mirr = EDBM_vert_at_index(em, index[i]);
+				BMVert *v_mirr = BM_vert_at_index(bm, index[i]);
 
 				if (v != v_mirr) {
 					float co[3], co_mirr[3];

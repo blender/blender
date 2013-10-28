@@ -924,7 +924,7 @@ static void uv_select_edgeloop_vertex_loop_flag(UvMapVert *first)
 static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa, BMLoop *l)
 {
 	UvMapVert *iterv, *first;
-	first = EDBM_uv_vert_map_at_index(vmap,  BM_elem_index_get(l->v));
+	first = BM_uv_vert_map_at_index(vmap,  BM_elem_index_get(l->v));
 
 	for (iterv = first; iterv; iterv = iterv->next) {
 		if (iterv->separate)
@@ -953,7 +953,7 @@ static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1,
 
 			if (iterv1->f == iterv2->f) {
 				/* if face already tagged, don't do this edge */
-				efa = EDBM_face_at_index(em, iterv1->f);
+				efa = BM_face_at_index(em->bm, iterv1->f);
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG))
 					return false;
 
@@ -978,7 +978,7 @@ static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1,
 				break;
 
 			if (iterv1->f == iterv2->f) {
-				efa = EDBM_face_at_index(em, iterv1->f);
+				efa = BM_face_at_index(em->bm, iterv1->f);
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				break;
 			}
@@ -1005,8 +1005,8 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	/* setup */
-	EDBM_index_arrays_ensure(em, BM_FACE);
-	vmap = EDBM_uv_vert_map_create(em, 0, limit);
+	BM_mesh_elem_table_ensure(em->bm, BM_FACE);
+	vmap = BM_uv_vert_map_create(em->bm, 0, limit);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 
@@ -1085,7 +1085,7 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 	}
 
 	/* cleanup */
-	EDBM_uv_vert_map_free(vmap);
+	BM_uv_vert_map_free(vmap);
 
 	return (select) ? 1 : -1;
 }
@@ -1108,8 +1108,8 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
-	EDBM_index_arrays_ensure(em, BM_FACE); /* we can use this too */
-	vmap = EDBM_uv_vert_map_create(em, 1, limit);
+	BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
+	vmap = BM_uv_vert_map_create(em->bm, 1, limit);
 
 	if (vmap == NULL)
 		return;
@@ -1152,12 +1152,12 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 		stacksize--;
 		a = stack[stacksize];
 
-		efa = EDBM_face_at_index(em, a);
+		efa = BM_face_at_index(em->bm, a);
 
 		BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 
 			/* make_uv_vert_map_EM sets verts tmp.l to the indices */
-			vlist = EDBM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
+			vlist = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
 			
 			startv = vlist;
 
@@ -1241,7 +1241,7 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 	
 	MEM_freeN(stack);
 	MEM_freeN(flag);
-	EDBM_uv_vert_map_free(vmap);
+	BM_uv_vert_map_free(vmap);
 }
 
 /* WATCH IT: this returns first selected UV,
@@ -2567,7 +2567,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene, BMEditMes
 
 	uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
 
-	vlist_iter = EDBM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
+	vlist_iter = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
 
 	while (vlist_iter) {
 		if (vlist_iter->separate)
@@ -2587,7 +2587,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene, BMEditMes
 
 		if (efa_index != vlist_iter->f) {
 			BMLoop *l_other;
-			efa_vlist = EDBM_face_at_index(em, vlist_iter->f);
+			efa_vlist = BM_face_at_index(em->bm, vlist_iter->f);
 			/* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
 
 			l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
@@ -2657,8 +2657,8 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object
 		
 		uvedit_pixel_to_float(sima, limit, 0.05);
 		
-		EDBM_index_arrays_ensure(em, BM_FACE);
-		vmap = EDBM_uv_vert_map_create(em, 0, limit);
+		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
+		vmap = BM_uv_vert_map_create(em->bm, 0, limit);
 		if (vmap == NULL) {
 			return;
 		}
@@ -2673,7 +2673,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object
 				}
 			}
 		}
-		EDBM_uv_vert_map_free(vmap);
+		BM_uv_vert_map_free(vmap);
 		
 	}
 	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
@@ -2748,8 +2748,8 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 
 		uvedit_pixel_to_float(sima, limit, 0.05);
 
-		EDBM_index_arrays_ensure(em, BM_FACE);
-		vmap = EDBM_uv_vert_map_create(em, 0, limit);
+		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
+		vmap = BM_uv_vert_map_create(em->bm, 0, limit);
 		if (vmap == NULL) {
 			return;
 		}
@@ -2764,7 +2764,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 				}
 			}
 		}
-		EDBM_uv_vert_map_free(vmap);
+		BM_uv_vert_map_free(vmap);
 
 	}
 	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
@@ -3963,8 +3963,8 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 	}
 
 	/* This code sets editvert->tmp.l to the index. This will be useful later on. */
-	EDBM_index_arrays_ensure(em, BM_FACE);
-	vmap = EDBM_uv_vert_map_create(em, 0, limit);
+	BM_mesh_elem_table_ensure(bm, BM_FACE);
+	vmap = BM_uv_vert_map_create(bm, 0, limit);
 
 	BM_ITER_MESH (editedge, &iter, bm, BM_EDGES_OF_MESH) {
 		/* flags to determine if we uv is separated from first editface match */
@@ -3992,14 +3992,14 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 				v1coincident = 0;
 
 			separated2 = 0;
-			efa1 = EDBM_face_at_index(em, mv1->f);
+			efa1 = BM_face_at_index(bm, mv1->f);
 			mvinit2 = vmap->vert[BM_elem_index_get(editedge->v2)];
 
 			for (mv2 = mvinit2; mv2; mv2 = mv2->next) {
 				if (mv2->separate)
 					mv2sep = mv2;
 
-				efa2 = EDBM_face_at_index(em, mv2->f);
+				efa2 = BM_face_at_index(bm, mv2->f);
 				if (efa1 == efa2) {
 					/* if v1 is not coincident no point in comparing */
 					if (v1coincident) {
@@ -4042,7 +4042,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
 	me->drawflag |= ME_DRAWSEAMS;
 
-	EDBM_uv_vert_map_free(vmap);
+	BM_uv_vert_map_free(vmap);
 
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

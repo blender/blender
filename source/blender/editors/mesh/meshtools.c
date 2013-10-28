@@ -1014,7 +1014,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *e
 /**
  * Wrapper for objectmode/editmode.
  *
- * call #EDBM_index_arrays_ensure first for editmesh.
+ * call #BM_mesh_elem_table_ensure first for editmesh.
  */
 int ED_mesh_mirror_get_vert(Object *ob, int index)
 {
@@ -1025,7 +1025,7 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
 
 	if (em) {
 		BMVert *eve, *eve_mirr;
-		eve = EDBM_vert_at_index(em, index);
+		eve = BM_vert_at_index(em->bm, index);
 		eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index, use_topology);
 		index_mirr = eve_mirr ? BM_elem_index_get(eve_mirr) : -1;
 	}

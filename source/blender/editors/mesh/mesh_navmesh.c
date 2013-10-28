@@ -389,7 +389,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		}
 
 		/* need to rebuild entirely because array size changes */
-		EDBM_index_arrays_init(em, BM_VERT);
+		BM_mesh_elem_table_init(em->bm, BM_VERT);
 
 		/* create faces */
 		for (j = 0; j < trinum; j++) {
@@ -404,9 +404,9 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 					face[k] = uniquevbase + tri[k] - nv;  /* unique vertex */
 			}
 			newFace = BM_face_create_quad_tri(em->bm,
-			                                  EDBM_vert_at_index(em, face[0]),
-			                                  EDBM_vert_at_index(em, face[2]),
-			                                  EDBM_vert_at_index(em, face[1]), NULL,
+			                                  BM_vert_at_index(em->bm, face[0]),
+			                                  BM_vert_at_index(em->bm, face[2]),
+			                                  BM_vert_at_index(em->bm, face[1]), NULL,
 			                                  NULL, false);
 
 			/* set navigation polygon idx to the custom layer */

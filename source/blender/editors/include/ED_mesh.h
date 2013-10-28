@@ -97,16 +97,6 @@ void EDBM_mesh_free(struct BMEditMesh *em);
 void EDBM_mesh_load(struct Object *ob);
 struct DerivedMesh *EDBM_mesh_deform_dm_get(struct BMEditMesh *em);
 
-void           EDBM_index_arrays_ensure(struct BMEditMesh *em, const char htype);
-void           EDBM_index_arrays_init(struct BMEditMesh *em, const char htype);
-void           EDBM_index_arrays_free(struct BMEditMesh *em);
-#ifndef NDEBUG
-bool           EDBM_index_arrays_check(struct BMEditMesh *em);
-#endif
-struct BMVert *EDBM_vert_at_index(struct BMEditMesh *em, int index);
-struct BMEdge *EDBM_edge_at_index(struct BMEditMesh *em, int index);
-struct BMFace *EDBM_face_at_index(struct BMEditMesh *em, int index);
-
 /* flushes based on the current select mode.  if in vertex select mode,
  * verts select/deselect edges and faces, if in edge select mode,
  * edges select/deselect faces and vertices, and in face select mode faces select/deselect
@@ -129,16 +119,16 @@ void EDBM_mesh_reveal(struct BMEditMesh *em);
 
 void EDBM_update_generic(struct BMEditMesh *em, const bool do_tessface, const bool is_destructive);
 
-struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, const bool selected, const bool do_islands);
-void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);
-struct UvElement *ED_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
+struct UvElementMap *BM_uv_element_map_create(struct BMesh *em, const bool selected, const bool do_islands);
+void                 BM_uv_element_map_free(struct UvElementMap *vmap);
+struct UvElement    *BM_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
 bool             EDBM_mtexpoly_check(struct BMEditMesh *em);
 struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, const bool sloppy, const bool selected);
 
-void              EDBM_uv_vert_map_free(struct UvVertMap *vmap);
-struct UvMapVert *EDBM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
-struct UvVertMap *EDBM_uv_vert_map_create(struct BMEditMesh *em, bool use_select, const float limit[2]);
+void              BM_uv_vert_map_free(struct UvVertMap *vmap);
+struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
+struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select, const float limit[2]);
 
 void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);

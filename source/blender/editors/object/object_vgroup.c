@@ -348,7 +348,7 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
 		return;
 	}
 	if (em) {
-		EDBM_index_arrays_ensure(em, BM_VERT);
+		BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 	}
 
 	for (i = 0; i < dvert_tot; i++) {
@@ -390,7 +390,7 @@ void ED_vgroup_parray_mirror_assign(Object *ob,
 	}
 	BLI_assert(dvert_tot == dvert_tot_all);
 	if (em) {
-		EDBM_index_arrays_ensure(em, BM_VERT);
+		BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 	}
 
 	for (i = 0; i < dvert_tot; i++) {
@@ -1283,8 +1283,8 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
 			if (cd_dvert_offset != -1) {
 				BMVert *eve;
-				EDBM_index_arrays_ensure(em, BM_VERT);
-				eve = EDBM_vert_at_index(em, vertnum);
+				BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+				eve = BM_vert_at_index(em->bm, vertnum);
 				dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 			else {
@@ -2179,7 +2179,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 	memset(vgroup_subset_weights, 0, sizeof(*vgroup_subset_weights) * subset_count);
 
 	if (bm) {
-		EDBM_index_arrays_ensure(em, BM_VERT);
+		BM_mesh_elem_table_ensure(bm, BM_VERT);
 
 		emap = NULL;
 		emap_mem = NULL;
@@ -2197,7 +2197,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 		/* in case its not selected */
 
 		if (bm) {
-			BMVert *v = EDBM_vert_at_index(em, i);
+			BMVert *v = BM_vert_at_index(bm, i);
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				BMIter eiter;
 				BMEdge *e;

@@ -1429,7 +1429,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 					
 					if (em != NULL) {
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_ensure(em, BM_VERT);
+						BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 					}
 					
 					for (i = 0; i < totvert; i++) {
@@ -1450,7 +1450,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 								test = 0;
 							}
 							else {
-								eve = EDBM_vert_at_index(em, index);
+								eve = BM_vert_at_index(em->bm, index);
 								
 								if ((BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
 								     BM_elem_flag_test(eve, BM_ELEM_SELECT)))
@@ -1479,7 +1479,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 					
 					if (em != NULL) {
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_ensure(em, BM_EDGE);
+						BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
 					}
 					
 					for (i = 0; i < totedge; i++) {
@@ -1499,7 +1499,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 								test = 0;
 							}
 							else {
-								BMEdge *eed = EDBM_edge_at_index(em, index);
+								BMEdge *eed = BM_edge_at_index(em->bm, index);
 
 								if ((BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
 								     BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||

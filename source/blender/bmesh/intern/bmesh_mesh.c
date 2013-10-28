@@ -213,6 +213,10 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->lpool);
 	BLI_mempool_destroy(bm->fpool);
 
+	if (bm->vtable) MEM_freeN(bm->vtable);
+	if (bm->etable) MEM_freeN(bm->etable);
+	if (bm->ftable) MEM_freeN(bm->ftable);
+
 	/* destroy flag pool */
 	BM_mesh_elem_toolflags_clear(bm);
 
@@ -623,6 +627,179 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 
 }
 
+/* debug check only - no need to optimize */
+#ifndef NDEBUG
+bool BM_mesh_elem_table_check(BMesh *bm)
+{
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	if (bm->vtable && ((bm->elem_table_dirty & BM_VERT) == 0)) {
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (ele != (BMElem *)bm->vtable[i]) {
+				return false;
+			}
+		}
+	}
+
+	if (bm->etable && ((bm->elem_table_dirty & BM_EDGE) == 0)) {
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
+			if (ele != (BMElem *)bm->etable[i]) {
+				return false;
+			}
+		}
+	}
+
+	if (bm->ftable && ((bm->elem_table_dirty & BM_FACE) == 0)) {
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
+			if (ele != (BMElem *)bm->ftable[i]) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+#endif
+
+
+
+void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
+{
+	/* assume if the array is non-null then its valid and no need to recalc */
+	const char htype_needed = (((bm->vtable && ((bm->elem_table_dirty & BM_VERT) == 0)) ? 0 : BM_VERT) |
+	                           ((bm->etable && ((bm->elem_table_dirty & BM_EDGE) == 0)) ? 0 : BM_EDGE) |
+	                           ((bm->ftable && ((bm->elem_table_dirty & BM_FACE) == 0)) ? 0 : BM_FACE)) & htype;
+
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
+	/* in debug mode double check we didn't need to recalculate */
+	BLI_assert(BM_mesh_elem_table_check(bm) == true);
+
+	if (htype_needed & BM_VERT) {
+		if (bm->vtable && bm->totvert <= bm->vtable_tot && bm->totvert * 2 >= bm->vtable_tot) {
+			/* pass (re-use the array) */
+		}
+		else {
+			if (bm->vtable)
+				MEM_freeN(bm->vtable);
+			bm->vtable = MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable");
+			bm->vtable_tot = bm->totvert;
+		}
+		bm->elem_table_dirty &= ~BM_VERT;
+	}
+	if (htype_needed & BM_EDGE) {
+		if (bm->etable && bm->totedge <= bm->etable_tot && bm->totedge * 2 >= bm->etable_tot) {
+			/* pass (re-use the array) */
+		}
+		else {
+			if (bm->etable)
+				MEM_freeN(bm->etable);
+			bm->etable = MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable");
+			bm->etable_tot = bm->totedge;
+		}
+		bm->elem_table_dirty &= ~BM_EDGE;
+	}
+	if (htype_needed & BM_FACE) {
+		if (bm->ftable && bm->totface <= bm->ftable_tot && bm->totface * 2 >= bm->ftable_tot) {
+			/* pass (re-use the array) */
+		}
+		else {
+			if (bm->ftable)
+				MEM_freeN(bm->ftable);
+			bm->ftable = MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable");
+			bm->ftable_tot = bm->totface;
+		}
+		bm->elem_table_dirty &= ~BM_FACE;
+	}
+
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	{
+#pragma omp section
+		{
+			if (htype_needed & BM_VERT) {
+				BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)bm->vtable, bm->totvert);
+			}
+		}
+#pragma omp section
+		{
+			if (htype_needed & BM_EDGE) {
+				BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)bm->etable, bm->totedge);
+			}
+		}
+#pragma omp section
+		{
+			if (htype_needed & BM_FACE) {
+				BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)bm->ftable, bm->totface);
+			}
+		}
+	}
+}
+
+/* use BM_mesh_elem_table_ensure where possible to avoid full rebuild */
+void BM_mesh_elem_table_init(BMesh *bm, const char htype)
+{
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
+	/* force recalc */
+	BM_mesh_elem_table_free(bm, BM_ALL_NOLOOP);
+	BM_mesh_elem_table_ensure(bm, htype);
+}
+
+void BM_mesh_elem_table_free(BMesh *bm, const char htype)
+{
+	if (htype & BM_VERT) {
+		MEM_SAFE_FREE(bm->vtable);
+	}
+
+	if (htype & BM_EDGE) {
+		MEM_SAFE_FREE(bm->etable);
+	}
+
+	if (htype & BM_FACE) {
+		MEM_SAFE_FREE(bm->ftable);
+	}
+}
+
+BMVert *BM_vert_at_index(BMesh *bm, int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totvert));
+	BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
+	return bm->vtable[index];
+}
+
+BMEdge *BM_edge_at_index(BMesh *bm, int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totedge));
+	BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
+	return bm->etable[index];
+}
+
+BMFace *BM_face_at_index(BMesh *bm, int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totface));
+	BLI_assert((bm->elem_table_dirty & BM_FACE) == 0);
+	return bm->ftable[index];
+}
+
+
+BMVert *BM_vert_at_index_find(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->vpool, index);
+}
+
+BMEdge *BM_edge_at_index_find(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->epool, index);
+}
+
+BMFace *BM_face_at_index_find(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->fpool, index);
+}
+
+
 /**
  * Return the amount of element of type 'type' in a given bmesh.
  */
@@ -827,19 +1004,4 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		BLI_ghash_free(eptr_map, NULL, NULL);
 	if (fptr_map)
 		BLI_ghash_free(fptr_map, NULL, NULL);
-}
-
-BMVert *BM_vert_at_index_find(BMesh *bm, const int index)
-{
-	return BLI_mempool_findelem(bm->vpool, index);
-}
-
-BMEdge *BM_edge_at_index_find(BMesh *bm, const int index)
-{
-	return BLI_mempool_findelem(bm->epool, index);
-}
-
-BMFace *BM_face_at_index_find(BMesh *bm, const int index)
-{
-	return BLI_mempool_findelem(bm->fpool, index);
 }

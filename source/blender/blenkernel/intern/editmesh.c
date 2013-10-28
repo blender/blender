@@ -78,10 +78,6 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 	 * used.*/
 	em_copy->looptris = NULL;
 
-	em_copy->vert_index = NULL;
-	em_copy->edge_index = NULL;
-	em_copy->face_index = NULL;
-
 	return em_copy;
 }
 
@@ -344,10 +340,6 @@ void BKE_editmesh_free(BMEditMesh *em)
 	BKE_editmesh_color_free(em);
 
 	if (em->looptris) MEM_freeN(em->looptris);
-
-	if (em->vert_index) MEM_freeN(em->vert_index);
-	if (em->edge_index) MEM_freeN(em->edge_index);
-	if (em->face_index) MEM_freeN(em->face_index);
 
 	if (em->bm)
 		BM_mesh_free(em->bm);

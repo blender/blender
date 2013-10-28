@@ -600,7 +600,7 @@ static void state_delete(StitchState *state)
 {
 	if (state) {
 		if (state->element_map) {
-			EDBM_uv_element_map_free(state->element_map);
+			BM_uv_element_map_free(state->element_map);
 		}
 		if (state->uvs) {
 			MEM_freeN(state->uvs);
@@ -661,9 +661,9 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 
 				/* check to see if other vertex of edge belongs to same vertex as */
 				if (BM_elem_index_get(iter1->l->next->v) == elemindex2)
-					iter2 = ED_uv_element_get(element_map, iter1->l->f, iter1->l->next);
+					iter2 = BM_uv_element_get(element_map, iter1->l->f, iter1->l->next);
 				else if (BM_elem_index_get(iter1->l->prev->v) == elemindex2)
-					iter2 = ED_uv_element_get(element_map, iter1->l->f, iter1->l->prev);
+					iter2 = BM_uv_element_get(element_map, iter1->l->f, iter1->l->prev);
 
 				if (iter2) {
 					int index1 = map[iter1 - first_element];
@@ -1017,7 +1017,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		/* copy data from MLoopUVs to the preview display buffers */
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			/* just to test if face was added for processing. uvs of inselected vertices will return NULL */
-			UvElement *element = ED_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
+			UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 			if (element) {
 				int numoftris = efa->len - 2;
@@ -1568,8 +1568,8 @@ static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
 {
 	UvEdge tmp_edge;
 
-	UvElement *element1 = ED_uv_element_get(state->element_map, l->f, l);
-	UvElement *element2 = ED_uv_element_get(state->element_map, l->f, l->next);
+	UvElement *element1 = BM_uv_element_get(state->element_map, l->f, l);
+	UvElement *element2 = BM_uv_element_get(state->element_map, l->f, l->next);
 
 	int uv1 = state->map[element1 - state->element_map->buf];
 	int uv2 = state->map[element2 - state->element_map->buf];
@@ -1651,10 +1651,10 @@ static int stitch_init(bContext *C, wmOperator *op)
 	state->draw_handle = ED_region_draw_cb_activate(ar->type, stitch_draw, state, REGION_DRAW_POST_VIEW);
 	/* in uv synch selection, all uv's are visible */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		state->element_map = EDBM_uv_element_map_create(state->em, FALSE, TRUE);
+		state->element_map = BM_uv_element_map_create(state->em->bm, false, true);
 	}
 	else {
-		state->element_map = EDBM_uv_element_map_create(state->em, TRUE, TRUE);
+		state->element_map = BM_uv_element_map_create(state->em->bm, true, true);
 	}
 	if (!state->element_map) {
 		state_delete(state);
@@ -1715,9 +1715,9 @@ static int stitch_init(bContext *C, wmOperator *op)
 			continue;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			UvElement *element = ED_uv_element_get(state->element_map, efa, l);
+			UvElement *element = BM_uv_element_get(state->element_map, efa, l);
 			int offset1, itmp1 = element - state->element_map->buf;
-			int offset2, itmp2 = ED_uv_element_get(state->element_map, efa, l->next) - state->element_map->buf;
+			int offset2, itmp2 = BM_uv_element_get(state->element_map, efa, l->next) - state->element_map->buf;
 			UvEdge *edge;
 
 			offset1 = map[itmp1];
@@ -1814,7 +1814,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		UvElement *element;
 		enum StitchModes stored_mode = RNA_enum_get(op->ptr, "stored_mode");
 
-		EDBM_index_arrays_ensure(em, BM_FACE);
+		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
 
 		if (stored_mode == STITCH_VERT) {
 			state->selection_stack = MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_uvs, "uv_stitch_selection_stack");
@@ -1823,8 +1823,8 @@ static int stitch_init(bContext *C, wmOperator *op)
 			{
 				faceIndex = RNA_int_get(&itemptr, "face_index");
 				elementIndex = RNA_int_get(&itemptr, "element_index");
-				efa = EDBM_face_at_index(em, faceIndex);
-				element = ED_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
+				efa = BM_face_at_index(em->bm, faceIndex);
+				element = BM_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
 				stitch_select_uv(element, state, 1);
 			}
 			RNA_END;
@@ -1838,11 +1838,11 @@ static int stitch_init(bContext *C, wmOperator *op)
 				int uv1, uv2;
 				faceIndex = RNA_int_get(&itemptr, "face_index");
 				elementIndex = RNA_int_get(&itemptr, "element_index");
-				efa = EDBM_face_at_index(em, faceIndex);
-				element = ED_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
+				efa = BM_face_at_index(em->bm, faceIndex);
+				element = BM_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
 				uv1 = map[element - state->element_map->buf];
 
-				element = ED_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, (elementIndex + 1) % efa->len));
+				element = BM_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, (elementIndex + 1) % efa->len));
 				uv2 = map[element - state->element_map->buf];
 
 				if (uv1 < uv2) {
@@ -1877,7 +1877,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-						UvElement *element = ED_uv_element_get(state->element_map, efa, l);
+						UvElement *element = BM_uv_element_get(state->element_map, efa, l);
 						if (element) {
 							stitch_select_uv(element, state, 1);
 						}
@@ -1913,7 +1913,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	}
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		UvElement *element = ED_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
+		UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 		if (element) {
 			state->tris_per_island[element->island] += (efa->len > 2) ? efa->len - 2 : 0;
@@ -2039,7 +2039,7 @@ static void stitch_select(bContext *C, Scene *scene, const wmEvent *event, Stitc
 			 * you can do stuff like deselect the opposite stitchable vertex and the initial still gets deselected */
 
 			/* This works due to setting of tmp in find nearest uv vert */
-			UvElement *element = ED_uv_element_get(state->element_map, hit.efa, hit.l);
+			UvElement *element = BM_uv_element_get(state->element_map, hit.efa, hit.l);
 			stitch_select_uv(element, state, FALSE);
 
 		}

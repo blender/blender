@@ -2008,8 +2008,8 @@ static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r
 	 * its possible we have a selected vertex thats not in a face, for now best not crash in that case. */
 	fill_vn_i(vert_map, bm->totvert, -1);
 
-	EDBM_index_arrays_ensure(em, htype);
-	ele_array = (htype == BM_FACE) ? (void **)em->face_index : (void **)em->edge_index;
+	BM_mesh_elem_table_ensure(bm, htype);
+	ele_array = (htype == BM_FACE) ? (void **)bm->ftable : (void **)bm->etable;
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -2576,10 +2576,10 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if (propconnected) {
 		/* create element map with island information */
 		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			elementmap = EDBM_uv_element_map_create(em, false, true);
+			elementmap = BM_uv_element_map_create(em->bm, false, true);
 		}
 		else {
-			elementmap = EDBM_uv_element_map_create(em, true, true);
+			elementmap = BM_uv_element_map_create(em->bm, true, true);
 		}
 		island_enabled = MEM_callocN(sizeof(*island_enabled) * elementmap->totalIslands, "TransIslandData(UV Editing)");
 	}
@@ -2598,7 +2598,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 				countsel++;
 
 				if (propconnected) {
-					UvElement *element = ED_uv_element_get(elementmap, efa, l);
+					UvElement *element = BM_uv_element_get(elementmap, efa, l);
 					island_enabled[element->island] = TRUE;
 				}
 
@@ -2634,7 +2634,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 				continue;
 
 			if (propconnected) {
-				UvElement *element = ED_uv_element_get(elementmap, efa, l);
+				UvElement *element = BM_uv_element_get(elementmap, efa, l);
 				if (!island_enabled[element->island]) {
 					count_rejected++;
 					continue;
@@ -2648,7 +2648,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 	if (propconnected) {
 		t->total -= count_rejected;
-		EDBM_uv_element_map_free(elementmap);
+		BM_uv_element_map_free(elementmap);
 		MEM_freeN(island_enabled);
 	}
 

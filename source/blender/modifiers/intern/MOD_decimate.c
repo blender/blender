@@ -196,9 +196,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* update for display only */
 	dmd->face_count = bm->totface;
 	result = CDDM_from_bmesh(bm, FALSE);
-	BLI_assert(bm->vtoolflagpool == NULL);  /* make sure we never alloc'd this */
-	BLI_assert(bm->etoolflagpool == NULL);
-	BLI_assert(bm->ftoolflagpool == NULL);
+	BLI_assert(bm->vtoolflagpool == NULL &&
+	           bm->etoolflagpool == NULL &&
+	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
+	BLI_assert(bm->vtable == NULL &&
+	           bm->etable == NULL &&
+	           bm->ftable == NULL);
+
 	BM_mesh_free(bm);
 
 #ifdef USE_TIMEIT

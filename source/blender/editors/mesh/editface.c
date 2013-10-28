@@ -797,7 +797,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 	if (em) {
 		if (skip_em_vert_array_init == false) {
-			EDBM_index_arrays_ensure(em, BM_VERT);
+			BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 		}
 	}
 
@@ -822,8 +822,8 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		if ((a == totvert) || (topo_pairs[a - 1].hash != topo_pairs[a].hash)) {
 			if (a - last == 2) {
 				if (em) {
-					index_lookup[topo_pairs[a - 1].v_index] = (intptr_t)EDBM_vert_at_index(em, topo_pairs[a - 2].v_index);
-					index_lookup[topo_pairs[a - 2].v_index] = (intptr_t)EDBM_vert_at_index(em, topo_pairs[a - 1].v_index);
+					index_lookup[topo_pairs[a - 1].v_index] = (intptr_t)BM_vert_at_index(em->bm, topo_pairs[a - 2].v_index);
+					index_lookup[topo_pairs[a - 2].v_index] = (intptr_t)BM_vert_at_index(em->bm, topo_pairs[a - 1].v_index);
 				}
 				else {
 					index_lookup[topo_pairs[a - 1].v_index] = topo_pairs[a - 2].v_index;

@@ -574,7 +574,7 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
 	if (UNLIKELY(index >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
 
-	efa = EDBM_face_at_index(em, index);
+	efa = BM_face_at_index(em->bm, index);
 
 	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_SKIP;
@@ -936,7 +936,7 @@ static bool tex_mat_set_face_editmesh_cb(void *userData, int index)
 	if (UNLIKELY(index >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
 
-	efa = EDBM_face_at_index(em, index);
+	efa = BM_face_at_index(em->bm, index);
 
 	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
 }
