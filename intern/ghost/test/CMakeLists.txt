@@ -122,6 +122,7 @@ add_library(bli_lib
 		"../../../source/blender/blenlib/intern/listbase.c"
 		"../../../source/blender/blenlib/intern/math_color.c"
 		"../../../source/blender/blenlib/intern/storage.c"
+		"../../../source/blender/blenlib/intern/task.c"
 		"../../../source/blender/blenlib/intern/threads.c"
 		"../../../source/blender/blenlib/intern/time.c"
 		"../../../source/blender/blenlib/intern/path_util.c"
