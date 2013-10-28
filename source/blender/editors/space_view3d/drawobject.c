@@ -2309,7 +2309,7 @@ static DMDrawOption draw_dm_edges_seams__setDrawOptions(void *userData, int inde
 
 static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
 {
-	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, em);
+	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, em->bm);
 }
 
 /* Draw only sharp edges */
@@ -2325,7 +2325,7 @@ static DMDrawOption draw_dm_edges_sharp__setDrawOptions(void *userData, int inde
 
 static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 {
-	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, em);
+	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, em->bm);
 }
 
 #ifdef WITH_FREESTYLE
