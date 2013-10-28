@@ -878,7 +878,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
 	re->sss_mat= mat;
-	re->i.partsdone = FALSE;
+	re->i.partsdone = 0;
 
 	if (!(re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW)))
 		re->result= NULL;

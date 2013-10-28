@@ -555,7 +555,7 @@ void RE_parts_init(Render *re, int do_crop)
 	/* this is render info for caller, is not reset when parts are freed! */
 	re->i.totpart = 0;
 	re->i.curpart = 0;
-	re->i.partsdone = FALSE;
+	re->i.partsdone = 0;
 	
 	/* just for readable code.. */
 	xminb = re->disprect.xmin;
