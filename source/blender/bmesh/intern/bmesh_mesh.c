@@ -762,21 +762,21 @@ void BM_mesh_elem_table_free(BMesh *bm, const char htype)
 	}
 }
 
-BMVert *BM_vert_at_index(BMesh *bm, int index)
+BMVert *BM_vert_at_index(BMesh *bm, const int index)
 {
 	BLI_assert((index >= 0) && (index < bm->totvert));
 	BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
 	return bm->vtable[index];
 }
 
-BMEdge *BM_edge_at_index(BMesh *bm, int index)
+BMEdge *BM_edge_at_index(BMesh *bm, const int index)
 {
 	BLI_assert((index >= 0) && (index < bm->totedge));
 	BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
 	return bm->etable[index];
 }
 
-BMFace *BM_face_at_index(BMesh *bm, int index)
+BMFace *BM_face_at_index(BMesh *bm, const int index)
 {
 	BLI_assert((index >= 0) && (index < bm->totface));
 	BLI_assert((bm->elem_table_dirty & BM_FACE) == 0);
