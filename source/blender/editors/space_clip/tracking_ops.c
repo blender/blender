@@ -1097,16 +1097,16 @@ static int track_markers_testbreak(void)
 	return G.is_break;
 }
 
-static int track_count_markers(SpaceClip *sc, MovieClip *clip)
+static int track_count_markers(SpaceClip *sc, MovieClip *clip, int framenr)
 {
 	int tot = 0;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+		bool selected = sc ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+		if (selected && (track->flag & TRACK_LOCKED) == 0) {
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (!marker || (marker->flag & MARKER_DISABLED) == 0)
@@ -1142,18 +1142,20 @@ static void clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 	}
 }
 
-static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit_r)
+static void track_init_markers(SpaceClip *sc, MovieClip *clip, int framenr, int *frames_limit_r)
 {
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int frames_limit = 0;
 
-	clear_invisible_track_selection(sc, clip);
+	if (sc != NULL) {
+		clear_invisible_track_selection(sc, clip);
+	}
 
 	track = tracksbase->first;
 	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track)) {
+		bool selected = sc ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+		if (selected) {
 			if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
 				BKE_tracking_marker_ensure(track, framenr);
 
@@ -1193,8 +1195,9 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 	Scene *scene = CTX_data_scene(C);
 	MovieTrackingSettings *settings = &clip->tracking.settings;
 	int frames_limit;
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-	track_init_markers(sc, clip, &frames_limit);
+	track_init_markers(sc, clip, framenr, &frames_limit);
 
 	tmj->sfra = ED_space_clip_get_clip_frame_number(sc);
 	tmj->clip = clip;
@@ -1317,20 +1320,49 @@ static void track_markers_freejob(void *tmv)
 
 static int track_markers_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip_get_clip(sc);
+	SpaceClip *sc;
+	MovieClip *clip;
 	Scene *scene = CTX_data_scene(C);
 	struct MovieTrackingContext *context;
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
-	int sfra = framenr, efra;
+	MovieClipUser *user, fake_user = {0};
+	int framenr, sfra, efra;
 	int backwards = RNA_boolean_get(op->ptr, "backwards");
 	int sequence = RNA_boolean_get(op->ptr, "sequence");
 	int frames_limit;
 
-	if (track_count_markers(sc, clip) == 0)
+	if (RNA_struct_property_is_set(op->ptr, "clip")) {
+		Main *bmain = CTX_data_main(C);
+		char clip_name[MAX_ID_NAME - 2];
+
+		RNA_string_get(op->ptr, "clip", clip_name);
+		clip = (MovieClip *)BLI_findstring(&bmain->movieclip, clip_name, offsetof(ID, name) + 2);
+		sc = NULL;
+
+		if (clip == NULL) {
+			return OPERATOR_CANCELLED;
+		}
+        framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, CFRA);
+		fake_user.framenr = framenr;
+		user = &fake_user;
+	}
+	else {
+		sc = CTX_wm_space_clip(C);
+
+		if (sc == NULL) {
+			return OPERATOR_CANCELLED;
+		}
+
+		clip = ED_space_clip_get_clip(sc);
+		framenr = ED_space_clip_get_clip_frame_number(sc);
+		user = &sc->user;
+	}
+
+	sfra = framenr;
+
+	if (track_count_markers(sc, clip, framenr) == 0)
 		return OPERATOR_CANCELLED;
 
-	track_init_markers(sc, clip, &frames_limit);
+	track_init_markers(sc, clip, framenr, &frames_limit);
 
 	if (backwards)
 		efra = SFRA;
@@ -1351,7 +1383,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
-	context = BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
+	context = BKE_tracking_context_new(clip, user, backwards, sequence);
 
 	while (framenr != efra) {
 		if (!BKE_tracking_context_step(context))
@@ -1382,10 +1414,21 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	TrackMarkersJob *tmj;
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieClip *clip;
 	wmJob *wm_job;
-	int backwards = RNA_boolean_get(op->ptr, "backwards");
-	int sequence = RNA_boolean_get(op->ptr, "sequence");
+	bool backwards = RNA_boolean_get(op->ptr, "backwards");
+	bool sequence = RNA_boolean_get(op->ptr, "sequence");
+	int framenr;
+
+	if (sc == NULL) {
+		/* TODO(sergey): Support clip for invokaction as well. */
+		BKE_report(op->reports, RPT_ERROR,
+		           "Invoking this operator only supported from Clip Editor space.");
+		return OPERATOR_CANCELLED;
+	}
+
+	clip = ED_space_clip_get_clip(sc);
+	framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
 		/* only one tracking is allowed at a time */
@@ -1395,7 +1438,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	if (clip->tracking_context)
 		return OPERATOR_CANCELLED;
 
-	if (track_count_markers(sc, clip) == 0)
+	if (track_count_markers(sc, clip, framenr) == 0)
 		return OPERATOR_CANCELLED;
 
 	if (!sequence)
@@ -1453,6 +1496,8 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
 
 void CLIP_OT_track_markers(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Track Markers";
 	ot->description = "Track selected markers";
@@ -1461,7 +1506,6 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = track_markers_exec;
 	ot->invoke = track_markers_invoke;
-	ot->poll = ED_space_clip_tracking_poll;
 	ot->modal = track_markers_modal;
 
 	/* flags */
@@ -1470,6 +1514,8 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tracking");
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
+	prop = RNA_def_string(ot->srna, "clip", "", MAX_NAME, "Movie Clip", "Movie Clip to be tracked");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** refine track position operator *********************/
