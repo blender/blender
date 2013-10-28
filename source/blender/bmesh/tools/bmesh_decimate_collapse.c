@@ -390,10 +390,10 @@ static void bm_decim_triangulate_end(BMesh *bm)
 {
 	/* decimation finished, now re-join */
 	BMIter iter;
-	BMEdge *e;
+	BMEdge *e, *e_next;
 
 	/* boundary edges */
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
 		BMLoop *l_a, *l_b;
 		if (BM_edge_loop_pair(e, &l_a, &l_b)) {
 			const int l_a_index = BM_elem_index_get(l_a);
