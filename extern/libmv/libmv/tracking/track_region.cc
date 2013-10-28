@@ -1450,16 +1450,6 @@ void TemplatedTrackRegion(const FloatImage &image1,
     return;
   }
 
-  // This happens when the minimum corner shift tolerance is reached. Due to
-  // how the tolerance is computed this can't be done by Ceres. So return the
-  // same termination enum as Ceres, even though this is slightly different
-  // than Ceres's parameter tolerance, which operates on the raw parameter
-  // values rather than the pixel shifts of the patch corners.
-  if (summary.termination_type == ceres::USER_SUCCESS) {
-    result->termination = TrackRegionResult::PARAMETER_TOLERANCE;
-    return;
-  }
-
 #define HANDLE_TERMINATION(termination_enum) \
   if (summary.termination_type == ceres::termination_enum) { \
     result->termination = TrackRegionResult::termination_enum; \
@@ -1479,6 +1469,16 @@ void TemplatedTrackRegion(const FloatImage &image1,
       result->termination = TrackRegionResult::INSUFFICIENT_CORRELATION;
       return;
     }
+  }
+
+  // This happens when the minimum corner shift tolerance is reached. Due to
+  // how the tolerance is computed this can't be done by Ceres. So return the
+  // same termination enum as Ceres, even though this is slightly different
+  // than Ceres's parameter tolerance, which operates on the raw parameter
+  // values rather than the pixel shifts of the patch corners.
+  if (summary.termination_type == ceres::USER_SUCCESS) {
+    result->termination = TrackRegionResult::PARAMETER_TOLERANCE;
+    return;
   }
 
   HANDLE_TERMINATION(PARAMETER_TOLERANCE);
