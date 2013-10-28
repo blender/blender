@@ -583,8 +583,11 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 				else
 					newbone->parent = ebp2->head_owner;
 			}
-			
-			newbone->flag |= BONE_CONNECTED;
+
+			/* don't set for bone connecting two head points of bones */
+			if (ebp->tail_owner || ebp2->tail_owner) {
+				newbone->flag |= BONE_CONNECTED;
+			}
 		}
 	}
 	else {
