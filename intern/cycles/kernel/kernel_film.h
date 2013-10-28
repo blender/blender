@@ -72,9 +72,20 @@ __device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 
 	__global float4 *in = (__global float4*)(buffer + index*kernel_data.film.pass_stride);
 	__global half *out = (__global half*)rgba + index*4;
-	float scale = kernel_data.film.exposure*sample_scale;
 
-	float4_store_half(out, in, scale);
+	float exposure = kernel_data.film.exposure;
+
+	if(exposure == 1.0f) {
+		float4_store_half(out, in, sample_scale);
+	}
+	else {
+		float4 rgba = *in;
+		rgba.x *= exposure;
+		rgba.y *= exposure;
+		rgba.z *= exposure;
+
+		float4_store_half(out, &rgba, sample_scale);
+	}
 }
 
 CCL_NAMESPACE_END
