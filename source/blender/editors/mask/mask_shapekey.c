@@ -319,7 +319,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 					     masklay_shape_tmp;
 					     masklay_shape_tmp = masklay_shape_tmp->next)
 					{
-						BKE_mask_layer_evaluate(masklay, masklay_shape_tmp->frame, TRUE);
+						BKE_mask_layer_evaluate(masklay, masklay_shape_tmp->frame, true);
 						masklay_shape_tmp_rekey = BKE_mask_layer_shape_varify_frame(masklay, masklay_shape_tmp->frame);
 						BKE_mask_layer_shape_from_mask(masklay, masklay_shape_tmp_rekey);
 						masklay_shape_tmp_rekey->flag = masklay_shape_tmp->flag & MASK_SHAPE_SELECT;
@@ -376,7 +376,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 			}
 
 			/* re-evaluate */
-			BKE_mask_layer_evaluate(masklay, frame, TRUE);
+			BKE_mask_layer_evaluate(masklay, frame, true);
 		}
 	}
 

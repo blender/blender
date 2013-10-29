@@ -446,7 +446,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
 		BKE_mask_parent_init(&new_point->parent);
 
 		/* Not efficient, but there's no other way for now */
-		BKE_mask_layer_shape_changed_add(layer, spline_shape_index + point_index, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(layer, spline_shape_index + point_index, true, true);
 	}
 
 	WM_main_add_notifier(NC_MASK | ND_DATA, mask);

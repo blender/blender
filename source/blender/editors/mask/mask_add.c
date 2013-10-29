@@ -385,7 +385,7 @@ static int add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2]
 		setup_vertex_point(mask, spline, new_point, co, tangent, u, NULL, TRUE, 1.0f);
 
 		/* TODO - we could pass the spline! */
-		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, true, true);
 
 		masklay->act_spline = spline;
 		masklay->act_point = new_point;
@@ -486,7 +486,7 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 
 	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
-		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, true, true);
 	}
 
 	if (do_recalc_src) {
@@ -548,7 +548,7 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
-		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, true, true);
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);

@@ -123,9 +123,9 @@ void BKE_mask_coord_to_image(struct Image *image, struct ImageUser *iuser, float
 
 void BKE_mask_update_display(struct Mask *mask, float ctime);
 
-void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
-void BKE_mask_evaluate(struct Mask *mask, const float ctime, const int do_newframe);
-void BKE_mask_layer_evaluate(struct MaskLayer *masklay, const float ctime, const int do_newframe);
+void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const bool do_newframe);
+void BKE_mask_evaluate(struct Mask *mask, const float ctime, const bool do_newframe);
+void BKE_mask_layer_evaluate(struct MaskLayer *masklay, const float ctime, const bool do_newframe);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
@@ -161,12 +161,13 @@ struct MaskLayerShape *BKE_mask_layer_shape_duplicate(struct MaskLayerShape *mas
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 
-int BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index,
+bool BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index,
                                             struct MaskSpline **r_masklay_shape, int *r_index);
 int BKE_mask_layer_shape_spline_to_index(struct MaskLayer *masklay, struct MaskSpline *spline);
 
+/* TODO(sergey): do_init and do_init_interpolate are always true, so let's wipe them later. */
 void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay, int index,
-                                       int do_init, int do_init_interpolate);
+                                      bool do_init, bool do_init_interpolate);
 
 void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, int count);
 

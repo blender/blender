@@ -1443,7 +1443,7 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 	}
 }
 
-void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do_newframe)
+void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const bool do_newframe)
 {
 	/* animation if available */
 	if (do_newframe) {
@@ -1521,7 +1521,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do
 	}
 }
 
-void BKE_mask_evaluate(Mask *mask, const float ctime, const int do_newframe)
+void BKE_mask_evaluate(Mask *mask, const float ctime, const bool do_newframe)
 {
 	MaskLayer *masklay;
 
@@ -1562,10 +1562,10 @@ void BKE_mask_update_display(Mask *mask, float ctime)
 	}
 #endif
 
-	BKE_mask_evaluate(mask, ctime, FALSE);
+	BKE_mask_evaluate(mask, ctime, false);
 }
 
-void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const int do_newframe)
+void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const bool do_newframe)
 {
 	Mask *mask;
 
@@ -1835,8 +1835,8 @@ void BKE_mask_layer_shape_sort(MaskLayer *masklay)
 	BLI_sortlist(&masklay->splines_shapes, mask_layer_shape_sort_cb);
 }
 
-int BKE_mask_layer_shape_spline_from_index(MaskLayer *masklay, int index,
-                                           MaskSpline **r_masklay_shape, int *r_index)
+bool BKE_mask_layer_shape_spline_from_index(MaskLayer *masklay, int index,
+                                            MaskSpline **r_masklay_shape, int *r_index)
 {
 	MaskSpline *spline;
 
@@ -1844,12 +1844,12 @@ int BKE_mask_layer_shape_spline_from_index(MaskLayer *masklay, int index,
 		if (index < spline->tot_point) {
 			*r_masklay_shape = spline;
 			*r_index = index;
-			return TRUE;
+			return true;
 		}
 		index -= spline->tot_point;
 	}
 
-	return FALSE;
+	return false;
 }
 
 int BKE_mask_layer_shape_spline_to_index(MaskLayer *masklay, MaskSpline *spline)
@@ -1891,7 +1891,7 @@ static void interp_weights_uv_v2_apply(const float uv[2], float r_pt[2], const f
 
 /* when a new points added - resize all shapekey array  */
 void BKE_mask_layer_shape_changed_add(MaskLayer *masklay, int index,
-                                      int do_init, int do_init_interpolate)
+                                      bool do_init, bool do_init_interpolate)
 {
 	MaskLayerShape *masklay_shape;
 
