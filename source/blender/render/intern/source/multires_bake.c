@@ -611,6 +611,9 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
 	float crn_x, crn_y;
 	int grid_size, S, face_side;
 	int *grid_offset, g_index;
+	int side, grid_index, loc_offs, cell_index, cell_side, row, col;
+
+	BLI_assert(lvl > 0);
 
 	lodm->getTessFace(lodm, face_index, &mface);
 
@@ -621,25 +624,19 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
 
 	face_side = (grid_size << 1) - 1;
 
-	if (lvl == 0) {
-		g_index = grid_offset[face_index];
-		S = mdisp_rot_face_to_crn(mface.v4 ? 4 : 3, face_side, u * (face_side - 1), v * (face_side - 1), &crn_x, &crn_y);
-	}
-	else {
-		int side = (1 << (lvl - 1)) + 1;
-		int grid_index = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, face_index);
-		int loc_offs = face_index % (1 << (2 * lvl));
-		int cell_index = loc_offs % ((side - 1) * (side - 1));
-		int cell_side = (grid_size - 1) / (side - 1);
-		int row = cell_index / (side - 1);
-		int col = cell_index % (side - 1);
+	side = (1 << (lvl - 1)) + 1;
+	grid_index = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, face_index);
+	loc_offs = face_index % (1 << (2 * lvl));
+	cell_index = loc_offs % ((side - 1) * (side - 1));
+	cell_side = (grid_size - 1) / (side - 1);
+	row = cell_index / (side - 1);
+	col = cell_index % (side - 1);
 
-		S = face_index / (1 << (2 * (lvl - 1))) - grid_offset[grid_index];
-		g_index = grid_offset[grid_index];
+	S = face_index / (1 << (2 * (lvl - 1))) - grid_offset[grid_index];
+	g_index = grid_offset[grid_index];
 
-		crn_y = (row * cell_side) + u * cell_side;
-		crn_x = (col * cell_side) + v * cell_side;
-	}
+	crn_y = (row * cell_side) + u * cell_side;
+	crn_x = (col * cell_side) + v * cell_side;
 
 	CLAMP(crn_x, 0.0f, grid_size);
 	CLAMP(crn_y, 0.0f, grid_size);
