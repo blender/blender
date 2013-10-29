@@ -333,6 +333,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 			break;
 		default:
 			BLI_assert(0);
+			break;
 	}
 
 	if (change) {

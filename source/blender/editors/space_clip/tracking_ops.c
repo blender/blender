@@ -1341,7 +1341,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 		if (clip == NULL) {
 			return OPERATOR_CANCELLED;
 		}
-        framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, CFRA);
+		framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, CFRA);
 		fake_user.framenr = framenr;
 		user = &fake_user;
 	}

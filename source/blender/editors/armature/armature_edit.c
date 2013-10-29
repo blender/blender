@@ -1074,13 +1074,13 @@ static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
 	bArmature *arm = (bArmature *)ob->data;
 	EditBone *bone;
 
-	for (bone = arm->edbo->first; bone; bone = bone->next){
-		if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)){
+	for (bone = arm->edbo->first; bone; bone = bone->next) {
+		if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)) {
 			bone->parent = NULL;
 			bone->flag &= ~BONE_CONNECTED;
 		}
 	}
-	for (bone = arm->edbo->first; bone; bone = bone->next){
+	for (bone = arm->edbo->first; bone; bone = bone->next) {
 		ED_armature_ebone_select_set(bone, (bone->flag & BONE_SELECTED) != 0);
 	}
 
