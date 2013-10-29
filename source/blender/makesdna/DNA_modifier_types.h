@@ -1177,11 +1177,27 @@ typedef struct TriangulateModifierData {
 	ModifierData modifier;
 
 	int flag;
+	int quad_method;
+	int ngon_method;
 	int pad;
 } TriangulateModifierData;
 
 enum {
-	MOD_TRIANGULATE_BEAUTY = (1 << 0),
+	MOD_TRIANGULATE_BEAUTY = (1 << 0), /* deprecated */
+};
+
+/* Triangulate methods - NGons */
+enum {
+	MOD_TRIANGULATE_NGON_BEAUTY = 0,
+	MOD_TRIANGULATE_NGON_SCANFILL,
+};
+
+/* Triangulate methods - Quads */
+enum {
+	MOD_TRIANGULATE_QUAD_BEAUTY = 0,
+	MOD_TRIANGULATE_QUAD_FIXED,
+	MOD_TRIANGULATE_QUAD_ALTERNATE,
+	MOD_TRIANGULATE_QUAD_SHORTEDGE
 };
 
 typedef struct LaplacianSmoothModifierData {

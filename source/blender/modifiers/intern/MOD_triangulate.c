@@ -36,7 +36,7 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
+static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int quad_method, const int ngon_method)
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -45,7 +45,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 
 	bm = DM_to_bmesh(dm, true);
 
-	BM_mesh_triangulate(bm, (flag & MOD_TRIANGULATE_BEAUTY), false, NULL, NULL);
+	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL);
 
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
@@ -69,7 +69,8 @@ static void initData(ModifierData *md)
 
 	/* Enable in editmode by default */
 	md->mode |= eModifierMode_Editmode;
-	tmd->flag = MOD_TRIANGULATE_BEAUTY;
+	tmd->quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
+	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
 }
 
 
@@ -88,7 +89,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	DerivedMesh *result;
-	if (!(result = triangulate_dm(dm, tmd->flag))) {
+	if (!(result = triangulate_dm(dm, tmd->quad_method, tmd->ngon_method))) {
 		return dm;
 	}
 

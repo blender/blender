@@ -35,4 +35,8 @@ void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_
                            const short flag, const short method,
                            const short oflag_edge, const short oflag_face);
 
+float BM_verts_calc_rotate_beauty(const BMVert *v1, const BMVert *v2,
+                                  const BMVert *v3, const BMVert *v4,
+                                  const short flag, const short method);
+
 #endif /* __BMESH_BEAUTIFY_H__ */

@@ -29,6 +29,7 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_math.h"
@@ -817,7 +818,9 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
                          MemArena *sf_arena,
-                         const bool use_beauty, const bool use_tag)
+                         const int quad_method,
+                         const int ngon_method,
+                         const bool use_tag)
 {
 	BMLoop *l_iter, *l_first, *l_new;
 	BMFace *f_new;
@@ -825,6 +828,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	int nf_i = 0;
 	BMEdge **edge_array;
 	int edge_array_len;
+	bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
 
 #define SF_EDGE_IS_BOUNDARY 0xff
 
@@ -832,9 +836,67 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 
 	if (f->len == 4) {
+		BMVert *v1, *v2;
 		l_first = BM_FACE_FIRST_LOOP(f);
 
-		f_new = BM_face_split(bm, f, l_first->v, l_first->next->next->v, &l_new, NULL, false);
+		switch (quad_method) {
+			case MOD_TRIANGULATE_QUAD_FIXED:
+			{
+				v1 = l_first->v;
+				v2 = l_first->next->next->v;
+				break;
+			}
+			case MOD_TRIANGULATE_QUAD_ALTERNATE:
+			{
+				v1 = l_first->next->v;
+				v2 = l_first->prev->v;
+				break;
+			}
+			case MOD_TRIANGULATE_QUAD_SHORTEDGE:
+			{
+				BMVert *v3, *v4;
+				float d1, d2;
+
+				v1 = l_first->v;
+				v2 = l_first->next->next->v;
+				v3 = l_first->next->v;
+				v4 = l_first->prev->v;
+
+				d1 = len_squared_v3v3(v1->co, v2->co);
+				d2 = len_squared_v3v3(v3->co, v4->co);
+
+				if (d2 < d1) {
+					v1 = v3;
+					v2 = v4;
+				}
+				break;
+			}
+			case MOD_TRIANGULATE_QUAD_BEAUTY:
+			default:
+			{
+				BMVert *v3, *v4;
+				float cost;
+
+				v1 = l_first->next->v;
+				v2 = l_first->next->next->v;
+				v3 = l_first->prev->v;
+				v4 = l_first->v;
+
+				cost = BM_verts_calc_rotate_beauty(v1, v2, v3, v4, 0, 0);
+
+				if (cost < 0.0f) {
+					v1 = v4;
+					//v2 = v2;
+				}
+				else {
+					//v1 = v1;
+					v2 = v3;
+				}
+				break;
+			}
+		}
+
+		f_new = BM_face_split(bm, f, v1, v2, &l_new, NULL, false);
 		copy_v3_v3(f_new->no, f->no);
 
 		if (use_tag) {

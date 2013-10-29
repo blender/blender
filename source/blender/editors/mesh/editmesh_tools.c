@@ -3204,20 +3204,11 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMOperator bmop;
-	const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
+	const int quad_method = RNA_enum_get(op->ptr, "quad_method");
+	const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
 
-	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty);
+	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf quad_method=%i ngon_method=%i", BM_ELEM_SELECT, quad_method, ngon_method);
 	BMO_op_exec(em->bm, &bmop);
-
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-
-	/* now call beauty fill */
-	if (use_beauty) {
-		EDBM_op_call_and_selectf(
-		            em, op, "geom.out", true,
-		            "beautify_fill faces=%S edges=%S",
-		            &bmop, "faces.out", &bmop, "edges.out");
-	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
@@ -3243,7 +3234,8 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_beauty", 1, "Beauty", "Use best triangulation division");
+	RNA_def_enum(ot->srna, "quad_method", modifier_triangulate_quad_method_items, MOD_TRIANGULATE_QUAD_BEAUTY, "Quad Method", "Method for splitting the quads into triangles");
+	RNA_def_enum(ot->srna, "ngon_method", modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY, "Ngon Method", "Method for splitting the ngons into triangles");
 }
 
 static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)

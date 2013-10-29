@@ -1028,7 +1028,8 @@ static BMOpDefine bmo_triangulate_def = {
 	"triangulate",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-	 {"use_beauty", BMO_OP_SLOT_BOOL},
+	 {"quad_method", BMO_OP_SLOT_INT},
+	 {"ngon_method", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	/* slots_out */

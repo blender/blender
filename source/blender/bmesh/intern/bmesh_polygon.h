@@ -54,7 +54,8 @@ bool  BM_face_point_inside_test(BMFace *f, const float co[3]) ATTR_WARN_UNUSED_R
 
 void  BM_face_triangulate(BMesh *bm, BMFace *f, BMFace **newfaces,
                           struct MemArena *sf_arena,
-                          const bool use_beauty, const bool use_tag) ATTR_NONNULL(1, 2);
+                          const int quad_method, const int ngon_method,
+                          const bool use_tag) ATTR_NONNULL(1, 2);
 
 void  BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
 

@@ -29,6 +29,7 @@
  */
 
 #include "DNA_scene_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_math.h"
 
@@ -359,9 +360,11 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_beautify_fill", FKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "use_beauty", true);
+	RNA_enum_set(kmi->ptr, "quad_method", MOD_TRIANGULATE_QUAD_BEAUTY);
+	RNA_enum_set(kmi->ptr, "ngon_method", MOD_TRIANGULATE_NGON_BEAUTY);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "use_beauty", false);
+	RNA_enum_set(kmi->ptr, "quad_method", MOD_TRIANGULATE_QUAD_FIXED);
+	RNA_enum_set(kmi->ptr, "ngon_method", MOD_TRIANGULATE_NGON_SCANFILL);
 
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 

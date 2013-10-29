@@ -42,14 +42,16 @@
 /**
  * a version of #BM_face_triangulate that maps to #BMOpSlot
  */
-static void bm_face_triangulate_mapping(BMesh *bm, BMFace *face, MemArena *sf_arena, const bool use_beauty, const bool use_tag,
+static void bm_face_triangulate_mapping(BMesh *bm, BMFace *face, MemArena *sf_arena,
+                                        const int quad_method, const int ngon_method,
+                                        const bool use_tag,
                                         BMOperator *op, BMOpSlot *slot_facemap_out)
 {
 	const int faces_array_tot = face->len - 3;
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
 	BLI_assert(face->len > 3);
 
-	BM_face_triangulate(bm, face, faces_array, sf_arena, use_beauty, use_tag);
+	BM_face_triangulate(bm, face, faces_array, sf_arena, quad_method, ngon_method, use_tag);
 
 	if (faces_array) {
 		int i;
@@ -61,7 +63,7 @@ static void bm_face_triangulate_mapping(BMesh *bm, BMFace *face, MemArena *sf_ar
 }
 
 
-void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only,
+void BM_mesh_triangulate(BMesh *bm, const int quad_method, const int ngon_method, const bool tag_only,
                          BMOperator *op, BMOpSlot *slot_facemap_out)
 {
 	BMIter iter;
@@ -75,7 +77,7 @@ void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only,
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
 			if (face->len > 3) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
-					bm_face_triangulate_mapping(bm, face, sf_arena, use_beauty, tag_only,
+					bm_face_triangulate_mapping(bm, face, sf_arena, quad_method, ngon_method, tag_only,
 					                            op, slot_facemap_out);
 				}
 			}
@@ -85,7 +87,7 @@ void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only,
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
 			if (face->len > 3) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
-					BM_face_triangulate(bm, face, NULL, sf_arena, use_beauty, tag_only);
+					BM_face_triangulate(bm, face, NULL, sf_arena, quad_method, ngon_method, tag_only);
 				}
 			}
 		}

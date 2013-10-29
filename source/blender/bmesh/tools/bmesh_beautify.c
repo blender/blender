@@ -252,19 +252,13 @@ static float bm_edge_calc_rotate_beauty__angle(
 	return FLT_MAX;
 }
 
-static float bm_edge_calc_rotate_beauty(const BMEdge *e, const short flag, const short method)
+float BM_verts_calc_rotate_beauty(
+const BMVert *v1, const BMVert *v2, const BMVert *v3, const BMVert *v4, const short flag, const short method)
 {
 	/* not a loop (only to be able to break out) */
 	do {
-		const float *v1, *v2, *v3, *v4;
-
-		v1 = e->l->prev->v->co;               /* first face co */
-		v2 = e->l->v->co;                     /* e->v1 or e->v2*/
-		v3 = e->l->radial_next->prev->v->co;  /* second face co */
-		v4 = e->l->next->v->co;               /* e->v1 or e->v2*/
-
 		if (flag & VERT_RESTRICT_TAG) {
-			BMVert *v_a = e->l->prev->v, *v_b = e->l->radial_next->prev->v;
+			const BMVert *v_a = v1, *v_b = v3;
 			if (BM_elem_flag_test(v_a, BM_ELEM_TAG) ==  BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
 				break;
 			}
@@ -277,13 +271,24 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e, const short flag, const
 
 		switch (method) {
 			case 0:
-				return bm_edge_calc_rotate_beauty__area(v1, v2, v3, v4);
+				return bm_edge_calc_rotate_beauty__area(v1->co, v2->co, v3->co, v4->co);
 			default:
-				return bm_edge_calc_rotate_beauty__angle(v1, v2, v3, v4);
+				return bm_edge_calc_rotate_beauty__angle(v1->co, v2->co, v3->co, v4->co);
 		}
 	} while (false);
 
 	return FLT_MAX;
+}
+
+static float bm_edge_calc_rotate_beauty(const BMEdge *e, const short flag, const short method)
+{
+	const BMVert *v1, *v2, *v3, *v4;
+	v1 = e->l->prev->v;               /* first vert co */
+	v2 = e->l->v;                     /* e->v1 or e->v2*/
+	v3 = e->l->radial_next->prev->v;  /* second vert co */
+	v4 = e->l->next->v;               /* e->v1 or e->v2*/
+
+	return BM_verts_calc_rotate_beauty(v1, v2, v3, v4, flag, method);
 }
 
 /* -------------------------------------------------------------------- */
