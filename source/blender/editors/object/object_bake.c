@@ -156,12 +156,6 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
 			break;
 		}
 
-		if (mmd->lvl == 0) {
-			BKE_report(op->reports, RPT_ERROR, "Multires data baking is not supported for preview subdivision level 0");
-			ok = false;
-			break;
-		}
-
 		if (!me->mtpoly) {
 			BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
@@ -214,28 +208,23 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	DerivedMesh *dm;
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	Mesh *me = (Mesh *)ob->data;
+	MultiresModifierData tmp_mmd = *mmd;
+	DerivedMesh *cddm = CDDM_from_mesh(me, ob);
 
-	*lvl = mmd->lvl;
-
-	if (*lvl == 0) {
-		DerivedMesh *tmp_dm = CDDM_from_mesh(me, ob);
-
-		DM_set_only_copy(tmp_dm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
-
-		dm = CDDM_copy(tmp_dm);
-		tmp_dm->release(tmp_dm);
+	if (mmd->lvl > 0) {
+		*lvl = mmd->lvl;
 	}
 	else {
-		MultiresModifierData tmp_mmd = *mmd;
-		DerivedMesh *cddm = CDDM_from_mesh(me, ob);
-
-		DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
-
-		tmp_mmd.lvl = *lvl;
-		tmp_mmd.sculptlvl = *lvl;
-		dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
-		cddm->release(cddm);
+		*lvl = 1;
+		tmp_mmd.simple = true;
 	}
+
+	DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
+
+	tmp_mmd.lvl = *lvl;
+	tmp_mmd.sculptlvl = *lvl;
+	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
+	cddm->release(cddm);
 
 	return dm;
 }
