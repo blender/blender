@@ -564,9 +564,6 @@ typedef enum eAnimUnitConv_Flags {
 /* Get unit conversion factor for given ID + F-Curve */
 float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore);
 
-/* Apply/Unapply units conversions to keyframes */
-void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag);
-
 /* ------------- Utility macros ----------------------- */
 
 /* provide access to Keyframe Type info in BezTriple

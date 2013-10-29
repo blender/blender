@@ -1787,20 +1787,23 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
-		
-		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
-		
+		KeyframeEditData current_ked;
+		float unit_scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
+
+		memset(&current_ked, 0, sizeof(current_ked));
+
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_fcurve_keyframes_loop(&current_ked, ale->key_data, NULL, bezt_calc_average, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1); 
 		}
 		else
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
-		
-		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE | ANIM_UNITCONV_ONLYKEYS);
+			ANIM_fcurve_keyframes_loop(&current_ked, ale->key_data, NULL, bezt_calc_average, NULL);
+
+		ked.f1 += current_ked.f1;
+		ked.i1 += current_ked.i1;
+		ked.f2 += current_ked.f2 / unit_scale;
+		ked.i2 += current_ked.i2;
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1865,6 +1868,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	KeyframeEditData ked;
 	KeyframeEditFunc edit_cb;
+	float cursor_value = 0.0f;
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
@@ -1881,16 +1885,16 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	}
 	else if (mode == GRAPHKEYS_SNAP_VALUE) {
 		SpaceIpo *sipo = (SpaceIpo *)ac->sl;
-		ked.f1 = (sipo) ? sipo->cursorVal : 0.0f;
+		cursor_value = (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* snap keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-		
-		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0);
-		
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, ale->key_data, 0);
+
+		ked.f1 = cursor_value / unit_scale;
+
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1898,9 +1902,6 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			
-		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1977,7 +1978,8 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	
 	KeyframeEditData ked;
 	KeyframeEditFunc edit_cb;
-	
+	float cursor_value;
+
 	/* get beztriple editing callbacks */
 	edit_cb = ANIM_editkeyframes_mirror(mode);
 	
@@ -2000,7 +2002,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	}
 	else if (mode == GRAPHKEYS_MIRROR_VALUE) {
 		SpaceIpo *sipo = (SpaceIpo *)ac->sl;
-		ked.f1 = (sipo) ? sipo->cursorVal : 0.0f;
+		cursor_value = (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* filter data */
@@ -2010,10 +2012,11 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	/* mirror keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-		
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
+
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
-		
+		ked.f1 = cursor_value * unit_scale;
+
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -2021,9 +2024,6 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			
-		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS | ANIM_UNITCONV_RESTORE);
 	}
 	
 	BLI_freelistN(&anim_data);

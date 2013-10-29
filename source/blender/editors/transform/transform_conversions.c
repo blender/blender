@@ -3835,7 +3835,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
 		short intvals = (fcu->flag & FCURVE_INT_VALUES);
-		
+		float unit_scale;
+		float scaled_mtx[3][3], scaled_smtx[3][3];
+
 		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3848,8 +3850,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		if (fcu->bezt == NULL)
 			continue;
 		
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, anim_map_flag);
-		
+		unit_scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, ale->key_data, anim_map_flag);
+
+		copy_m3_m3(scaled_mtx, mtx);
+		copy_m3_m3(scaled_smtx, smtx);
+		mul_v3_fl(scaled_mtx[1], 1.0f / unit_scale);
+		mul_v3_fl(scaled_smtx[1],  unit_scale);
+
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
@@ -3866,7 +3873,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				if (!ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE) || !(sel2)) {
 					if (sel1) {
 						hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, mtx, smtx);
+						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, scaled_mtx, scaled_smtx);
 					}
 					else {
 						/* h1 = 0; */ /* UNUSED */
@@ -3875,7 +3882,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (sel3) {
 						if (hdata == NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, mtx, smtx);
+						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, scaled_mtx, scaled_smtx);
 					}
 					else {
 						/* h2 = 0; */ /* UNUSED */
@@ -3897,7 +3904,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 							hdata = initTransDataCurveHandles(td, bezt);
 					}
 				
-					bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, mtx, smtx);
+					bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, scaled_mtx, scaled_smtx);
 					
 				}
 				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
@@ -3919,13 +3926,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		
 		/* Sets handles based on the selection */
 		testhandles_fcurve(fcu, use_handle);
-
-		/* even though transform values are written back right after during transform,
-		 * using individual center's with rotation means the center point wont
-		 * be touched again see: [#34303] */
-		if (use_local_center) {
-			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, anim_map_flag | ANIM_UNITCONV_RESTORE);
-		}
 	}
 	
 	/* cleanup temp list */

@@ -206,7 +206,7 @@ static void draw_fcurve_handle_control(float x, float y, float xscale, float ysc
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2d, short sel, short sel_handle_only)
+static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2d, short sel, short sel_handle_only, float units_scale)
 {
 	BezTriple *bezt = fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -216,6 +216,9 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 	/* get view settings */
 	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
 	UI_view2d_getscale(v2d, &xscale, &yscale);
+
+	/* Compensate OGL scale sued for unit mapping, so circle will be circle, not ellipse */
+	yscale *= units_scale;
 	
 	/* set handle color */
 	if (sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
@@ -271,7 +274,7 @@ static void set_fcurve_vertex_color(FCurve *fcu, short sel)
 }
 
 
-static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only)
+static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only, float units_scale)
 {
 	View2D *v2d = &ar->v2d;
 	
@@ -287,10 +290,10 @@ static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
 	if (do_handles) {
 		set_fcurve_vertex_color(fcu, 0);
-		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only);
+		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only, units_scale);
 		
 		set_fcurve_vertex_color(fcu, 1);
-		draw_fcurve_vertices_handles(fcu, sipo, v2d, 1, sel_handle_only);
+		draw_fcurve_vertices_handles(fcu, sipo, v2d, 1, sel_handle_only, units_scale);
 	}
 		
 	/* draw keyframes over the handles */
@@ -547,11 +550,14 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	FPoint *fpt = prevfpt + 1;
 	float fac, v[2];
 	int b = fcu->totvert - 1;
-	
-	glBegin(GL_LINE_STRIP);
-	
+	float unit_scale;
+
 	/* apply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
+	glPushMatrix();
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
+	glScalef(1.0f, unit_scale, 1.0f);
+
+	glBegin(GL_LINE_STRIP);
 	
 	/* extrapolate to left? - left-side of view comes before first keyframe? */
 	if (prevfpt->vec[0] > v2d->cur.xmin) {
@@ -611,10 +617,8 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 		glVertex2fv(v);
 	}
 	
-	/* unapply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
-	
 	glEnd();
+	glPopMatrix();
 }
 
 /* helper func - draw one repeat of an F-Curve */
@@ -627,11 +631,14 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	float fac = 0.0f;
 	int b = fcu->totvert - 1;
 	int resol;
-	
-	glBegin(GL_LINE_STRIP);
-	
+	float unit_scale;
+
 	/* apply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
+	glPushMatrix();
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
+	glScalef(1.0f, unit_scale, 1.0f);
+
+	glBegin(GL_LINE_STRIP);
 	
 	/* extrapolate to left? */
 	if (prevbezt->vec[1][0] > v2d->cur.xmin) {
@@ -766,10 +773,8 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 		glVertex2fv(v1);
 	}
 	
-	/* unapply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
-	
 	glEnd();
+	glPopMatrix();
 } 
 
 /* Debugging -------------------------------- */
@@ -1014,9 +1019,11 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				}
 			}
 			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-				/* apply unit mapping */
-				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 0);
-				
+				float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+
+				glPushMatrix();
+				glScalef(1.0f, unit_scale, 1.0f);
+
 				if (fcu->bezt) {
 					int do_handles = draw_fcurve_handles_check(sipo, fcu);
 					
@@ -1027,15 +1034,14 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 						glDisable(GL_BLEND);
 					}
 					
-					draw_fcurve_vertices(sipo, ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
+					draw_fcurve_vertices(sipo, ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY), unit_scale);
 				}
 				else {
 					/* samples: only draw two indicators at either end as indicators */
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
-				
-				/* unapply unit mapping */
-				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, ANIM_UNITCONV_RESTORE);
+
+				glPopMatrix();
 			}
 		}
 		

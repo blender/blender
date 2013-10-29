@@ -227,7 +227,7 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 	KeyframeEditData ked;
 	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d = &ac->ar->v2d;
-	rctf rectf;
+	rctf rectf, scaled_rectf;
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
@@ -243,7 +243,7 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 	
 	/* init editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
-	ked.data = &rectf;
+	ked.data = &scaled_rectf;
 	
 	/* treat handles separately? */
 	if (incl_handles) {
@@ -252,21 +252,24 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 	}
 	else
 		mapping_flag = ANIM_UNITCONV_ONLYKEYS;
-	
+
 	/* loop over data, doing border select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
-		
-		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, mapping_flag);
-		
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+
 		/* apply NLA mapping to all the keyframes, since it's easier than trying to
 		 * guess when a callback might use something different
 		 */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, incl_handles == 0);
-		
+
+		scaled_rectf.xmin = rectf.xmin;
+		scaled_rectf.xmax = rectf.xmax;
+		scaled_rectf.ymin = rectf.ymin / unit_scale;
+		scaled_rectf.ymax = rectf.ymax / unit_scale;
+
 		/* set horizontal range (if applicable) 
 		 * NOTE: these values are only used for x-range and y-range but not region 
 		 *      (which uses ked.data, i.e. rectf)
@@ -296,9 +299,6 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, incl_handles == 0);
-			
-		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE | mapping_flag);
 	}
 	
 	/* cleanup */
@@ -936,7 +936,7 @@ static int fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
 
 /* check if the given vertex is within bounds or not */
 // TODO: should we return if we hit something?
-static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, const int mval[2])
+static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, const int mval[2], float unit_scale)
 {
 	/* Keyframes or Samples? */
 	if (bezt) {
@@ -947,7 +947,7 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 		 *  needed to access the relevant vertex coordinates in the 3x3
 		 *  'vec' matrix
 		 */
-		UI_view2d_view_to_region(v2d, bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1], &screen_co[0], &screen_co[1]);
+		UI_view2d_view_to_region(v2d, bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1] * unit_scale, &screen_co[0], &screen_co[1]);
 		
 		/* check if distance from mouse cursor to vert in screen space is within tolerance */
 		// XXX: inlined distance calculation, since we cannot do this on ints using the math lib...
@@ -996,7 +996,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	
 	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 	View2D *v2d = &ac->ar->v2d;
-	
+
 	/* get curves to search through 
 	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
 	 *	  include the 'only selected' flag...
@@ -1009,32 +1009,30 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-		
-		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0);
-		
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+
 		/* apply NLA mapping to all the keyframes */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
-		
+
 		if (fcu->bezt) {
 			BezTriple *bezt1 = fcu->bezt, *prevbezt = NULL;
 			int i;
 			
 			for (i = 0; i < fcu->totvert; i++, prevbezt = bezt1, bezt1++) {
 				/* keyframe */
-				nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_KEY, mval);
+				nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_KEY, mval, unit_scale);
 				
 				/* handles - only do them if they're visible */
 				if (fcurve_handle_sel_check(sipo, bezt1) && (fcu->totvert > 1)) {
 					/* first handle only visible if previous segment had handles */
 					if ((!prevbezt && (bezt1->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
-						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_LEFT, mval);
+						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_LEFT, mval, unit_scale);
 					}
 					
 					/* second handle only visible if this segment is bezier */
 					if (bezt1->ipo == BEZT_IPO_BEZ) {
-						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_RIGHT, mval);
+						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_RIGHT, mval, unit_scale);
 					}
 				}
 			}
@@ -1047,9 +1045,6 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
-		
-		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
 	}
 	
 	/* free channels */

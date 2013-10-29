@@ -381,9 +381,6 @@ static void recalcData_graphedit(TransInfo *t)
 	bAnimListElem *ale;
 	int dosort = 0;
 
-	const bool use_local_center = checkUseLocalCenter_GraphEdit(t);
-	
-	
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	scene = ac.scene = t->scene;
@@ -411,11 +408,6 @@ static void recalcData_graphedit(TransInfo *t)
 		if (!fcu_test_selected(fcu))
 			continue;
 
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data,
-		                               ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS | ANIM_UNITCONV_RESTORE |
-		                               (use_local_center ? ANIM_UNITCONV_SKIPKNOTS : 0));
-		
-		
 		/* watch it: if the time is wrong: do not correct handles yet */
 		if (test_time_fcurve(fcu))
 			dosort++;
