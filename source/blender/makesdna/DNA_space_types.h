@@ -366,6 +366,9 @@ typedef enum eGraphEdit_Flag {
 	SIPO_BEAUTYDRAW_OFF       = (1 << 12),
 	/* draw grouped channels with colors set in group */
 	SIPO_NODRAWGCOLORS        = (1 << 13),
+	/* normalize curves on display */
+	SIPO_NORMALIZE            = (1 << 14),
+	SIPO_NORMALIZE_FREEZE     = (1 << 15),
 } eGraphEdit_Flag;
 
 /* SpaceIpo->mode (Graph Editor Mode) */

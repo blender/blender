@@ -253,6 +253,8 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 	else
 		mapping_flag = ANIM_UNITCONV_ONLYKEYS;
 
+	mapping_flag |= ANIM_get_normalization_flags(ac);
+
 	/* loop over data, doing border select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -996,7 +998,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	
 	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 	View2D *v2d = &ac->ar->v2d;
-
+	short mapping_flag = 0;
+	
 	/* get curves to search through 
 	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
 	 *	  include the 'only selected' flag...
@@ -1004,12 +1007,13 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
 	if (sipo->flag & SIPO_SELCUVERTSONLY)   // FIXME: this should really be check for by the filtering code...
 		filter |= ANIMFILTER_SEL;
+	mapping_flag |= ANIM_get_normalization_flags(ac);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag);
 
 		/* apply NLA mapping to all the keyframes */
 		if (adt)

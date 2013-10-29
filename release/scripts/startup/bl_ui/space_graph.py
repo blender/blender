@@ -46,6 +46,11 @@ class GRAPH_HT_header(Header):
 
         dopesheet_filter(layout, context)
 
+        layout.prop(st, "use_normalization", text="Normalize")
+        row = layout.row()
+        row.active = st.use_normalization
+        row.prop(st, "use_auto_normalization", text="Auto")
+
         layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", text="", icon_only=True)
 

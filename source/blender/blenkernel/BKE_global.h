@@ -192,6 +192,7 @@ enum {
 #define G_TRANSFORM_OBJ         1
 #define G_TRANSFORM_EDIT        2
 #define G_TRANSFORM_SEQ         4
+#define G_TRANSFORM_FCURVES     8
 
 /* G.special1 */
 

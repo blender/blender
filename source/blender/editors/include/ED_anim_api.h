@@ -559,10 +559,19 @@ typedef enum eAnimUnitConv_Flags {
 	/* only touch selected vertices */
 	ANIM_UNITCONV_SELVERTS  = (1 << 3),
 	ANIM_UNITCONV_SKIPKNOTS  = (1 << 4),
+	/* Scale FCurve i a way it fits to -1..1 space */
+	ANIM_UNITCONV_NORMALIZE  = (1 << 5),
+	/* Only whennormalization is used: use scale factor from previous run,
+	 * prevents curves from jumping all over the place when tweaking them.
+	 */
+	ANIM_UNITCONV_NORMALIZE_FREEZE  = (1 << 6),
 } eAnimUnitConv_Flags;
 
+/* Normalizatin flags from Space Graph passing to ANIM_unit_mapping_get_factor */
+short ANIM_get_normalization_flags(bAnimContext *ac);
+
 /* Get unit conversion factor for given ID + F-Curve */
-float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore);
+float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag);
 
 /* ------------- Utility macros ----------------------- */
 

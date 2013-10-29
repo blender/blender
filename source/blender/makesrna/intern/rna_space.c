@@ -2880,6 +2880,18 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", NULL);
 	RNA_def_property_ui_text(prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+
+	/* nromalize curves */
+	prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_NORMALIZE);
+	RNA_def_property_ui_text(prop, "use Normalization", "Display curves in normalized to -1..1 range, "
+	                        "for easier editing of multiple curves with different ranges");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+
+	prop = RNA_def_property(srna, "use_auto_normalization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NORMALIZE_FREEZE);
+	RNA_def_property_ui_text(prop, "Auto Normalization", "Automatically recalculate curve normalization on every curve edit");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 }
 
 static void rna_def_space_nla(BlenderRNA *brna)

@@ -490,6 +490,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	float stime, etime;
 	float unitFac;
 	float dx, dy;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
@@ -503,7 +504,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	fcu->driver = NULL;
 	
 	/* compute unit correction factor */
-	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
+	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag);
 	
 	/* Note about sampling frequency:
 	 *  Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -551,10 +552,11 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	float fac, v[2];
 	int b = fcu->totvert - 1;
 	float unit_scale;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 
 	/* apply unit mapping */
 	glPushMatrix();
-	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag);
 	glScalef(1.0f, unit_scale, 1.0f);
 
 	glBegin(GL_LINE_STRIP);
@@ -632,10 +634,11 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	int b = fcu->totvert - 1;
 	int resol;
 	float unit_scale;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 
 	/* apply unit mapping */
 	glPushMatrix();
-	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag);
 	glScalef(1.0f, unit_scale, 1.0f);
 
 	glBegin(GL_LINE_STRIP);
@@ -788,7 +791,8 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
 	View2D *v2d = &ac->ar->v2d;
-	float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, false);
+	short mapping_flag = ANIM_get_normalization_flags(ac);
+	float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag);
 	
 	/* for now, only show when debugging driver... */
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
@@ -1019,7 +1023,8 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				}
 			}
 			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-				float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+				short mapping_flag = ANIM_get_normalization_flags(ac);
+				float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag);
 
 				glPushMatrix();
 				glScalef(1.0f, unit_scale, 1.0f);

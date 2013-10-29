@@ -3714,12 +3714,14 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	float mtx[3][3], smtx[3][3];
 	const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
 	const bool use_local_center = checkUseLocalCenter_GraphEdit(t);
-	const short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
+	short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
 	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
-	
+
+	anim_map_flag |= ANIM_get_normalization_flags(&ac);
+
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -3854,8 +3856,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
 		copy_m3_m3(scaled_mtx, mtx);
 		copy_m3_m3(scaled_smtx, smtx);
-		mul_v3_fl(scaled_mtx[1], 1.0f / unit_scale);
-		mul_v3_fl(scaled_smtx[1],  unit_scale);
+		mul_v3_fl(scaled_mtx[1], unit_scale);
+		mul_v3_fl(scaled_smtx[1],  1.0f / unit_scale);
 
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -5860,6 +5862,9 @@ int special_transform_moving(TransInfo *t)
 {
 	if (t->spacetype == SPACE_SEQ) {
 		return G_TRANSFORM_SEQ;
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		return G_TRANSFORM_FCURVES;
 	}
 	else if (t->obedit || ((t->flag & T_POSE) && (t->poseobj))) {
 		return G_TRANSFORM_EDIT;

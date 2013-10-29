@@ -33,6 +33,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
@@ -359,9 +360,68 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, short restore, sh
 /* *************************************************** */
 /* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
 
-/* Get unit conversion factor for given ID + F-Curve */
-float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short restore)
+/* Get flags used for normalization in ANIM_unit_mapping_get_factor. */
+short ANIM_get_normalization_flags(bAnimContext *ac)
 {
+	if (ac->sl->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo = (SpaceIpo *) ac->sl;
+		bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
+		bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;
+		return use_normalization
+		    ? (ANIM_UNITCONV_NORMALIZE |  (freeze_normalization ? ANIM_UNITCONV_NORMALIZE_FREEZE : 0))
+		    : 0;
+	}
+
+	return 0;
+}
+
+static float normalzation_factor_get(FCurve *fcu, short flag)
+{
+	float factor;
+
+	if (flag & ANIM_UNITCONV_RESTORE) {
+		return 1.0f / fcu->prev_norm_factor;
+	}
+
+	if (flag & ANIM_UNITCONV_NORMALIZE_FREEZE) {
+		return fcu->prev_norm_factor;
+	}
+
+	if (G.moving & G_TRANSFORM_FCURVES) {
+		return fcu->prev_norm_factor;
+	}
+
+	fcu->prev_norm_factor = 1.0f;
+	if (fcu->bezt) {
+		BezTriple *bezt;
+		int i;
+		float max_coord = -FLT_MAX;
+
+		if (fcu->totvert < 1) {
+			return 1.0f;
+		}
+
+		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
+			max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
+			max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+		}
+
+		if (max_coord > FLT_EPSILON) {
+			factor = 1.0f / max_coord;
+		}
+	}
+	fcu->prev_norm_factor = factor;
+	return factor;
+}
+
+/* Get unit conversion factor for given ID + F-Curve */
+float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag)
+{
+	if (flag & ANIM_UNITCONV_NORMALIZE) {
+		return normalzation_factor_get(fcu, flag);
+	}
+
 	/* sanity checks */
 	if (id && fcu && fcu->rna_path) {
 		PointerRNA ptr, id_ptr;
@@ -374,7 +434,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short rest
 			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
 				/* if the radians flag is not set, default to using degrees which need conversions */
 				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
-					if (restore)
+					if (flag & ANIM_UNITCONV_RESTORE)
 						return DEG2RADF(1.0f);  /* degrees to radians */
 					else
 						return RAD2DEGF(1.0f);  /* radians to degrees */
