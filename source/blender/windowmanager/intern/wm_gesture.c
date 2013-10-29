@@ -293,13 +293,15 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 }
 
 
-static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
+static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 {
 	short *lasso = (short *)gt->customdata;
 	int i;
 
-	draw_filled_lasso(win, gt);
-	
+	if (filled) {
+		draw_filled_lasso(win, gt);
+	}
+
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
@@ -365,9 +367,9 @@ void wm_gesture_draw(wmWindow *win)
 				wm_gesture_draw_cross(win, gt);
 		}
 		else if (gt->type == WM_GESTURE_LINES)
-			wm_gesture_draw_lasso(win, gt);
+			wm_gesture_draw_lasso(win, gt, false);
 		else if (gt->type == WM_GESTURE_LASSO)
-			wm_gesture_draw_lasso(win, gt);
+			wm_gesture_draw_lasso(win, gt, true);
 		else if (gt->type == WM_GESTURE_STRAIGHTLINE)
 			wm_gesture_draw_line(gt);
 	}
