@@ -115,11 +115,17 @@ class PlayRenderedAnim(Operator):
 
         cmd = [player_path]
         # extra options, fps controls etc.
+        if scene.use_preview_range:
+            frame_start = scene.frame_preview_start
+            frame_end = scene.frame_preview_end
+        else:
+            frame_start = scene.frame_start
+            frame_end = scene.frame_end
         if preset in {'BLENDER24', 'INTERNAL'}:
             opts = ["-a",
                     "-f", str(rd.fps), str(rd.fps_base),
-                    "-s", str(scene.frame_start),
-                    "-e", str(scene.frame_end),
+                    "-s", str(frame_start),
+                    "-e", str(frame_end),
                     "-j", str(scene.frame_step),
                     file]
             cmd.extend(opts)
