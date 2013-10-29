@@ -55,6 +55,13 @@ struct TrackRegionOptions {
   // that the nearby minima is correct, or the search area is too small.
   bool use_brute_initialization;
 
+  // If true and brute initialization is enabled, first try refining with the
+  // initial guess instead of starting with the brute initialization. If the
+  // initial refinement fails, then a normal brute search followed by
+  // refinement is attempted. If the initial refinement succeeds, then the
+  // result is returned as is (skipping a costly brute search).
+  bool attempt_refine_before_brute;
+
   // If true, normalize the image patches by their mean before doing the sum of
   // squared error calculation. This is reasonable since the effect of
   // increasing light intensity is multiplicative on the pixel intensities.
@@ -67,8 +74,9 @@ struct TrackRegionOptions {
   // take the image derivative.
   double sigma;
 
-  // Extra points that should get transformed by the warp. This is useful
-  // because the actual warp parameters are not exposed.
+  // Extra points that should get transformed by the warp. These points are
+  // appended to the x and y arrays. This is useful because the actual warp
+  // parameters are not exposed.
   int num_extra_points;
 
   // For motion models other than translation, the optimizer sometimes has

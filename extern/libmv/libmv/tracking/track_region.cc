@@ -1289,6 +1289,15 @@ bool BruteTranslationOnlyInitialize(const FloatImage &image1,
   return true;
 }
 
+void CopyQuad(double *src_x, double *src_y,
+              double *dst_x, double *dst_y,
+              int num_extra_points) {
+  for (int i = 0; i < 4 + num_extra_points; ++i) {
+    dst_x[i] = src_x[i];
+    dst_y[i] = src_y[i];
+  }
+}
+
 }  // namespace
 
 template<typename Warp>
@@ -1298,11 +1307,46 @@ void TemplatedTrackRegion(const FloatImage &image1,
                           const TrackRegionOptions &options,
                           double *x2, double *y2,
                           TrackRegionResult *result) {
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4 + options.num_extra_points; ++i) {
     LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); guess ("
        << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
        << (y2[i] - y1[i]) << ").";
   }
+
+  // Since (x2, y2) contains a prediction for where the tracked point should
+  // go, try a refinement immediately in the hope that the prediction is close
+  // enough.
+  if (options.attempt_refine_before_brute) {
+    TrackRegionOptions modified_options = options;
+    modified_options.use_brute_initialization = false;
+    modified_options.attempt_refine_before_brute = false;
+
+    double x2_first_try[5];
+    double y2_first_try[5];
+    CopyQuad(x2, y2, x2_first_try, y2_first_try, options.num_extra_points);
+
+    TemplatedTrackRegion<Warp>(image1, image2,
+                               x1, y1, modified_options,
+                               x2_first_try, y2_first_try, result);
+
+    // Of the things that can happen in the first pass, don't try the brute
+    // pass (and second attempt) if the error is one of the terminations below.
+    if (result->termination == TrackRegionResult::PARAMETER_TOLERANCE ||
+        result->termination == TrackRegionResult::FUNCTION_TOLERANCE ||
+        result->termination == TrackRegionResult::GRADIENT_TOLERANCE ||
+        result->termination == TrackRegionResult::SOURCE_OUT_OF_BOUNDS ||
+        result->termination == TrackRegionResult::DESTINATION_OUT_OF_BOUNDS ||
+        result->termination == TrackRegionResult::INSUFFICIENT_PATTERN_AREA) {
+      LG << "Terminated with first try at refinement; no brute needed.";
+      // TODO(keir): Also check correlation?
+      CopyQuad(x2_first_try, y2_first_try, x2, y2, options.num_extra_points);
+      LG << "Early termination correlation: " << result->correlation;
+      return;
+    } else {
+      LG << "Initial eager-refinement failed; retrying normally.";
+    }
+  }
+
   if (options.use_normalized_intensities) {
     LG << "Using normalized intensities.";
   }
@@ -1367,7 +1411,6 @@ void TemplatedTrackRegion(const FloatImage &image1,
   int num_samples_x;
   int num_samples_y;
   PickSampling(x1, y1, x2, y2, &num_samples_x, &num_samples_y);
-
 
   // Compute the warp from rectangular coordinates.
   Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
