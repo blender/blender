@@ -78,6 +78,7 @@ void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_fill(struct wmOperatorType *ot);
 void ARMATURE_OT_merge(struct wmOperatorType *ot);
 void ARMATURE_OT_separate(struct wmOperatorType *ot);
+void ARMATURE_OT_split(struct wmOperatorType *ot);
 
 void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
 void ARMATURE_OT_flip_names(struct wmOperatorType *ot);

@@ -74,6 +74,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_fill);
 	WM_operatortype_append(ARMATURE_OT_merge);
 	WM_operatortype_append(ARMATURE_OT_separate);
+	WM_operatortype_append(ARMATURE_OT_split);
 	
 	WM_operatortype_append(ARMATURE_OT_autoside_names);
 	WM_operatortype_append(ARMATURE_OT_flip_names);
@@ -269,6 +270,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_split", YKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	

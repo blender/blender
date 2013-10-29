@@ -2389,6 +2389,7 @@ class VIEW3D_MT_edit_armature(Menu):
         layout.operator("armature.merge")
         layout.operator("armature.fill")
         layout.operator("armature.delete")
+        layout.operator("armature.split")
         layout.operator("armature.separate")
 
         layout.separator()

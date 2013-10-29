@@ -1066,6 +1066,44 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ********************************* Split ******************************* */
+
+static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_edit_object(C);
+	bArmature *arm = (bArmature *)ob->data;
+	EditBone *bone;
+
+	for (bone = arm->edbo->first; bone; bone = bone->next){
+		if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)){
+			bone->parent = NULL;
+			bone->flag &= ~BONE_CONNECTED;
+		}
+	}
+	for (bone = arm->edbo->first; bone; bone = bone->next){
+		ED_armature_ebone_select_set(bone, (bone->flag & BONE_SELECTED) != 0);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Split";
+	ot->idname = "ARMATURE_OT_split";
+	ot->description = "Split off selected bones from connected unselected bones";
+
+	/* api callbacks */
+	ot->exec = armature_split_exec;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ********************************* Delete ******************************* */
 
 /* previously delete_armature */
