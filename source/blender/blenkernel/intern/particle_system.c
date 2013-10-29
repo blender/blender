@@ -2006,6 +2006,12 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		pa->lifetime = 100.0f;
 	}
 	else {
+		/* initialize the lifetime, in case the texture coordinates
+		 * are from Particles/Strands, which would cause undefined values
+		 */
+		pa->lifetime = part->lifetime * (1.0f - part->randlife * PSYS_FRAND(p + 21));
+		pa->dietime = pa->time + pa->lifetime;
+
 		/* get possible textural influence */
 		psys_get_texture(sim, pa, &ptex, PAMAP_LIFE, cfra);
 
