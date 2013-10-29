@@ -51,6 +51,8 @@ struct bNodeStack;
 typedef struct bNodeExec {
 	struct bNode *node;				/* backpointer to node */
 	bNodeExecData data;
+	
+	NodeFreeExecFunction freeexecfunc; /* free function, stored in exec itself to avoid dangling node pointer access */
 } bNodeExec;
 
 /* Execution Data for each instance of node tree execution */

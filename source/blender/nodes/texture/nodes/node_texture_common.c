@@ -72,7 +72,7 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
 	return exec;
 }
 
-static void group_freeexec(bNode *UNUSED(node), void *nodedata)
+static void group_freeexec(void *nodedata)
 {
 	bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
 	

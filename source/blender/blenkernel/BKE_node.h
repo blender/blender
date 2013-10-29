@@ -132,7 +132,7 @@ typedef struct bNodeSocketType {
 } bNodeSocketType;
 
 typedef void *(*NodeInitExecFunction)(struct bNodeExecContext *context, struct bNode *node, bNodeInstanceKey key);
-typedef void (*NodeFreeExecFunction)(struct bNode *node, void *nodedata);
+typedef void (*NodeFreeExecFunction)(void *nodedata);
 typedef void (*NodeExecFunction)(void *data, int thread, struct bNode *, struct bNodeExecData *execdata, struct bNodeStack **in, struct bNodeStack **out);
 typedef int (*NodeGPUExecFunction)(struct GPUMaterial *mat, struct bNode *node, struct bNodeExecData *execdata, struct GPUNodeStack *in, struct GPUNodeStack *out);
 
