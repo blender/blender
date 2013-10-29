@@ -2488,7 +2488,7 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 
 			/* for flatten center */
 			add_v3_v3(fc, private_fc);
-			add_v3_v3(fc_flip, private_fc);
+			add_v3_v3(fc_flip, private_fc_flip);
 			count += private_count;
 			count_flipped += private_count_flip;
 		}
