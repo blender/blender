@@ -6824,8 +6824,11 @@ void flushTransMasking(TransInfo *t)
 		td->loc2d[1] = td->loc[1] * inv[1];
 		mul_m3_v2(tdm->parent_inverse_matrix, td->loc2d);
 
-		if (tdm->is_handle)
-			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);
+		if (tdm->is_handle) {
+			BKE_mask_point_set_handle(tdm->point, td->loc2d,
+			                          (t->flag & T_ALT_TRANSFORM) != 0,
+			                          tdm->orig_handle, tdm->vec);
+		}
 	}
 }
 

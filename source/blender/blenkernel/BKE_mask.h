@@ -90,7 +90,7 @@ float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoi
 /* point */
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
 void BKE_mask_point_handle(struct MaskSplinePoint *point, float handle[2]);
-void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], int keep_direction,
+void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], bool keep_direction,
                                float orig_handle[2], float orig_vec[3][3]);
 
 void BKE_mask_point_segment_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float u, float co[2]);

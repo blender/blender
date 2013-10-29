@@ -462,7 +462,7 @@ void BKE_mask_point_handle(MaskSplinePoint *point, float handle[2])
 	handle[1] = (point->bezt.vec[1][1] - vec[0]);
 }
 
-void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_direction,
+void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], bool keep_direction,
                                float orig_handle[2], float orig_vec[3][3])
 {
 	BezTriple *bezt = &point->bezt;
