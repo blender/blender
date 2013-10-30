@@ -269,6 +269,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 	int (*mcords)[2] = (int (*)[2])WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
+		float clip_planes[4][4];
+		BoundBox bb;
 		bglMats mats = {{0}};
 		Object *ob;
 		ViewContext vc;
@@ -285,8 +287,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		float value = select ? 1.0 : 0.0;
 
 		/* Calculations of individual vertices are done in 2D screen space to diminish the amount of
-		 * calculations done. Bounding box PBVH collision is not computed because it is quite expensive and
-		 * unnecessary */
+		 * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
+		 * of lasso */
 		view3d_set_viewcontext(C, &vc);
 		view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
 
@@ -304,6 +306,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		       (const int (*)[2])mcords, mcords_tot,
 		       mask_lasso_px_cb, &data);
 
+		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
+		mul_m4_fl(clip_planes, -1.0f);
 
 		mmd = sculpt_multires_active(vc.scene, ob);
 		ED_sculpt_mask_layers_ensure(ob, mmd);
@@ -311,8 +315,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		pbvh = dm->getPBVH(ob, dm);
 		ob->sculpt->pbvh = pbvh;
 
-		/* gather all nodes! (doing bounding box intersection is more work than needed) */
-		BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+		/* gather nodes inside lasso's enclosing rectangle (should greatly help with bigger meshes) */
+		BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes, &nodes, &totnode);
 
 		sculpt_undo_push_begin("Mask lasso fill");
 
