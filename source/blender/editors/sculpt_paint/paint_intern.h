@@ -265,5 +265,6 @@ typedef enum {
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot);
 void PAINT_OT_mask_box_fill(struct wmOperatorType *ot);
+void PAINT_OT_mask_lasso_gesture(struct wmOperatorType *ot);
 
 #endif /* __PAINT_INTERN_H__ */

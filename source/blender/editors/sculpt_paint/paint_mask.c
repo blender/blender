@@ -41,6 +41,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
+#include "BLI_lasso.h"
+
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
@@ -163,6 +165,7 @@ static int is_effected(float planes[4][4], const float co[3])
 
 int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
 {
+	Sculpt *sd = vc->scene->toolsettings->sculpt;
 	BoundBox bb;
 	bglMats mats = {{0}};
 	float clip_planes[4][4];
@@ -180,7 +183,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	mode = PAINT_MASK_FLOOD_VALUE;
 	value = select ? 1.0 : 0.0;
 
-	/* transform the */
+	/* transform the clip planes in object space */
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, &mats);
 	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
 	mul_m4_fl(clip_planes, -1.0f);
@@ -195,6 +198,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 
 	sculpt_undo_push_begin("Mask box fill");
 
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (i = 0; i < totnode; i++) {
 		PBVHVertexIter vi;
 
@@ -218,4 +222,129 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
+}
+
+typedef struct LassoMaskData {
+	struct ViewContext *vc;
+	float projviewobjmat[4][4];
+	int mcords_tot;
+	int (*mcords)[2];
+} LassoMaskData;
+
+
+/* Lasso select. This could be defined as part of VIEW3D_OT_select_lasso, still the shortcuts conflict,
+ * so we will use a separate operator */
+
+static bool is_effected_lasso(LassoMaskData *data, float co[3])
+{
+	float scr_co_f[2];
+	short scr_co_s[2];
+
+	/* first project point to 2d space */
+	ED_view3d_project_float_v2_m4(data->vc->ar, co, scr_co_f, data->projviewobjmat);
+
+	scr_co_s[0] = scr_co_f[0];
+	scr_co_s[1] = scr_co_f[1];
+
+	/* clip against screen, because lasso is limited to screen only */
+	if (scr_co_s[0] < 0 || scr_co_s[1] < 0 || scr_co_s[0] > data->vc->ar->winx || scr_co_s[1] > data->vc->ar->winy)
+		return false;
+
+	if (BLI_lasso_is_point_inside((const int (*)[2])data->mcords, data->mcords_tot, scr_co_s[0], scr_co_s[1], IS_CLIPPED))
+		return true;
+
+	return false;
+}
+
+static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
+{
+	int mcords_tot;
+	int (*mcords)[2] = (int (*)[2])WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+
+	if (mcords) {
+		bglMats mats = {{0}};
+		Object *ob;
+		ViewContext vc;
+		LassoMaskData data;
+		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+		struct MultiresModifierData *mmd;
+		DerivedMesh *dm;
+		PBVH *pbvh;
+		PBVHNode **nodes;
+		int totnode, i;
+		PaintMaskFloodMode mode = PAINT_MASK_FLOOD_VALUE;
+		bool select = true; /* TODO: see how to implement deselection */
+		float value = select ? 1.0 : 0.0;
+
+		/* We have two types of calculations here, bounding box lasso inclusion calculation is done in 3D space, to
+		 * correctly account for volume, and individual vertices are done in 2D screen space to diminish the amount of
+		 * calculations done */
+		view3d_set_viewcontext(C, &vc);
+		view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
+
+		data.vc = &vc;
+		data.mcords = mcords;
+		data.mcords_tot = mcords_tot;
+		ob = vc.obact;
+		ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
+
+		mmd = sculpt_multires_active(vc.scene, ob);
+		ED_sculpt_mask_layers_ensure(ob, mmd);
+		dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
+		pbvh = dm->getPBVH(ob, dm);
+		ob->sculpt->pbvh = pbvh;
+
+		/* gather the nodes inside the lasso */
+		BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+
+		sculpt_undo_push_begin("Mask lasso fill");
+
+		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+		for (i = 0; i < totnode; i++) {
+			PBVHVertexIter vi;
+
+			sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+
+			BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
+				if (is_effected_lasso(&data, vi.co))
+					mask_flood_fill_set_elem(vi.mask, mode, value);
+			} BKE_pbvh_vertex_iter_end;
+
+			BKE_pbvh_node_mark_update(nodes[i]);
+			if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+				multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+		}
+
+		sculpt_undo_push_end();
+
+		if (nodes)
+			MEM_freeN(nodes);
+
+		ED_region_tag_redraw(vc.ar);
+		MEM_freeN((void *)mcords);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Mask Lasso Gesture";
+	ot->idname = "PAINT_OT_mask_lasso_gesture";
+	ot->description = "Add mask within the lasso as you move the pointer";
+
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = paint_mask_gesture_lasso_exec;
+
+	ot->poll = sculpt_mode_poll;
+
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 }
