@@ -62,6 +62,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	
 	BLI_strncpy(tmmd->vgroup, mmd->vgroup, sizeof(tmmd->vgroup));
 	tmmd->flag = mmd->flag;
+	tmmd->mode = mmd->mode;
+	tmmd->ob_arm = mmd->ob_arm;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
