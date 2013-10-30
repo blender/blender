@@ -2730,9 +2730,14 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 		
 		rect.xmin = rect.xmax - (BLI_rcti_size_y(&rect));
 		if (BLI_rcti_isect_pt(&rect, x, y)) {
-			ui_set_but_string(C, but, "");
+			/* most likely NULL, but let's check, and give it temp zero string */
+			if (data->str == NULL)
+				data->str = MEM_callocN(1, "temp str");
+			data->str[0] = 0;
+
+			ui_apply_but_TEX(C, but, data);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			
+
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
