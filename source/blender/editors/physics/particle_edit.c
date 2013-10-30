@@ -3880,11 +3880,9 @@ static int brush_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
+static void brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	brush_edit_exit(op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void PARTICLE_OT_brush_edit(wmOperatorType *ot)

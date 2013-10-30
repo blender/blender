@@ -273,12 +273,10 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+static void snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_backimage_move(wmOperatorType *ot)
@@ -612,10 +610,9 @@ static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_cancel(bContext *C, wmOperator *op)
+static void sample_cancel(bContext *C, wmOperator *op)
 {
 	sample_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_backimage_sample(wmOperatorType *ot)

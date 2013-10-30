@@ -1532,10 +1532,9 @@ static int poselib_preview_exit(bContext *C, wmOperator *op)
 }
 
 /* Cancel previewing operation (called when exiting Blender) */
-static int poselib_preview_cancel(bContext *C, wmOperator *op)
+static void poselib_preview_cancel(bContext *C, wmOperator *op)
 {
 	poselib_preview_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 /* main modal status check */

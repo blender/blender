@@ -711,13 +711,11 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 }
 
 /* only for modal */
-static int ed_marker_move_cancel(bContext *C, wmOperator *op)
+static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
 	RNA_int_set(op->ptr, "frames", 0);
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 

@@ -1254,15 +1254,13 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int fly_cancel(bContext *C, wmOperator *op)
+static void fly_cancel(bContext *C, wmOperator *op)
 {
 	FlyInfo *fly = op->customdata;
 
 	fly->state = FLY_CANCEL;
 	flyEnd(C, fly);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)

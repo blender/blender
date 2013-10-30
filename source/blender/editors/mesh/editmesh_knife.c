@@ -3195,11 +3195,10 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	}
 }
 
-static int knifetool_cancel(bContext *C, wmOperator *op)
+static void knifetool_cancel(bContext *C, wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
 	knifetool_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)

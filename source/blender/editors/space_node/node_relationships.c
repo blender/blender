@@ -669,7 +669,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
-static int node_link_cancel(bContext *C, wmOperator *op)
+static void node_link_cancel(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLinkDrag *nldrag = op->customdata;
@@ -678,8 +678,6 @@ static int node_link_cancel(bContext *C, wmOperator *op)
 
 	BLI_freelistN(&nldrag->links);
 	MEM_freeN(nldrag);
-
-	return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_link(wmOperatorType *ot)

@@ -77,11 +77,10 @@
 
 /******************** open sound operator ********************/
 
-static int sound_open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void sound_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-	return OPERATOR_CANCELLED;
 }
 
 static void sound_open_init(bContext *C, wmOperator *op)

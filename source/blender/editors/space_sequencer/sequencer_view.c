@@ -211,11 +211,9 @@ static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_cancel(bContext *C, wmOperator *op)
+static void sample_cancel(bContext *C, wmOperator *op)
 {
 	sample_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 static int sample_poll(bContext *C)

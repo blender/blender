@@ -214,10 +214,9 @@ static void text_open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int text_open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void text_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
-	return OPERATOR_CANCELLED;
 }
 
 static int text_open_exec(bContext *C, wmOperator *op)
@@ -2231,11 +2230,9 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int text_scroll_cancel(bContext *C, wmOperator *op)
+static void text_scroll_cancel(bContext *C, wmOperator *op)
 {
 	scroll_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2706,10 +2703,9 @@ static int text_set_selection_modal(bContext *C, wmOperator *op, const wmEvent *
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int text_set_selection_cancel(bContext *C, wmOperator *op)
+static void text_set_selection_cancel(bContext *C, wmOperator *op)
 {
 	text_cursor_set_exit(C, op);
-	return OPERATOR_FINISHED;
 }
 
 void TEXT_OT_selection_set(wmOperatorType *ot)

@@ -1123,10 +1123,9 @@ static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int console_modal_select_cancel(bContext *C, wmOperator *op)
+static void console_modal_select_cancel(bContext *C, wmOperator *op)
 {
 	console_cursor_set_exit(C, op);
-	return OPERATOR_FINISHED;
 }
 
 void CONSOLE_OT_select_set(wmOperatorType *ot)

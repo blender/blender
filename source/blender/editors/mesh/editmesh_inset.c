@@ -166,7 +166,7 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 	MEM_freeN(op->customdata);
 }
 
-static int edbm_inset_cancel(bContext *C, wmOperator *op)
+static void edbm_inset_cancel(bContext *C, wmOperator *op)
 {
 	InsetData *opdata;
 
@@ -180,7 +180,6 @@ static int edbm_inset_cancel(bContext *C, wmOperator *op)
 
 	/* need to force redisplay or we may still view the modified result */
 	ED_region_tag_redraw(CTX_wm_region(C));
-	return OPERATOR_CANCELLED;
 }
 
 static bool edbm_inset_calc(wmOperator *op)

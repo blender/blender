@@ -4567,7 +4567,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
+static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -4585,8 +4585,6 @@ static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 	}
 
 	sculpt_brush_exit_tex(sd);
-
-	return OPERATOR_CANCELLED;
 }
 
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)

@@ -2339,7 +2339,7 @@ static int sketch_convert(bContext *C, wmOperator *UNUSED(op), const wmEvent *UN
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int sketch_cancel_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL) {
@@ -2374,12 +2374,11 @@ static int sketch_select(bContext *C, wmOperator *UNUSED(op), const wmEvent *eve
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
+static void sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
-	return OPERATOR_CANCELLED;
 }
 
 static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2400,12 +2399,11 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
+static void sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 {
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
-	return OPERATOR_CANCELLED;
 }
 
 static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2622,7 +2620,7 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 	ot->description = "Cancel the current sketch stroke";
 
 	/* api callbacks */
-	ot->invoke = sketch_cancel;
+	ot->invoke = sketch_cancel_invoke;
 
 	ot->poll = ED_operator_sketch_mode_active_stroke;
 

@@ -1613,11 +1613,10 @@ static void font_ui_template_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int font_open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void font_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-	return OPERATOR_CANCELLED;
 }
 
 static int font_open_exec(bContext *C, wmOperator *op)

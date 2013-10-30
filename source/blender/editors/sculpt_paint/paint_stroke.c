@@ -718,10 +718,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* Cancel */
 	if (event->type == EVT_MODAL_MAP && event->val == PAINT_STROKE_MODAL_CANCEL) {
-		if (op->type->cancel)
-			return op->type->cancel(C, op);
-		else
-			return paint_stroke_cancel(C, op);
+		if (op->type->cancel) {
+			op->type->cancel(C, op);
+		}
+		else {
+			paint_stroke_cancel(C, op);
+		}
+		return OPERATOR_CANCELLED;
 	}
 
 	if (event->type == stroke->event_type && event->val == KM_RELEASE && !first_modal) {
@@ -787,10 +790,9 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-int paint_stroke_cancel(bContext *C, wmOperator *op)
+void paint_stroke_cancel(bContext *C, wmOperator *op)
 {
 	stroke_done(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)

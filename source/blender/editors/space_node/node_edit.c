@@ -859,7 +859,7 @@ static void node_resize_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	WM_event_add_modal_handler(C, op);
 }
 
-static void node_resize_exit(bContext *C, wmOperator *op, int UNUSED(cancel))
+static void node_resize_exit(bContext *C, wmOperator *op, bool UNUSED(cancel))
 {
 	WM_cursor_modal_restore(CTX_wm_window(C));
 	
@@ -961,7 +961,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
 			
-			node_resize_exit(C, op, 0);
+			node_resize_exit(C, op, false);
 			ED_node_post_apply_transform(C, snode->edittree);
 			
 			return OPERATOR_FINISHED;
@@ -990,11 +990,9 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
-static int node_resize_cancel(bContext *C, wmOperator *op)
+static void node_resize_cancel(bContext *C, wmOperator *op)
 {
-	node_resize_exit(C, op, 1);
-
-	return OPERATOR_CANCELLED;
+	node_resize_exit(C, op, true);
 }
 
 void NODE_OT_resize(wmOperatorType *ot)

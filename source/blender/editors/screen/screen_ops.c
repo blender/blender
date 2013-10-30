@@ -750,11 +750,9 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
+static void actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	actionzone_exit(op);
-
-	return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_actionzone(wmOperatorType *ot)
@@ -825,10 +823,9 @@ static void area_swap_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int area_swap_cancel(bContext *C, wmOperator *op)
+static void area_swap_cancel(bContext *C, wmOperator *op)
 {
 	area_swap_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 static int area_swap_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -857,8 +854,8 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE: /* release LMB */
 			if (event->val == KM_RELEASE) {
 				if (!sad->sa2 || sad->sa1 == sad->sa2) {
-					
-					return area_swap_cancel(C, op);
+					area_swap_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 
 				ED_area_tag_redraw(sad->sa1);
@@ -875,7 +872,8 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 			
 		case ESCKEY:
-			return area_swap_cancel(C, op);
+			area_swap_cancel(C, op);
+			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1148,14 +1146,12 @@ static int area_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int area_move_cancel(bContext *C, wmOperator *op)
+static void area_move_cancel(bContext *C, wmOperator *op)
 {
 	
 	RNA_int_set(op->ptr, "delta", 0);
 	area_move_apply(C, op);
 	area_move_exit(C, op);
-	
-	return OPERATOR_CANCELLED;
 }
 
 /* modal callback for while moving edges */
@@ -1186,7 +1182,8 @@ static int area_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					return OPERATOR_FINISHED;
 					
 				case KM_MODAL_CANCEL:
-					return area_move_cancel(C, op);
+					area_move_cancel(C, op);
+					return OPERATOR_CANCELLED;
 					
 				case KM_MODAL_STEP10:
 					md->step = 10;
@@ -1530,7 +1527,7 @@ static int area_split_exec(bContext *C, wmOperator *op)
 }
 
 
-static int area_split_cancel(bContext *C, wmOperator *op)
+static void area_split_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
 	
@@ -1546,8 +1543,6 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 		}
 	}
 	area_split_exit(C, op);
-	
-	return OPERATOR_CANCELLED;
 }
 
 static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1640,7 +1635,8 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 		case RIGHTMOUSE: /* cancel operation */
 		case ESCKEY:
-			return area_split_cancel(C, op);
+			area_split_cancel(C, op);
+			return OPERATOR_CANCELLED;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -1915,12 +1911,10 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
+static void region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_region_scale(wmOperatorType *ot)
@@ -2449,7 +2443,7 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int area_join_cancel(bContext *C, wmOperator *op)
+static void area_join_cancel(bContext *C, wmOperator *op)
 {
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	
@@ -2465,8 +2459,6 @@ static int area_join_cancel(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
 	area_join_exit(C, op);
-	
-	return OPERATOR_CANCELLED;
 }
 
 /* modal callback while selecting area (space) that will be removed */
@@ -2554,7 +2546,8 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 		case RIGHTMOUSE:
 		case ESCKEY:
-			return area_join_cancel(C, op);
+			area_join_cancel(C, op);
+			return OPERATOR_CANCELLED;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;

@@ -682,11 +682,10 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* common code for cancel() */
-static int pose_slide_cancel(bContext *UNUSED(C), wmOperator *op)
+static void pose_slide_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	/* cleanup and done */
 	pose_slide_exit(op);
-	return OPERATOR_CANCELLED;
 }
 
 /* common code for exec() methods */

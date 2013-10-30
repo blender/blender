@@ -426,15 +426,13 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return exit_code;
 }
 
-static int transform_cancel(bContext *C, wmOperator *op)
+static void transform_cancel(bContext *C, wmOperator *op)
 {
 	TransInfo *t = op->customdata;
 
 	t->state = TRANS_CANCEL;
 	transformEnd(C, t);
 	transformops_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 static int transform_exec(bContext *C, wmOperator *op)

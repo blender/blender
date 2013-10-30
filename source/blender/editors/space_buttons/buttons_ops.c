@@ -158,12 +158,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int file_browse_cancel(bContext *UNUSED(C), wmOperator *op)
+static void file_browse_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)

@@ -159,12 +159,10 @@ static void open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 static int open_exec(bContext *C, wmOperator *op)
@@ -444,11 +442,9 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_pan_cancel(bContext *C, wmOperator *op)
+static void view_pan_cancel(bContext *C, wmOperator *op)
 {
-	view_pan_exit(C, op, 1);
-
-	return OPERATOR_CANCELLED;
+	view_pan_exit(C, op, true);
 }
 
 void CLIP_OT_view_pan(wmOperatorType *ot)
@@ -578,11 +574,9 @@ static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_zoom_cancel(bContext *C, wmOperator *op)
+static void view_zoom_cancel(bContext *C, wmOperator *op)
 {
-	view_zoom_exit(C, op, 1);
-
-	return OPERATOR_CANCELLED;
+	view_zoom_exit(C, op, true);
 }
 
 void CLIP_OT_view_zoom(wmOperatorType *ot)

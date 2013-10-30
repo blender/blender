@@ -2593,11 +2593,9 @@ static int wpaint_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int wpaint_cancel(bContext *C, wmOperator *op)
+static void wpaint_cancel(bContext *C, wmOperator *op)
 {
 	paint_stroke_cancel(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_weight_paint(wmOperatorType *ot)
@@ -3144,11 +3142,9 @@ static int vpaint_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int vpaint_cancel(bContext *C, wmOperator *op)
+static void vpaint_cancel(bContext *C, wmOperator *op)
 {
 	paint_stroke_cancel(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)

@@ -809,15 +809,13 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view3d_ruler_cancel(bContext *C, wmOperator *op)
+static void view3d_ruler_cancel(bContext *C, wmOperator *op)
 {
 	RulerInfo *ruler_info = op->customdata;
 
 	view3d_ruler_end(C, ruler_info);
 	view3d_ruler_free(ruler_info);
 	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
 }
 
 static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)

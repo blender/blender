@@ -185,7 +185,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int edbm_bevel_cancel(bContext *C, wmOperator *op)
+static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 {
 	BevelData *opdata = op->customdata;
 	if (opdata->is_modal) {
@@ -197,7 +197,6 @@ static int edbm_bevel_cancel(bContext *C, wmOperator *op)
 
 	/* need to force redisplay or we may still view the modified result */
 	ED_region_tag_redraw(CTX_wm_region(C));
-	return OPERATOR_CANCELLED;
 }
 
 /* bevel! yay!!*/

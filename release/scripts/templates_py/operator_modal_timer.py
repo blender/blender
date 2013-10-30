@@ -29,7 +29,6 @@ class ModalTimerOperator(bpy.types.Operator):
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
-        return {'CANCELLED'}
 
 
 def register():

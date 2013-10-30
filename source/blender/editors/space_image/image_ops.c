@@ -256,7 +256,7 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
 	WM_event_add_modal_handler(C, op);
 }
 
-static void image_view_pan_exit(bContext *C, wmOperator *op, int cancel)
+static void image_view_pan_exit(bContext *C, wmOperator *op, bool cancel)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ViewPanData *vpd = op->customdata;
@@ -330,7 +330,7 @@ static int image_view_pan_modal(bContext *C, wmOperator *op, const wmEvent *even
 			break;
 		default:
 			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
-				image_view_pan_exit(C, op, 0);
+				image_view_pan_exit(C, op, false);
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -339,10 +339,9 @@ static int image_view_pan_modal(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int image_view_pan_cancel(bContext *C, wmOperator *op)
+static void image_view_pan_cancel(bContext *C, wmOperator *op)
 {
-	image_view_pan_exit(C, op, 1);
-	return OPERATOR_CANCELLED;
+	image_view_pan_exit(C, op, true);
 }
 
 void IMAGE_OT_view_pan(wmOperatorType *ot)
@@ -412,7 +411,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
 	WM_event_add_modal_handler(C, op);
 }
 
-static void image_view_zoom_exit(bContext *C, wmOperator *op, int cancel)
+static void image_view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ViewZoomData *vpd = op->customdata;
@@ -547,17 +546,16 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *eve
 		image_zoom_apply(vpd, op, event->x, event->y, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code == VIEW_CONFIRM) {
-		image_view_zoom_exit(C, op, 0);
+		image_view_zoom_exit(C, op, false);
 		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int image_view_zoom_cancel(bContext *C, wmOperator *op)
+static void image_view_zoom_cancel(bContext *C, wmOperator *op)
 {
-	image_view_zoom_exit(C, op, 1);
-	return OPERATOR_CANCELLED;
+	image_view_zoom_exit(C, op, true);
 }
 
 void IMAGE_OT_view_zoom(wmOperatorType *ot)
@@ -921,11 +919,10 @@ static void image_open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int image_open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
-	return OPERATOR_CANCELLED;
 }
 
 static int image_open_exec(bContext *C, wmOperator *op)
@@ -1505,11 +1502,9 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int image_save_as_cancel(bContext *UNUSED(C), wmOperator *op)
+static void image_save_as_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	image_save_as_free(op);
-
-	return OPERATOR_CANCELLED;
 }
 
 static bool image_save_as_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
@@ -2358,10 +2353,9 @@ static int image_sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int image_sample_cancel(bContext *C, wmOperator *op)
+static void image_sample_cancel(bContext *C, wmOperator *op)
 {
 	image_sample_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 void IMAGE_OT_sample(wmOperatorType *ot)
@@ -2625,7 +2619,7 @@ static int image_record_composite_modal(bContext *C, wmOperator *op, const wmEve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int image_record_composite_cancel(bContext *C, wmOperator *op)
+static void image_record_composite_cancel(bContext *C, wmOperator *op)
 {
 	image_record_composite_exit(C, op);
 	return OPERATOR_CANCELLED;

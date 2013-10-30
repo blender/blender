@@ -1456,11 +1456,10 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int gpencil_draw_cancel(bContext *C, wmOperator *op)
+static void gpencil_draw_cancel(bContext *C, wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
 	gpencil_draw_exit(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 /* ------------------------------- */

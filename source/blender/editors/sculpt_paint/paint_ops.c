@@ -613,13 +613,12 @@ static void stencil_restore(StencilControlData *scd)
 	*scd->rot_target = scd->init_rot;
 }
 
-static int stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
+static void stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	StencilControlData *scd = op->customdata;
 
 	stencil_restore(scd);
 	MEM_freeN(op->customdata);
-	return OPERATOR_CANCELLED;
 }
 
 static void stencil_control_calculate(StencilControlData *scd, const int mval[2])

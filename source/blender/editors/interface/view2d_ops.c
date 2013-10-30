@@ -284,10 +284,9 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+static void view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	view_pan_exit(op);
-	return OPERATOR_CANCELLED;
 }
 
 static void VIEW2D_OT_pan(wmOperatorType *ot)
@@ -906,11 +905,9 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 	}
 } 
 
-static int view_zoomdrag_cancel(bContext *C, wmOperator *op)
+static void view_zoomdrag_cancel(bContext *C, wmOperator *op)
 {
 	view_zoomdrag_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 /* for 'redo' only, with no user input */
@@ -1579,11 +1576,9 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
 	}
 }
 
-static int scroller_activate_cancel(bContext *C, wmOperator *op)
+static void scroller_activate_cancel(bContext *C, wmOperator *op)
 {
 	scroller_activate_exit(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */

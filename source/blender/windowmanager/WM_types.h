@@ -535,7 +535,7 @@ typedef struct wmOperatorType {
 	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
 	int (*invoke)(struct bContext *, struct wmOperator *, const struct wmEvent *) ATTR_WARN_UNUSED_RESULT;
-	int (*cancel)(struct bContext *, struct wmOperator *);
+	void (*cancel)(struct bContext *, struct wmOperator *);
 	int (*modal)(struct bContext *, struct wmOperator *, const struct wmEvent *) ATTR_WARN_UNUSED_RESULT;
 
 	/* verify if the operator can be executed in the current context, note

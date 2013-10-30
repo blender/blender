@@ -1042,15 +1042,13 @@ static void operator_draw(bContext *C, wmOperator *op)
 }
 
 /* same as exec(), but call cancel */
-static int operator_cancel(bContext *C, wmOperator *op)
+static void operator_cancel(bContext *C, wmOperator *op)
 {
 	extern FunctionRNA rna_Operator_cancel_func;
 
 	PointerRNA opr;
 	ParameterList list;
 	FunctionRNA *func;
-	void *ret;
-	int result;
 
 	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func = &rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
@@ -1059,12 +1057,7 @@ static int operator_cancel(bContext *C, wmOperator *op)
 	RNA_parameter_set_lookup(&list, "context", &C);
 	op->type->ext.call(C, &opr, func, &list);
 
-	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = *(int *)ret;
-
 	RNA_parameter_list_free(&list);
-
-	return result;
 }
 
 void operator_wrapper(wmOperatorType *ot, void *userdata);

@@ -1062,11 +1062,9 @@ static int view3d_lock_poll(bContext *C)
 	return false;
 }
 
-static int viewrotate_cancel(bContext *C, wmOperator *op)
+static void viewrotate_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
@@ -1699,11 +1697,9 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 }
 
-static int viewmove_cancel(bContext *C, wmOperator *op)
+static void viewmove_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_move(wmOperatorType *ot)
@@ -2091,11 +2087,9 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-static int viewzoom_cancel(bContext *C, wmOperator *op)
+static void viewzoom_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
@@ -2332,11 +2326,9 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-static int viewdolly_cancel(bContext *C, wmOperator *op)
+static void viewdolly_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_dolly(wmOperatorType *ot)
@@ -3772,11 +3764,9 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-static int viewroll_cancel(bContext *C, wmOperator *op)
+static void viewroll_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
-
-	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_view_roll(wmOperatorType *ot)

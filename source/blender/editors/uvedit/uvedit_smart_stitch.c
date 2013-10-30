@@ -1998,10 +1998,9 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 }
 
 
-static int stitch_cancel(bContext *C, wmOperator *op)
+static void stitch_cancel(bContext *C, wmOperator *op)
 {
 	stitch_exit(C, op, 0);
-	return OPERATOR_CANCELLED;
 }
 
 
@@ -2016,7 +2015,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		return stitch_cancel(C, op);
+		stitch_cancel(C, op);
+		return OPERATOR_CANCELLED;
 	}
 }
 
@@ -2067,8 +2067,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 			/* Cancel */
 		case ESCKEY:
-			return stitch_cancel(C, op);
-
+			stitch_cancel(C, op);
+			return OPERATOR_CANCELLED;
 
 		case LEFTMOUSE:
 			if (event->shift && (U.flag & USER_LMOUSESELECT)) {
@@ -2076,7 +2076,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					stitch_select(C, scene, event, state);
 
 					if (!stitch_process_data(state, scene, FALSE)) {
-						return stitch_cancel(C, op);
+						stitch_cancel(C, op);
+						return OPERATOR_CANCELLED;
 					}
 				}
 				break;
@@ -2089,7 +2090,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					return OPERATOR_FINISHED;
 				}
 				else {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 			}
 			else {
@@ -2101,7 +2103,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS && event->alt) {
 				state->limit_dist += 0.01f;
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2115,7 +2118,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				state->limit_dist -= 0.01f;
 				state->limit_dist = MAX2(0.01f, state->limit_dist);
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2128,7 +2132,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS) {
 				state->use_limit = !state->use_limit;
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2140,7 +2145,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				state->static_island %= state->element_map->totalIslands;
 
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2150,7 +2156,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS) {
 				state->midpoints = !state->midpoints;
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 			}
 			break;
@@ -2158,13 +2165,15 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* Select geometry*/
 		case RIGHTMOUSE:
 			if (!event->shift) {
-				return stitch_cancel(C, op);
+				stitch_cancel(C, op);
+				return OPERATOR_CANCELLED;
 			}
 			if (event->val == KM_PRESS && !(U.flag & USER_LMOUSESELECT)) {
 				stitch_select(C, scene, event, state);
 
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2175,7 +2184,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS) {
 				state->snap_islands = !state->snap_islands;
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 				break;
 			}
@@ -2189,7 +2199,8 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				stitch_switch_selection_mode(state);
 
 				if (!stitch_process_data(state, scene, FALSE)) {
-					return stitch_cancel(C, op);
+					stitch_cancel(C, op);
+					return OPERATOR_CANCELLED;
 				}
 			}
 			break;

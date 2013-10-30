@@ -529,10 +529,9 @@ static void text_autocomplete_free(bContext *C, wmOperator *op)
 	}
 }
 
-static int text_autocomplete_cancel(bContext *C, wmOperator *op)
+static void text_autocomplete_cancel(bContext *C, wmOperator *op)
 {
 	text_autocomplete_free(C, op);
-	return OPERATOR_CANCELLED;
 }
 
 void TEXT_OT_autocomplete(wmOperatorType *ot)

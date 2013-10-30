@@ -485,11 +485,9 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	MEM_freeN(oglrender);
 }
 
-static int screen_opengl_render_cancel(bContext *C, wmOperator *op)
+static void screen_opengl_render_cancel(bContext *C, wmOperator *op)
 {
 	screen_opengl_render_end(C, op->customdata);
-
-	return OPERATOR_CANCELLED;
 }
 
 /* share between invoke and exec */
