@@ -165,7 +165,9 @@ static int is_effected(float planes[4][4], const float co[3])
 
 int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
 {
+#ifdef _OPENMP
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
+#endif
 	BoundBox bb;
 	bglMats mats = {{0}};
 	float clip_planes[4][4];
@@ -198,7 +200,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 
 	sculpt_undo_push_begin("Mask box fill");
 
-	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (i = 0; i < totnode; i++) {
 		PBVHVertexIter vi;
 

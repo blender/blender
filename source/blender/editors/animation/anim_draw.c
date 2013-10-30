@@ -377,7 +377,7 @@ short ANIM_get_normalization_flags(bAnimContext *ac)
 
 static float normalzation_factor_get(FCurve *fcu, short flag)
 {
-	float factor;
+	float factor = 1.0f;
 
 	if (flag & ANIM_UNITCONV_RESTORE) {
 		return 1.0f / fcu->prev_norm_factor;
