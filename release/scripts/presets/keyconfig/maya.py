@@ -1589,8 +1589,11 @@ kmi = km.keymap_items.new('action.view_all', 'A', 'PRESS')
 kmi = km.keymap_items.new('action.view_selected', 'F', 'PRESS')
 kmi = km.keymap_items.new('anim.channels_editable_toggle', 'TAB', 'PRESS')
 kmi = km.keymap_items.new('transform.transform', 'W', 'PRESS')
+kmi.properties.mode = 'TIME_TRANSLATE'
 kmi = km.keymap_items.new('transform.transform', 'EVT_TWEAK_M', 'ANY')
+kmi.properties.mode = 'TIME_TRANSLATE'
 kmi = km.keymap_items.new('transform.transform', 'S', 'PRESS')
+kmi.properties.mode = 'TIME_SCALE'
 kmi = km.keymap_items.new('transform.transform', 'T', 'PRESS', shift=True)
 kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
@@ -1664,6 +1667,7 @@ kmi = km.keymap_items.new('nla.fmodifier_add', 'M', 'PRESS', shift=True, ctrl=Tr
 kmi = km.keymap_items.new('transform.transform', 'W', 'PRESS')
 kmi = km.keymap_items.new('transform.transform', 'EVT_TWEAK_M', 'ANY')
 kmi = km.keymap_items.new('transform.transform', 'R', 'PRESS')
+kmi.properties.mode = 'TIME_SCALE'
 kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('nla.select_all_toggle', 'LEFTMOUSE', 'DOUBLE_CLICK')
