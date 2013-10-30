@@ -1421,7 +1421,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	int framenr;
 
 	if (sc == NULL) {
-		/* TODO(sergey): Support clip for invokaction as well. */
+		/* TODO(sergey): Support clip for invoke as well. */
 		BKE_report(op->reports, RPT_ERROR,
 		           "Invoking this operator only supported from Clip Editor space.");
 		return OPERATOR_CANCELLED;
