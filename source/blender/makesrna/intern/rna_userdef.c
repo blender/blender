@@ -1292,7 +1292,7 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
-static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurbs)
+static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, bool incl_nurbs, bool incl_lastsel, bool incl_vector)
 {
 	PropertyRNA *prop;
 	
@@ -1340,11 +1340,19 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 	RNA_def_property_ui_text(prop, "Auto handle color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "handle_vect", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "handle_vect");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Vector handle color", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	if (incl_vector) {
+		prop = RNA_def_property(srna, "handle_vect", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_vect");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Vector handle color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+		prop = RNA_def_property(srna, "handle_sel_vect", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_sel_vect");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Vector handle selected color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 
 	prop = RNA_def_property(srna, "handle_align", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "handle_align");
@@ -1364,19 +1372,13 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 	RNA_def_property_ui_text(prop, "Auto handle selected color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "handle_sel_vect", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "handle_sel_vect");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Vector handle selected color", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	prop = RNA_def_property(srna, "handle_sel_align", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "handle_sel_align");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Align handle selected color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
-	if (incl_nurbs == 0) {
+	if (incl_nurbs == false) {
 		/* assume that when nurbs are off, this is for 2D (i.e. anim) editors */
 		prop = RNA_def_property(srna, "handle_auto_clamped", PROP_FLOAT, PROP_COLOR_GAMMA);
 		RNA_def_property_float_sdna(prop, NULL, "handle_auto_clamped");
@@ -1391,11 +1393,13 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 	}
 
-	prop = RNA_def_property(srna, "lastsel_point", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "lastsel_point");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Last selected point", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	if (incl_lastsel) {
+		prop = RNA_def_property(srna, "lastsel_point", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "lastsel_point");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Last selected point", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 }
 
 static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
@@ -1484,7 +1488,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_vertex(srna);
 	rna_def_userdef_theme_spaces_edge(srna);
 	rna_def_userdef_theme_spaces_face(srna);
-	rna_def_userdef_theme_spaces_curves(srna, 1);
+	rna_def_userdef_theme_spaces_curves(srna, true, true, true);
 
 	prop = RNA_def_property(srna, "extra_edge_len", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
@@ -1628,7 +1632,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	rna_def_userdef_theme_spaces_vertex(srna);
-	rna_def_userdef_theme_spaces_curves(srna, 0);
+	rna_def_userdef_theme_spaces_curves(srna, false, true, true);
 	
 	prop = RNA_def_property(srna, "handle_vertex", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
@@ -2247,6 +2251,8 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Other Object UVs", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	rna_def_userdef_theme_spaces_curves(srna, false, false, false);
 }
 
 static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
@@ -2759,6 +2765,8 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Strips Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	rna_def_userdef_theme_spaces_curves(srna, false, false, false);
 }
 
 static void rna_def_userdef_themes(BlenderRNA *brna)

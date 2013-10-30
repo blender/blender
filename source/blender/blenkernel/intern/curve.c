@@ -3080,7 +3080,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		madd_v3_v3v3fl(p2_h2, p2, dvec_b,  1.0f / 3.0f);
 	}
 
-	if (skip_align || !ELEM(HD_ALIGN, bezt->h1, bezt->h2)) {
+	if (skip_align || (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
 		/* handles need to be updated during animation and applying stuff like hooks,
 		 * but in such situations it's quite difficult to distinguish in which order
 		 * align handles should be aligned so skip them for now */
@@ -3095,7 +3095,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		len_b = 1.0f;
 
 	if (bezt->f1 & SELECT) { /* order of calculation */
-		if (bezt->h2 == HD_ALIGN) { /* aligned */
+		if (ELEM(bezt->h2, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) { /* aligned */
 			if (len_a > eps) {
 				len = len_b / len_a;
 				p2_h2[0] = p2[0] + len * (p2[0] - p2_h1[0]);
@@ -3103,7 +3103,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 				p2_h2[2] = p2[2] + len * (p2[2] - p2_h1[2]);
 			}
 		}
-		if (bezt->h1 == HD_ALIGN) {
+		if (ELEM(bezt->h1, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {
 			if (len_b > eps) {
 				len = len_a / len_b;
 				p2_h1[0] = p2[0] + len * (p2[0] - p2_h2[0]);
@@ -3113,7 +3113,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		}
 	}
 	else {
-		if (bezt->h1 == HD_ALIGN) {
+		if (ELEM(bezt->h1, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {
 			if (len_b > eps) {
 				len = len_a / len_b;
 				p2_h1[0] = p2[0] + len * (p2[0] - p2_h2[0]);
@@ -3121,7 +3121,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 				p2_h1[2] = p2[2] + len * (p2[2] - p2_h2[2]);
 			}
 		}
-		if (bezt->h2 == HD_ALIGN) {   /* aligned */
+		if (ELEM(bezt->h2, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {   /* aligned */
 			if (len_a > eps) {
 				len = len_b / len_a;
 				p2_h2[0] = p2[0] + len * (p2[0] - p2_h1[0]);

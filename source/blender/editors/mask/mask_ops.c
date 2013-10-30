@@ -59,9 +59,17 @@
 
 /******************** utility functions *********************/
 
+static void mask_point_scaled_handle(/*const*/ MaskSplinePoint *point, /*const*/ eMaskWhichHandle which_handle,
+                                     const float scalex, const float scaley, float handle[2])
+{
+	BKE_mask_point_handle(point, which_handle, handle);
+	handle[0] *= scalex;
+	handle[1] *= scaley;
+}
+
 MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const float normal_co[2], const float threshold,
-                                            MaskLayer **masklay_r, MaskSpline **spline_r, bool *is_handle_r,
-                                            float *score)
+                                            MaskLayer **masklay_r, MaskSpline **spline_r,
+                                            eMaskWhichHandle *which_handle_r, float *score)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -72,8 +80,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 	MaskSplinePoint *point = NULL;
 	float co[2];
 	const float threshold_sq = threshold * threshold;
-	float len_sq = FLT_MAX, scalex, scaley;
-	int is_handle = FALSE, width, height;
+	float len_sq= FLT_MAX, scalex, scaley;
+	eMaskWhichHandle which_handle = MASK_WHICH_HANDLE_NONE;
+	int width, height;
 
 	ED_mask_get_size(sa, &width, &height);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
@@ -96,26 +105,11 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *cur_point = &spline->points[i];
 				MaskSplinePoint *cur_point_deform = &points_array[i];
-				float cur_len_sq, vec[2], handle[2];
+				eMaskWhichHandle cur_which_handle;
+				float cur_len_sq, vec[2];
 
 				vec[0] = cur_point_deform->bezt.vec[1][0] * scalex;
 				vec[1] = cur_point_deform->bezt.vec[1][1] * scaley;
-
-				if (BKE_mask_point_has_handle(cur_point)) {
-					BKE_mask_point_handle(cur_point_deform, handle);
-					handle[0] *= scalex;
-					handle[1] *= scaley;
-
-					cur_len_sq = len_squared_v2v2(co, handle);
-
-					if (cur_len_sq < len_sq) {
-						point_masklay = masklay;
-						point_spline = spline;
-						point = cur_point;
-						len_sq = cur_len_sq;
-						is_handle = TRUE;
-					}
-				}
 
 				cur_len_sq = len_squared_v2v2(co, vec);
 
@@ -124,7 +118,51 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 					point_masklay = masklay;
 					point = cur_point;
 					len_sq = cur_len_sq;
-					is_handle = FALSE;
+					which_handle = MASK_WHICH_HANDLE_NONE;
+				}
+
+				if (BKE_mask_point_handles_mode_get(cur_point_deform) == MASK_HANDLE_MODE_STICK) {
+					float handle[2];
+					mask_point_scaled_handle(cur_point_deform, MASK_WHICH_HANDLE_STICK, scalex, scaley, handle);
+					cur_len_sq = len_squared_v2v2(co, handle);
+					cur_which_handle = MASK_WHICH_HANDLE_STICK;
+				}
+				else {
+					float handle_left[2], handle_right[2];
+					float len_left_sq, len_right_sq;
+					mask_point_scaled_handle(cur_point_deform, MASK_WHICH_HANDLE_LEFT, scalex, scaley, handle_left);
+					mask_point_scaled_handle(cur_point_deform, MASK_WHICH_HANDLE_RIGHT, scalex, scaley, handle_right);
+
+					len_left_sq = len_squared_v2v2(co, handle_left);
+					len_right_sq = len_squared_v2v2(co, handle_right);
+					if (i == 0) {
+						if (len_left_sq <= len_right_sq) {
+							cur_which_handle = MASK_WHICH_HANDLE_LEFT;
+							cur_len_sq = len_left_sq;
+						}
+						else {
+							cur_which_handle = MASK_WHICH_HANDLE_RIGHT;
+							cur_len_sq = len_right_sq;
+						}
+					}
+					else {
+						if (len_right_sq <= len_left_sq) {
+							cur_which_handle = MASK_WHICH_HANDLE_RIGHT;
+							cur_len_sq = len_right_sq;
+						}
+						else {
+							cur_which_handle = MASK_WHICH_HANDLE_LEFT;
+							cur_len_sq = len_left_sq;
+						}
+					}
+				}
+
+				if (cur_len_sq <= len_sq) {
+					point_masklay = masklay;
+					point_spline = spline;
+					point = cur_point;
+					len_sq = cur_len_sq;
+					which_handle = cur_which_handle;
 				}
 			}
 		}
@@ -137,8 +175,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 		if (spline_r)
 			*spline_r = point_spline;
 
-		if (is_handle_r)
-			*is_handle_r = is_handle;
+		if (which_handle_r)
+			*which_handle_r = which_handle;
 
 		if (score)
 			*score = sqrtf(len_sq);
@@ -152,8 +190,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 	if (spline_r)
 		*spline_r = NULL;
 
-	if (is_handle_r)
-		*is_handle_r = FALSE;
+	if (which_handle_r)
+		*which_handle_r = MASK_WHICH_HANDLE_NONE;
 
 	return NULL;
 }
@@ -423,18 +461,22 @@ typedef struct SlidePointData {
 
 	float co[2];
 	float vec[3][3];
+	char old_h1, old_h2;
 
 	Mask *mask;
 	MaskLayer *masklay;
 	MaskSpline *spline, *orig_spline;
 	MaskSplinePoint *point;
 	MaskSplinePointUW *uw;
+	eMaskWhichHandle which_handle;
 	float handle[2], no[2], feather[2];
 	int width, height;
 	float weight, weight_scalar;
 
 	short curvature_only, accurate;
 	short initial_feather, overall_feather;
+
+	bool is_sliding_new_point;
 } SlidePointData;
 
 static bool slide_point_check_initial_feather(MaskSpline *spline)
@@ -460,6 +502,41 @@ static bool slide_point_check_initial_feather(MaskSpline *spline)
 	return TRUE;
 }
 
+static void select_sliding_point(Mask *mask, MaskLayer *mask_layer, MaskSpline *spline,
+                                 MaskSplinePoint *point)
+{
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
+	BKE_mask_point_select_set(point, TRUE);
+
+	mask_layer->act_spline = spline;
+	mask_layer->act_point = point;
+	ED_mask_select_flush_all(mask);
+}
+
+static void check_sliding_handle_type(MaskSplinePoint *point, eMaskWhichHandle which_handle)
+{
+	BezTriple *bezt = &point->bezt;
+
+	if (which_handle == MASK_WHICH_HANDLE_LEFT) {
+		if (bezt->h1 == HD_VECT) {
+			bezt->h1 = HD_FREE;
+		}
+		else if (bezt->h1 == HD_AUTO) {
+			bezt->h1 = HD_ALIGN_DOUBLESIDE;
+			bezt->h2 = HD_ALIGN_DOUBLESIDE;
+		}
+	}
+	else if (which_handle == MASK_WHICH_HANDLE_RIGHT) {
+		if (bezt->h2 == HD_VECT) {
+			bezt->h2 = HD_FREE;
+		}
+		else if (bezt->h2 == HD_AUTO) {
+			bezt->h1 = HD_ALIGN_DOUBLESIDE;
+			bezt->h2 = HD_ALIGN_DOUBLESIDE;
+		}
+	}
+}
+
 static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -472,15 +549,15 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 	MaskSplinePoint *point, *cv_point, *feather_point;
 	MaskSplinePointUW *uw = NULL;
 	int width, height, action = SLIDE_ACTION_NONE;
-	bool is_handle = false;
 	const bool slide_feather = RNA_boolean_get(op->ptr, "slide_feather");
 	float co[2], cv_score, feather_score;
 	const float threshold = 19;
+	eMaskWhichHandle which_handle;
 
 	ED_mask_mouse_pos(sa, ar, event->mval, co);
 	ED_mask_get_size(sa, &width, &height);
 
-	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &is_handle, &cv_score);
+	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &which_handle, &cv_score);
 
 	if (ED_mask_feather_find_nearest(C, mask, co, threshold, &feather_masklay, &feather_spline, &feather_point, &uw, &feather_score)) {
 		if (slide_feather || !cv_point || feather_score < cv_score) {
@@ -493,7 +570,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 	}
 
 	if (cv_point && action == SLIDE_ACTION_NONE) {
-		if (is_handle)
+		if (which_handle != MASK_WHICH_HANDLE_NONE)
 			action = SLIDE_ACTION_HANDLE;
 		else
 			action = SLIDE_ACTION_POINT;
@@ -504,6 +581,8 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 	}
 
 	if (action != SLIDE_ACTION_NONE) {
+		select_sliding_point(mask, masklay, spline, point);
+
 		customdata = MEM_callocN(sizeof(SlidePointData), "mask slide point data");
 
 		customdata->mask = mask;
@@ -514,6 +593,13 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 		customdata->height = height;
 		customdata->action = action;
 		customdata->uw = uw;
+
+		customdata->old_h1 = point->bezt.h1;
+		customdata->old_h2 = point->bezt.h2;
+
+		customdata->is_sliding_new_point = RNA_boolean_get(op->ptr, "is_new_point");
+
+		check_sliding_handle_type(point, which_handle);
 
 		if (uw) {
 			float co_uw[2];
@@ -540,8 +626,10 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 			customdata->initial_feather = slide_point_check_initial_feather(spline);
 
 		copy_m3_m3(customdata->vec, point->bezt.vec);
-		if (BKE_mask_point_has_handle(point))
-			BKE_mask_point_handle(point, customdata->handle);
+		if (which_handle != MASK_WHICH_HANDLE_NONE) {
+			BKE_mask_point_handle(point, which_handle, customdata->handle);
+		}
+		customdata->which_handle = which_handle;
 		ED_mask_mouse_pos(sa, ar, event->mval, customdata->co);
 	}
 
@@ -550,11 +638,16 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 
 static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	SlidePointData *slidedata = slide_point_customdata(C, op, event);
+	Mask *mask = CTX_data_edit_mask(C);
+	SlidePointData *slidedata;
+
+	if (mask == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	slidedata = slide_point_customdata(C, op, event);
 
 	if (slidedata) {
-		Mask *mask = CTX_data_edit_mask(C);
-
 		op->customdata = slidedata;
 
 		WM_event_add_modal_handler(C, op);
@@ -645,6 +738,8 @@ static void cancel_slide_point(SlidePointData *data)
 		}
 		else {
 			copy_m3_m3(data->point->bezt.vec, data->vec);
+			data->point->bezt.h1 = data->old_h1;
+			data->point->bezt.h2 = data->old_h2;
 		}
 	}
 }
@@ -695,10 +790,34 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				sub_v2_v2v2(offco, co, data->co);
 				if (data->accurate)
 					mul_v2_fl(offco, 0.2f);
+
+				if (data->is_sliding_new_point && data->which_handle == MASK_WHICH_HANDLE_STICK) {
+					if (ELEM(data->point, &data->spline->points[0],
+					                      &data->spline->points[data->spline->tot_point - 1]))
+					{
+						SWAP(float, offco[0], offco[1]);
+						offco[1] *= -1;
+					}
+				}
+
 				add_v2_v2(offco, data->co);
 				add_v2_v2(offco, delta);
 
-				BKE_mask_point_set_handle(data->point, offco, data->curvature_only, data->handle, data->vec);
+				BKE_mask_point_set_handle(data->point, data->which_handle,
+				                          offco, data->curvature_only,
+				                          data->handle, data->vec);
+
+				if (data->is_sliding_new_point) {
+					if (ELEM(data->which_handle, MASK_WHICH_HANDLE_LEFT, MASK_WHICH_HANDLE_RIGHT)) {
+						BezTriple *bezt = &data->point->bezt;
+						float vec[2];
+						short self_handle = (data->which_handle == MASK_WHICH_HANDLE_LEFT) ? 0 : 2;
+						short other_handle = (data->which_handle == MASK_WHICH_HANDLE_LEFT) ? 2 : 0;
+
+						sub_v2_v2v2(vec, bezt->vec[1], bezt->vec[self_handle]);
+						add_v2_v2v2(bezt->vec[other_handle], bezt->vec[1], vec);
+					}
+				}
 			}
 			else if (data->action == SLIDE_ACTION_POINT) {
 				float delta[2];
@@ -826,6 +945,16 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					}
 				}
 
+				if (data->is_sliding_new_point) {
+					BezTriple *bezt = &data->point->bezt;
+					if (len_squared_v2v2(bezt->vec[0], bezt->vec[1]) < FLT_EPSILON) {
+						bezt->h1 = HD_VECT;
+					}
+					if (len_squared_v2v2(bezt->vec[2], bezt->vec[1]) < FLT_EPSILON) {
+						bezt->h2 = HD_VECT;
+					}
+				}
+
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 				DAG_id_tag_update(&data->mask->id, 0);
 
@@ -850,6 +979,8 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 void MASK_OT_slide_point(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Slide Point";
 	ot->description = "Slide control points";
@@ -858,12 +989,15 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = slide_point_invoke;
 	ot->modal = slide_point_modal;
-	ot->poll = ED_maskedit_mask_poll;
+	ot->poll = ED_operator_mask;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide feather instead of vertex");
+
+	prop = RNA_def_boolean(ot->srna, "is_new_point", 0, "Slide New Point", "Newly created vertex is being slided");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /******************** toggle cyclic *********************/
@@ -887,6 +1021,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	DAG_id_tag_update(&mask->id, 0);
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
@@ -1218,7 +1353,25 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 				if (MASKPOINT_ISSEL_ANY(point)) {
 					BezTriple *bezt = &point->bezt;
 
-					bezt->h1 = bezt->h2 = handle_type;
+					if (bezt->f2 & SELECT) {
+						bezt->h1 = handle_type;
+						bezt->h2 = handle_type;
+					}
+					else {
+						if (bezt->f1 & SELECT) {
+							bezt->h1 = handle_type;
+						}
+						if (bezt->f3 & SELECT) {
+							bezt->h2 = handle_type;
+						}
+					}
+
+					if (handle_type == HD_ALIGN) {
+						float vec[3];
+						sub_v3_v3v3(vec, bezt->vec[0], bezt->vec[1]);
+						add_v3_v3v3(bezt->vec[2], bezt->vec[1], vec);
+					}
+
 					changed = true;
 				}
 			}
@@ -1239,7 +1392,9 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 	static EnumPropertyItem editcurve_handle_type_items[] = {
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
-		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
+		{HD_ALIGN_DOUBLESIDE, "ALIGNED_DOUBLESIDE", 0, "Aligned", ""},
+		{HD_FREE, "FREE", 0, "Free", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

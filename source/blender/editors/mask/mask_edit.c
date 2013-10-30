@@ -570,8 +570,8 @@ void ED_operatormacros_mask(void)
 	                                  "Add new vertex and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
 	ot->description = "Add new vertex and slide it";
 	WM_operatortype_macro_define(ot, "MASK_OT_add_vertex");
-	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_boolean_set(otmacro->ptr, "release_confirm", TRUE);
+	otmacro = WM_operatortype_macro_define(ot, "MASK_OT_slide_point");
+	RNA_boolean_set(otmacro->ptr, "is_new_point", TRUE);
 
 	ot = WM_operatortype_append_macro("MASK_OT_add_feather_vertex_slide", "Add Feather Vertex and Slide",
 	                                  "Add new vertex to feather and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);

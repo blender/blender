@@ -255,38 +255,36 @@ static int select_exec(bContext *C, wmOperator *op)
 	bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool deselect = RNA_boolean_get(op->ptr, "deselect");
 	bool toggle = RNA_boolean_get(op->ptr, "toggle");
-
-	bool is_handle = 0;
+	eMaskWhichHandle which_handle;
 	const float threshold = 19;
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
+	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &which_handle, NULL);
 
 	if (extend == false && deselect == false && toggle == false)
 		ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 	if (point) {
-
-		if (is_handle) {
+		if (which_handle != MASK_WHICH_HANDLE_NONE) {
 			if (extend) {
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
-				BKE_mask_point_select_set_handle(point, TRUE);
+				BKE_mask_point_select_set_handle(point, which_handle, TRUE);
 			}
 			else if (deselect) {
-				BKE_mask_point_select_set_handle(point, FALSE);
+				BKE_mask_point_select_set_handle(point, which_handle, FALSE);
 			}
 			else {
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
-				if (!MASKPOINT_ISSEL_HANDLE(point)) {
-					BKE_mask_point_select_set_handle(point, TRUE);
+				if (!MASKPOINT_ISSEL_HANDLE(point, which_handle)) {
+					BKE_mask_point_select_set_handle(point, which_handle, TRUE);
 				}
 				else if (toggle) {
-					BKE_mask_point_select_set_handle(point, FALSE);
+					BKE_mask_point_select_set_handle(point, which_handle, FALSE);
 				}
 			}
 		}
@@ -444,11 +442,11 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 				if (BLI_rctf_isect_pt_v(&rectf, point_deform->bezt.vec[1])) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
-					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, mode == GESTURE_MODAL_SELECT);
 				}
 				else if (!extend) {
 					BKE_mask_point_select_set(point, FALSE);
-					BKE_mask_point_select_set_handle(point, FALSE);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, FALSE);
 				}
 
 				changed = true;
@@ -531,7 +529,7 @@ static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 				{
 					BKE_mask_point_select_set(point, select);
-					BKE_mask_point_select_set_handle(point, select);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, select);
 				}
 
 				changed = true;
@@ -649,7 +647,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 				if (mask_spline_point_inside_ellipse(&point_deform->bezt, offset, ellipse)) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
-					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, mode == GESTURE_MODAL_SELECT);
 
 					changed = true;
 				}
@@ -702,14 +700,12 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	MaskSplinePoint *point = NULL;
 	float co[2];
 	int do_select = !RNA_boolean_get(op->ptr, "deselect");
-
-	bool is_handle = false;
 	const float threshold = 19;
 	bool changed = false;
 
 	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
-	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
+	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, NULL, NULL);
 
 	if (point) {
 		ED_mask_spline_select_set(spline, do_select);

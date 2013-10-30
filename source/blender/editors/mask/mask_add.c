@@ -182,15 +182,13 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 /******************** add vertex *********************/
 
 static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
-                               const float point_co[2], const float tangent[2], const float u,
-                               MaskSplinePoint *reference_point, const short reference_adjacent,
-                               const float view_zoom)
+                               const float point_co[2], const float u,
+                               MaskSplinePoint *reference_point, const short reference_adjacent)
 {
 	MaskSplinePoint *prev_point = NULL;
 	MaskSplinePoint *next_point = NULL;
 	BezTriple *bezt;
 	float co[3];
-	const float len = 10.0; /* default length of handle in pixel space */
 
 	copy_v2_v2(co, point_co);
 	co[2] = 0.0f;
@@ -201,7 +199,41 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
 	bezt->h1 = bezt->h2 = HD_ALIGN;
 
 	if (reference_point) {
-		bezt->h1 = bezt->h2 = MAX2(reference_point->bezt.h2, reference_point->bezt.h1);
+		if (reference_point->bezt.h1 == HD_VECT && reference_point->bezt.h2 == HD_VECT) {
+			/* If the reference point is sharp try using some smooth point as reference
+			 * for handles.
+			 */
+			int point_index = reference_point - spline->points;
+			int delta = new_point == spline->points ? 1 : -1;
+			int i = 0;
+			for (i = 0; i < spline->tot_point - 1; ++i) {
+				MaskSplinePoint *current_point;
+
+				point_index += delta;
+				if (point_index == -1 || point_index >= spline->tot_point) {
+					if (spline->flag & MASK_SPLINE_CYCLIC) {
+						if (point_index == -1) {
+							point_index = spline->tot_point - 1;
+						}
+						else if (point_index >= spline->tot_point) {
+							point_index = 0;
+						}
+					}
+					else {
+						break;
+					}
+				}
+
+				current_point = &spline->points[point_index];
+				if (current_point->bezt.h1 != HD_VECT || current_point->bezt.h2 != HD_VECT) {
+					bezt->h1 = bezt->h2 = MAX2(current_point->bezt.h2, current_point->bezt.h1);
+					break;
+				}
+			}
+		}
+		else {
+			bezt->h1 = bezt->h2 = MAX2(reference_point->bezt.h2, reference_point->bezt.h1);
+		}
 	}
 	else if (reference_adjacent) {
 		if (spline->tot_point != 1) {
@@ -219,82 +251,10 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
 	copy_v3_v3(bezt->vec[1], co);
 	copy_v3_v3(bezt->vec[2], co);
 
-	/* initial offset for handles */
-	if (spline->tot_point == 1) {
-		/* first point of splien is aligned horizontally */
-		bezt->vec[0][0] -= len * view_zoom;
-		bezt->vec[2][0] += len * view_zoom;
-	}
-	else if (tangent) {
-		float vec[2];
-
-		copy_v2_v2(vec, tangent);
-
-		mul_v2_fl(vec, len);
-
-		sub_v2_v2(bezt->vec[0], vec);
-		add_v2_v2(bezt->vec[2], vec);
-
-		if (reference_adjacent) {
-			BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
-		}
-	}
-	else {
-
-		/* calculating auto handles works much nicer */
-#if 0
-		/* next points are aligning in the direction of previous/next point */
-		MaskSplinePoint *point;
-		float v1[2], v2[2], vec[2];
-		float dir = 1.0f;
-
-		if (new_point == spline->points) {
-			point = new_point + 1;
-			dir = -1.0f;
-		}
-		else
-			point = new_point - 1;
-
-		if (spline->tot_point < 3) {
-			v1[0] = point->bezt.vec[1][0] * width;
-			v1[1] = point->bezt.vec[1][1] * height;
-
-			v2[0] = new_point->bezt.vec[1][0] * width;
-			v2[1] = new_point->bezt.vec[1][1] * height;
-		}
-		else {
-			if (new_point == spline->points) {
-				v1[0] = spline->points[1].bezt.vec[1][0] * width;
-				v1[1] = spline->points[1].bezt.vec[1][1] * height;
-
-				v2[0] = spline->points[spline->tot_point - 1].bezt.vec[1][0] * width;
-				v2[1] = spline->points[spline->tot_point - 1].bezt.vec[1][1] * height;
-			}
-			else {
-				v1[0] = spline->points[0].bezt.vec[1][0] * width;
-				v1[1] = spline->points[0].bezt.vec[1][1] * height;
-
-				v2[0] = spline->points[spline->tot_point - 2].bezt.vec[1][0] * width;
-				v2[1] = spline->points[spline->tot_point - 2].bezt.vec[1][1] * height;
-			}
-		}
-
-		sub_v2_v2v2(vec, v1, v2);
-		mul_v2_fl(vec, len * dir / len_v2(vec));
-
-		vec[0] /= width;
-		vec[1] /= height;
-
-		add_v2_v2(bezt->vec[0], vec);
-		sub_v2_v2(bezt->vec[2], vec);
-#else
-		BKE_mask_calc_handle_point_auto(spline, new_point, TRUE);
-		BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
-
-#endif
-	}
-
 	BKE_mask_parent_init(&new_point->parent);
+	if (spline->tot_point != 1) {
+		BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
+	}
 
 	/* select new point */
 	MASKPOINT_SEL_ALL(new_point);
@@ -382,7 +342,7 @@ static int add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2]
 
 		new_point = &spline->points[point_index + 1];
 
-		setup_vertex_point(mask, spline, new_point, co, tangent, u, NULL, TRUE, 1.0f);
+		setup_vertex_point(mask, spline, new_point, co, u, NULL, TRUE);
 
 		/* TODO - we could pass the spline! */
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, true, true);
@@ -409,7 +369,6 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 	float tangent_point[2];
 	float tangent_co[2];
 	bool do_cyclic_correct = false;
-	bool do_recalc_src = false;  /* when extruding from endpoints only */
 	bool do_prev;                /* use prev point rather then next?? */
 
 	if (!masklay) {
@@ -440,11 +399,9 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 	}
 	else if (((spline->flag & MASK_SPLINE_CYCLIC) == 0) && (point_index == 0)) {
 		do_prev = TRUE;
-		do_recalc_src = TRUE;
 	}
 	else if (((spline->flag & MASK_SPLINE_CYCLIC) == 0) && (point_index == spline->tot_point - 1)) {
 		do_prev = FALSE;
-		do_recalc_src = TRUE;
 	}
 	else {
 		do_prev = FALSE;  /* quiet warning */
@@ -482,16 +439,11 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE, 1.0f);
+	setup_vertex_point(mask, spline, new_point, co, 0.5f, ref_point, FALSE);
 
 	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, true, true);
-	}
-
-	if (do_recalc_src) {
-		/* TODO, update keyframes in time */
-		BKE_mask_calc_handle_point_auto(spline, ref_point, FALSE);
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
@@ -504,7 +456,6 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
-	float view_zoom;
 
 	if (!masklay) {
 		/* if there's no masklay currently operationg on, create new one */
@@ -529,22 +480,7 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 
 	masklay->act_point = new_point;
 
-	{
-		ScrArea *sa = CTX_wm_area(C);
-		ARegion *ar = CTX_wm_region(C);
-
-		float zoom_x, zoom_y;
-		/* calc view zoom in a simplistic way */
-		ED_mask_zoom(sa, ar, &zoom_x, &zoom_y);
-
-		view_zoom = zoom_x + zoom_y / 2.0f;
-		view_zoom = 1.0f / view_zoom;
-
-		/* arbitrary but gives good results */
-		view_zoom /= 500.0f;
-	}
-
-	setup_vertex_point(mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE, view_zoom);
+	setup_vertex_point(mask, spline, new_point, co, 0.5f, ref_point, FALSE);
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);

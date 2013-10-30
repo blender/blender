@@ -47,6 +47,20 @@ struct MovieClip;
 struct MovieClipUser;
 struct Scene;
 
+/* mask_ops.c */
+typedef enum {
+	MASK_WHICH_HANDLE_NONE  = 0,
+	MASK_WHICH_HANDLE_STICK = 1,
+	MASK_WHICH_HANDLE_LEFT  = 2,
+	MASK_WHICH_HANDLE_RIGHT = 3,
+	MASK_WHICH_HANDLE_BOTH  = 4,
+} eMaskWhichHandle;
+
+typedef enum {
+	MASK_HANDLE_MODE_STICK = 1,
+	MASK_HANDLE_MODE_INDIVIDUAL_HANDLES = 2,
+} eMaskhandleMode;
+
 struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
 struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(struct MaskSpline *spline, struct MaskSplinePoint *point_ref);
 
@@ -87,9 +101,9 @@ float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoi
                                  float start_u, const float co[2], const eMaskSign sign);
 
 /* point */
-bool BKE_mask_point_has_handle(struct MaskSplinePoint *point);
-void BKE_mask_point_handle(struct MaskSplinePoint *point, float handle[2]);
-void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], bool keep_direction,
+eMaskhandleMode BKE_mask_point_handles_mode_get(struct MaskSplinePoint *point);
+void BKE_mask_point_handle(struct MaskSplinePoint *point, eMaskWhichHandle which_handle, float handle[2]);
+void BKE_mask_point_set_handle(struct MaskSplinePoint *point, eMaskWhichHandle which_handle, float loc[2], bool keep_direction,
                                float orig_handle[2], float orig_vec[3][3]);
 
 void BKE_mask_point_segment_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float u, float co[2]);
@@ -101,7 +115,7 @@ struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, 
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
 void BKE_mask_point_select_set(struct MaskSplinePoint *point, const bool do_select);
-void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const bool do_select);
+void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const eMaskWhichHandle which_handle, const bool do_select);
 
 /* general */
 struct Mask *BKE_mask_new(struct Main *bmain, const char *name);
@@ -176,15 +190,17 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
 
 #define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
-#define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f3) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
-#define MASKPOINT_ISSEL_HANDLE(p)       ( (((p)->bezt.f1 | (p)->bezt.f3) & SELECT) )
+
+#define MASKPOINT_ISSEL_HANDLE(point, which_handle) \
+	((which_handle == MASK_WHICH_HANDLE_STICK) ? \
+	((((point)->bezt.f1 | (point)->bezt.f3) & SELECT)) : \
+	((which_handle == MASK_WHICH_HANDLE_LEFT) ? \
+	((point)->bezt.f1 & SELECT) : \
+	((point)->bezt.f3 & SELECT)))
 
 #define MASKPOINT_SEL_ALL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL_ALL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 #define MASKPOINT_INVSEL_ALL(p) { (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; } (void)0
-
-#define MASKPOINT_SEL_HANDLE(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
-#define MASKPOINT_DESEL_HANDLE(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 
 #define MASK_RESOL_MAX 128
 

@@ -6584,7 +6584,66 @@ typedef struct TransDataMasking {
 	MaskSplinePoint *point;
 	float parent_matrix[3][3];
 	float parent_inverse_matrix[3][3];
+	char orig_handle_type;
+
+	eMaskWhichHandle which_handle;
 } TransDataMasking;
+
+static void MaskHandleToTransData(MaskSplinePoint *point, eMaskWhichHandle which_handle,
+                                  TransData *td, TransData2D *td2d, TransDataMasking *tdm,
+                                  const float asp[2],
+                                  /*const*/ float parent_matrix[3][3],
+                                  /*const*/ float parent_inverse_matrix[3][3])
+{
+	BezTriple *bezt = &point->bezt;
+	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
+
+	tdm->point = point;
+	copy_m3_m3(tdm->vec, bezt->vec);
+
+	tdm->is_handle = TRUE;
+	copy_m3_m3(tdm->parent_matrix, parent_matrix);
+	copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
+
+	BKE_mask_point_handle(point, which_handle, tdm->handle);
+	tdm->which_handle = which_handle;
+
+	copy_v2_v2(tdm->orig_handle, tdm->handle);
+
+	mul_v2_m3v2(td2d->loc, parent_matrix, tdm->handle);
+	td2d->loc[0] *= asp[0];
+	td2d->loc[1] *= asp[1];
+	td2d->loc[2] = 0.0f;
+
+	td2d->loc2d = tdm->handle;
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	mul_v2_m3v2(td->center, parent_matrix, bezt->vec[1]);
+	copy_v3_v3(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext = NULL;
+	td->val = NULL;
+
+	if (is_sel_any) {
+		td->flag |= TD_SELECTED;
+	}
+
+	td->dist = 0.0;
+
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
+
+	if (which_handle == MASK_WHICH_HANDLE_LEFT) {
+		tdm->orig_handle_type = bezt->h1;
+	}
+	else if (which_handle == MASK_WHICH_HANDLE_RIGHT) {
+		tdm->orig_handle_type = bezt->h2;
+	}
+}
 
 static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
                                  TransData *td, TransData2D *td2d, TransDataMasking *tdm,
@@ -6595,14 +6654,15 @@ static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
 	const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);
 	float parent_matrix[3][3], parent_inverse_matrix[3][3];
 
-	tdm->point = point;
-	copy_m3_m3(tdm->vec, bezt->vec);
-
 	BKE_mask_point_parent_matrix_get(point, CFRA, parent_matrix);
 	invert_m3_m3(parent_inverse_matrix, parent_matrix);
 
 	if (propmode || is_sel_point) {
 		int i;
+
+		tdm->point = point;
+		copy_m3_m3(tdm->vec, bezt->vec);
+
 		for (i = 0; i < 3; i++) {
 			copy_m3_m3(tdm->parent_matrix, parent_matrix);
 			copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
@@ -6645,49 +6705,64 @@ static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
 			unit_m3(td->mtx);
 			unit_m3(td->smtx);
 
+			if (i == 0) {
+				tdm->orig_handle_type = bezt->h1;
+			}
+			else if (i == 3) {
+				tdm->orig_handle_type = bezt->h2;
+			}
+
 			td++;
 			td2d++;
 			tdm++;
 		}
 	}
 	else {
-		tdm->is_handle = TRUE;
-		copy_m3_m3(tdm->parent_matrix, parent_matrix);
-		copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
+		if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+			MaskHandleToTransData(point, MASK_WHICH_HANDLE_STICK,
+			                      td, td2d, tdm, asp, parent_matrix,
+			                      parent_inverse_matrix);
 
-		BKE_mask_point_handle(point, tdm->handle);
-
-		copy_v2_v2(tdm->orig_handle, tdm->handle);
-
-		mul_v2_m3v2(td2d->loc, parent_matrix, tdm->handle);
-		td2d->loc[0] *= asp[0];
-		td2d->loc[1] *= asp[1];
-		td2d->loc[2] = 0.0f;
-
-		td2d->loc2d = tdm->handle;
-
-		td->flag = 0;
-		td->loc = td2d->loc;
-		mul_v2_m3v2(td->center, parent_matrix, bezt->vec[1]);
-		copy_v3_v3(td->iloc, td->loc);
-
-		memset(td->axismtx, 0, sizeof(td->axismtx));
-		td->axismtx[2][2] = 1.0f;
-
-		td->ext = NULL;
-		td->val = NULL;
-
-		if (is_sel_any) {
-			td->flag |= TD_SELECTED;
+			td++;
+			td2d++;
+			tdm++;
 		}
+		else {
+			if (bezt->f1 & SELECT) {
+				MaskHandleToTransData(point, MASK_WHICH_HANDLE_LEFT,
+				                      td, td2d, tdm, asp, parent_matrix,
+				                      parent_inverse_matrix);
 
-		td->dist = 0.0;
+				if (bezt->h1 == HD_VECT) {
+					bezt->h1 = HD_FREE;
+				}
+				else if (bezt->h1 == HD_AUTO) {
+					bezt->h1 = HD_ALIGN_DOUBLESIDE;
+					bezt->h2 = HD_ALIGN_DOUBLESIDE;
+				}
 
-		unit_m3(td->mtx);
-		unit_m3(td->smtx);
+				td++;
+				td2d++;
+				tdm++;
+			}
+			if (bezt->f3 & SELECT) {
+				MaskHandleToTransData(point, MASK_WHICH_HANDLE_RIGHT,
+				                      td, td2d, tdm, asp, parent_matrix,
+				                      parent_inverse_matrix);
 
-		td++;
-		td2d++;
+				if (bezt->h2 == HD_VECT) {
+					bezt->h2 = HD_FREE;
+				}
+				else if (bezt->h2 == HD_AUTO) {
+					bezt->h1 = HD_ALIGN_DOUBLESIDE;
+					bezt->h2 = HD_ALIGN_DOUBLESIDE;
+				}
+
+				td++;
+				td2d++;
+				tdm++;
+			}
+		}
 	}
 }
 
@@ -6731,10 +6806,23 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (MASKPOINT_ISSEL_ANY(point)) {
-					if (MASKPOINT_ISSEL_KNOT(point))
+					if (MASKPOINT_ISSEL_KNOT(point)) {
 						countsel += 3;
-					else
-						countsel += 1;
+					}
+					else {
+						if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+							countsel += 1;
+						}
+						else {
+							BezTriple *bezt = &point->bezt;
+							if (bezt->f1 & SELECT) {
+								countsel++;
+							}
+							if (bezt->f3 & SELECT) {
+								countsel++;
+							}
+						}
+					}
 				}
 
 				if (propmode)
@@ -6782,9 +6870,24 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 						tdm += 3;
 					}
 					else {
-						td++;
-						td2d++;
-						tdm++;
+						if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+							td++;
+							td2d++;
+							tdm++;
+						}
+						else {
+							BezTriple *bezt = &point->bezt;
+							if (bezt->f1 & SELECT) {
+								td++;
+								td2d++;
+								tdm++;
+							}
+							if (bezt->f3 & SELECT) {
+								td++;
+								td2d++;
+								tdm++;
+							}
+						}
 					}
 				}
 			}
@@ -6810,9 +6913,19 @@ void flushTransMasking(TransInfo *t)
 		mul_m3_v2(tdm->parent_inverse_matrix, td->loc2d);
 
 		if (tdm->is_handle) {
-			BKE_mask_point_set_handle(tdm->point, td->loc2d,
+			BKE_mask_point_set_handle(tdm->point, tdm->which_handle,
+			                          td->loc2d,
 			                          (t->flag & T_ALT_TRANSFORM) != 0,
 			                          tdm->orig_handle, tdm->vec);
+		}
+
+		if (t->state == TRANS_CANCEL) {
+			if (tdm->which_handle == MASK_WHICH_HANDLE_LEFT) {
+				tdm->point->bezt.h1 = tdm->orig_handle_type;
+			}
+			else if (tdm->which_handle == MASK_WHICH_HANDLE_RIGHT) {
+				tdm->point->bezt.h2 = tdm->orig_handle_type;
+			}
 		}
 	}
 }

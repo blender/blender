@@ -354,7 +354,8 @@ typedef enum eBezTriple_Handle {
 	HD_AUTO = 1,
 	HD_VECT = 2,
 	HD_ALIGN = 3,
-	HD_AUTO_ANIM = 4 	/* auto-clamped handles for animation */
+	HD_AUTO_ANIM = 4,         /* auto-clamped handles for animation */
+	HD_ALIGN_DOUBLESIDE = 5,  /* align handles, displayed both of them. used for masks */
 } eBezTriple_Handle;
 
 /* interpolation modes (used only for BezTriple->ipo) */

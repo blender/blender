@@ -312,12 +312,83 @@ static int rna_MaskSplinePoint_handle_type_get(PointerRNA *ptr)
 	return bezt->h1;
 }
 
+static MaskSpline *mask_spline_from_point(Mask *mask, MaskSplinePoint *point)
+{
+	MaskLayer *mask_layer;
+	for (mask_layer = mask->masklayers.first;
+	     mask_layer;
+	     mask_layer = mask_layer->next)
+	{
+		MaskSpline *spline;
+		for (spline = mask_layer->splines.first;
+		     spline;
+		     spline = spline->next)
+		{
+			if (point >= spline->points && point < spline->points + spline->tot_point) {
+				return spline;
+			}
+		}
+	}
+	return NULL;
+}
+
+static void mask_point_check_stick(MaskSplinePoint *point)
+{
+	BezTriple *bezt = &point->bezt;
+	if (bezt->h1 == HD_ALIGN && bezt->h2 == HD_ALIGN) {
+		float vec[3];
+		sub_v3_v3v3(vec, bezt->vec[0], bezt->vec[1]);
+		add_v3_v3v3(bezt->vec[2], bezt->vec[1], vec);
+	}
+}
+
 static void rna_MaskSplinePoint_handle_type_set(PointerRNA *ptr, int value)
 {
 	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
+	MaskSpline *spline = mask_spline_from_point((Mask *) ptr->id.data, point);
 
 	bezt->h1 = bezt->h2 = value;
+	mask_point_check_stick(point);
+	BKE_mask_calc_handle_point(spline, point);
+}
+
+static int rna_MaskSplinePoint_handle_left_type_get(PointerRNA *ptr)
+{
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
+	BezTriple *bezt = &point->bezt;
+
+	return bezt->h1;
+}
+
+static void rna_MaskSplinePoint_handle_left_type_set(PointerRNA *ptr, int value)
+{
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
+	BezTriple *bezt = &point->bezt;
+	MaskSpline *spline = mask_spline_from_point((Mask *) ptr->id.data, point);
+
+	bezt->h1 = value;
+	mask_point_check_stick(point);
+	BKE_mask_calc_handle_point(spline, point);
+}
+
+static int rna_MaskSplinePoint_handle_right_type_get(PointerRNA *ptr)
+{
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
+	BezTriple *bezt = &point->bezt;
+
+	return bezt->h2;
+}
+
+static void rna_MaskSplinePoint_handle_right_type_set(PointerRNA *ptr, int value)
+{
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
+	BezTriple *bezt = &point->bezt;
+	MaskSpline *spline = mask_spline_from_point((Mask *) ptr->id.data, point);
+
+	bezt->h2 = value;
+	mask_point_check_stick(point);
+	BKE_mask_calc_handle_point(spline, point);
 }
 
 /* ** API **  */
@@ -608,7 +679,9 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 	static EnumPropertyItem handle_type_items[] = {
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
-		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
+		{HD_ALIGN_DOUBLESIDE, "ALIGNED_DOUBLESIDE", 0, "Aligned", ""},
+		{HD_FREE, "FREE", 0, "Free", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_maskSplinePointUW(brna);
@@ -640,6 +713,27 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_MaskSplinePoint_handle_type_get", "rna_MaskSplinePoint_handle_type_set", NULL);
 	RNA_def_property_enum_items(prop, handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle Type", "Handle type");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+	/* handle_type */
+	prop = RNA_def_property(srna, "handle_left_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_MaskSplinePoint_handle_left_type_get", "rna_MaskSplinePoint_handle_left_type_set", NULL);
+	RNA_def_property_enum_items(prop, handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle type");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+	/* handle_right */
+	prop = RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_MaskSplinePoint_handle_right_type_get", "rna_MaskSplinePoint_handle_right_type_set", NULL);
+	RNA_def_property_enum_items(prop, handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle type");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+	/* weight */
+	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bezt.weight");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Weight", "Weight of the point");
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
 	/* select */
