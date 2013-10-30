@@ -295,7 +295,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		pbvh = dm->getPBVH(ob, dm);
 		ob->sculpt->pbvh = pbvh;
 
-		/* gather the nodes inside the lasso */
+		/* gather all nodes! (doing bounding box intersection is more work than needed) */
 		BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
 		sculpt_undo_push_begin("Mask lasso fill");
