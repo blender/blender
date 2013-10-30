@@ -3719,6 +3719,7 @@ void SetNormalNode::compile(OSLCompiler& compiler)
 OSLScriptNode::OSLScriptNode()
 : ShaderNode("osl_script")
 {
+	special_type = SHADER_SPECIAL_TYPE_SCRIPT;
 }
 
 void OSLScriptNode::compile(SVMCompiler& compiler)

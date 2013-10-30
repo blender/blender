@@ -673,58 +673,72 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	return node;
 }
 
+static bool node_use_modified_socket_name(ShaderNode *node)
+{
+	if (node->special_type == SHADER_SPECIAL_TYPE_SCRIPT)
+		return false;
+	
+	return true;
+}
+
 static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::Node b_node, BL::NodeSocket b_socket)
 {
-	BL::Node::inputs_iterator b_input;
 	string name = b_socket.name();
-	bool found = false;
-	int counter = 0, total = 0;
 	
-	for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
-		if (b_input->name() == name) {
-			if (!found)
-				counter++;
-			total++;
+	if (node_use_modified_socket_name(node)) {
+		BL::Node::inputs_iterator b_input;
+		bool found = false;
+		int counter = 0, total = 0;
+		
+		for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
+			if (b_input->name() == name) {
+				if (!found)
+					counter++;
+				total++;
+			}
+			
+			if(b_input->ptr.data == b_socket.ptr.data)
+				found = true;
 		}
-
-		if(b_input->ptr.data == b_socket.ptr.data)
-			found = true;
+		
+		/* rename if needed */
+		if (name == "Shader")
+			name = "Closure";
+		
+		if (total > 1)
+			name = string_printf("%s%d", name.c_str(), counter);
 	}
-	
-	/* rename if needed */
-	if (name == "Shader")
-		name = "Closure";
-	
-	if (total > 1)
-		name = string_printf("%s%d", name.c_str(), counter);
 	
 	return node->input(name.c_str());
 }
 
 static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node, BL::NodeSocket b_socket)
 {
-	BL::Node::outputs_iterator b_output;
 	string name = b_socket.name();
-	bool found = false;
-	int counter = 0, total = 0;
 	
-	for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
-		if (b_output->name() == name) {
-			if (!found)
-				counter++;
-			total++;
+	if (node_use_modified_socket_name(node)) {
+		BL::Node::outputs_iterator b_output;
+		bool found = false;
+		int counter = 0, total = 0;
+		
+		for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
+			if (b_output->name() == name) {
+				if (!found)
+					counter++;
+				total++;
+			}
+			
+			if(b_output->ptr.data == b_socket.ptr.data)
+				found = true;
 		}
-
-		if(b_output->ptr.data == b_socket.ptr.data)
-			found = true;
+		
+		/* rename if needed */
+		if (name == "Shader")
+			name = "Closure";
+		
+		if (total > 1)
+			name = string_printf("%s%d", name.c_str(), counter);
 	}
-	
-	/* rename if needed */
-	if (name == "Shader")
-		name = "Closure";
-	
-	if (total > 1)
-		name = string_printf("%s%d", name.c_str(), counter);
 	
 	return node->output(name.c_str());
 }
