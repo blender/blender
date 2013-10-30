@@ -1396,12 +1396,19 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
-static void wm_operator_ui_popup_cancel(struct bContext *UNUSED(C), void *userData)
+static void wm_operator_ui_popup_cancel(struct bContext *C, void *userData)
 {
 	wmOpPopUp *data = userData;
-	if (data->free_op && data->op) {
-		wmOperator *op = data->op;
-		WM_operator_free(op);
+	wmOperator *op = data->op;
+
+	if (op) {
+		if (op->type->cancel) {
+			op->type->cancel(C, op);
+		}
+
+		if (data->free_op) {
+			WM_operator_free(op);
+		}
 	}
 
 	MEM_freeN(data);
