@@ -227,8 +227,9 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 typedef struct LassoMaskData {
 	struct ViewContext *vc;
 	float projviewobjmat[4][4];
-	int mcords_tot;
-	int (*mcords)[2];
+	bool *px;
+	int width;
+	rcti rect; /* bounding box for scanfilling */
 } LassoMaskData;
 
 
@@ -247,13 +248,19 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 	scr_co_s[1] = scr_co_f[1];
 
 	/* clip against screen, because lasso is limited to screen only */
-	if (scr_co_s[0] < 0 || scr_co_s[1] < 0 || scr_co_s[0] > data->vc->ar->winx || scr_co_s[1] > data->vc->ar->winy)
+	if (scr_co_s[0] < data->rect.xmin || scr_co_s[1] < data->rect.ymin || scr_co_s[0] >= data->rect.xmax || scr_co_s[1] >= data->rect.ymax)
 		return false;
 
-	if (BLI_lasso_is_point_inside((const int (*)[2])data->mcords, data->mcords_tot, scr_co_s[0], scr_co_s[1], IS_CLIPPED))
-		return true;
+	scr_co_s[0] -= data->rect.xmin;
+	scr_co_s[1] -= data->rect.ymin;
 
-	return false;
+	return data->px[scr_co_s[1] * data->width + scr_co_s[0]];
+}
+
+static void mask_lasso_px_cb(int x, int y, void *user_data)
+{
+	struct LassoMaskData *data = user_data;
+	data->px[(y * data->width) + x] = true;
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
@@ -277,17 +284,26 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		bool select = true; /* TODO: see how to implement deselection */
 		float value = select ? 1.0 : 0.0;
 
-		/* We have two types of calculations here, bounding box lasso inclusion calculation is done in 3D space, to
-		 * correctly account for volume, and individual vertices are done in 2D screen space to diminish the amount of
-		 * calculations done */
+		/* Calculations of individual vertices are done in 2D screen space to diminish the amount of
+		 * calculations done. Bounding box PBVH collision is not computed because it is quite expensive and
+		 * unnecessary */
 		view3d_set_viewcontext(C, &vc);
 		view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
 
+		/* lasso data calculations */
 		data.vc = &vc;
-		data.mcords = mcords;
-		data.mcords_tot = mcords_tot;
 		ob = vc.obact;
 		ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
+
+		BLI_lasso_boundbox(&data.rect, (const int (*)[2])mcords, mcords_tot);
+		data.width = data.rect.xmax - data.rect.xmin;
+		data.px = MEM_callocN(sizeof(*data.px) * data.width * (data.rect.ymax - data.rect.ymin), "lasso_mask_pixel_buffer");
+
+		fill_poly_v2i_n(
+		       data.rect.xmin, data.rect.ymin, data.rect.xmax, data.rect.ymax,
+		       (const int (*)[2])mcords, mcords_tot,
+		       mask_lasso_px_cb, &data);
+
 
 		mmd = sculpt_multires_active(vc.scene, ob);
 		ED_sculpt_mask_layers_ensure(ob, mmd);
@@ -323,6 +339,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 		ED_region_tag_redraw(vc.ar);
 		MEM_freeN((void *)mcords);
+		MEM_freeN(data.px);
 
 		return OPERATOR_FINISHED;
 	}
