@@ -136,7 +136,7 @@ BLI_INLINE void ghash_resize_buckets(GHash *gh, const unsigned int nbuckets)
 }
 
 /**
- * Increase initial bucket size to match a reserved ammount.
+ * Increase initial bucket size to match a reserved amount.
  */
 BLI_INLINE void ghash_buckets_reserve(GHash *gh, const unsigned int nentries_reserve)
 {

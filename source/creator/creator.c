@@ -1470,7 +1470,7 @@ int main(int argc, const char **argv)
 #endif
 
 #ifdef WIN32 /* Win32 Unicode Args */
-	/* NOTE: cannot use guardedalloc malloc here, as it's not yet initialised 
+	/* NOTE: cannot use guardedalloc malloc here, as it's not yet initialized
 	 *       (it depends on the args passed in, which is what we're getting here!)
 	 */
 	wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);

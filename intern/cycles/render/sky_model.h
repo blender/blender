@@ -136,7 +136,7 @@ and solar radii: 'arhosekskymodelstate_alienworld_alloc_init()'.
 
 See the notes about the "Alien World" functionality provided further down for a 
 discussion of the usefulness and limits of that second initalisation function.
-Sky model states that have been initialised with either function behave in a
+Sky model states that have been initialized with either function behave in a
 completely identical fashion during use and cleanup.
 
 Using the model to generate skydome samples

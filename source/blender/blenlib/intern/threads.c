@@ -166,7 +166,7 @@ TaskScheduler *BLI_task_scheduler_get(void)
 	if (task_scheduler == NULL) {
 		int tot_thread = BLI_system_thread_count();
 
-		/* Do a lazy initialization, so it happes after
+		/* Do a lazy initialization, so it happens after
 		 * command line arguments parsing
 		 */
 		task_scheduler = BLI_task_scheduler_create(tot_thread);

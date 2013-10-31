@@ -57,7 +57,7 @@ void BKE_rigidbody_relink_constraint(struct RigidBodyCon *rbc);
 /* -------------- */
 /* Setup */
 
-/* create Blender-side settings data - physics objects not initialised yet */
+/* create Blender-side settings data - physics objects not initialized yet */
 struct RigidBodyWorld *BKE_rigidbody_create_world(struct Scene *scene);
 struct RigidBodyOb *BKE_rigidbody_create_object(struct Scene *scene, struct Object *ob, short type);
 struct RigidBodyCon *BKE_rigidbody_create_constraint(struct Scene *scene, struct Object *ob, short type);

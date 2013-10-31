@@ -804,7 +804,8 @@ static int path_extension_type(const char *path)
 	else if (BLI_testextensie(path, ".ogg")) {
 		if (IMB_isanim(path)) {
 			return MOVIEFILE;
-		} else {
+		}
+		else {
 			return SOUNDFILE;
 		}
 	}

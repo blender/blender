@@ -137,7 +137,7 @@ BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const unsigned int nbucket
 }
 
 /**
- * Increase initial bucket size to match a reserved ammount.
+ * Increase initial bucket size to match a reserved amount.
  */
 BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentries_reserve)
 {
