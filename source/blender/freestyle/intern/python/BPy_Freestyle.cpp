@@ -101,8 +101,8 @@ static int ramp_blend_type(const char *type)
 	if (!strcmp(type, "SATURATION"))    return MA_RAMP_SAT;
 	if (!strcmp(type, "VALUE"))         return MA_RAMP_VAL;
 	if (!strcmp(type, "COLOR"))         return MA_RAMP_COLOR;
-	if (!strcmp(type, "SOFT LIGHT"))    return MA_RAMP_SOFT;
-	if (!strcmp(type, "LINEAR LIGHT"))  return MA_RAMP_LINEAR;
+	if (!strcmp(type, "SOFT_LIGHT"))    return MA_RAMP_SOFT;
+	if (!strcmp(type, "LINEAR_LIGHT"))  return MA_RAMP_LINEAR;
 	return -1;
 }
 
