@@ -319,7 +319,7 @@ static PyGetSetDef bpy_bmvertskin_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-PyTypeObject BPy_BMVertSkin_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+static PyTypeObject BPy_BMVertSkin_Type = {{{0}}}; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmvertskin(void)
 {

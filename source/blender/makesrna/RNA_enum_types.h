@@ -71,7 +71,6 @@ extern EnumPropertyItem image_generated_type_items[];
 extern EnumPropertyItem color_sets_items[];
 
 extern EnumPropertyItem beztriple_keyframe_type_items[];
-extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
 extern EnumPropertyItem keyframe_handle_type_items[];
 
