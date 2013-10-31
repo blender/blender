@@ -39,6 +39,9 @@ set(SRC
 
 	MEM_guardedalloc.h
 	./intern/mallocn_intern.h
+
+	# only so the header is known by cmake
+	../atomic/atomic_ops.h
 )
 
 if(WIN32 AND NOT UNIX)
