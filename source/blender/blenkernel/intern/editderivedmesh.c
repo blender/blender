@@ -34,7 +34,7 @@
  * to three loops per triangle.  the derivedmesh stores a cache of tessellations
  * for each face.  this cache will smartly update as needed (though at first
  * it'll simply be more brute force).  keeping track of face/edge counts may
- * be a small problbm.
+ * be a small problem.
  *
  * this won't be the most efficient thing, considering that internal edges and
  * faces of tessellations are exposed.  looking up an edge by index in particular

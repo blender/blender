@@ -2241,7 +2241,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 #else
 			/* image buffers for non-sequence multilayer will share buffers with RenderResult,
 			 * however sequence multilayer will own buffers. Such logic makes switching from
-			 * single multilayer file to sequence completely instable
+			 * single multilayer file to sequence completely unstable
 			 * since changes in nodes seems this workaround isn't needed anymore, all sockets
 			 * are nicely detecting anyway, but freeing buffers always here makes multilayer
 			 * sequences behave stable

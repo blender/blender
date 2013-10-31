@@ -1444,7 +1444,7 @@ static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), 
 
 	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
-	uiItemR(col, ptr, "threshold_neighbour", 0, NULL, ICON_NONE);
+	uiItemR(col, ptr, "threshold_neighbor", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

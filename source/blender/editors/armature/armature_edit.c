@@ -843,7 +843,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	armature_tag_select_mirrored(arm);
 	
 	/* clear BONE_TRANSFORM flags 
-	 * - used to prevent duplicate/cancelling operations from occurring [#34123] 
+	 * - used to prevent duplicate/canceling operations from occurring [#34123]
 	 * - BONE_DONE cannot be used here as that's already used for mirroring
 	 */
 	armature_clear_swap_done_flags(arm);

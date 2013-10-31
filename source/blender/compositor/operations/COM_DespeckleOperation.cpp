@@ -114,7 +114,7 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void *data)
 	//mul_v4_fl(color_mid, 1.0f / w);
 
 	if ((w != 0.0f) &&
-	    ((w / WTOT) > (this->m_threshold_neighbour)) &&
+	    ((w / WTOT) > (this->m_threshold_neighbor)) &&
 	    color_diff(color_mid, color_org, this->m_threshold))
 	{
 		mul_v4_fl(color_mid_ok, 1.0f / w);

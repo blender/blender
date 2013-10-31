@@ -1874,7 +1874,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	//printf("\tGP - handle modal event...\n");
 	
 	/* exit painting mode (and/or end current stroke) 
-	 * NOTE: cannot do RIGHTMOUSE (as is standard for cancelling) as that would break polyline [#32647] 
+	 * NOTE: cannot do RIGHTMOUSE (as is standard for canceling) as that would break polyline [#32647]
 	 */
 	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
 		/* exit() ends the current stroke before cleaning up */

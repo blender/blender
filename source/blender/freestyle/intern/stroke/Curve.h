@@ -491,7 +491,7 @@ public:
 		return _Id;
 	}
 
-	/*! Returns the number of segments in the polyline constituing the Curve. */
+	/*! Returns the number of segments in the polyline constituting the Curve. */
 	inline unsigned int nSegments() const
 	{
 		return _nSegments;

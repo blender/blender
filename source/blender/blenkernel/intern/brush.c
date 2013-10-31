@@ -762,7 +762,7 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
  * radius become inconsistent.
  * the biggest problem is that it isn't possible to change
  * unprojected radius because a view context is not
- * available.  my ussual solution to this is to use the
+ * available.  my usual solution to this is to use the
  * ratio of change of the size to change the unprojected
  * radius.  Not completely convinced that is correct.
  * In any case, a better solution is needed to prevent

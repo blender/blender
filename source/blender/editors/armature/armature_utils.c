@@ -454,7 +454,7 @@ void ED_armature_from_edit(Object *obedit)
 	/* armature bones */
 	BKE_armature_bonelist_free(&arm->bonebase);
 	
-	/* remove zero sized bones, this gives instable restposes */
+	/* remove zero sized bones, this gives unstable restposes */
 	for (eBone = arm->edbo->first; eBone; eBone = neBone) {
 		float len = len_v3v3(eBone->head, eBone->tail);
 		neBone = eBone->next;

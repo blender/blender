@@ -1114,8 +1114,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	if ( numedges==0 )
 		return 0;
 
-	/* NOTE: handling ownership of sptings and edgehash is quite sloppy
-	 * currenlty they are never initialized but assert just to be sure */
+	/* NOTE: handling ownership of springs and edgehash is quite sloppy
+	 * currently they are never initialized but assert just to be sure */
 	BLI_assert(cloth->springs == NULL);
 	BLI_assert(cloth->edgehash == NULL);
 

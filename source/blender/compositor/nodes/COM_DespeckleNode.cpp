@@ -39,7 +39,7 @@ void DespeckleNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 
 	operation->setbNode(editorNode);
 	operation->setThreshold(editorNode->custom3);
-	operation->setThresholdNeighbour(editorNode->custom4);
+	operation->setThresholdNeighbor(editorNode->custom4);
 
 	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
 	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);

@@ -2850,10 +2850,10 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 			continue;
 		}
 
-		/* Find vector to neighbour. Exclude particles that are more than 2h
+		/* Find vector to neighbor. Exclude particles that are more than 2h
 		 * away. Can't use current state here because it may have changed on
 		 * another thread - so do own mini integration. Unlike basic_integrate,
-		 * SPH integration depends on neighbouring particles. - z0r */
+		 * SPH integration depends on neighboring particles. - z0r */
 		madd_v3_v3v3fl(co, npa->prev_state.co, npa->prev_state.vel, state->time);
 		sub_v3_v3v3(vec, co, state->co);
 		rij = normalize_v3(vec);

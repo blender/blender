@@ -167,7 +167,7 @@ static PyObject *FrsCurve_is_empty_get(BPy_FrsCurve *self, void *UNUSED(closure)
 }
 
 PyDoc_STRVAR(FrsCurve_segments_size_doc,
-"The number of segments in the polyline constituing the Curve.\n"
+"The number of segments in the polyline constituting the Curve.\n"
 "\n"
 ":type: int");
 

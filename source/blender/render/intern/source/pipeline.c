@@ -1684,7 +1684,7 @@ static void add_freestyle(Render *re, int render)
 	 * real bmain uses. This is needed because freestyle's
 	 * bmain could be used to tag scenes for update, which
 	 * implies call of ED_render_scene_update in some cases
-	 * and that function requires proper windoew manager
+	 * and that function requires proper window manager
 	 * to present (sergey)
 	 */
 	re->freestyle_bmain.wm = re->main->wm;

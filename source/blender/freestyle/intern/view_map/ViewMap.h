@@ -1352,12 +1352,12 @@ public:
 	vertex_iterator vertices_end();
 
 	// Iterator access (Interface1D)
-	/*! Returns an Interface0DIterator to iterate over the SVertex constituing the embedding of this ViewEdge.
+	/*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this ViewEdge.
 	 *  The returned Interface0DIterator points to the first SVertex of the ViewEdge.
 	 */
 	virtual Interface0DIterator verticesBegin();
 
-	/*! Returns an Interface0DIterator to iterate over the SVertex constituing the embedding of this ViewEdge.
+	/*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this ViewEdge.
 	 *  The returned Interface0DIterator points after the last SVertex of the ViewEdge.
 	 */
 	virtual Interface0DIterator verticesEnd();

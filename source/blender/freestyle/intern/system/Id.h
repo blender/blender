@@ -92,13 +92,13 @@ public:
 		return _second;
 	}
 
-	/*! Sets the first number constituing the Id */
+	/*! Sets the first number constituting the Id */
 	void setFirst(id_type first)
 	{
 		_first = first;
 	}
 
-	/*! Sets the second number constituing the Id */
+	/*! Sets the second number constituting the Id */
 	void setSecond(id_type second)
 	{
 		_second = second;

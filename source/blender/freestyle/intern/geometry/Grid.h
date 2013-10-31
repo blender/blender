@@ -261,7 +261,7 @@ public:
 	/*! inserts a convex polygon occluder
 	 *  This method is quite coarse insofar as it adds all cells intersecting the polygon bounding box
 	 *    convex_poly
-	 *      The list of 3D points constituing a convex polygon
+	 *      The list of 3D points constituting a convex polygon
 	 */
 	void insertOccluder(Polygon3r *convex_poly);
 

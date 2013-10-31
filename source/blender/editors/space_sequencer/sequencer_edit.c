@@ -821,7 +821,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right 
  * are moved to the end of slist
- * we have to work on the same slist (not using a seperate list), since
+ * we have to work on the same slist (not using a separate list), since
  * otherwise dupli_seq can't check for duplicate names properly and
  * may generate strips with the same name (which will mess up animdata)
  */

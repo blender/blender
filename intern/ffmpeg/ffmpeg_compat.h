@@ -2,7 +2,7 @@
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)
  * it also includes all ffmpeg header files at once, no need to do it 
- * seperately.
+ * separately.
  *
  * Copyright (c) 2011 Peter Schlaile
  *

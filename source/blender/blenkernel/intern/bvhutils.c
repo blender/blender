@@ -557,7 +557,7 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *dm, float e
 		data->cached = true;
 
 		/* a NULL nearest callback works fine
-		 * remeber the min distance to point is the same as the min distance to BV of point */
+		 * remember the min distance to point is the same as the min distance to BV of point */
 		data->nearest_callback = NULL;
 		data->raycast_callback = NULL;
 

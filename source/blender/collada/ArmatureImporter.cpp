@@ -701,7 +701,7 @@ void ArmatureImporter::make_shape_keys()
 
 			//insert other shape keys
 			for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
-				//better to have a seperate map of morph objects, 
+				//better to have a separate map of morph objects,
 				//This'll do for now since only mesh morphing is imported
 
 				Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);

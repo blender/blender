@@ -159,7 +159,7 @@ EnumPropertyItem snap_uv_element_items[] = {
 };
 
 /* workaround for duplicate enums,
- * have each enum line as a defne then conditionally set it or not
+ * have each enum line as a define then conditionally set it or not
  */
 
 #define R_IMF_ENUM_BMP      {R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},

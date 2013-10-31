@@ -99,7 +99,7 @@ static VoronoiEdge *voronoiEdge_new(float start[2], float left[2], float right[2
 	copy_v2_v2(edge->left, left);
 	copy_v2_v2(edge->right, right);
 
-	edge->neighbour = NULL;
+	edge->neighbor = NULL;
 	edge->end[0] = 0;
 	edge->end[1] = 0;
 
@@ -395,7 +395,7 @@ static void voronoi_addParabola(VoronoiProcess *process, float site[2])
 	el = voronoiEdge_new(start, par->site, site);
 	er = voronoiEdge_new(start, site, par->site);
 
-	el->neighbour = er;
+	el->neighbor = er;
 	BLI_addtail(&process->edges, el);
 
 	par->edge = er;
@@ -682,9 +682,9 @@ void BLI_voronoi_compute(const VoronoiSite *sites, int sites_total, int width, i
 
 	edge = process.edges.first;
 	while (edge) {
-		if (edge->neighbour) {
-			copy_v2_v2(edge->start, edge->neighbour->end);
-			MEM_freeN(edge->neighbour);
+		if (edge->neighbor) {
+			copy_v2_v2(edge->start, edge->neighbor->end);
+			MEM_freeN(edge->neighbor);
 		}
 
 		edge = edge->next;

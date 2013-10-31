@@ -528,7 +528,7 @@ typedef enum eLattice_FlipAxes {
 	LATTICE_FLIP_W = 2
 } eLattice_FlipAxes;
 
-/* Flip midpoint value so that relative distances between midpoint and neighbour-pair is maintained
+/* Flip midpoint value so that relative distances between midpoint and neighbor-pair is maintained
  * ! Assumes that uvw <=> xyz (i.e. axis-aligned index-axes with coordinate-axes)
  * - Helper for lattice_flip_exec()
  */

@@ -52,7 +52,7 @@ typedef struct VoronoiEdge {
 	float f, g;				/* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
 
 	/* some edges consist of two parts, so we add the pointer to another part to connect them at the end of an algorithm */
-	struct VoronoiEdge *neighbour;
+	struct VoronoiEdge *neighbor;
 } VoronoiEdge;
 
 typedef struct VoronoiTriangulationPoint {
