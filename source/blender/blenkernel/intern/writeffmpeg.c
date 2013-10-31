@@ -295,7 +295,7 @@ static const char **get_file_extensions(int format)
 		}
 		case FFMPEG_OGG:
 		{
-			static const char *rv[] = { ".ogg", ".ogv", NULL };
+			static const char *rv[] = { ".ogv", ".ogg", NULL };
 			return rv;
 		}
 		case FFMPEG_MP3:

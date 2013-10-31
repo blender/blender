@@ -764,56 +764,69 @@ static int file_is_blend_backup(const char *str)
 	return (retval);
 }
 
-
-static int file_extension_type(const char *relname)
+static int path_extension_type(const char *path)
 {
-	if (BLO_has_bfile_extension(relname)) {
+	if (BLO_has_bfile_extension(path)) {
 		return BLENDERFILE;
 	}
-	else if (file_is_blend_backup(relname)) {
+	else if (file_is_blend_backup(path)) {
 		return BLENDERFILE_BACKUP;
 	}
-	else if (BLI_testextensie(relname, ".py")) {
+	else if (BLI_testextensie(path, ".py")) {
 		return PYSCRIPTFILE;
 	}
-	else if (BLI_testextensie(relname, ".txt")  ||
-	         BLI_testextensie(relname, ".glsl") ||
-	         BLI_testextensie(relname, ".osl")  ||
-	         BLI_testextensie(relname, ".data"))
+	else if (BLI_testextensie(path, ".txt")  ||
+	         BLI_testextensie(path, ".glsl") ||
+	         BLI_testextensie(path, ".osl")  ||
+	         BLI_testextensie(path, ".data"))
 	{
 		return TEXTFILE;
 	}
-	else if (BLI_testextensie(relname, ".ttf") ||
-	         BLI_testextensie(relname, ".ttc") ||
-	         BLI_testextensie(relname, ".pfb") ||
-	         BLI_testextensie(relname, ".otf") ||
-	         BLI_testextensie(relname, ".otc"))
+	else if (BLI_testextensie(path, ".ttf") ||
+	         BLI_testextensie(path, ".ttc") ||
+	         BLI_testextensie(path, ".pfb") ||
+	         BLI_testextensie(path, ".otf") ||
+	         BLI_testextensie(path, ".otc"))
 	{
 		return FTFONTFILE;
 	}
-	else if (BLI_testextensie(relname, ".btx")) {
+	else if (BLI_testextensie(path, ".btx")) {
 		return BTXFILE;
 	}
-	else if (BLI_testextensie(relname, ".dae")) {
+	else if (BLI_testextensie(path, ".dae")) {
 		return COLLADAFILE;
 	}
-	else if (BLI_testextensie_array(relname, imb_ext_image) ||
-	         (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt)))
+	else if (BLI_testextensie_array(path, imb_ext_image) ||
+	         (G.have_quicktime && BLI_testextensie_array(path, imb_ext_image_qt)))
 	{
 		return IMAGEFILE;
 	}
-	else if (BLI_testextensie_array(relname, imb_ext_movie)) {
+	else if (BLI_testextensie(path, ".ogg")) {
+		if (IMB_isanim(path)) {
+			return MOVIEFILE;
+		} else {
+			return SOUNDFILE;
+		}
+	}
+	else if (BLI_testextensie_array(path, imb_ext_movie)) {
 		return MOVIEFILE;
 	}
-	else if (BLI_testextensie_array(relname, imb_ext_audio)) {
+	else if (BLI_testextensie_array(path, imb_ext_audio)) {
 		return SOUNDFILE;
 	}
 	return 0;
 }
 
-int ED_file_extension_icon(const char *relname)
+static int file_extension_type(const char *dir, const char *relname)
 {
-	int type = file_extension_type(relname);
+	char path[FILE_MAX];
+	BLI_join_dirfile(path, sizeof(path), dir, relname);
+	return path_extension_type(path);
+}
+
+int ED_file_extension_icon(const char *path)
+{
+	int type = path_extension_type(path);
 	
 	if (type == BLENDERFILE)
 		return ICON_FILE_BLEND;
@@ -853,7 +866,7 @@ static void filelist_setfiletypes(struct FileList *filelist)
 		if (file->type & S_IFDIR) {
 			continue;
 		}
-		file->flags = file_extension_type(file->relname);
+		file->flags = file_extension_type(filelist->dir, file->relname);
 		
 		if (filelist->filter_glob[0] &&
 		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
