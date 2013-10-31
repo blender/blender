@@ -1091,11 +1091,12 @@ compile_OPENEXR() {
    DESTINATION
    \${CMAKE_INSTALL_PREFIX}/lib
  )
-@@ -168,6 +167,7 @@
+@@ -168,6 +167,8 @@
  INSTALL ( FILES
    ${CMAKE_SOURCE_DIR}/config/OpenEXRConfig.h
    ImfForward.h
 +  ImfNamespace.h
++  ImfPartHelper.h
    ImfExport.h
    ImfAttribute.h
    ImfBoxAttribute.h
