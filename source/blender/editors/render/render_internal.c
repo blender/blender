@@ -1237,3 +1237,13 @@ void ED_viewport_render_kill_jobs(const bContext *C, bool free_database)
 	}
 }
 
+Scene *ED_render_job_get_scene(const bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
+	
+	if (rj)
+		return rj->scene;
+	
+	return NULL;
+}

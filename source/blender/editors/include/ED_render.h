@@ -55,6 +55,7 @@ void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated
 void ED_render_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
 void ED_viewport_render_kill_jobs(const struct bContext *C, bool free_database);
+struct Scene *ED_render_job_get_scene(const struct bContext *C);
 
 /* render_preview.c */
 
