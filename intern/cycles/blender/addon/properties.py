@@ -253,26 +253,26 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Max Bounces",
                 description="Total maximum number of bounces",
                 min=0, max=1024,
-                default=8,
+                default=12,
                 )
 
         cls.diffuse_bounces = IntProperty(
                 name="Diffuse Bounces",
                 description="Maximum number of diffuse reflection bounces, bounded by total maximum",
                 min=0, max=1024,
-                default=128,
+                default=4,
                 )
         cls.glossy_bounces = IntProperty(
                 name="Glossy Bounces",
                 description="Maximum number of glossy reflection bounces, bounded by total maximum",
                 min=0, max=1024,
-                default=128,
+                default=4,
                 )
         cls.transmission_bounces = IntProperty(
                 name="Transmission Bounces",
                 description="Maximum number of transmission bounces, bounded by total maximum",
                 min=0, max=1024,
-                default=128,
+                default=12,
                 )
 
         cls.transparent_min_bounces = IntProperty(
