@@ -79,7 +79,7 @@
 #include "interface_intern.h"
 
 #define PRECISION_FLOAT_MAX 7
-#define PRECISION_FLOAT_MAX_POW 1000000 /* pow(10, PRECISION_FLOAT_MAX)  */
+#define PRECISION_FLOAT_MAX_POW 10000000 /* pow(10, PRECISION_FLOAT_MAX)  */
 
 /* avoid unneeded calls to ui_get_but_val */
 #define UI_BUT_VALUE_UNSET DBL_MAX
