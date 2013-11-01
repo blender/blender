@@ -1231,6 +1231,29 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 	return true;
 }
+static void ed_mesh_pick_face_vert__mpoly_find(
+        /* context */
+        struct ARegion *ar, const float mval[2],
+        /* mesh data */
+        DerivedMesh *dm, MPoly *mp, MLoop *mloop,
+        /* return values */
+        float *r_len_best, int *r_v_idx_best)
+{
+	const MLoop *ml;
+	int j = mp->totloop;
+	for (ml = &mloop[mp->loopstart]; j--; ml++) {
+		float co[3], sco[2], len;
+		const int v_idx = ml->v;
+		dm->getVertCo(dm, v_idx, co);
+		if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+			len = len_manhattan_v2v2(mval, sco);
+			if (len < *r_len_best) {
+				*r_len_best = len;
+				*r_v_idx_best = v_idx;
+			}
+		}
+	}
+}
 /**
  * Use when the back buffer stores face index values. but we want a vert.
  * This gets the face then finds the closest vertex to mval.
@@ -1247,39 +1270,61 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		struct ARegion *ar = CTX_wm_region(C);
 
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-		int v_idx_best = -1;
+		DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
-		if (dm->getVertCo) {
-			RegionView3D *rv3d = ar->regiondata;
+		int v_idx_best = ORIGINDEX_NONE;
 
-			/* find the vert closest to 'mval' */
-			const float mval_f[2] = {(float)mval[0],
-			                         (float)mval[1]};
-			MPoly *mp = &me->mpoly[poly_index];
-			int fidx;
-			float len_best = FLT_MAX;
+		/* find the vert closest to 'mval' */
+		const float mval_f[2] = {UNPACK2(mval)};
+		float len_best = FLT_MAX;
 
-			ED_view3d_init_mats_rv3d(ob, rv3d);
+		MPoly *dm_mpoly;
+		MLoop *dm_mloop;
+		unsigned int dm_mpoly_tot;
+		const int *index_mp_to_orig;
 
-			fidx = mp->totloop - 1;
-			do {
-				float co[3], sco[2], len;
-				const int v_idx = me->mloop[mp->loopstart + fidx].v;
-				dm->getVertCo(dm, v_idx, co);
-				if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-					len = len_manhattan_v2v2(mval_f, sco);
-					if (len < len_best) {
-						len_best = len;
-						v_idx_best = v_idx;
-					}
+		dm_mpoly = dm->getPolyArray(dm);
+		dm_mloop = dm->getLoopArray(dm);
+
+		dm_mpoly_tot = dm->getNumPolys(dm);
+
+		index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+
+		/* tag all verts using this face */
+		if (index_mp_to_orig) {
+			unsigned int i;
+
+			for (i = 0; i < dm_mpoly_tot; i++) {
+				if (index_mp_to_orig[i] == poly_index) {
+					ed_mesh_pick_face_vert__mpoly_find(
+					        ar, mval_f,
+					        dm, &dm_mpoly[i], dm_mloop,
+					        &len_best, &v_idx_best);
 				}
-			} while (fidx--);
+			}
+		}
+		else {
+			if (poly_index < dm_mpoly_tot) {
+				ed_mesh_pick_face_vert__mpoly_find(
+				        ar, mval_f,
+				        dm, &dm_mpoly[poly_index], dm_mloop,
+				        &len_best, &v_idx_best);
+			}
+		}
+
+		/* map 'dm -> me' index if possible */
+		if (v_idx_best != ORIGINDEX_NONE) {
+			const int *index_mv_to_orig;
+
+			index_mv_to_orig = dm->getVertDataArray(dm, CD_ORIGINDEX);
+			if (index_mv_to_orig) {
+				v_idx_best = index_mv_to_orig[v_idx_best];
+			}
 		}
 
 		dm->release(dm);
 
-		if (v_idx_best != -1) {
+		if ((v_idx_best != ORIGINDEX_NONE) && (v_idx_best < me->totvert)) {
 			*index = v_idx_best;
 			return true;
 		}
