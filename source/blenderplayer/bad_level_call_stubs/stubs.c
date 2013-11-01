@@ -167,6 +167,9 @@ void RE_free_sample_material(struct Material *mat) {STUB_ASSERT(0);}
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
                               int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {STUB_ASSERT(0);}
 
+/* skin modifier*/
+void modifier_skin_customdata_ensure(struct Object *ob) {STUB_ASSERT(0);}
+
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re) {STUB_ASSERT(0); return (struct RenderResult *) NULL;}
 struct Render *RE_GetRender(const char *name) {STUB_ASSERT(0); return (struct Render *) NULL;}
