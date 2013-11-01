@@ -3539,7 +3539,7 @@ static bool edbm_mesh_knife_face_isect(ARegion *ar, LinkNode *polys, BMFace *f, 
 /**
  * \param use_tag  When set, tag all faces inside the polylines.
  */
-void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag)
+void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_through)
 {
 	KnifeTool_OpData *kcd;
 
@@ -3548,7 +3548,6 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag)
 	/* init */
 	{
 		const bool only_select = false;
-		const bool cut_through = false;
 		const bool is_interactive = false;  /* can enable for testing */
 
 		kcd = MEM_callocN(sizeof(KnifeTool_OpData), __func__);

@@ -116,7 +116,8 @@ void MESH_OT_inset(struct wmOperatorType *ot);
 /* *** editmesh_knife.c *** */
 void MESH_OT_knife_tool(struct wmOperatorType *ot);
 void MESH_OT_knife_project(struct wmOperatorType *ot);
-void EDBM_mesh_knife(struct bContext *C, struct LinkNode *polys, bool use_tag);
+void EDBM_mesh_knife(struct bContext *C, struct LinkNode *polys,
+                     bool use_tag, bool cut_through);
 
 struct wmKeyMap *knifetool_modal_keymap(struct wmKeyConfig *keyconf);
 

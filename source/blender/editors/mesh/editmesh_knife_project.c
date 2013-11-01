@@ -42,6 +42,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
 
+#include "RNA_define.h"
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "WM_types.h"
@@ -117,6 +120,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const bool cut_through = RNA_boolean_get(op->ptr, "cut_through");
 
 	LinkNode *polys = NULL;
 
@@ -129,7 +133,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (polys) {
-		EDBM_mesh_knife(C, polys, true);
+		EDBM_mesh_knife(C, polys, true, cut_through);
 
 		/* select only tagged faces */
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
@@ -166,4 +170,7 @@ void MESH_OT_knife_project(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+	/* parameters */
+	RNA_def_boolean(ot->srna, "cut_through", false, "Cut through", "Cut through all faces, not just visible ones");
 }
