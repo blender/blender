@@ -142,6 +142,7 @@ const char *imb_ext_movie[] = {
 	".m2t",
 	".m2ts",
 	".mts",
+	".ts",
 	".mv",
 	".avs",
 	".wmv",
