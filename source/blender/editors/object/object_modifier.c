@@ -87,7 +87,6 @@
 
 #include "object_intern.h"
 
-static void modifier_skin_customdata_ensure(struct Object *ob);
 static void modifier_skin_customdata_delete(struct Object *ob);
 
 /******************************** API ****************************/
@@ -1434,7 +1433,7 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 
 /************************** skin modifier ***********************/
 
-static void modifier_skin_customdata_ensure(Object *ob)
+void modifier_skin_customdata_ensure(Object *ob)
 {
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;

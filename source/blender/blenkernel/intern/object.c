@@ -32,7 +32,7 @@
 
 #include <string.h>
 #include <math.h>
-#include <stdio.h>			
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -256,6 +256,11 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 
 		if (!BKE_object_support_modifier_type_check(ob_dst, md->type))
 			continue;
+		
+		if (md->type == eModifierType_Skin) {
+			/* ensure skin-node customdata exists */
+			modifier_skin_customdata_ensure(ob_dst);
+		}
 
 		nmd = modifier_new(md->type);
 		BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));

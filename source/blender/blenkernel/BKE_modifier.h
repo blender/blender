@@ -357,6 +357,7 @@ bool          modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 bool          modifiers_isCorrectableDeformed(struct Scene *scene, struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
 bool          modifiers_isPreview(struct Object *ob);
+void          modifier_skin_customdata_ensure(struct Object *ob);
 
 typedef struct CDMaskLink {
 	struct CDMaskLink *next;
