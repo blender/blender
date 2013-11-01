@@ -1089,6 +1089,12 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	                         "Right-bottom corner of search area in normalized coordinates relative "
 	                         "to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_markerSearch_update");
+
+	/* is marker keyframed */
+	prop = RNA_def_property(srna, "is_keyframed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MARKER_TRACKED);
+	RNA_def_property_ui_text(prop, "Keyframed", "Indicates whether position of marker is keyframed, not tracked");
 }
 
 static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
