@@ -141,6 +141,7 @@ CValue* SCA_ExpressionController::FindIdentifier(const STR_String& identifiernam
 		{
 			identifierval = new CBoolValue(sensor->GetState());
 			//identifierval = sensor->AddRef();
+			break;
 		}
 
 		//if (!sensor->IsPositiveTrigger())
