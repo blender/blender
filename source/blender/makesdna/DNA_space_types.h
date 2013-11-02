@@ -693,6 +693,7 @@ typedef enum eFileSel_File_Types {
 	BTXFILE             = (1 << 12),
 	COLLADAFILE         = (1 << 13),
 	OPERATORFILE        = (1 << 14), /* from filter_glob operator property */
+	APPLICATIONBUNDLE   = (1 << 15),
 } eFileSel_File_Types;
 
 /* Selection Flags in filesel: struct direntry, unsigned char selflag */

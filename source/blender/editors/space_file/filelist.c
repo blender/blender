@@ -772,6 +772,9 @@ static int path_extension_type(const char *path)
 	else if (file_is_blend_backup(path)) {
 		return BLENDERFILE_BACKUP;
 	}
+	else if (BLI_testextensie(path, ".app")) {
+		return APPLICATIONBUNDLE;
+	}
 	else if (BLI_testextensie(path, ".py")) {
 		return PYSCRIPTFILE;
 	}
@@ -863,8 +866,8 @@ static void filelist_setfiletypes(struct FileList *filelist)
 	for (num = 0; num < filelist->numfiles; num++, file++) {
 		file->type = file->s.st_mode;  /* restore the mess below */
 		
-		/* Don't check extensions for directories */ 
-		if (file->type & S_IFDIR) {
+		/* Don't check extensions for directories, allow in OSX application bundles */
+		if ((file->type & S_IFDIR) && (!APPLICATIONBUNDLE)) {
 			continue;
 		}
 		file->flags = file_extension_type(filelist->dir, file->relname);
