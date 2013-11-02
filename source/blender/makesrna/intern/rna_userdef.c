@@ -367,7 +367,7 @@ static void rna_userdef_pathcompare_remove(ReportList *reports, PointerRNA *path
 {
 	bPathCompare *path_cmp = path_cmp_ptr->data;
 	if (BLI_findindex(&U.autoexec_paths, path_cmp) == -1) {
-		BKE_report(reports, RPT_ERROR, "Addon is no longer valid");
+		BKE_report(reports, RPT_ERROR, "Excluded path is no longer valid");
 		return;
 	}
 
