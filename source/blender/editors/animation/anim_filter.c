@@ -2624,24 +2624,50 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 		
 		/* firstly filter the data */
 		switch (datatype) {
+			/* Action-Editing Modes */
 			case ANIMCONT_ACTION:   /* 'Action Editor' */
 			{
 				Object *obact = ac->obact;
 				SpaceAction *saction = (SpaceAction *)ac->sl;
 				bDopeSheet *ads = (saction) ? &saction->ads : NULL;
 				
-				/* the check for the DopeSheet summary is included here since the summary works here too */
-				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
+				/* specially check for AnimData filter... [#36687] */
+				if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+					/* all channels here are within the same AnimData block, hence this special case */
+					if (LIKELY(obact->adt)) {
+						ANIMCHANNEL_NEW_CHANNEL(obact->adt, ANIMTYPE_ANIMDATA, (ID *)obact);
+					}
+				}
+				else {
+					/* the check for the DopeSheet summary is included here since the summary works here too */
+					if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+						items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
+				}
+				
 				break;
 			}
 			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
-				/* the check for the DopeSheet summary is included here since the summary works here too */
-				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items = animdata_filter_shapekey(ac, anim_data, data, filter_mode);
+				Key *key = (Key *)data;
+				
+				/* specially check for AnimData filter... [#36687] */
+				if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+					/* all channels here are within the same AnimData block, hence this special case */
+					if (LIKELY(key->adt)) {
+						ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, (ID *)key);
+					}
+				}
+				else {
+					/* the check for the DopeSheet summary is included here since the summary works here too */
+					if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+						items = animdata_filter_shapekey(ac, anim_data, key, filter_mode);
+				}
+				
 				break;
 			}
+			
+			
+			/* Modes for Specialty Data Types (i.e. not keyframes) */
 			case ANIMCONT_GPENCIL:
 			{
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
@@ -2654,6 +2680,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 					items = animdata_filter_mask(anim_data, data, filter_mode);
 				break;
 			}
+			
+			
+			/* DopeSheet Based Modes */
 			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
 			{
 				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
@@ -2669,6 +2698,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 				break;
 			}
+			
+			
+			/* Special/Internal Use */
 			case ANIMCONT_CHANNEL: /* animation channel */
 			{
 				bDopeSheet *ads = ac->ads;
