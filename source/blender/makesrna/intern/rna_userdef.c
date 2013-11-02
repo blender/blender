@@ -4091,7 +4091,7 @@ static void rna_def_userdef_autoexec_path_collection(BlenderRNA *brna, PropertyR
 
 	func = RNA_def_function(srna, "new", "rna_userdef_pathcompare_new");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Add a new addon");
+	RNA_def_function_ui_description(func, "Add a new path");
 	/* return type */
 	parm = RNA_def_pointer(func, "pathcmp", "PathCompare", "", "");
 	RNA_def_function_return(func, parm);
