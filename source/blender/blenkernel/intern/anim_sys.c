@@ -2124,7 +2124,7 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase
 	 */
 	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, tmp_nes);
 	
-	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	/* accumulate temp-buffer and full-buffer, using the 'real' strip */
 	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
 	
 	/* free temp eval-strip */
