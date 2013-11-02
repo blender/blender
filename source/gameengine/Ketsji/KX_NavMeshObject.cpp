@@ -126,7 +126,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		MEM_SAFE_FREE(dtrisToTrisMap);
 		MEM_SAFE_FREE(trisToFacesMap);
 
-		unsigned short *verticesMap = new unsigned short[nAllVerts];
+		unsigned short *verticesMap = (unsigned short *)MEM_mallocN(sizeof(*verticesMap) * nAllVerts, __func__);
 		memset(verticesMap, 0xff, sizeof(*verticesMap) * nAllVerts);
 		int curIdx = 0;
 		//vertices - mesh verts
@@ -215,6 +215,8 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		}
 
 		MEM_SAFE_FREE(allVerts);
+
+		MEM_freeN(verticesMap);
 	}
 	else
 	{
