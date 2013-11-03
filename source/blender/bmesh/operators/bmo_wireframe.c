@@ -172,9 +172,9 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	BMIter itersub;
 
 	/* filled only with boundary verts */
-	BMVert **verts_src      = MEM_mallocN(sizeof(BMVert **) * totvert_orig, __func__);
-	BMVert **verts_neg      = MEM_mallocN(sizeof(BMVert **) * totvert_orig, __func__);
-	BMVert **verts_pos      = MEM_mallocN(sizeof(BMVert **) * totvert_orig, __func__);
+	BMVert **verts_src      = MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__);
+	BMVert **verts_neg      = MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__);
+	BMVert **verts_pos      = MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__);
 
 	/* will over-alloc, but makes for easy lookups by index to keep aligned  */
 	BMVert **verts_boundary = use_boundary ?

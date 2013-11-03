@@ -4262,7 +4262,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		}
 	}
 	BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Even Thickness %s"),
-	             WM_bool_as_string(t->flag & T_ALT_TRANSFORM));
+	             WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
 	/* done with header string */
 
 
@@ -6946,7 +6946,7 @@ static void headerSeqSlide(TransInfo *t, float val[2], char str[MAX_INFO_LEN])
 		}
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Expand to fit %s"),
-	                    WM_bool_as_string(t->flag & T_ALT_TRANSFORM));
+	                    WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
 }
 
 static void applySeqSlideValue(TransInfo *t, const float val[2])
