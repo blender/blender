@@ -556,6 +556,8 @@ Vec2f *Vec2f_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
 		return NULL;
+	if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+		return NULL;
 	float x = ((VectorObject *)obj)->vec[0];
 	float y = ((VectorObject *)obj)->vec[1];
 	return new Vec2f(x, y);
@@ -564,6 +566,8 @@ Vec2f *Vec2f_ptr_from_Vector(PyObject *obj)
 Vec3f *Vec3f_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
+		return NULL;
+	if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
 		return NULL;
 	float x = ((VectorObject *)obj)->vec[0];
 	float y = ((VectorObject *)obj)->vec[1];
@@ -575,6 +579,8 @@ Vec3r *Vec3r_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
 		return NULL;
+	if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+		return NULL;
 	real x = ((VectorObject *)obj)->vec[0];
 	real y = ((VectorObject *)obj)->vec[1];
 	real z = ((VectorObject *)obj)->vec[2];
@@ -585,6 +591,8 @@ Vec3f *Vec3f_ptr_from_Color(PyObject *obj)
 {
 	if (!ColorObject_Check(obj))
 		return NULL;
+	if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+		return NULL;
 	float r = ((ColorObject *)obj)->col[0];
 	float g = ((ColorObject *)obj)->col[1];
 	float b = ((ColorObject *)obj)->col[2];
@@ -594,6 +602,8 @@ Vec3f *Vec3f_ptr_from_Color(PyObject *obj)
 Vec3r *Vec3r_ptr_from_Color(PyObject *obj)
 {
 	if (!ColorObject_Check(obj))
+		return NULL;
+	if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
 		return NULL;
 	real r = ((ColorObject *)obj)->col[0];
 	real g = ((ColorObject *)obj)->col[1];
@@ -696,8 +706,17 @@ Vec3r *Vec3r_ptr_from_PyTuple(PyObject *obj)
 int float_array_from_PyObject(PyObject *obj, float *v, int n)
 {
 	if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
+		if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+			return 0;
 		for (int i = 0; i < n; i++)
 			v[i] = ((VectorObject *)obj)->vec[i];
+		return 1;
+	}
+	else if (ColorObject_Check(obj) && n == 3) {
+		if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+			return 0;
+		for (int i = 0; i < n; i++)
+			v[i] = ((ColorObject *)obj)->col[i];
 		return 1;
 	}
 	else if (PyList_Check(obj) && PyList_Size(obj) == n) {
