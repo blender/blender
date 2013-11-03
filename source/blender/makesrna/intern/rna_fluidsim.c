@@ -122,7 +122,7 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 	Object *ob = (Object *)ptr->id.data;
 	FluidsimModifierData *fluidmd;
 	ParticleSystemModifierData *psmd;
-	ParticleSystem *psys;
+	ParticleSystem *psys, *next_psys;
 	ParticleSettings *part;
 	
 	fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
@@ -155,7 +155,8 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 		}
 	}
 	else {
-		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+		for (psys = ob->particlesystem.first; psys; psys = next_psys) {
+			next_psys = psys->next;
 			if (psys->part->type == PART_FLUID) {
 				/* clear modifier */
 				psmd = psys_get_modifier(ob, psys);
