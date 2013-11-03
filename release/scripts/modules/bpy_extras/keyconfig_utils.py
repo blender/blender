@@ -151,7 +151,7 @@ def keyconfig_merge(kc1, kc2):
     return merged_keymaps
 
 
-def _export_properties(prefix, properties, lines=None):
+def _export_properties(prefix, properties, kmi_id, lines=None):
     from bpy.types import OperatorProperties
 
     if lines is None:
@@ -171,12 +171,45 @@ def _export_properties(prefix, properties, lines=None):
         if pname != "rna_type":
             value = getattr(properties, pname)
             if isinstance(value, OperatorProperties):
-                _export_properties(prefix + "." + pname, value, lines)
+                _export_properties(prefix + "." + pname, value, kmi_id, lines)
             elif properties.is_property_set(pname):
                 value = string_value(value)
                 if value != "":
-                    lines.append("%s.%s = %s\n" % (prefix, pname, value))
+                    lines.append("set_kmi_prop(%s, '%s', %s, '%s')\n" % (prefix, pname, value, kmi_id))
     return lines
+
+
+def _kmistr(kmi, is_modal):
+    if is_modal:
+        kmi_id = kmi.propvalue
+        kmi_newfunc = 'new_modal'
+    else:
+        kmi_id = kmi.idname
+        kmi_newfunc = 'new'
+    s = ["kmi = km.keymap_items.%s(\'%s\', \'%s\', \'%s\'" % (kmi_newfunc, kmi_id, kmi.type, kmi.value)]
+
+    if kmi.any:
+        s.append(", any=True")
+    else:
+        if kmi.shift:
+            s.append(", shift=True")
+        if kmi.ctrl:
+            s.append(", ctrl=True")
+        if kmi.alt:
+            s.append(", alt=True")
+        if kmi.oskey:
+            s.append(", oskey=True")
+    if kmi.key_modifier and kmi.key_modifier != 'NONE':
+        s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
+
+    s.append(")\n")
+
+    props = kmi.properties
+
+    if props is not None:
+        _export_properties("kmi.properties", props, kmi_id, s)
+
+    return "".join(s)
 
 
 def keyconfig_export(wm, kc, filepath):
@@ -185,6 +218,11 @@ def keyconfig_export(wm, kc, filepath):
 
     f.write("import bpy\n")
     f.write("import os\n\n")
+    f.write("def set_kmi_prop(kmiprops, prop, value, kmiid):\n"
+            "    if hasattr(kmiprops, prop):\n"
+            "        setattr(kmiprops, prop, value)\n"
+            "    else:\n"
+            "        print(\"Warning: property '%s' not found in keymap item '%s'\" % (prop, kmiid))\n\n")
     f.write("wm = bpy.context.window_manager\n")
     f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
 
@@ -216,30 +254,7 @@ def keyconfig_export(wm, kc, filepath):
         f.write("# Map %s\n" % km.name)
         f.write("km = kc.keymaps.new('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.is_modal))
         for kmi in km.keymap_items:
-            if km.is_modal:
-                f.write("kmi = km.keymap_items.new_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
-            else:
-                f.write("kmi = km.keymap_items.new('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
-            if kmi.any:
-                f.write(", any=True")
-            else:
-                if kmi.shift:
-                    f.write(", shift=True")
-                if kmi.ctrl:
-                    f.write(", ctrl=True")
-                if kmi.alt:
-                    f.write(", alt=True")
-                if kmi.oskey:
-                    f.write(", oskey=True")
-            if kmi.key_modifier and kmi.key_modifier != 'NONE':
-                f.write(", key_modifier='%s'" % kmi.key_modifier)
-            f.write(")\n")
-
-            props = kmi.properties
-
-            if props is not None:
-                f.write("".join(_export_properties("kmi.properties", props)))
-
+            f.write(_kmistr(kmi, km.is_modal))
         f.write("\n")
 
     f.close()
@@ -250,50 +265,22 @@ def keyconfig_test(kc):
     def testEntry(kc, entry, src=None, parent=None):
         result = False
 
-        def kmistr(kmi):
-            if km.is_modal:
-                s = ["kmi = km.keymap_items.new_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
-            else:
-                s = ["kmi = km.keymap_items.new(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
-
-            if kmi.any:
-                s.append(", any=True")
-            else:
-                if kmi.shift:
-                    s.append(", shift=True")
-                if kmi.ctrl:
-                    s.append(", ctrl=True")
-                if kmi.alt:
-                    s.append(", alt=True")
-                if kmi.oskey:
-                    s.append(", oskey=True")
-            if kmi.key_modifier and kmi.key_modifier != 'NONE':
-                s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
-
-            s.append(")\n")
-
-            props = kmi.properties
-
-            if props is not None:
-                _export_properties("kmi.properties", props, s)
-
-            return "".join(s).strip()
-
         idname, spaceid, regionid, children = entry
 
         km = kc.keymaps.find(idname, space_type=spaceid, region_type=regionid)
 
         if km:
             km = km.active()
+            is_modal = km.is_modal
 
             if src:
                 for item in km.keymap_items:
                     if src.compare(item):
                         print("===========")
                         print(parent.name)
-                        print(kmistr(src))
+                        print(_kmistr(src, is_modal).strip())
                         print(km.name)
-                        print(kmistr(item))
+                        print(_kmistr(item, is_modal).strip())
                         result = True
 
                 for child in children:
@@ -312,8 +299,8 @@ def keyconfig_test(kc):
                         if src.compare(item):
                             print("===========")
                             print(km.name)
-                            print(kmistr(src))
-                            print(kmistr(item))
+                            print(_kmistr(src, is_modal).strip())
+                            print(_kmistr(item, is_modal).strip())
                             result = True
 
                 for child in children:
