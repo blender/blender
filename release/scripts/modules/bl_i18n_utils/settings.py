@@ -146,7 +146,7 @@ PO_MSGSTR = "msgstr "
 PO_HEADER_KEY = (DEFAULT_CONTEXT, "")
 
 PO_HEADER_MSGSTR = (
-    "Project-Id-Version: {blender_ver} (r{blender_rev})\\n\n"
+    "Project-Id-Version: {blender_ver} ({blender_hash})\\n\n"
     "Report-Msgid-Bugs-To: \\n\n"
     "POT-Creation-Date: {time}\\n\n"
     "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\n"
