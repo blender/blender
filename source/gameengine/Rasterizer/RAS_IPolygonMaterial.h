@@ -167,6 +167,8 @@ public:
 
 	virtual Material*   GetBlenderMaterial() const;
 	virtual Image*      GetBlenderImage() const;
+	virtual MTFace*		GetMTFace() const;
+	virtual unsigned int* GetMCol() const;
 	virtual Scene*		GetBlenderScene() const;
 	virtual void		ReleaseMaterial();
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;

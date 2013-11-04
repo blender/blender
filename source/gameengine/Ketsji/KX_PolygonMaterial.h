@@ -118,12 +118,12 @@ public:
 	 * Returns the Blender texture face structure that is used for this material.
 	 * \return The material's texture face.
 	 */
-	MTFace* GetMTFace(void) const
+	MTFace* GetMTFace() const
 	{
 		return &m_tface;
 	}
 
-	unsigned int* GetMCol(void) const
+	unsigned int* GetMCol() const
 	{
 		return &m_mcol;
 	}

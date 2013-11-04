@@ -129,13 +129,13 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		OnExit();
 }
 
-MTFace* KX_BlenderMaterial::GetMTFace(void) const 
+MTFace* KX_BlenderMaterial::GetMTFace() const
 {
 	// fonts on polys
 	return &mMaterial->tface;
 }
 
-unsigned int* KX_BlenderMaterial::GetMCol(void) const 
+unsigned int* KX_BlenderMaterial::GetMCol() const
 {
 	// fonts on polys
 	return mMaterial->rgb;

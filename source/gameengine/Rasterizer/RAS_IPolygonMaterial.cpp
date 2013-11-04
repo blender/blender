@@ -235,6 +235,15 @@ Image *RAS_IPolyMaterial::GetBlenderImage() const
 {
 	return NULL;
 }
+MTFace *RAS_IPolyMaterial::GetMTFace() const
+{
+	return NULL;
+}
+
+unsigned int *RAS_IPolyMaterial::GetMCol() const
+{
+	return NULL;
+}
 
 Scene* RAS_IPolyMaterial::GetBlenderScene() const
 {

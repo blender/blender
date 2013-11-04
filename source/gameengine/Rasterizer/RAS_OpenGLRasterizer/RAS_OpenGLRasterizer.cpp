@@ -65,8 +65,6 @@ extern "C"{
 
 // XXX Clean these up <<<
 #include "Value.h"
-#include "KX_BlenderMaterial.h"
-#include "KX_PolygonMaterial.h"
 #include "KX_Light.h"
 #include "KX_Scene.h"
 #include "KX_RayCast.h"
@@ -680,12 +678,8 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 	bool obcolor = ms.m_bObjectColor;
 	MT_Vector4& rgba = ms.m_RGBAcolor;
 	RAS_MeshSlot::iterator it;
-	struct MTFace* tface = 0;
 
 	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
-
-	const unsigned int flag = polymat->GetFlag();
-	unsigned int *col = 0;
 
 	// handle object color
 	if (obcolor) {
@@ -738,17 +732,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 						if (m_attrib[unit] == RAS_TEXCO_UV)
 							glattrib = unit;
 
-				if (flag & RAS_BLENDERMAT) {
-					KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
-					tface = bl_mat->GetMTFace();
-					col = bl_mat->GetMCol();
-				} else {
-					KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-					tface = blenderpoly->GetMTFace();
-					col = blenderpoly->GetMCol();
-				}
-
-				GPU_render_text(tface, polymat->GetDrawingMode(), mytext, mytext.Length(), col, v[1], v[2], v[3], v[4], glattrib);
+				GPU_render_text(polymat->GetMTFace(), polymat->GetDrawingMode(), mytext, mytext.Length(), polymat->GetMCol(), v[1], v[2], v[3], v[4], glattrib);
 
 				ClearCachingInfo();
 			}
