@@ -1498,17 +1498,13 @@ void RAS_OpenGLRasterizer::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 		BLF_size(blf_mono_font, 11, 72);
 		BLF_position(blf_mono_font, (float)xco+1, (float)(height-yco-1), 0.0f);
 		BLF_draw(blf_mono_font, (char *)text, 65535);/* XXX, use real len */
-
-		glColor3ub(255, 255, 255);
-		BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
-		BLF_draw(blf_mono_font, (char *)text, 65535);
-	} else {
-		/* the actual drawing */
-		glColor3ub(255, 255, 255);
-		BLF_size(blf_mono_font, 11, 72);
-		BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
-		BLF_draw(blf_mono_font, (char *)text, 65535); /* XXX, use real len */
 	}
+
+	/* the actual drawing */
+	glColor3ub(255, 255, 255);
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
+	BLF_draw(blf_mono_font, (char *)text, 65535); /* XXX, use real len */
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

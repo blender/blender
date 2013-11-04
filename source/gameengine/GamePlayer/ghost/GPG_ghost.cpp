@@ -88,6 +88,8 @@ extern "C"
 #include "BLF_translation.h"
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
+extern int datatoc_bmonofont_ttf_size;
+extern char datatoc_bmonofont_ttf[];
 
 #ifdef __cplusplus
 }
@@ -475,6 +477,8 @@ int main(int argc, char** argv)
 	BLF_lang_set("");
 
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+	if (blf_mono_font == -1)
+		blf_mono_font = BLF_load_mem_unique("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
 	// Parse command line options
 #if defined(DEBUG)
