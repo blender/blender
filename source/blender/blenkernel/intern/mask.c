@@ -1772,7 +1772,7 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const float frame,
 	}
 }
 
-MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, const int frame)
+MaskLayerShape *BKE_mask_layer_shape_verify_frame(MaskLayer *masklay, const int frame)
 {
 	MaskLayerShape *masklay_shape;
 

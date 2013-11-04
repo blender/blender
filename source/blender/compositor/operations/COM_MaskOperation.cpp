@@ -75,7 +75,7 @@ void MaskOperation::initExecution()
 				     masklay;
 				     masklay = masklay->next)
 				{
-					masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, this->m_frame_number);
+					masklay_shape = BKE_mask_layer_shape_verify_frame(masklay, this->m_frame_number);
 					BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
 				}
 			}
