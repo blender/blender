@@ -33,7 +33,6 @@
 #include <stdio.h>  // printf()
 
 #include "BlenderWorldInfo.h"
-#include "KX_BlenderGL.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32

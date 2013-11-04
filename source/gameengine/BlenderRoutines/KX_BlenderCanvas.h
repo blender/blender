@@ -34,14 +34,10 @@
 
 #ifdef WIN32
 #include <windows.h>
-#endif 
-
-#include "GL/glew.h"
+#endif
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
-
-#include "KX_BlenderGL.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -70,7 +66,7 @@ public:
 	 * 
 	 * \param area The Blender ARegion to run the game within.
 	 */
-	KX_BlenderCanvas(struct wmWindowManager *wm, struct wmWindow* win, class RAS_Rect &rect, struct ARegion* ar);
+	KX_BlenderCanvas(struct wmWindowManager *wm, struct wmWindow* win, RAS_Rect &rect, struct ARegion* ar);
 	~KX_BlenderCanvas();
 
 		void 

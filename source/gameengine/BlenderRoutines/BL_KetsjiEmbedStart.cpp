@@ -42,7 +42,6 @@
 
 #include "GL/glew.h"
 
-#include "KX_BlenderGL.h"
 #include "KX_BlenderCanvas.h"
 #include "KX_BlenderKeyboardDevice.h"
 #include "KX_BlenderMouseDevice.h"

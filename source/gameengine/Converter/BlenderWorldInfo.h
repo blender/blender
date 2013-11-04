@@ -33,7 +33,6 @@
 #define __BLENDERWORLDINFO_H__
 #include "MT_CmMatrix4x4.h"
 #include "KX_WorldInfo.h"
-#include "KX_BlenderGL.h"
 
 class BlenderWorldInfo : public KX_WorldInfo
 {

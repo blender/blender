@@ -80,7 +80,6 @@
 #include "KX_Scene.h"
 #include "IntValue.h"
 #include "KX_BlenderKeyboardDevice.h"
-#include "KX_BlenderGL.h"
 #include "RAS_ICanvas.h"
 #include "PHY_IPhysicsEnvironment.h"
 

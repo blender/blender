@@ -29,13 +29,33 @@
  *  \ingroup blroutines
  */
 
+#include <GL/glew.h>
+
+#include "MEM_guardedalloc.h"
 
 #include "KX_BlenderCanvas.h"
+
+#include "DNA_image_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-#include <stdio.h>
+
+#include "BKE_image.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+
 #include <assert.h>
 
+extern "C" {
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "WM_api.h"
+#include "wm_cursors.h"
+#include "wm_window.h"
+}
 
 KX_BlenderCanvas::KX_BlenderCanvas(wmWindowManager *wm, wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
 m_wm(wm),
@@ -63,17 +83,17 @@ void KX_BlenderCanvas::Init()
 
 void KX_BlenderCanvas::SwapBuffers()
 {
-	BL_SwapBuffers(m_win);
+	wm_window_swap_buffers(m_win);
 }
 
 void KX_BlenderCanvas::SetSwapInterval(int interval)
 {
-	BL_SetSwapInterval(m_win, interval);
+	wm_window_set_swap_interval(m_win, interval);
 }
 
 int	KX_BlenderCanvas::GetSwapInterval()
 {
-	return BL_GetSwapInterval(m_win);
+	return wm_window_get_swap_interval(m_win);
 }
 
 void KX_BlenderCanvas::ResizeWindow(int width, int height)
@@ -96,7 +116,7 @@ bool KX_BlenderCanvas::BeginDraw()
 {
 	// in case of multi-window we need to ensure we are drawing to the correct
 	// window always, because it may change in window event handling
-	BL_MakeDrawable(m_wm, m_win);
+	wm_window_make_drawable(m_wm, m_win);
 	return true;
 }
 
@@ -247,17 +267,17 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 	{
 	case MOUSE_INVISIBLE:
 		{
-			BL_HideMouse(m_win);
+			WM_cursor_set(m_win, CURSOR_NONE);
 			break;
 		}
 	case MOUSE_WAIT:
 		{
-			BL_WaitMouse(m_win);
+			WM_cursor_set(m_win, CURSOR_WAIT);
 			break;
 		}
 	case MOUSE_NORMAL:
 		{
-			BL_NormalMouse(m_win);
+			WM_cursor_set(m_win, CURSOR_STD);
 			break;
 		}
 	default:
@@ -275,18 +295,71 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 	int winY = m_frame_rect.GetBottom();
 	int winH = m_frame_rect.GetHeight();
 	
-	BL_warp_pointer(m_win, winX + x, winY + (winH-y));
+	WM_cursor_warp(m_win, winX + x, winY + (winH-y));
 }
 
 
+/* get shot from frontbuffer sort of a copy from screendump.c */
+static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
+{
+	int x=0, y=0;
+	unsigned int *dumprect= NULL;
+
+	x= curarea->totrct.xmin;
+	y= curarea->totrct.ymin;
+	*dumpsx= curarea->totrct.xmax-x;
+	*dumpsy= curarea->totrct.ymax-y;
+
+	if (*dumpsx && *dumpsy) {
+
+		dumprect= (unsigned int *)MEM_mallocN(sizeof(int) * (*dumpsx) * (*dumpsy), "dumprect");
+		glReadBuffer(GL_FRONT);
+		glReadPixels(x, y, *dumpsx, *dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
+		glFinish();
+		glReadBuffer(GL_BACK);
+	}
+
+	return dumprect;
+}
 
 void KX_BlenderCanvas::MakeScreenShot(const char *filename)
 {
 	ScrArea area_dummy= {0};
+	bScreen *screen = m_win->screen;
+	unsigned int *dumprect;
+	int dumpsx, dumpsy;
+
 	area_dummy.totrct.xmin = m_frame_rect.GetLeft();
 	area_dummy.totrct.xmax = m_frame_rect.GetRight();
 	area_dummy.totrct.ymin = m_frame_rect.GetBottom();
 	area_dummy.totrct.ymax = m_frame_rect.GetTop();
 
-	BL_MakeScreenShot(m_win->screen, &area_dummy, filename);
+	dumprect = screenshot(&area_dummy, &dumpsx, &dumpsy);
+
+	if (dumprect) {
+		/* initialize image file format data */
+		Scene *scene = (screen)? screen->scene: NULL;
+		ImageFormatData im_format;
+
+		if (scene)
+			im_format = scene->r.im_format;
+		else
+			BKE_imformat_defaults(&im_format);
+
+		/* create file path */
+		char path[FILE_MAX];
+		BLI_strncpy(path, filename, sizeof(path));
+		BLI_path_abs(path, G.main->name);
+		BKE_add_image_extension_from_type(path, im_format.imtype);
+
+		/* create and save imbuf */
+		ImBuf *ibuf = IMB_allocImBuf(dumpsx, dumpsy, 24, 0);
+		ibuf->rect = dumprect;
+
+		BKE_imbuf_write_as(ibuf, path, &im_format, false);
+
+		ibuf->rect = NULL;
+		IMB_freeImBuf(ibuf);
+		MEM_freeN(dumprect);
+	}
 }

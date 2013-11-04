@@ -39,7 +39,6 @@
 #include <algorithm>
 
 #include "BL_BlenderDataConversion.h"
-#include "KX_BlenderGL.h"
 #include "KX_BlenderScalarInterpolator.h"
 
 #include "RAS_IPolygonMaterial.h"
