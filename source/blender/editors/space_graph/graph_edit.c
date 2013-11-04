@@ -1986,7 +1986,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	
 	KeyframeEditData ked;
 	KeyframeEditFunc edit_cb;
-	float cursor_value;
+	float cursor_value = 0.0f;
 
 	/* get beztriple editing callbacks */
 	edit_cb = ANIM_editkeyframes_mirror(mode);
