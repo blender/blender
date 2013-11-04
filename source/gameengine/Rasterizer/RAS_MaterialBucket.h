@@ -34,17 +34,23 @@
 
 #include "RAS_TexVert.h"
 #include "CTR_Map.h"
-#include "STR_HashedString.h"
 #include "SG_QList.h"
 
 #include "MT_Transform.h"
-#include "RAS_IPolygonMaterial.h"
-#include "RAS_IRasterizer.h"
-#include "RAS_Deformer.h"
+#include "MT_Matrix4x4.h"
 
 #include <vector>
 #include <set>
 #include <list>
+
+class RAS_MaterialBucket;
+struct DerivedMesh;
+class CTR_HashedPtr;
+class RAS_Deformer;
+class RAS_IPolyMaterial;
+class RAS_IRasterizer;
+class RAS_MeshObject;
+
 using namespace std;
 
 /* Display List Slot */
@@ -68,12 +74,6 @@ public:
 	}
 	virtual void SetModified(bool mod)=0;
 };
-
-class RAS_DisplayArray;
-class RAS_MeshSlot;
-class RAS_MeshMaterial;
-class RAS_MaterialBucket;
-struct DerivedMesh;
 
 /* An array with data used for OpenGL drawing */
 

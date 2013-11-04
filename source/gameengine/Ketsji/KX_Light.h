@@ -38,7 +38,6 @@
 struct GPULamp;
 struct Scene;
 struct Base;
-struct RAS_LightObject;
 class KX_Camera;
 class RAS_IRasterizer;
 class MT_Transform;

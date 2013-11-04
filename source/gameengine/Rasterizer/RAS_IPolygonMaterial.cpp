@@ -33,8 +33,6 @@
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
 
-#include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 
 void  RAS_IPolyMaterial::Initialize( 

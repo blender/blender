@@ -40,6 +40,7 @@
 #include "KX_Light.h"
 #include "KX_Camera.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_ICanvas.h"
 
 #include "KX_PyMath.h"
 

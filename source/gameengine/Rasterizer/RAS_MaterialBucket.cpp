@@ -40,7 +40,7 @@
 #include <windows.h>
 #endif // WIN32
 
-#include "RAS_Polygon.h"
+#include "RAS_IPolygonMaterial.h"
 #include "RAS_TexVert.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_MeshObject.h"

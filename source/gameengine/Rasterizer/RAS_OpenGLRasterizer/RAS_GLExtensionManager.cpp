@@ -32,6 +32,8 @@
 
 #include <iostream>
 
+#include "GL/glew.h"
+
 #include "RAS_GLExtensionManager.h"
 
 namespace bgl

@@ -62,6 +62,7 @@
 #include "SCA_IScene.h"
 
 #include "RAS_IRasterizer.h"
+#include "RAS_ICanvas.h"
 #include "RAS_BucketManager.h"
 
 #include "FloatValue.h"

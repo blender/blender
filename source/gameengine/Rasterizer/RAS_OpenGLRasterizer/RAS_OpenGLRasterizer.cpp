@@ -37,9 +37,11 @@
 
 #include "GL/glew.h"
 
+#include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
 #include "RAS_TexVert.h"
 #include "RAS_MeshObject.h"
+#include "RAS_Polygon.h"
 #include "RAS_LightObject.h"
 #include "MT_CmMatrix4x4.h"
 
@@ -49,16 +51,8 @@
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
-#include "GPU_extensions.h"
-
-#include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
-#include "DNA_scene_types.h"
 
 extern "C"{
-	#include "BLI_utildefines.h"
-	#include "BKE_DerivedMesh.h"
 	#include "BLF_api.h"
 }
 

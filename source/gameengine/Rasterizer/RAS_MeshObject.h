@@ -38,17 +38,15 @@
 #endif
 
 #include <vector>
-#include <set>
 #include <list>
 
-#include "RAS_Polygon.h"
 #include "RAS_MaterialBucket.h"
 #include "MT_Transform.h"
-
-#include "CTR_HashedPtr.h"
+#include "STR_String.h"
 
 struct Mesh;
 class RAS_Deformer;
+class RAS_Polygon;
 
 /* RAS_MeshObject is a mesh used for rendering. It stores polygons,
  * but the actual vertices and index arrays are stored in material
@@ -65,7 +63,7 @@ private:
 	STR_String					m_name;
 	static STR_String			s_emptyname;
 
-	vector<class RAS_Polygon*> 	m_Polygons;
+	vector<RAS_Polygon*> 	m_Polygons;
 
 	/* polygon sorting */
 	struct polygonSlot;
@@ -150,14 +148,7 @@ public:
 	void				SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform);
 
 
-	bool				HasColliderPolygon() {
-		int numpolys= NumPolygons();
-		for (int p=0; p<numpolys; p++)
-			if (m_Polygons[p]->IsCollider())
-				return true;
-		
-		return false;
-	}
+	bool				HasColliderPolygon();
 
 	/* for construction to find shared vertices */
 	struct SharedVertex {

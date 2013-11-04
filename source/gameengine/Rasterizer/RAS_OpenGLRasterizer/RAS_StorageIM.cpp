@@ -26,16 +26,15 @@
  */
 
 #include "RAS_StorageIM.h"
+#include "RAS_MaterialBucket.h"
+#include "RAS_IPolygonMaterial.h"
 
 #include "GL/glew.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
-#include "DNA_meshdata_types.h"
-
 extern "C"{
-	#include "BLI_utildefines.h"
 	#include "BKE_DerivedMesh.h"
 }
 

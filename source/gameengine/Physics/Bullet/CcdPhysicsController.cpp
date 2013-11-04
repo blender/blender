@@ -29,6 +29,8 @@ subject to the following restrictions:
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
+#include "RAS_Polygon.h"
+#include "RAS_Deformer.h"
 #include "KX_GameObject.h"
 
 #include "BulletSoftBody/btSoftBody.h"

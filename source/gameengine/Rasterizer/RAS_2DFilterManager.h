@@ -32,12 +32,13 @@
 #ifndef __RAS_2DFILTERMANAGER_H__
 #define __RAS_2DFILTERMANAGER_H__
 
-#include "RAS_ICanvas.h"
 #define MAX_RENDER_PASS	100
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
+
+class RAS_ICanvas;
 
 class RAS_2DFilterManager
 {

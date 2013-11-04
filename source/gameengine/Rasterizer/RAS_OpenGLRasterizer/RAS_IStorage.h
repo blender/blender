@@ -28,14 +28,7 @@
 #ifndef __KX_STORAGE
 #define __KX_STORAGE
 
-#include "RAS_MaterialBucket.h"
-
-enum RAS_STORAGE_TYPE	{
-	RAS_AUTO_STORAGE,
-	RAS_IMMEDIATE,
-	RAS_VA,
-	RAS_VBO
-};
+class RAS_MeshSlot;
 
 class RAS_IStorage
 {
@@ -47,7 +40,7 @@ public:
 	virtual void	Exit()=0;
 
 	virtual void	IndexPrimitives(RAS_MeshSlot& ms)=0;
-	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms)=0;
+	virtual void	IndexPrimitivesMulti(RAS_MeshSlot& ms)=0;
 
 	virtual void	SetDrawingMode(int drawingmode)=0;
 

@@ -35,7 +35,6 @@
 #include "STR_HashedString.h"
 
 #include "MT_Vector3.h"
-#include "STR_HashedString.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

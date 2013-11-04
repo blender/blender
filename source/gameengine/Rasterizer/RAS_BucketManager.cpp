@@ -35,15 +35,14 @@
 #endif
 
 #include "RAS_MaterialBucket.h"
-#include "STR_HashedString.h"
 #include "RAS_MeshObject.h"
+#include "RAS_Polygon.h"
+#include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
 
 #include "RAS_BucketManager.h"
 
 #include <algorithm>
-#include <set>
-
 /* sorting */
 
 struct RAS_BucketManager::sortedmeshslot

@@ -29,23 +29,19 @@
  *  \ingroup bgerast
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_object_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+
+#include "CTR_HashedPtr.h"
 
 #include "RAS_MeshObject.h"
-#include "RAS_IRasterizer.h"
-#include "MT_MinMax.h"
+#include "RAS_Polygon.h"
+#include "RAS_IPolygonMaterial.h"
+#include "RAS_Deformer.h"
 #include "MT_Point3.h"
 
 #include <algorithm>
 
-extern "C" {
-#	include "BKE_deform.h"
-}
 
 /* polygon sorting */
 
@@ -539,6 +535,16 @@ void RAS_MeshObject::SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transfor
 	}
 }
 
+
+bool RAS_MeshObject::HasColliderPolygon()
+{
+   int numpolys= NumPolygons();
+   for (int p=0; p<numpolys; p++)
+	   if (m_Polygons[p]->IsCollider())
+		   return true;
+
+   return false;
+}
 
 void RAS_MeshObject::SchedulePolygons(int drawingmode)
 {

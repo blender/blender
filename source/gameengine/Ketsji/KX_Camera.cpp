@@ -37,6 +37,9 @@
 #include "KX_PythonInit.h"
 #include "KX_Python.h"
 #include "KX_PyMath.h"
+
+#include "RAS_ICanvas.h"
+
 KX_Camera::KX_Camera(void* sgReplicationInfo,
                      SG_Callbacks callbacks,
                      const RAS_CameraData& camdata,

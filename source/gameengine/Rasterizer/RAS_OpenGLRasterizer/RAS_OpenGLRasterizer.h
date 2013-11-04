@@ -41,12 +41,21 @@
 using namespace std;
 
 #include "RAS_IRasterizer.h"
-#include "RAS_IStorage.h"
 #include "RAS_MaterialBucket.h"
-#include "RAS_ICanvas.h"
+#include "RAS_IPolygonMaterial.h"
+
+class RAS_IStorage;
+class RAS_ICanvas;
 
 #define RAS_MAX_TEXCO	8	// match in BL_Material
 #define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
+
+enum RAS_STORAGE_TYPE	{
+	RAS_AUTO_STORAGE,
+	RAS_IMMEDIATE,
+	RAS_VA,
+	RAS_VBO
+};
 
 struct	OglDebugShape
 {

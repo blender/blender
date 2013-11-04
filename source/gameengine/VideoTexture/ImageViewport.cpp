@@ -36,6 +36,7 @@
 #include "GL/glew.h"
 
 #include "KX_PythonInit.h"
+#include "RAS_ICanvas.h"
 #include "Texture.h"
 #include "ImageBase.h"
 #include "VideoBase.h"

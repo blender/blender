@@ -32,8 +32,6 @@
 #ifndef __RAS_GLEXTENSIONMANAGER_H__
 #define __RAS_GLEXTENSIONMANAGER_H__
 
-#include "GL/glew.h"
-
 /** Note: this used to have a lot more code, but now extension handling
  * is done by GLEW, so it does mostly debug stuff */
 
