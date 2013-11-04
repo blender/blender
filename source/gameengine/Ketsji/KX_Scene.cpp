@@ -567,11 +567,16 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	{
 		PHY_IMotionState* motionstate = new KX_MotionState(newobj->GetSGNode());
 		PHY_IPhysicsController* newctrl = orgobj->GetPhysicsController()->GetReplica();
-		PHY_IPhysicsController* parentctrl = (newobj->GetParent()) ? newobj->GetParent()->GetPhysicsController() : NULL;
+
+		KX_GameObject *parent = newobj->GetParent();
+		PHY_IPhysicsController* parentctrl = (parent) ? parent->GetPhysicsController() : NULL;
 
 		newctrl->SetNewClientInfo(newobj->getClientInfo());
 		newobj->SetPhysicsController(newctrl, newobj->IsDynamic());
 		newctrl->PostProcessReplica(motionstate, parentctrl);
+
+		if (parent)
+			parent->Release();
 	}
 	return newobj;
 }
