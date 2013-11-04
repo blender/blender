@@ -1362,7 +1362,7 @@ MT_Vector3		CcdPhysicsController::GetAngularVelocity()
 
 MT_Vector3		CcdPhysicsController::GetVelocity(const MT_Point3 &posin)
 {
-	btVector3 pos(pos.x(), pos.y(), pos.z());
+	btVector3 pos(posin.x(), posin.y(), posin.z());
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
