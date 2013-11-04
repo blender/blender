@@ -18,9 +18,12 @@ incs = [
     '#source/blender/gpu',
     '#source/blender/makesdna',
     '#source/gameengine/BlenderRoutines',
+    '#source/gameengine/Expressions',
+    '#source/gameengine/GameLogic',
+    '#source/gameengine/Physics/common',
     '#source/gameengine/Rasterizer',
     '#source/gameengine/SceneGraph',
-    '#source/blender/gameengine/Ketsji',
+    '#source/gameengine/Ketsji',
     env['BF_OPENGL_INC'],
     ]
 incs = ' '.join(incs)

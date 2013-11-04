@@ -36,8 +36,6 @@ class RAS_DisplayArray;
 class RAS_MaterialBucket;
 class RAS_TexVert;
 
-using namespace std;
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
