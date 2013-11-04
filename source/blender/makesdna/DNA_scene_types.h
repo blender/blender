@@ -725,7 +725,7 @@ typedef struct GameData {
 #define GAME_PLAYER_DESKTOP_RESOLUTION		(1 << 1)
 
 /* GameData.matmode */
-#define GAME_MAT_TEXFACE	0
+#define GAME_MAT_TEXFACE	0 /* deprecated */
 #define GAME_MAT_MULTITEX	1
 #define GAME_MAT_GLSL		2
 

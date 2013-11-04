@@ -57,7 +57,6 @@
 #include "KX_ObjectActuator.h"
 #include "KX_ParentActuator.h"
 #include "KX_PolyProxy.h"
-#include "KX_PolygonMaterial.h"
 #include "KX_PythonSeq.h"
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
@@ -211,7 +210,6 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, KX_ObjectActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_ParentActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_PolyProxy, init_getset);
-		PyType_Ready_Attr(dict, KX_PolygonMaterial, init_getset);
 		PyType_Ready_Attr(dict, KX_RadarSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_RaySensor, init_getset);
 		PyType_Ready_Attr(dict, KX_SCA_AddObjectActuator, init_getset);

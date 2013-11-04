@@ -470,7 +470,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			else if (gs.matmode == GAME_MAT_GLSL)
 				usemat = false;
 
-			if (usemat && (gs.matmode != GAME_MAT_TEXFACE))
+			if (usemat)
 				sceneconverter->SetMaterials(true);
 			if (useglslmat && (gs.matmode == GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);

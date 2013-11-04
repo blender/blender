@@ -46,7 +46,6 @@
 #include "BL_Material.h"
 #include "BL_ActionActuator.h"
 #include "KX_BlenderMaterial.h"
-#include "KX_PolygonMaterial.h"
 
 
 #include "BL_System.h"
@@ -1419,15 +1418,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		RAS_IPolyMaterial *mat= (*polymit).second;
 		Material *bmat= NULL;
 
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
-		if (mat->GetFlag() & RAS_BLENDERMAT) {
-			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
-			bmat= bl_mat->GetBlenderMaterial();
-
-		} else {
-			KX_PolygonMaterial *kx_mat = static_cast<KX_PolygonMaterial*>(mat);
-			bmat= kx_mat->GetBlenderMaterial();
-		}
+		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
+		bmat= bl_mat->GetBlenderMaterial();
 
 		if (IS_TAGGED(bmat)) {
 			/* only remove from bucket */
@@ -1444,15 +1436,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		RAS_IPolyMaterial *mat= (*polymit).second;
 		Material *bmat= NULL;
 
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
-		if (mat->GetFlag() & RAS_BLENDERMAT) {
-			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
-			bmat= bl_mat->GetBlenderMaterial();
-
-		} else {
-			KX_PolygonMaterial *kx_mat = static_cast<KX_PolygonMaterial*>(mat);
-			bmat= kx_mat->GetBlenderMaterial();
-		}
+		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
+		bmat= bl_mat->GetBlenderMaterial();
 
 		if (bmat) {
 			//printf("FOUND MAT '%s' !!! ", ((ID*)bmat)->name+2);

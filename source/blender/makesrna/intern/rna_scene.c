@@ -3143,7 +3143,6 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem material_items[] = {
-		{GAME_MAT_TEXFACE, "SINGLETEXTURE", 0, "Singletexture", "Singletexture face materials"},
 		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials"},
 		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}

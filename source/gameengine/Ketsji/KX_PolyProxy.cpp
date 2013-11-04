@@ -36,7 +36,6 @@
 #include "KX_MeshProxy.h"
 #include "RAS_MeshObject.h"
 #include "KX_BlenderMaterial.h"
-#include "KX_PolygonMaterial.h"
 
 #include "KX_PyMath.h"
 
@@ -259,16 +258,8 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 "getMaterial() : returns a material\n")
 {
 	RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();
-	if (polymat->GetFlag() & RAS_BLENDERMAT)
-	{
-		KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
-		return mat->GetProxy();
-	}
-	else
-	{
-		KX_PolygonMaterial* mat = static_cast<KX_PolygonMaterial*>(polymat);
-		return mat->GetProxy();
-	}
+	KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
+	return mat->GetProxy();
 }
 
 #endif // WITH_PYTHON

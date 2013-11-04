@@ -703,7 +703,7 @@ bool GPG_Application::startEngine(void)
 
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if (m_blendermat && (m_globalSettings->matmode != GAME_MAT_TEXFACE))
+		if (m_blendermat)
 			m_sceneconverter->SetMaterials(true);
 		if (m_blenderglslmat && (m_globalSettings->matmode == GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);

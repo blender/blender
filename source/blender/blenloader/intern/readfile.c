@@ -9783,6 +9783,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		Scene *scene;
+
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->gm.matmode == GAME_MAT_TEXFACE) {
+				scene->gm.matmode = GAME_MAT_MULTITEX;
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 

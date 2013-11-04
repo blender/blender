@@ -40,7 +40,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_image_types.h"
 #include "IMB_imbuf_types.h"
-#include "KX_PolygonMaterial.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -229,18 +228,11 @@ static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 				{
 					self->m_imgTexture = static_cast<KX_BlenderMaterial*>(mat)->getImage(texID);
 					self->m_useMatTexture = false;
-				} else if (mat->GetFlag() & RAS_BLENDERMAT)
+				} else
 				{
 					// get blender material texture
 					self->m_matTexture = static_cast<KX_BlenderMaterial*>(mat)->getTex(texID);
 					self->m_useMatTexture = true;
-				}
-				else
-				{
-					// get texture pointer from polygon material
-					MTFace * tface = static_cast<KX_PolygonMaterial*>(mat)->GetMTFace();
-					self->m_imgTexture = (Image*)tface->tpage;
-					self->m_useMatTexture = false;
 				}
 			}
 			else if (lamp != NULL)

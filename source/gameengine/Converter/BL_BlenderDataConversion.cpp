@@ -42,7 +42,6 @@
 #include "KX_BlenderScalarInterpolator.h"
 
 #include "RAS_IPolygonMaterial.h"
-#include "KX_PolygonMaterial.h"
 
 // Expressions
 #include "ListValue.h"
@@ -891,167 +890,33 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 	RAS_IPolyMaterial* polymat = converter->FindCachedPolyMaterial(scene, ma);
 	BL_Material* bl_mat = converter->FindCachedBlenderMaterial(scene, ma);
 	KX_BlenderMaterial* kx_blmat = NULL;
-	KX_PolygonMaterial* kx_polymat = NULL;
-		
-	if (converter->GetMaterials()) {
-		/* do Blender Multitexture and Blender GLSL materials */
 
-		/* first is the BL_Material */
-		if (!bl_mat)
-		{
-			bl_mat = new BL_Material();
+	/* first is the BL_Material */
+	if (!bl_mat)
+	{
+		bl_mat = new BL_Material();
 
-			ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
-				converter->GetGLSLMaterials());
+		ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
+			converter->GetGLSLMaterials());
 
-			if (ma && (ma->mode & MA_FACETEXTURE) == 0)
-				converter->CacheBlenderMaterial(scene, ma, bl_mat);
-		}
-
-		const bool use_vcol = GetMaterialUseVColor(ma, bl_mat->glslmat);
-		GetRGB(use_vcol, mface, mcol, ma, rgb);
-
-		GetUVs(bl_mat, layers, mface, tface, uvs);
-				
-		/* then the KX_BlenderMaterial */
-		if (polymat == NULL)
-		{
-			kx_blmat = new KX_BlenderMaterial();
-
-			kx_blmat->Initialize(scene, bl_mat, (ma?&ma->game:NULL), lightlayer);
-			polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
-			if (ma && (ma->mode & MA_FACETEXTURE) == 0)
-				converter->CachePolyMaterial(scene, ma, polymat);
-		}
+		if (ma && (ma->mode & MA_FACETEXTURE) == 0)
+			converter->CacheBlenderMaterial(scene, ma, bl_mat);
 	}
-	else {
-		/* do Texture Face materials */
-		Image* bima = (tface)? (Image*)tface->tpage: NULL;
-		STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
-		
-		char alpha_blend=0;
-		short tile=0;
-		int	tilexrep=4,tileyrep = 4;
 
-		/* set material properties - old TexFace */
-		if (ma) {
-			alpha_blend = ma->game.alpha_blend;
-			/* Commented out for now. If we ever get rid of
-			 * "Texture Face/Singletexture" we can then think about it */
+	const bool use_vcol = GetMaterialUseVColor(ma, bl_mat->glslmat);
+	GetRGB(use_vcol, mface, mcol, ma, rgb);
 
-			/* Texture Face mode ignores texture but requires "Face Textures to be True "*/
-	#if 0
-			if ((ma->mode &MA_FACETEXTURE)==0 && (ma->game.flag &GEMAT_TEXT)==0) {
-				bima = NULL;
-				imastr = "";
-				alpha_blend = GEMAT_SOLID;	 
-			}
-			else {
-				alpha_blend = ma->game.alpha_blend;
-			}
-	#endif
-		}
-		/* check for tface tex to fallback on */
-		else {
-			if (bima) {
-				/* see if depth of the image is 32 */
-				if (BKE_image_has_alpha(bima))
-					alpha_blend = GEMAT_ALPHA;
-				else
-					alpha_blend = GEMAT_SOLID;
-			}
-			else {
-				alpha_blend = GEMAT_SOLID;
-			}
-		}
+	GetUVs(bl_mat, layers, mface, tface, uvs);
 
-		if (bima) {
-			tilexrep = bima->xrep;
-			tileyrep = bima->yrep;
-		}
+	/* then the KX_BlenderMaterial */
+	if (polymat == NULL)
+	{
+		kx_blmat = new KX_BlenderMaterial();
 
-		/* set UV properties */
-		if (tface) {
-			uvs[0][0].setValue(tface->uv[0]);
-			uvs[1][0].setValue(tface->uv[1]);
-			uvs[2][0].setValue(tface->uv[2]);
-	
-			if (mface->v4)
-				uvs[3][0].setValue(tface->uv[3]);
-
-			tile = tface->tile;
-		} 
-		else {
-			/* no texfaces */
-			tile = 0;
-		}
-
-		/* get vertex colors */
-		if (mcol) {
-			/* we have vertex colors */
-			rgb[0] = KX_Mcol2uint_new(mcol[0]);
-			rgb[1] = KX_Mcol2uint_new(mcol[1]);
-			rgb[2] = KX_Mcol2uint_new(mcol[2]);
-					
-			if (mface->v4)
-				rgb[3] = KX_Mcol2uint_new(mcol[3]);
-		}
-		else {
-			/* no vertex colors, take from material, otherwise white */
-			unsigned int color = 0xFFFFFFFFL;
-
-			if (ma)
-			{
-				union
-				{
-					unsigned char cp[4];
-					unsigned int integer;
-				} col_converter;
-						
-				col_converter.cp[3] = (unsigned char) (ma->r*255.0);
-				col_converter.cp[2] = (unsigned char) (ma->g*255.0);
-				col_converter.cp[1] = (unsigned char) (ma->b*255.0);
-				col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
-						
-				color = col_converter.integer;
-			}
-
-			rgb[0] = KX_rgbaint2uint_new(color);
-			rgb[1] = KX_rgbaint2uint_new(color);
-			rgb[2] = KX_rgbaint2uint_new(color);	
-					
-			if (mface->v4)
-				rgb[3] = KX_rgbaint2uint_new(color);
-		}
-
-		// only zsort alpha + add
-		const bool alpha = ELEM3(alpha_blend, GEMAT_ALPHA, GEMAT_ADD, GEMAT_ALPHA_SORT);
-		const bool zsort = (alpha_blend == GEMAT_ALPHA_SORT);
-		const bool light = (ma)?(ma->mode & MA_SHLESS)==0:default_light_mode;
-
-		// don't need zort anymore, deal as if it it's alpha blend
-		if (alpha_blend == GEMAT_ALPHA_SORT) alpha_blend = GEMAT_ALPHA;
-
-		if (polymat == NULL)
-		{
-			kx_polymat = new KX_PolygonMaterial();
-			kx_polymat->Initialize(imastr, ma, (int)mface->mat_nr,
-				tile, tilexrep, tileyrep, 
-				alpha_blend, alpha, zsort, light, lightlayer, tface, (unsigned int*)mcol);
-			polymat = static_cast<RAS_IPolyMaterial*>(kx_polymat);
-	
-			if (ma) {
-				polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
-				polymat->m_shininess = (float)ma->har/4.0f; // 0 < ma->har <= 512
-				polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
-			}
-			else {
-				polymat->m_specular.setValue(0.0f,0.0f,0.0f);
-				polymat->m_shininess = 35.0;
-			}
-
+		kx_blmat->Initialize(scene, bl_mat, (ma?&ma->game:NULL), lightlayer);
+		polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
+		if (ma && (ma->mode & MA_FACETEXTURE) == 0)
 			converter->CachePolyMaterial(scene, ma, polymat);
-		}
 	}
 	
 	// see if a bucket was reused or a new one was created
@@ -1061,8 +926,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 	if (bucketCreated) {
 		// this is needed to free up memory afterwards
 		converter->RegisterPolyMaterial(polymat);
-		if (converter->GetMaterials())
-			converter->RegisterBlenderMaterial(bl_mat);
+		converter->RegisterBlenderMaterial(bl_mat);
 	}
 
 	return bucket;

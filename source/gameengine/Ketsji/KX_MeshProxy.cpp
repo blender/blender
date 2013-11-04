@@ -39,7 +39,6 @@
 #include "KX_VertexProxy.h"
 #include "KX_PolyProxy.h"
 
-#include "KX_PolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 
 #include "KX_PyMath.h"
@@ -388,14 +387,8 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 	
 	for (i=0; i<tot; mit++, i++) {
 		RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial();
-		if (polymat->GetFlag() & RAS_BLENDERMAT) {
-			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(polymat);
-			PyList_SET_ITEM(materials, i, mat->GetProxy());
-		}
-		else {
-			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial *>(polymat);
-			PyList_SET_ITEM(materials, i, mat->GetProxy());
-		}
+		KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(polymat);
+		PyList_SET_ITEM(materials, i, mat->GetProxy());
 	}
 	return materials;
 }

@@ -1226,7 +1226,6 @@ static PyObject *gPyGetGLSLMaterialSetting(PyObject *,
 	return PyLong_FromLong(enabled);
 }
 
-#define KX_TEXFACE_MATERIAL				0
 #define KX_BLENDER_MULTITEX_MATERIAL	1
 #define KX_BLENDER_GLSL_MATERIAL		2
 
@@ -1244,8 +1243,6 @@ static PyObject *gPySetMaterialType(PyObject *,
 		gs->matmode= GAME_MAT_GLSL;
 	else if (type == KX_BLENDER_MULTITEX_MATERIAL)
 		gs->matmode= GAME_MAT_MULTITEX;
-	else if (type == KX_TEXFACE_MATERIAL)
-		gs->matmode= GAME_MAT_TEXFACE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
@@ -1261,10 +1258,8 @@ static PyObject *gPyGetMaterialType(PyObject *)
 
 	if (gs->matmode == GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
-	else if (gs->matmode == GAME_MAT_MULTITEX)
-		flag = KX_BLENDER_MULTITEX_MATERIAL;
 	else
-		flag = KX_TEXFACE_MATERIAL;
+		flag = KX_BLENDER_MULTITEX_MATERIAL;
 	
 	return PyLong_FromLong(flag);
 }
@@ -2209,7 +2204,6 @@ PyObject *initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	Py_DECREF(ErrorObject);
 
 	/* needed for get/setMaterialType */
-	KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
 	KX_MACRO_addTypesToDict(d, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL);
 	KX_MACRO_addTypesToDict(d, KX_BLENDER_GLSL_MATERIAL, KX_BLENDER_GLSL_MATERIAL);
 
