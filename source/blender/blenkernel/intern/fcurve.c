@@ -2139,11 +2139,39 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 	
 	/* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime" 
 	 * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
-	 *	- this value will also be returned as the value of the 'curve', if there are no keyframes
 	 */
 	if (fcu->driver) {
 		/* evaltime now serves as input for the curve */
-		evaltime = cvalue = evaluate_driver(fcu->driver, evaltime);
+		evaltime = evaluate_driver(fcu->driver, evaltime);
+		
+		/* only do a default 1-1 mapping if it's unlikely that anything else will set a value... */
+		if (fcu->totvert == 0) {
+			FModifier *fcm;
+			bool do_linear = true;
+			
+			/* out-of-range F-Modifiers will block, as will those which just plain overwrite the values 
+			 * XXX: additive is a bit more dicey; it really depends then if things are in range or not...
+			 */
+			for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
+				/* if there are range-restrictions, we must definitely block [#36950] */
+				if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
+				    ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
+				{
+					/* within range: here it probably doesn't matter, though we'd want to check on additive... */
+				}
+				else {
+					/* outside range: modifier shouldn't contribute to the curve here, though it does in other areas,
+					 * so neither should the driver!
+					 */
+					do_linear = false;
+				}
+			}
+			
+			/* only copy over results if none of the modifiers disagreed with this */
+			if (do_linear) {
+				cvalue = evaltime;
+			}
+		}
 	}
 	
 	/* evaluate modifiers which modify time to evaluate the base curve at */
