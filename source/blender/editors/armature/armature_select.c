@@ -559,39 +559,6 @@ bool mouse_armature(bContext *C, const int mval[2], bool extend, bool deselect, 
 
 /* ****************  Selections  ******************/
 
-static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	/*	Set the flags */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
-	{
-		/* ignore bone if selection can't change */
-		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
-			/* select bone */
-			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-		}
-	}
-	CTX_DATA_END;
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-void ARMATURE_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Inverse";
-	ot->idname = "ARMATURE_OT_select_inverse";
-	ot->description = "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
-	
-	/* api callbacks */
-	ot->exec = armature_select_inverse_exec;
-	ot->poll = ED_operator_editarmature;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-}
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");

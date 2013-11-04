@@ -58,7 +58,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
 	
 	WM_operatortype_append(ARMATURE_OT_select_all);
-	WM_operatortype_append(ARMATURE_OT_select_inverse);
 	WM_operatortype_append(ARMATURE_OT_select_more);
 	WM_operatortype_append(ARMATURE_OT_select_less);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
