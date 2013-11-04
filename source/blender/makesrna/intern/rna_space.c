@@ -1212,7 +1212,8 @@ static int rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
 	else
 		return TRUE;
 }
-static EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                             PropertyRNA *UNUSED(prop), int *free)
 {
 	return rna_node_tree_type_itemf(C, rna_SpaceNodeEditor_tree_type_poll, free);
 }
@@ -1785,8 +1786,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_render_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_RENDER_BORDER);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Render Border",
-	                         "Use a region within the frame size for rendered viewport (when not viewing through the camera)");
+	RNA_def_property_ui_text(prop, "Render Border", "Use a region within the frame size for rendered viewport "
+	                         "(when not viewing through the camera)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "render_border_min_x", PROP_FLOAT, PROP_NONE);
@@ -1832,7 +1833,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
-	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", NULL, "rna_SpaceView3D_viewport_shade_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", NULL,
+	                            "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
@@ -2884,13 +2886,14 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	/* nromalize curves */
 	prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_NORMALIZE);
-	RNA_def_property_ui_text(prop, "use Normalization", "Display curves in normalized to -1..1 range, "
-	                        "for easier editing of multiple curves with different ranges");
+	RNA_def_property_ui_text(prop, "Use Normalization", "Display curves in normalized to -1..1 range, "
+	                         "for easier editing of multiple curves with different ranges");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
 	prop = RNA_def_property(srna, "use_auto_normalization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NORMALIZE_FREEZE);
-	RNA_def_property_ui_text(prop, "Auto Normalization", "Automatically recalculate curve normalization on every curve edit");
+	RNA_def_property_ui_text(prop, "Auto Normalization",
+	                         "Automatically recalculate curve normalization on every curve edit");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 }
 
@@ -3385,7 +3388,8 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, dummy_items);
-	RNA_def_property_enum_funcs(prop, "rna_SpaceNodeEditor_tree_type_get", "rna_SpaceNodeEditor_tree_type_set", "rna_SpaceNodeEditor_tree_type_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_SpaceNodeEditor_tree_type_get", "rna_SpaceNodeEditor_tree_type_set",
+	                            "rna_SpaceNodeEditor_tree_type_itemf");
 	RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
@@ -3417,7 +3421,8 @@ static void rna_def_space_node(BlenderRNA *brna)
 	rna_def_space_node_path_api(brna, prop);
 
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceNodeEditor_node_tree_set", NULL, "rna_SpaceNodeEditor_node_tree_poll");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceNodeEditor_node_tree_set", NULL,
+	                               "rna_SpaceNodeEditor_node_tree_poll");
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Base node tree from context");

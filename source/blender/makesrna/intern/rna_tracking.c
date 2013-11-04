@@ -570,7 +570,8 @@ static MovieTrackingTrack *rna_trackingTracks_new(ID *id, MovieTracking *trackin
 	return track;
 }
 
-static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id, MovieTrackingObject *object, const char *name, int frame)
+static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id, MovieTrackingObject *object, const char *name,
+                                                         int frame)
 {
 	MovieClip *clip = (MovieClip *) id;
 	ListBase *tracksbase = &object->tracks;
@@ -649,7 +650,8 @@ static void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int fram
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
 
-static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(MovieTrackingPlaneTrack *plane_track, int framenr, int exact)
+static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(MovieTrackingPlaneTrack *plane_track,
+                                                                     int framenr, int exact)
 {
 	if (exact)
 		return BKE_tracking_plane_marker_get_exact(plane_track, framenr);
@@ -657,7 +659,8 @@ static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_find_frame(MovieTracki
 		return BKE_tracking_plane_marker_get(plane_track, framenr);
 }
 
-static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_insert_frame(MovieTrackingPlaneTrack *plane_track, int framenr)
+static MovieTrackingPlaneMarker *rna_trackingPlaneMarkers_insert_frame(MovieTrackingPlaneTrack *plane_track,
+                                                                       int framenr)
 {
 	MovieTrackingPlaneMarker plane_marker, *new_plane_marker;
 
@@ -1094,7 +1097,7 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "is_keyed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MARKER_TRACKED);
-	RNA_def_property_ui_text(prop, "Keyframed", "Indicates whether position of marker is keyframed, not tracked");
+	RNA_def_property_ui_text(prop, "Keyframed", "Whether the position of the marker is keyframed or tracked");
 }
 
 static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1350,7 +1353,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Weight", "How much this track affects on a final solution");
+	RNA_def_property_ui_text(prop, "Weight", "Influence of this track on a final solution");
 }
 
 static void rna_def_trackingPlaneMarker(BlenderRNA *brna)

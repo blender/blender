@@ -3234,8 +3234,10 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "quad_method", modifier_triangulate_quad_method_items, MOD_TRIANGULATE_QUAD_BEAUTY, "Quad Method", "Method for splitting the quads into triangles");
-	RNA_def_enum(ot->srna, "ngon_method", modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY, "Ngon Method", "Method for splitting the ngons into triangles");
+	RNA_def_enum(ot->srna, "quad_method", modifier_triangulate_quad_method_items, MOD_TRIANGULATE_QUAD_BEAUTY,
+	             "Quad Method", "Method for splitting the quads into triangles");
+	RNA_def_enum(ot->srna, "ngon_method", modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY,
+	             "Polygon Method", "Method for splitting the polygons into triangles");
 }
 
 static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)

@@ -112,13 +112,15 @@ EnumPropertyItem modifier_type_items[] = {
 EnumPropertyItem modifier_triangulate_quad_method_items[] = {
 	{MOD_TRIANGULATE_QUAD_BEAUTY, "BEAUTY", 0, "Beauty ", "Split the quads in nice triangles, slower method"},
 	{MOD_TRIANGULATE_QUAD_FIXED, "FIXED", 0, "Fixed", "Split the quads on the first and third vertices"},
-	{MOD_TRIANGULATE_QUAD_ALTERNATE, "FIXED_ALTERNATE", 0, "Fixed Alternate", "Split the quads on the 2nd and 4th vertices"},
-	{MOD_TRIANGULATE_QUAD_SHORTEDGE, "SHORTEST_DIAGONAL", 0, "Shortest Diagonal", "Split the quads based on the distance between the vertices"},
+	{MOD_TRIANGULATE_QUAD_ALTERNATE, "FIXED_ALTERNATE", 0, "Fixed Alternate",
+		                             "Split the quads on the 2nd and 4th vertices"},
+	{MOD_TRIANGULATE_QUAD_SHORTEDGE, "SHORTEST_DIAGONAL", 0, "Shortest Diagonal",
+		                             "Split the quads based on the distance between the vertices"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem modifier_triangulate_ngon_method_items[] = {
-	{MOD_TRIANGULATE_NGON_SCANFILL, "SCANFILL", 0, "Scanfill", "Split the ngons using a scanfill algorithm "},
+	{MOD_TRIANGULATE_NGON_SCANFILL, "SCANFILL", 0, "Scanfill", "Split the polygons using a scanfill algorithm"},
 	{MOD_TRIANGULATE_NGON_BEAUTY, "BEAUTY", 0, "Beauty", "Arrange the new triangles nicely, slower method"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -3523,7 +3525,7 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "ngon_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ngon_method");
 	RNA_def_property_enum_items(prop, modifier_triangulate_ngon_method_items);
-	RNA_def_property_ui_text(prop, "Ngon Method", "Method for splitting the ngons into triangles");
+	RNA_def_property_ui_text(prop, "Polygon Method", "Method for splitting the polygons into triangles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
