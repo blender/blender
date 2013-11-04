@@ -1332,7 +1332,7 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 
 			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
 			PHY_IPhysicsEnvironment* physics_environment = kxscene->GetPhysicsEnvironment();
-			KX_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
+			PHY_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
 
 			KX_GameObject *parent = gameobj->GetParent();
 			if (!physics_controller && parent)
