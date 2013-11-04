@@ -101,7 +101,8 @@ extern "C"
 
 #include "ED_keyframing.h"
 #ifdef WITH_BUILDINFO
-extern char build_rev[];
+extern char build_change[];
+extern char build_hash[];
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -226,7 +227,14 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	}
 	char version_buf[128];
 #ifdef WITH_BUILDINFO
-	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION, build_rev);
+	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
+	if (build_hash[0] != '\0') {
+		sprintf(version_buf, "Blender %d.%02d.%d change:%s, hash:", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION,
+		        build_change, build_hash);
+	}
+	else {
+		sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION, build_change);
+	}
 #else
 	sprintf(version_buf, "Blender %d.%02d.%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
 #endif

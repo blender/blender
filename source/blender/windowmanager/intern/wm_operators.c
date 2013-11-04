@@ -1641,18 +1641,25 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 
 #ifdef WITH_BUILDINFO
-	int ver_width, rev_width;
-	char version_buf[128];
-	char revision_buf[128];
-	extern char build_rev[];
-	
-	BLI_snprintf(version_buf, sizeof(version_buf),
-	             "%d.%02d.%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
-	BLI_snprintf(revision_buf, sizeof(revision_buf), "r%s", build_rev);
+	int label_delta = 0;
+	int hash_width, change_width;
+	char change_buf[128] = "\0";
+	char hash_buf[128] = "\0";
+	extern char build_hash[], build_change[], build_branch[];
+
+	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
+	if (build_hash[0] != '\0') {
+		/* Builds made from tag only shows tag sha */
+		BLI_snprintf(hash_buf, sizeof(hash_buf), "Hash: %s", build_hash);
+		BLI_snprintf(change_buf, sizeof(change_buf), "Change: %s", build_change);
+	}
+	else {
+		BLI_snprintf(change_buf, sizeof(change_buf), "r%s", build_change);
+	}
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
-	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 0.5f * U.widget_unit;
-	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 0.5f * U.widget_unit;
+	hash_width = (int)BLF_width(style->widgetlabel.uifont_id, hash_buf) + 0.5f * U.widget_unit;
+	change_width = (int)BLF_width(style->widgetlabel.uifont_id, change_buf) + 0.5f * U.widget_unit;
 #endif  /* WITH_BUILDINFO */
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1667,9 +1674,23 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
-#ifdef WITH_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_buf, U.pixelsize * 494 - ver_width, U.pixelsize * 258, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_buf, U.pixelsize * 494 - rev_width, U.pixelsize * 246, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+#ifdef WITH_BUILDINFO
+	if (!STREQ(build_change, "0")) {
+		uiDefBut(block, LABEL, 0, change_buf, U.pixelsize * 494 - change_width, U.pixelsize * 270, change_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		label_delta = 12;
+	}
+	uiDefBut(block, LABEL, 0, hash_buf, U.pixelsize * 494 - hash_width, U.pixelsize * (270 - label_delta), hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+
+	/* TODO(sergey): As soon as we fully switched to GIT, no need to check
+	 *               whether branch is empty or not.
+	 */
+	if (build_branch[0] != '\0' && !STREQ(build_branch, "master")) {
+		char branch_buf[128] = "\0";
+		int branch_width;
+		BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
+		branch_width = (int)BLF_width(style->widgetlabel.uifont_id, branch_buf) + 0.5f * U.widget_unit;
+		uiDefBut(block, LABEL, 0, branch_buf, U.pixelsize * 494 - branch_width, U.pixelsize * (258 - label_delta), branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	}
 #endif  /* WITH_BUILDINFO */
 	
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, style);

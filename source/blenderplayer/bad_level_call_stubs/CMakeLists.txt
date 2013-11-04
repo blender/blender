@@ -1,3 +1,4 @@
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -51,8 +52,10 @@ if(WITH_BUILDINFO)
 	)
 	add_definitions(-DBUILD_DATE="\"\""
 					-DBUILD_TIME="\"\""
-					-DBUILD_REV="\"\""
+					-DBUILD_CHANGE="\"\""
+					-DBUILD_HASH="\"\""
 					-DBUILD_PLATFORM="\"\""
+					-DBUILD_BRANCH="\"\""
 					-DBUILD_TYPE="\"\""
 					)
 endif()

@@ -53,7 +53,9 @@
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
-extern char build_rev[];
+extern char build_change[];
+extern char build_hash[];
+extern char build_branch[];
 extern char build_platform[];
 extern char build_type[];
 extern char build_cflags[];
@@ -75,7 +77,9 @@ static PyStructSequence_Field app_info_fields[] = {
 	/* buildinfo */
 	{(char *)"build_date", (char *)"The date this blender instance was built"},
 	{(char *)"build_time", (char *)"The time this blender instance was built"},
-	{(char *)"build_revision", (char *)"The subversion revision this blender instance was built with"},
+	{(char *)"build_change", (char *)"The change number this blender instance was built with"},
+	{(char *)"build_hash", (char *)"The commit hash this blender instance was built with"},
+	{(char *)"build_branch", (char *)"The branch this blender instance was built from"},
 	{(char *)"build_platform", (char *)"The platform this blender instance was built for"},
 	{(char *)"build_type", (char *)"The type of build (Release, Debug)"},
 	{(char *)"build_cflags", (char *)"C compiler flags"},
@@ -133,7 +137,9 @@ static PyObject *make_app_info(void)
 #ifdef BUILD_DATE
 	SetBytesItem(build_date);
 	SetBytesItem(build_time);
-	SetBytesItem(build_rev);
+	SetBytesItem(build_change);
+	SetBytesItem(build_hash);
+	SetBytesItem(build_branch);
 	SetBytesItem(build_platform);
 	SetBytesItem(build_type);
 	SetBytesItem(build_cflags);
@@ -141,6 +147,8 @@ static PyObject *make_app_info(void)
 	SetBytesItem(build_linkflags);
 	SetBytesItem(build_system);
 #else
+	SetBytesItem("Unknown");
+	SetBytesItem("Unknown");
 	SetBytesItem("Unknown");
 	SetBytesItem("Unknown");
 	SetBytesItem("Unknown");

@@ -153,7 +153,9 @@
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
-extern char build_rev[];
+extern char build_hash[];
+extern char build_change[];
+extern char build_branch[];
 extern char build_platform[];
 extern char build_type[];
 extern char build_cflags[];
@@ -219,7 +221,14 @@ static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 #ifdef BUILD_DATE
 	printf("\tbuild date: %s\n", build_date);
 	printf("\tbuild time: %s\n", build_time);
-	printf("\tbuild revision: %s\n", build_rev);
+	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
+	if (build_hash[0] != '\0') {
+		printf("\tbuild revision: %s\n", build_change);
+	}
+	else {
+		printf("\tbuild change: %s\n", build_change);
+		printf("\tbuild hash: %s\n", build_hash);
+	}
 	printf("\tbuild platform: %s\n", build_platform);
 	printf("\tbuild type: %s\n", build_type);
 	printf("\tbuild c flags: %s\n", build_cflags);
@@ -590,13 +599,17 @@ static void blender_crash_handler(int signum)
 	printf("Writing: %s\n", fname);
 	fflush(stdout);
 
-	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Revision: %s\n", BLEND_VERSION_ARG,
-#ifdef BUILD_DATE
-	             build_rev
+#ifndef BUILD_DATE
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
 #else
-	             "Unknown"
+	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
+	if (build_hash[0] != '\0') {
+		BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Change: %s, Hash %s\n", BLEND_VERSION_ARG, build_change, build_hash);
+	}
+	else {
+		BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Revision: %s\n", BLEND_VERSION_ARG, build_change);
+	}
 #endif
-	             );
 
 	/* open the crash log */
 	errno = 0;

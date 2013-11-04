@@ -3261,7 +3261,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	char subvstr[8];
 	
 	/* prevent mem checkers from complaining */
-	fg.pads= fg.pad= 0;
+	fg.pads= 0;
 	memset(fg.filename, 0, sizeof(fg.filename));
 
 	current_screen_compat(mainvar, &screen);
@@ -3285,11 +3285,14 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.minsubversion= BLENDER_MINSUBVERSION;
 #ifdef WITH_BUILDINFO
 	{
-		extern char build_rev[];
-		fg.revision= atoi(build_rev);
+		extern char build_change[], build_hash[];
+		/* TODO(sergey): Add branch name to file as well? */
+		BLI_strncpy(fg.build_change, build_change, sizeof(fg.build_change));
+		BLI_strncpy(fg.build_hash, build_hash, sizeof(fg.build_hash));
 	}
 #else
-	fg.revision= 0;
+	BLI_strncpy(fg.build_change, "unknown", sizeof(fg.build_change));
+	BLI_strncpy(fg.build_hash, "unknown", sizeof(fg.build_hash));
 #endif
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }

@@ -53,10 +53,6 @@ extern "C"
 #include "BIK_api.h"
 #include "BKE_global.h"
 #include "ED_object.h"
-
-#ifdef NAN_BUILDINFO
-extern char build_rev[];
-#endif
 }
 
 #include "MEM_guardedalloc.h"

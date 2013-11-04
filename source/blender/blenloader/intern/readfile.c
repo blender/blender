@@ -7292,7 +7292,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->main->subversionfile = fg->subversion;
 	bfd->main->minversionfile = fg->minversion;
 	bfd->main->minsubversionfile = fg->minsubversion;
-	bfd->main->revision = fg->revision;
+	BLI_strncpy(bfd->main->build_change, fg->build_change, sizeof(bfd->main->build_change));
+	BLI_strncpy(bfd->main->build_hash, fg->build_hash, sizeof(bfd->main->build_hash));
 	
 	bfd->winpos = fg->winpos;
 	bfd->fileflags = fg->fileflags;
@@ -7926,8 +7927,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 	
-	if (G.debug & G_DEBUG)
-		printf("read file %s\n  Version %d sub %d svn r%d\n", fd->relabase, main->versionfile, main->subversionfile, main->revision);
+	if (G.debug & G_DEBUG) {
+		printf("read file %s\n  Version %d sub %d change %s hash %s\n",
+		       fd->relabase, main->versionfile, main->subversionfile,
+		       main->build_change, main->build_hash);
+	}
 	
 	blo_do_versions_pre250(fd, lib, main);
 	blo_do_versions_250(fd, lib, main);

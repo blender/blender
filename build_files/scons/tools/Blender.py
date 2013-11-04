@@ -410,9 +410,24 @@ def buildinfo(lenv, build_type):
     """
     build_date = time.strftime ("%Y-%m-%d")
     build_time = time.strftime ("%H:%M:%S")
-    build_rev = os.popen('svnversion').read()[:-1] # remove \n
-    if build_rev == '': 
-        build_rev = '-UNKNOWN-'
+    if os.path.isdir(os.path.abspath('.git')):
+        latest_version_tag = os.popen('git describe --match "v[0-9]*" --abbrev=0').read().strip()
+        if latest_version_tag:
+            build_change = os.popen('git rev-list HEAD ' + latest_version_tag + ' --count').read().strip()
+        else:
+            build_change = os.popen('git rev-list HEAD --count').read().strip()
+
+        build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+        build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
+    elif os.path.isdir(os.path.abspath('.svn')):
+        build_hash = ''
+        build_change = os.popen('svnversion').read()[:-1] # remove \n
+        build_branch = ''
+    else:
+        build_hash = ''
+        build_change = 'unknown'
+        build_branch = ''
+
     if lenv['BF_DEBUG']:
         build_type = "Debug"
         build_cflags = ' '.join(lenv['CFLAGS'] + lenv['CCFLAGS'] + lenv['BF_DEBUG_CCFLAGS'] + lenv['CPPFLAGS'])
@@ -429,7 +444,9 @@ def buildinfo(lenv, build_type):
         lenv.Append (CPPDEFINES = ['BUILD_TIME=\\"%s\\"'%(build_time),
                                     'BUILD_DATE=\\"%s\\"'%(build_date),
                                     'BUILD_TYPE=\\"%s\\"'%(build_type),
-                                    'BUILD_REV=\\"%s\\"'%(build_rev),
+                                    'BUILD_HASH=\\"%s\\"'%(build_hash),
+                                    'BUILD_CHANGE=\\"%s\\"'%(build_change),
+                                    'BUILD_BRANCH=\\"%s\\"'%(build_branch),
                                     'WITH_BUILDINFO',
                                     'BUILD_PLATFORM=\\"%s:%s\\"'%(platform.system(), platform.architecture()[0]),
                                     'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),

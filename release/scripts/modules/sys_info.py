@@ -67,7 +67,19 @@ def write_sysinfo(op):
     # build info
     output.write("\nBlender:\n")
     output.write(lilies)
-    output.write("version %s, revision %r. %r\n" % (bpy.app.version_string, bpy.app.build_revision, bpy.app.build_type))
+    if bpy.app.build_branch and bpy.app.build_branch != "Unknown":
+        output.write("version %s, branch %r, chage %r, hash %r, %r\n" %
+            (bpy.app.version_string,
+             bpy.app.build_branch,
+             bpy.app.build_change,
+             bpy.app.build_hash,
+             bpy.app.build_type))
+    else:
+        output.write("version %s, revision %r. %r\n" %
+            (bpy.app.version_string,
+             bpy.app.build_change,
+             bpy.app.build_type))
+
     output.write("build date: %r, %r\n" % (bpy.app.build_date, bpy.app.build_time))
     output.write("platform: %r\n" % (bpy.app.build_platform))
     output.write("binary path: %r\n" % (bpy.app.binary_path))

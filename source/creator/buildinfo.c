@@ -39,7 +39,9 @@
 /* currently only these are defined in the header */
 char build_date[] = BUILD_DATE;
 char build_time[] = BUILD_TIME;
-char build_rev[] = BUILD_REV;
+char build_hash[] = BUILD_HASH;
+char build_change[] = BUILD_CHANGE;
+char build_branch[] = BUILD_BRANCH;
 
 char build_platform[] = BUILD_PLATFORM;
 char build_type[] = BUILD_TYPE;

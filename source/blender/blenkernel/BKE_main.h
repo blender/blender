@@ -53,7 +53,7 @@ typedef struct Main {
 	char name[1024]; /* 1024 = FILE_MAX */
 	short versionfile, subversionfile;  /* see BLENDER_VERSION, BLENDER_SUBVERSION */
 	short minversionfile, minsubversionfile;
-	int revision;		/* svn revision of binary that saved file */
+	char build_change[16], build_hash[16];  /* change number and hash from buildinfo */
 	short recovered;	/* indicate the main->name (file) is the recovered one */
 	
 	struct Library *curlib;

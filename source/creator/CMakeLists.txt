@@ -131,7 +131,9 @@ if(WITH_BUILDINFO)
 		# # define in header now, else these get out of date on rebuilds.
 		# -DBUILD_DATE="${BUILD_DATE}"
 		# -DBUILD_TIME="${BUILD_TIME}"
-		# -DBUILD_REV="${BUILD_REV}"
+		# -DBUILD_CHANGE="${BUILD_CHANGE}"
+		# -DBUILD_HASH="${BUILD_HASH}"
+		# -DBUILD_BRANCH="${BUILD_BRANCH}"
 		-DWITH_BUILDINFO_HEADER # alternative to lines above
 		-DBUILD_PLATFORM="${CMAKE_SYSTEM_NAME}"
 		-DBUILD_TYPE="${CMAKE_BUILD_TYPE}"
