@@ -64,7 +64,6 @@ extern "C"{
 
 
 // XXX Clean these up <<<
-#include "BL_Material.h" // MAXTEX
 #include "Value.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_PolygonMaterial.h"
@@ -1370,7 +1369,7 @@ static void DisableForText()
 	glDisable(GL_COLOR_MATERIAL);
 
 	if (GLEW_ARB_multitexture) {
-		for (int i=0; i<MAXTEX; i++) {
+		for (int i=0; i<RAS_MAX_TEXCO; i++) {
 			glActiveTextureARB(GL_TEXTURE0_ARB+i);
 
 			if (GLEW_ARB_texture_cube_map)
