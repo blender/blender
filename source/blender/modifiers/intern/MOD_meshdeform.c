@@ -199,10 +199,10 @@ static void meshdeformModifier_do(
 
 	if (!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
 		return;
-	
+
 	/* get cage derivedmesh */
 	if (em) {
-		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
+		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, mmd->object, em, &cagedm, 0);
 		if (tmpdm)
 			tmpdm->release(tmpdm);
 	}
@@ -346,7 +346,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
-	
+
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
 	if (dm && dm != derivedData)
