@@ -495,16 +495,6 @@ public:
 							int height
 						) = 0;
 
-	// 3d text, mapped on polygon
-	virtual void RenderText(int mode,
-							RAS_IPolyMaterial* polymat,
-							float v1[3],
-							float v2[3],
-							float v3[3],
-							float v4[3],
-							int glattrib
-						)=0;
-
 	virtual	void ProcessLighting(bool uselights, const MT_Transform& trans)=0;
 
 	virtual void PushMatrix()=0;

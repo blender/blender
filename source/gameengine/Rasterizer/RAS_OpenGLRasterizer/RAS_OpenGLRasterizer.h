@@ -366,14 +366,6 @@ public:
 						 int width,
 						 int height);
 
-	void	RenderText(int mode,
-					   class RAS_IPolyMaterial* polymat,
-					   float v1[3],
-					   float v2[3],
-					   float v3[3],
-					   float v4[3],
-					   int glattrib);
-
 	void	applyTransform(double* oglmatrix, int objectdrawmode);
 	int		applyLights(int objectlayer, const MT_Transform& viewmat);
 

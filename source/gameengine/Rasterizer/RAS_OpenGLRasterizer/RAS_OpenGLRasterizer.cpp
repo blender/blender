@@ -681,6 +681,12 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 	bool obcolor = ms.m_bObjectColor;
 	MT_Vector4& rgba = ms.m_RGBAcolor;
 	RAS_MeshSlot::iterator it;
+	struct MTFace* tface = 0;
+
+	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+
+	const unsigned int flag = polymat->GetFlag();
+	unsigned int *col = 0;
 
 	// handle object color
 	if (obcolor) {
@@ -732,9 +738,18 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 					for (unit=0; unit<m_attrib_num; unit++)
 						if (m_attrib[unit] == RAS_TEXCO_UV)
 							glattrib = unit;
-				
-				RenderText(polymat->GetDrawingMode(), polymat,
-					v[0], v[1], v[2], (numvert == 4)? v[3]: NULL, glattrib);
+
+				if (flag & RAS_BLENDERMAT) {
+					KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
+					tface = bl_mat->GetMTFace();
+					col = bl_mat->GetMCol();
+				} else {
+					KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
+					tface = blenderpoly->GetMTFace();
+					col = blenderpoly->GetMCol();
+				}
+
+				GPU_render_text(tface, polymat->GetDrawingMode(), mytext, mytext.Length(), col, v[1], v[2], v[3], v[4], glattrib);
 
 				ClearCachingInfo();
 			}
@@ -1499,34 +1514,6 @@ void RAS_OpenGLRasterizer::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
 }
-
-/* Render Text renders text into a (series of) polygon, using a texture font,
- * Each character consists of one polygon (one quad or two triangles) */
-
-void RAS_OpenGLRasterizer::RenderText(
-	int mode,
-	RAS_IPolyMaterial* polymat,
-	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
-{
-	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
-
-	const unsigned int flag = polymat->GetFlag();
-	struct MTFace* tface = 0;
-	unsigned int *col = 0;
-
-	if (flag & RAS_BLENDERMAT) {
-		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
-		tface = bl_mat->GetMTFace();
-		col = bl_mat->GetMCol();
-	} else {
-		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-		tface = blenderpoly->GetMTFace();
-		col = blenderpoly->GetMCol();
-	}
-
-	GPU_render_text(tface, mode, mytext, mytext.Length(), col, v1, v2, v3, v4, glattrib);
-}
-
 
 void RAS_OpenGLRasterizer::PushMatrix()
 {
