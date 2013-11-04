@@ -367,7 +367,6 @@ public:
 						 int height);
 
 	void	applyTransform(double* oglmatrix, int objectdrawmode);
-	int		applyLights(int objectlayer, const MT_Transform& viewmat);
 
 	void	PushMatrix();
 	void	PopMatrix();

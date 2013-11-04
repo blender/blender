@@ -1159,8 +1159,33 @@ void RAS_OpenGLRasterizer::ProcessLighting(bool uselights, const MT_Transform& v
 	m_lastauxinfo = m_auxilaryClientInfo;
 
 	/* enable/disable lights as needed */
-	if (layer >= 0)
-		enable = ApplyLights(layer, viewmat);
+	if (layer >= 0) {
+		//enable = ApplyLights(layer, viewmat);
+		// taken from blender source, incompatibility between Blender Object / GameObject
+		KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
+		float glviewmat[16];
+		unsigned int count;
+		std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
+
+		for (count=0; count<m_numgllights; count++)
+			glDisable((GLenum)(GL_LIGHT0+count));
+
+		viewmat.getValue(glviewmat);
+
+		glPushMatrix();
+		glLoadMatrixf(glviewmat);
+		for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
+		{
+			RAS_LightObject* lightdata = (*lit);
+			KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
+
+			if (kxlight->ApplyLight(kxscene, layer, count))
+				count++;
+		}
+		glPopMatrix();
+
+		enable = count > 0;
+	}
 
 	if (enable)
 		EnableOpenGLLights();
@@ -1506,35 +1531,6 @@ void RAS_OpenGLRasterizer::PushMatrix()
 void RAS_OpenGLRasterizer::PopMatrix()
 {
 	glPopMatrix();
-}
-
-
-int RAS_OpenGLRasterizer::ApplyLights(int objectlayer, const MT_Transform& viewmat)
-{
-	// taken from blender source, incompatibility between Blender Object / GameObject
-	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
-	float glviewmat[16];
-	unsigned int count;
-	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
-
-	for (count=0; count<m_numgllights; count++)
-		glDisable((GLenum)(GL_LIGHT0+count));
-
-	viewmat.getValue(glviewmat);
-
-	glPushMatrix();
-	glLoadMatrixf(glviewmat);
-	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
-	{
-		RAS_LightObject* lightdata = (*lit);
-		KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
-
-		if (kxlight->ApplyLight(kxscene, objectlayer, count))
-			count++;
-	}
-	glPopMatrix();
-
-	return count;
 }
 
 void RAS_OpenGLRasterizer::MotionBlur()
