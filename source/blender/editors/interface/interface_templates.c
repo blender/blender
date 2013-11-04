@@ -967,11 +967,11 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			if (md->type == eModifierType_ParticleSystem) {
 				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 				
-				if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
+				if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
 						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_duplicates_make_real");
-					else if (psys->part->ren_as == PART_DRAW_PATH)
+					else if (psys->part->ren_as == PART_DRAW_PATH && psys->pathcache)
 						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_modifier_convert");
 				}
