@@ -480,7 +480,7 @@ static PyObject *gPySetPhysicsTicRate(PyObject *, PyObject *args)
 	if (!PyArg_ParseTuple(args, "f:setPhysicsTicRate", &ticrate))
 		return NULL;
 	
-	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
+	PHY_GetActiveEnvironment()->SetFixedTimeStep(true,ticrate);
 	Py_RETURN_NONE;
 }
 #if 0 // unused
@@ -498,7 +498,7 @@ static PyObject *gPySetPhysicsDebug(PyObject *, PyObject *args)
 
 static PyObject *gPyGetPhysicsTicRate(PyObject *)
 {
-	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->getFixedTimeStep());
+	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->GetFixedTimeStep());
 }
 
 static PyObject *gPyGetAverageFrameRate(PyObject *)

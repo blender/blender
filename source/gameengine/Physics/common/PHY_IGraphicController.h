@@ -47,8 +47,8 @@ class PHY_IGraphicController : public PHY_IController
 		 */
 		virtual bool SetGraphicTransform()=0;
 		virtual void Activate(bool active=true)=0;
-		virtual void setLocalAabb(const class MT_Vector3& aabbMin,const class MT_Vector3& aabbMax)=0;
-		virtual void setLocalAabb(const float* aabbMin,const float* aabbMax)=0;
+		virtual void SetLocalAabb(const class MT_Vector3& aabbMin,const class MT_Vector3& aabbMax)=0;
+		virtual void SetLocalAabb(const float* aabbMin,const float* aabbMax)=0;
 
 		virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate) {return 0;}
 

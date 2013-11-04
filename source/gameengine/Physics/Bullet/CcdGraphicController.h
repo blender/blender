@@ -40,16 +40,16 @@ public:
 
 	virtual ~CcdGraphicController();
 
-	void setLocalAabb(const btVector3& aabbMin,const btVector3& aabbMax);
-	void setLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax);
-	virtual void setLocalAabb(const MT_Vector3& aabbMin,const MT_Vector3& aabbMax);
-	virtual void setLocalAabb(const float aabbMin[3],const float aabbMax[3]);
+	void SetLocalAabb(const btVector3& aabbMin,const btVector3& aabbMax);
+	void SetLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax);
+	virtual void SetLocalAabb(const MT_Vector3& aabbMin,const MT_Vector3& aabbMax);
+	virtual void SetLocalAabb(const float aabbMin[3],const float aabbMax[3]);
 
 	PHY_IMotionState* GetMotionState() { return m_motionState; }
-	void getAabb(btVector3& aabbMin, btVector3& aabbMax);
+	void GetAabb(btVector3& aabbMin, btVector3& aabbMax);
 
-	virtual void setBroadphaseHandle(btBroadphaseProxy* handle) { m_handle = handle; }
-	virtual btBroadphaseProxy* getBroadphaseHandle() { return m_handle; }
+	virtual void SetBroadphaseHandle(btBroadphaseProxy* handle) { m_handle = handle; }
+	virtual btBroadphaseProxy* GetBroadphaseHandle() { return m_handle; }
 
 	virtual void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* env);
 
@@ -67,8 +67,8 @@ public:
 	virtual void Activate(bool active);
 
 	// client info for culling
-	virtual	void* getNewClientInfo() { return m_newClientInfo; }
-	virtual	void setNewClientInfo(void* clientinfo) { m_newClientInfo = clientinfo; }
+	virtual	void* GetNewClientInfo() { return m_newClientInfo; }
+	virtual	void SetNewClientInfo(void* clientinfo) { m_newClientInfo = clientinfo; }
 	virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate);
 		
 private:

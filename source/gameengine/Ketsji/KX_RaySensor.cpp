@@ -44,7 +44,6 @@
 #include "KX_RayCast.h"
 #include "KX_PyMath.h"
 #include "PHY_IPhysicsEnvironment.h"
-#include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsController.h"
 #include "DNA_sensor_types.h"
 
@@ -261,7 +260,7 @@ bool KX_RaySensor::Evaluate()
 		return false;
 	} 
 
-	KX_IPhysicsController *spc = obj->GetPhysicsController();
+	PHY_IPhysicsController *spc = obj->GetPhysicsController();
 	KX_GameObject *parent = obj->GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();

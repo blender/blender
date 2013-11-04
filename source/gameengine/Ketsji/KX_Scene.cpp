@@ -82,7 +82,6 @@
 #include "KX_NetworkEventManager.h"
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
-#include "KX_IPhysicsController.h"
 #include "PHY_IGraphicController.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_MotionState.h"
@@ -545,7 +544,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	for (cit = scenegraphcontrollers.begin();!(cit==scenegraphcontrollers.end());++cit)
 	{
 		// controller replication is quite complicated
-		// only replicate ipo and physics controller for now
+		// only replicate ipo controller for now
 
 		SG_Controller* replicacontroller = (*cit)->GetReplica((SG_Node*) replicanode);
 		if (replicacontroller)
@@ -559,8 +558,20 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	{
 		PHY_IMotionState* motionstate = new KX_MotionState(newobj->GetSGNode());
 		PHY_IGraphicController* newctrl = orgobj->GetGraphicController()->GetReplica(motionstate);
-		newctrl->setNewClientInfo(newobj->getClientInfo());
+		newctrl->SetNewClientInfo(newobj->getClientInfo());
 		newobj->SetGraphicController(newctrl);
+	}
+
+	// replicate physics controller
+	if (orgobj->GetPhysicsController())
+	{
+		PHY_IMotionState* motionstate = new KX_MotionState(newobj->GetSGNode());
+		PHY_IPhysicsController* newctrl = orgobj->GetPhysicsController()->GetReplica();
+		PHY_IPhysicsController* parentctrl = (newobj->GetParent()) ? newobj->GetParent()->GetPhysicsController() : NULL;
+
+		newctrl->SetNewClientInfo(newobj->getClientInfo());
+		newobj->SetPhysicsController(newctrl, newobj->IsDynamic());
+		newctrl->PostProcessReplica(motionstate, parentctrl);
 	}
 	return newobj;
 }
@@ -1525,7 +1536,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		double pmat[16] = {0};
 		cam->GetProjectionMatrix().getValue(pmat);
 
-		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
+		dbvt_culling = m_physicsEnvironment->CullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
 		                                                 KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
 		                                                 mvmat, pmat);
 	}
@@ -1755,14 +1766,14 @@ void KX_Scene::SetNetworkScene(NG_NetworkScene *newScene)
 
 void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 {
-	GetPhysicsEnvironment()->setGravity(gravity[0],gravity[1],gravity[2]);
+	GetPhysicsEnvironment()->SetGravity(gravity[0],gravity[1],gravity[2]);
 }
 
 MT_Vector3 KX_Scene::GetGravity()
 {
 	MT_Vector3 gravity;
 
-	GetPhysicsEnvironment()->getGravity(gravity);
+	GetPhysicsEnvironment()->GetGravity(gravity);
 
 	return gravity;
 }
@@ -1803,10 +1814,6 @@ short KX_Scene::GetAnimationFPS()
 	return m_blenderScene->r.frs_sec;
 }
 
-#ifdef WITH_BULLET
-#include "KX_BulletPhysicsController.h"
-#endif
-
 static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 {
 	SCA_LogicManager *logicmgr= to->GetLogicManager();
@@ -1839,7 +1846,6 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 #ifdef WITH_BULLET
 #include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "CcdPhysicsEnvironment.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
-#include "KX_BulletPhysicsController.h"
 #endif
 
 static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene *from)
@@ -1888,9 +1894,14 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	}
 
 	/* graphics controller */
-	PHY_IGraphicController *ctrl = gameobj->GetGraphicController();
+	PHY_IController *ctrl = gameobj->GetGraphicController();
 	if (ctrl) {
 		/* SHOULD update the m_cullingTree */
+		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
+	}
+
+	ctrl = gameobj->GetPhysicsController();
+	if (ctrl) {
 		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 
@@ -1905,16 +1916,6 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 			for (int i=0; i<children.size(); i++)
 					children[i]->SetSGClientInfo(to);
 		}
-#ifdef WITH_BULLET
-		SGControllerList::iterator contit;
-		SGControllerList& controllers = sg->GetSGControllerList();
-		for (contit = controllers.begin();contit!=controllers.end();++contit)
-		{
-			KX_BulletPhysicsController *phys_ctrl= dynamic_cast<KX_BulletPhysicsController *>(*contit);
-			if (phys_ctrl)
-				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
-		}
-#endif // WITH_BULLET
 	}
 	/* If the object is a light, update it's scene */
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)

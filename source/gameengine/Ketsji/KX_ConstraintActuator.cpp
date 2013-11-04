@@ -331,7 +331,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
 				PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
-				KX_IPhysicsController *spc = obj->GetPhysicsController();
+				PHY_IPhysicsController *spc = obj->GetPhysicsController();
 
 				if (!pe) {
 					std::cout << "WARNING: Constraint actuator " << GetName() << ":  There is no physics environment!" << std::endl;
@@ -345,7 +345,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						parent->Release();
 					}
 				}
-				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,spc);
+				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,dynamic_cast<PHY_IPhysicsController*>(spc));
 				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				if (result)	{
 					MT_Vector3 newnormal = callback.m_hitNormal;
@@ -379,7 +379,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						// logically we should cancel the speed along the ray direction as we set the
 						// position along that axis
 						spc = obj->GetPhysicsController();
-						if (spc && spc->IsDyna()) {
+						if (spc && spc->IsDynamic()) {
 							MT_Vector3 linV = spc->GetLinearVelocity();
 							// cancel the projection along the ray direction
 							MT_Scalar fallspeed = linV.dot(direction);
@@ -444,20 +444,20 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			normal.normalize();
 			{
 				PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
-				KX_IPhysicsController *spc = obj->GetPhysicsController();
+				PHY_IPhysicsController *spc = obj->GetPhysicsController();
 
 				if (!pe) {
 					std::cout << "WARNING: Constraint actuator " << GetName() << ":  There is no physics environment!" << std::endl;
 					goto CHECK_TIME;
 				}	 
-				if (!spc || !spc->IsDyna()) {
+				if (!spc || !spc->IsDynamic()) {
 					// the object is not dynamic, it won't support setting speed
 					goto CHECK_TIME;
 				}
 				m_hitObject = NULL;
 				// distance of Fh area is stored in m_minimum
 				MT_Point3 topoint = position + (m_minimumBound+spc->GetRadius()) * direction;
-				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,spc);
+				KX_RayCast::Callback<KX_ConstraintActuator> callback(this, spc);
 				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				// we expect a hit object
 				if (!m_hitObject)

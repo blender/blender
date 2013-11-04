@@ -139,9 +139,14 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_shapeInfo = ci.m_shapeInfo;
 	if (m_shapeInfo)
 		m_shapeInfo->AddRef();
+
+	m_bulletChildShape = NULL;
 	
 	m_bulletMotionState = 0;
 	m_characterController = 0;
+	m_savedCollisionFlags = 0;
+	m_savedMass = 0.0;
+	m_suspended = false;
 	
 	CreateRigidbody();
 }
@@ -150,11 +155,11 @@ btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState*
 {
 	static btTransform trans;
 	btVector3 tmp;
-	motionState->getWorldPosition(tmp.m_floats[0], tmp.m_floats[1], tmp.m_floats[2]);
+	motionState->GetWorldPosition(tmp.m_floats[0], tmp.m_floats[1], tmp.m_floats[2]);
 	trans.setOrigin(tmp);
 
 	float ori[12];
-	motionState->getWorldOrientation(ori);
+	motionState->GetWorldOrientation(ori);
 	trans.getBasis().setFromOpenGLSubMatrix(ori);
 	//btQuaternion orn;
 	//motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
@@ -180,18 +185,18 @@ public:
 		btVector3 pos;
 		float ori[12];
 
-		m_blenderMotionState->getWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
-		m_blenderMotionState->getWorldOrientation(ori);
+		m_blenderMotionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+		m_blenderMotionState->GetWorldOrientation(ori);
 		worldTrans.setOrigin(pos);
 		worldTrans.getBasis().setFromOpenGLSubMatrix(ori);
 	}
 
 	void	setWorldTransform(const btTransform& worldTrans)
 	{
-		m_blenderMotionState->setWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
+		m_blenderMotionState->SetWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
 		btQuaternion rotQuat = worldTrans.getRotation();
-		m_blenderMotionState->setWorldOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-		m_blenderMotionState->calculateWorldTransformations();
+		m_blenderMotionState->SetWorldOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+		m_blenderMotionState->CalculateWorldTransformations();
 	}
 
 };
@@ -238,7 +243,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	btVector3 p(0,0,0);// = getOrigin();
 	//btSoftBody*	psb=btSoftBodyHelpers::CreateRope(worldInfo,	btVector3(-10,0,i*0.25),btVector3(10,0,i*0.25),	16,1+2);
 	btSoftBody* psb  = 0;
-	btSoftBodyWorldInfo& worldInfo = m_cci.m_physicsEnv->getDynamicsWorld()->getWorldInfo();
+	btSoftBodyWorldInfo& worldInfo = m_cci.m_physicsEnv->GetDynamicsWorld()->getWorldInfo();
 
 	if (m_cci.m_collisionShape->getShapeType() == CONVEX_HULL_SHAPE_PROXYTYPE) {
 		btConvexHullShape* convexHull = (btConvexHullShape* )m_cci.m_collisionShape;
@@ -456,8 +461,8 @@ bool CcdPhysicsController::CreateSoftbody()
 	btTransform startTrans;
 	rbci.m_motionState->getWorldTransform(startTrans);
 
-	m_MotionState->setWorldPosition(startTrans.getOrigin().getX(),startTrans.getOrigin().getY(),startTrans.getOrigin().getZ());
-	m_MotionState->setWorldOrientation(0,0,0,1);
+	m_MotionState->SetWorldPosition(startTrans.getOrigin().getX(),startTrans.getOrigin().getY(),startTrans.getOrigin().getZ());
+	m_MotionState->SetWorldOrientation(0,0,0,1);
 
 	if (!m_prototypeTransformInitialized)
 	{
@@ -609,7 +614,7 @@ bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 	
 	if (GetSoftBody()) {
 		// soft body must be recreated
-		m_cci.m_physicsEnv->removeCcdPhysicsController(this);
+		m_cci.m_physicsEnv->RemoveCcdPhysicsController(this);
 		delete m_object;
 		m_object = NULL;
 		// force complete reinitialization
@@ -619,14 +624,14 @@ bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 		CreateSoftbody();
 		assert(m_object);
 		// reinsert the new body
-		m_cci.m_physicsEnv->addCcdPhysicsController(this);
+		m_cci.m_physicsEnv->AddCcdPhysicsController(this);
 	}
 	
 	/* Copied from CcdPhysicsEnvironment::addCcdPhysicsController() */
 	
 	/* without this, an object can rest on the old physics mesh
 	 * and not move to account for the physics mesh, even with 'nosleep' */ 
-	btSoftRigidDynamicsWorld* dw= GetPhysicsEnvironment()->getDynamicsWorld();
+	btSoftRigidDynamicsWorld* dw= GetPhysicsEnvironment()->GetDynamicsWorld();
 	btCollisionObjectArray &obarr= dw->getCollisionObjectArray();
 	btCollisionObject *ob;
 	btBroadphaseProxy* proxy;
@@ -648,7 +653,7 @@ CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
 	if (m_cci.m_physicsEnv)
-		m_cci.m_physicsEnv->removeCcdPhysicsController(this);
+		m_cci.m_physicsEnv->RemoveCcdPhysicsController(this);
 
 	if (m_MotionState)
 		delete m_MotionState;
@@ -683,17 +688,17 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 			btQuaternion worldquat;
 			btMatrix3x3	trs = sb->m_pose.m_rot*sb->m_pose.m_scl;
 			trs.getRotation(worldquat);
-			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
-			m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
+			m_MotionState->SetWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+			m_MotionState->SetWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 		}
 		else 
 		{
 			btVector3 aabbMin,aabbMax;
 			sb->getAabb(aabbMin,aabbMax);
 			btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
-			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+			m_MotionState->SetWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		}
-		m_MotionState->calculateWorldTransformations();
+		m_MotionState->CalculateWorldTransformations();
 		return true;
 	}
 
@@ -719,12 +724,12 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		const btVector3& worldPos = xform.getOrigin();
 		float ori[12];
 		worldOri.getOpenGLSubMatrix(ori);
-		m_MotionState->setWorldOrientation(ori);
-		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
-		m_MotionState->calculateWorldTransformations();
+		m_MotionState->SetWorldOrientation(ori);
+		m_MotionState->SetWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		m_MotionState->CalculateWorldTransformations();
 
 		float scale[3];
-		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
+		m_MotionState->GetWorldScaling(scale[0],scale[1],scale[2]);
 		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
 	} else
@@ -743,7 +748,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		m_MotionState->calculateWorldTransformations();
 */
 		float scale[3];
-		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
+		m_MotionState->GetWorldScaling(scale[0],scale[1],scale[2]);
 		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
 	}
@@ -767,7 +772,7 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 		// controller replication
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
-	
+	SetParentCtrl((CcdPhysicsController*)parentctrl);
 	m_softBodyTransformInitialized=false;
 	m_MotionState = motionstate;
 	m_registerCount = 0;
@@ -812,7 +817,7 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	}
 	// sensor object are added when needed
 	if (!m_cci.m_bSensor)
-		m_cci.m_physicsEnv->addCcdPhysicsController(this);
+		m_cci.m_physicsEnv->AddCcdPhysicsController(this);
 
 
 /*	SM_Object* dynaparent=0;
@@ -857,9 +862,9 @@ void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *
 		// since the environment is changing, we must also move the controler to the
 		// new environment. Note that we don't handle sensor explicitly: this
 		// function can be called on sensor but only when they are not registered
-		if (m_cci.m_physicsEnv->removeCcdPhysicsController(this))
+		if (m_cci.m_physicsEnv->RemoveCcdPhysicsController(this))
 		{
-			physicsEnv->addCcdPhysicsController(this);
+			physicsEnv->AddCcdPhysicsController(this);
 
 			// Set the object to be active so it can at least by evaluated once.
 			// This fixes issues with static objects not having their physics meshes
@@ -904,7 +909,7 @@ void	CcdPhysicsController::SetCenterOfMassTransform(btTransform& xform)
 }
 
 		// kinematic methods
-void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
+void		CcdPhysicsController::RelativeTranslate(const MT_Vector3& dlocin,bool local)
 {
 	if (m_object)
 	{
@@ -917,7 +922,7 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 			return;
 		}
 
-		btVector3 dloc(dlocX,dlocY,dlocZ);
+		btVector3 dloc(dlocin.x(), dlocin.y(), dlocin.z());
 		btTransform xform = m_object->getWorldTransform();
 	
 		if (local)
@@ -929,22 +934,7 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 
 }
 
-void		CcdPhysicsController::SetWalkDirection(float dirX,float dirY,float dirZ,bool local)
-{
-
-	if (m_object && m_characterController)
-	{
-		btVector3 dir(dirX,dirY,dirZ);
-		btTransform xform = m_object->getWorldTransform();
-
-		if (local)
-			dir = xform.getBasis()*dir;
-
-		m_characterController->setWalkDirection(dir/GetPhysicsEnvironment()->getNumTimeSubSteps());
-	}
-}
-
-void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
+void		CcdPhysicsController::RelativeRotate(const MT_Matrix3x3& rotval,bool local)
 {
 	if (m_object)
 	{
@@ -957,9 +947,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 			return;
 		}
 
-		btMatrix3x3 drotmat(rotval[0], rotval[3], rotval[6],
-		                    rotval[1], rotval[4], rotval[7],
-		                    rotval[2], rotval[5], rotval[8]);
+		btMatrix3x3 drotmat(rotval[0].x(), rotval[1].x(), rotval[2].x(),
+		        rotval[0].y(), rotval[1].y(), rotval[2].y(),
+		        rotval[0].z(), rotval[1].z(), rotval[2].z());
 
 
 		btMatrix3x3 currentOrn;
@@ -978,45 +968,23 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
 	float ori[12];
-	m_MotionState->getWorldOrientation(ori);
+	m_MotionState->GetWorldOrientation(ori);
 	mat.setFromOpenGLSubMatrix(ori);
 }
 
-void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
+MT_Matrix3x3 CcdPhysicsController::GetOrientation()
 {
-	btQuaternion q = m_object->getWorldTransform().getRotation();
-	quatImag0 = q[0];
-	quatImag1 = q[1];
-	quatImag2 = q[2];
-	quatReal = q[3];
-}
-void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
-{
-	if (m_object)
-	{
-		m_object->activate(true);
-		if (m_object->isStaticObject())
-		{
-			if (!m_cci.m_bSensor)
-				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-			// kinematic object should not set the transform, it disturbs the velocity interpolation
-			return;
-		}
-		// not required
-		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
-		btTransform xform  = m_object->getWorldTransform();
-		xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
-		SetCenterOfMassTransform(xform);
-		// not required
-		//m_bulletMotionState->setWorldTransform(xform);
-		
-		
-
-	}
-
+	btMatrix3x3 orn = m_object->getWorldTransform().getBasis();
+	return MT_Matrix3x3(orn[0][0], orn[0][1], orn[0][2], orn[1][0], orn[1][1], orn[1][2], orn[2][0], orn[2][1], orn[2][2]);
 }
 
-void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
+void		CcdPhysicsController::SetOrientation(const MT_Matrix3x3& orn)
+{
+	btMatrix3x3 btmat(orn[0][0], orn[0][1], orn[0][2], orn[1][0], orn[1][1], orn[1][2], orn[2][0], orn[2][1], orn[2][2]);
+	SetWorldOrientation(btmat);
+}
+
+void CcdPhysicsController::SetWorldOrientation(const btMatrix3x3& orn)
 {
 	if (m_object)
 	{
@@ -1045,7 +1013,7 @@ void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 
 }
 
-void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
+void		CcdPhysicsController::SetPosition(const MT_Vector3& pos)
 {
 	if (m_object)
 	{
@@ -1060,7 +1028,7 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		// not required, this function is only used to update the physic controller
 		//m_MotionState->setWorldPosition(posX,posY,posZ);
 		btTransform xform  = m_object->getWorldTransform();
-		xform.setOrigin(btVector3(posX,posY,posZ));
+		xform.setOrigin(btVector3(pos.x(), pos.y(), pos.z()));
 		SetCenterOfMassTransform(xform);
 		if (!m_softBodyTransformInitialized)
 			m_softbodyStartTrans.setOrigin(xform.getOrigin());
@@ -1069,7 +1037,7 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 	}
 }
 
-void CcdPhysicsController::forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos)
+void CcdPhysicsController::ForceWorldTransform(const btMatrix3x3& mat, const btVector3& pos)
 {
 	if (m_object)
 	{
@@ -1080,11 +1048,44 @@ void CcdPhysicsController::forceWorldTransform(const btMatrix3x3& mat, const btV
 }
 
 
-void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
+void		CcdPhysicsController::ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
 }
 
-void 		CcdPhysicsController::getPosition(MT_Vector3&	pos) const
+void	CcdPhysicsController::SuspendDynamics(bool ghost)
+{
+	btRigidBody *body = GetRigidBody();
+	if (body && !m_suspended && !GetConstructionInfo().m_bSensor)
+	{
+		m_savedCollisionFlags = body->getCollisionFlags();
+		m_savedMass = GetMass();
+		m_suspended = true;
+		GetPhysicsEnvironment()->UpdateCcdPhysicsController(this,
+			0.0,
+			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
+			btBroadphaseProxy::StaticFilter,
+			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
+	}
+}
+
+void	CcdPhysicsController::RestoreDynamics()
+{
+	btRigidBody *body = GetRigidBody();
+	if (body && m_suspended)
+	{
+		// before make sure any position change that was done in this logic frame are accounted for
+		SetTransform();
+		GetPhysicsEnvironment()->UpdateCcdPhysicsController(this,
+			m_savedMass,
+			m_savedCollisionFlags,
+			GetConstructionInfo().m_collisionFilterGroup,
+			GetConstructionInfo().m_collisionFilterMask);
+		body->activate();
+		m_suspended = false;
+	}
+}
+
+void 		CcdPhysicsController::GetPosition(MT_Vector3&	pos) const
 {
 	const btTransform& xform = m_object->getWorldTransform();
 	pos[0] = xform.getOrigin().x();
@@ -1092,13 +1093,13 @@ void 		CcdPhysicsController::getPosition(MT_Vector3&	pos) const
 	pos[2] = xform.getOrigin().z();
 }
 
-void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
+void		CcdPhysicsController::SetScaling(const MT_Vector3& scale)
 {
-	if (!btFuzzyZero(m_cci.m_scaling.x()-scaleX) ||
-		!btFuzzyZero(m_cci.m_scaling.y()-scaleY) ||
-		!btFuzzyZero(m_cci.m_scaling.z()-scaleZ))
+	if (!btFuzzyZero(m_cci.m_scaling.x()-scale.x()) ||
+	    !btFuzzyZero(m_cci.m_scaling.y()-scale.y()) ||
+	    !btFuzzyZero(m_cci.m_scaling.z()-scale.z()))
 	{
-		m_cci.m_scaling = btVector3(scaleX,scaleY,scaleZ);
+		m_cci.m_scaling = btVector3(scale.x(),scale.y(),scale.z());
 
 		if (m_object && m_object->getCollisionShape())
 		{
@@ -1116,11 +1117,64 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 		}
 	}
 }
+
+void CcdPhysicsController::SetTransform()
+{
+	btVector3 pos;
+	btVector3 scale;
+	float ori[12];
+	m_MotionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+	m_MotionState->GetWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
+	m_MotionState->GetWorldOrientation(ori);
+	btMatrix3x3 rot(ori[0], ori[4], ori[8],
+					ori[1], ori[5], ori[9],
+					ori[2], ori[6], ori[10]);
+	ForceWorldTransform(rot, pos);
+
+	if (!IsDynamic() && !GetConstructionInfo().m_bSensor && !GetCharacterController())
+	{
+		btCollisionObject* object = GetRigidBody();
+		object->setActivationState(ACTIVE_TAG);
+		object->setCollisionFlags(object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	}
+}
+
+MT_Scalar	CcdPhysicsController::GetMass()
+{
+	if (GetSoftBody())
+		return GetSoftBody()->getTotalMass();
+
+	MT_Scalar invmass = 0.f;
+	if (GetRigidBody())
+		invmass = GetRigidBody()->getInvMass();
+	if (invmass)
+		return 1.f/invmass;
+	return 0.f;
+
+}
+
+void CcdPhysicsController::SetMass(MT_Scalar newmass)
+{
+	btRigidBody *body = GetRigidBody();
+	if (body && !m_suspended && newmass>MT_EPSILON && GetMass()>MT_EPSILON)
+	{
+		btVector3 grav = body->getGravity();
+		btVector3 accel = grav / GetMass();
+
+		btBroadphaseProxy* handle = body->getBroadphaseHandle();
+		GetPhysicsEnvironment()->UpdateCcdPhysicsController(this,
+			newmass,
+			body->getCollisionFlags(),
+			handle->m_collisionFilterGroup,
+			handle->m_collisionFilterMask);
+		body->setGravity(accel);
+	}
+}
 		
 		// physics methods
-void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local)
+void		CcdPhysicsController::ApplyTorque(const MT_Vector3&  torquein,bool local)
 {
-	btVector3 torque(torqueX,torqueY,torqueZ);
+	btVector3 torque(torquein.x(),torquein.y(),torquein.z());
 	btTransform xform = m_object->getWorldTransform();
 	
 
@@ -1158,9 +1212,9 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 	}
 }
 
-void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bool local)
+void		CcdPhysicsController::ApplyForce(const MT_Vector3& forcein,bool local)
 {
-	btVector3 force(forceX,forceY,forceZ);
+	btVector3 force(forcein.x(),forcein.y(),forcein.z());
 	
 
 	if (m_object && force.length2() > (SIMD_EPSILON*SIMD_EPSILON))
@@ -1191,9 +1245,9 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 		}
 	}
 }
-void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)
+void		CcdPhysicsController::SetAngularVelocity(const MT_Vector3& ang_vel,bool local)
 {
-	btVector3 angvel(ang_velX,ang_velY,ang_velZ);
+	btVector3 angvel(ang_vel.x(),ang_vel.y(),ang_vel.z());
 	if (m_object && angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		m_object->activate(true);
@@ -1214,10 +1268,10 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 	}
 
 }
-void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)
+void		CcdPhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
 
-	btVector3 linVel(lin_velX,lin_velY,lin_velZ);
+	btVector3 linVel(lin_vel.x(),lin_vel.y(),lin_vel.z());
 	if (m_object/* && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON)*/)
 	{
 		m_object->activate(true);
@@ -1249,9 +1303,9 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		}
 	}
 }
-void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
+void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein)
 {
-	btVector3 impulse(impulseX,impulseY,impulseZ);
+	btVector3 impulse(impulsein.x(), impulsein.y(), impulsein.z());
 
 	if (m_object && impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
@@ -1263,7 +1317,7 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 			return;
 		}
 		
-		btVector3 pos(attachX,attachY,attachZ);
+		btVector3 pos(attach.x(), attach.y(), attach.z());
 		btRigidBody* body = GetRigidBody();
 		if (body)
 			body->applyImpulse(impulse,pos);
@@ -1282,82 +1336,59 @@ void		CcdPhysicsController::SetActive(bool active)
 {
 }
 		// reading out information from physics
-void		CcdPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& linvZ)
+MT_Vector3		CcdPhysicsController::GetLinearVelocity()
 {
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
 		const btVector3& linvel = body->getLinearVelocity();
-		linvX = linvel.x();
-		linvY = linvel.y();
-		linvZ = linvel.z();
-	} else
-	{
-		linvX = 0.f;
-		linvY = 0.f;
-		linvZ = 0.f;
+		return MT_Vector3(linvel.x(), linvel.y(), linvel.z());
 	}
 
+	return MT_Vector3(0.f, 0.f, 0.f);
 }
 
-void		CcdPhysicsController::GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ)
+MT_Vector3		CcdPhysicsController::GetAngularVelocity()
 {
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
 		const btVector3& angvel= body->getAngularVelocity();
-		angVelX = angvel.x();
-		angVelY = angvel.y();
-		angVelZ = angvel.z();
-	} else
-	{
-		angVelX = 0.f;
-		angVelY = 0.f;
-		angVelZ = 0.f;
+		return MT_Vector3(angvel.x(), angvel.y(), angvel.z());
 	}
+
+	return MT_Vector3(0.f, 0.f, 0.f);
 }
 
-void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)
+MT_Vector3		CcdPhysicsController::GetVelocity(const MT_Point3 &posin)
 {
-	btVector3 pos(posX,posY,posZ);
+	btVector3 pos(pos.x(), pos.y(), pos.z());
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
 		btVector3 linvel = body->getVelocityInLocalPoint(pos);
-		linvX = linvel.x();
-		linvY = linvel.y();
-		linvZ = linvel.z();
-	} else
-	{
-		linvX = 0.f;
-		linvY = 0.f;
-		linvZ = 0.f;
+		return MT_Vector3(linvel.x(), linvel.y(), linvel.z());
 	}
+
+	return MT_Vector3(0.f, 0.f, 0.f);
 }
 
-void		CcdPhysicsController::GetWalkDirection(float& dirX,float& dirY,float& dirZ)
+MT_Vector3 CcdPhysicsController::GetLocalInertia()
 {
-	if (m_object && m_characterController)
-	{
-		const btVector3 dir = m_characterController->getWalkDirection();
-		dirX = dir.x();
-		dirY = dir.y();
-		dirZ = dir.z();
+	MT_Vector3 inertia(0.f, 0.f, 0.f);
+	btVector3 inv_inertia;
+	if (GetRigidBody()) {
+		inv_inertia = GetRigidBody()->getInvInertiaDiagLocal();
+		if (!btFuzzyZero(inv_inertia.getX()) &&
+		        !btFuzzyZero(inv_inertia.getY()) &&
+		        !btFuzzyZero(inv_inertia.getZ()))
+			inertia = MT_Vector3(1.f/inv_inertia.getX(), 1.f/inv_inertia.getY(), 1.f/inv_inertia.getZ());
 	}
-	else
-	{
-		dirX = 0.f;
-		dirY = 0.f;
-		dirZ = 0.f;
-	}
-}
-
-void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& forceZ)
-{
+	return inertia;
 }
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
-void		CcdPhysicsController::setRigidBody(bool rigid)
+void		CcdPhysicsController::SetRigidBody(bool rigid)
 {
 	btRigidBody* body = GetRigidBody();
 	if (body)
@@ -1373,13 +1404,21 @@ void		CcdPhysicsController::setRigidBody(bool rigid)
 }
 
 		// clientinfo for raycasts for example
-void*		CcdPhysicsController::getNewClientInfo()
+void*		CcdPhysicsController::GetNewClientInfo()
 {
 	return m_newClientInfo;
 }
-void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
+void		CcdPhysicsController::SetNewClientInfo(void* clientinfo)
 {
 	m_newClientInfo = clientinfo;
+
+	if (m_cci.m_bSensor)
+	{
+		// use a different callback function for sensor object,
+		// bullet will not synchronize, we must do it explicitly
+		SG_Callbacks& callbacks = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)clientinfo)->GetSGNode()->GetCallBackFunctions();
+		callbacks.m_updatefunc = KX_GameObject::SynchronizeTransformFunc;
+	}
 }
 
 
@@ -1392,7 +1431,7 @@ void	CcdPhysicsController::UpdateDeactivation(float timeStep)
 	}
 }
 
-bool CcdPhysicsController::wantsSleeping()
+bool CcdPhysicsController::WantsSleeping()
 {
 	btRigidBody* body = GetRigidBody();
 	if (body)
@@ -1402,8 +1441,143 @@ bool CcdPhysicsController::wantsSleeping()
 	//check it out
 	return true;
 }
+/* This function dynamically adds the collision shape of another controller to
+ * the current controller shape provided it is a compound shape.
+ * The idea is that dynamic parenting on a compound object will dynamically extend the shape
+ */
+void    CcdPhysicsController::AddCompoundChild(PHY_IPhysicsController* child)
+{
+	if (child == NULL || !IsCompound())
+		return;
+	// other controller must be a bullet controller too
+	// verify that body and shape exist and match
+	CcdPhysicsController* childCtrl = dynamic_cast<CcdPhysicsController*>(child);
+	btRigidBody* rootBody = GetRigidBody();
+	btRigidBody* childBody = childCtrl->GetRigidBody();
+	if (!rootBody || !childBody)
+		return;
+	const btCollisionShape* rootShape = rootBody->getCollisionShape();
+	const btCollisionShape* childShape = childBody->getCollisionShape();
+	if (!rootShape ||
+		!childShape ||
+		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE ||
+		childShape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
+		return;
+	btCompoundShape* compoundShape = (btCompoundShape*)rootShape;
+	// compute relative transformation between parent and child
+	btTransform rootTrans;
+	btTransform childTrans;
+	rootBody->getMotionState()->getWorldTransform(rootTrans);
+	childBody->getMotionState()->getWorldTransform(childTrans);
+	btVector3 rootScale = rootShape->getLocalScaling();
+	rootScale[0] = 1.0/rootScale[0];
+	rootScale[1] = 1.0/rootScale[1];
+	rootScale[2] = 1.0/rootScale[2];
+	// relative scale = child_scale/parent_scale
+	btVector3 relativeScale = childShape->getLocalScaling()*rootScale;
+	btMatrix3x3 rootRotInverse = rootTrans.getBasis().transpose();
+	// relative pos = parent_rot^-1 * ((parent_pos-child_pos)/parent_scale)
+	btVector3 relativePos = rootRotInverse*((childTrans.getOrigin()-rootTrans.getOrigin())*rootScale);
+	// relative rot = parent_rot^-1 * child_rot
+	btMatrix3x3 relativeRot = rootRotInverse*childTrans.getBasis();
+	// create a proxy shape info to store the transformation
+	CcdShapeConstructionInfo* proxyShapeInfo = new CcdShapeConstructionInfo();
+	// store the transformation to this object shapeinfo
+	proxyShapeInfo->m_childTrans.setOrigin(relativePos);
+	proxyShapeInfo->m_childTrans.setBasis(relativeRot);
+	proxyShapeInfo->m_childScale.setValue(relativeScale[0], relativeScale[1], relativeScale[2]);
+	// we will need this to make sure that we remove the right proxy later when unparenting
+	proxyShapeInfo->m_userData = childCtrl;
+	proxyShapeInfo->SetProxy(childCtrl->GetShapeInfo()->AddRef());
+	// add to parent compound shapeinfo (increments ref count)
+	GetShapeInfo()->AddShape(proxyShapeInfo);
+	// create new bullet collision shape from the object shapeinfo and set scaling
+	btCollisionShape* newChildShape = proxyShapeInfo->CreateBulletShape(childCtrl->GetMargin(), childCtrl->GetConstructionInfo().m_bGimpact, true);
+	newChildShape->setLocalScaling(relativeScale);
+	// add bullet collision shape to parent compound collision shape
+	compoundShape->addChildShape(proxyShapeInfo->m_childTrans,newChildShape);
+	// proxyShapeInfo is not needed anymore, release it
+	proxyShapeInfo->Release();
+	// remember we created this shape
+	childCtrl->m_bulletChildShape = newChildShape;
+	// recompute inertia of parent
+	if (!rootBody->isStaticOrKinematicObject())
+	{
+		btVector3 localInertia;
+		float mass = 1.f/rootBody->getInvMass();
+		compoundShape->calculateLocalInertia(mass,localInertia);
+		rootBody->setMassProps(mass,localInertia);
+	}
+	// must update the broadphase cache,
+	GetPhysicsEnvironment()->RefreshCcdPhysicsController(this);
+	// remove the children
+	GetPhysicsEnvironment()->DisableCcdPhysicsController(childCtrl);
+}
 
-PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
+/* Reverse function of the above, it will remove a shape from a compound shape
+ * provided that the former was added to the later using  AddCompoundChild()
+ */
+void    CcdPhysicsController::RemoveCompoundChild(PHY_IPhysicsController* child)
+{
+	if (child == NULL || !IsCompound())
+		return;
+	// other controller must be a bullet controller too
+	// verify that body and shape exist and match
+	CcdPhysicsController* childCtrl = dynamic_cast<CcdPhysicsController*>(child);
+	btRigidBody* rootBody = GetRigidBody();
+	btRigidBody* childBody = childCtrl->GetRigidBody();
+	if (!rootBody || !childBody)
+		return;
+	const btCollisionShape* rootShape = rootBody->getCollisionShape();
+	if (!rootShape ||
+		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE)
+		return;
+	btCompoundShape* compoundShape = (btCompoundShape*)rootShape;
+	// retrieve the shapeInfo
+	CcdShapeConstructionInfo* childShapeInfo = childCtrl->GetShapeInfo();
+	CcdShapeConstructionInfo* rootShapeInfo = GetShapeInfo();
+	// and verify that the child is part of the parent
+	int i = rootShapeInfo->FindChildShape(childShapeInfo, childCtrl);
+	if (i < 0)
+		return;
+	rootShapeInfo->RemoveChildShape(i);
+	if (childCtrl->m_bulletChildShape)
+	{
+		int numChildren = compoundShape->getNumChildShapes();
+		for (i=0; i<numChildren; i++)
+		{
+			if (compoundShape->getChildShape(i) == childCtrl->m_bulletChildShape)
+			{
+				compoundShape->removeChildShapeByIndex(i);
+				compoundShape->recalculateLocalAabb();
+				break;
+			}
+		}
+		delete childCtrl->m_bulletChildShape;
+		childCtrl->m_bulletChildShape = NULL;
+	}
+	// recompute inertia of parent
+	if (!rootBody->isStaticOrKinematicObject())
+	{
+		btVector3 localInertia;
+		float mass = 1.f/rootBody->getInvMass();
+		compoundShape->calculateLocalInertia(mass,localInertia);
+		rootBody->setMassProps(mass,localInertia);
+	}
+	// must update the broadphase cache,
+	GetPhysicsEnvironment()->RefreshCcdPhysicsController(this);
+	// reactivate the children
+	GetPhysicsEnvironment()->EnableCcdPhysicsController(childCtrl);
+}
+
+PHY_IPhysicsController* CcdPhysicsController::GetReplica()
+{
+	CcdPhysicsController* replica = new CcdPhysicsController(*this);
+	return replica;
+}
+
+// Keeping this separate for now, maybe we can combine it with GetReplica()...
+PHY_IPhysicsController*	CcdPhysicsController::GetReplicaForSensors()
 {
 	// This is used only to replicate Near and Radar sensor controllers
 	// The replication of object physics controller is done in KX_BulletPhysicsController::GetReplica()
@@ -1462,21 +1636,21 @@ DefaultMotionState::~DefaultMotionState()
 
 }
 
-void	DefaultMotionState::getWorldPosition(float& posX,float& posY,float& posZ)
+void	DefaultMotionState::GetWorldPosition(float& posX,float& posY,float& posZ)
 {
 	posX = m_worldTransform.getOrigin().x();
 	posY = m_worldTransform.getOrigin().y();
 	posZ = m_worldTransform.getOrigin().z();
 }
 
-void	DefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
+void	DefaultMotionState::GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 {
 	scaleX = m_localScaling.getX();
 	scaleY = m_localScaling.getY();
 	scaleZ = m_localScaling.getZ();
 }
 
-void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
+void	DefaultMotionState::GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
 	btQuaternion quat = m_worldTransform.getRotation();
 	quatIma0 = quat.x();
@@ -1485,28 +1659,28 @@ void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,flo
 	quatReal = quat[3];
 }
 		
-void	DefaultMotionState::getWorldOrientation(float* ori)
+void	DefaultMotionState::GetWorldOrientation(float* ori)
 {
 	m_worldTransform.getBasis().getOpenGLSubMatrix(ori);
 }
 
-void	DefaultMotionState::setWorldOrientation(const float* ori)
+void	DefaultMotionState::SetWorldOrientation(const float* ori)
 {
 	m_worldTransform.getBasis().setFromOpenGLSubMatrix(ori);
 }
-void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
+void	DefaultMotionState::SetWorldPosition(float posX,float posY,float posZ)
 {
 	btVector3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
-void	DefaultMotionState::setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
+void	DefaultMotionState::SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
 {
 	btQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
 	m_worldTransform.setRotation( orn );
 }
 		
-void	DefaultMotionState::calculateWorldTransformations()
+void	DefaultMotionState::CalculateWorldTransformations()
 {
 
 }

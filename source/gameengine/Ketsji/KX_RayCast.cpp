@@ -39,12 +39,11 @@
 #include "MT_Point3.h"
 #include "MT_Vector3.h"
 
-#include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-KX_RayCast::KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal, bool faceUV)
-	:PHY_IRayCastFilterCallback(dynamic_cast<PHY_IPhysicsController*>(ignoreController), faceNormal, faceUV) 
+KX_RayCast::KX_RayCast(PHY_IPhysicsController* ignoreController, bool faceNormal, bool faceUV)
+	:PHY_IRayCastFilterCallback(ignoreController, faceNormal, faceUV)
 {
 }
 
@@ -76,11 +75,11 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 	
 	PHY_IPhysicsController* hit_controller;
 
-	while ((hit_controller = physics_environment->rayTest(callback,
+	while ((hit_controller = physics_environment->RayTest(callback,
 	                                                      frompoint.x(),frompoint.y(),frompoint.z(),
 	                                                      topoint.x(),topoint.y(),topoint.z())) != NULL)
 	{
-		KX_ClientObjectInfo *info = static_cast<KX_ClientObjectInfo*>(hit_controller->getNewClientInfo());
+		KX_ClientObjectInfo *info = static_cast<KX_ClientObjectInfo*>(hit_controller->GetNewClientInfo());
 		
 		if (!info)
 		{

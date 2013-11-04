@@ -127,8 +127,8 @@ public:
 			btTransform trans = m_vehicle->getWheelInfo(i).m_worldTransform;
 			btQuaternion orn = trans.getRotation();
 			const btVector3& pos = trans.getOrigin();
-			motionState->setWorldOrientation(orn.x(),orn.y(),orn.z(),orn[3]);
-			motionState->setWorldPosition(pos.x(),pos.y(),pos.z());
+			motionState->SetWorldOrientation(orn.x(),orn.y(),orn.z(),orn[3]);
+			motionState->SetWorldPosition(pos.x(),pos.y(),pos.z());
 
 		}
 	}
@@ -265,63 +265,6 @@ public:
 };
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
-class CharacterWrapper : public PHY_ICharacter
-{
-private:
-	BlenderBulletCharacterController* m_controller;
-
-public:
-	CharacterWrapper(BlenderBulletCharacterController* cont)
-		: m_controller(cont)
-	{}
-
-	virtual void Jump()
-	{
-		m_controller->jump();
-	}
-
-	virtual bool OnGround()
-	{
-		return m_controller->onGround();
-	}
-
-	virtual float GetGravity()
-	{
-		return m_controller->getGravity();
-	}
-	virtual void SetGravity(float gravity)
-	{
-		m_controller->setGravity(gravity);
-	}
-
-	virtual int GetMaxJumps()
-	{
-		return m_controller->getMaxJumps();
-	}
-
-	virtual void SetMaxJumps(int maxJumps)
-	{
-		m_controller->setMaxJumps(maxJumps);
-	}
-
-	virtual int GetJumpCount()
-	{
-		return m_controller->getJumpCount();
-	}
-
-	virtual void SetWalkDirection(const MT_Vector3& dir)
-	{
-		btVector3 vec = btVector3(dir[0], dir[1], dir[2]);
-		m_controller->setWalkDirection(vec);
-	}
-
-	virtual MT_Vector3 GetWalkDirection()
-	{
-		btVector3 vec = m_controller->getWalkDirection();
-		return MT_Vector3(vec[0], vec[1], vec[2]);
-	}
-};
-
 class CcdOverlapFilterCallBack : public btOverlapFilterCallback
 {
 private:
@@ -339,7 +282,7 @@ public:
 };
 
 
-void CcdPhysicsEnvironment::setDebugDrawer(btIDebugDraw* debugDrawer)
+void CcdPhysicsEnvironment::SetDebugDrawer(btIDebugDraw* debugDrawer)
 {
 	if (debugDrawer && m_dynamicsWorld)
 		m_dynamicsWorld->setDebugDrawer(debugDrawer);
@@ -429,17 +372,17 @@ m_scalingPropagated(false)
 	m_broadphase->getOverlappingPairCache()->setOverlapFilterCallback(m_filterCallback);
 	m_broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(m_ghostPairCallback);
 
-	setSolverType(1);//issues with quickstep and memory allocations
+	SetSolverType(1);//issues with quickstep and memory allocations
 //	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	m_dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	//m_dynamicsWorld->getSolverInfo().m_linearSlop = 0.01f;
 	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
-	setGravity(0.f,0.f,-9.81f);
+	SetGravity(0.f,0.f,-9.81f);
 }
 
-void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
+void	CcdPhysicsEnvironment::AddCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	btRigidBody* body = ctrl->GetRigidBody();
 	btCollisionObject* obj = ctrl->GetCollisionObject();
@@ -483,7 +426,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 		
 
-bool	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
+bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	//also remove constraint
 	btRigidBody* body = ctrl->GetRigidBody();
@@ -522,7 +465,7 @@ bool	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	return (m_controllers.erase(ctrl) != 0);
 }
 
-void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
+void	CcdPhysicsEnvironment::UpdateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
 {
 	// this function is used when the collisionning group of a controller is changed
 	// remove and add the collistioning object
@@ -551,7 +494,7 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 	ctrl->m_cci.m_collisionFlags = newCollisionFlags;
 }
 
-void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctrl)
+void CcdPhysicsEnvironment::EnableCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	if (m_controllers.insert(ctrl).second)
 	{
@@ -568,7 +511,7 @@ void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctr
 	}
 }
 
-void CcdPhysicsEnvironment::disableCcdPhysicsController(CcdPhysicsController* ctrl)
+void CcdPhysicsEnvironment::DisableCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	if (m_controllers.erase(ctrl))
 	{
@@ -588,7 +531,7 @@ void CcdPhysicsEnvironment::disableCcdPhysicsController(CcdPhysicsController* ct
 	}
 }
 
-void CcdPhysicsEnvironment::refreshCcdPhysicsController(CcdPhysicsController* ctrl)
+void CcdPhysicsEnvironment::RefreshCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	btCollisionObject* obj = ctrl->GetCollisionObject();
 	if (obj)
@@ -601,15 +544,15 @@ void CcdPhysicsEnvironment::refreshCcdPhysicsController(CcdPhysicsController* ct
 	}
 }
 
-void CcdPhysicsEnvironment::addCcdGraphicController(CcdGraphicController* ctrl)
+void CcdPhysicsEnvironment::AddCcdGraphicController(CcdGraphicController* ctrl)
 {
-	if (m_cullingTree && !ctrl->getBroadphaseHandle())
+	if (m_cullingTree && !ctrl->GetBroadphaseHandle())
 	{
 		btVector3	minAabb;
 		btVector3	maxAabb;
-		ctrl->getAabb(minAabb, maxAabb);
+		ctrl->GetAabb(minAabb, maxAabb);
 
-		ctrl->setBroadphaseHandle(m_cullingTree->createProxy(
+		ctrl->SetBroadphaseHandle(m_cullingTree->createProxy(
 				minAabb,
 				maxAabb,
 				INVALID_SHAPE_PROXYTYPE,	// this parameter is not used
@@ -619,35 +562,35 @@ void CcdPhysicsEnvironment::addCcdGraphicController(CcdGraphicController* ctrl)
 				NULL,						// dispatcher => this parameter is not used
 				0));
 
-		assert(ctrl->getBroadphaseHandle());
+		assert(ctrl->GetBroadphaseHandle());
 	}
 }
 
-void CcdPhysicsEnvironment::removeCcdGraphicController(CcdGraphicController* ctrl)
+void CcdPhysicsEnvironment::RemoveCcdGraphicController(CcdGraphicController* ctrl)
 {
 	if (m_cullingTree)
 	{
-		btBroadphaseProxy* bp = ctrl->getBroadphaseHandle();
+		btBroadphaseProxy* bp = ctrl->GetBroadphaseHandle();
 		if (bp)
 		{
 			m_cullingTree->destroyProxy(bp,NULL);
-			ctrl->setBroadphaseHandle(0);
+			ctrl->SetBroadphaseHandle(0);
 		}
 	}
 }
 
-void	CcdPhysicsEnvironment::beginFrame()
+void	CcdPhysicsEnvironment::BeginFrame()
 {
 
 }
 
-void CcdPhysicsEnvironment::debugDrawWorld()
+void CcdPhysicsEnvironment::DebugDrawWorld()
 {
 	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
 			m_dynamicsWorld->debugDrawWorld();
 }
 
-bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep,float interval)
+bool	CcdPhysicsEnvironment::ProceedDeltaTime(double curTime,float timeStep,float interval)
 {
 	std::set<CcdPhysicsController*>::iterator it;
 	int i;
@@ -662,7 +605,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep,float
 //uncomment next line to see where Bullet spend its time (printf in console)
 //CProfileManager::dumpAll();
 
-	processFhSprings(curTime,i*subStep);
+	ProcessFhSprings(curTime,i*subStep);
 
 	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
@@ -714,7 +657,7 @@ public:
 
 };
 
-void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
+void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 {
 	std::set<CcdPhysicsController*>::iterator it;
 	// dynamic of Fh spring is based on a timestep of 1/60
@@ -725,12 +668,12 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 		CcdPhysicsController* ctrl = (*it);
 		btRigidBody* body = ctrl->GetRigidBody();
 
-		if (body && (ctrl->getConstructionInfo().m_do_fh || ctrl->getConstructionInfo().m_do_rot_fh))
+		if (body && (ctrl->GetConstructionInfo().m_do_fh || ctrl->GetConstructionInfo().m_do_rot_fh))
 		{
 			//printf("has Fh or RotFh\n");
 			//re-implement SM_FhObject.cpp using btCollisionWorld::rayTest and info from ctrl->getConstructionInfo()
 			//send a ray from {0.0, 0.0, 0.0} towards {0.0, 0.0, -10.0}, in local coordinates
-			CcdPhysicsController* parentCtrl = ctrl->getParentCtrl();
+			CcdPhysicsController* parentCtrl = ctrl->GetParentCtrl();
 			btRigidBody* parentBody = parentCtrl?parentCtrl->GetRigidBody() : 0;
 			btRigidBody* cl_object = parentBody ? parentBody : body;
 
@@ -756,16 +699,16 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 
 				if (controller)
 				{
-					if (controller->getConstructionInfo().m_fh_distance < SIMD_EPSILON)
+					if (controller->GetConstructionInfo().m_fh_distance < SIMD_EPSILON)
 						continue;
 
 					btRigidBody* hit_object = controller->GetRigidBody();
 					if (!hit_object)
 						continue;
 
-					CcdConstructionInfo& hitObjShapeProps = controller->getConstructionInfo();
+					CcdConstructionInfo& hitObjShapeProps = controller->GetConstructionInfo();
 
-					float distance = resultCallback.m_closestHitFraction*rayDirLocal.length()-ctrl->getConstructionInfo().m_radius;
+					float distance = resultCallback.m_closestHitFraction*rayDirLocal.length()-ctrl->GetConstructionInfo().m_radius;
 					if (distance >= hitObjShapeProps.m_fh_distance)
 						continue;
 					
@@ -778,7 +721,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 
 					for (int i=0; i<numIter; i++)
 					{
-						if (ctrl->getConstructionInfo().m_do_fh) 
+						if (ctrl->GetConstructionInfo().m_do_fh)
 						{
 							btVector3 lspot = cl_object->getCenterOfMassPosition() +
 							        rayDirLocal * resultCallback.m_closestHitFraction;
@@ -790,7 +733,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 							btVector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocityInLocalPoint(lspot);
 							btScalar rel_vel_ray = ray_dir.dot(rel_vel);
 							btScalar spring_extent = 1.0 - distance / hitObjShapeProps.m_fh_distance; 
-							
+
 							btScalar i_spring = spring_extent * hitObjShapeProps.m_fh_spring;
 							btScalar i_damp =   rel_vel_ray * hitObjShapeProps.m_fh_damping;
 							
@@ -803,7 +746,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 							btVector3 lateral = rel_vel - rel_vel_ray * ray_dir;
 							
 							
-							if (ctrl->getConstructionInfo().m_do_anisotropic) {
+							if (ctrl->GetConstructionInfo().m_do_anisotropic) {
 								//Bullet basis contains no scaling/shear etc.
 								const btMatrix3x3& lcs = cl_object->getCenterOfMassTransform().getBasis();
 								btVector3 loc_lateral = lateral * lcs;
@@ -830,7 +773,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 						}
 
 						
-						if (ctrl->getConstructionInfo().m_do_rot_fh) {
+						if (ctrl->GetConstructionInfo().m_do_rot_fh) {
 							btVector3 up2 = cl_object->getWorldTransform().getBasis().getColumn(2);
 
 							btVector3 t_spring = up2.cross(normal) * hitObjShapeProps.m_fh_spring;
@@ -850,69 +793,69 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 	}
 }
 
-void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
+void		CcdPhysicsEnvironment::SetDebugMode(int debugMode)
 {
 	if (m_debugDrawer) {
 		m_debugDrawer->setDebugMode(debugMode);
 	}
 }
 
-void		CcdPhysicsEnvironment::setNumIterations(int numIter)
+void		CcdPhysicsEnvironment::SetNumIterations(int numIter)
 {
 	m_numIterations = numIter;
 }
-void		CcdPhysicsEnvironment::setDeactivationTime(float dTime)
+void		CcdPhysicsEnvironment::SetDeactivationTime(float dTime)
 {
 	gDeactivationTime = dTime;
 }
-void		CcdPhysicsEnvironment::setDeactivationLinearTreshold(float linTresh)
+void		CcdPhysicsEnvironment::SetDeactivationLinearTreshold(float linTresh)
 {
 	gLinearSleepingTreshold = linTresh;
 }
-void		CcdPhysicsEnvironment::setDeactivationAngularTreshold(float angTresh) 
+void		CcdPhysicsEnvironment::SetDeactivationAngularTreshold(float angTresh)
 {
 	gAngularSleepingTreshold = angTresh;
 }
 
-void		CcdPhysicsEnvironment::setContactBreakingTreshold(float contactBreakingTreshold)
+void		CcdPhysicsEnvironment::SetContactBreakingTreshold(float contactBreakingTreshold)
 {
 	gContactBreakingThreshold = contactBreakingTreshold;
 
 }
 
 
-void		CcdPhysicsEnvironment::setCcdMode(int ccdMode)
+void		CcdPhysicsEnvironment::SetCcdMode(int ccdMode)
 {
 	m_ccdMode = ccdMode;
 }
 
 
-void		CcdPhysicsEnvironment::setSolverSorConstant(float sor)
+void		CcdPhysicsEnvironment::SetSolverSorConstant(float sor)
 {
 	m_dynamicsWorld->getSolverInfo().m_sor = sor;
 }
 
-void		CcdPhysicsEnvironment::setSolverTau(float tau)
+void		CcdPhysicsEnvironment::SetSolverTau(float tau)
 {
 	m_dynamicsWorld->getSolverInfo().m_tau = tau;
 }
-void		CcdPhysicsEnvironment::setSolverDamping(float damping)
+void		CcdPhysicsEnvironment::SetSolverDamping(float damping)
 {
 	m_dynamicsWorld->getSolverInfo().m_damping = damping;
 }
 
 
-void		CcdPhysicsEnvironment::setLinearAirDamping(float damping)
+void		CcdPhysicsEnvironment::SetLinearAirDamping(float damping)
 {
 	//gLinearAirDamping = damping;
 }
 
-void		CcdPhysicsEnvironment::setUseEpa(bool epa)
+void		CcdPhysicsEnvironment::SetUseEpa(bool epa)
 {
 	//gUseEpa = epa;
 }
 
-void		CcdPhysicsEnvironment::setSolverType(int solverType)
+void		CcdPhysicsEnvironment::SetSolverType(int solverType)
 {
 
 	switch (solverType)
@@ -945,7 +888,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 
 
 
-void		CcdPhysicsEnvironment::getGravity(MT_Vector3& grav)
+void		CcdPhysicsEnvironment::GetGravity(MT_Vector3& grav)
 {
 		const btVector3& gravity = m_dynamicsWorld->getGravity();
 		grav[0] = gravity.getX();
@@ -954,7 +897,7 @@ void		CcdPhysicsEnvironment::getGravity(MT_Vector3& grav)
 }
 
 
-void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
+void		CcdPhysicsEnvironment::SetGravity(float x,float y,float z)
 {
 	m_gravity = btVector3(x,y,z);
 	m_dynamicsWorld->setGravity(m_gravity);
@@ -967,7 +910,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 static int gConstraintUid = 1;
 
 //Following the COLLADA physics specification for constraints
-int			CcdPhysicsEnvironment::createUniversalD6Constraint(
+int			CcdPhysicsEnvironment::CreateUniversalD6Constraint(
 						class PHY_IPhysicsController* ctrlRef,class PHY_IPhysicsController* ctrlOther,
 						btTransform& frameInA,
 						btTransform& frameInB,
@@ -1025,7 +968,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 
 
 
-void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
+void		CcdPhysicsEnvironment::RemoveConstraint(int	constraintId)
 {
 	
 	int i;
@@ -1144,7 +1087,7 @@ static bool GetHitTriangle(btCollisionShape* shape, CcdShapeConstructionInfo* sh
 	return true;
 }
 
-PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
+PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 	btVector3 rayFrom(fromX,fromY,fromZ);
 	btVector3 rayTo(toX,toY,toZ);
@@ -1798,7 +1741,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 		btBroadphaseProxy*	proxy=(btBroadphaseProxy*)leaf->data;
 		// the client object is a graphic controller
 		CcdGraphicController* ctrl = static_cast<CcdGraphicController*>(proxy->m_clientObject);
-		KX_ClientObjectInfo *info = (KX_ClientObjectInfo*)ctrl->getNewClientInfo();
+		KX_ClientObjectInfo *info = (KX_ClientObjectInfo*)ctrl->GetNewClientInfo();
 		if (m_ocb)
 		{
 			// means we are doing occlusion culling. Check if this object is an occluders
@@ -1846,7 +1789,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 };
 
 static OcclusionBuffer gOcb;
-bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
+bool CcdPhysicsEnvironment::CullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
 {
 	if (!m_cullingTree)
 		return false;
@@ -1876,12 +1819,12 @@ bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* user
 	return true;
 }
 
-int	CcdPhysicsEnvironment::getNumContactPoints()
+int	CcdPhysicsEnvironment::GetNumContactPoints()
 {
 	return 0;
 }
 
-void CcdPhysicsEnvironment::getContactPoint(int i,float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+void CcdPhysicsEnvironment::GetContactPoint(int i,float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
 
 }
@@ -1889,12 +1832,12 @@ void CcdPhysicsEnvironment::getContactPoint(int i,float& hitX,float& hitY,float&
 
 
 
-btBroadphaseInterface*	CcdPhysicsEnvironment::getBroadphase()
+btBroadphaseInterface*	CcdPhysicsEnvironment::GetBroadphase()
 { 
 	return m_dynamicsWorld->getBroadphase(); 
 }
 
-btDispatcher*	CcdPhysicsEnvironment::getDispatcher()
+btDispatcher*	CcdPhysicsEnvironment::GetDispatcher()
 { 
 	return m_dynamicsWorld->getDispatcher();
 }
@@ -1908,8 +1851,8 @@ void CcdPhysicsEnvironment::MergeEnvironment(CcdPhysicsEnvironment *other)
 		it= other->m_controllers.begin();
 		CcdPhysicsController* ctrl= (*it);
 
-		other->removeCcdPhysicsController(ctrl);
-		this->addCcdPhysicsController(ctrl);
+		other->RemoveCcdPhysicsController(ctrl);
+		this->AddCcdPhysicsController(ctrl);
 	}
 }
 
@@ -1961,9 +1904,9 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 }
 
 
-float	CcdPhysicsEnvironment::getConstraintParam(int constraintId,int param)
+float	CcdPhysicsEnvironment::GetConstraintParam(int constraintId,int param)
 {
-	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
+	btTypedConstraint* typedConstraint = GetConstraintById(constraintId);
 	switch (typedConstraint->getUserConstraintType())
 	{
 	case PHY_GENERIC_6DOF_CONSTRAINT:
@@ -2000,9 +1943,9 @@ float	CcdPhysicsEnvironment::getConstraintParam(int constraintId,int param)
 	return 0.f;
 }
 
-void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float value0,float value1)
+void	CcdPhysicsEnvironment::SetConstraintParam(int constraintId,int param,float value0,float value1)
 {
-	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
+	btTypedConstraint* typedConstraint = GetConstraintById(constraintId);
 	switch (typedConstraint->getUserConstraintType())
 	{
 	case PHY_GENERIC_6DOF_CONSTRAINT:
@@ -2110,7 +2053,7 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 	};
 }
 
-btTypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
+btTypedConstraint*	CcdPhysicsEnvironment::GetConstraintById(int constraintId)
 {
 
 	int numConstraints = m_dynamicsWorld->getNumConstraints();
@@ -2127,7 +2070,7 @@ btTypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 }
 
 
-void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
+void CcdPhysicsEnvironment::AddSensor(PHY_IPhysicsController* ctrl)
 {
 
 	CcdPhysicsController* ctrl1 = (CcdPhysicsController* )ctrl;
@@ -2137,10 +2080,10 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 	//{
 	//	addCcdPhysicsController(ctrl1);
 	//}
-	enableCcdPhysicsController(ctrl1);
+	EnableCcdPhysicsController(ctrl1);
 }
 
-bool CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
+bool CcdPhysicsEnvironment::RemoveCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = (CcdPhysicsController*)ctrl;
 	if (!ccdCtrl->Unregister())
@@ -2150,12 +2093,12 @@ bool CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl
 }
 
 
-void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
+void CcdPhysicsEnvironment::RemoveSensor(PHY_IPhysicsController* ctrl)
 {
-	disableCcdPhysicsController((CcdPhysicsController*)ctrl);
+	DisableCcdPhysicsController((CcdPhysicsController*)ctrl);
 }
 
-void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
+void CcdPhysicsEnvironment::AddTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 {
 	/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
 
@@ -2187,7 +2130,7 @@ void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCal
 	m_triggerCallbacksUserPtrs[response_class] = user;
 
 }
-bool CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
+bool CcdPhysicsEnvironment::RequestCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
 
@@ -2270,12 +2213,12 @@ bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0
 			(KX_ClientObjectInfo*)
 			((CcdPhysicsController*)
 					(((btCollisionObject*)proxy0->m_clientObject)->getUserPointer()))
-			->getNewClientInfo());
+			->GetNewClientInfo());
 	KX_GameObject *kxObj1 = KX_GameObject::GetClientObject(
 			(KX_ClientObjectInfo*)
 			((CcdPhysicsController*)
 					(((btCollisionObject*)proxy1->m_clientObject)->getUserPointer()))
-			->getNewClientInfo());
+			->GetNewClientInfo());
 
 	// First check the filters. Note that this is called during scene
 	// conversion, so we can't assume the KX_GameObject instances exist. This
@@ -2324,7 +2267,7 @@ bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 
 //complex constraint for vehicles
-PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
+PHY_IVehicle*	CcdPhysicsEnvironment::GetVehicleConstraint(int constraintId)
 {
 	int i;
 
@@ -2342,13 +2285,10 @@ PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
 
-PHY_ICharacter* CcdPhysicsEnvironment::getCharacterController(KX_GameObject *ob)
+PHY_ICharacter* CcdPhysicsEnvironment::GetCharacterController(KX_GameObject *ob)
 {
-	CcdPhysicsController* controller = (CcdPhysicsController*)ob->GetPhysicsController()->GetUserData();
-	if (controller->GetCharacterController())
-		return new CharacterWrapper((BlenderBulletCharacterController*)controller->GetCharacterController());
-
-	return NULL;
+	CcdPhysicsController* controller = (CcdPhysicsController*)ob->GetPhysicsController();
+	return dynamic_cast<BlenderBulletCharacterController*>(controller->GetCharacterController());
 }
 
 
@@ -2398,7 +2338,7 @@ int findClosestNode(btSoftBody* sb,const btVector3& worldPoint)
 	return node;
 }
 
-int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
+int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 													float pivotX,float pivotY,float pivotZ,
 													float axisX,float axisY,float axisZ,
 													float axis1X,float axis1Y,float axis1Z,
@@ -2891,7 +2831,7 @@ float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 	return 0.f;
 }
 
-void	CcdPhysicsEnvironment::exportFile(const char* filename)
+void	CcdPhysicsEnvironment::ExportFile(const char* filename)
 {
 	btDefaultSerializer*	serializer = new btDefaultSerializer();
 	
@@ -2904,7 +2844,7 @@ void	CcdPhysicsEnvironment::exportFile(const char* filename)
 		CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(colObj->getUserPointer());
 		if (controller)
 		{
-			const char* name = controller->getName();
+			const char* name = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)controller->GetNewClientInfo())->GetName();
 			if (name)
 			{
 				serializer->registerNameForPointer(colObj,name);

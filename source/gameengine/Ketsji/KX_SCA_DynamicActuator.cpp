@@ -35,6 +35,7 @@
  * Please look here for revision history. */
 
 #include "KX_SCA_DynamicActuator.h"
+#include "PHY_IPhysicsController.h"
 
 #ifdef WITH_PYTHON
 
@@ -105,7 +106,7 @@ bool KX_SCA_DynamicActuator::Update()
 	// bool result = false;	/*unused*/
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	bool bNegativeEvent = IsNegativeEvent();
-	KX_IPhysicsController* controller;
+	PHY_IPhysicsController* controller;
 	RemoveAllEvents();
 
 	if (bNegativeEvent)
@@ -120,16 +121,16 @@ bool KX_SCA_DynamicActuator::Update()
 	switch (m_dyn_operation)
 	{
 		case 0:
-			obj->RestoreDynamics();
+			controller->RestoreDynamics();
 			break;
 		case 1:
-			obj->SuspendDynamics();
+			controller->SuspendDynamics();
 			break;
 		case 2:
-			controller->setRigidBody(true);
+			controller->SetRigidBody(true);
 			break;
 		case 3:
-			controller->setRigidBody(false);
+			controller->SetRigidBody(false);
 			break;
 		case 4:
 			controller->SetMass(m_setmass);

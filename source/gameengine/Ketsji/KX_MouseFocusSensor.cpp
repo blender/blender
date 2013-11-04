@@ -47,7 +47,6 @@
 #include "KX_PyMath.h"
 
 #include "KX_RayCast.h"
-#include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -280,7 +279,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	/* 2. Get the object from PhysicsEnvironment */
 	/* Shoot! Beware that the first argument here is an
 	 * ignore-object. We don't ignore anything... */
-	KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
+	PHY_IPhysicsController* physics_controller = cam->GetPhysicsController();
 	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
 
 	// get UV mapping

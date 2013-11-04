@@ -46,15 +46,15 @@ public:
 	KX_MotionState(class SG_Spatial* spatial);
 	virtual ~KX_MotionState();
 
-	virtual void	getWorldPosition(float& posX,float& posY,float& posZ);
-	virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
-	virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
-	virtual void	setWorldPosition(float posX,float posY,float posZ);
-	virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
-	virtual void	getWorldOrientation(float* ori);
-	virtual void	setWorldOrientation(const float* ori);
+	virtual void	GetWorldPosition(float& posX,float& posY,float& posZ);
+	virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
+	virtual void	GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
+	virtual void	SetWorldPosition(float posX,float posY,float posZ);
+	virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+	virtual void	GetWorldOrientation(float* ori);
+	virtual void	SetWorldOrientation(const float* ori);
 
-	virtual	void	calculateWorldTransformations();
+	virtual	void	CalculateWorldTransformations();
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

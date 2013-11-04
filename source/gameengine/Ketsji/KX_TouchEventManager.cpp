@@ -48,9 +48,9 @@ KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 	//m_scene->addTouchCallback(OBJECT_RESPONSE, KX_TouchEventManager::collisionResponse, this);
 	//m_scene->addTouchCallback(SENSOR_RESPONSE, KX_TouchEventManager::collisionResponse, this);
 
-	m_physEnv->addTouchCallback(PHY_OBJECT_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
-	m_physEnv->addTouchCallback(PHY_SENSOR_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
-	m_physEnv->addTouchCallback(PHY_BROADPH_RESPONSE, KX_TouchEventManager::newBroadphaseResponse, this);
+	m_physEnv->AddTouchCallback(PHY_OBJECT_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
+	m_physEnv->AddTouchCallback(PHY_SENSOR_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
+	m_physEnv->AddTouchCallback(PHY_BROADPH_RESPONSE, KX_TouchEventManager::newBroadphaseResponse, this);
 
 }
 
@@ -84,8 +84,8 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 	PHY_IPhysicsController* ctrl1 = static_cast<PHY_IPhysicsController*>(object1);
 	PHY_IPhysicsController* ctrl2 = static_cast<PHY_IPhysicsController*>(object2);
 
-	KX_ClientObjectInfo *info1 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl1->getNewClientInfo()) : NULL;
-	KX_ClientObjectInfo *info2 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl2->getNewClientInfo()) : NULL;
+	KX_ClientObjectInfo *info1 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl1->GetNewClientInfo()) : NULL;
+	KX_ClientObjectInfo *info2 = (ctrl1) ? static_cast<KX_ClientObjectInfo*>(ctrl2->GetNewClientInfo()) : NULL;
 
 	// This call back should only be called for controllers of Near and Radar sensor
 	if (!info1)
@@ -184,7 +184,7 @@ void KX_TouchEventManager::NextFrame()
 			list<SCA_ISensor*>::iterator sit;
 
 			// First client info
-			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(ctrl1->getNewClientInfo());
+			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(ctrl1->GetNewClientInfo());
 			// First gameobject
 			KX_GameObject *kxObj1 = KX_GameObject::GetClientObject(client_info);
 			// Invoke sensor response for each object
@@ -195,7 +195,7 @@ void KX_TouchEventManager::NextFrame()
 			}
 
 			// Second client info
-			client_info = static_cast<KX_ClientObjectInfo *>(ctrl2->getNewClientInfo());
+			client_info = static_cast<KX_ClientObjectInfo *>(ctrl2->GetNewClientInfo());
 			// Second gameobject
 			KX_GameObject *kxObj2 = KX_GameObject::GetClientObject(client_info);
 			if (client_info) {

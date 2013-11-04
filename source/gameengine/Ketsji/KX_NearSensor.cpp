@@ -68,7 +68,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 	if (m_physCtrl)
 	{
 		m_physCtrl->SetMargin(m_Margin);
-		m_physCtrl->setNewClientInfo(m_client_info);
+		m_physCtrl->SetNewClientInfo(m_client_info);
 	}
 	SynchronizeTransform();
 }
@@ -84,8 +84,8 @@ void KX_NearSensor::SynchronizeTransform()
 		const MT_Point3& pos = parent->NodeGetWorldPosition();
 		float ori[12];
 		parent->NodeGetWorldOrientation().getValue(ori);
-		motionState->setWorldPosition(pos[0], pos[1], pos[2]);
-		motionState->setWorldOrientation(ori);
+		motionState->SetWorldPosition(pos[0], pos[1], pos[2]);
+		motionState->SetWorldOrientation(ori);
 		m_physCtrl->WriteMotionStateToDynamics(true);
 	}
 }
@@ -105,12 +105,12 @@ void KX_NearSensor::ProcessReplica()
 	
 	if (m_physCtrl)
 	{
-		m_physCtrl = m_physCtrl->GetReplica();
+		m_physCtrl = m_physCtrl->GetReplicaForSensors();
 		if (m_physCtrl)
 		{
 			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
 			m_physCtrl->SetMargin(m_Margin);
-			m_physCtrl->setNewClientInfo(m_client_info);
+			m_physCtrl->SetNewClientInfo(m_client_info);
 		}
 		
 	}
@@ -186,7 +186,7 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	assert(obj1==m_physCtrl && obj2);
-	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>((static_cast<PHY_IPhysicsController*>(obj2))->getNewClientInfo());
+	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>((static_cast<PHY_IPhysicsController*>(obj2))->GetNewClientInfo());
 
 	KX_GameObject* gameobj = ( client_info ? 
 			client_info->m_gameobject :
@@ -216,8 +216,8 @@ bool	KX_NearSensor::NewHandleCollision(void *obj1, void *obj2, const PHY_CollDat
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
 	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*> (obj1 == m_physCtrl?
-					((PHY_IPhysicsController*)obj2)->getNewClientInfo() : 
-					((PHY_IPhysicsController*)obj1)->getNewClientInfo());
+					((PHY_IPhysicsController*)obj2)->GetNewClientInfo() :
+					((PHY_IPhysicsController*)obj1)->GetNewClientInfo());
 
 	KX_GameObject* gameobj = ( client_info ? 
 			client_info->m_gameobject :

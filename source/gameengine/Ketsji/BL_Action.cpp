@@ -34,6 +34,8 @@
 #include "KX_IpoConvert.h"
 #include "KX_GameObject.h"
 
+#include "SG_Controller.h"
+
 // These three are for getting the action from the logic manager
 #include "KX_Scene.h"
 #include "SCA_LogicManager.h"

@@ -36,7 +36,9 @@
 #include "KX_ObjectActuator.h"
 #include "KX_GameObject.h"
 #include "KX_PyMath.h" // For PyVecTo - should this include be put in PyObjectPlus?
-#include "KX_IPhysicsController.h"
+#include "PHY_IPhysicsController.h"
+#include "PHY_ICharacter.h"
+#include "PHY_IPhysicsEnvironment.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -84,8 +86,9 @@ KX_ObjectActuator(
 	if (m_bitLocalFlag.CharacterMotion)
 	{
 		KX_GameObject *parent = static_cast<KX_GameObject *>(GetParent());
+		PHY_ICharacter *character = parent->GetScene()->GetPhysicsEnvironment()->GetCharacterController(parent);
 
-		if (!parent->GetPhysicsController() || !parent->GetPhysicsController()->IsCharacter())
+		if (!character)
 		{
 			printf("Character motion enabled on non-character object (%s), falling back to simple motion.\n", parent->GetName().Ptr());
 			m_bitLocalFlag.CharacterMotion = false;
@@ -109,6 +112,7 @@ bool KX_ObjectActuator::Update()
 	RemoveAllEvents();
 		
 	KX_GameObject *parent = static_cast<KX_GameObject *>(GetParent()); 
+	PHY_ICharacter *character = parent->GetScene()->GetPhysicsEnvironment()->GetCharacterController(parent);
 
 	if (bNegativeEvent) {
 		// If we previously set the linear velocity we now have to inform
@@ -128,8 +132,7 @@ bool KX_ObjectActuator::Update()
 
 		// Explicitly stop the movement if we're using character motion
 		if (m_bitLocalFlag.CharacterMotion) {
-			MT_Vector3 vec(0.0, 0.0, 0.0);
-			parent->GetPhysicsController()->SetWalkDirection(vec, true);
+			character->SetWalkDirection(MT_Vector3 (0.0, 0.0, 0.0));
 		}
 
 		m_linear_damping_active = false;
@@ -220,7 +223,7 @@ bool KX_ObjectActuator::Update()
 			MT_Vector3 dir = m_dloc;
 
 			if (m_bitLocalFlag.AddOrSetCharLoc) {
-				MT_Vector3 old_dir = parent->GetPhysicsController()->GetWalkDirection();
+				MT_Vector3 old_dir = character->GetWalkDirection();
 
 				if (!old_dir.fuzzyZero()) {
 					MT_Scalar mag = old_dir.length();
@@ -232,7 +235,12 @@ bool KX_ObjectActuator::Update()
 			}
 
 			// We always want to set the walk direction since a walk direction of (0, 0, 0) should stop the character
-			parent->GetPhysicsController()->SetWalkDirection(dir, (m_bitLocalFlag.DLoc) != 0);
+			if (m_bitLocalFlag.DLoc)
+			{
+				MT_Matrix3x3 basis = parent->GetPhysicsController()->GetOrientation();
+				dir = basis*dir;
+			}
+			character->SetWalkDirection(dir/parent->GetScene()->GetPhysicsEnvironment()->GetNumTimeSubSteps());
 
 			if (!m_bitLocalFlag.ZeroDRot)
 			{
@@ -240,7 +248,8 @@ bool KX_ObjectActuator::Update()
 			}
 			if (m_bitLocalFlag.CharacterJump)
 			{
-				parent->GetPhysicsController()->Jump();
+
+				character->Jump();
 			}
 		}
 		else {

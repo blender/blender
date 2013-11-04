@@ -40,7 +40,6 @@
 
 class RAS_MeshObject; 
 struct KX_ClientObjectInfo;
-class KX_IPhysicsController;
 
 /**
  *  Defines a function for doing a ray cast.
@@ -65,7 +64,7 @@ public:
 	int                     m_hitUVOK;		// !=0 if UV coordinate in m_hitUV is valid
 	MT_Vector2				m_hitUV;
 
-	KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal, bool faceUV);
+	KX_RayCast(PHY_IPhysicsController* ignoreController, bool faceNormal, bool faceUV);
 	virtual ~KX_RayCast() {}
 
 	/**
@@ -105,7 +104,7 @@ template<class T> class KX_RayCast::Callback : public KX_RayCast
 	T *self;
 	void *data;
 public:
-	Callback(T *_self, KX_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false, bool faceUV=false)
+	Callback(T *_self, PHY_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false, bool faceUV=false)
 		: KX_RayCast(controller, faceNormal, faceUV),
 		self(_self),
 		data(_data)
@@ -121,7 +120,7 @@ public:
 
 	virtual	bool needBroadphaseRayCast(PHY_IPhysicsController* controller)
 	{
-		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(controller->getNewClientInfo());
+		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(controller->GetNewClientInfo());
 		
 		if (!info)
 		{

@@ -1419,12 +1419,12 @@ static void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 				PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 				CcdGraphicController* ctrl = new CcdGraphicController(env, motionstate);
 				gameobj->SetGraphicController(ctrl);
-				ctrl->setNewClientInfo(gameobj->getClientInfo());
-				ctrl->setLocalAabb(localAabbMin, localAabbMax);
+				ctrl->SetNewClientInfo(gameobj->getClientInfo());
+				ctrl->SetLocalAabb(localAabbMin, localAabbMax);
 				if (isActive) {
 					// add first, this will create the proxy handle, only if the object is visible
 					if (gameobj->GetVisible())
-						env->addCcdGraphicController(ctrl);
+						env->AddCcdGraphicController(ctrl);
 					// update the mesh if there is a deformer, this will also update the bounding box for modifiers
 					RAS_Deformer* deformer = gameobj->GetDeformer();
 					if (deformer)
@@ -2027,22 +2027,8 @@ static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 }
 
 #include "PHY_IPhysicsEnvironment.h"
-#include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
-#if 0  /* UNUSED */
-static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
-
-	for (int j=0;j<sumolist->GetCount();j++)
-	{
-		KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
-		if (gameobje->GetName()==busc)
-			return gameobje->GetPhysicsController();
-	}
-
-	return 0;
-}
-#endif
 
 static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {
@@ -2585,7 +2571,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			kxscene->SetDbvtOcclusionRes(blenderscene->gm.occlusionRes);
 	}
 	if (blenderscene->world)
-		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->gm.physubstep);
+		kxscene->GetPhysicsEnvironment()->SetNumTimeSubSteps(blenderscene->gm.physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes
@@ -2676,12 +2662,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						{
 							KX_GameObject *gotar=getGameOb(dat->tar->id.name+2,sumolist);
 							if (gotar && ((gotar->GetLayer()&activeLayerBitInfo)!=0) && gotar->GetPhysicsController())
-								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
+								physctr2 = gotar->GetPhysicsController();
 						}
 
 						if (gameobj->GetPhysicsController())
 						{
-							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
+							PHY_IPhysicsController* physctrl = gameobj->GetPhysicsController();
 							//we need to pass a full constraint frame, not just axis
 
 							//localConstraintFrameBasis
@@ -2690,7 +2676,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							MT_Vector3 axis1 = localCFrame.getColumn(1);
 							MT_Vector3 axis2 = localCFrame.getColumn(2);
 								
-							int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,
+							int constraintId = kxscene->GetPhysicsEnvironment()->CreateConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,
 								(float)dat->pivY,(float)dat->pivZ,
 								(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
@@ -2706,11 +2692,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 									{
 										if (dat->flag & dofbit)
 										{
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+											kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
 										} else
 										{
 											//minLimit > maxLimit means free(disabled limit) for this degree of freedom
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+											kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,1,-1);
 										}
 										dofbit<<=1;
 									}
@@ -2724,12 +2710,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 									{
 										if (dat->flag & dofbit)
 										{
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+											kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
 										}
 										else
 										{
 											//maxLimit < 0 means free(disabled limit) for this degree of freedom
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+											kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,1,-1);
 										}
 										dofbit<<=1;
 									}
@@ -2741,12 +2727,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 									
 									if (dat->flag & dofbit)
 									{
-										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,
+										kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,
 												dat->minLimit[dof],dat->maxLimit[dof]);
 									} else
 									{
 										//minLimit > maxLimit means free(disabled limit) for this degree of freedom
-										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+										kxscene->GetPhysicsEnvironment()->SetConstraintParam(constraintId,dof,1,-1);
 									}
 								}
 							}

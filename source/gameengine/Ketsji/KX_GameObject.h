@@ -49,7 +49,6 @@
 #include "CTR_HashedPtr.h"
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
-#include "KX_IPhysicsController.h" /* for suspend/resume */
 #include "DNA_object_types.h"
 #include "SCA_LogicManager.h" /* for ConvertPythonToGameObject to search object names */
 
@@ -57,9 +56,9 @@
 struct KX_ClientObjectInfo;
 class KX_RayCast;
 class RAS_MeshObject;
-class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
+class PHY_IPhysicsController;
 class BL_ActionManager;
 struct Object;
 class KX_ObstacleSimulation;
@@ -107,7 +106,7 @@ protected:
 	bool       							m_bCulled; 
 	bool								m_bOccluder;
 
-	KX_IPhysicsController*				m_pPhysicsController1;
+	PHY_IPhysicsController*				m_pPhysicsController;
 	PHY_IGraphicController*				m_pGraphicController;
 	STR_String							m_testPropName;
 	bool								m_xray;
@@ -465,12 +464,12 @@ public:
 	 * \return a pointer to the physics controller owned by this class.
 	 */
 
-	KX_IPhysicsController* GetPhysicsController();
+	PHY_IPhysicsController* GetPhysicsController();
 
-	void	SetPhysicsController(KX_IPhysicsController*	physicscontroller,bool isDynamic) 
+	void	SetPhysicsController(PHY_IPhysicsController*	physicscontroller,bool isDynamic)
 	{ 
 		m_bDyna = isDynamic;
-		m_pPhysicsController1 = physicscontroller;
+		m_pPhysicsController = physicscontroller;
 	}
 
 	virtual class RAS_Deformer* GetDeformer()
@@ -885,32 +884,6 @@ public:
 	 * Resume making progress
 	 */
 	void Resume(void);
-	
-	void SuspendDynamics(void) {
-		if (m_bSuspendDynamics)
-		{
-			return;
-		}
-	
-		if (m_pPhysicsController1)
-		{
-			m_pPhysicsController1->SuspendDynamics();
-		}
-		m_bSuspendDynamics = true;
-	}
-	
-	void RestoreDynamics(void) {
-		if (!m_bSuspendDynamics)
-		{
-			return;
-		}
-	
-		if (m_pPhysicsController1)
-		{
-			m_pPhysicsController1->RestoreDynamics();
-		}
-		m_bSuspendDynamics = false;
-	}
 
 	void RegisterObstacle(KX_ObstacleSimulation* obstacleSimulation)
 	{

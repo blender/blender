@@ -117,7 +117,7 @@ m_bTouchPulse(bTouchPulse)
 	//client_info->m_auxilary_info = NULL;
 	client_info->m_sensors.push_back(this);
 	
-	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
+	m_physCtrl = gameobj->GetPhysicsController();
 	MT_assert( !gameobj->GetPhysicsController() || m_physCtrl );
 	Init();
 }
@@ -156,7 +156,7 @@ void KX_TouchSensor::ProcessReplica()
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 {
 	KX_GameObject *gameobj = static_cast<KX_GameObject *>(parent);
-	PHY_IPhysicsController *sphy = dynamic_cast<PHY_IPhysicsController*>(((KX_GameObject*)parent)->GetPhysicsController());
+	PHY_IPhysicsController *sphy = ((KX_GameObject*)parent)->GetPhysicsController();
 	if (sphy)
 		m_physCtrl = sphy;
 	
@@ -173,11 +173,11 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
 	if (m_physCtrl)
 	{
-		if (touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl))
+		if (touchman->GetPhysicsEnvironment()->RequestCollisionCallback(m_physCtrl))
 		{
-			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->GetNewClientInfo());
 			if (client_info->isSensor())
-				touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
+				touchman->GetPhysicsEnvironment()->AddSensor(m_physCtrl);
 		}
 	}
 }
@@ -185,12 +185,12 @@ void KX_TouchSensor::UnregisterSumo(KX_TouchEventManager* touchman)
 {
 	if (m_physCtrl)
 	{
-		if (touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl))
+		if (touchman->GetPhysicsEnvironment()->RemoveCollisionCallback(m_physCtrl))
 		{
 			// no more sensor on the controller, can remove it if it is a sensor object
-			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->GetNewClientInfo());
 			if (client_info->isSensor())
-				touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+				touchman->GetPhysicsEnvironment()->RemoveSensor(m_physCtrl);
 		}
 	}
 }
@@ -203,8 +203,8 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 
 	KX_GameObject* myobj = (KX_GameObject*)GetParent();
 	KX_GameObject* myparent = myobj->GetParent();
-	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(((PHY_IPhysicsController*)obj2)->getNewClientInfo());
-	KX_ClientObjectInfo *my_client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*>(((PHY_IPhysicsController*)obj2)->GetNewClientInfo());
+	KX_ClientObjectInfo *my_client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->GetNewClientInfo());
 	KX_GameObject* otherobj = ( client_info ? client_info->m_gameobject : NULL);
 
 	// first, decrement refcount as GetParent() increases it
@@ -244,8 +244,8 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
 	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo*> (object1 == m_physCtrl? 
-					((PHY_IPhysicsController*)object2)->getNewClientInfo(): 
-					((PHY_IPhysicsController*)object1)->getNewClientInfo());
+					((PHY_IPhysicsController*)object2)->GetNewClientInfo():
+					((PHY_IPhysicsController*)object1)->GetNewClientInfo());
 
 	KX_GameObject* gameobj = ( client_info ? 
 			client_info->m_gameobject : 

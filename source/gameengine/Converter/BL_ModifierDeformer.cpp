@@ -192,7 +192,7 @@ bool BL_ModifierDeformer::Update(void)
 				float min_r[3], max_r[3];
 				INIT_MINMAX(min_r, max_r);
 				m_dm->getMinMax(m_dm, min_r, max_r);
-				ctrl->setLocalAabb(min_r, max_r);
+				ctrl->SetLocalAabb(min_r, max_r);
 			}
 		}
 		m_lastModifierUpdate=m_gameobj->GetLastFrame();

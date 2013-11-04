@@ -48,7 +48,7 @@ typedef unsigned long uint_ptr;
 #include "KX_IPO_SGController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_GameObject.h"
-#include "KX_IPhysicsController.h"
+#include "PHY_IPhysicsController.h"
 #include "DNA_ipo_types.h"
 #include "BLI_math.h"
 
@@ -154,9 +154,10 @@ bool KX_IpoSGController::Update(double currentTime)
 			{
 				if (m_game_object && ob && m_game_object->GetPhysicsController()) 
 				{
-					m_game_object->GetPhysicsController()->ApplyForce(m_ipo_local ?
-						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
-						m_ipo_xform.GetPosition(), false);
+					MT_Vector3 vec = m_ipo_local ?
+					                     ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
+										 m_ipo_xform.GetPosition();
+					m_game_object->GetPhysicsController()->ApplyForce(vec, false);
 				}
 			} 
 			else

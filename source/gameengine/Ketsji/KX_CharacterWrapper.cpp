@@ -34,8 +34,6 @@ KX_CharacterWrapper::KX_CharacterWrapper(PHY_ICharacter* character) :
 
 KX_CharacterWrapper::~KX_CharacterWrapper()
 {
-	if (m_character)
-		delete m_character; // We're responsible for the character object!
 }
 
 #ifdef WITH_PYTHON

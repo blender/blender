@@ -37,6 +37,10 @@
 class PHY_IMotionState;
 class PHY_IPhysicsEnvironment;
 
+class MT_Vector3;
+class MT_Point3;
+class MT_Matrix3x3;
+
 /**
  * PHY_IPhysicsController is the abstract simplified Interface to a physical object.
  * It contains the IMotionState and IDeformableMesh Interfaces.
@@ -59,37 +63,47 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual class PHY_IMotionState* GetMotionState() = 0;
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)=0;
+		virtual void		SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env)=0;
 
 		// kinematic methods
-		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)=0;
-		virtual void		RelativeRotate(const float drot[12],bool local)=0;
-		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)=0;
-		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)=0;
-		virtual	void		setPosition(float posX,float posY,float posZ)=0;
-		virtual	void 		getPosition(class MT_Vector3&	pos) const=0;
-		virtual	void		setScaling(float scaleX,float scaleY,float scaleZ)=0;
-		
-		// physics methods
-		virtual void		ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local)=0;
-		virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local)=0;
-		virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)=0;
-		virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)=0;
-		virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
+		virtual void		RelativeTranslate(const MT_Vector3& dloc,bool local)=0;
+		virtual void		RelativeRotate(const MT_Matrix3x3&,bool local)=0;
+		virtual	MT_Matrix3x3	GetOrientation()=0;
+		virtual	void		SetOrientation(const MT_Matrix3x3& orn)=0;
+		virtual	void		SetPosition(const MT_Vector3& pos)=0;
+		virtual	void 		GetPosition(MT_Vector3&	pos) const=0;
+		virtual	void		SetScaling(const MT_Vector3& scale)=0;
+		virtual void		SetTransform()=0;
 
-		virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)=0;
+		virtual	MT_Scalar	GetMass()=0;
+		virtual void		SetMass(MT_Scalar newmass)=0;
+
+		// physics methods
+		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulse)=0;
+		virtual void		ApplyTorque(const MT_Vector3& torque,bool local)=0;
+		virtual void		ApplyForce(const MT_Vector3& force,bool local)=0;
+		virtual void		SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
+		virtual void		SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
+		virtual void		ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
+
+		virtual void		SuspendDynamics(bool ghost=false)=0;
+		virtual void		RestoreDynamics()=0;
+
 		virtual void		SetActive(bool active)=0;
 
 		// reading out information from physics
-		virtual void		GetLinearVelocity(float& linvX,float& linvY,float& linvZ)=0;
-		virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)=0; 
-		virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ)=0;
+		virtual MT_Vector3	GetLinearVelocity()=0;
+		virtual MT_Vector3	GetAngularVelocity()=0;
+		virtual MT_Vector3	GetVelocity(const MT_Point3& pos)=0;
+		virtual	MT_Vector3	GetLocalInertia()=0;
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
-		virtual	void		setRigidBody(bool rigid)=0;
+		virtual	void		SetRigidBody(bool rigid)=0;
 
 		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
+		virtual PHY_IPhysicsController* GetReplicaForSensors() {return 0;}
 
-		virtual void	calcXform() =0;
+		virtual void	CalcXform() =0;
 		virtual void SetMargin(float margin) =0;
 		virtual float GetMargin() const=0;
 		virtual float GetRadius() const=0;
@@ -100,7 +114,15 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual float GetLinVelocityMax() const=0;
 		virtual void  SetLinVelocityMax(float val) = 0;
 		
-		class MT_Vector3	GetWorldPosition(class MT_Vector3& localpos);
+		MT_Vector3	GetWorldPosition(MT_Vector3& localpos);
+
+		// Shape control
+		virtual void    AddCompoundChild(PHY_IPhysicsController* child) = 0;
+		virtual void    RemoveCompoundChild(PHY_IPhysicsController* child) = 0;
+
+
+		virtual bool IsDynamic() = 0;
+		virtual bool IsCompound() = 0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

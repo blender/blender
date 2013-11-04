@@ -33,6 +33,7 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 
 #include "PHY_IMotionState.h"
+#include "PHY_ICharacter.h"
 
 extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
@@ -266,6 +267,7 @@ struct CcdConstructionInfo
 		m_soft_kSHR(1.0f),
 		m_soft_kAHR(0.7f),
 		m_collisionFlags(0),
+	    m_bDyna(false),
 		m_bRigid(false),
 		m_bSoft(false),
 		m_bSensor(false),
@@ -349,6 +351,7 @@ struct CcdConstructionInfo
 
 
 	int			m_collisionFlags;
+	bool		m_bDyna;
 	bool		m_bRigid;
 	bool		m_bSoft;
 	bool		m_bSensor;
@@ -396,7 +399,7 @@ class btCollisionObject;
 class btSoftBody;
 class btPairCachingGhostObject;
 
-class BlenderBulletCharacterController : public btKinematicCharacterController
+class BlenderBulletCharacterController : public btKinematicCharacterController, public PHY_ICharacter
 {
 private:
 	btMotionState* m_motionState;
@@ -419,6 +422,25 @@ public:
 	virtual void jump();
 
 	const btVector3& getWalkDirection();
+
+	// PHY_ICharacter interface
+	virtual void Jump()	{ jump(); }
+	virtual bool OnGround(){ return onGround(); }
+	virtual float GetGravity() { return getGravity(); }
+	virtual void SetGravity(float gravity) { setGravity(gravity); }
+	virtual int GetMaxJumps() { return getMaxJumps(); }
+	virtual void SetMaxJumps(int maxJumps) { setMaxJumps(maxJumps); }
+	virtual int GetJumpCount() { return getJumpCount(); }
+	virtual void SetWalkDirection(const MT_Vector3& dir)
+	{
+		btVector3 vec = btVector3(dir[0], dir[1], dir[2]);
+		setWalkDirection(vec);
+	}
+	virtual MT_Vector3 GetWalkDirection()
+	{
+		btVector3 vec = getWalkDirection();
+		return MT_Vector3(vec[0], vec[1], vec[2]);
+	}
 };
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
@@ -433,6 +455,7 @@ protected:
 	btMotionState* 	m_bulletMotionState;
 	class btCollisionShape*	m_collisionShape;
 	class CcdShapeConstructionInfo* m_shapeInfo;
+	btCollisionShape* m_bulletChildShape;
 
 	friend class CcdPhysicsEnvironment;	// needed when updating the controller
 
@@ -449,6 +472,10 @@ protected:
 
 	CcdPhysicsController* m_parentCtrl;
 
+	int m_savedCollisionFlags;
+	MT_Scalar m_savedMass;
+	bool m_suspended;
+
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
@@ -462,8 +489,8 @@ protected:
 		return (--m_registerCount == 0) ? true : false;
 	}
 
-	void setWorldOrientation(const btMatrix3x3& mat);
-	void forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
+	void SetWorldOrientation(const btMatrix3x3& mat);
+	void ForceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
 
 	public:
 	
@@ -477,11 +504,11 @@ protected:
 
 		virtual ~CcdPhysicsController();
 
-		CcdConstructionInfo& getConstructionInfo()
+		CcdConstructionInfo& GetConstructionInfo()
 		{
 			return m_cci;
 		}
-		const CcdConstructionInfo& getConstructionInfo() const
+		const CcdConstructionInfo& GetConstructionInfo() const
 		{
 			return m_cci;
 		}
@@ -518,42 +545,51 @@ protected:
 		virtual void		SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env);
 
 		// kinematic methods
-		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);
-		virtual void		SetWalkDirection(float dirX,float dirY,float dirZ,bool local);
-		virtual void		RelativeRotate(const float drot[9],bool local);
-		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
-		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
-		virtual	void		setPosition(float posX,float posY,float posZ);
-		virtual	void 		getPosition(MT_Vector3&	pos) const;
+		virtual void		RelativeTranslate(const MT_Vector3& dloc,bool local);
+		virtual void		RelativeRotate(const MT_Matrix3x3&rotval, bool local);
+		virtual	MT_Matrix3x3	GetOrientation();
+		virtual	void		SetOrientation(const MT_Matrix3x3& orn);
+		virtual	void		SetPosition(const MT_Vector3& pos);
+		virtual	void 		GetPosition(MT_Vector3&	pos) const;
+		virtual	void		SetScaling(const MT_Vector3& scale);
+		virtual void		SetTransform();
 
-		virtual	void		setScaling(float scaleX,float scaleY,float scaleZ);
+		virtual	MT_Scalar	GetMass();
+		virtual void	SetMass(MT_Scalar newmass);
 		
 		// physics methods
-		virtual void		ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local);
-		virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local);
-		virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local);
-		virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local);
-		virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ);
+		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein);
+		virtual void		ApplyTorque(const MT_Vector3& torque,bool local);
+		virtual void		ApplyForce(const MT_Vector3& force,bool local);
+		virtual void		SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
+		virtual void		SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 		virtual void		Jump();
 		virtual void		SetActive(bool active);
 
 		// reading out information from physics
-		virtual void		GetLinearVelocity(float& linvX,float& linvY,float& linvZ);
-		virtual void		GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ);
-		virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ); 
-		virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ);
-		virtual void		GetWalkDirection(float& dirX,float& dirY,float& dirZ);
+		virtual MT_Vector3	GetLinearVelocity();
+		virtual MT_Vector3	GetAngularVelocity();
+		virtual MT_Vector3	GetVelocity(const MT_Point3& posin);
+		virtual	MT_Vector3	GetLocalInertia();
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
-		virtual	void		setRigidBody(bool rigid);
+		virtual	void		SetRigidBody(bool rigid);
 
 		
-		virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
+		virtual void		ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
+
+		virtual void		SuspendDynamics(bool ghost);
+		virtual void		RestoreDynamics();
+
+		// Shape control
+		virtual void    AddCompoundChild(PHY_IPhysicsController* child);
+		virtual void    RemoveCompoundChild(PHY_IPhysicsController* child);
 
 		// clientinfo for raycasts for example
-		virtual	void*				getNewClientInfo();
-		virtual	void				setNewClientInfo(void* clientinfo);
+		virtual	void*				GetNewClientInfo();
+		virtual	void				SetNewClientInfo(void* clientinfo);
 		virtual PHY_IPhysicsController*	GetReplica();
+		virtual PHY_IPhysicsController* GetReplicaForSensors();
 		
 		///There should be no 'SetCollisionFilterGroup' method, as changing this during run-time is will result in errors
 		short int	GetCollisionFilterGroup() const
@@ -566,7 +602,7 @@ protected:
 			return m_cci.m_collisionFilterMask;
 		}
 
-		virtual void calcXform() {}
+		virtual void CalcXform() {}
 		virtual void SetMargin(float margin) 
 		{
 			if (m_collisionShape)
@@ -609,7 +645,7 @@ protected:
 			return m_cci.m_clamp_vel_max;
 		}
 
-		bool	wantsSleeping();
+		bool	WantsSleeping();
 
 		void	UpdateDeactivation(float timeStep);
 
@@ -635,24 +671,29 @@ protected:
 			return m_cci.m_physicsEnv;
 		}
 
-		void	setParentCtrl(CcdPhysicsController* parentCtrl)
+		void	SetParentCtrl(CcdPhysicsController* parentCtrl)
 		{
 			m_parentCtrl = parentCtrl;
 		}
 
-		CcdPhysicsController*	getParentCtrl()
+		CcdPhysicsController*	GetParentCtrl()
 		{
 			return m_parentCtrl;
 		}
 
-		const CcdPhysicsController*	getParentCtrl() const
+		const CcdPhysicsController*	GetParentCtrl() const
 		{
 			return m_parentCtrl;
 		}
 
-		virtual const char* getName()
+		virtual bool IsDynamic()
 		{
-			return 0;
+			return GetConstructionInfo().m_bDyna;
+		}
+
+		virtual bool IsCompound()
+		{
+			return GetConstructionInfo().m_shapeInfo->m_shapeType == PHY_SHAPE_COMPOUND;
 		}
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -672,16 +713,16 @@ class	DefaultMotionState : public PHY_IMotionState
 
 		virtual ~DefaultMotionState();
 
-		virtual void	getWorldPosition(float& posX,float& posY,float& posZ);
-		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
-		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
+		virtual void	GetWorldPosition(float& posX,float& posY,float& posZ);
+		virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
+		virtual void	GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
 		
-		virtual void	setWorldPosition(float posX,float posY,float posZ);
-		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
-		virtual void	getWorldOrientation(float* ori);
-		virtual void	setWorldOrientation(const float* ori);
+		virtual void	SetWorldPosition(float posX,float posY,float posZ);
+		virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	GetWorldOrientation(float* ori);
+		virtual void	SetWorldOrientation(const float* ori);
 		
-		virtual	void	calculateWorldTransformations();
+		virtual	void	CalculateWorldTransformations();
 		
 		btTransform	m_worldTransform;
 		btVector3		m_localScaling;

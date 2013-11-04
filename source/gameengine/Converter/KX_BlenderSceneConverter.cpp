@@ -42,7 +42,6 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h" // So we can handle adding new text datablocks for Python to import
-#include "KX_IPhysicsController.h"
 #include "BL_Material.h"
 #include "BL_ActionActuator.h"
 #include "KX_BlenderMaterial.h"
@@ -355,15 +354,15 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 		case UseBullet:
 			{
 				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment(useDbvtCulling);
-				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
-				ccdPhysEnv->setDeactivationLinearTreshold(blenderscene->gm.lineardeactthreshold);
-				ccdPhysEnv->setDeactivationAngularTreshold(blenderscene->gm.angulardeactthreshold);
-				ccdPhysEnv->setDeactivationTime(blenderscene->gm.deactivationtime);
+				ccdPhysEnv->SetDebugDrawer(new BlenderDebugDraw());
+				ccdPhysEnv->SetDeactivationLinearTreshold(blenderscene->gm.lineardeactthreshold);
+				ccdPhysEnv->SetDeactivationAngularTreshold(blenderscene->gm.angulardeactthreshold);
+				ccdPhysEnv->SetDeactivationTime(blenderscene->gm.deactivationtime);
 
 				SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 				int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
 				if (visualizePhysics)
-					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
+					ccdPhysEnv->SetDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
 		
 				//todo: get a button in blender ?
 				//disable / enable debug drawing (contact points, aabb's etc)
@@ -709,7 +708,6 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject)
@@ -825,7 +823,6 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			Object* blenderObject = gameObj->GetBlenderObject();
 			if (blenderObject && blenderObject->parent==NULL && gameObj->IsDynamic())
 			{
-				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 
 				if (blenderObject->adt==NULL)
 					BKE_id_add_animdata(&blenderObject->id);
@@ -944,7 +941,6 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 #if 0
 				Object* blenderObject = gameObj->GetBlenderObject();

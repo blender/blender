@@ -38,7 +38,6 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "SCA_IScene.h"
 #include "KX_GameObject.h"
-#include "KX_IPhysicsController.h"
 #include "PyObjectPlus.h" 
 
 /* ------------------------------------------------------------------------- */

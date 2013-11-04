@@ -48,7 +48,6 @@
 #include "CcdPhysicsController.h"
 #include "BulletSoftBody/btSoftBody.h"
 
-#include "KX_BulletPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 
 void KX_SoftBodyDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
@@ -66,7 +65,7 @@ void KX_SoftBodyDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 
 bool KX_SoftBodyDeformer::Apply(class RAS_IPolyMaterial *polymat)
 {
-	KX_BulletPhysicsController* ctrl = (KX_BulletPhysicsController*) m_gameobj->GetPhysicsController();
+	CcdPhysicsController* ctrl = (CcdPhysicsController*) m_gameobj->GetPhysicsController();
 	if (!ctrl)
 		return false;
 

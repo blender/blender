@@ -646,7 +646,7 @@ bool KX_KetsjiEngine::NextFrame()
 #endif
 				KX_SetActiveScene(scene);
 	
-				scene->GetPhysicsEnvironment()->endFrame();
+				scene->GetPhysicsEnvironment()->EndFrame();
 				
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.
@@ -688,11 +688,11 @@ bool KX_KetsjiEngine::NextFrame()
 
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2);
-				scene->GetPhysicsEnvironment()->beginFrame();
+				scene->GetPhysicsEnvironment()->BeginFrame();
 		
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_frameTime,timestep,framestep);//m_deltatimerealDeltaTime);
+				scene->GetPhysicsEnvironment()->ProceedDeltaTime(m_frameTime,timestep,framestep);//m_deltatimerealDeltaTime);
 
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2_UPDATE);
@@ -762,7 +762,7 @@ bool KX_KetsjiEngine::NextFrame()
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_clockTime,timestep,timestep);
+				scene->GetPhysicsEnvironment()->ProceedDeltaTime(m_clockTime,timestep,timestep);
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -1329,7 +1329,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->RenderFonts();
 	
 	if (scene->GetPhysicsEnvironment())
-		scene->GetPhysicsEnvironment()->debugDrawWorld();
+		scene->GetPhysicsEnvironment()->DebugDrawWorld();
 }
 
 /*

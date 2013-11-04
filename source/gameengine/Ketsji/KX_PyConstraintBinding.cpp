@@ -100,7 +100,7 @@ static PyObject *gPySetGravity(PyObject *self,
 	if (PyArg_ParseTuple(args,"fff",&x,&y,&z))
 	{
 		if (PHY_GetActiveEnvironment())
-			PHY_GetActiveEnvironment()->setGravity(x,y,z);
+			PHY_GetActiveEnvironment()->SetGravity(x,y,z);
 	}
 	else {
 		return NULL;
@@ -118,7 +118,7 @@ static PyObject *gPySetDebugMode(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setDebugMode(mode);
+			PHY_GetActiveEnvironment()->SetDebugMode(mode);
 			
 		}
 		
@@ -141,7 +141,7 @@ static PyObject *gPySetNumTimeSubSteps(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setNumTimeSubSteps(substep);
+			PHY_GetActiveEnvironment()->SetNumTimeSubSteps(substep);
 		}
 	}
 	else {
@@ -160,7 +160,7 @@ static PyObject *gPySetNumIterations(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setNumIterations(iter);
+			PHY_GetActiveEnvironment()->SetNumIterations(iter);
 		}
 	}
 	else {
@@ -179,7 +179,7 @@ static PyObject *gPySetDeactivationTime(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setDeactivationTime(deactive_time);
+			PHY_GetActiveEnvironment()->SetDeactivationTime(deactive_time);
 		}
 	}
 	else {
@@ -198,7 +198,7 @@ static PyObject *gPySetDeactivationLinearTreshold(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setDeactivationLinearTreshold( linearDeactivationTreshold);
+			PHY_GetActiveEnvironment()->SetDeactivationLinearTreshold( linearDeactivationTreshold);
 		}
 	}
 	else {
@@ -217,7 +217,7 @@ static PyObject *gPySetDeactivationAngularTreshold(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setDeactivationAngularTreshold( angularDeactivationTreshold);
+			PHY_GetActiveEnvironment()->SetDeactivationAngularTreshold( angularDeactivationTreshold);
 		}
 	}
 	else {
@@ -235,7 +235,7 @@ static PyObject *gPySetContactBreakingTreshold(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setContactBreakingTreshold( contactBreakingTreshold);
+			PHY_GetActiveEnvironment()->SetContactBreakingTreshold( contactBreakingTreshold);
 		}
 	}
 	else {
@@ -254,7 +254,7 @@ static PyObject *gPySetCcdMode(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setCcdMode( ccdMode);
+			PHY_GetActiveEnvironment()->SetCcdMode( ccdMode);
 		}
 	}
 	else {
@@ -272,7 +272,7 @@ static PyObject *gPySetSorConstant(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setSolverSorConstant( sor);
+			PHY_GetActiveEnvironment()->SetSolverSorConstant( sor);
 		}
 	}
 	else {
@@ -290,7 +290,7 @@ static PyObject *gPySetSolverTau(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setSolverTau( tau);
+			PHY_GetActiveEnvironment()->SetSolverTau( tau);
 		}
 	}
 	else {
@@ -309,7 +309,7 @@ static PyObject *gPySetSolverDamping(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setSolverDamping( damping);
+			PHY_GetActiveEnvironment()->SetSolverDamping( damping);
 		}
 	}
 	else {
@@ -327,7 +327,7 @@ static PyObject *gPySetLinearAirDamping(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setLinearAirDamping( damping);
+			PHY_GetActiveEnvironment()->SetLinearAirDamping( damping);
 		}
 	}
 	else {
@@ -346,7 +346,7 @@ static PyObject *gPySetUseEpa(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setUseEpa(epa);
+			PHY_GetActiveEnvironment()->SetUseEpa(epa);
 		}
 	}
 	else {
@@ -363,7 +363,7 @@ static PyObject *gPySetSolverType(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setSolverType(solverType);
+			PHY_GetActiveEnvironment()->SetSolverType(solverType);
 		}
 	}
 	else {
@@ -389,7 +389,7 @@ static PyObject *gPyGetVehicleConstraint(PyObject *self,
 		if (PHY_GetActiveEnvironment())
 		{
 			
-			PHY_IVehicle* vehicle = PHY_GetActiveEnvironment()->getVehicleConstraint(constraintid);
+			PHY_IVehicle* vehicle = PHY_GetActiveEnvironment()->GetVehicleConstraint(constraintid);
 			if (vehicle)
 			{
 				KX_VehicleWrapper* pyWrapper = new KX_VehicleWrapper(vehicle,PHY_GetActiveEnvironment());
@@ -421,7 +421,7 @@ static PyObject* gPyGetCharacter(PyObject* self,
 	if (PHY_GetActiveEnvironment())
 	{
 			
-		PHY_ICharacter* character= PHY_GetActiveEnvironment()->getCharacterController(ob);
+		PHY_ICharacter* character= PHY_GetActiveEnvironment()->GetCharacterController(ob);
 		if (character)
 		{
 			KX_CharacterWrapper* pyWrapper = new KX_CharacterWrapper(character);
@@ -523,14 +523,14 @@ static PyObject *gPyCreateConstraint(PyObject *self,
 					MT_Vector3 axis1 = localCFrame.getColumn(1);
 					MT_Vector3 axis2 = localCFrame.getColumn(2);
 
-					constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,
+					constraintid = PHY_GetActiveEnvironment()->CreateConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,
 					                                                            pivotX,pivotY,pivotZ,
 					                                                            (float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 					                                                            (float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
 					                                                            (float)axis2.x(),(float)axis2.y(),(float)axis2.z(),flag);
 				}
 				else {
-					constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
+					constraintid = PHY_GetActiveEnvironment()->CreateConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
 				}
 				
 				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
@@ -567,7 +567,7 @@ static PyObject *gPyGetAppliedImpulse(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			appliedImpulse = PHY_GetActiveEnvironment()->getAppliedImpulse(constraintid);
+			appliedImpulse = PHY_GetActiveEnvironment()->GetAppliedImpulse(constraintid);
 		}
 	}
 	else {
@@ -592,7 +592,7 @@ static PyObject *gPyRemoveConstraint(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->removeConstraint(constraintid);
+			PHY_GetActiveEnvironment()->RemoveConstraint(constraintid);
 		}
 	}
 	else {
@@ -610,7 +610,7 @@ static PyObject *gPyExportBulletFile(PyObject *, PyObject *args)
 
 	if (PHY_GetActiveEnvironment())
 	{
-		PHY_GetActiveEnvironment()->exportFile(filename);
+		PHY_GetActiveEnvironment()->ExportFile(filename);
 	}
 	Py_RETURN_NONE;
 }

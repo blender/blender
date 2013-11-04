@@ -38,7 +38,6 @@
 #include "SCA_LogicManager.h"
 
 #include "KX_GameObject.h"
-#include "KX_IPhysicsController.h"
 
 class KX_SCA_DynamicActuator : public SCA_IActuator
 {

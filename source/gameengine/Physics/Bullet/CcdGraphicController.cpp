@@ -35,48 +35,48 @@ CcdGraphicController::CcdGraphicController (CcdPhysicsEnvironment* phyEnv, PHY_I
 CcdGraphicController::~CcdGraphicController()
 {
 	if (m_phyEnv)
-		m_phyEnv->removeCcdGraphicController(this);
+		m_phyEnv->RemoveCcdGraphicController(this);
 
 	if (m_motionState)
 		delete m_motionState;
 }
 
-void CcdGraphicController::setLocalAabb(const btVector3& aabbMin,const btVector3& aabbMax)
+void CcdGraphicController::SetLocalAabb(const btVector3& aabbMin,const btVector3& aabbMax)
 {
 	m_localAabbMin = aabbMin;
 	m_localAabbMax = aabbMax;
 	SetGraphicTransform();
 }
 
-void CcdGraphicController::setLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax)
+void CcdGraphicController::SetLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax)
 {
 	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
 	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
 	SetGraphicTransform();
 }
 
-void CcdGraphicController::setLocalAabb(const MT_Vector3& aabbMin,const MT_Vector3& aabbMax)
+void CcdGraphicController::SetLocalAabb(const MT_Vector3& aabbMin,const MT_Vector3& aabbMax)
 {
 	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
 	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
 	SetGraphicTransform();
 }
 
-void CcdGraphicController::setLocalAabb(const float* aabbMin,const float* aabbMax)
+void CcdGraphicController::SetLocalAabb(const float* aabbMin,const float* aabbMax)
 {
 	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
 	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
 	SetGraphicTransform();
 }
 
-void CcdGraphicController::getAabb(btVector3& aabbMin, btVector3& aabbMax)
+void CcdGraphicController::GetAabb(btVector3& aabbMin, btVector3& aabbMax)
 {
 	btVector3 pos;
 	btVector3 scale;
 	float ori[12];
-	m_motionState->getWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
-	m_motionState->getWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
-	m_motionState->getWorldOrientation(ori);
+	m_motionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+	m_motionState->GetWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
+	m_motionState->GetWorldOrientation(ori);
 	btMatrix3x3 rot(ori[0], ori[4], ori[8],
 					ori[1], ori[5], ori[9],
 					ori[2], ori[6], ori[10]);
@@ -109,9 +109,9 @@ bool CcdGraphicController::SetGraphicTransform()
 		return false;
 	btVector3 aabbMin;
 	btVector3 aabbMax;
-	getAabb(aabbMin, aabbMax);
+	GetAabb(aabbMin, aabbMax);
 	// update Aabb in broadphase
-	m_phyEnv->getCullingTree()->setAabb(m_handle,aabbMin,aabbMax,NULL);
+	m_phyEnv->GetCullingTree()->setAabb(m_handle,aabbMin,aabbMax,NULL);
 	return true;
 }
 
@@ -131,7 +131,7 @@ void CcdGraphicController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* 
 {
 	CcdPhysicsEnvironment* phyEnv = static_cast<CcdPhysicsEnvironment*>(env);
 	/* Updates the m_phyEnv's m_cullingTree & m_cullingCache */
-	if (getBroadphaseHandle()) {
+	if (GetBroadphaseHandle()) {
 		/* insert into the new physics scene */
 		Activate(false);
 		m_phyEnv= phyEnv;
@@ -145,8 +145,8 @@ void CcdGraphicController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* 
 void CcdGraphicController::Activate(bool active)
 {
 	if (active)
-		m_phyEnv->addCcdGraphicController(this);
+		m_phyEnv->AddCcdGraphicController(this);
 	else
-		m_phyEnv->removeCcdGraphicController(this);
+		m_phyEnv->RemoveCcdGraphicController(this);
 
 }
