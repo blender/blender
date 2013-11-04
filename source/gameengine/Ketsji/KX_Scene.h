@@ -309,8 +309,7 @@ public:
 	RAS_BucketManager* GetBucketManager();
 	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat, bool &bucketCreated);
 	void RenderBuckets(const MT_Transform& cameratransform,
-	                   RAS_IRasterizer* rasty,
-	                   RAS_IRenderTools* rendertools);
+	                   RAS_IRasterizer* rasty);
 
 	/**
 	 * Update all transforms according to the scenegraph.

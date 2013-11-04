@@ -40,7 +40,6 @@
 #include "KX_Light.h"
 #include "KX_Camera.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_IRenderTools.h"
 
 #include "KX_PyMath.h"
 
@@ -53,16 +52,16 @@
 #include "MEM_guardedalloc.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
-                               class RAS_IRenderTools* rendertools,
+                               RAS_IRasterizer* rasterizer,
                                const RAS_LightObject&	lightobj,
                                bool glsl)
 	: KX_GameObject(sgReplicationInfo,callbacks),
-	  m_rendertools(rendertools)
+	  m_rasterizer(rasterizer)
 {
 	m_lightobj = lightobj;
 	m_lightobj.m_scene = sgReplicationInfo;
 	m_lightobj.m_light = this;
-	m_rendertools->AddLight(&m_lightobj);
+	m_rasterizer->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
 	m_base = NULL;
@@ -81,7 +80,7 @@ KX_LightObject::~KX_LightObject()
 		GPU_lamp_update_spot(lamp, la->spotsize, la->spotblend);
 	}
 
-	m_rendertools->RemoveLight(&m_lightobj);
+	m_rasterizer->RemoveLight(&m_lightobj);
 
 	if (m_base) {
 		BKE_scene_base_unlink(m_blenderscene, m_base);
@@ -98,7 +97,7 @@ CValue*		KX_LightObject::GetReplica()
 	replica->ProcessReplica();
 	
 	replica->m_lightobj.m_light = replica;
-	m_rendertools->AddLight(&replica->m_lightobj);
+	m_rasterizer->AddLight(&replica->m_lightobj);
 
 	return replica;
 }

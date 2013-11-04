@@ -39,7 +39,6 @@
 #include "DNA_screen_types.h"
 #include "RAS_ICanvas.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_IRenderTools.h"
 
 #include "ImageViewport.h"
 
@@ -88,8 +87,6 @@ protected:
 	RAS_ICanvas* m_canvas;
 	/// rasterizer
 	RAS_IRasterizer* m_rasterizer;
-	/// render tools
-	RAS_IRenderTools* m_rendertools;
 	/// engine
 	KX_KetsjiEngine* m_engine;
 

@@ -40,8 +40,8 @@
 #include "RAS_Rect.h"
 #include "RAS_TexVert.h"
 #include "RAS_MeshObject.h"
+#include "RAS_LightObject.h"
 #include "MT_CmMatrix4x4.h"
-#include "RAS_IRenderTools.h" // rendering text
 
 #include "RAS_StorageIM.h"
 #include "RAS_StorageVA.h"
@@ -59,7 +59,20 @@
 extern "C"{
 	#include "BLI_utildefines.h"
 	#include "BKE_DerivedMesh.h"
+	#include "BLF_api.h"
 }
+
+
+// XXX Clean these up <<<
+#include "BL_Material.h" // MAXTEX
+#include "Value.h"
+#include "KX_BlenderMaterial.h"
+#include "KX_PolygonMaterial.h"
+#include "KX_Light.h"
+#include "KX_Scene.h"
+#include "KX_RayCast.h"
+#include "KX_GameObject.h"
+// >>>
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
@@ -94,6 +107,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 	m_motionblur(0),
 	m_motionblurvalue(-1.0),
 	m_usingoverrideshader(false),
+    m_clientobject(NULL),
+    m_auxilaryClientInfo(NULL),
 	m_texco_num(0),
 	m_attrib_num(0),
 	//m_last_alphablend(GPU_BLEND_SOLID),
@@ -131,6 +146,10 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 		m_storage = m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
 		m_storage_type = RAS_IMMEDIATE;
 	}
+
+	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
+	if (m_numgllights < 8)
+		m_numgllights = 8;
 }
 
 
@@ -350,6 +369,13 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 	glEnable(GL_MULTISAMPLE_ARB);
 
 	m_2DCanvas->BeginFrame();
+
+	// Render Tools
+	m_clientobject = NULL;
+	m_lastlightlayer = -1;
+	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
+	DisableOpenGLLights();
 	
 	return true;
 }
@@ -650,8 +676,7 @@ const MT_Matrix4x4& RAS_OpenGLRasterizer::GetViewInvMatrix() const
 }
 
 void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
-									class RAS_IPolyMaterial* polymat,
-									class RAS_IRenderTools* rendertools)
+									class RAS_IPolyMaterial* polymat)
 { 
 	bool obcolor = ms.m_bObjectColor;
 	MT_Vector4& rgba = ms.m_RGBAcolor;
@@ -708,7 +733,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 						if (m_attrib[unit] == RAS_TEXCO_UV)
 							glattrib = unit;
 				
-				rendertools->RenderText(polymat->GetDrawingMode(), polymat,
+				RenderText(polymat->GetDrawingMode(), polymat,
 					v[0], v[1], v[2], (numvert == 4)? v[3]: NULL, glattrib);
 
 				ClearCachingInfo();
@@ -1105,5 +1130,478 @@ void RAS_OpenGLRasterizer::SetUsingOverrideShader(bool val)
 bool RAS_OpenGLRasterizer::GetUsingOverrideShader()
 {
 	return m_usingoverrideshader;
+}
+
+/**
+ * Render Tools
+ */
+
+/* ProcessLighting performs lighting on objects. the layer is a bitfield that
+ * contains layer information. There are 20 'official' layers in blender. A
+ * light is applied on an object only when they are in the same layer. OpenGL
+ * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
+ * a scene. */
+
+void RAS_OpenGLRasterizer::ProcessLighting(bool uselights, const MT_Transform& viewmat)
+{
+	bool enable = false;
+	int layer= -1;
+
+	/* find the layer */
+	if (uselights) {
+		if (m_clientobject)
+			layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
+	}
+
+	/* avoid state switching */
+	if (m_lastlightlayer == layer && m_lastauxinfo == m_auxilaryClientInfo)
+		return;
+
+	m_lastlightlayer = layer;
+	m_lastauxinfo = m_auxilaryClientInfo;
+
+	/* enable/disable lights as needed */
+	if (layer >= 0)
+		enable = ApplyLights(layer, viewmat);
+
+	if (enable)
+		EnableOpenGLLights();
+	else
+		DisableOpenGLLights();
+}
+
+void RAS_OpenGLRasterizer::EnableOpenGLLights()
+{
+	if (m_lastlighting == true)
+		return;
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (GetCameraOrtho())? GL_FALSE: GL_TRUE);
+	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
+		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+
+	m_lastlighting = true;
+}
+
+void RAS_OpenGLRasterizer::DisableOpenGLLights()
+{
+	if (m_lastlighting == false)
+		return;
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+
+	m_lastlighting = false;
+}
+
+void RAS_OpenGLRasterizer::AddLight(struct RAS_LightObject* lightobject)
+{
+	m_lights.push_back(lightobject);
+}
+
+void RAS_OpenGLRasterizer::RemoveLight(struct RAS_LightObject* lightobject)
+{
+	std::vector<struct	RAS_LightObject*>::iterator lit =
+		std::find(m_lights.begin(),m_lights.end(),lightobject);
+
+	if (!(lit==m_lights.end()))
+		m_lights.erase(lit);
+}
+
+bool RAS_OpenGLRasterizer::RayHit(class KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
+{
+	double* const oglmatrix = (double* const) data;
+
+	RAS_Polygon* poly = result->m_hitMesh->GetPolygon(result->m_hitPolygon);
+	if (!poly->IsVisible())
+		return false;
+
+	MT_Point3 resultpoint(result->m_hitPoint);
+	MT_Vector3 resultnormal(result->m_hitNormal);
+	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
+	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
+	left = (dir.cross(resultnormal)).safe_normalized();
+	// for the up vector, we take the 'resultnormal' returned by the physics
+
+	double maat[16] = {left[0],         left[1],         left[2],         0,
+	                   dir[0],          dir[1],          dir[2],          0,
+	                   resultnormal[0], resultnormal[1], resultnormal[2], 0,
+	                   0,               0,               0,               1};
+
+	glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
+	//glMultMatrixd(oglmatrix);
+	glMultMatrixd(maat);
+	return true;
+}
+
+void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
+{
+	/* FIXME:
+	blender: intern/moto/include/MT_Vector3.inl:42: MT_Vector3 operator/(const
+	MT_Vector3&, double): Assertion `!MT_fuzzyZero(s)' failed.
+
+	Program received signal SIGABRT, Aborted.
+	[Switching to Thread 16384 (LWP 1519)]
+	0x40477571 in kill () from /lib/libc.so.6
+	(gdb) bt
+	#7  0x08334368 in MT_Vector3::normalized() const ()
+	#8  0x0833e6ec in RAS_OpenGLRasterizer::applyTransform(RAS_IRasterizer*, double*, int) ()
+	*/
+
+	if (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED ||
+		objectdrawmode & RAS_IPolyMaterial::BILLBOARD_AXISALIGNED)
+	{
+		// rotate the billboard/halo
+		//page 360/361 3D Game Engine Design, David Eberly for a discussion
+		// on screen aligned and axis aligned billboards
+		// assumed is that the preprocessor transformed all billboard polygons
+		// so that their normal points into the positive x direction (1.0, 0.0, 0.0)
+		// when new parenting for objects is done, this rotation
+		// will be moved into the object
+
+		MT_Point3 objpos (oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+		MT_Point3 campos = GetCameraPosition();
+		MT_Vector3 dir = (campos - objpos).safe_normalized();
+		MT_Vector3 up(0,0,1.0);
+
+		KX_GameObject* gameobj = (KX_GameObject*)m_clientobject;
+		// get scaling of halo object
+		MT_Vector3  size = gameobj->GetSGNode()->GetWorldScaling();
+
+		bool screenaligned = (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED)!=0;//false; //either screen or axisaligned
+		if (screenaligned)
+		{
+			up = (up - up.dot(dir) * dir).safe_normalized();
+		} else
+		{
+			dir = (dir - up.dot(dir)*up).safe_normalized();
+		}
+
+		MT_Vector3 left = dir.normalized();
+		dir = (up.cross(left)).normalized();
+
+		// we have calculated the row vectors, now we keep
+		// local scaling into account:
+
+		left *= size[0];
+		dir  *= size[1];
+		up   *= size[2];
+
+		double maat[16] = {left[0], left[1], left[2], 0,
+		                   dir[0],  dir[1],  dir[2],  0,
+		                   up[0],   up[1],   up[2],   0,
+		                   0,       0,       0,       1};
+
+		glTranslated(objpos[0],objpos[1],objpos[2]);
+		glMultMatrixd(maat);
+
+	}
+	else {
+		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
+		{
+			// shadow must be cast to the ground, physics system needed here!
+			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+			KX_GameObject *gameobj = (KX_GameObject*)m_clientobject;
+			MT_Vector3 direction = MT_Vector3(0,0,-1);
+
+			direction.normalize();
+			direction *= 100000;
+
+			MT_Point3 topoint = frompoint + direction;
+
+			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
+			PHY_IPhysicsEnvironment* physics_environment = kxscene->GetPhysicsEnvironment();
+			KX_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
+
+			KX_GameObject *parent = gameobj->GetParent();
+			if (!physics_controller && parent)
+				physics_controller = parent->GetPhysicsController();
+			if (parent)
+				parent->Release();
+
+			KX_RayCast::Callback<RAS_OpenGLRasterizer> callback(this, physics_controller, oglmatrix);
+			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
+			{
+				// couldn't find something to cast the shadow on...
+				glMultMatrixd(oglmatrix);
+			}
+			else
+			{ // we found the "ground", but the cast matrix doesn't take
+			  // scaling in consideration, so we must apply the object scale
+				MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
+				glScalef(size[0], size[1], size[2]);
+			}
+		} else
+		{
+
+			// 'normal' object
+			glMultMatrixd(oglmatrix);
+		}
+	}
+}
+
+static void DisableForText()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
+
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+
+	if (GLEW_ARB_multitexture) {
+		for (int i=0; i<MAXTEX; i++) {
+			glActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+			if (GLEW_ARB_texture_cube_map)
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+			glDisable(GL_TEXTURE_2D);
+		}
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	else {
+		if (GLEW_ARB_texture_cube_map)
+			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+		glDisable(GL_TEXTURE_2D);
+	}
+}
+
+void RAS_OpenGLRasterizer::RenderBox2D(int xco,
+			int yco,
+			int width,
+			int height,
+			float percentage)
+{
+	/* This is a rather important line :( The gl-mode hasn't been left
+	 * behind quite as neatly as we'd have wanted to. I don't know
+	 * what cause it, though :/ .*/
+	glDisable(GL_DEPTH_TEST);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glOrtho(0, width, 0, height, -100, 100);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	yco = height - yco;
+	int barsize = 50;
+
+	/* draw in black first*/
+	glColor3ub(0, 0, 0);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1);
+	glEnd();
+
+	glColor3ub(255, 255, 255);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + barsize * percentage, yco + 10);
+	glVertex2f(xco, yco + 10);
+	glVertex2f(xco, yco);
+	glVertex2f(xco + 1 + barsize * percentage, yco);
+	glEnd();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
+}
+
+void RAS_OpenGLRasterizer::RenderText3D(int fontid,
+										 const char* text,
+										 int size,
+										 int dpi,
+										 float* color,
+										 double* mat,
+										 float aspect)
+{
+	/* gl prepping */
+	DisableForText();
+
+	/* the actual drawing */
+	glColor4fv(color);
+
+	/* multiply the text matrix by the object matrix */
+	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT);
+	BLF_matrix(fontid, mat);
+
+	/* aspect is the inverse scale that allows you to increase */
+	/* your resolution without sizing the final text size      */
+	/* the bigger the size, the smaller the aspect	           */
+	BLF_aspect(fontid, aspect, aspect, aspect);
+
+	BLF_size(fontid, size, dpi);
+	BLF_position(fontid, 0, 0, 0);
+	BLF_draw(fontid, (char *)text, 65535);
+
+	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
+}
+
+void RAS_OpenGLRasterizer::RenderText2D(RAS_TEXT_RENDER_MODE mode,
+										 const char* text,
+										 int xco,
+										 int yco,
+										 int width,
+										 int height)
+{
+	/* This is a rather important line :( The gl-mode hasn't been left
+	 * behind quite as neatly as we'd have wanted to. I don't know
+	 * what cause it, though :/ .*/
+	DisableForText();
+	glDisable(GL_DEPTH_TEST);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glOrtho(0, width, 0, height, -100, 100);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	if (mode == RAS_TEXT_PADDED) {
+		/* draw in black first*/
+		glColor3ub(0, 0, 0);
+		BLF_size(blf_mono_font, 11, 72);
+		BLF_position(blf_mono_font, (float)xco+1, (float)(height-yco-1), 0.0f);
+		BLF_draw(blf_mono_font, (char *)text, 65535);/* XXX, use real len */
+
+		glColor3ub(255, 255, 255);
+		BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
+		BLF_draw(blf_mono_font, (char *)text, 65535);
+	} else {
+		/* the actual drawing */
+		glColor3ub(255, 255, 255);
+		BLF_size(blf_mono_font, 11, 72);
+		BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
+		BLF_draw(blf_mono_font, (char *)text, 65535); /* XXX, use real len */
+	}
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
+}
+
+/* Render Text renders text into a (series of) polygon, using a texture font,
+ * Each character consists of one polygon (one quad or two triangles) */
+
+void RAS_OpenGLRasterizer::RenderText(
+	int mode,
+	RAS_IPolyMaterial* polymat,
+	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
+{
+	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+
+	const unsigned int flag = polymat->GetFlag();
+	struct MTFace* tface = 0;
+	unsigned int *col = 0;
+
+	if (flag & RAS_BLENDERMAT) {
+		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
+		tface = bl_mat->GetMTFace();
+		col = bl_mat->GetMCol();
+	} else {
+		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
+		tface = blenderpoly->GetMTFace();
+		col = blenderpoly->GetMCol();
+	}
+
+	GPU_render_text(tface, mode, mytext, mytext.Length(), col, v1, v2, v3, v4, glattrib);
+}
+
+
+void RAS_OpenGLRasterizer::PushMatrix()
+{
+	glPushMatrix();
+}
+
+void RAS_OpenGLRasterizer::PopMatrix()
+{
+	glPopMatrix();
+}
+
+
+int RAS_OpenGLRasterizer::ApplyLights(int objectlayer, const MT_Transform& viewmat)
+{
+	// taken from blender source, incompatibility between Blender Object / GameObject
+	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
+	float glviewmat[16];
+	unsigned int count;
+	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
+
+	for (count=0; count<m_numgllights; count++)
+		glDisable((GLenum)(GL_LIGHT0+count));
+
+	viewmat.getValue(glviewmat);
+
+	glPushMatrix();
+	glLoadMatrixf(glviewmat);
+	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
+	{
+		RAS_LightObject* lightdata = (*lit);
+		KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
+
+		if (kxlight->ApplyLight(kxscene, objectlayer, count))
+			count++;
+	}
+	glPopMatrix();
+
+	return count;
+}
+
+void RAS_OpenGLRasterizer::MotionBlur()
+{
+	int state = GetMotionBlurState();
+	float motionblurvalue;
+	if (state)
+	{
+		motionblurvalue = GetMotionBlurValue();
+		if (state==1)
+		{
+			//bugfix:load color buffer into accum buffer for the first time(state=1)
+			glAccum(GL_LOAD, 1.0);
+			SetMotionBlurState(2);
+		}
+		else if (motionblurvalue >= 0.0f && motionblurvalue <= 1.0f) {
+			glAccum(GL_MULT, motionblurvalue);
+			glAccum(GL_ACCUM, 1-motionblurvalue);
+			glAccum(GL_RETURN, 1.0);
+			glFlush();
+		}
+	}
+}
+
+void RAS_OpenGLRasterizer::SetClientObject(void* obj)
+{
+	if (m_clientobject != obj)
+	{
+		bool ccw = (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling());
+		SetFrontFace(ccw);
+
+		m_clientobject = obj;
+	}
+}
+
+void RAS_OpenGLRasterizer::SetAuxilaryClientInfo(void* inf)
+{
+	m_auxilaryClientInfo = inf;
 }
 

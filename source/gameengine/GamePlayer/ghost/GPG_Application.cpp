@@ -86,7 +86,6 @@ extern "C"
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
 #include "GPC_MouseDevice.h"
-#include "GPC_RenderTools.h"
 #include "GPG_Canvas.h" 
 #include "GPG_KeyboardDevice.h"
 #include "GPG_System.h"
@@ -126,8 +125,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_kxsystem(0), 
 	  m_keyboard(0), 
 	  m_mouse(0), 
-	  m_canvas(0), 
-	  m_rendertools(0), 
+	  m_canvas(0),
 	  m_rasterizer(0), 
 	  m_sceneconverter(0),
 	  m_networkdevice(0),
@@ -591,10 +589,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_canvas->Init();
 		if (gm->flag & GAME_SHOW_MOUSE)
 			m_canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
-
-		m_rendertools = new GPC_RenderTools();
-		if (!m_rendertools)
-			goto initFailed;
 		
 		//Don't use displaylists with VBOs
 		//If auto starts using VBOs, make sure to check for that here
@@ -639,7 +633,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetMouseDevice(m_mouse);
 		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 		m_ketsjiengine->SetCanvas(m_canvas);
-		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
 
 		KX_KetsjiEngine::SetExitKey(ConvertKeyCode(gm->exitkey));
@@ -667,10 +660,8 @@ initFailed:
 	delete m_mouse;
 	delete m_keyboard;
 	delete m_rasterizer;
-	delete m_rendertools;
 	delete m_canvas;
 	m_canvas = NULL;
-	m_rendertools = NULL;
 	m_rasterizer = NULL;
 	m_keyboard = NULL;
 	m_mouse = NULL;
@@ -752,7 +743,7 @@ bool GPG_Application::startEngine(void)
 #endif
 		m_sceneconverter->ConvertScene(
 			startscene,
-			m_rendertools,
+			m_rasterizer,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);
 		
@@ -869,11 +860,6 @@ void GPG_Application::exitEngine()
 	{
 		delete m_rasterizer;
 		m_rasterizer = 0;
-	}
-	if (m_rendertools)
-	{
-		delete m_rendertools;
-		m_rendertools = 0;
 	}
 	if (m_canvas)
 	{

@@ -38,7 +38,6 @@
 #include "STR_HashedString.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_IRenderTools.h"
 
 #include "RAS_BucketManager.h"
 
@@ -139,8 +138,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		sort(slots.begin(), slots.end(), fronttoback());
 }
 
-void RAS_BucketManager::RenderAlphaBuckets(
-	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
+void RAS_BucketManager::RenderAlphaBuckets(const MT_Transform& cameratrans, RAS_IRasterizer* rasty)
 {
 	vector<sortedmeshslot> slots;
 	vector<sortedmeshslot>::iterator sit;
@@ -154,10 +152,10 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	OrderBuckets(cameratrans, m_AlphaBuckets, slots, true);
 	
 	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
-		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
+		rasty->SetClientObject(sit->m_ms->m_clientObj);
 
-		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
-			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
+		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty))
+			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, *(sit->m_ms));
 
 		// make this mesh slot culled automatically for next frame
 		// it will be culled out by frustrum culling
@@ -167,8 +165,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
 }
 
-void RAS_BucketManager::RenderSolidBuckets(
-	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
+void RAS_BucketManager::RenderSolidBuckets(const MT_Transform& cameratrans, RAS_IRasterizer* rasty)
 {
 	BucketList::iterator bit;
 
@@ -180,9 +177,9 @@ void RAS_BucketManager::RenderSolidBuckets(
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
 		while ((ms = bucket->GetNextActiveMeshSlot())) {
-			rendertools->SetClientObject(rasty, ms->m_clientObj);
-			while (bucket->ActivateMaterial(cameratrans, rasty, rendertools))
-				bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *ms);
+			rasty->SetClientObject(ms->m_clientObj);
+			while (bucket->ActivateMaterial(cameratrans, rasty))
+				bucket->RenderMeshSlot(cameratrans, rasty, *ms);
 
 			// make this mesh slot culled automatically for next frame
 			// it will be culled out by frustrum culling
@@ -194,10 +191,10 @@ void RAS_BucketManager::RenderSolidBuckets(
 			if (mit->IsCulled())
 				continue;
 
-			rendertools->SetClientObject(rasty, mit->m_clientObj);
+			rasty->SetClientObject(rasty, mit->m_clientObj);
 
-			while ((*bit)->ActivateMaterial(cameratrans, rasty, rendertools))
-				(*bit)->RenderMeshSlot(cameratrans, rasty, rendertools, *mit);
+			while ((*bit)->ActivateMaterial(cameratrans, rasty))
+				(*bit)->RenderMeshSlot(cameratrans, rasty, *mit);
 
 			// make this mesh slot culled automatically for next frame
 			// it will be culled out by frustrum culling
@@ -218,20 +215,19 @@ void RAS_BucketManager::RenderSolidBuckets(
 	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
-		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
-			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
+		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty))
+			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, *(sit->m_ms));
 	}
 #endif
 }
 
-void RAS_BucketManager::Renderbuckets(
-	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
+void RAS_BucketManager::Renderbuckets(const MT_Transform& cameratrans, RAS_IRasterizer* rasty)
 {
 	/* beginning each frame, clear (texture/material) caching information */
 	rasty->ClearCachingInfo();
 
-	RenderSolidBuckets(cameratrans, rasty, rendertools);
-	RenderAlphaBuckets(cameratrans, rasty, rendertools);
+	RenderSolidBuckets(cameratrans, rasty);
+	RenderAlphaBuckets(cameratrans, rasty);
 
 	/* All meshes should be up to date now */
 	/* Don't do this while processing buckets because some meshes are split between buckets */
@@ -259,7 +255,7 @@ void RAS_BucketManager::Renderbuckets(
 	}
 	
 
-	rendertools->SetClientObject(rasty, NULL);
+	rasty->SetClientObject(NULL);
 }
 
 RAS_MaterialBucket *RAS_BucketManager::FindBucket(RAS_IPolyMaterial *material, bool &bucketCreated)

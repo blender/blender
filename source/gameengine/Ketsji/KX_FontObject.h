@@ -32,8 +32,6 @@
 #ifndef __KX_FONTOBJECT_H__
 #define  __KX_FONTOBJECT_H__
 #include "KX_GameObject.h"
-#include "DNA_vfont_types.h"
-#include "RAS_IRenderTools.h"
 
 class KX_FontObject : public KX_GameObject
 {
@@ -41,7 +39,7 @@ public:
 	Py_Header
 	KX_FontObject(void* sgReplicationInfo,
 	              SG_Callbacks callbacks,
-	              RAS_IRenderTools* rendertools,
+	              RAS_IRasterizer* rasterizer,
 	              Object *ob,
 				  bool do_color_management);
 
@@ -68,7 +66,7 @@ protected:
 	float			m_line_spacing;
 	MT_Vector3		m_offset;
 
-	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
+	class RAS_IRasterizer*	m_rasterizer;	//needed for drawing routine
 
 	bool		m_do_color_management;
 

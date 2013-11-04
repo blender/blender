@@ -80,7 +80,6 @@
 #include "RAS_Polygon.h"
 #include "RAS_TexVert.h"
 #include "RAS_BucketManager.h"
-#include "RAS_IRenderTools.h"
 #include "BL_Material.h"
 #include "KX_BlenderMaterial.h"
 #include "BL_Texture.h"
@@ -1874,7 +1873,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 
 
-static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int layerflag, KX_Scene *kxscene, RAS_IRenderTools *rendertools, KX_BlenderSceneConverter *converter)
+static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int layerflag, KX_Scene *kxscene, RAS_IRasterizer *rasterizer, KX_BlenderSceneConverter *converter)
 {
 	RAS_LightObject lightobj;
 	KX_LightObject *gamelight;
@@ -1913,7 +1912,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 		lightobj.m_type = RAS_LightObject::LIGHT_NORMAL;
 	}
 
-	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
+	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rasterizer,
 		lightobj, glslmat);
 	
 	return gamelight;
@@ -1934,7 +1933,7 @@ static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_Blen
 static KX_GameObject *gameobject_from_blenderobject(
 								Object *ob, 
 								KX_Scene *kxscene, 
-								RAS_IRenderTools *rendertools, 
+								RAS_IRasterizer *rendertools,
 								KX_BlenderSceneConverter *converter,
 								bool libloading) 
 {
@@ -2359,7 +2358,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
-							  RAS_IRenderTools* rendertools,
+							  RAS_IRasterizer* rendertools,
 							  RAS_ICanvas* canvas,
 							  KX_BlenderSceneConverter* converter,
 							  bool alwaysUseExpandFraming,

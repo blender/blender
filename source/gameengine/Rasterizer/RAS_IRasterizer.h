@@ -65,6 +65,13 @@ typedef vector< KX_IndexArray* > vecIndexArrays;
 class RAS_IRasterizer
 {
 public:
+	enum RAS_TEXT_RENDER_MODE {
+		RAS_TEXT_RENDER_NODEF = 0,
+		RAS_TEXT_NORMAL,
+		RAS_TEXT_PADDED,
+		RAS_TEXT_MAX
+	};
+
 	RAS_IRasterizer(RAS_ICanvas* canv) {};
 	virtual ~RAS_IRasterizer() {};
 
@@ -247,11 +254,9 @@ public:
 
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
-	 * The text to be rendered is from \param rendertools client object's text property.
 	 */
 	virtual void	IndexPrimitives_3DText(class RAS_MeshSlot& ms,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools)=0;
+							class RAS_IPolyMaterial* polymat)=0;
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */
@@ -433,6 +438,88 @@ public:
 
 	virtual void	SetUsingOverrideShader(bool val)=0;
 	virtual bool	GetUsingOverrideShader()=0;
+
+	/**
+	 * Render Tools
+	 */
+	virtual void applyTransform(double* oglmatrix, int drawingmode)=0;
+
+	/**
+	 * Renders 2D boxes.
+	 * \param xco			Position on the screen (origin in lower left corner).
+	 * \param yco			Position on the screen (origin in lower left corner).
+	 * \param width			Width of the canvas to draw to.
+	 * \param height		Height of the canvas to draw to.
+	 * \param percentage	Percentage of bar.
+	 */
+	virtual void RenderBox2D(int xco,
+							 int yco,
+							 int width,
+							 int height,
+							 float percentage) = 0;
+
+	/**
+	 * Renders 3D text string using BFL.
+	 * \param fontid	The id of the font.
+	 * \param text		The string to render.
+	 * \param size		The size of the text.
+	 * \param dpi		The resolution of the text.
+	 * \param color		The color of the object.
+	 * \param mat		The Matrix of the text object.
+	 * \param aspect	A scaling factor to compensate for the size.
+	 */
+	virtual	void RenderText3D(int fontid,
+							 const char* text,
+							 int size,
+							 int dpi,
+							 float* color,
+							 double* mat,
+							 float aspect
+							 ) = 0;
+
+
+	/**
+	 * Renders 2D text string.
+	 * \param mode      The type of text
+	 * \param text		The string to render.
+	 * \param xco		Position on the screen (origin in lower left corner).
+	 * \param yco		Position on the screen (origin in lower left corner).
+	 * \param width		Width of the canvas to draw to.
+	 * \param height	Height of the canvas to draw to.
+	 */
+	virtual	void RenderText2D(RAS_TEXT_RENDER_MODE mode,
+							const char* text,
+							int xco,
+							int yco,
+							int width,
+							int height
+						) = 0;
+
+	// 3d text, mapped on polygon
+	virtual void RenderText(int mode,
+							RAS_IPolyMaterial* polymat,
+							float v1[3],
+							float v2[3],
+							float v3[3],
+							float v4[3],
+							int glattrib
+						)=0;
+
+	virtual	void ProcessLighting(bool uselights, const MT_Transform& trans)=0;
+
+	virtual void PushMatrix()=0;
+
+	virtual void PopMatrix()=0;
+
+	virtual	void AddLight(struct RAS_LightObject* lightobject)=0;
+
+	virtual	void RemoveLight(struct RAS_LightObject* lightobject)=0;
+
+	virtual void MotionBlur()=0;
+
+	virtual void SetClientObject(void* obj)=0;
+
+	virtual void SetAuxilaryClientInfo(void* inf)=0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_IRasterizer")

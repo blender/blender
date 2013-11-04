@@ -48,7 +48,6 @@ class GHOST_ISystem;
 class GHOST_ITimerTask;
 class GHOST_IWindow;
 class GPC_MouseDevice;
-class GPC_RenderTools;
 class GPG_Canvas;
 class GPG_KeyboardDevice;
 class GPG_System;
@@ -151,8 +150,6 @@ protected:
 	GPC_MouseDevice* m_mouse;
 	/** The game engine's canvas abstraction. */
 	GPG_Canvas* m_canvas;
-	/** The game engine's platform dependent render tools. */
-	GPC_RenderTools* m_rendertools;
 	/** the rasterizer */
 	RAS_IRasterizer* m_rasterizer;
 	/** Converts Blender data files. */

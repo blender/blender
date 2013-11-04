@@ -47,7 +47,6 @@ set(SRC
 	RAS_BucketManager.cpp
 	RAS_FramingManager.cpp
 	RAS_IPolygonMaterial.cpp
-	RAS_IRenderTools.cpp
 	RAS_MaterialBucket.cpp
 	RAS_MeshObject.cpp
 	RAS_Polygon.cpp
@@ -62,7 +61,6 @@ set(SRC
 	RAS_ICanvas.h
 	RAS_IPolygonMaterial.h
 	RAS_IRasterizer.h
-	RAS_IRenderTools.h
 	RAS_LightObject.h
 	RAS_MaterialBucket.h
 	RAS_MeshObject.h

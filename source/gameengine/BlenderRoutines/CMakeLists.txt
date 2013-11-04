@@ -43,7 +43,6 @@ set(SRC
 	KX_BlenderInputDevice.cpp
 	KX_BlenderKeyboardDevice.cpp
 	KX_BlenderMouseDevice.cpp
-	KX_BlenderRenderTools.cpp
 	KX_BlenderSystem.cpp
 
 	BL_System.h
@@ -52,7 +51,6 @@ set(SRC
 	KX_BlenderInputDevice.h
 	KX_BlenderKeyboardDevice.h
 	KX_BlenderMouseDevice.h
-	KX_BlenderRenderTools.h
 	KX_BlenderSystem.h
 )
 

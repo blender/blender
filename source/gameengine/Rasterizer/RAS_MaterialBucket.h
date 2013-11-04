@@ -219,10 +219,8 @@ public:
 	bool					IsZSort() const;
 		
 	/* Rendering */
-	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools *rendertools);
-	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools* rendertools, RAS_MeshSlot &ms);
+	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty);
+	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_MeshSlot &ms);
 	
 	/* Mesh Slot Access */
 	list<RAS_MeshSlot>::iterator msBegin();

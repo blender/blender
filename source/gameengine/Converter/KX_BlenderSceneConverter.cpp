@@ -313,7 +313,7 @@ struct	BlenderDebugDraw : public btIDebugDraw
 #endif
 
 void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
-											class RAS_IRenderTools* rendertools,
+											class RAS_IRasterizer* rendertools,
 											class RAS_ICanvas* canvas,
 											bool libloading)
 {

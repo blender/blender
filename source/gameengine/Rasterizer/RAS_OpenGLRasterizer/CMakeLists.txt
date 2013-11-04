@@ -25,9 +25,15 @@
 
 set(INC
 	..
+	# XXX Remove these <<<
 	../../BlenderRoutines
+	../../Expressions
+	../../GameLogic
 	../../Ketsji
+	../../Physics/common
+	# >>>
 	../../SceneGraph
+	../../../blender/blenfont
 	../../../blender/blenkernel
 	../../../blender/blenlib
 	../../../blender/gpu
