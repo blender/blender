@@ -2786,6 +2786,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 
 void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 {
+	BLI_assert(numVerts >= 0);
 	if (numVerts < dm->numVertData)
 		CustomData_free_elem(&dm->vertData, numVerts, dm->numVertData - numVerts);
 
@@ -2794,6 +2795,7 @@ void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 
 void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 {
+	BLI_assert(numEdges >= 0);
 	if (numEdges < dm->numEdgeData)
 		CustomData_free_elem(&dm->edgeData, numEdges, dm->numEdgeData - numEdges);
 
@@ -2802,14 +2804,25 @@ void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 
 void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces)
 {
+	BLI_assert(numTessFaces >= 0);
 	if (numTessFaces < dm->numTessFaceData)
 		CustomData_free_elem(&dm->faceData, numTessFaces, dm->numTessFaceData - numTessFaces);
 
 	dm->numTessFaceData = numTessFaces;
 }
 
+void CDDM_lower_num_loops(DerivedMesh *dm, int numLoops)
+{
+	BLI_assert(numLoops >= 0);
+	if (numLoops < dm->numLoopData)
+		CustomData_free_elem(&dm->loopData, numLoops, dm->numLoopData - numLoops);
+
+	dm->numLoopData = numLoops;
+}
+
 void CDDM_lower_num_polys(DerivedMesh *dm, int numPolys)
 {
+	BLI_assert(numPolys >= 0);
 	if (numPolys < dm->numPolyData)
 		CustomData_free_elem(&dm->polyData, numPolys, dm->numPolyData - numPolys);
 

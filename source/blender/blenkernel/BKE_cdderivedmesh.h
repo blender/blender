@@ -122,6 +122,7 @@ void CDDM_recalc_tessellation_ex(struct DerivedMesh *dm, const int do_face_nor_c
  */
 void CDDM_lower_num_verts(struct DerivedMesh *dm, int numVerts);
 void CDDM_lower_num_edges(struct DerivedMesh *dm, int numEdges);
+void CDDM_lower_num_loops(struct DerivedMesh *dm, int numLoops);
 void CDDM_lower_num_polys(struct DerivedMesh *dm, int numPolys);
 void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces);
 
