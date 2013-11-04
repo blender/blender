@@ -441,6 +441,11 @@ public:
 		btVector3 vec = getWalkDirection();
 		return MT_Vector3(vec[0], vec[1], vec[2]);
 	}
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	using PHY_ICharacter::operator new;
+	using PHY_ICharacter::operator delete;
+#endif
 };
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.

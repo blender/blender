@@ -28,6 +28,10 @@
 #ifndef __KX_STORAGE
 #define __KX_STORAGE
 
+#ifdef WITH_CXX_GUARDEDALLOC
+  #include "MEM_guardedalloc.h"
+#endif
+
 class RAS_MeshSlot;
 
 class RAS_IStorage
@@ -46,9 +50,7 @@ public:
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IStorage"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_IStorage")
 #endif
 };
 
