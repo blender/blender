@@ -13,6 +13,7 @@ incs = [
     '#extern/glew/include',
     '#intern/moto/include',
     '#source/blender/blenkernel',
+    '#source/blender/blenfont',
     '#source/blender/blenlib',
     '#source/blender/gpu',
     '#source/blender/makesdna',
