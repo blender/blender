@@ -4,8 +4,5 @@ Questions? mail blender at erwincoumans.com, or check the bf-blender mailing lis
 Thanks,
 Erwin
 
-Apply patches/ghost_softbody.patch to prevent softbodies being hit by ghost objects.
-Originally committed in blender svn revision: 43905.
-
 Apply patches/convex_hull.patch to add access to the convex hull
 operation, used in the BMesh convex hull operator.
