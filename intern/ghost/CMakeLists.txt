@@ -301,6 +301,6 @@ add_definitions(-DGLEW_STATIC)
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 
 # workaround for apple clang mangling extern "C" symbols
-if(WITH_INPUT_NDOF AND WITH_COCOA)
+if(WITH_INPUT_NDOF)
 	blender_add_lib(bf_intern_ghostndof3dconnexion "${SRC_NDOF3DCONNEXION}" "${INC}" "${INC_SYS}")
 endif()

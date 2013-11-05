@@ -42,11 +42,7 @@
 #  include "GHOST_SystemPathsWin32.h"
 #else
 #  ifdef __APPLE__
-#    ifdef GHOST_COCOA
 #      include "GHOST_SystemPathsCocoa.h"
-#    else
-#      include "GHOST_SystemPathsCarbon.h"
-#    endif
 #  else
 #    include "GHOST_SystemPathsX11.h"
 #  endif
@@ -64,11 +60,7 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
 		m_systemPaths = new GHOST_SystemPathsWin32();
 #else
 #  ifdef __APPLE__
-#    ifdef GHOST_COCOA
 		m_systemPaths = new GHOST_SystemPathsCocoa();
-#    else
-		m_systemPaths = new GHOST_SystemPathsCarbon();
-#    endif
 #  else
 		m_systemPaths = new GHOST_SystemPathsX11();
 #  endif
