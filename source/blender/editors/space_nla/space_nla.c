@@ -544,7 +544,7 @@ void ED_spacetype_nla(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->prefsizex = 200;
-	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 	
 	art->init = nla_channel_area_init;
 	art->draw = nla_channel_area_draw;

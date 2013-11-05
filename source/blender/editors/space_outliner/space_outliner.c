@@ -476,9 +476,9 @@ void ED_spacetype_outliner(void)
 	st->dropboxes = outliner_dropboxes;
 	
 	/* regions: main window */
-	art = MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype outliner region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 	
 	art->init = outliner_main_area_init;
 	art->draw = outliner_main_area_draw;
@@ -487,7 +487,7 @@ void ED_spacetype_outliner(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art = MEM_callocN(sizeof(ARegionType), "spacetype time header region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype outliner header region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;

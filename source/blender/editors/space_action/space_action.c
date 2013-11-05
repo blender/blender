@@ -541,7 +541,7 @@ void ED_spacetype_action(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->prefsizex = 200;
-	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 	
 	art->init = action_channel_area_init;
 	art->draw = action_channel_area_draw;

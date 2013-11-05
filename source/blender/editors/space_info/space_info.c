@@ -327,7 +327,7 @@ void ED_spacetype_info(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 
 	art->init = info_main_area_init;
 	art->draw = info_main_area_draw;
