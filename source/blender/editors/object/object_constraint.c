@@ -1331,7 +1331,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* do updates */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1365,7 +1365,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	DAG_relations_tag_update(bmain);
 	
 	/* do updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
