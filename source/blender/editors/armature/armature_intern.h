@@ -62,6 +62,7 @@ void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
 
 void ARMATURE_OT_select_all(struct wmOperatorType *ot);
+void ARMATURE_OT_select_mirror(struct wmOperatorType *ot);
 void ARMATURE_OT_select_more(struct wmOperatorType *ot);
 void ARMATURE_OT_select_less(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);

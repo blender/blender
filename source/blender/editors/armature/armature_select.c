@@ -54,6 +54,10 @@
 
 #include "armature_intern.h"
 
+/* utility macros fro storing a temp int in the bone (selection flag) */
+#define EBONE_PREV_FLAG_GET(ebone) ((void)0, (GET_INT_FROM_POINTER((ebone)->temp)))
+#define EBONE_PREV_FLAG_SET(ebone, val) ((ebone)->temp = SET_INT_IN_POINTER(val))
+
 /* **************** PoseMode & EditMode Selection Buffer Queries *************************** */
 
 /* only for opengl selection indices */
@@ -634,9 +638,6 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 
 /**************** Select more/less **************/
 
-#define EBONE_PREV_FLAG_GET(ebone) ((void)0, (GET_INT_FROM_POINTER(ebone->temp)))
-#define EBONE_PREV_FLAG_SET(ebone, val) (ebone->temp = SET_INT_IN_POINTER(val))
-
 static void armature_select_more(bArmature *arm, EditBone *ebone)
 {
 	if ((EBONE_PREV_FLAG_GET(ebone) & (BONE_ROOTSEL | BONE_TIPSEL)) != 0) {
@@ -719,9 +720,6 @@ static void armature_select_more_less(Object *ob, bool more)
 
 	ED_armature_sync_selection(arm->edbo);
 }
-
-#undef EBONE_PREV_FLAG_GET
-#undef EBONE_PREV_FLAG_SET
 
 static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1050,3 +1048,57 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
+/****************** Mirror Select ****************/
+
+static int armature_select_mirror_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone;
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		const int flag = ED_armature_ebone_selectflag_get(ebone);
+		EBONE_PREV_FLAG_SET(ebone, flag);
+	}
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
+			EditBone *ebone_mirror;
+			int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
+
+			if ((ebone_mirror = ED_armature_bone_get_mirrored(arm->edbo, ebone)) &&
+			    (EBONE_VISIBLE(arm, ebone_mirror)))
+			{
+				const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
+				flag_new |= flag_mirror;
+			}
+
+			ED_armature_ebone_selectflag_set(ebone, flag_new);
+		}
+	}
+
+	ED_armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Mirror Select";
+	ot->idname = "ARMATURE_OT_select_mirror";
+	ot->description = "Mirror the bone selection";
+
+	/* api callbacks */
+	ot->exec = armature_select_mirror_exec;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
