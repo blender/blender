@@ -230,6 +230,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
 	cun->selboxes = NULL;
+	cun->lastsel = NULL;
 
 #if 0   // XXX old animation system
 	/* single user ipo too */

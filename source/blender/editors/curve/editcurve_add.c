@@ -458,6 +458,8 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 
 	if (nu) { /* should always be set */
 		nu->flag |= CU_SMOOTH;
+		cu->actnu = BLI_countlist(editnurb);
+		cu->lastsel = NULL;
 
 		BKE_nurb_test2D(nu);
 	}
