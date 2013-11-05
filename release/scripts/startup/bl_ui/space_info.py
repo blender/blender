@@ -78,35 +78,6 @@ class INFO_HT_header(Header):
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
         row.label(text=scene.statistics(), translate=False)
 
-        # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
-        """
-        sinfo = context.space_data
-        row = layout.row(align=True)
-        row.prop(sinfo, "show_report_debug", text="Debug")
-        row.prop(sinfo, "show_report_info", text="Info")
-        row.prop(sinfo, "show_report_operator", text="Operators")
-        row.prop(sinfo, "show_report_warning", text="Warnings")
-        row.prop(sinfo, "show_report_error", text="Errors")
-
-        row = layout.row()
-        row.enabled = sinfo.show_report_operator
-        row.operator("info.report_replay")
-
-        row.menu("INFO_MT_report")
-        """
-
-
-class INFO_MT_report(Menu):
-    bl_label = "Report"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("console.select_all_toggle")
-        layout.operator("console.select_border")
-        layout.operator("console.report_delete")
-        layout.operator("console.report_copy")
-
 
 class INFO_MT_file(Menu):
     bl_label = "File"
