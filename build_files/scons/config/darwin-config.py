@@ -14,7 +14,7 @@ USE_SDK=True
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
 WITH_GHOST_COCOA=True
-MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
+MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 
 cmd = 'uname -p'
@@ -97,7 +97,7 @@ else :
         # OSX 10.8 with Xcode 4.4 and higher (no 10.6sdk! )
         MAC_MIN_VERS = '10.6'
         MACOSX_DEPLOYMENT_TARGET = '10.6'
-        MACOSX_SDK='/Developer/SDKs/MacOSX10.7.sdk'
+        MACOSX_SDK='/Developer/SDKs/MacOSX10.8.sdk'
         LCGDIR = '#../lib/darwin-9.x.universal'
         CC = 'gcc'
         CXX = 'g++'

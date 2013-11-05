@@ -428,7 +428,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_GHOST_SDL', 'Enable building blender against SDL for windowing rather then the native APIs', False)),
         (BoolVariable('WITH_X11_XINPUT', 'Enable X11 Xinput (tablet support and unicode input)', True)),
         (BoolVariable('WITH_X11_XF86VMODE', 'Enable X11 video mode switching', True)),
-        (BoolVariable('USE_QTKIT', 'Use QTKIT if true', False)),
+        (BoolVariable('USE_QTKIT', 'Use QTKIT if true', True)),
         ('BF_OPENMP_LIB_STATIC', 'OpenMP static library', ''),
 
         (BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
