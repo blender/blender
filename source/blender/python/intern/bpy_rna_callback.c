@@ -203,7 +203,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
-	/* class spesific callbacks */
+	/* class specific callbacks */
 	if (RNA_struct_is_a(srna, &RNA_Space)) {
 		if (!PyArg_ParseTuple(args, "OOO!ss:Space.draw_handler_add",
 		                      &cls, &cb_func,  /* already assigned, no matter */

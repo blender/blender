@@ -1259,7 +1259,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	}
 
 	if (dm->type == DM_TYPE_EDITBMESH) {
-		/* editmesh draw function checks spesifically for this */
+		/* editmesh draw function checks specifically for this */
 	}
 	else {
 		const int dm_totpoly = dm->getNumPolys(dm);

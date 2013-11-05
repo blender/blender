@@ -2059,7 +2059,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 			BKE_mesh_flush_select_from_polys(me);
 		}
 
-		/* weight paint spesific */
+		/* weight paint specific */
 		mesh_octree_table(NULL, NULL, NULL, 'e');
 		mesh_mirrtopo_table(NULL, 'e');
 
@@ -2075,7 +2075,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 
 		BKE_paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
 
-		/* weight paint spesific */
+		/* weight paint specific */
 		mesh_octree_table(ob, NULL, NULL, 's');
 		ED_vgroup_sync_from_pose(ob);
 	}

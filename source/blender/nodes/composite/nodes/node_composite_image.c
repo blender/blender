@@ -201,7 +201,7 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 		 * fail and sockets detection will go wrong.
 		 *
 		 * So we manually construct image user to be sure first
-		 * image from sequence (that one which is set as fileanme
+		 * image from sequence (that one which is set as filename
 		 * for image datablock) is used for sockets detection
 		 */
 		load_iuser.ok = 1;
