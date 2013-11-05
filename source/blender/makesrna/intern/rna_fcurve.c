@@ -485,10 +485,10 @@ static void rna_FModifer_end_frame_set(PointerRNA *ptr, float value)
 	}
 }
 
-static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *max,
-                                            float *softmin, float *softmax)
+static void rna_FModifier_start_frame_range(PointerRNA *UNUSED(ptr), float *min, float *max,
+                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
-	FModifier *fcm = (FModifier *)ptr->data;
+	// FModifier *fcm = (FModifier *)ptr->data;
 	
 	/* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that, 
 	 * or else it becomes tricky to adjust the range...  [#36844] 
@@ -614,11 +614,11 @@ static void rna_FModifierLimits_maxy_set(PointerRNA *ptr, float value)
 	}
 }
 
-static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *max,
+static void rna_FModifierLimits_minx_range(PointerRNA *UNUSED(ptr), float *min, float *max,
                                            float *UNUSED(softmin), float *UNUSED(softmax))
 {
-	FModifier *fcm = (FModifier *)ptr->data;
-	FMod_Limits *data = fcm->data;
+	// FModifier *fcm = (FModifier *)ptr->data;
+	// FMod_Limits *data = fcm->data;
 	
 	/* no soft-limits on lower bound - it's too confusing when you can't easily use the slider to set things here */
 	*min     = MINAFRAMEF;
@@ -638,11 +638,11 @@ static void rna_FModifierLimits_maxx_range(PointerRNA *ptr, float *min, float *m
 	*max     = MAXFRAMEF;
 }
 
-static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *max,
-                                           float *softmin, float *softmax)
+static void rna_FModifierLimits_miny_range(PointerRNA *UNUSED(ptr), float *min, float *max,
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
-	FModifier *fcm = (FModifier *)ptr->data;
-	FMod_Limits *data = fcm->data;
+	// FModifier *fcm = (FModifier *)ptr->data;
+	// FMod_Limits *data = fcm->data;
 	
 	/* no soft-limits on lower bound - it's too confusing when you can't easily use the slider to set things here */
 	*min     = -FLT_MAX;
