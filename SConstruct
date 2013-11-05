@@ -342,9 +342,6 @@ if env['WITH_BF_OPENMP'] == 1:
             else:
                 env.Append(CCFLAGS=['-fopenmp'])
 
-if env['WITH_GHOST_COCOA'] == True:
-    env.Append(CPPFLAGS=['-DGHOST_COCOA'])
-
 if env['USE_QTKIT'] == True:
     env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 

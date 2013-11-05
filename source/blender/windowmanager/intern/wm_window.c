@@ -133,10 +133,6 @@ static void wm_window_check_position(rcti *rect)
 	
 	wm_get_screensize(&width, &height);
 	
-#if defined(__APPLE__) && !defined(GHOST_COCOA)
-	height -= 70;
-#endif
-	
 	if (rect->xmin < 0) {
 		rect->xmax -= rect->xmin;
 		rect->xmin  = 0;
@@ -338,12 +334,6 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		 * in case of OS application terminate request (e.g. OS Shortcut Alt+F4, Cmd+Q, (...), or session end) */
 		GHOST_SetWindowModifiedState(win->ghostwin, (GHOST_TUns8) !wm->file_saved);
 		
-#if defined(__APPLE__) && !defined(GHOST_COCOA)
-		if (wm->file_saved)
-			GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
-		else
-			GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateModified);
-#endif
 	}
 }
 
@@ -428,20 +418,12 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 	if (wm_init_state.size_x == 0) {
 		wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
 		
-#if defined(__APPLE__) && !defined(GHOST_COCOA)
-		/* Cocoa provides functions to get correct max window size */
-		{
-			extern void wm_set_apple_prefsize(int, int);    /* wm_apple.c */
-			
-			wm_set_apple_prefsize(wm_init_state.size_x, wm_init_state.size_y);
-		}
-#else
-		/* note!, this isnt quite correct, active screen maybe offset 1000s if PX,
-		 * we'd need a wm_get_screensize like function that gives offset,
-		 * in practice the window manager will likely move to the correct monitor */
-		wm_init_state.start_x = 0;
-		wm_init_state.start_y = 0;
-#endif
+	/* note!, this isnt quite correct, active screen maybe offset 1000s if PX,
+	 * we'd need a wm_get_screensize like function that gives offset,
+	 * in practice the window manager will likely move to the correct monitor */
+	wm_init_state.start_x = 0;
+	wm_init_state.start_y = 0;
+
 
 #if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
 		/* X11, start maximized but use default sane size */

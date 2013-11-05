@@ -380,7 +380,6 @@ if(APPLE)
 		add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
 
-	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 	if(CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
@@ -1612,46 +1611,39 @@ elseif(APPLE)
 		set(PLATFORM_LINKLIBS stdc++)
 	endif()
 
-	if(WITH_COCOA)
-		set(PLATFORM_CFLAGS "-pipe -funsigned-char -DGHOST_COCOA")
-		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
-		if(USE_QTKIT)
-			set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
-			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
-			if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
-				# libSDL still needs 32bit carbon quicktime
-			endif()
-		elseif(WITH_CODEC_QUICKTIME)
+	set(PLATFORM_CFLAGS "-pipe -funsigned-char")
+	set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
+	if(USE_QTKIT)
+		set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
+		if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+			# libSDL still needs 32bit carbon quicktime
+		endif()
+	elseif(WITH_CODEC_QUICKTIME)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
+	endif()
+
+	# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!
+	# ALSO SHOULD BE MOVED INTO OWN MODULE WHEN FUNCTIONAL
+	if(WITH_INPUT_NDOF)
+		# This thread it *should* work and check the framework - campbell
+		# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
+		find_library(3DCONNEXION_CLIENT_FRAMEWORK
+			NAMES 3DconnexionClient
+		)
+		if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
+			set(WITH_INPUT_NDOF OFF)
 		endif()
 
-		# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!
-		# ALSO SHOULD BE MOVED INTO OWN MODULE WHEN FUNCTIONAL
 		if(WITH_INPUT_NDOF)
-			# This thread it *should* work and check the framework - campbell
-			# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-			find_library(3DCONNEXION_CLIENT_FRAMEWORK
-				NAMES 3DconnexionClient
-			)
-			if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
-				set(WITH_INPUT_NDOF OFF)
-			endif()
-
-			if(WITH_INPUT_NDOF)
-				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework 3DconnexionClient")
-				set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework/Headers )
-			endif()
+			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework 3DconnexionClient")
+			set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework/Headers )
 		endif()
+	endif()
 
 	if(WITH_JACK)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework jackmp")
-	endif()
-
-	else()
-		set(PLATFORM_CFLAGS "-pipe -funsigned-char")
-		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
-		set(WITH_INPUT_NDOF OFF)  # unsupported
 	endif()
 	
 	if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)

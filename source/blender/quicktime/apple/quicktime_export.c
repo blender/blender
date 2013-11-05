@@ -890,7 +890,7 @@ static int ED_operator_setqtcodec(bContext *C)
 	return G.have_quicktime != FALSE;
 }
 
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__)
 /* Need to set up a Cocoa NSAutoReleasePool to avoid memory leak
  * And it must be done in an objC file, so use a GHOST_SystemCocoa.mm function for that */
 extern int cocoa_request_qtcodec_settings_exec(bContext *C, wmOperator *op);
@@ -910,7 +910,7 @@ void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
 	ot->idname = "SCENE_OT_render_data_set_quicktime_codec";
 	
 	/* api callbacks */
-#if defined(__APPLE__) && defined(GHOST_COCOA)
+#if defined(__APPLE__)
 	ot->exec = cocoa_request_qtcodec_settings_exec;
 #else
 	ot->exec = request_qtcodec_settings_exec;
