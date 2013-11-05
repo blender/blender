@@ -463,7 +463,7 @@ static void rna_FModifier_start_frame_set(PointerRNA *ptr, float value)
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	
-	CLAMP(value, MINAFRAME, MAXFRAME);
+	CLAMP(value, MINAFRAMEF, MAXFRAMEF);
 	fcm->sfra = value;
 	
 	/* XXX: maintain old offset? */
@@ -476,7 +476,7 @@ static void rna_FModifer_end_frame_set(PointerRNA *ptr, float value)
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	
-	CLAMP(value, MINAFRAME, MAXFRAME);
+	CLAMP(value, MINAFRAMEF, MAXFRAMEF);
 	fcm->efra = value;
 	
 	/* XXX: maintain old offset? */
@@ -492,11 +492,11 @@ static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *
 	
 	/* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that, 
 	 * or else it becomes tricky to adjust the range...  [#36844] 
+	 * 
+	 * NOTE: we do not set soft-limits on lower bounds, as it's too confusing when you 
+	 *       can't easily use the slider to set things here
 	 */
 	*min     = MINAFRAMEF;
-	*softmin = MINAFRAMEF;
-	
-	*softmax = (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) ? fcm->efra : MAXFRAMEF;
 	*max     = MAXFRAMEF;
 }
 
@@ -615,15 +615,13 @@ static void rna_FModifierLimits_maxy_set(PointerRNA *ptr, float value)
 }
 
 static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *max,
-                                           float *softmin, float *softmax)
+                                           float *UNUSED(softmin), float *UNUSED(softmax))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
 	
+	/* no soft-limits on lower bound - it's too confusing when you can't easily use the slider to set things here */
 	*min     = MINAFRAMEF;
-	*softmin = MINAFRAMEF;
-	
-	*softmax = (data->flag & FCM_LIMIT_XMAX) ? data->rect.xmax : MAXFRAMEF;
 	*max     = MAXFRAMEF;
 }
 
@@ -646,10 +644,8 @@ static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *m
 	FModifier *fcm = (FModifier *)ptr->data;
 	FMod_Limits *data = fcm->data;
 	
+	/* no soft-limits on lower bound - it's too confusing when you can't easily use the slider to set things here */
 	*min     = -FLT_MAX;
-	*softmin = -FLT_MAX;
-	
-	*softmax = (data->flag & FCM_LIMIT_YMAX) ? data->rect.ymax : FLT_MAX;
 	*max     = FLT_MAX;
 }
 
