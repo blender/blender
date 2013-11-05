@@ -40,11 +40,6 @@
 #endif /* __alpha__ */
 #endif /* __linux__ */
 
-#ifdef __APPLE__
-// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
-//#include <Carbon/Carbon.h>
-//#include <CFBundle.h>
-#endif // __APPLE__
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"
 #include "KX_PythonMain.h"
@@ -426,27 +421,6 @@ int main(int argc, char** argv)
 #endif /* __linux__ */
 	BLI_init_program_path(argv[0]);
 	BLI_init_temporary_dir(NULL);
-#ifdef __APPLE__
-	// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
-	/*
-	IBNibRef 		nibRef;
-	WindowRef 		window;
-	OSStatus		err;
-
-	  // Create a Nib reference passing the name of the nib file (without the .nib extension)
-	  // CreateNibReference only searches into the application bundle.
-	  err = ::CreateNibReference(CFSTR("main"), &nibRef);
-	  if (err) return -1;
-	  
-		// Once the nib reference is created, set the menu bar. "MainMenu" is the name of the menu bar
-		// object. This name is set in InterfaceBuilder when the nib is created.
-		err = ::SetMenuBarFromNib(nibRef, CFSTR("MenuBar"));
-		if (err) return -1;
-		
-		  // We don't need the nib reference anymore.
-		  ::DisposeNibReference(nibRef);
-	*/
-#endif // __APPLE__
 	
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
@@ -775,11 +749,6 @@ int main(int argc, char** argv)
 	if (scr_saver_mode != SCREEN_SAVER_MODE_CONFIGURATION)
 #endif
 	{
-#ifdef __APPLE__
-		//SYS_WriteCommandLineInt(syshandle, "show_framerate", 1);
-		//SYS_WriteCommandLineInt(syshandle, "nomipmap", 1);
-		//fullScreen = false;		// Can't use full screen
-#endif
 
 		if (SYS_GetCommandLineInt(syshandle, "nomipmap", 0)) {
 			GPU_set_mipmap(0);
