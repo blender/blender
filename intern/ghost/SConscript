@@ -55,7 +55,6 @@ incs += ' ' + env['BF_OPENGL_INC']
 if env['WITH_GHOST_SDL']:
     for f in pf:
         try:
-            sources.remove('intern' + os.sep + f + 'Carbon.cpp')
             sources.remove('intern' + os.sep + f + 'Win32.cpp')
             sources.remove('intern' + os.sep + f + 'X11.cpp')
         except ValueError:
@@ -66,7 +65,6 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'Win32.cpp')
-            sources.remove('intern' + os.sep + f + 'Carbon.cpp')
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
@@ -94,7 +92,6 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'X11.cpp')
-            sources.remove('intern' + os.sep + f + 'Carbon.cpp')
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
@@ -108,7 +105,6 @@ elif window_system == 'darwin':
             try:
                 sources.remove('intern' + os.sep + f + 'Win32.cpp')
                 sources.remove('intern' + os.sep + f + 'X11.cpp')
-                sources.remove('intern' + os.sep + f + 'Carbon.cpp')
                 sources.remove('intern' + os.sep + f + 'SDL.cpp')
             except ValueError:
                 pass
