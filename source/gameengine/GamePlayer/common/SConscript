@@ -33,7 +33,6 @@ source_files = [
     'GPC_Canvas.cpp',
     'GPC_KeyboardDevice.cpp',
     'GPC_MouseDevice.cpp',
-    'GPC_RenderTools.cpp',
     ]
 
 incs = [
