@@ -2074,7 +2074,7 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	tmp_nes = *nes;
 	
 	/* evaluate these strips into a temp-buffer (tmp_channels) */
-	/* FIXME: modifier evalation here needs some work... */
+	/* FIXME: modifier evaluation here needs some work... */
 	/* first strip */
 	tmp_nes.strip_mode = NES_TIME_TRANSITION_START;
 	tmp_nes.strip = s1;
@@ -2086,7 +2086,7 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
 	
 	
-	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	/* accumulate temp-buffer and full-buffer, using the 'real' strip */
 	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
 	
 	/* unlink this strip's modifiers from the parent's modifiers again */
@@ -2334,7 +2334,7 @@ static void animsys_calculate_nla(PointerRNA *ptr, AnimData *adt, float ctime)
 /* ***************************************** */ 
 /* Overrides System - Public API */
 
-/* Clear all overides */
+/* Clear all overrides */
 
 /* Add or get existing Override for given setting */
 #if 0
