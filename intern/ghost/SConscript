@@ -96,27 +96,17 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
         except ValueError:
             pass
 elif window_system == 'darwin':
-    if env['WITH_GHOST_COCOA']:
-        if env['WITH_BF_QUICKTIME']:
-            defs.append('WITH_QUICKTIME')
-        if env['USE_QTKIT']:
-            defs.append('USE_QTKIT')
-        for f in pf:
-            try:
-                sources.remove('intern' + os.sep + f + 'Win32.cpp')
-                sources.remove('intern' + os.sep + f + 'X11.cpp')
-                sources.remove('intern' + os.sep + f + 'SDL.cpp')
-            except ValueError:
-                pass
-    else:
-        for f in pf:
-            try:
-                sources.remove('intern' + os.sep + f + 'Win32.cpp')
-                sources.remove('intern' + os.sep + f + 'X11.cpp')
-                sources.remove('intern' + os.sep + f + 'Cocoa.mm')
-                sources.remove('intern' + os.sep + f + 'SDL.cpp')
-            except ValueError:
-                pass
+	if env['WITH_BF_QUICKTIME']:
+		defs.append('WITH_QUICKTIME')
+	if env['USE_QTKIT']:
+		defs.append('USE_QTKIT')
+	for f in pf:
+		try:
+			sources.remove('intern' + os.sep + f + 'Win32.cpp')
+			sources.remove('intern' + os.sep + f + 'X11.cpp')
+			sources.remove('intern' + os.sep + f + 'SDL.cpp')
+		except ValueError:
+			pass
 
 else:
     print "Unknown window system specified."
@@ -151,7 +141,7 @@ if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-v
 if window_system in ('win32-vc', 'win64-vc'):
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') )
 
-elif env['WITH_GHOST_COCOA']:	 # always use default-Apple-gcc for objC language, for gnu-compilers do not support it fully yet
+elif window_system == 'darwin':	 # always use default-Apple-gcc for objC language, for gnu-compilers do not support it fully yet
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
     print "GHOST COCOA WILL BE COMPILED WITH APPLE GCC"
     if env['WITH_BF_3DMOUSE']:
