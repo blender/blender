@@ -4715,13 +4715,12 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 			if ((con->flag & CONSTRAINT_DISABLE) == 0 && (con->enforce != 0.0f)) {
 				/* (affirmative) returns for specific constraints here... */
 				/* constraints that require this regardless  */
-				if (ELEM6(con->type,
+				if (ELEM5(con->type,
 				          CONSTRAINT_TYPE_CHILDOF,
 				          CONSTRAINT_TYPE_FOLLOWPATH,
 				          CONSTRAINT_TYPE_CLAMPTO,
 				          CONSTRAINT_TYPE_OBJECTSOLVER,
-				          CONSTRAINT_TYPE_FOLLOWTRACK,
-				          CONSTRAINT_TYPE_TRANSFORM))
+				          CONSTRAINT_TYPE_FOLLOWTRACK))
 				{
 					return true;
 				}
@@ -4733,6 +4732,15 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 					
 					if ((data->flag & ROTLIKE_OFFSET) && (t->mode == TFM_ROTATION))
 						return true;
+				}
+				else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
+					/* Transform constraint needs it for rotation at least (r.57309),
+					 * but doing so when translating may also mess things up [#36203]
+					 */
+					
+					if (t->mode == TFM_ROTATION)
+						return true;
+					/* ??? (t->mode == TFM_SCALE) ? */
 				}
 			}
 		}
