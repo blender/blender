@@ -22,11 +22,7 @@ MAC_PROC=commands.getoutput(cmd)
 cmd = 'uname -r'
 cmd_res=commands.getoutput(cmd)
 
-if cmd_res[:1]=='7':
-    MAC_CUR_VER='10.3'
-elif cmd_res[:1]=='8':
-    MAC_CUR_VER='10.4'
-elif cmd_res[:1]=='9':
+if cmd_res[:1]=='9':
     MAC_CUR_VER='10.5'
 elif cmd_res[:2]=='10':
     MAC_CUR_VER='10.6'
@@ -42,55 +38,40 @@ XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
 cmd = 'xcodebuild -showsdks'
 cmd_sdk=commands.getoutput(cmd)
 MACOSX_SDK_CHECK=cmd_sdk
+cmd = 'xcode-select --print-path'
+XCODE_SELECT_PATH=commands.getoutput(cmd)
+if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
+	XCODE_BUNDLE=XCODE_SELECT_PATH[:-19]
+else:
+	XCODE_BUNDLE=XCODE_SELECT_PATH
 
 # Default target OSX settings per architecture
 # Can be customized
 
-if MACOSX_ARCHITECTURE == 'ppc' and MAC_CUR_VER == '10.4':
-# all releases are now made for 10.5 !
-#   MAC_MIN_VERS = '10.3'
-#   MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-#   LCGDIR = '#../lib/darwin-6.1-powerpc'
-#   CC = 'gcc-3.3'
-#   CXX = 'g++-3.3'
-    MAC_MIN_VERS = '10.4'
-    MACOSX_DEPLOYMENT_TARGET = '10.4'
-    MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-    LCGDIR = '#../lib/darwin-8.0.0-powerpc'
-    CC = 'gcc-4.0'
-    CXX = 'g++-4.0'
-elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
-    MAC_MIN_VERS = '10.4'
-    MACOSX_DEPLOYMENT_TARGET = '10.4'
-    MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-    LCGDIR = '#../lib/darwin-8.x.i386'
-    CC = 'gcc-4.0'
-    CXX = 'g++-4.0'
-else :
-    if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
-        # OSX 10.5/6 with Xcode 3.x
-        MAC_MIN_VERS = '10.5'
-        MACOSX_DEPLOYMENT_TARGET = '10.5'
-        MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-        LCGDIR = '#../lib/darwin-9.x.universal'
-        CC = 'gcc-4.2'
-        CXX = 'g++-4.2'
-    elif 'Mac OS X 10.6' in MACOSX_SDK_CHECK:
-        # OSX 10.6/7 with Xcode 4.x
-        MAC_MIN_VERS = '10.6'
-        MACOSX_DEPLOYMENT_TARGET = '10.6'
-        MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-        LCGDIR = '#../lib/darwin-9.x.universal'
-        CC = 'gcc-4.2'
-        CXX = 'g++-4.2'
-    else:
-        # OSX 10.8 with Xcode 4.4 and higher (no 10.6sdk! )
-        MAC_MIN_VERS = '10.6'
-        MACOSX_DEPLOYMENT_TARGET = '10.6'
-        MACOSX_SDK='/Developer/SDKs/MacOSX10.7.sdk'
-        LCGDIR = '#../lib/darwin-9.x.universal'
-        CC = 'gcc'
-        CXX = 'g++'
+if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
+	# OSX 10.5/6 with Xcode 3.x
+	MAC_MIN_VERS = '10.5'
+	MACOSX_DEPLOYMENT_TARGET = '10.5'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+	LCGDIR = '#../lib/darwin-9.x.universal'
+	CC = 'gcc-4.2'
+	CXX = 'g++-4.2'
+elif 'Mac OS X 10.6' in MACOSX_SDK_CHECK:
+	# OSX 10.6/7 with Xcode 4.x
+	MAC_MIN_VERS = '10.6'
+	MACOSX_DEPLOYMENT_TARGET = '10.6'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
+	LCGDIR = '#../lib/darwin-9.x.universal'
+	CC = 'gcc-4.2'
+	CXX = 'g++-4.2'
+else:
+	# OSX 10.8 with Xcode 4.4 and higher (no 10.6sdk! )
+	MAC_MIN_VERS = '10.6'
+	MACOSX_DEPLOYMENT_TARGET = '10.6'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.8.sdk'
+	LCGDIR = '#../lib/darwin-9.x.universal'
+	CC = 'gcc'
+	CXX = 'g++'
 
 LIBDIR = '${LCGDIR}'
 
@@ -360,18 +341,11 @@ if not WITH_OSX_STATICPYTHON:
     PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
 
 
-#note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 #for > 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
 if MACOSX_SDK.endswith("10.7.sdk") or MACOSX_SDK.endswith("10.8.sdk") or MACOSX_SDK.endswith("10.9.sdk"):
     LLIBS = ['stdc++']
 else:
     LLIBS = ['stdc++', 'SystemStubs']
-
-# some flags shuffling for different OS versions
-if MAC_MIN_VERS == '10.3':
-    CCFLAGS = ['-fuse-cxa-atexit'] + CCFLAGS
-    PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit'] + PLATFORM_LINKFLAGS
-    LLIBS.append('crt3.o')
 
 if USE_SDK:
     SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]
