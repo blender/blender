@@ -124,14 +124,6 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-if(APPLE)
-	if(NOT WITH_COCOA)
-		list(APPEND SRC
-			intern/wm_apple.c
-		)
-	endif()
-endif()
-
 if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
