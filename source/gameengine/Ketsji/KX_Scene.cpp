@@ -630,7 +630,7 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 				newsensorobj = (SCA_IObject*)(*h_obj);
 			if (!newsensorobj)
 			{
-				// no, then the sensor points outside the hierachy, keep it the same
+				// no, then the sensor points outside the hierarchy, keep it the same
 				if (m_objectlist->SearchValue(oldsensorobj))
 					// only replicate links that points to active objects
 					m_logicmgr->RegisterToSensor(cont,oldsensor);
@@ -670,7 +670,7 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 
 			if (!newactuatorobj)
 			{
-				// no, then the sensor points outside the hierachy, keep it the same
+				// no, then the sensor points outside the hierarchy, keep it the same
 				if (m_objectlist->SearchValue(oldactuatorobj))
 					// only replicate links that points to active objects
 					m_logicmgr->RegisterToActuator(cont,oldactuator);

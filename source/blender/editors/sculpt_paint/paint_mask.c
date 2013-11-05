@@ -277,8 +277,9 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		Object *ob;
 		ViewContext vc;
 		LassoMaskData data;
+#ifdef _OPENMP
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
+#endif
 		struct MultiresModifierData *mmd;
 		DerivedMesh *dm;
 		PBVH *pbvh;
@@ -322,7 +323,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 		sculpt_undo_push_begin("Mask lasso fill");
 
-		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (i = 0; i < totnode; i++) {
 			PBVHVertexIter vi;
 

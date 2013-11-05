@@ -106,7 +106,7 @@ typedef struct EditBone {
 	(((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) \
 	)
 
-/* used in bone_select_hierachy() */
+/* used in armature_select_hierarchy_exec() */
 #define BONE_SELECT_PARENT  0
 #define BONE_SELECT_CHILD   1
 

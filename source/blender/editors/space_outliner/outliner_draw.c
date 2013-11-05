@@ -1624,7 +1624,7 @@ void draw_outliner(const bContext *C)
 	/* set matrix for 2d-view controls */
 	UI_view2d_view_ortho(v2d);
 
-	/* draw outliner stuff (background, hierachy lines and names) */
+	/* draw outliner stuff (background, hierarchy lines and names) */
 	outliner_back(ar);
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, ar, soops, &te_edit);
