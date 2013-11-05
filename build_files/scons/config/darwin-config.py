@@ -13,7 +13,7 @@ USE_SDK=True
 #############################################################################
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
-WITH_GHOST_COCOA=True
+
 MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 
@@ -359,10 +359,7 @@ CCFLAGS = ['-pipe','-funsigned-char']
 
 CPPFLAGS = list(ARCH_FLAGS)
 
-if WITH_GHOST_COCOA:
-    PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
-else:
-    PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
+PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
 if WITH_BF_QUICKTIME:
     if USE_QTKIT:
