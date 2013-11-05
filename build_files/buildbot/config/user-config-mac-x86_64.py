@@ -43,9 +43,6 @@ cmd = 'xcodebuild -showsdks'
 cmd_sdk=commands.getoutput(cmd)
 MACOSX_SDK_CHECK=cmd_sdk
 
-USE_QTKIT=True # Carbon quicktime is not available for 64bit
-
-
 # Default target OSX settings per architecture
 # Can be customized
 

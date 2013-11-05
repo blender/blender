@@ -49,10 +49,6 @@ if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
 else:
 	XCODE_BUNDLE=XCODE_SELECT_PATH
 
-if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'ppc64':
-    USE_QTKIT=True # Carbon quicktime is not available for 64bit
-
-
 # Default target OSX settings per architecture
 # Can be customized
 
