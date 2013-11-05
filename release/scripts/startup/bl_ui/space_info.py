@@ -283,7 +283,6 @@ class INFO_MT_help(Menu):
         layout.operator("wm.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
-        layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
         layout.operator("logic.texface_convert", text="TexFace to Material Convert", icon='GAME')
         layout.separator()
 
