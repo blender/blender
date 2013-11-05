@@ -311,16 +311,15 @@ static PyObject * StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self, 
 	static const char *kwlist[] = {"name", "value", NULL};
 	char *s;
 	PyObject *obj = 0;
+	Vec2f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
 		return NULL;
-	Vec2f *v = Vec2f_ptr_from_PyObject(obj);
-	if (!v) {
+	if (!Vec2f_ptr_from_PyObject(obj, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
-	self->sa->setAttributeVec2f(s, *v);
-	delete v;
+	self->sa->setAttributeVec2f(s, vec);
 	Py_RETURN_NONE;
 }
 
@@ -341,16 +340,15 @@ static PyObject * StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self, 
 	static const char *kwlist[] = {"name", "value", NULL};
 	char *s;
 	PyObject *obj = 0;
+	Vec3f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
 		return NULL;
-	Vec3f *v = Vec3f_ptr_from_PyObject(obj);
-	if (!v) {
+	if (!Vec3f_ptr_from_PyObject(obj, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	self->sa->setAttributeVec3f(s, *v);
-	delete v;
+	self->sa->setAttributeVec3f(s, vec);
 	Py_RETURN_NONE;
 }
 

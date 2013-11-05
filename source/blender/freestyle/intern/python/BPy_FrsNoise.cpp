@@ -132,16 +132,15 @@ static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObje
 	PyObject *obj1;
 	float f2, f3;
 	unsigned int i = 4;
+	Vec2f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
-	Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
-	if (!v) {
+	if (!Vec2f_ptr_from_PyObject(obj1, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
-	float t = self->n->turbulence2(*v, f2, f3, i);
-	delete v;
+	float t = self->n->turbulence2(vec, f2, f3, i);
 	return PyFloat_FromDouble(t);
 }
 
@@ -167,16 +166,15 @@ static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObje
 	PyObject *obj1;
 	float f2, f3;
 	unsigned int i = 4;
+	Vec3f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
-	Vec3f *v = Vec3f_ptr_from_PyObject(obj1);
-	if (!v) {
+	if (!Vec3f_ptr_from_PyObject(obj1, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	float t = self->n->turbulence3(*v, f2, f3, i);
-	delete v;
+	float t = self->n->turbulence3(vec, f2, f3, i);
 	return PyFloat_FromDouble(t);
 }
 
@@ -214,16 +212,15 @@ static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObj
 {
 	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;
+	Vec2f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
-	Vec2f *v = Vec2f_ptr_from_PyObject(obj);
-	if (!v) {
+	if (!Vec2f_ptr_from_PyObject(obj, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
-	float t = self->n->smoothNoise2(*v);
-	delete v;
+	float t = self->n->smoothNoise2(vec);
 	return PyFloat_FromDouble(t);
 }
 
@@ -241,16 +238,15 @@ static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObj
 {
 	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;
+	Vec3f vec;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
-	Vec3f *v = Vec3f_ptr_from_PyObject(obj);
-	if (!v) {
+	if (!Vec3f_ptr_from_PyObject(obj, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	float t = self->n->smoothNoise3(*v);
-	delete v;
+	float t = self->n->smoothNoise3(vec);
 	return PyFloat_FromDouble(t);
 }
 

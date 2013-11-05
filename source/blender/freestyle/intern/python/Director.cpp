@@ -251,14 +251,16 @@ int Director_BPy_UnaryFunction0D___call__(void *uf0D, PyObject *obj, Interface0D
 		((UnaryFunction0D<unsigned> *)uf0D)->result = PyLong_AsLong(result);
 	}
 	else if (BPy_UnaryFunction0DVec2f_Check(obj)) {
-		Vec2f *v = Vec2f_ptr_from_Vector(result);
-		((UnaryFunction0D<Vec2f> *)uf0D)->result = *v;
-		delete v; 
+		Vec2f vec;
+		if (!Vec2f_ptr_from_Vector(result, &vec))
+			return -1;
+		((UnaryFunction0D<Vec2f> *)uf0D)->result = vec;
 	}
 	else if (BPy_UnaryFunction0DVec3f_Check(obj)) {
-		Vec3f *v = Vec3f_ptr_from_Vector(result);
-		((UnaryFunction0D<Vec3f> *)uf0D)->result = *v;
-		delete v;
+		Vec3f vec;
+		if (!Vec3f_ptr_from_Vector(result, &vec))
+			return -1;
+		((UnaryFunction0D<Vec3f> *)uf0D)->result = vec;
 	}
 	else if (BPy_UnaryFunction0DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
@@ -301,14 +303,16 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, PyObject *obj, Interface1D
 		((UnaryFunction1D<unsigned> *)uf1D)->result = PyLong_AsLong(result);
 	}
 	else if (BPy_UnaryFunction1DVec2f_Check(obj)) {
-		Vec2f *v = Vec2f_ptr_from_Vector(result);
-		((UnaryFunction1D<Vec2f> *)uf1D)->result = *v;
-		delete v; 
+		Vec2f vec;
+		if (!Vec2f_ptr_from_Vector(result, &vec))
+			return -1;
+		((UnaryFunction1D<Vec2f> *)uf1D)->result = vec;
 	}
 	else if (BPy_UnaryFunction1DVec3f_Check(obj)) {
-		Vec3f *v = Vec3f_ptr_from_Vector(result);
-		((UnaryFunction1D<Vec3f> *)uf1D)->result = *v;
-		delete v;
+		Vec3f vec;
+		if (!Vec3f_ptr_from_Vector(result, &vec))
+			return -1;
+		((UnaryFunction1D<Vec3f> *)uf1D)->result = vec;
 	}
 	else if (BPy_UnaryFunction1DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
