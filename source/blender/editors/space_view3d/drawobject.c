@@ -1356,6 +1356,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 	
 	/* and back to viewspace */
+	glPushMatrix();
 	glLoadMatrixf(rv3d->viewmat);
 	copy_v3_v3(vec, ob->obmat[3]);
 
@@ -1391,6 +1392,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		/* restore for drawing extra stuff */
 		glColor3ubv(ob_wire_col);
 	}
+	/* and finally back to org object space! */
+	glPopMatrix();
 }
 
 static void draw_limit_line(float sta, float end, const short dflag, unsigned int col)
@@ -6876,7 +6879,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			case OB_LAMP:
 				if (!render_override) {
 					drawlamp(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-					if (dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
 				}
 				break;
 			case OB_CAMERA:
