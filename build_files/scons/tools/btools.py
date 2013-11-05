@@ -424,7 +424,7 @@ def read_opts(env, cfg, args):
         ('BF_OPENMP', 'Base path to OpenMP (used when cross-compiling with older versions of WinGW)', ''),
         ('BF_OPENMP_INC', 'Path to OpenMP includes (used when cross-compiling with older versions of WinGW)', ''),
         ('BF_OPENMP_LIBPATH', 'Path to OpenMP libraries (used when cross-compiling with older versions of WinGW)', ''),
-        (BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
+        (BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', True)),
         (BoolVariable('WITH_GHOST_SDL', 'Enable building blender against SDL for windowing rather then the native APIs', False)),
         (BoolVariable('WITH_X11_XINPUT', 'Enable X11 Xinput (tablet support and unicode input)', True)),
         (BoolVariable('WITH_X11_XF86VMODE', 'Enable X11 video mode switching', True)),
