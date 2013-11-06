@@ -474,7 +474,7 @@ typedef struct UserDef {
 	struct ColorBand coba_weight;	/* from texture.h */
 
 	float sculpt_paint_overlay_col[3];
-	float gpencil_new_layer_col[3]; /* default color for newly created Grease Pencil layers */
+	float gpencil_new_layer_col[4]; /* default color for newly created Grease Pencil layers */
 
 	short tweak_threshold;
 	short pad3;
