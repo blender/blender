@@ -9818,6 +9818,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				scene->gm.matmode = GAME_MAT_MULTITEX;
 			}
 		}
+
+		/* 'Increment' mode disabled for nodes, use true grid snapping instead */
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->toolsettings->snap_node_mode == SCE_SNAP_MODE_INCREMENT)
+				scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

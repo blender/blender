@@ -82,6 +82,7 @@
 #include "ED_mesh.h"
 #include "ED_clip.h"
 #include "ED_mask.h"
+#include "ED_node.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -2778,7 +2779,7 @@ static void Warp(TransInfo *t, const int UNUSED(mval[2]))
 		const float radius_snap = 0.1f;
 		const float snap_hack = (t->snap[1] * data->warp_init_dist) / radius_snap;
 		values.scale *= snap_hack;
-		snapGrid(t, values.vector);
+		snapGridIncrement(t, values.vector);
 		values.scale /= snap_hack;
 	}
 #endif
@@ -2950,7 +2951,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	
 	value = t->values[0];
 	
-	snapGrid(t, &value);
+	snapGridIncrement(t, &value);
 	
 	applyNumInput(&t->num, &value);
 	
@@ -3238,7 +3239,7 @@ static void applyResize(TransInfo *t, const int mval[2])
 	
 	size[0] = size[1] = size[2] = ratio;
 	
-	snapGrid(t, size);
+	snapGridIncrement(t, size);
 	
 	if (hasNumInput(&t->num)) {
 		applyNumInput(&t->num, size);
@@ -3340,7 +3341,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 	ratio = t->values[0];
 	size[0] = size[1] = size[2] = ratio;
 	
-	snapGrid(t, size);
+	snapGridIncrement(t, size);
 	
 	if (hasNumInput(&t->num)) {
 		applyNumInput(&t->num, size);
@@ -3438,7 +3439,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 	
 	ratio = t->values[0];
 	
-	snapGrid(t, &ratio);
+	snapGridIncrement(t, &ratio);
 	
 	applyNumInput(&t->num, &ratio);
 	
@@ -3789,7 +3790,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 
-	snapGrid(t, &final);
+	snapGridIncrement(t, &final);
 
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, NULL);
@@ -3902,7 +3903,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 	phi[0] = t->values[0];
 	phi[1] = t->values[1];
 
-	snapGrid(t, phi);
+	snapGridIncrement(t, phi);
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN * 2];
@@ -3981,8 +3982,8 @@ static void initTranslation(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		t->snap[0] = 0.0f;
-		t->snap[1] = 125.0f;
-		t->snap[2] = 25.0f;
+		t->snap[1] = ED_node_grid_size() * NODE_GRID_STEPS;
+		t->snap[2] = ED_node_grid_size();
 	}
 	else {
 		t->snap[0] = 0.0f;
@@ -4162,7 +4163,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 		headerTranslation(t, pvec, str);
 	}
 	else {
-		snapGrid(t, t->values);
+		snapGridIncrement(t, t->values);
 		applyNumInput(&t->num, t->values);
 		if (hasNumInput(&t->num)) {
 			removeAspectRatio(t, t->values);
@@ -4234,7 +4235,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	distance = -t->values[0];
 
-	snapGrid(t, &distance);
+	snapGridIncrement(t, &distance);
 
 	applyNumInput(&t->num, &distance);
 
@@ -4327,7 +4328,7 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 
-	snapGrid(t, &final);
+	snapGridIncrement(t, &final);
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -4402,7 +4403,7 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	ratio = t->values[0];
 
-	snapGrid(t, &ratio);
+	snapGridIncrement(t, &ratio);
 
 	applyNumInput(&t->num, &ratio);
 
@@ -4475,7 +4476,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	ratio = t->values[0];
 
-	snapGrid(t, &ratio);
+	snapGridIncrement(t, &ratio);
 
 	applyNumInput(&t->num, &ratio);
 
@@ -4566,7 +4567,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 
 	distance = t->values[0];
 
-	snapGrid(t, &distance);
+	snapGridIncrement(t, &distance);
 
 	applyNumInput(&t->num, &distance);
 
@@ -4658,7 +4659,7 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 	weight -= 1.0f;
 	if (weight > 1.0f) weight = 1.0f;
 
-	snapGrid(t, &weight);
+	snapGridIncrement(t, &weight);
 
 	applyNumInput(&t->num, &weight);
 
@@ -4735,7 +4736,7 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 	crease -= 1.0f;
 	if (crease > 1.0f) crease = 1.0f;
 
-	snapGrid(t, &crease);
+	snapGridIncrement(t, &crease);
 
 	applyNumInput(&t->num, &crease);
 
@@ -4868,7 +4869,7 @@ static void applyBoneSize(TransInfo *t, const int mval[2])
 	
 	size[0] = size[1] = size[2] = ratio;
 	
-	snapGrid(t, size);
+	snapGridIncrement(t, size);
 	
 	if (hasNumInput(&t->num)) {
 		applyNumInput(&t->num, size);
@@ -4935,7 +4936,7 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 	
 	ratio = t->values[0];
 	
-	snapGrid(t, &ratio);
+	snapGridIncrement(t, &ratio);
 	
 	applyNumInput(&t->num, &ratio);
 	
@@ -6066,7 +6067,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 
-	snapGrid(t, &final);
+	snapGridIncrement(t, &final);
 
 	/* only do this so out of range values are not displayed */
 	CLAMP(final, -1.0f, 1.0f);
@@ -6574,7 +6575,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 
-	snapGrid(t, &final);
+	snapGridIncrement(t, &final);
 
 	/* only do this so out of range values are not displayed */
 	if (is_constrained) {
@@ -6643,7 +6644,7 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 
-	snapGrid(t, &final);
+	snapGridIncrement(t, &final);
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -6716,7 +6717,7 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
 		time = (float)(t->center2d[0] - mval[0]) * fac;
 	}
 
-	snapGrid(t, &time);
+	snapGridIncrement(t, &time);
 
 	applyNumInput(&t->num, &time);
 
@@ -6983,7 +6984,7 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 		copy_v3_v3(t->values, tvec);
 	}
 	else {
-		snapGrid(t, t->values);
+		snapGridIncrement(t, t->values);
 		applyNumInput(&t->num, t->values);
 	}
 

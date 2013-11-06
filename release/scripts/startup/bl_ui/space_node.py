@@ -105,7 +105,7 @@ class NODE_HT_header(Header):
         row = layout.row(align=True)
         row.prop(toolsettings, "use_snap", text="")
         row.prop(toolsettings, "snap_node_element", text="", icon_only=True)
-        if toolsettings.snap_node_element != 'INCREMENT':
+        if toolsettings.snap_node_element != 'GRID':
             row.prop(toolsettings, "snap_target", text="")
 
         row = layout.row(align=True)

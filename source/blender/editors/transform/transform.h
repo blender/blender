@@ -566,14 +566,15 @@ typedef enum {
 	SMALL_GEARS	= 2
 } GearsType;
 
-void snapGrid(TransInfo *t, float *val);
-void snapGridAction(TransInfo *t, float *val, GearsType action);
+void snapGridIncrement(TransInfo *t, float *val);
+void snapGridIncrementAction(TransInfo *t, float *val, GearsType action);
 
 bool activeSnap(TransInfo *t);
 bool validSnap(TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
+void applyGridAbsolute(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);

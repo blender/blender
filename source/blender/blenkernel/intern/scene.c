@@ -504,6 +504,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->toolsettings->normalsize = 0.1;
 	sce->toolsettings->autokey_mode = U.autokey_mode;
 
+	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
+
 	sce->toolsettings->skgen_resolution = 100;
 	sce->toolsettings->skgen_threshold_internal     = 0.01f;
 	sce->toolsettings->skgen_threshold_external     = 0.01f;

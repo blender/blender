@@ -72,6 +72,11 @@
 /* XXX interface.h */
 extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
+float ED_node_grid_size(void)
+{
+	return U.widget_unit;
+}
+
 void ED_node_tree_update(const bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -1325,7 +1330,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 			snode_setup_v2d(snode, ar, center);
 			
 			/* grid, uses theme color based on node path depth */
-			UI_view2d_multi_grid_draw(v2d, (depth > 0 ? TH_NODE_GROUP : TH_BACK), U.widget_unit, 5, 2);
+			UI_view2d_multi_grid_draw(v2d, (depth > 0 ? TH_NODE_GROUP : TH_BACK), ED_node_grid_size(), NODE_GRID_STEPS, 2);
 			
 			/* backdrop */
 			draw_nodespace_back_pix(C, ar, snode, path->parent_key);
@@ -1350,7 +1355,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 	}
 	else {
 		/* default grid */
-		UI_view2d_multi_grid_draw(v2d, TH_BACK, U.widget_unit, 5, 2);
+		UI_view2d_multi_grid_draw(v2d, TH_BACK, ED_node_grid_size(), NODE_GRID_STEPS, 2);
 		
 		/* backdrop */
 		draw_nodespace_back_pix(C, ar, snode, NODE_INSTANCE_KEY_NONE);
