@@ -43,18 +43,16 @@ void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	NodeOperation *operation;
 	if (node->custom1 == 0) {
 		ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
-		{
-			int c;
-	
-			for (c = 0; c < 3; c++) {
-				n->lift_lgg[c] = 2.0f - n->lift[c];
-				n->gamma_inv[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
-			}
+
+		float lift_lgg[3], gamma_inv[3];
+		for (int c = 0; c < 3; c++) {
+			lift_lgg[c] = 2.0f - n->lift[c];
+			gamma_inv[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
 		}
-	
+
 		operationLGG->setGain(n->gain);
-		operationLGG->setLift(n->lift_lgg);
-		operationLGG->setGammaInv(n->gamma_inv);
+		operationLGG->setLift(lift_lgg);
+		operationLGG->setGammaInv(gamma_inv);
 		operation = operationLGG;
 	}
 	else {
