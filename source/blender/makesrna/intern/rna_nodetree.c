@@ -5256,14 +5256,14 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	
 	
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "lift");
+	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Offset", "Correction for Shadows");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_float_sdna(prop, NULL, "power");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_1);
 	RNA_def_property_range(prop, 0.f, FLT_MAX);
@@ -5272,7 +5272,7 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "slope", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "gain");
+	RNA_def_property_float_sdna(prop, NULL, "slope");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_1);
 	RNA_def_property_range(prop, 0.f, FLT_MAX);

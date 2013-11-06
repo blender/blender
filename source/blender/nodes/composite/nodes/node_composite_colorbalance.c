@@ -53,6 +53,10 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
 	n->lift[0] = n->lift[1] = n->lift[2] = 1.0f;
 	n->gamma[0] = n->gamma[1] = n->gamma[2] = 1.0f;
 	n->gain[0] = n->gain[1] = n->gain[2] = 1.0f;
+
+	n->slope[0] = n->slope[1] = n->slope[2] = 1.0f;
+	n->offset[0] = n->offset[1] = n->offset[2] = 0.0f;
+	n->power[0] = n->power[1] = n->power[2] = 1.0f;
 }
 
 void register_node_type_cmp_colorbalance(void)

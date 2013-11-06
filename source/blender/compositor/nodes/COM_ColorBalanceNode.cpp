@@ -57,9 +57,9 @@ void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	}
 	else {
 		ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
-		operationCDL->setGain(n->gain);
-		operationCDL->setLift(n->lift);
-		operationCDL->setGamma(n->gamma);
+		operationCDL->setOffset(n->offset);
+		operationCDL->setPower(n->power);
+		operationCDL->setSlope(n->slope);
 		operation = operationCDL;
 	}
 	

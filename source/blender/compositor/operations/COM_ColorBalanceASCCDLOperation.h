@@ -36,9 +36,9 @@ protected:
 	SocketReader *m_inputValueOperation;
 	SocketReader *m_inputColorOperation;
 	
-	float m_gain[3];
-	float m_lift[3];
-	float m_gamma[3];
+	float m_offset[3];
+	float m_power[3];
+	float m_slope[3];
 
 public:
 	/**
@@ -61,8 +61,8 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setGain(float gain[3]) { copy_v3_v3(this->m_gain, gain); }
-	void setLift(float lift[3]) { copy_v3_v3(this->m_lift, lift); }
-	void setGamma(float gamma[3]) { copy_v3_v3(this->m_gamma, gamma); }
+	void setOffset(float offset[3]) { copy_v3_v3(this->m_offset, offset); }
+	void setPower(float power[3]) { copy_v3_v3(this->m_power, power); }
+	void setSlope(float slope[3]) { copy_v3_v3(this->m_slope, slope); }
 };
 #endif
