@@ -40,29 +40,22 @@ else:
 
 if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
 	# OSX 10.5/6 with Xcode 3.x
-	MAC_MIN_VERS = '10.5'
 	MACOSX_DEPLOYMENT_TARGET = '10.5'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'gcc-4.2'
-	CXX = 'g++-4.2'
 elif 'Mac OS X 10.6' in MACOSX_SDK_CHECK:
 	# OSX 10.6/7 with Xcode 4.x
-	MAC_MIN_VERS = '10.6'
 	MACOSX_DEPLOYMENT_TARGET = '10.6'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'gcc-4.2'
-	CXX = 'g++-4.2'
 else:
-	# OSX 10.8 with Xcode 4.4 and higher (no 10.6sdk! )
-	MAC_MIN_VERS = '10.6'
+	# OSX 10.7/8/9 with Xcode 4.4 and higher (no 10.6sdk! )
 	MACOSX_DEPLOYMENT_TARGET = '10.6'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.8.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'gcc'
-	CXX = 'g++'
 
+MAC_MIN_VERS = MACOSX_DEPLOYMENT_TARGET
+# gcc always defaults to the system standard compiler linked by a shim or symlink
+CC = 'gcc'
+CXX = 'g++'
+LCGDIR = '#../lib/darwin-9.x.universal'
 LIBDIR = '${LCGDIR}'
 
 if XCODE_CUR_VER >= '4.3':  ## since version 4.3, XCode and developer dir are bundled ##
