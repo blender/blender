@@ -19,19 +19,8 @@ MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd)
-cmd = 'uname -r'
-cmd_res=commands.getoutput(cmd)
-
-if cmd_res[:1]=='9':
-    MAC_CUR_VER='10.5'
-elif cmd_res[:2]=='10':
-    MAC_CUR_VER='10.6'
-elif cmd_res[:2]=='11':
-    MAC_CUR_VER='10.7'
-elif cmd_res[:2]=='12':
-    MAC_CUR_VER='10.8'
-elif cmd_res[:2]=='13':
-    MAC_CUR_VER='10.9'
+cmd = 'sw_vers -productVersion'
+MAC_CUR_VER=cmd_res=commands.getoutput(cmd)
 cmd = 'xcodebuild -version'
 cmd_xcode=commands.getoutput(cmd)
 XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
