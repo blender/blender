@@ -45,6 +45,7 @@ if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
 else:
 	XCODE_BUNDLE=XCODE_SELECT_PATH
 
+
 # Default target OSX settings per architecture
 # Can be customized
 
@@ -332,10 +333,7 @@ CPPFLAGS = list(ARCH_FLAGS)
 PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
 if WITH_BF_QUICKTIME:
-    if USE_QTKIT:
-        PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
-    else:
-        PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
+    PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
 
 if not WITH_OSX_STATICPYTHON:
     PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']

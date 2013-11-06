@@ -28,12 +28,8 @@
 Import ('env')
 
 
-if env['USE_QTKIT']:
-    source_files = ['apple/qtkit_import.m',
+source_files = ['apple/qtkit_import.m',
                 'apple/qtkit_export.m']
-else:
-    source_files = ['apple/quicktime_import.c',
-                'apple/quicktime_export.c']
 
 
 incs  = ['.',

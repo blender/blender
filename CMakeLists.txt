@@ -218,7 +218,7 @@ option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
-if(APPLE OR (WIN32 AND NOT UNIX))
+if(APPLE)
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
 endif()
 
@@ -380,11 +380,7 @@ if(APPLE)
 		add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
 
-	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
-	if(CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
-		set(USE_QTKIT ON CACHE BOOL "ON" FORCE) # no Quicktime in 64bit
-	endif()
 endif()
 
 
@@ -489,14 +485,6 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
 	set(WITH_GHOST_XDND OFF)
 	set(WITH_X11_XF86VMODE OFF)
 	set(WITH_X11_XINPUT OFF)
-endif()
-
-if(MINGW)
-	if(WITH_CODEC_QUICKTIME)
-		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
-		                    "because it is currently unsupported, remove this "
-		                    "line if youre a developer who wants to add support.")
-	endif()
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -1027,13 +1015,6 @@ elseif(WIN32)
 		set(SDL_INCLUDE_DIR ${SDL}/include)
 		set(SDL_LIBRARY SDL)
 		set(SDL_LIBPATH ${SDL}/lib)
-	endif()
-
-	if(WITH_CODEC_QUICKTIME)
-		set(QUICKTIME ${LIBDIR}/QTDevWin)
-		set(QUICKTIME_INCLUDE_DIRS ${QUICKTIME}/CIncludes)
-		set(QUICKTIME_LIBRARIES qtmlClient)
-		set(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 	endif()
 
 	if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
@@ -1613,15 +1594,12 @@ elseif(APPLE)
 
 	set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 	set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
-	if(USE_QTKIT)
-		set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DUSE_QTKIT")
+	if(WITH_CODEC_QUICKTIME)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
 		if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
 			# libSDL still needs 32bit carbon quicktime
 		endif()
-	elseif(WITH_CODEC_QUICKTIME)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
 	endif()
 
 	# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!

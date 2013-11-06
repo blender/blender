@@ -342,9 +342,6 @@ if env['WITH_BF_OPENMP'] == 1:
             else:
                 env.Append(CCFLAGS=['-fopenmp'])
 
-if env['USE_QTKIT'] == True:
-    env.Append(CPPFLAGS=['-DUSE_QTKIT'])
-
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):

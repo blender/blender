@@ -98,8 +98,6 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
 elif window_system == 'darwin':
 	if env['WITH_BF_QUICKTIME']:
 		defs.append('WITH_QUICKTIME')
-	if env['USE_QTKIT']:
-		defs.append('USE_QTKIT')
 	for f in pf:
 		try:
 			sources.remove('intern' + os.sep + f + 'Win32.cpp')
@@ -107,7 +105,6 @@ elif window_system == 'darwin':
 			sources.remove('intern' + os.sep + f + 'SDL.cpp')
 		except ValueError:
 			pass
-
 else:
     print "Unknown window system specified."
     Exit()

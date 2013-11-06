@@ -69,25 +69,18 @@ QuicktimeCodecTypeDesc *quicktime_get_videocodecType_desc(int indexValue);
 int quicktime_rnatmpvalue_from_videocodectype(int codecType);
 int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue);
 
-#ifdef USE_QTKIT
 /*Audio codec type*/
 int quicktime_get_num_audiocodecs(void);
 QuicktimeCodecTypeDesc *quicktime_get_audiocodecType_desc(int indexValue);
 int quicktime_rnatmpvalue_from_audiocodectype(int codecType);
 int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue);
-#endif
-
-#ifndef USE_QTKIT
-void SCENE_OT_render_data_set_quicktime_codec(struct wmOperatorType *ot); //Operator to raise quicktime standard dialog to request codec settings
-#endif
-
 
 void free_qtcomponentdata(void);
 void makeqtstring(struct RenderData *rd, char *string);		//for playanim.c
 
 
 
-#if (defined(USE_QTKIT) && MAC_OS_X_VERSION_MIN_REQUIRED >= 1050 && __LP64__)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= 1050 && __LP64__)
 //Include the quicktime codec types constants that are missing in QTKitDefines.h
 enum {
 	kRawCodecType						= 'raw ',

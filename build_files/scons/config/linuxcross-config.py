@@ -101,10 +101,6 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = False
-BF_QUICKTIME = '/usr/local'
-BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
-
 WITH_BF_ICONV = False
 BF_ICONV = LIBDIR + "/gcc/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'

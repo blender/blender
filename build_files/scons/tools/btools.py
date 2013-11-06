@@ -143,7 +143,6 @@ def validate_arguments(args, bc):
             'WITH_X11_XINPUT',
             'WITH_X11_XF86VMODE',
             'BF_GHOST_DEBUG',
-            'USE_QTKIT',
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
@@ -426,7 +425,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_GHOST_SDL', 'Enable building blender against SDL for windowing rather then the native APIs', False)),
         (BoolVariable('WITH_X11_XINPUT', 'Enable X11 Xinput (tablet support and unicode input)', True)),
         (BoolVariable('WITH_X11_XF86VMODE', 'Enable X11 video mode switching', True)),
-        (BoolVariable('USE_QTKIT', 'Use QTKIT if true', True)),
         ('BF_OPENMP_LIB_STATIC', 'OpenMP static library', ''),
 
         (BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),

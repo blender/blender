@@ -61,9 +61,6 @@ if env['WITH_BF_QUICKTIME']:
     incs += ' ../../quicktime'
     env.Append(CFLAGS=['-DWITH_QUICKTIME'])
 
-if env['USE_QTKIT']:
-   env.Append(CFLAGS=['-DUSE_QTKIT'])
-
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 

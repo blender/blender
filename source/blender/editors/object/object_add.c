@@ -1617,6 +1617,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 			for (nu = cu->nurb.first; nu; nu = nu->next)
 				nu->charidx = 0;
 
+			cu->flag &= ~CU_3D;
+			BKE_curve_curve_dimension_update(cu);
+
 			if (target == OB_MESH) {
 				curvetomesh(scene, newob);
 

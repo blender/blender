@@ -41,23 +41,13 @@ set(INC_SYS
 	${QUICKTIME_INCLUDE_DIRS}
 )
 
-if(USE_QTKIT)
-	set(SRC
-		apple/qtkit_import.m
-		apple/qtkit_export.m
+set(SRC
+	apple/qtkit_import.m
+	apple/qtkit_export.m
 
-		quicktime_export.h
-		quicktime_import.h
-	)
-else()
-	set(SRC
-		apple/quicktime_import.c
-		apple/quicktime_export.c
-
-		quicktime_export.h
-		quicktime_import.h
-	)
-endif()
+	quicktime_export.h
+	quicktime_import.h
+)
 
 add_definitions(-DWITH_QUICKTIME)
 

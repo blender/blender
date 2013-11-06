@@ -42,18 +42,6 @@
 #include "../imbuf/IMB_imbuf.h"
 #include "../imbuf/IMB_imbuf_types.h"
 
-#ifndef USE_QTKIT
-#  ifndef __MOVIES__
-#    ifdef _WIN32
-#      include <Movies.h>
-#    elif defined(__APPLE__)
-#      define __CARBONSOUND__
-#      import <Carbon/Carbon.h>
-#      include <QuickTime/Movies.h>
-#    endif
-#  endif  /* __MOVIES__ */
-#endif  /* USE_QTKIT */
-
 #ifdef _WIN32
 #  ifndef __FIXMATH__
 #    include <FixMath.h>
