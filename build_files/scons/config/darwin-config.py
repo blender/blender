@@ -101,14 +101,7 @@ else:
     BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-${BF_PYTHON_VERSION}m'
 
 WITH_BF_OPENAL = True
-#different lib must be used  following version of gcc
-# for gcc 3.3
-#BF_OPENAL = LIBDIR + '/openal'
-# for gcc 3.4 and ulterior
-if MAC_PROC == 'powerpc':
-    BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
-else :
-    BF_OPENAL = LIBDIR + '/openal'
+BF_OPENAL = LIBDIR + '/openal'
 
 WITH_BF_STATICOPENAL = False
 BF_OPENAL_INC = '${BF_OPENAL}/include' # only headers from libdir needed for proper use of framework !!!!
