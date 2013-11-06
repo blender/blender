@@ -51,7 +51,6 @@ else:
 	MACOSX_DEPLOYMENT_TARGET = '10.6'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.8.sdk'
 
-MAC_MIN_VERS = MACOSX_DEPLOYMENT_TARGET
 # gcc always defaults to the system standard compiler linked by a shim or symlink
 CC = 'gcc'
 CXX = 'g++'
@@ -329,8 +328,8 @@ else:
     LLIBS = ['stdc++', 'SystemStubs']
 
 if USE_SDK:
-    SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]
-    PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
+    SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MACOSX_DEPLOYMENT_TARGET,'-arch',MACOSX_ARCHITECTURE]
+    PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MACOSX_DEPLOYMENT_TARGET,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
     CCFLAGS=SDK_FLAGS+CCFLAGS
     CXXFLAGS=SDK_FLAGS+CXXFLAGS
 
