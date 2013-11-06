@@ -410,10 +410,11 @@ if env['OURPLATFORM']=='darwin':
 
     #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
     # if your compiler does not have accurate suffix you may have to enable it by hand !
-    if env['CC'][:-2].endswith('4.6') or env['CC'][:-2].endswith('4.8'):
-        env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
-    else:
-        env['WITH_BF_OPENMP'] = 0
+    if env['WITH_BF_OPENMP'] == 1:
+        if env['CC'][:-2].endswith('4.6') or env['CC'][:-2].endswith('4.8'):
+            env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
+        else:
+            env['WITH_BF_OPENMP'] = 0
 		
 	env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+ARCH_FLAGS
 

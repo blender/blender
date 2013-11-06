@@ -211,6 +211,9 @@ BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35']
 #Freestyle
 WITH_BF_FREESTYLE = True
 
+#OpenMP ( will be checked for compiler support and turned off eventually )
+WITH_BF_OPENMP = True
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = []
