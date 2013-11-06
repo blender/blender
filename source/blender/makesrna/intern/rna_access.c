@@ -4980,7 +4980,7 @@ bool RNA_property_is_unlink(PropertyRNA *prop)
 /* string representation of a property, python
  * compatible but can be used for display too,
  * context may be NULL */
-static char *rna_pointer_as_string__idprop(bContext *C, PointerRNA *ptr)
+char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
 {
 	DynStr *dynstr = BLI_dynstr_new();
 	char *cstring;
@@ -5031,7 +5031,7 @@ static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
 {
 	if (RNA_property_flag(prop_ptr) & PROP_IDPROPERTY) {
-		return rna_pointer_as_string__idprop(C, ptr_prop);
+		return RNA_pointer_as_string_id(C, ptr_prop);
 	}
 	else {
 		return rna_pointer_as_string__bldata(ptr_prop);

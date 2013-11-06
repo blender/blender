@@ -1034,6 +1034,7 @@ void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index, int max_prop_length);
+char *RNA_pointer_as_string_id(struct bContext *C, PointerRNA *ptr);
 char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop);
 char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr,
                                         const bool skip_optional_value, const bool all_args,

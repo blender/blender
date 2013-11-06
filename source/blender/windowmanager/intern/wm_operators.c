@@ -521,13 +521,14 @@ void WM_operator_bl_idname(char *to, const char *from)
 		to[0] = 0;
 }
 
-/* print a string representation of the operator, with the args that it runs 
- * so python can run it again,
+/* Print a string representation of the operator, with the args that it runs so python can run it again.
  *
- * When calling from an existing wmOperator do.
- * WM_operator_pystring(op->type, op->ptr);
+ * When calling from an existing wmOperator, better to use simple version:
+ *     WM_operator_pystring(C, op);
+ *
+ * Note: both op and opptr may be NULL (op is only used for macro operators).
  */
-char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, int all_args)
+char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, wmOperatorType *ot, PointerRNA *opptr)
 {
 	char idname_py[OP_MAX_TYPENAME];
 
@@ -539,30 +540,64 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	/* arbitrary, but can get huge string with stroke painting otherwise */
 	int max_prop_length = 10;
 
-	/* only to get the orginal props for comparisons */
-	PointerRNA opptr_default;
-
-	if (opptr == NULL) {
-		WM_operator_properties_create_ptr(&opptr_default, ot);
-		opptr = &opptr_default;
-	}
-
 	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
-	cstring_args = RNA_pointer_as_string_keywords(C, opptr, false,
-	                                              all_args, max_prop_length);
-	BLI_dynstr_append(dynstr, cstring_args);
-	MEM_freeN(cstring_args);
+	if (op && op->macro.first) {
+		/* Special handling for macros, else we only get default values in this case... */
+		wmOperator *opm;
+		bool first_op = true;
+		for (opm = op->macro.first; opm; opm = opm->next) {
+			PointerRNA *opmptr = opm->ptr;
+			PointerRNA opmptr_default;
+			if (opmptr == NULL) {
+				WM_operator_properties_create_ptr(&opmptr_default, opm->type);
+				opmptr = &opmptr_default;
+			}
 
-	if (opptr == &opptr_default)
-		WM_operator_properties_free(&opptr_default);
+			cstring_args = RNA_pointer_as_string_id(C, opmptr);
+			if (first_op) {
+				BLI_dynstr_appendf(dynstr, "%s=%s", opm->type->idname, cstring_args);
+				first_op = false;
+			}
+			else {
+				BLI_dynstr_appendf(dynstr, ", %s=%s", opm->type->idname, cstring_args);
+			}
+			MEM_freeN(cstring_args);
+
+			if (opmptr == &opmptr_default) {
+				WM_operator_properties_free(&opmptr_default);
+			}
+		}
+	}
+	else {
+		/* only to get the orginal props for comparisons */
+		PointerRNA opptr_default;
+
+		if (opptr == NULL) {
+			WM_operator_properties_create_ptr(&opptr_default, ot);
+			opptr = &opptr_default;
+		}
+
+		cstring_args = RNA_pointer_as_string_keywords(C, opptr, false, all_args, max_prop_length);
+		BLI_dynstr_append(dynstr, cstring_args);
+		MEM_freeN(cstring_args);
+
+		if (opptr == &opptr_default) {
+			WM_operator_properties_free(&opptr_default);
+		}
+	}
 
 	BLI_dynstr_append(dynstr, ")");
 
 	cstring = BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
+}
+
+char *WM_operator_pystring(bContext *C, wmOperator *op, const bool all_args)
+{
+	return WM_operator_pystring_ex(C, op, all_args, op->type, op->ptr);
 }
 
 /* return NULL if no match is found */

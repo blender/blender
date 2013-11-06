@@ -539,7 +539,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* so the context is passed to itemf functions (some py itemf functions use it) */
 		WM_operator_properties_sanitize(opptr, false);
 
-		str = WM_operator_pystring(C, but->optype, opptr, 0);
+		str = WM_operator_pystring_ex(C, NULL, false, but->optype, opptr);
 
 		/* operator info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {

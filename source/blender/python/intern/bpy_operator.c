@@ -345,7 +345,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 		error_val = pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
 
 	if (error_val == 0)
-		buf = WM_operator_pystring(C, ot, &ptr, all_args);
+		buf = WM_operator_pystring_ex(C, NULL, all_args, ot, &ptr);
 
 	WM_operator_properties_free(&ptr);
 

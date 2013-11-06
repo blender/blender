@@ -2931,7 +2931,7 @@ static void ui_intro_button(DynStr *ds, uiButtonItem *bitem)
 	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");  /* not exactly needed, rna has this */
 
 	if (but->optype) {
-		char *opstr = WM_operator_pystring(but->block->evil_C, but->optype, but->opptr, 0);
+		char *opstr = WM_operator_pystring_ex(but->block->evil_C, NULL, false, but->optype, but->opptr);
 		BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
 		MEM_freeN(opstr);
 	}

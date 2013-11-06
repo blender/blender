@@ -541,7 +541,8 @@ void WM_operator_py_idname(char *to, const char *from) {STUB_ASSERT(0);}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height) {STUB_ASSERT(0);}
 short insert_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) {STUB_ASSERT(0); return 0;}
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) {STUB_ASSERT(0); return 0;}
-char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args) {STUB_ASSERT(0); return (char *)NULL;}
+char *WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op, const bool all_args, struct wmOperatorType *ot, struct PointerRNA *opptr) {STUB_ASSERT(0); return (char *)NULL;}
+char *WM_operator_pystring(struct bContext *C, struct wmOperator *op, const bool all_args) {STUB_ASSERT(0); return (char *)NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value) {STUB_ASSERT(0); return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item_str(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value) {STUB_ASSERT(0); return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items) {STUB_ASSERT(0); return (struct wmKeyMap *) NULL;}
