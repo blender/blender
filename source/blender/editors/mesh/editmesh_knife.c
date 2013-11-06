@@ -348,12 +348,17 @@ static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], const
 static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v)
 {
 	KnifeVert *kfv = BLI_ghash_lookup(kcd->origvertmap, v);
+	const float *cageco;
 
 	if (!kfv) {
 		BMIter bmiter;
 		BMFace *f;
 
-		kfv = new_knife_vert(kcd, v->co, kcd->cagecos[BM_elem_index_get(v)]);
+		if (BM_elem_index_get(v) >= 0)
+			cageco = kcd->cagecos[BM_elem_index_get(v)];
+		else
+			cageco = v->co;
+		kfv = new_knife_vert(kcd, v->co, cageco);
 		kfv->v = v;
 		BLI_ghash_insert(kcd->origvertmap, v, kfv);
 		BM_ITER_ELEM (f, &bmiter, v, BM_FACES_OF_VERT) {
