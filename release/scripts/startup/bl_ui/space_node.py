@@ -169,6 +169,7 @@ class NODE_MT_select(Menu):
         layout = self.layout
 
         layout.operator("node.select_border")
+        layout.operator("node.select_circle")
 
         layout.separator()
         layout.operator("node.select_all").action = 'TOGGLE'

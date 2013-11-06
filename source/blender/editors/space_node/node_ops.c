@@ -56,6 +56,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
 	WM_operatortype_append(NODE_OT_select_border);
+	WM_operatortype_append(NODE_OT_select_circle);
 	WM_operatortype_append(NODE_OT_select_lasso);
 	WM_operatortype_append(NODE_OT_select_same_type);
 	WM_operatortype_append(NODE_OT_select_same_type_step);
@@ -231,6 +232,8 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+
+	WM_keymap_add_item(keymap, "NODE_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* each of these falls through if not handled... */
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);

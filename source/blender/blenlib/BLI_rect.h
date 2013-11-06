@@ -74,6 +74,8 @@ bool BLI_rctf_isect_pt(const struct rctf *rect, const float x, const float y);
 bool BLI_rctf_isect_pt_v(const struct rctf *rect, const float xy[2]);
 bool BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
 bool BLI_rctf_isect_segment(const struct rctf *rect, const float s1[2], const float s2[2]);
+bool BLI_rcti_isect_circle(const struct rcti *rect, const float xy[2], const float radius);
+bool BLI_rctf_isect_circle(const struct rctf *rect, const float xy[2], const float radius);
 bool BLI_rcti_inside_rcti(rcti *rct_a, const rcti *rct_b);
 bool BLI_rctf_inside_rctf(rctf *rct_a, const rctf *rct_b);
 void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);

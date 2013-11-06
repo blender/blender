@@ -514,6 +514,63 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
+/* ****** Circle Select ****** */
+
+static int node_circleselect_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
+	bNode *node;
+
+	int x, y, radius, gesture_mode;
+	float offset[2];
+
+	float zoom  = (float)(BLI_rcti_size_x(&ar->winrct)) / (float)(BLI_rctf_size_x(&ar->v2d.cur));
+
+	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+
+	/* get operator properties */
+	x = RNA_int_get(op->ptr, "x");
+	y = RNA_int_get(op->ptr, "y");
+	radius = RNA_int_get(op->ptr, "radius");
+
+	UI_view2d_region_to_view(&ar->v2d, x, y, &offset[0], &offset[1]);
+
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if (BLI_rctf_isect_circle(&node->totr, offset, radius / zoom)) {
+			nodeSetSelected(node, (gesture_mode == GESTURE_MODAL_SELECT));
+		}
+	}
+
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_circle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Circle Select";
+	ot->idname = "NODE_OT_select_circle";
+	ot->description = "Use circle selection to select nodes";
+
+	/* api callbacks */
+	ot->invoke = WM_gesture_circle_invoke;
+	ot->exec = node_circleselect_exec;
+	ot->modal = WM_gesture_circle_modal;
+
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* rna */
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+}
+
 /* ****** Lasso Select ****** */
 
 static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)

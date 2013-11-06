@@ -216,6 +216,32 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
 	}
 }
 
+bool BLI_rcti_isect_circle(const rcti *rect, const float xy[2], const float radius)
+{
+	float dx, dy;
+
+	if (xy[0] >= rect->xmin && xy[0] <= rect->xmax) dx = 0;
+	else dx = (xy[0] < rect->xmin) ? (rect->xmin - xy[0]) : (xy[0] - rect->xmax);
+
+	if (xy[1] >= rect->ymin && xy[1] <= rect->ymax) dy = 0;
+	else dy = (xy[1] < rect->ymin) ? (rect->ymin - xy[1]) : (xy[1] - rect->ymax);
+
+	return dx * dx + dy * dy <= radius * radius;
+}
+
+bool BLI_rctf_isect_circle(const rctf *rect, const float xy[2], const float radius)
+{
+	float dx, dy;
+
+	if (xy[0] >= rect->xmin && xy[0] <= rect->xmax) dx = 0;
+	else dx = (xy[0] < rect->xmin) ? (rect->xmin - xy[0]) : (xy[0] - rect->xmax);
+
+	if (xy[1] >= rect->ymin && xy[1] <= rect->ymax) dy = 0;
+	else dy = (xy[1] < rect->ymin) ? (rect->ymin - xy[1]) : (xy[1] - rect->ymax);
+
+	return dx * dx + dy * dy <= radius * radius;
+}
+
 void BLI_rctf_union(rctf *rct1, const rctf *rct2)
 {
 	if (rct1->xmin > rct2->xmin) rct1->xmin = rct2->xmin;
