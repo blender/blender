@@ -179,7 +179,7 @@ def validate_arguments(args, bc):
             'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
             'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
             'C_WARN', 'CC_WARN', 'CXX_WARN',
-            'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE', 'MACOSX_SDK_CHECK', 'XCODE_CUR_VER',
+            'LLIBS', 'PLATFORM_LINKFLAGS', 'MACOSX_ARCHITECTURE', 'MACOSX_SDK', 'MACOSX_SDK_CHECK', 'XCODE_CUR_VER',
             'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS', 'MACOSX_DEPLOYMENT_TARGET'
     ]
 
@@ -501,6 +501,7 @@ def read_opts(env, cfg, args):
         ('LLIBS', 'Platform libs', []),
         ('PLATFORM_LINKFLAGS', 'Platform linkflags', []),
         ('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
+        ('MACOSX_SDK', 'Set OS X SDK', ''),
         ('MACOSX_SDK_CHECK', 'Detect available OS X SDK`s', ''),
         ('XCODE_CUR_VER', 'Detect XCode version', ''),
         ('MACOSX_DEPLOYMENT_TARGET', 'Detect OS X target version', ''),

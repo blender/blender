@@ -285,17 +285,99 @@ if 'cudakernels' in B.targets:
     env['WITH_BF_CYCLES_CUDA_BINARIES'] = True
     env['WITH_BF_PYTHON'] = False
 
-# Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY and JAckOSX detection for OSX
+
+#############################################################################
+###################    Automatic configuration for OSX     ##################
+#############################################################################
+
 if env['OURPLATFORM']=='darwin':
+
+    import commands
+    
+    cmd = 'uname -p'
+    MAC_PROC=commands.getoutput(cmd)
+    cmd = 'sw_vers -productVersion'
+    MAC_CUR_VER=cmd_res=commands.getoutput(cmd)
+    cmd = 'xcodebuild -version'
+    cmd_xcode=commands.getoutput(cmd)
+    env['XCODE_CUR_VER']=cmd_xcode[6:][:3] # truncate output to major.minor version
+    cmd = 'xcodebuild -showsdks'
+    cmd_sdk=commands.getoutput(cmd)
+    env['MACOSX_SDK_CHECK']=cmd_sdk
+    cmd = 'xcode-select --print-path'
+    XCODE_SELECT_PATH=commands.getoutput(cmd)
+    if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
+        XCODE_BUNDLE=XCODE_SELECT_PATH[:-19]
+    else:
+        XCODE_BUNDLE=XCODE_SELECT_PATH
+
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
     print "Available " + env['MACOSX_SDK_CHECK']
-    if not 'Mac OS X 10.6' in env['MACOSX_SDK_CHECK']:
-        print  B.bc.OKGREEN + "Building with user-defined OS X SDK ( Xcode 4.4 or newer )"
-    elif not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
-        print  B.bc.OKGREEN + "Auto-setting available MacOSX SDK -> " + B.bc.ENDC + "MacOSX10.6.sdk"
+
+    if env['MACOSX_SDK'] == '': # no set sdk, choosing best one found
+        if 'OS X 10.9' in env['MACOSX_SDK_CHECK']:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.9.sdk'
+        elif 'OS X 10.8' in env['MACOSX_SDK_CHECK']:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.8.sdk'
+        elif 'OS X 10.7' in env['MACOSX_SDK_CHECK']:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.7.sdk'
+        elif 'OS X 10.6' in env['MACOSX_SDK_CHECK']:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.6.sdk'
+        elif 'OS X 10.5' in env['MACOSX_SDK_CHECK']:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.5'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.5.sdk'
     else:
-        print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
+        env['MACOSX_SDK']='/Developer/SDKs/MacOSX' + env['MACOSX_SDK'] + '.sdk'
+
+    if env['XCODE_CUR_VER'] >= '4.3':  ## since version 4.3, XCode and developer dir are bundled ##
+         env['MACOSX_SDK'] = XCODE_BUNDLE + '/Contents/Developer/Platforms/MacOSX.platform' +  env['MACOSX_SDK']
+    print B.bc.OKGREEN + "Using OSX SDK :" + B.bc.ENDC + env['MACOSX_SDK']
 		
+    if not env['WITH_OSX_STATICPYTHON'] == 1:
+        # python 3.3 uses Python-framework additionally installed in /Library/Frameworks
+        env['BF_PYTHON'] = '/Library/Frameworks/Python.framework/Versions/'
+        env['BF_PYTHON_INC'] = env['BF_PYTHON'] + env['BF_PYTHON_VERSION'] + '/include/python' + env['BF_PYTHON_VERSION'] + 'm'
+        env['BF_PYTHON_BINARY'] = env['BF_PYTHON'] + env['BF_PYTHON_VERSION'] + '/bin/python' + env['BF_PYTHON_VERSION']
+        env['BF_PYTHON_LIB'] = ''
+        env['BF_PYTHON_LIBPATH'] = env['BF_PYTHON'] + env['BF_PYTHON_VERSION'] + '/lib/python' + env['BF_PYTHON_VERSION'] + '/config-' + env['BF_PYTHON_VERSION'] +'m'
+
+    #Ray trace optimization
+    if env['WITH_BF_RAYOPTIMIZATION'] == 1:
+        if env['MACOSX_ARCHITECTURE'] == 'x86_64' or env['MACOSX_ARCHITECTURE'] == 'i386':
+            env['WITH_BF_RAYOPTIMIZATION'] = 1
+        else:
+            env['WITH_BF_RAYOPTIMIZATION'] = 0
+        if env['MACOSX_ARCHITECTURE'] == 'i386':
+            env['BF_RAYOPTIMIZATION_SSE_FLAGS'] = env['BF_RAYOPTIMIZATION_SSE_FLAGS']+['-msse']
+        elif env['MACOSX_ARCHITECTURE'] == 'x86_64':
+            env['BF_RAYOPTIMIZATION_SSE_FLAGS'] = env['BF_RAYOPTIMIZATION_SSE_FLAGS']+['-msse','-msse2']
+
+    if env['MACOSX_ARCHITECTURE'] == 'x86_64' or env['MACOSX_ARCHITECTURE'] == 'ppc64':
+        ARCH_FLAGS = ['-m64']
+    else:
+        ARCH_FLAGS = ['-m32']
+		
+	env['CPPFLAGS'] = list(ARCH_FLAGS)
+
+    SDK_FLAGS=['-isysroot',  env['MACOSX_SDK'],'-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-arch',env['MACOSX_ARCHITECTURE']] # always used
+    env['PLATFORM_LINKFLAGS'] = ['-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-isysroot', env['MACOSX_SDK'],'-arch',env['MACOSX_ARCHITECTURE']]+env['PLATFORM_LINKFLAGS']
+    env['CCFLAGS']=SDK_FLAGS+env['CCFLAGS']
+    env['CXXFLAGS']=SDK_FLAGS+env['CXXFLAGS']
+	
+    #Intel Macs are CoreDuo and Up
+    if env['MACOSX_ARCHITECTURE'] == 'i386' or env['MACOSX_ARCHITECTURE'] == 'x86_64':
+        env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-ftree-vectorize','-msse','-msse2','-msse3']
+    else:
+        env['CCFLAGS'] =  env['CCFLAGS']+['-fno-strict-aliasing']
+
+    # Intel 64bit Macs are Core2Duo and up
+    if env['MACOSX_ARCHITECTURE'] == 'x86_64':
+        env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-mssse3']
+
     if env['XCODE_CUR_VER'] >= '5' and not (env['CXX'][:-2].endswith('4.6') or env['CXX'][:-2].endswith('4.8')):
         env['CCFLAGS'].append('-ftemplate-depth=1024') # only valid for clang bundled with xcode 5
 
@@ -320,17 +402,40 @@ if env['OURPLATFORM']=='darwin':
         else:
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
+    if env['WITH_BF_QUICKTIME'] == 1:
+        env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','QTKit']
+
+    if not env['WITH_OSX_STATICPYTHON'] == 1:
+        env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','Python']
+
+    #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
+    # if your compiler does not have accurate suffix you may have to enable it by hand !
+    if env['CC'][:-2].endswith('4.6') or env['CC'][:-2].endswith('4.8'):
+        env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
+    else:
+        env['WITH_BF_OPENMP'] = 0
+		
+	env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+ARCH_FLAGS
+
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
         # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
         if env['CC'][:-2].endswith('4.8'):
-		    env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-loslexec','-loslquery'])
+            env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-loslexec','-loslquery'])
         else:
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
         env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
 
     # Trying to get rid of eventually clashes, we export some explicite as local symbols
     env.Append(LINKFLAGS=['-Xlinker','-unexported_symbols_list','-Xlinker','./source/creator/osx_locals.map'])
+    
+    #for < 10.7.sdk, SystemStubs needs to be linked
+    if  env['MACOSX_SDK'].endswith("10.6.sdk") or  env['MACOSX_SDK'].endswith("10.5.sdk"):
+        env['LLIBS'].append('SystemStubs')
+
+#############################################################################
+###################  End Automatic configuration for OSX   ##################
+#############################################################################
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

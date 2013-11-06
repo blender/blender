@@ -1,55 +1,12 @@
-#
-# Note : if you want to alter this file
-# copy it as a whole in the upper folder
-# as user-config.py
-# dont create a new file with only some
-# vars changed.
-
 import commands
 
-# IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
-USE_SDK=True
-
 #############################################################################
-###################     Cocoa & architecture settings      ##################
+###################     Compiler & architecture settings      ##################
 #############################################################################
 
 MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
-
-
-cmd = 'uname -p'
-MAC_PROC=commands.getoutput(cmd)
-cmd = 'sw_vers -productVersion'
-MAC_CUR_VER=cmd_res=commands.getoutput(cmd)
-cmd = 'xcodebuild -version'
-cmd_xcode=commands.getoutput(cmd)
-XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
-cmd = 'xcodebuild -showsdks'
-cmd_sdk=commands.getoutput(cmd)
-MACOSX_SDK_CHECK=cmd_sdk
-cmd = 'xcode-select --print-path'
-XCODE_SELECT_PATH=commands.getoutput(cmd)
-if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
-	XCODE_BUNDLE=XCODE_SELECT_PATH[:-19]
-else:
-	XCODE_BUNDLE=XCODE_SELECT_PATH
-
-
-# Default target OSX settings per architecture
-# Can be customized
-
-if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
-	# OSX 10.5/6 with Xcode 3.x
-	MACOSX_DEPLOYMENT_TARGET = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-elif 'Mac OS X 10.6' in MACOSX_SDK_CHECK:
-	# OSX 10.6/7 with Xcode 4.x
-	MACOSX_DEPLOYMENT_TARGET = '10.6'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-else:
-	# OSX 10.7/8/9 with Xcode 4.4 and higher (no 10.6sdk! )
-	MACOSX_DEPLOYMENT_TARGET = '10.6'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.8.sdk'
+MACOSX_SDK='' # set an sdk name like '10.7' or leave empty for automatic choosing highest available
+MACOSX_DEPLOYMENT_TARGET = '10.6'
 
 # gcc always defaults to the system standard compiler linked by a shim or symlink
 CC = 'gcc'
@@ -57,19 +14,9 @@ CXX = 'g++'
 LCGDIR = '#../lib/darwin-9.x.universal'
 LIBDIR = '${LCGDIR}'
 
-if XCODE_CUR_VER >= '4.3':  ## since version 4.3, XCode and developer dir are bundled ##
-	MACOSX_SDK = XCODE_BUNDLE + '/Contents/Developer/Platforms/MacOSX.platform' + MACOSX_SDK
-
 #############################################################################
 ###################          Dependency settings           ##################
 #############################################################################
-
-#Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
-# if your compiler does not have accurate suffix you may have to enable it by hand !
-if CC[:-2].endswith('4.6') or CC[:-2].endswith('4.8'):
-    WITH_BF_OPENMP = True  # multithreading for fluids, cloth, sculpt and smoke
-else:
-    WITH_BF_OPENMP = False
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True
@@ -82,23 +29,13 @@ BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore 
 BF_PYTHON_VERSION = '3.3'
 WITH_OSX_STATICPYTHON = True
 
-if WITH_OSX_STATICPYTHON:
-    # python 3.3 uses precompiled libraries in bf svn /lib by default
-
-    BF_PYTHON = LIBDIR + '/python'
-    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}m'
-    # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}m'
-    BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-    # BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
-else:
-    # python 3.2 uses Python-framework additionally installed in /Library/Frameworks
-
-    BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-    BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}m'
-    BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
-    #BF_PYTHON_LIB = ''
-    BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-${BF_PYTHON_VERSION}m'
+# python 3.3 uses precompiled libraries in bf svn /lib by default
+BF_PYTHON = LIBDIR + '/python'
+BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}m'
+# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}m'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 
 WITH_BF_OPENAL = True
 BF_OPENAL = LIBDIR + '/openal'
@@ -275,14 +212,8 @@ BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35']
 WITH_BF_FREESTYLE = True
 
 #Ray trace optimization
-if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':
-    WITH_BF_RAYOPTIMIZATION = True
-else:
-    WITH_BF_RAYOPTIMIZATION = False
-if MACOSX_ARCHITECTURE == 'i386':
-    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
-elif MACOSX_ARCHITECTURE == 'x86_64':
-    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
+WITH_BF_RAYOPTIMIZATION = True
+BF_RAYOPTIMIZATION_SSE_FLAGS = []
 
 # SpaceNavigator and related 3D mice, driver must be 3DxWare 10 Beta 4 (Mac OS X) or later !
 WITH_BF_3DMOUSE = True
@@ -293,53 +224,17 @@ WITH_BF_3DMOUSE = True
 
 BF_QUIET = '1' # suppress verbose output
 
-if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
-    ARCH_FLAGS = ['-m64']
-else:
-    ARCH_FLAGS = ['-m32']
-
 CFLAGS = []
 CXXFLAGS = []
 CCFLAGS = ['-pipe','-funsigned-char']
 
+PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']
 
-CPPFLAGS = list(ARCH_FLAGS)
+LLIBS = ['stdc++']
 
-PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
-
-if WITH_BF_QUICKTIME:
-    PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
-
-if not WITH_OSX_STATICPYTHON:
-    PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
-
-
-#for > 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
-if MACOSX_SDK.endswith("10.7.sdk") or MACOSX_SDK.endswith("10.8.sdk") or MACOSX_SDK.endswith("10.9.sdk"):
-    LLIBS = ['stdc++']
-else:
-    LLIBS = ['stdc++', 'SystemStubs']
-
-if USE_SDK:
-    SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MACOSX_DEPLOYMENT_TARGET,'-arch',MACOSX_ARCHITECTURE]
-    PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MACOSX_DEPLOYMENT_TARGET,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
-    CCFLAGS=SDK_FLAGS+CCFLAGS
-    CXXFLAGS=SDK_FLAGS+CXXFLAGS
-
-#Intel Macs are CoreDuo and Up
-if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-    REL_CFLAGS = []
-    REL_CXXFLAGS = []
-    REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3']
-else:
-    CCFLAGS += ['-fno-strict-aliasing']
-    REL_CFLAGS = []
-    REL_CXXFLAGS = []
-    REL_CCFLAGS = ['-DNDEBUG', '-O2']
-
-# Intel 64bit Macs are Core2Duo and up
-if MACOSX_ARCHITECTURE == 'x86_64':
-    REL_CCFLAGS += ['-mssse3']
+REL_CFLAGS = []
+REL_CXXFLAGS = []
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 
 CC_WARN = ['-Wall']
 C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas', '-Wstrict-prototypes']
