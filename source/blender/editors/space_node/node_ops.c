@@ -70,7 +70,6 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_preview_toggle);
 	WM_operatortype_append(NODE_OT_options_toggle);
 	WM_operatortype_append(NODE_OT_hide_socket_toggle);
-	WM_operatortype_append(NODE_OT_show_cyclic_dependencies);
 	WM_operatortype_append(NODE_OT_node_copy_color);
 	
 	WM_operatortype_append(NODE_OT_duplicate);
@@ -271,8 +270,6 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_mute_toggle", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_preview_toggle", HKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_hide_socket_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
-	
-	WM_keymap_add_item(keymap, "NODE_OT_show_cyclic_dependencies", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);

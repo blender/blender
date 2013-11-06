@@ -169,7 +169,6 @@ void NODE_OT_join(struct wmOperatorType *ot);
 void NODE_OT_attach(struct wmOperatorType *ot);
 void NODE_OT_detach(struct wmOperatorType *ot);
 
-void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
 
 /* node_edit.c */

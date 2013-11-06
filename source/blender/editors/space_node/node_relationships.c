@@ -876,34 +876,6 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 }
 
 
-/* ****************** Show Cyclic Dependencies Operator  ******************* */
-
-static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	/* this is just a wrapper around this call... */
-	ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
-	snode_notify(C, snode);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Show Cyclic Dependencies";
-	ot->description = "Sort the nodes and show the cyclic dependencies between the nodes";
-	ot->idname = "NODE_OT_show_cyclic_dependencies";
-
-	/* callbacks */
-	ot->exec = node_show_cycles_exec;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* ****************** Set Parent ******************* */
 
 static int node_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
