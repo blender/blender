@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_vector.h"
 
 #include "BLF_translation.h"
 
@@ -182,7 +183,7 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	BLI_addtail(&gpd->layers, gpl);
 	
 	/* set basic settings */
-	gpl->color[3] = 0.9f;
+	copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
 	gpl->thickness = 3;
 	
 	/* auto-name */

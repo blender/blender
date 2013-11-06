@@ -1406,6 +1406,7 @@ void init_userdef_do_versions(void)
 	}
 	if (U.pad_rot_angle == 0)
 		U.pad_rot_angle = 15;
+	
 	/* graph editor - unselected F-Curve visibility */
 	if (U.fcu_inactive_alpha == 0) {
 		U.fcu_inactive_alpha = 0.25f;
@@ -2224,7 +2225,14 @@ void init_userdef_do_versions(void)
 			rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
 		}
 	}
-
+	
+	if (U.versionfile < 270) {
+		/* grease pencil - new layer color */
+		if (U.gpencil_new_layer_col[3] < 0.1f) {
+			/* defaults to black, but must at least be visible! */
+			U.gpencil_new_layer_col[3] = 0.9f;
+		}
+	}
 	
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
