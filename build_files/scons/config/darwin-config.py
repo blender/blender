@@ -330,7 +330,7 @@ if USE_SDK:
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
     REL_CFLAGS = []
     REL_CXXFLAGS = []
-    REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+    REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3']
 else:
     CCFLAGS += ['-fno-strict-aliasing']
     REL_CFLAGS = []
@@ -339,7 +339,7 @@ else:
 
 # Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
-    REL_CCFLAGS += ['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
+    REL_CCFLAGS += ['-march=core2','-mssse3']
 
 CC_WARN = ['-Wall']
 C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas', '-Wstrict-prototypes']
