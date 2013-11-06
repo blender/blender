@@ -46,6 +46,36 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
 	{-1, 0, ""}
 };
 
+/* Sync functions update formula parameters for other modes, such that the result is comparable.
+ * Note that the results are not exactly the same due to differences in color handling (sRGB conversion happens for LGG),
+ * but this keeps settings comparable.
+ */
+
+void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	NodeColorBalance *n = node->storage;
+	int c;
+	
+	for (c = 0; c < 3; ++c) {
+		n->slope[c] = (2.0f - n->lift[c]) * n->gain[c];
+		n->offset[c] = (n->lift[c] - 1.0f) * n->gain[c];
+		n->power[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
+	}
+}
+
+void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	NodeColorBalance *n = node->storage;
+	int c;
+	
+	for (c = 0; c < 3; ++c) {
+		float d = n->slope[c] + n->offset[c];
+		n->lift[c] = (d != 0.0f ? n->slope[c] + 2.0f*n->offset[c] / d : 0.0f);
+		n->gain[c] = d;
+		n->gamma[c] = (n->power[c] != 0.0f) ? 1.0f / n->power[c] : 1000000.0f;
+	}
+}
+
 static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeColorBalance *n = node->storage = MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");

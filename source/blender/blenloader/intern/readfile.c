@@ -9783,6 +9783,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 269, 2)) {
+		/* Initialize CDL settings for Color Balance nodes */
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_COLORBALANCE) {
+						NodeColorBalance *n = node->storage;
+						if (node->custom1 == 0) {
+							/* LGG mode stays the same, just init CDL settings */
+							ntreeCompositColorBalanceSyncFromLGG(ntree, node);
+						}
+						else if (node->custom1 == 1) {
+							/* CDL previously used same variables as LGG, copy them over
+							 * and then sync LGG for comparable results in both modes.
+							 */
+							copy_v3_v3(n->offset, n->lift);
+							copy_v3_v3(n->power, n->gamma);
+							copy_v3_v3(n->slope, n->gain);
+							ntreeCompositColorBalanceSyncFromCDL(ntree, node);
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
+	}
+
 	{
 		Scene *scene;
 

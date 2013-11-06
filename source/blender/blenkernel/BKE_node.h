@@ -944,6 +944,9 @@ void ntreeCompositOutputFileSetLayer(struct bNode *node, struct bNodeSocket *soc
 void ntreeCompositOutputFileUniquePath(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
 void ntreeCompositOutputFileUniqueLayer(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
 
+void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
+void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
+
 /* ************** TEXTURE NODES *************** */
 
 struct TexResult;
