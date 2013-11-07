@@ -119,6 +119,14 @@ AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, A
 		{
 			length = m_device->m_buffersize;
 			reader->read(length, eos, m_device->m_buffer.getBuffer());
+
+			if(length == 0)
+			{
+				// AUD_XXX: TODO: don't fill all buffers and enqueue them later
+				length = 1;
+				memset(m_device->m_buffer.getBuffer(), 0, length * AUD_DEVICE_SAMPLE_SIZE(specs));
+			}
+
 			alBufferData(m_buffers[i], m_format, m_device->m_buffer.getBuffer(),
 						 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 						 specs.rate);
@@ -132,8 +140,7 @@ AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, A
 
 		try
 		{
-			alSourceQueueBuffers(m_source, CYCLE_BUFFERS,
-								 m_buffers);
+			alSourceQueueBuffers(m_source, CYCLE_BUFFERS, m_buffers);
 			if(alGetError() != AL_NO_ERROR)
 				AUD_THROW(AUD_ERROR_OPENAL, queue_error);
 		}
@@ -289,6 +296,14 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::seek(float position)
 				{
 					length = m_device->m_buffersize;
 					m_reader->read(length, m_eos, m_device->m_buffer.getBuffer());
+
+					if(length == 0)
+					{
+						// AUD_XXX: TODO: don't fill all buffers and enqueue them later
+						length = 1;
+						memset(m_device->m_buffer.getBuffer(), 0, length * AUD_DEVICE_SAMPLE_SIZE(specs));
+					}
+
 					alBufferData(m_buffers[i], m_format, m_device->m_buffer.getBuffer(),
 								 length * AUD_DEVICE_SAMPLE_SIZE(specs), specs.rate);
 
@@ -933,9 +948,8 @@ void AUD_OpenALDevice::updateStreams()
 									break;
 								}
 
-								// unqueue buffer
-								alSourceUnqueueBuffers(sound->m_source, 1,
-												&sound->m_buffers[sound->m_current]);
+								// unqueue buffer (warning: this might fail for slow early returning sources (none exist so far) if the buffer was not queued due to recent changes - has to be tested)
+								alSourceUnqueueBuffers(sound->m_source, 1, &sound->m_buffers[sound->m_current]);
 								ALenum err;
 								if((err = alGetError()) != AL_NO_ERROR)
 								{
