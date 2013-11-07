@@ -1173,7 +1173,7 @@ void NODE_OT_detach(wmOperatorType *ot)
 
 
 /* prevent duplicate testing code below */
-static bool ed_node_link_conditions(ScrArea *sa, SpaceNode **r_snode, bNode **r_select)
+static bool ed_node_link_conditions(ScrArea *sa, bool test, SpaceNode **r_snode, bNode **r_select)
 {
 	SpaceNode *snode = sa ? sa->spacedata.first : NULL;
 	bNode *node, *select = NULL;
@@ -1185,6 +1185,11 @@ static bool ed_node_link_conditions(ScrArea *sa, SpaceNode **r_snode, bNode **r_
 	/* no unlucky accidents */
 	if (sa == NULL || sa->spacetype != SPACE_NODE)
 		return false;
+
+	if (!test) {
+		/* no need to look for a node */
+		return true;
+	}
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
@@ -1223,7 +1228,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	bNodeLink *link, *selink = NULL;
 	float mcoords[6][2];
 
-	if (!ed_node_link_conditions(sa, &snode, &select)) return;
+	if (!ed_node_link_conditions(sa, test, &snode, &select)) return;
 
 	/* clear flags */
 	for (link = snode->edittree->links.first; link; link = link->next)
@@ -1302,7 +1307,7 @@ void ED_node_link_insert(ScrArea *sa)
 	bNodeLink *link;
 	bNodeSocket *sockto;
 
-	if (!ed_node_link_conditions(sa, &snode, &select)) return;
+	if (!ed_node_link_conditions(sa, true, &snode, &select)) return;
 
 	/* get the link */
 	for (link = snode->edittree->links.first; link; link = link->next)
