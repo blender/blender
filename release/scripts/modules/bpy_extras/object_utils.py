@@ -201,6 +201,10 @@ class AddObjectHelper:
             subtype='EULER',
             )
 
+    @classmethod
+    def poll(self, context):
+        return context.scene.library is None
+
 
 def object_add_grid_scale(context):
     """
