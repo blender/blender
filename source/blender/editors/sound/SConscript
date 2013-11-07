@@ -44,4 +44,10 @@ incs = ' '.join(incs)
 
 defs = []
 
+if env['WITH_BF_FFMPEG']:
+    defs.append('WITH_FFMPEG')
+
+if env['WITH_BF_SNDFILE']:
+    defs.append('WITH_SNDFILE')
+
 env.BlenderLib ( 'bf_editors_sound', sources, Split(incs), defs, libtype=['core'], priority=[35] )
