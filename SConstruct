@@ -360,8 +360,8 @@ if env['OURPLATFORM']=='darwin':
         ARCH_FLAGS = ['-m64']
     else:
         ARCH_FLAGS = ['-m32']
-		
-	env['CPPFLAGS'] = list(ARCH_FLAGS)
+
+    env.Append(CPPFLAGS=ARCH_FLAGS)
 
     SDK_FLAGS=['-isysroot',  env['MACOSX_SDK'],'-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-arch',env['MACOSX_ARCHITECTURE']] # always used
     env['PLATFORM_LINKFLAGS'] = ['-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-isysroot', env['MACOSX_SDK'],'-arch',env['MACOSX_ARCHITECTURE']]+env['PLATFORM_LINKFLAGS']

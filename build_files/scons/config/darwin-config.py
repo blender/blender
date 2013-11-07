@@ -230,6 +230,7 @@ BF_QUIET = '1' # suppress verbose output
 CFLAGS = []
 CXXFLAGS = []
 CCFLAGS = ['-pipe','-funsigned-char']
+CPPFLAGS = []
 
 PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']
 
