@@ -5963,8 +5963,9 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* use top-left corner as the transform origin for nodes */
-	td2d->loc[0] = node->totr.xmin;
-	td2d->loc[1] = node->totr.ymax;
+	/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+	td2d->loc[0] = UI_DPI_FAC * node->locx;
+	td2d->loc[1] = UI_DPI_FAC * node->locy;
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
 
@@ -5973,8 +5974,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td->loc = td2d->loc;
 	copy_v3_v3(td->iloc, td->loc);
 	/* use node center instead of origin (top-left corner) */
-	td->center[0] = BLI_rctf_cent_x(&node->totr);
-	td->center[1] = BLI_rctf_cent_y(&node->totr);
+	td->center[0] = td2d->loc[0] + BLI_rctf_size_x(&node->totr);
+	td->center[1] = td2d->loc[1] + BLI_rctf_size_y(&node->totr);
 	td->center[2] = 0.0f;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
