@@ -409,10 +409,12 @@ if env['OURPLATFORM']=='darwin':
     #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
     # if your compiler does not have accurate suffix you may have to enable it by hand !
     if env['WITH_BF_OPENMP'] == 1:
-        if env['CC'][:-2].endswith('4.6') or env['CC'][:-2].endswith('4.8'):
+        if env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.6.1':
             env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
+            print B.bc.OKGREEN + "Using OpenMP"
         else:
             env['WITH_BF_OPENMP'] = 0
+            print B.bc.OKGREEN + "Disabled OpenMP"
 
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
