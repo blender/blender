@@ -153,6 +153,7 @@
 #include "BKE_tracking.h"
 #include "BKE_treehash.h"
 #include "BKE_sound.h"
+#include "BKE_writeffmpeg.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 
@@ -9821,6 +9822,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (scene->toolsettings->snap_node_mode == SCE_SNAP_MODE_INCREMENT)
 				scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
 		}
+
+		/* Update for removed "sound-only" option in FFMPEG export settings. */
+#ifdef WITH_FFMPEG
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->r.ffcodecdata.type >= FFMPEG_INVALID) {
+				scene->r.ffcodecdata.type = FFMPEG_AVI;
+			}
+		}
+#endif
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

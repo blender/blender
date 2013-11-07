@@ -3776,8 +3776,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
 		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
 		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
-		{FFMPEG_WAV, "WAV", 0, "Wav", ""},
-		{FFMPEG_MP3, "MP3", 0, "Mp3", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

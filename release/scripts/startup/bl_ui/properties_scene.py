@@ -227,8 +227,6 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
         col.prop(ffmpeg, "audio_channels", text="")
         col.prop(ffmpeg, "audio_mixrate", text="Rate")
 
-        layout.operator("sound.mixdown")
-
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):
     bl_label = "Gravity"

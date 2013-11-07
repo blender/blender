@@ -66,4 +66,8 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
+
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")

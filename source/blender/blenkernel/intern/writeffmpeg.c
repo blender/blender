@@ -298,16 +298,6 @@ static const char **get_file_extensions(int format)
 			static const char *rv[] = { ".ogv", ".ogg", NULL };
 			return rv;
 		}
-		case FFMPEG_MP3:
-		{
-			static const char *rv[] = { ".mp3", NULL };
-			return rv;
-		}
-		case FFMPEG_WAV:
-		{
-			static const char *rv[] = { ".wav", NULL };
-			return rv;
-		}
 		default:
 			return NULL;
 	}
@@ -874,12 +864,6 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 			break;
 		case FFMPEG_FLV:
 			fmt->video_codec = CODEC_ID_FLV1;
-			break;
-		case FFMPEG_MP3:
-			fmt->audio_codec = CODEC_ID_MP3;
-			/* fall-through */
-		case FFMPEG_WAV:
-			fmt->video_codec = CODEC_ID_NONE;
 			break;
 		case FFMPEG_MPEG4:
 		default:
