@@ -344,6 +344,7 @@ if env['OURPLATFORM']=='darwin':
         env['BF_PYTHON_BINARY'] = env['BF_PYTHON'] + env['BF_PYTHON_VERSION'] + '/bin/python' + env['BF_PYTHON_VERSION']
         env['BF_PYTHON_LIB'] = ''
         env['BF_PYTHON_LIBPATH'] = env['BF_PYTHON'] + env['BF_PYTHON_VERSION'] + '/lib/python' + env['BF_PYTHON_VERSION'] + '/config-' + env['BF_PYTHON_VERSION'] +'m'
+        env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','Python'] # link to python framework
 
     #Ray trace optimization
     if env['WITH_BF_RAYOPTIMIZATION'] == 1:
@@ -364,10 +365,10 @@ if env['OURPLATFORM']=='darwin':
     env.Append(CPPFLAGS=ARCH_FLAGS)
 
     SDK_FLAGS=['-isysroot',  env['MACOSX_SDK'],'-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-arch',env['MACOSX_ARCHITECTURE']] # always used
-    env['PLATFORM_LINKFLAGS'] = ['-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-isysroot', env['MACOSX_SDK'],'-arch',env['MACOSX_ARCHITECTURE']]+env['PLATFORM_LINKFLAGS']
+    env['PLATFORM_LINKFLAGS'] = ['-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-isysroot', env['MACOSX_SDK'],'-arch',env['MACOSX_ARCHITECTURE']]+ARCH_FLAGS+env['PLATFORM_LINKFLAGS']
     env['CCFLAGS']=SDK_FLAGS+env['CCFLAGS']
     env['CXXFLAGS']=SDK_FLAGS+env['CXXFLAGS']
-	
+
     #Intel Macs are CoreDuo and Up
     if env['MACOSX_ARCHITECTURE'] == 'i386' or env['MACOSX_ARCHITECTURE'] == 'x86_64':
         env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-ftree-vectorize','-msse','-msse2','-msse3']
@@ -405,9 +406,6 @@ if env['OURPLATFORM']=='darwin':
     if env['WITH_BF_QUICKTIME'] == 1:
         env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','QTKit']
 
-    if not env['WITH_OSX_STATICPYTHON'] == 1:
-        env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','Python']
-
     #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
     # if your compiler does not have accurate suffix you may have to enable it by hand !
     if env['WITH_BF_OPENMP'] == 1:
@@ -415,8 +413,6 @@ if env['OURPLATFORM']=='darwin':
             env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
         else:
             env['WITH_BF_OPENMP'] = 0
-		
-	env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+ARCH_FLAGS
 
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
