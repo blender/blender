@@ -525,7 +525,17 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 	}
 
 	if (val == NULL) { /* del idprop[key] */
-		IDProperty *pkey = IDP_GetPropertyFromGroup(prop, _PyUnicode_AsString(key));
+		IDProperty *pkey;
+		const char *name = _PyUnicode_AsString(key);
+
+		if (name == NULL) {
+			PyErr_Format(PyExc_KeyError,
+			             "expected a string, not %.200s",
+			             Py_TYPE(key)->tp_name);
+			return -1;
+		}
+
+		pkey = IDP_GetPropertyFromGroup(prop, name);
 		if (pkey) {
 			IDP_FreeFromGroup(prop, pkey);
 			return 0;
