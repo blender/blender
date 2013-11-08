@@ -28,7 +28,7 @@ defs.append('CERES_HAVE_RWLOCK')
 if env['WITH_BF_OPENMP']:
     defs.append('CERES_USE_OPENMP')
 
-if 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+if 'Mac OS X 10.5' in env['MACOSX_SDK']:
     defs.append('CERES_NO_TR1')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'

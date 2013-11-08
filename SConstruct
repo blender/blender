@@ -293,7 +293,7 @@ if 'cudakernels' in B.targets:
 if env['OURPLATFORM']=='darwin':
 
     import commands
-    
+
     cmd = 'sw_vers -productVersion'
     MAC_CUR_VER=cmd_res=commands.getoutput(cmd)
     cmd = 'xcodebuild -version'
@@ -301,7 +301,7 @@ if env['OURPLATFORM']=='darwin':
     env['XCODE_CUR_VER']=cmd_xcode[6:][:3] # truncate output to major.minor version
     cmd = 'xcodebuild -showsdks'
     cmd_sdk=commands.getoutput(cmd)
-    env['MACOSX_SDK_CHECK']=cmd_sdk
+    MACOSX_SDK_CHECK=cmd_sdk
     cmd = 'xcode-select --print-path'
     XCODE_SELECT_PATH=commands.getoutput(cmd)
     if XCODE_SELECT_PATH.endswith("/Contents/Developer"):
@@ -310,22 +310,22 @@ if env['OURPLATFORM']=='darwin':
         XCODE_BUNDLE=XCODE_SELECT_PATH
 
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
-    print "Available " + env['MACOSX_SDK_CHECK']
+    print "Available " + MACOSX_SDK_CHECK
 
     if env['MACOSX_SDK'] == '': # no set sdk, choosing best one found
-        if 'OS X 10.9' in env['MACOSX_SDK_CHECK']:
+        if 'OS X 10.9' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.9.sdk'
-        elif 'OS X 10.8' in env['MACOSX_SDK_CHECK']:
+        elif 'OS X 10.8' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.8.sdk'
-        elif 'OS X 10.7' in env['MACOSX_SDK_CHECK']:
+        elif 'OS X 10.7' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.7.sdk'
-        elif 'OS X 10.6' in env['MACOSX_SDK_CHECK']:
+        elif 'OS X 10.6' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.6.sdk'
-        elif 'OS X 10.5' in env['MACOSX_SDK_CHECK']:
+        elif 'OS X 10.5' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.5'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.5.sdk'
     else:
