@@ -294,8 +294,6 @@ if env['OURPLATFORM']=='darwin':
 
     import commands
     
-    cmd = 'uname -p'
-    MAC_PROC=commands.getoutput(cmd)
     cmd = 'sw_vers -productVersion'
     MAC_CUR_VER=cmd_res=commands.getoutput(cmd)
     cmd = 'xcodebuild -version'
@@ -335,6 +333,7 @@ if env['OURPLATFORM']=='darwin':
 
     if env['XCODE_CUR_VER'] >= '4.3':  ## since version 4.3, XCode and developer dir are bundled ##
          env['MACOSX_SDK'] = XCODE_BUNDLE + '/Contents/Developer/Platforms/MacOSX.platform' +  env['MACOSX_SDK']
+
     print B.bc.OKGREEN + "Using OSX SDK :" + B.bc.ENDC + env['MACOSX_SDK']
 		
     if not env['WITH_OSX_STATICPYTHON'] == 1:
@@ -379,7 +378,7 @@ if env['OURPLATFORM']=='darwin':
     if env['MACOSX_ARCHITECTURE'] == 'x86_64':
         env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-mssse3']
 
-    if env['XCODE_CUR_VER'] >= '5' and not (env['CXX'][:-2].endswith('4.6') or env['CXX'][:-2].endswith('4.8')):
+    if env['XCODE_CUR_VER'] >= '5' and not env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.6.1':
         env['CCFLAGS'].append('-ftemplate-depth=1024') # only valid for clang bundled with xcode 5
 
     # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
