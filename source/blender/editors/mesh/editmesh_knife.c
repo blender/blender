@@ -203,7 +203,7 @@ typedef struct KnifeTool_OpData {
 	} mode;
 
 	int prevmode;
-	bool snap_midpoints, extend;
+	bool snap_midpoints;
 	bool ignore_edge_snapping;
 	bool ignore_vert_snapping;
 
@@ -2602,8 +2602,6 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	kcd->vthresh = KMAXDIST - 1;
 	kcd->ethresh = KMAXDIST;
 
-	kcd->extend = true;
-
 	knife_recalc_projmat(kcd);
 
 	ED_region_tag_redraw(kcd->ar);
@@ -2821,10 +2819,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				if (kcd->mode == MODE_DRAGGING) {
 					knife_add_cut(kcd);
-					if (!kcd->extend) {
-						knife_finish_cut(kcd);
-						kcd->mode = MODE_IDLE;
-					}
 				}
 				else if (kcd->mode != MODE_PANNING) {
 					knife_start_cut(kcd);
