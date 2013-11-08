@@ -2695,7 +2695,10 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
-	const short txt_flag = V3D_CACHE_TEXT_ASCII | V3D_CACHE_TEXT_LOCALCLIP;
+	/* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square, etc.).
+	 * See bug #36090.
+	 */
+	const short txt_flag = V3D_CACHE_TEXT_LOCALCLIP | (unit->system ? 0 : V3D_CACHE_TEXT_ASCII);
 	Mesh *me = ob->data;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
 	char numstr[32]; /* Stores the measurement display text here */
@@ -2868,14 +2871,11 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 			bUnit_AsString(numstr, sizeof(numstr),                                       \
 			               (double)(area * unit->scale_length * unit->scale_length),     \
 			               3, unit->system, B_UNIT_AREA, do_split, false);               \
-			view3d_cached_text_draw_add(vmid, numstr, 0,                                 \
-			                            /* Metric system uses unicode "squared" sign! */ \
-			                            txt_flag ^ V3D_CACHE_TEXT_ASCII, col);           \
 		}                                                                                \
 		else {                                                                           \
 			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);                      \
-			view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);                 \
 		}                                                                                \
+		view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);                     \
 	} (void)0
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
