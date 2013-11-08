@@ -210,6 +210,7 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 	blf_font_ensure_ascii_table(font);
 
 	while ((c = *(str++)) && len--) {
+		BLI_assert(c < 128);
 		if ((g = glyph_ascii_table[c]) == NULL)
 			continue;
 		if (has_kerning)
