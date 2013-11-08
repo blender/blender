@@ -37,3 +37,49 @@ if env['WITH_BF_INTERNATIONAL']:
     incs += ' ' + env['BF_BOOST_INC']
 
 env.BlenderLib( 'bf_intern_locale', sources, Split(incs), defs, libtype=['intern','player'], priority=[10, 185])
+
+if env['WITH_BF_INTERNATIONAL']:
+    import os
+    from os.path import dirname
+
+    def normpath(path):
+        return os.path.abspath(os.path.normpath(path))
+
+    # build directory
+    source_dir = Dir('.').srcnode().path
+    root_build_dir = normpath(env['BF_BUILDDIR'])
+    root_source_dir = dirname(dirname(normpath(source_dir)))
+    po_dir = os.path.join(root_source_dir, "release", "datafiles", "locale", "po")
+    build_dir = os.path.join(root_build_dir, 'locale')
+
+    if os.path.exists(po_dir):
+        # create directory if needed
+        if not os.path.exists(build_dir):
+            os.makedirs(build_dir)
+
+        msgfmt_tool = env.Clone()
+        targetpath = root_build_dir + '/msgfmt'
+        msgfmt_target = msgfmt_tool.Program(target = targetpath, source = ['msgfmt.cc'])
+
+        locale = env.Clone()
+
+        # dependencies
+        dependencies = [targetpath]
+
+        # add command for each locale
+        all_mo_files = []
+        for f in os.listdir(po_dir):
+            if not f.endswith(".po"):
+                continue
+
+            po_file = os.path.join(po_dir, f)
+            mo_file = os.path.join(build_dir, os.path.splitext(f)[0] + ".mo")
+
+            command = "\"%s\" \"%s\" \"%s\"" % (targetpath, po_file, mo_file)
+
+            locale.Command(mo_file, po_file, command)
+            locale.Depends(mo_file, dependencies)
+
+            all_mo_files.append(mo_file)
+
+        env.Depends("boost_locale_wrapper.cpp", all_mo_files)

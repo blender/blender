@@ -870,3 +870,33 @@ macro(svg_to_png
 	unset(_file_to)
 
 endmacro()
+
+macro(msgfmt_simple
+      file_from
+      list_to_add)
+
+	# remove ../'s
+	get_filename_component(_file_from_we ${file_from} NAME_WE)
+
+	get_filename_component(_file_from ${file_from} REALPATH)
+	get_filename_component(_file_to ${CMAKE_CURRENT_BINARY_DIR}/${_file_from_we}.mo REALPATH)
+
+	list(APPEND ${list_to_add} ${_file_to})
+
+	get_filename_component(_file_to_path ${_file_to} PATH)
+
+	add_custom_command(
+		OUTPUT  ${_file_to}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/msgfmt ${_file_from} ${_file_to}
+		DEPENDS msgfmt)
+
+	message("${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/msgfmt ${_file_from} ${_file_to}")
+
+	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
+
+	unset(_file_from_we)
+	unset(_file_from)
+	unset(_file_to)
+	unset(_file_to_path)
+endmacro()

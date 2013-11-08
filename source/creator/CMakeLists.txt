@@ -318,11 +318,59 @@ endif()
 if(WITH_INTERNATIONAL)
 	install(
 		DIRECTORY
-			${CMAKE_SOURCE_DIR}/release/datafiles/locale
 			${CMAKE_SOURCE_DIR}/release/datafiles/fonts
 		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)
+
+	set(_locale_dir "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+
+	if(EXISTS "${_locale_dir}/po")
+		set(_locale_target_dir ${TARGETDIR_VER}/datafiles/locale)
+
+		file(GLOB _po_files "${_locale_dir}/po/*.po")
+		foreach(_po_file ${_po_files})
+			msgfmt_simple(${_po_file} _all_mo_files)
+		endforeach()
+
+		# Create a custom target which will compile all po to mo
+		add_custom_target(
+			locales
+			DEPENDS ${_all_mo_files})
+
+		add_dependencies(blender locales)
+
+		# Generate INSTALL rules
+		install(
+			FILES ${_locale_dir}/languages
+			DESTINATION ${_locale_target_dir}
+		)
+
+		foreach(_mo_file ${_all_mo_files})
+			get_filename_component(_locale_name ${_mo_file} NAME_WE)
+			install(
+				FILES ${_mo_file}
+				DESTINATION ${_locale_target_dir}/${_locale_name}/LC_MESSAGES
+				RENAME blender.mo
+			)
+			unset(_locale_name)
+		endforeach()
+
+		unset(_all_mo_files)
+		unset(_po_files)
+		unset(_po_file)
+		unset(_mo_file)
+		unset(_locale_target_dir)
+	else()
+		install(
+			DIRECTORY
+				${_locale_dir}
+			DESTINATION ${TARGETDIR_VER}/datafiles
+			PATTERN ".svn" EXCLUDE
+		)
+	endif()
+
+	unset(_locale_dir)
 endif()
 
 # color management

@@ -45,3 +45,11 @@ if(WITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_intern_locale "${SRC}" "${INC}" "${INC_SYS}")
+
+# -----------------------------------------------------------------------------
+# Build msgfmt executable
+set(MSFFMT_SRC
+	msgfmt.cc
+)
+
+add_executable(msgfmt ${MSFFMT_SRC})

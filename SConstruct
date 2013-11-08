@@ -944,6 +944,9 @@ if env['OURPLATFORM']!='darwin':
         def check_path(path, member):
             return (member in path.split(os.sep))
 
+        po_dir = os.path.join("release", "datafiles", "locale", "po")
+        need_compile_mo = os.path.exists(po_dir)
+
         for intpath in internationalpaths:
             for dp, dn, df in os.walk(intpath):
                 if '.svn' in dn:
@@ -952,7 +955,10 @@ if env['OURPLATFORM']!='darwin':
                     dn.remove('_svn')
 
                 # we only care about release/datafiles/fonts, release/datafiles/locales
-                if check_path(dp, "fonts") or check_path(dp, "locale"):
+                if check_path(dp, "locale"):
+                    if need_compile_mo and check_path(dp, "po"):
+                        continue
+                elif check_path(dp, "fonts"):
                     pass
                 else:
                     continue
@@ -965,6 +971,19 @@ if env['OURPLATFORM']!='darwin':
                 if len(source)==0:
                     env.Execute(Mkdir(dir))
                 scriptinstall.append(env.Install(dir=dir,source=source))
+
+        if need_compile_mo:
+            for f in os.listdir(po_dir):
+                if not f.endswith(".po"):
+                    continue
+
+                locale_name = os.path.splitext(f)[0]
+
+                mo_file = os.path.join(B.root_build_dir, "locale", locale_name + ".mo")
+
+                dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+                dir = os.path.join(dir, "datafiles", "locale", locale_name, "LC_MESSAGES")
+                scriptinstall.append(env.InstallAs(os.path.join(dir, "blender.mo"), mo_file))
 
 #-- icons
 if env['OURPLATFORM']=='linux':
