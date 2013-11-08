@@ -792,9 +792,13 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 	kcd->totlinehit = 0;
 }
 
-static void knife_finish_cut(KnifeTool_OpData *UNUSED(kcd))
+static void knife_finish_cut(KnifeTool_OpData *kcd)
 {
-
+	if (kcd->linehits) {
+		MEM_freeN(kcd->linehits);
+		kcd->linehits = NULL;
+		kcd->totlinehit = 0;
+	}
 }
 
 static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
