@@ -2423,7 +2423,10 @@ void ui_layout_list_set_labels_active(uiLayout *layout)
 {
 	uiButtonItem *bitem;
 	for (bitem = layout->items.first; bitem; bitem = bitem->item.next) {
-		if (bitem->item.type == ITEM_BUTTON && bitem->but->type == LISTLABEL) {
+		if (bitem->item.type != ITEM_BUTTON) {
+			ui_layout_list_set_labels_active((uiLayout *)(&bitem->item));
+		}
+		else if (bitem->but->type == LISTLABEL) {
 			uiButSetFlag(bitem->but, UI_SELECT);
 		}
 	}
