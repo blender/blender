@@ -381,9 +381,7 @@ if env['OURPLATFORM']=='darwin':
     if env['XCODE_CUR_VER'] >= '5' and not env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.6.1':
         env['CCFLAGS'].append('-ftemplate-depth=1024') # only valid for clang bundled with xcode 5
 
-    # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
-    # necessary header file lives here when installed:
-    # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
+    # 3DconnexionClient.framework, optionally install
     if env['WITH_BF_3DMOUSE'] == 1:
         if not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
             print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
@@ -392,9 +390,7 @@ if env['OURPLATFORM']=='darwin':
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
             env['BF_3DMOUSE_INC'] = '/Library/Frameworks/3DconnexionClient.framework/Headers'
 
-    # for now, Mac builders must download and install the JackOSX framework
-    # necessary header file lives here when installed:
-    # /Library/Frameworks/Jackmp.framework/Versions/A/Headers/jack.h
+    # Jackmp.framework, optionally install
     if env['WITH_BF_JACK'] == 1:
         if not os.path.exists('/Library/Frameworks/Jackmp.framework'):
             print "JackOSX install not found, disabling WITH_BF_JACK" # avoid build errors !
@@ -424,7 +420,7 @@ if env['OURPLATFORM']=='darwin':
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
         env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
 
-    # Trying to get rid of eventually clashes, we export some explicite as local symbols
+    # Trying to get rid of eventually clashes, we export some symbols explicite as local
     env.Append(LINKFLAGS=['-Xlinker','-unexported_symbols_list','-Xlinker','./source/creator/osx_locals.map'])
     
     #for < 10.7.sdk, SystemStubs needs to be linked
