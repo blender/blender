@@ -310,7 +310,7 @@ if env['OURPLATFORM']=='darwin':
         XCODE_BUNDLE=XCODE_SELECT_PATH
 
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
-    print "Available " + MACOSX_SDK_CHECK
+    print B.bc.OKGREEN + "Available SDK's: \n" + B.bc.ENDC + MACOSX_SDK_CHECK.replace('\t', '')
 
     if env['MACOSX_SDK'] == '': # no set sdk, choosing best one found
         if 'OS X 10.9' in MACOSX_SDK_CHECK:
