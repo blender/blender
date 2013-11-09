@@ -18,13 +18,17 @@ CCL_NAMESPACE_BEGIN
 
 /* Fresnel Node */
 
-__device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, uint ior_value, uint out_offset)
+__device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, uint ior_value, uint node)
 {
+	uint normal_offset, out_offset;
+	decode_node_uchar4(node, &normal_offset, &out_offset, NULL, NULL);
 	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __uint_as_float(ior_value);
+	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
+	
 	eta = fmaxf(eta, 1.0f + 1e-5f);
 	eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
-	float f = fresnel_dielectric_cos(dot(sd->I, sd->N), eta);
+	float f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
 
 	stack_store_float(stack, out_offset, f);
 }

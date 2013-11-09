@@ -30,6 +30,7 @@
 /* **************** Fresnel ******************** */
 static bNodeSocketTemplate sh_node_fresnel_in[] = {
 	{	SOCK_FLOAT, 1, N_("IOR"),	1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
@@ -40,8 +41,10 @@ static bNodeSocketTemplate sh_node_fresnel_out[] = {
 
 static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	/* todo: is incoming vector normalized? */
-	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));
+	if (!in[1].link)
+		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
+	
+	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
 /* node type definition */

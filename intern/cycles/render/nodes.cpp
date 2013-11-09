@@ -3166,12 +3166,17 @@ FresnelNode::FresnelNode()
 
 void FresnelNode::compile(SVMCompiler& compiler)
 {
+	ShaderInput *normal_in = input("Normal");
 	ShaderInput *ior_in = input("IOR");
 	ShaderOutput *fac_out = output("Fac");
 
 	compiler.stack_assign(ior_in);
 	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_FRESNEL, ior_in->stack_offset, __float_as_int(ior_in->value.x), fac_out->stack_offset);
+	
+	if(normal_in->link)
+		compiler.stack_assign(normal_in);
+	
+	compiler.add_node(NODE_FRESNEL, ior_in->stack_offset, __float_as_int(ior_in->value.x), compiler.encode_uchar4(normal_in->stack_offset, fac_out->stack_offset));
 }
 
 void FresnelNode::compile(OSLCompiler& compiler)
