@@ -384,19 +384,21 @@ if env['OURPLATFORM']=='darwin':
     # 3DconnexionClient.framework, optionally install
     if env['WITH_BF_3DMOUSE'] == 1:
         if not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
-            print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
             env['WITH_BF_3DMOUSE'] = 0
+            print B.bc.OKGREEN + "3DconnexionClient install not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
         else:
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
             env['BF_3DMOUSE_INC'] = '/Library/Frameworks/3DconnexionClient.framework/Headers'
+            print B.bc.OKGREEN + "Using 3Dconnexion"
 
     # Jackmp.framework, optionally install
     if env['WITH_BF_JACK'] == 1:
         if not os.path.exists('/Library/Frameworks/Jackmp.framework'):
-            print "JackOSX install not found, disabling WITH_BF_JACK" # avoid build errors !
             env['WITH_BF_JACK'] = 0
+            print B.bc.OKGREEN + "JackOSX install not found, disabling WITH_BF_JACK" # avoid build errors !
         else:
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','Jackmp'])
+            print B.bc.OKGREEN + "Using Jack"
 
     if env['WITH_BF_QUICKTIME'] == 1:
         env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','QTKit']
@@ -409,7 +411,7 @@ if env['OURPLATFORM']=='darwin':
             print B.bc.OKGREEN + "Using OpenMP"
         else:
             env['WITH_BF_OPENMP'] = 0
-            print B.bc.OKGREEN + "Disabled OpenMP"
+            print B.bc.OKGREEN + "Disabled OpenMP, not supported by compiler"
 
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
