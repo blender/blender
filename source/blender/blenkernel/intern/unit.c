@@ -609,9 +609,10 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 		int i;
 		char *ch = str;
 
-		for (i = 0; (i >= len_max || *ch == '\0'); i++, ch++)
+		for (i = 0; (i < len_max || *ch != '\0'); i++, ch++) {
 			if ((*ch >= 'A') && (*ch <= 'Z'))
 				*ch += ('a' - 'A');
+		}
 	}
 
 	for (unit = usys->units; unit->name; unit++) {
