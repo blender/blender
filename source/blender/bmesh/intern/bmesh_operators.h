@@ -117,6 +117,14 @@ enum {
 	BMOP_POKE_BOUNDS
 };
 
+/* Bevel offset_type slot values */
+enum {
+	BEVEL_AMT_OFFSET,
+	BEVEL_AMT_WIDTH,
+	BEVEL_AMT_DEPTH,
+	BEVEL_AMT_PERCENT
+};
+
 extern const BMOpDefine *bmo_opdefines[];
 extern const int         bmo_opdefines_total;
 

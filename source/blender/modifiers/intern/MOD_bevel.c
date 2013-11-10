@@ -158,7 +158,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		}
 	}
 
-	BM_mesh_bevel(bm, bmd->value, bmd->res,
+	/* TODO: add offset_kind to modifier properties to, and pass in as 3rd arg here */
+	BM_mesh_bevel(bm, bmd->value, 0, bmd->res,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup);
 

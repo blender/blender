@@ -131,6 +131,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	BMEditMesh *em = opdata->em;
 	BMOperator bmop;
 	const float offset = RNA_float_get(op->ptr, "offset");
+	const int offset_type = RNA_enum_get(op->ptr, "offset_type");
 	const int segments = RNA_int_get(op->ptr, "segments");
 	const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
 
@@ -140,8 +141,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 	}
 
 	EDBM_op_init(em, &bmop, op,
-	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b",
-	             BM_ELEM_SELECT, offset, segments, vertex_only);
+	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i",
+	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -256,12 +257,14 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
-	int use_dist = true;
+	bool use_dist = true;
+	bool is_percent = false;
 	float mdiff[2];
 	float factor;
 
 	mdiff[0] = opdata->mcenter[0] - event->mval[0];
 	mdiff[1] = opdata->mcenter[1] - event->mval[1];
+	is_percent = (RNA_int_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT);
 
 	if (use_dist) {
 		factor = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length) * opdata->pixel_size;
@@ -286,7 +289,13 @@ static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 		if (factor < 0.0f) factor = 0.0f;
 	}
 	else {
-		CLAMP(factor, 0.0f, 1.0f);
+		if (is_percent) {
+			factor *= 100.0f;
+			CLAMP(factor, 0.0f, 100.0f);
+		}
+		else {
+			CLAMP(factor, 0.0f, 1.0f);
+		}
 	}
 
 	return factor;
@@ -361,6 +370,14 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 void MESH_OT_bevel(wmOperatorType *ot)
 {
+	static EnumPropertyItem offset_type_items[] = {
+		{BEVEL_AMT_OFFSET, "OFFSET", 0, "Offset", "Amount is offset of new edges from original"},
+		{BEVEL_AMT_WIDTH, "WIDTH", 0, "Width", "Amount is width of new face"},
+		{BEVEL_AMT_DEPTH, "DEPTH", 0, "Depth", "Amount is perpendicular distance from original edge to bevel face"},
+		{BEVEL_AMT_PERCENT, "PERCENT", 0, "Percent", "Amount is percent of adjacent edge length"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
 	/* identifiers */
 	ot->name = "Bevel";
 	ot->description = "Edge Bevel";
@@ -376,7 +393,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 
-	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Offset", "", 0.0f, 1.0f);
+	RNA_def_enum(ot->srna, "offset_type", offset_type_items, 0, "Amount Type", "What distance Amount measures");
+	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Amount", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex only", "Bevel only vertices");
 }
