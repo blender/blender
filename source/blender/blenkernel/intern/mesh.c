@@ -708,25 +708,31 @@ bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_
 					return false;
 				}
 				else {
-					lidx = lidx_start + (fidx - fidx_start);
+					lidx = fidx;
 				}
 			}
-			pidx = pidx_start + (lidx - lidx_start);
+			pidx = lidx;
 		}
 		else {
 			if (lidx == -1) {
-				lidx = lidx_start + (pidx - pidx_start);
+				lidx = pidx;
 			}
 			if (fidx == -1 && do_tessface) {
-				fidx = fidx_start + (pidx - pidx_start);
+				fidx = pidx;
 			}
 		}
 #if 0
 		/* For now, we do not consider mismatch in indices (i.e. same name leading to (relative) different indices). */
-		else if ((pidx - pidx_start) != (lidx - lidx_start)) {
-			lidx = lidx_start + (pidx - pidx_start);
+		else if (pidx != lidx) {
+			lidx = pidx;
 		}
 #endif
+
+		/* Go back to absolute indices! */
+		pidx += pidx_start;
+		lidx += lidx_start;
+		if (fidx != -1)
+			fidx += fidx_start;
 
 		return BKE_mesh_uv_cdlayer_rename_index(me, pidx, lidx, fidx, new_name, do_tessface);
 	}
