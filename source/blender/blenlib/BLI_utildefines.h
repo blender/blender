@@ -240,8 +240,13 @@
 
 #define CLAMPIS(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 
-#define IS_EQ(a, b) ((fabs((double)(a) - (b)) >= (double) FLT_EPSILON) ? 0 : 1)
-#define IS_EQF(a, b) ((fabsf((float)(a) - (b)) >= (float) FLT_EPSILON) ? 0 : 1)
+#define IS_EQ(a, b)  ( \
+	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \
+	((fabs((double)(a) - (b)) >= (double) FLT_EPSILON) ? false : true))
+
+#define IS_EQF(a, b)  ( \
+	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
+	((fabsf((float)(a) - (b)) >= (float) FLT_EPSILON) ? false : true))
 
 #define IS_EQT(a, b, c) ((a > b) ? (((a - b) <= c) ? 1 : 0) : ((((b - a) <= c) ? 1 : 0)))
 #define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
