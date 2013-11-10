@@ -567,7 +567,7 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
 		if (fcu->bezt) {
 			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 				/* check if remove */
-				if (IS_EQ(bezt->vec[1][0], marker->frame)) {
+				if (IS_EQF(bezt->vec[1][0], (float)marker->frame)) {
 					delete_fcurve_key(fcu, i, 1);
 					break;
 				}

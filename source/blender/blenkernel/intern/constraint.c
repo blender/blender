@@ -3075,7 +3075,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 				float offset;
 				
 				/* check to make sure len is not so close to zero that it'll cause errors */
-				if (IS_EQ(len, 0) == 0) {
+				if (IS_EQF(len, 0.0f) == false) {
 					/* find bounding-box range where target is located */
 					if (ownLoc[clamp_axis] < curveMin[clamp_axis]) {
 						/* bounding-box range is before */
@@ -3107,7 +3107,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 					curvetime = 0.0f;
 				else if (ownLoc[clamp_axis] >= curveMax[clamp_axis])
 					curvetime = 1.0f;
-				else if (IS_EQ((curveMax[clamp_axis] - curveMin[clamp_axis]), 0) == 0)
+				else if (IS_EQF((curveMax[clamp_axis] - curveMin[clamp_axis]), 0.0f) == false)
 					curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (curveMax[clamp_axis] - curveMin[clamp_axis]);
 				else 
 					curvetime = 0.0f;

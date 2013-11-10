@@ -2323,7 +2323,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			KeyBlock *kb;
 
 			for (kb = key->block.first; kb; kb = kb->next) {
-				if (IS_EQF(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
+				if (IS_EQF(kb->slidermin, kb->slidermax) && IS_EQF(kb->slidermax, 0.0f))
 					kb->slidermax = kb->slidermin + 1.0f;
 			}
 		}

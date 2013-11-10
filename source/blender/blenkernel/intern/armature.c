@@ -285,7 +285,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 	 */
 	if (axis == 2) {
 		/* z-axis - vertical (top/bottom) */
-		if (IS_EQ(head, 0)) {
+		if (IS_EQF(head, 0.0f)) {
 			if (tail < 0)
 				strcpy(extension, "Bot");
 			else if (tail > 0)
@@ -300,7 +300,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 	}
 	else if (axis == 1) {
 		/* y-axis - depth (front/back) */
-		if (IS_EQ(head, 0)) {
+		if (IS_EQF(head, 0.0f)) {
 			if (tail < 0)
 				strcpy(extension, "Fr");
 			else if (tail > 0)
@@ -315,7 +315,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 	}
 	else {
 		/* x-axis - horizontal (left/right) */
-		if (IS_EQ(head, 0)) {
+		if (IS_EQF(head, 0.0f)) {
 			if (tail < 0)
 				strcpy(extension, "R");
 			else if (tail > 0)

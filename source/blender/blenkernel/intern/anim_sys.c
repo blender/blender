@@ -1567,11 +1567,11 @@ static float nlastrip_get_influence(NlaStrip *strip, float cframe)
 	strip->blendout = fabsf(strip->blendout);
 	
 	/* result depends on where frame is in respect to blendin/out values */
-	if (IS_EQ(strip->blendin, 0) == 0 && (cframe <= (strip->start + strip->blendin))) {
+	if (IS_EQF(strip->blendin, 0.0f) == false && (cframe <= (strip->start + strip->blendin))) {
 		/* there is some blend-in */
 		return fabsf(cframe - strip->start) / (strip->blendin);
 	}
-	else if (IS_EQ(strip->blendout, 0) == 0 && (cframe >= (strip->end - strip->blendout))) {
+	else if (IS_EQF(strip->blendout, 0.0f) == false && (cframe >= (strip->end - strip->blendout))) {
 		/* there is some blend-out */
 		return fabsf(strip->end - cframe) / (strip->blendout);
 	}
@@ -1856,7 +1856,7 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float
 		inf *= nes->strip_time;
 	
 	/* optimisation: no need to try applying if there is no influence */
-	if (IS_EQ(inf, 0)) return;
+	if (IS_EQF(inf, 0.0f)) return;
 	
 	/* perform blending */
 	switch (blendmode) {
