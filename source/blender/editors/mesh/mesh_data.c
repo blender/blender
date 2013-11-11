@@ -417,7 +417,7 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 	}
 	else {
 		layernum = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
-		if (layernum >= CD_MLOOPCOL) {
+		if (layernum >= MAX_MCOL) {
 			return -1;
 		}
 
