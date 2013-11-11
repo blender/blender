@@ -633,7 +633,12 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
-	BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, (void *)bm, v_a_first, v_b_last);
+	/* We may find a first path, but not a second one! See geometry attached to bug [#37388]. */
+	if (BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last) == false) {
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
+		                "Loops are not connected by wire/boundary edges");
+		goto cleanup;
+	}
 
 	/* Check flipping by comparing path length */
 	estore_rail_a = eloops_rail.first;
@@ -656,7 +661,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 		BM_edgeloop_free(estore_rail_a);
 		estore_rail_a = estore_rail_b;
 
-		/* reverse so these so both are sorted the same way */
+		/* reverse so both are sorted the same way */
 		BM_edgeloop_flip(bm, estore_b);
 		SWAP(BMVert *, v_b_first, v_b_last);
 
