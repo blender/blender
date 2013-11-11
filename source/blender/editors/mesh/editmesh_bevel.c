@@ -264,7 +264,7 @@ static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 
 	mdiff[0] = opdata->mcenter[0] - event->mval[0];
 	mdiff[1] = opdata->mcenter[1] - event->mval[1];
-	is_percent = (RNA_int_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT);
+	is_percent = (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT);
 
 	if (use_dist) {
 		factor = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length) * opdata->pixel_size;
