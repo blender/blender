@@ -71,10 +71,10 @@ extern void *node_initexec_curves(struct bNodeExecContext *context, struct bNode
 
 /**** Labels ****/
 
-void node_blend_label(struct bNode *node, char *label, int maxlen);
-void node_math_label(struct bNode *node, char *label, int maxlen);
-void node_vect_math_label(struct bNode *node, char *label, int maxlen);
-void node_filter_label(struct bNode *node, char *label, int maxlen);
+void node_blend_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void node_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void node_vect_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void node_filter_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
 
 void node_update_internal_links_default(struct bNodeTree *ntree, struct bNode *node);
 

@@ -83,28 +83,28 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context), bNode *node, bNode
 
 /**** Labels ****/
 
-void node_blend_label(bNode *node, char *label, int maxlen)
+void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(ramp_blend_items, node->custom1, &name);
 	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_math_label(bNode *node, char *label, int maxlen)
+void node_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_math_items, node->custom1, &name);
 	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_vect_math_label(bNode *node, char *label, int maxlen)
+void node_vect_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_vec_math_items, node->custom1, &name);
 	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_filter_label(bNode *node, char *label, int maxlen)
+void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_filter_items, node->custom1, &name);

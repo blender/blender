@@ -1280,6 +1280,29 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
 	RNA_parameter_list_free(&list);
 }
 
+static void rna_Node_draw_label(bNodeTree *ntree, bNode *node, char *label, int maxlen)
+{
+	extern FunctionRNA rna_Node_draw_label_func;
+
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	char *rlabel;
+
+	func = &rna_Node_draw_label_func; /* RNA_struct_find_function(&ptr, "draw_label"); */
+
+	RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+	RNA_parameter_list_create(&list, &ptr, func);
+	node->typeinfo->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "label", &ret);
+	rlabel = *(char **)ret;
+	BLI_strncpy(label, rlabel != NULL ? rlabel : "", maxlen);
+
+	RNA_parameter_list_free(&list);
+}
+
 static int rna_Node_is_registered_node_type(StructRNA *type)
 {
 	return (RNA_struct_blender_type_get(type) != NULL);
@@ -1321,7 +1344,7 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	PointerRNA dummyptr;
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	int have_function[8];
+	int have_function[9];
 
 	/* setup dummy node & node type to store static properties in */
 	memset(&dummynt, 0, sizeof(bNodeType));
@@ -1379,6 +1402,7 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	nt->freefunc_api = (have_function[5]) ? rna_Node_free : NULL;
 	nt->draw_buttons = (have_function[6]) ? rna_Node_draw_buttons : NULL;
 	nt->draw_buttons_ex = (have_function[7]) ? rna_Node_draw_buttons_ext : NULL;
+	nt->labelfunc = (have_function[8]) ? rna_Node_draw_label : NULL;
 	
 	/* sanitize size values in case not all have been registered */
 	if (nt->maxwidth < nt->minwidth)
@@ -7149,6 +7173,14 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_struct_type(parm, "UILayout");
 	RNA_def_property_ui_text(parm, "Layout", "Layout in the UI");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+
+	/* dynamic label */
+	func = RNA_def_function(srna, "draw_label", NULL);
+	RNA_def_function_ui_description(func, "Returns a dynamic label string");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_string(func, "label", "", MAX_NAME, "Label", "");
+	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
+	RNA_def_function_output(func, parm);
 }
 
 static void rna_def_node_link(BlenderRNA *brna)

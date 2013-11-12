@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void label(bNode *node, char *label, int maxlen)
+static void label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
 	if (node->custom1 == 0)
 		BLI_strncpy(label, IFACE_("Undistortion"), maxlen);
