@@ -416,6 +416,10 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
             sub.prop(strip, "blend_alpha", text="Opacity", slider=True)
             row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
             row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
+        else:
+            row = layout.row(align=True)
+            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF')
+            row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED')
 
         col = layout.column()
         sub = col.column()
