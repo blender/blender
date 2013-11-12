@@ -175,7 +175,7 @@ typedef struct bNodeType {
 	void (*draw_backdrop)(struct SpaceNode *snode, struct ImBuf *backdrop, struct bNode *node, int x, int y);
 
 	/// Optional custom label function for the node header.
-	const char *(*labelfunc)(struct bNode *);
+	void (*labelfunc)(struct bNode *node, char *label, int maxlen);
 	/// Optional custom resize handle polling.
 	int (*resize_area_func)(struct bNode *node, int x, int y);
 	/// Optional selection area polling.
@@ -556,7 +556,7 @@ void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const f
 
 /* ************** NODE TYPE ACCESS *************** */
 
-const char     *nodeLabel(struct bNode *node);
+void            nodeLabel(struct bNode *node, char *label, int maxlen);
 
 int				nodeGroupPoll(struct bNodeTree *nodetree, struct bNodeTree *grouptree);
 
@@ -571,7 +571,7 @@ void            node_type_storage(struct bNodeType *ntype,
                                   const char *storagename,
                                   void (*freefunc)(struct bNode *node),
                                   void (*copyfunc)(struct bNodeTree *dest_ntree, struct bNode *dest_node, struct bNode *src_node));
-void            node_type_label(struct bNodeType *ntype, const char *(*labelfunc)(struct bNode *));
+void            node_type_label(struct bNodeType *ntype, void (*labelfunc)(struct bNode *, char *label, int maxlen));
 void            node_type_update(struct bNodeType *ntype,
                                  void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node),
                                  void (*verifyfunc)(struct bNodeTree *ntree, struct bNode *node, struct ID *id));

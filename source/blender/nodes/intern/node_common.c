@@ -82,9 +82,9 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
 }
 
 /* groups display their internal tree name as label */
-const char *node_group_label(bNode *node)
+void node_group_label(bNode *node, char *label, int maxlen)
 {
-	return (node->id) ? node->id->name + 2 : IFACE_("Missing Datablock");
+	BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Datablock"), maxlen);
 }
 
 int node_group_poll_instance(bNode *node, bNodeTree *nodetree)

@@ -48,12 +48,12 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[] = {
 	{	-1, 0, ""	}
 };
 
-static const char *label(bNode *node)
+static void label(bNode *node, char *label, int maxlen)
 {
 	if (node->custom1 == 0)
-		return IFACE_("Undistortion");
+		BLI_strncpy(label, IFACE_("Undistortion"), maxlen);
 	else
-		return IFACE_("Distortion");
+		BLI_strncpy(label, IFACE_("Distortion"), maxlen);
 }
 
 static void init(const bContext *C, PointerRNA *ptr)

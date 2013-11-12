@@ -36,6 +36,7 @@
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -82,32 +83,32 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context), bNode *node, bNode
 
 /**** Labels ****/
 
-const char *node_blend_label(bNode *node)
+void node_blend_label(bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(ramp_blend_items, node->custom1, &name);
-	return IFACE_(name);
+	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-const char *node_math_label(bNode *node)
+void node_math_label(bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_math_items, node->custom1, &name);
-	return IFACE_(name);
+	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-const char *node_vect_math_label(bNode *node)
+void node_vect_math_label(bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_vec_math_items, node->custom1, &name);
-	return IFACE_(name);
+	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-const char *node_filter_label(bNode *node)
+void node_filter_label(bNode *node, char *label, int maxlen)
 {
 	const char *name;
 	RNA_enum_name(node_filter_items, node->custom1, &name);
-	return IFACE_(name);
+	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
 void node_update_internal_links_default(bNodeTree *ntree, bNode *node)

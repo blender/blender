@@ -3089,14 +3089,14 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 
 /* ************* node type access ********** */
 
-const char *nodeLabel(bNode *node)
+void nodeLabel(bNode *node, char *label, int maxlen)
 {
 	if (node->label[0] != '\0')
-		return node->label;
+		BLI_strncpy(label, node->label, maxlen);
 	else if (node->typeinfo->labelfunc)
-		return node->typeinfo->labelfunc(node);
+		node->typeinfo->labelfunc(node, label, maxlen);
 	else
-		return IFACE_(node->typeinfo->ui_name);
+		BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), maxlen);
 }
 
 static void node_type_base_defaults(bNodeType *ntype)
@@ -3267,7 +3267,7 @@ void node_type_storage(bNodeType *ntype,
 	ntype->freefunc = freefunc;
 }
 
-void node_type_label(struct bNodeType *ntype, const char *(*labelfunc)(struct bNode *))
+void node_type_label(struct bNodeType *ntype, void (*labelfunc)(struct bNode *, char *label, int maxlen))
 {
 	ntype->labelfunc = labelfunc;
 }

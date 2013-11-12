@@ -868,7 +868,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT);
 #endif
 	
-	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
+	nodeLabel(node, showname, sizeof(showname));
 	
 	//if (node->flag & NODE_MUTED)
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
@@ -1035,8 +1035,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColor(TH_TEXT);
 	
 	if (node->miniwidth > 0.0f) {
-		BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
-		
+		nodeLabel(node, showname, sizeof(showname));
+
 		//if (node->flag & NODE_MUTED)
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 

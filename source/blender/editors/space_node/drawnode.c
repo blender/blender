@@ -391,11 +391,13 @@ static void node_draw_frame_label(bNode *node, const float aspect)
 	NodeFrame *data = (NodeFrame *)node->storage;
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
-	const char *label = nodeLabel(node);
+	char label[MAX_NAME];
 	/* XXX a bit hacky, should use separate align values for x and y */
 	float width, ascender;
 	float x, y;
 	const int font_size = data->label_size / aspect;
+
+	nodeLabel(node, label, sizeof(label));
 
 	BLF_enable(fontid, BLF_ASPECT);
 	BLF_aspect(fontid, aspect, aspect, 1.0f);
