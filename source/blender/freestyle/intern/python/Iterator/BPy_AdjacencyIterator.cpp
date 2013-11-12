@@ -115,6 +115,8 @@ PyDoc_STRVAR(AdjacencyIterator_object_doc,
 
 static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void *UNUSED(closure))
 {
+	if (self->a_it->isEnd())
+		Py_RETURN_NONE;
 	ViewEdge *ve = self->a_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);

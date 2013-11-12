@@ -122,6 +122,8 @@ PyDoc_STRVAR(ViewEdgeIterator_object_doc,
 
 static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
 {
+	if (!self->ve_it->isEnd())
+		Py_RETURN_NONE;
 	ViewEdge *ve = self->ve_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);

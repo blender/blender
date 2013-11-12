@@ -103,6 +103,8 @@ PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
 
 static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterator *self, void *UNUSED(closure))
 {
+	if (self->ove_it->isEnd())
+		Py_RETURN_NONE;
 	return BPy_directedViewEdge_from_directedViewEdge(self->ove_it->operator*());
 }
 

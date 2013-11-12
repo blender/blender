@@ -175,6 +175,8 @@ PyDoc_STRVAR(ChainingIterator_object_doc,
 
 static PyObject *ChainingIterator_object_get(BPy_ChainingIterator *self, void *UNUSED(closure))
 {
+	if (self->c_it->isEnd())
+		Py_RETURN_NONE;
 	ViewEdge *ve = self->c_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
