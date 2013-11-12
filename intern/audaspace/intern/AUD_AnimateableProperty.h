@@ -34,6 +34,7 @@
 #include "AUD_ILockable.h"
 
 #include <pthread.h>
+#include <list>
 
 /**
  * This class saves animation data for float properties.
@@ -41,6 +42,14 @@
 class AUD_AnimateableProperty : private AUD_Buffer, public AUD_ILockable
 {
 private:
+	struct Unknown {
+		int start;
+		int end;
+
+		Unknown(int start, int end) :
+			start(start), end(end) {}
+	};
+
 	/// The count of floats for a single property.
 	const int m_count;
 
@@ -50,9 +59,14 @@ private:
 	/// The mutex for locking.
 	pthread_mutex_t m_mutex;
 
+	/// The list of unknown buffer areas.
+	std::list<Unknown> m_unknown;
+
 	// hide copy constructor and operator=
 	AUD_AnimateableProperty(const AUD_AnimateableProperty&);
 	AUD_AnimateableProperty& operator=(const AUD_AnimateableProperty&);
+
+	void updateUnknownCache(int start, int end);
 
 public:
 	/**

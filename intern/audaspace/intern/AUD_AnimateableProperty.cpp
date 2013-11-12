@@ -47,6 +47,15 @@ AUD_AnimateableProperty::AUD_AnimateableProperty(int count) :
 	pthread_mutexattr_destroy(&attr);
 }
 
+void AUD_AnimateableProperty::updateUnknownCache(int start, int end)
+{
+	float* buf = getBuffer();
+
+	for(int i = start; i <= end; i++)
+		// TODO: maybe first instead of zero order interpolation?
+		memcpy(buf + i * m_count, buf + (start - 1) * m_count, m_count * sizeof(float));
+}
+
 AUD_AnimateableProperty::~AUD_AnimateableProperty()
 {
 	pthread_mutex_destroy(&m_mutex);
@@ -67,6 +76,7 @@ void AUD_AnimateableProperty::write(const float* data)
 	AUD_MutexLock lock(*this);
 
 	m_isAnimated = false;
+	m_unknown.clear();
 	memcpy(getBuffer(), data, m_count * sizeof(float));
 }
 
@@ -74,9 +84,12 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 {
 	AUD_MutexLock lock(*this);
 
-	m_isAnimated = true;
-
 	int pos = getSize() / (sizeof(float) * m_count);
+
+	if(!m_isAnimated)
+		pos = 0;
+
+	m_isAnimated = true;
 
 	assureSize((count + position) * m_count * sizeof(float), true);
 
@@ -84,8 +97,72 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 
 	memcpy(buf + position * m_count, data, count * m_count * sizeof(float));
 
-	for(int i = pos; i < position; i++)
-		memcpy(buf + i * m_count, buf + (pos - 1) * m_count, m_count * sizeof(float));
+	// have to fill up space between?
+	if(pos < position)
+	{
+		m_unknown.push_back(Unknown(pos, position - 1));
+
+		if(pos == 0)
+		{
+			memset(buf, 0, position * m_count * sizeof(float));
+		}
+		else
+			updateUnknownCache(pos, position - 1);
+	}
+	// otherwise it's not at the end, let's check if some unknown part got filled
+	else
+	{
+		for(std::list<Unknown>::iterator it = m_unknown.begin(); it != m_unknown.end(); it++)
+		{
+			// unknown area before position
+			if(it->end < position)
+				continue;
+
+			// we're after the new area, let's stop
+			if(it->start >= position + count)
+				break;
+
+			// we have an intersection, now 4 cases:
+			// the start is included
+			if(position <= it->start)
+			{
+				// the end is included
+				if(position + count > it->end)
+				{
+					// simply delete
+					std::list<Unknown>::iterator it2 = it;
+					it++;
+					m_unknown.erase(it2);
+				}
+				// the end is excluded, a second part remains
+				else
+				{
+					// update second part
+					it->start = position + count;
+					updateUnknownCache(it->start, it->end);
+					break;
+				}
+			}
+			// start is excluded, a first part remains
+			else
+			{
+				// the end is included
+				if(position + count > it->end)
+				{
+					// update first part
+					it->end = position - 1;
+				}
+				// the end is excluded, a second part remains
+				else
+				{
+					// add another item and update both parts
+					m_unknown.insert(it, Unknown(it->start, position - 1));
+					it->start = position + count;
+					updateUnknownCache(it->start, it->end);
+				}
+			}
+		}
+	}
 }
 
 void AUD_AnimateableProperty::read(float position, float* out)
