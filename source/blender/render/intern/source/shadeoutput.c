@@ -1789,18 +1789,20 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* AO pass */
-	if (R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
-		if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) ||
-		    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
-		{
-			if (R.r.mode & R_SHADOW) {
-				/* AO was calculated for scanline already */
-				if (shi->depth || shi->volume_depth)
-					ambient_occlusion(shi);
-				copy_v3_v3(shr->ao, shi->ao);
-				copy_v3_v3(shr->env, shi->env); /* XXX multiply */
-				copy_v3_v3(shr->indirect, shi->indirect); /* XXX multiply */
-			}
+	if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) ||
+	    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
+		if ((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (R.r.mode & R_SHADOW)) {
+			/* AO was calculated for scanline already */
+			if (shi->depth || shi->volume_depth)
+				ambient_occlusion(shi);
+			copy_v3_v3(shr->ao, shi->ao);
+			copy_v3_v3(shr->env, shi->env); /* XXX multiply */
+			copy_v3_v3(shr->indirect, shi->indirect); /* XXX multiply */
+		}
+		else {
+			shr->ao[0]= shr->ao[1]= shr->ao[2]= 1.0f;
+			zero_v3(shr->env);
+			zero_v3(shr->indirect);
 		}
 	}
 	
