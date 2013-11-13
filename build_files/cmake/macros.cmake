@@ -891,8 +891,6 @@ macro(msgfmt_simple
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/msgfmt ${_file_from} ${_file_to}
 		DEPENDS msgfmt)
 
-	message("${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/msgfmt ${_file_from} ${_file_to}")
-
 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
 
 	unset(_file_from_we)
