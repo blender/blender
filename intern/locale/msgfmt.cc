@@ -221,6 +221,7 @@ void make(const char *input_file_name,
     if (l[0] == '#' && section == SECTION_STR) {
       add(msgctxt, msgid, msgstr, fuzzy);
       section = SECTION_NONE;
+      msgctxt = "";
       fuzzy = false;
     }
     // Record a fuzzy mark.
