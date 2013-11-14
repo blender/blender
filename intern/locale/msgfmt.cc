@@ -14,7 +14,9 @@
 // Usage: msgfmt input.po output.po
 
 #include <algorithm>
+#include <cctype>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <stdlib.h>
