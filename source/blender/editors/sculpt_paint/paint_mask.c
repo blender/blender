@@ -163,14 +163,31 @@ static int is_effected(float planes[4][4], const float co[3])
 	return isect_point_planes_v3(planes, 4, co);
 }
 
+static void flip_plane(float out[4], const float in[4], const char symm)
+{
+	if (symm & SCULPT_SYMM_X)
+		out[0] = -in[0];
+	else
+		out[0] = in[0];
+	if (symm & SCULPT_SYMM_Y)
+		out[1] = -in[1];
+	else
+		out[1] = in[1];
+	if (symm & SCULPT_SYMM_Z)
+		out[2] = -in[2];
+	else
+		out[2] = in[2];
+
+	out[3] = in[3];
+}
+
 int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
 {
-#ifdef _OPENMP
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
-#endif
 	BoundBox bb;
 	bglMats mats = {{0}};
 	float clip_planes[4][4];
+	float clip_planes_final[4][4];
 	ARegion *ar = vc->ar;
 	struct Scene *scene = vc->scene;
 	Object *ob = vc->obact;
@@ -180,7 +197,8 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	DerivedMesh *dm;
 	PBVH *pbvh;
 	PBVHNode **nodes;
-	int totnode, i;
+	int totnode, i, symmpass;
+	int symm = sd->flags & 7;
 
 	mode = PAINT_MASK_FLOOD_VALUE;
 	value = select ? 1.0 : 0.0;
@@ -196,30 +214,45 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
 
-	BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes, &nodes, &totnode);
-
 	sculpt_undo_push_begin("Mask box fill");
 
+	for (symmpass = 0; symmpass <= symm; ++symmpass) {
+		if (symmpass == 0 ||
+			(symm & symmpass &&
+			 (symm != 5 || symmpass != 3) &&
+			 (symm != 6 || (symmpass != 3 && symmpass != 5))))
+		{
+			int j = 0;
+
+			/* flip the planes symmetrically as needed */
+			for (; j < 4; j++) {
+				flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
+			}
+
+			BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
+
 #pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-	for (i = 0; i < totnode; i++) {
-		PBVHVertexIter vi;
+			for (i = 0; i < totnode; i++) {
+				PBVHVertexIter vi;
 
-		sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+				sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
-		BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-			if (is_effected(clip_planes, vi.co))
-				mask_flood_fill_set_elem(vi.mask, mode, value);
-		} BKE_pbvh_vertex_iter_end;
+				BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
+					if (is_effected(clip_planes_final, vi.co))
+						mask_flood_fill_set_elem(vi.mask, mode, value);
+				} BKE_pbvh_vertex_iter_end;
 
-		BKE_pbvh_node_mark_update(nodes[i]);
-		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+				BKE_pbvh_node_mark_update(nodes[i]);
+				if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+					multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+			}
+
+			if (nodes)
+				MEM_freeN(nodes);
+		}
 	}
 
 	sculpt_undo_push_end();
-
-	if (nodes)
-		MEM_freeN(nodes);
 
 	ED_region_tag_redraw(ar);
 
