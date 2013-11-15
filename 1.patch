@@ -1,0 +1,24 @@
+commit c50944e808d6c74148237e85866e893628f0fee6
+Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
+Date:   Wed Nov 13 20:30:45 2013 +0100
+
+    Add .arcconfig for Phabricator Arcanist
+    
+    Summary: http://wiki.blender.org/index.php/Dev:Doc/Tools/Code_Review
+    
+    Reviewed By: sergey
+    
+    Differential Revision: http://developer.blender.org/D1
+
+diff --git a/.arcconfig b/.arcconfig
+new file mode 100644
+index 0000000..cfe68c6
+--- /dev/null
++++ b/.arcconfig
+@@ -0,0 +1,6 @@
++{
++	"project_id" : "Blender",
++	"conduit_uri" : "http://developer.blender.org/",
++	"git.default-relative-commit" : "origin/master",
++	"arc.land.update.default" : "rebase"
++}
