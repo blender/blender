@@ -236,8 +236,6 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 				PBVHVertexIter vi;
 				bool any_masked = false;
 
-				sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-
 				BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
 					if (is_effected(clip_planes_final, vi.co)) {
 						if (!any_masked) {
