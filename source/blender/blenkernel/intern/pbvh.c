@@ -1283,6 +1283,11 @@ void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node)
 	node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
+void BKE_pbvh_node_mark_redraw(PBVHNode *node)
+{
+	node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
 {
 	BLI_assert(node->flag & PBVH_Leaf);

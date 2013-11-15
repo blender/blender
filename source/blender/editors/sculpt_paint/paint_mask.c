@@ -117,7 +117,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 			mask_flood_fill_set_elem(vi.mask, mode, value);
 		} BKE_pbvh_vertex_iter_end;
 		
-		BKE_pbvh_node_mark_update(nodes[i]);
+		BKE_pbvh_node_mark_redraw(nodes[i]);
 		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
 			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 	}
@@ -234,17 +234,24 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 #pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 			for (i = 0; i < totnode; i++) {
 				PBVHVertexIter vi;
+				bool any_masked = false;
 
 				sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
 				BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-					if (is_effected(clip_planes_final, vi.co))
-						mask_flood_fill_set_elem(vi.mask, mode, value);
-				} BKE_pbvh_vertex_iter_end;
+					if (is_effected(clip_planes_final, vi.co)) {
+						if (!any_masked) {
+							any_masked = true;
 
-				BKE_pbvh_node_mark_update(nodes[i]);
-				if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-					multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+							sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+
+							BKE_pbvh_node_mark_redraw(nodes[i]);
+							if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+								multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+						}
+						mask_flood_fill_set_elem(vi.mask, mode, value);
+					}
+				} BKE_pbvh_vertex_iter_end;
 			}
 
 			if (nodes)
@@ -359,17 +366,23 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 #pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (i = 0; i < totnode; i++) {
 			PBVHVertexIter vi;
-
-			sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+			bool any_masked = false;
 
 			BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-				if (is_effected_lasso(&data, vi.co))
-					mask_flood_fill_set_elem(vi.mask, mode, value);
-			} BKE_pbvh_vertex_iter_end;
+				if (is_effected_lasso(&data, vi.co)) {
+					if (!any_masked) {
+						any_masked = true;
 
-			BKE_pbvh_node_mark_update(nodes[i]);
-			if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-				multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+						sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+
+						BKE_pbvh_node_mark_redraw(nodes[i]);
+						if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+							multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+					}
+
+					mask_flood_fill_set_elem(vi.mask, mode, value);
+				}
+			} BKE_pbvh_vertex_iter_end;
 		}
 
 		sculpt_undo_push_end();
