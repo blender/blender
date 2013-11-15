@@ -32,7 +32,7 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 
 
 # Source and Build DIR's
-BLENDER_DIR:=$(shell pwd -P)
+BLENDER_DIR:="$(shell pwd -P)"
 BUILD_TYPE:=Release
 
 ifndef BUILD_CMAKE_ARGS
@@ -40,7 +40,7 @@ ifndef BUILD_CMAKE_ARGS
 endif
 
 ifndef BUILD_DIR
-	BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build_$(OS_NCASE)
+	BUILD_DIR:="$(shell dirname $(BLENDER_DIR))/build_$(OS_NCASE)"
 endif
 
 
