@@ -230,7 +230,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 #ifdef WITH_BUILDINFO
 	BLI_snprintf(version_buf, sizeof(version_buf), "Blender %d.%02d.%d commit date:%s, hash:",
 	             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION,
-	             build_commit_date, blender_commit_time, build_hash);
+	             build_commit_date, build_commit_time, build_hash);
 #else
 	BLI_snprintf(version_buf, sizeof(version_buf), "Blender %d.%02d.%d",
 	             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
