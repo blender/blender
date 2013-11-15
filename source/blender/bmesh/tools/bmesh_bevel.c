@@ -133,6 +133,7 @@ typedef struct BevelParams {
 	int seg;                /* number of segments in beveled edge profile */
 	bool vertex_only;       /* bevel vertices only */
 	bool use_weights;       /* bevel amount affected by weights on edges or verts */
+	bool preserve_widths;	/* should bevel prefer widths over angles, if forced to choose? */
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 } BevelParams;
@@ -208,6 +209,28 @@ static EdgeHalf *find_edge_half(BevVert *bv, BMEdge *bme)
 	return NULL;
 }
 
+/* find the BevVert corresponding to BMVert bmv */
+static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
+{
+	return BLI_ghash_lookup(bp->vert_hash, bmv);
+}
+
+/* Find the EdgeHalf representing the other end of e->e.
+ * That may not have been constructed yet, in which case return NULL. */
+static EdgeHalf *find_other_end_edge_half(BevelParams *bp, EdgeHalf *e)
+{
+	BevVert *bvother;
+	EdgeHalf *eother;
+
+	bvother = find_bevvert(bp, e->is_rev ? e->e->v1 : e->e->v2);
+	if (bvother) {
+		eother = find_edge_half(bvother, e->e);
+		BLI_assert(eother != NULL);
+		return eother;
+	}
+	return NULL;
+}
+
 /* Return the next EdgeHalf after from_e that is beveled.
  * If from_e is NULL, find the first beveled edge. */
 static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
@@ -223,12 +246,6 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 		}
 	} while ((e = e->next) != from_e);
 	return NULL;
-}
-
-/* find the BevVert corresponding to BMVert bmv */
-static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
-{
-	return BLI_ghash_lookup(bp->vert_hash, bmv);
 }
 
 /* Return a good representative face (for materials, etc.) for faces
@@ -522,19 +539,40 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 	}
 }
 
+/* Like offset_in_two planes, but for the case where we prefer to solve the problem
+ * of not meeting at the same point by choosing to change the bevel offset on one
+ * of the appropriate side of either e1 or e2, in order that the lines can meet on emid. */
+static void offset_on_edge_between(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+				   BMVert *v, float meetco[3])
+{
+	BLI_assert(e1->is_bev && e2->is_bev && !emid->is_bev);
+	
+	/* If have to change offset of e1 or e2, which one?
+	 * Prefer the one whose other end hasn't been constructed yet.
+	 * Following will choose to change e2 if both have already been constructed. */
+	if (find_other_end_edge_half(bp, e1)) {
+		offset_meet(e1, emid, v, e1->fnext, TRUE, meetco);
+		/* now e2's left offset is probably different */
+		e2->offset_l = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e2->e, v)->co);
+	}
+	else {
+		offset_meet(emid, e2, v, emid->fnext, TRUE, meetco);
+		/* now e1's right offset is probably different */
+		e1->offset_r = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e1->e, v)->co);
+	}
+}
+
 /* Like offset_meet, but with a mid edge between them that is used
  * to calculate the planes in which to run the offset lines.
- * They may not meet exactly: the offsets for the edges may be different
- * or both the planes and the lines may be angled so that they can't meet.
+ * They may not meet exactly: the lines may be angled so that they can't meet,
+ * probably because one or both faces is non-planar.
  * In that case, pick a close point on emid, which should be the dividing
- * edge between the two planes.
- * TODO: should have a global 'offset consistency' prepass to adjust offset
- * widths so that all edges have the same offset at both ends. */
-static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+ * edge between the two planes. */
+static void offset_in_two_planes(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
                                  BMVert *v, float meetco[3])
 {
 	float dir1[3], dir2[3], dirmid[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3],
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3],
 	      f1no[3], f2no[3], ang;
 	int iret;
 
@@ -562,8 +600,8 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 
 	ang = angle_v3v3(dir1, dir2);
 	if (ang < 100.0f * BEVEL_EPSILON) {
-		/* lines are parallel; off1a is a good meet point */
-		copy_v3_v3(meetco, off1a);
+		/* lines are parallel; put intersection on emid */
+		offset_on_edge_between(bp, e1, e2, emid, v, meetco);
 	}
 	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
 		slide_dist(e2, v, e2->offset_l, meetco);
@@ -575,11 +613,10 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 			copy_v3_v3(meetco, off1a);
 		}
 		else if (iret == 2) {
-			/* lines are not coplanar; meetco and isect2 are nearest to first and second lines */
+			/* lines are not coplanar and don't meet; meetco and isect2 are nearest to first and second lines */
 			if (len_v3v3(meetco, isect2) > 100.0f * BEVEL_EPSILON) {
-				/* offset lines don't meet: project average onto emid; this is not ideal (see TODO above) */
-				mid_v3_v3v3(co, meetco, isect2);
-				closest_to_line_v3(meetco, co, v->co, BM_edge_other_vert(emid->e, v)->co);
+				/* offset lines don't meet so can't preserve widths; fallback on sliding along edge between */
+				offset_on_edge_between(bp, e1, e2, emid, v, meetco);
 			}
 		}
 		/* else iret == 1 and the lines are coplanar so meetco has the intersection */
@@ -849,7 +886,10 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
-					offset_in_two_planes(e->prev->prev, e, e->prev, bv->v, co);
+					if (bp->preserve_widths)
+						offset_in_two_planes(bp, e->prev->prev, e, e->prev, bv->v, co);
+					else
+						offset_on_edge_between(bp, e->prev->prev, e, e->prev, bv->v, co);
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev->prev;
 					v->elast = v->ebev = e;
@@ -1950,7 +1990,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	BMEdge *bme2, *unflagged_bme, *first_bme;
 	BMFace *f;
 	BMIter iter, iter2;
-	EdgeHalf *e;
+	EdgeHalf *e, *eother;
 	float weight, z;
 	int i, found_shared_face, ccw_test_sum;
 	int nsel = 0;
@@ -2107,39 +2147,51 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		if (e->is_bev) {
 			/* Convert distance as specified by user into offsets along
 			 * faces on left side and right side of this edgehalf.
-			 * Except for percent method, offset will be same on each side. */
-			switch (bp->offset_type) {
-			case BEVEL_AMT_OFFSET:
-				e->offset_l = bp->offset;
-				break;
-			case BEVEL_AMT_WIDTH:
-				z = fabs(2.0f * sinf(edge_face_angle(e) / 2.0f));
-				if (z < BEVEL_EPSILON)
-					e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
-				else
-					e->offset_l = bp->offset / z;
-				break;
-			case BEVEL_AMT_DEPTH:
-				z = fabs(cosf(edge_face_angle(e) / 2.0f));
-				if (z < BEVEL_EPSILON)
-					e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
-				else
-					e->offset_l = bp->offset / z;
-				break;
-			case BEVEL_AMT_PERCENT:
-				e->offset_l = BM_edge_calc_length(e->prev->e) * bp->offset / 100.0f;
-				e->offset_r = BM_edge_calc_length(e->next->e) * bp->offset / 100.0f;
-				break;
-			default:
-				BLI_assert(!"bad bevel offset kind");
-				e->offset_l = bp->offset;
+			 * Except for percent method, offset will be same on each side.
+			 *
+			 * First check to see if other end has had construction made,
+			 * because offset may have been forced to another number
+			 * (but for percent method all 4 widths can be different). */
+
+			eother = find_other_end_edge_half(bp, e);
+			if (eother && bp->offset_type != BEVEL_AMT_PERCENT) {
+				e->offset_l = eother->offset_r;
+				e->offset_r = eother->offset_l;
 			}
-			if (bp->offset_type != BEVEL_AMT_PERCENT)
-				e->offset_r = e->offset_l;
-			if (bp->use_weights) {
-				weight = BM_elem_float_data_get(&bm->edata, bme, CD_BWEIGHT);
-				e->offset_l *= weight;
-				e->offset_r *= weight;
+			else {
+				switch (bp->offset_type) {
+				case BEVEL_AMT_OFFSET:
+					e->offset_l = bp->offset;
+					break;
+				case BEVEL_AMT_WIDTH:
+					z = fabs(2.0f * sinf(edge_face_angle(e) / 2.0f));
+					if (z < BEVEL_EPSILON)
+						e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
+					else
+						e->offset_l = bp->offset / z;
+					break;
+				case BEVEL_AMT_DEPTH:
+					z = fabs(cosf(edge_face_angle(e) / 2.0f));
+					if (z < BEVEL_EPSILON)
+						e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
+					else
+						e->offset_l = bp->offset / z;
+					break;
+				case BEVEL_AMT_PERCENT:
+					e->offset_l = BM_edge_calc_length(e->prev->e) * bp->offset / 100.0f;
+					e->offset_r = BM_edge_calc_length(e->next->e) * bp->offset / 100.0f;
+					break;
+				default:
+					BLI_assert(!"bad bevel offset kind");
+					e->offset_l = bp->offset;
+				}
+				if (bp->offset_type != BEVEL_AMT_PERCENT)
+					e->offset_r = e->offset_l;
+				if (bp->use_weights) {
+					weight = BM_elem_float_data_get(&bm->edata, bme, CD_BWEIGHT);
+					e->offset_l *= weight;
+					e->offset_r *= weight;
+				}
 			}
 		}
 		else {
@@ -2432,6 +2484,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const int offset_type, const f
 	bp.seg    = segments;
 	bp.vertex_only = vertex_only;
 	bp.use_weights = use_weights;
+	bp.preserve_widths = false;
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;
 
