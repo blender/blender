@@ -307,21 +307,13 @@ if(APPLE)
 		FORCE)
 	endif()
 	
-	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
-	if(${MAC_SYS} MATCHES 13)
-		set(OSX_SYSTEM 10.9)
-	elseif(${MAC_SYS} MATCHES 12)
-		set(OSX_SYSTEM 10.8)
-	elseif(${MAC_SYS} MATCHES 11)
-		set(OSX_SYSTEM 10.7)
-	elseif(${MAC_SYS} MATCHES 10)
-		set(OSX_SYSTEM 10.6)
-	elseif(${MAC_SYS} MATCHES 9)
-		set(OSX_SYSTEM 10.5)
-	else()
-		set(OSX_SYSTEM unsupported)
-	endif()
-	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
+	execute_process(COMMAND sw_vers -productVersion OUTPUT_VARIABLE MAC_SYS OUTPUT_STRIP_TRAILING_WHITESPACE) # check for actual system-version
+    if( ${MAC_SYS} VERSION_LESS 10.5)
+        set(OSX_SYSTEM unsupported)
+    else()
+        set(OSX_SYSTEM ${MAC_SYS})
+    endif()
+    message(STATUS "Detected system-version: " ${OSX_SYSTEM})
 	
 	# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not take xcode-select path into accout
 	# but would always look into /Applications/Xcode.app while dev versions are named Xcode<version>-DP<preview_number>
