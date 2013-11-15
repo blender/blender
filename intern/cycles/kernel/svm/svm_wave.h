@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Wave */
 
-__device_noinline float svm_wave(NodeWaveType type, float3 p, float scale, float detail, float distortion, float dscale)
+ccl_device_noinline float svm_wave(NodeWaveType type, float3 p, float scale, float detail, float distortion, float dscale)
 {
 	float n;
 
@@ -35,7 +35,7 @@ __device_noinline float svm_wave(NodeWaveType type, float3 p, float scale, float
 	return 0.5f + 0.5f * sinf(n);
 }
 
-__device void svm_node_tex_wave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_tex_wave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
 	uint4 node2 = read_node(kg, offset);
 

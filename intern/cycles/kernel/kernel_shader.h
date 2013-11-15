@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 /* ShaderData setup from incoming ray */
 
 #ifdef __OBJECT_MOTION__
-__device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
+ccl_device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
 {
 	if(sd->flag & SD_OBJECT_MOTION) {
 		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time);
@@ -49,7 +49,7 @@ __device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, 
 }
 #endif
 
-__device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
+ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray, int bounce)
 {
 #ifdef __INSTANCING__
@@ -161,7 +161,7 @@ __device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 /* ShaderData setup from BSSRDF scatter */
 
 #ifdef __SUBSURFACE__
-__device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData *sd,
+ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
 	bool backfacing = sd->flag & SD_BACKFACING;
@@ -237,7 +237,7 @@ __device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData 
 
 /* ShaderData setup from position sampled on mesh */
 
-__device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
+ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
 	int shader, int object, int prim, float u, float v, float t, float time, int bounce, int segment)
 {
@@ -357,7 +357,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 
 /* ShaderData setup for displacement */
 
-__device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
+ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	int object, int prim, float u, float v)
 {
 	float3 P, Ng, I = make_float3(0.0f, 0.0f, 0.0f);
@@ -376,7 +376,7 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 
 /* ShaderData setup from ray into background */
 
-__device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce)
+ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce)
 {
 	/* vectors */
 	sd->P = ray->D;
@@ -426,7 +426,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 
 #ifdef __MULTI_CLOSURE__
 
-__device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderData *sd, const float3 omega_in, float *pdf,
+ccl_device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderData *sd, const float3 omega_in, float *pdf,
 	int skip_bsdf, BsdfEval *result_eval, float sum_pdf, float sum_sample_weight)
 {
 	/* this is the veach one-sample model with balance heuristic, some pdf
@@ -455,7 +455,7 @@ __device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderData
 
 #endif
 
-__device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
+ccl_device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
 	const float3 omega_in, BsdfEval *eval, float *pdf)
 {
 #ifdef __MULTI_CLOSURE__
@@ -470,7 +470,7 @@ __device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
 #endif
 }
 
-__device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
+ccl_device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 	float randu, float randv, BsdfEval *bsdf_eval,
 	float3 *omega_in, differential3 *domega_in, float *pdf)
 {
@@ -534,7 +534,7 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 #endif
 }
 
-__device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
+ccl_device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 	const ShaderClosure *sc, float randu, float randv, BsdfEval *bsdf_eval,
 	float3 *omega_in, differential3 *domega_in, float *pdf)
 {
@@ -550,7 +550,7 @@ __device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 	return label;
 }
 
-__device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
+ccl_device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
 {
 #ifdef __MULTI_CLOSURE__
 	for(int i = 0; i< sd->num_closure; i++) {
@@ -564,7 +564,7 @@ __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughnes
 #endif
 }
 
-__device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -585,7 +585,7 @@ __device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 alpha = make_float3(1.0f, 1.0f, 1.0f) - shader_bsdf_transparency(kg, sd);
 
@@ -595,7 +595,7 @@ __device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
 	return alpha;
 }
 
-__device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -616,7 +616,7 @@ __device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_glossy(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_glossy(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -637,7 +637,7 @@ __device float3 shader_bsdf_glossy(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -658,7 +658,7 @@ __device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -679,7 +679,7 @@ __device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N_)
+ccl_device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N_)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -717,7 +717,7 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 #endif
 }
 
-__device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_blur_)
+ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_blur_)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -762,7 +762,7 @@ __device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_blu
 
 /* Emission */
 
-__device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
+ccl_device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
 {
 #ifdef __OSL__
 	if(kg->osl && sc->prim)
@@ -772,7 +772,7 @@ __device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *
 	return emissive_simple_eval(sd->Ng, sd->I);
 }
 
-__device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval;
 #ifdef __MULTI_CLOSURE__
@@ -793,7 +793,7 @@ __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 
 /* Holdout */
 
-__device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 weight = make_float3(0.0f, 0.0f, 0.0f);
@@ -816,7 +816,7 @@ __device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 
 /* Surface Evaluation */
 
-__device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
+ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 	float randb, int path_flag, ShaderContext ctx)
 {
 #ifdef __OSL__
@@ -837,7 +837,7 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 
 /* Background Evaluation */
 
-__device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
+ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
 #ifdef __OSL__
 	if (kg->osl)
@@ -875,7 +875,7 @@ __device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int pa
 
 /* Volume */
 
-__device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
+ccl_device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 	float3 omega_in, float3 omega_out)
 {
 #ifdef __MULTI_CLOSURE__
@@ -896,7 +896,7 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 
 /* Volume Evaluation */
 
-__device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
+ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 	float randb, int path_flag, ShaderContext ctx)
 {
 #ifdef __SVM__
@@ -911,7 +911,7 @@ __device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 
 /* Displacement Evaluation */
 
-__device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx)
+ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx)
 {
 	/* this will modify sd->P */
 #ifdef __SVM__
@@ -927,7 +927,7 @@ __device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, Shader
 /* Transparent Shadows */
 
 #ifdef __TRANSPARENT_SHADOWS__
-__device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
+ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 {
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	int shader = 0;
@@ -953,7 +953,7 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 /* Merging */
 
 #ifdef __BRANCHED_PATH__
-__device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
+ccl_device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 {
 	/* merge identical closures, better when we sample a single closure at a time */
 	for(int i = 0; i < sd->num_closure; i++) {

@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* GGX */
 
-__device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
+ccl_device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ag */
 	
@@ -46,7 +46,7 @@ __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
+ccl_device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ag */
 
@@ -55,12 +55,12 @@ __device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
 {
 	sc->data0 = fmaxf(roughness, sc->data0); /* m_ag */
 }
 
-__device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ag = max(sc->data0, 1e-4f);
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
@@ -97,7 +97,7 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const 
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ag = max(sc->data0, 1e-4f);
 	float m_eta = sc->data1;
@@ -134,7 +134,7 @@ __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const
 	return make_float3 (out, out, out);
 }
 
-__device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ag = sc->data0;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
@@ -255,7 +255,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 
 /* BECKMANN */
 
-__device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
+ccl_device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ab */
 
@@ -263,7 +263,7 @@ __device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
+ccl_device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* m_ab */
 
@@ -271,12 +271,12 @@ __device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)
 {
 	sc->data0 = fmaxf(roughness, sc->data0); /* m_ab */
 }
 
-__device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ab = max(sc->data0, 1e-4f);
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
@@ -315,7 +315,7 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, c
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ab = max(sc->data0, 1e-4f);
 	float m_eta = sc->data1;
@@ -354,7 +354,7 @@ __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, 
 	return make_float3 (out, out, out);
 }
 
-__device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ab = sc->data0;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;

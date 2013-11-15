@@ -26,7 +26,7 @@ typedef struct PathState {
 	int transparent_bounce;
 } PathState;
 
-__device_inline void path_state_init(PathState *state)
+ccl_device_inline void path_state_init(PathState *state)
 {
 	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
 	state->bounce = 0;
@@ -36,7 +36,7 @@ __device_inline void path_state_init(PathState *state)
 	state->transparent_bounce = 0;
 }
 
-__device_inline void path_state_next(KernelGlobals *kg, PathState *state, int label)
+ccl_device_inline void path_state_next(KernelGlobals *kg, PathState *state, int label)
 {
 	/* ray through transparent keeps same flags from previous ray and is
 	 * not counted as a regular bounce, transparent has separate max */
@@ -88,7 +88,7 @@ __device_inline void path_state_next(KernelGlobals *kg, PathState *state, int la
 	}
 }
 
-__device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)
+ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)
 {
 	uint flag = state->flag & PATH_RAY_ALL_VISIBILITY;
 
@@ -102,7 +102,7 @@ __device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *sta
 	return flag;
 }
 
-__device_inline float path_state_terminate_probability(KernelGlobals *kg, PathState *state, const float3 throughput)
+ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, PathState *state, const float3 throughput)
 {
 	if(state->flag & PATH_RAY_TRANSPARENT) {
 		/* transparent rays treated separately */

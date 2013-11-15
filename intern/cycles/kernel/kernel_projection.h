@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Spherical coordinates <-> Cartesian direction  */
 
-__device float2 direction_to_spherical(float3 dir)
+ccl_device float2 direction_to_spherical(float3 dir)
 {
 	float theta = acosf(dir.z);
 	float phi = atan2f(dir.x, dir.y);
@@ -45,7 +45,7 @@ __device float2 direction_to_spherical(float3 dir)
 	return make_float2(theta, phi);
 }
 
-__device float3 spherical_to_direction(float theta, float phi)
+ccl_device float3 spherical_to_direction(float theta, float phi)
 {
 	return make_float3(
 		sinf(theta)*cosf(phi),
@@ -55,7 +55,7 @@ __device float3 spherical_to_direction(float theta, float phi)
 
 /* Equirectangular coordinates <-> Cartesian direction */
 
-__device float2 direction_to_equirectangular(float3 dir)
+ccl_device float2 direction_to_equirectangular(float3 dir)
 {
 	float u = -atan2f(dir.y, dir.x)/(M_2PI_F) + 0.5f;
 	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
@@ -63,7 +63,7 @@ __device float2 direction_to_equirectangular(float3 dir)
 	return make_float2(u, v);
 }
 
-__device float3 equirectangular_to_direction(float u, float v)
+ccl_device float3 equirectangular_to_direction(float u, float v)
 {
 	float phi = M_PI_F*(1.0f - 2.0f*u);
 	float theta = M_PI_F*(1.0f - v);
@@ -76,7 +76,7 @@ __device float3 equirectangular_to_direction(float u, float v)
 
 /* Fisheye <-> Cartesian direction */
 
-__device float2 direction_to_fisheye(float3 dir, float fov)
+ccl_device float2 direction_to_fisheye(float3 dir, float fov)
 {
 	float r = atan2f(sqrtf(dir.y*dir.y +  dir.z*dir.z), dir.x) / fov;
 	float phi = atan2f(dir.z, dir.y);
@@ -87,7 +87,7 @@ __device float2 direction_to_fisheye(float3 dir, float fov)
 	return make_float2(u, v);
 }
 
-__device float3 fisheye_to_direction(float u, float v, float fov)
+ccl_device float3 fisheye_to_direction(float u, float v, float fov)
 {
 	u = (u - 0.5f) * 2.0f;
 	v = (v - 0.5f) * 2.0f;
@@ -109,7 +109,7 @@ __device float3 fisheye_to_direction(float u, float v, float fov)
 	);
 }
 
-__device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
+ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
 {
 	float theta = acosf(dir.x);
 	float r = 2.0f * lens * sinf(theta * 0.5f);
@@ -121,7 +121,7 @@ __device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float wid
 	return make_float2(u, v);
 }
 
-__device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height)
+ccl_device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height)
 {
 	u = (u - 0.5f) * width;
 	v = (v - 0.5f) * height;
@@ -146,7 +146,7 @@ __device float3 fisheye_equisolid_to_direction(float u, float v, float lens, flo
 
 /* Mirror Ball <-> Cartesion direction */
 
-__device float3 mirrorball_to_direction(float u, float v)
+ccl_device float3 mirrorball_to_direction(float u, float v)
 {
 	/* point on sphere */
 	float3 dir;
@@ -161,7 +161,7 @@ __device float3 mirrorball_to_direction(float u, float v)
 	return 2.0f*dot(dir, I)*dir - I;
 }
 
-__device float2 direction_to_mirrorball(float3 dir)
+ccl_device float2 direction_to_mirrorball(float3 dir)
 {
 	/* inverse of mirrorball_to_direction */
 	dir.y -= 1.0f;
@@ -176,7 +176,7 @@ __device float2 direction_to_mirrorball(float3 dir)
 	return make_float2(u, v);
 }
 
-__device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
+ccl_device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
@@ -190,7 +190,7 @@ __device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 	}
 }
 
-__device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
+ccl_device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:

@@ -22,18 +22,18 @@ CCL_NAMESPACE_BEGIN
 /* todo: find good value, suggested 64 gives pattern on cornell box ceiling */
 #define CMJ_RANDOM_OFFSET_LIMIT 4096
 
-__device_inline bool cmj_is_pow2(int i)
+ccl_device_inline bool cmj_is_pow2(int i)
 {
 	return (i & (i - 1)) == 0;
 }
 
-__device_inline int cmj_fast_mod_pow2(int a, int b)
+ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
 {
 	return (a & (b - 1));
 }
 
 /* a must be > 0 and b must be > 1 */
-__device_inline int cmj_fast_div_pow2(int a, int b)
+ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 {
 #if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
 	return a >> __builtin_ctz(b);
@@ -42,7 +42,7 @@ __device_inline int cmj_fast_div_pow2(int a, int b)
 #endif
 }
 
-__device_inline uint cmj_w_mask(uint w)
+ccl_device_inline uint cmj_w_mask(uint w)
 {
 #if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
 	return ((1 << (32 - __builtin_clz(w))) - 1);
@@ -57,7 +57,7 @@ __device_inline uint cmj_w_mask(uint w)
 #endif
 }
 
-__device_inline uint cmj_permute(uint i, uint l, uint p)
+ccl_device_inline uint cmj_permute(uint i, uint l, uint p)
 {
 	uint w = l - 1;
 
@@ -113,7 +113,7 @@ __device_inline uint cmj_permute(uint i, uint l, uint p)
 	}
 }
 
-__device_inline uint cmj_hash(uint i, uint p)
+ccl_device_inline uint cmj_hash(uint i, uint p)
 {
 	i ^= p;
 	i ^= i >> 17;
@@ -129,13 +129,13 @@ __device_inline uint cmj_hash(uint i, uint p)
 	return i;
 }
 
-__device_inline float cmj_randfloat(uint i, uint p)
+ccl_device_inline float cmj_randfloat(uint i, uint p)
 {
 	return cmj_hash(i, p) * (1.0f / 4294967808.0f);
 }
 
 #ifdef __CMJ__
-__device float cmj_sample_1D(int s, int N, int p)
+ccl_device float cmj_sample_1D(int s, int N, int p)
 {
 	kernel_assert(s < N);
 
@@ -146,7 +146,7 @@ __device float cmj_sample_1D(int s, int N, int p)
 	return (x + jx)*invN;
 }
 
-__device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
+ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 {
 	kernel_assert(s < N);
 

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Sky texture */
 
-__device float sky_angle_between(float thetav, float phiv, float theta, float phi)
+ccl_device float sky_angle_between(float thetav, float phiv, float theta, float phi)
 {
 	float cospsi = sinf(thetav)*sinf(theta)*cosf(phi - phiv) + cosf(thetav)*cosf(theta);
 	return safe_acosf(cospsi);
@@ -28,7 +28,7 @@ __device float sky_angle_between(float thetav, float phiv, float theta, float ph
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-__device float sky_perez_function(float *lam, float theta, float gamma)
+ccl_device float sky_perez_function(float *lam, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
 	float cgamma = cosf(gamma);
@@ -36,7 +36,7 @@ __device float sky_perez_function(float *lam, float theta, float gamma)
 	return (1.0f + lam[0]*expf(lam[1]/ctheta)) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cgamma*cgamma);
 }
 
-__device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
+ccl_device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
                                  float sunphi, float suntheta,
                                  float radiance_x, float radiance_y, float radiance_z,
                                  float *config_x, float *config_y, float *config_z)
@@ -66,7 +66,7 @@ __device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
-__device float sky_radiance_internal(float *configuration, float theta, float gamma)
+ccl_device float sky_radiance_internal(float *configuration, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
 	float cgamma = cosf(gamma);
@@ -80,7 +80,7 @@ __device float sky_radiance_internal(float *configuration, float theta, float ga
 		(configuration[2] + configuration[3] * expM + configuration[5] * rayM + configuration[6] * mieM + configuration[7] * zenith);
 }
 
-__device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
+ccl_device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
                                  float sunphi, float suntheta,
                                  float radiance_x, float radiance_y, float radiance_z,
                                  float *config_x, float *config_y, float *config_z)
@@ -105,7 +105,7 @@ __device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
 	return xyz_to_rgb(x, y, z) * (M_2PI_F/683);
 }
 
-__device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
 	/* Define variables */
 	float sunphi, suntheta, radiance_x, radiance_y, radiance_z;

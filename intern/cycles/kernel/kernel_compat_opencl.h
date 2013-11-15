@@ -33,16 +33,18 @@
 #endif
 
 #ifdef __CL_NOINLINE__
-#define __noinline __attribute__((noinline))
+#define ccl_noinline __attribute__((noinline))
 #else
-#define __noinline
+#define ccl_noinline
 #endif
 
 /* in opencl all functions are device functions, so leave this empty */
-#define __device
-#define __device_inline __device
-#define __device_noinline  __device __noinline
-#define __may_alias
+#define ccl_device
+#define ccl_device_inline ccl_device
+#define ccl_device_noinline ccl_device ccl_noinline
+#define ccl_may_alias
+#define ccl_constant __constant
+#define ccl_global __global
 
 /* no assert in opencl */
 #define kernel_assert(cond)

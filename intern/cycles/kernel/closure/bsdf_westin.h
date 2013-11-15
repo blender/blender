@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* WESTIN BACKSCATTER */
 
-__device int bsdf_westin_backscatter_setup(ShaderClosure *sc)
+ccl_device int bsdf_westin_backscatter_setup(ShaderClosure *sc)
 {
 	float roughness = sc->data0;
 	roughness = clamp(roughness, 1e-5f, 1.0f);
@@ -49,14 +49,14 @@ __device int bsdf_westin_backscatter_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_westin_backscatter_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_westin_backscatter_blur(ShaderClosure *sc, float roughness)
 {
 	float m_invroughness = sc->data0;
 	m_invroughness = min(1.0f/roughness, m_invroughness);
 	sc->data0 = m_invroughness;
 }
 
-__device float3 bsdf_westin_backscatter_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_westin_backscatter_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invroughness = sc->data0;
 	float3 N = sc->N;
@@ -73,12 +73,12 @@ __device float3 bsdf_westin_backscatter_eval_reflect(const ShaderClosure *sc, co
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_westin_backscatter_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_westin_backscatter_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_invroughness = sc->data0;
 	float3 N = sc->N;
@@ -116,18 +116,18 @@ __device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, 
 
 /* WESTIN SHEEN */
 
-__device int bsdf_westin_sheen_setup(ShaderClosure *sc)
+ccl_device int bsdf_westin_sheen_setup(ShaderClosure *sc)
 {
 	/* float edginess = sc->data0; */
 	sc->type = CLOSURE_BSDF_WESTIN_SHEEN_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_westin_sheen_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_westin_sheen_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_westin_sheen_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_westin_sheen_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_edginess = sc->data0;
 	float3 N = sc->N;
@@ -144,12 +144,12 @@ __device float3 bsdf_westin_sheen_eval_reflect(const ShaderClosure *sc, const fl
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_westin_sheen_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_westin_sheen_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device int bsdf_westin_sheen_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_westin_sheen_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_edginess = sc->data0;
 	float3 N = sc->N;

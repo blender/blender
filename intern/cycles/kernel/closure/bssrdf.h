@@ -19,7 +19,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
+ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 {
 	if(sc->data0 < BSSRDF_MIN_RADIUS) {
 		/* revert to diffuse BSDF if radius too small */
@@ -47,7 +47,7 @@ __device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 /* paper suggests 1/12.46 which is much too small, suspect it's *12.46 */
 #define GAUSS_TRUNCATE 12.46f
 
-__device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
 {
 	/* integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) from 0 to Rm
 	 * = 1 - exp(-Rm*Rm/(2*v)) */
@@ -60,7 +60,7 @@ __device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
 	return expf(-r*r/(2.0f*v))/(2.0f*M_PI_F*v);
 }
 
-__device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
 {
 	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
 	const float area_truncated = 1.0f - expf(-0.5f*GAUSS_TRUNCATE);
@@ -68,7 +68,7 @@ __device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
 	return bssrdf_gaussian_eval(sc, r) * (1.0f/(area_truncated));
 }
 
-__device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
 	/* xi = integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) = -exp(-r^2/(2*v))
 	 * r = sqrt(-2*v*logf(xi)) */
@@ -94,7 +94,7 @@ __device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, floa
  * far as I can tell has no closed form solution. So we get an iterative solution
  * instead with newton-raphson. */
 
-__device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
 {
 	const float sharpness = sc->T.x;
 
@@ -141,13 +141,13 @@ __device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
 	}
 }
 
-__device float bssrdf_cubic_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_cubic_pdf(ShaderClosure *sc, float r)
 {
 	return bssrdf_cubic_eval(sc, r);
 }
 
 /* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
-__device float bssrdf_cubic_quintic_root_find(float xi)
+ccl_device float bssrdf_cubic_quintic_root_find(float xi)
 {
 	/* newton-raphson iteration, usually succeeds in 2-4 iterations, except
 	 * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
@@ -174,7 +174,7 @@ __device float bssrdf_cubic_quintic_root_find(float xi)
 	return x;
 }
 
-__device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
 	float Rm = sc->data0;
 	float r_ = bssrdf_cubic_quintic_root_find(xi);
@@ -196,13 +196,13 @@ __device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *
  * 
  * Samples distributed over disk with no falloff, for reference. */
 
-__device float bssrdf_none_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_none_eval(ShaderClosure *sc, float r)
 {
 	const float Rm = sc->data0;
 	return (r < Rm)? 1.0f: 0.0f;
 }
 
-__device float bssrdf_none_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_none_pdf(ShaderClosure *sc, float r)
 {
 	/* integrate (2*pi*r)/(pi*Rm*Rm) from 0 to Rm = 1 */
 	const float Rm = sc->data0;
@@ -211,7 +211,7 @@ __device float bssrdf_none_pdf(ShaderClosure *sc, float r)
 	return bssrdf_none_eval(sc, r) / area;
 }
 
-__device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
 	/* xi = integrate (2*pi*r)/(pi*Rm*Rm) = r^2/Rm^2
 	 * r = sqrt(xi)*Rm */
@@ -226,7 +226,7 @@ __device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float *h
 
 /* Generic */
 
-__device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		bssrdf_cubic_sample(sc, xi, r, h);
@@ -234,7 +234,7 @@ __device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
 		bssrdf_gaussian_sample(sc, xi, r, h);
 }
 
-__device float bssrdf_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_pdf(ShaderClosure *sc, float r)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		return bssrdf_cubic_pdf(sc, r);

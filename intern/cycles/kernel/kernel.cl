@@ -26,12 +26,12 @@
 #include "kernel_displace.h"
 
 __kernel void kernel_ocl_path_trace(
-	__constant KernelData *data,
-	__global float *buffer,
-	__global uint *rng_state,
+	ccl_constant KernelData *data,
+	ccl_global float *buffer,
+	ccl_global uint *rng_state,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name,
+	ccl_global type *name,
 #include "kernel_textures.h"
 
 	int sample,
@@ -53,12 +53,12 @@ __kernel void kernel_ocl_path_trace(
 }
 
 __kernel void kernel_ocl_convert_to_byte(
-	__constant KernelData *data,
-	__global uchar4 *rgba,
-	__global float *buffer,
+	ccl_constant KernelData *data,
+	ccl_global uchar4 *rgba,
+	ccl_global float *buffer,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name,
+	ccl_global type *name,
 #include "kernel_textures.h"
 
 	float sample_scale,
@@ -80,12 +80,12 @@ __kernel void kernel_ocl_convert_to_byte(
 }
 
 __kernel void kernel_ocl_convert_to_half_float(
-	__constant KernelData *data,
-	__global uchar4 *rgba,
-	__global float *buffer,
+	ccl_constant KernelData *data,
+	ccl_global uchar4 *rgba,
+	ccl_global float *buffer,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name,
+	ccl_global type *name,
 #include "kernel_textures.h"
 
 	float sample_scale,
@@ -107,12 +107,12 @@ __kernel void kernel_ocl_convert_to_half_float(
 }
 
 __kernel void kernel_ocl_shader(
-	__constant KernelData *data,
-	__global uint4 *input,
-	__global float4 *output,
+	ccl_constant KernelData *data,
+	ccl_global uint4 *input,
+	ccl_global float4 *output,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name,
+	ccl_global type *name,
 #include "kernel_textures.h"
 
 	int type, int sx, int sw)

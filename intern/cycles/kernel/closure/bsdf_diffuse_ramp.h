@@ -35,7 +35,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const float3 colors[8], float pos)
+ccl_device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const float3 colors[8], float pos)
 {
 	int MAXCOLORS = 8;
 	
@@ -49,17 +49,17 @@ __device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const float
 	return colors[ipos] * (1.0f - offset) + colors[ipos+1] * offset;
 }
 
-__device int bsdf_diffuse_ramp_setup(ShaderClosure *sc)
+ccl_device int bsdf_diffuse_ramp_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_DIFFUSE_RAMP_ID;
 	return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-__device void bsdf_diffuse_ramp_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_diffuse_ramp_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_diffuse_ramp_eval_reflect(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_diffuse_ramp_eval_reflect(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
 {
 	float3 N = sc->N;
 
@@ -68,12 +68,12 @@ __device float3 bsdf_diffuse_ramp_eval_reflect(const ShaderClosure *sc, const fl
 	return bsdf_diffuse_ramp_get_color(sc, colors, cos_pi) * M_1_PI_F;
 }
 
-__device float3 bsdf_diffuse_ramp_eval_transmit(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_diffuse_ramp_eval_transmit(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device int bsdf_diffuse_ramp_sample(const ShaderClosure *sc, const float3 colors[8], float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_diffuse_ramp_sample(const ShaderClosure *sc, const float3 colors[8], float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float3 N = sc->N;
 

@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void svm_node_gamma(ShaderData *sd, float *stack, uint in_gamma, uint in_color, uint out_color)
+ccl_device void svm_node_gamma(ShaderData *sd, float *stack, uint in_gamma, uint in_color, uint out_color)
 {
 	float3 color = stack_load_float3(stack, in_color);
 	float gamma = stack_load_float(stack, in_gamma);

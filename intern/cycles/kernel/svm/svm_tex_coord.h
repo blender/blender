@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-__device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 	float3 data;
 
@@ -78,7 +78,7 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_fla
 	stack_store_float3(stack, out_offset, data);
 }
 
-__device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -142,7 +142,7 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, int 
 #endif
 }
 
-__device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -206,7 +206,7 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, int 
 #endif
 }
 
-__device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint color_offset, strength_offset, normal_offset, space;
 	decode_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
@@ -280,7 +280,7 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 	stack_store_float3(stack, normal_offset, N);
 }
 
-__device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint tangent_offset, direction_type, axis;
 	decode_node_uchar4(node.y, &tangent_offset, &direction_type, &axis, NULL);

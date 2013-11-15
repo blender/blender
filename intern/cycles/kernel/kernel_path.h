@@ -42,7 +42,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
+ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
@@ -122,7 +122,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 
 #if defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__)
 
-__device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
+ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer,
 	float3 throughput, int num_samples, int num_total_samples,
 	float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
 {
@@ -359,7 +359,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 #ifdef __SUBSURFACE__
 
-__device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
+ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
 	int sample, int num_samples,
 	ShaderData *sd, float3 *throughput,
 	float *min_ray_pdf, float *ray_pdf, PathState *state,
@@ -452,7 +452,7 @@ __device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
 
 #endif
 
-__device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
+ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -790,11 +790,11 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 #ifdef __BRANCHED_PATH__
 
-__device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
+ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
 	int sample, int aa_samples,
 	ShaderData *sd, float3 throughput, float num_samples_adjust,
 	float min_ray_pdf, float ray_pdf, PathState state,
-	int rng_offset, PathRadiance *L, __global float *buffer)
+	int rng_offset, PathRadiance *L, ccl_global float *buffer)
 {
 #ifdef __EMISSION__
 	/* sample illumination from lights to find path contribution */
@@ -941,7 +941,7 @@ __device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg
 	}
 }
 
-__device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer)
+ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;
@@ -1166,7 +1166,7 @@ __device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int 
 
 #endif
 
-__device_inline void kernel_path_trace_setup(KernelGlobals *kg, __global uint *rng_state, int sample, int x, int y, RNG *rng, Ray *ray)
+ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg, ccl_global uint *rng_state, int sample, int x, int y, RNG *rng, Ray *ray)
 {
 	float filter_u;
 	float filter_v;
@@ -1195,8 +1195,8 @@ __device_inline void kernel_path_trace_setup(KernelGlobals *kg, __global uint *r
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
 }
 
-__device void kernel_path_trace(KernelGlobals *kg,
-	__global float *buffer, __global uint *rng_state,
+ccl_device void kernel_path_trace(KernelGlobals *kg,
+	ccl_global float *buffer, ccl_global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
 {
 	/* buffer offset */
@@ -1227,8 +1227,8 @@ __device void kernel_path_trace(KernelGlobals *kg,
 }
 
 #ifdef __BRANCHED_PATH__
-__device void kernel_branched_path_trace(KernelGlobals *kg,
-	__global float *buffer, __global uint *rng_state,
+ccl_device void kernel_branched_path_trace(KernelGlobals *kg,
+	ccl_global float *buffer, ccl_global uint *rng_state,
 	int sample, int x, int y, int offset, int stride)
 {
 	/* buffer offset */

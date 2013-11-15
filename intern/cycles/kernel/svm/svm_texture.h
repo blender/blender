@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Voronoi Distances */
 
-__device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, float e)
+ccl_device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, float e)
 {
 #if 0
 	if(distance_metric == NODE_VORONOI_DISTANCE_SQUARED)
@@ -44,7 +44,7 @@ __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, fl
 
 /* Voronoi / Worley like */
 
-__device_noinline float4 voronoi_Fn(float3 p, float e, int n1, int n2)
+ccl_device_noinline float4 voronoi_Fn(float3 p, float e, int n1, int n2)
 {
 	float da[4];
 	float3 pa[4];
@@ -120,29 +120,29 @@ __device_noinline float4 voronoi_Fn(float3 p, float e, int n1, int n2)
 	return result;
 }
 
-__device float voronoi_F1(float3 p) { return voronoi_Fn(p, 0.0f, 0, -1).w; }
-__device float voronoi_F2(float3 p) { return voronoi_Fn(p, 0.0f, 1, -1).w; }
-__device float voronoi_F3(float3 p) { return voronoi_Fn(p, 0.0f, 2, -1).w; }
-__device float voronoi_F4(float3 p) { return voronoi_Fn(p, 0.0f, 3, -1).w; }
-__device float voronoi_F1F2(float3 p) { return voronoi_Fn(p, 0.0f, 0, 1).w; }
+ccl_device float voronoi_F1(float3 p) { return voronoi_Fn(p, 0.0f, 0, -1).w; }
+ccl_device float voronoi_F2(float3 p) { return voronoi_Fn(p, 0.0f, 1, -1).w; }
+ccl_device float voronoi_F3(float3 p) { return voronoi_Fn(p, 0.0f, 2, -1).w; }
+ccl_device float voronoi_F4(float3 p) { return voronoi_Fn(p, 0.0f, 3, -1).w; }
+ccl_device float voronoi_F1F2(float3 p) { return voronoi_Fn(p, 0.0f, 0, 1).w; }
 
-__device float voronoi_Cr(float3 p)
+ccl_device float voronoi_Cr(float3 p)
 {
 	/* crackle type pattern, just a scale/clamp of F2-F1 */
 	float t = 10.0f*voronoi_F1F2(p);
 	return (t > 1.0f)? 1.0f: t;
 }
 
-__device float voronoi_F1S(float3 p) { return 2.0f*voronoi_F1(p) - 1.0f; }
-__device float voronoi_F2S(float3 p) { return 2.0f*voronoi_F2(p) - 1.0f; }
-__device float voronoi_F3S(float3 p) { return 2.0f*voronoi_F3(p) - 1.0f; }
-__device float voronoi_F4S(float3 p) { return 2.0f*voronoi_F4(p) - 1.0f; }
-__device float voronoi_F1F2S(float3 p) { return 2.0f*voronoi_F1F2(p) - 1.0f; }
-__device float voronoi_CrS(float3 p) { return 2.0f*voronoi_Cr(p) - 1.0f; }
+ccl_device float voronoi_F1S(float3 p) { return 2.0f*voronoi_F1(p) - 1.0f; }
+ccl_device float voronoi_F2S(float3 p) { return 2.0f*voronoi_F2(p) - 1.0f; }
+ccl_device float voronoi_F3S(float3 p) { return 2.0f*voronoi_F3(p) - 1.0f; }
+ccl_device float voronoi_F4S(float3 p) { return 2.0f*voronoi_F4(p) - 1.0f; }
+ccl_device float voronoi_F1F2S(float3 p) { return 2.0f*voronoi_F1F2(p) - 1.0f; }
+ccl_device float voronoi_CrS(float3 p) { return 2.0f*voronoi_Cr(p) - 1.0f; }
 
 /* Noise Bases */
 
-__device float noise_basis(float3 p, NodeNoiseBasis basis)
+ccl_device float noise_basis(float3 p, NodeNoiseBasis basis)
 {
 	/* Only Perlin enabled for now, others break CUDA compile by making kernel
 	 * too big, with compile using > 4GB, due to everything being inlined. */
@@ -173,7 +173,7 @@ __device float noise_basis(float3 p, NodeNoiseBasis basis)
 
 /* Soft/Hard Noise */
 
-__device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
+ccl_device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 {
 	float t = noise_basis(p, basis);
 	return (hard)? fabsf(2.0f*t - 1.0f): t;
@@ -181,7 +181,7 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 
 /* Turbulence */
 
-__device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float octaves, int hard)
+ccl_device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float octaves, int hard)
 {
 	float fscale = 1.0f;
 	float amp = 1.0f;

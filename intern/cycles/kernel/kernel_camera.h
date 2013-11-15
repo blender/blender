@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Perspective Camera */
 
-__device float2 camera_sample_aperture(KernelGlobals *kg, float u, float v)
+ccl_device float2 camera_sample_aperture(KernelGlobals *kg, float u, float v)
 {
 	float blades = kernel_data.cam.blades;
 
@@ -33,7 +33,7 @@ __device float2 camera_sample_aperture(KernelGlobals *kg, float u, float v)
 	}
 }
 
-__device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
+ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
@@ -91,7 +91,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 
 /* Orthographic Camera */
 
-__device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
+ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
@@ -147,7 +147,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 /* Panorama Camera */
 
-__device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
+ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -216,7 +216,7 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 
 /* Common */
 
-__device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v,
+ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v,
 	float lens_u, float lens_v, float time, Ray *ray)
 {
 	/* pixel filter */
@@ -243,13 +243,13 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 
 /* Utilities */
 
-__device_inline float3 camera_position(KernelGlobals *kg)
+ccl_device_inline float3 camera_position(KernelGlobals *kg)
 {
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 	return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
 }
 
-__device_inline float camera_distance(KernelGlobals *kg, float3 P)
+ccl_device_inline float camera_distance(KernelGlobals *kg, float3 P)
 {
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 	float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
@@ -262,7 +262,7 @@ __device_inline float camera_distance(KernelGlobals *kg, float3 P)
 		return len(P - camP);
 }
 
-__device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
+ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
 		/* perspective / ortho */

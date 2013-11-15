@@ -35,7 +35,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float fresnel_dielectric(float eta, const float3 N,
+ccl_device float fresnel_dielectric(float eta, const float3 N,
 		const float3 I, float3 *R, float3 *T,
 #ifdef __RAY_DIFFERENTIALS__
 		const float3 dIdx, const float3 dIdy,
@@ -95,7 +95,7 @@ __device float fresnel_dielectric(float eta, const float3 N,
 	}
 }
 
-__device float fresnel_dielectric_cos(float cosi, float eta)
+ccl_device float fresnel_dielectric_cos(float cosi, float eta)
 {
 	// compute fresnel reflectance without explicitly computing
 	// the refracted direction
@@ -110,7 +110,7 @@ __device float fresnel_dielectric_cos(float cosi, float eta)
 	return 1.0f; // TIR(no refracted component)
 }
 
-__device float fresnel_conductor(float cosi, float eta, float k)
+ccl_device float fresnel_conductor(float cosi, float eta, float k)
 {
 	float tmp_f = eta * eta + k * k;
 	float tmp = tmp_f * cosi * cosi;
@@ -121,7 +121,7 @@ __device float fresnel_conductor(float cosi, float eta, float k)
 	return(Rparl2 + Rperp2) * 0.5f;
 }
 
-__device float smooth_step(float edge0, float edge1, float x)
+ccl_device float smooth_step(float edge0, float edge1, float x)
 {
 	float result;
 	if(x < edge0) result = 0.0f;

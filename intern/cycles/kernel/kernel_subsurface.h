@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 #define BSSRDF_MULTI_EVAL
 
-__device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, ShaderData *sd, float *probability)
+ccl_device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, ShaderData *sd, float *probability)
 {
 	/* sum sample weights of bssrdf and bsdf */
 	float bsdf_sum = 0.0f;
@@ -80,7 +80,7 @@ __device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, Shade
 	return NULL;
 }
 
-__device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float disk_r, float r, bool all)
+ccl_device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float disk_r, float r, bool all)
 {
 #ifdef BSSRDF_MULTI_EVAL
 	/* this is the veach one-sample model with balance heuristic, some pdf
@@ -133,7 +133,7 @@ __device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
-__device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weight, bool hit, float3 N)
+ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weight, bool hit, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->randb_closure = 0.0f;
@@ -158,7 +158,7 @@ __device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 weigh
 }
 
 /* optionally do blurring of color and/or bump mapping, at the cost of a shader evaluation */
-__device float3 subsurface_color_pow(float3 color, float exponent)
+ccl_device float3 subsurface_color_pow(float3 color, float exponent)
 {
 	color = max(color, make_float3(0.0f, 0.0f, 0.0f));
 
@@ -179,7 +179,7 @@ __device float3 subsurface_color_pow(float3 color, float exponent)
 	return color;
 }
 
-__device void subsurface_color_bump_blur(KernelGlobals *kg, ShaderData *out_sd, ShaderData *in_sd, int state_flag, float3 *eval, float3 *N)
+ccl_device void subsurface_color_bump_blur(KernelGlobals *kg, ShaderData *out_sd, ShaderData *in_sd, int state_flag, float3 *eval, float3 *N)
 {
 	/* average color and texture blur at outgoing point */
 	float texture_blur;
@@ -207,7 +207,7 @@ __device void subsurface_color_bump_blur(KernelGlobals *kg, ShaderData *out_sd, 
 }
 
 /* subsurface scattering step, from a point on the surface to other nearby points on the same object */
-__device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, ShaderData bssrdf_sd[BSSRDF_MAX_HITS],
+ccl_device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, ShaderData bssrdf_sd[BSSRDF_MAX_HITS],
 	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
 {
 	/* pick random axis in local frame and point on disk */
@@ -313,7 +313,7 @@ __device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, Sh
 }
 
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
-__device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd,
+ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd,
 	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);

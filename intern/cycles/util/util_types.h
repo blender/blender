@@ -27,24 +27,22 @@
 
 #ifndef __KERNEL_GPU__
 
-#define __device static inline
-#define __device_noinline static
-#define __global
-#define __local
-#define __shared
-#define __constant
+#define ccl_device static inline
+#define ccl_device_noinline static
+#define ccl_global
+#define ccl_constant
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-#define __device_inline static __forceinline
-#define __align(...) __declspec(align(__VA_ARGS__))
-#define __may_alias
+#define ccl_device_inline static __forceinline
+#define ccl_align(...) __declspec(align(__VA_ARGS__))
+#define ccl_may_alias
 #else
-#define __device_inline static inline __attribute__((always_inline))
+#define ccl_device_inline static inline __attribute__((always_inline))
 #ifndef FREE_WINDOWS64
 #define __forceinline inline __attribute__((always_inline))
 #endif
-#define __align(...) __attribute__((aligned(__VA_ARGS__)))
-#define __may_alias __attribute__((__may_alias__))
+#define ccl_align(...) __attribute__((aligned(__VA_ARGS__)))
+#define ccl_may_alias __attribute__((__may_alias__))
 #endif
 
 #endif
@@ -190,7 +188,7 @@ struct int2 {
 };
 
 #ifdef __KERNEL_SSE__
-struct __align(16) int3 {
+struct ccl_align(16) int3 {
 	union {
 		__m128i m128;
 		struct { int x, y, z, w; };
@@ -210,7 +208,7 @@ struct int3 {
 };
 
 #ifdef __KERNEL_SSE__
-struct __align(16) int4 {
+struct ccl_align(16) int4 {
 	union {
 		__m128i m128;
 		struct { int x, y, z, w; };
@@ -258,7 +256,7 @@ struct float2 {
 };
 
 #ifdef __KERNEL_SSE__
-struct __align(16) float3 {
+struct ccl_align(16) float3 {
 	union {
 		__m128 m128;
 		struct { float x, y, z, w; };
@@ -278,7 +276,7 @@ struct float3 {
 };
 
 #ifdef __KERNEL_SSE__
-struct __align(16) float4 {
+struct ccl_align(16) float4 {
 	union {
 		__m128 m128;
 		struct { float x, y, z, w; };
@@ -305,31 +303,31 @@ struct float4 {
  * 
  * OpenCL does not support C++ class, so we use these instead. */
 
-__device_inline uchar2 make_uchar2(uchar x, uchar y)
+ccl_device_inline uchar2 make_uchar2(uchar x, uchar y)
 {
 	uchar2 a = {x, y};
 	return a;
 }
 
-__device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
+ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
 {
 	uchar3 a = {x, y, z};
 	return a;
 }
 
-__device_inline uchar4 make_uchar4(uchar x, uchar y, uchar z, uchar w)
+ccl_device_inline uchar4 make_uchar4(uchar x, uchar y, uchar z, uchar w)
 {
 	uchar4 a = {x, y, z, w};
 	return a;
 }
 
-__device_inline int2 make_int2(int x, int y)
+ccl_device_inline int2 make_int2(int x, int y)
 {
 	int2 a = {x, y};
 	return a;
 }
 
-__device_inline int3 make_int3(int x, int y, int z)
+ccl_device_inline int3 make_int3(int x, int y, int z)
 {
 #ifdef __KERNEL_SSE__
 	int3 a;
@@ -341,7 +339,7 @@ __device_inline int3 make_int3(int x, int y, int z)
 	return a;
 }
 
-__device_inline int4 make_int4(int x, int y, int z, int w)
+ccl_device_inline int4 make_int4(int x, int y, int z, int w)
 {
 #ifdef __KERNEL_SSE__
 	int4 a;
@@ -353,31 +351,31 @@ __device_inline int4 make_int4(int x, int y, int z, int w)
 	return a;
 }
 
-__device_inline uint2 make_uint2(uint x, uint y)
+ccl_device_inline uint2 make_uint2(uint x, uint y)
 {
 	uint2 a = {x, y};
 	return a;
 }
 
-__device_inline uint3 make_uint3(uint x, uint y, uint z)
+ccl_device_inline uint3 make_uint3(uint x, uint y, uint z)
 {
 	uint3 a = {x, y, z};
 	return a;
 }
 
-__device_inline uint4 make_uint4(uint x, uint y, uint z, uint w)
+ccl_device_inline uint4 make_uint4(uint x, uint y, uint z, uint w)
 {
 	uint4 a = {x, y, z, w};
 	return a;
 }
 
-__device_inline float2 make_float2(float x, float y)
+ccl_device_inline float2 make_float2(float x, float y)
 {
 	float2 a = {x, y};
 	return a;
 }
 
-__device_inline float3 make_float3(float x, float y, float z)
+ccl_device_inline float3 make_float3(float x, float y, float z)
 {
 #ifdef __KERNEL_SSE__
 	float3 a;
@@ -389,7 +387,7 @@ __device_inline float3 make_float3(float x, float y, float z)
 	return a;
 }
 
-__device_inline float4 make_float4(float x, float y, float z, float w)
+ccl_device_inline float4 make_float4(float x, float y, float z, float w)
 {
 #ifdef __KERNEL_SSE__
 	float4 a;
@@ -401,12 +399,12 @@ __device_inline float4 make_float4(float x, float y, float z, float w)
 	return a;
 }
 
-__device_inline int align_up(int offset, int alignment)
+ccl_device_inline int align_up(int offset, int alignment)
 {
 	return (offset + alignment - 1) & ~(alignment - 1);
 }
 
-__device_inline int3 make_int3(int i)
+ccl_device_inline int3 make_int3(int i)
 {
 #ifdef __KERNEL_SSE__
 	int3 a;
@@ -418,7 +416,7 @@ __device_inline int3 make_int3(int i)
 	return a;
 }
 
-__device_inline int4 make_int4(int i)
+ccl_device_inline int4 make_int4(int i)
 {
 #ifdef __KERNEL_SSE__
 	int4 a;
@@ -430,7 +428,7 @@ __device_inline int4 make_int4(int i)
 	return a;
 }
 
-__device_inline float3 make_float3(float f)
+ccl_device_inline float3 make_float3(float f)
 {
 #ifdef __KERNEL_SSE__
 	float3 a;
@@ -442,7 +440,7 @@ __device_inline float3 make_float3(float f)
 	return a;
 }
 
-__device_inline float4 make_float4(float f)
+ccl_device_inline float4 make_float4(float f)
 {
 #ifdef __KERNEL_SSE__
 	float4 a;
@@ -454,7 +452,7 @@ __device_inline float4 make_float4(float f)
 	return a;
 }
 
-__device_inline float4 make_float4(const int4& i)
+ccl_device_inline float4 make_float4(const int4& i)
 {
 #ifdef __KERNEL_SSE__
 	float4 a;
@@ -466,7 +464,7 @@ __device_inline float4 make_float4(const int4& i)
 	return a;
 }
 
-__device_inline int4 make_int4(const float3& f)
+ccl_device_inline int4 make_int4(const float3& f)
 {
 #ifdef __KERNEL_SSE__
 	int4 a;
@@ -489,17 +487,17 @@ __device_inline int4 make_int4(const float3& f)
 /* faster version for SSSE3 */
 typedef __m128i shuffle_swap_t;
 
-__device_inline const shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
 {
 	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-__device_inline const shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
 {
 	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
 }
 
-__device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t& shuf)
+ccl_device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t& shuf)
 {
 	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf));
 }
@@ -509,17 +507,17 @@ __device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t&
 /* somewhat slower version for SSE2 */
 typedef int shuffle_swap_t;
 
-__device_inline const shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
 {
 	return 0;
 }
 
-__device_inline const shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
 {
 	return 1;
 }
 
-__device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
+ccl_device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
 {
 	/* shuffle value must be a constant, so we need to branch */
 	if(shuf)
@@ -530,12 +528,12 @@ __device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
 
 #endif
 
-template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m128 shuffle(const __m128& a, const __m128& b)
+template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a, const __m128& b)
 {
 	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3> __device_inline const __m128 shuffle(const __m128& b)
+template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& b)
 {
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
@@ -554,7 +552,7 @@ struct half4 { half x, y, z, w; };
 
 #ifdef __KERNEL_CUDA__
 
-__device_inline void float4_store_half(half *h, const float4 *f, float scale)
+ccl_device_inline void float4_store_half(half *h, const float4 *f, float scale)
 {
 	h[0] = __float2half_rn(f->x * scale);
 	h[1] = __float2half_rn(f->y * scale);
@@ -564,7 +562,7 @@ __device_inline void float4_store_half(half *h, const float4 *f, float scale)
 
 #else
 
-__device_inline void float4_store_half(half *h, const float4 *f, float scale)
+ccl_device_inline void float4_store_half(half *h, const float4 *f, float scale)
 {
 #ifndef __KERNEL_SSE2__
 	for(int i = 0; i < 4; i++) {

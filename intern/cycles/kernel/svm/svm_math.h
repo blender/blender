@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float svm_math(NodeMath type, float Fac1, float Fac2)
+ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
 {
 	float Fac;
 
@@ -64,12 +64,12 @@ __device float svm_math(NodeMath type, float Fac1, float Fac2)
 	return Fac;
 }
 
-__device float average_fac(float3 v)
+ccl_device float average_fac(float3 v)
 {
 	return (fabsf(v.x) + fabsf(v.y) + fabsf(v.z))/3.0f;
 }
 
-__device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, float3 Vector1, float3 Vector2)
+ccl_device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, float3 Vector1, float3 Vector2)
 {
 	if(type == NODE_VECTOR_MATH_ADD) {
 		*Vector = Vector1 + Vector2;
@@ -104,7 +104,7 @@ __device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, f
 
 /* Nodes */
 
-__device void svm_node_math(KernelGlobals *kg, ShaderData *sd, float *stack, uint itype, uint f1_offset, uint f2_offset, int *offset)
+ccl_device void svm_node_math(KernelGlobals *kg, ShaderData *sd, float *stack, uint itype, uint f1_offset, uint f2_offset, int *offset)
 {
 	NodeMath type = (NodeMath)itype;
 	float f1 = stack_load_float(stack, f1_offset);
@@ -116,7 +116,7 @@ __device void svm_node_math(KernelGlobals *kg, ShaderData *sd, float *stack, uin
 	stack_store_float(stack, node1.y, f);
 }
 
-__device void svm_node_vector_math(KernelGlobals *kg, ShaderData *sd, float *stack, uint itype, uint v1_offset, uint v2_offset, int *offset)
+ccl_device void svm_node_vector_math(KernelGlobals *kg, ShaderData *sd, float *stack, uint itype, uint v1_offset, uint v2_offset, int *offset)
 {
 	NodeVectorMath type = (NodeVectorMath)itype;
 	float3 v1 = stack_load_float3(stack, v1_offset);

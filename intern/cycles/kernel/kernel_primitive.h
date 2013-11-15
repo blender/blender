@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 /* attribute lookup */
 
-__device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
+ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
 {
 	if(sd->object == ~0)
 		return (int)ATTR_STD_NOT_FOUND;
@@ -52,7 +52,7 @@ __device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, A
 	}
 }
 
-__device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
+ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
 #ifdef __HAIR__
 	if(sd->segment == ~0)
@@ -64,7 +64,7 @@ __device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd
 #endif
 }
 
-__device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
+ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
 #ifdef __HAIR__
 	if(sd->segment == ~0)
@@ -76,7 +76,7 @@ __device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *
 #endif
 }
 
-__device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 {
 	AttributeElement elem_uv;
 	int offset_uv = find_attribute(kg, sd, ATTR_STD_UV, &elem_uv);
@@ -89,7 +89,7 @@ __device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 	return uv;
 }
 
-__device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __HAIR__
 	if(sd->segment != ~0)
@@ -122,7 +122,7 @@ __device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 
 /* motion */
 
-__device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
+ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 motion_pre = sd->P, motion_post = sd->P;
 

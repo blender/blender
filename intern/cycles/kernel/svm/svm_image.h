@@ -21,14 +21,14 @@ CCL_NAMESPACE_BEGIN
 /* For OpenCL all images are packed in a single array, and we do manual lookup
  * and interpolation. */
 
-__device_inline float4 svm_image_texture_read(KernelGlobals *kg, int offset)
+ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int offset)
 {
 	uchar4 r = kernel_tex_fetch(__tex_image_packed, offset);
 	float f = 1.0f/255.0f;
 	return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 }
 
-__device_inline int svm_image_texture_wrap_periodic(int x, int width)
+ccl_device_inline int svm_image_texture_wrap_periodic(int x, int width)
 {
 	x %= width;
 	if(x < 0)
@@ -36,19 +36,19 @@ __device_inline int svm_image_texture_wrap_periodic(int x, int width)
 	return x;
 }
 
-__device_inline int svm_image_texture_wrap_clamp(int x, int width)
+ccl_device_inline int svm_image_texture_wrap_clamp(int x, int width)
 {
 	return clamp(x, 0, width-1);
 }
 
-__device_inline float svm_image_texture_frac(float x, int *ix)
+ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 {
 	int i = float_to_int(x) - ((x < 0.0f)? 1: 0);
 	*ix = i;
 	return x - (float)i;
 }
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
+ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 	/* first slots are used by float textures, which are not supported here */
 	if(id < TEX_NUM_FLOAT_IMAGES)
@@ -110,7 +110,7 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 
 #else
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
+ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 	float4 r;
 
@@ -257,7 +257,7 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 
 #endif
 
-__device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint id = node.y;
 	uint co_offset, out_offset, alpha_offset, srgb;
@@ -274,7 +274,7 @@ __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack
 		stack_store_float(stack, alpha_offset, f.w);
 }
 
-__device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	/* get object space normal */
 	float3 N = sd->N;
@@ -363,7 +363,7 @@ __device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *s
 }
 
 
-__device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint id = node.y;
 	uint co_offset, out_offset, alpha_offset, srgb;

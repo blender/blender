@@ -36,15 +36,15 @@
 CCL_NAMESPACE_BEGIN
 
 
-__device void bsdf_hair_reflection_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_hair_reflection_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device void bsdf_hair_transmission_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_hair_transmission_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device int bsdf_hair_reflection_setup(ShaderClosure *sc)
+ccl_device int bsdf_hair_reflection_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
 	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
@@ -52,7 +52,7 @@ __device int bsdf_hair_reflection_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device int bsdf_hair_transmission_setup(ShaderClosure *sc)
+ccl_device int bsdf_hair_transmission_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
 	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
@@ -60,7 +60,7 @@ __device int bsdf_hair_transmission_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 #ifdef __HAIR__
 	float offset = sc->offset;
@@ -106,18 +106,18 @@ __device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const
 	return make_float3(*pdf, *pdf, *pdf);
 }
 
-__device float3 bsdf_hair_transmission_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_hair_transmission_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 
-__device float3 bsdf_hair_reflection_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_hair_reflection_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 #ifdef __HAIR__
 	float offset = sc->offset;
@@ -163,7 +163,7 @@ __device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, co
 	return make_float3(*pdf, *pdf, *pdf);
 }
 
-__device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 #ifdef __HAIR__
 	float offset = sc->offset;
@@ -218,7 +218,7 @@ __device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, flo
 	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
-__device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 #ifdef __HAIR__
 	float offset = sc->offset;

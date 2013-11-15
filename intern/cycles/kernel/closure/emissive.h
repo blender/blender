@@ -37,19 +37,19 @@ CCL_NAMESPACE_BEGIN
 /* return the probability distribution function in the direction I,
  * given the parameters and the light's surface normal.  This MUST match
  * the PDF computed by sample(). */
-__device float emissive_pdf(const float3 Ng, const float3 I)
+ccl_device float emissive_pdf(const float3 Ng, const float3 I)
 {
 	float cosNO = fabsf(dot(Ng, I));
 	return (cosNO > 0.0f)? 1.0f: 0.0f;
 }
 
-__device void emissive_sample(const float3 Ng, float randu, float randv,
+ccl_device void emissive_sample(const float3 Ng, float randu, float randv,
 	float3 *omega_out, float *pdf)
 {
 	/* todo: not implemented and used yet */
 }
 
-__device float3 emissive_simple_eval(const float3 Ng, const float3 I)
+ccl_device float3 emissive_simple_eval(const float3 Ng, const float3 I)
 {
 	float res = emissive_pdf(Ng, I);
 	

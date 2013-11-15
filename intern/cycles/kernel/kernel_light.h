@@ -36,7 +36,7 @@ typedef struct LightSample {
 
 #ifdef __BACKGROUND_MIS__
 
-__device float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
+ccl_device float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
 {
 	/* for the following, the CDF values are actually a pair of floats, with the
 	 * function value as X and the actual CDF as Y.  The last entry's function
@@ -112,7 +112,7 @@ __device float3 background_light_sample(KernelGlobals *kg, float randu, float ra
 	return -equirectangular_to_direction(u, v);
 }
 
-__device float background_light_pdf(KernelGlobals *kg, float3 direction)
+ccl_device float background_light_pdf(KernelGlobals *kg, float3 direction)
 {
 	float2 uv = direction_to_equirectangular(direction);
 	int res = kernel_data.integrator.pdf_background_res;
@@ -146,7 +146,7 @@ __device float background_light_pdf(KernelGlobals *kg, float3 direction)
 
 /* Regular Light */
 
-__device float3 disk_light_sample(float3 v, float randu, float randv)
+ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
 {
 	float3 ru, rv;
 
@@ -156,17 +156,17 @@ __device float3 disk_light_sample(float3 v, float randu, float randv)
 	return ru*randu + rv*randv;
 }
 
-__device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
+ccl_device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
 {
 	return normalize(D + disk_light_sample(D, randu, randv)*radius);
 }
 
-__device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
+ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
 {
 	return disk_light_sample(normalize(P - center), randu, randv)*radius;
 }
 
-__device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float randv)
+ccl_device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float randv)
 {
 	randu = randu - 0.5f;
 	randv = randv - 0.5f;
@@ -174,7 +174,7 @@ __device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float
 	return axisu*randu + axisv*randv;
 }
 
-__device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
+ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
 {
 	float3 dir = make_float3(data2.y, data2.z, data2.w);
 	float3 I = ls->Ng;
@@ -197,7 +197,7 @@ __device float spot_light_attenuation(float4 data1, float4 data2, LightSample *l
 	return attenuation;
 }
 
-__device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
+ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
 {
 	float cos_pi = dot(Ng, I);
 
@@ -207,7 +207,7 @@ __device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I
 	return t*t/cos_pi;
 }
 
-__device void lamp_light_sample(KernelGlobals *kg, int lamp,
+ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	float randu, float randv, float3 P, LightSample *ls)
 {
 	float4 data0 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 0);
@@ -298,7 +298,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	}
 }
 
-__device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
+ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
 {
 	float4 data0 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 0);
 	float4 data1 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 1);
@@ -422,7 +422,7 @@ __device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, f
 
 /* Triangle Light */
 
-__device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls, int object, float time)
+ccl_device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls, int object, float time)
 {
 #ifdef __INSTANCING__
 	/* instance transform */
@@ -440,7 +440,7 @@ __device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls, 
 #endif
 }
 
-__device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
+ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	float randu, float randv, float time, LightSample *ls)
 {
 	/* triangle, so get position, normal, shader */
@@ -457,7 +457,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	object_transform_light_sample(kg, ls, object, time);
 }
 
-__device float triangle_light_pdf(KernelGlobals *kg,
+ccl_device float triangle_light_pdf(KernelGlobals *kg,
 	const float3 Ng, const float3 I, float t)
 {
 	float pdf = kernel_data.integrator.pdf_triangles;
@@ -473,7 +473,7 @@ __device float triangle_light_pdf(KernelGlobals *kg,
 
 #ifdef __HAIR__
 
-__device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object,
+ccl_device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object,
 	int segment, float randu, float randv, float time, LightSample *ls)
 {
 	/* this strand code needs completion */
@@ -515,7 +515,7 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 
 /* Light Distribution */
 
-__device int light_distribution_sample(KernelGlobals *kg, float randt)
+ccl_device int light_distribution_sample(KernelGlobals *kg, float randt)
 {
 	/* this is basically std::upper_bound as used by pbrt, to find a point light or
 	 * triangle to emit from, proportional to area. a good improvement would be to
@@ -544,7 +544,7 @@ __device int light_distribution_sample(KernelGlobals *kg, float randt)
 
 /* Generic Light */
 
-__device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls)
+ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);
@@ -577,18 +577,18 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 	}
 }
 
-__device int light_select_num_samples(KernelGlobals *kg, int index)
+ccl_device int light_select_num_samples(KernelGlobals *kg, int index)
 {
 	float4 data3 = kernel_tex_fetch(__light_data, index*LIGHT_SIZE + 3);
 	return __float_as_int(data3.x);
 }
 
-__device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
+ccl_device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
 {
 	lamp_light_sample(kg, index, randu, randv, P, ls);
 }
 
-__device int lamp_light_eval_sample(KernelGlobals *kg, float randt)
+ccl_device int lamp_light_eval_sample(KernelGlobals *kg, float randt)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);

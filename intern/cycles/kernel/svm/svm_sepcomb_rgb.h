@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void svm_node_combine_rgb(ShaderData *sd, float *stack, uint in_offset, uint color_index, uint out_offset)
+ccl_device void svm_node_combine_rgb(ShaderData *sd, float *stack, uint in_offset, uint color_index, uint out_offset)
 {
 	float color = stack_load_float(stack, in_offset);
 
@@ -24,7 +24,7 @@ __device void svm_node_combine_rgb(ShaderData *sd, float *stack, uint in_offset,
 		stack_store_float(stack, out_offset+color_index, color);
 }
 
-__device void svm_node_separate_rgb(ShaderData *sd, float *stack, uint icolor_offset, uint color_index, uint out_offset)
+ccl_device void svm_node_separate_rgb(ShaderData *sd, float *stack, uint icolor_offset, uint color_index, uint out_offset)
 {
 	float3 color = stack_load_float3(stack, icolor_offset);
 

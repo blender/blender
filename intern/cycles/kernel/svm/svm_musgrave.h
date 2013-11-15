@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
  * from "Texturing and Modelling: A procedural approach"
  */
 
-__device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves)
+ccl_device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 0.0f;
@@ -53,7 +53,7 @@ __device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float
  * octaves: number of frequencies in the fBm
  */
 
-__device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves)
+ccl_device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 1.0f;
@@ -82,7 +82,7 @@ __device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis ba
  * offset: raises the terrain from `sea level'
  */
 
-__device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset)
+ccl_device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset)
 {
 	float value, increment, rmd;
 	float pwHL = powf(lacunarity, -H);
@@ -117,7 +117,7 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
  * offset: raises the terrain from `sea level'
  */
 
-__device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
+ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight, rmd;
 	float pwHL = powf(lacunarity, -H);
@@ -154,7 +154,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
  * offset: raises the terrain from `sea level'
  */
 
-__device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
+ccl_device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseBasis basis, float H, float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight;
 	float pwHL = powf(lacunarity, -H);
@@ -181,7 +181,7 @@ __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseB
 
 /* Shader */
 
-__device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float scale, float3 p)
+ccl_device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float scale, float3 p)
 {
 	NodeNoiseBasis basis = NODE_NOISE_PERLIN;
 	p *= scale;
@@ -200,7 +200,7 @@ __device float svm_musgrave(NodeMusgraveType type, float dimension, float lacuna
 	return 0.0f;
 }
 
-__device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
 	uint4 node2 = read_node(kg, offset);
 	uint4 node3 = read_node(kg, offset);

@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
  * BSDF evaluation result, split per BSDF type. This is used to accumulate
  * render passes separately. */
 
-__device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 value, int use_light_pass)
+ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 value, int use_light_pass)
 {
 #ifdef __PASSES__
 	eval->use_light_pass = use_light_pass;
@@ -51,7 +51,7 @@ __device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 val
 #endif
 }
 
-__device_inline void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 value)
+ccl_device_inline void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 value)
 {
 #ifdef __PASSES__
 	if(eval->use_light_pass) {
@@ -73,7 +73,7 @@ __device_inline void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 va
 #endif
 }
 
-__device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
+ccl_device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
 {
 #ifdef __PASSES__
 	if(eval->use_light_pass) {
@@ -90,7 +90,7 @@ __device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
 #endif
 }
 
-__device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
+ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 {
 #ifdef __PASSES__
 	if(eval->use_light_pass) {
@@ -115,7 +115,7 @@ __device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
  * visible as the first non-transparent hit, while indirectly visible are the
  * bounces after that. */
 
-__device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
+ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 {
 	/* clear all */
 #ifdef __PASSES__
@@ -159,7 +159,7 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 #endif
 }
 
-__device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughput,
+ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughput,
 	BsdfEval *bsdf_eval, float bsdf_pdf, int bounce, int bsdf_label)
 {
 	float inverse_pdf = 1.0f/bsdf_pdf;
@@ -192,7 +192,7 @@ __device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughp
 #endif
 }
 
-__device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throughput, float3 value, int bounce)
+ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throughput, float3 value, int bounce)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -210,7 +210,7 @@ __device_inline void path_radiance_accum_emission(PathRadiance *L, float3 throug
 #endif
 }
 
-__device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, float3 alpha, float3 bsdf, float3 ao, int bounce)
+ccl_device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, float3 alpha, float3 bsdf, float3 ao, int bounce)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -231,7 +231,7 @@ __device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, 
 #endif
 }
 
-__device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
+ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -261,7 +261,7 @@ __device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughpu
 #endif
 }
 
-__device_inline void path_radiance_accum_background(PathRadiance *L, float3 throughput, float3 value, int bounce)
+ccl_device_inline void path_radiance_accum_background(PathRadiance *L, float3 throughput, float3 value, int bounce)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -279,7 +279,7 @@ __device_inline void path_radiance_accum_background(PathRadiance *L, float3 thro
 #endif
 }
 
-__device_inline void path_radiance_sum_indirect(PathRadiance *L)
+ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L)
 {
 #ifdef __PASSES__
 	/* this division is a bit ugly, but means we only have to keep track of
@@ -301,7 +301,7 @@ __device_inline void path_radiance_sum_indirect(PathRadiance *L)
 #endif
 }
 
-__device_inline void path_radiance_reset_indirect(PathRadiance *L)
+ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -316,7 +316,7 @@ __device_inline void path_radiance_reset_indirect(PathRadiance *L)
 #endif
 }
 
-__device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
+ccl_device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -338,7 +338,7 @@ __device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 #endif
 }
 
-__device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float clamp)
+ccl_device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float clamp)
 {
 	float sum = fabsf((*L_sum).x) + fabsf((*L_sum).y) + fabsf((*L_sum).z);
 

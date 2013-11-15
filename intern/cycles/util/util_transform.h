@@ -43,7 +43,7 @@ typedef struct Transform {
  *
  * For the DecompMotionTransform we drop scale from pre/post. */
 
-typedef struct __may_alias MotionTransform {
+typedef struct ccl_may_alias MotionTransform {
 	Transform pre;
 	Transform mid;
 	Transform post;
@@ -57,7 +57,7 @@ typedef struct DecompMotionTransform {
 
 /* Functions */
 
-__device_inline float3 transform_perspective(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_perspective(const Transform *t, const float3 a)
 {
 	float4 b = make_float4(a.x, a.y, a.z, 1.0f);
 	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
@@ -66,7 +66,7 @@ __device_inline float3 transform_perspective(const Transform *t, const float3 a)
 	return (w != 0.0f)? c/w: make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device_inline float3 transform_point(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 {
 	float3 c = make_float3(
 		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z + t->x.w,
@@ -76,7 +76,7 @@ __device_inline float3 transform_point(const Transform *t, const float3 a)
 	return c;
 }
 
-__device_inline float3 transform_direction(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
 {
 	float3 c = make_float3(
 		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z,
@@ -86,7 +86,7 @@ __device_inline float3 transform_direction(const Transform *t, const float3 a)
 	return c;
 }
 
-__device_inline float3 transform_direction_transposed(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_direction_transposed(const Transform *t, const float3 a)
 {
 	float3 x = make_float3(t->x.x, t->y.x, t->z.x);
 	float3 y = make_float3(t->x.y, t->y.y, t->z.y);
@@ -95,7 +95,7 @@ __device_inline float3 transform_direction_transposed(const Transform *t, const 
 	return make_float3(dot(x, a), dot(y, a), dot(z, a));
 }
 
-__device_inline Transform transform_transpose(const Transform a)
+ccl_device_inline Transform transform_transpose(const Transform a)
 {
 	Transform t;
 
@@ -107,7 +107,7 @@ __device_inline Transform transform_transpose(const Transform a)
 	return t;
 }
 
-__device_inline Transform make_transform(float a, float b, float c, float d,
+ccl_device_inline Transform make_transform(float a, float b, float c, float d,
 									float e, float f, float g, float h,
 									float i, float j, float k, float l,
 									float m, float n, float o, float p)
@@ -124,7 +124,7 @@ __device_inline Transform make_transform(float a, float b, float c, float d,
 
 #ifndef __KERNEL_GPU__
 
-__device_inline Transform operator*(const Transform a, const Transform b)
+ccl_device_inline Transform operator*(const Transform a, const Transform b)
 {
 	Transform c = transform_transpose(b);
 	Transform t;
@@ -137,7 +137,7 @@ __device_inline Transform operator*(const Transform a, const Transform b)
 	return t;
 }
 
-__device_inline void print_transform(const char *label, const Transform& t)
+ccl_device_inline void print_transform(const char *label, const Transform& t)
 {
 	print_float4(label, t.x);
 	print_float4(label, t.y);
@@ -146,7 +146,7 @@ __device_inline void print_transform(const char *label, const Transform& t)
 	printf("\n");
 }
 
-__device_inline Transform transform_translate(float3 t)
+ccl_device_inline Transform transform_translate(float3 t)
 {
 	return make_transform(
 		1, 0, 0, t.x,
@@ -155,12 +155,12 @@ __device_inline Transform transform_translate(float3 t)
 		0, 0, 0, 1);
 }
 
-__device_inline Transform transform_translate(float x, float y, float z)
+ccl_device_inline Transform transform_translate(float x, float y, float z)
 {
 	return transform_translate(make_float3(x, y, z));
 }
 
-__device_inline Transform transform_scale(float3 s)
+ccl_device_inline Transform transform_scale(float3 s)
 {
 	return make_transform(
 		s.x, 0, 0, 0,
@@ -169,12 +169,12 @@ __device_inline Transform transform_scale(float3 s)
 		0, 0, 0, 1);
 }
 
-__device_inline Transform transform_scale(float x, float y, float z)
+ccl_device_inline Transform transform_scale(float x, float y, float z)
 {
 	return transform_scale(make_float3(x, y, z));
 }
 
-__device_inline Transform transform_perspective(float fov, float n, float f)
+ccl_device_inline Transform transform_perspective(float fov, float n, float f)
 {
 	Transform persp = make_transform(
 		1, 0, 0, 0,
@@ -189,7 +189,7 @@ __device_inline Transform transform_perspective(float fov, float n, float f)
 	return scale * persp;
 }
 
-__device_inline Transform transform_rotate(float angle, float3 axis)
+ccl_device_inline Transform transform_rotate(float angle, float3 axis)
 {
 	float s = sinf(angle);
 	float c = cosf(angle);
@@ -216,7 +216,7 @@ __device_inline Transform transform_rotate(float angle, float3 axis)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-__device_inline Transform transform_euler(float3 euler)
+ccl_device_inline Transform transform_euler(float3 euler)
 {
 	return
 		transform_rotate(euler.x, make_float3(1.0f, 0.0f, 0.0f)) *
@@ -224,33 +224,33 @@ __device_inline Transform transform_euler(float3 euler)
 		transform_rotate(euler.z, make_float3(0.0f, 0.0f, 1.0f));
 }
 
-__device_inline Transform transform_orthographic(float znear, float zfar)
+ccl_device_inline Transform transform_orthographic(float znear, float zfar)
 {
 	return transform_scale(1.0f, 1.0f, 1.0f / (zfar-znear)) *
 		transform_translate(0.0f, 0.0f, -znear);
 }
 
-__device_inline Transform transform_identity()
+ccl_device_inline Transform transform_identity()
 {
 	return transform_scale(1.0f, 1.0f, 1.0f);
 }
 
-__device_inline bool operator==(const Transform& A, const Transform& B)
+ccl_device_inline bool operator==(const Transform& A, const Transform& B)
 {
 	return memcmp(&A, &B, sizeof(Transform)) == 0;
 }
 
-__device_inline bool operator!=(const Transform& A, const Transform& B)
+ccl_device_inline bool operator!=(const Transform& A, const Transform& B)
 {
 	return !(A == B);
 }
 
-__device_inline float3 transform_get_column(const Transform *t, int column)
+ccl_device_inline float3 transform_get_column(const Transform *t, int column)
 {
 	return make_float3(t->x[column], t->y[column], t->z[column]);
 }
 
-__device_inline void transform_set_column(Transform *t, int column, float3 value)
+ccl_device_inline void transform_set_column(Transform *t, int column, float3 value)
 {
 	t->x[column] = value.x;
 	t->y[column] = value.y;
@@ -259,7 +259,7 @@ __device_inline void transform_set_column(Transform *t, int column, float3 value
 
 Transform transform_inverse(const Transform& a);
 
-__device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
+ccl_device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
 {
 	/* the epsilon here is quite arbitrary, but this function is only used for
 	 * surface area and bump, where we except it to not be so sensitive */
@@ -283,7 +283,7 @@ __device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
    return false;
 }
 
-__device_inline bool transform_negative_scale(const Transform& tfm)
+ccl_device_inline bool transform_negative_scale(const Transform& tfm)
 {
 	float3 c0 = transform_get_column(&tfm, 0);
 	float3 c1 = transform_get_column(&tfm, 1);
@@ -292,7 +292,7 @@ __device_inline bool transform_negative_scale(const Transform& tfm)
 	return (dot(cross(c0, c1), c2) < 0.0f);
 }
 
-__device_inline Transform transform_clear_scale(const Transform& tfm)
+ccl_device_inline Transform transform_clear_scale(const Transform& tfm)
 {
 	Transform ntfm = tfm;
 
@@ -307,7 +307,7 @@ __device_inline Transform transform_clear_scale(const Transform& tfm)
 
 /* Motion Transform */
 
-__device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
+ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
 	/* use simpe nlerp instead of slerp. it's faster and almost the same */
 	return normalize((1.0f - t)*q1 + t*q2);
@@ -333,7 +333,7 @@ __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 #endif
 }
 
-__device_inline Transform transform_quick_inverse(Transform M)
+ccl_device_inline Transform transform_quick_inverse(Transform M)
 {
 	/* possible optimization: can we avoid doing this altogether and construct
 	 * the inverse matrix directly from negated translation, transposed rotation,
@@ -356,7 +356,7 @@ __device_inline Transform transform_quick_inverse(Transform M)
 	return R;
 }
 
-__device_inline void transform_compose(Transform *tfm, const Transform *decomp)
+ccl_device_inline void transform_compose(Transform *tfm, const Transform *decomp)
 {
 	/* rotation */
 	float q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
@@ -395,7 +395,7 @@ __device_inline void transform_compose(Transform *tfm, const Transform *decomp)
 /* Disabled for now, need arc-length parametrization for constant speed motion.
  * #define CURVED_MOTION_INTERPOLATE */
 
-__device void transform_motion_interpolate(Transform *tfm, const DecompMotionTransform *motion, float t)
+ccl_device void transform_motion_interpolate(Transform *tfm, const DecompMotionTransform *motion, float t)
 {
 	/* possible optimization: is it worth it adding a check to skip scaling?
 	 * it's probably quite uncommon to have scaling objects. or can we skip
@@ -447,7 +447,7 @@ __device void transform_motion_interpolate(Transform *tfm, const DecompMotionTra
 
 #ifndef __KERNEL_GPU__
 
-__device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
+ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
 {
 	return (A.pre == B.pre && A.post == B.post);
 }

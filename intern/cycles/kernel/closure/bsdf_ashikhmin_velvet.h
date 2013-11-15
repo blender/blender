@@ -35,7 +35,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
+ccl_device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
 {
 	float sigma = fmaxf(sc->data0, 0.01f);
 	sc->data0 = 1.0f/(sigma * sigma); /* m_invsigma2 */
@@ -45,11 +45,11 @@ __device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-__device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
 	float3 N = sc->N;
@@ -87,12 +87,12 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, cons
 	return make_float3(0, 0, 0);
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
 	float3 N = sc->N;

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Brick */
 
-__device_noinline float brick_noise(int n) /* fast integer noise */
+ccl_device_noinline float brick_noise(int n) /* fast integer noise */
 {
 	int nn;
 	n = (n >> 13) ^ n;
@@ -26,7 +26,7 @@ __device_noinline float brick_noise(int n) /* fast integer noise */
 	return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-__device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, float bias,
+ccl_device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, float bias,
 	float brick_width, float row_height, float offset_amount, int offset_frequency,
 	float squash_amount, int squash_frequency)
 {	
@@ -56,7 +56,7 @@ __device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, flo
 		y > (row_height - mortar_size)) ? 1.0f : 0.0f);
 }
 
-__device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {	
 	uint4 node2 = read_node(kg, offset);
 	uint4 node3 = read_node(kg, offset);

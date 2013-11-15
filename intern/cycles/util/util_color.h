@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float color_srgb_to_scene_linear(float c)
+ccl_device float color_srgb_to_scene_linear(float c)
 {
 	if(c < 0.04045f)
 		return (c < 0.0f)? 0.0f: c * (1.0f/12.92f);
@@ -30,7 +30,7 @@ __device float color_srgb_to_scene_linear(float c)
 		return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
-__device float color_scene_linear_to_srgb(float c)
+ccl_device float color_scene_linear_to_srgb(float c)
 {
 	if(c < 0.0031308f)
 		return (c < 0.0f)? 0.0f: c * 12.92f;
@@ -38,7 +38,7 @@ __device float color_scene_linear_to_srgb(float c)
 		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
-__device float3 rgb_to_hsv(float3 rgb)
+ccl_device float3 rgb_to_hsv(float3 rgb)
 {
 	float cmax, cmin, h, s, v, cdelta;
 	float3 c;
@@ -77,7 +77,7 @@ __device float3 rgb_to_hsv(float3 rgb)
 	return make_float3(h, s, v);
 }
 
-__device float3 hsv_to_rgb(float3 hsv)
+ccl_device float3 hsv_to_rgb(float3 hsv)
 {
 	float i, f, p, q, t, h, s, v;
 	float3 rgb;
@@ -112,7 +112,7 @@ __device float3 hsv_to_rgb(float3 hsv)
 	return rgb;
 }
 
-__device float3 xyY_to_xyz(float x, float y, float Y)
+ccl_device float3 xyY_to_xyz(float x, float y, float Y)
 {
 	float X, Z;
 
@@ -125,7 +125,7 @@ __device float3 xyY_to_xyz(float x, float y, float Y)
 	return make_float3(X, Y, Z);
 }
 
-__device float3 xyz_to_rgb(float x, float y, float z)
+ccl_device float3 xyz_to_rgb(float x, float y, float z)
 {
 	return make_float3(3.240479f * x + -1.537150f * y + -0.498535f * z,
 					  -0.969256f * x +  1.875991f * y +  0.041556f * z,
@@ -134,7 +134,7 @@ __device float3 xyz_to_rgb(float x, float y, float z)
 
 #ifndef __KERNEL_OPENCL__
 
-__device float3 color_srgb_to_scene_linear(float3 c)
+ccl_device float3 color_srgb_to_scene_linear(float3 c)
 {
 	return make_float3(
 		color_srgb_to_scene_linear(c.x),
@@ -142,7 +142,7 @@ __device float3 color_srgb_to_scene_linear(float3 c)
 		color_srgb_to_scene_linear(c.z));
 }
 
-__device float3 color_scene_linear_to_srgb(float3 c)
+ccl_device float3 color_scene_linear_to_srgb(float3 c)
 {
 	return make_float3(
 		color_scene_linear_to_srgb(c.x),
@@ -152,7 +152,7 @@ __device float3 color_scene_linear_to_srgb(float3 c)
 
 #endif
 
-__device float linear_rgb_to_gray(float3 c)
+ccl_device float linear_rgb_to_gray(float3 c)
 {
 	return c.x*0.2126f + c.y*0.7152f + c.z*0.0722f;
 }

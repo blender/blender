@@ -16,25 +16,25 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device_inline void kernel_write_pass_float(__global float *buffer, int sample, float value)
+ccl_device_inline void kernel_write_pass_float(ccl_global float *buffer, int sample, float value)
 {
-	__global float *buf = buffer;
+	ccl_global float *buf = buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
-__device_inline void kernel_write_pass_float3(__global float *buffer, int sample, float3 value)
+ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, int sample, float3 value)
 {
-	__global float3 *buf = (__global float3*)buffer;
+	ccl_global float3 *buf = (ccl_global float3*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
-__device_inline void kernel_write_pass_float4(__global float *buffer, int sample, float4 value)
+ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, int sample, float4 value)
 {
-	__global float4 *buf = (__global float4*)buffer;
+	ccl_global float4 *buf = (ccl_global float4*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
 }
 
-__device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L,
+ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global float *buffer, PathRadiance *L,
 	ShaderData *sd, int sample, int path_flag, float3 throughput)
 {
 #ifdef __PASSES__
@@ -114,7 +114,7 @@ __device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float 
 #endif
 }
 
-__device_inline void kernel_write_light_passes(KernelGlobals *kg, __global float *buffer, PathRadiance *L, int sample)
+ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global float *buffer, PathRadiance *L, int sample)
 {
 #ifdef __PASSES__
 	int flag = kernel_data.film.pass_flag;

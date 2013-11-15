@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* WARD */
 
-__device int bsdf_ward_setup(ShaderClosure *sc)
+ccl_device int bsdf_ward_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f); /* m_ax */
 	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f); /* m_ay */
@@ -46,13 +46,13 @@ __device int bsdf_ward_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_ward_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_ward_blur(ShaderClosure *sc, float roughness)
 {
 	sc->data0 = fmaxf(roughness, sc->data0); /* m_ax */
 	sc->data1 = fmaxf(roughness, sc->data1); /* m_ay */
 }
 
-__device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;
@@ -87,12 +87,12 @@ __device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, 
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_ward_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_ward_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;

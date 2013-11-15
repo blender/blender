@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Wireframe Node */
 
-__device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *stack, uint in_size, uint out_fac, uint use_pixel_size)
+ccl_device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *stack, uint in_size, uint out_fac, uint use_pixel_size)
 {
 	/* Input Data */
 	float size = stack_load_float(stack, in_size);

@@ -27,13 +27,12 @@
 
 /* Qualifier wrappers for different names on different devices */
 
-#define __device  __device__ __inline__
-#define __device_inline  __device__ __inline__
-#define __device_noinline  __device__ __noinline__
-#define __global
-#define __shared __shared__
-#define __constant
-#define __may_alias
+#define ccl_device  __device__ __inline__
+#define ccl_device_inline  __device__ __inline__
+#define ccl_device_noinline  __device__ __noinline__
+#define ccl_global
+#define ccl_constant
+#define ccl_may_alias
 
 /* No assert supported for CUDA */
 

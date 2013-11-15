@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Conversion Nodes */
 
-__device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint from, uint to)
+ccl_device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint from, uint to)
 {
 	switch(type) {
 		case NODE_CONVERT_FI: {

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Gradient */
 
-__device float svm_gradient(float3 p, NodeGradientType type)
+ccl_device float svm_gradient(float3 p, NodeGradientType type)
 {
 	float x, y, z;
 
@@ -57,7 +57,7 @@ __device float svm_gradient(float3 p, NodeGradientType type)
 	return 0.0f;
 }
 
-__device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
 {
 	uint type, co_offset, color_offset, fac_offset;
 

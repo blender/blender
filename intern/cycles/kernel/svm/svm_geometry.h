@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */
 
-__device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	float3 data;
 
@@ -38,7 +38,7 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 	stack_store_float3(stack, out_offset, data);
 }
 
-__device void svm_node_geometry_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_geometry_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -55,7 +55,7 @@ __device void svm_node_geometry_bump_dx(KernelGlobals *kg, ShaderData *sd, float
 #endif
 }
 
-__device void svm_node_geometry_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_geometry_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -74,7 +74,7 @@ __device void svm_node_geometry_bump_dy(KernelGlobals *kg, ShaderData *sd, float
 
 /* Object Info */
 
-__device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	float data;
 
@@ -94,7 +94,7 @@ __device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *sta
 
 /* Particle Info */
 
-__device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	switch(type) {
 		case NODE_INFO_PAR_INDEX: {
@@ -146,7 +146,7 @@ __device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *s
 
 /* Hair Info */
 
-__device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	float data;
 	float3 data3;

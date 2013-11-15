@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void svm_node_normal(KernelGlobals *kg, ShaderData *sd, float *stack, uint in_normal_offset, uint out_normal_offset, uint out_dot_offset, int *offset)
+ccl_device void svm_node_normal(KernelGlobals *kg, ShaderData *sd, float *stack, uint in_normal_offset, uint out_normal_offset, uint out_dot_offset, int *offset)
 {
 	/* read extra data */
 	uint4 node1 = read_node(kg, offset);

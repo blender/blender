@@ -45,14 +45,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Stack */
 
-__device_inline float3 stack_load_float3(float *stack, uint a)
+ccl_device_inline float3 stack_load_float3(float *stack, uint a)
 {
 	kernel_assert(a+2 < SVM_STACK_SIZE);
 
 	return make_float3(stack[a+0], stack[a+1], stack[a+2]);
 }
 
-__device_inline void stack_store_float3(float *stack, uint a, float3 f)
+ccl_device_inline void stack_store_float3(float *stack, uint a, float3 f)
 {
 	kernel_assert(a+2 < SVM_STACK_SIZE);
 
@@ -61,59 +61,59 @@ __device_inline void stack_store_float3(float *stack, uint a, float3 f)
 	stack[a+2] = f.z;
 }
 
-__device_inline float stack_load_float(float *stack, uint a)
+ccl_device_inline float stack_load_float(float *stack, uint a)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	return stack[a];
 }
 
-__device_inline float stack_load_float_default(float *stack, uint a, uint value)
+ccl_device_inline float stack_load_float_default(float *stack, uint a, uint value)
 {
 	return (a == (uint)SVM_STACK_INVALID)? __uint_as_float(value): stack_load_float(stack, a);
 }
 
-__device_inline void stack_store_float(float *stack, uint a, float f)
+ccl_device_inline void stack_store_float(float *stack, uint a, float f)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	stack[a] = f;
 }
 
-__device_inline int stack_load_int(float *stack, uint a)
+ccl_device_inline int stack_load_int(float *stack, uint a)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	return __float_as_int(stack[a]);
 }
 
-__device_inline float stack_load_int_default(float *stack, uint a, uint value)
+ccl_device_inline float stack_load_int_default(float *stack, uint a, uint value)
 {
 	return (a == (uint)SVM_STACK_INVALID)? (int)value: stack_load_int(stack, a);
 }
 
-__device_inline void stack_store_int(float *stack, uint a, int i)
+ccl_device_inline void stack_store_int(float *stack, uint a, int i)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	stack[a] = __int_as_float(i);
 }
 
-__device_inline bool stack_valid(uint a)
+ccl_device_inline bool stack_valid(uint a)
 {
 	return a != (uint)SVM_STACK_INVALID;
 }
 
 /* Reading Nodes */
 
-__device_inline uint4 read_node(KernelGlobals *kg, int *offset)
+ccl_device_inline uint4 read_node(KernelGlobals *kg, int *offset)
 {
 	uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
 	(*offset)++;
 	return node;
 }
 
-__device_inline float4 read_node_float(KernelGlobals *kg, int *offset)
+ccl_device_inline float4 read_node_float(KernelGlobals *kg, int *offset)
 {
 	uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
 	float4 f = make_float4(__uint_as_float(node.x), __uint_as_float(node.y), __uint_as_float(node.z), __uint_as_float(node.w));
@@ -121,13 +121,13 @@ __device_inline float4 read_node_float(KernelGlobals *kg, int *offset)
 	return f;
 }
 
-__device_inline float4 fetch_node_float(KernelGlobals *kg, int offset)
+ccl_device_inline float4 fetch_node_float(KernelGlobals *kg, int offset)
 {
 	uint4 node = kernel_tex_fetch(__svm_nodes, offset);
 	return make_float4(__uint_as_float(node.x), __uint_as_float(node.y), __uint_as_float(node.z), __uint_as_float(node.w));
 }
 
-__device_inline void decode_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
+ccl_device_inline void decode_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
 {
 	if(x) *x = (i & 0xFF);
 	if(y) *y = ((i >> 8) & 0xFF);
@@ -182,7 +182,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Main Interpreter Loop */
 
-__device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, float randb, int path_flag)
+ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, float randb, int path_flag)
 {
 	float stack[SVM_STACK_SIZE];
 	float closure_weight = 1.0f;

@@ -32,17 +32,17 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device int quick_floor(float x)
+ccl_device int quick_floor(float x)
 {
 	return float_to_int(x) - ((x < 0) ? 1 : 0);
 }
 
-__device float bits_to_01(uint bits)
+ccl_device float bits_to_01(uint bits)
 {
 	return bits * (1.0f/(float)0xFFFFFFFF);
 }
 
-__device uint hash(uint kx, uint ky, uint kz)
+ccl_device uint hash(uint kx, uint ky, uint kz)
 {
 	// define some handy macros
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
@@ -71,34 +71,34 @@ __device uint hash(uint kx, uint ky, uint kz)
 #undef final
 }
 
-__device int imod(int a, int b)
+ccl_device int imod(int a, int b)
 {
 	a %= b;
 	return a < 0 ? a + b : a;
 }
 
-__device uint phash(int kx, int ky, int kz, int3 p) 
+ccl_device uint phash(int kx, int ky, int kz, int3 p) 
 {
 	return hash(imod(kx, p.x), imod(ky, p.y), imod(kz, p.z));
 }
 
-__device float floorfrac(float x, int* i)
+ccl_device float floorfrac(float x, int* i)
 {
 	*i = quick_floor(x);
 	return x - *i;
 }
 
-__device float fade(float t)
+ccl_device float fade(float t)
 {
 	return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
-__device float nerp(float t, float a, float b)
+ccl_device float nerp(float t, float a, float b)
 {
 	return (1.0f - t) * a + t * b;
 }
 
-__device float grad(int hash, float x, float y, float z)
+ccl_device float grad(int hash, float x, float y, float z)
 {
 	// use vectors pointing to the edges of the cube
 	int h = hash & 15;
@@ -107,12 +107,12 @@ __device float grad(int hash, float x, float y, float z)
 	return ((h&1) ? -u : u) + ((h&2) ? -v : v);
 }
 
-__device float scale3(float result)
+ccl_device float scale3(float result)
 {
 	return 0.9820f * result;
 }
 
-__device_noinline float perlin(float x, float y, float z)
+ccl_device_noinline float perlin(float x, float y, float z)
 {
 	int X; float fx = floorfrac(x, &X);
 	int Y; float fy = floorfrac(y, &Y);
@@ -138,7 +138,7 @@ __device_noinline float perlin(float x, float y, float z)
 	return (isfinite(r))? r: 0.0f;
 }
 
-__device_noinline float perlin_periodic(float x, float y, float z, float3 pperiod)
+ccl_device_noinline float perlin_periodic(float x, float y, float z, float3 pperiod)
 {
 	int X; float fx = floorfrac(x, &X);
 	int Y; float fy = floorfrac(y, &Y);
@@ -171,20 +171,20 @@ __device_noinline float perlin_periodic(float x, float y, float z, float3 pperio
 }
 
 /* perlin noise in range 0..1 */
-__device float noise(float3 p)
+ccl_device float noise(float3 p)
 {
 	float r = perlin(p.x, p.y, p.z);
 	return 0.5f*r + 0.5f;
 }
 
 /* perlin noise in range -1..1 */
-__device float snoise(float3 p)
+ccl_device float snoise(float3 p)
 {
 	return perlin(p.x, p.y, p.z);
 }
 
 /* cell noise */
-__device_noinline float cellnoise(float3 p)
+ccl_device_noinline float cellnoise(float3 p)
 {
 	uint ix = quick_floor(p.x);
 	uint iy = quick_floor(p.y);
@@ -193,7 +193,7 @@ __device_noinline float cellnoise(float3 p)
 	return bits_to_01(hash(ix, iy, iz));
 }
 
-__device float3 cellnoise_color(float3 p)
+ccl_device float3 cellnoise_color(float3 p)
 {
 	float r = cellnoise(p);
 	float g = cellnoise(make_float3(p.y, p.x, p.z));
@@ -203,14 +203,14 @@ __device float3 cellnoise_color(float3 p)
 }
 
 /* periodic perlin noise in range 0..1 */
-__device float pnoise(float3 p, float3 pperiod)
+ccl_device float pnoise(float3 p, float3 pperiod)
 {
 	float r = perlin_periodic(p.x, p.y, p.z, pperiod);
 	return 0.5f*r + 0.5f;
 }
 
 /* periodic perlin noise in range -1..1 */
-__device float psnoise(float3 p, float3 pperiod)
+ccl_device float psnoise(float3 p, float3 pperiod)
 {
 	return perlin_periodic(p.x, p.y, p.z, pperiod);
 }

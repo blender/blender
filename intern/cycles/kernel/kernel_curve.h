@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* curve attributes */
 
-__device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
+ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
 	if(elem == ATTR_ELEMENT_CURVE) {
 #ifdef __RAY_DIFFERENTIALS__
@@ -55,7 +55,7 @@ __device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, At
 	}
 }
 
-__device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
+ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
 	if(elem == ATTR_ELEMENT_CURVE) {
 		/* idea: we can't derive any useful differentials here, but for tiled
@@ -96,7 +96,7 @@ __device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd, 
 
 /* hair info node functions */
 
-__device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
+ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 {
 	float r = 0.0f;
 
@@ -113,7 +113,7 @@ __device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 	return r*2.0f;
 }
 
-__device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 {	
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
 

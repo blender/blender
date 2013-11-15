@@ -30,7 +30,7 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-__device bool BVH_FUNCTION_NAME
+ccl_device bool BVH_FUNCTION_NAME
 (KernelGlobals *kg, const Ray *ray, Intersection *isect, const uint visibility
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 , uint *lcg_state, float difl, float extmax

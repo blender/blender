@@ -28,7 +28,7 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-__device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection *isect_array,
+ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection *isect_array,
 	int subsurface_object, uint *lcg_state, int max_hits)
 {
 	/* todo:
