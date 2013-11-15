@@ -68,10 +68,11 @@ def write_sysinfo(op):
     output.write("\nBlender:\n")
     output.write(lilies)
     if bpy.app.build_branch and bpy.app.build_branch != "Unknown":
-        output.write("version %s, branch %r, chage %r, hash %r, %r\n" %
+        output.write("version %s, branch %r, commit date %r %r, hash %r, %r\n" %
             (bpy.app.version_string,
              bpy.app.build_branch,
-             bpy.app.build_change,
+             bpy.app.build_commit_date,
+             bpy.app.build_commit_time,
              bpy.app.build_hash,
              bpy.app.build_type))
     else:

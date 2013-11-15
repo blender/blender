@@ -101,7 +101,8 @@ extern "C"
 
 #include "ED_keyframing.h"
 #ifdef WITH_BUILDINFO
-extern char build_change[];
+extern char build_commit_date[];
+extern char build_commit_time[];
 extern char build_hash[];
 #endif
 
@@ -227,16 +228,12 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	}
 	char version_buf[128];
 #ifdef WITH_BUILDINFO
-	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
-	if (build_hash[0] != '\0') {
-		sprintf(version_buf, "Blender %d.%02d.%d change:%s, hash:", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION,
-		        build_change, build_hash);
-	}
-	else {
-		sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION, build_change);
-	}
+	BLI_snprintf(version_buf, sizeof(version_buf), "Blender %d.%02d.%d commit date:%s, hash:",
+	             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION,
+	             build_commit_date, blender_commit_time, build_hash);
 #else
-	sprintf(version_buf, "Blender %d.%02d.%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
+	BLI_snprintf(version_buf, sizeof(version_buf), "Blender %d.%02d.%d",
+	             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
 #endif
 	asset.getContributor().mAuthoringTool = version_buf;
 	asset.add();

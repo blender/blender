@@ -154,7 +154,12 @@
 extern char build_date[];
 extern char build_time[];
 extern char build_hash[];
-extern char build_change[];
+extern unsigned long build_commit_timestamp;
+
+/* TODO(sergey): ideally size need to be in sync with buildinfo.c */
+extern char build_commit_date[16];
+extern char build_commit_time[16];
+
 extern char build_branch[];
 extern char build_platform[];
 extern char build_type[];
@@ -221,14 +226,9 @@ static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 #ifdef BUILD_DATE
 	printf("\tbuild date: %s\n", build_date);
 	printf("\tbuild time: %s\n", build_time);
-	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
-	if (build_hash[0] != '\0') {
-		printf("\tbuild revision: %s\n", build_change);
-	}
-	else {
-		printf("\tbuild change: %s\n", build_change);
-		printf("\tbuild hash: %s\n", build_hash);
-	}
+	printf("\tbuild commit date: %s\n", build_commit_date);
+	printf("\tbuild commit time: %s\n", build_commit_time);
+	printf("\tbuild hash: %s\n", build_hash);
 	printf("\tbuild platform: %s\n", build_platform);
 	printf("\tbuild type: %s\n", build_type);
 	printf("\tbuild c flags: %s\n", build_cflags);
@@ -602,13 +602,8 @@ static void blender_crash_handler(int signum)
 #ifndef BUILD_DATE
 	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
 #else
-	/* TODO(sergey): As soon as we fully switched to GIT, no need to check build_hash. */
-	if (build_hash[0] != '\0') {
-		BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Change: %s, Hash %s\n", BLEND_VERSION_ARG, build_change, build_hash);
-	}
-	else {
-		BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Revision: %s\n", BLEND_VERSION_ARG, build_change);
-	}
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Commit date: %s %s, Hash %s\n",
+	             BLEND_VERSION_ARG, build_commit_date, build_commit_time, build_hash);
 #endif
 
 	/* open the crash log */
@@ -1516,6 +1511,15 @@ int main(int argc, const char **argv)
 			}
 		}
 	}
+
+#ifdef BUILD_DATE
+	{
+		time_t temp_time = build_commit_timestamp;
+		struct tm *tm = gmtime(&temp_time);
+		strftime(build_commit_date, sizeof(build_commit_date), "%Y-%m-%d", tm);
+		strftime(build_commit_time, sizeof(build_commit_time), "%H:%M", tm);
+	}
+#endif
 
 	C = CTX_create();
 

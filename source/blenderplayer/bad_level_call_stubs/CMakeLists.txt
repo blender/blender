@@ -52,7 +52,9 @@ if(WITH_BUILDINFO)
 	)
 	add_definitions(-DBUILD_DATE="\"\""
 					-DBUILD_TIME="\"\""
-					-DBUILD_CHANGE="\"\""
+					-DBUILD_COMMIT_TIMESTAMP=0"
+					-DBUILD_COMMIT_DATE="\"\""
+					-DBUILD_COMMIT_TIME="\"\""
 					-DBUILD_HASH="\"\""
 					-DBUILD_PLATFORM="\"\""
 					-DBUILD_BRANCH="\"\""

@@ -131,7 +131,9 @@ if(WITH_BUILDINFO)
 		# # define in header now, else these get out of date on rebuilds.
 		# -DBUILD_DATE="${BUILD_DATE}"
 		# -DBUILD_TIME="${BUILD_TIME}"
-		# -DBUILD_CHANGE="${BUILD_CHANGE}"
+		# -DBUILD_COMMIT_TIMESTAMP="${BUILD_COMMIT_TIMESTAMP}"
+		# -DBUILD_COMMIT_TIME="${BUILD_COMMIT_TIME}"
+		# -DBUILD_COMMIT_DATE="${BUILD_COMMIT_DATE}"
 		# -DBUILD_HASH="${BUILD_HASH}"
 		# -DBUILD_BRANCH="${BUILD_BRANCH}"
 		-DWITH_BUILDINFO_HEADER # alternative to lines above

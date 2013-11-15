@@ -5,7 +5,7 @@
 # with a default in case anything fails, for examble when using git-svn
 set(MY_WC_HASH "")
 set(MY_WC_BRANCH "")
-set(MY_WC_CHANGE "unknown")
+set(MY_WC_COMMIT_TIMESTAMP 0)
 
 # Guess if this is a SVN working copy and then look up the revision
 if(EXISTS ${SOURCE_DIR}/.git/)
@@ -29,19 +29,10 @@ if(EXISTS ${SOURCE_DIR}/.git/)
 			                OUTPUT_VARIABLE _git_latest_version_tag
 			                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			if(NOT _git_latest_version_tag STREQUAL "")
-				execute_process(COMMAND git rev-list HEAD ^${_git_latest_version_tag} --count
-				                WORKING_DIRECTORY ${SOURCE_DIR}
-				                OUTPUT_VARIABLE MY_WC_CHANGE
-				                OUTPUT_STRIP_TRAILING_WHITESPACE)
-			else()
-				# For the time being we don't have annotated release tags,
-				# count all the revisions in branch.
-				execute_process(COMMAND git rev-list HEAD --count
-				                WORKING_DIRECTORY ${SOURCE_DIR}
-				                OUTPUT_VARIABLE MY_WC_CHANGE
-				                OUTPUT_STRIP_TRAILING_WHITESPACE)
-			endif()
+			execute_process(COMMAND git log -1 --format=%ct
+			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                OUTPUT_VARIABLE MY_WC_COMMIT_TIMESTAMP
+			                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 			# Update GIT index before getting dirty files
 			execute_process(COMMAND git update-index -q --refresh
@@ -61,23 +52,6 @@ if(EXISTS ${SOURCE_DIR}/.git/)
 			unset(_git_latest_version_tag)
 		endif()
 	endif()
-else()
-	# Some crazy folks like me could have hacked git-svn chekout in a way
-	# so svnversion gives proper svn revision for themm which required having
-	# empty .svn folder.
-	#
-	# For such a crazy blokes put svn check into an else branch.
-	#
-	#                                                              (sergey)
-	if(EXISTS ${SOURCE_DIR}/.svn/)
-		# The FindSubversion.cmake module is part of the standard distribution
-		include(FindSubversion)
-
-		if(Subversion_FOUND)
-			Subversion_WC_INFO(${SOURCE_DIR} MY)
-			set(MY_WC_CHANGE "${MY_WC_REVISION}")
-		endif()
-	endif()
 endif()
 
 # BUILD_PLATFORM and BUILD_PLATFORM are taken from CMake
@@ -94,7 +68,7 @@ endif()
 # Write a file with the SVNVERSION define
 file(WRITE buildinfo.h.txt
 	"#define BUILD_HASH \"${MY_WC_HASH}\"\n"
-	"#define BUILD_CHANGE \"${MY_WC_CHANGE}\"\n"
+	"#define BUILD_COMMIT_TIMESTAMP ${MY_WC_COMMIT_TIMESTAMP}\n"
 	"#define BUILD_BRANCH \"${MY_WC_BRANCH}\"\n"
 	"#define BUILD_DATE \"${BUILD_DATE}\"\n"
 	"#define BUILD_TIME \"${BUILD_TIME}\"\n"
