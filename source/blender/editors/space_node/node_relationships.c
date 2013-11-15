@@ -401,22 +401,27 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
 	bNodeSocket *from = link->fromsock, *to = link->tosock;
 	int max_from = from->limit, max_to = to->limit;
 	int count_from = 1, count_to = 1; /* start at 1, link is included */
-	bNodeLink *tlink;
+	bNodeLink *tlink, *tlink_next;
 	
-	for (tlink = ntree->links.first; tlink; tlink = tlink->next) {
+	for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
+		tlink_next = tlink->next;
 		if (tlink == link)
 			continue;
 		
-		if (tlink->fromsock == from) {
+		if (tlink && tlink->fromsock == from) {
 			++count_from;
-			if (count_from > max_from)
+			if (count_from > max_from) {
 				nodeRemLink(ntree, tlink);
+				tlink = NULL;
+			}
 		}
 		
-		if (tlink->tosock == to) {
+		if (tlink && tlink->tosock == to) {
 			++count_to;
-			if (count_to > max_to)
+			if (count_to > max_to) {
 				nodeRemLink(ntree, tlink);
+				tlink = NULL;
+			}
 		}
 	}
 }
