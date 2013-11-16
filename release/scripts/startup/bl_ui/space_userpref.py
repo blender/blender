@@ -1255,15 +1255,15 @@ class USERPREF_PT_addons(Panel):
                         split.label(text='  ' + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    tot_row = bool(info["wiki_url"]) + bool(info["tracker_url"]) + bool(user_addon)
+                    tot_row = bool(info["wiki_url"]) + bool(user_addon)
 
                     if tot_row:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
                             split.operator("wm.url_open", text="Documentation", icon='HELP').url = info["wiki_url"]
-                        if info["tracker_url"]:
-                            split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
+                        tracker_url = "http://developer.blender.org/maniphest/task/create/?project=3&type=Bug"
+                        split.operator("wm.url_open", text="Report a Bug", icon='URL').url = tracker_url
                         if user_addon:
                             split.operator("wm.addon_remove", text="Remove", icon='CANCEL').module = mod.__name__
 
