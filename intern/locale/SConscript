@@ -68,7 +68,7 @@ if env['WITH_BF_INTERNATIONAL']:
             msgfmt_executable += ".exe"
 
         # dependencies
-        dependencies = [targetpath]
+        dependencies = [msgfmt_target]
 
         # add command for each locale
         all_mo_files = []
