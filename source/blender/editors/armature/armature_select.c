@@ -1054,7 +1054,8 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
-	EditBone *ebone;
+	EditBone *ebone, *ebone_mirror_act = NULL;
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -1072,10 +1073,23 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 			{
 				const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
 				flag_new |= flag_mirror;
+
+				if (ebone == arm->act_edbone) {
+					ebone_mirror_act = ebone_mirror;
+				}
+
+				/* skip all but the active or its mirror */
+				if (active_only && !ELEM(arm->act_edbone, ebone, ebone_mirror)) {
+					continue;
+				}
 			}
 
 			ED_armature_ebone_selectflag_set(ebone, flag_new);
 		}
+	}
+
+	if (ebone_mirror_act) {
+		arm->act_edbone = ebone_mirror_act;
 	}
 
 	ED_armature_sync_selection(arm->edbo);
@@ -1100,5 +1114,6 @@ void ARMATURE_OT_select_mirror(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", false, "Active Only", "Only operate on the active bone");
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
