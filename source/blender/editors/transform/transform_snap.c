@@ -37,6 +37,7 @@
 #include "PIL_time.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
@@ -1415,6 +1416,64 @@ static bool snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *ar
 	return retval;
 }
 
+static bool snapCurve(short snap_mode, ARegion *ar, Object *ob, Curve *cu, float obmat[4][4],
+                      const float ray_start[3], const float ray_normal[3], const float mval[2],
+                      float r_loc[3], float *UNUSED(r_no), float *r_dist_px, float *r_depth)
+{
+	float imat[4][4];
+	float ray_start_local[3], ray_normal_local[3];
+	bool retval = false;
+	int u;
+
+	Nurb *nu;
+
+	/* only vertex snapping mode (eg control points and handles) supported for now) */
+	if (snap_mode != SCE_SNAP_MODE_VERTEX) {
+		return retval;
+	}
+
+	invert_m4_m4(imat, obmat);
+
+	copy_v3_v3(ray_start_local, ray_start);
+	copy_v3_v3(ray_normal_local, ray_normal);
+
+	mul_m4_v3(imat, ray_start_local);
+	mul_mat3_m4_v3(imat, ray_normal_local);
+
+	for (nu = (ob->mode == OB_MODE_EDIT ? cu->editnurb->nurbs.first : cu->nurb.first); nu; nu = nu->next) {
+		for (u = 0; u < nu->pntsu; u++){
+			switch (snap_mode) {
+				case SCE_SNAP_MODE_VERTEX:
+				{
+					if (ob->mode == OB_MODE_EDIT) {
+						/* don't snap to selected (moving) or hidden */
+						if (nu->bezt[u].f2 & SELECT || nu->bezt[u].hide != 0) {
+							break;
+						}
+						retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+						/* don't snap if handle is selected (moving), or if it is aligning to a moving handle */
+						if (!(nu->bezt[u].f1 & SELECT) && !(nu->bezt[u].h1 & HD_ALIGN && nu->bezt[u].f3 & SELECT)) {
+							retval |= snapVertex(ar, nu->bezt[u].vec[0], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+						}
+						if (!(nu->bezt[u].f3 & SELECT) && !(nu->bezt[u].h2 & HD_ALIGN && nu->bezt[u].f1 & SELECT)) {
+							retval |= snapVertex(ar, nu->bezt[u].vec[2], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+						}
+					} else {
+						/* curve is not visible outside editmode if nurb length less than two */
+						if (nu->pntsu > 1) {
+							retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+						}
+					}
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	}
+	return retval;
+}
+
 static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
                             const float ray_start[3], const float ray_normal[3], const float mval[2],
                             float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
@@ -1737,6 +1796,9 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 	}
 	else if (ob->type == OB_ARMATURE) {
 		retval = snapArmature(snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
+	}
+	else if (ob->type == OB_CURVE) {
+		retval = snapCurve(snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
 	}
 	else if (ob->type == OB_EMPTY) {
 		retval = snapEmpty(snap_mode, ar, ob, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
