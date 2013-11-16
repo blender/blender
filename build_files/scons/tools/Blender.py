@@ -410,10 +410,17 @@ def buildinfo(lenv, build_type):
     """
     build_date = time.strftime ("%Y-%m-%d")
     build_time = time.strftime ("%H:%M:%S")
+
     if os.path.isdir(os.path.abspath('.git')):
         build_commit_timestamp = os.popen('git log -1 --format=%ct').read().strip()
-        build_hash = os.popen('git rev-parse --short HEAD').read().strip()
-        build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
+        if not build_commit_timestamp:
+            # Git command not found
+            build_hash = 'unknown'
+            build_commit_timestamp = '0'
+            build_branch = 'unknown'
+        else:
+            build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+            build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
     else:
         build_hash = 'unknown'
         build_commit_timestamp = '0'
