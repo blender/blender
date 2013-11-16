@@ -1800,7 +1800,7 @@ static void WM_OT_splash(wmOperatorType *ot)
 {
 	ot->name = "Splash Screen";
 	ot->idname = "WM_OT_splash";
-	ot->description = "Opens a blocking popup region with release info";
+	ot->description = "Opens the splash screen with release info";
 	
 	ot->invoke = wm_splash_invoke;
 	ot->poll = WM_operator_winactive;
