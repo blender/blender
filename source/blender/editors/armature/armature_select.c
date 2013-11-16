@@ -1050,6 +1050,9 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 
 /****************** Mirror Select ****************/
 
+/**
+ * \note clone of #pose_select_mirror_exec keep in sync
+ */
 static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -1102,7 +1105,7 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Mirror Select";
+	ot->name = "Flip Active/Selected Bone";
 	ot->idname = "ARMATURE_OT_select_mirror";
 	ot->description = "Mirror the bone selection";
 

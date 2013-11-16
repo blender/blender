@@ -315,7 +315,8 @@ kmi.properties.direction = 'CHILD'
 kmi.properties.extend = True
 kmi = km.keymap_items.new('pose.select_linked', 'L', 'PRESS')
 kmi = km.keymap_items.new('pose.select_grouped', 'G', 'PRESS', shift=True)
-kmi = km.keymap_items.new('pose.select_flip_active', 'F', 'PRESS', shift=True)
+kmi = km.keymap_items.new('pose.select_mirror', 'F', 'PRESS', shift=True)
+kmi.properties.only_active = True
 kmi = km.keymap_items.new('pose.constraint_add_with_targets', 'C', 'PRESS', shift=True, ctrl=True)
 kmi = km.keymap_items.new('pose.constraints_clear', 'C', 'PRESS', ctrl=True, alt=True)
 kmi = km.keymap_items.new('pose.ik_add', 'I', 'PRESS', shift=True)

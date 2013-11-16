@@ -62,6 +62,11 @@
 
 #include "armature_intern.h"
 
+/* utility macros fro storing a temp int in the bone (selection flag) */
+#define PBONE_PREV_FLAG_GET(pchan) ((void)0, (GET_INT_FROM_POINTER((pchan)->temp)))
+#define PBONE_PREV_FLAG_SET(pchan, val) ((pchan)->temp = SET_INT_IN_POINTER(val))
+
+
 /* ***************** Pose Select Utilities ********************* */
 
 /* Utility method for changing the selection status of a bone */
@@ -837,52 +842,78 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
 
 /* -------------------------------------- */
 
-/* context active object, or weightpainted object with armature in posemode */
-static int pose_bone_flip_active_exec(bContext *C, wmOperator *UNUSED(op))
+/**
+ * \note clone of #armature_select_mirror_exec keep in sync
+ */
+static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob_act = CTX_data_active_object(C);
 	Object *ob = BKE_object_pose_armature_get(ob_act);
-	
-	if (ob && (ob->mode & OB_MODE_POSE)) {
-		bArmature *arm = ob->data;
-		
-		if (arm->act_bone) {
-			bPoseChannel *pchanf;
-			char name_flip[MAXBONENAME];
-			BKE_deform_flip_side_name(name_flip, arm->act_bone->name, true);
-			
-			pchanf = BKE_pose_channel_find_name(ob->pose, name_flip);
-			if (pchanf && pchanf->bone != arm->act_bone) {
-				arm->act_bone->flag &= ~BONE_SELECTED;
-				pchanf->bone->flag |= BONE_SELECTED;
-				
-				arm->act_bone = pchanf->bone;
-				
-				/* in weightpaint we select the associated vertex group too */
-				if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
-					ED_vgroup_select_by_name(ob_act, name_flip);
-					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+	bArmature *arm;
+	bPoseChannel *pchan, *pchan_mirror_act = NULL;
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	if ((ob && (ob->mode & OB_MODE_POSE)) == 0) {
+		return OPERATOR_CANCELLED;
+	}
+
+	arm = ob->data;
+
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+		const int flag = (pchan->bone->flag & BONE_SELECTED);
+		PBONE_PREV_FLAG_SET(pchan, flag);
+	}
+
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+		if (PBONE_SELECTABLE(arm, pchan->bone)) {
+			bPoseChannel *pchan_mirror;
+			int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;
+
+			if ((pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) &&
+			    (PBONE_VISIBLE(arm, pchan_mirror->bone)))
+			{
+				const int flag_mirror = PBONE_PREV_FLAG_GET(pchan_mirror);
+				flag_new |= flag_mirror;
+
+				if (pchan->bone == arm->act_bone) {
+					pchan_mirror_act = pchan_mirror;
 				}
-				
-				WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-				
-				return OPERATOR_FINISHED;
+
+				/* skip all but the active or its mirror */
+				if (active_only && !ELEM(arm->act_bone, pchan->bone, pchan_mirror->bone)) {
+					continue;
+				}
 			}
+
+			pchan->bone->flag = (pchan->bone->flag & ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) | flag_new;
 		}
 	}
-	
-	return OPERATOR_CANCELLED;
+
+	if (pchan_mirror_act) {
+		arm->act_bone = pchan_mirror_act->bone;
+
+		/* in weightpaint we select the associated vertex group too */
+		if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+			ED_vgroup_select_by_name(ob_act, pchan_mirror_act->name);
+			DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+		}
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+
+	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_flip_active(wmOperatorType *ot)
+void POSE_OT_select_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Flip Selected Active Bone";
-	ot->idname = "POSE_OT_select_flip_active";
-	ot->description = "Activate the bone with a flipped name";
+	ot->name = "Flip Active/Selected Bone";
+	ot->idname = "POSE_OT_select_mirror";
+	ot->description = "Mirror the bone selection";
 	
 	/* api callbacks */
-	ot->exec = pose_bone_flip_active_exec;
+	ot->exec = pose_select_mirror_exec;
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */

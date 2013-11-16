@@ -532,7 +532,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.operator("pose.select_all").action = 'TOGGLE'
         layout.operator("pose.select_all", text="Inverse").action = 'INVERT'
-        layout.operator("pose.select_flip_active", text="Flip Active")
+        layout.operator("pose.select_mirror", text="Flip Active")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
         layout.operator("pose.select_linked", text="Linked")
 

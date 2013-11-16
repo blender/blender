@@ -116,7 +116,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_linked);
 	WM_operatortype_append(POSE_OT_select_constraint_target);
 	WM_operatortype_append(POSE_OT_select_grouped);
-	WM_operatortype_append(POSE_OT_select_flip_active);
+	WM_operatortype_append(POSE_OT_select_mirror);
 	
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
@@ -363,7 +363,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_select_flip_active", FKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_mirror", FKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_constraint_add_with_targets", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_constraints_clear", CKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
