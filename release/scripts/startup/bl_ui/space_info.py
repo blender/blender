@@ -239,12 +239,12 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://wiki.blender.org/index.php/Doc:2.6/Manual"
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-269"
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.70"
         layout.separator()
 
         layout.operator("wm.url_open", text="Blender Website", icon='URL').url = "http://www.blender.org"
         layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = "http://www.blender.org/e-shop"
-        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = "http://www.blender.org/community/get-involved"
+        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = "http://www.blender.org/get-involved/"
         layout.operator("wm.url_open", text="User Community", icon='URL').url = "http://www.blender.org/community/user-community"
         layout.separator()
         layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = "http://developer.blender.org/maniphest/task/create/?project=2&type=Bug"
