@@ -346,11 +346,10 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		
 		/* find flipped group */
 		if (dgroup && mirror) {
-			char name[MAXBONENAME];
+			char name_flip[MAXBONENAME];
 
-			// 0 = don't strip off number extensions
-			flip_side_name(name, dgroup->name, FALSE);
-			dgroupflip[j] = defgroup_find_name(ob, name);
+			BKE_deform_flip_side_name(name_flip, dgroup->name, false);
+			dgroupflip[j] = defgroup_find_name(ob, name_flip);
 		}
 	}
 

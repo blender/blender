@@ -182,16 +182,16 @@ void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4])
 EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
 	EditBone *eboflip = NULL;
-	char name[MAXBONENAME];
+	char name_flip[MAXBONENAME];
 	
 	if (ebo == NULL)
 		return NULL;
 	
-	flip_side_name(name, ebo->name, FALSE);
+	BKE_deform_flip_side_name(name_flip, ebo->name, false);
 	
 	for (eboflip = edbo->first; eboflip; eboflip = eboflip->next) {
 		if (ebo != eboflip) {
-			if (!strcmp(name, eboflip->name))
+			if (!strcmp(name_flip, eboflip->name))
 				break;
 		}
 	}

@@ -302,7 +302,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, short se
 	
 	/* get the name - if flipping, we must flip this first */
 	if (flip)
-		flip_side_name(name, chan->name, 0);        /* 0 = don't strip off number extensions */
+		BKE_deform_flip_side_name(name, chan->name, false);
 	else
 		BLI_strncpy(name, chan->name, sizeof(name));
 	

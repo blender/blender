@@ -289,7 +289,6 @@ static int armature_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
 	bArmature *arm;
-	char newname[MAXBONENAME];
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -299,8 +298,9 @@ static int armature_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
-		flip_side_name(newname, ebone->name, TRUE); // 1 = do strip off number extensions
-		ED_armature_bone_rename(arm, ebone->name, newname);
+		char name_flip[MAXBONENAME];
+		BKE_deform_flip_side_name(name_flip, ebone->name, true);
+		ED_armature_bone_rename(arm, ebone->name, name_flip);
 	}
 	CTX_DATA_END;
 	

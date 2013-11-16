@@ -91,6 +91,7 @@ void defvert_normalize_lock_map(struct MDeformVert *dvert,
 void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char base[MAX_VGROUP_NAME], char ext[MAX_VGROUP_NAME]);
 void BKE_deform_split_prefix(const char string[MAX_VGROUP_NAME], char base[MAX_VGROUP_NAME], char ext[MAX_VGROUP_NAME]);
 
-void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number);
+void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME],
+                               const bool strip_number);
 
 #endif  /* __BKE_DEFORM_H__ */

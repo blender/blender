@@ -577,9 +577,9 @@ static int pose_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
-		char newname[MAXBONENAME];
-		flip_side_name(newname, pchan->name, TRUE);
-		ED_armature_bone_rename(arm, pchan->name, newname);
+		char name_flip[MAXBONENAME];
+		BKE_deform_flip_side_name(name_flip, pchan->name, true);
+		ED_armature_bone_rename(arm, pchan->name, name_flip);
 	}
 	CTX_DATA_END;
 	

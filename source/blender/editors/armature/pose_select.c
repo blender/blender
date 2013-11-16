@@ -848,10 +848,10 @@ static int pose_bone_flip_active_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		if (arm->act_bone) {
 			bPoseChannel *pchanf;
-			char name[MAXBONENAME];
-			flip_side_name(name, arm->act_bone->name, TRUE);
+			char name_flip[MAXBONENAME];
+			BKE_deform_flip_side_name(name_flip, arm->act_bone->name, true);
 			
-			pchanf = BKE_pose_channel_find_name(ob->pose, name);
+			pchanf = BKE_pose_channel_find_name(ob->pose, name_flip);
 			if (pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
 				pchanf->bone->flag |= BONE_SELECTED;
@@ -860,7 +860,7 @@ static int pose_bone_flip_active_exec(bContext *C, wmOperator *UNUSED(op))
 				
 				/* in weightpaint we select the associated vertex group too */
 				if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
-					ED_vgroup_select_by_name(ob_act, name);
+					ED_vgroup_select_by_name(ob_act, name_flip);
 					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 				}
 				

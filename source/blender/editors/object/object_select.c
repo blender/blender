@@ -1078,12 +1078,12 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN (C, Base *, primbase, selected_bases)
 	{
-		char tmpname[MAXBONENAME];
+		char name_flip[MAXBONENAME];
 
-		flip_side_name(tmpname, primbase->object->id.name + 2, TRUE);
+		BKE_deform_flip_side_name(name_flip, primbase->object->id.name + 2, true);
 		
-		if (strcmp(tmpname, primbase->object->id.name + 2) != 0) { /* names differ */
-			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, tmpname);
+		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
+			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);
 			if (ob) {
 				Base *secbase = BKE_scene_base_find(scene, ob);
 

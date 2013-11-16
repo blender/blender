@@ -378,12 +378,12 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 
 	if (defgroup) {
 		int mirrdef;
-		char name[MAXBONENAME];
+		char name_flip[MAXBONENAME];
 
-		flip_side_name(name, defgroup->name, FALSE);
-		mirrdef = defgroup_name_index(ob, name);
+		BKE_deform_flip_side_name(name_flip, defgroup->name, false);
+		mirrdef = defgroup_name_index(ob, name_flip);
 		if (mirrdef == -1) {
-			if (BKE_defgroup_new(ob, name)) {
+			if (BKE_defgroup_new(ob, name_flip)) {
 				mirrdef = BLI_countlist(&ob->defbase) - 1;
 			}
 		}
