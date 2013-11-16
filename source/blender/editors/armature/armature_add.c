@@ -624,7 +624,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
 					
 					if (flipbone && forked) {   // only set if mirror edit
-						if (strlen(newbone->name) < 30) {
+						if (strlen(newbone->name) < (MAXBONENAME - 2)) {
 							if (a == 0) strcat(newbone->name, "_L");
 							else strcat(newbone->name, "_R");
 						}
