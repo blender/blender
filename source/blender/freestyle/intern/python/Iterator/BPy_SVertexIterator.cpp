@@ -115,6 +115,10 @@ PyDoc_STRVAR(SVertexIterator_object_doc,
 
 static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void *UNUSED(closure))
 {
+	if (self->sv_it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
+		return NULL;
+	}
 	SVertex *sv = self->sv_it->operator->();
 	if (sv)
 		return BPy_SVertex_from_SVertex(*sv);

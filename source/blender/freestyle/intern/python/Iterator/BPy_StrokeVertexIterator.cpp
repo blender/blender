@@ -109,8 +109,10 @@ PyDoc_STRVAR(StrokeVertexIterator_object_doc,
 
 static PyObject *StrokeVertexIterator_object_get(BPy_StrokeVertexIterator *self, void *UNUSED(closure))
 {
-	if (!self->reversed && self->sv_it->isEnd())
-		Py_RETURN_NONE;
+	if (!self->reversed && self->sv_it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
+		return NULL;
+	}
 	StrokeVertex *sv = self->sv_it->operator->();
 	if (sv)
 		return BPy_StrokeVertex_from_StrokeVertex(*sv);

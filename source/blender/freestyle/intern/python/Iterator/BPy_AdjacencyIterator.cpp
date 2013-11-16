@@ -115,8 +115,10 @@ PyDoc_STRVAR(AdjacencyIterator_object_doc,
 
 static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void *UNUSED(closure))
 {
-	if (self->a_it->isEnd())
-		Py_RETURN_NONE;
+	if (self->a_it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
+		return NULL;
+	}
 	ViewEdge *ve = self->a_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
@@ -131,6 +133,10 @@ PyDoc_STRVAR(AdjacencyIterator_is_incoming_doc,
 
 static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self, void *UNUSED(closure))
 {
+	if (self->a_it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
+		return NULL;
+	}
 	return PyBool_from_bool(self->a_it->isIncoming());
 }
 

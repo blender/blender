@@ -97,8 +97,10 @@ PyDoc_STRVAR(CurvePointIterator_object_doc,
 
 static PyObject *CurvePointIterator_object_get(BPy_CurvePointIterator *self, void *UNUSED(closure))
 {
-	if (self->cp_it->isEnd())
-		Py_RETURN_NONE;
+	if (self->cp_it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
+		return NULL;
+	}
 	return BPy_CurvePoint_from_CurvePoint(self->cp_it->operator*());
 }
 
