@@ -306,7 +306,7 @@ if(WITH_PYTHON)
 	install(
 		DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
 		DESTINATION ${TARGETDIR_VER}
-		PATTERN ".svn" EXCLUDE
+		PATTERN ".git" EXCLUDE
 		PATTERN "__pycache__" EXCLUDE
 		PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
 		PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
@@ -322,7 +322,6 @@ if(WITH_INTERNATIONAL)
 		DIRECTORY
 			${CMAKE_SOURCE_DIR}/release/datafiles/fonts
 		DESTINATION ${TARGETDIR_VER}/datafiles
-		PATTERN ".svn" EXCLUDE
 	)
 
 	set(_locale_dir "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
@@ -370,7 +369,6 @@ if(WITH_OPENCOLORIO)
 	install(
 		DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
 		DESTINATION ${TARGETDIR_VER}/datafiles
-		PATTERN ".svn" EXCLUDE
 	)
 endif()
 
@@ -447,7 +445,6 @@ if(UNIX AND NOT APPLE)
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor
-			PATTERN ".svn" EXCLUDE
 			PATTERN "*.svg" EXCLUDE
 		)
 		install(
@@ -737,6 +734,7 @@ elseif(APPLE)
 		install(
 			DIRECTORY ${from}
 			DESTINATION ${to}
+			PATTERN ".git" EXCLUDE
 			PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
 			PATTERN "*.pyo" EXCLUDE
