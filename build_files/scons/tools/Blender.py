@@ -641,7 +641,17 @@ def AppIt(target=None, source=None, env=None):
     if binary == 'blender':
         cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
         commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/datafiles/locale %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale'%(installdir, binary, VERSION)
+        commands.getoutput(cmd)
+        mo_dir = os.path.join(builddir[:-4], "locale")
+        for f in os.listdir(mo_dir):
+            cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s'%(installdir, binary, VERSION, f[:-3])
+            commands.getoutput(cmd)
+            cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES'%(installdir, binary, VERSION, f[:-3])
+            commands.getoutput(cmd)
+            cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES/blender.mo'%(mo_dir, f, installdir, binary, VERSION, f[:-3])
+            commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/datafiles/locale/languages %s/%s.app/Contents/MacOS/%s/datafiles/locale/'%(bldroot, installdir, binary, VERSION)
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/datafiles/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
