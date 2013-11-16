@@ -2188,7 +2188,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 				if (bp->offset_type != BEVEL_AMT_PERCENT)
 					e->offset_r = e->offset_l;
 				if (bp->use_weights) {
-					weight = BM_elem_float_data_get(&bm->edata, bme, CD_BWEIGHT);
+					weight = BM_elem_float_data_get(&bm->edata, e->e, CD_BWEIGHT);
 					e->offset_l *= weight;
 					e->offset_r *= weight;
 				}
