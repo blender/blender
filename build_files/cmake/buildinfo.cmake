@@ -3,8 +3,8 @@
 
 # Extract working copy information for SOURCE_DIR into MY_XXX variables
 # with a default in case anything fails, for examble when using git-svn
-set(MY_WC_HASH "")
-set(MY_WC_BRANCH "")
+set(MY_WC_HASH "unknown")
+set(MY_WC_BRANCH "unknown")
 set(MY_WC_COMMIT_TIMESTAMP 0)
 
 # Guess if this is a SVN working copy and then look up the revision

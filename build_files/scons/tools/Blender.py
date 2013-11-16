@@ -415,9 +415,9 @@ def buildinfo(lenv, build_type):
         build_hash = os.popen('git rev-parse --short HEAD').read().strip()
         build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
     else:
-        build_hash = ''
-        build_change = 'unknown'
-        build_branch = ''
+        build_hash = 'unknown'
+        build_commit_timestamp = '0'
+        build_branch = 'unknown'
 
     if lenv['BF_DEBUG']:
         build_type = "Debug"
