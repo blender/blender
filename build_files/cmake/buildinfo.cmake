@@ -9,48 +9,46 @@ set(MY_WC_COMMIT_TIMESTAMP 0)
 
 # Guess if this is a SVN working copy and then look up the revision
 if(EXISTS ${SOURCE_DIR}/.git/)
-	if(EXISTS ${SOURCE_DIR}/.git/)
-		# The FindSubversion.cmake module is part of the standard distribution
-		include(FindGit)
-		if(GIT_FOUND)
-			execute_process(COMMAND git rev-parse --short HEAD
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE MY_WC_HASH
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+	# The FindSubversion.cmake module is part of the standard distribution
+	include(FindGit)
+	if(GIT_FOUND)
+		execute_process(COMMAND git rev-parse --short HEAD
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_VARIABLE MY_WC_HASH
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			execute_process(COMMAND git rev-parse --abbrev-ref HEAD
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE MY_WC_BRANCH
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_VARIABLE MY_WC_BRANCH
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			# Get latest version tag
-			execute_process(COMMAND git describe --match "v[0-9]*" --abbrev=0
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE _git_latest_version_tag
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		# Get latest version tag
+		execute_process(COMMAND git describe --match "v[0-9]*" --abbrev=0
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_VARIABLE _git_latest_version_tag
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			execute_process(COMMAND git log -1 --format=%ct
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE MY_WC_COMMIT_TIMESTAMP
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND git log -1 --format=%ct
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_VARIABLE MY_WC_COMMIT_TIMESTAMP
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			# Update GIT index before getting dirty files
-			execute_process(COMMAND git update-index -q --refresh
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		# Update GIT index before getting dirty files
+		execute_process(COMMAND git update-index -q --refresh
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			execute_process(COMMAND git diff-index --name-only HEAD --
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE _git_changed_files
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND git diff-index --name-only HEAD --
+		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                OUTPUT_VARIABLE _git_changed_files
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-			if(NOT _git_changed_files STREQUAL "")
-				set(MY_WC_CHANGE "${MY_WC_CHANGE}M")
-			endif()
-
-			unset(_git_changed_files)
-			unset(_git_latest_version_tag)
+		if(NOT _git_changed_files STREQUAL "")
+			set(MY_WC_CHANGE "${MY_WC_CHANGE}M")
 		endif()
+
+		unset(_git_changed_files)
+		unset(_git_latest_version_tag)
 	endif()
 endif()
 
