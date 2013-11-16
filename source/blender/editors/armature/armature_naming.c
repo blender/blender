@@ -67,17 +67,11 @@
 /* ************************************************** */
 /* EditBone Names */
 
-/* checks if an EditBone with a matching name already, returning the matching bone if it exists */
-EditBone *editbone_name_exists(ListBase *edbo, const char *name)
-{
-	return BLI_findstring(edbo, name, offsetof(EditBone, name));
-}
-
 /* note: there's a unique_bone_name() too! */
 static bool editbone_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; void *bone; } *data = arg;
-	EditBone *dupli = editbone_name_exists(data->lb, name);
+	EditBone *dupli = ED_armature_bone_find_name(data->lb, name);
 	return dupli && dupli != data->bone;
 }
 
@@ -155,7 +149,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 		
 		/* now check if we're in editmode, we need to find the unique name */
 		if (arm->edbo) {
-			EditBone *eBone = editbone_name_exists(arm->edbo, oldname);
+			EditBone *eBone = ED_armature_bone_find_name(arm->edbo, oldname);
 			
 			if (eBone) {
 				unique_editbone_name(arm->edbo, newname, NULL);

@@ -175,28 +175,35 @@ void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4])
 	copy_v3_v3(mat[3], ebone->head);
 }
 
+/**
+ * Return a pointer to the bone of the given name
+ */
+EditBone *ED_armature_bone_find_name(const ListBase *edbo, const char *name)
+{
+	return BLI_findstring(edbo, name, offsetof(EditBone, name));
+}
+
+
 /* *************************************************************** */
 /* Mirroring */
 
-/* context: editmode armature */
-EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
+/**
+ * \see #BKE_pose_channel_get_mirrored (pose-mode, matching function)
+ */
+EditBone *ED_armature_bone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 {
-	EditBone *eboflip = NULL;
 	char name_flip[MAXBONENAME];
-	
+
 	if (ebo == NULL)
 		return NULL;
 	
 	BKE_deform_flip_side_name(name_flip, ebo->name, false);
 	
-	for (eboflip = edbo->first; eboflip; eboflip = eboflip->next) {
-		if (ebo != eboflip) {
-			if (!strcmp(name_flip, eboflip->name))
-				break;
-		}
+	if (!STREQ(name_flip, ebo->name)) {
+		return ED_armature_bone_find_name(edbo, name_flip);
 	}
 	
-	return eboflip;
+	return NULL;
 }
 
 /* ------------------------------------- */

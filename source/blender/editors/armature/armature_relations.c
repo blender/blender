@@ -230,7 +230,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			/* Copy bones and posechannels from the object to the edit armature */
 			for (pchan = opose->chanbase.first; pchan; pchan = pchann) {
 				pchann = pchan->next;
-				curbone = editbone_name_exists(curarm->edbo, pchan->name);
+				curbone = ED_armature_bone_find_name(curarm->edbo, pchan->name);
 				
 				/* Get new name */
 				unique_editbone_name(arm->edbo, curbone->name, NULL);
@@ -414,7 +414,7 @@ static void separate_armature_bones(Object *ob, short sel)
 	/* go through pose-channels, checking if a bone should be removed */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchann) {
 		pchann = pchan->next;
-		curbone = editbone_name_exists(arm->edbo, pchan->name);
+		curbone = ED_armature_bone_find_name(arm->edbo, pchan->name);
 		
 		/* check if bone needs to be removed */
 		if ( (sel && (curbone->flag & BONE_SELECTED)) ||

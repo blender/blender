@@ -128,7 +128,8 @@ bool mouse_armature(struct bContext *C, const int mval[2], bool extend, bool des
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone(struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only);
-EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
+EditBone *ED_armature_bone_find_name(const ListBase *edbo, const char *name);
+EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *ebo);
 void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
