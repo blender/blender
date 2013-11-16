@@ -6785,7 +6785,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 		is_over_dragbut = true;
 	}
 
-	if (is_over_dragbut && type == LEFTMOUSE && val == KM_PRESS) {
+	if (is_over_dragbut && type == LEFTMOUSE && val == KM_PRESS && !(but->flag & UI_BUT_DISABLED)) {
 		uiHandleButtonData *data;
 		int *size = (int *)but->poin;
 
