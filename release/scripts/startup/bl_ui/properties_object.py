@@ -236,7 +236,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
         col = split.column()
         if obj_type not in {'CAMERA', 'EMPTY'}:
-            col.label(text="Maximum draw type:")
+            col.label(text="Maximum Draw Type:")
             col.prop(obj, "draw_type", text="")
 
         col = split.column()
