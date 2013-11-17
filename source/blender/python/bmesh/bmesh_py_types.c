@@ -2879,8 +2879,7 @@ static PyObject *bpy_bmiter_next(BPy_BMIter *self)
 {
 	BMHeader *ele = BM_iter_step(&self->iter);
 	if (ele == NULL) {
-		PyErr_SetString(PyExc_StopIteration,
-		                "bpy_bmiter_next stop");
+		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
 	else {

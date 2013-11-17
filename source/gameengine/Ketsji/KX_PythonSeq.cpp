@@ -383,7 +383,7 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 	self->iter++;
 	if ( object==NULL ) {
 		self->iter= -1; /* for reuse */
-		PyErr_SetString(PyExc_StopIteration,	"iterator at end");
+		PyErr_SetNone(PyExc_StopIteration);
 	}
 	return object; /* can be NULL for end of iterator */
 }

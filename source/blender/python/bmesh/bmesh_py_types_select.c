@@ -341,8 +341,7 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
 {
 	BMEditSelection *ese = self->ese;
 	if (ese == NULL) {
-		PyErr_SetString(PyExc_StopIteration,
-		                "bpy_bmiter_next stop");
+		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
 	else {

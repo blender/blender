@@ -6044,7 +6044,7 @@ static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *self)
 {
 	if (self->iter.valid == false) {
-		PyErr_SetString(PyExc_StopIteration, "pyrna_prop_collection_iter stop");
+		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
 	else {

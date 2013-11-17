@@ -1397,7 +1397,7 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_StopIteration, "iterator at end");
+		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
 }
