@@ -397,7 +397,7 @@ void applyGridAbsolute(TransInfo *t)
 			copy_v3_v3(iloc, td->ob->obmat[3]);
 		}
 		
-		mul_v3_v3fl(loc, iloc, 1.0f/grid_size);
+		mul_v3_v3fl(loc, iloc, 1.0f / grid_size);
 		loc[0] = floorf(loc[0]);
 		loc[1] = floorf(loc[1]);
 		loc[2] = floorf(loc[2]);
@@ -1441,7 +1441,7 @@ static bool snapCurve(short snap_mode, ARegion *ar, Object *ob, Curve *cu, float
 	mul_mat3_m4_v3(imat, ray_normal_local);
 
 	for (nu = (ob->mode == OB_MODE_EDIT ? cu->editnurb->nurbs.first : cu->nurb.first); nu; nu = nu->next) {
-		for (u = 0; u < nu->pntsu; u++){
+		for (u = 0; u < nu->pntsu; u++) {
 			switch (snap_mode) {
 				case SCE_SNAP_MODE_VERTEX:
 				{
@@ -1458,7 +1458,8 @@ static bool snapCurve(short snap_mode, ARegion *ar, Object *ob, Curve *cu, float
 						if (!(nu->bezt[u].f3 & SELECT) && !(nu->bezt[u].h2 & HD_ALIGN && nu->bezt[u].f1 & SELECT)) {
 							retval |= snapVertex(ar, nu->bezt[u].vec[2], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
 						}
-					} else {
+					}
+					else {
 						/* curve is not visible outside editmode if nurb length less than two */
 						if (nu->pntsu > 1) {
 							retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);

@@ -335,9 +335,10 @@ void defvert_normalize_lock_single(MDeformVert *dvert,
 }
 
 /* Same as defvert_normalize() if no locked vgroup is a member of the subset */
-void defvert_normalize_lock_map(MDeformVert *dvert,
-				const bool *vgroup_subset, const int vgroup_tot,
-				const bool *lock_flags, const int defbase_tot)
+void defvert_normalize_lock_map(
+        MDeformVert *dvert,
+        const bool *vgroup_subset, const int vgroup_tot,
+        const bool *lock_flags, const int defbase_tot)
 {
 	if (dvert->totweight == 0) {
 		/* nothing */

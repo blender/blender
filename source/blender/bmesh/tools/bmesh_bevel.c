@@ -543,7 +543,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
  * of not meeting at the same point by choosing to change the bevel offset on one
  * of the appropriate side of either e1 or e2, in order that the lines can meet on emid. */
 static void offset_on_edge_between(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
-				   BMVert *v, float meetco[3])
+                                   BMVert *v, float meetco[3])
 {
 	BLI_assert(e1->is_bev && e2->is_bev && !emid->is_bev);
 	
@@ -1965,7 +1965,8 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 
 /* Return the angle between the two faces adjacent to e.
  * If there are not two, return 0. */
-static float edge_face_angle(EdgeHalf *e) {
+static float edge_face_angle(EdgeHalf *e)
+{
 	if (e->fprev && e->fnext) {
 		/* angle between faces is supplement of angle between face normals */
 		return (float)M_PI - angle_normalized_v3v3(e->fprev->no, e->fnext->no);
@@ -2160,30 +2161,31 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			}
 			else {
 				switch (bp->offset_type) {
-				case BEVEL_AMT_OFFSET:
-					e->offset_l = bp->offset;
-					break;
-				case BEVEL_AMT_WIDTH:
-					z = fabs(2.0f * sinf(edge_face_angle(e) / 2.0f));
-					if (z < BEVEL_EPSILON)
-						e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
-					else
-						e->offset_l = bp->offset / z;
-					break;
-				case BEVEL_AMT_DEPTH:
-					z = fabs(cosf(edge_face_angle(e) / 2.0f));
-					if (z < BEVEL_EPSILON)
-						e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
-					else
-						e->offset_l = bp->offset / z;
-					break;
-				case BEVEL_AMT_PERCENT:
-					e->offset_l = BM_edge_calc_length(e->prev->e) * bp->offset / 100.0f;
-					e->offset_r = BM_edge_calc_length(e->next->e) * bp->offset / 100.0f;
-					break;
-				default:
-					BLI_assert(!"bad bevel offset kind");
-					e->offset_l = bp->offset;
+					case BEVEL_AMT_OFFSET:
+						e->offset_l = bp->offset;
+						break;
+					case BEVEL_AMT_WIDTH:
+						z = fabsf(2.0f * sinf(edge_face_angle(e) / 2.0f));
+						if (z < BEVEL_EPSILON)
+							e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
+						else
+							e->offset_l = bp->offset / z;
+						break;
+					case BEVEL_AMT_DEPTH:
+						z = fabsf(cosf(edge_face_angle(e) / 2.0f));
+						if (z < BEVEL_EPSILON)
+							e->offset_l = 0.01f * bp->offset; /* undefined behavior, so tiny bevel */
+						else
+							e->offset_l = bp->offset / z;
+						break;
+					case BEVEL_AMT_PERCENT:
+						e->offset_l = BM_edge_calc_length(e->prev->e) * bp->offset / 100.0f;
+						e->offset_r = BM_edge_calc_length(e->next->e) * bp->offset / 100.0f;
+						break;
+					default:
+						BLI_assert(!"bad bevel offset kind");
+						e->offset_l = bp->offset;
+						break;
 				}
 				if (bp->offset_type != BEVEL_AMT_PERCENT)
 					e->offset_r = e->offset_l;
