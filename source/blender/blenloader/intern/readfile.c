@@ -7932,7 +7932,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		char build_commit_datetime[32];
 		time_t temp_time = main->build_commit_timestamp;
 		struct tm *tm = gmtime(&temp_time);
-		strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
+		if (LIKELY(tm)) {
+			strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
+		}
+		else {
+			BLI_strncpy(build_commit_datetime, "date-unknown", sizeof(build_commit_datetime));
+		}
 
 		printf("read file %s\n  Version %d sub %d date %s hash %s\n",
 		       fd->relabase, main->versionfile, main->subversionfile,

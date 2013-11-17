@@ -1516,8 +1516,15 @@ int main(int argc, const char **argv)
 	{
 		time_t temp_time = build_commit_timestamp;
 		struct tm *tm = gmtime(&temp_time);
-		strftime(build_commit_date, sizeof(build_commit_date), "%Y-%m-%d", tm);
-		strftime(build_commit_time, sizeof(build_commit_time), "%H:%M", tm);
+		if (LIKELY(tm)) {
+			strftime(build_commit_date, sizeof(build_commit_date), "%Y-%m-%d", tm);
+			strftime(build_commit_time, sizeof(build_commit_time), "%H:%M", tm);
+		}
+		else {
+			const char *unknown = "date-unknown";
+			BLI_strncpy(build_commit_date, unknown, sizeof(build_commit_date));
+			BLI_strncpy(build_commit_time, unknown, sizeof(build_commit_time));
+		}
 	}
 #endif
 
