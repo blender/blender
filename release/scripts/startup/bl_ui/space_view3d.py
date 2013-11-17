@@ -1502,6 +1502,7 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_mirror", text="Mirror")
         layout.operator("object.vertex_group_invert", text="Invert")
         layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_quantize", text="Quantize")
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_blend", text="Blend")
         layout.operator("object.vertex_group_transfer_weight", text="Transfer Weights")

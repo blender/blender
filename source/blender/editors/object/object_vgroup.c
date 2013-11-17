@@ -2398,6 +2398,44 @@ static void vgroup_clean_subset(Object *ob, const bool *vgroup_validmap, const i
 	}
 }
 
+static void vgroup_quantize_subset(Object *ob, const bool *vgroup_validmap, const int vgroup_tot, const int UNUSED(subset_count),
+                                   const int steps)
+{
+	MDeformVert **dvert_array = NULL;
+	int dvert_tot = 0;
+	const bool use_vert_sel = vertex_group_use_vert_sel(ob);
+	const bool use_mirror = (ob->type == OB_MESH) ? (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X) != 0 : false;
+	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+
+	if (dvert_array) {
+		const float steps_fl = steps;
+		MDeformVert *dv;
+		int i;
+
+		if (use_mirror && use_vert_sel) {
+			ED_vgroup_parray_mirror_assign(ob, dvert_array, dvert_tot);
+		}
+
+		for (i = 0; i < dvert_tot; i++) {
+			MDeformWeight *dw;
+			int j;
+
+			/* in case its not selected */
+			if (!(dv = dvert_array[i])) {
+				continue;
+			}
+
+			for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
+				if ((dw->def_nr < vgroup_tot) && vgroup_validmap[dw->def_nr]) {
+					dw->weight = floorf((dw->weight * steps_fl) + 0.5f) / steps_fl;
+					CLAMP(dw->weight, 0.0f, 1.0f);
+				}
+			}
+		}
+
+		MEM_freeN(dvert_array);
+	}
+}
 
 static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
                             const char sel, const char sel_mirr,
@@ -3752,6 +3790,44 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "limit", 0.0f, 0.0f, 1.0, "Limit", "Remove weights under this limit", 0.0f, 0.99f);
 	RNA_def_boolean(ot->srna, "keep_single", false, "Keep Single",
 	                "Keep verts assigned to at least one group when cleaning");
+}
+
+static int vertex_group_quantize_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+
+	const int steps = RNA_int_get(op->ptr, "steps");
+	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
+
+	int subset_count, vgroup_tot;
+
+	const bool *vgroup_validmap = ED_vgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
+	vgroup_quantize_subset(ob, vgroup_validmap, vgroup_tot, subset_count, steps);
+	MEM_freeN((void *)vgroup_validmap);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_quantize(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Quantize Vertex Weights";
+	ot->idname = "OBJECT_OT_vertex_group_quantize";
+	ot->description = "Set weights to a fixed number of steps";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_quantize_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	vgroup_operator_subset_select_props(ot, true);
+	RNA_def_int(ot->srna, "steps", 4, 1, 1000, "Steps", "Number of steps between 0 and 1", 1, 100);
 }
 
 static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
