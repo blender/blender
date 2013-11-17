@@ -641,23 +641,19 @@ def AppIt(target=None, source=None, env=None):
     if binary == 'blender':
         cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
         commands.getoutput(cmd)
-        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale'%(installdir, binary, VERSION)
-        commands.getoutput(cmd)
         cmd = 'cp -R %s/release/datafiles/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/datafiles/locale/languages %s/%s.app/Contents/MacOS/%s/datafiles/locale/'%(bldroot, installdir, binary, VERSION)
         commands.getoutput(cmd)
         mo_dir = os.path.join(builddir[:-4], "locale")
         for f in os.listdir(mo_dir):
-            cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s'%(installdir, binary, VERSION, f[:-3])
+            cmd = 'ditto %s/%s %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES/blender.mo'%(mo_dir, f, installdir, binary, VERSION, f[:-3])
             commands.getoutput(cmd)
-            cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES'%(installdir, binary, VERSION, f[:-3])
-            commands.getoutput(cmd)
-            cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES/blender.mo'%(mo_dir, f, installdir, binary, VERSION, f[:-3])
-            commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/datafiles/locale/languages %s/%s.app/Contents/MacOS/%s/datafiles/locale/'%(bldroot, installdir, binary, VERSION)
-        commands.getoutput(cmd)
+
         if env['WITH_BF_OCIO']:
             cmd = 'cp -R %s/release/datafiles/colormanagement %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
             commands.getoutput(cmd)
+        
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
@@ -710,8 +706,6 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     if env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.6.1': # for correct errorhandling with gcc <= 4.6.1 we need the gcc.dylib and gomp.dylib to link, thus distribute in app-bundle
         print "Bundling libgcc and libgomp"
-        cmd = 'mkdir %s/%s.app/Contents/MacOS/lib'%(installdir, binary)
-        commands.getoutput(cmd)
         instname = env['BF_CXX']
         cmd = 'ditto --arch %s %s/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/'%(osxarch, instname, installdir, binary) # copy libgcc
         commands.getoutput(cmd)
