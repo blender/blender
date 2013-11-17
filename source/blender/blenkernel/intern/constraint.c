@@ -1008,7 +1008,7 @@ static bConstraintTypeInfo CTI_TRACKTO = {
 	trackto_evaluate /* evaluate */
 };
 
-/* --------- Inverse-Kinemetics --------- */
+/* --------- Inverse-Kinematics --------- */
 
 static void kinematic_new_data(void *cdata)
 {
