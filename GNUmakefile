@@ -54,15 +54,15 @@ ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 endif
 ifneq "$(findstring lite, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_lite
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake"
 endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_bpy
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake"
 endif
 ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_bpy
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake"
 endif
 
 
@@ -118,7 +118,7 @@ all:
 
 	@echo
 	@echo Building Blender ...
-	$(MAKE) -C $(BUILD_DIR) -s -j $(NPROCS) install
+	$(MAKE) -C "$(BUILD_DIR)" -s -j $(NPROCS) install
 	@echo
 	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
 	@echo blender installed, run from: "$(BUILD_DIR)/bin/blender"
