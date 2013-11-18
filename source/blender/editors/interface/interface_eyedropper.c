@@ -439,7 +439,9 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 	if (op->customdata) {
 		DataDropper *ddr = (DataDropper *)op->customdata;
 
-		ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+		if (ddr->art) {
+			ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+		}
 
 		MEM_freeN(op->customdata);
 
