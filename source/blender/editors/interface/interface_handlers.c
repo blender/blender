@@ -859,6 +859,13 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 	}
 }
 
+static bool ui_is_but_drag_toggle(uiBut *but)
+{
+	return ((ui_is_but_bool(but) == true) &&
+	        /* menu check is importnt so the button dragged over isn't removed instantly */
+	        (ui_block_is_menu(but->block) == false));
+}
+
 #endif  /* USE_DRAG_TOGGLE */
 
 
@@ -2748,7 +2755,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 {
 #ifdef USE_DRAG_TOGGLE
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_drag_toggle(but)) {
 #if 0		/* UNUSED */
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
@@ -2797,7 +2804,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 			}
 		}
 #ifdef USE_DRAG_TOGGLE
-		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+		if (event->type == LEFTMOUSE && ui_is_but_drag_toggle(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
@@ -3623,7 +3630,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 			}
 		}
 #ifdef USE_DRAG_TOGGLE
-		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+		if (event->type == LEFTMOUSE && ui_is_but_drag_toggle(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
