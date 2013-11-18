@@ -300,31 +300,26 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 
 	BMIter iter;
 
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		vert_is_center_disable(v);
-
-		BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
-		if (BM_VERT_DIR(v) == 0) {
-			if (oflag_center) {
-				BMO_elem_flag_enable(bm, v, oflag_center);
-			}
-			if (use_snap_center) {
-				closest_to_plane_v3(v->co, plane, v->co);
-			}
-		}
-	}
-
 	if (use_tag) {
 		/* build tagged edge array */
 		BMEdge *e;
 		einput_len = 0;
+
+		/* flush edge tags to verts */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+
 		/* keep face tags as is */
 		BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 			if (edge_is_cut_test(e)) {
 				edges_arr[einput_len++] = e;
+
+				/* flush edge tags to verts */
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 			}
 		}
 
+		/* face tags are set by caller */
 	}
 	else {
 		BMEdge *e;
@@ -336,6 +331,32 @@ void BM_mesh_bisect_plane(BMesh *bm, float plane[4],
 
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			face_in_stack_disable(f);
+		}
+	}
+
+
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+
+		if (use_tag && !BM_elem_flag_test(v, BM_ELEM_TAG)) {
+			vert_is_center_disable(v);
+
+			/* these should never be accessed */
+			BM_VERT_DIR(v) = 0;
+			BM_VERT_DIST(v) = 0.0f;
+
+			continue;
+		}
+
+		vert_is_center_disable(v);
+		BM_VERT_DIR(v) = plane_point_test_v3(plane, v->co, eps, &(BM_VERT_DIST(v)));
+
+		if (BM_VERT_DIR(v) == 0) {
+			if (oflag_center) {
+				BMO_elem_flag_enable(bm, v, oflag_center);
+			}
+			if (use_snap_center) {
+				closest_to_plane_v3(v->co, plane, v->co);
+			}
 		}
 	}
 
