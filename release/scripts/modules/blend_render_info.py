@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
