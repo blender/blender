@@ -1613,15 +1613,28 @@ void KX_Scene::UpdateAnimations(double curtime)
 			CListValue *children = gameobj->GetChildren();
 			KX_GameObject *child;
 
+			bool has_mesh = false, has_non_mesh = false;
+
 			// Check for meshes that haven't been culled
 			for (int j=0; j<children->GetCount(); ++j) {
 				child = (KX_GameObject*)children->GetValue(j);
 
-				if (child->GetMeshCount() > 0 && !child->GetCulled()) {
+				if (!child->GetCulled()) {
 					needs_update = true;
 					break;
 				}
+
+				if (child->GetMeshCount() == 0)
+					has_non_mesh = true;
+				else
+					has_mesh = true;
 			}
+
+			// If we didn't find a non-culled mesh, check to see
+			// if we even have any meshes, and update if this
+			// armature has only non-mesh children.
+			if (!needs_update && !has_mesh && has_non_mesh)
+				needs_update = true;
 
 			children->Release();
 		}
