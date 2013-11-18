@@ -129,9 +129,16 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		 * note, special exception for armature mode so we can do multi-select
 		 * we could check for multi-select explicitly but think its fine to
 		 * always give predictable behavior in weight paint mode - campbell */
-		if ((!extend && !deselect && !toggle) ||
-		    ((ob_act && (ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)))
-		{
+		if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)) {
+			/* when we are entering into posemode via toggle-select,
+			 * frop another active object - always select the bone. */
+			if (!extend && !deselect && toggle) {
+				/* re-select below */
+				nearBone->flag &= ~BONE_SELECTED;
+			}
+		}
+
+		if (!extend && !deselect && !toggle) {
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
