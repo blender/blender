@@ -227,7 +227,7 @@ endif()
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
-option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
+option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	ON)
 
 # Sound output
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
