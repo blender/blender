@@ -589,7 +589,15 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	outPose = MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
-	
+	if (outPose->chanbase.first) {
+		bPoseChannel *pchan;
+		for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
+			if (pchan->custom) {
+				id_us_plus(&pchan->custom->id);
+			}
+		}
+	}
+
 	outPose->iksolver = src->iksolver;
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
