@@ -3239,6 +3239,16 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 				handle_event = B_STOPCOMPO;
 				break;
 			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE)) {
+				/* Skip bake jobs in compositor to avoid compo header displaying
+				 * progress bar which is not being updated (bake jobs only need
+				 * to update NC_IMAGE context.
+				 */
+				if (sa->spacetype != SPACE_NODE) {
+					handle_event = B_STOPOTHER;
+					break;
+				}
+			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
 				handle_event = B_STOPOTHER;
 				break;
