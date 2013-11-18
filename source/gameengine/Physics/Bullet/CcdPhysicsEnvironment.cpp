@@ -83,6 +83,11 @@ public:
 	{
 	}
 
+	~WrapperVehicle()
+	{
+		delete m_vehicle;
+	}
+
 	btRaycastVehicle*	GetVehicle()
 	{
 		return m_vehicle;
@@ -440,6 +445,19 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 			//delete con; //might be kept by python KX_ConstraintWrapper
 		}
 		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+
+		// Handle potential vehicle constraints
+		int numVehicles = m_wrapperVehicles.size();
+		int vehicle_constraint = 0;
+		for (int i=0;i<numVehicles;i++)
+		{
+			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+			if (wrapperVehicle->GetChassis() == ctrl)
+				vehicle_constraint = wrapperVehicle->GetVehicle()->getUserConstraintId();
+		}
+
+		if (vehicle_constraint > 0)
+			RemoveConstraint(vehicle_constraint);
 	} else
 	{
 		//if a softbody
@@ -983,6 +1001,14 @@ void		CcdPhysicsEnvironment::RemoveConstraint(int	constraintId)
 			m_dynamicsWorld->removeConstraint(constraint);
 			break;
 		}
+	}
+
+	WrapperVehicle *vehicle;
+	if ((vehicle = (WrapperVehicle*)GetVehicleConstraint(constraintId)))
+	{
+		m_dynamicsWorld->removeVehicle(vehicle->GetVehicle());
+		m_wrapperVehicles.erase(std::remove(m_wrapperVehicles.begin(), m_wrapperVehicles.end(), vehicle));
+		delete vehicle;
 	}
 }
 
