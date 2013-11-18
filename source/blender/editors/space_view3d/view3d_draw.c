@@ -2037,8 +2037,11 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 		/* negative scale flag has to propagate */
 		transflag = tbase.object->transflag;
-		if (base->object->transflag & OB_NEG_SCALE)
-			tbase.object->transflag ^= OB_NEG_SCALE;
+
+		if (is_negative_m4(dob->mat))
+			tbase.object->transflag |= OB_NEG_SCALE;
+		else
+			tbase.object->transflag &= ~OB_NEG_SCALE;
 
 		UI_ThemeColorBlend(color, TH_BACK, 0.5);
 
