@@ -915,14 +915,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		
 		sa = sad->sa1;
 	}
-	
-	/*  poll() checks area context, but we don't accept full-area windows */
-	if (sc->full != SCREENNORMAL) {
-		if (event->type == EVT_ACTIONZONE_AREA)
-			actionzone_exit(op);
-		return OPERATOR_CANCELLED;
-	}
-	
+
 	/* adds window to WM */
 	rect = sa->totrct;
 	BLI_rcti_translate(&rect, win->posx, win->posy);
