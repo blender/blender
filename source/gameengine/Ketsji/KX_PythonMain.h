@@ -32,6 +32,7 @@
 #ifndef __KX_PYTHON_MAIN__
 #define __KX_PYTHON_MAIN__
 
+#include "BLI_sys_types.h"
 #include "BKE_main.h"
 #include "DNA_scene_types.h"
 extern "C" char *KX_GetPythonMain(struct Scene* scene);

@@ -53,7 +53,7 @@ typedef struct Main {
 	char name[1024]; /* 1024 = FILE_MAX */
 	short versionfile, subversionfile;  /* see BLENDER_VERSION, BLENDER_SUBVERSION */
 	short minversionfile, minsubversionfile;
-	unsigned long build_commit_timestamp; /* commit's timestamp from buildinfo */
+	uint64_t build_commit_timestamp; /* commit's timestamp from buildinfo */
 	char build_hash[16];  /* hash from buildinfo */
 	short recovered;	/* indicate the main->name (file) is the recovered one */
 	
