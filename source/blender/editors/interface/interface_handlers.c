@@ -6729,6 +6729,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 		// retval = WM_UI_HANDLER_BREAK; XXX why ?
 	}
 
+	/* may have been re-allocated above (eyedropper for eg) */
+	data = but->active;
 	if (data->state == BUTTON_STATE_EXIT) {
 		uiBut *post_but = data->postbut;
 		uiButtonActivateType post_type = data->posttype;
