@@ -2593,10 +2593,10 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 
 	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->em, scene, NULL);
 
-	kcd->bmbvh = BKE_bmbvh_new(kcd->em,
-	                           BMBVH_RETURN_ORIG |
-	                           (only_select ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
-	                           kcd->cagecos, false);
+	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(kcd->em,
+	                                         BMBVH_RETURN_ORIG |
+	                                         (only_select ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
+	                                         kcd->cagecos, false);
 
 	kcd->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 15), "knife");
 	kcd->vthresh = KMAXDIST - 1;

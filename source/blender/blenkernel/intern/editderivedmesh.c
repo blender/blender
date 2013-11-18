@@ -1851,7 +1851,7 @@ static void statvis_calc_thickness(
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 	}
 
-	bmtree = BKE_bmbvh_new(em, 0, vertexCos, false);
+	bmtree = BKE_bmbvh_new_from_editmesh(em, 0, vertexCos, false);
 
 	for (i = 0; i < tottri; i++) {
 		BMFace *f_hit;
@@ -1951,7 +1951,7 @@ static void statvis_calc_intersect(
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 	}
 
-	bmtree = BKE_bmbvh_new(em, 0, vertexCos, false);
+	bmtree = BKE_bmbvh_new_from_editmesh(em, 0, vertexCos, false);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_hit;

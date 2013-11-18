@@ -29,6 +29,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+void  BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[], int *r_looptris_tot);
+
 int   BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, int (*r_index)[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BM_face_calc_normal(const BMFace *f, float r_no[3]) ATTR_NONNULL();
 void  BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],

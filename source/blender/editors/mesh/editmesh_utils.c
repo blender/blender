@@ -1076,7 +1076,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
-		tree = BKE_bmbvh_new(em, 0, NULL, false);
+		tree = BKE_bmbvh_new_from_editmesh(em, 0, NULL, false);
 	}
 
 #define VERT_INTPTR(_v, _i) r_index ? &r_index[_i] : BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset);
