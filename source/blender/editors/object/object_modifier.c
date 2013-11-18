@@ -1856,7 +1856,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 
 static int meshdeform_poll(bContext *C)
 {
-	return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, (1 << OB_MESH));
+	return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, 0);
 }
 
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
