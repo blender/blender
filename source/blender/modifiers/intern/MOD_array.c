@@ -384,18 +384,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
-			float tmp_mat[3][3];
-			float scale;
-			
-			BKE_object_to_mat3(amd->curve_ob, tmp_mat);
-			scale = mat3_to_scale(tmp_mat);
-				
 			if (!amd->curve_ob->curve_cache || !amd->curve_ob->curve_cache->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
 				BKE_displist_make_curveTypes(scene, amd->curve_ob, 0);
 			}
-			if (amd->curve_ob->curve_cache->path)
+			if (amd->curve_ob->curve_cache->path) {
+				float scale = mat4_to_scale(amd->curve_ob->obmat);
 				length = scale * amd->curve_ob->curve_cache->path->totdist;
+			}
 		}
 	}
 
