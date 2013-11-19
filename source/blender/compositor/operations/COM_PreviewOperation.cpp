@@ -104,7 +104,7 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			color[1] = 0.0f;
 			color[2] = 0.0f;
 			color[3] = 1.0f;
-			this->m_input->read(color, rx, ry, COM_PS_NEAREST);
+			this->m_input->readSampled(color, rx, ry, COM_PS_NEAREST);
 			IMB_colormanagement_processor_apply_v4(cm_processor, color);
 			F4TOCHAR4(color, this->m_outputBuffer + offset);
 			offset += 4;

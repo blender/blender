@@ -35,7 +35,7 @@ public:
 	SplitOperation();
 	void initExecution();
 	void deinitExecution();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setSplitPercentage(float splitPercentage) { this->m_splitPercentage = splitPercentage; }
 	void setXSplit(bool xsplit) { this->m_xSplit = xsplit; }

@@ -47,11 +47,11 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class ZCombineAlphaOperation : public ZCombineOperation {
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class ZCombineMaskOperation : public NodeOperation {
@@ -64,10 +64,10 @@ public:
 
 	void initExecution();
 	void deinitExecution();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 class ZCombineMaskAlphaOperation : public ZCombineMaskOperation {
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

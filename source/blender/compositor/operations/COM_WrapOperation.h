@@ -31,7 +31,7 @@ private:
 public:
 	WrapOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	void setWrapping(int wrapping_type);
 	float getWrappedOriginalXPos(float x);

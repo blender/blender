@@ -152,7 +152,7 @@ void BlurBaseOperation::updateSize()
 {
 	if (!this->m_sizeavailable) {
 		float result[4];
-		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST);
+		this->getInputSocketReader(1)->readSampled(result, 0, 0, COM_PS_NEAREST);
 		this->m_size = result[0];
 		this->m_sizeavailable = true;
 	}

@@ -47,10 +47,10 @@ ConvertValueToColorOperation::ConvertValueToColorOperation() : ConvertBaseOperat
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertValueToColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertValueToColorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
-	this->m_inputOperation->read(inputValue, x, y, sampler);
+	this->m_inputOperation->readSampled(inputValue, x, y, sampler);
 	output[0] = output[1] = output[2] = inputValue[0];
 	output[3] = 1.0f;
 }
@@ -64,10 +64,10 @@ ConvertColorToValueOperation::ConvertColorToValueOperation() : ConvertBaseOperat
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void ConvertColorToValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertColorToValueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	output[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
 }
 
@@ -80,10 +80,10 @@ ConvertColorToBWOperation::ConvertColorToBWOperation() : ConvertBaseOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void ConvertColorToBWOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertColorToBWOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	output[0] = rgb_to_bw(inputColor);
 }
 
@@ -96,9 +96,9 @@ ConvertColorToVectorOperation::ConvertColorToVectorOperation() : ConvertBaseOper
 	this->addOutputSocket(COM_DT_VECTOR);
 }
 
-void ConvertColorToVectorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertColorToVectorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_inputOperation->read(output, x, y, sampler);
+	this->m_inputOperation->readSampled(output, x, y, sampler);
 }
 
 
@@ -110,10 +110,10 @@ ConvertValueToVectorOperation::ConvertValueToVectorOperation() : ConvertBaseOper
 	this->addOutputSocket(COM_DT_VECTOR);
 }
 
-void ConvertValueToVectorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertValueToVectorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	this->m_inputOperation->read(input, x, y, sampler);
+	this->m_inputOperation->readSampled(input, x, y, sampler);
 	output[0] = input[0];
 	output[1] = input[0];
 	output[2] = input[0];
@@ -129,9 +129,9 @@ ConvertVectorToColorOperation::ConvertVectorToColorOperation() : ConvertBaseOper
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertVectorToColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertVectorToColorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_inputOperation->read(output, x, y, sampler);
+	this->m_inputOperation->readSampled(output, x, y, sampler);
 	output[3] = 1.0f;
 }
 
@@ -144,10 +144,10 @@ ConvertVectorToValueOperation::ConvertVectorToValueOperation() : ConvertBaseOper
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void ConvertVectorToValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertVectorToValueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	this->m_inputOperation->read(input, x, y, sampler);
+	this->m_inputOperation->readSampled(input, x, y, sampler);
 	output[0] = (input[0] + input[1] + input[2]) / 3.0f;
 }
 
@@ -176,12 +176,12 @@ void ConvertRGBToYCCOperation::setMode(int mode)
 	}
 }
 
-void ConvertRGBToYCCOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertRGBToYCCOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	float color[3];
 
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	rgb_to_ycc(inputColor[0], inputColor[1], inputColor[2], &color[0], &color[1], &color[2], this->m_mode);
 
 	/* divided by 255 to normalize for viewing in */
@@ -214,10 +214,10 @@ void ConvertYCCToRGBOperation::setMode(int mode)
 	}
 }
 
-void ConvertYCCToRGBOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertYCCToRGBOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 
 	/* need to un-normalize the data */
 	/* R,G,B --> Y,Cb,Cr */
@@ -236,10 +236,10 @@ ConvertRGBToYUVOperation::ConvertRGBToYUVOperation() : ConvertBaseOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertRGBToYUVOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertRGBToYUVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	rgb_to_yuv(inputColor[0], inputColor[1], inputColor[2], &output[0], &output[1], &output[2]);
 	output[3] = inputColor[3];
 }
@@ -253,10 +253,10 @@ ConvertYUVToRGBOperation::ConvertYUVToRGBOperation() : ConvertBaseOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertYUVToRGBOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertYUVToRGBOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	yuv_to_rgb(inputColor[0], inputColor[1], inputColor[2], &output[0], &output[1], &output[2]);
 	output[3] = inputColor[3];
 }
@@ -270,10 +270,10 @@ ConvertRGBToHSVOperation::ConvertRGBToHSVOperation() : ConvertBaseOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertRGBToHSVOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertRGBToHSVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	rgb_to_hsv_v(inputColor, output);
 	output[3] = inputColor[3];
 }
@@ -287,10 +287,10 @@ ConvertHSVToRGBOperation::ConvertHSVToRGBOperation() : ConvertBaseOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertHSVToRGBOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertHSVToRGBOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler);
+	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	hsv_to_rgb_v(inputColor, output);
 	output[3] = inputColor[3];
 }
@@ -304,12 +304,12 @@ ConvertPremulToStraightOperation::ConvertPremulToStraightOperation() : ConvertBa
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertPremulToStraightOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertPremulToStraightOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float alpha;
 
-	this->m_inputOperation->read(inputValue, x, y, sampler);
+	this->m_inputOperation->readSampled(inputValue, x, y, sampler);
 	alpha = inputValue[3];
 
 	if (fabsf(alpha) < 1e-5f) {
@@ -332,12 +332,12 @@ ConvertStraightToPremulOperation::ConvertStraightToPremulOperation() : ConvertBa
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void ConvertStraightToPremulOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertStraightToPremulOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float alpha;
 
-	this->m_inputOperation->read(inputValue, x, y, sampler);
+	this->m_inputOperation->readSampled(inputValue, x, y, sampler);
 	alpha = inputValue[3];
 
 	mul_v3_v3fl(output, inputValue, alpha);
@@ -366,10 +366,10 @@ void SeparateChannelOperation::deinitExecution()
 }
 
 
-void SeparateChannelOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void SeparateChannelOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	this->m_inputOperation->read(input, x, y, sampler);
+	this->m_inputOperation->readSampled(input, x, y, sampler);
 	output[0] = input[this->m_channel];
 }
 
@@ -407,23 +407,23 @@ void CombineChannelsOperation::deinitExecution()
 }
 
 
-void CombineChannelsOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void CombineChannelsOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
 	if (this->m_inputChannel1Operation) {
-		this->m_inputChannel1Operation->read(input, x, y, sampler);
+		this->m_inputChannel1Operation->readSampled(input, x, y, sampler);
 		output[0] = input[0];
 	}
 	if (this->m_inputChannel2Operation) {
-		this->m_inputChannel2Operation->read(input, x, y, sampler);
+		this->m_inputChannel2Operation->readSampled(input, x, y, sampler);
 		output[1] = input[0];
 	}
 	if (this->m_inputChannel3Operation) {
-		this->m_inputChannel3Operation->read(input, x, y, sampler);
+		this->m_inputChannel3Operation->readSampled(input, x, y, sampler);
 		output[2] = input[0];
 	}
 	if (this->m_inputChannel4Operation) {
-		this->m_inputChannel4Operation->read(input, x, y, sampler);
+		this->m_inputChannel4Operation->readSampled(input, x, y, sampler);
 		output[3] = input[0];
 	}
 }

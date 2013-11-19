@@ -40,7 +40,7 @@ void LuminanceMatteOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 }
 
-void LuminanceMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void LuminanceMatteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inColor[4];
 
@@ -49,7 +49,7 @@ void LuminanceMatteOperation::executePixel(float output[4], float x, float y, Pi
 
 	float alpha;
 
-	this->m_inputImageProgram->read(inColor, x, y, sampler);
+	this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
 	
 	/* one line thread-friend algorithm:
 	 * output[0] = max(inputValue[3], min(high, max(low, ((inColor[0]-low)/(high-low))))

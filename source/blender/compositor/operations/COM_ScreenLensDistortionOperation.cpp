@@ -291,9 +291,9 @@ void ScreenLensDistortionOperation::updateDispersionAndDistortion()
 	this->lockMutex();
 	if (!this->m_valuesAvailable) {
 		float result[4];
-		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST);
+		this->getInputSocketReader(1)->readSampled(result, 0, 0, COM_PS_NEAREST);
 		this->m_distortion = result[0];
-		this->getInputSocketReader(2)->read(result, 0, 0, COM_PS_NEAREST);
+		this->getInputSocketReader(2)->readSampled(result, 0, 0, COM_PS_NEAREST);
 		this->m_dispersion = result[0];
 		updateVariables(this->m_distortion, this->m_dispersion);
 		this->m_valuesAvailable = true;

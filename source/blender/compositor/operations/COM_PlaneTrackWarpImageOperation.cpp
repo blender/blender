@@ -125,7 +125,7 @@ void PlaneTrackWarpImageOperation::deinitExecution()
 	this->m_pixelReader = NULL;
 }
 
-void PlaneTrackWarpImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void PlaneTrackWarpImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float color_accum[4];
 
@@ -142,7 +142,7 @@ void PlaneTrackWarpImageOperation::executePixel(float output[4], float x, float 
 			u *= this->m_pixelReader->getWidth();
 			v *= this->m_pixelReader->getHeight();
 
-			this->m_pixelReader->read(current_color, u, v, dx, dy, COM_PS_NEAREST);
+			this->m_pixelReader->readFiltered(current_color, u, v, dx, dy, COM_PS_NEAREST);
 			add_v4_v4(color_accum, current_color);
 		}
 	}

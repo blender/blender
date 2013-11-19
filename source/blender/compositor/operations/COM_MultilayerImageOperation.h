@@ -46,7 +46,7 @@ public:
 	MultilayerColorOperation(int passindex) : MultilayerBaseOperation(passindex) {
 		this->addOutputSocket(COM_DT_COLOR);
 	}
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MultilayerValueOperation : public MultilayerBaseOperation {
@@ -54,7 +54,7 @@ public:
 	MultilayerValueOperation(int passindex) : MultilayerBaseOperation(passindex) {
 		this->addOutputSocket(COM_DT_VALUE);
 	}
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MultilayerVectorOperation : public MultilayerBaseOperation {
@@ -62,7 +62,7 @@ public:
 	MultilayerVectorOperation(int passindex) : MultilayerBaseOperation(passindex) {
 		this->addOutputSocket(COM_DT_VECTOR);
 	}
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

@@ -42,7 +42,7 @@ inline float WrapOperation::getWrappedOriginalYPos(float y)
 	return fmodf(y, this->getHeight());
 }
 
-void WrapOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void WrapOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float nx, ny;
 	nx = x;

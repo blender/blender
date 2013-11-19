@@ -40,10 +40,10 @@ void PixelateOperation::deinitExecution()
 	this->m_inputOperation = NULL;
 }
 
-void PixelateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void PixelateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float nx = round(x);
 	float ny = round(y);
-	this->m_inputOperation->read(output, nx, ny, sampler);
+	this->m_inputOperation->readSampled(output, nx, ny, sampler);
 }
 

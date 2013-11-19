@@ -338,7 +338,7 @@ voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 	return data;
 }
 
-void InverseSearchRadiusOperation::executePixel(float output[4], int x, int y, void *data)
+void InverseSearchRadiusOperation::executePixelChunk(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *buffer = (MemoryBuffer *)data;
 	buffer->readNoCheck(color, x, y);

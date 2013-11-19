@@ -48,15 +48,15 @@ void MixBaseOperation::initExecution()
 	this->m_inputColor2Operation = this->getInputSocketReader(2);
 }
 
-void MixBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixBaseOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 	
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -107,15 +107,15 @@ MixAddOperation::MixAddOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixAddOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixAddOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -136,16 +136,16 @@ MixBlendOperation::MixBlendOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixBlendOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixBlendOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	float value;
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 	value = inputValue[0];
 	
 	if (this->useValueAlphaMultiply()) {
@@ -167,16 +167,16 @@ MixBurnOperation::MixBurnOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixBurnOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixBurnOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	float tmp;
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -235,15 +235,15 @@ MixColorOperation::MixColorOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixColorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -277,15 +277,15 @@ MixDarkenOperation::MixDarkenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDarkenOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixDarkenOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -315,15 +315,15 @@ MixDifferenceOperation::MixDifferenceOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDifferenceOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixDifferenceOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -345,15 +345,15 @@ MixDivideOperation::MixDivideOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDivideOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixDivideOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -386,16 +386,16 @@ MixDodgeOperation::MixDodgeOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDodgeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixDodgeOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	float tmp;
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -459,16 +459,16 @@ MixGlareOperation::MixGlareOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixGlareOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixGlareOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	float value;
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 	value = inputValue[0];
 	float mf = 2.f - 2.f * fabsf(value - 0.5f);
 
@@ -491,15 +491,15 @@ MixHueOperation::MixHueOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixHueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixHueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -533,15 +533,15 @@ MixLightenOperation::MixLightenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixLightenOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixLightenOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -569,15 +569,15 @@ MixLinearLightOperation::MixLinearLightOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixLinearLightOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixLinearLightOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -608,15 +608,15 @@ MixMultiplyOperation::MixMultiplyOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixMultiplyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixMultiplyOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -638,15 +638,15 @@ MixOverlayOperation::MixOverlayOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixOverlayOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixOverlayOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -685,15 +685,15 @@ MixSaturationOperation::MixSaturationOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixSaturationOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixSaturationOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -724,15 +724,15 @@ MixScreenOperation::MixScreenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixScreenOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixScreenOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -755,15 +755,15 @@ MixSoftLightOperation::MixSoftLightOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixSoftLightOperation::executePixel(float output[4], float x, float y, PixelSampler sampler) \
+void MixSoftLightOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler) \
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -792,15 +792,15 @@ MixSubtractOperation::MixSubtractOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixSubtractOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixSubtractOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue,   x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1,   x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2,   x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue,   x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1,   x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2,   x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
@@ -821,15 +821,15 @@ MixValueOperation::MixValueOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MixValueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 
-	this->m_inputValueOperation->read(inputValue, x, y, sampler);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
+	this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {

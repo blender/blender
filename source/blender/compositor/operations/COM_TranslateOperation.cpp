@@ -52,14 +52,14 @@ void TranslateOperation::deinitExecution()
 }
 
 
-void TranslateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void TranslateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	ensureDelta();
 
 	float originalXPos = x - this->getDeltaX();
 	float originalYPos = y - this->getDeltaY();
 
-	this->m_inputOperation->read(output, originalXPos, originalYPos, sampler);
+	this->m_inputOperation->readSampled(output, originalXPos, originalYPos, sampler);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

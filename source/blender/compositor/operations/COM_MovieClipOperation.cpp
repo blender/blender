@@ -86,7 +86,7 @@ void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], uns
 	}
 }
 
-void MovieClipBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipBaseOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	ImBuf *ibuf = this->m_movieClipBuffer;
 
@@ -122,9 +122,9 @@ MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void MovieClipAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipAlphaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	MovieClipBaseOperation::executePixel(output, x, y, sampler);
+	MovieClipBaseOperation::executePixelSampled(output, x, y, sampler);
 	output[0] = output[3];
 	output[1] = 0.0f;
 	output[2] = 0.0f;

@@ -43,7 +43,7 @@ public:
 
 	void initExecution();
 
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

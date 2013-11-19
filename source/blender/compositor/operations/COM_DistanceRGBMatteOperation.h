@@ -45,7 +45,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	
 	void initExecution();
 	void deinitExecution();

@@ -63,7 +63,7 @@ protected:
 	 * @param y the y-coordinate of the pixel to calculate in image space
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float output[4], float x, float y, PixelSampler sampler) {}
+	virtual void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) {}
 
 	/**
 	 * @brief calculate a single pixel
@@ -75,7 +75,7 @@ protected:
 	 * @param chunkData chunk specific data a during execution time.
 	 */
 	virtual void executePixel(float output[4], int x, int y, void *chunkData) {
-		executePixel(output, x, y, COM_PS_NEAREST);
+		executePixelSampled(output, x, y, COM_PS_NEAREST);
 	}
 
 	/**
@@ -88,17 +88,17 @@ protected:
 	 * @param dy
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler) {}
+	virtual void executePixelFiltered(float output[4], float x, float y, float dx, float dy, PixelSampler sampler) {}
 
 public:
-	inline void read(float result[4], float x, float y, PixelSampler sampler) {
-		executePixel(result, x, y, sampler);
+	inline void readSampled(float result[4], float x, float y, PixelSampler sampler) {
+		executePixelSampled(result, x, y, sampler);
 	}
 	inline void read(float result[4], int x, int y, void *chunkData) {
 		executePixel(result, x, y, chunkData);
 	}
-	inline void read(float result[4], float x, float y, float dx, float dy, PixelSampler sampler) {
-		executePixel(result, x, y, dx, dy, sampler);
+	inline void readFiltered(float result[4], float x, float y, float dx, float dy, PixelSampler sampler) {
+		executePixelFiltered(result, x, y, dx, dy, sampler);
 	}
 
 	virtual void *initializeTileData(rcti *rect) { return 0; }

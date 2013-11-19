@@ -72,12 +72,12 @@ void ConvertDepthToRadiusOperation::initExecution()
 	}
 }
 
-void ConvertDepthToRadiusOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertDepthToRadiusOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float z;
 	float radius;
-	this->m_inputOperation->read(inputValue, x, y, sampler);
+	this->m_inputOperation->readSampled(inputValue, x, y, sampler);
 	z = inputValue[0];
 	if (z != 0.f) {
 		float iZ = (1.f / z);

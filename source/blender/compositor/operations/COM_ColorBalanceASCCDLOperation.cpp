@@ -49,13 +49,13 @@ void ColorBalanceASCCDLOperation::initExecution()
 	this->m_inputColorOperation = this->getInputSocketReader(1);
 }
 
-void ColorBalanceASCCDLOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ColorBalanceASCCDLOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	float value[4];
 	
-	this->m_inputValueOperation->read(value, x, y, sampler);
-	this->m_inputColorOperation->read(inputColor, x, y, sampler);
+	this->m_inputValueOperation->readSampled(value, x, y, sampler);
+	this->m_inputColorOperation->readSampled(inputColor, x, y, sampler);
 	
 	float fac = value[0];
 	fac = min(1.0f, fac);

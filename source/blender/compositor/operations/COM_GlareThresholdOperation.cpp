@@ -42,11 +42,11 @@ void GlareThresholdOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void GlareThresholdOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void GlareThresholdOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	const float threshold = this->m_settings->threshold;
 	
-	this->m_inputProgram->read(output, x, y, sampler);
+	this->m_inputProgram->readSampled(output, x, y, sampler);
 	if (rgb_to_luma_y(output) >= threshold) {
 		output[0] -= threshold, output[1] -= threshold, output[2] -= threshold;
 		output[0] = max(output[0], 0.0f);

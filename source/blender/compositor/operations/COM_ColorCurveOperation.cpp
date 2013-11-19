@@ -58,7 +58,7 @@ void ColorCurveOperation::initExecution()
 
 }
 
-void ColorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ColorCurveOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	CurveMapping *cumap = this->m_curveMapping;
 	
@@ -70,15 +70,15 @@ void ColorCurveOperation::executePixel(float output[4], float x, float y, PixelS
 	float white[4];
 	float bwmul[3];
 
-	this->m_inputBlackProgram->read(black, x, y, sampler);
-	this->m_inputWhiteProgram->read(white, x, y, sampler);
+	this->m_inputBlackProgram->readSampled(black, x, y, sampler);
+	this->m_inputWhiteProgram->readSampled(white, x, y, sampler);
 
 	/* get our own local bwmul value,
 	 * since we can't be threadsafe and use cumap->bwmul & friends */
 	curvemapping_set_black_white_ex(black, white, bwmul);
 
-	this->m_inputFacProgram->read(fac, x, y, sampler);
-	this->m_inputImageProgram->read(image, x, y, sampler);
+	this->m_inputFacProgram->readSampled(fac, x, y, sampler);
+	this->m_inputImageProgram->readSampled(image, x, y, sampler);
 
 	if (*fac >= 1.0f) {
 		curvemapping_evaluate_premulRGBF_ex(cumap, output, image,
@@ -130,13 +130,13 @@ void ConstantLevelColorCurveOperation::initExecution()
 	curvemapping_set_black_white(this->m_curveMapping, this->m_black, this->m_white);
 }
 
-void ConstantLevelColorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConstantLevelColorCurveOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float fac[4];
 	float image[4];
 
-	this->m_inputFacProgram->read(fac, x, y, sampler);
-	this->m_inputImageProgram->read(image, x, y, sampler);
+	this->m_inputFacProgram->readSampled(fac, x, y, sampler);
+	this->m_inputImageProgram->readSampled(image, x, y, sampler);
 
 	if (*fac >= 1.0f) {
 		curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, image);

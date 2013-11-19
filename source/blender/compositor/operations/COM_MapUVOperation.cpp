@@ -40,7 +40,7 @@ void MapUVOperation::initExecution()
 	this->m_inputUVProgram = this->getInputSocketReader(1);
 }
 
-void MapUVOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MapUVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputUV[4];
 	float uv_a[4], uv_b[4];
@@ -50,22 +50,22 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 	float uv_l, uv_r;
 	float uv_u, uv_d;
 
-	this->m_inputUVProgram->read(inputUV, x, y, sampler);
+	this->m_inputUVProgram->readSampled(inputUV, x, y, sampler);
 	if (inputUV[2] == 0.f) {
 		zero_v4(output);
 		return;
 	}
 	/* adaptive sampling, red (U) channel */
-	this->m_inputUVProgram->read(uv_a, x - 1, y, COM_PS_NEAREST);
-	this->m_inputUVProgram->read(uv_b, x + 1, y, COM_PS_NEAREST);
+	this->m_inputUVProgram->readSampled(uv_a, x - 1, y, COM_PS_NEAREST);
+	this->m_inputUVProgram->readSampled(uv_b, x + 1, y, COM_PS_NEAREST);
 	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
 	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
 
 	dx = 0.5f * (uv_l + uv_r);
 
 	/* adaptive sampling, green (V) channel */
-	this->m_inputUVProgram->read(uv_a, x, y - 1, COM_PS_NEAREST);
-	this->m_inputUVProgram->read(uv_b, x, y + 1, COM_PS_NEAREST);
+	this->m_inputUVProgram->readSampled(uv_a, x, y - 1, COM_PS_NEAREST);
+	this->m_inputUVProgram->readSampled(uv_b, x, y + 1, COM_PS_NEAREST);
 	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
 	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
 
@@ -81,7 +81,7 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 	u = inputUV[0] * this->m_inputColorProgram->getWidth();
 	v = inputUV[1] * this->m_inputColorProgram->getHeight();
 
-	this->m_inputColorProgram->read(output, u, v, dx, dy, COM_PS_NEAREST);
+	this->m_inputColorProgram->readFiltered(output, u, v, dx, dy, COM_PS_NEAREST);
 
 	/* "premul" */
 	if (alpha < 1.0f) {

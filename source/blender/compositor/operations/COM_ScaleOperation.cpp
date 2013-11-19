@@ -66,22 +66,22 @@ void ScaleOperation::deinitExecution()
 }
 
 
-void ScaleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ScaleOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, effective_sampler);
-	this->m_inputYOperation->read(scaleY, x, y, effective_sampler);
+	this->m_inputXOperation->readSampled(scaleX, x, y, effective_sampler);
+	this->m_inputYOperation->readSampled(scaleY, x, y, effective_sampler);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
 
 	float nx = this->m_centerX + (x - this->m_centerX) / scx;
 	float ny = this->m_centerY + (y - this->m_centerY) / scy;
-	this->m_inputOperation->read(output, nx, ny, effective_sampler);
+	this->m_inputOperation->readSampled(output, nx, ny, effective_sampler);
 }
 
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -90,8 +90,8 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
+	this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -134,15 +134,15 @@ void ScaleAbsoluteOperation::deinitExecution()
 }
 
 
-void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ScaleAbsoluteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, effective_sampler);
-	this->m_inputYOperation->read(scaleY, x, y, effective_sampler);
+	this->m_inputXOperation->readSampled(scaleX, x, y, effective_sampler);
+	this->m_inputYOperation->readSampled(scaleY, x, y, effective_sampler);
 
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
@@ -156,7 +156,7 @@ void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, Pix
 	float nx = this->m_centerX + (x - this->m_centerX) / relativeXScale;
 	float ny = this->m_centerY + (y - this->m_centerY) / relativeYScale;
 
-	this->m_inputOperation->read(output, nx, ny, effective_sampler);
+	this->m_inputOperation->readSampled(output, nx, ny, effective_sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -165,8 +165,8 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
+	this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -253,17 +253,17 @@ void ScaleFixedSizeOperation::deinitExecution()
 }
 
 
-void ScaleFixedSizeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ScaleFixedSizeOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	if (this->m_is_offset) {
 		float nx = ((x - this->m_offsetX) * this->m_relX);
 		float ny = ((y - this->m_offsetY) * this->m_relY);
-		this->m_inputOperation->read(output, nx, ny, effective_sampler);
+		this->m_inputOperation->readSampled(output, nx, ny, effective_sampler);
 	}
 	else {
-		this->m_inputOperation->read(output, x * this->m_relX, y * this->m_relY, effective_sampler);
+		this->m_inputOperation->readSampled(output, x * this->m_relX, y * this->m_relY, effective_sampler);
 	}
 }
 

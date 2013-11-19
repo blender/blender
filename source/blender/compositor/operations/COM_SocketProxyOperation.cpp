@@ -39,9 +39,9 @@ void SocketProxyOperation::deinitExecution()
 	this->m_inputOperation = NULL;
 }
 
-void SocketProxyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void SocketProxyOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (this->m_inputOperation) {
-		this->m_inputOperation->read(output, x, y, sampler);
+		this->m_inputOperation->readSampled(output, x, y, sampler);
 	}
 }

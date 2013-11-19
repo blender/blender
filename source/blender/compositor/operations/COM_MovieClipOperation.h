@@ -57,7 +57,7 @@ public:
 	void setCacheFrame(bool value) { this->m_cacheFrame = value; }
 
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MovieClipOperation : public MovieClipBaseOperation {
@@ -68,7 +68,7 @@ public:
 class MovieClipAlphaOperation : public MovieClipBaseOperation {
 public:
 	MovieClipAlphaOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

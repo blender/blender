@@ -60,7 +60,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	
 	/**
 	 * Initialize the execution
@@ -83,115 +83,115 @@ public:
 class MixAddOperation : public MixBaseOperation {
 public:
 	MixAddOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixBlendOperation : public MixBaseOperation {
 public:
 	MixBlendOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixBurnOperation : public MixBaseOperation {
 public:
 	MixBurnOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixColorOperation : public MixBaseOperation {
 public:
 	MixColorOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixDarkenOperation : public MixBaseOperation {
 public:
 	MixDarkenOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixDifferenceOperation : public MixBaseOperation {
 public:
 	MixDifferenceOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixDivideOperation : public MixBaseOperation {
 public:
 	MixDivideOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixDodgeOperation : public MixBaseOperation {
 public:
 	MixDodgeOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixGlareOperation : public MixBaseOperation {
 public:
 	MixGlareOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixHueOperation : public MixBaseOperation {
 public:
 	MixHueOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixLightenOperation : public MixBaseOperation {
 public:
 	MixLightenOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixLinearLightOperation : public MixBaseOperation {
 public:
 	MixLinearLightOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixMultiplyOperation : public MixBaseOperation {
 public:
 	MixMultiplyOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixOverlayOperation : public MixBaseOperation {
 public:
 	MixOverlayOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixSaturationOperation : public MixBaseOperation {
 public:
 	MixSaturationOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixScreenOperation : public MixBaseOperation {
 public:
 	MixScreenOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixSoftLightOperation : public MixBaseOperation {
 public:
 	MixSoftLightOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixSubtractOperation : public MixBaseOperation {
 public:
 	MixSubtractOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class MixValueOperation : public MixBaseOperation {
 public:
 	MixValueOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

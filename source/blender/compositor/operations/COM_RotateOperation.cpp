@@ -52,7 +52,7 @@ inline void RotateOperation::ensureDegree()
 {
 	if (!this->m_isDegreeSet) {
 		float degree[4];
-		this->m_degreeSocket->read(degree, 0, 0, COM_PS_NEAREST);
+		this->m_degreeSocket->readSampled(degree, 0, 0, COM_PS_NEAREST);
 		double rad;
 		if (this->m_doDegree2RadConversion) {
 			rad = DEG2RAD((double)degree[0]);
@@ -68,14 +68,14 @@ inline void RotateOperation::ensureDegree()
 }
 
 
-void RotateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void RotateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	ensureDegree();
 	const float dy = y - this->m_centerY;
 	const float dx = x - this->m_centerX;
 	const float nx = this->m_centerX + (this->m_cosine * dx + this->m_sine * dy);
 	const float ny = this->m_centerY + (-this->m_sine * dx + this->m_cosine * dy);
-	this->m_imageSocket->read(output, nx, ny, sampler);
+	this->m_imageSocket->readSampled(output, nx, ny, sampler);
 }
 
 bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

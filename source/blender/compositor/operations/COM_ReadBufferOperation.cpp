@@ -52,7 +52,7 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[2], unsign
 		m_single_value = operation->isSingleValue();
 	}
 }
-void ReadBufferOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ReadBufferOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (m_single_value) {
 		/* write buffer has a single value stored at (0,0) */
@@ -81,7 +81,7 @@ void ReadBufferOperation::executePixelExtend(float output[4], float x, float y, 
 	}
 }
 
-void ReadBufferOperation::executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler)
+void ReadBufferOperation::executePixelFiltered(float output[4], float x, float y, float dx, float dy, PixelSampler sampler)
 {
 	if (m_single_value) {
 		/* write buffer has a single value stored at (0,0) */

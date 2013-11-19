@@ -50,7 +50,7 @@ void PlaneTrackMaskOperation::initExecution()
 	BLI_jitter_init(this->m_jitter[0], this->m_osa);
 }
 
-void PlaneTrackMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void PlaneTrackMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float point[2];
 

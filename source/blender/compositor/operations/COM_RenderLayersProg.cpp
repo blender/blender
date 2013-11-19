@@ -112,7 +112,7 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 	}
 }
 
-void RenderLayersBaseProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 #if 0
 	const RenderData *rd = this->m_rd;
@@ -192,7 +192,7 @@ RenderLayersAlphaProg::RenderLayersAlphaProg() : RenderLayersBaseProg(SCE_PASS_C
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void RenderLayersAlphaProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersAlphaProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	int ix = x;
 	int iy = y;
@@ -234,7 +234,7 @@ RenderLayersDepthProg::RenderLayersDepthProg() : RenderLayersBaseProg(SCE_PASS_Z
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void RenderLayersDepthProg::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	int ix = x;
 	int iy = y;

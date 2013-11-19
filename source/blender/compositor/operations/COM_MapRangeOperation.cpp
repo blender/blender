@@ -46,18 +46,18 @@ void MapRangeOperation::initExecution()
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
-void MapRangeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MapRangeOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputs[8]; /* includes the 5 inputs + 3 pads */
 	float value;
 	float source_min, source_max;
 	float dest_min, dest_max;
 
-	this->m_inputOperation->read(inputs, x, y, sampler);
-	this->m_sourceMinOperation->read(inputs + 1, x, y, sampler);
-	this->m_sourceMaxOperation->read(inputs + 2, x, y, sampler);
-	this->m_destMinOperation->read(inputs + 3, x, y, sampler);
-	this->m_destMaxOperation->read(inputs + 4, x, y, sampler);
+	this->m_inputOperation->readSampled(inputs, x, y, sampler);
+	this->m_sourceMinOperation->readSampled(inputs + 1, x, y, sampler);
+	this->m_sourceMaxOperation->readSampled(inputs + 2, x, y, sampler);
+	this->m_destMinOperation->readSampled(inputs + 3, x, y, sampler);
+	this->m_destMaxOperation->readSampled(inputs + 4, x, y, sampler);
 	
 	value = inputs[0];
 	source_min = inputs[1];

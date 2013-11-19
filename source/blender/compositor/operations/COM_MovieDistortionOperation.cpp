@@ -122,16 +122,16 @@ void MovieDistortionOperation::deinitExecution()
 }
 
 
-void MovieDistortionOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MovieDistortionOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	
 	if (this->m_cache != NULL) {
 		float u, v;
 		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
-		this->m_inputOperation->read(output, u, v, COM_PS_BILINEAR);
+		this->m_inputOperation->readSampled(output, u, v, COM_PS_BILINEAR);
 	}
 	else {
-		this->m_inputOperation->read(output, x, y, COM_PS_BILINEAR);
+		this->m_inputOperation->readSampled(output, x, y, COM_PS_BILINEAR);
 	}
 }
 

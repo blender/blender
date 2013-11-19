@@ -99,7 +99,7 @@ public:
 	short getLayerId() { return this->m_layerId; }
 	void initExecution();
 	void deinitExecution();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersAOOperation : public RenderLayersBaseProg {
@@ -110,7 +110,7 @@ public:
 class RenderLayersAlphaProg : public RenderLayersBaseProg {
 public:
 	RenderLayersAlphaProg();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersColorOperation : public RenderLayersBaseProg {
@@ -126,7 +126,7 @@ public:
 class RenderLayersDepthProg : public RenderLayersBaseProg {
 public:
 	RenderLayersDepthProg();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 class RenderLayersDiffuseOperation : public RenderLayersBaseProg {

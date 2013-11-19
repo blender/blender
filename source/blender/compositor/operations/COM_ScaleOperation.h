@@ -47,7 +47,7 @@ private:
 public:
 	ScaleOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
@@ -63,7 +63,7 @@ class ScaleAbsoluteOperation : public BaseScaleOperation {
 public:
 	ScaleAbsoluteOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
@@ -88,7 +88,7 @@ public:
 	ScaleFixedSizeOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();

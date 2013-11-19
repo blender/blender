@@ -53,13 +53,13 @@ void KeyingDespillOperation::deinitExecution()
 	this->m_screenReader = NULL;
 }
 
-void KeyingDespillOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void KeyingDespillOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
 
-	this->m_pixelReader->read(pixelColor, x, y, sampler);
-	this->m_screenReader->read(screenColor, x, y, sampler);
+	this->m_pixelReader->readSampled(pixelColor, x, y, sampler);
+	this->m_screenReader->readSampled(screenColor, x, y, sampler);
 
 	const int screen_primary_channel = max_axis_v3(screenColor);
 	const int other_1 = (screen_primary_channel + 1) % 3;

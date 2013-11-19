@@ -82,10 +82,10 @@ CropOperation::CropOperation() : CropBaseOperation()
 	/* pass */
 }
 
-void CropOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void CropOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if ((x < this->m_xmax && x >= this->m_xmin) && (y < this->m_ymax && y >= this->m_ymin)) {
-		this->m_inputOperation->read(output, x, y, sampler);
+		this->m_inputOperation->readSampled(output, x, y, sampler);
 	}
 	else {
 		zero_v4(output);
@@ -117,10 +117,10 @@ void CropImageOperation::determineResolution(unsigned int resolution[2], unsigne
 	resolution[1] = this->m_ymax - this->m_ymin;
 }
 
-void CropImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void CropImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) {
-		this->m_inputOperation->read(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
+		this->m_inputOperation->readSampled(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
 	}
 	else {
 		zero_v4(output);

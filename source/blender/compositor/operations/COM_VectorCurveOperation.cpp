@@ -43,12 +43,12 @@ void VectorCurveOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void VectorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void VectorCurveOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
 
 
-	this->m_inputProgram->read(input, x, y, sampler);
+	this->m_inputProgram->readSampled(input, x, y, sampler);
 
 	curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, input);
 	output[3] = input[3];

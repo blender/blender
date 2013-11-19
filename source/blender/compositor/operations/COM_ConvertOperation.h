@@ -42,7 +42,7 @@ class ConvertValueToColorOperation : public ConvertBaseOperation {
 public:
 	ConvertValueToColorOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -50,7 +50,7 @@ class ConvertColorToValueOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToValueOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -58,7 +58,7 @@ class ConvertColorToBWOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToBWOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -66,7 +66,7 @@ class ConvertColorToVectorOperation : public ConvertBaseOperation {
 public:
 	ConvertColorToVectorOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -74,7 +74,7 @@ class ConvertValueToVectorOperation : public ConvertBaseOperation {
 public:
 	ConvertValueToVectorOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -82,7 +82,7 @@ class ConvertVectorToColorOperation : public ConvertBaseOperation {
 public:
 	ConvertVectorToColorOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -90,7 +90,7 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
 public:
 	ConvertVectorToValueOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -101,7 +101,7 @@ private:
 public:
 	ConvertRGBToYCCOperation();
 
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	/** Set the YCC mode */
 	void setMode(int mode);
@@ -115,7 +115,7 @@ private:
 public:
 	ConvertYCCToRGBOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	
 	/** Set the YCC mode */
 	void setMode(int mode);
@@ -126,7 +126,7 @@ class ConvertRGBToYUVOperation : public ConvertBaseOperation {
 public:
 	ConvertRGBToYUVOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -134,7 +134,7 @@ class ConvertYUVToRGBOperation : public ConvertBaseOperation {
 public:
 	ConvertYUVToRGBOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -142,7 +142,7 @@ class ConvertRGBToHSVOperation : public ConvertBaseOperation {
 public:
 	ConvertRGBToHSVOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -150,7 +150,7 @@ class ConvertHSVToRGBOperation : public ConvertBaseOperation {
 public:
 	ConvertHSVToRGBOperation();
 	
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -158,7 +158,7 @@ class ConvertPremulToStraightOperation : public ConvertBaseOperation {
 public:
 	ConvertPremulToStraightOperation();
 
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -166,7 +166,7 @@ class ConvertStraightToPremulOperation : public ConvertBaseOperation {
 public:
 	ConvertStraightToPremulOperation();
 
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 
@@ -176,7 +176,7 @@ private:
 	int m_channel;
 public:
 	SeparateChannelOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	
 	void initExecution();
 	void deinitExecution();
@@ -193,7 +193,7 @@ private:
 	SocketReader *m_inputChannel4Operation;
 public:
 	CombineChannelsOperation();
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 	
 	void initExecution();
 	void deinitExecution();

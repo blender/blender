@@ -44,7 +44,7 @@ void EllipseMaskOperation::initExecution()
 	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
 }
 
-void EllipseMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void EllipseMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputMask[4];
 	float inputValue[4];
@@ -57,8 +57,8 @@ void EllipseMaskOperation::executePixel(float output[4], float x, float y, Pixel
 	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
 	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
 	
-	this->m_inputMask->read(inputMask, x, y, sampler);
-	this->m_inputValue->read(inputValue, x, y, sampler);
+	this->m_inputMask->readSampled(inputMask, x, y, sampler);
+	this->m_inputValue->readSampled(inputValue, x, y, sampler);
 	
 	const float halfHeight = (this->m_data->height) / 2.0f;
 	const float halfWidth = this->m_data->width / 2.0f;

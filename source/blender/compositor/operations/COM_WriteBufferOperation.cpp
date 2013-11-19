@@ -40,9 +40,9 @@ WriteBufferOperation::~WriteBufferOperation()
 	}
 }
 
-void WriteBufferOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void WriteBufferOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_input->read(output, x, y, sampler);
+	this->m_input->readSampled(output, x, y, sampler);
 }
 
 void WriteBufferOperation::initExecution()
@@ -98,7 +98,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				this->m_input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST);
+				this->m_input->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 			}
 			if (isBreaked()) {

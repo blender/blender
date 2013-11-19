@@ -85,7 +85,7 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 	}
 	return insideBokeh;
 }
-void BokehImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void BokehImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float shift = this->m_data->lensshift;
 	float shift2 = shift / 2.0f;

@@ -49,7 +49,7 @@ float DistanceRGBMatteOperation::calculateDistance(float key[4], float image[4])
 	return len_v3v3(key, image);
 }
 
-void DistanceRGBMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void DistanceRGBMatteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inKey[4];
 	float inImage[4];
@@ -60,8 +60,8 @@ void DistanceRGBMatteOperation::executePixel(float output[4], float x, float y, 
 	float distance;
 	float alpha;
 
-	this->m_inputKeyProgram->read(inKey, x, y, sampler);
-	this->m_inputImageProgram->read(inImage, x, y, sampler);
+	this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
+	this->m_inputImageProgram->readSampled(inImage, x, y, sampler);
 	
 	distance = this->calculateDistance(inKey, inImage);
 

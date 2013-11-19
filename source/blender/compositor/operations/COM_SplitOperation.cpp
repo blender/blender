@@ -57,15 +57,15 @@ void SplitOperation::deinitExecution()
 	this->m_image2Input = NULL;
 }
 
-void SplitOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void SplitOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	int perc = this->m_xSplit ? this->m_splitPercentage * this->getWidth() / 100.0f : this->m_splitPercentage * this->getHeight() / 100.0f;
 	bool image1 = this->m_xSplit ? x > perc : y > perc;
 	if (image1) {
-		this->m_image1Input->read(output, x, y, COM_PS_NEAREST);
+		this->m_image1Input->readSampled(output, x, y, COM_PS_NEAREST);
 	}
 	else {
-		this->m_image2Input->read(output, x, y, COM_PS_NEAREST);
+		this->m_image2Input->readSampled(output, x, y, COM_PS_NEAREST);
 	}
 }
 

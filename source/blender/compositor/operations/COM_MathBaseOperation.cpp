@@ -72,52 +72,52 @@ void MathBaseOperation::clampIfNeeded(float *color)
 	}
 }
 
-void MathAddOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathAddOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = inputValue1[0] + inputValue2[0];
 
 	clampIfNeeded(output);
 }
 
-void MathSubtractOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathSubtractOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = inputValue1[0] - inputValue2[0];
 
 	clampIfNeeded(output);
 }
 
-void MathMultiplyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathMultiplyOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = inputValue1[0] * inputValue2[0];
 
 	clampIfNeeded(output);
 }
 
-void MathDivideOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathDivideOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue2[0] == 0) /* We don't want to divide by zero. */
 		output[0] = 0.0;
@@ -127,52 +127,52 @@ void MathDivideOperation::executePixel(float output[4], float x, float y, PixelS
 	clampIfNeeded(output);
 }
 
-void MathSineOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathSineOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = sin(inputValue1[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathCosineOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathCosineOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = cos(inputValue1[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathTangentOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathTangentOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = tan(inputValue1[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathArcSineOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathArcSineOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		output[0] = asin(inputValue1[0]);
@@ -182,13 +182,13 @@ void MathArcSineOperation::executePixel(float output[4], float x, float y, Pixel
 	clampIfNeeded(output);
 }
 
-void MathArcCosineOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathArcCosineOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		output[0] = acos(inputValue1[0]);
@@ -198,26 +198,26 @@ void MathArcCosineOperation::executePixel(float output[4], float x, float y, Pix
 	clampIfNeeded(output);
 }
 
-void MathArcTangentOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathArcTangentOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = atan(inputValue1[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathPowerOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathPowerOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue1[0] >= 0) {
 		output[0] = pow(inputValue1[0], inputValue2[0]);
@@ -236,13 +236,13 @@ void MathPowerOperation::executePixel(float output[4], float x, float y, PixelSa
 	clampIfNeeded(output);
 }
 
-void MathLogarithmOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathLogarithmOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue1[0] > 0  && inputValue2[0] > 0)
 		output[0] = log(inputValue1[0]) / log(inputValue2[0]);
@@ -252,78 +252,78 @@ void MathLogarithmOperation::executePixel(float output[4], float x, float y, Pix
 	clampIfNeeded(output);
 }
 
-void MathMinimumOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathMinimumOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = min(inputValue1[0], inputValue2[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathMaximumOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathMaximumOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = max(inputValue1[0], inputValue2[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathRoundOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathRoundOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = round(inputValue1[0]);
 
 	clampIfNeeded(output);
 }
 
-void MathLessThanOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathLessThanOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = inputValue1[0] < inputValue2[0] ? 1.0f : 0.0f;
 
 	clampIfNeeded(output);
 }
 
-void MathGreaterThanOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathGreaterThanOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	output[0] = inputValue1[0] > inputValue2[0] ? 1.0f : 0.0f;
 
 	clampIfNeeded(output);
 }
 
-void MathModuloOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void MathModuloOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	this->m_inputValue1Operation->read(inputValue1, x, y, sampler);
-	this->m_inputValue2Operation->read(inputValue2, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 	
 	if (inputValue2[0] == 0)
 		output[0] = 0.0;

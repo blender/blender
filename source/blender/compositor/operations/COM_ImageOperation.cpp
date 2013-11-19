@@ -146,7 +146,7 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 	}
 }
 
-void ImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if ((this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		zero_v4(output);
@@ -156,7 +156,7 @@ void ImageOperation::executePixel(float output[4], float x, float y, PixelSample
 	}
 }
 
-void ImageAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ImageAlphaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float tempcolor[4];
 
@@ -170,7 +170,7 @@ void ImageAlphaOperation::executePixel(float output[4], float x, float y, PixelS
 	}
 }
 
-void ImageDepthOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ImageDepthOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (this->m_depthBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		output[0] = 0.0f;
