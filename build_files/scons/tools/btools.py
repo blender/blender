@@ -55,12 +55,12 @@ def get_version():
 
     raise Exception("%s: missing version string" % fname)
 
-def get_revision():
-    build_rev = os.popen('svnversion').read()[:-1] # remove \n
-    if build_rev == '' or build_rev==None:
-        build_rev = 'UNKNOWN'
+def get_hash():
+    build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+    if build_hash == '' or build_hash == None:
+        build_hash = 'UNKNOWN'
 
-    return 'r' + build_rev
+    return build_hash
 
 
 # copied from: http://www.scons.org/wiki/AutoconfRecipes
@@ -80,7 +80,7 @@ def checkEndian():
 
 # This is used in creating the local config directories
 VERSION, VERSION_DISPLAY, VERSION_RELEASE_CYCLE = get_version()
-REVISION = get_revision()
+HASH = get_hash()
 ENDIAN = checkEndian()
 
 
@@ -693,7 +693,7 @@ def buildslave(target=None, source=None, env=None):
     branch = env['BUILDBOT_BRANCH']
 
     outdir = os.path.abspath(env['BF_INSTALLDIR'])
-    package_name = 'blender-' + VERSION+'-'+REVISION + '-' + platform
+    package_name = 'blender-' + VERSION+'-'+HASH + '-' + platform
     if branch != '':
         package_name = branch + '-' + package_name
     package_dir = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name)
