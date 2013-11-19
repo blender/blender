@@ -35,6 +35,7 @@ error_duplicates = False
 error_encoding = False
 addons_fake_modules = {}
 
+
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     addon_paths = _bpy.utils.script_paths("addons")

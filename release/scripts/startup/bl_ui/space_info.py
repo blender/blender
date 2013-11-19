@@ -169,7 +169,6 @@ class INFO_MT_file_external_data(Menu):
         layout.operator("file.find_missing_files")
 
 
-
 class INFO_MT_game(Menu):
     bl_label = "Game"
 

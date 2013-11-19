@@ -364,7 +364,7 @@ class NODE_PT_backdrop(Panel):
         col.prop(snode, "backdrop_x", text="X")
         col.prop(snode, "backdrop_y", text="Y")
         col.operator("node.backimage_move", text="Move")
-        
+
         layout.operator("node.backimage_fit", text="Fit")
 
 

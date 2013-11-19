@@ -98,6 +98,7 @@ class InfoStructRNA:
         )
 
     global_lookup = {}
+
     def __init__(self, rna_type):
         self.bl_rna = rna_type
 

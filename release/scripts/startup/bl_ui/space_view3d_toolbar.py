@@ -740,6 +740,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             col.prop(brush, "vertex_tool", text="Blend")
 
+
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
     bl_label = "Overlay"
     bl_options = {'DEFAULT_CLOSED'}
@@ -753,8 +754,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
                  context.vertex_paint_object or
                  context.weight_paint_object or
                  context.image_paint_object))
-				 
-				 
+
     def draw(self, context):
         layout = self.layout
 
@@ -764,7 +764,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
         tex_slot_mask = brush.mask_texture_slot
 
         col = layout.column()
-        
+
         col.label(text="Curve:")
 
         row = col.row(align=True)
@@ -778,7 +778,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
         sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
 
         col.active = brush.brush_capabilities.has_overlay
-        
+
         if context.image_paint_object or context.sculpt_object or context.vertex_paint_object:
             col.label(text="Texture:")
             row = col.row(align=True)

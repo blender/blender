@@ -111,7 +111,6 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         return self.execute(context)
 
 
-
 class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
     "Extrude and move along individual normals"
     bl_label = "Extrude and Move on Individual Normals"

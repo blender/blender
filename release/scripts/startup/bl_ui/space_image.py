@@ -727,7 +727,7 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
         tex_slot_mask = brush.mask_texture_slot
 
         col = layout.column()
-        
+
         col.label(text="Curve:")
 
         row = col.row(align=True)

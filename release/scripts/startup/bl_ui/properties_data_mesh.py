@@ -339,7 +339,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
         col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
-        
+
         if lay:
             layout.prop(lay, "name")
 
@@ -362,7 +362,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
         col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
-        
+
         if lay:
             layout.prop(lay, "name")
 

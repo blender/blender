@@ -281,4 +281,3 @@ class ClearUselessActions(Operator):
         self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions"
                               % removed)
         return {'FINISHED'}
-

@@ -218,7 +218,7 @@ typedef struct FlyInfo {
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 
 	/* are we flying an ortho camera in perspective view,
-	 * which was originall in ortho view?
+	 * which was originally in ortho view?
 	 * could probably figure it out but better be explicit */
 	bool is_ortho_cam;
 	void *obtfm; /* backup the objects transform */

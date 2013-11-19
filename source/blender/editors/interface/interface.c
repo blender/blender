@@ -3242,7 +3242,8 @@ int autocomplete_end(AutoComplete *autocpl, char *autoname)
 	if (autocpl->truncate[0]) {
 		if (autocpl->matches == 1) {
 			match = AUTOCOMPLETE_FULL_MATCH;
-		} else {
+		}
+		else {
 			match = AUTOCOMPLETE_PARTIAL_MATCH;
 		}
 		BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);

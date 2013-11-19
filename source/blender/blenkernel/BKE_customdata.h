@@ -147,14 +147,14 @@ void *CustomData_add_layer_named(struct CustomData *data, int type, int alloctyp
                                  void *layer, int totelem, const char *name);
 
 /* frees the active or first data layer with the give type.
- * returns 1 on succes, 0 if no layer with the given type is found
+ * returns 1 on success, 0 if no layer with the given type is found
  *
  * in editmode, use EDBM_data_layer_free instead of this function
  */
 bool CustomData_free_layer(struct CustomData *data, int type, int totelem, int index);
 
 /* frees the layer index with the give type.
- * returns 1 on succes, 0 if no layer with the given type is found
+ * returns 1 on success, 0 if no layer with the given type is found
  *
  * in editmode, use EDBM_data_layer_free instead of this function
  */

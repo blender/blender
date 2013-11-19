@@ -1218,27 +1218,27 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
         row.prop(psys, "invert_vertex_group_density", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
         row.prop(psys, "invert_vertex_group_length", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
         row.prop(psys, "invert_vertex_group_clump", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
         row.prop(psys, "invert_vertex_group_kink", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
         row.prop(psys, "invert_vertex_group_roughness_1", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
         row.prop(psys, "invert_vertex_group_roughness_2", text="", toggle=True, icon='ARROW_LEFTRIGHT')
-        
+
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "invert_vertex_group_roughness_end", text="", toggle=True, icon='ARROW_LEFTRIGHT')

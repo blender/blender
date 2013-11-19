@@ -172,7 +172,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* if no dverts (i.e. no data for vertex groups exists), we've got an
-		 * inconsistent situation, so free hashes and return oirginal mesh
+		 * inconsistent situation, so free hashes and return original mesh
 		 */
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		if (dvert == NULL) {

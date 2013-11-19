@@ -321,7 +321,7 @@ def reduce_dirs(dirs):
     """
     dirs = list({_os.path.normpath(_os.path.abspath(d)) for d in dirs})
     dirs.sort(key=lambda d: len(d))
-    for i in range(len(dirs) -1, -1, -1):
+    for i in range(len(dirs) - 1, -1, -1):
         for j in range(i):
             print(i, j)
             if len(dirs[i]) == len(dirs[j]):
