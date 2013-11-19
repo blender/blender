@@ -1568,8 +1568,9 @@ typedef enum SculptFlags {
 	 * dynamic-topology mode */
 	SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
 
-	/* If set, dynamic-topology brushes will collapse short edges in
-	 * addition to subdividing long ones */
+	/* If set, dynamic-topology brushes will subdivide short edges */
+	SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12),
+	/* If set, dynamic-topology brushes will collapse short edges */
 	SCULPT_DYNTOPO_COLLAPSE = (1 << 11)
 } SculptFlags;
 

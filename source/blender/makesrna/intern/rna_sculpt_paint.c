@@ -322,6 +322,16 @@ static void rna_def_paint(BlenderRNA *brna)
 
 static void rna_def_sculpt(BlenderRNA  *brna)
 {
+	static EnumPropertyItem detail_refine_items[] = {
+		{SCULPT_DYNTOPO_SUBDIVIDE, "SUBDIVIDE", 0,
+		 "Subdivide Edges", "Subdivide long edges to add mesh detail where needed"},
+		{SCULPT_DYNTOPO_COLLAPSE, "COLLAPSE", 0,
+		 "Collapse Edges", "Collapse short edges to remove mesh detail where possible"},
+		{SCULPT_DYNTOPO_SUBDIVIDE|SCULPT_DYNTOPO_COLLAPSE, "SUBDIVIDE_COLLAPSE", 0,
+		 "Subdivide Collapse", "Both subdivide long edges and collapse short edges to refine mesh detail"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -403,16 +413,16 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "shading rather than flat shaded");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
-	prop = RNA_def_property(srna, "use_edge_collapse", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_COLLAPSE);
-	RNA_def_property_ui_text(prop, "Collapse Short Edges",
-	                         "In dynamic-topology mode, collapse short edges "
-	                         "in addition to subdividing long ones");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
 	prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, symmetrize_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "Source and destination for symmetrize operator");
+
+	prop = RNA_def_property(srna, "detail_refine_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, detail_refine_items);
+	RNA_def_property_ui_text(prop, "Detail Refine Method",
+	                         "In dynamic-topology mode, how to add or remove mesh detail");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 }
 
 

@@ -986,6 +986,8 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
 
         if context.sculpt_object.use_dynamic_topology_sculpting:
             layout.operator("sculpt.dynamic_topology_toggle", icon='X', text="Disable Dynamic")
@@ -994,9 +996,12 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
-        col.prop(sculpt, "detail_size")
+        sub = col.column(align=True)
+        sub.active = brush and brush.sculpt_tool not in ('MASK')
+        sub.prop(sculpt, "detail_size")
+        sub.prop(sculpt, "detail_refine_method", text="")
+        col.separator()
         col.prop(sculpt, "use_smooth_shading")
-        col.prop(sculpt, "use_edge_collapse")
         col.operator("sculpt.optimize")
         col.separator()
         col.prop(sculpt, "symmetrize_direction")

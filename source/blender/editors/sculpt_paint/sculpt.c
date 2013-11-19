@@ -3076,8 +3076,11 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
-		PBVHTopologyUpdateMode mode = PBVH_Subdivide;
+		PBVHTopologyUpdateMode mode = 0;
 		float location[3];
+
+		if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE)
+			mode |= PBVH_Subdivide;
 
 		if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) ||
 			(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
