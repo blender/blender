@@ -147,8 +147,6 @@ void ViewerOperation::initImage()
 		ima->ok = IMA_OK_LOADED;
 
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
-		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
 
 	if (m_doDepthBuffer) {
