@@ -210,7 +210,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* setup tags, all faces and verts will be tagged which will be duplicated */
-	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
 
 	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
 		verts_loop_tot += f_src->len;
