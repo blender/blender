@@ -1054,17 +1054,17 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 bool ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 {
 	uiSearchboxData *data = ar->regiondata;
-	bool changed = false;
+	int match = AUTOCOMPLETE_NO_MATCH;
 
 	if (str[0]) {
 		data->items.autocpl = autocomplete_begin(str, ui_get_but_string_max_length(but));
 
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 
-		changed = autocomplete_end(data->items.autocpl, str);
+		match = autocomplete_end(data->items.autocpl, str);
 		data->items.autocpl = NULL;
 	}
-	return changed;
+	return match != AUTOCOMPLETE_NO_MATCH;
 }
 
 static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)

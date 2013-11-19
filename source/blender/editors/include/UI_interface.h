@@ -641,9 +641,13 @@ void uiButSetFocusOnEnter(struct wmWindow *win, uiBut *but);
 
 typedef struct AutoComplete AutoComplete;
 
+#define AUTOCOMPLETE_NO_MATCH 0
+#define AUTOCOMPLETE_FULL_MATCH 1
+#define AUTOCOMPLETE_PARTIAL_MATCH 2
+
 AutoComplete *autocomplete_begin(const char *startname, size_t maxlen);
 void autocomplete_do_name(AutoComplete *autocpl, const char *name);
-bool autocomplete_end(AutoComplete *autocpl, char *autoname);
+int autocomplete_end(AutoComplete *autocpl, char *autoname);
 
 /* Panels
  *
