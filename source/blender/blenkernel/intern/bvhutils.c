@@ -573,8 +573,9 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *dm, float e
 /* Builds a bvh tree.. where nodes are the faces of the given dm. */
 BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
-	BVHTree *tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_FACES);
 	BMEditMesh *em = data->em_evil;
+	const int bvhcache_type = em ? BVHTREE_FROM_FACES_EDITMESH : BVHTREE_FROM_FACES;
+	BVHTree *tree = bvhcache_find(&dm->bvhCache, bvhcache_type);
 
 	/* Not in cache */
 	if (tree == NULL) {
@@ -682,7 +683,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float e
 
 				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
-				bvhcache_insert(&dm->bvhCache, tree, BVHTREE_FROM_FACES);
+				bvhcache_insert(&dm->bvhCache, tree, bvhcache_type);
 			}
 		}
 	}

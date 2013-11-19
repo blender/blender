@@ -116,6 +116,8 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 #define BVHTREE_FROM_VERTICES   1
 #define BVHTREE_FROM_EDGES      2
 
+#define BVHTREE_FROM_FACES_EDITMESH  3
+
 typedef struct LinkNode *BVHCache;
 
 
