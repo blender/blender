@@ -517,21 +517,9 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 {
 	if (!particle_id_check(ptr)) {
 		Object *ob = (Object *)ptr->id.data;
-		PartDeflect *pd = ob->pd;
-		ModifierData *md = modifiers_findByType(ob, eModifierType_Surface);
-
-		/* add/remove modifier as needed */
-		if (!md) {
-			if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield, PFIELD_GUIDE, PFIELD_TEXTURE) == 0)
-				if (ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Surface);
-		}
-		else {
-			if (!pd || pd->shape != PFIELD_SHAPE_SURFACE)
-				ED_object_modifier_remove(NULL, bmain, ob, md);
-		}
-
+		ED_object_check_force_modifiers(bmain, scene, ob);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 	}
 }
 

@@ -353,6 +353,7 @@ void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) {STUB_ASSER
 void ED_object_editmode_enter(struct bContext *C, int flag) {STUB_ASSERT(0);}
 void ED_object_editmode_exit(struct bContext *C, int flag) {STUB_ASSERT(0);}
 bool ED_object_editmode_load(struct Object *obedit) {STUB_ASSERT(0); return false; }
+void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object) {STUB_ASSERT(0);}
 int uiLayoutGetActive(struct uiLayout *layout) {STUB_ASSERT(0); return 0;}
 int uiLayoutGetOperatorContext(struct uiLayout *layout) {STUB_ASSERT(0); return 0;}
 int uiLayoutGetAlignment(struct uiLayout *layout) {STUB_ASSERT(0); return 0;}

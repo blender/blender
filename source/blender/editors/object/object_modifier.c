@@ -298,9 +298,6 @@ static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 		*sort_depsgraph = 1;
 	}
 	else if (md->type == eModifierType_Surface) {
-		if (ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
-			ob->pd->shape = PFIELD_SHAPE_PLANE;
-
 		*sort_depsgraph = 1;
 	}
 	else if (md->type == eModifierType_Multires) {
