@@ -112,8 +112,12 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 	// otherwise it's not at the end, let's check if some unknown part got filled
 	else
 	{
-		for(std::list<Unknown>::iterator it = m_unknown.begin(); it != m_unknown.end(); it++)
+		bool erased = false;
+
+		for(std::list<Unknown>::iterator it = m_unknown.begin(); it != m_unknown.end(); erased ? it : it++)
 		{
+			erased = false;
+
 			// unknown area before position
 			if(it->end < position)
 				continue;
@@ -130,9 +134,8 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 				if(position + count > it->end)
 				{
 					// simply delete
-					std::list<Unknown>::iterator it2 = it;
-					it++;
-					m_unknown.erase(it2);
+					it = m_unknown.erase(it);
+					erased = true;
 				}
 				// the end is excluded, a second part remains
 				else
