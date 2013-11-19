@@ -151,6 +151,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int maxVerts = 0, maxEdges = 0, maxPolys = 0;
 	const unsigned int totvert = dm->getNumVerts(dm);
 	const unsigned int totedge = dm->getNumEdges(dm);
+	const unsigned int totpoly = dm->getNumPolys(dm);
+	int *edge_poly_map = NULL;
 
 	char axis_char = 'X', close;
 	float angle = ltmd->angle;
@@ -168,8 +170,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	int edge_offset;
 	
-	MPoly *mpoly_new, *mp_new;
-	MLoop *mloop_new, *ml_new;
+	MPoly *mpoly_orig, *mpoly_new, *mp_new;
+	MLoop *mloop_orig, *mloop_new, *ml_new;
 	MEdge *medge_orig, *med_orig, *med_new, *med_new_firstloop, *medge_new;
 	MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
 
@@ -333,6 +335,29 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		med_new->flag = med_orig->flag &  ~ME_LOOSEEDGE;
 	}
 	
+	/* build polygon -> edge map */
+	if (totpoly) {
+		MPoly *mp_orig;
+
+		mpoly_orig = dm->getPolyArray(dm);
+		mloop_orig = dm->getLoopArray(dm);
+		edge_poly_map = MEM_mallocN(sizeof(*edge_poly_map) * totedge, __func__);
+		fill_vn_i(edge_poly_map, totedge, -1);
+
+		for (i = 0, mp_orig = mpoly_orig; i < totpoly; i++, mp_orig++) {
+			MLoop *ml_orig = &mloop_orig[mp_orig->loopstart];
+			int j;
+			for (j = 0; j < mp_orig->totloop; j++, ml_orig++) {
+				edge_poly_map[ml_orig->e] = i;
+
+				/* also order edges based on faces */
+				if (medge_new[ml_orig->e].v1 != ml_orig->v) {
+					SWAP(unsigned int, medge_new[ml_orig->e].v1, medge_new[ml_orig->e].v2);
+				}
+			}
+		}
+	}
+
 	if (ltmd->flag & MOD_SCREW_NORMAL_CALC) {
 		/*
 		 * Normal Calculation (for face flipping)
@@ -775,9 +800,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	edge_offset = totedge + (totvert * (step_tot - (close ? 0 : 1)));
 
 	for (i = 0; i < totedge; i++, med_new_firstloop++) {
+		short mat_nr;
+
 		/* for each edge, make a cylinder of quads */
 		i1 = med_new_firstloop->v1;
 		i2 = med_new_firstloop->v2;
+
+		if (totpoly && (edge_poly_map[i] != -1)) {
+			mat_nr = mpoly_orig[edge_poly_map[i]].mat_nr;
+		}
+		else {
+			mat_nr = 0;
+		}
 
 		for (step = 0; step < step_tot - 1; step++) {
 			
@@ -808,6 +842,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
+			mp_new->mat_nr = mat_nr;
 			mp_new->flag = mpoly_flag;
 			origindex[mpoly_index] = ORIGINDEX_NONE;
 			mp_new++;
@@ -853,6 +888,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
+			mp_new->mat_nr = mat_nr;
 			mp_new->flag = mpoly_flag;
 			origindex[mpoly_index] = ORIGINDEX_NONE;
 			mp_new++;
@@ -895,6 +931,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 #endif
+
+	if (edge_poly_map) {
+		MEM_freeN(edge_poly_map);
+	}
 
 	if ((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
 		result->dirty |= DM_DIRTY_NORMALS;
