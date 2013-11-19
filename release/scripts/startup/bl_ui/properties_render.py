@@ -319,13 +319,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         sub.row().prop(rd, "field_order", expand=True)
         sub.prop(rd, "use_fields_still", text="Still")
 
-        col = split.column()
-        col.prop(rd, "use_edge_enhance")
-        sub = col.column()
-        sub.active = rd.use_edge_enhance
-        sub.prop(rd, "edge_threshold", text="Threshold", slider=True)
-        sub.prop(rd, "edge_color", text="")
-
 
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
     bl_label = "Stamp"

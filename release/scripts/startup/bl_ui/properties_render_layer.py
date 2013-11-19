@@ -113,7 +113,6 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rl, "use_sky")
-        col.prop(rl, "use_edge_enhance")
         col.prop(rl, "use_strand")
         if bpy.app.build_options.freestyle:
             row = col.row()
