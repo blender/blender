@@ -1613,10 +1613,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	if (!ar)
 		return 0;
 
-	state = MEM_mallocN(sizeof(StitchState), "stitch state");
-
-	if (!state)
-		return 0;
+	state = MEM_callocN(sizeof(StitchState), "stitch state");
 
 	op->customdata = state;
 
@@ -1648,7 +1645,6 @@ static int stitch_init(bContext *C, wmOperator *op)
 		}
 	}
 
-	state->draw_handle = ED_region_draw_cb_activate(ar->type, stitch_draw, state, REGION_DRAW_POST_VIEW);
 	/* in uv synch selection, all uv's are visible */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		state->element_map = BM_uv_element_map_create(state->em->bm, false, true);
@@ -1925,6 +1921,8 @@ static int stitch_init(bContext *C, wmOperator *op)
 		state_delete(state);
 		return 0;
 	}
+
+	state->draw_handle = ED_region_draw_cb_activate(ar->type, stitch_draw, state, REGION_DRAW_POST_VIEW);
 
 	stitch_update_header(state, C);
 	return 1;
