@@ -31,7 +31,7 @@ if len(sys.argv) < 2:
 builder = sys.argv[1]
 
 # we run from build/ directory
-blender_dir = '../blender'
+blender_dir = '../blender.git'
 
 if builder.find('cmake') != -1:
     # cmake
