@@ -2766,6 +2766,25 @@ static bAnimChannelType ACF_MASKLAYER =
 
 /* NLA Track ----------------------------------------------- */
 
+/* get backdrop color for nla track channels */
+static void acf_nlatrack_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+{
+	NlaTrack *nlt = (NlaTrack *)ale->data;
+	AnimData *adt = ale->adt;
+	bool nonSolo = false;
+	
+	/* is track enabled for solo drawing? */
+	if ((adt) && (adt->flag & ADT_NLA_SOLO_TRACK)) {
+		if ((nlt->flag & NLATRACK_SOLO) == 0) {
+			/* tag for special non-solo handling */
+			nonSolo = true;
+		}
+	}
+	
+	/* set color for nla track */
+	UI_GetThemeColorShade3fv(TH_HEADER, ((nonSolo == false) ? 20 : -20), r_color);
+}
+
 /* name for nla track entries */
 static void acf_nlatrack_name(bAnimListElem *ale, char *name)
 {
@@ -2869,7 +2888,7 @@ static bAnimChannelType ACF_NLATRACK =
 {
 	"NLA Track",                    /* type name */
 	
-	acf_generic_channel_color,      /* backdrop color */   // XXX: color depends on whether track is solo or not!
+	acf_nlatrack_color,             /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */           // XXX?
