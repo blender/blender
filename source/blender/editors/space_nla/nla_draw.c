@@ -638,8 +638,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 		{
 			AnimData *adt = ale->adt;
 			
-			short indent = 0, offset = 0, sel = 0, group = 0, nonSolo = 0;
-			int expand = -1, protect = -1, special = -1, mute = -1;
+			short indent = 0, offset = 0, sel = 0, group = 0;
+			int special = -1;
 			char name[128];
 			short do_draw = FALSE;
 			
@@ -660,7 +660,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					break;
 				}
 				default: /* handled by standard channel-drawing API */
-					// draw backdrops only...
+					/* (draw backdrops only...) */
 					ANIM_channel_draw(ac, ale, yminc, ymaxc);
 					break;
 			}
@@ -743,25 +743,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					/* clear group value, otherwise we cause errors... */
 					group = 0;
 				}
-				else {
-					/* NLA tracks - darker color if not solo track when we're showing solo */
-					UI_ThemeColorShade(TH_HEADER, ((nonSolo == 0) ? 20 : -20));
-					
-					indent += group;
-					offset += 0.35f * U.widget_unit * indent;
-					glBegin(GL_QUADS);
-					glVertex2f(x + offset, yminc);
-					glVertex2f(x + offset, ymaxc);
-					glVertex2f((float)v2d->cur.xmax, ymaxc);
-					glVertex2f((float)v2d->cur.xmax, yminc);
-					glEnd();
-				}
 				
-				/* draw expand/collapse triangle */
-				if (expand > 0) {
-					UI_icon_draw(x + offset, ydatac, expand);
-					offset += 0.85f * U.widget_unit;
-				}
 				
 				/* draw special icon indicating certain data-types */
 				if (special > -1) {
@@ -786,17 +768,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				/* draw protect 'lock' */
-				if (protect > -1) {
-					offset =  0.8f * U.widget_unit;
-					UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, protect);
-				}
-				
-				/* draw mute 'eye' */
-				if (mute > -1) {
-					offset += 0.8f * U.widget_unit;
-					UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, mute);
-				}
 				
 				/* draw NLA-action line 'status-icons' - only when there's an action */
 				if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {

@@ -2972,7 +2972,9 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
 		
 		animchannelTypeInfo[type++] = &ACF_NLATRACK;     /* NLA Track */
-		animchannelTypeInfo[type++] = &ACF_NLAACTION;    /* NLA Action */
+		
+		// TODO: this channel type still hasn't been ported over yet, since it requires special attention
+		animchannelTypeInfo[type++] = NULL;              /* NLA Action */
 	}
 } 
 
