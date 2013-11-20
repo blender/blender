@@ -645,46 +645,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
-				case ANIMTYPE_NLATRACK: /* NLA Track */
-				{
-					NlaTrack *nlt = (NlaTrack *)ale->data;
-					
-					/* 'solo' as the 'special' button? */
-					if (nlt->flag & NLATRACK_SOLO)
-						special = ICON_SOLO_ON;
-					else
-						special = ICON_SOLO_OFF;
-						
-					/* if this track is active and we're tweaking it, don't draw these toggles */
-					// TODO: need a special macro for this...
-					if (((nlt->flag & NLATRACK_ACTIVE) && (nlt->flag & NLATRACK_DISABLED)) == 0) {
-						if (nlt->flag & NLATRACK_MUTED)
-							mute = ICON_MUTE_IPO_ON;
-						else
-							mute = ICON_MUTE_IPO_OFF;
-							
-						if (EDITABLE_NLT(nlt))
-							protect = ICON_UNLOCKED;
-						else
-							protect = ICON_LOCKED;
-					}
-					
-					/* is track enabled for solo drawing? */
-					if ((adt) && (adt->flag & ADT_NLA_SOLO_TRACK)) {
-						if ((nlt->flag & NLATRACK_SOLO) == 0) {
-							/* tag for special non-solo handling; also hide the mute toggles */
-							nonSolo = 1;
-							mute = 0;
-						}
-					}
-						
-					sel = SEL_NLT(nlt);
-					BLI_strncpy(name, nlt->name, sizeof(name));
-					
-					/* draw manually still */
-					do_draw = TRUE;
-					break;
-				}
 				case ANIMTYPE_NLAACTION: /* NLA Action-Line */
 				{
 					bAction *act = (bAction *)ale->data;
