@@ -116,6 +116,8 @@ void BKE_curve_editfont_free(Curve *cu)
 		MEM_freeN(ef);
 		cu->editfont = NULL;
 	}
+
+	MEM_SAFE_FREE(cu->selboxes);
 }
 
 void BKE_curve_editNurb_keyIndex_free(EditNurb *editnurb)

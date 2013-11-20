@@ -1475,13 +1475,6 @@ void load_editText(Object *obedit)
 	memcpy(cu->strinfo, ef->textbufinfo, (cu->len) * sizeof(CharInfo));
 
 	cu->len = strlen(cu->str);
-	
-	/* this memory system is weak... */
-	
-	if (cu->selboxes) {
-		MEM_freeN(cu->selboxes);
-		cu->selboxes = NULL;
-	}
 }
 
 void free_editText(Object *obedit)

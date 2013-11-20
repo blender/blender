@@ -351,7 +351,7 @@ static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 		load_editNurb(obedit);
 		if (freedata) free_editNurb(obedit);
 	}
-	else if (obedit->type == OB_FONT && freedata) {
+	else if (obedit->type == OB_FONT) {
 		load_editText(obedit);
 		if (freedata) free_editText(obedit);
 	}

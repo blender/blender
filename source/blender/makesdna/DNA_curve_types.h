@@ -223,7 +223,7 @@ typedef struct Curve {
 	float linewidth;
 
 	char *str;
-	struct SelBox *selboxes;
+	struct SelBox *selboxes;  /* runtime variable for drawing selections (editmode data) */
 	struct EditFont *editfont;
 	
 	char family[24];
