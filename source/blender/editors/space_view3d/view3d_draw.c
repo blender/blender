@@ -106,21 +106,6 @@ extern void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const f
 extern void bl_debug_draw_edge_add(const float v0[3], const float v1[3]);
 #endif
 
-static void star_stuff_init_func(void)
-{
-	cpack(0xFFFFFF);
-	glPointSize(1.0);
-	glBegin(GL_POINTS);
-}
-static void star_stuff_vertex_func(const float vec[3])
-{
-	glVertex3fv(vec);
-}
-static void star_stuff_term_func(void)
-{
-	glEnd();
-}
-
 void circf(float x, float y, float rad)
 {
 	GLUquadricObj *qobj = gluNewQuadric(); 

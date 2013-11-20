@@ -47,7 +47,7 @@ struct MTex;
 
 /**
  * World defines general modeling data such as a background fill,
- * gravity, color model, stars, etc. It mixes game-data, rendering
+ * gravity, color model etc. It mixes game-data, rendering
  * data and modeling data. */
 typedef struct World {
 	ID id;
@@ -96,7 +96,6 @@ typedef struct World {
 	float misi, miststa, mistdist, misthi;
 	
 	float starr  DNA_DEPRECATED, starg  DNA_DEPRECATED, starb  DNA_DEPRECATED, stark  DNA_DEPRECATED; /* Deprecated */
-	
 	float starsize DNA_DEPRECATED, starmindist DNA_DEPRECATED;
 	float stardist DNA_DEPRECATED, starcolnoise DNA_DEPRECATED;
 	

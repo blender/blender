@@ -135,32 +135,6 @@
 #endif
 
 /* ------------------------------------------------------------------------- */
-
-/* Stuff for stars. This sits here because it uses gl-things. Part of
- * this code may move down to the converter.  */
-/* ------------------------------------------------------------------------- */
-/* this is a bad beast, since it is misused by the 3d view drawing as well. */
-
-static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float hasize)
-{
-	HaloRen *har;
-	float hoco[4];
-	
-	projectverto(vec, re->winmat, hoco);
-	
-	har= RE_findOrAddHalo(obr, obr->tothalo++);
-	
-	/* projectvert is done in function zbufvlaggen again, because of parts */
-	copy_v3_v3(har->co, vec);
-	har->hasize= hasize;
-	
-	har->zd= 0.0;
-	har->pool = re->pool;
-	
-	return har;
-}
-
-/* ------------------------------------------------------------------------- */
 /* tool functions/defines for ad hoc simplification and possible future 
  * cleanup      */
 /* ------------------------------------------------------------------------- */
@@ -5199,7 +5173,6 @@ void RE_Database_Preprocess(Render *re)
 	if (!re->test_break(re->tbh)) {
 		int tothalo;
 
-		/* don't sort stars */
 		tothalo= re->tothalo;
 		sort_halos(re, tothalo);
 		

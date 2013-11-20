@@ -660,7 +660,6 @@ extern StructRNA RNA_World;
 extern StructRNA RNA_WorldAmbientOcclusion;
 extern StructRNA RNA_WorldLighting;
 extern StructRNA RNA_WorldMistSettings;
-extern StructRNA RNA_WorldStarsSettings;
 extern StructRNA RNA_WorldTextureSlot;
 extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
