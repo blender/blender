@@ -38,6 +38,7 @@ protected:
 	SocketReader *m_pixelReader;
 	int m_osa;
 	float m_jitter[32][2];
+	float m_perspectiveMatrix[3][3];
 
 public:
 	PlaneTrackWarpImageOperation();

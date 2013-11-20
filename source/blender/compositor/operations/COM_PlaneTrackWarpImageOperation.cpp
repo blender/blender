@@ -47,23 +47,17 @@ BLI_INLINE bool isPointInsideQuad(const float x, const float y, const float corn
 	       isect_point_tri_v2(point, corners[0], corners[2], corners[3]);
 }
 
-BLI_INLINE bool resolveUV(const float x, const float y, const float corners[4][2], float uv[2])
+BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2])
 {
-	float point[2];
-	bool inside;
+	float vec[3] = {x, y, 1.0f};
+	mul_m3_v3(matrix, vec);
+	vec[0] /= vec[2];
+	vec[1] /= vec[2];
 
-	inside = isPointInsideQuad(x, y, corners);
-
-	point[0] = x;
-	point[1] = y;
-
-	/* Use reverse bilinear to get UV coordinates within original frame */
-	resolve_quad_uv(uv, point, corners[0], corners[1], corners[2], corners[3]);
-
-	return inside;
+	copy_v2_v2(uv, vec);
 }
 
-BLI_INLINE void resolveUVAndDxDy(const float x, const float y, const float corners[4][2],
+BLI_INLINE void resolveUVAndDxDy(const float x, const float y, float matrix[3][3],
                                  float *u_r, float *v_r, float *dx_r, float *dy_r)
 {
 	float inputUV[2];
@@ -73,23 +67,21 @@ BLI_INLINE void resolveUVAndDxDy(const float x, const float y, const float corne
 	float uv_l, uv_r;
 	float uv_u, uv_d;
 
-	bool ok1, ok2;
-
-	resolveUV(x, y, corners, inputUV);
+	warpCoord(x, y, matrix, inputUV);
 
 	/* adaptive sampling, red (U) channel */
-	ok1 = resolveUV(x - 1, y, corners, uv_a);
-	ok2 = resolveUV(x + 1, y, corners, uv_b);
-	uv_l = ok1 ? fabsf(inputUV[0] - uv_a[0]) : 0.0f;
-	uv_r = ok2 ? fabsf(inputUV[0] - uv_b[0]) : 0.0f;
+	warpCoord(x - 1, y, matrix, uv_a);
+	warpCoord(x + 1, y, matrix, uv_b);
+	uv_l = fabsf(inputUV[0] - uv_a[0]);
+	uv_r = fabsf(inputUV[0] - uv_b[0]);
 
 	dx = 0.5f * (uv_l + uv_r);
 
 	/* adaptive sampling, green (V) channel */
-	ok1 = resolveUV(x, y - 1, corners, uv_a);
-	ok2 = resolveUV(x, y + 1, corners, uv_b);
-	uv_u = ok1 ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = ok2 ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
+	warpCoord(x, y - 1, matrix, uv_a);
+	warpCoord(x, y + 1, matrix, uv_b);
+	uv_u = fabsf(inputUV[1] - uv_a[1]);
+	uv_d = fabsf(inputUV[1] - uv_b[1]);
 
 	dy = 0.5f * (uv_u + uv_d);
 
@@ -118,6 +110,16 @@ void PlaneTrackWarpImageOperation::initExecution()
 	this->m_pixelReader = this->getInputSocketReader(0);
 
 	BLI_jitter_init(this->m_jitter[0], this->m_osa);
+
+	const int width = this->m_pixelReader->getWidth();
+	const int height = this->m_pixelReader->getHeight();
+	float frame_corners[4][2] = {{0.0f, 0.0f},
+	                             {(float) width, 0.0f},
+	                             {(float) width, (float) height},
+	                             {0.0f, (float) height}};
+	BKE_tracking_homography_between_two_quads(this->m_frameSpaceCorners,
+	                                          frame_corners,
+	                                          this->m_perspectiveMatrix);
 }
 
 void PlaneTrackWarpImageOperation::deinitExecution()
@@ -125,22 +127,23 @@ void PlaneTrackWarpImageOperation::deinitExecution()
 	this->m_pixelReader = NULL;
 }
 
-void PlaneTrackWarpImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void PlaneTrackWarpImageOperation::executePixelSampled(float output[4], float x_, float y_, PixelSampler sampler)
 {
 	float color_accum[4];
 
 	zero_v4(color_accum);
 	for (int sample = 0; sample < this->m_osa; sample++) {
-		float current_x = x + this->m_jitter[sample][0],
-		      current_y = y + this->m_jitter[sample][1];
+		float current_x = x_ + this->m_jitter[sample][0],
+		      current_y = y_ + this->m_jitter[sample][1];
 		if (isPointInsideQuad(current_x, current_y, this->m_frameSpaceCorners)) {
 			float current_color[4];
 			float u, v, dx, dy;
 
-			resolveUVAndDxDy(current_x, current_y, this->m_frameSpaceCorners, &u, &v, &dx, &dy);
+			resolveUVAndDxDy(current_x, current_y, m_perspectiveMatrix, &u, &v, &dx, &dy);
 
-			u *= this->m_pixelReader->getWidth();
-			v *= this->m_pixelReader->getHeight();
+			/* derivatives are to be in normalized space.. */
+			dx /= this->m_pixelReader->getWidth();
+			dy /= this->m_pixelReader->getHeight();
 
 			this->m_pixelReader->readFiltered(current_color, u, v, dx, dy, COM_PS_NEAREST);
 			add_v4_v4(color_accum, current_color);
@@ -152,20 +155,13 @@ void PlaneTrackWarpImageOperation::executePixelSampled(float output[4], float x,
 
 bool PlaneTrackWarpImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	float frame_space_corners[4][2];
-
-	for (int i = 0; i < 4; i++) {
-		frame_space_corners[i][0] = this->m_corners[i][0] * this->getWidth();
-		frame_space_corners[i][1] = this->m_corners[i][1] * this->getHeight();
-	}
-
 	float UVs[4][2];
 
 	/* TODO(sergey): figure out proper way to do this. */
-	resolveUV(input->xmin - 2, input->ymin - 2, frame_space_corners, UVs[0]);
-	resolveUV(input->xmax + 2, input->ymin - 2, frame_space_corners, UVs[1]);
-	resolveUV(input->xmax + 2, input->ymax + 2, frame_space_corners, UVs[2]);
-	resolveUV(input->xmin - 2, input->ymax + 2, frame_space_corners, UVs[3]);
+	warpCoord(input->xmin - 2, input->ymin - 2, this->m_perspectiveMatrix, UVs[0]);
+	warpCoord(input->xmax + 2, input->ymin - 2, this->m_perspectiveMatrix, UVs[1]);
+	warpCoord(input->xmax + 2, input->ymax + 2, this->m_perspectiveMatrix, UVs[2]);
+	warpCoord(input->xmin - 2, input->ymax + 2, this->m_perspectiveMatrix, UVs[3]);
 
 	float min[2], max[2];
 	INIT_MINMAX2(min, max);
@@ -175,10 +171,10 @@ bool PlaneTrackWarpImageOperation::determineDependingAreaOfInterest(rcti *input,
 
 	rcti newInput;
 
-	newInput.xmin = min[0] * readOperation->getWidth() - 1;
-	newInput.ymin = min[1] * readOperation->getHeight() - 1;
-	newInput.xmax = max[0] * readOperation->getWidth() + 1;
-	newInput.ymax = max[1] * readOperation->getHeight() + 1;
+	newInput.xmin = min[0] - 1;
+	newInput.ymin = min[1] - 1;
+	newInput.xmax = max[0] + 1;
+	newInput.ymax = max[1] + 1;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
