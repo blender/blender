@@ -63,6 +63,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 /* This little block needed for linking to Blender... */
 

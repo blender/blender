@@ -40,6 +40,7 @@
 #include <string.h> // for strrchr strncmp strstr
 #include <math.h> // for fabs
 #include <stdarg.h> /* for va_start/end */
+#include <time.h> /* for gmtime */
 
 #include "BLI_utildefines.h"
 #ifndef WIN32
