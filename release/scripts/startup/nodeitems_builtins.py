@@ -141,6 +141,8 @@ shader_node_categories = [
         NodeItem("ShaderNodeSqueeze"),
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("ShaderNodeSeparateHSV"),
+        NodeItem("ShaderNodeCombineHSV"),
         ]),
     ShaderOldNodeCategory("SH_GROUP", "Group", items=node_group_items),
     ShaderOldNodeCategory("SH_LAYOUT", "Layout", items=[

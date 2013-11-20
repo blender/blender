@@ -735,6 +735,21 @@ void combine_rgb(float r, float g, float b, out vec4 col)
 	col = vec4(r, g, b, 1.0);
 }
 
+void separate_hsv(vec4 col, out float h, out float s, out float v)
+{
+	vec4 hsv;
+
+	rgb_to_hsv(col, hsv);
+	h = hsv[0];
+	s = hsv[1];
+	v = hsv[2];
+}
+
+void combine_hsv(float h, float s, float v, out vec4 col)
+{
+	hsv_to_rgb(vec4(h, s, v, 1.0), col);
+}
+
 void output_node(vec4 rgb, float alpha, out vec4 outrgb)
 {
 	outrgb = vec4(rgb.rgb, alpha);
