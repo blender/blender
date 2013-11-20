@@ -1442,18 +1442,14 @@ void make_editText(Object *obedit)
 		ef->textbufinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "texteditbufinfo");
 		ef->copybuf = MEM_callocN((MAXTEXT + 4) * sizeof(wchar_t), "texteditcopybuf");
 		ef->copybufinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "texteditcopybufinfo");
-		ef->oldstr = MEM_callocN((MAXTEXT + 4) * sizeof(wchar_t), "oldstrbuf");
-		ef->oldstrinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "oldstrbuf");
 	}
 	
 	/* Convert the original text to wchar_t */
 	BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4); /* length is bogus */
-	wcscpy(ef->oldstr, ef->textbuf);
 
 	cu->len = wcslen(ef->textbuf);
 
 	memcpy(ef->textbufinfo, cu->strinfo, (cu->len) * sizeof(CharInfo));
-	memcpy(ef->oldstrinfo, cu->strinfo, (cu->len) * sizeof(CharInfo));
 
 	if (cu->pos > cu->len) cu->pos = cu->len;
 
@@ -1470,11 +1466,6 @@ void load_editText(Object *obedit)
 {
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
-	
-	MEM_freeN(ef->oldstr);
-	ef->oldstr = NULL;
-	MEM_freeN(ef->oldstrinfo);
-	ef->oldstrinfo = NULL;
 	
 	update_string(cu);
 	

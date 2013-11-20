@@ -63,8 +63,6 @@ typedef struct EditFont {
 	
 	wchar_t *textbuf;
 	struct CharInfo *textbufinfo;
-	wchar_t *oldstr;
-	struct CharInfo *oldstrinfo;
 	
 	float textcurs[4][2];
 	

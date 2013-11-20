@@ -104,10 +104,6 @@ void BKE_curve_editfont_free(Curve *cu)
 	if (cu->editfont) {
 		EditFont *ef = cu->editfont;
 
-		if (ef->oldstr)
-			MEM_freeN(ef->oldstr);
-		if (ef->oldstrinfo)
-			MEM_freeN(ef->oldstrinfo);
 		if (ef->textbuf)
 			MEM_freeN(ef->textbuf);
 		if (ef->textbufinfo)
