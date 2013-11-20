@@ -63,6 +63,7 @@
 
 #include "BKE_curve.h"
 #include "BKE_key.h"
+#include "BKE_nla.h"
 #include "BKE_context.h"
 
 #include "UI_interface.h"
@@ -3363,6 +3364,26 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	BLI_freelistN(&anim_data);
 }
 
+/* callback for wrapping NLA Track "solo" toggle logic */
+static void achannel_nlatrack_solo_widget_cb(bContext *C, void *adt_poin, void *nlt_poin)
+{
+	AnimData *adt = adt_poin;
+	NlaTrack *nlt = nlt_poin;
+	
+	/* Toggle 'solo' mode. There are several complications here which need explaining:
+	 * - The method call is needed to perform a few additional validation operations
+	 *   to ensure that the mode is applied properly
+	 * - BUT, since the button already toggles the value, we need to un-toggle it
+	 *   before the API call gets to it, otherwise it will end up clearing the result
+	 *   again!
+	 */
+	nlt->flag ^= NLATRACK_SOLO;
+	BKE_nlatrack_solo_toggle(adt, nlt);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
+}
+
 /* callback for rename widgets - clear rename-in-progress */
 static void achannel_setting_rename_done_cb(bContext *C, void *ads_poin, void *UNUSED(arg2))
 {
@@ -3558,9 +3579,13 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 					uiButSetNFunc(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
 					break;
 					
+				/* settings needing special attention */
+				case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
+					uiButSetFunc(but, achannel_nlatrack_solo_widget_cb, ale->adt, ale->data);
+					break;
+					
 				/* no flushing */
 				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
-				case ACHANNEL_SETTING_SOLO: /* NLA Tracks - solo flag */
 				default:
 					uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
 					break;
