@@ -53,6 +53,7 @@ set(SRC
 	object_select.c
 	object_shapekey.c
 	object_transform.c
+	object_warp.c
 	object_vgroup.c
 
 	object_intern.h

@@ -234,6 +234,9 @@ void OBJECT_OT_vertex_weight_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_normalize_active_vertex(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_copy(struct wmOperatorType *ot);
 
+/* object_warp.c */
+void OBJECT_OT_vertex_warp(struct wmOperatorType *ot);
+
 /* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);

@@ -181,6 +181,7 @@ class VIEW3D_MT_transform_base(Menu):
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")
+        layout.operator("object.vertex_warp", text="Warp")
 
 
 # Generic transform menu - geometry types
