@@ -816,6 +816,11 @@ static short acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale
 {
 	/* for now, all settings are supported, though some are only conditionally */
 	switch (setting) {
+		/* unsupported */
+		case ACHANNEL_SETTING_SOLO:    /* Only available in NLA Editor for tracks */
+			return 0;
+		
+		/* conditionally supported */
 		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
 			return (ac->spacetype == SPACE_IPO);
 			
@@ -925,6 +930,7 @@ static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 	
 	switch (setting) {
 		/* unsupported */
+		case ACHANNEL_SETTING_SOLO:   /* Solo Flag is only for NLA */
 		case ACHANNEL_SETTING_EXPAND: /* F-Curves are not containers */
 			return 0;
 		
@@ -2542,6 +2548,7 @@ static short acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUS
 		/* unsupported */
 		case ACHANNEL_SETTING_EXPAND: /* gpencil layers are more like F-Curves than groups */
 		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
+		case ACHANNEL_SETTING_SOLO: /* nla editor only */
 			return 0;
 		
 		/* always available */
@@ -2707,6 +2714,7 @@ static short acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 		/* unsupported */
 		case ACHANNEL_SETTING_EXPAND: /* mask layers are more like F-Curves than groups */
 		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
+		case ACHANNEL_SETTING_SOLO: /* nla editor only */
 			return 0;
 		
 		/* always available */
