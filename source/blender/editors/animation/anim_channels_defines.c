@@ -3355,8 +3355,8 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			break;
 			
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
-			//icon = ((enabled) ? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
-			icon = ICON_LAYER_USED;
+			//icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
+			icon = ICON_SOLO_OFF;
 			tooltip = TIP_("NLA Track is the only one evaluated for the AnimData block it belongs to");
 			break;
 		
