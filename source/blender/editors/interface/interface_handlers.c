@@ -3879,8 +3879,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	float x, y;
 	float mx_fl, my_fl;
 	bool changed = true;
-	int color_profile = but->block->color_profile;
-	
+	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
+
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
 
 #ifdef USE_CONT_MOUSE_CORRECT
@@ -3892,14 +3892,9 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	}
 #endif
 
-	if (but->rnaprop) {
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = FALSE;
-	}
-
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1 != UI_GRAD_SV)
+	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3913,7 +3908,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 		
 		/* calculate original hsv again */
 		copy_v3_v3(rgb, data->origvec);
-		if (color_profile && (int)but->a1 != UI_GRAD_SV)
+		if (use_display_colorspace)
 			ui_block_to_display_space_v3(but->block, rgb);
 		
 		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
@@ -3974,7 +3969,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
+	if (use_display_colorspace)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	/* clamp because with color conversion we can exceed range [#34295] */
@@ -3997,17 +3992,11 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
 	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
-	
-	int color_profile = but->block->color_profile;
-	
-	if (but->rnaprop) {
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = FALSE;
-	}
+	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
 
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1 != UI_GRAD_SV)
+	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -4055,7 +4044,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && (int)but->a1 != UI_GRAD_SV)
+	if (use_display_colorspace)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	copy_v3_v3(data->vec, rgb);

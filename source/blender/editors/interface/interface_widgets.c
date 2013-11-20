@@ -2146,6 +2146,19 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	
 }
 
+bool ui_hsvcube_use_display_colorspace(uiBut *but)
+{
+	bool color_profile = but->block->color_profile;
+
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = FALSE;
+	}
+
+	/* SV+H gradient does not use display colorspace */
+	return color_profile && !ELEM((int)but->a1, UI_GRAD_SV, UI_GRAD_H);
+}
+
 void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
 {
 	float x, y;
@@ -2182,16 +2195,13 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	float x = 0.0f, y = 0.0f;
 	float *hsv = ui_block_hsv_get(but->block);
 	float hsv_n[3];
-	int color_profile = but->block->color_profile;
-	
-	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = FALSE;
+	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
 	
 	copy_v3_v3(hsv_n, hsv);
 	
 	ui_get_but_vectorf(but, rgb);
 	
-	if (color_profile && (int)but->a1 != UI_GRAD_SV)
+	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
 	
 	rgb_to_hsv_compat_v(rgb, hsv_n);
