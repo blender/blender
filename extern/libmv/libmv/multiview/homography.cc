@@ -22,6 +22,7 @@
 
 #include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
+#include "libmv/multiview/conditioning.h"
 #include "libmv/multiview/homography_parameterization.h"
 
 namespace libmv {
@@ -155,14 +156,26 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
   }
 }
 
-HomographyEstimationOptions::HomographyEstimationOptions(void) :
-    expected_algebraic_precision(EigenDouble::dummy_precision()),
-    use_refine_if_algebraic_fails(true),
+// Default settings for homography estimation which should be suitable
+// for a wide range of use cases.
+EstimateHomographyOptions::EstimateHomographyOptions(void) :
+    use_normalization(true),
     max_num_iterations(50),
-    parameter_tolerance(1e-16),
-    function_tolerance(1e-16) {
+    expected_average_symmetric_distance(1e-16) {
 }
 
+namespace {
+void GetNormalizedPoints(const Mat &original_points,
+                         Mat *normalized_points,
+                         Mat3 *normalization_matrix) {
+  IsotropicPreconditionerFromPoints(original_points, normalization_matrix);
+  ApplyTransformationToPoints(original_points,
+                              *normalization_matrix,
+                              normalized_points);
+}
+
+// Cost functor which computes symmetric geometric distance
+// used for homography matrix refinement.
 class HomographySymmetricGeometricCostFunctor {
  public:
   HomographySymmetricGeometricCostFunctor(const Vec2 &x,
@@ -200,13 +213,55 @@ class HomographySymmetricGeometricCostFunctor {
   const Vec2 y_;
 };
 
+// Termination checking callback used for homography estimation.
+// It finished the minimization as soon as actual average of
+// symmetric geometric distance is less or equal to the expected
+// average value.
+class TerminationCheckingCallback : public ceres::IterationCallback {
+ public:
+  TerminationCheckingCallback(const Mat &x1, const Mat &x2,
+                              const EstimateHomographyOptions &options,
+                              Mat3 *H)
+      : options_(options), x1_(x1), x2_(x2), H_(H) {}
+
+  virtual ceres::CallbackReturnType operator()(
+      const ceres::IterationSummary& summary) {
+    // If the step wasn't successful, there's nothing to do.
+    if (!summary.step_is_successful) {
+      return ceres::SOLVER_CONTINUE;
+    }
+
+    // Calculate average of symmetric geometric distance.
+    double average_distance = 0.0;
+    for (int i = 0; i < x1_.cols(); i++) {
+      average_distance = SymmetricGeometricDistance(*H_,
+                                                    x1_.col(i),
+                                                    x2_.col(i));
+    }
+    average_distance /= x1_.cols();
+
+    if (average_distance <= options_.expected_average_symmetric_distance) {
+      return ceres::SOLVER_TERMINATE_SUCCESSFULLY;
+    }
+
+    return ceres::SOLVER_CONTINUE;
+  }
+
+ private:
+  const EstimateHomographyOptions &options_;
+  const Mat &x1_;
+  const Mat &x2_;
+  Mat3 *H_;
+};
+}  // namespace
+
 /** 2D Homography transformation estimation in the case that points are in
  * euclidean coordinates.
  */
-bool Homography2DFromCorrespondencesEuc(
+bool EstimateHomography2DFromCorrespondences(
     const Mat &x1,
     const Mat &x2,
-    const HomographyEstimationOptions &options,
+    const EstimateHomographyOptions &options,
     Mat3 *H) {
   // TODO(sergey): Support homogenous coordinates, not just euclidean.
 
@@ -215,17 +270,30 @@ bool Homography2DFromCorrespondencesEuc(
   assert(x1.rows() == x2.rows());
   assert(x1.cols() == x2.cols());
 
+  Mat3 T1 = Mat3::Identity(),
+       T2 = Mat3::Identity();
+
   // Step 1: Algebraic homography estimation.
-  bool algebraic_success =
-      Homography2DFromCorrespondencesLinear(x1, x2, H,
-          options.expected_algebraic_precision);
+  Mat x1_normalized, x2_normalized;
 
-  LG << "Algebraic result " << algebraic_success
-     << ", estimated matrix:\n" << *H;
-
-  if (!algebraic_success && !options.use_refine_if_algebraic_fails) {
-    return false;
+  if (options.use_normalization) {
+    LG << "Estimating homography using normalization.";
+    GetNormalizedPoints(x1, &x1_normalized, &T1);
+    GetNormalizedPoints(x2, &x2_normalized, &T2);
+  } else {
+    x1_normalized = x1;
+    x2_normalized = x2;
   }
+
+  // Assume algebraic estiation always suceeds,
+  Homography2DFromCorrespondencesLinear(x1_normalized, x2_normalized, H);
+
+  // Denormalize the homography matrix.
+  if (options.use_normalization) {
+    *H = T2.inverse() * (*H) * T1;
+  }
+
+  LG << "Estimated matrix after algebraic estimation:\n" << *H;
 
   // Step 2: Refine matrix using Ceres minimizer.
   ceres::Problem problem;
@@ -249,8 +317,10 @@ bool Homography2DFromCorrespondencesEuc(
   solver_options.linear_solver_type = ceres::DENSE_QR;
   solver_options.max_num_iterations = options.max_num_iterations;
   solver_options.update_state_every_iteration = true;
-  solver_options.parameter_tolerance = options.parameter_tolerance;
-  solver_options.function_tolerance = options.function_tolerance;
+
+  // Terminate if the average symmetric distance is good enough.
+  TerminationCheckingCallback callback(x1, x2, options, H);
+  solver_options.callbacks.push_back(&callback);
 
   // Run the solve.
   ceres::Solver::Summary summary;
@@ -261,7 +331,8 @@ bool Homography2DFromCorrespondencesEuc(
   LG << "Final refined matrix:\n" << *H;
 
   return !(summary.termination_type == ceres::DID_NOT_RUN ||
-           summary.termination_type == ceres::NUMERICAL_FAILURE);
+           summary.termination_type == ceres::NUMERICAL_FAILURE ||
+           summary.termination_type == ceres::USER_ABORT);
 }
 
 /**
@@ -377,7 +448,9 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
   }
 }
 
-double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
+double SymmetricGeometricDistance(const Mat3 &H,
+                                  const Vec2 &x1,
+                                  const Vec2 &x2) {
   Vec3 x(x1(0), x1(1), 1.0);
   Vec3 y(x2(0), x2(1), 1.0);
 

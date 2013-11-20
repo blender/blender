@@ -207,19 +207,19 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
       Mat3 H, F;
 
       // Estimate homography using default options.
-      HomographyEstimationOptions homography_estimation_options;
-      Homography2DFromCorrespondencesEuc(x1,
-                                         x2,
-                                         homography_estimation_options,
-                                         &H);
+      EstimateHomographyOptions estimate_homography_options;
+      EstimateHomography2DFromCorrespondences(x1,
+                                              x2,
+                                              estimate_homography_options,
+                                              &H);
 
       // Convert homography to original pixel space.
       H = N_inverse * H * N;
 
-      FundamentalEstimationOptions fundamental_estimation_options;
-      FundamentalFromCorrespondencesEuc(x1,
+      EstimateFundamentalOptions estimate_fundamental_options;
+      EstimateFundamentalFromCorrespondences(x1,
                                         x2,
-                                        fundamental_estimation_options,
+                                        estimate_fundamental_options,
                                         &F);
 
       // Convert fundamental to original pixel space.

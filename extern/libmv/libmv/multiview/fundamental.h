@@ -151,21 +151,22 @@ void FundamentalToEssential(const Mat3 &F, Mat3 *E);
  * Defaults should be suitable for a wide range of use cases, but
  * better performance and accuracy might require tweaking/
  */
-struct FundamentalEstimationOptions {
+struct EstimateFundamentalOptions {
   // Default constructor which sets up a options for generic usage.
-  FundamentalEstimationOptions(void);
-
-  // Refine fundamental matrix even if algebraic estimation reported failure.
-  bool use_refine_if_algebraic_fails;
+  EstimateFundamentalOptions(void);
 
   // Maximal number of iterations for refinement step.
   int max_num_iterations;
 
-  // Paramaneter tolerance used by minimizer termination criteria.
-  float parameter_tolerance;
-
-  // Function tolerance used  by minimizer termination criteria.
-  float function_tolerance;
+  // Expected average of symmetric epipolar distance between
+  // actual destination points and original ones transformed by
+  // estimated fundamental matrix.
+  //
+  // Refinement will finish as soon as average of symmetric
+  // epipolar distance is less or equal to this value.
+  //
+  // This distance is measured in the same units as input points are.
+  double expected_average_symmetric_distance;
 };
 
 /**
@@ -175,10 +176,10 @@ struct FundamentalEstimationOptions {
  * correspondences by doing algebraic estimation first followed with result
  * refinement.
  */
-bool FundamentalFromCorrespondencesEuc(
+bool EstimateFundamentalFromCorrespondences(
     const Mat &x1,
     const Mat &x2,
-    const FundamentalEstimationOptions &options,
+    const EstimateFundamentalOptions &options,
     Mat3 *F);
 
 }  // namespace libmv

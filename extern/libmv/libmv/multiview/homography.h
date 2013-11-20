@@ -60,24 +60,35 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
  * Defaults should be suitable for a wide range of use cases, but
  * better performance and accuracy might require tweaking/
  */
-struct HomographyEstimationOptions {
+struct EstimateHomographyOptions {
   // Default constructor which sets up a options for generic usage.
-  HomographyEstimationOptions(void);
+  EstimateHomographyOptions(void);
 
-  // Expected precision of algebraic estimation.
-  double expected_algebraic_precision;
+  // Normalize correspondencies before estimating the homography
+  // in order to increase estimation stability.
+  //
+  // Normaliztion will make it so centroid od correspondences
+  // is the coordinate origin and their average distance from
+  // the origin is sqrt(2).
+  //
+  // See:
+  //   - R. Hartley and A. Zisserman. Multiple View Geometry in Computer
+  //     Vision. Cambridge University Press, second edition, 2003.
+  //   - https://www.cs.ubc.ca/grads/resources/thesis/May09/Dubrofsky_Elan.pdf
+  bool use_normalization;
 
-  // Refine homography even if algebraic estimation reported failure.
-  bool use_refine_if_algebraic_fails;
-
-  // Maximal number of iterations for refinement step.
+  // Maximal number of iterations for the refinement step.
   int max_num_iterations;
 
-  // Paramaneter tolerance used by minimizer termination criteria.
-  float parameter_tolerance;
-
-  // Function tolerance used  by minimizer termination criteria.
-  float function_tolerance;
+  // Expected average of symmetric geometric distance between
+  // actual destination points and original ones transformed by
+  // estimated homography matrix.
+  //
+  // Refinement will finish as soon as average of symmetric
+  // geometric distance is less or equal to this value.
+  //
+  // This distance is measured in the same units as input points are.
+  double expected_average_symmetric_distance;
 };
 
 /**
@@ -87,10 +98,11 @@ struct HomographyEstimationOptions {
  * correspondences by doing algebraic estimation first followed with result
  * refinement.
  */
-bool Homography2DFromCorrespondencesEuc(const Mat &x1,
-                                        const Mat &x2,
-                                        const HomographyEstimationOptions &options,
-                                        Mat3 *H);
+bool EstimateHomography2DFromCorrespondences(
+    const Mat &x1,
+    const Mat &x2,
+    const EstimateHomographyOptions &options,
+    Mat3 *H);
 
 /**
  * 3D Homography transformation estimation.
@@ -124,7 +136,9 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
  *
  * D(H * x1, x2)^2 + D(H^-1 * x2, x1)
  */
-double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2);
+double SymmetricGeometricDistance(const Mat3 &H,
+                                  const Vec2 &x1,
+                                  const Vec2 &x2);
 
 }  // namespace libmv
 
