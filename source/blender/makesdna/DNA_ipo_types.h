@@ -308,6 +308,7 @@ typedef struct Ipo {
 #define WO_MISTSTA	10
 #define WO_MISTHI	11
 
+/* Stars are deprecated */
 #define WO_STAR_R	12
 #define WO_STAR_G	13
 #define WO_STAR_B	14

@@ -247,10 +247,6 @@ int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct
 /* do a full sample buffer compo */
 void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
 
-/* ancient stars function... go away! */
-void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
-                   void (*vertexfunc)(const float *),  void (*termfunc)(void));
-
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
 void RE_display_clear_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));

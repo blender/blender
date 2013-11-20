@@ -56,10 +56,6 @@ static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_WorldLighting, ptr->id.data);
 }
 
-static PointerRNA rna_World_stars_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_WorldStarsSettings, ptr->id.data);
-}
 
 static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 {
@@ -112,14 +108,6 @@ static void rna_World_draw_mist_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
-}
-
-static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	World *wo = ptr->id.data;
-
-	DAG_id_tag_update(&wo->id, 0);
-	WM_main_add_notifier(NC_WORLD | ND_WORLD_STARS, wo);
 }
 
 static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
@@ -450,46 +438,6 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 }
 
-static void rna_def_world_stars(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "WorldStarsSettings", NULL);
-	RNA_def_struct_sdna(srna, "World");
-	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "World Stars", "Stars settings for a World data-block");
-
-	prop = RNA_def_property(srna, "use_stars", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);
-	RNA_def_property_ui_text(prop, "Use Stars", "Enable starfield generation");
-	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-
-	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "starsize");
-	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Size", "Average screen dimension of stars");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update"); /* use normal update since this isn't visualized */
-
-	prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "starmindist");
-	RNA_def_property_range(prop, 0, 1000);
-	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance to the camera for stars");
-	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-
-	prop = RNA_def_property(srna, "average_separation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "stardist");
-	RNA_def_property_range(prop, 2, 1000);
-	RNA_def_property_ui_text(prop, "Average Separation", "Average distance between any two stars");
-	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-
-	prop = RNA_def_property(srna, "color_random", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Color Randomization", "Randomize star colors");
-	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-}
-
 void RNA_def_world(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -568,12 +516,6 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Mist", "World mist settings");
 
-	prop = RNA_def_property(srna, "star_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "WorldStarsSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Stars", "World stars settings");
-
 	/* nodes */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
@@ -588,7 +530,6 @@ void RNA_def_world(BlenderRNA *brna)
 
 	rna_def_lighting(brna);
 	rna_def_world_mist(brna);
-	rna_def_world_stars(brna);
 	rna_def_world_mtex(brna);
 }
 

@@ -64,7 +64,6 @@
 #include "BKE_movieclip.h"
 
 #include "RE_engine.h"
-#include "RE_pipeline.h"  /* make_stars */
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -3278,14 +3277,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 			drawfloor(scene, v3d, grid_unit);
-		}
-		if (rv3d->persp == RV3D_CAMOB) {
-			if (scene->world) {
-				if (scene->world->mode & WO_STARS) {
-					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
-					              star_stuff_term_func);
-				}
-			}
 		}
 	}
 	else {

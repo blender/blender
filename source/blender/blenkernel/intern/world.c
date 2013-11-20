@@ -92,8 +92,6 @@ World *add_world(Main *bmain, const char *name)
 	wrld->zeng = 0.01f;
 	wrld->zenb = 0.01f;
 	wrld->skytype = 0;
-	wrld->stardist = 15.0f;
-	wrld->starsize = 2.0f;
 
 	wrld->exp = 0.0f;
 	wrld->exposure = wrld->range = 1.0f;

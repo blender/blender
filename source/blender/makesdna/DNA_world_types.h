@@ -96,8 +96,9 @@ typedef struct World {
 	float misi, miststa, mistdist, misthi;
 	
 	float starr  DNA_DEPRECATED, starg  DNA_DEPRECATED, starb  DNA_DEPRECATED, stark  DNA_DEPRECATED; /* Deprecated */
-	float starsize, starmindist;
-	float stardist, starcolnoise;
+	
+	float starsize DNA_DEPRECATED, starmindist DNA_DEPRECATED;
+	float stardist DNA_DEPRECATED, starcolnoise DNA_DEPRECATED;
 	
 	/* unused now: DOF */
 	short dofsta, dofend, dofmin, dofmax;
@@ -142,7 +143,7 @@ typedef struct World {
 
 /* mode */
 #define WO_MIST	               1
-#define WO_STARS               2
+#define WO_STARS               2 /* deprecated */
 /*#define WO_DOF                 4*/
 #define WO_ACTIVITY_CULLING	   8
 #define WO_ENV_LIGHT   		  16

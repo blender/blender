@@ -244,34 +244,6 @@ class WORLD_PT_mist(WorldButtonsPanel, Panel):
         layout.prop(world.mist_settings, "falloff")
 
 
-class WORLD_PT_stars(WorldButtonsPanel, Panel):
-    bl_label = "Stars"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.star_settings, "use_stars", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        world = context.world
-
-        layout.active = world.star_settings.use_stars
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world.star_settings, "size")
-        col.prop(world.star_settings, "color_random", text="Colors")
-
-        col = split.column()
-        col.prop(world.star_settings, "distance_min", text="Min. Dist")
-        col.prop(world.star_settings, "average_separation", text="Separation")
-
-
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "world"
