@@ -1446,23 +1446,37 @@ static bool snapCurve(short snap_mode, ARegion *ar, Object *ob, Curve *cu, float
 				case SCE_SNAP_MODE_VERTEX:
 				{
 					if (ob->mode == OB_MODE_EDIT) {
-						/* don't snap to selected (moving) or hidden */
-						if (nu->bezt[u].f2 & SELECT || nu->bezt[u].hide != 0) {
-							break;
+						if (nu->bezt) {
+							/* don't snap to selected (moving) or hidden */
+							if (nu->bezt[u].f2 & SELECT || nu->bezt[u].hide != 0) {
+								break;
+							}
+							retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							/* don't snap if handle is selected (moving), or if it is aligning to a moving handle */
+							if (!(nu->bezt[u].f1 & SELECT) && !(nu->bezt[u].h1 & HD_ALIGN && nu->bezt[u].f3 & SELECT)) {
+								retval |= snapVertex(ar, nu->bezt[u].vec[0], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							}
+							if (!(nu->bezt[u].f3 & SELECT) && !(nu->bezt[u].h2 & HD_ALIGN && nu->bezt[u].f1 & SELECT)) {
+								retval |= snapVertex(ar, nu->bezt[u].vec[2], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							}
 						}
-						retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
-						/* don't snap if handle is selected (moving), or if it is aligning to a moving handle */
-						if (!(nu->bezt[u].f1 & SELECT) && !(nu->bezt[u].h1 & HD_ALIGN && nu->bezt[u].f3 & SELECT)) {
-							retval |= snapVertex(ar, nu->bezt[u].vec[0], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
-						}
-						if (!(nu->bezt[u].f3 & SELECT) && !(nu->bezt[u].h2 & HD_ALIGN && nu->bezt[u].f1 & SELECT)) {
-							retval |= snapVertex(ar, nu->bezt[u].vec[2], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+						else {
+							/* don't snap to selected (moving) or hidden */
+							if (nu->bp[u].f1 & SELECT || nu->bp[u].hide != 0) {
+								break;
+							}
+							retval |= snapVertex(ar, nu->bp[u].vec, NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
 						}
 					}
 					else {
 						/* curve is not visible outside editmode if nurb length less than two */
 						if (nu->pntsu > 1) {
-							retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							if (nu->bezt) {
+								retval |= snapVertex(ar, nu->bezt[u].vec[1], NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							}
+							else {
+								retval |= snapVertex(ar, nu->bp[u].vec, NULL, obmat, NULL, ray_start, ray_start_local, ray_normal_local, mval, r_loc, NULL, r_dist_px, r_depth);
+							}
 						}
 					}
 					break;
