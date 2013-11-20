@@ -3502,7 +3502,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			icon = ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)
-				tooltip = TIP_("Channel is visible in Graph Editor for editing");
+				tooltip = TIP_("F-Curve is visible in Graph Editor for editing");
 			else
 				tooltip = TIP_("Channels are visible in Graph Editor for editing");
 			break;
@@ -3516,7 +3516,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
 			//icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
 			icon = ICON_SOLO_OFF;
-			tooltip = TIP_("NLA Track is the only one evaluated for the AnimData block it belongs to");
+			tooltip = TIP_("NLA Track is the only one evaluated in this Animation Data block, with all others muted");
 			break;
 		
 		/* --- */
@@ -3525,14 +3525,18 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			// TODO: what about when there's no protect needed?
 			//icon = ((enabled) ? ICON_LOCKED : ICON_UNLOCKED);
 			icon = ICON_UNLOCKED;
-			tooltip = TIP_("Editability of keyframes for this channel");
+			
+			if (ale->datatype != ALE_NLASTRIP)
+				tooltip = TIP_("Editability of keyframes for this channel");
+			else
+				tooltip = TIP_("Editability of NLA Strips in this track");
 			break;
 			
 		case ACHANNEL_SETTING_MUTE: /* muted speaker */
 			//icon = ((enabled) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon = ICON_MUTE_IPO_OFF;
 			
-			if (ale->type == ALE_FCURVE) 
+			if (ale->type == ANIMTYPE_FCURVE)
 				tooltip = TIP_("Does F-Curve contribute to result");
 			else
 				tooltip = TIP_("Do channels contribute to result");
