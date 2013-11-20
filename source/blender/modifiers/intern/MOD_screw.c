@@ -34,6 +34,7 @@
 
 
 /* Screw modifier: revolves the edges about an axis */
+#include <limits.h>
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -41,19 +42,20 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
 #include "BKE_cdderivedmesh.h"
 
 #include "depsgraph_private.h"
 #include "MOD_modifiertypes.h"
 #include "MEM_guardedalloc.h"
 
+#include "BLI_strict_flags.h"
+
 /* used for gathering edge connectivity */
 typedef struct ScrewVertConnect {
 	float dist;  /* distance from the center axis */
 	float co[3]; /* loaction relative to the transformed axis */
 	float no[3]; /* calc normal of the vertex */
-	int v[2]; /* 2  verts on either side of this one */
+	unsigned int v[2]; /* 2  verts on either side of this one */
 	MEdge *e[2]; /* edges on either side, a bit of a waste since each edge ref's 2 edges */
 	char flag;
 } ScrewVertConnect;
@@ -61,18 +63,20 @@ typedef struct ScrewVertConnect {
 typedef struct ScrewVertIter {
 	ScrewVertConnect *v_array;
 	ScrewVertConnect *v_poin;
-	int v;
-	int v_other;
+	unsigned int v, v_other;
 	MEdge *e;
 } ScrewVertIter;
 
+#define SV_UNUSED (UINT_MAX)
+#define SV_INVALID ((UINT_MAX) - 1)
+#define SV_IS_VALID(v) (v < SV_INVALID)
 
-static void screwvert_iter_init(ScrewVertIter *iter, ScrewVertConnect *array, int v_init, int dir)
+static void screwvert_iter_init(ScrewVertIter *iter, ScrewVertConnect *array, unsigned int v_init, unsigned int dir)
 {
 	iter->v_array = array;
 	iter->v = v_init;
 
-	if (v_init >= 0) {
+	if (SV_IS_VALID(v_init)) {
 		iter->v_poin = &array[v_init];
 		iter->v_other = iter->v_poin->v[dir];
 		iter->e = iter->v_poin->e[!dir];
@@ -94,7 +98,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 		iter->v_other = iter->v;
 		iter->v = iter->v_poin->v[0];
 	}
-	if (iter->v >= 0) {
+	if (SV_IS_VALID(iter->v)) {
 		iter->v_poin = &iter->v_array[iter->v];
 		iter->e = iter->v_poin->e[(iter->v_poin->e[0] == iter->e)];
 	}
@@ -109,7 +113,7 @@ static void initData(ModifierData *md)
 {
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
 	ltmd->ob_axis = NULL;
-	ltmd->angle = M_PI * 2.0;
+	ltmd->angle = (float)(M_PI * 2.0);
 	ltmd->axis = 2;
 	ltmd->flag = MOD_SCREW_SMOOTH_SHADING;
 	ltmd->steps = 16;
@@ -143,18 +147,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	int *origindex;
 	int mpoly_index = 0;
-	int step;
-	int i, j;
+	unsigned int step;
+	unsigned int i, j;
 	unsigned int i1, i2;
-	int step_tot = useRenderParams ? ltmd->render_steps : ltmd->steps;
-	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
-	int maxVerts = 0, maxEdges = 0, maxPolys = 0;
-	const unsigned int totvert = dm->getNumVerts(dm);
-	const unsigned int totedge = dm->getNumEdges(dm);
-	const unsigned int totpoly = dm->getNumPolys(dm);
-	int *edge_poly_map = NULL;
+	unsigned int step_tot = useRenderParams ? ltmd->render_steps : ltmd->steps;
+	const bool do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
+	unsigned int maxVerts = 0, maxEdges = 0, maxPolys = 0;
+	const unsigned int totvert = (unsigned int)dm->getNumVerts(dm);
+	const unsigned int totedge = (unsigned int)dm->getNumEdges(dm);
+	const unsigned int totpoly = (unsigned int)dm->getNumPolys(dm);
+	unsigned int *edge_poly_map = NULL;
 
-	char axis_char = 'X', close;
+	char axis_char = 'X';
+	bool close;
 	float angle = ltmd->angle;
 	float screw_ofs = ltmd->screw_ofs;
 	float axis_vec[3] = {0.0f, 0.0f, 0.0f};
@@ -164,11 +169,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	float mtx_tx_inv[4][4]; /* inverted */
 	float mtx_tmp_a[4][4];
 	
-	int vc_tot_linked = 0;
+	unsigned int vc_tot_linked = 0;
 	short other_axis_1, other_axis_2;
 	float *tmpf1, *tmpf2;
 
-	int edge_offset;
+	unsigned int edge_offset;
 	
 	MPoly *mpoly_orig, *mpoly_new, *mp_new;
 	MLoop *mloop_orig, *mloop_new, *ml_new;
@@ -261,7 +266,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	else {
 		/* exis char is used by i_rotate*/
-		axis_char += ltmd->axis; /* 'X' + axis */
+		axis_char = (char)(axis_char + ltmd->axis); /* 'X' + axis */
 
 		/* useful to be able to use the axis vec in some cases still */
 		zero_v3(axis_vec);
@@ -269,8 +274,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	/* apply the multiplier */
-	angle *= ltmd->iter;
-	screw_ofs *= ltmd->iter;
+	angle *= (float)ltmd->iter;
+	screw_ofs *= (float)ltmd->iter;
 
 	/* multiplying the steps is a bit tricky, this works best */
 	step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
@@ -301,7 +306,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		maxPolys =  totedge * (step_tot - 1);
 	}
 	
-	result = CDDM_from_template(dm, maxVerts, maxEdges, 0, maxPolys * 4, maxPolys);
+	result = CDDM_from_template(dm, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
 	
 	/* copy verts from mesh */
 	mvert_orig =    dm->getVertArray(dm);
@@ -313,12 +318,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	medge_new =     result->getEdgeArray(result);
 
 	if (!CustomData_has_layer(&result->polyData, CD_ORIGINDEX)) {
-		CustomData_add_layer(&result->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, maxPolys);
+		CustomData_add_layer(&result->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
 	}
 
 	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
-	DM_copy_vert_data(dm, result, 0, 0, totvert); /* copy first otherwise this overwrites our own vertex normals */
+	DM_copy_vert_data(dm, result, 0, 0, (int)totvert); /* copy first otherwise this overwrites our own vertex normals */
 	
 	/* Set the locations of the first set of verts */
 	
@@ -342,12 +347,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		mpoly_orig = dm->getPolyArray(dm);
 		mloop_orig = dm->getLoopArray(dm);
 		edge_poly_map = MEM_mallocN(sizeof(*edge_poly_map) * totedge, __func__);
-		fill_vn_i(edge_poly_map, totedge, -1);
+		memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);
 
 		for (i = 0, mp_orig = mpoly_orig; i < totpoly; i++, mp_orig++) {
 			MLoop *ml_orig = &mloop_orig[mp_orig->loopstart];
-			int j;
-			for (j = 0; j < mp_orig->totloop; j++, ml_orig++) {
+			int k;
+			for (k = 0; k < mp_orig->totloop; k++, ml_orig++) {
 				edge_poly_map[ml_orig->e] = i;
 
 				/* also order edges based on faces */
@@ -410,7 +415,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 					vc->flag = 0;
 					vc->e[0] = vc->e[1] = NULL;
-					vc->v[0] = vc->v[1] = -1;
+					vc->v[0] = vc->v[1] = SV_UNUSED;
 
 					mul_m4_v3(mtx_tx, vc->co);
 					/* length in 2d, don't sqrt because this is only for comparison */
@@ -428,7 +433,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 					vc->flag = 0;
 					vc->e[0] = vc->e[1] = NULL;
-					vc->v[0] = vc->v[1] = -1;
+					vc->v[0] = vc->v[1] = SV_UNUSED;
 
 					/* length in 2d, don't sqrt because this is only for comparison */
 					vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
@@ -442,31 +447,31 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			for (i = 0; i < totedge; i++, med_new++) {
 				vc = &vert_connect[med_new->v1];
 
-				if (vc->v[0] == -1) { /* unused */
+				if (vc->v[0] == SV_UNUSED) { /* unused */
 					vc->v[0] = med_new->v2;
 					vc->e[0] = med_new;
 				}
-				else if (vc->v[1] == -1) {
+				else if (vc->v[1] == SV_UNUSED) {
 					vc->v[1] = med_new->v2;
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = SV_INVALID; /* error value  - don't use, 3 edges on vert */
 				}
 
 				vc = &vert_connect[med_new->v2];
 
 				/* same as above but swap v1/2 */
-				if (vc->v[0] == -1) { /* unused */
+				if (vc->v[0] == SV_UNUSED) { /* unused */
 					vc->v[0] = med_new->v1;
 					vc->e[0] = med_new;
 				}
-				else if (vc->v[1] == -1) {
+				else if (vc->v[1] == SV_UNUSED) {
 					vc->v[1] = med_new->v1;
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = SV_INVALID; /* error value  - don't use, 3 edges on vert */
 				}
 			}
 
@@ -477,12 +482,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				 * so resulting faces are flipped the right way */
 				vc_tot_linked = 0; /* count the number of linked verts for this loop */
 				if (vc->flag == 0) {
-					int v_best = -1, ed_loop_closed = 0; /* vert and vert new */
+					unsigned int v_best = SV_UNUSED, ed_loop_closed = 0; /* vert and vert new */
 					ScrewVertIter lt_iter;
 					float fl = -1.0f;
 
 					/* compiler complains if not initialized, but it should be initialized below */
-					int ed_loop_flip = 0;
+					bool ed_loop_flip = false;
 
 					/*printf("Loop on connected vert: %i\n", i);*/
 
@@ -496,7 +501,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/*printf("\t\tVERT: %i\n", lt_iter.v);*/
 							if (lt_iter.v_poin->flag) {
 								/*printf("\t\t\tBreaking Found end\n");*/
-								//endpoints[0] = endpoints[1] = -1;
+								//endpoints[0] = endpoints[1] = SV_UNUSED;
 								ed_loop_closed = 1; /* circle */
 								break;
 							}
@@ -518,7 +523,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					}
 
 					/* now we have a collection of used edges. flip their edges the right way*/
-					/*if (v_best != -1) - */
+					/*if (v_best != SV_UNUSED) - */
 
 					/*printf("Done Looking - vc_tot_linked: %i\n", vc_tot_linked);*/
 
@@ -532,7 +537,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 
 						/* edge connects on each side! */
-						if ((vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1)) {
+						if (SV_IS_VALID(vc_tmp->v[0]) && SV_IS_VALID(vc_tmp->v[1])) {
 							/*printf("Verts on each side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);*/
 							/* find out which is higher */
 
@@ -561,7 +566,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 								}
 							}
 						}
-						else if (vc_tmp->v[0] >= 0) { /*vertex only connected on 1 side */
+						else if (SV_IS_VALID(vc_tmp->v[0])) { /*vertex only connected on 1 side */
 							/*printf("Verts on ONE side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);*/
 							if (tmpf1[ltmd->axis] < vc_tmp->co[ltmd->axis]) { /* best is above */
 								ed_loop_flip = 1;
@@ -602,7 +607,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/* If this is the vert off the best vert and
 							 * the best vert has 2 edges connected too it
 							 * then swap the flip direction */
-							if (j == 1 && (vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1))
+							if (j == 1 && SV_IS_VALID(vc_tmp->v[0]) && SV_IS_VALID(vc_tmp->v[1]))
 								ed_loop_flip = !ed_loop_flip;
 
 							while (lt_iter.v_poin && lt_iter.v_poin->flag != 2) {
@@ -647,8 +652,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				 *
 				 * calculate vertex normals that can be propagated on lathing
 				 * use edge connectivity work this out */
-				if (vc->v[0] >= 0) {
-					if (vc->v[1] >= 0) {
+				if (SV_IS_VALID(vc->v[0])) {
+					if (SV_IS_VALID(vc->v[1])) {
 						/* 2 edges connedted */
 						/* make 2 connecting vert locations relative to the middle vert */
 						sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
@@ -714,12 +719,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	/* Add Faces */
 	for (step = 1; step < step_tot; step++) {
-		const int varray_stride = totvert * step;
+		const unsigned int varray_stride = totvert * step;
 		float step_angle;
 		float nor_tx[3];
 		float mat[4][4];
 		/* Rotation Matrix */
-		step_angle = (angle / (step_tot - (!close))) * step;
+		step_angle = (angle / (float)(step_tot - (!close))) * (float)step;
 
 		if (ltmd->ob_axis) {
 			axis_angle_normalized_to_mat3(mat3, axis_vec, step_angle);
@@ -735,7 +740,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot - 1)));
 
 		/* copy a slice */
-		DM_copy_vert_data(dm, result, 0, varray_stride, totvert);
+		DM_copy_vert_data(dm, result, 0, (int)varray_stride, (int)totvert);
 		
 		mv_new_base = mvert_new;
 		mv_new = &mvert_new[varray_stride]; /* advance to the next slice */
@@ -782,7 +787,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (close) {
 		/* last loop of edges, previous loop dosnt account for the last set of edges */
-		const int varray_stride = (step_tot - 1) * totvert;
+		const unsigned int varray_stride = (step_tot - 1) * totvert;
 
 		for (i = 0; i < totvert; i++) {
 			med_new->v1 = i;
@@ -806,7 +811,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		i1 = med_new_firstloop->v1;
 		i2 = med_new_firstloop->v2;
 
-		if (totpoly && (edge_poly_map[i] != -1)) {
+		if (totpoly && (edge_poly_map[i] != UINT_MAX)) {
 			mat_nr = mpoly_orig[edge_poly_map[i]].mat_nr;
 		}
 		else {
@@ -907,10 +912,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* validate loop edges */
 #if 0
 	{
-		i = 0;
+		unsigned i = 0;
 		printf("\n");
 		for (; i < maxPolys * 4; i += 4) {
-			int ii;
+			unsigned int ii;
 			ml_new = mloop_new + i;
 			ii = findEd(medge_new, maxEdges, ml_new[0].v, ml_new[1].v);
 			printf("%d %d -- ", ii, ml_new[0].e);

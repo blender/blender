@@ -822,12 +822,13 @@ typedef struct ScrewModifierData {
 	ModifierData modifier;
 
 	struct Object *ob_axis;
-	int steps;
-	int render_steps;
-	int iter;
+	unsigned int steps;
+	unsigned int render_steps;
+	unsigned int iter;
 	float screw_ofs;
 	float angle;
-	short axis;
+	char axis;
+	char pad;
 	short flag;
 } ScrewModifierData;
 
