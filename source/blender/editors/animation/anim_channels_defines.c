@@ -2764,6 +2764,94 @@ static bAnimChannelType ACF_MASKLAYER =
 	acf_masklay_setting_ptr         /* pointer for setting */
 };
 
+/* NLA Track ----------------------------------------------- */
+
+/* name for nla track entries */
+static void acf_nlatrack_name(bAnimListElem *ale, char *name)
+{
+	NlaTrack *nlt = (NlaTrack *)ale->data;
+	
+	if (nlt && name)
+		BLI_strncpy(name, nlt->name, ANIM_CHAN_NAME_SIZE);
+}
+
+/* name property for nla track entries */
+static short acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	if (ale->data) {
+		RNA_pointer_create(ale->id, &RNA_NlaTrack, ale->data, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+		
+		return (*prop != NULL);
+	}
+	
+	return 0;
+}
+
+/* check if some setting exists for this channel */
+static short acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *ale, int setting)
+{
+	NlaTrack *nlt = (NlaTrack *)ale->data;
+	AnimData *adt = ale->adt;
+	
+	/* visibility of settings depends on various states... */
+	
+	// XXX:
+	return 0;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg = 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return NLATRACK_SELECTED;
+			
+		case ACHANNEL_SETTING_MUTE: /* muted */
+			return NLATRACK_MUTED;
+			
+		case ACHANNEL_SETTING_PROTECT: /* protected */
+			return NLATRACK_PROTECTED;
+			
+		case ACHANNEL_SETTING_SOLO: /* solo */
+			return NLATRACK_SOLO;
+			
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_nlatrack_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+{
+	NlaTrack *nlt = (NlaTrack *)ale->data;
+	return GET_ACF_FLAG_PTR(nlt->flag, type);
+}
+
+/* nla track type define */
+static bAnimChannelType ACF_NLATRACK = 
+{
+	"NLA Track",                    /* type name */
+	
+	acf_generic_channel_color,      /* backdrop color */   // XXX: color depends on whether track is solo or not!
+	acf_generic_channel_backdrop,   /* backdrop */
+	acf_generic_indention_flexible, /* indent level */
+	acf_generic_group_offset,       /* offset */           // XXX?
+	
+	acf_nlatrack_name,              /* name */
+	acf_nlatrack_name_prop,         /* name prop */
+	NULL,                           /* icon */
+	
+	acf_nlatrack_setting_valid,     /* has setting */
+	acf_nlatrack_setting_flag,      /* flag for setting */
+	acf_nlatrack_setting_ptr        /* pointer for setting */
+};
+
+
+
 
 /* *********************************************** */
 /* Type Registration and General Access */
@@ -2822,10 +2910,8 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_MASKDATA;     /* Mask Datablock */
 		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
 		
-		// TODO: these types still need to be implemented!!!
-		// probably need a few extra flags for these special cases...
-		animchannelTypeInfo[type++] = NULL;              /* NLA Track */
-		animchannelTypeInfo[type++] = NULL;              /* NLA Action */
+		animchannelTypeInfo[type++] = &ACF_NLATRACK;     /* NLA Track */
+		animchannelTypeInfo[type++] = &ACF_NLAACTION;    /* NLA Action */
 	}
 } 
 
@@ -3422,6 +3508,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 					
 				/* no flushing */
 				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
+				case ACHANNEL_SETTING_SOLO: /* NLA Tracks - solo flag */
 				default:
 					uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
 					break;
