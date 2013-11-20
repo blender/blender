@@ -1137,8 +1137,8 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		if (v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		
-		/* warp always uses the cursor */
-		if (t->mode == TFM_WARP) {
+		/* bend always uses the cursor */
+		if (t->mode == TFM_BEND) {
 			t->around = V3D_CURSOR;
 		}
 

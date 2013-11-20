@@ -111,9 +111,9 @@ static void postInputRotation(TransInfo *t, float values[3]);
 
 
 /* Transform Callbacks */
-static void initWarp(TransInfo *t);
-static eRedrawFlag handleEventWarp(TransInfo *t, const struct wmEvent *event);
-static void Warp(TransInfo *t, const int mval[2]);
+static void initBend(TransInfo *t);
+static eRedrawFlag handleEventBend(TransInfo *t, const struct wmEvent *event);
+static void Bend(TransInfo *t, const int mval[2]);
 
 static void initShear(TransInfo *t);
 static eRedrawFlag handleEventShear(TransInfo *t, const struct wmEvent *event);
@@ -2069,8 +2069,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		case TFM_SHEAR:
 			initShear(t);
 			break;
-		case TFM_WARP:
-			initWarp(t);
+		case TFM_BEND:
+			initBend(t);
 			break;
 		case TFM_SHRINKFATTEN:
 			initShrinkFatten(t);
@@ -2672,12 +2672,12 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 
 
 /* -------------------------------------------------------------------- */
-/* Transform (Warp) */
+/* Transform (Bend) */
 
-/** \name Transform Warp
+/** \name Transform Bend
  * \{ */
 
-struct WarpCustomData {
+struct BendCustomData {
 	float warp_sta[3];
 	float warp_end[3];
 
@@ -2688,16 +2688,16 @@ struct WarpCustomData {
 	float warp_init_dist;
 };
 
-static void initWarp(TransInfo *t)
+static void initBend(TransInfo *t)
 {
 	const float mval_fl[2] = {UNPACK2(t->mval)};
 	const float *curs;
 	float tvec[3];
-	struct WarpCustomData *data;
+	struct BendCustomData *data;
 	
-	t->mode = TFM_WARP;
-	t->transform = Warp;
-	t->handleEvent = handleEventWarp;
+	t->mode = TFM_BEND;
+	t->transform = Bend;
+	t->handleEvent = handleEventBend;
 	
 	setInputPostFct(&t->mouse, postInputRotation);
 	initMouseInputMode(t, &t->mouse, INPUT_ANGLE_SPRING);
@@ -2740,7 +2740,7 @@ static void initWarp(TransInfo *t)
 	t->customData = data;
 }
 
-static eRedrawFlag handleEventWarp(TransInfo *UNUSED(t), const wmEvent *event)
+static eRedrawFlag handleEventBend(TransInfo *UNUSED(t), const wmEvent *event)
 {
 	eRedrawFlag status = TREDRAW_NOTHING;
 	
@@ -2751,7 +2751,7 @@ static eRedrawFlag handleEventWarp(TransInfo *UNUSED(t), const wmEvent *event)
 	return status;
 }
 
-static void Warp(TransInfo *t, const int UNUSED(mval[2]))
+static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float vec[3];
@@ -2759,7 +2759,7 @@ static void Warp(TransInfo *t, const int UNUSED(mval[2]))
 	float warp_end_radius[3];
 	int i;
 	char str[MAX_INFO_LEN];
-	const struct WarpCustomData *data = t->customData;
+	const struct BendCustomData *data = t->customData;
 	const bool is_clamp = (t->flag & T_ALT_TRANSFORM) == 0;
 
 	union {
@@ -2767,7 +2767,7 @@ static void Warp(TransInfo *t, const int UNUSED(mval[2]))
 		float vector[2];
 	} values;
 
-	/* amount of radians for warp */
+	/* amount of radians for bend */
 	copy_v2_v2(values.vector, t->values);
 
 #if 0
@@ -2792,7 +2792,7 @@ static void Warp(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 		
-		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Warp Angle: %s Radius: %s Alt, Clamp %s"),
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bend Angle: %s Radius: %s Alt, Clamp %s"),
 		             &c[0], &c[NUM_STR_REP_LEN],
 		             WM_bool_as_string(is_clamp));
 
@@ -2801,7 +2801,7 @@ static void Warp(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	else {
 		/* default header print */
-		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Warp Angle: %.3f Radius: %.4f, Alt, Clamp %s"),
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bend Angle: %.3f Radius: %.4f, Alt, Clamp %s"),
 		             RAD2DEGF(values.angle), values.scale * data->warp_init_dist,
 		             WM_bool_as_string(is_clamp));
 	}

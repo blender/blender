@@ -68,7 +68,7 @@ static char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
 static char OP_RESIZE[] = "TRANSFORM_OT_resize";
 static char OP_SKIN_RESIZE[] = "TRANSFORM_OT_skin_resize";
 static char OP_SHEAR[] = "TRANSFORM_OT_shear";
-static char OP_WARP[] = "TRANSFORM_OT_warp";
+static char OP_BEND[] = "TRANSFORM_OT_bend";
 static char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
 static char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
 static char OP_TILT[] = "TRANSFORM_OT_tilt";
@@ -86,7 +86,7 @@ static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot);
 static void TRANSFORM_OT_resize(struct wmOperatorType *ot);
 static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot);
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot);
-static void TRANSFORM_OT_warp(struct wmOperatorType *ot);
+static void TRANSFORM_OT_bend(struct wmOperatorType *ot);
 static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot);
 static void TRANSFORM_OT_push_pull(struct wmOperatorType *ot);
 static void TRANSFORM_OT_tilt(struct wmOperatorType *ot);
@@ -106,7 +106,7 @@ static TransformModeItem transform_modes[] =
 	{OP_RESIZE, TFM_RESIZE, TRANSFORM_OT_resize},
 	{OP_SKIN_RESIZE, TFM_SKIN_RESIZE, TRANSFORM_OT_skin_resize},
 	{OP_SHEAR, TFM_SHEAR, TRANSFORM_OT_shear},
-	{OP_WARP, TFM_WARP, TRANSFORM_OT_warp},
+	{OP_BEND, TFM_BEND, TRANSFORM_OT_bend},
 	{OP_SHRINK_FATTEN, TFM_SHRINKFATTEN, TRANSFORM_OT_shrink_fatten},
 	{OP_PUSH_PULL, TFM_PUSHPULL, TRANSFORM_OT_push_pull},
 	{OP_TILT, TFM_TILT, TRANSFORM_OT_tilt},
@@ -130,7 +130,7 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
 	{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
 	{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
-	{TFM_WARP, "WARP", 0, "Warp", ""},
+	{TFM_BEND, "BEND", 0, "Bend", ""},
 	{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
 	{TFM_TILT, "TILT", 0, "Tilt", ""},
 	{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
@@ -693,12 +693,12 @@ static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
-static void TRANSFORM_OT_warp(struct wmOperatorType *ot)
+static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Warp";
-	ot->description = "Warp selected items around the cursor";
-	ot->idname = OP_WARP;
+	ot->name   = "Bend";
+	ot->description = "Bend selected items between the 3D cursor and the mouse";
+	ot->idname = OP_BEND;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* api callbacks */
@@ -711,7 +711,6 @@ static void TRANSFORM_OT_warp(struct wmOperatorType *ot)
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
-	// XXX Warp axis?
 }
 
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
@@ -982,7 +981,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 
 			WM_keymap_add_item(keymap, OP_RESIZE, SKEY, KM_PRESS, 0, 0);
 
-			WM_keymap_add_item(keymap, OP_WARP, WKEY, KM_PRESS, KM_SHIFT, 0);
+			WM_keymap_add_item(keymap, OP_BEND, WKEY, KM_PRESS, KM_SHIFT, 0);
 
 			WM_keymap_add_item(keymap, OP_TOSPHERE, SKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 
