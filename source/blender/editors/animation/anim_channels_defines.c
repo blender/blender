@@ -2795,9 +2795,42 @@ static short acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem 
 	AnimData *adt = ale->adt;
 	
 	/* visibility of settings depends on various states... */
-	
-	// XXX:
-	return 0;
+	switch (setting) {
+		/* always supported */
+		case ACHANNEL_SETTING_SELECT:
+		case ACHANNEL_SETTING_SOLO:
+			return 1;
+		
+		/* conditionally supported... */
+		case ACHANNEL_SETTING_PROTECT:
+		case ACHANNEL_SETTING_MUTE:
+			/* if this track is active and we're tweaking it, don't draw these toggles */
+			if (((nlt->flag & NLATRACK_ACTIVE) && (nlt->flag & NLATRACK_DISABLED)) == 0) {
+				/* is track enabled for solo drawing? */
+				if ((adt) && (adt->flag & ADT_NLA_SOLO_TRACK)) {
+					if (nlt->flag & NLATRACK_SOLO) {
+						/* ok - we've got a solo track, and this is it */
+						return 1;
+					}
+					else {
+						/* not ok - we've got a solo track, but this isn't it, so make it more obvious */
+						return 0;
+					}
+				}
+				
+				
+				/* ok - no tracks are solo'd, and this isn't being tweaked */
+				return 1;
+			}
+			else {
+				/* unsupported - this track is being tweaked */
+				return 0;
+			}
+		
+		/* unsupported */
+		default:
+			return 0;
+	}
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
