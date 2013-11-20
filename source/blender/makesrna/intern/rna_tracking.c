@@ -1354,6 +1354,14 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Weight", "Influence of this track on a final solution");
+
+	/* offset */
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Offset", "Offset of track from the parenting point");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, NULL);
 }
 
 static void rna_def_trackingPlaneMarker(BlenderRNA *brna)
