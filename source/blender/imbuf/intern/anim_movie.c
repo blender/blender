@@ -477,7 +477,7 @@ static int startffmpeg(struct anim *anim)
 	const int *inv_table;
 #endif
 
-	if (anim == 0) return(-1);
+	if (anim == NULL) return(-1);
 
 	streamcount = anim->streamindex;
 
@@ -960,7 +960,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 	int new_frame_index = 0; /* To quiet gcc barking... */
 	int old_frame_index = 0; /* To quiet gcc barking... */
 
-	if (anim == 0) return (0);
+	if (anim == NULL) return (0);
 
 	av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: pos=%d\n", position);
 

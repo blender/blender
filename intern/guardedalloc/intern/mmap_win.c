@@ -182,14 +182,14 @@ static void mmap_addtail(volatile mmapListBase *listbase, void *vlink)
 {
 	struct mmapLink *link = vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
 	link->next = 0;
 	link->prev = listbase->last;
 
 	if (listbase->last) ((struct mmapLink *)listbase->last)->next = link;
-	if (listbase->first == 0) listbase->first = link;
+	if (listbase->first == NULL) listbase->first = link;
 	listbase->last = link;
 }
 
@@ -197,8 +197,8 @@ static void mmap_remlink(volatile mmapListBase *listbase, void *vlink)
 {
 	struct mmapLink *link = vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
 	if (link->next) link->next->prev = link->prev;
 	if (link->prev) link->prev->next = link->next;
@@ -211,8 +211,8 @@ static void *mmap_findlink(volatile mmapListBase *listbase, void *ptr)
 {
 	MemMap *mm;
 
-	if (ptr == 0) return NULL;
-	if (listbase == 0) return NULL;
+	if (ptr == NULL) return NULL;
+	if (listbase == NULL) return NULL;
 	
 	mm = (MemMap *)listbase->first;
 	while (mm) {

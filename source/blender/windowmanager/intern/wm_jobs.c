@@ -523,9 +523,9 @@ void WM_jobs_kill(wmWindowManager *wm, void *owner, void (*startjob)(void *, sho
 	wm_job = wm->jobs.first;
 	while (wm_job) {
 		if (wm_job->owner == owner || wm_job->startjob == startjob) {
-			wmJob *bill = wm_job;
+			wmJob *wm_job_kill = wm_job;
 			wm_job = wm_job->next;
-			wm_jobs_kill_job(wm, bill);
+			wm_jobs_kill_job(wm, wm_job_kill);
 		}
 		else {
 			wm_job = wm_job->next;
