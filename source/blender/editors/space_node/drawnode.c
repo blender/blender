@@ -1635,7 +1635,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 		else {
 			col = uiLayoutColumn(layout, TRUE);
 			
-			uiItemL(col, IFACE_("File Path:"), ICON_NONE);
+			uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
 			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &active_input_ptr, "path", 0, "", ICON_NONE);
 			uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "",
