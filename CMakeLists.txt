@@ -297,7 +297,7 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
-option(WITH_BOOST					"Enable features depending no boost" ON)
+option(WITH_BOOST					"Enable features depending on boost" ON)
 
 if(CMAKE_COMPILER_IS_GNUCC)
 	option(WITH_GCC_MUDFLAP			"Enable mudflap" OFF)
