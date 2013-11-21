@@ -170,12 +170,16 @@ enum {
 
 	UI_BUT_VEC_SIZE_LOCK = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
 	UI_BUT_COLOR_CUBIC   = (1 << 23),  /* cubic saturation for the color wheel */
+	UI_BUT_LIST_ITEM     = (1 << 24),  /* This but is "inside" a list item (currently used to change theme colors). */
 };
 
 #define UI_PANEL_WIDTH          340
 #define UI_COMPACT_PANEL_WIDTH  160
 
 /* but->drawflag - these flags should only affect how the button is drawn. */
+/* Note: currently, these flags _are not passed_ to the widget's state() or draw() functions
+ *       (except for the 'align' ones)!
+ */
 enum {
 	/* draw enum-like up/down arrows for button */
 	UI_BUT_DRAW_ENUM_ARROWS  = (1 << 0),
@@ -263,7 +267,6 @@ typedef enum {
 	PROGRESSBAR   = (51 << 9),
 	SEARCH_MENU_UNLINK   = (52 << 9),
 	NODESOCKET    = (53 << 9),
-	LISTLABEL     = (54 << 9),
 } eButType;
 
 #define BUTTYPE     (63 << 9)

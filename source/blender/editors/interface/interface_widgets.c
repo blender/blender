@@ -882,7 +882,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	}
 	
 	/* extra feature allows more alpha blending */
-	if (ELEM(but->type, LABEL, LISTLABEL) && but->a1 == 1.0f)
+	if ((but->type == LABEL) && but->a1 == 1.0f)
 		alpha *= but->a2;
 	
 	glEnable(GL_BLEND);
@@ -2866,12 +2866,21 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 /* labels use Editor theme colors for text */
 static void widget_state_label(uiWidgetType *wt, int state)
 {
-	/* call this for option button */
-	widget_state(wt, state);
-	if (state & UI_SELECT)
-		UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
-	else
-		UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+	if (state & UI_BUT_LIST_ITEM) {
+		/* Override default label theme's colors. */
+		bTheme *btheme = UI_GetTheme();
+		wt->wcol_theme = &btheme->tui.wcol_list_item;
+		/* call this for option button */
+		widget_state(wt, state);
+	}
+	else {
+		/* call this for option button */
+		widget_state(wt, state);
+		if (state & UI_SELECT)
+			UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
+		else
+			UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+	}
 }
 
 static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
@@ -2991,11 +3000,6 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_REGULAR:
 			break;
 
-		case UI_WTYPE_LISTLABEL:
-			wt.wcol_theme = &btheme->tui.wcol_list_item;
-			wt.draw = NULL;
-			/* Can't use usual label code. */
-			break;
 		case UI_WTYPE_LABEL:
 			wt.draw = NULL;
 			wt.state = widget_state_label;
@@ -3244,11 +3248,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					wt = widget_type(UI_WTYPE_LABEL);
 					fstyle = &style->widgetlabel;
 				}
-				break;
-				
-			case LISTLABEL:
-				wt = widget_type(UI_WTYPE_LISTLABEL);
-				fstyle = &style->widgetlabel;
 				break;
 
 			case SEPR:

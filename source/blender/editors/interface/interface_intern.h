@@ -95,7 +95,6 @@ typedef enum {
 	UI_WTYPE_SCROLL,
 	UI_WTYPE_LISTITEM,
 	UI_WTYPE_PROGRESSBAR,
-	UI_WTYPE_LISTLABEL,
 } uiWidgetTypeEnum;
 
 /* menu scrolling */

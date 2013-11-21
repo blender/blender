@@ -1687,7 +1687,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 
 	/* Mark as a label inside a listbox. */
 	if (block->flag & UI_BLOCK_LIST_ITEM) {
-		but->type = LISTLABEL;
+		but->flag |= UI_BUT_LIST_ITEM;
 	}
 
 	return but;
@@ -2457,7 +2457,7 @@ void ui_layout_list_set_labels_active(uiLayout *layout)
 		if (bitem->item.type != ITEM_BUTTON) {
 			ui_layout_list_set_labels_active((uiLayout *)(&bitem->item));
 		}
-		else if (bitem->but->type == LISTLABEL) {
+		else if (bitem->but->flag & UI_BUT_LIST_ITEM) {
 			uiButSetFlag(bitem->but, UI_SELECT);
 		}
 	}

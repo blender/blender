@@ -301,7 +301,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 
 static bool ui_but_editable(uiBut *but)
 {
-	return ELEM6(but->type, LABEL, LISTLABEL, SEPR, ROUNDBOX, LISTBOX, PROGRESSBAR);
+	return ELEM5(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX, PROGRESSBAR);
 }
 
 static uiBut *ui_but_prev(uiBut *but)
@@ -2097,7 +2097,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	uiBut *but;
 
 	/* label and roundbox can overlap real buttons (backdrops...) */
-	if (ELEM5(actbut->type, LABEL, LISTLABEL, SEPR, ROUNDBOX, LISTBOX))
+	if (ELEM4(actbut->type, LABEL, SEPR, ROUNDBOX, LISTBOX))
 		return;
 
 	for (but = actbut->next; but; but = but->next) {
@@ -2125,7 +2125,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	uiBut *but;
 
 	/* label and roundbox can overlap real buttons (backdrops...) */
-	if (ELEM5(actbut->type, LABEL, LISTLABEL, SEPR, ROUNDBOX, LISTBOX))
+	if (ELEM4(actbut->type, LABEL, SEPR, ROUNDBOX, LISTBOX))
 		return;
 
 	for (but = actbut->prev; but; but = but->prev) {
@@ -5675,7 +5675,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			break;
 		case ROUNDBOX:
 		case LABEL:
-		case LISTLABEL:
 		case ROW:
 		case LISTROW:
 		case BUT_IMAGE:
@@ -5888,7 +5887,7 @@ static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 bool ui_is_but_interactive(uiBut *but)
 {
 	/* note, LABEL is included for highlights, this allows drags */
-	if (ELEM(but->type, LABEL, LISTLABEL) && but->dragpoin == NULL)
+	if ((but->type == LABEL) && but->dragpoin == NULL)
 		return false;
 	if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))
 		return false;
@@ -7444,7 +7443,7 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 						for (but = block->buttons.first; but; but = but->next) {
 							int doit = FALSE;
 							
-							if (but->type != LABEL && but->type != LISTLABEL && but->type != SEPR)
+							if (!ELEM(but->type, LABEL, SEPR))
 								count++;
 							
 							/* exception for rna layer buts */
