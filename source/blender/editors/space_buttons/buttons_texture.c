@@ -516,7 +516,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 		if (!last_category || strcmp(last_category, user->category) != 0) {
 			uiItemL(layout, user->category, ICON_NONE);
 			but = block->buttons.last;
-			but->flag = UI_TEXT_LEFT;
+			but->drawflag = UI_BUT_TEXT_LEFT;
 		}
 
 		/* create button */
@@ -577,7 +577,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 
 	/* some cosmetic tweaks */
 	but->type = MENU;
-	but->flag |= UI_TEXT_LEFT;
+	but->drawflag |= UI_BUT_TEXT_LEFT;
 	but->flag &= ~UI_ICON_SUBMENU;
 }
 

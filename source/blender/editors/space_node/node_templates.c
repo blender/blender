@@ -461,7 +461,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 				
 				uiItemL(column, IFACE_(cname), ICON_NODE);
 				but = block->buttons.last;
-				but->flag = UI_TEXT_LEFT;
+				but->drawflag = UI_BUT_TEXT_LEFT;
 				
 				first = 0;
 			}
@@ -471,7 +471,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 					cur_node_name = items[i].node_name;
 					uiItemL(column, IFACE_(cur_node_name), ICON_NODE);
 					but = block->buttons.last;
-					but->flag = UI_TEXT_LEFT;
+					but->drawflag = UI_BUT_TEXT_LEFT;
 				}
 				
 				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", IFACE_(items[i].socket_name));
@@ -528,7 +528,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 	if (sock->link) {
 		uiItemL(column, IFACE_("Link"), ICON_NONE);
 		but = block->buttons.last;
-		but->flag = UI_TEXT_LEFT;
+		but->drawflag = UI_BUT_TEXT_LEFT;
 
 		but = uiDefBut(block, BUT, 0, IFACE_("Remove"), 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
 		               NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Remove nodes connected to the input"));
@@ -564,7 +564,8 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 		but = uiDefIconMenuBut(block, ui_template_node_link_menu, NULL, ICON_NONE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "");
 
 	but->type = MENU;
-	but->flag |= UI_TEXT_LEFT | UI_BUT_NODE_LINK;
+	but->drawflag |= UI_BUT_TEXT_LEFT;
+	but->flag |= UI_BUT_NODE_LINK;
 	but->poin = (char *)but;
 	but->func_argN = arg;
 
@@ -654,7 +655,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 
 	uiItemL(row, label, ICON_NONE);
 	bt = block->buttons.last;
-	bt->flag = UI_TEXT_LEFT;
+	bt->drawflag = UI_BUT_TEXT_LEFT;
 
 	if (dependency_loop) {
 		row = uiLayoutRow(split, FALSE);

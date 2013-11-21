@@ -93,7 +93,7 @@ typedef struct uiLayout uiLayout;
 /* use for clamping popups within the screen */
 #define UI_SCREEN_MARGIN 10
 
-/* uiBlock->dt */
+/* uiBlock->dt and uiBut->dt */
 #define UI_EMBOSS       0   /* use widget style for drawing */
 #define UI_EMBOSSN      1   /* Nothing, only icon and/or text */
 #define UI_EMBOSSP      2   /* Pulldown menu style */
@@ -130,8 +130,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_POPUP_MEMORY   (1 << 12)
 #define UI_BLOCK_CLIP_EVENTS    (1 << 13)  /* stop handling mouse events */
 
-/* XXX This comment is no more valid! Maybe it is now bits 14-17? */
-/* block->flag bits 12-15 are identical to but->flag bits */
+/* block->flag bits 14-17 are identical to but->drawflag bits */
 
 #define UI_BLOCK_LIST_ITEM   (1 << 19)
 
@@ -148,46 +147,51 @@ typedef struct uiLayout uiLayout;
 #define UI_PNL_CLOSE    (1 << 5)
 #define UI_PNL_SCALE    (1 << 9)
 
-/* warning the first 6 flags are internal */
-/* but->flag */
-#define UI_TEXT_LEFT         (1 << 6)
-#define UI_ICON_LEFT         (1 << 7)
-#define UI_ICON_SUBMENU      (1 << 8)
-#define UI_ICON_PREVIEW      (1 << 9)
+/* but->flag - general state flags. */
+enum {
+	/* warning, the first 6 flags are internal */
+	UI_ICON_SUBMENU      = (1 << 6),
+	UI_ICON_PREVIEW      = (1 << 7),
 
-#define UI_TEXT_RIGHT        (1 << 10)
-#define UI_BUT_NODE_LINK     (1 << 11)
-#define UI_BUT_NODE_ACTIVE   (1 << 12)
-#define UI_BUT_DRAG_LOCK     (1 << 13)
+	UI_BUT_NODE_LINK     = (1 << 8),
+	UI_BUT_NODE_ACTIVE   = (1 << 9),
+	UI_BUT_DRAG_LOCK     = (1 << 10),
+	UI_BUT_DISABLED      = (1 << 11),
+	UI_BUT_COLOR_LOCK    = (1 << 12),
+	UI_BUT_ANIMATED      = (1 << 13),
+	UI_BUT_ANIMATED_KEY  = (1 << 14),
+	UI_BUT_DRIVEN        = (1 << 15),
+	UI_BUT_REDALERT      = (1 << 16),
+	UI_BUT_INACTIVE      = (1 << 17),
+	UI_BUT_LAST_ACTIVE   = (1 << 18),
+	UI_BUT_UNDO          = (1 << 19),
+	UI_BUT_IMMEDIATE     = (1 << 20),
+	UI_BUT_NO_UTF8       = (1 << 21),
 
-/* button align flag, for drawing groups together */
-#define UI_BUT_ALIGN         (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN)
-#define UI_BUT_ALIGN_TOP     (1 << 14)
-#define UI_BUT_ALIGN_LEFT    (1 << 15)
-#define UI_BUT_ALIGN_RIGHT   (1 << 16)
-#define UI_BUT_ALIGN_DOWN    (1 << 17)
-
-#define UI_BUT_DISABLED      (1 << 18)
-#define UI_BUT_COLOR_LOCK    (1 << 19)
-#define UI_BUT_ANIMATED      (1 << 20)
-#define UI_BUT_ANIMATED_KEY  (1 << 21)
-#define UI_BUT_DRIVEN        (1 << 22)
-#define UI_BUT_REDALERT      (1 << 23)
-#define UI_BUT_INACTIVE      (1 << 24)
-#define UI_BUT_LAST_ACTIVE   (1 << 25)
-#define UI_BUT_UNDO          (1 << 26)
-#define UI_BUT_IMMEDIATE     (1 << 27)
-#define UI_BUT_NO_TOOLTIP    (1 << 28)
-#define UI_BUT_NO_UTF8       (1 << 29)
-
-#define UI_BUT_VEC_SIZE_LOCK (1 << 30) /* used to flag if color hsv-circle should keep luminance */
-#define UI_BUT_COLOR_CUBIC   (1 << 31) /* cubic saturation for the color wheel */
+	UI_BUT_VEC_SIZE_LOCK = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
+	UI_BUT_COLOR_CUBIC   = (1 << 23),  /* cubic saturation for the color wheel */
+};
 
 #define UI_PANEL_WIDTH          340
 #define UI_COMPACT_PANEL_WIDTH  160
 
-/* uiBut->drawflag */
-#define UI_BUT_DRAW_ENUM_ARROWS    (1 << 0) /* draw enum-like up/down arrows for button */
+/* but->drawflag - these flags should only affect how the button is drawn. */
+enum {
+	/* draw enum-like up/down arrows for button */
+	UI_BUT_DRAW_ENUM_ARROWS  = (1 << 0),
+	/* Text and icon alignment (by default, they are centered). */
+	UI_BUT_TEXT_LEFT         = (1 << 1),
+	UI_BUT_ICON_LEFT         = (1 << 2),
+	UI_BUT_TEXT_RIGHT        = (1 << 3),
+	/* Prevent the button to show any tooltip. */
+	UI_BUT_NO_TOOLTIP        = (1 << 4),
+	/* button align flag, for drawing groups together (also used in uiBlock->flag!) */
+	UI_BUT_ALIGN_TOP         = (1 << 14),
+	UI_BUT_ALIGN_LEFT        = (1 << 15),
+	UI_BUT_ALIGN_RIGHT       = (1 << 16),
+	UI_BUT_ALIGN_DOWN        = (1 << 17),
+	UI_BUT_ALIGN             = (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN),
+};
 
 /* scale fixed button widths by this to account for DPI */
 

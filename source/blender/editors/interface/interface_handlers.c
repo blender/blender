@@ -881,7 +881,7 @@ static bool ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, const wmEvent *eve
 	if (but->imb) {
 		/* use button size itself */
 	}
-	else if (but->flag & UI_ICON_LEFT) {
+	else if (but->drawflag & UI_BUT_ICON_LEFT) {
 		rect.xmax = rect.xmin + (BLI_rcti_size_y(&rect));
 	}
 	else {

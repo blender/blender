@@ -443,7 +443,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
 	uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
 
-	if (but->flag & UI_BUT_NO_TOOLTIP)
+	if (but->drawflag & UI_BUT_NO_TOOLTIP)
 		return NULL;
 
 	/* create tooltip data */
@@ -1389,9 +1389,9 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* widget_roundbox_set has this correction too, keep in sync */
 	if (but->type != PULLDOWN) {
-		if (but->flag & UI_BUT_ALIGN_TOP)
+		if (but->drawflag & UI_BUT_ALIGN_TOP)
 			butrct.ymax += U.pixelsize;
-		if (but->flag & UI_BUT_ALIGN_LEFT)
+		if (but->drawflag & UI_BUT_ALIGN_LEFT)
 			butrct.xmin -= U.pixelsize;
 	}
 	
@@ -1840,7 +1840,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 		else {
 			uiItemL(layout, md->title, ICON_NONE);
 			bt = block->buttons.last;
-			bt->flag = UI_TEXT_LEFT;
+			bt->drawflag = UI_BUT_TEXT_LEFT;
 		}
 	}
 
@@ -1876,7 +1876,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			if (entry->str[0]) {
 				uiItemL(column, entry->str, entry->icon);
 				bt = block->buttons.last;
-				bt->flag = UI_TEXT_LEFT;
+				bt->drawflag = UI_BUT_TEXT_LEFT;
 			}
 			else {
 				uiItemS(column);
@@ -2560,7 +2560,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 		}
 		else {
 			but = uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-			but->flag = UI_TEXT_LEFT;
+			but->drawflag = UI_BUT_TEXT_LEFT;
 		}
 	}
 

@@ -443,7 +443,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			but->icon = RNA_struct_ui_icon(type);
 			/* default dragging of icon for id browse buttons */
 			uiButSetDragID(but, id);
-			uiButSetFlag(but, UI_HAS_ICON | UI_ICON_LEFT);
+			uiButSetFlag(but, UI_HAS_ICON);
+			uiButSetDrawFlag(but, UI_BUT_ICON_LEFT);
 		}
 
 		if ((idfrom && idfrom->lib) || !editable)
@@ -2939,7 +2940,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
 					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, NULL);
-					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+					uiButSetDrawFlag(but, UI_BUT_NO_TOOLTIP);
 
 					sub = uiLayoutRow(overlap, FALSE);
 
@@ -3026,7 +3027,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
 					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, NULL);
-					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+					uiButSetDrawFlag(but, UI_BUT_NO_TOOLTIP);
 
 					sub = uiLayoutRow(overlap, FALSE);
 

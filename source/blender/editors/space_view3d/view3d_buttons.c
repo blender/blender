@@ -859,7 +859,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					                    xco, yco, (x = UI_UNIT_X * 5), UI_UNIT_Y, "");
 					but_ptr = uiButGetOperatorPtrRNA(but);
 					RNA_int_set(but_ptr, "weight_group", i);
-					uiButSetFlag(but, UI_TEXT_RIGHT);
+					uiButSetDrawFlag(but, UI_BUT_TEXT_RIGHT);
 					if (ob->actdef != i + 1) {
 						uiButSetFlag(but, UI_BUT_INACTIVE);
 					}
@@ -873,7 +873,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					but = uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + i, "",
 					                xco, yco, (x = UI_UNIT_X * 4), UI_UNIT_Y,
 					                &dw->weight, 0.0, 1.0, 1, 3, "");
-					uiButSetFlag(but, UI_TEXT_LEFT);
+					uiButSetDrawFlag(but, UI_BUT_TEXT_LEFT);
 					if (locked) {
 						lock_count++;
 					}

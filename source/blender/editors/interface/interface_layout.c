@@ -580,7 +580,7 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		}
 
 		if (ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)
-			but->flag |= UI_TEXT_LEFT;
+			but->drawflag |= UI_BUT_TEXT_LEFT;
 	}
 	uiBlockSetCurLayout(block, layout);
 
@@ -762,7 +762,7 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 
 	/* text alignment for toolbar buttons */
 	if ((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon)
-		but->flag |= UI_TEXT_LEFT;
+		but->drawflag |= UI_BUT_TEXT_LEFT;
 
 	if (flag & UI_ITEM_R_NO_BG)
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -912,7 +912,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 
 					uiItemL(column, item->name, ICON_NONE);
 					but = block->buttons.last;
-					but->flag = UI_TEXT_LEFT;
+					but->drawflag = UI_BUT_TEXT_LEFT;
 					ui_but_tip_from_enum_item(but, item);
 				}
 				else {  /* XXX bug here, colums draw bottom item badly */
@@ -1336,7 +1336,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 					uiItemL(column, item[i].name, ICON_NONE);
 					bt = block->buttons.last;
-					bt->flag = UI_TEXT_LEFT;
+					bt->drawflag = UI_BUT_TEXT_LEFT;
 
 					ui_but_tip_from_enum_item(bt, &item[i]);
 				}
@@ -1486,7 +1486,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->hardmax = MAX2(but->hardmax, 256.0f);
 		but->rnasearchpoin = *searchptr;
 		but->rnasearchprop = searchprop;
-		but->flag |= UI_ICON_LEFT | UI_TEXT_LEFT;
+		but->drawflag |= UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT;
 
 		if (RNA_property_type(prop) == PROP_ENUM) {
 			/* XXX, this will have a menu string,
@@ -1629,7 +1629,7 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 	    (force_menu && layout->root->type != UI_LAYOUT_MENU))  /* We never want a dropdown in menu! */
 	{
 		but->type = MENU;
-		but->flag |= UI_TEXT_LEFT;
+		but->drawflag |= UI_BUT_TEXT_LEFT;
 	}
 }
 
@@ -1681,8 +1681,8 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 	 * make text aligned right if the layout is aligned right.
 	 */
 	if (uiLayoutGetAlignment(layout) == UI_LAYOUT_ALIGN_RIGHT) {
-		but->flag &= ~UI_TEXT_LEFT;	/* default, needs to be unset */
-		but->flag |= UI_TEXT_RIGHT;
+		but->drawflag &= ~UI_BUT_TEXT_LEFT;	/* default, needs to be unset */
+		but->drawflag |= UI_BUT_TEXT_RIGHT;
 	}
 
 	/* Mark as a label inside a listbox. */
