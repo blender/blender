@@ -613,6 +613,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 {
 	/* flags from the buttons we want to refresh, may want to add more here... */
 	const int flag_copy = UI_BUT_REDALERT;
+	const int drawflag_copy = 0;  /* None currently. */
 
 	uiBlock *oldblock;
 	uiBut *oldbut, *but = *butpp;
@@ -670,8 +671,9 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(char *, oldbut->poin, but->poin);
 					SWAP(void *, oldbut->func_argN, but->func_argN);
 				}
-				
+
 				oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
+				oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
 
 				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
 				 * when scrolling without moving mouse (see [#28432]) */
