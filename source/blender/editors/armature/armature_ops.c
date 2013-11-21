@@ -64,6 +64,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
 	WM_operatortype_append(ARMATURE_OT_select_linked);
 	WM_operatortype_append(ARMATURE_OT_select_similar);
+	WM_operatortype_append(ARMATURE_OT_shortest_path_pick);
 
 	WM_operatortype_append(ARMATURE_OT_delete);
 	WM_operatortype_append(ARMATURE_OT_duplicate);
@@ -264,6 +265,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "ARMATURE_OT_shortest_path_pick", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", DELKEY, KM_PRESS, 0, 0);

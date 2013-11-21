@@ -1120,3 +1120,123 @@ void ARMATURE_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "only_active", false, "Active Only", "Only operate on the active bone");
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
+
+
+/****************** Select Path ****************/
+
+static bool armature_shortest_path_select(bArmature *arm, EditBone *ebone_parent, EditBone *ebone_child,
+                                          bool use_parent, bool is_test)
+{
+	do {
+
+		if (!use_parent && (ebone_child == ebone_parent))
+			break;
+
+		if (is_test) {
+			if (!EBONE_SELECTABLE(arm, ebone_child)) {
+				return false;
+			}
+		}
+		else {
+			ED_armature_ebone_selectflag_set(ebone_child, (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL));
+		}
+
+		if (ebone_child == ebone_parent)
+			break;
+
+		ebone_child = ebone_child->parent;
+	} while (true);
+
+	return true;
+}
+
+static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone_src, *ebone_dst;
+	EditBone *ebone_isect_parent = NULL;
+	EditBone *ebone_isect_child[2];
+	bool change;
+
+	view3d_operator_needs_opengl(C);
+
+	ebone_src = arm->act_edbone;
+	ebone_dst = get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
+
+	/* fallback to object selection */
+	if (ELEM(NULL, ebone_src, ebone_dst) || (ebone_src == ebone_dst)) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	ebone_isect_child[0] = ebone_src;
+	ebone_isect_child[1] = ebone_dst;
+
+
+	/* ensure 'ebone_src' is the parent of 'ebone_dst', or set 'ebone_isect_parent' */
+	if (ED_armature_ebone_is_child_recursive(ebone_src, ebone_dst)) {
+		/* pass */
+	}
+	else if (ED_armature_ebone_is_child_recursive(ebone_dst, ebone_src)) {
+		SWAP(EditBone *, ebone_src, ebone_dst);
+	}
+	else if ((ebone_isect_parent = ED_armature_bone_find_shared_parent(ebone_isect_child, 2))) {
+		/* pass */
+	}
+	else {
+		/* disconnected bones */
+		return OPERATOR_CANCELLED;
+	}
+
+
+	if (ebone_isect_parent) {
+		if (armature_shortest_path_select(arm, ebone_isect_parent, ebone_src, false, true) &&
+		    armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, true))
+		{
+			armature_shortest_path_select(arm, ebone_isect_parent, ebone_src, false, false);
+			armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, false);
+			change = true;
+		}
+		else {
+			/* unselectable */
+			change = false;
+		}
+	}
+	else {
+		if (armature_shortest_path_select(arm, ebone_src, ebone_dst, true, true)) {
+			armature_shortest_path_select(arm, ebone_src, ebone_dst, true, false);
+			change = true;
+		}
+		else {
+			/* unselectable */
+			change = false;
+		}
+	}
+
+	if (change) {
+		arm->act_edbone = ebone_dst;
+		ED_armature_sync_selection(arm->edbo);
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "Unselectable bone in chain");
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Pick Shortest Path";
+	ot->idname = "ARMATURE_OT_shortest_path_pick";
+	ot->description = "Select shortest path between two bones";
+
+	/* api callbacks */
+	ot->invoke = armature_shortest_path_pick_invoke;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}

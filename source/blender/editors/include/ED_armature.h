@@ -138,6 +138,7 @@ struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *na
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child);
+EditBone *ED_armature_bone_find_shared_parent(EditBone *ebone_child[], const unsigned int ebone_child_tot);
 
 void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3]);
 void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4]);
