@@ -501,6 +501,7 @@ void ED_armature_from_edit(Object *obedit)
 	
 	/* armature bones */
 	BKE_armature_bonelist_free(&arm->bonebase);
+	arm->act_bone = NULL;
 	
 	/* remove zero sized bones, this gives unstable restposes */
 	for (eBone = arm->edbo->first; eBone; eBone = neBone) {
@@ -634,7 +635,6 @@ void ED_armature_to_edit(Object *ob)
 	ED_armature_edit_free(ob);
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 	arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, NULL, arm->act_bone);
-	arm->act_bone = NULL;
 
 //	BIF_freeTemplates(); /* force template update when entering editmode */
 }

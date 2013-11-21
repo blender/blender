@@ -88,7 +88,7 @@ typedef struct bArmature {
 	 * - from the user perspective active == last selected
 	 * - active should be ignored when not visible (hidden layer) */
 
-	Bone       *act_bone;               /* active bone (when not in editmode) */
+	Bone       *act_bone;               /* active bone */
 	struct EditBone *act_edbone;        /* active editbone (in editmode) */
 
 	void       *sketch;                 /* sketch struct for etch-a-ton */

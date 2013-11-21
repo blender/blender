@@ -390,11 +390,15 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			
 			layer_used = arm->layer_used;
 			
-			if (arm->edbo && arm->act_edbone) {
-				layer_active |= arm->act_edbone->layer;
+			if (arm->edbo) {
+				if (arm->act_edbone) {
+					layer_active |= arm->act_edbone->layer;
+				}
 			}
-			else if (arm->act_bone) {
-				layer_active |= arm->act_bone->layer;
+			else {
+				if (arm->act_bone) {
+					layer_active |= arm->act_bone->layer;
+				}
 			}
 		}
 
