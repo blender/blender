@@ -75,7 +75,7 @@ PyDoc_STRVAR(ChainingIterator_doc,
 
 static int check_begin(PyObject *obj, void *v)
 {
-	if (obj != 0 && obj != Py_None && !BPy_ViewEdge_Check(obj))
+	if (obj != NULL && obj != Py_None && !BPy_ViewEdge_Check(obj))
 		return 0;
 	*((PyObject **)v) = obj;
 	return 1;

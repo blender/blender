@@ -39,7 +39,7 @@ namespace Freestyle {
 
 void ViewEdgeXBuilder::Init(ViewShape *oVShape)
 {
-	if (0 == oVShape)
+	if (NULL == oVShape)
 		return;
 
 	// for design conveniance, we store the current SShape.
@@ -527,7 +527,7 @@ FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer&
 
 bool ViewEdgeXBuilder::stopSmoothViewEdge(WXFaceLayer *iFaceLayer)
 {
-	if (0 == iFaceLayer)
+	if (NULL == iFaceLayer)
 		return true;
 	if (iFaceLayer->userdata == 0)
 		return false;
@@ -698,7 +698,7 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
 
 bool ViewEdgeXBuilder::stopSharpViewEdge(WXEdge *iEdge)
 {
-	if (0 == iEdge)
+	if (NULL == iEdge)
 		return true;
 	if (iEdge->userdata == 0)
 		return false;

@@ -204,7 +204,6 @@ void Controller::setPassZ(float *buf, int width, int height)
 void Controller::setContext(bContext *C)
 {
 	PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
-	assert(py_inter != 0);
 	py_inter->setContext(C);
 }
 
