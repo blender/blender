@@ -2159,6 +2159,24 @@ void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 	result = fresnel_dielectric(normalize(I), N, (gl_FrontFacing)? eta: 1.0/eta);
 }
 
+/* layer_weight */
+
+void node_layer_weight(float blend, vec3 N, vec3 I, out float fresnel, out float facing)
+{
+	/* fresnel */
+	float eta = max(1.0 - blend, 0.00001);
+	fresnel = fresnel_dielectric(normalize(I), N, (gl_FrontFacing)? 1.0/eta : eta );
+
+	/* facing */
+	facing = abs(dot(normalize(I), N));
+	if(blend != 0.5) {
+		blend = clamp(blend, 0.0, 0.99999);
+		blend = (blend < 0.5)? 2.0*blend: 0.5/(1.0 - blend);
+		facing = pow(facing, blend);
+	}
+	facing = 1.0 - facing;
+}
+
 /* gamma */
 
 void node_gamma(vec4 col, float gamma, out vec4 outcol)

@@ -31,6 +31,7 @@
 
 static bNodeSocketTemplate sh_node_layer_weight_in[] = {
 	{	SOCK_FLOAT, 1, N_("Blend"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
@@ -40,9 +41,12 @@ static bNodeSocketTemplate sh_node_layer_weight_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_layer_weight(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
+static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return 0;
+	if (!in[1].link)
+		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
+
+	return GPU_stack_link(mat, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
 /* node type definition */

@@ -39,10 +39,12 @@ ccl_device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 {
 	uint blend_offset = node.y;
 	uint blend_value = node.z;
-	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __uint_as_float(blend_value);
 
-	uint type, out_offset;
-	decode_node_uchar4(node.w, &type, &out_offset, NULL, NULL);
+	uint type, normal_offset, out_offset;
+	decode_node_uchar4(node.w, &type, &normal_offset, &out_offset, NULL);
+
+	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __uint_as_float(blend_value);
+	float3 normal_in = (stack_valid(normal_offset))? stack_load_float3(stack, normal_offset): sd->N;
 
 	float f;
 
@@ -50,10 +52,10 @@ ccl_device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 		float eta = fmaxf(1.0f - blend, 1e-5f);
 		eta = (sd->flag & SD_BACKFACING)? eta: 1.0f/eta;
 
-		f = fresnel_dielectric_cos(dot(sd->I, sd->N), eta);
+		f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
 	}
 	else {
-		f = fabsf(dot(sd->I, sd->N));
+		f = fabsf(dot(sd->I, normal_in));
 
 		if(blend != 0.5f) {
 			blend = clamp(blend, 0.0f, 1.0f-1e-5f);
