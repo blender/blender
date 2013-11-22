@@ -195,6 +195,11 @@ bool system_cpu_support_sse3()
 	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
 }
 
+bool system_cpu_support_sse41()
+{
+	CPUCapabilities& caps = system_cpu_capabilities();
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
+}
 #else
 
 bool system_cpu_support_sse2()

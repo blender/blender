@@ -95,6 +95,10 @@
 #include <tmmintrin.h> /* SSSE 3 */
 #endif
 
+#ifdef __KERNEL_SSE41__
+#include <smmintrin.h> /* SSE 4.1 */
+#endif
+
 #else
 
 /* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
@@ -199,7 +203,7 @@ struct ccl_align(16) int3 {
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
 #else
-struct int3 {
+struct ccl_align(16) int3 {
 	int x, y, z, w;
 #endif
 
@@ -219,7 +223,7 @@ struct ccl_align(16) int4 {
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
 #else
-struct int4 {
+struct ccl_align(16) int4 {
 	int x, y, z, w;
 #endif
 
@@ -267,7 +271,7 @@ struct ccl_align(16) float3 {
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
 #else
-struct float3 {
+struct ccl_align(16) float3 {
 	float x, y, z, w;
 #endif
 
@@ -287,7 +291,7 @@ struct ccl_align(16) float4 {
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
 #else
-struct float4 {
+struct ccl_align(16) float4 {
 	float x, y, z, w;
 #endif
 

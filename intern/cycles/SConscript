@@ -37,6 +37,7 @@ sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('
 sources.remove(path.join('util', 'util_view.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse2.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse3.cpp'))
+sources.remove(path.join('kernel', 'kernel_sse41.cpp'))
 
 incs = [] 
 defs = []
@@ -77,20 +78,29 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 if env['WITH_BF_RAYOPTIMIZATION']:
     sse2_cxxflags = Split(env['CXXFLAGS'])
     sse3_cxxflags = Split(env['CXXFLAGS'])
+    sse41_cxxflags = Split(env['CXXFLAGS'])
 
     if env['OURPLATFORM'] == 'win32-vc':
         # there is no /arch:SSE3, but intrinsics are available anyway
         sse2_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
         sse3_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
+        sse41_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     elif env['OURPLATFORM'] == 'win64-vc':
         sse2_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
         sse3_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
+        sse41_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     else:
         sse2_cxxflags.append('-ffast-math -msse -msse2 -mfpmath=sse'.split())
         sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse'.split())
+        sse41_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse'.split())
     
     defs.append('WITH_OPTIMIZED_KERNEL')
     optim_defs = defs[:]
+
+	# Disabled sse4+ patchs for now
+	#cycles_sse41 = cycles.Clone()
+	#sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
+	#cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
 
     cycles_sse3 = cycles.Clone()
     sse3_sources = [path.join('kernel', 'kernel_sse3.cpp')]

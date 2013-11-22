@@ -462,7 +462,11 @@ ccl_device_inline float3 operator/=(float3& a, float f)
 
 ccl_device_inline float dot(const float3 a, const float3 b)
 {
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+	return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7F));
+#else	
 	return a.x*b.x + a.y*b.y + a.z*b.z;
+#endif
 }
 
 ccl_device_inline float3 cross(const float3 a, const float3 b)
@@ -475,7 +479,11 @@ ccl_device_inline float3 cross(const float3 a, const float3 b)
 
 ccl_device_inline float len(const float3 a)
 {
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(a.m128, a.m128, 0x7F)));
+#else
 	return sqrtf(dot(a, a));
+#endif
 }
 
 ccl_device_inline float len_squared(const float3 a)
@@ -487,7 +495,12 @@ ccl_device_inline float len_squared(const float3 a)
 
 ccl_device_inline float3 normalize(const float3 a)
 {
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+	__m128 norm = _mm_sqrt_ps(_mm_dp_ps(a.m128, a.m128, 0x7F));
+	return _mm_div_ps(a.m128, norm);
+#else
 	return a/len(a);
+#endif
 }
 
 #endif
