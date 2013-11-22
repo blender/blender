@@ -5936,6 +5936,14 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					/* not very nice, but could help */
 					if ((v3d->layact & v3d->lay) == 0) v3d->layact = v3d->lay;
 					
+					/* its possible the current transform orientation has been removed */
+					if (v3d->twmode >= V3D_MANIP_CUSTOM) {
+						const int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+						if (!BLI_findlink(&sc->scene->transform_spaces, selected_index)) {
+							v3d->twmode = V3D_MANIP_GLOBAL;
+						}
+					}
+
 					/* free render engines for now */
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
 						RegionView3D *rv3d= ar->regiondata;
