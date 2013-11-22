@@ -1229,7 +1229,7 @@ void RAS_OpenGLRasterizer::RemoveLight(struct RAS_LightObject* lightobject)
 		m_lights.erase(lit);
 }
 
-bool RAS_OpenGLRasterizer::RayHit(class KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
+bool RAS_OpenGLRasterizer::RayHit(struct KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
 

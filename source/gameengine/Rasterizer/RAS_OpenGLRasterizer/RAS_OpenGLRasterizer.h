@@ -380,8 +380,8 @@ public:
 	void	PushMatrix();
 	void	PopMatrix();
 
-	bool RayHit(class KX_ClientObjectInfo* client, class KX_RayCast* result, void * const data);
-	bool NeedRayCast(class KX_ClientObjectInfo*) { return true; }
+	bool RayHit(struct KX_ClientObjectInfo* client, class KX_RayCast* result, void * const data);
+	bool NeedRayCast(struct KX_ClientObjectInfo*) { return true; }
 
 
 	void AddLight(struct RAS_LightObject* lightobject);

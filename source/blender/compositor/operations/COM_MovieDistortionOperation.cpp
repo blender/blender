@@ -29,7 +29,7 @@ extern "C" {
 }
 
 
-vector<DistortionCache *> s_cache;
+static vector<DistortionCache *> s_cache;
 
 void deintializeDistortionCache(void) 
 {

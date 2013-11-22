@@ -309,8 +309,6 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 
 		/* check if we can add it back */
 		BLI_assert(BM_edge_is_manifold(e) == true);
-		//BLI_assert(BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
-		//           BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK));
 
 		/* check we're not moving back into a state we have been in before */
 		if (e_state_set != NULL) {
@@ -353,9 +351,6 @@ static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_
 
 /* -------------------------------------------------------------------- */
 /* Beautify Fill */
-
-#define ELE_NEW		1
-#define FACE_MARK	2
 
 /**
  * \note All edges in \a edge_array must be tagged and

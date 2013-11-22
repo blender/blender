@@ -102,11 +102,11 @@ public:
 	}
 
 	virtual void *initializeTileData(rcti *rect) { return 0; }
-	virtual void deinitializeTileData(rcti *rect, void *data) {
-	}
-	
-	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }
+	virtual void deinitializeTileData(rcti *rect, void *data) {}
 
+	virtual ~SocketReader() {}
+
+	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }
 
 	inline const unsigned int getWidth() const { return this->m_width; }
 	inline const unsigned int getHeight() const { return this->m_height; }

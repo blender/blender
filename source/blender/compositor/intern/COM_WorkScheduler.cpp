@@ -77,9 +77,9 @@ static bool g_openclInitialized = false;
 #define MAX_HIGHLIGHT 8
 static bool g_highlightInitialized = false;
 extern "C" {
-int g_highlightIndex;
-void **g_highlightedNodes;
-void **g_highlightedNodesRead;
+static int g_highlightIndex;
+static void **g_highlightedNodes;
+static void **g_highlightedNodesRead;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #define HIGHLIGHT(wp) \
