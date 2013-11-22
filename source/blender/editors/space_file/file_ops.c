@@ -32,6 +32,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_fileops_types.h"
 
+#include "BLO_readfile.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
@@ -1240,19 +1242,62 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 	return OPERATOR_FINISHED;
 }
 
+static int file_filename_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	SpaceFile *sfile = CTX_wm_space_file(C);
+
+	if (sfile->params) {
+		file_expand_directory(C);
+
+		return file_filename_exec(C, op);
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
 int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	char matched_file[FILE_MAX];
+	char filepath[sizeof(sfile->params->dir)];
+
 	if (sfile->params) {
+		int matches = 0;
 		matched_file[0] = '\0';
-		if (file_select_match(sfile, sfile->params->file, matched_file)) {
+		filepath[0] = '\0';
+
+		if (matches = file_select_match(sfile, sfile->params->file, matched_file)) {
 			/* int i, numfiles = filelist_numfiles(sfile->files); */ /* XXX UNUSED */
 			sfile->params->file[0] = '\0';
 			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
 			BLI_strncpy(sfile->params->file, matched_file, sizeof(sfile->params->file));
 			
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+		}
+
+		if (matches == 1) {
+
+			BLI_join_dirfile(filepath, sizeof(sfile->params->dir), sfile->params->dir, sfile->params->file);
+
+			/* if directory, open it and empty filename field */
+			if (BLI_is_dir(filepath)) {
+				BLI_cleanup_dir(G.main->name, filepath);
+				BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
+				sfile->params->file[0] = '\0';
+				file_change_dir(C, 1);
+				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+			}
+			else if (sfile->params->type == FILE_LOADLIB){
+				char tdir[FILE_MAX], tgroup[FILE_MAX];
+				BLI_add_slash(filepath);
+				if (BLO_is_a_library(filepath, tdir, tgroup)) {
+					BLI_cleanup_dir(G.main->name, filepath);
+					BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
+					sfile->params->file[0] = '\0';
+					file_change_dir(C, 0);
+					WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+				}
+			}
 		}
 	}
 
@@ -1279,6 +1324,18 @@ void FILE_OT_directory(struct wmOperatorType *ot)
 	ot->invoke = file_directory_invoke;
 	ot->exec = file_directory_exec;
 	ot->poll = file_directory_poll; /* <- important, handler is on window level */
+}
+
+void FILE_OT_filename(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Enter File Name";
+	ot->description = "Enter a file name";
+	ot->idname = "FILE_OT_filename";
+
+	/* api callbacks */
+	ot->invoke = file_filename_invoke;
+	ot->exec = file_filename_exec;
 }
 
 void FILE_OT_refresh(struct wmOperatorType *ot)

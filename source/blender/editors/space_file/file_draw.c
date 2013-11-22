@@ -188,7 +188,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
 		if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
+			but = uiDefButTextO(block, TEX,  "FILE_OT_filename", 0, "",
 			               min_x, line2_y, line2_w - chan_offs, btn_h,
 			               params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
 			               TIP_(overwrite_alert ? N_("File name, overwrite existing") : N_("File name")));

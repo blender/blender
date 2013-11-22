@@ -627,7 +627,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 			if (!match) {
 				BLI_strncpy(matched_file, file->relname, FILE_MAX);
 			}
-			match = 1;
+			match++;
 		}
 	}
 
@@ -700,13 +700,13 @@ bool autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 		for (i = 0; i < nentries; ++i) {
 			struct direntry *file = filelist_file(sfile->files, i);
-			if (file && S_ISREG(file->type)) {
+			if (file && (S_ISREG(file->type) || S_ISDIR(file->type))) {
 				autocomplete_do_name(autocpl, file->relname);
 			}
 		}
 		match = autocomplete_end(autocpl, str);
 	}
-	return match != AUTOCOMPLETE_NO_MATCH;
+	return match == AUTOCOMPLETE_FULL_MATCH;
 }
 
 void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile)
