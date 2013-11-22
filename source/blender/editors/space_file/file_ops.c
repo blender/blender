@@ -1266,7 +1266,7 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 		matched_file[0] = '\0';
 		filepath[0] = '\0';
 
-		if (matches = file_select_match(sfile, sfile->params->file, matched_file)) {
+		if ((matches = file_select_match(sfile, sfile->params->file, matched_file))) {
 			/* int i, numfiles = filelist_numfiles(sfile->files); */ /* XXX UNUSED */
 			sfile->params->file[0] = '\0';
 			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
@@ -1287,7 +1287,7 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 				file_change_dir(C, 1);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 			}
-			else if (sfile->params->type == FILE_LOADLIB){
+			else if (sfile->params->type == FILE_LOADLIB) {
 				char tdir[FILE_MAX], tgroup[FILE_MAX];
 				BLI_add_slash(filepath);
 				if (BLO_is_a_library(filepath, tdir, tgroup)) {
