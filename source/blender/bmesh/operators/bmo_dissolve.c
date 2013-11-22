@@ -440,13 +440,18 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 		BMO_error_raise(bm, op, BMERR_DISSOLVEVERTS_FAILED, msg);
 	}
 	
-	/* clean up any remainin */
-	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+	/* clean up any remaining */
+	/* note: don't use BM_ITER_MESH_MUTABLE here, even though vertices are removed (T37559) */
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 			if (!BM_vert_dissolve(bm, v)) {
 				BMO_error_raise(bm, op, BMERR_DISSOLVEVERTS_FAILED, NULL);
 				return;
 			}
+#ifdef DEBUG
+			/* workaround debug assert */
+			iter.count = bm->totvert;
+#endif
 		}
 	}
 
