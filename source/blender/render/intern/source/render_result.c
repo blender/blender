@@ -1124,7 +1124,13 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	 */
 	if (ibuf->rect) {
 		if (BKE_imtype_valid_depths(rd->im_format.imtype) & (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
-			IMB_float_from_rect(ibuf);
+			if (rd->im_format.depth == R_IMF_CHAN_DEPTH_8) {
+				/* Higher depth bits are supported but not needed for current file output. */
+				ibuf->rect_float = NULL;
+			}
+			else {
+				IMB_float_from_rect(ibuf);
+			}
 		}
 		else {
 			/* ensure no float buffer remained from previous frame */
