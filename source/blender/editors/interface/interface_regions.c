@@ -1051,7 +1051,7 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
 	ED_region_tag_redraw(ar);
 }
 
-bool ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
+int ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 {
 	uiSearchboxData *data = ar->regiondata;
 	int match = AUTOCOMPLETE_NO_MATCH;
@@ -1064,7 +1064,8 @@ bool ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 		match = autocomplete_end(data->items.autocpl, str);
 		data->items.autocpl = NULL;
 	}
-	return match != AUTOCOMPLETE_NO_MATCH;
+
+	return match;
 }
 
 static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)

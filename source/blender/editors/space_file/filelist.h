@@ -98,6 +98,7 @@ void                folderlist_free(struct ListBase *folderlist);
 struct ListBase *   folderlist_duplicate(ListBase *folderlist);
 void                folderlist_popdir(struct ListBase *folderlist, char *dir);
 void                folderlist_pushdir(struct ListBase *folderlist, const char *dir);
+const char *        folderlist_peeklastdir(struct ListBase *folderdist);
 int                 folderlist_clear_next(struct SpaceFile *sfile);
 
 void                thumbnails_start(struct FileList *filelist, const struct bContext *C);

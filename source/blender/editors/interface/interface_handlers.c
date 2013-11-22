@@ -421,7 +421,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->func_arg2 = but->func_arg2;
 
 		after->funcN = but->funcN;
-		after->func_argN = MEM_dupallocN(but->func_argN);
+		after->func_argN = (but->func_argN) ? MEM_dupallocN(but->func_argN) : NULL;
 
 		after->rename_func = but->rename_func;
 		after->rename_arg1 = but->rename_arg1;
@@ -1922,10 +1922,10 @@ static bool ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directi
 	return changed;
 }
 
-static bool ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData *data)
+static int ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	char *str;
-	bool changed = true;
+	int changed;
 
 	str = data->str;
 
@@ -2332,7 +2332,12 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			case TABKEY:
 				/* there is a key conflict here, we can't tab with autocomplete */
 				if (but->autocomplete_func || data->searchbox) {
-					changed = ui_textedit_autocomplete(C, but, data);
+					int autocomplete = ui_textedit_autocomplete(C, but, data);
+					changed = autocomplete != AUTOCOMPLETE_NO_MATCH;
+
+					if(autocomplete == AUTOCOMPLETE_FULL_MATCH)
+						button_activate_state(C, but, BUTTON_STATE_EXIT);
+
 					update = true;  /* do live update for tab key */
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
@@ -8033,8 +8038,8 @@ void UI_remove_popup_handlers_all(bContext *C, ListBase *handlers)
 	WM_event_free_ui_handler_all(C, handlers, ui_handler_popup, ui_handler_remove_popup);
 }
 
-bool UI_textbutton_activate_event(const bContext *C, ARegion *ar,
-                                  const void *rna_poin_data, const char *rna_prop_id)
+bool UI_textbutton_activate_rna(const bContext *C, ARegion *ar,
+                                const void *rna_poin_data, const char *rna_prop_id)
 {
 	uiBlock *block;
 	uiBut *but = NULL;
@@ -8061,6 +8066,31 @@ bool UI_textbutton_activate_event(const bContext *C, ARegion *ar,
 		return false;
 	}
 }
+
+bool UI_textbutton_activate_but(const bContext *C, uiBut *actbut)
+{
+	ARegion *ar = CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but = NULL;
+	
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		for (but = block->buttons.first; but; but = but->next)
+			if (but == actbut && but->type == TEX)
+				break;
+
+		if (but)
+			break;
+	}
+	
+	if (but) {
+		uiButActiveOnly(C, ar, block, but);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 
 void ui_button_clipboard_free(void)
 {

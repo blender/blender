@@ -75,25 +75,6 @@
 
 #include "file_intern.h"    // own include
 
-/* button events */
-enum {
-	B_FS_DIRNAME,
-	B_FS_FILENAME
-} /*eFile_ButEvents*/;
-
-
-static void do_file_buttons(bContext *C, void *UNUSED(arg), int event)
-{
-	switch (event) {
-		case B_FS_FILENAME:
-			file_filename_exec(C, NULL);
-			break;
-		case B_FS_DIRNAME:
-			file_directory_exec(C, NULL);
-			break;
-	}
-}
-
 /* Note: This function uses pixelspace (0, 0, winx, winy), not view2d. 
  * The controls are laid out as follows:
  *
@@ -139,7 +120,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Initialize UI block. */
 	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "win %p", (void *)ar);
 	block = uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 
 	/* exception to make space for collapsed region icon */
 	for (artmp = CTX_wm_area(C)->regionbase.first; artmp; artmp = artmp->next) {
@@ -180,21 +160,31 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		/* callbacks for operator check functions */
 		uiBlockSetFunc(block, file_draw_check_cb, NULL, NULL);
 
-		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
-		                    min_x, line1_y, line1_w - chan_offs, btn_h,
-		                    params->dir, 0.0, (float)FILE_MAX, 0, 0,
-		                    TIP_("File path"));
+		but = uiDefBut(block, TEX, -1, "",
+		               min_x, line1_y, line1_w - chan_offs, btn_h,
+		               params->dir, 0.0, (float)FILE_MAX, 0, 0,
+		               TIP_("File path"));
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
+		uiButClearFlag(but, UI_BUT_UNDO);
+		uiButSetNFunc(but, file_directory_enter_handle, NULL, but);
+
+		/* TODO, directory editing is non-functional while a library is loaded
+		 * until this is properly supported just disable it. */
+		if (sfile->files && filelist_lib(sfile->files))
+			uiButSetFlag(but, UI_BUT_DISABLED);
 
 		if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-			but = uiDefButTextO(block, TEX,  "FILE_OT_filename", 0, "",
+			but = uiDefBut(block, TEX, -1, "",
 			               min_x, line2_y, line2_w - chan_offs, btn_h,
 			               params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
 			               TIP_(overwrite_alert ? N_("File name, overwrite existing") : N_("File name")));
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
-			uiButClearFlag(but, UI_BUT_UNDO); /* operator button above does this automatic */
+			uiButClearFlag(but, UI_BUT_UNDO);
+			/* silly workaround calling NFunc to ensure this does not get called
+			 * immediate ui_apply_but_func but only after button deactivates */
+			uiButSetNFunc(but, file_filename_enter_handle, NULL, but);
 
 			/* check if this overrides a file and if the operator option is used */
 			if (overwrite_alert) {

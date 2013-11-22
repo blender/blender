@@ -479,6 +479,17 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
 	BLI_addtail(folderlist, folder);
 }
 
+const char *folderlist_peeklastdir(ListBase *folderlist)
+{
+	struct FolderList *folder;
+
+	if (!folderlist->last)
+		return NULL;
+
+	folder = folderlist->last;
+	return folder->foldername;
+}
+
 int folderlist_clear_next(struct SpaceFile *sfile)
 {
 	struct FolderList *folder;

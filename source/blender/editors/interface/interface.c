@@ -3112,45 +3112,6 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 	return but;
 }
 
-#if 0 /* UNUSED */
-static uiBut *UNUSED_FUNCTION(ui_def_but_operator) (uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, const char *tip)
-{
-	wmOperatorType *ot = WM_operatortype_find(opname, 0);
-	if (str == NULL && ot == NULL) str = opname;
-	return ui_def_but_operator_ptr(block, type, ot, opcontext, str, x, y, width, height, tip);
-}
-#endif
-
-static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, void *poin, float min, float max, float a1, float a2, const char *tip)
-{
-	uiBut *but;
-	wmOperatorType *ot;
-	
-	ot = WM_operatortype_find(opname, 0);
-
-	if (!str) {
-		if (ot) str = ot->name;
-		else str = opname;
-	}
-	
-	if ((!tip || tip[0] == '\0') && ot && ot->description) {
-		tip = ot->description;
-	}
-
-	but = ui_def_but(block, type, -1, str, x, y, width, height, poin, min, max, a1, a2, tip);
-	but->optype = ot;
-	but->opcontext = opcontext;
-	but->flag &= ~UI_BUT_UNDO; /* no need for ui_is_but_rna_undo(), we never need undo here */
-
-	if (!ot) {
-		but->flag |= UI_BUT_DISABLED;
-		but->lock = TRUE;
-		but->lockstr = "";
-	}
-
-	return but;
-}
-
 uiBut *uiDefBut(uiBlock *block, int type, int retval, const char *str, int x, int y, short width, short height, void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but = ui_def_but(block, type, retval, str, x, y, width, height, poin, min, max, a1, a2, tip);
@@ -3340,13 +3301,6 @@ uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, co
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
 	if (str == NULL && ot == NULL) str = opname;
 	return uiDefButO_ptr(block, type, ot, opcontext, str, x, y, width, height, tip);
-}
-
-uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, void *poin, float min, float max, float a1, float a2,  const char *tip)
-{
-	uiBut *but = ui_def_but_operator_text(block, type, opname, opcontext, str, x, y, width, height, poin, min, max, a1, a2, tip);
-	ui_check_but(but);
-	return but;
 }
 
 /* if a1==1.0 then a2 is an extra icon blending factor (alpha 0.0 - 1.0) */

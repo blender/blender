@@ -321,7 +321,7 @@ typedef struct uiSearchItems uiSearchItems;
 typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
 typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
-typedef bool (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 
@@ -474,7 +474,6 @@ uiBut *uiDefButR(uiBlock *block, int type, int retval, const char *str, int x, i
 uiBut *uiDefButR_prop(uiBlock *block, int type, int retval, const char *str, int x, int y, short width, short height, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, float min, float max, float a1, float a2, const char *tip);
 uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefButO_ptr(uiBlock *block, int type, struct wmOperatorType *ot, int opcontext, const char *str, int x, int y, short width, short height, const char *tip);
-uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x, int y, short width, short height, void *poin, float min, float max, float a1, float a2, const char *tip);
 
 uiBut *uiDefIconBut(uiBlock *block, 
                     int type, int retval, int icon,
@@ -634,8 +633,9 @@ void    uiBlockSetDrawExtraFunc(uiBlock *block,
                                 void (*func)(const struct bContext *C, void *, void *, void *, struct rcti *rect),
                                 void *arg1, void *arg2);
 
-bool UI_textbutton_activate_event(const struct bContext *C, struct ARegion *ar,
-                                  const void *rna_poin_data, const char *rna_prop_id);
+bool UI_textbutton_activate_rna(const struct bContext *C, struct ARegion *ar,
+                                const void *rna_poin_data, const char *rna_prop_id);
+bool UI_textbutton_activate_but(const struct bContext *C, uiBut *but);
 
 void uiButSetFocusOnEnter(struct wmWindow *win, uiBut *but);
 
