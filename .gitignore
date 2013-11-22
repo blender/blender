@@ -20,3 +20,6 @@ Desktop.ini
 /blender.bin
 /user-config.py
 
+# local patches
+/*.patch
+/*.diff
