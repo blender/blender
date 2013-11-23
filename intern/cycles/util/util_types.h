@@ -23,6 +23,12 @@
 
 #endif
 
+/* Bitness */
+
+#if defined(__ppc64__) || defined(__PPC64__) || defined(__x86_64__) || defined(__ia64__) || defined(_M_X64)
+#define __KERNEL_64_BIT__
+#endif
+
 /* Qualifiers for kernel code shared by CPU and GPU */
 
 #ifndef __KERNEL_GPU__
@@ -34,7 +40,11 @@
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 #define ccl_device_inline static __forceinline
+#ifdef __KERNEL_64_BIT__
 #define ccl_align(...) __declspec(align(__VA_ARGS__))
+#else
+#define ccl_align(...) /* not support for function arguments (error C2719) */
+#endif
 #define ccl_may_alias
 #else
 #define ccl_device_inline static inline __attribute__((always_inline))
@@ -45,12 +55,6 @@
 #define ccl_may_alias __attribute__((__may_alias__))
 #endif
 
-#endif
-
-/* Bitness */
-
-#if defined(__ppc64__) || defined(__PPC64__) || defined(__x86_64__) || defined(__ia64__) || defined(_M_X64)
-#define __KERNEL_64_BIT__
 #endif
 
 /* SIMD Types */
