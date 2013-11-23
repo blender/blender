@@ -58,9 +58,9 @@ if env['WITH_BF_INTERNATIONAL']:
             os.makedirs(build_dir)
 
         msgfmt_tool = env.Clone()
+        msgfmt_tool.Append(LINKFLAGS = env['PLATFORM_LINKFLAGS'])
+
         targetpath = root_build_dir + '/msgfmt'
-        if env['OURPLATFORM'] == 'darwin':
-            msgfmt_tool.Replace( LINKFLAGS = '/usr/lib/libgcc_s.1.dylib /usr/lib/libstdc++.6.dylib /usr/lib/libSystem.B.dylib') # only need these dependencies
 
         msgfmt_target = msgfmt_tool.Program(target = targetpath, source = ['msgfmt.cc'])
 
