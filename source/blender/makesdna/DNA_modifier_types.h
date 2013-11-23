@@ -80,6 +80,7 @@ typedef enum ModifierType {
 	eModifierType_Triangulate       = 44,
 	eModifierType_UVWarp            = 45,
 	eModifierType_MeshCache         = 46,
+	eModifierType_LaplacianDeform   = 47,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1292,6 +1293,22 @@ enum {
 enum {
 	MOD_MESHCACHE_PLAY_CFEA = 0,
 	MOD_MESHCACHE_PLAY_EVAL = 1,
+};
+
+
+typedef struct LaplacianDeformModifierData {
+	ModifierData modifier;
+	char anchor_grp_name[64];  /* MAX_VGROUP_NAME */
+	int total_verts, repeat;
+	float *vertexco;
+	void *cache_system;  /* runtime only */
+	short flag, pad[3];
+
+} LaplacianDeformModifierData;
+
+/* Smooth modifier flags */
+enum {
+	MOD_LAPLACIANDEFORM_BIND = 1,
 };
 
 

@@ -2209,3 +2209,52 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "free", FALSE, "Free", "Free the bake, rather than generating it");
 }
 
+/************************ LaplacianDeform bind operator *********************/
+
+static int laplaciandeform_poll(bContext *C)
+{
+	return edit_modifier_poll_generic(C, &RNA_LaplacianDeformModifier, 0);
+}
+
+static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_LaplacianDeform);
+
+	if (!lmd)
+		return OPERATOR_CANCELLED;
+	if (lmd->flag & MOD_LAPLACIANDEFORM_BIND) {
+		lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
+	}
+	else {
+		lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
+	}
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+	return OPERATOR_FINISHED;
+}
+
+static int laplaciandeform_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	if (edit_modifier_invoke_properties(C, op))
+		return laplaciandeform_bind_exec(C, op);
+	else 
+		return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Laplacian Deform Bind";
+	ot->description = "Bind mesh to system in laplacian deform modifier";
+	ot->idname = "OBJECT_OT_laplaciandeform_bind";
+	
+	/* api callbacks */
+	ot->poll = laplaciandeform_poll;
+	ot->invoke = laplaciandeform_bind_invoke;
+	ot->exec = laplaciandeform_bind_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+	edit_modifier_properties(ot);
+}

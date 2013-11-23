@@ -79,6 +79,7 @@ extern ModifierTypeInfo modifierType_LaplacianSmooth;
 extern ModifierTypeInfo modifierType_Triangulate;
 extern ModifierTypeInfo modifierType_UVWarp;
 extern ModifierTypeInfo modifierType_MeshCache;
+extern ModifierTypeInfo modifierType_LaplacianDeform;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);
