@@ -199,14 +199,14 @@ char *blf_dir_metrics_search(const char *filename)
 		s[2] = 'm';
 
 		/* first check .afm */
-		if (BLI_exists(s))
-			return s;
+		if (BLI_exists(mfile))
+			return mfile;
 
 		/* and now check .pfm */
 		s[0] = 'p';
 
-		if (BLI_exists(s))
-			return s;
+		if (BLI_exists(mfile))
+			return mfile;
 	}
 	MEM_freeN(mfile);
 	return NULL;
