@@ -404,7 +404,7 @@ typedef struct bAnimChannelType {
 	/* check if the given setting is valid in the current context */
 	bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, int setting);
 	/* get the flag used for this setting */
-	int (*setting_flag)(bAnimContext *ac, int setting, short *neg);
+	int (*setting_flag)(bAnimContext *ac, int setting, bool *neg);
 	/* get the pointer to int/short where data is stored,
 	 * with type being  sizeof(ptr_data) which should be fine for runtime use...
 	 *	- assume that setting has been checked to be valid for current context

@@ -445,16 +445,16 @@ static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *U
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_summary_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_summary_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	if (setting == ACHANNEL_SETTING_EXPAND) {
 		/* expanded */
-		*neg = 1;
+		*neg = true;
 		return ADS_FLAG_SUMMARY_COLLAPSED;
 	}
 	else {
 		/* unsupported */
-		*neg = 0;
+		*neg = false;
 		return 0;
 	}
 }
@@ -531,24 +531,24 @@ static bool acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return SCE_DS_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg = 1;
+			*neg = true;
 			return SCE_DS_COLLAPSED;
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		default: /* unsupported */
@@ -674,10 +674,10 @@ static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_object_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_object_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -691,7 +691,7 @@ static int acf_object_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		default: /* unsupported */
@@ -830,10 +830,10 @@ static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
+static int acf_group_setting_flag(bAnimContext *ac, int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -854,7 +854,6 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
@@ -951,10 +950,10 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -964,7 +963,6 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
@@ -1026,17 +1024,17 @@ static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return ADT_UI_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg = 1;
+			*neg = true;
 			return ACT_COLLAPSED;
 		
 		default: /* unsupported */
@@ -1115,14 +1113,14 @@ static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac), bAnimListEle
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg = 1;
+			*neg = true;
 			return ADT_DRIVERS_COLLAPSED;
 		
 		default: /* unsupported */
@@ -1176,10 +1174,10 @@ static int acf_dsmat_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1189,7 +1187,7 @@ static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1252,10 +1250,10 @@ static int acf_dslam_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1265,7 +1263,7 @@ static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1335,10 +1333,10 @@ static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(al
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1348,7 +1346,7 @@ static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1411,10 +1409,10 @@ static int acf_dscam_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1424,7 +1422,7 @@ static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1497,10 +1495,10 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1510,7 +1508,7 @@ static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1573,10 +1571,10 @@ static int acf_dsskey_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1586,7 +1584,7 @@ static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1649,10 +1647,10 @@ static int acf_dswor_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1662,7 +1660,7 @@ static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1725,10 +1723,10 @@ static int acf_dspart_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1738,7 +1736,7 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1801,10 +1799,10 @@ static int acf_dsmball_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1814,7 +1812,7 @@ static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), int setting, short
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 		
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1877,10 +1875,10 @@ static int acf_dsarm_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1890,7 +1888,7 @@ static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1964,10 +1962,10 @@ static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1977,7 +1975,7 @@ static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, short
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2040,10 +2038,10 @@ static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2053,7 +2051,7 @@ static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, s
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2116,10 +2114,10 @@ static int acf_dsmesh_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2129,7 +2127,7 @@ static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2192,10 +2190,10 @@ static int acf_dslat_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2205,7 +2203,7 @@ static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2268,10 +2266,10 @@ static int acf_dsspk_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2281,7 +2279,7 @@ static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 			return ADT_NLA_EVAL_OFF;
 		
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg = 1;
+			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
 		
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2384,10 +2382,10 @@ static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_MUTE: /* mute */
@@ -2472,10 +2470,10 @@ static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSE
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2558,10 +2556,10 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSE
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2571,7 +2569,6 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to editability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -2638,10 +2635,10 @@ static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUS
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2724,20 +2721,16 @@ static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *U
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return MASK_LAYERFLAG_SELECT;
 		
-//		case ACHANNEL_SETTING_MUTE: /* muted */
-//			return GP_LAYER_HIDE;
-		
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to editability
 			return MASK_LAYERFLAG_LOCKED;
 		
 		default: /* unsupported */
@@ -2862,10 +2855,10 @@ static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
 {
 	/* clear extra return data first */
-	*neg = 0;
+	*neg = false;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3037,7 +3030,8 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 	/* 1) check that the setting exists for the current context */
 	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
-		short negflag, ptrsize;
+		short ptrsize;
+		bool negflag;
 		int flag;
 		void *ptr;
 		
@@ -3112,7 +3106,8 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
 	/* 1) check that the setting exists for the current context */
 	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
 		/* 2) get pointer to check for flag in, and the flag to check for */
-		short negflag, ptrsize;
+		short ptrsize;
+		bool negflag;
 		int flag;
 		void *ptr;
 		
@@ -3494,7 +3489,8 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf,
                                 uiBlock *block, int xpos, int ypos, int setting)
 {
-	short negflag, ptrsize /* , enabled */ /* UNUSED */, butType;
+	short ptrsize, butType;
+	bool negflag;
 	int flag, icon;
 	void *ptr;
 	const char *tooltip;
