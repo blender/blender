@@ -54,6 +54,9 @@ struct ImBuf;
 
 /* ****************** general defines ************** */
 
+#define RNA_NO_INDEX    -1
+#define RNA_ENUM_VALUE  -2
+
 /* visual types for drawing */
 /* for time being separated from functional types */
 typedef enum {
@@ -403,7 +406,6 @@ extern bool ui_is_but_bool(uiBut *but);
 extern bool ui_is_but_unit(uiBut *but);
 extern bool ui_is_but_rna_valid(uiBut *but);
 extern bool ui_is_but_utf8(uiBut *but);
-extern bool ui_is_but_interactive(uiBut *but);
 extern bool ui_is_but_search_unlink_visible(uiBut *but);
 
 extern int  ui_is_but_push_ex(uiBut *but, double *value);

@@ -64,7 +64,7 @@ class MESH_UL_vgroups(UIList):
         # assert(isinstance(item, bpy.types.VertexGroup)
         vgroup = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=vgroup.name, translate=False, icon_value=icon)
+            layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
             icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
             layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
         elif self.layout_type in {'GRID'}:

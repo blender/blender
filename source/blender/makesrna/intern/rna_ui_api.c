@@ -97,7 +97,7 @@ static const char *rna_translate_ui_text(const char *text, const char *text_ctxt
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,
                         int translate, int icon, int expand, int slider, int toggle, int icon_only, int event,
-                        int full_event, int emboss, int index)
+                        int full_event, int emboss, int index, int icon_value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	int flag = 0;
@@ -105,6 +105,10 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	if (!prop) {
 		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
+	}
+
+	if (icon_value && !icon) {
+		icon = icon_value;
 	}
 
 	/* Get translated name (label). */
@@ -511,6 +515,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_int(func, "index", -1, -2, INT_MAX, "",
 	            "The index of this button, when set a single member of an array can be accessed, "
 	            "when set to -1 all array members are used", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
+	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Icon Value",
+	                         "Override automatic icon of the item "
+	                         "(use it e.g. with custom material icons returned by icon()...)");
 
 	func = RNA_def_function(srna, "props_enum", "uiItemsEnumR");
 	api_ui_item_rna_common(func);

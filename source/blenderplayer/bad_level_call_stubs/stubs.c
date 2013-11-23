@@ -468,8 +468,8 @@ void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int ex
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname) {STUB_ASSERT(0);}
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser) {STUB_ASSERT(0);}
 void uiTemplateList(struct uiLayout *layout, struct bContext *C, const char *listtype_name, const char *list_id,
-                    PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
-                    const char *active_propname, int rows, int maxrows, int layout_type, int columns) {STUB_ASSERT(0);}
+                    PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr, const char *active_propname,
+                    int rows, int maxrows, int layout_type, int columns) {STUB_ASSERT(0);}
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C) {STUB_ASSERT(0);}
 void uiTemplateOperatorSearch(struct uiLayout *layout) {STUB_ASSERT(0);}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C) {STUB_ASSERT(0);}

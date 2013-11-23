@@ -1656,8 +1656,14 @@ static void widget_state(uiWidgetType *wt, int state)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
 
+	if ((state & UI_BUT_LIST_ITEM) && !(state & UI_TEXTINPUT)) {
+		/* Override default widget's colors. */
+		bTheme *btheme = UI_GetTheme();
+		wt->wcol_theme = &btheme->tui.wcol_list_item;
+	}
+
 	wt->wcol = *(wt->wcol_theme);
-	
+
 	if (state & UI_SELECT) {
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 

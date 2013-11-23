@@ -235,8 +235,10 @@ typedef struct uiAfterFunc {
 
 
 
+static bool ui_is_but_interactive(uiBut *but, const bool ctrl);
 static bool ui_but_contains_pt(uiBut *but, int mx, int my);
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
+static uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event, int x, int y);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
@@ -728,7 +730,9 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 		ui_window_to_block_fl(ar, block, &xy_b_block[0], &xy_b_block[1]);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			if (ui_is_but_interactive(but)) {
+			/* Note: ctrl is always true here because (at least for now) we always want to consider text control
+			 *       in this case, even when not embossed. */
+			if (ui_is_but_interactive(but, true)) {
 				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
 					/* execute the button */
@@ -754,7 +758,7 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 	return change;
 }
 
-static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const int xy_input[2])
+static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	bool do_draw = false;
@@ -768,7 +772,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	 */
 	if (drag_info->is_init == false) {
 		/* first store the buttons original coords */
-		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
+		uiBut *but = ui_but_find_mouse_over(ar, event, 0, 0);
 
 		if (but) {
 			if (but->flag & UI_BUT_DRAG_LOCK) {
@@ -796,8 +800,8 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	/* done with axis locking */
 
 
-	xy[0] = (drag_info->xy_lock[0] == false) ? xy_input[0] : drag_info->xy_last[0];
-	xy[1] = (drag_info->xy_lock[1] == false) ? xy_input[1] : drag_info->xy_last[1];
+	xy[0] = (drag_info->xy_lock[0] == false) ? event->x : drag_info->xy_last[0];
+	xy[1] = (drag_info->xy_lock[1] == false) ? event->y : drag_info->xy_last[1];
 
 
 	/* touch all buttons between last mouse coord and this one */
@@ -831,7 +835,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 		}
 		case MOUSEMOVE:
 		{
-			ui_drag_toggle_set(C, drag_info, &event->x);
+			ui_drag_toggle_set(C, drag_info, event);
 			break;
 		}
 	}
@@ -839,7 +843,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 	if (done) {
 		wmWindow *win = CTX_wm_window(C);
 		ARegion *ar = CTX_wm_region(C);
-		uiBut *but = ui_but_find_mouse_over(ar, drag_info->xy_init[0], drag_info->xy_init[1]);
+		uiBut *but = ui_but_find_mouse_over(ar, NULL, drag_info->xy_init[0], drag_info->xy_init[1]);
 
 		if (but) {
 			ui_apply_undo(but);
@@ -5883,8 +5887,9 @@ static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
+ * Note: ctrl is kind of a hack currently, so that non-embossed TEX button behaves as a label when ctrl is not pressed.
  */
-bool ui_is_but_interactive(uiBut *but)
+static bool ui_is_but_interactive(uiBut *but, const bool ctrl)
 {
 	/* note, LABEL is included for highlights, this allows drags */
 	if ((but->type == LABEL) && but->dragpoin == NULL)
@@ -5894,6 +5899,8 @@ bool ui_is_but_interactive(uiBut *but)
 	if (but->flag & UI_HIDDEN)
 		return false;
 	if (but->flag & UI_SCROLLED)
+		return false;
+	if ((but->type == TEX) && (but->dt & UI_EMBOSSN) && !ctrl)
 		return false;
 
 	return true;
@@ -5906,11 +5913,19 @@ bool ui_is_but_search_unlink_visible(uiBut *but)
 	        (but->drawstr[0] != '\0'));
 }
 
-uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+/* x and y are only used in case event is NULL... */
+static uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but, *butover = NULL;
 	int mx, my;
+	bool ctrl = true;
+
+	if (event) {
+		x = event->x;
+		y = event->y;
+		ctrl = event->ctrl;
+	}
 
 //	if (!win->active)
 //		return NULL;
@@ -5923,7 +5938,7 @@ uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			if (ui_is_but_interactive(but)) {
+			if (ui_is_but_interactive(but, ctrl)) {
 				if (ui_but_contains_pt(but, mx, my)) {
 					butover = but;
 				}
@@ -6493,7 +6508,7 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *ar)
 	uiBut *but;
 
 	if (event->type == MOUSEMOVE) {
-		but = ui_but_find_mouse_over(ar, event->x, event->y);
+		but = ui_but_find_mouse_over(ar, event, 0, 0);
 		if (but) {
 			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 		}
@@ -6585,7 +6600,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					data->cancel = TRUE;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
-				else if (ui_but_find_mouse_over(ar, event->x, event->y) != but) {
+				else if (ui_but_find_mouse_over(ar, event, 0, 0) != but) {
 					data->cancel = TRUE;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
@@ -6697,7 +6712,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					}
 				}
 
-				bt = ui_but_find_mouse_over(ar, event->x, event->y);
+				bt = ui_but_find_mouse_over(ar, event, 0, 0);
 				
 				if (bt && bt->active != data) {
 					if (but->type != COLOR) {  /* exception */
@@ -6737,7 +6752,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			 * it stays active while the mouse is over it.
 			 * This avoids adding mousemoves, see: [#33466] */
 			if (ELEM(state_orig, BUTTON_STATE_INIT, BUTTON_STATE_HIGHLIGHT)) {
-				if (ui_but_find_mouse_over(ar, event->x, event->y) == but) {
+				if (ui_but_find_mouse_over(ar, event, 0, 0) == but) {
 					button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 				}
 			}
@@ -6778,7 +6793,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 			break;
 		}
 	}
-	if (dragbut && dragbut == ui_but_find_mouse_over(ar, event->x, event->y)) {
+	if (dragbut && dragbut == ui_but_find_mouse_over(ar, event, 0, 0)) {
 		is_over_dragbut = true;
 	}
 

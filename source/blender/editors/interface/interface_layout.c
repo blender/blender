@@ -64,10 +64,6 @@
 
 /************************ Structs and Defines *************************/
 
-#define RNA_NO_INDEX    -1
-#define RNA_ENUM_VALUE  -2
-
-
 // #define USE_OP_RESET_BUT  // we may want to make this optional, disable for now.
 
 #define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement)                 \
@@ -632,13 +628,11 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 
 	if (subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
 		uiBlockSetCurLayout(block, uiLayoutRow(sub, TRUE));
-		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w - UI_UNIT_X, h);
+		but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w - UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
-		but = uiDefIconButO(block, BUT, subtype == PROP_DIRPATH ?
-		                    "BUTTONS_OT_directory_browse" :
-		                    "BUTTONS_OT_file_browse",
-		                    WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
+		uiDefIconButO(block, BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
+		              WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if (flag & UI_ITEM_R_EVENT) {
 		uiDefButR_prop(block, KEYEVT, 0, name, x, y, w, h, ptr, prop, index, 0, 0, -1, -1, NULL);
@@ -1142,7 +1136,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index, int value, int flag, const char *name, int icon)
 {
 	uiBlock *block = layout->root->block;
-	uiBut *but;
+	uiBut *but = NULL;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
 	int len, is_array, w, h, slider, toggle, expand, icon_only, no_bg;
@@ -1231,7 +1225,12 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		if (layout->redalert)
 			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
-	
+
+	/* Mark non-embossed textfields inside a listbox. */
+	if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->type == TEX) && (but->dt & UI_EMBOSSN)) {
+		uiButSetFlag(but, UI_BUT_LIST_ITEM);
+	}
+
 	if (no_bg)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 }
@@ -2452,8 +2451,9 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 	return (uiLayout *)ui_layout_box(layout, ROUNDBOX);
 }
 
-/* Check all buttons defined in this layout, and set labels as active/selected.
- * Needed to handle correctly text colors of list items. */
+/* Check all buttons defined in this layout, and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
+ * Needed to handle correctly text colors of active (selected) list item.
+ */
 void ui_layout_list_set_labels_active(uiLayout *layout)
 {
 	uiButtonItem *bitem;
