@@ -77,7 +77,10 @@ class MATERIAL_UL_matslots(UIList):
         slot = item
         ma = slot.material
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=ma.name if ma else "", translate=False, icon_value=icon)
+            if ma:
+                layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
+            else:
+                layout.label(text="", icon_value=icon)
             if ma and not context.scene.render.use_shading_nodes:
                 manode = ma.active_node_material
                 if manode:

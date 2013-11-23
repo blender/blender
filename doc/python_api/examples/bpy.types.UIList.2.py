@@ -49,9 +49,9 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
                 col = layout.column()
                 col.enabled = False
                 col.alignment = 'LEFT'
-                col.label(text=vgroup.name, translate=False, icon_value=icon)
+                col.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
             else:
-                layout.label(text=vgroup.name, translate=False, icon_value=icon)
+                layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
             icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
             layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
         elif self.layout_type in {'GRID'}:

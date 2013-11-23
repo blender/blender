@@ -63,7 +63,10 @@ class TEXTURE_UL_texslots(UIList):
         slot = item
         tex = slot.texture if slot else None
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=tex.name if tex else "", translate=False, icon_value=icon)
+            if tex:
+                layout.prop(tex, "name", text="", emboss=False, icon_value=icon)
+            else:
+                layout.label(text="", icon_value=icon)
             if tex and isinstance(item, bpy.types.MaterialTextureSlot):
                 layout.prop(ma, "use_textures", text="", index=index)
         elif self.layout_type in {'GRID'}:

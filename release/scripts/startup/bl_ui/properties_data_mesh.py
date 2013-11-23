@@ -80,7 +80,7 @@ class MESH_UL_shape_keys(UIList):
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(0.66, False)
-            split.label(text=item.name, translate=False, icon_value=icon)
+            split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
             row = split.row(align=True)
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 row.active = False
@@ -98,7 +98,7 @@ class MESH_UL_uvmaps_vcols(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, translate=False, icon_value=icon)
+            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
             layout.prop(item, "active_render", text="", icon=icon, emboss=False)
         elif self.layout_type in {'GRID'}:

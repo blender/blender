@@ -97,7 +97,7 @@ class RENDERLAYER_UL_linesets(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         lineset = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(lineset.name, icon_value=icon)
+            layout.prop(lineset, "name", text="", emboss=False, icon_value=icon)
             layout.prop(lineset, "show_render", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'

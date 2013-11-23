@@ -32,11 +32,14 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
         ma = slot.material
         # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # You should always start your row layout by a label (icon + text), this will also make the row easily
-            # selectable in the list!
+            # You should always start your row layout by a label (icon + text), or a non-embossed text field,
+            # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
             # We use icon_value of label, as our given icon is an integer value, not an enum ID.
             # Note "data" names should never be translated!
-            layout.label(text=ma.name if ma else "", translate=False, icon_value=icon)
+            if ma:
+                layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
+            else:
+                layout.label(text="", translate=False, icon_value=icon)
             # And now we can add other UI stuff...
             # Here, we add nodes info if this material uses (old!) shading nodes.
             if ma and not context.scene.render.use_shading_nodes:

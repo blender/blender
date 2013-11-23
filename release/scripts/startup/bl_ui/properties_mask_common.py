@@ -31,7 +31,7 @@ class MASK_UL_layers(UIList):
         # assert(isinstance(item, bpy.types.MaskLayer)
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=mask.name, translate=False, icon_value=icon)
+            layout.prop(mask, "name", text="", emboss=False, icon_value=icon)
             row = layout.row(align=True)
             row.prop(mask, "hide", text="", emboss=False)
             row.prop(mask, "hide_select", text="", emboss=False)

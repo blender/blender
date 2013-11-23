@@ -29,9 +29,9 @@ class CLIP_UL_tracking_objects(UIList):
         # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=tobj.name, translate=False,
-                         icon='CAMERA_DATA' if tobj.is_camera
-                         else 'OBJECT_DATA')
+            layout.prop(tobj, "name", text="", emboss=False,
+                        icon='CAMERA_DATA' if tobj.is_camera
+                        else 'OBJECT_DATA')
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="",
