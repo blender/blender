@@ -4144,16 +4144,17 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 		}
 	}
 	else {
-		const float dx = ((float)(mval[0] - (ar->winx / 2))) * zfac / (ar->winx / 2);
-		const float dy = ((float)(mval[1] - (ar->winy / 2))) * zfac / (ar->winy / 2);
-		const float fz = (rv3d->persmat[0][3] * fp[0] +
-		                  rv3d->persmat[1][3] * fp[1] +
-		                  rv3d->persmat[2][3] * fp[2] +
-		                  rv3d->persmat[3][3]) / zfac;
+		float tvec[3];
 
-		fp[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy + rv3d->persinv[2][0] * fz) - rv3d->ofs[0];
-		fp[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy + rv3d->persinv[2][1] * fz) - rv3d->ofs[1];
-		fp[2] = (rv3d->persinv[0][2] * dx + rv3d->persinv[1][2] * dy + rv3d->persinv[2][2] * fz) - rv3d->ofs[2];
+		tvec[0] = ((float)(mval[0] - (ar->winx / 2))) * zfac / (ar->winx / 2);
+		tvec[1] = ((float)(mval[1] - (ar->winy / 2))) * zfac / (ar->winy / 2);
+		tvec[2] = (rv3d->persmat[0][3] * fp[0] +
+		           rv3d->persmat[1][3] * fp[1] +
+		           rv3d->persmat[2][3] * fp[2] +
+		           rv3d->persmat[3][3]) / zfac;
+
+		mul_mat3_m4_v3(rv3d->persinv, tvec);
+		sub_v3_v3v3(fp, tvec, rv3d->ofs);
 	}
 
 }

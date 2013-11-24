@@ -301,8 +301,9 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	BMVert *eve, *preveve;
 	BMEdge *e;
 	BMIter iter;
-	float vec[3], mat[4][4], cmat[3][3], phi, q[4];
-	float phid;
+	const float axis[3] = {0, 0, 1};
+	float vec[3], mat[4][4], cmat[3][3];
+	float phi, phid;
 	int a;
 
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
@@ -331,11 +332,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* extrude and rotate; negative phi to make normals face outward */
-	phi = -M_PI / seg;
-	q[0] = cosf(phi);
-	q[3] = sinf(phi);
-	q[1] = q[2] = 0.0f;
-	quat_to_mat3(cmat, q);
+	axis_angle_to_mat3(cmat, axis, -(M_PI * 2) / seg);
 
 	for (a = 0; a < seg; a++) {
 		if (a) {

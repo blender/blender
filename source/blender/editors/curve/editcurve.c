@@ -4364,7 +4364,7 @@ bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], 
 	Curve *cu = (Curve *)obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
-	float si, phi, n[3], q[4], cmat[3][3], tmat[3][3], imat[3][3];
+	float cmat[3][3], tmat[3][3], imat[3][3];
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
 	bool ok, changed = false;
@@ -4377,15 +4377,7 @@ bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], 
 	copy_m3_m4(bmat, obedit->obmat);
 	invert_m3_m3(imat, bmat);
 	
-	normalize_v3_v3(n, axis);
-	/* TODO - use math func */
-	phi = M_PI / 8.0;
-	q[0] = cos(phi);
-	si = sin(phi);
-	q[1] = n[0] * si;
-	q[2] = n[1] * si;
-	q[3] = n[2] * si;
-	quat_to_mat3(cmat, q);
+	axis_angle_to_mat3(cmat, axis, M_PI / 4.0);
 	mul_m3_m3m3(tmat, cmat, bmat);
 	mul_m3_m3m3(rotmat, imat, tmat);
 
