@@ -163,7 +163,7 @@ void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
 {
 	outdepth = abs(co.z);
 	outdist = length(co);
-	outview = normalize(co);
+	outview = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(co): vec3(0.0, 0.0, -1.0);
 }
 
 void math_add(float val1, float val2, out float outval)
