@@ -26,6 +26,8 @@ import math
 import mathutils
 import time
 
+from _freestyle import blendRamp, evaluateColorRamp, evaluateCurveMappingF
+
 from ChainingIterators import pySketchyChainSilhouetteIterator, pySketchyChainingIterator
 from freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicate1D, ChainPredicateIterator, \
     ChainSilhouetteIterator, ConstantColorShader, ContourUP1D, Curvature2DAngleF0D, ExternalContourUP1D, \
