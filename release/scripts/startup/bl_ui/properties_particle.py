@@ -122,32 +122,24 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             split = layout.split(percentage=0.32)
 
             col = split.column()
-            col.label(text="Name:")
             col.label(text="Settings:")
 
             col = split.column()
-            col.prop(psys, "name", text="")
             col.template_ID(psys, "settings", new="particle.new")
         else:
             part = psys.settings
 
             split = layout.split(percentage=0.32)
             col = split.column()
-            col.label(text="Name:")
             if part.is_fluid is False:
                 col.label(text="Settings:")
                 col.label(text="Type:")
 
             col = split.column()
-            col.prop(psys, "name", text="")
             if part.is_fluid is False:
                 row = col.row()
                 row.enabled = particle_panel_enabled(context, psys)
                 row.template_ID(psys, "settings", new="particle.new")
-
-            #row = layout.row()
-            #row.label(text="Viewport")
-            #row.label(text="Render")
 
             if part.is_fluid:
                 layout.label(text=iface_("%d fluid particles for this frame") % part.count, translate=False)

@@ -106,14 +106,13 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
             row = layout.row()
 
             col = row.column()
-            col.prop(ks, "bl_label")
             col.prop(ks, "bl_description")
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
             subcol.operator("anim.keying_set_export", text="Export to File").filepath = "keyingset.py"
 
-            col = row.column(align=True)
+            col = row.column()
             col.label(text="Keyframing Settings:")
             col.prop(ks, "bl_options")
 
@@ -169,7 +168,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
 
-            col = row.column(align=True)
+            col = row.column()
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "bl_options")
 
