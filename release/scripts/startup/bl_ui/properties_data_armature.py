@@ -136,10 +136,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            col = layout.column()
-            col.active = (ob.proxy is None)
-            col.prop(group, "name")
-
             split = layout.split()
             split.active = (ob.proxy is None)
 
