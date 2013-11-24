@@ -21,24 +21,70 @@
 #  Date     : 26/07/2010
 #  Purpose  : Interactive manipulation of stylization parameters
 
-import freestyle
+from freestyle import Operators
+from freestyle.types import (
+    BinaryPredicate1D,
+    Interface0DIterator,
+    Nature,
+    Noise,
+    StrokeAttribute,
+    UnaryPredicate0D,
+    UnaryPredicate1D,
+    TVertex,
+    )
+from freestyle.chainingiterators import (
+    ChainPredicateIterator,
+    ChainSilhouetteIterator,
+    pySketchyChainSilhouetteIterator,
+    pySketchyChainingIterator,
+    )
+from freestyle.functions import (
+    Curvature2DAngleF0D,
+    CurveMaterialF0D,
+    Normal2DF0D,
+    QuantitativeInvisibilityF1D,
+    VertexOrientation2DF0D,
+    )
+from freestyle.predicates import (
+    AndUP1D,
+    ContourUP1D,
+    ExternalContourUP1D,
+    FalseBP1D,
+    FalseUP1D,
+    NotUP1D,
+    OrUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueBP1D,
+    TrueUP1D,
+    WithinImageBoundaryUP1D,
+    pyNatureUP1D,
+    )
+from freestyle.shaders import (
+    BackboneStretcherShader,
+    BezierCurveShader,
+    ConstantColorShader,
+    GuidingLinesShader,
+    PolygonalizationShader,
+    SamplingShader,
+    SpatialNoiseShader,
+    StrokeShader,
+    TipRemoverShader,
+    pyBluePrintCirclesShader,
+    pyBluePrintEllipsesShader,
+    pyBluePrintSquaresShader,
+    )
+from freestyle.utils import (
+    ContextFunctions,
+    getCurrentScene,
+    )
+from _freestyle import (
+    blendRamp,
+    evaluateColorRamp,
+    evaluateCurveMappingF,
+    )
 import math
 import mathutils
 import time
-
-from _freestyle import blendRamp, evaluateColorRamp, evaluateCurveMappingF
-
-from ChainingIterators import pySketchyChainSilhouetteIterator, pySketchyChainingIterator
-from freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicate1D, ChainPredicateIterator, \
-    ChainSilhouetteIterator, ConstantColorShader, ContourUP1D, Curvature2DAngleF0D, ExternalContourUP1D, \
-    FalseBP1D, FalseUP1D, GuidingLinesShader, Interface0DIterator, Nature, Noise, Normal2DF0D, Operators, \
-    PolygonalizationShader, QuantitativeInvisibilityF1D, QuantitativeInvisibilityUP1D, SamplingShader, \
-    SpatialNoiseShader, StrokeAttribute, StrokeShader, TipRemoverShader, TrueBP1D, TrueUP1D, UnaryPredicate0D, \
-    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D, ContextFunctions, TVertex
-from Functions0D import CurveMaterialF0D
-from PredicatesU1D import pyNatureUP1D
-from logical_operators import AndUP1D, NotUP1D, OrUP1D
-from shaders import pyBluePrintCirclesShader, pyBluePrintEllipsesShader, pyBluePrintSquaresShader
 
 
 class ColorRampModifier(StrokeShader):
@@ -49,12 +95,12 @@ class ColorRampModifier(StrokeShader):
         self.__ramp = ramp
 
     def evaluate(self, t):
-        col = freestyle.evaluateColorRamp(self.__ramp, t)
+        col = evaluateColorRamp(self.__ramp, t)
         col = col.xyz  # omit alpha
         return col
 
     def blend_ramp(self, a, b):
-        return freestyle.blendRamp(self.__blend, a, self.__influence, b)
+        return blendRamp(self.__blend, a, self.__influence, b)
 
 
 class ScalarBlendModifier(StrokeShader):
@@ -106,7 +152,7 @@ class CurveMappingModifier(ScalarBlendModifier):
         return t
 
     def CURVE(self, t):
-        return freestyle.evaluateCurveMappingF(self.__curve, 0, t)
+        return evaluateCurveMappingF(self.__curve, 0, t)
 
     def evaluate(self, t):
         return self.__mapping(t)
@@ -114,7 +160,7 @@ class CurveMappingModifier(ScalarBlendModifier):
 
 class ThicknessModifierMixIn:
     def __init__(self):
-        scene = freestyle.getCurrentScene()
+        scene = getCurrentScene()
         self.__persp_camera = (scene.camera.data.type == 'PERSP')
 
     def set_thickness(self, sv, outer, inner):
@@ -312,7 +358,7 @@ class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModif
 # Distance from Object modifiers
 
 def iter_distance_from_object(stroke, object, range_min, range_max):
-    scene = freestyle.getCurrentScene()
+    scene = getCurrentScene()
     mv = scene.camera.matrix_world.copy()  # model-view matrix
     mv.invert()
     loc = mv * object.location  # loc in the camera coordinate
@@ -1114,7 +1160,7 @@ class StrokeCleaner(StrokeShader):
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
-    scene = freestyle.getCurrentScene()
+    scene = getCurrentScene()
     layer = scene.render.layers[layer_name]
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle

@@ -22,10 +22,23 @@
 #  Purpose  : Draws the visible lines (chaining follows same nature lines)
 #             that do not belong to the external contour of the scene
 
-from freestyle import BackboneStretcherShader, ChainSilhouetteIterator, ExternalContourUP1D, \
-    IncreasingColorShader, IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, \
-    SamplingShader, SpatialNoiseShader, TextureAssignerShader, TrueUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    AndUP1D,
+    ExternalContourUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    BackboneStretcherShader,
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    SpatialNoiseShader,
+    TextureAssignerShader,
+    )
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)

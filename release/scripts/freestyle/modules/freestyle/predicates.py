@@ -39,12 +39,27 @@ from _freestyle import (
 
 # modules for implementing predicates
 from freestyle.types import (
-    IntegrationType,
     BinaryPredicate1D,
+    IntegrationType,
+    Nature,
+    TVertex,
     UnaryPredicate0D,
     UnaryPredicate1D,
     )
 from freestyle.functions import (
+    Curvature2DAngleF0D,
+    CurveNatureF1D,
+    DensityF1D,
+    GetCompleteViewMapDensityF1D,
+    GetCurvilinearAbscissaF0D,
+    GetDirectionalViewMapDensityF1D,
+    GetOccludersF1D,
+    GetProjectedZF1D,
+    GetShapeF1D,
+    GetSteerableViewMapDensityF1D,
+    GetZF1D,
+    QuantitativeInvisibilityF0D,
+    ZDiscontinuityF1D,
     pyCurvilinearLengthF0D,
     pyDensityAnisotropyF1D,
     pyViewMapGradientNormF1D,

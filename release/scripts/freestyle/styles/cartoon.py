@@ -23,10 +23,18 @@
 #             infered from each object's material in a cartoon-like
 #             fashion.
 
-from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantThicknessShader, Operators, \
-    QuantitativeInvisibilityUP1D, TrueUP1D
-from logical_operators import NotUP1D
-from shaders import pyMaterialColorShader
+from freestyle import Operators
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    BezierCurveShader,
+    ConstantThicknessShader,
+    pyMaterialColorShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

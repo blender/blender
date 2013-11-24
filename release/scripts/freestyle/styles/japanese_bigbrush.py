@@ -21,15 +21,29 @@
 #  Date     : 04/08/2005
 #  Purpose  : Simulates a big brush fr oriental painting
 
-from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
-    ConstantThicknessShader, IntegrationType, Operators, QuantitativeInvisibilityUP1D, \
-    SamplingShader, TextureAssignerShader, TipRemoverShader
-from Functions0D import pyInverseCurvature2DAngleF0D
-from PredicatesB1D import pyLengthBP1D
-from PredicatesU0D import pyParameterUP0D
-from PredicatesU1D import pyDensityUP1D, pyHigherLengthUP1D, pyHigherNumberOfTurnsUP1D
-from logical_operators import NotUP1D
-from shaders import pyNonLinearVaryingThicknessShader, pySamplingShader
+from freestyle import Operators
+from freestyle.types import IntegrationType
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.functions import pyInverseCurvature2DAngleF0D
+from freestyle.predicates import (
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    pyDensityUP1D,
+    pyHigherLengthUP1D,
+    pyHigherNumberOfTurnsUP1D,
+    pyLengthBP1D,
+    pyParameterUP0D,
+    )
+from freestyle.shaders import (
+    BezierCurveShader,
+    ConstantColorShader,
+    ConstantThicknessShader,
+    SamplingShader,
+    TextureAssignerShader,
+    TipRemoverShader,
+    pyNonLinearVaryingThicknessShader,
+    pySamplingShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

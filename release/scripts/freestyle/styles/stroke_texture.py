@@ -21,10 +21,21 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws textured strokes (illustrate the StrokeTextureShader shader)
 
-from freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
-    ConstantThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
-    Stroke, StrokeTextureShader, TrueUP1D
-from logical_operators import NotUP1D
+from freestyle import Operators
+from freestyle.types import Stroke
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    BezierCurveShader,
+    ConstantColorShader,
+    ConstantThicknessShader,
+    SamplingShader,
+    StrokeTextureShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

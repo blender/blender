@@ -73,6 +73,7 @@ from _freestyle import (
 
 # modules for implementing functions
 from freestyle.types import (
+    CurvePoint,
     IntegrationType,
     UnaryFunction0DDouble,
     UnaryFunction0DMaterial,
@@ -80,6 +81,7 @@ from freestyle.types import (
     UnaryFunction1DDouble,
     )
 from freestyle.utils import ContextFunctions as CF
+from freestyle.utils import integrate
 import math
 import mathutils
 
@@ -183,7 +185,7 @@ class pyDensityAnisotropyF1D(UnaryFunction1DDouble):
         self._integration = integrationType
         self._sampling = sampling
     def __call__(self, inter):
-        v = integrate(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
+        v = integrate(self._func, inter.points_begin(self._sampling), inter.points_end(self._sampling), self._integration)
         return v
 
 class pyViewMapGradientNormF1D(UnaryFunction1DDouble):
@@ -193,5 +195,5 @@ class pyViewMapGradientNormF1D(UnaryFunction1DDouble):
         self._integration = integrationType
         self._sampling = sampling
     def __call__(self, inter):
-        v = integrate(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
+        v = integrate(self._func, inter.points_begin(self._sampling), inter.points_end(self._sampling), self._integration)
         return v

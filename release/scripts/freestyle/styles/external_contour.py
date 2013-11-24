@@ -21,9 +21,20 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws the external contour of the scene
 
-from freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, \
-    ExternalContourUP1D, Operators, QuantitativeInvisibilityUP1D, TrueBP1D, TrueUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.chainingiterators import ChainPredicateIterator
+from freestyle.predicates import (
+    AndUP1D,
+    ExternalContourUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueBP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    ConstantThicknessShader,
+    )
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)

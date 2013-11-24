@@ -23,10 +23,20 @@
 #             so as to chain several times the same ViewEdge.
 #             The topology of the objects is preserved
 
-from ChainingIterators import pySketchyChainSilhouetteIterator
-from freestyle import ConstantColorShader, IncreasingThicknessShader, Operators, \
-    QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
-    TextureAssignerShader, TrueUP1D
+from freestyle import Operators
+from freestyle.chainingiterators import pySketchyChainSilhouetteIterator
+from freestyle.predicates import (
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    SmoothingShader,
+    SpatialNoiseShader,
+    TextureAssignerShader,
+    )
 
 upred = QuantitativeInvisibilityUP1D(0)
 Operators.select(upred)

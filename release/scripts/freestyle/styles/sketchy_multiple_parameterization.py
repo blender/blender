@@ -23,11 +23,21 @@
 #             parameterization that covers the complete lines (visible+invisible)
 #             whereas only the visible portions are actually drawn
 
-from ChainingIterators import pySketchyChainSilhouetteIterator
-from freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
-    QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
-    TextureAssignerShader, TrueUP1D
-from shaders import pyHLRShader
+from freestyle import Operators
+from freestyle.chainingiterators import pySketchyChainSilhouetteIterator
+from freestyle.predicates import (
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    SmoothingShader,
+    SpatialNoiseShader,
+    TextureAssignerShader,
+    pyHLRShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(pySketchyChainSilhouetteIterator(3, False))

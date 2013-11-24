@@ -26,6 +26,11 @@ from _freestyle import (
 from freestyle.types import (
     AdjacencyIterator,
     ChainingIterator,
+    Nature,
+    TVertex,
+    )
+from freestyle.predicates import (
+    ExternalContourUP1D,
     )
 from freestyle.utils import ContextFunctions as CF
 import bpy
@@ -283,7 +288,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
         self._length = 0
     def traverse(self, iter):
         winner = None
-        winnerOrientation = 0
+        winnerOrientation = False
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -294,9 +299,9 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 if ve.id == mateVE.id:
                     winner = ve
                     if not it.is_incoming:
-                        winnerOrientation = 1
+                        winnerOrientation = True
                     else:
-                        winnerOrientation = 0
+                        winnerOrientation = False
                     break
                 it.increment()
         else:
@@ -311,9 +316,9 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                             count = count+1
                             winner = ve
                             if not it.is_incoming:
-                                winnerOrientation = 1
+                                winnerOrientation = True
                             else:
-                                winnerOrientation = 0
+                                winnerOrientation = False
                         it.increment()
                     if count != 1:
                         winner = None
@@ -328,7 +333,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 # Did we compute the prospective chain length already ?
                 if self._length == 0:
                     #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(0,0)
+                    _it = pyChainSilhouetteGenericIterator(False, False)
                     _it.begin = winner
                     _it.current_edge = winner
                     _it.orientation = winnerOrientation
@@ -354,7 +359,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 # let's do the comparison:
                 # nw let's compute the length of this connex non selected part:
                 connexl = 0
-                _cit = pyChainSilhouetteGenericIterator(0,0)
+                _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation
@@ -380,7 +385,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
         pass
     def traverse(self, iter):
         winner = None
-        winnerOrientation = 0
+        winnerOrientation = False
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -391,9 +396,9 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                 if ve.id == mateVE.id:
                     winner = ve
                     if not it.is_incoming:
-                        winnerOrientation = 1
+                        winnerOrientation = True
                     else:
-                        winnerOrientation = 0
+                        winnerOrientation = False
                     break
                 it.increment()
         else:
@@ -408,9 +413,9 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                             count = count+1
                             winner = ve
                             if not it.is_incoming:
-                                winnerOrientation = 1
+                                winnerOrientation = True
                             else:
-                                winnerOrientation = 0
+                                winnerOrientation = False
                         it.increment()
                     if count != 1:
                         winner = None
@@ -421,7 +426,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                 #print("---", winner.id.first, winner.id.second)
                 # nw let's compute the length of this connex non selected part:
                 connexl = 0
-                _cit = pyChainSilhouetteGenericIterator(0,0)
+                _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation
@@ -453,7 +458,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0
     def traverse(self, iter):
         winner = None
-        winnerOrientation = 0
+        winnerOrientation = False
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -464,9 +469,9 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                 if ve.id == mateVE.id:
                     winner = ve
                     if not it.is_incoming:
-                        winnerOrientation = 1
+                        winnerOrientation = True
                     else:
-                        winnerOrientation = 0
+                        winnerOrientation = False
                     break
                 it.increment()
         else:
@@ -481,9 +486,9 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                             count = count+1
                             winner = ve
                             if not it.is_incoming:
-                                winnerOrientation = 1
+                                winnerOrientation = True
                             else:
-                                winnerOrientation = 0
+                                winnerOrientation = False
                         it.increment()
                     if count != 1:
                         winner = None
@@ -498,7 +503,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                 # Did we compute the prospective chain length already ?
                 if self._length == 0:
                     #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(0,0)
+                    _it = pyChainSilhouetteGenericIterator(False, False)
                     _it.begin = winner
                     _it.current_edge = winner
                     _it.orientation = winnerOrientation
@@ -524,7 +529,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                 # let's do the comparison:
                 # nw let's compute the length of this connex non selected part:
                 connexl = 0
-                _cit = pyChainSilhouetteGenericIterator(0,0)
+                _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation
@@ -556,7 +561,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0
     def traverse(self, iter):
         winner = None
-        winnerOrientation = 0
+        winnerOrientation = False
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -567,9 +572,9 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                 if ve.id == mateVE.id:
                     winner = ve
                     if not it.is_incoming:
-                        winnerOrientation = 1
+                        winnerOrientation = True
                     else:
-                        winnerOrientation = 0
+                        winnerOrientation = False
                     break
                 it.increment()
         else:
@@ -584,9 +589,9 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                             count = count+1
                             winner = ve
                             if not it.is_incoming:
-                                winnerOrientation = 1
+                                winnerOrientation = True
                             else:
-                                winnerOrientation = 0
+                                winnerOrientation = False
                         it.increment()
                     if count != 1:
                         winner = None
@@ -601,7 +606,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                 # Did we compute the prospective chain length already ?
                 if self._length == 0:
                     #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(0,0)
+                    _it = pyChainSilhouetteGenericIterator(False, False)
                     _it.begin = winner
                     _it.current_edge = winner
                     _it.orientation = winnerOrientation
@@ -627,7 +632,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                 # let's do the comparison:
                 # nw let's compute the length of this connex non selected part:
                 connexl = 0
-                _cit = pyChainSilhouetteGenericIterator(0,0)
+                _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation

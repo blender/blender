@@ -21,9 +21,18 @@
 #  Date     : 04/08/2005
 #  Purpose  : Stretches the geometry of visible lines
 
-from freestyle import BackboneStretcherShader, ChainSilhouetteIterator, ConstantColorShader, \
-    Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
-from logical_operators import NotUP1D
+from freestyle import Operators
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    BackboneStretcherShader,
+    ConstantColorShader,
+    TextureAssignerShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

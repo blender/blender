@@ -27,15 +27,25 @@
 #             the strokes using a second parameterization that only
 #             covers the visible portions.
 
-from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingColorShader, \
-    IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
-    TextureAssignerShader, TrueUP1D
-from shaders import pyHLRShader
+from freestyle import Operators
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    TextureAssignerShader,
+    pyHLRShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## Chain following the same nature, but without the restriction
-## of staying inside the selection (0).
-Operators.bidirectional_chain(ChainSilhouetteIterator(0))
+## of staying inside the selection (False).
+Operators.bidirectional_chain(ChainSilhouetteIterator(False))
 shaders_list = [
     SamplingShader(20),
     IncreasingThicknessShader(1.5, 30),

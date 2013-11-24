@@ -20,10 +20,20 @@
 #  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
 #  Date     : 08/04/2005
 
-from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
-    Operators, QuantitativeInvisibilityUP1D, SamplingShader, Stroke, StrokeTextureShader
-from PredicatesB1D import pyZBP1D
-from PredicatesU1D import pyDensityUP1D
+from freestyle import Operators
+from freestyle.types import IntegrationType, Stroke
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    QuantitativeInvisibilityUP1D,
+    pyDensityUP1D,
+    pyZBP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    ConstantThicknessShader,
+    SamplingShader,
+    StrokeTextureShader,
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator())

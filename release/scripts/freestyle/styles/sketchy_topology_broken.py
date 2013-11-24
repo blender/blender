@@ -23,11 +23,21 @@
 #             independantly from the 3D topology of objects, 
 #             and, second, so as to chain several times the same ViewEdge.
 
-from ChainingIterators import pySketchyChainingIterator
-from freestyle import IncreasingColorShader, IncreasingThicknessShader, Operators, \
-    QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
-    TextureAssignerShader, TrueUP1D
-from shaders import pyBackboneStretcherNoCuspShader
+from freestyle import Operators
+from freestyle.chainingiterators import pySketchyChainingIterator
+from freestyle.predicates import (
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    SmoothingShader,
+    SpatialNoiseShader,
+    TextureAssignerShader,
+    pyBackboneStretcherNoCuspShader
+    )
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## Chain 3 times each ViewEdge indpendantly from the 

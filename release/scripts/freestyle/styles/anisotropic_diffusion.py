@@ -21,10 +21,24 @@
 #  Date     : 12/08/2004
 #  Purpose  : Smoothes lines using an anisotropic diffusion scheme
 
-from freestyle import ChainPredicateIterator, ConstantThicknessShader, ExternalContourUP1D, IncreasingColorShader, \
-    Operators, QuantitativeInvisibilityUP1D, SamplingShader, Stroke, StrokeTextureShader, TrueBP1D, TrueUP1D
-from logical_operators import AndUP1D, NotUP1D
-from shaders import pyDiffusion2Shader
+from freestyle import Operators
+from freestyle.types import Stroke
+from freestyle.chainingiterators import ChainPredicateIterator
+from freestyle.predicates import (
+    AndUP1D,
+    ExternalContourUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueBP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    ConstantThicknessShader,
+    IncreasingColorShader,
+    SamplingShader,
+    StrokeTextureShader,
+    pyDiffusion2Shader,
+    )
 
 # pyDiffusion2Shader parameters
 offset = 0.25

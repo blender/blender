@@ -23,10 +23,21 @@
 #             subjects them to the causal density so as to avoid 
 #             cluttering
 
-from freestyle import ChainPredicateIterator, ConstantColorShader, ConstantThicknessShader, IntegrationType, \
-    Operators, QuantitativeInvisibilityUP1D, TrueBP1D
-from PredicatesU1D import pyDensityUP1D, pyHighViewMapDensityUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.types import IntegrationType
+from freestyle.chainingiterators import ChainPredicateIterator
+from freestyle.predicates import (
+    AndUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueBP1D,
+    pyDensityUP1D,
+    pyHighViewMapDensityUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    ConstantThicknessShader,
+    )
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyHighViewMapDensityUP1D(0.3, IntegrationType.LAST))
 Operators.select(upred)

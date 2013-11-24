@@ -22,10 +22,21 @@
 #  Purpose  : Draws the lines that are "closer" than a threshold 
 #             (between 0 and 1)
 
-from freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
-    IntegrationType, Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
-from PredicatesU1D import pyZSmallerUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.types import IntegrationType
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    AndUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    pyZSmallerUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    ConstantThicknessShader,
+    TextureAssignerShader,
+    )
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyZSmallerUP1D(0.5, IntegrationType.MEAN))
 Operators.select(upred)

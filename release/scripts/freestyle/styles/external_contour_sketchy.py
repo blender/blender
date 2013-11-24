@@ -23,18 +23,30 @@
 #             chaining iterator (in particular each ViewEdge can be drawn 
 #             several times
 
-from ChainingIterators import pySketchyChainingIterator
-from freestyle import ExternalContourUP1D, IncreasingColorShader, IncreasingThicknessShader, \
-    Operators, QuantitativeInvisibilityUP1D, SamplingShader, SmoothingShader, SpatialNoiseShader, \
-    TextureAssignerShader, TrueUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.chainingiterators import pySketchyChainingIterator
+from freestyle.predicates import (
+    AndUP1D,
+    ExternalContourUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    )
+from freestyle.shaders import (
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    SmoothingShader,
+    SpatialNoiseShader,
+    TextureAssignerShader,
+    )
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D()) 
 Operators.select(upred)
 Operators.bidirectional_chain(pySketchyChainingIterator(), NotUP1D(upred))
 shaders_list = [
     SamplingShader(4),
-    SpatialNoiseShader(10, 150, 2, 1, 1),
+    SpatialNoiseShader(10, 150, 2, True, True),
     IncreasingThicknessShader(4, 10),
     SmoothingShader(400, 0.1, 0, 0.2, 0, 0, 0, 1),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),

@@ -24,11 +24,23 @@
 #             object and trims them in order to produce
 #             a haloing effect around the target shape
 
-from freestyle import ChainSilhouetteIterator, Id, IncreasingColorShader, IncreasingThicknessShader, \
-    Operators, QuantitativeInvisibilityUP1D, SamplingShader, TipRemoverShader, TrueUP1D
-from PredicatesU1D import pyIsOccludedByUP1D
-from logical_operators import AndUP1D, NotUP1D
-from shaders import pyTVertexRemoverShader
+from freestyle import Operators
+from freestyle.types import Id
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    AndUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    pyIsOccludedByUP1D,
+    )
+from freestyle.shaders import (
+    IncreasingColorShader,
+    IncreasingThicknessShader,
+    SamplingShader,
+    TipRemoverShader,
+    pyTVertexRemoverShader,
+    )
 
 # id corresponds to the id of the target object 
 # (accessed by SHIFT+click)

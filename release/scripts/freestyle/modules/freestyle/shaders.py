@@ -48,8 +48,26 @@ from _freestyle import (
     )
 
 # modules for implementing shaders
-from freestyle.types import StrokeShader
-from freestyle.predicates import pyVertexNatureUP0D
+from freestyle.types import (
+    Interface0DIterator,
+    Nature,
+    Noise,
+    StrokeAttribute,
+    StrokeShader,
+    StrokeVertexIterator,
+    )
+from freestyle.functions import (
+    Curvature2DAngleF0D,
+    DensityF0D,
+    GetProjectedZF0D,
+    MaterialF0D,
+    Normal2DF0D,
+    Orientation2DF1D,
+    ZDiscontinuityF0D,
+    )
+from freestyle.predicates import (
+    pyVertexNatureUP0D,
+    )
 from freestyle.utils import ContextFunctions as CF
 import math
 import mathutils

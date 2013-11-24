@@ -23,10 +23,20 @@
 #             ***** The suggestive contours must be enabled
 #             in the options dialog *****
 
-from freestyle import ChainSilhouetteIterator, ConstantColorShader, IncreasingThicknessShader, \
-    Nature, Operators, QuantitativeInvisibilityUP1D, TrueUP1D
-from PredicatesU1D import pyNatureUP1D
-from logical_operators import AndUP1D, NotUP1D
+from freestyle import Operators
+from freestyle.types import Nature
+from freestyle.chainingiterators import ChainSilhouetteIterator
+from freestyle.predicates import (
+    AndUP1D,
+    NotUP1D,
+    QuantitativeInvisibilityUP1D,
+    TrueUP1D,
+    pyNatureUP1D,
+    )
+from freestyle.shaders import (
+    ConstantColorShader,
+    IncreasingThicknessShader,
+    )
 
 upred = AndUP1D(pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR), QuantitativeInvisibilityUP1D(0))
 Operators.select(upred)
