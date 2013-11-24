@@ -100,12 +100,12 @@ static EnumPropertyItem draw_channels_items[] = {
 static EnumPropertyItem transform_orientation_items[] = {
 	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", "Align the transformation axes to world space"},
 	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
-	{V3D_MANIP_GIMBAL, "GIMBAL", 0, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
 	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal",
 	                   "Align the transformation axes to average normal of selected elements "
 	                   "(bone Y axis for pose mode)"},
+	{V3D_MANIP_GIMBAL, "GIMBAL", 0, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
 	{V3D_MANIP_VIEW, "VIEW", 0, "View", "Align the transformation axes to the window"},
-	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
+	// {V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -291,7 +291,7 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 {
 	Scene *scene = ((bScreen *)ptr->id.data)->scene;
 	View3D *v3d = (View3D *)ptr->data;
-	
+
 	if (v3d->twmode < V3D_MANIP_CUSTOM)
 		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
 	else
@@ -308,11 +308,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, P
 	EnumPropertyItem *item = NULL;
 	int i = V3D_MANIP_CUSTOM, totitem = 0;
 
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GLOBAL);
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_NORMAL);
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GIMBAL);
-	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
+	RNA_enum_items_add(&item, &totitem, transform_orientation_items);
 
 	if (ptr->type == &RNA_SpaceView3D)
 		scene = ((bScreen *)ptr->id.data)->scene;
