@@ -311,31 +311,6 @@ class CyclesRender_PT_opengl(CyclesButtonsPanel, Panel):
         col.prop(rd, "alpha_mode", text="")
 
 
-class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
-    bl_label = "Layer List"
-    bl_context = "render_layer"
-    bl_options = {'HIDE_HEADER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-        rl = rd.layers.active
-
-        row = layout.row()
-        row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=1)
-
-        col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
-
-        row = layout.row()
-        if rl:
-            row.prop(rl, "name")
-        row.prop(rd, "use_single_layer", text="", icon_only=True)
-
-
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
     bl_label = "Layer"
     bl_context = "render_layer"
@@ -1306,6 +1281,7 @@ def get_panels():
         types.RENDER_PT_encoding,
         types.RENDER_PT_dimensions,
         types.RENDER_PT_stamp,
+        types.RENDERLAYER_PT_layers,
         types.SCENE_PT_scene,
         types.SCENE_PT_color_management,
         types.SCENE_PT_custom_props,

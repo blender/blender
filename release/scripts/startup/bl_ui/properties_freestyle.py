@@ -193,7 +193,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         layout.active = rl.use_freestyle
 
         row = layout.row()
-        rows = 4 if lineset else 1
+        rows = 4 if lineset else 2
         row.template_list("RENDERLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
         sub = row.column(align=True)
@@ -205,8 +205,6 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
             sub.separator()
             sub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
             sub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-            layout.prop(lineset, "name")
 
             col = layout.column()
             col.label(text="Selection By:")

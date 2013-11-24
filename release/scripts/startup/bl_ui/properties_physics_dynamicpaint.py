@@ -87,7 +87,6 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
                 col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
 
                 if surface:
-                    layout.prop(surface, "name")
                     layout.prop(surface, "surface_format")
 
                     col = layout.column()

@@ -58,17 +58,13 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=1)
+        col.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
 
-        col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
-
-        row = layout.row()
-        rl = rd.layers.active
-        if rl:
-            row.prop(rl, "name")
-        row.prop(rd, "use_single_layer", text="", icon_only=True)
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        sub.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
+        col.prop(rd, "use_single_layer", text="", icon_only=True)
 
 
 class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):

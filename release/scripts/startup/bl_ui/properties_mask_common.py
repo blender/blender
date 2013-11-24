@@ -99,8 +99,6 @@ class MASK_PT_layers:
             sub.operator("mask.layer_move", icon='TRIA_UP', text="").direction = 'UP'
             sub.operator("mask.layer_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            layout.prop(active_layer, "name")
-
             # blending
             row = layout.row(align=True)
             row.prop(active_layer, "alpha")

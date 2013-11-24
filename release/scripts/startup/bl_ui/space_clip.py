@@ -506,10 +506,6 @@ class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
         sub.operator("clip.tracking_object_new", icon='ZOOMIN', text="")
         sub.operator("clip.tracking_object_remove", icon='ZOOMOUT', text="")
 
-        active = tracking.objects.active
-        if active:
-            layout.prop(active, "name")
-
 
 class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
