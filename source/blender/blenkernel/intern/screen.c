@@ -417,7 +417,7 @@ ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short 
 	return big;
 }
 
-void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene)
+void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 {
 	int bit;
 
@@ -478,6 +478,37 @@ void BKE_screen_view3d_main_sync(ListBase *screen_lb, Scene *scene)
 			for (sl = sa->spacedata.first; sl; sl = sl->next)
 				if (sl->spacetype == SPACE_VIEW3D)
 					BKE_screen_view3d_sync((View3D *)sl, scene);
+	}
+}
+
+void BKE_screen_view3d_twmode_remove(View3D *v3d, const int i)
+{
+	const int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+	if (selected_index == i) {
+		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
+	}
+	else if (selected_index > i) {
+		v3d->twmode--;
+	}
+}
+
+void BKE_screen_view3d_main_twmode_remove(ListBase *screen_lb, Scene *scene, const int i)
+{
+	bScreen *sc;
+
+	for (sc = screen_lb->first; sc; sc = sc->id.next) {
+		if (sc->scene == scene) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						BKE_screen_view3d_twmode_remove(v3d, i);
+					}
+				}
+			}
+		}
 	}
 }
 

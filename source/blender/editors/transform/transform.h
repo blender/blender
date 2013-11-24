@@ -650,7 +650,7 @@ bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const floa
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3],
                                             const char *name, const bool overwrite);
-void applyTransformOrientation(const struct bContext *C, float mat[3][3], char r_name[64]);
+bool applyTransformOrientation(const struct bContext *C, float mat[3][3], char r_name[64]);
 
 #define ORIENTATION_NONE	0
 #define ORIENTATION_NORMAL	1

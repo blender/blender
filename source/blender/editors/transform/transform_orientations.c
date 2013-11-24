@@ -26,6 +26,7 @@
 
 
 #include <string.h>
+#include <stddef.h>
 #include <ctype.h>
 
 #include "MEM_guardedalloc.h"
@@ -40,7 +41,9 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -49,6 +52,8 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
+#include "BKE_main.h"
+#include "BKE_screen.h"
 
 #include "BLF_translation.h"
 
@@ -349,29 +354,15 @@ TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3],
 
 void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target)
 {
-	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
+	Scene *scene = CTX_data_scene(C);
+	ListBase *transform_spaces = &scene->transform_spaces;
 	TransformOrientation *ts;
-	int i;
-	
-	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
-		if (ts == target) {
-			View3D *v3d = CTX_wm_view3d(C);
-			if (v3d) {
-				int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
-				
-				// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
-				if (selected_index == i) {
-					v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
-				}
-				else if (selected_index > i) {
-					v3d->twmode--;
-				}
-				
-			}
+	const int i = BLI_findindex(transform_spaces, target);
 
-			BLI_freelinkN(transform_spaces, ts);
-			break;
-		}
+	if (i != -1) {
+		Main *bmain = CTX_data_main(C);
+		BKE_screen_view3d_main_twmode_remove(&bmain->screen, scene, i);
+		BLI_freelinkN(transform_spaces, ts);
 	}
 }
 
@@ -381,36 +372,18 @@ void BIF_removeTransformOrientationIndex(bContext *C, int index)
 	TransformOrientation *ts = BLI_findlink(transform_spaces, index);
 
 	if (ts) {
-		View3D *v3d = CTX_wm_view3d(C);
-		if (v3d) {
-			int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
-			
-			// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
-			if (selected_index == index) {
-				v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
-			}
-			else if (selected_index > index) {
-				v3d->twmode--;
-			}
-			
-		}
-
-		BLI_freelinkN(transform_spaces, ts);
+		BIF_removeTransformOrientation(C, ts);
 	}
 }
 
 void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target)
 {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	View3D *v3d = CTX_wm_view3d(C);
-	TransformOrientation *ts;
-	int i;
-	
-	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
-		if (ts == target) {
-			v3d->twmode = V3D_MANIP_CUSTOM + i;
-			break;
-		}
+	const int i = BLI_findindex(transform_spaces, target);
+
+	if (i != -1) {
+		View3D *v3d = CTX_wm_view3d(C);
+		v3d->twmode = V3D_MANIP_CUSTOM + i;
 	}
 }
 
@@ -427,25 +400,27 @@ int BIF_countTransformOrientation(const bContext *C)
 	return BLI_countlist(transform_spaces);
 }
 
-void applyTransformOrientation(const bContext *C, float mat[3][3], char *r_name)
+bool applyTransformOrientation(const bContext *C, float mat[3][3], char *r_name)
 {
-	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
-	int i;
-	
-	if (selected_index >= 0) {
-		for (i = 0, ts = CTX_data_scene(C)->transform_spaces.first; ts; ts = ts->next, i++) {
-			if (selected_index == i) {
-				
-				if (r_name) {
-					BLI_strncpy(r_name, ts->name, MAX_NAME);
-				}
-				
-				copy_m3_m3(mat, ts->mat);
-				break;
-			}
+
+	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
+	TransformOrientation *ts = BLI_findlink(transform_spaces, selected_index);
+
+	BLI_assert(selected_index >= 0);
+
+	if (ts) {
+		if (r_name) {
+			BLI_strncpy(r_name, ts->name, MAX_NAME);
 		}
+
+		copy_m3_m3(mat, ts->mat);
+		return true;
+	}
+	else {
+		/* invalid index, can happen sometimes */
+		return false;
 	}
 }
 
@@ -529,7 +504,12 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			}
 			break;
 		default: /* V3D_MANIP_CUSTOM */
-			applyTransformOrientation(C, t->spacemtx, t->spacename);
+			if (applyTransformOrientation(C, t->spacemtx, t->spacename)) {
+				/* pass */
+			}
+			else {
+				unit_m3(t->spacemtx);
+			}
 			break;
 	}
 }

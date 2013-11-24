@@ -642,8 +642,9 @@ int calc_manipulator_stats(const bContext *C)
 			default: /* V3D_MANIP_CUSTOM */
 			{
 				float mat[3][3];
-				applyTransformOrientation(C, mat, NULL);
-				copy_m4_m3(rv3d->twmat, mat);
+				if (applyTransformOrientation(C, mat, NULL)) {
+					copy_m4_m3(rv3d->twmat, mat);
+				}
 				break;
 			}
 		}
