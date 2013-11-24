@@ -1029,8 +1029,12 @@ static int initTransInfo_edit_pet_to_flag(const int proportional)
 	}
 }
 
-/* the *op can be NULL */
-int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
+/**
+ * Setup internal data, mouse, vectors
+ *
+ * \note \a op and \a event can be NULL
+ */
+void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1321,8 +1325,6 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
-	
-	return 1;
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */

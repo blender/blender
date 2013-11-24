@@ -615,7 +615,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float val
 
 /*********************** Generics ********************************/
 
-int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
+void initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
 void postTrans(struct bContext *C, TransInfo *t);
 void resetTransModal(TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
@@ -648,8 +648,9 @@ void initTransformOrientation(struct bContext *C, TransInfo *t);
 bool createSpaceNormal(float mat[3][3], const float normal[3]);
 bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3]);
 
-struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
-void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
+struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3],
+                                            const char *name, const bool overwrite);
+void applyTransformOrientation(const struct bContext *C, float mat[3][3], char r_name[64]);
 
 #define ORIENTATION_NONE	0
 #define ORIENTATION_NORMAL	1
@@ -657,7 +658,7 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 #define ORIENTATION_EDGE	3
 #define ORIENTATION_FACE	4
 
-int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
+int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], const bool activeOnly);
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld);
 void freeEdgeSlideVerts(TransInfo *t);

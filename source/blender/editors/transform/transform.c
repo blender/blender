@@ -1468,7 +1468,7 @@ int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float
 
 	t->mode = TFM_DUMMY;
 
-	initTransInfo(C, t, NULL, NULL);    // internal data, mouse, vectors
+	initTransInfo(C, t, NULL, NULL);
 
 	/* avoid doing connectivity lookups (when V3D_LOCAL is set) */
 	t->around = V3D_CENTER;
@@ -1970,9 +1970,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		t->launch_event = LEFTMOUSE;
 	}
 
-	if (!initTransInfo(C, t, op, event)) {  /* internal data, mouse, vectors */
-		return 0;
-	}
+	initTransInfo(C, t, op, event);
 
 	if (t->spacetype == SPACE_VIEW3D) {
 		//calc_manipulator_stats(curarea);
