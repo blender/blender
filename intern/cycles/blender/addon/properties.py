@@ -621,6 +621,7 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.Object.cycles_visibility
+        del bpy.types.World.cycles_visibility
 
 
 class CyclesMeshSettings(bpy.types.PropertyGroup):
