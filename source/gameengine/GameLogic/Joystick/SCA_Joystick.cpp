@@ -293,10 +293,11 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 #ifdef WITH_SDL
 	if (m_isinit) {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-		if (SDL_JoystickGetAttached(m_private->m_joystick)) {
+		if (SDL_JoystickGetAttached(m_private->m_joystick))
 #else
-		if (SDL_JoystickOpened(m_joyindex)) {
+		if (SDL_JoystickOpened(m_joyindex))
 #endif
+		{
 			JOYSTICK_ECHO("Closing-joystick " << m_joyindex);
 			SDL_JoystickClose(m_private->m_joystick);
 		}

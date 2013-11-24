@@ -413,8 +413,8 @@ void			nodeRegisterSocketType(struct bNodeSocketType *stype);
 void			nodeUnregisterSocketType(struct bNodeSocketType *stype);
 bool			nodeSocketIsRegistered(struct bNodeSocket *sock);
 struct GHashIterator *nodeSocketTypeGetIterator(void);
-const char *	nodeStaticSocketType(int type, int subtype);
-const char *	nodeStaticSocketInterfaceType(int type, int subtype);
+const char *nodeStaticSocketType(int type, int subtype);
+const char *nodeStaticSocketInterfaceType(int type, int subtype);
 
 /* helper macros for iterating over node types */
 #define NODE_SOCKET_TYPES_BEGIN(stype) \

@@ -147,7 +147,7 @@ CValue* KX_SoundActuator::GetReplica()
 	KX_SoundActuator* replica = new KX_SoundActuator(*this);
 	replica->ProcessReplica();
 	return replica;
-};
+}
 
 void KX_SoundActuator::ProcessReplica()
 {
@@ -217,11 +217,12 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	// m_posevent==false && m_posevent==false, in this case IsNegativeEvent() returns false 
 	// and assumes this is a positive event.
 	// check that we actually have a positive event so as not to play sounds when being disabled.
-	else if (bPositiveEvent) { // <- added since 2.49
+	else if (bPositiveEvent)  /* <- added since 2.49 */
 #else
-	else {	// <- works in most cases except a loop-end sound will never stop unless
+	else	// <- works in most cases except a loop-end sound will never stop unless
 			// the negative pulse is done continuesly
 #endif
+	{
 		if (!m_isplaying)
 			play();
 	}

@@ -72,14 +72,14 @@ struct anim_index {
 struct anim_index_builder;
 
 typedef struct anim_index_builder {
-	FILE * fp;
+	FILE *fp;
 	char name[FILE_MAX];
 	char temp_name[FILE_MAX];
 
 	void *private_data;
 
-	void (*delete_priv_data)(struct anim_index_builder * idx);
-	void (*proc_frame)(struct anim_index_builder * idx,
+	void (*delete_priv_data)(struct anim_index_builder *idx);
+	void (*proc_frame)(struct anim_index_builder *idx,
 	                   unsigned char *buffer,
 	                   int data_size,
 	                   struct anim_index_entry *entry);
@@ -87,14 +87,14 @@ typedef struct anim_index_builder {
 
 anim_index_builder *IMB_index_builder_create(const char *name);
 void IMB_index_builder_add_entry(
-        anim_index_builder * fp,
+        anim_index_builder *fp,
         int frameno, unsigned long long seek_pos,
         unsigned long long seek_pos_dts,
         unsigned long long pts);
 
 void IMB_index_builder_proc_frame(
-        anim_index_builder * fp,
-        unsigned char * buffer,
+        anim_index_builder *fp,
+        unsigned char *buffer,
         int data_size,
         int frameno, unsigned long long seek_pos,
         unsigned long long seek_pos_dts,
