@@ -89,13 +89,13 @@ static char btempdir[FILE_MAX];     /* temporary directory */
  */
 int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
 {
-	unsigned short nums = 0, nume = 0;
-	short i;
+	unsigned int nums = 0, nume = 0;
+	int i;
 	bool found_digit = false;
 	const char * const lslash = BLI_last_slash(string);
-	const unsigned short string_len = strlen(string);
-	const unsigned short lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
-	unsigned short name_end = string_len;
+	const unsigned int string_len = strlen(string);
+	const unsigned int lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
+	unsigned int name_end = string_len;
 
 	while (name_end > lslash_len && string[--name_end] != '.') {} /* name ends at dot if present */
 	if (name_end == lslash_len && string[name_end] != '.') name_end = string_len;
@@ -229,7 +229,7 @@ void BLI_newname(char *name, int add)
  * \return true if there if the name was changed
  */
 bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
-                       void *arg, const char *defname, char delim, char *name, short name_len)
+                       void *arg, const char *defname, char delim, char *name, int name_len)
 {
 	if (name[0] == '\0') {
 		BLI_strncpy(name, defname, name_len);
@@ -281,13 +281,13 @@ bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
  *  defname: the name that should be used by default if none is specified already
  *  delim: the character which acts as a delimiter between parts of the name
  */
-static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
+static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, int name_offs)
 {
 	Link *link;
 
 	for (link = list->first; link; link = link->next) {
 		if (link != vlink) {
-			if (!strcmp(GIVE_STRADDR(link, name_offs), name)) {
+			if (STREQ(GIVE_STRADDR(link, name_offs), name)) {
 				return true;
 			}
 		}
@@ -298,7 +298,7 @@ static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, 
 
 static bool uniquename_unique_check(void *arg, const char *name)
 {
-	struct {ListBase *lb; void *vlink; short name_offs; } *data = arg;
+	struct {ListBase *lb; void *vlink; int name_offs; } *data = arg;
 	return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offs);
 }
 
@@ -313,9 +313,9 @@ static bool uniquename_unique_check(void *arg, const char *name)
  * \param name_offs  Offset of name within block structure
  * \param name_len  Maximum length of name area
  */
-void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, short name_offs, short name_len)
+void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, int name_offs, int name_len)
 {
-	struct {ListBase *lb; void *vlink; short name_offs; } data;
+	struct {ListBase *lb; void *vlink; int name_offs; } data;
 	data.lb = list;
 	data.vlink = vlink;
 	data.name_offs = name_offs;
@@ -622,7 +622,7 @@ bool BLI_parent_dir(char *path)
  */
 static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 {
-	int ch_sta, ch_end, i;
+	unsigned int ch_sta, ch_end, i;
 	/* Insert current frame: file### -> file001 */
 	ch_sta = ch_end = 0;
 	for (i = 0; path[i] != '\0'; i++) {
