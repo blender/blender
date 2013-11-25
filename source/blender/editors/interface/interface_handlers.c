@@ -3534,7 +3534,8 @@ static int ui_do_but_LISTROW(bContext *C, uiBut *but, uiHandleButtonData *data, 
 		/* hack to pass on ctrl+click and double click to overlapping text
 		 * editing field for editing list item names */
 		if ((ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS && event->ctrl) ||
-		    (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK)) {
+		    (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK))
+		{
 			uiBut *labelbut = ui_but_find_mouse_over_ex(ar, event->x, event->y, true);
 
 			if (labelbut && labelbut->type == TEX) {
