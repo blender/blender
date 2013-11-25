@@ -791,7 +791,7 @@ def dump_src_messages(msgs, reports, settings):
 ##### Main functions! #####
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
-    bl_hash = bpy.app.build_hash or b'0000000000000000000000000000000000000000'
+    bl_hash = bpy.app.build_hash
     bl_date = datetime.datetime.strptime(bpy.app.build_date.decode() + "T" + bpy.app.build_time.decode(),
                                          "%Y-%m-%dT%H:%M:%S")
     pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_date, bl_date.year,
