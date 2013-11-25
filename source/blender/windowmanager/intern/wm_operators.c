@@ -528,7 +528,8 @@ void WM_operator_bl_idname(char *to, const char *from)
  *
  * Note: both op and opptr may be NULL (op is only used for macro operators).
  */
-char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, wmOperatorType *ot, PointerRNA *opptr)
+char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, const bool macro_args,
+                              wmOperatorType *ot, PointerRNA *opptr)
 {
 	char idname_py[OP_MAX_TYPENAME];
 
@@ -547,7 +548,10 @@ char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, 
 		/* Special handling for macros, else we only get default values in this case... */
 		wmOperator *opm;
 		bool first_op = true;
-		for (opm = op->macro.first; opm; opm = opm->next) {
+
+		opm = macro_args ? op->macro.first : NULL;
+
+		for (; opm; opm = opm->next) {
 			PointerRNA *opmptr = opm->ptr;
 			PointerRNA opmptr_default;
 			if (opmptr == NULL) {
@@ -573,13 +577,14 @@ char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, 
 	else {
 		/* only to get the orginal props for comparisons */
 		PointerRNA opptr_default;
+		const bool macro_args_test = ot->macro.first ? macro_args : true;
 
 		if (opptr == NULL) {
 			WM_operator_properties_create_ptr(&opptr_default, ot);
 			opptr = &opptr_default;
 		}
 
-		cstring_args = RNA_pointer_as_string_keywords(C, opptr, false, all_args, max_prop_length);
+		cstring_args = RNA_pointer_as_string_keywords(C, opptr, false, all_args, macro_args_test, max_prop_length);
 		BLI_dynstr_append(dynstr, cstring_args);
 		MEM_freeN(cstring_args);
 
@@ -595,9 +600,10 @@ char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, 
 	return cstring;
 }
 
-char *WM_operator_pystring(bContext *C, wmOperator *op, const bool all_args)
+char *WM_operator_pystring(bContext *C, wmOperator *op,
+                           const bool all_args, const bool macro_args)
 {
-	return WM_operator_pystring_ex(C, op, all_args, op->type, op->ptr);
+	return WM_operator_pystring_ex(C, op, all_args, macro_args, op->type, op->ptr);
 }
 
 /* return NULL if no match is found */

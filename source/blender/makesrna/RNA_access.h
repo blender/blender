@@ -1038,11 +1038,11 @@ char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *p
 char *RNA_pointer_as_string_id(struct bContext *C, PointerRNA *ptr);
 char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop);
 char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr,
-                                        const bool skip_optional_value, const bool all_args,
+                                        const bool skip_optional_value, const bool all_args, const bool nested_args,
                                         const int max_prop_length,
                                         PropertyRNA *iterprop);
 char *RNA_pointer_as_string_keywords(struct bContext *C, PointerRNA *ptr,
-                                     const bool skip_optional_value, const bool all_args,
+                                     const bool skip_optional_value, const bool all_args, const bool nested_args,
                                      const int max_prop_length);
 char *RNA_function_as_string_keywords(struct bContext *C, FunctionRNA *func,
                                       const bool as_function, const bool all_args,

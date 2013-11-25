@@ -5040,7 +5040,7 @@ char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *p
 
 /* context can be NULL */
 char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr,
-                                        const bool as_function, const bool all_args,
+                                        const bool as_function, const bool all_args, const bool nested_args,
                                         const int max_prop_length,
                                         PropertyRNA *iterprop)
 {
@@ -5066,6 +5066,10 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr,
 		arg_name = RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type") == 0) {
+			continue;
+		}
+
+		if ((nested_args == false) && (RNA_property_type(prop) == PROP_POINTER)) {
 			continue;
 		}
 
@@ -5113,14 +5117,14 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr,
 }
 
 char *RNA_pointer_as_string_keywords(bContext *C, PointerRNA *ptr,
-                                     const bool as_function, const bool all_args,
+                                     const bool as_function, const bool all_args, const bool nested_args,
                                      const int max_prop_length)
 {
 	PropertyRNA *iterprop;
 
 	iterprop = RNA_struct_iterator_property(ptr->type);
 
-	return RNA_pointer_as_string_keywords_ex(C, ptr, as_function, all_args,
+	return RNA_pointer_as_string_keywords_ex(C, ptr, as_function, all_args, nested_args,
 	                                         max_prop_length, iterprop);
 }
 
@@ -5137,7 +5141,7 @@ char *RNA_function_as_string_keywords(bContext *C, FunctionRNA *func,
 
 	RNA_struct_iterator_property(funcptr.type);
 
-	return RNA_pointer_as_string_keywords_ex(C, &funcptr, as_function, all_args,
+	return RNA_pointer_as_string_keywords_ex(C, &funcptr, as_function, all_args, true,
 	                                         max_prop_length, iterprop);
 }
 

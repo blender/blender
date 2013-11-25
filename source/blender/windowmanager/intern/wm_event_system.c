@@ -491,8 +491,8 @@ int WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
 static void wm_operator_print(bContext *C, wmOperator *op)
 {
 	/* context is needed for enum function */
-	char *buf = WM_operator_pystring(C, op, false);
-	printf("%s\n", buf);
+	char *buf = WM_operator_pystring(C, op, false, true);
+	puts(buf);
 	MEM_freeN(buf);
 }
 
@@ -626,7 +626,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int cal
 		if (op->type->flag & OPTYPE_REGISTER) {
 			if (G.background == 0) { /* ends up printing these in the terminal, gets annoying */
 				/* Report the python string representation of the operator */
-				char *buf = WM_operator_pystring(C, op, false);
+				char *buf = WM_operator_pystring(C, op, false, true);
 				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 				MEM_freeN(buf);
 			}
@@ -660,7 +660,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 	
 	if (repeat == 0) {
 		if (G.debug & G_DEBUG_WM) {
-			char *buf = WM_operator_pystring(C, op, false);
+			char *buf = WM_operator_pystring(C, op, false, true);
 			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 			MEM_freeN(buf);
 		}

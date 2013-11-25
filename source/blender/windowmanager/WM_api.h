@@ -272,9 +272,11 @@ bool        WM_operator_last_properties_store(struct wmOperator *op);
 
 
 		/* operator as a python command (resultuing string must be freed) */
-char		*WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op, const bool all_args,
+char		*WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op,
+                                     const bool all_args, const bool macro_args,
                                      struct wmOperatorType *ot, struct PointerRNA *opptr);
-char		*WM_operator_pystring(struct bContext *C, struct wmOperator *op, const bool all_args);
+char		*WM_operator_pystring(struct bContext *C, struct wmOperator *op,
+                                  const bool all_args, const bool macro_args);
 char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
