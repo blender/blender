@@ -231,10 +231,10 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *slot_verts_out = BMO_slot_get(op->slots_out, "verts.out");
 
 	const float dia = BMO_slot_float_get(op->slots_in, "size");
-	const unsigned int xtot = max_ii(1, BMO_slot_int_get(op->slots_in, "x_segments")) + 1;
-	const unsigned int ytot = max_ii(1, BMO_slot_int_get(op->slots_in, "y_segments")) + 1;
-	float xtot_inv2 = 2.0f / (xtot - 1);
-	float ytot_inv2 = 2.0f / (ytot - 1);
+	const unsigned int xtot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments"));
+	const unsigned int ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
+	const float xtot_inv2 = 2.0f / (xtot - 1);
+	const float ytot_inv2 = 2.0f / (ytot - 1);
 
 	BMVert **varr;
 	BMVert *vquad[4];
