@@ -3942,6 +3942,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 
 static void WM_OT_radial_control(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	ot->name = "Radial Control";
 	ot->idname = "WM_OT_radial_control";
 	ot->description = "Set some size property (like e.g. brush size) with mouse wheel";
@@ -3953,15 +3955,32 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* all paths relative to the context */
-	RNA_def_string(ot->srna, "data_path_primary", "", 0, "Primary Data Path", "Primary path of property to be set by the radial control");
-	RNA_def_string(ot->srna, "data_path_secondary", "", 0, "Secondary Data Path", "Secondary path of property to be set by the radial control");
-	RNA_def_string(ot->srna, "use_secondary", "", 0, "Use Secondary", "Path of property to select between the primary and secondary data paths");
-	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display");
-	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control");
-	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control");
-	RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control");
-	RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control");
-	RNA_def_boolean(ot->srna, "secondary_tex", 0, "Secondary Texture", "Tweak brush secondary/mask texture");
+	prop = RNA_def_string(ot->srna, "data_path_primary", "", 0, "Primary Data Path", "Primary path of property to be set by the radial control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "data_path_secondary", "", 0, "Secondary Data Path", "Secondary path of property to be set by the radial control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "use_secondary", "", 0, "Use Secondary", "Path of property to select between the primary and secondary data paths");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to r, PROP_HIDDEN)otate the texture display");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	prop = RNA_def_boolean(ot->srna, "secondary_tex", 0, "Secondary Texture", "Tweak brush secondary/mask texture");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ************************** timer for testing ***************** */
