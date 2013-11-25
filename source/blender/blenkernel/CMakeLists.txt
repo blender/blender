@@ -41,7 +41,6 @@ set(INC
 	../../../intern/iksolver/extern
 	../../../intern/memutil
 	../../../intern/mikktspace
-	../../../intern/opennl/extern
 	../../../intern/raskter
 	../../../intern/smoke/extern
 	../../../extern/libmv

@@ -50,7 +50,6 @@ incs = [
     '#/intern/bsp/extern',
     '#/intern/elbeem/extern',
     '#/intern/iksolver/extern',
-    '#/intern/opennl/extern',
     '#/intern/smoke/extern',
     '#/intern/atomic',
     '../avi',

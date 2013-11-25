@@ -32,7 +32,6 @@ set(INC
 	../../windowmanager
 	../../compositor
 	../../../../intern/guardedalloc
-	../../../../intern/opennl/extern
 )
 
 set(INC_SYS
