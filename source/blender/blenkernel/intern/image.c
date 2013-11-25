@@ -2855,7 +2855,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	return ibuf;
 }
 
-static void image_get_fame_and_index(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
+static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
 {
 	int frame = 0, index = 0;
 
@@ -3176,7 +3176,7 @@ ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool
 		return BKE_image_acquire_ibuf(ima, iuser, NULL);
 	}
 
-	image_get_fame_and_index(ima, iuser, &frame, &index);
+	image_get_frame_and_index(ima, iuser, &frame, &index);
 
 	ibuf = image_pool_find_entry(pool, ima, frame, index, &found);
 	if (found)
