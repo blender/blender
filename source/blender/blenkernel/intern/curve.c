@@ -1518,6 +1518,9 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 				else
 					numVerts += dl->parts * (dl->nr + 1);
 			}
+			else if (dl->flag & DL_CYCL_V) {
+				numVerts += (dl->parts + 1) * dl->nr;
+			}
 			else
 				numVerts += dl->parts * dl->nr;
 		}
@@ -1552,6 +1555,9 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 				sizeu++;
 				if (dl->flag & DL_CYCL_V)
 					sizev++;
+			}
+			else  if (dl->flag & DL_CYCL_V) {
+				sizev++;
 			}
 
 			for (u = 0; u < sizev; u++) {

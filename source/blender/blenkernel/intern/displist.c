@@ -1086,7 +1086,7 @@ static DerivedMesh *create_orco_dm(Scene *scene, Object *ob)
 	return dm;
 }
 
-static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
+static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 {
 	float (*orco)[3], (*layerorco)[3];
 	int totvert, a;
@@ -1094,23 +1094,12 @@ static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *
 
 	totvert = dm->getNumVerts(dm);
 
-	if (orcodm) {
-		orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
+	orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
 
-		if (orcodm->getNumVerts(orcodm) == totvert)
-			orcodm->getVertCos(orcodm, orco);
-		else
-			dm->getVertCos(dm, orco);
-	}
-	else {
-		int totvert_curve;
-		orco = (float(*)[3])BKE_curve_make_orco(scene, ob, &totvert_curve);
-		if (totvert != totvert_curve) {
-			MEM_freeN(orco);
-			orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
-			dm->getVertCos(dm, orco);
-		}
-	}
+	if (orcodm->getNumVerts(orcodm) == totvert)
+		orcodm->getVertCos(orcodm, orco);
+	else
+		dm->getVertCos(dm, orco);
 
 	for (a = 0; a < totvert; a++) {
 		float *co = orco[a];
@@ -1157,6 +1146,15 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 		md = pretessellatePoint->next;
 	}
 
+	/* If modifiers are disabled, we wouldn't be here because
+	 * this function is only called if there're enabled constructive
+	 * modifiers applied on the curve.
+	 *
+	 * This means we can create ORCO DM in advance and assume it's
+	 * never NULL.
+	 */
+	orcodm = create_orco_dm(scene, ob);
+
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -1166,9 +1164,6 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 			continue;
 		if (mti->type != eModifierTypeType_Constructive)
 			continue;
-
-		if (!orcodm)
-			orcodm = create_orco_dm(scene, ob);
 
 		ndm = modwrap_applyModifier(md, ob, orcodm, app_flag);
 
@@ -1182,7 +1177,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	}
 
 	/* add an orco layer if needed */
-	add_orco_dm(scene, ob, derivedFinal, orcodm);
+	add_orco_dm(ob, derivedFinal, orcodm);
 
 	if (orcodm)
 		orcodm->release(orcodm);

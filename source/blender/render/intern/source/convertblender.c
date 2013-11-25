@@ -2819,6 +2819,19 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						}
 					}
 
+					if (dl->flag & DL_CYCL_V && orco) {
+						fp = dl->verts;
+						nr = dl->nr;
+						while (nr--) {
+							ver = RE_findOrAddVert(obr, obr->totvert++);
+							copy_v3_v3(ver->co, fp);
+							mul_m4_v3(mat, ver->co);
+							ver->orco = orco;
+							fp += 3;
+							orco += 3;
+						}
+					}
+
 					if (dl->bevelSplitFlag || timeoffset==0) {
 						const int startvlak= obr->totvlak;
 
@@ -2831,6 +2844,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 							p2+= startvert;
 							p3+= startvert;
 							p4+= startvert;
+
+							if (dl->flag & DL_CYCL_V && orco && a == dl->parts - 1) {
+								p3 = p1 + dl->nr;
+								p4 = p2 + dl->nr;
+							}
 
 							for (; b<dl->nr; b++) {
 								vlr= RE_findOrAddVlak(obr, obr->totvlak++);

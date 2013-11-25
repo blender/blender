@@ -1342,6 +1342,9 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 							if (dl->flag & DL_CYCL_V)
 								orco_sizev++;
 						}
+						else if (dl->flag & DL_CYCL_V) {
+							orco_sizev++;
+						}
 
 						for (i = 0; i < 4; i++, mloopuv++) {
 							/* find uv based on vertex index into grid array */
