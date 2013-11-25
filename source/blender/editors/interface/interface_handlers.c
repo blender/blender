@@ -2580,6 +2580,26 @@ int ui_button_open_menu_direction(uiBut *but)
 	return 0;
 }
 
+/* Hack for uiList LISTROW buttons to "give" events to overlaying TEX buttons (cltr-clic rename feature & co). */
+static uiBut* ui_but_list_row_text_activate(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event,
+                                            uiButtonActivateType activate_type)
+{
+	ARegion *ar = CTX_wm_region(C);
+	uiBut *labelbut = ui_but_find_mouse_over_ex(ar, event->x, event->y, true);
+
+	if (labelbut && labelbut->type == TEX) {
+		/* exit listrow */
+		data->cancel = true;
+		button_activate_exit(C, but, data, false, false);
+
+		/* Activate the text button. */
+		button_activate_init(C, ar, labelbut, activate_type);
+
+		return labelbut;
+	}
+	return NULL;
+}
+
 /* ***************** events for different button types *************** */
 
 static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
@@ -3528,24 +3548,16 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 
 static int ui_do_but_LISTROW(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-	ARegion *ar = CTX_wm_region(C);
-	
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		/* hack to pass on ctrl+click and double click to overlapping text
-		 * editing field for editing list item names */
+		 * editing field for editing list item names
+		 */
 		if ((ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS && event->ctrl) ||
 		    (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK))
 		{
-			uiBut *labelbut = ui_but_find_mouse_over_ex(ar, event->x, event->y, true);
-
-			if (labelbut && labelbut->type == TEX) {
-				/* exit listrow */
-				data->cancel = true;
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				button_activate_exit(C, but, data, false, false);
-
-				/* enter text editing */
-				button_activate_init(C, ar, labelbut, BUTTON_ACTIVATE_TEXT_EDITING);
+			uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_TEXT_EDITING);
+			if (labelbut) {
+				/* Nothing else to do. */
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
@@ -5573,7 +5585,15 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS && (event->ctrl || event->oskey)) {
-			
+			/* Specific handling for listrows, we try to find their overlapping tex button. */
+			if (but->type == LISTROW) {
+				uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_OVER);
+				if (labelbut) {
+					but = labelbut;
+					data = but->active;
+				}
+			}
+
 			ui_but_copy_paste(C, but, data, (event->type == CKEY) ? 'c' : 'v');
 			return WM_UI_HANDLER_BREAK;
 		}
