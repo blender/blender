@@ -992,14 +992,14 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* switch from camera view when: */
 	if (vod->rv3d->persp != RV3D_PERSP) {
-
-		if (U.uiflag & USER_AUTOPERSP) {
+		if (vod->rv3d->persp == RV3D_CAMOB) {
+			const short lpersp = (U.uiflag & USER_AUTOPERSP) ? RV3D_PERSP : vod->rv3d->lpersp;
+			view3d_persp_switch_from_camera(vod->v3d, vod->rv3d, lpersp);
+		}
+		else if ((U.uiflag & USER_AUTOPERSP) && RV3D_VIEW_IS_AXIS(vod->rv3d->view)) {
 			if (!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				vod->rv3d->persp = RV3D_PERSP;
 			}
-		}
-		else if (vod->rv3d->persp == RV3D_CAMOB) {
-			view3d_persp_switch_from_camera(vod->v3d, vod->rv3d, vod->rv3d->lpersp);
 		}
 		ED_region_tag_redraw(vod->ar);
 	}
@@ -3344,20 +3344,19 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		return;
 	}
 
+	if (U.uiflag & USER_AUTOPERSP) {
+		rv3d->persp = RV3D_VIEW_IS_AXIS(view) ? RV3D_ORTHO : perspo;
+	}
+	else if (rv3d->persp == RV3D_CAMOB) {
+		rv3d->persp = perspo;
+	}
+
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
-
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp = view ? RV3D_ORTHO : RV3D_PERSP;
-		else if (rv3d->persp == RV3D_CAMOB) rv3d->persp = perspo;
-
 		ED_view3d_smooth_view(C, v3d, ar, v3d->camera, NULL,
 		                      rv3d->ofs, new_quat, NULL, NULL,
 		                      smooth_viewtx);
 	}
 	else {
-
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp = view ? RV3D_ORTHO : RV3D_PERSP;
-		else if (rv3d->persp == RV3D_CAMOB) rv3d->persp = perspo;
-
 		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
 		                      NULL, new_quat, NULL, NULL,
 		                      smooth_viewtx);
