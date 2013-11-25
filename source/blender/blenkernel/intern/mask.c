@@ -1815,13 +1815,13 @@ MaskLayerShape *BKE_mask_layer_shape_duplicate(MaskLayerShape *masklay_shape)
 
 bool BKE_mask_layer_shape_unlink(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
-	bool modified = masklay_shape != NULL;
+	bool changed = (masklay_shape != NULL);
 
 	BLI_remlink(&masklay->splines_shapes, masklay_shape);
 
 	BKE_mask_layer_shape_free(masklay_shape);
 
-	return modified;
+	return changed;
 }
 
 static int mask_layer_shape_sort_cb(void *masklay_shape_a_ptr, void *masklay_shape_b_ptr)

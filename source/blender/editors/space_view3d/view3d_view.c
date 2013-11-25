@@ -1268,16 +1268,16 @@ static int localview_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	bool change;
+	bool changed;
 	
 	if (v3d->localvd) {
-		change = view3d_localview_exit(bmain, scene, sa);
+		changed = view3d_localview_exit(bmain, scene, sa);
 	}
 	else {
-		change = view3d_localview_init(bmain, scene, sa, op->reports);
+		changed = view3d_localview_init(bmain, scene, sa, op->reports);
 	}
 
-	if (change) {
+	if (changed) {
 		DAG_id_type_tag(bmain, ID_OB);
 		ED_area_tag_redraw(CTX_wm_area(C));
 

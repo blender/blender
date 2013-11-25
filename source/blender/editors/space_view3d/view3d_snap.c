@@ -692,14 +692,14 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 	/* metaballs are an exception */
 	if (obedit->type == OB_MBALL) {
 		float ob_min[3], ob_max[3];
-		bool change;
+		bool changed;
 
-		change = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->obmat, SELECT);
-		if (change) {
+		changed = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->obmat, SELECT);
+		if (changed) {
 			minmax_v3v3_v3(min, max, ob_min);
 			minmax_v3v3_v3(min, max, ob_max);
 		}
-		return change;
+		return changed;
 	}
 
 	if (ED_transverts_check_obedit(obedit))

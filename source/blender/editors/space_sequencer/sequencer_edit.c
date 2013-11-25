@@ -826,8 +826,8 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
  * may generate strips with the same name (which will mess up animdata)
  */
 
-static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
-                        Sequence * (*cut_seq)(Scene *, Sequence *, int))
+static bool cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
+                         Sequence * (*cut_seq)(Scene *, Sequence *, int))
 {
 	Sequence *seq, *seq_next_iter;
 	Sequence *seq_first_new = NULL;
@@ -1569,7 +1569,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cut_side, cut_hard, cut_frame;
 
-	int changed;
+	bool changed;
 
 	cut_frame = RNA_int_get(op->ptr, "frame");
 	cut_hard = RNA_enum_get(op->ptr, "type");
@@ -2481,20 +2481,20 @@ static int find_next_prev_edit(Scene *scene, int cfra,
 	return cfra;
 }
 
-static int strip_jump_internal(Scene *scene,
-                               const short side,
-                               const short do_skip_mute, const short do_center)
+static bool strip_jump_internal(Scene *scene,
+                                const short side,
+                                const short do_skip_mute, const short do_center)
 {
-	int change = FALSE;
+	bool changed = false;
 	int cfra = CFRA;
 	int nfra = find_next_prev_edit(scene, cfra, side, do_skip_mute, do_center);
 	
 	if (nfra != cfra) {
 		CFRA = nfra;
-		change = TRUE;
+		changed = true;
 	}
 
-	return change;
+	return changed;
 }
 
 static int sequencer_strip_jump_poll(bContext *C)

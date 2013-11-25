@@ -105,7 +105,7 @@ static int poselib_get_free_index(bAction *act)
 {
 	TimeMarker *marker;
 	int low = 0, high = 0;
-	short changed = 0;
+	bool changed = false;
 	
 	/* sanity checks */
 	if (ELEM(NULL, act, act->markers.first)) return 1;
@@ -115,7 +115,7 @@ static int poselib_get_free_index(bAction *act)
 	 * Prevents problems with deleting then trying to add new poses [#27412]
 	 */
 	do {
-		changed = 0;
+		changed = false;
 		
 		for (marker = act->markers.first; marker; marker = marker->next) {
 			/* only increase low if value is 1 greater than low, to find "gaps" where
@@ -123,13 +123,13 @@ static int poselib_get_free_index(bAction *act)
 			 */
 			if (marker->frame == (low + 1)) {
 				low++;
-				changed = 1;
+				changed = true;
 			}
 			
 			/* value replaces high if it is the highest value encountered yet */
 			if (marker->frame > high) {
 				high = marker->frame;
-				changed = 1;
+				changed = true;
 			}
 		}
 	} while (changed != 0);

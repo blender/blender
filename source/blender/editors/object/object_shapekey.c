@@ -341,16 +341,16 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
-	bool change = false;
+	bool changed = false;
 
 	if (RNA_boolean_get(op->ptr, "all")) {
-		change = ED_object_shape_key_remove_all(bmain, ob);
+		changed = ED_object_shape_key_remove_all(bmain, ob);
 	}
 	else {
-		change = ED_object_shape_key_remove(bmain, ob);
+		changed = ED_object_shape_key_remove(bmain, ob);
 	}
 
-	if (change) {
+	if (changed) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 

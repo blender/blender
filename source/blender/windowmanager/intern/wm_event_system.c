@@ -890,7 +890,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 #if 1 /* may want to disable operator remembering previous state for testing */
 bool WM_operator_last_properties_init(wmOperator *op)
 {
-	bool change = false;
+	bool changed = false;
 
 	if (op->type->last_properties) {
 		PropertyRNA *iterprop;
@@ -916,7 +916,7 @@ bool WM_operator_last_properties_init(wmOperator *op)
 						idp_dst->flag |= IDP_FLAG_GHOST;
 
 						IDP_ReplaceInGroup(op->properties, idp_dst);
-						change = true;
+						changed = true;
 					}
 				}
 			}
@@ -924,7 +924,7 @@ bool WM_operator_last_properties_init(wmOperator *op)
 		RNA_PROP_END;
 	}
 
-	return change;
+	return changed;
 }
 
 bool WM_operator_last_properties_store(wmOperator *op)

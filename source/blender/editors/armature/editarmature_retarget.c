@@ -697,7 +697,7 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 static void RIG_reconnectControlBones(RigGraph *rg)
 {
 	RigControl *ctrl;
-	int change = 1;
+	bool changed = true;
 	
 	/* first pass, link to deform bones */
 	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next) {
@@ -812,8 +812,8 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 	
 	
 	/* second pass, make chains in control bones */
-	while (change) {
-		change = 0;
+	while (changed) {
+		changed = false;
 		
 		for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next) {
 			/* if control is not linked yet */
@@ -865,7 +865,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 					/* check if parent is already linked */
 					if (ctrl_parent && ctrl_parent->link) {
 						RIG_parentControl(ctrl, ctrl_parent->bone);
-						change = 1;
+						changed = true;
 					}
 					else {
 						/* check childs */
@@ -873,7 +873,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 							/* if a child is linked, link to that one */
 							if (ctrl_child->link && ctrl_child->bone->parent == ctrl->bone) {
 								RIG_parentControl(ctrl, ctrl_child->bone);
-								change = 1;
+								changed = true;
 								break;
 							}
 						}

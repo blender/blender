@@ -1288,10 +1288,10 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	}
 
 	if (smooth_viewtx && fac > FLT_EPSILON) {
-		int changed = FALSE;
+		bool changed = false;
 
 		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == FALSE)
-			changed = TRUE;
+			changed = true;
 
 		/* The new view is different from the old one
 		 * so animate the view */

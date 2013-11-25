@@ -1117,7 +1117,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	EditBone *curBone, *ebone_next;
 	bConstraint *con;
 	Object *obedit = CTX_data_edit_object(C); // XXX get from context
-	int removed_num = 0;
+	int removed_tot = 0;
 	arm = obedit->data;
 
 	/* cancel if nothing selected */
@@ -1174,12 +1174,12 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 			if (curBone->flag & BONE_SELECTED) {
 				if (curBone == arm->act_edbone) arm->act_edbone = NULL;
 				ED_armature_edit_bone_remove(arm, curBone);
-				removed_num++;
+				removed_tot++;
 			}
 		}
 	}
 	
-	BKE_reportf(op->reports, RPT_INFO, "Deleted %d bones", removed_num);
+	BKE_reportf(op->reports, RPT_INFO, "Deleted %d bones", removed_tot);
 	
 	ED_armature_sync_selection(arm->edbo);
 

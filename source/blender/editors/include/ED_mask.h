@@ -68,8 +68,8 @@ void ED_mask_draw_frames(struct Mask *mask, struct ARegion *ar, const int cfra, 
 
 /* mask_shapekey.c */
 void ED_mask_layer_shape_auto_key(struct MaskLayer *masklay, const int frame);
-int ED_mask_layer_shape_auto_key_all(struct Mask *mask, const int frame);
-int ED_mask_layer_shape_auto_key_select(struct Mask *mask, const int frame);
+bool ED_mask_layer_shape_auto_key_all(struct Mask *mask, const int frame);
+bool ED_mask_layer_shape_auto_key_select(struct Mask *mask, const int frame);
 
 /* ----------- Mask AnimEdit API ------------------ */
 short ED_masklayer_frames_looper(struct MaskLayer *masklay, struct Scene *scene,

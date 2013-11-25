@@ -335,7 +335,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 	bGPDstroke *gps;
 	RulerItem *ruler_item;
 	const char *ruler_name = RULER_ID;
-	bool change = false;
+	bool changed = false;
 
 	if (scene->gpd == NULL) {
 		scene->gpd = gpencil_data_addnew("GPencil");
@@ -377,16 +377,16 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 		}
 		gps->flag = GP_STROKE_3DSPACE;
 		BLI_addtail(&gpf->strokes, gps);
-		change = true;
+		changed = true;
 	}
 
-	return change;
+	return changed;
 }
 
 static bool view3d_ruler_from_gpencil(bContext *C, RulerInfo *ruler_info)
 {
 	Scene *scene = CTX_data_scene(C);
-	bool change = false;
+	bool changed = false;
 
 	if (scene->gpd) {
 		bGPDlayer *gpl;
@@ -407,7 +407,7 @@ static bool view3d_ruler_from_gpencil(bContext *C, RulerInfo *ruler_info)
 							pt++;
 						}
 						ruler_item->flag |= RULERITEM_USE_ANGLE;
-						change = true;
+						changed = true;
 					}
 					else if (gps->totpoints == 2) {
 						RulerItem *ruler_item = ruler_item_add(ruler_info);
@@ -415,14 +415,14 @@ static bool view3d_ruler_from_gpencil(bContext *C, RulerInfo *ruler_info)
 							copy_v3_v3(ruler_item->co[j], &pt->x);
 							pt++;
 						}
-						change = true;
+						changed = true;
 					}
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 /* -------------------------------------------------------------------- */

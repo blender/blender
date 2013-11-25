@@ -234,28 +234,28 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 	SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
 	ARegion *ar_main = sequencer_find_region(sa, RGN_TYPE_WINDOW);
 	ARegion *ar_preview = sequencer_find_region(sa, RGN_TYPE_PREVIEW);
-	int view_changed = 0;
+	bool view_changed = false;
 
 	switch (sseq->view) {
 		case SEQ_VIEW_SEQUENCE:
 			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag |= RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers((bContext *)C, &ar_preview->handlers);
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
 				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
 				ar_preview->alignment = RGN_ALIGN_NONE;
-				view_changed = 1;
+				view_changed = true;
 			}
 			break;
 		case SEQ_VIEW_PREVIEW:
@@ -263,42 +263,42 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 				ar_main->flag |= RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers((bContext *)C, &ar_main->handlers);
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
 				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
 				ar_preview->alignment = RGN_ALIGN_NONE;
-				view_changed = 1;
+				view_changed = true;
 			}
 			break;
 		case SEQ_VIEW_SEQUENCE_PREVIEW:
 			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
 				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = 1;
+				view_changed = true;
 			}
 			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
 				ar_preview->alignment = RGN_ALIGN_TOP;
-				view_changed = 1;
+				view_changed = true;
 			}
 			break;
 	}

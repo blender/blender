@@ -174,7 +174,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	Object *obedit = CTX_data_edit_object(C);
 	arm = obedit->data;
 
@@ -1157,7 +1157,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 	EditBone *ebone_src, *ebone_dst;
 	EditBone *ebone_isect_parent = NULL;
 	EditBone *ebone_isect_child[2];
-	bool change;
+	bool changed;
 
 	view3d_operator_needs_opengl(C);
 
@@ -1195,25 +1195,25 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 		{
 			armature_shortest_path_select(arm, ebone_isect_parent, ebone_src, false, false);
 			armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, false);
-			change = true;
+			changed = true;
 		}
 		else {
 			/* unselectable */
-			change = false;
+			changed = false;
 		}
 	}
 	else {
 		if (armature_shortest_path_select(arm, ebone_src, ebone_dst, true, true)) {
 			armature_shortest_path_select(arm, ebone_src, ebone_dst, true, false);
-			change = true;
+			changed = true;
 		}
 		else {
 			/* unselectable */
-			change = false;
+			changed = false;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		arm->act_edbone = ebone_dst;
 		ED_armature_sync_selection(arm->edbo);
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);

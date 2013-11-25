@@ -2375,7 +2375,7 @@ bool BKE_mball_minmax_ex(MetaBall *mb, float min[3], float max[3],
 {
 	const float scale = obmat ? mat4_to_scale(obmat) : 1.0f;
 	MetaElem *ml;
-	bool change = false;
+	bool changed = false;
 	float centroid[3], vec[3];
 
 	INIT_MINMAX(min, max);
@@ -2398,11 +2398,11 @@ bool BKE_mball_minmax_ex(MetaBall *mb, float min[3], float max[3],
 				add_v3_fl(vec, scale_mb * i);
 				minmax_v3v3_v3(min, max, vec);
 			}
-			change = true;
+			changed = true;
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 

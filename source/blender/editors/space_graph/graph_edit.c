@@ -877,7 +877,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	bool modified = false;
+	bool changed = false;
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
@@ -889,7 +889,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 		AnimData *adt = ale->adt;
 		
 		/* delete selected keyframes only */
-		modified |= delete_fcurve_keys(fcu);
+		changed |= delete_fcurve_keys(fcu);
 		
 		/* Only delete curve too if it won't be doing anything anymore */
 		if ((fcu->totvert == 0) &&
@@ -903,7 +903,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 	/* free filtered list */
 	BLI_freelistN(&anim_data);
 
-	return modified;
+	return changed;
 }
 
 /* ------------------- */
@@ -911,14 +911,14 @@ static bool delete_graph_keys(bAnimContext *ac)
 static int graphkeys_delete_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	bool modified;
+	bool changed;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* delete keyframes */
-	modified = delete_graph_keys(&ac);
+	changed = delete_graph_keys(&ac);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
@@ -926,7 +926,7 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *op)
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
-	if (modified)
+	if (changed)
 		BKE_report(op->reports, RPT_INFO, "Deleted selected keyframes");
 
 	return OPERATOR_FINISHED;

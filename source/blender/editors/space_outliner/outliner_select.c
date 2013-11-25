@@ -78,7 +78,7 @@ static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *se
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	int change = 0;
+	bool changed = false;
 	
 	for (te = lb->first; te && *index >= 0; te = te->next, (*index)--) {
 		tselem = TREESTORE(te);
@@ -101,7 +101,7 @@ static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *se
 				else 
 					tselem->flag &= ~TSE_SELECTED;
 
-				change |= 1;
+				changed |= true;
 			}
 		}
 		else if (TSELEM_OPEN(tselem, soops)) {
@@ -113,12 +113,12 @@ static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *se
 			 *  function correctly
 			 */
 			(*index)--;
-			change |= outliner_select(soops, &te->subtree, index, selecting);
+			changed |= outliner_select(soops, &te->subtree, index, selecting);
 			(*index)++;
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 /* ****************************************************** */

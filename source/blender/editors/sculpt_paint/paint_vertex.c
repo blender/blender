@@ -1088,7 +1088,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	ViewContext vc;
 	Mesh *me;
-	short change = FALSE;
+	bool changed = false;
 
 	view3d_set_viewcontext(C, &vc);
 	me = BKE_mesh_from_object(vc.obact);
@@ -1122,11 +1122,11 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			const int vgroup_active = vc.obact->actdef - 1;
 			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
 			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
-			change = TRUE;
+			changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		/* not really correct since the brush didnt change, but redraws the toolbar */
 		WM_main_add_notifier(NC_BRUSH | NA_EDITED, NULL); /* ts->wpaint->paint.brush */
 
@@ -1468,14 +1468,14 @@ static float redistribute_change(MDeformVert *ndv, const int defbase_tot,
                                  float totchange, float total_valid,
                                  char do_auto_normalize)
 {
-	float was_change;
+	bool changed;
 	float change;
 	float oldval;
 	MDeformWeight *ndw;
 	int i;
 	do {
 		/* assume there is no change until you see one */
-		was_change = FALSE;
+		changed = false;
 		/* change each group by the same amount each time */
 		change = totchange / total_valid;
 		for (i = 0; i < ndv->totweight && total_valid && totchange; i++) {
@@ -1507,14 +1507,14 @@ static float redistribute_change(MDeformVert *ndv, const int defbase_tot,
 					}
 					/* see if there was a change */
 					if (oldval != ndw->weight) {
-						was_change = TRUE;
+						changed = true;
 					}
 				}
 			}
 		}
 		/* don't go again if there was no change, if there is no valid group,
 		 * or there is no change left */
-	} while (was_change && total_valid && totchange);
+	} while (changed && total_valid && totchange);
 	/* left overs */
 	return totchange;
 }

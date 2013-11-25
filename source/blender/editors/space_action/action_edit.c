@@ -785,7 +785,7 @@ static bool delete_action_keys(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	bool modified = false;
+	bool changed = false;
 	
 	/* filter data */
 	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
@@ -797,17 +797,17 @@ static bool delete_action_keys(bAnimContext *ac)
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER) {
-			modified |= ED_gplayer_frames_delete((bGPDlayer *)ale->data);
+			changed |= ED_gplayer_frames_delete((bGPDlayer *)ale->data);
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			modified |= ED_masklayer_frames_delete((MaskLayer *)ale->data);
+			changed |= ED_masklayer_frames_delete((MaskLayer *)ale->data);
 		}
 		else {
 			FCurve *fcu = (FCurve *)ale->key_data;
 			AnimData *adt = ale->adt;
 			
 			/* delete selected keyframes only */
-			modified |= delete_fcurve_keys(fcu);
+			changed |= delete_fcurve_keys(fcu);
 			
 			/* Only delete curve too if it won't be doing anything anymore */
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
@@ -818,7 +818,7 @@ static bool delete_action_keys(bAnimContext *ac)
 	/* free filtered list */
 	BLI_freelistN(&anim_data);
 
-	return modified;
+	return changed;
 }
 
 /* ------------------- */
@@ -826,14 +826,14 @@ static bool delete_action_keys(bAnimContext *ac)
 static int actkeys_delete_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	bool modified;
+	bool changed;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* delete keyframes */
-	modified = delete_action_keys(&ac);
+	changed = delete_action_keys(&ac);
 	
 	/* validate keyframes after editing */
 	if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
@@ -842,7 +842,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
-	if (modified)
+	if (changed)
 		BKE_report(op->reports, RPT_INFO, "Deleted selected keyframes");
 
 	return OPERATOR_FINISHED;

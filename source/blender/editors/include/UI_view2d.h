@@ -155,7 +155,7 @@ void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
 void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, int resize);
 
 /* per tab offsets, returns 1 if tab changed */
-int UI_view2d_tab_set(struct View2D *v2d, int tab);
+bool UI_view2d_tab_set(struct View2D *v2d, int tab);
 
 /* view matrix operations */
 void UI_view2d_view_ortho(struct View2D *v2d);

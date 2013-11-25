@@ -413,22 +413,22 @@ void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const f
 
 bool BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2])
 {
-	bool change = false;
-	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = true; }
-	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = true; }
-	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = true; }
-	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = true; }
-	return change;
+	bool changed = false;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; changed = true; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; changed = true; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; changed = true; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; changed = true; }
+	return changed;
 }
 
 bool BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2])
 {
-	bool change = false;
-	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = true; }
-	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = true; }
-	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = true; }
-	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = true; }
-	return change;
+	bool changed = false;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; changed = true; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; changed = true; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; changed = true; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; changed = true; }
+	return changed;
 }
 
 bool BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit)

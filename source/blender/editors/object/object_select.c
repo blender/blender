@@ -216,7 +216,7 @@ static EnumPropertyItem prop_select_linked_types[] = {
 #if 0
 static int object_select_all_by_ipo(bContext *C, Ipo *ipo)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -224,7 +224,7 @@ static int object_select_all_by_ipo(bContext *C, Ipo *ipo)
 			base->flag |= SELECT;
 			base->object->flag = base->flag;
 
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
@@ -233,9 +233,9 @@ static int object_select_all_by_ipo(bContext *C, Ipo *ipo)
 }
 #endif
 
-static int object_select_all_by_obdata(bContext *C, void *obdata)
+static bool object_select_all_by_obdata(bContext *C, void *obdata)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -244,7 +244,7 @@ static int object_select_all_by_obdata(bContext *C, void *obdata)
 				base->flag |= SELECT;
 				base->object->flag = base->flag;
 
-				changed = TRUE;
+				changed = true;
 			}
 		}
 	}
@@ -253,9 +253,9 @@ static int object_select_all_by_obdata(bContext *C, void *obdata)
 	return changed;
 }
 
-static int object_select_all_by_material_texture(bContext *C, int use_texture, Material *mat, Tex *tex)
+static bool object_select_all_by_material_texture(bContext *C, int use_texture, Material *mat, Tex *tex)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -270,7 +270,7 @@ static int object_select_all_by_material_texture(bContext *C, int use_texture, M
 				if (!use_texture) {
 					if (mat1 == mat) {
 						base->flag |= SELECT;
-						changed = TRUE;
+						changed = true;
 					}
 				}
 				else if (mat1 && use_texture) {
@@ -278,7 +278,7 @@ static int object_select_all_by_material_texture(bContext *C, int use_texture, M
 						if (mat1->mtex[b]) {
 							if (tex == mat1->mtex[b]->tex) {
 								base->flag |= SELECT;
-								changed = TRUE;
+								changed = true;
 								break;
 							}
 						}
@@ -294,9 +294,9 @@ static int object_select_all_by_material_texture(bContext *C, int use_texture, M
 	return changed;
 }
 
-static int object_select_all_by_dup_group(bContext *C, Object *ob)
+static bool object_select_all_by_dup_group(bContext *C, Object *ob)
 {
-	int changed = FALSE;
+	bool changed = false;
 	Group *dup_group = (ob->transflag & OB_DUPLIGROUP) ? ob->dup_group : NULL;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
@@ -307,7 +307,7 @@ static int object_select_all_by_dup_group(bContext *C, Object *ob)
 				base->flag |= SELECT;
 				base->object->flag = base->flag;
 
-				changed = TRUE;
+				changed = true;
 			}
 		}
 	}
@@ -316,9 +316,9 @@ static int object_select_all_by_dup_group(bContext *C, Object *ob)
 	return changed;
 }
 
-static int object_select_all_by_particle(bContext *C, Object *ob)
+static bool object_select_all_by_particle(bContext *C, Object *ob)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -331,7 +331,7 @@ static int object_select_all_by_particle(bContext *C, Object *ob)
 				for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
 					if (psys->part == psys_act->part) {
 						base->flag |= SELECT;
-						changed = TRUE;
+						changed = true;
 						break;
 					}
 				}
@@ -349,9 +349,9 @@ static int object_select_all_by_particle(bContext *C, Object *ob)
 	return changed;
 }
 
-static int object_select_all_by_library(bContext *C, Library *lib)
+static bool object_select_all_by_library(bContext *C, Library *lib)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -360,7 +360,7 @@ static int object_select_all_by_library(bContext *C, Library *lib)
 				base->flag |= SELECT;
 				base->object->flag = base->flag;
 
-				changed = TRUE;
+				changed = true;
 			}
 		}
 	}
@@ -369,9 +369,9 @@ static int object_select_all_by_library(bContext *C, Library *lib)
 	return changed;
 }
 
-static int object_select_all_by_library_obdata(bContext *C, Library *lib)
+static bool object_select_all_by_library_obdata(bContext *C, Library *lib)
 {
-	int changed = FALSE;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
@@ -380,7 +380,7 @@ static int object_select_all_by_library_obdata(bContext *C, Library *lib)
 				base->flag |= SELECT;
 				base->object->flag = base->flag;
 
-				changed = TRUE;
+				changed = true;
 			}
 		}
 	}
@@ -392,7 +392,7 @@ static int object_select_all_by_library_obdata(bContext *C, Library *lib)
 void ED_object_select_linked_by_id(bContext *C, ID *id)
 {
 	int idtype = GS(id->name);
-	int changed = FALSE;
+	bool changed = false;
 
 	if (OB_DATA_SUPPORT_ID(idtype)) {
 		changed = object_select_all_by_obdata(C, id);
@@ -414,7 +414,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	int nr = RNA_enum_get(op->ptr, "type");
-	short changed = FALSE, extend;
+	bool changed = false, extend;
 
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
@@ -533,16 +533,16 @@ static EnumPropertyItem prop_select_grouped_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static short select_grouped_children(bContext *C, Object *ob, int recursive)
+static bool select_grouped_children(bContext *C, Object *ob, const bool recursive)
 {
-	short changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if (ob == base->object->parent) {
 			if (!(base->flag & SELECT)) {
 				ED_base_object_select(base, BA_SELECT);
-				changed = 1;
+				changed = true;
 			}
 
 			if (recursive)
@@ -553,12 +553,12 @@ static short select_grouped_children(bContext *C, Object *ob, int recursive)
 	return changed;
 }
 
-static short select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
+static bool select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
-	short changed = 0;
+	bool changed = false;
 	Base *baspar, *basact = CTX_data_active_base(C);
 
 	if (!basact || !(basact->object->parent)) return 0;  /* we know OBACT is valid */
@@ -570,16 +570,16 @@ static short select_grouped_parent(bContext *C) /* Makes parent active and de-se
 		ED_base_object_select(basact, BA_DESELECT);
 		ED_base_object_select(baspar, BA_SELECT);
 		ED_base_object_activate(C, baspar);
-		changed = 1;
+		changed = true;
 	}
 	return changed;
 }
 
 
 #define GROUP_MENU_MAX  24
-static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in the same group as the active */
+static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in the same group as the active */
 {
-	short changed = 0;
+	bool changed = false;
 	Group *group, *ob_groups[GROUP_MENU_MAX];
 	int group_count = 0, i;
 	uiPopupMenu *pup;
@@ -600,7 +600,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 		{
 			if (!(base->flag & SELECT) && BKE_group_object_exists(group, base->object)) {
 				ED_base_object_select(base, BA_SELECT);
-				changed = 1;
+				changed = true;
 			}
 		}
 		CTX_DATA_END;
@@ -620,12 +620,12 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 	return changed;  /* The operator already handle this! */
 }
 
-static short select_grouped_object_hooks(bContext *C, Object *ob)
+static bool select_grouped_object_hooks(bContext *C, Object *ob)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
-	short changed = 0;
+	bool changed = false;
 	Base *base;
 	ModifierData *md;
 	HookModifierData *hmd;
@@ -637,7 +637,7 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 				base = BKE_scene_base_find(scene, hmd->object);
 				if (base && (BASE_SELECTABLE(v3d, base))) {
 					ED_base_object_select(base, BA_SELECT);
-					changed = 1;
+					changed = true;
 				}
 			}
 		}
@@ -647,25 +647,25 @@ static short select_grouped_object_hooks(bContext *C, Object *ob)
 
 /* Select objects with the same parent as the active (siblings),
  * parent can be NULL also */
-static short select_grouped_siblings(bContext *C, Object *ob)
+static bool select_grouped_siblings(bContext *C, Object *ob)
 {
-	short changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if ((base->object->parent == ob->parent) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
-static short select_similar_lamps(bContext *C, Object *ob)
+static bool select_similar_lamps(bContext *C, Object *ob)
 {
 	Lamp *la = ob->data;
 
-	short changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
@@ -673,88 +673,88 @@ static short select_similar_lamps(bContext *C, Object *ob)
 			Lamp *la_test = base->object->data;
 			if ((la->type == la_test->type) && !(base->flag & SELECT)) {
 				ED_base_object_select(base, BA_SELECT);
-				changed = 1;
+				changed = true;
 			}
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
-static short select_similar_pass_index(bContext *C, Object *ob)
+static bool select_similar_pass_index(bContext *C, Object *ob)
 {
-	char changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
-static short select_grouped_type(bContext *C, Object *ob)
+static bool select_grouped_type(bContext *C, Object *ob)
 {
-	short changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if ((base->object->type == ob->type) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
 
-static short select_grouped_layer(bContext *C, Object *ob)
+static bool select_grouped_layer(bContext *C, Object *ob)
 {
-	char changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if ((base->lay & ob->lay) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
 
-static short select_grouped_index_object(bContext *C, Object *ob)
+static bool select_grouped_index_object(bContext *C, Object *ob)
 {
-	char changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
 
-static short select_grouped_color(bContext *C, Object *ob)
+static bool select_grouped_color(bContext *C, Object *ob)
 {
-	char changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if (!(base->flag & SELECT) && (compare_v3v3(base->object->col, ob->col, 0.005f))) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
 
-static short objects_share_gameprop(Object *a, Object *b)
+static bool objects_share_gameprop(Object *a, Object *b)
 {
 	bProperty *prop;
 	/*make a copy of all its properties*/
@@ -766,25 +766,25 @@ static short objects_share_gameprop(Object *a, Object *b)
 	return 0;
 }
 
-static short select_grouped_gameprops(bContext *C, Object *ob)
+static bool select_grouped_gameprops(bContext *C, Object *ob)
 {
-	char changed = 0;
+	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if (!(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
 			ED_base_object_select(base, BA_SELECT);
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
 	return changed;
 }
 
-static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
+static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
-	short changed = 0;
+	bool changed = false;
 	
 	/* firstly, validate KeyingSet */
 	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
@@ -806,7 +806,7 @@ static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 				/* if id matches, select then stop looping (match found) */
 				if (ksp->id == (ID *)base->object) {
 					ED_base_object_select(base, BA_SELECT);
-					changed = 1;
+					changed = true;
 					break;
 				}
 			}
@@ -822,7 +822,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	int nr = RNA_enum_get(op->ptr, "type");
-	short changed = 0, extend;
+	bool changed = false, extend;
 
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
@@ -830,7 +830,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 		{
 			ED_base_object_select(base, BA_DESELECT);
-			changed = 1;
+			changed = true;
 		}
 		CTX_DATA_END;
 	}

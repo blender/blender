@@ -2307,11 +2307,12 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	BezTriple *bezt, *beztOrig;
 	BPoint *bp, *bpOrig;
 	float val, newval, offset;
-	int a, i, change = 0;
+	int a, i;
+	bool changed = false;
 	
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->bezt) {
-			change = 0;
+			changed = false;
 			beztOrig = MEM_dupallocN(nu->bezt);
 			for (bezt = &nu->bezt[1], a = 1; a < nu->pntsu - 1; a++, bezt++) {
 				if (bezt->f2 & SELECT) {
@@ -2324,12 +2325,13 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 						bezt->vec[0][i] += offset;
 						bezt->vec[2][i] += offset;
 					}
-					change = 1;
+					changed = true;
 				}
 			}
 			MEM_freeN(beztOrig);
-			if (change)
+			if (changed) {
 				BKE_nurb_handles_calc(nu);
+			}
 		}
 		else if (nu->bp) {
 			bpOrig = MEM_dupallocN(nu->bp);
@@ -3568,7 +3570,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
-	bool change = false;
+	bool changed = false;
 	const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
 	const int type = RNA_enum_get(op->ptr, "type");
 
@@ -3582,11 +3584,11 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 			if (BKE_nurb_type_convert(nu, type, use_handles) == false)
 				BKE_report(op->reports, RPT_ERROR, "No conversion possible");
 			else
-				change = true;
+				changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		if (ED_curve_updateAnimPaths(obedit->data))
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 

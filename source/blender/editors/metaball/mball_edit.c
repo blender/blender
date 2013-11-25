@@ -200,7 +200,7 @@ static EnumPropertyItem prop_similar_types[] = {
 static bool mball_select_similar_type(MetaBall *mb)
 {
 	MetaElem *ml;
-	bool change = false;
+	bool changed = false;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (ml->flag & SELECT) {
@@ -210,20 +210,20 @@ static bool mball_select_similar_type(MetaBall *mb)
 				if ((ml_iter->flag & SELECT) == 0) {
 					if (ml->type == ml_iter->type) {
 						ml_iter->flag |= SELECT;
-						change = true;
+						changed = true;
 					}
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static bool mball_select_similar_radius(MetaBall *mb, const float thresh)
 {
 	MetaElem *ml;
-	bool change = false;
+	bool changed = false;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (ml->flag & SELECT) {
@@ -233,20 +233,20 @@ static bool mball_select_similar_radius(MetaBall *mb, const float thresh)
 				if ((ml_iter->flag & SELECT) == 0) {
 					if (fabsf(ml_iter->rad - ml->rad) <= (thresh * ml->rad)) {
 						ml_iter->flag |= SELECT;
-						change = true;
+						changed = true;
 					}
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static bool mball_select_similar_stiffness(MetaBall *mb, const float thresh)
 {
 	MetaElem *ml;
-	bool change = false;
+	bool changed = false;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (ml->flag & SELECT) {
@@ -256,21 +256,21 @@ static bool mball_select_similar_stiffness(MetaBall *mb, const float thresh)
 				if ((ml_iter->flag & SELECT) == 0) {
 					if (fabsf(ml_iter->s - ml->s) <= thresh) {
 						ml_iter->flag |= SELECT;
-						change = true;
+						changed = true;
 					}
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static bool mball_select_similar_rotation(MetaBall *mb, const float thresh)
 {
 	const float thresh_rad = thresh * (float)M_PI_2;
 	MetaElem *ml;
-	bool change = false;
+	bool changed = false;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (ml->flag & SELECT) {
@@ -299,14 +299,14 @@ static bool mball_select_similar_rotation(MetaBall *mb, const float thresh)
 					     angle_normalized_v3v3(ml_mat[2], ml_iter_mat[2])) < thresh_rad)
 					{
 						ml_iter->flag |= SELECT;
-						change = true;
+						changed = true;
 					}
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static int mball_select_similar_exec(bContext *C, wmOperator *op)
@@ -316,27 +316,27 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 
 	int type = RNA_enum_get(op->ptr, "type");
 	float thresh = RNA_float_get(op->ptr, "threshold");
-	bool change = false;
+	bool changed = false;
 
 	switch (type) {
 		case SIMMBALL_TYPE:
-			change = mball_select_similar_type(mb);
+			changed = mball_select_similar_type(mb);
 			break;
 		case SIMMBALL_RADIUS:
-			change = mball_select_similar_radius(mb, thresh);
+			changed = mball_select_similar_radius(mb, thresh);
 			break;
 		case SIMMBALL_STIFFNESS:
-			change = mball_select_similar_stiffness(mb, thresh);
+			changed = mball_select_similar_stiffness(mb, thresh);
 			break;
 		case SIMMBALL_ROTATION:
-			change = mball_select_similar_rotation(mb, thresh);
+			changed = mball_select_similar_rotation(mb, thresh);
 			break;
 		default:
 			BLI_assert(0);
 			break;
 	}
 
-	if (change) {
+	if (changed) {
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 

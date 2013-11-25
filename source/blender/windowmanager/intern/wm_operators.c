@@ -863,9 +863,9 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
  * \note, theres nothing specific to operators here.
  * this could be made a general function.
  */
-int WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
+bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 {
-	int is_change = FALSE;
+	bool changed = false;
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		switch (RNA_property_type(prop)) {
@@ -874,14 +874,14 @@ int WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 				StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
 				if (ptype != &RNA_Struct) {
 					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-					is_change |= WM_operator_properties_default(&opptr, do_update);
+					changed |= WM_operator_properties_default(&opptr, do_update);
 				}
 				break;
 			}
 			default:
 				if ((do_update == false) || (RNA_property_is_set(ptr, prop) == FALSE)) {
 					if (RNA_property_reset(ptr, prop, -1)) {
-						is_change = 1;
+						changed = true;
 					}
 				}
 				break;
@@ -889,7 +889,7 @@ int WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 	}
 	RNA_STRUCT_END;
 
-	return is_change;
+	return changed;
 }
 
 /* remove all props without PROP_SKIP_SAVE */

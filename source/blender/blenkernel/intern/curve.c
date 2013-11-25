@@ -3658,30 +3658,30 @@ bool BKE_nurb_check_valid_v(struct Nurb *nu)
 
 bool BKE_nurb_order_clamp_u(struct Nurb *nu)
 {
-	bool change = false;
+	bool changed = false;
 	if (nu->pntsu < nu->orderu) {
 		nu->orderu = nu->pntsu;
-		change = true;
+		changed = true;
 	}
 	if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderu, 3, 4);
-		change = true;
+		changed = true;
 	}
-	return change;
+	return changed;
 }
 
 bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 {
-	bool change = false;
+	bool changed = false;
 	if (nu->pntsv < nu->orderv) {
 		nu->orderv = nu->pntsv;
-		change = true;
+		changed = true;
 	}
 	if (((nu->flagv & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderv, 3, 4);
-		change = true;
+		changed = true;
 	}
-	return change;
+	return changed;
 }
 
 bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)

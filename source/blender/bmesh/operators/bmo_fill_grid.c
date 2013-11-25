@@ -594,7 +594,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
 
 	int count;
-	bool change = false;
+	bool changed = false;
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
 	count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, (void *)bm);
@@ -690,14 +690,14 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	bm_grid_fill(bm, estore_a, estore_b, estore_rail_a, estore_rail_b,
 	             mat_nr, use_smooth, use_interp_simple);
 
-	change = true;
+	changed = true;
 
 
 cleanup:
 	BM_mesh_edgeloops_free(&eloops);
 	BM_mesh_edgeloops_free(&eloops_rail);
 
-	if (change) {
+	if (changed) {
 		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 	}
 }

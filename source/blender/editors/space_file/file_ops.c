@@ -272,8 +272,8 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	rcti rect;
 	FileSelect ret;
-	int extend = RNA_boolean_get(op->ptr, "extend");
-	short select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	WM_operator_properties_border_to_rcti(op, &rect);
 
@@ -319,9 +319,9 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelect ret;
 	rcti rect;
-	int extend = RNA_boolean_get(op->ptr, "extend");
-	int fill = RNA_boolean_get(op->ptr, "fill");
-	int do_diropen = RNA_boolean_get(op->ptr, "open");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool fill = RNA_boolean_get(op->ptr, "fill");
+	const bool do_diropen = RNA_boolean_get(op->ptr, "open");
 
 	if (ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;

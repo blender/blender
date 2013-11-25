@@ -100,7 +100,8 @@ static void partialvis_update_mesh(Object *ob,
 	MVert *mvert;
 	float *paint_mask;
 	int *vert_indices;
-	int any_changed = 0, any_visible = 0, totvert, i;
+	int totvert, i;
+	bool any_changed = false, any_visible = false;
 			
 	BKE_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
 	BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
@@ -118,11 +119,11 @@ static void partialvis_update_mesh(Object *ob,
 				v->flag |= ME_HIDE;
 			else
 				v->flag &= ~ME_HIDE;
-			any_changed = 1;
+			any_changed = true;
 		}
 
 		if (!(v->flag & ME_HIDE))
-			any_visible = 1;
+			any_visible = true;
 	}
 
 	if (any_changed) {
@@ -143,8 +144,9 @@ static void partialvis_update_grids(Object *ob,
 	CCGElem **grids;
 	CCGKey key;
 	BLI_bitmap **grid_hidden;
-	int any_visible = 0;
-	int *grid_indices, totgrid, any_changed, i;
+	int *grid_indices, totgrid, i;
+	bool any_changed = false, any_visible = false;
+
 
 	/* get PBVH data */
 	BKE_pbvh_node_get_grids(pbvh, node,
@@ -154,8 +156,7 @@ static void partialvis_update_grids(Object *ob,
 	BKE_pbvh_get_grid_key(pbvh, &key);
 	
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
-	
-	any_changed = 0;
+
 	for (i = 0; i < totgrid; i++) {
 		int any_hidden = 0;
 		int g = grid_indices[i], x, y;
@@ -178,8 +179,8 @@ static void partialvis_update_grids(Object *ob,
 			 * grid */
 			MEM_freeN(gh);
 			grid_hidden[g] = NULL;
-			any_changed = 1;
-			any_visible = 1;
+			any_changed = true;
+			any_visible = true;
 			continue;
 		}
 
@@ -195,14 +196,14 @@ static void partialvis_update_grids(Object *ob,
 					BLI_BITMAP_MODIFY(gh, y * key.grid_size + x,
 					                  action == PARTIALVIS_HIDE);
 
-					any_changed = 1;
+					any_changed = true;
 				}
 
 				/* keep track of whether any elements are still hidden */
 				if (BLI_BITMAP_GET(gh, y * key.grid_size + x))
-					any_hidden = 1;
+					any_hidden = true;
 				else
-					any_visible = 1;
+					any_visible = true;
 			}
 		}
 
@@ -227,8 +228,8 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
-                                          int *any_changed,
-                                          int *any_visible)
+                                          bool *any_changed,
+                                          bool *any_visible)
 {
 	GSetIterator gs_iter;
 
@@ -244,24 +245,24 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
 				BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
 			else
 				BM_elem_flag_disable(v, BM_ELEM_HIDDEN);
-			(*any_changed) = TRUE;
+			(*any_changed) = true;
 		}
 
 		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			(*any_visible) = TRUE;
+			(*any_visible) = true;
 	}
 }
 
 static void partialvis_update_bmesh(Object *ob,
-									PBVH *pbvh,
-									PBVHNode *node,
-									PartialVisAction action,
-									PartialVisArea area,
-									float planes[4][4])
+                                    PBVH *pbvh,
+                                    PBVHNode *node,
+                                    PartialVisAction action,
+                                    PartialVisArea area,
+                                    float planes[4][4])
 {
 	BMesh *bm;
 	GSet *unique, *other;
-	int any_changed = 0, any_visible = 0;
+	bool any_changed = false, any_visible = false;
 
 	bm = BKE_pbvh_get_bmesh(pbvh);
 	unique = BKE_pbvh_bmesh_node_unique_verts(node);
@@ -270,20 +271,20 @@ static void partialvis_update_bmesh(Object *ob,
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
 	partialvis_update_bmesh_verts(bm,
-								  unique,
-								  action,
-								  area,
-								  planes,
-								  &any_changed,
-								  &any_visible);
+	                              unique,
+	                              action,
+	                              area,
+	                              planes,
+	                              &any_changed,
+	                              &any_visible);
 
 	partialvis_update_bmesh_verts(bm,
-								  other,
-								  action,
-								  area,
-								  planes,
-								  &any_changed,
-								  &any_visible);
+	                              other,
+	                              action,
+	                              area,
+	                              planes,
+	                              &any_changed,
+	                              &any_visible);
 
 	if (any_changed) {
 		BKE_pbvh_node_mark_rebuild_draw(node);

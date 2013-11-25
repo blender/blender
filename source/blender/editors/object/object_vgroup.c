@@ -2811,7 +2811,7 @@ static bool vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 {
 	MDeformVert *dv;
 	const int def_nr = BLI_findindex(&ob->defbase, dg);
-	bool change = false;
+	bool changed = false;
 
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
@@ -2830,7 +2830,7 @@ static bool vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 					if (dv && dv->dw && (allverts || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
 						MDeformWeight *dw = defvert_find_index(dv, def_nr);
 						defvert_remove_group(dv, dw); /* dw can be NULL */
-						change = true;
+						changed = true;
 					}
 				}
 			}
@@ -2848,7 +2848,7 @@ static bool vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 						if (dv->dw && (allverts || (mv->flag & SELECT))) {
 							MDeformWeight *dw = defvert_find_index(dv, def_nr);
 							defvert_remove_group(dv, dw); /* dw can be NULL */
-							change = true;
+							changed = true;
 						}
 					}
 				}
@@ -2870,13 +2870,13 @@ static bool vgroup_active_remove_verts(Object *ob, const bool allverts, bDeformG
 
 					dw = defvert_find_index(dv, def_nr);
 					defvert_remove_group(dv, dw); /* dw can be NULL */
-					change = true;
+					changed = true;
 				}
 			}
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
@@ -3077,16 +3077,16 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 /* removes from all defgroup, if allverts==0 only selected vertices */
 static bool vgroup_remove_verts(Object *ob, int allverts)
 {
-	bool change = false;
+	bool changed = false;
 	/* To prevent code redundancy, we just use vgroup_active_remove_verts, but that
 	 * only operates on the active vgroup. So we iterate through all groups, by changing
 	 * active group index
 	 */
 	bDeformGroup *dg;
 	for (dg = ob->defbase.first; dg; dg = dg->next) {
-		change |= vgroup_active_remove_verts(ob, allverts, dg);
+		changed |= vgroup_active_remove_verts(ob, allverts, dg);
 	}
-	return change;
+	return changed;
 }
 
 /********************** vertex group operators *********************/
@@ -3965,22 +3965,22 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
 	Object *obact = ED_object_context(C);
-	int change = 0;
+	int changed_tot = 0;
 	int fail = 0;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		if (obact != ob) {
-			if (ED_vgroup_array_copy(ob, obact)) change++;
+			if (ED_vgroup_array_copy(ob, obact)) changed_tot++;
 			else fail++;
 		}
 	}
 	CTX_DATA_END;
 
-	if ((change == 0 && fail == 0) || fail) {
+	if ((changed_tot == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Copy vertex groups to selected: %d done, %d failed (object data must have matching indices)",
-		            change, fail);
+		            changed_tot, fail);
 	}
 
 	return OPERATOR_FINISHED;
@@ -4010,7 +4010,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	char dg_act_name[MAX_VGROUP_NAME];  /* may be freed so copy */
 
 	int fail = 0;
-	bool change = false;
+	bool changed = false;
 
 	WT_VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "group_select_mode");
 	WT_Method method = RNA_enum_get(op->ptr, "method");
@@ -4060,7 +4060,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 					}
 
 					if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
-						change = true;
+						changed = true;
 					}
 					else {
 						fail++;
@@ -4072,7 +4072,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 					bDeformGroup *dg_src;
 					for (dg_src = ob_src->defbase.first; dg_src; dg_src = dg_src->next) {
 						if (ed_vgroup_transfer_weight(ob_act, ob_src, dg_src, scene, method, replace_mode, op)) {
-							change = true;
+							changed = true;
 						}
 						else {
 							fail++;
@@ -4088,7 +4088,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (change) {
+	if (changed) {
 
 		/* possible the active vertex group changed because of adding/removing */
 		/* note!, dg_act may be realloc'd, only check its not NULL */

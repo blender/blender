@@ -125,11 +125,11 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 {
 	TimeMarker *marker;
 	float cfra = (float)CFRA;
-	int changed = 0;
+	int changed_tot = 0;
 	
 	/* sanity check */
 	if (markers == NULL)
-		return changed;
+		return changed_tot;
 	
 	/* affect selected markers - it's unlikely that we will want to affect all in this way? */
 	for (marker = markers->first; marker; marker = marker->next) {
@@ -144,7 +144,7 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 					    (side == 'R' && marker->frame >= cfra))
 					{
 						marker->frame += (int)floorf(value + 0.5f);
-						changed++;
+						changed_tot++;
 					}
 					break;
 				}
@@ -152,14 +152,14 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 				{
 					/* rescale the distance between the marker and the current frame */
 					marker->frame = cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
-					changed++;
+					changed_tot++;
 					break;
 				}
 			}
 		}
 	}
 	
-	return changed;
+	return changed_tot;
 }
 
 /* --------------------------------- */
@@ -1083,7 +1083,7 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 
 static int ed_marker_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool camera = false;
 #ifdef DURIAN_CAMERA_SWITCH
 	camera = RNA_boolean_get(op->ptr, "camera");
@@ -1148,7 +1148,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	float xminf, xmaxf, yminf, ymaxf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	bool extend = RNA_boolean_get(op->ptr, "extend");
 	rcti rect;
 	
 	WM_operator_properties_border_to_rcti(op, &rect);
@@ -1270,7 +1270,7 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ListBase *markers = ED_context_get_markers(C);
 	TimeMarker *marker, *nmarker;
-	short changed = 0;
+	bool changed = false;
 	
 	if (markers == NULL)
 		return OPERATOR_CANCELLED;
@@ -1279,7 +1279,7 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		nmarker = marker->next;
 		if (marker->flag & SELECT) {
 			BLI_freelinkN(markers, marker);
-			changed = 1;
+			changed = true;
 		}
 	}
 	

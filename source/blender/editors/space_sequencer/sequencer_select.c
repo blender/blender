@@ -188,7 +188,7 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 {
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	Sequence *neighbor;
-	int change = 0;
+	bool changed = false;
 	if (seq) {
 		neighbor = find_neighboring_sequence(scene, seq, lr, -1);
 		if (neighbor) {
@@ -207,10 +207,10 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 					break;
 			}
 			seq->flag |= SELECT;
-			change = 1;
+			changed = true;
 		}
 	}
-	if (change) {
+	if (changed) {
 	}
 }
 #endif
@@ -553,14 +553,15 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 
 
 /* run recursively to select linked */
-static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
+static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool linked)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *neighbor;
-	int change = 0;
+	bool changed = false;
 	int isel;
 	
-	if (ed == NULL) return 0;
+	if (ed == NULL)
+		return changed;
 	
 	if (sel) {
 		sel = SELECT;
@@ -587,20 +588,20 @@ static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
 					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
 					else neighbor->flag &= ~SELECT;
 					if (linked == 0) neighbor->tmp = (Sequence *)1;
-					change = 1;
+					changed = true;
 				}
 				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, isel);
 				if (neighbor) {
 					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
 					else neighbor->flag &= ~SELECT;
 					if (linked == 0) neighbor->tmp = (void *)1;
-					change = 1;
+					changed = true;
 				}
 			}
 		}
 	}
 	
-	return change;
+	return changed;
 }
 
 
@@ -850,8 +851,8 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	Sequence *seq;
 	rcti rect;
 	rctf rectf, rq;
-	short selecting = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	int mval[2];
 
 	if (ed == NULL)
@@ -870,7 +871,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		seq_rectf(seq, &rq);
 		
 		if (BLI_rctf_isect(&rq, &rectf, NULL)) {
-			if (selecting) seq->flag |= SELECT;
+			if (select) seq->flag |= SELECT;
 			else seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);
 		}
@@ -930,16 +931,16 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_USE_DATA(_seq) (ELEM3(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
-static short select_grouped_type(Editing *ed, Sequence *actseq)
+static bool select_grouped_type(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 
 	SEQP_BEGIN (ed, seq)
 	{
 		if (seq->type == actseq->type) {
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	SEQ_END;
@@ -947,17 +948,17 @@ static short select_grouped_type(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_type_basic(Editing *ed, Sequence *actseq)
+static bool select_grouped_type_basic(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 	short is_sound = SEQ_IS_SOUND(actseq);
 
 	SEQP_BEGIN (ed, seq)
 	{
 		if (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq)) {
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	SEQ_END;
@@ -965,17 +966,17 @@ static short select_grouped_type_basic(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_type_effect(Editing *ed, Sequence *actseq)
+static bool select_grouped_type_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 	short is_effect = SEQ_IS_EFFECT(actseq);
 
 	SEQP_BEGIN (ed, seq)
 	{
 		if (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq)) {
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	SEQ_END;
@@ -983,10 +984,10 @@ static short select_grouped_type_effect(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_data(Editing *ed, Sequence *actseq)
+static bool select_grouped_data(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 	char *dir = actseq->strip ? actseq->strip->dir : NULL;
 
 	if (!SEQ_USE_DATA(actseq))
@@ -997,7 +998,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		{
 			if (SEQ_HAS_PATH(seq) && seq->strip && strcmp(seq->strip->dir, dir) == 0) {
 				seq->flag |= SELECT;
-				changed = TRUE;
+				changed = true;
 			}
 		}
 		SEQ_END;
@@ -1008,7 +1009,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		{
 			if (seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
 				seq->flag |= SELECT;
-				changed = TRUE;
+				changed = true;
 			}
 		}
 		SEQ_END;
@@ -1019,7 +1020,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		{
 			if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip) {
 				seq->flag |= SELECT;
-				changed = TRUE;
+				changed = true;
 			}
 		}
 		SEQ_END;
@@ -1030,7 +1031,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		{
 			if (seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
 				seq->flag |= SELECT;
-				changed = TRUE;
+				changed = true;
 			}
 		}
 		SEQ_END;
@@ -1039,10 +1040,10 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_effect(Editing *ed, Sequence *actseq)
+static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 	short effects[SEQ_TYPE_EFFECT_MAX + 1];
 	int i;
 
@@ -1063,7 +1064,7 @@ static short select_grouped_effect(Editing *ed, Sequence *actseq)
 			if (seq->seq1) seq->seq1->flag |= SELECT;
 			if (seq->seq2) seq->seq2->flag |= SELECT;
 			if (seq->seq3) seq->seq3->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	SEQ_END;
@@ -1071,16 +1072,16 @@ static short select_grouped_effect(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_time_overlap(Editing *ed, Sequence *actseq)
+static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
-	short changed = FALSE;
+	bool changed = false;
 
 	SEQP_BEGIN (ed, seq)
 	{
 		if (!((seq->startdisp >= actseq->enddisp) || (seq->enddisp < actseq->startdisp))) {
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	SEQ_END;
@@ -1088,10 +1089,10 @@ static short select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
+static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq = NULL;
-	short changed = FALSE;
+	bool changed = false;
 	short is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
 	int startdisp = actseq->startdisp;
 	int enddisp   = actseq->enddisp;
@@ -1131,7 +1132,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			seq->tmp = SET_INT_IN_POINTER(TRUE);
 
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 
 			/* Unfortunately, we must restart checks from the beginning. */
 			BKE_sequence_iterator_end(&iter);
@@ -1141,7 +1142,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
 		else if (seq->machine < machine || is_audio) {
 			seq->flag |= SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 	BKE_sequence_iterator_end(&iter);
@@ -1159,7 +1160,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 	Editing *ed   = BKE_sequencer_editing_get(scene, 0);
 	Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
 	int type = RNA_enum_get(op->ptr, "type");
-	short changed = 0, extend;
+	bool changed = false, extend;
 
 	extend = RNA_boolean_get(op->ptr, "extend");
 
@@ -1172,7 +1173,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 		SEQP_BEGIN (ed, seq)
 		{
 			seq->flag &= ~SELECT;
-			changed = TRUE;
+			changed = true;
 		}
 		SEQ_END;
 	}

@@ -266,7 +266,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = (bArmature *)ob->data;
 	Bone *bone, *curBone, *next = NULL;
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	view3d_operator_needs_opengl(C);
 	
@@ -628,13 +628,13 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 
 /* -------------------------------------- */
 
-static short pose_select_same_group(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_group(bContext *C, Object *ob, bool extend)
 {
 	bArmature *arm = (ob) ? ob->data : NULL;
 	bPose *pose = (ob) ? ob->pose : NULL;
 	char *group_flags;
 	int numGroups = 0;
-	short changed = 0, tagged = 0;
+	bool changed = false, tagged = false;
 	
 	/* sanity checks */
 	if (ELEM3(NULL, ob, pose, arm))
@@ -656,7 +656,7 @@ static short pose_select_same_group(bContext *C, Object *ob, bool extend)
 		/* keep track of group as group to use later? */
 		if (pchan->bone->flag & BONE_SELECTED) {
 			group_flags[pchan->agrp_index] = 1;
-			tagged = 1;
+			tagged = true;
 		}
 		
 		/* deselect all bones before selecting new ones? */
@@ -674,7 +674,7 @@ static short pose_select_same_group(bContext *C, Object *ob, bool extend)
 				/* check if the group used by this bone is counted */
 				if (group_flags[pchan->agrp_index]) {
 					pchan->bone->flag |= BONE_SELECTED;
-					changed = 1;
+					changed = true;
 				}
 			}
 		}
@@ -687,11 +687,11 @@ static short pose_select_same_group(bContext *C, Object *ob, bool extend)
 	return changed;
 }
 
-static short pose_select_same_layer(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_layer(bContext *C, Object *ob, bool extend)
 {
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bArmature *arm = (ob) ? ob->data : NULL;
-	short changed = 0;
+	bool changed = false;
 	int layers = 0;
 	
 	if (ELEM3(NULL, ob, pose, arm))
@@ -718,7 +718,7 @@ static short pose_select_same_layer(bContext *C, Object *ob, bool extend)
 		/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
 		if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag |= BONE_SELECTED;
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;
@@ -726,14 +726,14 @@ static short pose_select_same_layer(bContext *C, Object *ob, bool extend)
 	return changed;
 }
 
-static int pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	KS_Path *ksp;
 	
 	bArmature *arm = (ob) ? ob->data : NULL;
 	bPose *pose = (ob) ? ob->pose : NULL;
-	short changed = 0;
+	bool changed = false;
 	
 	/* sanity checks: validate Keying Set and object */
 	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
@@ -768,7 +768,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
 						/* select if bone is visible and can be affected */
 						if (PBONE_SELECTABLE(arm, pchan->bone)) {
 							pchan->bone->flag |= BONE_SELECTED;
-							changed = 1;
+							changed = true;
 						}
 					}
 					
@@ -786,8 +786,8 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = (bArmature *)ob->data;
-	short extend = RNA_boolean_get(op->ptr, "extend");
-	short changed = 0;
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	bool changed = false;
 	
 	/* sanity check */
 	if (ob->pose == NULL)

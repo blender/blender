@@ -210,7 +210,7 @@ void ED_masklayer_frames_select_border(MaskLayer *masklay, float min, float max,
 bool ED_masklayer_frames_delete(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *masklay_shape_next;
-	bool modified = false;
+	bool changed = false;
 
 	/* error checking */
 	if (masklay == NULL)
@@ -222,11 +222,11 @@ bool ED_masklayer_frames_delete(MaskLayer *masklay)
 
 		if (masklay_shape->flag & MASK_SHAPE_SELECT) {
 			BKE_mask_layer_shape_unlink(masklay, masklay_shape);
-			modified = true;
+			changed = true;
 		}
 	}
 
-	return modified;
+	return changed;
 }
 
 /* Duplicate selected frames from given mask-layer */

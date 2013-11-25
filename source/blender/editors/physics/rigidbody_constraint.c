@@ -123,7 +123,7 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 	Object *ob = (scene) ? OBACT : NULL;
 	int type = RNA_enum_get(op->ptr, "type");
-	bool change;
+	bool changed;
 
 	/* sanity checks */
 	if (ELEM(NULL, scene, rbw)) {
@@ -131,9 +131,9 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	/* apply to active object */
-	change = ED_rigidbody_constraint_add(scene, ob, type, op->reports);
+	changed = ED_rigidbody_constraint_add(scene, ob, type, op->reports);
 
-	if (change) {
+	if (changed) {
 		/* send updates */
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 

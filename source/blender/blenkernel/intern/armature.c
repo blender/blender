@@ -335,15 +335,15 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 	 *	- otherwise, just append to end
 	 */
 	if (extension[0]) {
-		int change = 1;
+		bool changed = true;
 
-		while (change) { /* remove extensions */
-			change = 0;
+		while (changed) { /* remove extensions */
+			changed = false;
 			if (len > 2 && basename[len - 2] == '.') {
 				if (basename[len - 1] == 'L' || basename[len - 1] == 'R') { /* L R */
 					basename[len - 2] = '\0';
 					len -= 2;
-					change = 1;
+					changed = true;
 				}
 			}
 			else if (len > 3 && basename[len - 3] == '.') {
@@ -352,7 +352,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 				{
 					basename[len - 3] = '\0';
 					len -= 3;
-					change = 1;
+					changed = true;
 				}
 			}
 			else if (len > 4 && basename[len - 4] == '.') {
@@ -361,7 +361,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 				{
 					basename[len - 4] = '\0';
 					len -= 4;
-					change = 1;
+					changed = true;
 				}
 			}
 		}

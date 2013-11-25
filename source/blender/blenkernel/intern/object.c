@@ -2411,7 +2411,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 	BoundBox bb;
 	float vec[3];
 	int a;
-	bool change = false;
+	bool changed = false;
 	
 	switch (ob->type) {
 		case OB_CURVE:
@@ -2424,7 +2424,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				mul_m4_v3(ob->obmat, bb.vec[a]);
 				minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 			}
-			change = TRUE;
+			changed = true;
 			break;
 		}
 		case OB_LATTICE:
@@ -2441,7 +2441,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 					}
 				}
 			}
-			change = TRUE;
+			changed = true;
 			break;
 		}
 		case OB_ARMATURE:
@@ -2459,7 +2459,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 						mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 						minmax_v3v3_v3(min_r, max_r, vec);
 
-						change = TRUE;
+						changed = true;
 					}
 				}
 			}
@@ -2476,7 +2476,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 					mul_m4_v3(ob->obmat, bb.vec[a]);
 					minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 				}
-				change = TRUE;
+				changed = true;
 			}
 			break;
 		}
@@ -2484,8 +2484,8 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		{
 			float ob_min[3], ob_max[3];
 
-			change = BKE_mball_minmax_ex(ob->data, ob_min, ob_max, ob->obmat, 0);
-			if (change) {
+			changed = BKE_mball_minmax_ex(ob->data, ob_min, ob_max, ob->obmat, 0);
+			if (changed) {
 				minmax_v3v3_v3(min_r, max_r, ob_min);
 				minmax_v3v3_v3(min_r, max_r, ob_max);
 			}
@@ -2493,7 +2493,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		}
 	}
 
-	if (change == FALSE) {
+	if (changed == false) {
 		float size[3];
 
 		copy_v3_v3(size, ob->size);
@@ -2539,7 +2539,7 @@ bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_m
 						minmax_v3v3_v3(r_min, r_max, vec);
 					}
 
-					ok = TRUE;
+					ok = true;
 				}
 			}
 		}

@@ -61,7 +61,7 @@
 bool free_gpencil_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps, *gpsn;
-	bool modified = gpf->strokes.first != NULL;
+	bool changed = (gpf->strokes.first != NULL);
 	
 	/* error checking */
 	if (gpf == NULL)
@@ -76,7 +76,7 @@ bool free_gpencil_strokes(bGPDframe *gpf)
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 
-	return modified;
+	return changed;
 }
 
 /* Free all of a gp-layer's frames */
@@ -473,18 +473,18 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 /* delete the given frame from a layer */
 bool gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 {
-	bool modified = false;
+	bool changed = false;
 
 	/* error checking */
 	if (ELEM(NULL, gpl, gpf))
 		return false;
 		
 	/* free the frame and its data */
-	modified = free_gpencil_strokes(gpf);
+	changed = free_gpencil_strokes(gpf);
 	BLI_freelinkN(&gpl->frames, gpf);
 	gpl->actframe = NULL;
 
-	return modified;
+	return changed;
 }
 
 /* get the active gp-layer for editing */

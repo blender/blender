@@ -273,18 +273,18 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), const wmEve
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	bool change = false;
+	bool changed = false;
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 	
 	for (te = soops->tree.first; te; te = te->next) {
 		if (do_outliner_item_rename(C, ar, soops, te, fmval)) {
-			change = true;
+			changed = true;
 			break;
 		}
 	}
 	
-	return change ? OPERATOR_FINISHED : OPERATOR_PASS_THROUGH;
+	return changed ? OPERATOR_FINISHED : OPERATOR_PASS_THROUGH;
 }
 
 

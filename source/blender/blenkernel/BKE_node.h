@@ -476,7 +476,7 @@ void            nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode   *nodeGetActiveTexture(struct bNodeTree *ntree);
 
 void            nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
-int             nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
+bool            nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 void            nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 void            nodeSynchronizeID(struct bNode *node, bool copy_to_id);
 

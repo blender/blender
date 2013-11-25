@@ -2979,22 +2979,22 @@ void nodeUpdate(bNodeTree *ntree, bNode *node)
 	ntree->is_updating = FALSE;
 }
 
-int nodeUpdateID(bNodeTree *ntree, ID *id)
+bool nodeUpdateID(bNodeTree *ntree, ID *id)
 {
 	bNode *node;
-	int change = FALSE;
+	bool changed = false;
 	
 	if (ELEM(NULL, id, ntree))
-		return change;
+		return changed;
 	
 	/* avoid reentrant updates, can be caused by RNA update callbacks */
 	if (ntree->is_updating)
-		return change;
-	ntree->is_updating = TRUE;
+		return changed;
+	ntree->is_updating = true;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id == id) {
-			change = TRUE;
+			changed = true;
 			node->update |= NODE_UPDATE_ID;
 			if (node->typeinfo->updatefunc)
 				node->typeinfo->updatefunc(ntree, node);
@@ -3008,7 +3008,7 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 	}
 	
 	ntree->is_updating = FALSE;
-	return change;
+	return changed;
 }
 
 void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)

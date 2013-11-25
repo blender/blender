@@ -412,7 +412,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 	rcti rect;
 	rctf rectf;
-	int change = FALSE, mode, extend;
+	int mode;
+	bool changed = false, extend;
 
 	/* get rectangle from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
@@ -450,12 +451,12 @@ static int border_select_exec(bContext *C, wmOperator *op)
 					BKE_mask_point_select_set_handle(point, FALSE);
 				}
 
-				change = TRUE;
+				changed = true;
 			}
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		ED_mask_select_flush_all(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
@@ -486,7 +487,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
+static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -496,7 +497,7 @@ static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves,
 	int i;
 
 	rcti rect;
-	int change = FALSE;
+	bool changed = false;
 
 	/* get rectangle from operator */
 	BLI_lasso_boundbox(&rect, mcords, moves);
@@ -533,18 +534,18 @@ static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves,
 					BKE_mask_point_select_set_handle(point, select);
 				}
 
-				change = TRUE;
+				changed = true;
 			}
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		ED_mask_select_flush_all(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 	}
 
-	return change;
+	return changed;
 }
 
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
@@ -610,8 +611,9 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	MaskLayer *masklay;
 	int i;
 
-	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
+	int x, y, radius, width, height, mode;
+	bool changed = false;
 
 	/* get operator properties */
 	x = RNA_int_get(op->ptr, "x");
@@ -649,13 +651,13 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 
-					change = TRUE;
+					changed = true;
 				}
 			}
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		ED_mask_select_flush_all(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
@@ -703,7 +705,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	int is_handle = 0;
 	const float threshold = 19;
-	int change = FALSE;
+	bool changed = false;
 
 	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
@@ -714,10 +716,10 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 		masklay->act_spline = spline;
 		masklay->act_point = point;
 
-		change = TRUE;
+		changed = true;
 	}
 
-	if (change) {
+	if (changed) {
 		ED_mask_select_flush_all(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
@@ -750,7 +752,7 @@ static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 
-	int change = FALSE;
+	bool changed = false;
 
 	/* do actual selection */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -763,12 +765,12 @@ static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			if (ED_mask_spline_select_check(spline)) {
 				ED_mask_spline_select_set(spline, TRUE);
-				change = TRUE;
+				changed = true;
 			}
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		ED_mask_select_flush_all(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);

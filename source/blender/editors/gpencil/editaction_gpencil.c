@@ -212,7 +212,7 @@ void ED_gplayer_frames_select_border(bGPDlayer *gpl, float min, float max, short
 bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
-	bool modified = false;
+	bool changed = false;
 	
 	/* error checking */
 	if (gpl == NULL)
@@ -223,10 +223,10 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 		gpfn = gpf->next;
 		
 		if (gpf->flag & GP_FRAME_SELECT)
-			modified |= gpencil_layer_delframe(gpl, gpf);
+			changed |= gpencil_layer_delframe(gpl, gpf);
 	}
 
-	return modified;
+	return changed;
 }
 
 /* Duplicate selected frames from given gp-layer */

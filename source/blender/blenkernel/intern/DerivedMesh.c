@@ -3315,7 +3315,7 @@ bool DM_is_valid(DerivedMesh *dm)
 	const bool do_fixes = false;
 
 	bool is_valid = true;
-	bool is_change = true;
+	bool changed = true;
 
 	is_valid &= BKE_mesh_validate_all_customdata(
 	        dm->getVertDataLayout(dm),
@@ -3323,7 +3323,7 @@ bool DM_is_valid(DerivedMesh *dm)
 	        dm->getLoopDataLayout(dm),
 	        dm->getPolyDataLayout(dm),
 	        0,  /* setting mask here isn't useful, gives false positives */
-	        do_verbose, do_fixes, &is_change);
+	        do_verbose, do_fixes, &changed);
 
 	is_valid &= BKE_mesh_validate_arrays(
 	        NULL,
@@ -3333,9 +3333,9 @@ bool DM_is_valid(DerivedMesh *dm)
 	        dm->getLoopArray(dm), dm->getNumLoops(dm),
 	        dm->getPolyArray(dm), dm->getNumPolys(dm),
 	        dm->getVertDataArray(dm, CD_MDEFORMVERT),
-	        do_verbose, do_fixes, &is_change);
+	        do_verbose, do_fixes, &changed);
 
-	BLI_assert(is_change == false);
+	BLI_assert(changed == false);
 
 	return is_valid;
 }

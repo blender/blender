@@ -216,7 +216,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               MPoly *mpolys, unsigned int totpoly,
                               MDeformVert *dverts, /* assume totvert length */
                               const bool do_verbose, const bool do_fixes,
-                              bool *r_change)
+                              bool *r_changed)
 {
 #   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = true; } (void)0
 #   define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
@@ -854,7 +854,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 	PRINT_MSG("%s: finished\n\n", __func__);
 
-	*r_change = (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc || msel_fixed);
+	*r_changed = (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc || msel_fixed);
 
 	return is_valid;
 }
@@ -963,7 +963,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
 int BKE_mesh_validate(Mesh *me, const int do_verbose)
 {
 	bool is_valid = true;
-	bool is_change;
+	bool changed;
 
 	if (do_verbose) {
 		printf("MESH: %s\n", me->id.name + 2);
@@ -973,7 +973,7 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
 	        true,
 	        do_verbose, true,
-	        &is_change);
+	        &changed);
 
 	is_valid &= BKE_mesh_validate_arrays(
 	        me,
@@ -984,9 +984,9 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 	        me->mpoly, me->totpoly,
 	        me->dvert,
 	        do_verbose, true,
-	        &is_change);
+	        &changed);
 
-	if (is_change) {
+	if (changed) {
 		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 		return true;
 	}

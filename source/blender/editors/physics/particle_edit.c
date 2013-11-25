@@ -2978,7 +2978,7 @@ static void brush_puff(PEData *data, int point_index)
 	float co_prev[3], co[3];  /* track key coords as we loop (global-space) */
 	float fac = 0.0f, length_accum = 0.0f;
 	bool puff_volume = false;
-	bool change = false;
+	bool changed = false;
 
 	zero_v3(ofs_prev);
 
@@ -3056,7 +3056,7 @@ static void brush_puff(PEData *data, int point_index)
 					 * keys that come after */
 					sub_v3_v3v3(ofs_prev, key->co, dco);
 				}
-				change = true;
+				changed = true;
 			}
 			else {
 
@@ -3116,7 +3116,7 @@ static void brush_puff(PEData *data, int point_index)
 		}
 	}
 
-	if (change)
+	if (changed)
 		point->flag |= PEP_EDIT_RECALC;
 }
 

@@ -1811,7 +1811,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 	BMFace *efa;
 	BMEdge *eed;
 	bool ok;
-	bool change = false;
+	bool changed = false;
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
@@ -1828,11 +1828,11 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 
 		if (ok) {
 			BM_face_select_set(bm, efa, true);
-			change = true;
+			changed = true;
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 

@@ -137,7 +137,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = sa->spacedata.first;
 	Scene *scene = CTX_data_scene(C);
 	Base *base;
-	int changed = 0;
+	bool changed = false;
 	
 	/* XXX need a context loop to handle such cases */
 	for (base = FIRSTBASE; base; base = base->next) {
@@ -145,7 +145,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			base->flag |= SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
-			changed = 1;
+			changed = true;
 		}
 	}
 	if (changed) {
@@ -177,7 +177,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	short changed = 0;
+	bool changed = false;
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
@@ -187,7 +187,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
-				changed = 1;
+				changed = true;
 				if (base == BASACT) {
 					ED_base_object_activate(C, NULL);
 				}
@@ -196,7 +196,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 		else {
 			if (!(base->flag & SELECT)) {
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
-				changed = 1;
+				changed = true;
 				if (base == BASACT) {
 					ED_base_object_activate(C, NULL);
 				}
@@ -237,14 +237,14 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
 static int object_hide_render_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	short changed = 0;
+	bool changed = false;
 
 	/* XXX need a context loop to handle such cases */
 	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			ob->restrictflag &= ~OB_RESTRICT_RENDER;
-			changed = 1;
+			changed = true;
 		}
 	}
 	CTX_DATA_END;

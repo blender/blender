@@ -1566,12 +1566,13 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	Panel *panel;
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
-	int x, y, xco, yco, w, em, triangle, open, newcontext = 0;
+	int x, y, xco, yco, w, em, triangle, open;
+	bool is_context_new = 0;
 	int redo;
 	int scroll;
 
 	if (contextnr >= 0)
-		newcontext = UI_view2d_tab_set(v2d, contextnr);
+		is_context_new = UI_view2d_tab_set(v2d, contextnr);
 	
 	/* before setting the view */
 	if (vertical) {
@@ -1683,7 +1684,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		}
 		else {
 			/* don't jump back when panels close or hide */
-			if (!newcontext)
+			if (!is_context_new)
 				x = max_ii(x, v2d->cur.xmax);
 			y = -y;
 		}

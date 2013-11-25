@@ -448,7 +448,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf rectf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	WM_operator_properties_border_to_rcti(op, &rect);
 
@@ -573,7 +573,7 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 
 /* ****** Lasso Select ****** */
 
-static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)
+static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
@@ -581,7 +581,7 @@ static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves,
 	ARegion *ar = CTX_wm_region(C);
 
 	rcti rect;
-	int change = FALSE;
+	bool changed = false;
 
 	/* get rectangle from operator */
 	BLI_lasso_boundbox(&rect, mcords, moves);
@@ -601,15 +601,15 @@ static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves,
 			BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 		{
 			nodeSetSelected(node, select);
-			change = TRUE;
+			changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	}
 
-	return change;
+	return changed;
 }
 
 static int node_lasso_select_exec(bContext *C, wmOperator *op)

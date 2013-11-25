@@ -721,7 +721,7 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 {
 	/* popups such as layers won't re-evaluate on redraw */
 	const bool do_check = (ar->regiontype == RGN_TYPE_TEMPORARY);
-	bool change = false;
+	bool changed = false;
 	uiBlock *block;
 
 	for (block = ar->uiblocks.first; block; block = block->next) {
@@ -749,7 +749,7 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 							if (do_check) {
 								ui_check_but(but);
 							}
-							change = true;
+							changed = true;
 						}
 					}
 					/* done */
@@ -759,7 +759,7 @@ static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set
 		}
 	}
 
-	return change;
+	return changed;
 }
 
 static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const int xy_input[2])
@@ -1630,14 +1630,14 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 {
 	char *str = data->str;
 	const int len = strlen(str);
-	bool change = false;
+	bool changed = false;
 	if (but->selsta != but->selend && len) {
 		memmove(str + but->selsta, str + but->selend, (len - but->selend) + 1);
-		change = true;
+		changed = true;
 	}
 	
 	but->pos = but->selend = but->selsta;
-	return change;
+	return changed;
 }
 
 /* note, but->block->aspect is used here, when drawing button style is getting scaled too */
@@ -1925,19 +1925,19 @@ static bool ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directi
 static bool ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	char *str;
-	bool change = true;
+	bool changed = true;
 
 	str = data->str;
 
 	if (data->searchbox)
-		change = ui_searchbox_autocomplete(C, data->searchbox, but, data->str);
+		changed = ui_searchbox_autocomplete(C, data->searchbox, but, data->str);
 	else
-		change = but->autocomplete_func(C, str, but->autofunc_arg);
+		changed = but->autocomplete_func(C, str, but->autofunc_arg);
 
 	but->pos = strlen(str);
 	but->selsta = but->selend = but->pos;
 
-	return change;
+	return changed;
 }
 
 /* mode for ui_textedit_copypaste() */

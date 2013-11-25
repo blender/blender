@@ -1296,7 +1296,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 	CustomDataLayer *layer, *newlayer;
 	void *data;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
-	bool change = false;
+	bool changed = false;
 
 	for (i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
@@ -1346,12 +1346,12 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer->active_clone = lastclone;
 			newlayer->active_mask = lastmask;
 			newlayer->flag |= lastflag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
-			change = true;
+			changed = true;
 		}
 	}
 
 	CustomData_update_typemap(dest);
-	return change;
+	return changed;
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,

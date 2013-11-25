@@ -243,7 +243,7 @@ static int delete_track_exec(bContext *C, wmOperator *op)
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	MovieTrackingTrack *track = tracksbase->first, *next;
 	MovieTrackingPlaneTrack *plane_track, *next_plane_track;
-	bool modified = false;
+	bool changed = false;
 
 	/* Delete selected plane tracks. */
 	for (plane_track = plane_tracks_base->first;
@@ -255,7 +255,7 @@ static int delete_track_exec(bContext *C, wmOperator *op)
 		if (plane_track->flag & SELECT) {
 			BKE_tracking_plane_track_free(plane_track);
 			BLI_freelinkN(plane_tracks_base, plane_track);
-			modified = true;
+			changed = true;
 		}
 	}
 
@@ -272,7 +272,7 @@ static int delete_track_exec(bContext *C, wmOperator *op)
 	/* nothing selected now, unlock view so it can be scrolled nice again */
 	sc->flag &= ~SC_LOCK_SELECTION;
 
-	if (modified) {
+	if (changed) {
 		BKE_report(op->reports, RPT_INFO, "Deleted all selected tracks");
 		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}

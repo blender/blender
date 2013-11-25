@@ -2464,7 +2464,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	float min[3], max[3];
-	bool change = false;
+	bool changed = false;
 
 	if (center) {
 		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
@@ -2479,7 +2479,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 	for (base = scene->base.first; base; base = base->next) {
 		if (BASE_VISIBLE(v3d, base)) {
-			change = true;
+			changed = true;
 
 			if (skip_camera && base->object == v3d->camera) {
 				continue;
@@ -2488,7 +2488,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 			BKE_object_minmax(base->object, min, max, false);
 		}
 	}
-	if (!change) {
+	if (!changed) {
 		ED_region_tag_redraw(ar);
 		/* TODO - should this be cancel?
 		 * I think no, because we always move the cursor, with or without

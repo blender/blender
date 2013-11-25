@@ -402,7 +402,7 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 
 	float co[2];
-	int extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (!extend) {
 		MovieTrackingTrack *track = tracking_marker_check_slide(C, event, NULL, NULL, NULL);
@@ -461,7 +461,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
 	rctf rectf;
-	bool change = false;
+	bool changed = false;
 	int mode, extend;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
@@ -491,7 +491,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 				}
 
-				change = true;
+				changed = true;
 			}
 		}
 
@@ -521,11 +521,11 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				}
 			}
 
-			change = true;
+			changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
@@ -570,7 +570,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	rcti rect;
-	bool change = false;
+	bool changed = false;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
@@ -597,7 +597,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 				}
 
-				change = true;
+				changed = true;
 			}
 		}
 
@@ -631,17 +631,17 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 				}
 			}
 
-			change = true;
+			changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 	}
 
-	return change;
+	return changed;
 }
 
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
@@ -715,7 +715,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	int x, y, radius, width, height, mode;
-	bool change = false;
+	bool changed = false;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
@@ -747,7 +747,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 				else
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
 
-				change = true;
+				changed = true;
 			}
 		}
 
@@ -774,11 +774,11 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 				}
 			}
 
-			change = true;
+			changed = true;
 		}
 	}
 
-	if (change) {
+	if (changed) {
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);

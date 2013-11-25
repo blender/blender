@@ -320,7 +320,7 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 typedef struct BorderSelectuserData {
 	rctf rect;
 	int mode;
-	bool change, extend;
+	bool changed, extend;
 } BorderSelectuserData;
 
 static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
@@ -341,7 +341,7 @@ static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
 		else
 			marker->flag &= ~flag;
 
-		data->change = TRUE;
+		data->changed = true;
 	}
 	else if (!data->extend) {
 		marker->flag &= ~MARKER_GRAPH_SEL;
@@ -369,13 +369,13 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
 
-	userdata.change = false;
+	userdata.changed = false;
 	userdata.mode = RNA_int_get(op->ptr, "gesture_mode");
 	userdata.extend = RNA_boolean_get(op->ptr, "extend");
 
 	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, border_select_cb, NULL, NULL);
 
-	if (userdata.change) {
+	if (userdata.changed) {
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
 		return OPERATOR_FINISHED;

@@ -107,7 +107,7 @@ void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 bool delete_fcurve_keys(FCurve *fcu)
 {
 	int i;
-	bool modified = false;
+	bool changed = false;
 	
 	if (fcu->bezt == NULL) /* ignore baked curves */
 		return false;
@@ -118,7 +118,7 @@ bool delete_fcurve_keys(FCurve *fcu)
 			memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
 			fcu->totvert--;
 			i--;
-			modified = true;
+			changed = true;
 		}
 	}
 	
@@ -126,7 +126,7 @@ bool delete_fcurve_keys(FCurve *fcu)
 	if (fcu->totvert == 0)
 		clear_fcurve_keys(fcu);
 
-	return modified;
+	return changed;
 }
 
 
