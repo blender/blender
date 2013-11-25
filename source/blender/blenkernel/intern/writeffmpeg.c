@@ -1023,23 +1023,32 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 		sprintf(autosplit, "_%03d", ffmpeg_autosplit_count);
 	}
 
-	while (*fe) {
-		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0) {
-			break;
+	if (rd->scemode & R_EXTENSION) {
+		while (*fe) {
+			if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0) {
+				break;
+			}
+			fe++;
 		}
-		fe++;
-	}
 
-	if (*fe == NULL) {
-		strcat(string, autosplit);
+		if (*fe == NULL) {
+			strcat(string, autosplit);
 
-		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
-		strcat(string, *exts);
+			BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
+			strcat(string, *exts);
+		}
+		else {
+			*(string + strlen(string) - strlen(*fe)) = 0;
+			strcat(string, autosplit);
+			strcat(string, *fe);
+		}
 	}
 	else {
-		*(string + strlen(string) - strlen(*fe)) = 0;
+		if (BLI_path_frame_check_chars(string)) {
+			BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
+		}
+
 		strcat(string, autosplit);
-		strcat(string, *fe);
 	}
 }
 

@@ -158,6 +158,7 @@ bool BLI_has_parent(char *path);
 bool BLI_path_abs(char *path, const char *basepath);
 bool BLI_path_frame(char *path, int frame, int digits);
 bool BLI_path_frame_range(char *path, int sta, int end, int digits);
+bool BLI_path_frame_check_chars(const char *path);
 bool BLI_path_cwd(char *path);
 void BLI_path_rel(char *file, const char *relfile);
 

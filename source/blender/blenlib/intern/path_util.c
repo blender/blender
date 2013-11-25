@@ -720,6 +720,15 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
 }
 
 /**
+ * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
+ */
+bool BLI_path_frame_check_chars(const char *path)
+{
+	int ch_sta, ch_end;  /* dummy args */
+	return stringframe_chars(path, &ch_sta, &ch_end);
+}
+
+/**
  * If path begins with "//", strips that and replaces it with basepath directory. Also converts
  * a drive-letter prefix to something more sensible if this is a non-drive-letter-based system.
  * Returns true if "//" prefix expansion was done.
