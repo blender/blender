@@ -4078,12 +4078,6 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIAFIRST, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "next", FALSE);
 
-	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_marker_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "next", TRUE);
-
-	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_marker_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "next", FALSE);
-
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
