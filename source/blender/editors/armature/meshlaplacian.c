@@ -46,13 +46,14 @@
 #include "BLI_polardecomp.h"
 #endif
 
-#include "ONL_opennl.h"
-
 #include "ED_mesh.h"
 #include "ED_armature.h"
 
 #include "meshlaplacian.h"
 
+#ifdef WITH_OPENNL
+
+#include "ONL_opennl.h"
 
 /* ************* XXX *************** */
 static void waitcursor(int UNUSED(val)) {}
@@ -2006,3 +2007,13 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 	waitcursor(0);
 }
 
+#else  /* WITH_OPENNL */
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[4][4]) {}
+void *modifier_mdef_compact_influences_link_kludge = modifier_mdef_compact_influences;
+
+#endif  /* WITH_OPENNL */

@@ -34,9 +34,11 @@
 
 #include "bmesh.h"
 
-#include "ONL_opennl.h"
-
 #include "intern/bmesh_operators_private.h" /* own include */
+
+#ifdef WITH_OPENNL
+
+#include "ONL_opennl.h"
 
 // #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
 // #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */
@@ -572,3 +574,13 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 
 	delete_laplacian_system(sys);
 }
+
+#else  /* WITH_OPENNL */
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op) {}
+
+#endif  /* WITH_OPENNL */

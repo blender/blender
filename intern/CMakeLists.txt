@@ -29,7 +29,6 @@ add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
 add_subdirectory(memutil)
 add_subdirectory(opencolorio)
-add_subdirectory(opennl)
 add_subdirectory(mikktspace)
 add_subdirectory(raskter)
 
@@ -79,6 +78,10 @@ endif()
 
 if(WITH_COMPOSITOR)
 	add_subdirectory(opencl)
+endif()
+
+if(WITH_OPENNL)
+	add_subdirectory(opennl)
 endif()
 
 # only windows needs utf16 converter

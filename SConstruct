@@ -487,6 +487,7 @@ else:
 # TODO, make optional (as with CMake)
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
+env['CPPFLAGS'].append('-DWITH_OPENNL')
 env['CPPFLAGS'].append('-DWITH_BOOL_COMPAT')
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc') and env['MSVC_VERSION'] == '11.0':
     env['CPPFLAGS'].append('-D_ALLOW_KEYWORD_MACROS')

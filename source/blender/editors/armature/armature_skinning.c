@@ -386,9 +386,13 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	/* compute the weights based on gathered vertices and bones */
 	if (heat) {
 		const char *error = NULL;
+
+#ifdef WITH_OPENNL
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 		                    root, tip, selected, &error);
-		
+#else
+		error = "Built without OpenNL";
+#endif
 		if (error) {
 			BKE_report(reports, RPT_WARNING, error);
 		}

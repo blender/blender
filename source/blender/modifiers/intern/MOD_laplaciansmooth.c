@@ -50,6 +50,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
+#ifdef WITH_OPENNL
+
 #include "ONL_opennl.h"
 
 #if 0
@@ -193,52 +195,6 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
 	}
 
 	return sys;
-}
-
-static void init_data(ModifierData *md)
-{
-	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
-	smd->lambda = 0.01f;
-	smd->lambda_border = 0.01f;
-	smd->repeat = 1;
-	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME | MOD_LAPLACIANSMOOTH_NORMALIZED;
-	smd->defgrp_name[0] = '\0';
-}
-
-static void copy_data(ModifierData *md, ModifierData *target)
-{
-	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
-	LaplacianSmoothModifierData *tsmd = (LaplacianSmoothModifierData *) target;
-
-	tsmd->lambda = smd->lambda;
-	tsmd->lambda_border = smd->lambda_border;
-	tsmd->repeat = smd->repeat;
-	tsmd->flag = smd->flag;
-	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
-}
-
-static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))
-{
-	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
-	short flag;
-
-	flag = smd->flag & (MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z);
-
-	/* disable if modifier is off for X, Y and Z or if factor is 0 */
-	if (flag == 0) return 1;
-
-	return 0;
-}
-
-static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
-{
-	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
-	CustomDataMask dataMask = 0;
-
-	/* ask for vertexgroups if we need them */
-	if (smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
-
-	return dataMask;
 }
 
 static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4)
@@ -663,7 +619,61 @@ static void laplaciansmoothModifier_do(
 	nlDeleteContext(sys->context);
 	sys->context = NULL;
 	delete_laplacian_system(sys);
+}
 
+#else  /* WITH_OPENNL */
+static void laplaciansmoothModifier_do(
+        LaplacianSmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
+{
+	(void)smd, (void)ob, (void)dm, (void)vertexCos, (void)numVerts;
+}
+#endif  /* WITH_OPENNL */
+
+static void init_data(ModifierData *md)
+{
+	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
+	smd->lambda = 0.01f;
+	smd->lambda_border = 0.01f;
+	smd->repeat = 1;
+	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME | MOD_LAPLACIANSMOOTH_NORMALIZED;
+	smd->defgrp_name[0] = '\0';
+}
+
+static void copy_data(ModifierData *md, ModifierData *target)
+{
+	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
+	LaplacianSmoothModifierData *tsmd = (LaplacianSmoothModifierData *) target;
+
+	tsmd->lambda = smd->lambda;
+	tsmd->lambda_border = smd->lambda_border;
+	tsmd->repeat = smd->repeat;
+	tsmd->flag = smd->flag;
+	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
+}
+
+static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))
+{
+	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
+	short flag;
+
+	flag = smd->flag & (MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z);
+
+	/* disable if modifier is off for X, Y and Z or if factor is 0 */
+	if (flag == 0) return 1;
+
+	return 0;
+}
+
+static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
+{
+	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if (smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+
+	return dataMask;
 }
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,

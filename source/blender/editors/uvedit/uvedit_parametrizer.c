@@ -35,8 +35,6 @@
 #include "BLI_boxpack2d.h"
 #include "BLI_convexhull2d.h"
 
-#include "ONL_opennl.h"
-
 #include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
 
@@ -46,6 +44,10 @@
 #include <string.h>
 
 #include "BLI_sys_types.h"  /* for intptr_t support */
+
+#ifdef WITH_OPENNL
+
+#include "ONL_opennl.h"
 
 /* Utils */
 
@@ -4715,3 +4717,36 @@ void param_flush_restore(ParamHandle *handle)
 	}
 }
 
+#else  /* WITH_OPENNL */
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+/* stubs */
+void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
+                    ParamKey *vkeys, float **co, float **uv,
+                    ParamBool *pin, ParamBool *select, float normal[3]) {}
+void param_edge_set_seam(ParamHandle *handle,
+                         ParamKey *vkeys) {}
+void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy) {}
+ParamHandle *param_construct_begin(void) { return NULL; }
+void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl) {}
+void param_delete(ParamHandle *handle) {}
+
+void param_stretch_begin(ParamHandle *handle) {}
+void param_stretch_blend(ParamHandle *handle, float blend) {}
+void param_stretch_iter(ParamHandle *handle) {}
+void param_stretch_end(ParamHandle *handle) {}
+
+void param_pack(ParamHandle *handle, float margin, bool do_rotate) {}
+void param_average(ParamHandle *handle) {}
+
+void param_flush(ParamHandle *handle) {}
+void param_flush_restore(ParamHandle *handle) {}
+
+void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf) {}
+void param_lscm_solve(ParamHandle *handle) {}
+void param_lscm_end(ParamHandle *handle) {}
+
+#endif  /* WITH_OPENNL */

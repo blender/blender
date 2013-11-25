@@ -932,7 +932,6 @@ endif()
 		bf_editor_io
 
 		bf_render
-		bf_intern_opennl
 		bf_python
 		bf_python_ext
 		bf_python_mathutils
@@ -1059,6 +1058,10 @@ endif()
 
 	if(WITH_INTERNATIONAL)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
+	endif()
+
+	if(WITH_OPENNL)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_render" "bf_intern_opennl")
 	endif()
 
 	if(WITH_BULLET)
