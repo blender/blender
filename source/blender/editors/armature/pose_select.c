@@ -180,7 +180,10 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 			 * (e.g. Mask Modifier in 'Armature' mode), force update 
 			 */
 			else if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+				/* NOTE: ob not ob_act here is intentional - it's the source of the 
+				 *       bones being selected  [T37247]
+				 */
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 	}
