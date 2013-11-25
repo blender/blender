@@ -419,7 +419,7 @@ def buildinfo(lenv, build_type):
             build_commit_timestamp = '0'
             build_branch = 'unknown'
         else:
-            build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+            build_hash = os.popen('git rev-parse --short @{u}').read().strip()
             build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
 
             # ## Check for local modifications

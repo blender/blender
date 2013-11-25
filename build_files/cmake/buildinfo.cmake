@@ -12,7 +12,7 @@ if(EXISTS ${SOURCE_DIR}/.git/)
 	# The FindSubversion.cmake module is part of the standard distribution
 	include(FindGit)
 	if(GIT_FOUND)
-		execute_process(COMMAND git rev-parse --short HEAD
+		execute_process(COMMAND git rev-parse --short @{u}
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
