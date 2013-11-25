@@ -1036,19 +1036,17 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (num_deleted == 0) {
+	if (num_deleted == 0)
 		return OPERATOR_CANCELLED;
-	}
-	else {
-		/* TODO: only update edited splines */
-		BKE_mask_update_display(mask, CFRA);
 
-		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+	/* TODO: only update edited splines */
+	BKE_mask_update_display(mask, CFRA);
 
-		BKE_reportf(op->reports, RPT_INFO, "Deleted selected control points from mask '%s'", mask->id.name);
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
-		return OPERATOR_FINISHED;
-	}
+	BKE_reportf(op->reports, RPT_INFO, "Deleted %d control points from mask '%s'", num_deleted, mask->id.name);
+
+	return OPERATOR_FINISHED;
 }
 
 void MASK_OT_delete(wmOperatorType *ot)

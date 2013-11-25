@@ -482,7 +482,7 @@ static int delete_curve_exec(bContext *C, wmOperator *op)
 	if (act_track) {
 		clip_delete_track(C, clip, act_track);
 
-		BKE_report(op->reports, RPT_INFO, "Deleted all selected curves");
+		BKE_report(op->reports, RPT_INFO, "Deleted track");
 	}
 
 	return OPERATOR_FINISHED;
@@ -492,7 +492,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Curve";
-	ot->description = "Delete selected curves";
+	ot->description = "Delete track corresponding to the selected curve";
 	ot->idname = "CLIP_OT_graph_delete_curve";
 
 	/* api callbacks */

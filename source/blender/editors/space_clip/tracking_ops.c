@@ -263,8 +263,10 @@ static int delete_track_exec(bContext *C, wmOperator *op)
 	while (track) {
 		next = track->next;
 
-		if (TRACK_VIEW_SELECTED(sc, track))
+		if (TRACK_VIEW_SELECTED(sc, track)) {
 			clip_delete_track(C, clip, track);
+			changed = true;
+		}
 
 		track = next;
 	}
@@ -273,7 +275,7 @@ static int delete_track_exec(bContext *C, wmOperator *op)
 	sc->flag &= ~SC_LOCK_SELECTION;
 
 	if (changed) {
-		BKE_report(op->reports, RPT_INFO, "Deleted all selected tracks");
+		BKE_report(op->reports, RPT_INFO, "Deleted selected tracks");
 		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}
 
@@ -307,6 +309,7 @@ static int delete_marker_exec(bContext *C, wmOperator *op)
 	MovieTrackingPlaneTrack *plane_track, *plane_track_next;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int has_selection = 0;
+	bool changed = false;
 
 	while (track) {
 		next = track->next;
@@ -318,6 +321,7 @@ static int delete_marker_exec(bContext *C, wmOperator *op)
 				has_selection |= track->markersnr > 1;
 
 				clip_delete_marker(C, clip, track, marker);
+				changed = true;
 			}
 		}
 
@@ -341,6 +345,8 @@ static int delete_marker_exec(bContext *C, wmOperator *op)
 				else {
 					BKE_tracking_plane_marker_delete(plane_track, framenr);
 				}
+
+				changed = true;
 			}
 		}
 	}
@@ -350,7 +356,10 @@ static int delete_marker_exec(bContext *C, wmOperator *op)
 		sc->flag &= ~SC_LOCK_SELECTION;
 	}
 
-	BKE_report(op->reports, RPT_INFO, "Deleted all selected markers");
+	if (!changed)
+		return OPERATOR_CANCELLED;
+
+	BKE_report(op->reports, RPT_INFO, "Deleted markers for current frame from selected tracks");
 
 	return OPERATOR_FINISHED;
 }

@@ -1476,7 +1476,7 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
  
 static int clear_anim_v3d_exec(bContext *C, wmOperator *op)
 {
-	int removed_tot = 0;
+	int num_deleted = 0;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
@@ -1517,7 +1517,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *op)
 				/* delete F-Curve completely */
 				if (can_delete) {
 					ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
-					removed_tot++;
+					num_deleted++;
 				}
 			}
 		}
@@ -1527,8 +1527,8 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (removed_tot > 0)
-		BKE_reportf(op->reports, RPT_INFO, "Deleted %d animation f-curves from selected objects", removed_tot);
+	if (num_deleted > 0)
+		BKE_reportf(op->reports, RPT_INFO, "Deleted %d animation F-Curves from selected objects", num_deleted);
 
 	/* send updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
