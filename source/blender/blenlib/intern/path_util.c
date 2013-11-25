@@ -100,7 +100,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	while (name_end > lslash_len && string[--name_end] != '.') {} /* name ends at dot if present */
 	if (name_end == lslash_len && string[name_end] != '.') name_end = string_len;
 
-	for (i = name_end - 1; i >= lslash_len; i--) {
+	for (i = name_end - 1; i >= (int)lslash_len; i--) {
 		if (isdigit(string[i])) {
 			if (found_digit) {
 				nums = i;
