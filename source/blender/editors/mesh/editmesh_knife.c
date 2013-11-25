@@ -50,6 +50,7 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
+#include "BKE_report.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -2645,6 +2646,15 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	const bool cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
 
 	KnifeTool_OpData *kcd;
+
+	if (only_select) {
+		Object *obedit = CTX_data_edit_object(C);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->bm->totfacesel == 0) {
+			BKE_report(op->reports, RPT_ERROR, "Selected faces required");
+			return OPERATOR_CANCELLED;
+		}
+	}
 
 	view3d_operator_needs_opengl(C);
 

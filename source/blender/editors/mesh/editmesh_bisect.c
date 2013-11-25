@@ -36,6 +36,7 @@
 #include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_report.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -110,7 +111,14 @@ static bool mesh_bisect_interactive_calc(
 
 static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	int ret;
+
+	if (em->bm->totedgesel == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Selected edges/faces required");
+		return OPERATOR_CANCELLED;
+	}
 
 	/* if the properties are set or there is no rv3d,
 	 * skip model and exec immediately */
@@ -129,8 +137,6 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		wmGesture *gesture = op->customdata;
 		BisectData *opdata;
 
-		Object *obedit = CTX_data_edit_object(C);
-		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		opdata = MEM_mallocN(sizeof(BisectData), "inset_operator_data");
 		opdata->mesh_backup = EDBM_redo_state_store(em);
