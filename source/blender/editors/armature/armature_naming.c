@@ -232,14 +232,33 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 			
 			/* fix modifiers that might be using this name */
 			for (md = ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Hook) {
-					HookModifierData *hmd = (HookModifierData *)md;
-					
-					/* uses armature, so may use the affected bone name */
-					if (hmd->object && (hmd->object->data == arm)) {
-						if (!strcmp(hmd->subtarget, oldname))
-							BLI_strncpy(hmd->subtarget, newname, MAXBONENAME);
+				switch (md->type) {
+					case eModifierType_Hook:
+					{
+						HookModifierData *hmd = (HookModifierData *)md;
+
+						if (hmd->object && (hmd->object->data == arm)) {
+							if (STREQ(hmd->subtarget, oldname))
+								BLI_strncpy(hmd->subtarget, newname, MAXBONENAME);
+						}
+						break;
 					}
+					case eModifierType_UVWarp:
+					{
+						UVWarpModifierData *umd = (UVWarpModifierData *)md;
+
+						if (umd->object_src && (umd->object_src->data == arm)) {
+							if (STREQ(umd->bone_src, oldname))
+								BLI_strncpy(umd->bone_src, newname, MAXBONENAME);
+						}
+						if (umd->object_dst && (umd->object_dst->data == arm)) {
+							if (STREQ(umd->bone_dst, oldname))
+								BLI_strncpy(umd->bone_dst, newname, MAXBONENAME);
+						}
+						break;
+					}
+					default:
+						break;
 				}
 			}
 		}
