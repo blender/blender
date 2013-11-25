@@ -228,67 +228,54 @@ static signed char monkeyf[250][4] = {
 
 void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 {
-	const float dia = BMO_slot_float_get(op->slots_in, "size");
-	const int tot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments"));
-	const int seg = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
+	BMOpSlot *slot_verts_out = BMO_slot_get(op->slots_out, "verts.out");
 
-	BMOperator bmop, prevop;
-	BMVert *eve, *preveve;
-	BMEdge *e;
-	float vec[3], mat[4][4], phi, phid;
-	int a;
+	const float dia = BMO_slot_float_get(op->slots_in, "size");
+	const unsigned int xtot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments")) + 1;
+	const unsigned int ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments")) + 1;
+	float xtot_inv2 = 2.0f / (xtot - 1);
+	float ytot_inv2 = 2.0f / (ytot - 1);
+
+	BMVert **varr;
+	BMVert *vquad[4];
+
+	float mat[4][4];
+	float vec[3], tvec[3];
+
+	unsigned int x, y, i;
+
 
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
-	/* one segment first: the X axis */
-	phi = 1.0f;
-	phid = 2.0f / ((float)tot - 1);
-	for (a = 0; a < tot; a++) {
-		vec[0] = dia * phi;
-		vec[1] = -dia;
-		vec[2] = 0.0f;
-		mul_m4_v3(mat, vec);
+	BMO_slot_buffer_alloc(op, op->slots_out, "verts.out", xtot * ytot);
+	varr = (BMVert **)slot_verts_out->data.buf;
 
-		eve = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
-		BMO_elem_flag_enable(bm, eve, VERT_MARK);
-
-		if (a != 0) {
-			e = BM_edge_create(bm, preveve, eve, NULL, BM_CREATE_NO_DOUBLE);
-			BMO_elem_flag_enable(bm, e, EDGE_ORIG);
+	i = 0;
+	vec[2] = 0.0f;
+	for (y = 0; y < ytot; y++) {
+		vec[1] = ((y * ytot_inv2) - 1.0f) * dia;
+		for (x = 0; x < xtot; x++) {
+			vec[0] = ((x * xtot_inv2) - 1.0f) * dia;
+			mul_v3_m4v3(tvec, mat, vec);
+			varr[i++] = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
 		}
-
-		preveve = eve;
-		phi -= phid;
 	}
 
-	/* extrude and translate */
-	phid = 2.0f / ((float)seg - 1);
-	vec[0] = vec[2] = 0.0f;
-	vec[1] = dia * phid;
-	mul_mat3_m4_v3(mat, vec);
+#define XY(_x, _y)  ((_x) + ((_y) * (xtot)))
 
-	for (a = 0; a < seg - 1; a++) {
-		if (a) {
-			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%S", &prevop, "geom.out");
-			BMO_op_exec(bm, &bmop);
-			BMO_op_finish(bm, &prevop);
+	for (y = 1; y < ytot; y++) {
+		for (x = 1; x < xtot; x++) {
+			vquad[0] = varr[XY(x - 1,     y)];
+			vquad[1] = varr[XY(x - 1, y - 1)];
+			vquad[2] = varr[XY(x,     y - 1)];
+			vquad[3] = varr[XY(x,         y)];
 
-			BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_VERT, VERT_MARK);
+			BM_face_create_verts(bm, vquad, 4, NULL, BM_CREATE_NOP, true);
 		}
-		else {
-			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%fe", EDGE_ORIG);
-			BMO_op_exec(bm, &bmop);
-			BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_VERT, VERT_MARK);
-		}
-
-		BMO_op_callf(bm, op->flag, "translate vec=%v verts=%S", vec, &bmop, "geom.out");
-		prevop = bmop;
 	}
 
-	if (a)
-		BMO_op_finish(bm, &bmop);
+#undef XY
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
 
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
