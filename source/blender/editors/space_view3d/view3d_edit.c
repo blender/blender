@@ -993,8 +993,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	/* switch from camera view when: */
 	if (vod->rv3d->persp != RV3D_PERSP) {
 		if (vod->rv3d->persp == RV3D_CAMOB) {
-			const short lpersp = (U.uiflag & USER_AUTOPERSP) ? RV3D_PERSP : vod->rv3d->lpersp;
-			view3d_persp_switch_from_camera(vod->v3d, vod->rv3d, lpersp);
+			view3d_persp_switch_from_camera(vod->v3d, vod->rv3d, vod->rv3d->lpersp);
 		}
 		else if ((U.uiflag & USER_AUTOPERSP) && RV3D_VIEW_IS_AXIS(vod->rv3d->view)) {
 			if (!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
