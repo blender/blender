@@ -3665,7 +3665,9 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "compression", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "compress");
 	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
-	RNA_def_property_ui_text(prop, "Compression", "Compression level for formats that support lossless compression");
+	RNA_def_property_ui_text(prop, "Compression", "Amount of time to determine best compression: "
+	                                              "0 = no compression with fast file output, "
+	                                              "100 = maximum lossless compression with slow file output");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	/* flag */

@@ -435,7 +435,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	sce->r.im_format.depth = R_IMF_CHAN_DEPTH_8;
 	sce->r.im_format.quality = 90;
-	sce->r.im_format.compress = 90;
+	sce->r.im_format.compress = 15;
 
 	sce->r.displaymode = R_OUTPUT_AREA;
 	sce->r.framapto = 100;

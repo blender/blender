@@ -976,7 +976,7 @@ int BKE_imtype_to_ftype(const char imtype)
 		return RADHDR;
 #endif
 	else if (imtype == R_IMF_IMTYPE_PNG)
-		return PNG | 90;
+		return PNG | 15;
 #ifdef WITH_DDS
 	else if (imtype == R_IMF_IMTYPE_DDS)
 		return DDS;
@@ -1340,7 +1340,7 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 	im_format->imtype = R_IMF_IMTYPE_PNG;
 	im_format->depth = R_IMF_CHAN_DEPTH_8;
 	im_format->quality = 90;
-	im_format->compress = 90;
+	im_format->compress = 15;
 
 	BKE_color_managed_display_settings_init(&im_format->display_settings);
 	BKE_color_managed_view_settings_init(&im_format->view_settings);

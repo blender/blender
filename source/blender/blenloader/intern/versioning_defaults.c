@@ -46,6 +46,7 @@ void BLO_update_defaults_startup_blend(Main *main)
 
 	for (scene = main->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
+		scene->r.im_format.compress = 15;
 
 		for (srl = scene->r.layers.first; srl; srl = srl->next)
 			srl->freestyleConfig.sphere_radius = 0.1f;
