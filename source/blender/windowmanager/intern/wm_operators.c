@@ -1800,7 +1800,7 @@ static void WM_OT_splash(wmOperatorType *ot)
 {
 	ot->name = "Splash Screen";
 	ot->idname = "WM_OT_splash";
-	ot->description = "Opens the splash screen with release info";
+	ot->description = "Open the splash screen with release info";
 	
 	ot->invoke = wm_splash_invoke;
 	ot->poll = WM_operator_winactive;
@@ -3964,7 +3964,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	prop = RNA_def_string(ot->srna, "use_secondary", "", 0, "Use Secondary", "Path of property to select between the primary and secondary data paths");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
-	prop = RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to r, PROP_HIDDEN)otate the texture display");
+	prop = RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	prop = RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control");

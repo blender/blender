@@ -734,7 +734,7 @@ static void LaplacianDeformModifier_do(
 					modifier_setError(&lmd->modifier, "Edges changed from %d to %d", sys->total_edges, dm->getNumEdges(dm));
 				}
 				else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
-					modifier_setError(&lmd->modifier, "Vertex group  %s is not valid", sys->anchor_grp_name);
+					modifier_setError(&lmd->modifier, "Vertex group '%s' is not valid", sys->anchor_grp_name);
 				}
 			}
 		}
@@ -765,7 +765,7 @@ static void LaplacianDeformModifier_do(
 		}
 	}
 	if (sys->is_matrix_computed && !sys->has_solution) {
-		modifier_setError(&lmd->modifier, "The system did not find a solution.");
+		modifier_setError(&lmd->modifier, "The system did not find a solution");
 	}
 }
 
