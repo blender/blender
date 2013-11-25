@@ -264,7 +264,8 @@ int scredge_is_horizontal(ScrEdge *se)
 	return (se->v1->vec.y == se->v2->vec.y);
 }
 
-ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
+/* need win size to make sure not to include edges along screen edge */
+ScrEdge *screen_find_active_scredge(bScreen *sc, int winsizex, int winsizey, int mx, int my)
 {
 	ScrEdge *se;
 	int safety = U.widget_unit / 10;
@@ -273,20 +274,24 @@ ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
 	
 	for (se = sc->edgebase.first; se; se = se->next) {
 		if (scredge_is_horizontal(se)) {
-			short min, max;
-			min = MIN2(se->v1->vec.x, se->v2->vec.x);
-			max = MAX2(se->v1->vec.x, se->v2->vec.x);
-			
-			if (abs(my - se->v1->vec.y) <= safety && mx >= min && mx <= max)
-				return se;
+			if (se->v1->vec.y > 0 && se->v1->vec.y < winsizey - 1) {
+				short min, max;
+				min = MIN2(se->v1->vec.x, se->v2->vec.x);
+				max = MAX2(se->v1->vec.x, se->v2->vec.x);
+				
+				if (abs(my - se->v1->vec.y) <= safety && mx >= min && mx <= max)
+					return se;
+			}
 		}
 		else {
-			short min, max;
-			min = MIN2(se->v1->vec.y, se->v2->vec.y);
-			max = MAX2(se->v1->vec.y, se->v2->vec.y);
-			
-			if (abs(mx - se->v1->vec.x) <= safety && my >= min && my <= max)
-				return se;
+			if (se->v1->vec.x > 0 && se->v1->vec.x < winsizex - 1) {
+				short min, max;
+				min = MIN2(se->v1->vec.y, se->v2->vec.y);
+				max = MAX2(se->v1->vec.y, se->v2->vec.y);
+				
+				if (abs(mx - se->v1->vec.x) <= safety && my >= min && my <= max)
+					return se;
+			}
 		}
 	}
 	
@@ -677,8 +682,8 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		sv->vec.y -= min[1];
 	}
 	
-	sizex = max[0] - min[0];
-	sizey = max[1] - min[1];
+	sizex = max[0] - min[0] + 1;
+	sizey = max[1] - min[1] + 1;
 	
 	if (sizex != winsizex || sizey != winsizey) {
 		facx = winsizex;
@@ -695,14 +700,14 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			//sv->vec.x += AREAGRID - 1;
 			//sv->vec.x -=  (sv->vec.x % AREAGRID);
 
-			CLAMP(sv->vec.x, 0, winsizex);
+			CLAMP(sv->vec.x, 0, winsizex - 1);
 			
 			tempf = ((float)sv->vec.y) * facy;
 			sv->vec.y = (short)(tempf + 0.5f);
 			//sv->vec.y += AREAGRID - 1;
 			//sv->vec.y -=  (sv->vec.y % AREAGRID);
 
-			CLAMP(sv->vec.y, 0, winsizey);
+			CLAMP(sv->vec.y, 0, winsizey - 1);
 		}
 	}
 	
@@ -711,9 +716,15 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	
 	/* make each window at least ED_area_headersize() high */
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		int headery = ED_area_headersize() + U.pixelsize;
+		int headery = ED_area_headersize();
 		
-		if (sa->v1->vec.y + headery > sa->v2->vec.y) {
+		/* adjust headery if verts are along the edge of window */
+		if (sa->v1->vec.y > 0)
+			headery += U.pixelsize;
+		if (sa->v2->vec.y < winsizey - 1)
+			headery += U.pixelsize;
+		
+		if (sa->v2->vec.y - sa->v1->vec.y + 1 < headery) {
 			/* lower edge */
 			ScrEdge *se = screen_findedge(sc, sa->v4, sa->v1);
 			if (se && sa->v1 != sa->v2) {
@@ -722,7 +733,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 				select_connected_scredge(sc, se);
 				
 				/* all selected vertices get the right offset */
-				yval = sa->v2->vec.y - headery;
+				yval = sa->v2->vec.y - headery + 1;
 				sv = sc->vertbase.first;
 				while (sv) {
 					/* if is a collapsed area */
@@ -947,7 +958,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 		if (U.pixelsize > 1.0f) {
 		
 			glColor3ub(0x50, 0x50, 0x50);
-			glLineWidth(1.5f * U.pixelsize);
+			glLineWidth((2.0f * U.pixelsize) - 1);
 			drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
 			glLineWidth(1.0f);
 		}
@@ -1247,6 +1258,8 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {
 	AZone *az = NULL;
 	ScrArea *sa;
+	int winsizex = WM_window_pixels_x(win);
+	int winsizey = WM_window_pixels_y(win);
 	
 	for (sa = win->screen->areabase.first; sa; sa = sa->next)
 		if ((az = is_in_area_actionzone(sa, &event->x)))
@@ -1263,7 +1276,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 		}
 	}
 	else {
-		ScrEdge *actedge = screen_find_active_scredge(win->screen, event->x, event->y);
+		ScrEdge *actedge = screen_find_active_scredge(win->screen, winsizex, winsizey, event->x, event->y);
 		
 		if (actedge) {
 			if (scredge_is_horizontal(actedge))
