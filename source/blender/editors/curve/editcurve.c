@@ -6359,7 +6359,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = (Curve *)obedit->data;
 	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
-	int retval;
+	int retval = OPERATOR_CANCELLED;
 
 	if (type == CURVE_VERTEX) retval = curve_delete_vertices(obedit);
 	else if (type == CURVE_SEGMENT) retval = curve_delete_segments(obedit, false);
