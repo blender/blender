@@ -187,7 +187,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "lens", PROP_FLOAT, PROP_DISTANCE_CAMERA);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
-	RNA_def_property_range(prop, 1.0f, 5000.0f);
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
@@ -235,7 +236,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "YF_dofdist");
-	RNA_def_property_range(prop, 0.0f, 5000.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
