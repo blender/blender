@@ -3214,6 +3214,10 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* select the output */
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+	EDBM_selectmode_flush(em);
+
 	EDBM_update_generic(em, true, true);
 
 	return OPERATOR_FINISHED;
