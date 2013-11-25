@@ -2246,3 +2246,23 @@ void init_userdef_do_versions(void)
 // XXX	reset_autosave();
 
 }
+
+/**
+ * Override values in in-memory startup.blend, avoids resaving for small changes.
+ */
+void init_userdef_factory(void)
+{
+	/* defaults from T37518 */
+	U.uiflag2 |= USER_REGION_OVERLAP;
+
+	U.uiflag |= USER_AUTOPERSP;
+	U.uiflag |= USER_ORBIT_SELECTION;
+	U.uiflag |= USER_ZBUF_CURSOR;
+	U.uiflag |= USER_QUIT_PROMPT;
+	U.uiflag |= USER_CONTINUOUS_MOUSE;
+
+	U.ogl_multisamples = USER_MULTISAMPLE_4;
+
+	U.versions = 1;
+	U.savetime = 2;
+}

@@ -282,7 +282,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(bContext *C)
+static void wm_init_userdef(bContext *C, const bool from_memory)
 {
 	/* versioning is here */
 	UI_init_userdef();
@@ -299,6 +299,11 @@ static void wm_init_userdef(bContext *C)
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
 		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
 		else G.f &= ~G_SCRIPT_AUTOEXEC;
+	}
+
+	/* avoid re-saving for every small change to our prefs, allow overrides */
+	if (from_memory) {
+		UI_init_userdef_factory();
 	}
 
 	/* update tempdir from user preferences */
@@ -433,7 +438,7 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		if (retval == BKE_READ_FILE_OK_USERPREFS) {
 			/* in case a userdef is read from regular .blend */
-			wm_init_userdef(C);
+			wm_init_userdef(C, false);
 		}
 		
 		if (retval != BKE_READ_FILE_FAIL) {
@@ -576,7 +581,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
 	
 	/* check userdef before open window, keymaps etc */
-	wm_init_userdef(C);
+	wm_init_userdef(C, from_memory);
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
