@@ -356,13 +356,12 @@ void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target)
 {
 	Scene *scene = CTX_data_scene(C);
 	ListBase *transform_spaces = &scene->transform_spaces;
-	TransformOrientation *ts;
 	const int i = BLI_findindex(transform_spaces, target);
 
 	if (i != -1) {
 		Main *bmain = CTX_data_main(C);
 		BKE_screen_view3d_main_twmode_remove(&bmain->screen, scene, i);
-		BLI_freelinkN(transform_spaces, ts);
+		BLI_freelinkN(transform_spaces, target);
 	}
 }
 
