@@ -2064,6 +2064,8 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
+	BKE_report(op->reports, RPT_INFO, "Grouped selected strips into a metastrip");
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2075,7 +2077,6 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 	ot->description = "Group selected strips into a metastrip";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = sequencer_meta_make_exec;
 	ot->poll = sequencer_edit_poll;
 	
@@ -2094,7 +2095,7 @@ static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
 }
 
 /* separate_meta_make operator */
-static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -2135,6 +2136,8 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
+	BKE_report(op->reports, RPT_INFO, "Metastrip content put back into the sequencer");
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2146,7 +2149,6 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 	ot->description = "Put the contents of a metastrip back in the sequencer";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = sequencer_meta_separate_exec;
 	ot->poll = sequencer_edit_poll;
 	

@@ -82,7 +82,7 @@ void  ED_masklayer_frames_select_border(struct MaskLayer *masklay, float min, fl
 void  ED_mask_select_frames(struct MaskLayer *masklay, short select_mode);
 void  ED_mask_select_frame(struct MaskLayer *masklay, int selx, short select_mode);
 
-void ED_masklayer_frames_delete(struct MaskLayer *masklay);
+bool ED_masklayer_frames_delete(struct MaskLayer *masklay);
 void ED_masklayer_frames_duplicate(struct MaskLayer *masklay);
 
 void ED_masklayer_snap_frames(struct MaskLayer *masklay, struct Scene *scene, short mode);

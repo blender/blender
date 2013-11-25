@@ -38,7 +38,7 @@ struct bGPDframe;
 
 /* ------------ Grease-Pencil API ------------------ */
 
-void free_gpencil_strokes(struct bGPDframe *gpf);
+bool free_gpencil_strokes(struct bGPDframe *gpf);
 void free_gpencil_frames(struct bGPDlayer *gpl);
 void free_gpencil_layers(struct ListBase *list);
 void BKE_gpencil_free(struct bGPdata *gpd);
@@ -59,7 +59,7 @@ void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gp
 
 struct bGPDframe *BKE_gpencil_layer_find_frame(struct bGPDlayer *gpl, int cframe);
 struct bGPDframe *gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, short addnew);
-void gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
+bool gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 struct bGPDlayer *gpencil_layer_getactive(struct bGPdata *gpd);
 void gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);

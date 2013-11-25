@@ -158,7 +158,7 @@ struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, con
 void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
 struct MaskLayerShape *BKE_mask_layer_shape_verify_frame(struct MaskLayer *masklay, const int frame);
 struct MaskLayerShape *BKE_mask_layer_shape_duplicate(struct MaskLayerShape *masklay_shape);
-void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
+bool BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 
 bool BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index,

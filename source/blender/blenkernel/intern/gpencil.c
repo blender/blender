@@ -58,12 +58,14 @@
 /* --------- Memory Management ------------ */
 
 /* Free strokes belonging to a gp-frame */
-void free_gpencil_strokes(bGPDframe *gpf)
+bool free_gpencil_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps, *gpsn;
+	bool modified = gpf->strokes.first != NULL;
 	
 	/* error checking */
-	if (gpf == NULL) return;
+	if (gpf == NULL)
+		return false;
 	
 	/* free strokes */
 	for (gps = gpf->strokes.first; gps; gps = gpsn) {
@@ -73,6 +75,8 @@ void free_gpencil_strokes(bGPDframe *gpf)
 		if (gps->points) MEM_freeN(gps->points);
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
+
+	return modified;
 }
 
 /* Free all of a gp-layer's frames */
@@ -467,16 +471,20 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 }
 
 /* delete the given frame from a layer */
-void gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
+bool gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 {
+	bool modified = false;
+
 	/* error checking */
 	if (ELEM(NULL, gpl, gpf))
-		return;
+		return false;
 		
 	/* free the frame and its data */
-	free_gpencil_strokes(gpf);
+	modified = free_gpencil_strokes(gpf);
 	BLI_freelinkN(&gpl->frames, gpf);
 	gpl->actframe = NULL;
+
+	return modified;
 }
 
 /* get the active gp-layer for editing */

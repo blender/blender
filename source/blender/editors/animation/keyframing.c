@@ -1474,8 +1474,10 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
  * it is more useful for animators working in the 3D view.
  */
  
-static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
+static int clear_anim_v3d_exec(bContext *C, wmOperator *op)
 {
+	int num_removed = 0;
+
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		/* just those in active action... */
@@ -1515,15 +1517,19 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 				/* delete F-Curve completely */
 				if (can_delete) {
 					ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
+					num_removed++;
 				}
 			}
 		}
-		
+
 		/* update... */
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
-	
+
+	if (num_removed > 0)
+		BKE_reportf(op->reports, RPT_INFO, "Deleted %d animation f-curves from selected objects", num_removed);
+
 	/* send updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
 	
@@ -1538,7 +1544,6 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
 	ot->idname = "ANIM_OT_keyframe_clear_v3d";
 	
 	/* callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = clear_anim_v3d_exec; 
 	
 	ot->poll = ED_operator_areaactive;
@@ -1602,7 +1607,6 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 	ot->idname = "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_key_v3d_exec; 
 	
 	ot->poll = ED_operator_areaactive;

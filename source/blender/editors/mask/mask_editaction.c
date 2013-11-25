@@ -207,21 +207,26 @@ void ED_masklayer_frames_select_border(MaskLayer *masklay, float min, float max,
 /* Frame Editing Tools */
 
 /* Delete selected frames */
-void ED_masklayer_frames_delete(MaskLayer *masklay)
+bool ED_masklayer_frames_delete(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *masklay_shape_next;
+	bool modified = false;
 
 	/* error checking */
 	if (masklay == NULL)
-		return;
+		return false;
 
 	/* check for frames to delete */
 	for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape_next) {
 		masklay_shape_next = masklay_shape->next;
 
-		if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		if (masklay_shape->flag & MASK_SHAPE_SELECT) {
 			BKE_mask_layer_shape_unlink(masklay, masklay_shape);
+			modified = true;
+		}
 	}
+
+	return modified;
 }
 
 /* Duplicate selected frames from given mask-layer */

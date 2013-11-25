@@ -2878,7 +2878,6 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_region_quadview";
 	
 	/* api callbacks */
-	//	ot->invoke = WM_operator_confirm;
 	ot->exec = region_quadview_exec;
 	ot->poll = ED_operator_region_view3d_active;
 	ot->flag = 0;

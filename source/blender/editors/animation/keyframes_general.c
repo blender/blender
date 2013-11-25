@@ -104,12 +104,13 @@ void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 }
 
 /* Delete selected keyframes in given F-Curve */
-void delete_fcurve_keys(FCurve *fcu)
+bool delete_fcurve_keys(FCurve *fcu)
 {
 	int i;
+	bool modified = false;
 	
 	if (fcu->bezt == NULL) /* ignore baked curves */
-		return;
+		return false;
 
 	/* Delete selected BezTriples */
 	for (i = 0; i < fcu->totvert; i++) {
@@ -117,12 +118,15 @@ void delete_fcurve_keys(FCurve *fcu)
 			memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
 			fcu->totvert--;
 			i--;
+			modified = true;
 		}
 	}
 	
 	/* Free the array of BezTriples if there are not keyframes */
 	if (fcu->totvert == 0)
 		clear_fcurve_keys(fcu);
+
+	return modified;
 }
 
 

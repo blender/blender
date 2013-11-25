@@ -46,6 +46,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 
@@ -76,6 +77,8 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	BLI_make_file_string("/", str, BLI_temporary_dir(), "copybuffer.blend");
 	BKE_copybuffer_save(str, op->reports);
 	
+	BKE_report(op->reports, RPT_INFO, "Copied selected objects to buffer");
+
 	return OPERATOR_FINISHED;
 }
 
@@ -88,7 +91,6 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
 	ot->description = "Selected objects are saved in a temp file";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = view3d_copybuffer_exec;
 	ot->poll = ED_operator_view3d_active;
 }
@@ -102,6 +104,8 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
+	BKE_report(op->reports, RPT_INFO, "Objects pasted from buffer");
+
 	return OPERATOR_FINISHED;
 }
 
@@ -114,7 +118,6 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 	ot->description = "Contents of copy buffer gets pasted";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = view3d_pastebuffer_exec;
 	ot->poll = ED_operator_view3d_active;
 	

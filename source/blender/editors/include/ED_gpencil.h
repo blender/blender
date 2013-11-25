@@ -95,7 +95,7 @@ void  ED_gplayer_frames_select_border(struct bGPDlayer *gpl, float min, float ma
 void  ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
 void  ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 
-void  ED_gplayer_frames_delete(struct bGPDlayer *gpl);
+bool  ED_gplayer_frames_delete(struct bGPDlayer *gpl);
 void  ED_gplayer_frames_duplicate(struct bGPDlayer *gpl);
 
 void  ED_gplayer_snap_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);

@@ -454,7 +454,7 @@ static void separate_armature_bones(Object *ob, short sel)
 }
 
 /* separate selected bones into their armature */
-static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
+static int separate_armature_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -520,6 +520,8 @@ static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	ED_armature_to_edit(obedit);
 	
+	BKE_report(op->reports, RPT_INFO, "Separated bones");
+
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
 	
@@ -537,7 +539,6 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
 	ot->description = "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = separate_armature_exec;
 	ot->poll = ED_operator_editarmature;
 	

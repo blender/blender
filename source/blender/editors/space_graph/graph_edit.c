@@ -872,11 +872,12 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
 
 /* ******************** Delete Keyframes Operator ************************* */
 
-static void delete_graph_keys(bAnimContext *ac)
+static bool delete_graph_keys(bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	bool modified = false;
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
@@ -888,7 +889,7 @@ static void delete_graph_keys(bAnimContext *ac)
 		AnimData *adt = ale->adt;
 		
 		/* delete selected keyframes only */
-		delete_fcurve_keys(fcu); 
+		modified |= delete_fcurve_keys(fcu);
 		
 		/* Only delete curve too if it won't be doing anything anymore */
 		if ((fcu->totvert == 0) &&
@@ -901,20 +902,23 @@ static void delete_graph_keys(bAnimContext *ac)
 	
 	/* free filtered list */
 	BLI_freelistN(&anim_data);
+
+	return modified;
 }
 
 /* ------------------- */
 
-static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphkeys_delete_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	bool modified;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* delete keyframes */
-	delete_graph_keys(&ac);
+	modified = delete_graph_keys(&ac);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
@@ -922,6 +926,9 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
+	if (modified)
+		BKE_report(op->reports, RPT_INFO, "Deleted selected keyframes");
+
 	return OPERATOR_FINISHED;
 }
  
@@ -933,7 +940,6 @@ void GRAPH_OT_delete(wmOperatorType *ot)
 	ot->description = "Remove all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = graphkeys_delete_exec;
 	ot->poll = graphop_editable_keyframes_poll;
 	

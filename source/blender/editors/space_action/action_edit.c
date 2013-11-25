@@ -780,11 +780,12 @@ void ACTION_OT_duplicate(wmOperatorType *ot)
 
 /* ******************** Delete Keyframes Operator ************************* */
 
-static void delete_action_keys(bAnimContext *ac)
+static bool delete_action_keys(bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	bool modified = false;
 	
 	/* filter data */
 	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
@@ -796,17 +797,17 @@ static void delete_action_keys(bAnimContext *ac)
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER) {
-			ED_gplayer_frames_delete((bGPDlayer *)ale->data);
+			modified |= ED_gplayer_frames_delete((bGPDlayer *)ale->data);
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			ED_masklayer_frames_delete((MaskLayer *)ale->data);
+			modified |= ED_masklayer_frames_delete((MaskLayer *)ale->data);
 		}
 		else {
 			FCurve *fcu = (FCurve *)ale->key_data;
 			AnimData *adt = ale->adt;
 			
 			/* delete selected keyframes only */
-			delete_fcurve_keys(fcu); 
+			modified |= delete_fcurve_keys(fcu);
 			
 			/* Only delete curve too if it won't be doing anything anymore */
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
@@ -816,20 +817,23 @@ static void delete_action_keys(bAnimContext *ac)
 	
 	/* free filtered list */
 	BLI_freelistN(&anim_data);
+
+	return modified;
 }
 
 /* ------------------- */
 
-static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int actkeys_delete_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	bool modified;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* delete keyframes */
-	delete_action_keys(&ac);
+	modified = delete_action_keys(&ac);
 	
 	/* validate keyframes after editing */
 	if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
@@ -838,6 +842,9 @@ static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
+	if (modified)
+		BKE_report(op->reports, RPT_INFO, "Deleted selected keyframes");
+
 	return OPERATOR_FINISHED;
 }
  
@@ -849,7 +856,6 @@ void ACTION_OT_delete(wmOperatorType *ot)
 	ot->description = "Remove all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = actkeys_delete_exec;
 	ot->poll = ED_operator_action_active;
 	

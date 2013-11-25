@@ -234,7 +234,7 @@ void CLIP_OT_add_marker_at_click(wmOperatorType *ot)
 
 /********************** delete track operator *********************/
 
-static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
+static int delete_track_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -273,6 +273,7 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 	sc->flag &= ~SC_LOCK_SELECTION;
 
 	if (modified) {
+		BKE_report(op->reports, RPT_INFO, "Deleted all selected tracks");
 		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}
 
@@ -287,7 +288,6 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
 	ot->description = "Delete selected tracks";
 
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_track_exec;
 	ot->poll = ED_space_clip_tracking_poll;
 
@@ -297,7 +297,7 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
 
 /********************** delete marker operator *********************/
 
-static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
+static int delete_marker_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -350,6 +350,8 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 		sc->flag &= ~SC_LOCK_SELECTION;
 	}
 
+	BKE_report(op->reports, RPT_INFO, "Deleted all selected markers");
+
 	return OPERATOR_FINISHED;
 }
 
@@ -361,7 +363,6 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 	ot->description = "Delete marker for current frame from selected tracks";
 
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_marker_exec;
 	ot->poll = ED_space_clip_tracking_poll;
 
