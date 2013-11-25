@@ -173,6 +173,7 @@ void modifier_skin_customdata_ensure(struct Object *ob) {STUB_ASSERT(0);}
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re) {STUB_ASSERT(0); return (struct RenderResult *) NULL;}
 struct Render *RE_GetRender(const char *name) {STUB_ASSERT(0); return (struct Render *) NULL;}
+float RE_lamp_get_data(struct ShadeInput *shi, struct Object *lamp_obj, float col[3], float lv[3], float *dist) {STUB_ASSERT(0); return 0.0f;}
 
 /* blenkernel */
 void RE_FreeRenderResult(struct RenderResult *res) {STUB_ASSERT(0);}

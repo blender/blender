@@ -194,6 +194,7 @@ struct Tex;
 struct MTex;
 struct ImBuf;
 struct ImagePool;
+struct Object;
 
 /* this one uses nodes */
 int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage);
@@ -203,11 +204,11 @@ int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres,
                    const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex,
                    struct ImagePool *pool);
+float RE_lamp_get_data(struct ShadeInput *shi, struct Object *lamp_obj, float col[4], float lv[3], float *dist, float shadow[4]);
 
 /* shaded view and bake */
 struct Render;
 struct Image;
-struct Object;
 
 int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);

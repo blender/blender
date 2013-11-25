@@ -111,6 +111,7 @@ shader_node_categories = [
     ShaderOldNodeCategory("SH_INPUT", "Input", items=[
         NodeItem("ShaderNodeMaterial"),
         NodeItem("ShaderNodeCameraData"),
+        NodeItem("ShaderNodeLampData"),
         NodeItem("ShaderNodeValue"),
         NodeItem("ShaderNodeRGB"),
         NodeItem("ShaderNodeTexture"),

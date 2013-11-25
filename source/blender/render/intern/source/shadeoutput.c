@@ -1982,3 +1982,94 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shr->combined[3]= shr->alpha;
 }
 
+/* used for "Lamp Data" shader node */
+static float lamp_get_data_internal(ShadeInput *shi, GroupObject *go, float col[4], float lv[3], float *dist, float shadow[4])
+{
+	LampRen *lar = go->lampren;
+	float visifac, inp;
+
+	if (!lar || lar->type == LA_YF_PHOTON
+	    || ((lar->mode & LA_LAYER) && (lar->lay & shi->obi->lay) == 0)
+	    || (lar->lay & shi->lay) == 0)
+		return 0.0f;
+
+	if (lar->mode & LA_TEXTURE)
+		do_lamp_tex(lar, lv, shi, col, LA_TEXTURE);
+
+	visifac = lamp_get_visibility(lar, shi->co, lv, dist);
+
+	if (visifac == 0.0f
+	    || lar->type == LA_HEMI
+	    || (lar->type != LA_SPOT && !(lar->mode & LA_SHAD_RAY))
+	    || (R.r.scemode & R_BUTS_PREVIEW))
+		return visifac;
+
+	inp = dot_v3v3(shi->vn, lv);
+
+	if (inp > 0.0f) {
+		float shadfac[4];
+
+		shadow[0] = lar->shdwr;
+		shadow[1] = lar->shdwg;
+		shadow[2] = lar->shdwb;
+
+		if (lar->mode & LA_SHAD_TEX)
+			do_lamp_tex(lar, lv, shi, shadow, LA_SHAD_TEX);
+
+		lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
+
+		shadow[0] = 1.0f - ((1.0f - shadfac[0] * shadfac[3]) * (1.0f - shadow[0]));
+		shadow[1] = 1.0f - ((1.0f - shadfac[1] * shadfac[3]) * (1.0f - shadow[1]));
+		shadow[2] = 1.0f - ((1.0f - shadfac[2] * shadfac[3]) * (1.0f - shadow[2]));
+	}
+
+	return visifac;
+}
+
+float RE_lamp_get_data(ShadeInput *shi, Object *lamp_obj, float col[4], float lv[3], float *dist, float shadow[4])
+{
+	col[0] = col[1] = col[2] = 0.0f;
+	col[3] = 1.0f;
+	copy_v3_v3(lv, shi->vn);
+	*dist = 1.0f;
+	shadow[0] = shadow[1] = shadow[2] = shadow[3] = 1.0f;
+
+	if (lamp_obj->type == OB_LAMP) {
+		GroupObject *go;
+		Lamp *lamp = (Lamp *)lamp_obj->data;
+
+		col[0] = lamp->r * lamp->energy;
+		col[1] = lamp->g * lamp->energy;
+		col[2] = lamp->b * lamp->energy;
+
+		if (R.r.scemode & R_BUTS_PREVIEW) {
+			for (go = R.lights.first; go; go = go->next) {
+				/* "Lamp.002" is main key light of material preview */
+				if (strcmp(go->ob->id.name + 2, "Lamp.002") == 0)
+					return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
+			}
+			return 0.0f;
+		}
+
+		if (shi->light_override) {
+			for (go = shi->light_override->gobject.first; go; go = go->next) {
+				if (go->ob == lamp_obj)
+					return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
+			}
+		}
+
+		if (shi->mat && shi->mat->group) {
+			for (go = shi->mat->group->gobject.first; go; go = go->next) {
+				if (go->ob == lamp_obj)
+					return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
+			}
+		}
+
+		for (go = R.lights.first; go; go = go->next) {
+			if (go->ob == lamp_obj)
+				return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
+		}
+	}
+
+	return 0.0f;
+}

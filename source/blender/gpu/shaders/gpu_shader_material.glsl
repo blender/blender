@@ -166,6 +166,15 @@ void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
 	outview = normalize(co);
 }
 
+void lamp(vec4 col, vec3 lv, float dist, vec3 shadow, float visifac, out vec4 outcol, out vec3 outlv, out float outdist, out vec4 outshadow, out float outvisifac)
+{
+	outcol = col;
+	outlv = lv;
+	outdist = dist;
+	outshadow = vec4(shadow, 1.0);
+	outvisifac = visifac;
+}
+
 void math_add(float val1, float val2, out float outval)
 {
 	outval = val1 + val2;
@@ -1970,6 +1979,30 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 		else {
 			result = 1.0;
 		}
+	}
+}
+
+void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, vec3 shadowcolor, float inp, out vec3 result)
+{
+	result = vec3(1.0);
+
+	if(inp > 0.0) {
+		float shadfac;
+
+		test_shadowbuf(rco, shadowmap, shadowpersmat, shadowbias, inp, shadfac);
+		result -= (1.0 - shadfac) * (vec3(1.0) - shadowcolor);
+	}
+}
+
+void shadows_only_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, vec3 shadowcolor, float inp, out vec3 result)
+{
+	result = vec3(1.0);
+
+	if(inp > 0.0) {
+		float shadfac;
+
+		test_shadowbuf_vsm(rco, shadowmap, shadowpersmat, shadowbias, bleedbias, inp, shadfac);
+		result -= (1.0 - shadfac) * (vec3(1.0) - shadowcolor);
 	}
 }
 

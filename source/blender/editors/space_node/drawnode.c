@@ -753,6 +753,11 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 	}
 }
 
+static void node_shader_buts_lamp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "lamp_object", 0, IFACE_("Lamp Object"), ICON_NONE);
+}
+
 static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "attribute_name", 0, IFACE_("Name"), ICON_NONE);
@@ -1001,6 +1006,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_GEOMETRY:
 			ntype->draw_buttons = node_shader_buts_geometry;
+			break;
+		case SH_NODE_LAMP:
+			ntype->draw_buttons = node_shader_buts_lamp;
 			break;
 		case SH_NODE_ATTRIBUTE:
 			ntype->draw_buttons = node_shader_buts_attribute;

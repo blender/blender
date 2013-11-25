@@ -3435,6 +3435,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_output();
 	register_node_type_sh_material();
 	register_node_type_sh_camera();
+	register_node_type_sh_lamp();
 	register_node_type_sh_gamma();
 	register_node_type_sh_brightcontrast();
 	register_node_type_sh_value();

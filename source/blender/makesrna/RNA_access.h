@@ -493,6 +493,7 @@ extern StructRNA RNA_ShaderNodeExtendedMaterial;
 extern StructRNA RNA_ShaderNodeGeometry;
 extern StructRNA RNA_ShaderNodeHueSaturation;
 extern StructRNA RNA_ShaderNodeInvert;
+extern StructRNA RNA_ShaderNodeLampData;
 extern StructRNA RNA_ShaderNodeMapping;
 extern StructRNA RNA_ShaderNodeMaterial;
 extern StructRNA RNA_ShaderNodeMath;

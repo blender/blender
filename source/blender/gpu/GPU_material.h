@@ -133,6 +133,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float obcol[4], float autobumpscale);
 void GPU_material_unbind(GPUMaterial *material);
 int GPU_material_bound(GPUMaterial *material);
+struct Scene *GPU_material_scene(GPUMaterial *material);
 
 void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);
@@ -244,6 +245,7 @@ void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float ener
 void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float att2);
 void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend);
 int GPU_lamp_shadow_layer(GPULamp *lamp);
+GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **col, GPUNodeLink **lv, GPUNodeLink **dist, GPUNodeLink **shadow);
 
 #ifdef __cplusplus
 }

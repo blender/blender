@@ -133,6 +133,7 @@ set(SRC
 	shader/nodes/node_shader_geom.c
 	shader/nodes/node_shader_hueSatVal.c
 	shader/nodes/node_shader_invert.c
+	shader/nodes/node_shader_lamp.c
 	shader/nodes/node_shader_mapping.c
 	shader/nodes/node_shader_material.c
 	shader/nodes/node_shader_math.c

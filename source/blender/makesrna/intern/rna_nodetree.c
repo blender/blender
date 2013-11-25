@@ -3258,6 +3258,19 @@ static void def_sh_geometry(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_lamp(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "lamp_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Lamp_object_poll");
+	RNA_def_property_ui_text(prop, "Lamp Object", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_sh_attribute(StructRNA *srna)
 {
 	PropertyRNA *prop;
