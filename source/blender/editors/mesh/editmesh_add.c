@@ -411,8 +411,8 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
-	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, "Y Subdivisions", "", 3, 1000);
+	RNA_def_int(ot->srna, "x_subdivisions", 10, 2, INT_MAX, "X Subdivisions", "", 2, 1000);
+	RNA_def_int(ot->srna, "y_subdivisions", 10, 2, INT_MAX, "Y Subdivisions", "", 2, 1000);
 	ED_object_add_unit_props(ot);
 
 	ED_object_add_generic_props(ot, true);
