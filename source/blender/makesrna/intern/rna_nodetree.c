@@ -5452,7 +5452,7 @@ static void def_cmp_mask(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_MOTION_BLUR);
-	RNA_def_property_ui_text(prop, "Motion Blur", "Use feather information from the mask");
+	RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
