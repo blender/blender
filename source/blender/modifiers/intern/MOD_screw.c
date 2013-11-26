@@ -152,6 +152,20 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	unsigned int i1, i2;
 	unsigned int step_tot = useRenderParams ? ltmd->render_steps : ltmd->steps;
 	const bool do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
+
+	const int quad_ord[4] = {
+	    do_flip ? 3 : 0,
+	    do_flip ? 2 : 1,
+	    do_flip ? 1 : 2,
+	    do_flip ? 0 : 3,
+	};
+	const int quad_ord_ofs[4] = {
+	    do_flip ? 2 : 0,
+	    do_flip ? 1 : 1,
+	    do_flip ? 0 : 2,
+	    do_flip ? 3 : 3,
+	};
+
 	unsigned int maxVerts = 0, maxEdges = 0, maxPolys = 0;
 	const unsigned int totvert = (unsigned int)dm->getNumVerts(dm);
 	const unsigned int totedge = (unsigned int)dm->getNumEdges(dm);
@@ -805,97 +819,76 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	edge_offset = totedge + (totvert * (step_tot - (close ? 0 : 1)));
 
 	for (i = 0; i < totedge; i++, med_new_firstloop++) {
+		const unsigned int step_last = step_tot - (close ? 1 : 2);
+		const unsigned int mpoly_index_orig = totpoly ? edge_poly_map[i] : UINT_MAX;
+		const bool has_mpoly_orig = (mpoly_index_orig != UINT_MAX);
+
 		short mat_nr;
 
 		/* for each edge, make a cylinder of quads */
 		i1 = med_new_firstloop->v1;
 		i2 = med_new_firstloop->v2;
 
-		if (totpoly && (edge_poly_map[i] != UINT_MAX)) {
-			mat_nr = mpoly_orig[edge_poly_map[i]].mat_nr;
+		if (has_mpoly_orig) {
+			mat_nr = mpoly_orig[mpoly_index_orig].mat_nr;
 		}
 		else {
 			mat_nr = 0;
 		}
 
-		for (step = 0; step < step_tot - 1; step++) {
-			
-			/* new face */
-			if (do_flip) {
-				ml_new[3].v = i1;
-				ml_new[2].v = i2;
-				ml_new[1].v = i2 + totvert;
-				ml_new[0].v = i1 + totvert;
+		for (step = 0; step <= step_last; step++) {
 
-				ml_new[2].e = step == 0 ? i : (edge_offset + step + (i * (step_tot - 1))) - 1;
-				ml_new[1].e = totedge + i2;
-				ml_new[0].e = edge_offset + step + (i * (step_tot - 1));
-				ml_new[3].e = totedge + i1;
+			/* Polygon */
+			if (has_mpoly_orig) {
+				DM_copy_poly_data(dm, result, (int)mpoly_index_orig, (int)mpoly_index, 1);
+				origindex[mpoly_index] = (int)mpoly_index_orig;
 			}
 			else {
-				ml_new[0].v = i1;
-				ml_new[1].v = i2;
-				ml_new[2].v = i2 + totvert;
-				ml_new[3].v = i1 + totvert;
-
-				ml_new[0].e = step == 0 ? i : (edge_offset + step + (i * (step_tot - 1))) - 1;
-				ml_new[1].e = totedge + i2;
-				ml_new[2].e = edge_offset + step + (i * (step_tot - 1));
-				ml_new[3].e = totedge + i1;
+				origindex[mpoly_index] = ORIGINDEX_NONE;
+				mp_new->flag = mpoly_flag;
+				mp_new->mat_nr = mat_nr;
 			}
-
-
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
-			mp_new->mat_nr = mat_nr;
-			mp_new->flag = mpoly_flag;
-			origindex[mpoly_index] = ORIGINDEX_NONE;
-			mp_new++;
-			ml_new += 4;
-			mpoly_index++;
-			
-			/* new vertical edge */
-			if (step) { /* The first set is already dome */
-				med_new->v1 = i1;
-				med_new->v2 = i2;
-				med_new->flag = med_new_firstloop->flag;
-				med_new->crease = med_new_firstloop->crease;
-				med_new++;
-			}
-			i1 += totvert;
-			i2 += totvert;
-		}
-		
-		/* close the loop*/
-		if (close) {
-			if (do_flip) {
-				ml_new[3].v = i1;
-				ml_new[2].v = i2;
-				ml_new[1].v = med_new_firstloop->v2;
-				ml_new[0].v = med_new_firstloop->v1;
 
-				ml_new[2].e = (edge_offset + step + (i * (step_tot - 1))) - 1;
-				ml_new[1].e = totedge + i2;
-				ml_new[0].e = i;
-				ml_new[3].e = totedge + i1;
+			/* Loop-Data */
+			if (!(close && step == step_last)) {
+				/* regular segments */
+				ml_new[quad_ord[0]].v = i1;
+				ml_new[quad_ord[1]].v = i2;
+				ml_new[quad_ord[2]].v = i2 + totvert;
+				ml_new[quad_ord[3]].v = i1 + totvert;
+
+				ml_new[quad_ord_ofs[0]].e = step == 0 ? i : (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[quad_ord_ofs[1]].e = totedge + i2;
+				ml_new[quad_ord_ofs[2]].e = edge_offset + step + (i * (step_tot - 1));
+				ml_new[quad_ord_ofs[3]].e = totedge + i1;
+
+
+				/* new vertical edge */
+				if (step) { /* The first set is already done */
+					med_new->v1 = i1;
+					med_new->v2 = i2;
+					med_new->flag = med_new_firstloop->flag;
+					med_new->crease = med_new_firstloop->crease;
+					med_new++;
+				}
+				i1 += totvert;
+				i2 += totvert;
 			}
 			else {
-				ml_new[0].v = i1;
-				ml_new[1].v = i2;
-				ml_new[2].v = med_new_firstloop->v2;
-				ml_new[3].v = med_new_firstloop->v1;
+				/* last segment */
+				ml_new[quad_ord[0]].v = i1;
+				ml_new[quad_ord[1]].v = i2;
+				ml_new[quad_ord[2]].v = med_new_firstloop->v2;
+				ml_new[quad_ord[3]].v = med_new_firstloop->v1;
 
-				ml_new[0].e = (edge_offset + step + (i * (step_tot - 1))) - 1;
-				ml_new[1].e = totedge + i2;
-				ml_new[2].e = i;
-				ml_new[3].e = totedge + i1;
+				ml_new[quad_ord_ofs[0]].e = (edge_offset + step + (i * (step_tot - 1))) - 1;
+				ml_new[quad_ord_ofs[1]].e = totedge + i2;
+				ml_new[quad_ord_ofs[2]].e = i;
+				ml_new[quad_ord_ofs[3]].e = totedge + i1;
 			}
 
-			mp_new->loopstart = mpoly_index * 4;
-			mp_new->totloop = 4;
-			mp_new->mat_nr = mat_nr;
-			mp_new->flag = mpoly_flag;
-			origindex[mpoly_index] = ORIGINDEX_NONE;
 			mp_new++;
 			ml_new += 4;
 			mpoly_index++;
