@@ -2294,7 +2294,7 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep)
  * low level function so both face pointers remain intact but point to swapped data.
  * \note must be from the same bmesh.
  */
-void bmesh_face_swap_data(BMesh *bm, BMFace *f_a, BMFace *f_b)
+void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b)
 {
 	BMLoop *l_iter, *l_first;
 
@@ -2311,5 +2311,8 @@ void bmesh_face_swap_data(BMesh *bm, BMFace *f_a, BMFace *f_b)
 	} while ((l_iter = l_iter->next) != l_first);
 
 	SWAP(BMFace, (*f_a), (*f_b));
-	bm->elem_index_dirty |= BM_FACE;
+
+	/* swap back */
+	SWAP(void *, f_a->head.data, f_b->head.data);
+	SWAP(int, f_a->head.index, f_b->head.index);
 }
