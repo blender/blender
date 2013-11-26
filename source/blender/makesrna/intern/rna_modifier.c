@@ -2853,6 +2853,16 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Smooth Shading", "Output faces with smooth shading rather than flat shaded");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "use_stretch_u", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_U);
+	RNA_def_property_ui_text(prop, "Stretch U", "Stretch the U coordinates between 0-1 when UV's are present");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "use_stretch_v", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_V);
+	RNA_def_property_ui_text(prop, "Stretch V", "Stretch the V coordinates between 0-1 when UV's are present");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 #if 0
 	prop = RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);

@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_alloca.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -170,7 +171,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const unsigned int totvert = (unsigned int)dm->getNumVerts(dm);
 	const unsigned int totedge = (unsigned int)dm->getNumEdges(dm);
 	const unsigned int totpoly = (unsigned int)dm->getNumPolys(dm);
-	unsigned int *edge_poly_map = NULL;
+
+	unsigned int *edge_poly_map = NULL;  /* orig edge to orig poly */
+	unsigned int *vert_loop_map = NULL;  /* orig vert to orig loop */
+
+	/* UV Coords */
+	const unsigned int mloopuv_layers_tot = (unsigned int)CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+	MLoopUV **mloopuv_layers = BLI_array_alloca(mloopuv_layers, mloopuv_layers_tot);
+	float uv_u_scale;
+	float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
+	float uv_v_range_inv;
+	float uv_axis_plane[4];
 
 	char axis_char = 'X';
 	bool close;
@@ -290,6 +301,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* apply the multiplier */
 	angle *= (float)ltmd->iter;
 	screw_ofs *= (float)ltmd->iter;
+	uv_u_scale = 1.0f / (float)(step_tot);
 
 	/* multiplying the steps is a bit tricky, this works best */
 	step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
@@ -319,6 +331,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		           (totedge * step_tot);  /* -1 because vert edges join */
 		maxPolys =  totedge * (step_tot - 1);
 	}
+
+	if ((ltmd->flag & MOD_SCREW_UV_STRETCH_U) == 0) {
+		uv_u_scale = (uv_u_scale / (float)ltmd->iter) * (angle / ((float)M_PI * 2.0f));
+	}
 	
 	result = CDDM_from_template(dm, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
 	
@@ -338,7 +354,32 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
 	DM_copy_vert_data(dm, result, 0, 0, (int)totvert); /* copy first otherwise this overwrites our own vertex normals */
-	
+
+	if (mloopuv_layers_tot) {
+		float zero_co[3] = {0};
+		plane_from_point_normal_v3(uv_axis_plane, zero_co, axis_vec);
+	}
+
+	if (mloopuv_layers_tot) {
+		unsigned int uv_lay;
+		for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
+			mloopuv_layers[uv_lay] = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, (int)uv_lay);
+		}
+
+		if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
+			for (i = 0, mv_orig = mvert_orig; i < totvert; i++, mv_orig++) {
+				const float v = dist_squared_to_plane_v3(mv_orig->co, uv_axis_plane);
+				uv_v_minmax[0] = min_ff(v, uv_v_minmax[0]);
+				uv_v_minmax[1] = max_ff(v, uv_v_minmax[1]);
+			}
+			uv_v_minmax[0] = sqrtf_signed(uv_v_minmax[0]);
+			uv_v_minmax[1] = sqrtf_signed(uv_v_minmax[1]);
+		}
+
+		uv_v_range_inv = uv_v_minmax[1] - uv_v_minmax[0];
+		uv_v_range_inv = uv_v_range_inv ? 1.0f / uv_v_range_inv : 0.0f;
+	}
+
 	/* Set the locations of the first set of verts */
 	
 	mv_new = mvert_new;
@@ -363,11 +404,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		edge_poly_map = MEM_mallocN(sizeof(*edge_poly_map) * totedge, __func__);
 		memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);
 
+		vert_loop_map = MEM_mallocN(sizeof(*vert_loop_map) * totvert, __func__);
+		memset(vert_loop_map, 0xff, sizeof(*vert_loop_map) * totvert);
+
 		for (i = 0, mp_orig = mpoly_orig; i < totpoly; i++, mp_orig++) {
-			MLoop *ml_orig = &mloop_orig[mp_orig->loopstart];
-			int k;
-			for (k = 0; k < mp_orig->totloop; k++, ml_orig++) {
+			unsigned int loopstart = (unsigned int)mp_orig->loopstart;
+			unsigned int loopend = loopstart + (unsigned int)mp_orig->totloop;
+
+			MLoop *ml_orig = &mloop_orig[loopstart];
+			unsigned int k;
+			for (k = loopstart; k < loopend; k++, ml_orig++) {
 				edge_poly_map[ml_orig->e] = i;
+				vert_loop_map[ml_orig->v] = k;
 
 				/* also order edges based on faces */
 				if (medge_new[ml_orig->e].v1 != ml_orig->v) {
@@ -822,6 +870,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned int step_last = step_tot - (close ? 1 : 2);
 		const unsigned int mpoly_index_orig = totpoly ? edge_poly_map[i] : UINT_MAX;
 		const bool has_mpoly_orig = (mpoly_index_orig != UINT_MAX);
+		float uv_v_offset_a, uv_v_offset_b;
+
+		const unsigned int mloop_index_orig[2] = {
+		    vert_loop_map ? vert_loop_map[medge_new[i].v1] : UINT_MAX,
+		    vert_loop_map ? vert_loop_map[medge_new[i].v2] : UINT_MAX,
+		};
+		const bool has_mloop_orig = mloop_index_orig[0] != UINT_MAX;
 
 		short mat_nr;
 
@@ -834,6 +889,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		else {
 			mat_nr = 0;
+		}
+
+		if (has_mloop_orig == false && mloopuv_layers_tot) {
+			uv_v_offset_a = dist_to_plane_v3(mvert_new[medge_new[i].v1].co, uv_axis_plane);
+			uv_v_offset_b = dist_to_plane_v3(mvert_new[medge_new[i].v2].co, uv_axis_plane);
+
+			if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
+				uv_v_offset_a = (uv_v_offset_a - uv_v_minmax[0]) * uv_v_range_inv;
+				uv_v_offset_b = (uv_v_offset_b - uv_v_minmax[0]) * uv_v_range_inv;
+			}
 		}
 
 		for (step = 0; step <= step_last; step++) {
@@ -850,6 +915,47 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
+
+
+			/* Loop-Custom-Data */
+			if (has_mloop_orig) {
+				int l_index = (int)(ml_new - mloop_new);
+				DM_copy_loop_data(dm, result, (int)mloop_index_orig[0], l_index + 0, 1);
+				DM_copy_loop_data(dm, result, (int)mloop_index_orig[1], l_index + 1, 1);
+				DM_copy_loop_data(dm, result, (int)mloop_index_orig[1], l_index + 2, 1);
+				DM_copy_loop_data(dm, result, (int)mloop_index_orig[0], l_index + 3, 1);
+
+				if (mloopuv_layers_tot) {
+					unsigned int uv_lay;
+					const float uv_u_offset_a = (float)(step)     * uv_u_scale;
+					const float uv_u_offset_b = (float)(step + 1) * uv_u_scale;
+					for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
+						MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
+
+						mluv[quad_ord[0]].uv[0] += uv_u_offset_a;
+						mluv[quad_ord[1]].uv[0] += uv_u_offset_a;
+						mluv[quad_ord[2]].uv[0] += uv_u_offset_b;
+						mluv[quad_ord[3]].uv[0] += uv_u_offset_b;
+					}
+				}
+			}
+			else {
+				if (mloopuv_layers_tot) {
+					int l_index = (int)(ml_new - mloop_new);
+
+					unsigned int uv_lay;
+					const float uv_u_offset_a = (float)(step)     * uv_u_scale;
+					const float uv_u_offset_b = (float)(step + 1) * uv_u_scale;
+					for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
+						MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
+
+						copy_v2_fl2(mluv[quad_ord[0]].uv, uv_u_offset_a, uv_v_offset_a);
+						copy_v2_fl2(mluv[quad_ord[1]].uv, uv_u_offset_a, uv_v_offset_b);
+						copy_v2_fl2(mluv[quad_ord[2]].uv, uv_u_offset_b, uv_v_offset_b);
+						copy_v2_fl2(mluv[quad_ord[3]].uv, uv_u_offset_b, uv_v_offset_a);
+					}
+				}
+			}
 
 			/* Loop-Data */
 			if (!(close && step == step_last)) {
@@ -932,6 +1038,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (edge_poly_map) {
 		MEM_freeN(edge_poly_map);
+	}
+
+	if (vert_loop_map) {
+		MEM_freeN(vert_loop_map);
 	}
 
 	if ((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {

@@ -675,6 +675,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_normal_calculate")
         col.prop(md, "use_normal_flip")
         col.prop(md, "iterations")
+        col.prop(md, "use_stretch_u")
+        col.prop(md, "use_stretch_v")
 
     def SHRINKWRAP(self, layout, ob, md):
         split = layout.split()

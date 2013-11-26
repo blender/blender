@@ -839,6 +839,8 @@ enum {
 	MOD_SCREW_OBJECT_OFFSET  = (1 << 2),
 /*	MOD_SCREW_OBJECT_ANGLE   = (1 << 4), */
 	MOD_SCREW_SMOOTH_SHADING = (1 << 5),
+	MOD_SCREW_UV_STRETCH_U   = (1 << 6),
+	MOD_SCREW_UV_STRETCH_V   = (1 << 7),
 };
 
 typedef struct OceanModifierData {
