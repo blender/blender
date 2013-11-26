@@ -217,9 +217,11 @@ static const char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
 static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
-	
+	int winsizex = WM_window_pixels_x(win);
+	int winsizey = WM_window_pixels_y(win);
+
 	/* for multiwin drags, we only do this if mouse inside */
-	if (event->x < 0 || event->y < 0 || event->x > win->sizex || event->y > win->sizey)
+	if (event->x < 0 || event->y < 0 || event->x > winsizex || event->y > winsizey)
 		return;
 	
 	drag->opname[0] = 0;
@@ -257,14 +259,15 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 static void wm_drop_operator_draw(const char *name, int x, int y)
 {
 	int width = UI_GetStringWidth(name);
+	int padding = 4 * UI_DPI_FAC;
 	
 	glColor4ub(0, 0, 0, 50);
 	
 	uiSetRoundBox(UI_CNR_ALL | UI_RB_ALPHA);
-	uiRoundBox(x, y, x + width + 8, y + 15, 4);
+	uiRoundBox(x, y, x + width + 2 * padding, y + 4 * padding, padding);
 	
 	glColor4ub(255, 255, 255, 255);
-	UI_DrawString(x + 4, y + 4, name);
+	UI_DrawString(x + padding, y + padding, name);
 }
 
 static const char *wm_drag_name(wmDrag *drag)
@@ -301,6 +304,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmDrag *drag;
+	int winsizey = WM_window_pixels_y(win);
 	int cursorx, cursory, x, y;
 	
 	cursorx = win->eventstate->x;
@@ -313,6 +317,8 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
 	glEnable(GL_BLEND);
 	for (drag = wm->drags.first; drag; drag = drag->next) {
+		int iconsize = 16 * UI_DPI_FAC; /* assumed to be 16 pixels */
+		int padding = 4 * UI_DPI_FAC;
 		
 		/* image or icon */
 		if (drag->imb) {
@@ -327,29 +333,28 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			}
 		}
 		else {
-			x = cursorx - 8;
-			y = cursory - 2;
+			x = cursorx - 2 * padding;
+			y = cursory - 2 * UI_DPI_FAC;
 			
-			/* icons assumed to be 16 pixels */
 			if (rect)
-				drag_rect_minmax(rect, x, y, x + 16, y + 16);
+				drag_rect_minmax(rect, x, y, x + iconsize, y + iconsize);
 			else
-				UI_icon_draw_aspect(x, y, drag->icon, 1.0, 0.8);
+				UI_icon_draw_aspect(x, y, drag->icon, 1.0f / UI_DPI_FAC, 0.8);
 		}
 		
 		/* item name */
 		if (drag->imb) {
 			x = cursorx - drag->sx / 2;
-			y = cursory - drag->sy / 2 - 16;
+			y = cursory - drag->sy / 2 - iconsize;
 		}
 		else {
-			x = cursorx + 10;
-			y = cursory + 1;
+			x = cursorx + 10 * UI_DPI_FAC;
+			y = cursory + 1 * UI_DPI_FAC;
 		}
 		
 		if (rect) {
 			int w =  UI_GetStringWidth(wm_drag_name(drag));
-			drag_rect_minmax(rect, x, y, x + w, y + 16);
+			drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 		}
 		else {
 			glColor4ub(255, 255, 255, 255);
@@ -360,16 +365,24 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 		if (drag->opname[0]) {
 			if (drag->imb) {
 				x = cursorx - drag->sx / 2;
-				y = cursory + drag->sy / 2 + 4;
+
+				if (cursory + drag->sy / 2 + padding + iconsize < winsizey)
+ 					y = cursory + drag->sy / 2 + padding;
+				else
+					y = cursory - drag->sy / 2 - padding - iconsize - padding - iconsize;
 			}
 			else {
-				x = cursorx - 8;
-				y = cursory + 16;
+				x = cursorx - 2 * padding;
+
+				if (cursory + iconsize + iconsize < winsizey)
+ 					y = cursory + iconsize;
+				else
+					y = cursory - iconsize - 2 * UI_DPI_FAC;
 			}
 			
 			if (rect) {
 				int w =  UI_GetStringWidth(wm_drag_name(drag));
-				drag_rect_minmax(rect, x, y, x + w, y + 16);
+				drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 			}
 			else 
 				wm_drop_operator_draw(drag->opname, x, y);
