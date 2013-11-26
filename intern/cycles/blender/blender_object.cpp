@@ -287,8 +287,8 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	if(use_holdout && (layer_flag & render_layer.exclude_layer))
 		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
 
-	/* camera flag is not actually used, instead is tested
-	 * against render layer flags */
+	/* camera flag is not actually used, instead is tested against render layer
+	 * flags */
 	if(visibility & PATH_RAY_CAMERA) {
 		visibility |= layer_flag << PATH_RAY_LAYER_SHIFT;
 		visibility &= ~PATH_RAY_CAMERA;
