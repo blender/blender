@@ -2650,22 +2650,26 @@ void txt_indent(Text *text)
 
 	num = 0;
 	while (TRUE) {
-		tmp = MEM_mallocN(text->curl->len + indentlen + 1, "textline_string");
-		
-		text->curc = 0; 
-		if (text->curc) memcpy(tmp, text->curl->line, text->curc);  /* XXX never true, check prev line */
-		memcpy(tmp + text->curc, add, indentlen);
-		
-		len = text->curl->len - text->curc;
-		if (len > 0) memcpy(tmp + text->curc + indentlen, text->curl->line + text->curc, len);
-		tmp[text->curl->len + indentlen] = 0;
 
-		make_new_line(text->curl, tmp);
-			
-		text->curc += indentlen;
-		
-		txt_make_dirty(text);
-		txt_clean_text(text);
+		/* don't indent blank lines */
+		if (text->curl->len != 0) {
+			tmp = MEM_mallocN(text->curl->len + indentlen + 1, "textline_string");
+
+			text->curc = 0;
+			if (text->curc) memcpy(tmp, text->curl->line, text->curc);  /* XXX never true, check prev line */
+			memcpy(tmp + text->curc, add, indentlen);
+
+			len = text->curl->len - text->curc;
+			if (len > 0) memcpy(tmp + text->curc + indentlen, text->curl->line + text->curc, len);
+			tmp[text->curl->len + indentlen] = 0;
+
+			make_new_line(text->curl, tmp);
+
+			text->curc += indentlen;
+
+			txt_make_dirty(text);
+			txt_clean_text(text);
+		}
 		
 		if (text->curl == text->sell) {
 			text->selc += indentlen;
