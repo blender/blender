@@ -918,7 +918,7 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 	
 	
 	/* save the buffer */
-	retval = BLO_write_file(mainb, filename, 0, reports, NULL);
+	retval = BLO_write_file(mainb, filename, G_FILE_RELATIVE_REMAP, reports, NULL);
 	
 	/* move back the main, now sorted again */
 	set_listbasepointers(G.main, lbarray);
