@@ -163,6 +163,9 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		scen->gm = sce->gm;
 		scen->audio = sce->audio;
 
+		if (sce->id.properties)
+			scen->id.properties = IDP_CopyProperty(sce->id.properties);
+
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
