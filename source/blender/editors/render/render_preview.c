@@ -358,13 +358,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					
 					/* turn off bounce lights for volume, 
 					 * doesn't make much visual difference and slows it down too */
-					if (mat->material_type == MA_TYPE_VOLUME) {
-						for (base = sce->base.first; base; base = base->next) {
-							if (base->object->type == OB_LAMP) {
-								/* if doesn't match 'Lamp.002' --> main key light */
-								if (strcmp(base->object->id.name + 2, "Lamp.002") != 0) {
+					for (base = sce->base.first; base; base = base->next) {
+						if (base->object->type == OB_LAMP) {
+							/* if doesn't match 'Lamp.002' --> main key light */
+							if (strcmp(base->object->id.name + 2, "Lamp.002") != 0) {
+								if (mat->material_type == MA_TYPE_VOLUME)
 									base->object->restrictflag |= OB_RESTRICT_RENDER;
-								}
+								else
+									base->object->restrictflag &= ~OB_RESTRICT_RENDER;
 							}
 						}
 					}
