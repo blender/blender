@@ -197,6 +197,8 @@ static const int NAN_INT = 0x7FC00000;
 MINLINE float sqrt3f(float f);
 MINLINE double sqrt3d(double d);
 
+MINLINE float sqrtf_signed(float f);
+
 MINLINE float saacosf(float f);
 MINLINE float saasinf(float f);
 MINLINE float sasqrtf(float f);

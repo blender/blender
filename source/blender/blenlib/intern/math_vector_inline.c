@@ -236,6 +236,12 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 }
 
 /* float args -> vec */
+MINLINE void copy_v2_fl2(float v[2], float x, float y)
+{
+	v[0] = x;
+	v[1] = y;
+}
+
 MINLINE void copy_v3_fl3(float v[3], float x, float y, float z)
 {
 	v[0] = x;

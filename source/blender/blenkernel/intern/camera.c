@@ -535,15 +535,10 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 
 		float plane_isect_pt_1[3], plane_isect_pt_2[3];
 
-		/* could make a generic macro */
-#define SQRT_SIGNED(f) copysign(sqrtf(fabsf(f)), f)
-
 		/* apply the dist-from-plane's to the transformed plane points */
 		for (i = 0; i < 4; i++) {
-			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], SQRT_SIGNED(data_cb.dist_vals_sq[i]));
+			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], sqrtf_signed(data_cb.dist_vals_sq[i]));
 		}
-
-#undef SQRT_SIGNED
 
 		isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
 		                     plane_tx[0], data_cb.normal_tx[0],
