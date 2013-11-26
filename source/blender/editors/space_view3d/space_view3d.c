@@ -770,6 +770,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 				case ND_OB_VISIBLE:
 				case ND_LAYER:
 				case ND_RENDER_OPTIONS:
+				case ND_MARKERS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
 					break;
