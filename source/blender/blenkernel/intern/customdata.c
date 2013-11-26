@@ -507,16 +507,15 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 		if (s[i].disps) {
 			d[i].disps = MEM_dupallocN(s[i].disps);
 			d[i].hidden = MEM_dupallocN(s[i].hidden);
-			d[i].totdisp = s[i].totdisp;
-			d[i].level = s[i].level;
 		}
 		else {
 			d[i].disps = NULL;
 			d[i].hidden = NULL;
-			d[i].totdisp = 0;
-			d[i].level = 0;
 		}
-		
+
+		/* still copy even if not in memory, displacement can be external */
+		d[i].totdisp = s[i].totdisp;
+		d[i].level = s[i].level;
 	}
 }
 

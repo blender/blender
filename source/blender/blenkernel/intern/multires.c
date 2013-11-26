@@ -2288,7 +2288,7 @@ void multires_topology_changed(Mesh *me)
 	MDisps *mdisp = NULL, *cur = NULL;
 	int i, grid = 0;
 
-	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
 	if (!mdisp)
