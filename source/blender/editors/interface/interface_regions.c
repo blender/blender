@@ -1791,7 +1791,6 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiPopupBlockHandle *handle = block->handle;
 	uiLayout *split, *column = NULL;
-	uiBut *bt;
 	MenuData *md;
 	MenuEntry *entry;
 	const char *instr = arg_str;
@@ -1800,7 +1799,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	int nbr_entries_nosepr = 0;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-	
+
 	/* compute menu data */
 	md = decompose_menu_string(instr);
 
@@ -1838,9 +1837,8 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			uiItemL(layout, md->title, md->titleicon);
 		}
 		else {
-			uiItemL(layout, md->title, ICON_NONE);
-			bt = block->buttons.last;
-			bt->drawflag = UI_BUT_TEXT_LEFT;
+			/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+			uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 	}
 
@@ -1874,9 +1872,13 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 
 		if (entry->sepr) {
 			if (entry->str[0]) {
-				uiItemL(column, entry->str, entry->icon);
-				bt = block->buttons.last;
-				bt->drawflag = UI_BUT_TEXT_LEFT;
+				if (entry->icon) {
+					uiItemL(column, entry->str, entry->icon);
+				}
+				else {
+					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+					uiDefBut(block, LABEL, 0, entry->str, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+				}
 			}
 			else {
 				uiItemS(column);
@@ -1891,7 +1893,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			          UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, (float) entry->retval, 0.0, 0, -1, "");
 		}
 	}
-	
+
 	menudata_free(md);
 }
 

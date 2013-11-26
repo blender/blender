@@ -908,9 +908,15 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, item->name, ICON_NONE);
-					but = block->buttons.last;
-					but->drawflag = UI_BUT_TEXT_LEFT;
+					if (item->icon) {
+						uiItemL(column, item->name, item->icon);
+						but = block->buttons.last;
+					}
+					else {
+						/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+						but = uiDefBut(block, LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
+						               0.0, 0.0, 0, 0, "");
+					}
 					ui_but_tip_from_enum_item(but, item);
 				}
 				else {  /* XXX bug here, colums draw bottom item badly */
