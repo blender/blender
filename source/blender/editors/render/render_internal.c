@@ -677,7 +677,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			rj->v3d_override = true;
 
 		if (v3d->localvd)
-			rj->lay_override = scene->lay | v3d->localvd->lay;
+			rj->lay_override |= v3d->localvd->lay;
 	}
 
 	/* setup job */
