@@ -5531,6 +5531,10 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->drawmethod = -1;
 		win->drawfail = 0;
 		win->active = 0;
+
+		win->cursor      = 0;
+		win->lastcursor  = 0;
+		win->modalcursor = 0;
 	}
 	
 	wm->timers.first = wm->timers.last = NULL;

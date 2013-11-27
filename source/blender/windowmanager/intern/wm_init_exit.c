@@ -159,7 +159,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLF_lang_init();
 
 	/* get the default database, plus a wm */
-	wm_homefile_read(C, NULL, G.factory_startup);
+	wm_homefile_read(C, NULL, G.factory_startup, NULL);
 	
 	BLF_lang_set(NULL);
 

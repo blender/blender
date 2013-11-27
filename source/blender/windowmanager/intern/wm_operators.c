@@ -2029,12 +2029,19 @@ static void WM_OT_read_history(wmOperatorType *ot)
 
 static void WM_OT_read_homefile(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	ot->name = "Reload Start-Up File";
 	ot->idname = "WM_OT_read_homefile";
 	ot->description = "Open the default file (doesn't save the current file)";
 	
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_homefile_read_exec;
+
+	prop = RNA_def_string_file_path(ot->srna, "filepath", "", 
+	                                FILE_MAX, "File Path", 
+	                                "Path to an alternative start-up file");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
 	/* ommit poll to run in background mode */
 }
 
