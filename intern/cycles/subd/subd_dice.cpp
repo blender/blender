@@ -26,22 +26,20 @@ CCL_NAMESPACE_BEGIN
 
 /* EdgeDice Base */
 
-EdgeDice::EdgeDice(Mesh *mesh_, int shader_, bool smooth_, float dicing_rate_)
+EdgeDice::EdgeDice(const SubdParams& params_)
+: params(params_)
 {
-	mesh = mesh_;
 	mesh_P = NULL;
 	mesh_N = NULL;
 	vert_offset = 0;
-	dicing_rate = dicing_rate_;
-	shader = shader_;
-	smooth = smooth_;
-	camera = NULL;
 
-	mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+	params.mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 }
 
 void EdgeDice::reserve(int num_verts, int num_tris)
 {
+	Mesh *mesh = params.mesh;
+
 	vert_offset = mesh->verts.size();
 	tri_offset = mesh->triangles.size();
 
@@ -60,7 +58,7 @@ int EdgeDice::add_vert(Patch *patch, float2 uv)
 	patch->eval(&P, &dPdu, &dPdv, uv.x, uv.y);
 	N = normalize(cross(dPdu, dPdv));
 
-	assert(vert_offset < mesh->verts.size());
+	assert(vert_offset < params.mesh->verts.size());
 
 	mesh_P[vert_offset] = P;
 	mesh_N[vert_offset] = N;
@@ -68,12 +66,13 @@ int EdgeDice::add_vert(Patch *patch, float2 uv)
 	return vert_offset++;
 }
 
-void EdgeDice::add_triangle(int v0, int v1, int v2)
+void EdgeDice::add_triangle(Patch *patch, int v0, int v1, int v2)
 {
-	mesh->add_triangle(v0, v1, v2, shader, smooth);
+	params.mesh->add_triangle(v0, v1, v2, params.shader, params.smooth);
+	tri_offset++;
 }
 
-void EdgeDice::stitch_triangles(vector<int>& outer, vector<int>& inner)
+void EdgeDice::stitch_triangles(Patch *patch, vector<int>& outer, vector<int>& inner)
 {
 	if(inner.size() == 0 || outer.size() == 0)
 		return; // XXX avoid crashes for Mu or Mv == 1, missing polygons
@@ -106,14 +105,14 @@ void EdgeDice::stitch_triangles(vector<int>& outer, vector<int>& inner)
 				v2 = inner[++i];
 		}
 
-		add_triangle(v0, v1, v2);
+		add_triangle(patch, v0, v1, v2);
 	}
 }
 
 /* QuadDice */
 
-QuadDice::QuadDice(Mesh *mesh_, int shader_, bool smooth_, float dicing_rate_)
-: EdgeDice(mesh_, shader_, smooth_, dicing_rate_)
+QuadDice::QuadDice(const SubdParams& params_)
+: EdgeDice(params_)
 {
 }
 
@@ -121,7 +120,8 @@ void QuadDice::reserve(EdgeFactors& ef, int Mu, int Mv)
 {
 	/* XXX need to make this also work for edge factor 0 and 1 */
 	int num_verts = (ef.tu0 + ef.tu1 + ef.tv0 + ef.tv1) + (Mu - 1)*(Mv - 1);
-	EdgeDice::reserve(num_verts, 0);
+	int num_tris = 0;
+	EdgeDice::reserve(num_verts, num_tris);
 }
 
 float2 QuadDice::map_uv(SubPatch& sub, float u, float v)
@@ -138,8 +138,8 @@ float3 QuadDice::eval_projected(SubPatch& sub, float u, float v)
 	float3 P;
 
 	sub.patch->eval(&P, NULL, NULL, uv.x, uv.y);
-	if(camera)
-		P = transform_perspective(&camera->worldtoraster, P);
+	if(params.camera)
+		P = transform_perspective(&params.camera->worldtoraster, P);
 
 	return P;
 }
@@ -222,7 +222,7 @@ float QuadDice::scale_factor(SubPatch& sub, EdgeFactors& ef, int Mu, int Mv)
 	float Apatch = max(A1, max(A2, max(A3, A4)))*4.0f;
 
 	/* solve for scaling factor */
-	float Atri = dicing_rate*dicing_rate*0.5f;
+	float Atri = params.dicing_rate*params.dicing_rate*0.5f;
 	float Ntris = Apatch/Atri;
 
 	// XXX does the -sqrt solution matter
@@ -270,8 +270,8 @@ void QuadDice::add_grid(SubPatch& sub, int Mu, int Mv, int offset)
 				int i3 = offset + 4 + i + j*(Mu-1);
 				int i4 = offset + 4 + (i-1) + j*(Mu-1);
 
-				add_triangle(i1, i2, i3);
-				add_triangle(i1, i3, i4);
+				add_triangle(sub.patch, i1, i2, i3);
+				add_triangle(sub.patch, i1, i3, i4);
 			}
 		}
 	}
@@ -288,7 +288,7 @@ void QuadDice::dice(SubPatch& sub, EdgeFactors& ef)
 	Mv = max((int)ceil(S*Mv), 2); // XXX handle 0 & 1?
 
 	/* reserve space for new verts */
-	int offset = mesh->verts.size();
+	int offset = params.mesh->verts.size();
 	reserve(ef, Mu, Mv);
 
 	/* corners and inner grid */
@@ -299,27 +299,27 @@ void QuadDice::dice(SubPatch& sub, EdgeFactors& ef)
 	vector<int> outer, inner;
 
 	add_side_u(sub, outer, inner, Mu, Mv, ef.tu0, 0, offset);
-	stitch_triangles(outer, inner);
+	stitch_triangles(sub.patch, outer, inner);
 
 	/* top side */
 	add_side_u(sub, outer, inner, Mu, Mv, ef.tu1, 1, offset);
-	stitch_triangles(inner, outer);
+	stitch_triangles(sub.patch, inner, outer);
 
 	/* left side */
 	add_side_v(sub, outer, inner, Mu, Mv, ef.tv0, 0, offset);
-	stitch_triangles(inner, outer);
+	stitch_triangles(sub.patch, inner, outer);
 
 	/* right side */
 	add_side_v(sub, outer, inner, Mu, Mv, ef.tv1, 1, offset);
-	stitch_triangles(outer, inner);
+	stitch_triangles(sub.patch, outer, inner);
 
-	assert(vert_offset == mesh->verts.size());
+	assert(vert_offset == params.mesh->verts.size());
 }
 
 /* TriangleDice */
 
-TriangleDice::TriangleDice(Mesh *mesh_, int shader_, bool smooth_, float dicing_rate_)
-: EdgeDice(mesh_, shader_, smooth_, dicing_rate_)
+TriangleDice::TriangleDice(const SubdParams& params_)
+: EdgeDice(params_)
 {
 }
 
@@ -417,9 +417,9 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 		inner_w.push_back(corner_v);
 
 		/* stitch together inner/outer with triangles */
-		stitch_triangles(outer_u, inner_u);
-		stitch_triangles(outer_v, inner_v);
-		stitch_triangles(outer_w, inner_w);
+		stitch_triangles(sub.patch, outer_u, inner_u);
+		stitch_triangles(sub.patch, outer_v, inner_v);
+		stitch_triangles(sub.patch, outer_w, inner_w);
 
 		outer_u = inner_u;
 		outer_v = inner_v;
@@ -429,18 +429,18 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 	/* fill up last part */
 	if(m == -1) {
 		/* single triangle */
-		add_triangle(outer_w[0], outer_u[0], outer_v[0]);
+		add_triangle(sub.patch, outer_w[0], outer_u[0], outer_v[0]);
 	}
 	else {
 		/* center vertex + 6 triangles */
 		int center = add_vert(sub, make_float2(1.0f/3.0f, 1.0f/3.0f));
 
-		add_triangle(outer_w[0], outer_w[1], center);
-		add_triangle(outer_w[1], outer_w[2], center);
-		add_triangle(outer_u[0], outer_u[1], center);
-		add_triangle(outer_u[1], outer_u[2], center);
-		add_triangle(outer_v[0], outer_v[1], center);
-		add_triangle(outer_v[1], outer_v[2], center);
+		add_triangle(sub.patch, outer_w[0], outer_w[1], center);
+		add_triangle(sub.patch, outer_w[1], outer_w[2], center);
+		add_triangle(sub.patch, outer_u[0], outer_u[1], center);
+		add_triangle(sub.patch, outer_u[1], outer_u[2], center);
+		add_triangle(sub.patch, outer_v[0], outer_v[1], center);
+		add_triangle(sub.patch, outer_v[1], outer_v[2], center);
 	}
 }
 
@@ -452,7 +452,7 @@ void TriangleDice::dice(SubPatch& sub, EdgeFactors& ef)
 	reserve(ef, M);
 	add_grid(sub, ef, M);
 
-	assert(vert_offset == mesh->verts.size());
+	assert(vert_offset == params.mesh->verts.size());
 }
 
 CCL_NAMESPACE_END

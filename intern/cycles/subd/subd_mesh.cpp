@@ -28,18 +28,47 @@
 
 #include <stdio.h>
 
-#include "subd_build.h"
-#include "subd_edge.h"
-#include "subd_face.h"
 #include "subd_mesh.h"
 #include "subd_patch.h"
 #include "subd_split.h"
-#include "subd_vert.h"
 
 #include "util_debug.h"
 #include "util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* Subd Vertex */
+
+class SubdVert
+{
+public:
+	int id;
+	float3 co;
+	
+	SubdVert(int id_)
+	{
+		id = id_;
+		co = make_float3(0.0f, 0.0f, 0.0f);
+	}
+};
+
+/* Subd Face */
+
+class SubdFace
+{
+public:
+	int id;
+	int numverts;
+	int verts[4];
+
+	SubdFace(int id_)
+	{
+		id = id_;
+		numverts = 0;
+	}
+};
+
+/* Subd Mesh */
 
 SubdMesh::SubdMesh()
 {
@@ -47,18 +76,12 @@ SubdMesh::SubdMesh()
 
 SubdMesh::~SubdMesh()
 {
-	pair<Key, SubdEdge*> em;
-
 	foreach(SubdVert *vertex, verts)
 		delete vertex;
-	foreach(em, edge_map)
-		delete em.second;
 	foreach(SubdFace *face, faces)
 		delete face;
 
 	verts.clear();
-	edges.clear();
-	edge_map.clear();
 	faces.clear();
 }
 
@@ -85,224 +108,63 @@ SubdFace *SubdMesh::add_face(int v0, int v1, int v2, int v3)
 
 SubdFace *SubdMesh::add_face(int *index, int num)
 {
-	/* test non-manifold cases */
-	if(!can_add_face(index, num)) {
-		/* we could try to add face in opposite winding instead .. */
-		fprintf(stderr, "Warning: non manifold mesh, invalid face '%lu'.\n", (unsigned long)faces.size());
+	/* skip ngons */
+	if(num < 3 || num > 4)
 		return NULL;
-	}
-	
+
 	SubdFace *f = new SubdFace(faces.size());
-	
-	SubdEdge *first_edge = NULL;
-	SubdEdge *last = NULL;
-	SubdEdge *current = NULL;
 
-	/* add edges */
-	for(int i = 0; i < num-1; i++) {
-		current = add_edge(index[i], index[i+1]);
-		assert(current != NULL);
-		
-		current->face = f;
-		
-		if(last != NULL) {
-			last->next = current;
-			current->prev = last;
-		}
-		else
-			first_edge = current;
-		
-		last = current;
-	}
+	for(int i = 0; i < num; i++)
+		f->verts[i] = index[i];
 
-	current = add_edge(index[num-1], index[0]);
-	assert(current != NULL);
-	
-	current->face = f;
-
-	last->next = current;
-	current->prev = last;
-
-	current->next = first_edge;
-	first_edge->prev = current;
-
-	f->edge = first_edge;
+	f->numverts = num;
 	faces.push_back(f);
 
 	return f;
 }
 
-bool SubdMesh::can_add_face(int *index, int num)
+bool SubdMesh::finish()
 {
-	/* manifold check */
-	for(int i = 0; i < num-1; i++)
-		if(!can_add_edge(index[i], index[i+1]))
-			return false;
-
-	return can_add_edge(index[num-1], index[0]);
-}
-
-bool SubdMesh::can_add_edge(int i, int j)
-{
-	/* check for degenerate edge */
-	if(i == j)
-		return false;
-
-	/* make sure edge has not been added yet. */
-	return find_edge(i, j) == NULL;
-}
-
-SubdEdge *SubdMesh::add_edge(int i, int j)
-{
-	SubdEdge *edge;
-
-	/* find pair */
-	SubdEdge *pair = find_edge(j, i);
-
-	if(pair != NULL) {
-		/* create edge with same id */
-		edge = new SubdEdge(pair->id + 1);
-		
-		/* link edge pairs */
-		edge->pair = pair;
-		pair->pair = edge;
-		
-		/* not sure this is necessary? */
-		pair->vert->edge = pair;
-	}
-	else {
-		/* create edge */
-		edge = new SubdEdge(2*edges.size());
-		
-		/* add only unpaired edges */
-		edges.push_back(edge);
-	}
-	
-	/* assign vertex and put into map */
-	edge->vert = verts[i];
-	edge_map[Key(i, j)] = edge;
-	
-	/* face and next are set by add_face */
-	
-	return edge;
-}
-
-SubdEdge *SubdMesh::find_edge(int i, int j)
-{
-	map<Key, SubdEdge*>::const_iterator it = edge_map.find(Key(i, j));
-
-	return (it == edge_map.end())? NULL: it->second;
-}
-
-bool SubdMesh::link_boundary()
-{
-	/* link boundary edges once the mesh has been created */
-	int num = 0;
-	
-	/* create boundary edges */
-	int num_edges = edges.size();
-
-	for(int e = 0; e < num_edges; e++) {
-		SubdEdge *edge = edges[e];
-
-		if(edge->pair == NULL) {
-			SubdEdge *pair = new SubdEdge(edge->id + 1);
-
-			int i = edge->from()->id;
-			int j = edge->to()->id;
-
-			assert(edge_map.find(Key(j, i)) == edge_map.end());
-
-			pair->vert = verts[j];
-			edge_map[Key(j, i)] = pair;
-			
-			edge->pair = pair;
-			pair->pair = edge;
-			
-			num++;
-		}
-	}
-
-	/* link boundary edges */
-	for(int e = 0; e < num_edges; e++) {
-		SubdEdge *edge = edges[e];
-
-		if(edge->pair->face == NULL)
-			link_boundary_edge(edge->pair);
-	}
-	
-	/* detect boundary intersections */
-	int boundaryIntersections = 0;
-	int num_verts = verts.size();
-
-	for(int v = 0; v < num_verts; v++) {
-		SubdVert *vertex = verts[v];
-
-		int boundarySubdEdges = 0;
-		for(SubdVert::EdgeIterator it(vertex->edges()); !it.isDone(); it.advance())
-			if(it.current()->is_boundary())
-				boundarySubdEdges++;
-
-		if(boundarySubdEdges > 2) {
-			assert((boundarySubdEdges & 1) == 0);
-			boundaryIntersections++;
-		}
-	}
-
-	if(boundaryIntersections != 0) {
-		fprintf(stderr, "Invalid mesh, boundary intersections found!\n");
-		return false;
-	}
-
 	return true;
 }
 
-void SubdMesh::link_boundary_edge(SubdEdge *edge)
+void SubdMesh::tessellate(DiagSplit *split)
 {
-	/* link this boundary edge. */
-
-	/* make sure next pointer has not been set. */
-	assert(edge->face == NULL);
-	assert(edge->next == NULL);
-		
-	SubdEdge *next = edge;
-
-	while(next->pair->face != NULL) {
-		/* get pair prev */
-		SubdEdge *e = next->pair->next;
-
-		while(e->next != next->pair)
-			e = e->next;
-
-		next = e;
-	}
-
-	edge->next = next->pair;
-	next->pair->prev = edge;
-	
-	/* adjust vertex edge, so that it's the boundary edge. (required for is_boundary()) */
-	if(edge->vert->edge != edge)
-		edge->vert->edge = edge;
-}
-
-void SubdMesh::tessellate(DiagSplit *split, bool linear, Mesh *mesh, int shader, bool smooth)
-{
-	SubdBuilder *builder = SubdBuilder::create(linear);
 	int num_faces = faces.size();
 		        
 	for(int f = 0; f < num_faces; f++) {
 		SubdFace *face = faces[f];
-		Patch *patch = builder->run(face);
+		Patch *patch;
+		float3 *hull;
+
+		if(face->numverts == 3) {
+			LinearTrianglePatch *lpatch = new LinearTrianglePatch();
+			hull = lpatch->hull;
+			patch = lpatch;
+		}
+		else if(face->numverts == 4) {
+			LinearQuadPatch *lpatch = new LinearQuadPatch();
+			hull = lpatch->hull;
+			patch = lpatch;
+		}
+		else {
+			assert(0); /* n-gons should have been split already */
+			continue;
+		}
+
+		for(int i = 0; i < face->numverts; i++)
+			hull[i] = verts[face->verts[i]]->co;
+
+		if(face->numverts == 4)
+			swap(hull[2], hull[3]);
 
 		if(patch->is_triangle())
-			split->split_triangle(mesh, patch, shader, smooth);
+			split->split_triangle(patch);
 		else
-			split->split_quad(mesh, patch, shader, smooth);
+			split->split_quad(patch);
 
 		delete patch;
 	}
-
-	delete builder;
 }
 
 CCL_NAMESPACE_END

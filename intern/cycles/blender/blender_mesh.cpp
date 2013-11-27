@@ -365,7 +365,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	}
 }
 
-static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, const vector<uint>& used_shaders)
+static void create_subd_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, const vector<uint>& used_shaders)
 {
 	/* create subd mesh */
 	SubdMesh sdmesh;
@@ -386,21 +386,20 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 		if(n == 4)
 			sdmesh.add_face(vi[0], vi[1], vi[2], vi[3]);
-#if 0
 		else
 			sdmesh.add_face(vi[0], vi[1], vi[2]);
-#endif
 	}
 
 	/* finalize subd mesh */
-	sdmesh.link_boundary();
+	sdmesh.finish();
 
-	/* subdivide */
-	DiagSplit dsplit;
-	dsplit.camera = NULL;
-	dsplit.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
+	SubdParams sdparams(mesh, used_shaders[0], true);
+	sdparams.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
+	//scene->camera->update();
+	//sdparams.camera = scene->camera;
 
-	sdmesh.tessellate(&dsplit, false, mesh, used_shaders[0], true);
+	DiagSplit dsplit(sdparams);;
+	sdmesh.tessellate(&dsplit);
 }
 
 /* Sync */
@@ -482,7 +481,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
 				if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
-					create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
+					create_subd_mesh(scene, mesh, b_mesh, &cmesh, used_shaders);
 				else
 					create_mesh(scene, mesh, b_mesh, used_shaders);
 			}

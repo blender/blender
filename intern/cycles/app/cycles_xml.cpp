@@ -703,15 +703,14 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 		}
 
 		/* finalize subd mesh */
-		sdmesh.link_boundary();
+		sdmesh.finish();
 
-		/* subdivide */
-		DiagSplit dsplit;
-		//dsplit.camera = state.scene->camera;
-		//dsplit.dicing_rate = 5.0f;
-		dsplit.dicing_rate = state.dicing_rate;
-		xml_read_float(&dsplit.dicing_rate, node, "dicing_rate");
-		sdmesh.tessellate(&dsplit, false, mesh, shader, smooth);
+		/* parameters */
+		SubdParams sdparams(mesh, shader, smooth);
+		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
+
+		DiagSplit dsplit(sdparams);;
+		sdmesh.tessellate(&dsplit);
 	}
 	else {
 		/* create vertices */
@@ -789,12 +788,11 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 		mesh->used_shaders.push_back(state.shader);
 
 		/* split */
-		DiagSplit dsplit;
-		//dsplit.camera = state.scene->camera;
-		//dsplit.dicing_rate = 5.0f;
-		dsplit.dicing_rate = state.dicing_rate;
-		xml_read_float(&dsplit.dicing_rate, node, "dicing_rate");
-		dsplit.split_quad(mesh, patch, state.shader, state.smooth);
+		SubdParams sdparams(mesh, state.shader, state.smooth);
+		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
+
+		DiagSplit dsplit(sdparams);
+		dsplit.split_quad(patch);
 
 		delete patch;
 

@@ -29,12 +29,9 @@ CCL_NAMESPACE_BEGIN
 
 /* DiagSplit */
 
-DiagSplit::DiagSplit()
+DiagSplit::DiagSplit(const SubdParams& params_)
+: params(params_)
 {
-	test_steps = 3;
-	split_threshold = 1;
-	dicing_rate = 0.1f;
-	camera = NULL;
 }
 
 void DiagSplit::dispatch(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef)
@@ -54,8 +51,8 @@ float3 DiagSplit::project(Patch *patch, float2 uv)
 	float3 P;
 
 	patch->eval(&P, NULL, NULL, uv.x, uv.y);
-	if(camera)
-		P = transform_perspective(&camera->worldtoraster, P);
+	if(params.camera)
+		P = transform_perspective(&params.camera->worldtoraster, P);
 
 	return P;
 }
@@ -66,8 +63,8 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 	float Lsum = 0.0f;
 	float Lmax = 0.0f;
 
-	for(int i = 0; i < test_steps; i++) {
-		float t = i/(float)(test_steps-1);
+	for(int i = 0; i < params.test_steps; i++) {
+		float t = i/(float)(params.test_steps-1);
 
 		float3 P = project(patch, Pstart + t*(Pend - Pstart));
 
@@ -80,10 +77,10 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 		Plast = P;
 	}
 
-	int tmin = (int)ceil(Lsum/dicing_rate);
-	int tmax = (int)ceil((test_steps-1)*Lmax/dicing_rate); // XXX paper says N instead of N-1, seems wrong?
+	int tmin = (int)ceil(Lsum/params.dicing_rate);
+	int tmax = (int)ceil((params.test_steps-1)*Lmax/params.dicing_rate); // XXX paper says N instead of N-1, seems wrong?
 
-	if(tmax - tmin > split_threshold)
+	if(tmax - tmin > params.split_threshold)
 		return DSPLIT_NON_UNIFORM;
 	
 	return tmax;
@@ -244,7 +241,7 @@ void DiagSplit::split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int de
 		dispatch(sub, ef);
 }
 
-void DiagSplit::split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth)
+void DiagSplit::split_triangle(Patch *patch)
 {
 	TriangleDice::SubPatch sub_split;
 	TriangleDice::EdgeFactors ef_split;
@@ -260,8 +257,7 @@ void DiagSplit::split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth
 
 	split(sub_split, ef_split);
 
-	TriangleDice dice(mesh, shader, smooth, dicing_rate);
-	dice.camera = camera;
+	TriangleDice dice(params);
 
 	for(size_t i = 0; i < subpatches_triangle.size(); i++) {
 		TriangleDice::SubPatch& sub = subpatches_triangle[i];
@@ -282,7 +278,7 @@ void DiagSplit::split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth
 	edgefactors_triangle.clear();
 }
 
-void DiagSplit::split_quad(Mesh *mesh, Patch *patch, int shader, bool smooth)
+void DiagSplit::split_quad(Patch *patch)
 {
 	QuadDice::SubPatch sub_split;
 	QuadDice::EdgeFactors ef_split;
@@ -300,8 +296,7 @@ void DiagSplit::split_quad(Mesh *mesh, Patch *patch, int shader, bool smooth)
 
 	split(sub_split, ef_split);
 
-	QuadDice dice(mesh, shader, smooth, dicing_rate);
-	dice.camera = camera;
+	QuadDice dice(params);
 
 	for(size_t i = 0; i < subpatches_quad.size(); i++) {
 		QuadDice::SubPatch& sub = subpatches_quad[i];

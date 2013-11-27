@@ -22,15 +22,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-class Mesh;
-
-/* Base */
-
 class Patch {
 public:
 	virtual ~Patch() {}
 	virtual void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v) = 0;
-	virtual bool is_triangle() = 0;
+	virtual bool is_triangle() { return false; }
 	virtual BoundBox bound() = 0;
 };
 
@@ -64,39 +60,6 @@ public:
 
 	void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v);
 	bool is_triangle() { return false; }
-	BoundBox bound();
-};
-
-/* Bicubic Patch with Tangent Fields */
-
-class BicubicTangentPatch : public Patch {
-public:
-	float3 hull[16];
-	float3 utan[12];
-	float3 vtan[12];
-
-	void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v);
-	bool is_triangle() { return false; }
-	BoundBox bound();
-};
-
-/* Gregory Patches */
-
-class GregoryQuadPatch : public Patch {
-public:
-	float3 hull[20];
-
-	void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v);
-	bool is_triangle() { return false; }
-	BoundBox bound();
-};
-
-class GregoryTrianglePatch : public Patch  {
-public:
-	float3 hull[20];
-
-	void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v);
-	bool is_triangle() { return true; }
 	BoundBox bound();
 };
 

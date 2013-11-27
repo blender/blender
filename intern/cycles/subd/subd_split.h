@@ -41,12 +41,9 @@ public:
 	vector<TriangleDice::SubPatch> subpatches_triangle;
 	vector<TriangleDice::EdgeFactors> edgefactors_triangle;
 
-	int test_steps;
-	int split_threshold;
-	float dicing_rate;
-	Camera *camera;
+	SubdParams params;
 
-	DiagSplit();
+	DiagSplit(const SubdParams& params);
 
 	float3 project(Patch *patch, float2 uv);
 	int T(Patch *patch, float2 Pstart, float2 Pend);
@@ -59,8 +56,8 @@ public:
 	void dispatch(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef);
 	void split(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef, int depth=0);
 
-	void split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth);
-	void split_quad(Mesh *mesh, Patch *patch, int shader, bool smooth);
+	void split_triangle(Patch *patch);
+	void split_quad(Patch *patch);
 };
 
 CCL_NAMESPACE_END

@@ -31,28 +31,48 @@ class Camera;
 class Mesh;
 class Patch;
 
+struct SubdParams {
+	Mesh *mesh;
+	int shader;
+	bool smooth;
+
+	int test_steps;
+	int split_threshold;
+	float dicing_rate;
+	Camera *camera;
+
+	SubdParams(Mesh *mesh_, int shader_, bool smooth_ = true)
+	{
+		mesh = mesh_;
+		shader = shader_;
+		smooth = smooth_;
+
+		test_steps = 3;
+		split_threshold = 1;
+		dicing_rate = 0.1f;
+		camera = NULL;
+	}
+
+};
+
 /* EdgeDice Base */
 
 class EdgeDice {
 public:
-	Camera *camera;
-	Mesh *mesh;
+	SubdParams params;
 	float3 *mesh_P;
 	float3 *mesh_N;
-	float dicing_rate;
 	size_t vert_offset;
 	size_t tri_offset;
-	int shader;
-	bool smooth;
 
-	EdgeDice(Mesh *mesh, int shader, bool smooth, float dicing_rate);
+	EdgeDice(const SubdParams& params);
 
 	void reserve(int num_verts, int num_tris);
 
 	int add_vert(Patch *patch, float2 uv);
-	void add_triangle(int v0, int v1, int v2);
+	void add_triangle(Patch *patch, int v0, int v1, int v2);
 
-	void stitch_triangles(vector<int>& outer, vector<int>& inner);
+	void stitch_triangles(Patch *patch, vector<int>& outer, vector<int>& inner);
 };
 
 /* Quad EdgeDice
@@ -86,7 +106,7 @@ public:
 		int tv1;
 	};
 
-	QuadDice(Mesh *mesh, int shader, bool smooth, float dicing_rate);
+	QuadDice(const SubdParams& params);
 
 	void reserve(EdgeFactors& ef, int Mu, int Mv);
 	float3 eval_projected(SubPatch& sub, float u, float v);
@@ -140,7 +160,7 @@ public:
 		int tw;
 	};
 
-	TriangleDice(Mesh *mesh, int shader, bool smooth, float dicing_rate);
+	TriangleDice(const SubdParams& params);
 
 	void reserve(EdgeFactors& ef, int M);
 
