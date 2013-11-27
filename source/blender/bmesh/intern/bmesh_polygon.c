@@ -1420,7 +1420,7 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 		sf_arena = NULL;
 	}
 
-	*r_looptris_tot = looptris_tot;
+	*r_looptris_tot = i;
 
 	BLI_assert(i <= looptris_tot);
 
