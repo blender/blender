@@ -250,6 +250,9 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	}
 	// print("COST %.12f\n");
 
+	/* note, 'cost' shouldn't be negative but happens sometimes with small values.
+	 * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
+	cost = fabsf(cost);
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 }
 
