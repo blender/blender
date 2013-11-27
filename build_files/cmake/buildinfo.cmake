@@ -8,32 +8,34 @@ set(MY_WC_BRANCH "unknown")
 set(MY_WC_COMMIT_TIMESTAMP 0)
 
 # Guess if this is a SVN working copy and then look up the revision
-if(EXISTS ${SOURCE_DIR}/.git/)
-	# The FindSubversion.cmake module is part of the standard distribution
+if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
+	# The FindGit.cmake module is part of the standard distribution
 	include(FindGit)
 	if(GIT_FOUND)
+		message("-- Found Git: ${GIT_EXECUTABLE}")
+
 		execute_process(COMMAND git rev-parse --short @{u}
-		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
-		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_BRANCH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		execute_process(COMMAND git log -1 --format=%ct
-		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_COMMIT_TIMESTAMP
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		# Update GIT index before getting dirty files
 		execute_process(COMMAND git update-index -q --refresh
-		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		execute_process(COMMAND git diff-index --name-only HEAD --
-		                WORKING_DIRECTORY ${SOURCE_DIR}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE _git_changed_files
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -42,7 +44,7 @@ if(EXISTS ${SOURCE_DIR}/.git/)
 		else()
 			# Unpushed commits are also considered local odifications
 			execute_process(COMMAND git log @{u}..
-			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 			                OUTPUT_VARIABLE _git_unpushed_log
 			                OUTPUT_STRIP_TRAILING_WHITESPACE)
 			if(NOT _git_unpushed_log STREQUAL "")

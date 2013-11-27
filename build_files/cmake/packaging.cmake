@@ -20,25 +20,29 @@ SET(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 
 
 # Get the build revision, note that this can get out-of-sync, so for packaging run cmake first.
-include(FindSubversion)
-set(MY_WC_REVISION "unknown")
-if(EXISTS ${CMAKE_SOURCE_DIR}/.svn/)
-	if(Subversion_FOUND)
-		Subversion_WC_INFO(${CMAKE_SOURCE_DIR} MY)
+set(MY_WC_HASH "unknown")
+if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
+	include(FindGit)
+	if(GIT_FOUND)
+		message("-- Found Git: ${GIT_EXECUTABLE}")
+		execute_process(COMMAND git rev-parse --short @{u}
+		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		                OUTPUT_VARIABLE MY_WC_HASH
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 	endif()
 endif()
-set(BUILD_REV ${MY_WC_REVISION})
+set(BUILD_REV ${MY_WC_HASH})
 
 
 # Force Package Name
-set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-1.r${BUILD_REV}-${CMAKE_SYSTEM_PROCESSOR})
+set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-1.${BUILD_REV}-${CMAKE_SYSTEM_PROCESSOR})
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# RPM packages
 	include(build_files/cmake/RpmBuild.cmake)
 	if(RPMBUILD_FOUND AND NOT WIN32)
 		set(CPACK_GENERATOR "RPM")
-		set(CPACK_RPM_PACKAGE_RELEASE "1.r${BUILD_REV}")
+		set(CPACK_RPM_PACKAGE_RELEASE "1.${BUILD_REV}")
 		set(CPACK_SET_DESTDIR "true")
 		set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
 		set(CPACK_PACKAGE_RELOCATABLE "false")
@@ -75,14 +79,14 @@ endmacro()
 
 if(APPLE)
 	add_package_archive(
-		"${PROJECT_NAME}-${BLENDER_VERSION}-r${BUILD_REV}-OSX-${CMAKE_OSX_ARCHITECTURES}"
+		"${PROJECT_NAME}-${BLENDER_VERSION}-${BUILD_REV}-OSX-${CMAKE_OSX_ARCHITECTURES}"
 		"zip")
 elseif(UNIX)
 	# platform name could be tweaked, to include glibc, and ensure processor is correct (i386 vs i686)
 	string(TOLOWER ${CMAKE_SYSTEM_NAME} PACKAGE_SYSTEM_NAME)
 
 	add_package_archive(
-		"${PROJECT_NAME}-${BLENDER_VERSION}-r${BUILD_REV}-${PACKAGE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+		"${PROJECT_NAME}-${BLENDER_VERSION}-${BUILD_REV}-${PACKAGE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
 		"tar.bz2")
 endif()
 
