@@ -357,6 +357,7 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 
 	bool hair_present = false;
 	bool show_emitter = false;
+	bool hide_emitter = false;
 	bool hide_as_dupli_parent = false;
 	bool hide_as_dupli_child_original = false;
 
@@ -367,7 +368,12 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 
 		if(b_psys->settings().use_render_emitter())
 			show_emitter = true;
+		else
+			hide_emitter = true;
 	}
+
+	if(show_emitter)
+		hide_emitter = false;
 
 	/* duplicators hidden by default, except dupliframes which duplicate self */
 	if(b_ob.is_duplicator())
@@ -386,11 +392,11 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 	}
 	else if(hair_present) {
 		hide_triangles = true;
-		return hide_as_dupli_child_original;
+		return (hide_emitter || hide_as_dupli_child_original);
 	}
 	else {
 		hide_triangles = false;
-		return (hide_as_dupli_parent || hide_as_dupli_child_original);
+		return (hide_emitter || hide_as_dupli_parent || hide_as_dupli_child_original);
 	}
 }
 
