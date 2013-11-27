@@ -135,16 +135,22 @@ static void rna_progress_update(struct wmWindowManager *wm, float value)
 {
 	if (wm_progress_state.is_valid) {
 		/* Map to cursor_time range [0,9999] */
-		int val = (int)(10000 * (value - wm_progress_state.min) / (wm_progress_state.max - wm_progress_state.min));
-		WM_cursor_time(wm->winactive, val);
+		wmWindow *win = wm->winactive;
+		if (win) {
+			int val = (int)(10000 * (value - wm_progress_state.min) / (wm_progress_state.max - wm_progress_state.min));
+			WM_cursor_time(win, val);
+		}
 	}
 }
 
 static void rna_progress_end(struct wmWindowManager *wm)
 {
 	if (wm_progress_state.is_valid) {
-		WM_cursor_modal_restore(wm->winactive);
-		wm_progress_state.is_valid = false;
+		wmWindow *win = wm->winactive;
+		if (win) {
+			WM_cursor_modal_restore(win);
+			wm_progress_state.is_valid = false;
+		}
 	}
 }
 
