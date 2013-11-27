@@ -19,6 +19,15 @@ if(EXISTS ${SOURCE_DIR}/.git)
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+		if (MY_WC_HASH STREQUAL "")
+			# Local branch, not set to upstream.
+			# Well, let's use HEAD for now
+			execute_process(COMMAND git rev-parse --short HEAD
+			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                OUTPUT_VARIABLE MY_WC_HASH
+		        	        OUTPUT_STRIP_TRAILING_WHITESPACE)
+		endif()
+
 		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_BRANCH

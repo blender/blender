@@ -422,6 +422,9 @@ def buildinfo(lenv, build_type):
             build_hash = os.popen('git rev-parse --short @{u}').read().strip()
             build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
 
+            if build_hash == '':
+                build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+
             # ## Check for local modifications
             has_local_changes = False
 
