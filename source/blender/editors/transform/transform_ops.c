@@ -703,7 +703,7 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
-	ot->exec   = transform_exec;
+	// ot->exec   = transform_exec;  // unsupported
 	ot->modal  = transform_modal;
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_region_view3d_active;
