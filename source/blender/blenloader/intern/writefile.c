@@ -3479,7 +3479,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BLI_cleanup_dir(mainvar->name, dir1);
 		BLI_cleanup_dir(mainvar->name, dir2);
 
-		if (BLI_path_cmp(dir1, dir2)==0) {
+		if (G.relbase_valid && (BLI_path_cmp(dir1, dir2) == 0)) {
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
 		}
 		else {
