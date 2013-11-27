@@ -238,6 +238,9 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
 
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", bmo_opdefines[op->type]->opname);
+
+	/* avoid accidental re-use */
+	memset(op, 0xff, sizeof(*op));
 #else
 	(void)bm;
 #endif
