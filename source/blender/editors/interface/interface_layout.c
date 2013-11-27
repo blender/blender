@@ -1881,7 +1881,7 @@ static int ui_litem_min_width(int itemw)
 static void ui_litem_layout_row(uiLayout *litem)
 {
 	uiItem *item;
-	int x, y, w, tot, totw, neww, itemw, minw, itemh, offset;
+	int x, y, w, tot, totw, neww, newtotw, itemw, minw, itemh, offset;
 	int fixedw, freew, fixedx, freex, flag = 0, lastw = 0;
 
 	/* x = litem->x; */ /* UNUSED */
@@ -1908,6 +1908,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 		freew = 0;
 		x = 0;
 		flag = 0;
+		newtotw = totw;
 
 		for (item = litem->items.first; item; item = item->next) {
 			if (item->flag)
@@ -1928,7 +1929,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 				item->flag = 1;
 				fixedw += minw;
 				flag = 1;
-				totw -= itemw;
+				newtotw -= itemw;
 			}
 			else {
 				/* keep free size */
@@ -1937,6 +1938,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 			}
 		}
 
+		totw = newtotw;
 		lastw = fixedw;
 	} while (flag);
 
