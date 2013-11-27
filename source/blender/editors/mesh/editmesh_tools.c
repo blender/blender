@@ -509,6 +509,18 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
 			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
 
+#if 1  /* better support mixed cases [#37203] */
+			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_wire)     == 1) &&
+			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_v2, 2, BM_edge_is_boundary) == 1) &&
+			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
+			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
+
+			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_boundary) == 1) &&
+			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_v2, 2, BM_edge_is_wire)     == 1) &&
+			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
+			     (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
+#endif
+
 			    ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_boundary) == 1) &&
 			     (edbm_add_edge_face_exec__vert_edge_lookup(e->v2, e, ed_pair_v2, 2, BM_edge_is_boundary) == 1) &&
 			     (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
