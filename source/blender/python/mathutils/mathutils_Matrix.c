@@ -378,7 +378,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	/* will overwrite error */
 	PyErr_SetString(PyExc_TypeError,
 	                "Matrix(): "
-	                "expects no args or 2-4 numeric sequences");
+	                "expects no args or a single arg containing 2-4 numeric sequences");
 	return NULL;
 }
 
