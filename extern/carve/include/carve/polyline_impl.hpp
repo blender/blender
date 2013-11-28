@@ -19,7 +19,7 @@
 namespace carve {
   namespace line {
 
-    inline PolylineEdge::PolylineEdge(Polyline *_parent, int _edgenum, Vertex *_v1, Vertex *_v2) :
+    inline PolylineEdge::PolylineEdge(Polyline *_parent, size_t _edgenum, Vertex *_v1, Vertex *_v2) :
         tagable(), parent(_parent), edgenum(_edgenum), v1(_v1), v2(_v2) {
     }
 
@@ -102,11 +102,11 @@ namespace carve {
 
       PolylineEdge *e;
       if (begin == end) return;
-      size_t v1 = (int)*begin++;
+      size_t v1 = (size_t)*begin++;
       if (begin == end) return;
 
       while (begin != end) {
-        size_t v2 = (int)*begin++;
+        size_t v2 = (size_t)*begin++;
         e = new PolylineEdge(this, edges.size(), &vertices[v1], &vertices[v2]);
         edges.push_back(e);
         v1 = v2;

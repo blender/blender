@@ -719,10 +719,6 @@ namespace {
           unassigned--;
         }
       }
-
-      if (!removed.size())
-        throw carve::exception("Failed to merge holes");
-
       for (std::set<int>::iterator f = removed.begin(); f != removed.end(); ++f) {
         for (unsigned i = 0; i < containing_faces.size(); ++i) {
           containing_faces[i].erase(std::remove(containing_faces[i].begin(),
@@ -811,12 +807,14 @@ namespace {
    */
   static bool assembleBaseLoop(carve::mesh::MeshSet<3>::face_t *face,
                                const carve::csg::detail::Data &data,
-                               std::vector<carve::mesh::MeshSet<3>::vertex_t *> &base_loop) {
+                               std::vector<carve::mesh::MeshSet<3>::vertex_t *> &base_loop,
+                               carve::csg::CSG::Hooks &hooks) {
     base_loop.clear();
 
     // XXX: assumes that face->edges is in the same order as
     // face->vertices. (Which it is)
     carve::mesh::MeshSet<3>::edge_t *e = face->edge;
+    size_t e_idx = 0;
     bool face_edge_intersected = false;
     do {
       base_loop.push_back(carve::csg::map_vertex(data.vmap, e->vert));
@@ -830,9 +828,22 @@ namespace {
           base_loop.push_back(ev_vec[k++]);
         }
 
+        if (ev_vec.size() && hooks.hasHook(carve::csg::CSG::Hooks::EDGE_DIVISION_HOOK)) {
+          carve::mesh::MeshSet<3>::vertex_t *v1 = e->vert;
+          carve::mesh::MeshSet<3>::vertex_t *v2;
+          for (size_t k = 0, ke = ev_vec.size(); k < ke;) {
+            v2 = ev_vec[k++];
+            hooks.edgeDivision(e, e_idx, v1, v2);
+            v1 = v2;
+          }
+          v2 = e->v2();
+          hooks.edgeDivision(e, e_idx, v1, v2);
+        }
+
         face_edge_intersected = true;
       }
       e = e->next;
+      ++e_idx;
     } while (e != face->edge);
 
     return face_edge_intersected;
@@ -1110,8 +1121,7 @@ namespace {
         }
 
         // copy up to the end of the path.
-		if (pos < e1_1)
-			std::copy(base_loop.begin() + pos, base_loop.begin() + e1_1, std::back_inserter(out));
+        std::copy(base_loop.begin() + pos, base_loop.begin() + e1_1, std::back_inserter(out));
 
         CARVE_ASSERT(base_loop[e1_1] == p1.back());
         std::copy(p1.rbegin(), p1.rend() - 1, std::back_inserter(out));
@@ -1445,7 +1455,7 @@ namespace {
     std::vector<carve::mesh::MeshSet<3>::vertex_t *> base_loop;
     std::list<std::vector<carve::mesh::MeshSet<3>::vertex_t *> > hole_loops;
 
-    bool face_edge_intersected = assembleBaseLoop(face, data, base_loop);
+    bool face_edge_intersected = assembleBaseLoop(face, data, base_loop, hooks);
 
     detail::FV2SMap::const_iterator fse_iter = data.face_split_edges.find(face);
 
@@ -1637,9 +1647,7 @@ namespace {
  * \brief Build a set of face loops for all (split) faces of a Polyhedron.
  * 
  * @param[in] poly The polyhedron to process
- * @param vmap 
- * @param face_split_edges 
- * @param divided_edges 
+ * @param[in] data Internal intersection data
  * @param[out] face_loops_out The resulting face loops
  * 
  * @return The number of edges generated.

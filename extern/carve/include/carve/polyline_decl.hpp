@@ -60,10 +60,10 @@ namespace carve {
 
     struct PolylineEdge : public tagable {
       Polyline *parent;
-      unsigned edgenum;
+      size_t edgenum;
       Vertex *v1, *v2;
 
-      PolylineEdge(Polyline *_parent, int _edgenum, Vertex *_v1, Vertex *_v2);
+      PolylineEdge(Polyline *_parent, size_t _edgenum, Vertex *_v1, Vertex *_v2);
 
       carve::geom3d::AABB aabb() const;
 

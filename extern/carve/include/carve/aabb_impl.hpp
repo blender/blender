@@ -316,6 +316,23 @@ namespace carve {
       return o;
     }
 
+    template<unsigned ndim>
+    double distance2(const aabb<3> &a, const vector<ndim> &v) {
+      double d2 = 0.0;
+      for (unsigned i = 0; i < ndim; ++i) {
+        double d = ::fabs(v.v[i] - a.pos.v[i]) - a.extent.v[i];
+        if (d > 0.0) {
+          d2 += d * d;
+        }
+      }
+      return d2;
+    }
+
+    template<unsigned ndim>
+    double distance(const aabb<3> &a, const vector<ndim> &v) {
+      return ::sqrt(distance2(a, v));
+    }
+
     template<>
     inline bool aabb<3>::intersects(const ray<3> &ray) const {
       vector<3> t = pos - ray.v;

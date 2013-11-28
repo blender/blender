@@ -45,56 +45,57 @@ namespace carve {
 
     template<typename iter_t, typename adapt_t>
     bool fitPlane(iter_t begin, iter_t end, adapt_t adapt, Plane &plane) {
-      Vector centroid;
-      carve::geom::centroid(begin, end, adapt, centroid);
-      iter_t i;
+      std::vector<Vector> p;
+      for (; begin != end; ++begin) {
+        p.push_back(adapt(*begin));
+      }
 
-      Vector n = Vector::ZERO();
-      Vector v;
-      Vector p1, p2, p3, c1, c2;
-      if (begin == end) return false;
+      if (p.size() < 3) {
+        return false;
+      }
 
-      i = begin;
-      p1 = c1 = adapt(*i); if (++i == end) return false;
-      p2 = c2 = adapt(*i); if (++i == end) return false;
+      Vector C;
+      carve::geom::centroid(p.begin(), p.end(), C);
 
-#if defined(CARVE_DEBUG)
-      size_t N = 2;
-#endif
-      do {
-        p3 = adapt(*i);
-        v = cross(p3 - p2, p1 - p2);
-        if (v.v[largestAxis(v)]) v.negate();
-        n += v;
-        p1 = p2; p2 = p3;
-#if defined(CARVE_DEBUG)
-        ++N;
-#endif
-      } while (++i != end);
+      Vector n;
 
-      p1 = p2; p2 = p3; p3 = c1;
-      v = cross(p3 - p2, p1 - p2);
-      if (v.v[largestAxis(v)]) v.negate();
-      n += v;
+      if (p.size() == 3) {
+        n = cross(p[1] - p[0], p[2] - p[0]);
+      } else {
+        const size_t N = p.size();
 
-      p1 = p2; p2 = p3; p3 = c2;
-      v = cross(p3 - p2, p1 - p2);
-      if (v.v[largestAxis(v)]) v.negate();
-      n += v;
+        n = cross(p[N-1] - C, p[0] - C);
+        if (n < Vector::ZERO()) n.negate();
+        for (size_t i = 1; i < p.size(); ++i) {
+          Vector v = cross(p[i] - C, p[i-1] - C);
+          if (v < Vector::ZERO()) v.negate();
+          n += v;
+        }
+      }
 
-      n.normalize();
+      double l = n.length();
+
+      if (l == 0.0) {
+        n.x = 1.0;
+        n.y = 0.0;
+        n.z = 0.0;
+      } else {
+        n.normalize();
+      }
+
       plane.N = n;
-      plane.d = -dot(n, centroid);
+      plane.d = -dot(n, C);
+
 #if defined(CARVE_DEBUG)
-      if (N > 3) {
-        std::cerr << "N = " << N << " fitted distance:";
-        for (i = begin; i != end; ++i) {
-          Vector p = adapt(*i);
-          std::cerr << " {" << p << "} " << distance(plane, p);
+      if (p.size() > 3) {
+        std::cerr << "N-gon with " << p.size() << " vertices: fitted distance:";
+        for (size_t i = 0; i < N; ++i) {
+          std::cerr << " {" << p[i] << "} " << distance(plane, p[i]);
         }
         std::cerr << std::endl;
       }
 #endif
+
       return true;
     }
 

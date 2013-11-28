@@ -138,6 +138,9 @@ namespace carve {
     template<unsigned ndim, typename iter_t, typename adapt_t>
     void bounds(iter_t begin, iter_t end, adapt_t adapt, vector<ndim> &min, vector<ndim> &max);
 
+    template<unsigned ndim, typename iter_t>
+    void centroid(iter_t begin, iter_t end, vector<ndim> &c);
+
     template<unsigned ndim, typename iter_t, typename adapt_t>
     void centroid(iter_t begin, iter_t end, adapt_t adapt, vector<ndim> &c);
 
@@ -300,6 +303,7 @@ namespace carve {
 
       aabb<ndim> getAABB() const;
 
+      tri() { }
       tri(vector_t _v[3]);
       tri(const vector_t &a, const vector_t &b, const vector_t &c);
 

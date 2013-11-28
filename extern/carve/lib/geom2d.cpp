@@ -177,12 +177,12 @@ namespace carve {
           break;
         }
         case INTERSECTION_PP: {
-          out.push_back(PolyIntersectionInfo(INTERSECT_VERTEX, e.ipoint, i + e.p2 - 2));
+          out.push_back(PolyIntersectionInfo(INTERSECT_VERTEX, e.ipoint, i + (size_t)e.p2 - 2));
           count++;
           break;
         }
         case INTERSECTION_LP: {
-          out.push_back(PolyIntersectionInfo(INTERSECT_VERTEX, e.ipoint, i + e.p2 - 2));
+          out.push_back(PolyIntersectionInfo(INTERSECT_VERTEX, e.ipoint, i + (size_t)e.p2 - 2));
           count++;
           break;
         }
@@ -192,7 +192,9 @@ namespace carve {
           break;
         }
         case COLINEAR: {
-          int n1 = (int)i, n2 = (int)j;
+          size_t n1 = i;
+          size_t n2 = j;
+
           P2 q1 = points[i], q2 = points[j];
 
           if (q2 < q1) { std::swap(q1, q2); std::swap(n1, n2); }

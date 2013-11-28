@@ -59,18 +59,18 @@ namespace carve {
 
       for (size_t i = 0; i != N; ++i) {
         vout.push_back(*vptr[i]);
-        vmap[vertexToIndex_fast(vptr[i])] = &vout[i];
+        vmap[(size_t)vertexToIndex_fast(vptr[i])] = &vout[i];
       }
 
       for (size_t i = 0; i < faces.size(); ++i) {
         face_t &f = faces[i];
         for (size_t j = 0; j < f.nVertices(); ++j) {
-          f.vertex(j) = vmap[vertexToIndex_fast(f.vertex(j))];
+          f.vertex(j) = vmap[(size_t)vertexToIndex_fast(f.vertex(j))];
         }
       }
       for (size_t i = 0; i < edges.size(); ++i) {
-        edges[i].v1 = vmap[vertexToIndex_fast(edges[i].v1)];
-        edges[i].v2 = vmap[vertexToIndex_fast(edges[i].v2)];
+        edges[i].v1 = vmap[(size_t)vertexToIndex_fast(edges[i].v1)];
+        edges[i].v2 = vmap[(size_t)vertexToIndex_fast(edges[i].v2)];
       }
 
       vout.swap(vertices);
@@ -89,7 +89,6 @@ namespace carve {
 
       int r = 1;
       for (size_t i = 0; i < f->nEdges(); ++i) {
-        const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(f->edge(i))];
         const face_t *f2 = connectedFace(f, f->edge(i));
         if (f2) {
           r += _faceNeighbourhood(f2, depth - 1, (*result));
@@ -114,7 +113,7 @@ namespace carve {
       tagable::tag_begin();
 
       int r = 0;
-      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(e)];
+      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[(size_t)edgeToIndex_fast(e)];
       for (size_t i = 0; i < edge_faces.size(); ++i) {
         const face_t *f = edge_faces[i];
         if (f && f->manifold_id == m_id) { r += _faceNeighbourhood(f, depth, &result); }
@@ -129,7 +128,7 @@ namespace carve {
       tagable::tag_begin();
 
       int r = 0;
-      const std::vector<const face_t *> &vertex_faces = connectivity.vertex_to_face[vertexToIndex_fast(v)];
+      const std::vector<const face_t *> &vertex_faces = connectivity.vertex_to_face[(size_t)vertexToIndex_fast(v)];
       for (size_t i = 0; i < vertex_faces.size(); ++i) {
         const face_t *f = vertex_faces[i];
         if (f && f->manifold_id == m_id) { r += _faceNeighbourhood(f, depth, &result); }
@@ -142,7 +141,7 @@ namespace carve {
     // accessing connectivity information.
     template<typename T>
     int Geometry<3>::vertexToEdges(const vertex_t *v, T result) const {
-      const std::vector<const edge_t *> &e = connectivity.vertex_to_edge[vertexToIndex_fast(v)];
+      const std::vector<const edge_t *> &e = connectivity.vertex_to_edge[(size_t)vertexToIndex_fast(v)];
       std::copy(e.begin(), e.end(), result);
       return e.size();
     }
@@ -151,7 +150,7 @@ namespace carve {
 
     template<typename T>
     int Geometry<3>::vertexToFaces(const vertex_t *v, T result) const {
-      const std::vector<const face_t *> &vertex_faces = connectivity.vertex_to_face[vertexToIndex_fast(v)];
+      const std::vector<const face_t *> &vertex_faces = connectivity.vertex_to_face[(size_t)vertexToIndex_fast(v)];
       int c = 0;
       for (size_t i = 0; i < vertex_faces.size(); ++i) {
         *result++ = vertex_faces[i]; ++c;
@@ -163,7 +162,7 @@ namespace carve {
 
     template<typename T>
     int Geometry<3>::edgeToFaces(const edge_t *e, T result) const {
-      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(e)];
+      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[(size_t)edgeToIndex_fast(e)];
       int c = 0;
       for (size_t i = 0; i < edge_faces.size(); ++i) {
         if (edge_faces[i] != NULL) { *result++ = edge_faces[i]; ++c; }
@@ -174,7 +173,7 @@ namespace carve {
 
 
     inline const Geometry<3>::face_t *Geometry<3>::connectedFace(const face_t *f, const edge_t *e) const {
-      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(e)];
+      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[(size_t)edgeToIndex_fast(e)];
       for (size_t i = 0; i < (edge_faces.size() & ~1U); i++) {
         if (edge_faces[i] == f) return edge_faces[i^1];
       }
@@ -185,7 +184,7 @@ namespace carve {
 
     inline void Polyhedron::invert(int m_id) {
       std::vector<bool> selected_manifolds(manifold_is_closed.size(), false);
-      if (m_id >=0 && (unsigned)m_id < selected_manifolds.size()) selected_manifolds[m_id] = true;
+      if (m_id >=0 && (size_t)m_id < selected_manifolds.size()) selected_manifolds[(size_t)m_id] = true;
       invert(selected_manifolds);
     }
 
@@ -198,7 +197,7 @@ namespace carve {
 
 
     inline bool Polyhedron::edgeOnManifold(const edge_t *e, int m_id) const {
-      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(e)];
+      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[(size_t)edgeToIndex_fast(e)];
 
       for (size_t i = 0; i < edge_faces.size(); ++i) {
         if (edge_faces[i] && edge_faces[i]->manifold_id == m_id) return true;
@@ -207,7 +206,7 @@ namespace carve {
     }
 
     inline bool Polyhedron::vertexOnManifold(const vertex_t *v, int m_id) const {
-      const std::vector<const face_t *> &f = connectivity.vertex_to_face[vertexToIndex_fast(v)];
+      const std::vector<const face_t *> &f = connectivity.vertex_to_face[(size_t)vertexToIndex_fast(v)];
 
       for (size_t i = 0; i < f.size(); ++i) {
         if (f[i]->manifold_id == m_id) return true;
@@ -219,7 +218,7 @@ namespace carve {
 
     template<typename T>
     int Polyhedron::edgeManifolds(const edge_t *e, T result) const {
-      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[edgeToIndex_fast(e)];
+      const std::vector<const face_t *> &edge_faces = connectivity.edge_to_face[(size_t)edgeToIndex_fast(e)];
 
       for (size_t i = 0; i < (edge_faces.size() & ~1U); i += 2) {
         const face_t *f1 = edge_faces[i];
@@ -230,14 +229,14 @@ namespace carve {
         else if (f2)
           *result++ = f2->manifold_id;
       }
-      return edge_faces.size() >> 1;
+      return (int)(edge_faces.size() >> 1);
     }
 
 
 
     template<typename T>
     int Polyhedron::vertexManifolds(const vertex_t *v, T result) const {
-      const std::vector<const face_t *> &f = connectivity.vertex_to_face[vertexToIndex_fast(v)];
+      const std::vector<const face_t *> &f = connectivity.vertex_to_face[(size_t)vertexToIndex_fast(v)];
       std::set<int> em;
 
       for (size_t i = 0; i < f.size(); ++i) {

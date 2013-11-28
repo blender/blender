@@ -347,7 +347,7 @@ namespace carve {
     PolyInclusionInfo pointInPoly(const std::vector<T> &points, adapt_t adapt, const P2 &p) {
       P2Vector::size_type l = points.size();
       for (unsigned i = 0; i < l; i++) {
-        if (equal(adapt(points[i]), p)) return PolyInclusionInfo(POINT_VERTEX, i);
+        if (equal(adapt(points[i]), p)) return PolyInclusionInfo(POINT_VERTEX, (int)i);
       }
 
       for (unsigned i = 0; i < l; i++) {
@@ -358,7 +358,7 @@ namespace carve {
             std::min(adapt(points[i]).y, adapt(points[j]).y) - EPSILON < p.y &&
             std::max(adapt(points[i]).y, adapt(points[j]).y) + EPSILON > p.y &&
             distance2(carve::geom::rayThrough(adapt(points[i]), adapt(points[j])), p) < EPSILON2) {
-          return PolyInclusionInfo(POINT_EDGE, i);
+          return PolyInclusionInfo(POINT_EDGE, (int)i);
         }
       }
 

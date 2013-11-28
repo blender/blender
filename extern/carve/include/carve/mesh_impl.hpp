@@ -606,33 +606,78 @@ namespace carve {
 
 
     template<unsigned ndim>
+    int Mesh<ndim>::orientationAtVertex(edge_t *e_base) {
+#if defined(CARVE_DEBUG)
+      std::cerr << "warning: vertex orientation not defined for ndim=" << ndim << std::endl;
+#endif
+      return 0;
+    }
+
+
+
+    template<>
+    inline int Mesh<3>::orientationAtVertex(edge_t *e_base) {
+      edge_t *e = e_base;
+      vertex_t::vector_t v_base = e->v1()->v;
+      std::vector<vertex_t::vector_t> v_edge;
+
+      if (v_edge.size() < 3) {
+        return 0;
+      }
+
+      do {
+        v_edge.push_back(e->v2()->v);
+        e = e->rev->next;
+      } while (e != e_base);
+
+      const size_t N = v_edge.size();
+
+      for (size_t i = 0; i < N; ++i) {
+        size_t j = (i + 1) % N;
+
+        double o_hi = 0.0;
+        double o_lo = 0.0;
+
+        for (size_t k = (j + 1) % N; k != i; k = (k + 1) % N) {
+          double o = carve::geom3d::orient3d(v_edge[i], v_base, v_edge[j], v_edge[k]);
+          o_hi = std::max(o_hi, o);
+          o_lo = std::max(o_lo, o);
+        }
+
+        if (o_lo >= 0.0) return +1;
+        if (o_hi <= 0.0) return -1;
+      }
+
+      return 0;
+    }
+
+
+
+    template<unsigned ndim>
     void Mesh<ndim>::calcOrientation() {
       if (open_edges.size() || !closed_edges.size()) {
         is_negative = false;
-      } else {
-        edge_t *emin = closed_edges[0];
-        if (emin->rev->v1()->v < emin->v1()->v) emin = emin->rev;
-        for (size_t i = 1; i < closed_edges.size(); ++i) {
-          if (closed_edges[i]->v1()->v      < emin->v1()->v) emin = closed_edges[i];
-          if (closed_edges[i]->rev->v1()->v < emin->v1()->v) emin = closed_edges[i]->rev;
-        }
-
-        std::vector<face_t *> min_faces;
-        edge_t *e = emin;
-        do {
-          min_faces.push_back(e->face);
-          CARVE_ASSERT(e->rev != NULL);
-          e = e->rev->next;
-          CARVE_ASSERT(e->v1() == emin->v1());
-          CARVE_ASSERT(e->v1()->v <= e->v2()->v);
-        } while (e != emin);
-
-        double max_abs_x = 0.0;
-        for (size_t f = 0; f < min_faces.size(); ++f) {
-          if (fabs(min_faces[f]->plane.N.x) > fabs(max_abs_x)) max_abs_x = min_faces[f]->plane.N.x;
-        }
-        is_negative =  max_abs_x > 0.0;
+        return;
       }
+
+      edge_t *emin = closed_edges[0];
+
+      if (emin->rev->v1()->v < emin->v1()->v) emin = emin->rev;
+
+      for (size_t i = 1; i < closed_edges.size(); ++i) {
+        if (closed_edges[i]->v1()->v      < emin->v1()->v) emin = closed_edges[i];
+        if (closed_edges[i]->rev->v1()->v < emin->v1()->v) emin = closed_edges[i]->rev;
+      }
+
+      int orientation = orientationAtVertex(emin);
+
+#if defined(CARVE_DEBUG)
+      if (orientation == 0) {
+        std::cerr << "warning: could not determine orientation for mesh " << this << std::endl;
+      }
+#endif
+
+      is_negative = orientation == -1;
     }
 
 
@@ -747,7 +792,9 @@ namespace carve {
       std::vector<vertex_t *> v;
       size_t p = 0;
       for (size_t i = 0; i < n_faces; ++i) {
-        const size_t N = face_indices[p++];
+        CARVE_ASSERT(face_indices[p] > 1);
+
+        const size_t N = (size_t)face_indices[p++];
         v.clear();
         v.reserve(N);
         for (size_t j = 0; j < N; ++j) {

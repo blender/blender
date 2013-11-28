@@ -35,11 +35,11 @@ void map_histogram(std::ostream &out, const MAP &map) {
     }
     hist[n]++;
   }
-  int total = map.size();
+  int total = (int)map.size();
   std::string bar(50, '*');
   for (size_t i = 0; i < hist.size(); i++) {
     if (hist[i] > 0) {
-      out << std::setw(5) << i << " : " << std::setw(5) << hist[i] << " " << bar.substr(50 - hist[i] * 50 / total) << std::endl;
+      out << std::setw(5) << i << " : " << std::setw(5) << hist[i] << " " << bar.substr((size_t)(50 - hist[i] * 50 / total)) << std::endl;
     }
   }
 }

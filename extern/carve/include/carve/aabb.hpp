@@ -120,6 +120,12 @@ namespace carve {
     template<unsigned ndim>
     std::ostream &operator<<(std::ostream &o, const aabb<ndim> &a);
 
+    template<unsigned ndim>
+    double distance2(const aabb<3> &a, const vector<ndim> &v);
+
+    template<unsigned ndim>
+    double distance(const aabb<3> &a, const vector<ndim> &v);
+
 
 
     template<unsigned ndim, typename obj_t>

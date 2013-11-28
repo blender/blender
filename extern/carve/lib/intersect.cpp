@@ -407,6 +407,17 @@ void carve::csg::CSG::Hooks::resultFace(const meshset_t::face_t *new_face,
   }
 }
 
+void carve::csg::CSG::Hooks::edgeDivision(const meshset_t::edge_t *orig_edge,
+                                          size_t orig_edge_idx,
+                                          const meshset_t::vertex_t *v1,
+                                          const meshset_t::vertex_t *v2) {
+  for (std::list<Hook *>::iterator j = hooks[EDGE_DIVISION_HOOK].begin();
+       j != hooks[EDGE_DIVISION_HOOK].end();
+       ++j) {
+    (*j)->edgeDivision(orig_edge, orig_edge_idx, v1, v2);
+  }
+}
+
 void carve::csg::CSG::Hooks::registerHook(Hook *hook, unsigned hook_bits) {
   for (unsigned i = 0; i < HOOK_MAX; ++i) {
     if (hook_bits & (1U << i)) {

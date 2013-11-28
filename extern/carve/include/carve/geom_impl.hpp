@@ -26,13 +26,26 @@ namespace carve {
 
     template<unsigned ndim>
     double vector<ndim>::length2() const { return dot(*this, *this); }
+
     template<unsigned ndim>
     double vector<ndim>::length() const { return sqrt(dot(*this, *this)); }
 
     template<unsigned ndim>
-    vector<ndim> &vector<ndim>::normalize() { *this /= length(); return *this; }
+    vector<ndim> &vector<ndim>::normalize() {
+#if defined(CARVE_DEBUG)
+      CARVE_ASSERT(length() > 0.0);
+#endif
+      *this /= length();
+      return *this;
+    }
+
     template<unsigned ndim>
-    vector<ndim> vector<ndim>::normalized() const { return *this / length(); }
+    vector<ndim> vector<ndim>::normalized() const {
+#if defined(CARVE_DEBUG)
+      CARVE_ASSERT(length() > 0.0);
+#endif
+      return *this / length();
+    }
 
     template<unsigned ndim>
     bool vector<ndim>::exactlyZero() const {
@@ -289,24 +302,24 @@ namespace carve {
 
     template<unsigned ndim>
     int smallestAxis(const vector<ndim> &a) {
-      int x = 0;
-      double y = fabs(a[0]);
+      int idx = 0;
+      double lo = fabs(a[0]);
       for (unsigned i = 1; i < ndim; ++i) {
-        double z = fabs(a[i]);
-        if (z <= y) { y = z; x = i; }
+        double val = fabs(a[i]);
+        if (val <= lo) { lo = val; idx = (int)i; }
       }
-      return x;
+      return idx;
     }
 
     template<unsigned ndim>
     int largestAxis(const vector<ndim> &a) {
-      int x = 0;
-      double y = fabs(a[0]);
+      int idx = 0;
+      double hi = fabs(a[0]);
       for (unsigned i = 1; i < ndim; ++i) {
-        double z = fabs(a[i]);
-        if (z > y) { y = z; x = i; }
+        double val = fabs(a[i]);
+        if (val > hi) { hi = val; idx = (int)i; }
       }
-      return x;
+      return idx;
     }
 
     template<unsigned ndim>
@@ -365,11 +378,19 @@ namespace carve {
       }
     }
 
+    template<unsigned ndim, typename iter_t>
+    void centroid(iter_t begin, iter_t end, vector<ndim> &c) {
+      c.setZero();
+      int n = 0;
+      for (; begin != end; ++begin, ++n) { c += *begin; }
+      c /= double(n);
+    }
+
     template<unsigned ndim, typename iter_t, typename adapt_t>
     void centroid(iter_t begin, iter_t end, adapt_t adapt, vector<ndim> &c) {
       c.setZero();
       int n = 0;
-      while (begin != end) { c += adapt(*begin++); ++n; }
+      for (; begin != end; ++begin, ++n) { c += adapt(*begin); }
       c /= double(n);
     }
 

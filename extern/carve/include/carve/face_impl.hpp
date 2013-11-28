@@ -42,7 +42,9 @@ namespace carve {
     template<unsigned ndim>
     template<typename iter_t>
     Face<ndim> *Face<ndim>::init(const Face<ndim> *base, iter_t vbegin, iter_t vend, bool flipped) {
-      vertices.reserve(std::distance(vbegin, vend));
+      CARVE_ASSERT(vbegin < vend);
+
+      vertices.reserve((size_t)std::distance(vbegin, vend));
 
       if (flipped) {
         std::reverse_copy(vbegin, vend, std::back_inserter(vertices));

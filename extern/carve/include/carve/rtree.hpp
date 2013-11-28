@@ -346,8 +346,10 @@ namespace carve {
                                           std::vector<size_t>::iterator begin,
                                           std::vector<size_t>::iterator end,
                                           size_t part_size) {
+        CARVE_ASSERT(begin < end);
+
         partition_info best(std::numeric_limits<double>::max(), 0);
-        const size_t N = std::distance(begin, end);
+        const size_t N = (size_t)std::distance(begin, end);
 
         std::vector<double> rhs_vol(N, 0.0);
 
@@ -375,7 +377,9 @@ namespace carve {
                             size_t part_size,
                             std::vector<size_t> &part_num,
                             size_t &part_next) {
-        const size_t N = std::distance(begin, end);
+        CARVE_ASSERT(begin < end);
+
+        const size_t N = (size_t)std::distance(begin, end);
 
         partition_info best;
         partition_info curr;
@@ -406,8 +410,8 @@ namespace carve {
           }
         }
 
-        for (size_t j = 0; j < best.partition_pos; ++j) part_num[begin[j]] = part_curr;
-        for (size_t j = best.partition_pos; j < N; ++j) part_num[begin[j]] = part_next;
+        for (size_t j = 0; j < best.partition_pos; ++j) part_num[begin[(ssize_t)j]] = part_curr;
+        for (size_t j = best.partition_pos; j < N; ++j) part_num[begin[(ssize_t)j]] = part_next;
         ++part_next;
 
         if (best.partition_pos > part_size) {

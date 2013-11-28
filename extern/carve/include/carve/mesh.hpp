@@ -688,6 +688,7 @@ namespace carve {
 
       void cacheEdges();
 
+      int orientationAtVertex(edge_t *);
       void calcOrientation();
 
       void recalc() {

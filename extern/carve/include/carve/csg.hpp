@@ -87,6 +87,11 @@ namespace carve {
                                 const meshset_t::face_t * /* orig_face */,
                                 bool /* flipped */) {
         }
+        virtual void edgeDivision(const meshset_t::edge_t * /* orig_edge */,
+                                  size_t /* orig_edge_idx */,
+                                  const meshset_t::vertex_t * /* v1 */,
+                                  const meshset_t::vertex_t * /* v2 */) {
+        }
 
         virtual ~Hook() {
         }
@@ -103,11 +108,13 @@ namespace carve {
           RESULT_FACE_HOOK         = 0,
           PROCESS_OUTPUT_FACE_HOOK = 1,
           INTERSECTION_VERTEX_HOOK = 2,
-          HOOK_MAX                 = 3,
+          EDGE_DIVISION_HOOK       = 3,
+          HOOK_MAX                 = 4,
 
           RESULT_FACE_BIT          = 0x0001,
           PROCESS_OUTPUT_FACE_BIT  = 0x0002, 
-          INTERSECTION_VERTEX_BIT  = 0x0004
+          INTERSECTION_VERTEX_BIT  = 0x0004,
+          EDGE_DIVISION_BIT        = 0x0008
        };
 
         std::vector<std::list<Hook *> > hooks;
@@ -124,6 +131,11 @@ namespace carve {
         void resultFace(const meshset_t::face_t *new_face,
                         const meshset_t::face_t *orig_face,
                         bool flipped);
+
+        void edgeDivision(const meshset_t::edge_t *orig_edge,
+                          size_t orig_edge_idx,
+                          const meshset_t::vertex_t *v1,
+                          const meshset_t::vertex_t *v2);
 
         void registerHook(Hook *hook, unsigned hook_bits);
         void unregisterHook(Hook *hook);
