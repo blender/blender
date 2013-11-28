@@ -17,7 +17,7 @@ DO_OUT_PDF=false
 
 BLENDER="./blender.bin"
 SSH_USER="ideasman42"
-SSH_HOST=$SSH_USER"@emo.blender.org"
+SSH_HOST=$SSH_USER"@blender.org"
 SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation" # blender_python_api_VERSION, added after
 
 # ----------------------------------------------------------------------------
@@ -99,18 +99,18 @@ fi
 if $DO_UPLOAD ; then
 
 	cp $SPHINXBASE/sphinx-out/contents.html $SPHINXBASE/sphinx-out/index.html
-	ssh $SSH_USER@emo.blender.org 'rm -rf '$SSH_UPLOAD_FULL'/*'
+	ssh $SSH_USER@blender.org 'rm -rf '$SSH_UPLOAD_FULL'/*'
 	rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/* $SSH_HOST:$SSH_UPLOAD_FULL/
 
 	## symlink the dir to a static URL
-	#ssh $SSH_USER@emo.blender.org 'rm '$SSH_UPLOAD'/250PythonDoc && ln -s '$SSH_UPLOAD_FULL' '$SSH_UPLOAD'/250PythonDoc'
+	#ssh $SSH_USER@blender.org 'rm '$SSH_UPLOAD'/250PythonDoc && ln -s '$SSH_UPLOAD_FULL' '$SSH_UPLOAD'/250PythonDoc'
 
 	# better redirect
-	ssh $SSH_USER@emo.blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/250PythonDoc/index.html'
+	ssh $SSH_USER@blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/250PythonDoc/index.html'
 
 	# redirect for release only so wiki can point here
 	if [ "$blender_version_cycle" == "release" ] ; then
-		ssh $SSH_USER@emo.blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/blender_python_api/index.html'
+		ssh $SSH_USER@blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/blender_python_api/index.html'
 	fi
 
 	if $DO_OUT_PDF ; then
