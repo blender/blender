@@ -64,7 +64,7 @@ bool Tree::addSegment(const Segment& segment, const std::string& segment_name,
         return false;
     pair<SegmentMap::iterator, bool> retval;
     //insert new element
-	TreeElement elem(segment, parent, nrOfJoints);
+	TreeElement elem(segment, *parent, nrOfJoints);
 	std::pair<std::string, TreeElement> val(segment_name, elem);
 
     retval = segments.insert(val);
