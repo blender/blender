@@ -576,7 +576,15 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
 	if (t->total == 1) {
-		setConstraint(t, t->data->axismtx, mode, text);
+		float axismtx[3][3];
+		if (t->flag & T_EDIT) {
+			mul_m3_m3m3(axismtx, t->obedit_mat, t->data->axismtx);
+		}
+		else {
+			copy_m3_m3(axismtx, t->data->axismtx);
+		}
+
+		setConstraint(t, axismtx, mode, text);
 	}
 	else {
 		BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
