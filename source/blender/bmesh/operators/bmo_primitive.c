@@ -265,10 +265,10 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 
 	for (y = 1; y < ytot; y++) {
 		for (x = 1; x < xtot; x++) {
-			vquad[0] = varr[XY(x - 1,     y)];
-			vquad[1] = varr[XY(x - 1, y - 1)];
-			vquad[2] = varr[XY(x,     y - 1)];
-			vquad[3] = varr[XY(x,         y)];
+			vquad[0] = varr[XY(x - 1, y - 1)];
+			vquad[1] = varr[XY(x,     y - 1)];
+			vquad[2] = varr[XY(x,         y)];
+			vquad[3] = varr[XY(x - 1,     y)];
 
 			BM_face_create_verts(bm, vquad, 4, NULL, BM_CREATE_NOP, true);
 		}
