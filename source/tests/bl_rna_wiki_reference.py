@@ -108,7 +108,8 @@ def test_urls():
     print("")
 
     color_red = '\033[0;31m'
-    color_green = '\033[1;32m' color_normal = '\033[0m'
+    color_green = '\033[1;32m'
+    color_normal = '\033[0m'
 
     urls_fail = []
 
@@ -124,7 +125,7 @@ def test_urls():
             urls_fail.append(url)
 
     if urls_fail:
-        urls_len = "%d" % len(urls)
+        urls_len = "%d" % len(urls_fail)
         print("")
         print("------------" + "-" * len(urls_len))
         print("Failed URLS %s" % urls_len)
