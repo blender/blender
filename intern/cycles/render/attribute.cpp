@@ -147,6 +147,10 @@ const char *Attribute::standard_name(AttributeStandard std)
 		return "particle";
 	else if(std == ATTR_STD_CURVE_INTERCEPT)
 		return "curve_intercept";
+	else if(std == ATTR_STD_PTEX_FACE_ID)
+		return "ptex_face_id";
+	else if(std == ATTR_STD_PTEX_UV)
+		return "ptex_uv";
 	
 	return "";
 }
@@ -244,6 +248,12 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_POSITION_UNDISPLACED:
 			case ATTR_STD_MOTION_PRE:
 			case ATTR_STD_MOTION_POST:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_PTEX_FACE_ID:
+				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+				break;
+			case ATTR_STD_PTEX_UV:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
 				break;
 			default:

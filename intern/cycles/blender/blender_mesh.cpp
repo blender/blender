@@ -393,11 +393,16 @@ static void create_subd_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, PointerR
 	/* finalize subd mesh */
 	sdmesh.finish();
 
-	SubdParams sdparams(mesh, used_shaders[0], true);
+	/* parameters */
+	bool need_ptex = mesh->need_attribute(scene, ATTR_STD_PTEX_FACE_ID) ||
+	                 mesh->need_attribute(scene, ATTR_STD_PTEX_UV);
+
+	SubdParams sdparams(mesh, used_shaders[0], true, need_ptex);
 	sdparams.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
 	//scene->camera->update();
 	//sdparams.camera = scene->camera;
 
+	/* tesselate */
 	DiagSplit dsplit(sdparams);;
 	sdmesh.tessellate(&dsplit);
 }

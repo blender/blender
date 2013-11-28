@@ -28,6 +28,7 @@ public:
 	virtual void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v) = 0;
 	virtual bool is_triangle() { return false; }
 	virtual BoundBox bound() = 0;
+	virtual int ptex_face_id() { return -1; }
 };
 
 /* Linear Quad Patch */

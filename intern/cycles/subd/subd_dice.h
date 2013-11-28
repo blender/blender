@@ -35,17 +35,19 @@ struct SubdParams {
 	Mesh *mesh;
 	int shader;
 	bool smooth;
+	bool ptex;
 
 	int test_steps;
 	int split_threshold;
 	float dicing_rate;
 	Camera *camera;
 
-	SubdParams(Mesh *mesh_, int shader_, bool smooth_ = true)
+	SubdParams(Mesh *mesh_, int shader_, bool smooth_ = true, bool ptex_ = false)
 	{
 		mesh = mesh_;
 		shader = shader_;
 		smooth = smooth_;
+		ptex = ptex_;
 
 		test_steps = 3;
 		split_threshold = 1;
