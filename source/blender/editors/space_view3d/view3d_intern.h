@@ -204,6 +204,20 @@ void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
+/* view3d_camera_control.c */
+struct View3DCameraControl *ED_view3d_cameracontrol_aquire(
+        Scene *scene, View3D *v3d, RegionView3D *rv3d,
+        const bool use_parent_root);
+void ED_view3d_cameracontrol_update(
+        struct View3DCameraControl *vctrl,
+        const bool use_autokey,
+        struct bContext *C, const bool do_rotate, const bool do_translate);
+void ED_view3d_cameracontrol_release(
+        struct View3DCameraControl *vctrl,
+        const bool restore);
+Object *ED_view3d_cameracontrol_object_get(
+        struct View3DCameraControl *vctrl);
+
 /* view3d_toolbar.c */
 void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);
 void view3d_toolshelf_register(struct ARegionType *art);
