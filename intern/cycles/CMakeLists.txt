@@ -62,6 +62,10 @@ if(WITH_CYCLES_NETWORK)
 	add_definitions(-DWITH_NETWORK)
 endif()
 
+if(WITH_CYCLES_PTEX)
+	add_definitions(-DWITH_PTEX)
+endif()
+
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_OSL)
 	add_definitions(-DOSL_STATIC_LIBRARY)

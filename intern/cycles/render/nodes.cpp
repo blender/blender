@@ -217,6 +217,21 @@ ShaderNode *ImageTextureNode::clone() const
 	return node;
 }
 
+void ImageTextureNode::attributes(AttributeRequestSet *attributes)
+{
+#ifdef WITH_PTEX
+	/* todo: avoid loading other texture coordinates when using ptex,
+	 * and hide texture coordinate socket in the UI */
+	if (string_endswith(filename, ".ptx")) {
+		/* ptex */
+		attributes->add(ATTR_STD_PTEX_FACE_ID);
+		attributes->add(ATTR_STD_PTEX_UV);
+	}
+#endif
+
+	ShaderNode::attributes(attributes);
+}
+
 void ImageTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
@@ -350,6 +365,19 @@ ShaderNode *EnvironmentTextureNode::clone() const
 	node->is_float = -1;
 	node->is_linear = false;
 	return node;
+}
+
+void EnvironmentTextureNode::attributes(AttributeRequestSet *attributes)
+{
+#ifdef WITH_PTEX
+	if (string_endswith(filename, ".ptx")) {
+		/* ptex */
+		attributes->add(ATTR_STD_PTEX_FACE_ID);
+		attributes->add(ATTR_STD_PTEX_UV);
+	}
+#endif
+
+	ShaderNode::attributes(attributes);
 }
 
 void EnvironmentTextureNode::compile(SVMCompiler& compiler)

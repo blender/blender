@@ -66,6 +66,7 @@ public:
 	SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
 	~ImageTextureNode();
 	ShaderNode *clone() const;
+	void attributes(AttributeRequestSet *attributes);
 
 	ImageManager *image_manager;
 	int slot;
@@ -87,6 +88,7 @@ public:
 	SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
 	~EnvironmentTextureNode();
 	ShaderNode *clone() const;
+	void attributes(AttributeRequestSet *attributes);
 
 	ImageManager *image_manager;
 	int slot;

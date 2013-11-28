@@ -28,6 +28,10 @@
 #include <OSL/oslexec.h>
 #include <OSL/oslclosure.h>
 
+#ifdef WITH_PTEX
+class PtexCache;
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 class Object;
@@ -148,6 +152,9 @@ public:
 private:
 	KernelGlobals *kernel_globals;
 	OSL::TextureSystem *osl_ts;
+#ifdef WITH_PTEX
+	PtexCache *ptex_cache;
+#endif
 };
 
 CCL_NAMESPACE_END

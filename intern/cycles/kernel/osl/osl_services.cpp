@@ -44,6 +44,10 @@
 #include "kernel_camera.h"
 #include "kernel_shader.h"
 
+#ifdef WITH_PTEX
+#include <Ptexture.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */
@@ -98,10 +102,18 @@ OSLRenderServices::OSLRenderServices()
 {
 	kernel_globals = NULL;
 	osl_ts = NULL;
+
+#ifdef WITH_PTEX
+	size_t maxmem = 16384 * 1024;
+	ptex_cache = PtexCache::create(0, maxmem);
+#endif
 }
 
 OSLRenderServices::~OSLRenderServices()
 {
+#ifdef WITH_PTEX
+	ptex_cache->release();
+#endif
 }
 
 void OSLRenderServices::thread_init(KernelGlobals *kernel_globals_, OSL::TextureSystem *osl_ts_)
@@ -776,6 +788,45 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
 	OSL::TextureSystem *ts = osl_ts;
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
 	KernelGlobals *kg = sd->osl_globals;
+
+#ifdef WITH_PTEX
+	/* todo: this is just a quick hack, only works with particular files and options */
+	if(string_endswith(filename.string(), ".ptx")) {
+		float2 uv;
+		int faceid;
+
+		if(!primitive_ptex(kg, sd, &uv, &faceid))
+			return false;
+
+		float u = uv.x;
+		float v = uv.y;
+		float dudx = 0.0f;
+		float dvdx = 0.0f;
+		float dudy = 0.0f;
+		float dvdy = 0.0f;
+
+		Ptex::String error;
+		PtexPtr<PtexTexture> r(ptex_cache->get(filename.c_str(), error));
+
+		if(!r) {
+			//std::cerr << error.c_str() << std::endl;
+			return false;
+		}
+
+		bool mipmaplerp = false;
+		float sharpness = 1.0f;
+		PtexFilter::Options opts(PtexFilter::f_bicubic, mipmaplerp, sharpness);
+		PtexPtr<PtexFilter> f(PtexFilter::getFilter(r, opts));
+
+		f->eval(result, options.firstchannel, options.nchannels, faceid, u, v, dudx, dvdx, dudy, dvdy);
+
+		for(int c = r->numChannels(); c < options.nchannels; c++)
+			result[c] = result[0];
+
+		return true;
+	}
+#endif
+
 	OSLThreadData *tdata = kg->osl_tdata;
 	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
 

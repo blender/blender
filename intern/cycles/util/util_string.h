@@ -40,6 +40,7 @@ string string_printf(const char *format, ...) PRINTF_ATTRIBUTE;
 
 bool string_iequals(const string& a, const string& b);
 void string_split(vector<string>& tokens, const string& str, const string& separators = "\t ");
+bool string_endswith(const string& s, const char *end);
 
 CCL_NAMESPACE_END
 

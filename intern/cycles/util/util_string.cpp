@@ -86,5 +86,15 @@ void string_split(vector<string>& tokens, const string& str, const string& separ
 			tokens.push_back(token);
 }
 
+bool string_endswith(const string& s, const char *end)
+{
+	size_t len = strlen(end);
+
+	if(len > s.size())
+		return 0;
+	else
+        return strncmp(s.c_str() + s.size() - len, end, len) == 0;
+}
+
 CCL_NAMESPACE_END
 
