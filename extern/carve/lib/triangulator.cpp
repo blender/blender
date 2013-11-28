@@ -27,6 +27,13 @@
 
 #include <algorithm>
 
+// Support for latest Clang/LLVM on FreeBSD which does have different libcxx.
+//
+// TODO(sergey): Move it some some more generic header with platform-specific
+//               declarations.
+#ifdef _LIBCPP_VERSION
+#  define __is_heap is_heap
+#endif
 
 namespace {
   // private code related to hole patching.

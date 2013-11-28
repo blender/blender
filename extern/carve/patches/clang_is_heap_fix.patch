@@ -1,0 +1,17 @@
+diff -r 2e6e59022e6e lib/triangulator.cpp
+--- a/lib/triangulator.cpp	Fri Nov 09 09:35:35 2012 +1100
++++ b/lib/triangulator.cpp	Thu Nov 28 13:34:52 2013 +0600
+@@ -27,6 +27,13 @@
+ 
+ #include <algorithm>
+ 
++// Support for latest Clang/LLVM on FreeBSD which does have different libcxx.
++//
++// TODO(sergey): Move it some some more generic header with platform-specific
++//               declarations.
++#ifdef _LIBCPP_VERSION
++#  define __is_heap is_heap
++#endif
+ 
+ namespace {
+   // private code related to hole patching.
