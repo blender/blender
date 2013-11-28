@@ -37,8 +37,6 @@ def FindPython():
     _libpath_arch = os.path.join(python, "lib", _arch)  # No lib64 stuff with recent deb-like distro afaik...
     _libs = ["libpython" + version + abi_flags + ext for ext in (".so", ".a")]
     for l in _libs:
-        print os.path.join(libpath, l), os.path.exists(os.path.join(libpath, l))
-        print os.path.join(_libpath_arch, l), os.path.exists(os.path.join(_libpath_arch, l))
         if not os.path.exists(os.path.join(libpath, l)) and os.path.exists(os.path.join(_libpath_arch, l)):
             libpath_arch = os.path.join(libpath, _arch)
             break
