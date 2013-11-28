@@ -50,6 +50,23 @@
 namespace ceres {
 namespace internal {
 
+enum LinearSolverTerminationType {
+  // Termination criterion was met.
+  LINEAR_SOLVER_SUCCESS,
+
+  // Solver ran for max_num_iterations and terminated before the
+  // termination tolerance could be satisfied.
+  LINEAR_SOLVER_NO_CONVERGENCE,
+
+  // Solver was terminated due to numerical problems, generally due to
+  // the linear system being poorly conditioned.
+  LINEAR_SOLVER_FAILURE,
+
+  // Solver failed with a fatal error that cannot be recovered from.
+  LINEAR_SOLVER_FATAL_ERROR
+};
+
+
 class LinearOperator;
 
 // Abstract base class for objects that implement algorithms for
@@ -74,6 +91,7 @@ class LinearSolver {
     Options()
         : type(SPARSE_NORMAL_CHOLESKY),
           preconditioner_type(JACOBI),
+          visibility_clustering_type(CANONICAL_VIEWS),
           dense_linear_algebra_library_type(EIGEN),
           sparse_linear_algebra_library_type(SUITE_SPARSE),
           use_postordering(false),
@@ -87,9 +105,8 @@ class LinearSolver {
     }
 
     LinearSolverType type;
-
     PreconditionerType preconditioner_type;
-
+    VisibilityClusteringType visibility_clustering_type;
     DenseLinearAlgebraLibraryType dense_linear_algebra_library_type;
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
 
@@ -243,12 +260,13 @@ class LinearSolver {
     Summary()
         : residual_norm(0.0),
           num_iterations(-1),
-          termination_type(FAILURE) {
+          termination_type(LINEAR_SOLVER_FAILURE) {
     }
 
     double residual_norm;
     int num_iterations;
     LinearSolverTerminationType termination_type;
+    string message;
   };
 
   virtual ~LinearSolver();

@@ -227,6 +227,7 @@ void CoordinateDescentMinimizer::Solve(Program* program,
   minimizer_options.evaluator = evaluator.get();
   minimizer_options.jacobian = jacobian.get();
   minimizer_options.trust_region_strategy = trust_region_strategy.get();
+  minimizer_options.is_silent = true;
 
   TrustRegionMinimizer minimizer;
   minimizer.Minimize(minimizer_options, parameter, summary);

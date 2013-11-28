@@ -90,6 +90,7 @@ struct NumericDiff {
       const CostFunctor* functor,
       double const* residuals_at_eval_point,
       const double relative_step_size,
+      int num_residuals,
       double **parameters,
       double *jacobian) {
     using Eigen::Map;
@@ -97,15 +98,21 @@ struct NumericDiff {
     using Eigen::RowMajor;
     using Eigen::ColMajor;
 
+    const int NUM_RESIDUALS =
+        (kNumResiduals != ceres::DYNAMIC ? kNumResiduals : num_residuals);
+
     typedef Matrix<double, kNumResiduals, 1> ResidualVector;
     typedef Matrix<double, kParameterBlockSize, 1> ParameterVector;
-    typedef Matrix<double, kNumResiduals, kParameterBlockSize,
+    typedef Matrix<double,
+                   kNumResiduals,
+                   kParameterBlockSize,
                    (kParameterBlockSize == 1 &&
-                    kNumResiduals > 1) ? ColMajor : RowMajor> JacobianMatrix;
+                    kNumResiduals > 1) ? ColMajor : RowMajor>
+        JacobianMatrix;
 
 
     Map<JacobianMatrix> parameter_jacobian(jacobian,
-                                           kNumResiduals,
+                                           NUM_RESIDUALS,
                                            kParameterBlockSize);
 
     // Mutate 1 element at a time and then restore.
@@ -125,16 +132,16 @@ struct NumericDiff {
 
     // For each parameter in the parameter block, use finite differences to
     // compute the derivative for that parameter.
+
+    ResidualVector residuals(NUM_RESIDUALS);
     for (int j = 0; j < kParameterBlockSize; ++j) {
       const double delta =
           (step_size(j) == 0.0) ? fallback_step_size : step_size(j);
 
       x_plus_delta(j) = x(j) + delta;
 
-      double residuals[kNumResiduals];  // NOLINT
-
       if (!EvaluateImpl<CostFunctor, N0, N1, N2, N3, N4, N5, N6, N7, N8, N9>(
-              functor, parameters, residuals, functor)) {
+              functor, parameters, residuals.data(), functor)) {
         return false;
       }
 
@@ -142,8 +149,7 @@ struct NumericDiff {
       // 1. Store residuals for the forward part.
       // 2. Subtract residuals for the backward (or 0) part.
       // 3. Divide out the run.
-      parameter_jacobian.col(j) =
-          Map<const ResidualVector>(residuals, kNumResiduals);
+      parameter_jacobian.col(j) = residuals;
 
       double one_over_delta = 1.0 / delta;
       if (kMethod == CENTRAL) {
@@ -151,17 +157,16 @@ struct NumericDiff {
         x_plus_delta(j) = x(j) - delta;
 
         if (!EvaluateImpl<CostFunctor, N0, N1, N2, N3, N4, N5, N6, N7, N8, N9>(
-                functor, parameters, residuals, functor)) {
+                functor, parameters, residuals.data(), functor)) {
           return false;
         }
 
-        parameter_jacobian.col(j) -=
-            Map<ResidualVector>(residuals, kNumResiduals, 1);
+        parameter_jacobian.col(j) -= residuals;
         one_over_delta /= 2;
       } else {
         // Forward difference only; reuse existing residuals evaluation.
         parameter_jacobian.col(j) -=
-            Map<const ResidualVector>(residuals_at_eval_point, kNumResiduals);
+            Map<const ResidualVector>(residuals_at_eval_point, NUM_RESIDUALS);
       }
       x_plus_delta(j) = x(j);  // Restore x_plus_delta.
 
@@ -186,6 +191,7 @@ struct NumericDiff<CostFunctor, kMethod, kNumResiduals,
       const CostFunctor* functor,
       double const* residuals_at_eval_point,
       const double relative_step_size,
+      const int num_residuals,
       double **parameters,
       double *jacobian) {
     LOG(FATAL) << "Control should never reach here.";

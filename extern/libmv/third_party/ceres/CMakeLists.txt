@@ -46,6 +46,7 @@ set(SRC
 	internal/ceres/block_jacobi_preconditioner.cc
 	internal/ceres/block_random_access_crs_matrix.cc
 	internal/ceres/block_random_access_dense_matrix.cc
+	internal/ceres/block_random_access_diagonal_matrix.cc
 	internal/ceres/block_random_access_matrix.cc
 	internal/ceres/block_random_access_sparse_matrix.cc
 	internal/ceres/block_sparse_matrix.cc
@@ -70,6 +71,7 @@ set(SRC
 	internal/ceres/dogleg_strategy.cc
 	internal/ceres/evaluator.cc
 	internal/ceres/file.cc
+	internal/ceres/generated/partitioned_matrix_view_d_d_d.cc
 	internal/ceres/generated/schur_eliminator_d_d_d.cc
 	internal/ceres/gradient_checking_cost_function.cc
 	internal/ceres/implicit_schur_complement.cc
@@ -97,11 +99,11 @@ set(SRC
 	internal/ceres/program.cc
 	internal/ceres/residual_block.cc
 	internal/ceres/residual_block_utils.cc
-	internal/ceres/runtime_numeric_diff_cost_function.cc
 	internal/ceres/schur_complement_solver.cc
 	internal/ceres/schur_eliminator.cc
 	internal/ceres/schur_jacobi_preconditioner.cc
 	internal/ceres/scratch_evaluate_preparer.cc
+	internal/ceres/single_linkage_clustering.cc
 	internal/ceres/solver.cc
 	internal/ceres/solver_impl.cc
 	internal/ceres/sparse_matrix.cc
@@ -127,6 +129,7 @@ set(SRC
 	include/ceres/covariance.h
 	include/ceres/crs_matrix.h
 	include/ceres/dynamic_autodiff_cost_function.h
+	include/ceres/dynamic_numeric_diff_cost_function.h
 	include/ceres/fpclassify.h
 	include/ceres/gradient_checker.h
 	include/ceres/internal/autodiff.h
@@ -158,6 +161,7 @@ set(SRC
 	internal/ceres/block_jacobi_preconditioner.h
 	internal/ceres/block_random_access_crs_matrix.h
 	internal/ceres/block_random_access_dense_matrix.h
+	internal/ceres/block_random_access_diagonal_matrix.h
 	internal/ceres/block_random_access_matrix.h
 	internal/ceres/block_random_access_sparse_matrix.h
 	internal/ceres/block_sparse_matrix.h
@@ -206,6 +210,7 @@ set(SRC
 	internal/ceres/parameter_block.h
 	internal/ceres/parameter_block_ordering.h
 	internal/ceres/partitioned_matrix_view.h
+	internal/ceres/partitioned_matrix_view_impl.h
 	internal/ceres/polynomial.h
 	internal/ceres/preconditioner.h
 	internal/ceres/problem_impl.h
@@ -214,12 +219,12 @@ set(SRC
 	internal/ceres/random.h
 	internal/ceres/residual_block.h
 	internal/ceres/residual_block_utils.h
-	internal/ceres/runtime_numeric_diff_cost_function.h
 	internal/ceres/schur_complement_solver.h
 	internal/ceres/schur_eliminator.h
 	internal/ceres/schur_eliminator_impl.h
 	internal/ceres/schur_jacobi_preconditioner.h
 	internal/ceres/scratch_evaluate_preparer.h
+	internal/ceres/single_linkage_clustering.h
 	internal/ceres/small_blas.h
 	internal/ceres/solver_impl.h
 	internal/ceres/sparse_matrix.h
@@ -238,6 +243,22 @@ set(SRC
 
 #if(FALSE)
 #	list(APPEND SRC
+#		internal/ceres/generated/partitioned_matrix_view_2_2_2.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_2_3.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_2_4.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_2_d.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_3_3.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_3_4.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_3_9.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_4_4.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_4_d.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_d_d.cc
+#		internal/ceres/generated/partitioned_matrix_view_4_4_2.cc
+#		internal/ceres/generated/partitioned_matrix_view_4_4_3.cc
+#		internal/ceres/generated/partitioned_matrix_view_4_4_4.cc
+#		internal/ceres/generated/partitioned_matrix_view_4_4_d.cc
 #		internal/ceres/generated/schur_eliminator_2_2_2.cc
 #		internal/ceres/generated/schur_eliminator_2_2_3.cc
 #		internal/ceres/generated/schur_eliminator_2_2_4.cc
@@ -249,6 +270,7 @@ set(SRC
 #		internal/ceres/generated/schur_eliminator_2_4_3.cc
 #		internal/ceres/generated/schur_eliminator_2_4_4.cc
 #		internal/ceres/generated/schur_eliminator_2_4_d.cc
+#		internal/ceres/generated/schur_eliminator_2_d_d.cc
 #		internal/ceres/generated/schur_eliminator_4_4_2.cc
 #		internal/ceres/generated/schur_eliminator_4_4_3.cc
 #		internal/ceres/generated/schur_eliminator_4_4_4.cc
@@ -287,23 +309,18 @@ if(WITH_OPENMP)
 	)
 endif()
 
-if(MSVC10)
-	add_definitions(
-		-D"CERES_HASH_NAMESPACE_START=namespace std {"
-		-D"CERES_HASH_NAMESPACE_END=}"
-	)
+include(CheckIncludeFileCXX)
+CHECK_INCLUDE_FILE_CXX(unordered_map UNORDERED_MAP_IN_STD_NAMESPACE)
+if(UNORDERED_MAP_IN_STD_NAMESPACE)
+	ADD_DEFINITIONS(-DCERES_STD_UNORDERED_MAP)
 else()
-	add_definitions(
-		-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
-		-D"CERES_HASH_NAMESPACE_END=}}"
-	)
-endif()
-
-if(APPLE)
-	if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.5")
-		add_definitions(
-			-DCERES_NO_TR1
-		)
+	CHECK_INCLUDE_FILE_CXX("tr1/unordered_map" UNORDERED_MAP_IN_TR1_NAMESPACE)
+	if(UNORDERED_MAP_IN_TR1_NAMESPACE)
+		ADD_DEFINITIONS(-DCERES_TR1_UNORDERED_MAP)
+	else()
+		MESSAGE("-- Unable to find <unordered_map> or <tr1/unordered_map>. ")
+		MESSAGE("-- Replacing unordered_map/set with map/set (warning: slower!)")
+		ADD_DEFINITIONS(-DCERES_NO_UNORDERED_MAP)
 	endif()
 endif()
 

@@ -454,6 +454,13 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
     event_logger.AddEvent("ConstructOrdering");
   }
 
+  if (original_options.inner_iteration_ordering != NULL) {
+    // Make a copy, as the options struct takes ownership of the
+    // ordering objects.
+    options.inner_iteration_ordering =
+        new ParameterBlockOrdering(*original_options.inner_iteration_ordering);
+  }
+
   // Create the three objects needed to minimize: the transformed program, the
   // evaluator, and the linear solver.
   scoped_ptr<Program> reduced_program(CreateReducedProgram(&options,
@@ -494,6 +501,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
 
     // Ensure the program state is set to the user parameters on the way out.
     original_program->SetParameterBlockStatePtrsToUserStatePtrs();
+    original_program->SetParameterOffsetsAndIndex();
 
     summary->postprocessor_time_in_seconds =
         WallTimeInSeconds() - post_process_start_time;
@@ -511,6 +519,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   summary->linear_solver_type_used = options.linear_solver_type;
 
   summary->preconditioner_type = options.preconditioner_type;
+  summary->visibility_clustering_type = options.visibility_clustering_type;
 
   summary->num_linear_solver_threads_given =
       original_options.num_linear_solver_threads;
@@ -542,7 +551,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
                    << "Disabling inner iterations.";
     } else {
       inner_iteration_minimizer.reset(
-          CreateInnerIterationMinimizer(original_options,
+          CreateInnerIterationMinimizer(options,
                                         *reduced_program,
                                         problem_impl->parameter_map(),
                                         summary));
@@ -596,6 +605,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   // Ensure the program state is set to the user parameters on the way
   // out.
   original_program->SetParameterBlockStatePtrsToUserStatePtrs();
+  original_program->SetParameterOffsetsAndIndex();
 
   const map<string, double>& linear_solver_time_statistics =
       linear_solver->TimeStatistics();
@@ -839,6 +849,8 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
 
     // Ensure the program state is set to the user parameters on the way out.
     original_program->SetParameterBlockStatePtrsToUserStatePtrs();
+    original_program->SetParameterOffsetsAndIndex();
+
     summary->postprocessor_time_in_seconds =
         WallTimeInSeconds() - post_process_start_time;
     return;
@@ -889,6 +901,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
 
   // Ensure the program state is set to the user parameters on the way out.
   original_program->SetParameterBlockStatePtrsToUserStatePtrs();
+  original_program->SetParameterOffsetsAndIndex();
 
   const map<string, double>& evaluator_time_statistics =
       evaluator->TimeStatistics();
@@ -968,14 +981,13 @@ bool SolverImpl::IsParameterBlockSetIndependent(
 
 
 // Strips varying parameters and residuals, maintaining order, and updating
-// num_eliminate_blocks.
-bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
-                                              ParameterBlockOrdering* ordering,
-                                              double* fixed_cost,
-                                              string* error) {
-  vector<ParameterBlock*>* parameter_blocks =
-      program->mutable_parameter_blocks();
-
+// orderings.
+bool SolverImpl::RemoveFixedBlocksFromProgram(
+    Program* program,
+    ParameterBlockOrdering* linear_solver_ordering,
+    ParameterBlockOrdering* inner_iteration_ordering,
+    double* fixed_cost,
+    string* error) {
   scoped_array<double> residual_block_evaluate_scratch;
   if (fixed_cost != NULL) {
     residual_block_evaluate_scratch.reset(
@@ -983,70 +995,79 @@ bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
     *fixed_cost = 0.0;
   }
 
-  // Mark all the parameters as unused. Abuse the index member of the parameter
-  // blocks for the marking.
+  vector<ParameterBlock*>* parameter_blocks =
+      program->mutable_parameter_blocks();
+  vector<ResidualBlock*>* residual_blocks =
+      program->mutable_residual_blocks();
+
+  // Mark all the parameters as unused. Abuse the index member of the
+  // parameter blocks for the marking.
   for (int i = 0; i < parameter_blocks->size(); ++i) {
     (*parameter_blocks)[i]->set_index(-1);
   }
 
   // Filter out residual that have all-constant parameters, and mark all the
   // parameter blocks that appear in residuals.
-  {
-    vector<ResidualBlock*>* residual_blocks =
-        program->mutable_residual_blocks();
-    int j = 0;
-    for (int i = 0; i < residual_blocks->size(); ++i) {
-      ResidualBlock* residual_block = (*residual_blocks)[i];
-      int num_parameter_blocks = residual_block->NumParameterBlocks();
+  int num_active_residual_blocks = 0;
+  for (int i = 0; i < residual_blocks->size(); ++i) {
+    ResidualBlock* residual_block = (*residual_blocks)[i];
+    int num_parameter_blocks = residual_block->NumParameterBlocks();
 
-      // Determine if the residual block is fixed, and also mark varying
-      // parameters that appear in the residual block.
-      bool all_constant = true;
-      for (int k = 0; k < num_parameter_blocks; k++) {
-        ParameterBlock* parameter_block = residual_block->parameter_blocks()[k];
-        if (!parameter_block->IsConstant()) {
-          all_constant = false;
-          parameter_block->set_index(1);
-        }
-      }
-
-      if (!all_constant) {
-        (*residual_blocks)[j++] = (*residual_blocks)[i];
-      } else if (fixed_cost != NULL) {
-        // The residual is constant and will be removed, so its cost is
-        // added to the variable fixed_cost.
-        double cost = 0.0;
-        if (!residual_block->Evaluate(true,
-                                      &cost,
-                                      NULL,
-                                      NULL,
-                                      residual_block_evaluate_scratch.get())) {
-          *error = StringPrintf("Evaluation of the residual %d failed during "
-                                "removal of fixed residual blocks.", i);
-          return false;
-        }
-        *fixed_cost += cost;
+    // Determine if the residual block is fixed, and also mark varying
+    // parameters that appear in the residual block.
+    bool all_constant = true;
+    for (int k = 0; k < num_parameter_blocks; k++) {
+      ParameterBlock* parameter_block = residual_block->parameter_blocks()[k];
+      if (!parameter_block->IsConstant()) {
+        all_constant = false;
+        parameter_block->set_index(1);
       }
     }
-    residual_blocks->resize(j);
-  }
 
-  // Filter out unused or fixed parameter blocks, and update
-  // the ordering.
-  {
-    vector<ParameterBlock*>* parameter_blocks =
-        program->mutable_parameter_blocks();
-    int j = 0;
-    for (int i = 0; i < parameter_blocks->size(); ++i) {
-      ParameterBlock* parameter_block = (*parameter_blocks)[i];
-      if (parameter_block->index() == 1) {
-        (*parameter_blocks)[j++] = parameter_block;
-      } else {
-        ordering->Remove(parameter_block->mutable_user_state());
+    if (!all_constant) {
+      (*residual_blocks)[num_active_residual_blocks++] = residual_block;
+    } else if (fixed_cost != NULL) {
+      // The residual is constant and will be removed, so its cost is
+      // added to the variable fixed_cost.
+      double cost = 0.0;
+      if (!residual_block->Evaluate(true,
+                                    &cost,
+                                    NULL,
+                                    NULL,
+                                    residual_block_evaluate_scratch.get())) {
+        *error = StringPrintf("Evaluation of the residual %d failed during "
+                              "removal of fixed residual blocks.", i);
+        return false;
       }
+      *fixed_cost += cost;
     }
-    parameter_blocks->resize(j);
   }
+  residual_blocks->resize(num_active_residual_blocks);
+
+  // Filter out unused or fixed parameter blocks, and update the
+  // linear_solver_ordering and the inner_iteration_ordering (if
+  // present).
+  int num_active_parameter_blocks = 0;
+  for (int i = 0; i < parameter_blocks->size(); ++i) {
+    ParameterBlock* parameter_block = (*parameter_blocks)[i];
+    if (parameter_block->index() == -1) {
+      // Parameter block is constant.
+      if (linear_solver_ordering != NULL) {
+        linear_solver_ordering->Remove(parameter_block->mutable_user_state());
+      }
+
+      // It is not necessary that the inner iteration ordering contain
+      // this parameter block. But calling Remove is safe, as it will
+      // just return false.
+      if (inner_iteration_ordering != NULL) {
+        inner_iteration_ordering->Remove(parameter_block->mutable_user_state());
+      }
+      continue;
+    }
+
+    (*parameter_blocks)[num_active_parameter_blocks++] = parameter_block;
+  }
+  parameter_blocks->resize(num_active_parameter_blocks);
 
   if (!(((program->NumResidualBlocks() == 0) &&
          (program->NumParameterBlocks() == 0)) ||
@@ -1071,9 +1092,11 @@ Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
       options->linear_solver_ordering;
   const int min_group_id =
       linear_solver_ordering->group_to_elements().begin()->first;
-
+  ParameterBlockOrdering* inner_iteration_ordering =
+      options->inner_iteration_ordering;
   if (!RemoveFixedBlocksFromProgram(transformed_program.get(),
                                     linear_solver_ordering,
+                                    inner_iteration_ordering,
                                     fixed_cost,
                                     error)) {
     return NULL;
@@ -1239,6 +1262,8 @@ LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
       options->max_linear_solver_iterations;
   linear_solver_options.type = options->linear_solver_type;
   linear_solver_options.preconditioner_type = options->preconditioner_type;
+  linear_solver_options.visibility_clustering_type =
+      options->visibility_clustering_type;
   linear_solver_options.sparse_linear_algebra_library_type =
       options->sparse_linear_algebra_library_type;
   linear_solver_options.dense_linear_algebra_library_type =

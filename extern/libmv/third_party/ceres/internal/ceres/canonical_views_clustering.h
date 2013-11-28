@@ -47,9 +47,6 @@
 
 #include "ceres/collections_port.h"
 #include "ceres/graph.h"
-#include "ceres/internal/macros.h"
-#include "ceres/map_util.h"
-#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -100,8 +97,8 @@ struct CanonicalViewsClusteringOptions;
 // algorithm that some of the vertices may not be assigned to any
 // cluster. In this case they are assigned to a cluster with id = -1;
 void ComputeCanonicalViewsClustering(
-    const Graph<int>& graph,
     const CanonicalViewsClusteringOptions& options,
+    const Graph<int>& graph,
     vector<int>* centers,
     HashMap<int, int>* membership);
 

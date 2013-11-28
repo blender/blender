@@ -49,7 +49,7 @@
 namespace ceres {
 namespace internal {
 
-class BlockRandomAccessSparseMatrix;
+class BlockRandomAccessDiagonalMatrix;
 class BlockSparseMatrix;
 struct CompressedRowBlockStructure;
 class SchurEliminatorBase;
@@ -100,7 +100,7 @@ class SchurJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
   scoped_ptr<SchurEliminatorBase> eliminator_;
 
   // Preconditioner matrix.
-  scoped_ptr<BlockRandomAccessSparseMatrix> m_;
+  scoped_ptr<BlockRandomAccessDiagonalMatrix> m_;
   CERES_DISALLOW_COPY_AND_ASSIGN(SchurJacobiPreconditioner);
 };
 

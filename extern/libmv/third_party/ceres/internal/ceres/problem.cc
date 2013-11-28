@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -216,6 +216,25 @@ int Problem::ParameterBlockLocalSize(const double* parameter_block) const {
 
 void Problem::GetParameterBlocks(vector<double*>* parameter_blocks) const {
   problem_impl_->GetParameterBlocks(parameter_blocks);
+}
+
+void Problem::GetResidualBlocks(
+    vector<ResidualBlockId>* residual_blocks) const {
+  problem_impl_->GetResidualBlocks(residual_blocks);
+}
+
+void Problem::GetParameterBlocksForResidualBlock(
+    const ResidualBlockId residual_block,
+    vector<double*>* parameter_blocks) const {
+  problem_impl_->GetParameterBlocksForResidualBlock(residual_block,
+                                                    parameter_blocks);
+}
+
+void Problem::GetResidualBlocksForParameterBlock(
+    const double* values,
+    vector<ResidualBlockId>* residual_blocks) const {
+  problem_impl_->GetResidualBlocksForParameterBlock(values,
+                                                    residual_blocks);
 }
 
 }  // namespace ceres

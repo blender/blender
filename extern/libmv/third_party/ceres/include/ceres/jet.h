@@ -106,8 +106,8 @@
 //   Jet<double, 2> y(1);  // Pick the 1st dual number for y.
 //   Jet<double, 2> z = f(x, y);
 //
-//   LG << "df/dx = " << z.a[0]
-//      << "df/dy = " << z.a[1];
+//   LOG(INFO) << "df/dx = " << z.a[0]
+//             << "df/dy = " << z.a[1];
 //
 // Most users should not use Jet objects directly; a wrapper around Jet objects,
 // which makes computing the derivative, gradient, or jacobian of templated
@@ -192,6 +192,17 @@ struct Jet {
     v[k] = T(1.0);
   }
 
+  // Constructor from scalar and vector part
+  // The use of Eigen::DenseBase allows Eigen expressions
+  // to be passed in without being fully evaluated until
+  // they are assigned to v
+  template<typename Derived>
+  Jet(const T& value, const Eigen::DenseBase<Derived> &vIn)
+    : a(value),
+      v(vIn)
+  {
+  }
+
   // Compound operators
   Jet<T, N>& operator+=(const Jet<T, N> &y) {
     *this = *this + y;
@@ -246,101 +257,70 @@ Jet<T, N> const& operator+(const Jet<T, N>& f) {
 // Unary -
 template<typename T, int N> inline
 Jet<T, N> operator-(const Jet<T, N>&f) {
-  Jet<T, N> g;
-  g.a = -f.a;
-  g.v = -f.v;
-  return g;
+  return Jet<T, N>(-f.a, -f.v);
 }
 
 // Binary +
 template<typename T, int N> inline
 Jet<T, N> operator+(const Jet<T, N>& f,
                     const Jet<T, N>& g) {
-  Jet<T, N> h;
-  h.a = f.a + g.a;
-  h.v = f.v + g.v;
-  return h;
+  return Jet<T, N>(f.a + g.a, f.v + g.v);
 }
 
 // Binary + with a scalar: x + s
 template<typename T, int N> inline
 Jet<T, N> operator+(const Jet<T, N>& f, T s) {
-  Jet<T, N> h;
-  h.a = f.a + s;
-  h.v = f.v;
-  return h;
+  return Jet<T, N>(f.a + s, f.v);
 }
 
 // Binary + with a scalar: s + x
 template<typename T, int N> inline
 Jet<T, N> operator+(T s, const Jet<T, N>& f) {
-  Jet<T, N> h;
-  h.a = f.a + s;
-  h.v = f.v;
-  return h;
+  return Jet<T, N>(f.a + s, f.v);
 }
 
 // Binary -
 template<typename T, int N> inline
 Jet<T, N> operator-(const Jet<T, N>& f,
                     const Jet<T, N>& g) {
-  Jet<T, N> h;
-  h.a = f.a - g.a;
-  h.v = f.v - g.v;
-  return h;
+  return Jet<T, N>(f.a - g.a, f.v - g.v);
 }
 
 // Binary - with a scalar: x - s
 template<typename T, int N> inline
 Jet<T, N> operator-(const Jet<T, N>& f, T s) {
-  Jet<T, N> h;
-  h.a = f.a - s;
-  h.v = f.v;
-  return h;
+  return Jet<T, N>(f.a - s, f.v);
 }
 
 // Binary - with a scalar: s - x
 template<typename T, int N> inline
 Jet<T, N> operator-(T s, const Jet<T, N>& f) {
-  Jet<T, N> h;
-  h.a = s - f.a;
-  h.v = -f.v;
-  return h;
+  return Jet<T, N>(s - f.a, -f.v);
 }
 
 // Binary *
 template<typename T, int N> inline
 Jet<T, N> operator*(const Jet<T, N>& f,
                     const Jet<T, N>& g) {
-  Jet<T, N> h;
-  h.a = f.a * g.a;
-  h.v = f.a * g.v + f.v * g.a;
-  return h;
+  return Jet<T, N>(f.a * g.a, f.a * g.v + f.v * g.a);
 }
 
 // Binary * with a scalar: x * s
 template<typename T, int N> inline
 Jet<T, N> operator*(const Jet<T, N>& f, T s) {
-  Jet<T, N> h;
-  h.a = f.a * s;
-  h.v = f.v * s;
-  return h;
+  return Jet<T, N>(f.a * s, f.v * s);
 }
 
 // Binary * with a scalar: s * x
 template<typename T, int N> inline
 Jet<T, N> operator*(T s, const Jet<T, N>& f) {
-  Jet<T, N> h;
-  h.a = f.a * s;
-  h.v = f.v * s;
-  return h;
+  return Jet<T, N>(f.a * s, f.v * s);
 }
 
 // Binary /
 template<typename T, int N> inline
 Jet<T, N> operator/(const Jet<T, N>& f,
                     const Jet<T, N>& g) {
-  Jet<T, N> h;
   // This uses:
   //
   //   a + u   (a + u)(b - v)   (a + u)(b - v)
@@ -349,32 +329,22 @@ Jet<T, N> operator/(const Jet<T, N>& f,
   //
   // which holds because v*v = 0.
   const T g_a_inverse = T(1.0) / g.a;
-  h.a = f.a * g_a_inverse;
   const T f_a_by_g_a = f.a * g_a_inverse;
-  for (int i = 0; i < N; ++i) {
-    h.v[i] = (f.v[i] - f_a_by_g_a * g.v[i]) * g_a_inverse;
-  }
-  return h;
+  return Jet<T, N>(f.a * g_a_inverse, (f.v - f_a_by_g_a * g.v) * g_a_inverse);
 }
 
 // Binary / with a scalar: s / x
 template<typename T, int N> inline
 Jet<T, N> operator/(T s, const Jet<T, N>& g) {
-  Jet<T, N> h;
-  h.a = s / g.a;
   const T minus_s_g_a_inverse2 = -s / (g.a * g.a);
-  h.v = g.v * minus_s_g_a_inverse2;
-  return h;
+  return Jet<T, N>(s / g.a, g.v * minus_s_g_a_inverse2);
 }
 
 // Binary / with a scalar: x / s
 template<typename T, int N> inline
 Jet<T, N> operator/(const Jet<T, N>& f, T s) {
-  Jet<T, N> h;
   const T s_inverse = 1.0 / s;
-  h.a = f.a * s_inverse;
-  h.v = f.v * s_inverse;
-  return h;
+  return Jet<T, N>(f.a * s_inverse, f.v * s_inverse);
 }
 
 // Binary comparison operators for both scalars and jets.
@@ -433,122 +403,84 @@ Jet<T, N> abs(const Jet<T, N>& f) {
 // log(a + h) ~= log(a) + h / a
 template <typename T, int N> inline
 Jet<T, N> log(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = log(f.a);
   const T a_inverse = T(1.0) / f.a;
-  g.v = f.v * a_inverse;
-  return g;
+  return Jet<T, N>(log(f.a), f.v * a_inverse);
 }
 
 // exp(a + h) ~= exp(a) + exp(a) h
 template <typename T, int N> inline
 Jet<T, N> exp(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = exp(f.a);
-  g.v = g.a * f.v;
-  return g;
+  const T tmp = exp(f.a);
+  return Jet<T, N>(tmp, tmp * f.v);
 }
 
 // sqrt(a + h) ~= sqrt(a) + h / (2 sqrt(a))
 template <typename T, int N> inline
 Jet<T, N> sqrt(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = sqrt(f.a);
-  const T two_a_inverse = T(1.0) / (T(2.0) * g.a);
-  g.v = f.v * two_a_inverse;
-  return g;
+  const T tmp = sqrt(f.a);
+  const T two_a_inverse = T(1.0) / (T(2.0) * tmp);
+  return Jet<T, N>(tmp, f.v * two_a_inverse);
 }
 
 // cos(a + h) ~= cos(a) - sin(a) h
 template <typename T, int N> inline
 Jet<T, N> cos(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = cos(f.a);
-  const T sin_a = sin(f.a);
-  g.v = - sin_a * f.v;
-  return g;
+  return Jet<T, N>(cos(f.a), - sin(f.a) * f.v);
 }
 
 // acos(a + h) ~= acos(a) - 1 / sqrt(1 - a^2) h
 template <typename T, int N> inline
 Jet<T, N> acos(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = acos(f.a);
   const T tmp = - T(1.0) / sqrt(T(1.0) - f.a * f.a);
-  g.v = tmp * f.v;
-  return g;
+  return Jet<T, N>(acos(f.a), tmp * f.v);
 }
 
 // sin(a + h) ~= sin(a) + cos(a) h
 template <typename T, int N> inline
 Jet<T, N> sin(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = sin(f.a);
-  const T cos_a = cos(f.a);
-  g.v = cos_a * f.v;
-  return g;
+  return Jet<T, N>(sin(f.a), cos(f.a) * f.v);
 }
 
 // asin(a + h) ~= asin(a) + 1 / sqrt(1 - a^2) h
 template <typename T, int N> inline
 Jet<T, N> asin(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = asin(f.a);
   const T tmp = T(1.0) / sqrt(T(1.0) - f.a * f.a);
-  g.v = tmp * f.v;
-  return g;
+  return Jet<T, N>(asin(f.a), tmp * f.v);
 }
 
 // tan(a + h) ~= tan(a) + (1 + tan(a)^2) h
 template <typename T, int N> inline
 Jet<T, N> tan(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = tan(f.a);
-  double tan_a = tan(f.a);
+  const T tan_a = tan(f.a);
   const T tmp = T(1.0) + tan_a * tan_a;
-  g.v = tmp * f.v;
-  return g;
+  return Jet<T, N>(tan_a, tmp * f.v);
 }
 
 // atan(a + h) ~= atan(a) + 1 / (1 + a^2) h
 template <typename T, int N> inline
 Jet<T, N> atan(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = atan(f.a);
   const T tmp = T(1.0) / (T(1.0) + f.a * f.a);
-  g.v = tmp * f.v;
-  return g;
+  return Jet<T, N>(atan(f.a), tmp * f.v);
 }
 
 // sinh(a + h) ~= sinh(a) + cosh(a) h
 template <typename T, int N> inline
 Jet<T, N> sinh(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = sinh(f.a);
-  const T cosh_a = cosh(f.a);
-  g.v = cosh_a * f.v;
-  return g;
+  return Jet<T, N>(sinh(f.a), cosh(f.a) * f.v);
 }
 
 // cosh(a + h) ~= cosh(a) + sinh(a) h
 template <typename T, int N> inline
 Jet<T, N> cosh(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = cosh(f.a);
-  const T sinh_a = sinh(f.a);
-  g.v = sinh_a * f.v;
-  return g;
+  return Jet<T, N>(cosh(f.a), sinh(f.a) * f.v);
 }
 
 // tanh(a + h) ~= tanh(a) + (1 - tanh(a)^2) h
 template <typename T, int N> inline
 Jet<T, N> tanh(const Jet<T, N>& f) {
-  Jet<T, N> g;
-  g.a = tanh(f.a);
-  double tanh_a = tanh(f.a);
+  const T tanh_a = tanh(f.a);
   const T tmp = T(1.0) - tanh_a * tanh_a;
-  g.v = tmp * f.v;
-  return g;
+  return Jet<T, N>(tanh_a, tmp * f.v);
 }
 
 // Jet Classification. It is not clear what the appropriate semantics are for
@@ -628,36 +560,25 @@ Jet<T, N> atan2(const Jet<T, N>& g, const Jet<T, N>& f) {
   //   f = a + da
   //   g = b + db
 
-  Jet<T, N> out;
-
-  out.a = atan2(g.a, f.a);
-
-  T const temp = T(1.0) / (f.a * f.a + g.a * g.a);
-  out.v = temp * (- g.a * f.v + f.a * g.v);
-  return out;
+  T const tmp = T(1.0) / (f.a * f.a + g.a * g.a);
+  return Jet<T, N>(atan2(g.a, f.a), tmp * (- g.a * f.v + f.a * g.v));
 }
 
 
-// pow -- base is a differentiatble function, exponent is a constant.
+// pow -- base is a differentiable function, exponent is a constant.
 // (a+da)^p ~= a^p + p*a^(p-1) da
 template <typename T, int N> inline
 Jet<T, N> pow(const Jet<T, N>& f, double g) {
-  Jet<T, N> out;
-  out.a = pow(f.a, g);
-  T const temp = g * pow(f.a, g - T(1.0));
-  out.v = temp * f.v;
-  return out;
+  T const tmp = g * pow(f.a, g - T(1.0));
+  return Jet<T, N>(pow(f.a, g), tmp * f.v);
 }
 
 // pow -- base is a constant, exponent is a differentiable function.
 // (a)^(p+dp) ~= a^p + a^p log(a) dp
 template <typename T, int N> inline
 Jet<T, N> pow(double f, const Jet<T, N>& g) {
-  Jet<T, N> out;
-  out.a = pow(f, g.a);
-  T const temp = log(f) * out.a;
-  out.v = temp * g.v;
-  return out;
+  T const tmp = pow(f, g.a);
+  return Jet<T, N>(tmp, log(f) * tmp * g.v);
 }
 
 
@@ -665,15 +586,11 @@ Jet<T, N> pow(double f, const Jet<T, N>& g) {
 // (a+da)^(b+db) ~= a^b + b * a^(b-1) da + a^b log(a) * db
 template <typename T, int N> inline
 Jet<T, N> pow(const Jet<T, N>& f, const Jet<T, N>& g) {
-  Jet<T, N> out;
+  T const tmp1 = pow(f.a, g.a);
+  T const tmp2 = g.a * pow(f.a, g.a - T(1.0));
+  T const tmp3 = tmp1 * log(f.a);
 
-  T const temp1 = pow(f.a, g.a);
-  T const temp2 = g.a * pow(f.a, g.a - T(1.0));
-  T const temp3 = temp1 * log(f.a);
-
-  out.a = temp1;
-  out.v = temp2 * f.v + temp3 * g.v;
-  return out;
+  return Jet<T, N>(tmp1, tmp2 * f.v + tmp3 * g.v);
 }
 
 // Define the helper functions Eigen needs to embed Jet types.
@@ -740,7 +657,8 @@ struct NumTraits<ceres::Jet<T, N> > {
     AddCost = 1,
     // For Jet types, multiplication is more expensive than addition.
     MulCost = 3,
-    HasFloatingPoint = 1
+    HasFloatingPoint = 1,
+    RequireInitialization = 1
   };
 };
 

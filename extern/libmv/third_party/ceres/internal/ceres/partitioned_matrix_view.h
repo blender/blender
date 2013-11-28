@@ -36,7 +36,15 @@
 #ifndef CERES_INTERNAL_PARTITIONED_MATRIX_VIEW_H_
 #define CERES_INTERNAL_PARTITIONED_MATRIX_VIEW_H_
 
-#include "ceres/block_sparse_matrix.h"
+#include <algorithm>
+#include <cstring>
+#include <vector>
+
+#include "ceres/block_structure.h"
+#include "ceres/internal/eigen.h"
+#include "ceres/linear_solver.h"
+#include "ceres/small_blas.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -51,57 +59,80 @@ namespace internal {
 // block structure of the matrix does not satisfy the requirements of
 // the Schur complement solver it will result in unpredictable and
 // wrong output.
-//
-// This class lives in the internal name space as its a utility class
-// to be used by the IterativeSchurComplementSolver class, found in
-// iterative_schur_complement_solver.h, and is not meant for general
-// consumption.
-class PartitionedMatrixView {
+class PartitionedMatrixViewBase {
  public:
-  // matrix = [E F], where the matrix E contains the first
-  // num_col_blocks_a column blocks.
-  PartitionedMatrixView(const BlockSparseMatrix& matrix,
-                        int num_col_blocks_a);
-  ~PartitionedMatrixView();
+  virtual ~PartitionedMatrixViewBase() {}
 
   // y += E'x
-  void LeftMultiplyE(const double* x, double* y) const;
+  virtual void LeftMultiplyE(const double* x, double* y) const = 0;
 
   // y += F'x
-  void LeftMultiplyF(const double* x, double* y) const;
+  virtual void LeftMultiplyF(const double* x, double* y) const = 0;
 
   // y += Ex
-  void RightMultiplyE(const double* x, double* y) const;
+  virtual void RightMultiplyE(const double* x, double* y) const = 0;
 
   // y += Fx
-  void RightMultiplyF(const double* x, double* y) const;
+  virtual void RightMultiplyF(const double* x, double* y) const = 0;
 
   // Create and return the block diagonal of the matrix E'E.
-  BlockSparseMatrix* CreateBlockDiagonalEtE() const;
+  virtual BlockSparseMatrix* CreateBlockDiagonalEtE() const = 0;
 
-  // Create and return the block diagonal of the matrix F'F.
-  BlockSparseMatrix* CreateBlockDiagonalFtF() const;
+  // Create and return the block diagonal of the matrix F'F. Caller
+  // owns the result.
+  virtual BlockSparseMatrix* CreateBlockDiagonalFtF() const = 0;
 
   // Compute the block diagonal of the matrix E'E and store it in
   // block_diagonal. The matrix block_diagonal is expected to have a
   // BlockStructure (preferably created using
   // CreateBlockDiagonalMatrixEtE) which is has the same structure as
   // the block diagonal of E'E.
-  void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const;
+  virtual void UpdateBlockDiagonalEtE(
+      BlockSparseMatrix* block_diagonal) const = 0;
 
   // Compute the block diagonal of the matrix F'F and store it in
   // block_diagonal. The matrix block_diagonal is expected to have a
   // BlockStructure (preferably created using
   // CreateBlockDiagonalMatrixFtF) which is has the same structure as
   // the block diagonal of F'F.
-  void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const;
+  virtual void UpdateBlockDiagonalFtF(
+      BlockSparseMatrix* block_diagonal) const = 0;
 
-  int num_col_blocks_e() const { return num_col_blocks_e_;  }
-  int num_col_blocks_f() const { return num_col_blocks_f_;  }
-  int num_cols_e()       const { return num_cols_e_;        }
-  int num_cols_f()       const { return num_cols_f_;        }
-  int num_rows()         const { return matrix_.num_rows(); }
-  int num_cols()         const { return matrix_.num_cols(); }
+  virtual int num_col_blocks_e() const = 0;
+  virtual int num_col_blocks_f() const = 0;
+  virtual int num_cols_e()       const = 0;
+  virtual int num_cols_f()       const = 0;
+  virtual int num_rows()         const = 0;
+  virtual int num_cols()         const = 0;
+
+  static PartitionedMatrixViewBase* Create(const LinearSolver::Options& options,
+                                           const BlockSparseMatrix& matrix);
+};
+
+template <int kRowBlockSize = Eigen::Dynamic,
+          int kEBlockSize = Eigen::Dynamic,
+          int kFBlockSize = Eigen::Dynamic >
+class PartitionedMatrixView : public PartitionedMatrixViewBase {
+ public:
+  // matrix = [E F], where the matrix E contains the first
+  // num_col_blocks_a column blocks.
+  PartitionedMatrixView(const BlockSparseMatrix& matrix, int num_col_blocks_e);
+
+  virtual ~PartitionedMatrixView();
+  virtual void LeftMultiplyE(const double* x, double* y) const;
+  virtual void LeftMultiplyF(const double* x, double* y) const;
+  virtual void RightMultiplyE(const double* x, double* y) const;
+  virtual void RightMultiplyF(const double* x, double* y) const;
+  virtual BlockSparseMatrix* CreateBlockDiagonalEtE() const;
+  virtual BlockSparseMatrix* CreateBlockDiagonalFtF() const;
+  virtual void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const;
+  virtual void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const;
+  virtual int num_col_blocks_e() const { return num_col_blocks_e_;  }
+  virtual int num_col_blocks_f() const { return num_col_blocks_f_;  }
+  virtual int num_cols_e()       const { return num_cols_e_;        }
+  virtual int num_cols_f()       const { return num_cols_f_;        }
+  virtual int num_rows()         const { return matrix_.num_rows(); }
+  virtual int num_cols()         const { return matrix_.num_cols(); }
 
  private:
   BlockSparseMatrix* CreateBlockDiagonalMatrixLayout(int start_col_block,

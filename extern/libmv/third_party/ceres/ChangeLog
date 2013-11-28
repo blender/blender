@@ -1,638 +1,684 @@
-commit 682cd3c27864ba6d67ca81890760a5f697f21d63
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Sep 3 14:28:32 2013 -0700
-
-    Update version history with shared libs changes
-    
-    Change-Id: Iafd55087bc5eef4c15c3b544222147aa99df7690
-
-commit 340d7c1415f144ca335ec1e87832c3f41d5d515b
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Sep 3 13:50:03 2013 -0700
-
-    Update version history with miniglog fix
-    
-    Change-Id: Ic69f4994259e05fa88548b957146a1aac73b7af7
-
-commit ac061c0f2334868e671f26d24e34a14c77fac716
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Sep 3 13:03:28 2013 -0700
-
-    Cleanups in logging.h
-    
-    Thanks to Scott Ettinger for the patch this is based off of,
-    which restores the NDK build.
-    
-    Change-Id: I8036dc1388438a4940e6f4ae297162902afd8d3a
-
-commit 0338f9a8e69582a550ef6d128e447779536d623c
+commit 33e01b9c5e1416fe29c55ac0332cdca21c053c83
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Sep 2 22:28:40 2013 -0700
+Date:   Wed Nov 27 10:24:03 2013 -0800
 
-    ITERATIVE_SCHUR works with no f-blocks.
+    Rename LinearSolverTerminationType enums.
     
-    When the Schur complement is of size zero,
-    i.e. none of the parameter blocks interact
-    with each other, the ITERATIVE_SCHUR linear
-    solver crashes due to some checks that are
-    triggered in the SCHUR_JACOBI preconditioner.
+    This increases clarity, drops redundant enums and makes things
+    cleaner all around.
     
-    This patch adds logic to detect this condition
-    and to deal with it and adds tests that verify
-    the fix.
-    
-    Thanks to Soohyun Bae for reporting this bug.
-    
-    Change-Id: If29ddf32463cbb1960414fff0e29bbf0d2ee7989
+    Change-Id: I761f195ddf17ea6bd8e4e55bf5a72863660c4c3b
 
-commit 263de47419167786c9ab6d93fa2f3e32e8e75fe1
-Author: Taylor Braun-Jones <taylor@braun-jones.org>
-Date:   Thu Aug 29 10:33:29 2013 -0400
-
-    Incorporate RHEL build fixes from Brian Pitts
-    
-    CMake build fixed so that versioned shared libraries are installed
-    (along with .so symlinks)
-    
-    Change-Id: Ibbaea9d37d17754cb8c3cd36fc17d015ca7d2a57
-
-commit 6b4131993ec0db6c850bb2ae07ba8793dbab3e39
+commit 068437eb89d495d905465544ccd442efef457b04
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 26 00:02:50 2013 -0700
+Date:   Wed Nov 27 07:05:57 2013 -0800
 
-    Update spec file
+    Pipe minimizer termination messages to Solver::Summary.
     
-    Change-Id: Id6426d7cad41cde2cbab411964ac013d724a066c
+    All minimizer termination messages are now available as
+    Solver::Summary::error.
+    
+    This is part of the ongoing refactoring or
+    
+    Change-Id: I4514c3c042645bbd1471bcde9bd3dbf81d9ee8b0
 
-commit c24a4ec6fb6202d1f6a576f211b99fbe9c9906ef
+commit 89a592f410fb6f80c03dea84b6b9f1a10bea36c1
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Aug 23 06:49:22 2013 -0700
+Date:   Tue Nov 26 11:35:49 2013 -0800
 
-    Cmake refactoring
+    LinearSolver::Summary::status -> LinearSolver::Summary::message.
     
-    1. Use CMake FindLAPACK and FindBLAS Modules.
-    2. Remove SEARCH_HEADERS and SEARCH_LIBS and replace them with
-    CMAKE variables. This leads to simplification of the FIND_LIBRARY
-    and FIND_PATH calls.
-    3. Make miniglog a fallback when glog is not present and the
-    user indicates MINIGLOG=OFF.
-    4. Add time.h to miniglog.
-    5. Remove shared library building.
+    And a bunch of minor lint cleanups as they showed up.
     
-    Change-Id: I8a97156d3d7cf645fbbfe8e571761bc16c89f43f
+    Change-Id: I430a6b05710923c72daf6a5df4dfcd16fbf44b3a
 
-commit 48e9cd31db0bf7223beb83cdc90e3cd2b5aad054
+commit b16e118b96c55451c0d8556f3c5b52ad36b69cac
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Aug 21 10:55:16 2013 -0700
+Date:   Mon Nov 25 05:47:43 2013 -0800
 
-    Add a test name
+    Better error checking and reporting for linear solvers.
     
-    Change-Id: I06dfc9cad2c54ef6078342766577eab92645283f
+    A lot of error checking cruft has accumulated over the years
+    in the various linear solvers. This change makes the error reporting
+    more robust and consistent across the various solvers.
+    
+    Preconditioners are not covered by this change and will be the
+    subject of a future change.
+    
+    Change-Id: Ibeb2572a1e67758953dde8d12e3abc6d1df9052d
 
-commit 126dfbe27df9c5b9f41cf7cc92b75c1219518283
+commit 5794d41be2d8d6a67dcdfe607e66050f0ac04c55
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 20 22:34:34 2013 -0700
+Date:   Mon Nov 25 13:37:02 2013 -0800
 
-    Fix how Ceres calls CAMD.
+    Remove overzealous checks in Summary::FullReport.
     
-    CAMD requires that the id of the largest numbered elimination
-    group be less than the number of columns in the matrix.
+    Thanks to sebi.koch@gmail.com for reporting this.
     
-    This patch ensures that this is the case. Without this,
-    in certain cases its possible for CAMD to silently fail
-    while doing out of bounds access and then causing Ceres to fail.
-    
-    Also add some logging about the problem size before and after
-    the reduced program has been created.
-    
-    Change-Id: I0ea3c6572a7c29cbbf09afec9ba5b4f4d4b21a9b
+    Change-Id: I1ba9b375e5cf66639e292ba37b34a90446f13162
 
-commit 69af5d8b4d7c48b2efa3c61e51c86cfa1b380b8a
+commit 40ef90304ac200bb948549e8e3748e487d27dc53
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 25 16:36:40 2013 +0000
+
+    Adding VLOG output to line search.
+    
+    - Previously line search was sparse in terms of debug orientated VLOG
+      output which made debugging failure cases difficult.
+    
+    Change-Id: Idfabf74d2b3f7b8256f79dff8c6b7fcdc2fcf4d3
+
+commit 1284a5141426597f3ca1e29ae8548c9b4c43c9c1
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 20 13:58:59 2013 -0700
+Date:   Sun Nov 24 15:09:43 2013 -0800
 
-    Add comments to trust_region_minimizer.cc.
+    Use explicit formula to solve quadratic polynomials.
     
-    trust_region_minimizer.cc now contains a comment that explains
-    the reasoning behind he inner iteration step acceptance change.
+    polynomial.cc implements a companion matrix base method for solving
+    polynomials. This is both expensive and numerically sensitive.
     
-    Change-Id: I4eaa69d6bab92c543bba3f119c09f44625d393bd
+    This change adds a quadratic equation solver. Instead of using the
+    usual quadratic formula, it uses the formula suggested by BKP Horn
+    for improved numerical stability.
+    
+    Change-Id: I476933ce010d81db992f1c580d2fb23a4457eb3e
 
-commit e45db9d05aaa26b1ddffa44c9190a1018aa2655f
+commit a9334d67d7973c0f56e65f12ae897dd53504ef0d
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 19 23:13:29 2013 -0700
+Date:   Wed Nov 20 10:12:23 2013 -0800
 
-    Improve inner iteration step acceptance.
+    Fix constant parameter handling in inner iterations.
     
-    Normally, in a trust region algorithm the quality of a trust region step
-    is measured by the ratio
+    There was a bug in the way RemoveFixedBlocksFromProgram was working.
+    It only removed the constant parameter blocks from the
+    linear_solver_ordering, it was not even aware of the
+    inner_iteration_ordering.
     
-              nonlinear_cost_change
-       r =    ---------------------
-              model_cost_change
+    This change fixes this bug. The code for RemoveFixedBlocksFromProgram
+    is also cleaned up and made more readable and the test have been updated.
     
-    All the change in the nonlinear objective is due to the trust region step
-    so this ratio is a good measure of the quality of the trust region radius.
+    Thanks to Mikael Persson for reporting this.
     
-    However, when inner iterations are being used, nonlinear_cost_change
-    includes the contribution of the inner iterations and its not fair to
-    credit it all to the trust region algorithm. So we change the ratio to be
-    
-                         nonlinear_cost_change
-       r =    ------------------------------------------------
-              (model_cost_change + inner_iteration_cost_change)
-    
-    In most cases this is fine, but it can be the case that the
-    change in solution quality due to inner iterations is so large
-    and the trust region step is so bad, that this ratio can become
-    quite small.
-    
-    This can cause the trust region loop to reject this step.
-    
-    This change, fixes this problem by looking at the inner_iteration_cost_change
-    explicitly and accepting a step if the inner iterations led to a net
-    decrease in the objective function value.
-    
-    Along the way it also fixes the way model_cost_change is computed.
-    Changing to a more numerically robust way of computing it.
-    
-    The last and final change is to ensure that inner iterations and the
-    non-monotonic version of the trust region algorithm interact correctly.
-    
-    This addresses part 2 of
-    
-    https://code.google.com/p/ceres-solver/issues/detail?id=115
-    
-    As an illustration of the change.
-    
-    Before this change
-    
-    [master] build: ./bin/bundle_adjuster --input ~/Downloads/problem-245-198739-pre.txt -num_iterations 10 -translation_sigma 0.01 -rotation_sigma 0.001 -point_sigma 0.1 -inner_iterations -num_threads 4
-       0: f: 7.731660e+15 d: 0.00e+00 g: 3.51e+12 h: 0.00e+00 rho: 0.00e+00 mu: 1.00e+04 li:  0 it: 5.87e-01 tt: 9.37e+00
-       1: f: 7.731660e+15 d: 7.73e+15 g: 0.00e+00 h: 1.20e+10 rho: 2.43e-11 mu: 5.00e+03 li:  1 it: 1.41e+01 tt: 2.35e+01
-       2: f: 7.731660e+15 d: 7.73e+15 g: 0.00e+00 h: 1.25e+10 rho: 1.70e-07 mu: 1.25e+03 li:  1 it: 1.86e+01 tt: 4.22e+01
-       3: f: 7.731660e+15 d:-2.39e+40 g: 0.00e+00 h: 3.53e+10 rho:-2.63e-13 mu: 1.56e+02 li:  1 it: 3.35e+01 tt: 7.57e+01
-       4: f: 7.731660e+15 d:-1.66e+39 g: 0.00e+00 h: 1.21e+11 rho:-6.58e-15 mu: 9.77e+00 li:  1 it: 3.86e+01 tt: 1.14e+02
-       5: f: 7.731660e+15 d:-3.57e+55 g: 0.00e+00 h: 5.00e+12 rho:-1.89e-14 mu: 3.05e-01 li:  1 it: 3.84e+01 tt: 1.53e+02
-       6: f: 7.731660e+15 d:-2.26e+35 g: 0.00e+00 h: 3.82e+12 rho:-1.77e-20 mu: 4.77e-03 li:  1 it: 3.45e+01 tt: 1.87e+02
-       7: f: 7.731660e+15 d:-5.31e+19 g: 0.00e+00 h: 1.22e+11 rho:-9.96e-21 mu: 3.73e-05 li:  1 it: 2.77e+01 tt: 2.15e+02
-       8: f: 1.784990e+08 d: 7.73e+15 g: 4.13e+07 h: 1.20e+10 rho: 1.00e+00 mu: 1.12e-04 li:  1 it: 1.13e+01 tt: 2.26e+02
-       9: f: 1.524025e+08 d: 2.61e+07 g: 5.81e+10 h: 2.41e+08 rho: 1.00e+00 mu: 3.35e-04 li:  1 it: 1.13e+01 tt: 2.37e+02
-      10: f: 1.488524e+08 d: 3.55e+06 g: 2.79e+09 h: 5.01e+08 rho: 1.00e+00 mu: 1.01e-03 li:  1 it: 1.09e+01 tt: 2.48e+02
-    
-    After this change
-    
-    [inner] build: ./bin/bundle_adjuster --input ~/Downloads/problem-245-198739-pre.txt -num_iterations 10 -translation_sigma 0.01 -rotation_sigma 0.001 -point_sigma 0.1 -inner_iterations -num_threads 4
-       0: f: 7.731660e+15 d: 0.00e+00 g: 3.51e+12 h: 0.00e+00 rho: 0.00e+00 mu: 1.00e+04 li:  0 it: 5.66e-01 tt: 9.31e+00
-       1: f: 5.941477e+09 d: 7.73e+15 g: 1.20e+18 h: 1.20e+10 rho: 2.43e-11 mu: 5.00e+03 li:  1 it: 1.38e+01 tt: 2.32e+01
-       2: f: 3.341986e+08 d: 5.61e+09 g: 1.42e+14 h: 1.37e+09 rho: 9.38e-08 mu: 2.50e+03 li:  1 it: 1.30e+01 tt: 3.61e+01
-       3: f: 3.241492e+08 d: 1.00e+07 g: 3.64e+13 h: 8.26e+08 rho: 6.12e-08 mu: 1.25e+03 li:  1 it: 1.15e+01 tt: 4.77e+01
-       4: f: 3.152280e+08 d: 8.92e+06 g: 2.02e+13 h: 2.95e+08 rho: 1.56e-05 mu: 6.25e+02 li:  1 it: 1.11e+01 tt: 5.88e+01
-       5: f: 3.078535e+08 d: 7.37e+06 g: 9.72e+12 h: 4.57e+08 rho: 6.55e-09 mu: 3.13e+02 li:  1 it: 1.16e+01 tt: 7.04e+01
-       6: f: 3.025353e+08 d: 5.32e+06 g: 1.33e+13 h: 2.14e+08 rho: 7.21e-01 mu: 3.42e+02 li:  1 it: 1.14e+01 tt: 8.18e+01
-       7: f: 2.908298e+08 d: 1.17e+07 g: 5.97e+12 h: 7.25e+08 rho: 5.73e-01 mu: 3.43e+02 li:  1 it: 1.08e+01 tt: 9.26e+01
-       8: f: 2.803927e+08 d: 1.04e+07 g: 1.07e+12 h: 9.72e+07 rho: 5.27e-01 mu: 3.43e+02 li:  1 it: 1.03e+01 tt: 1.03e+02
-       9: f: 2.767074e+08 d: 3.69e+06 g: 2.10e+11 h: 7.35e+07 rho: 7.37e-01 mu: 3.84e+02 li:  1 it: 1.03e+01 tt: 1.13e+02
-      10: f: 2.744282e+08 d: 2.28e+06 g: 2.17e+11 h: 1.23e+08 rho: 3.11e-01 mu: 3.64e+02 li:  1 it: 9.61e+00 tt: 1.23e+02
-    
-    Change-Id: I7c3b132f7ce62719795bfa489ec2276d0455cc97
+    Change-Id: I454fa89f9b6f4f6320b02d5235e6f322cc15ff51
 
-commit 3e6ef29be6f3cd672a73cefb52838832a49e5427
+commit 331ff090dcae7096cea50144047b71cab2d3e819
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 25 13:44:53 2013 +0000
+
+    Downgrading log status of BFGS secant condition messages.
+    
+    - These messages were originally VLOG(2) and were mistakenly upgraded to
+      WARNINGs when the tolerances were reduced.
+    
+    Change-Id: I89dee666a09bc82cfa89b793dc0907268662f95e
+
+commit 9697a08a2bf29531671526b49df73bfbc0d7d237
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sat Nov 23 10:03:37 2013 +0000
+
+    Defining CERES_FOUND in addition to Ceres_FOUND in CeresConfig.
+    
+    - Previously we relied on FindPackage() to define Ceres_FOUND when
+      find_package(Ceres) was called.
+    - This is fine, but users might legitimately expect the variable to be
+      CERES_FOUND given the form of CERES_INCLUDE_DIRS/LIBRARIES.
+    - As there is an inconsistency in the CMake recommended names when
+      FindPackage() is called in Module vs Config form, we now explicltly
+      define both.
+    
+    Change-Id: I54bce9aa112b684d26b60a9ae4d11eb7925a6ee5
+
+commit 66e15b41d80b155f333f099a0278d50312cdaa15
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 20 09:53:54 2013 -0700
+Date:   Fri Nov 22 07:59:23 2013 -0800
 
-    Update version history to reflect API changes
+    Lint cleanup from Jim Roseborough.
     
-    Change-Id: I5ce744d72b991abba17b5cf9c6a1e1f158693151
+    Change-Id: I6ddbf5c3d66595d27f7967a309768e5f5dd7e1fd
 
-commit 1918453aeeae629be1f02eb333e91c4f728ace12
+commit 79bde35f29291cf464b59f3dc2dd9f1fa88776a9
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 19 14:15:48 2013 -0700
+Date:   Thu Nov 21 21:33:51 2013 -0800
 
-    Fix build breakage on old SuiteSparse.
+    SuiteSparse errors do not cause a fatal crash.
     
-    Errant semi colon is to blame.
+    1. Move LinearSolverTerminationType to ceres::internal.
+    2. Add FATAL_ERROR as a new enum to LinearSolverTerminationType.
+    3. Pipe SuiteSparse errors via a LinearSolverTerminationType so
+       to distinguish between fatal and non-fatal errors.
+    4. Update levenberg marquardt and dogleg strategies to deal
+       with FATAL_ERROR.
+    5. Update trust_region_minimizer to terminate when FATAL_ERROR
+       is encountered.
+    6. Remove SuiteSparse::SolveCholesky as it screws up the error
+       handling.
+    7. Fix all clients calling SuiteSparse to handle the result of
+       SuiteSparse::Cholesky correctly.
+    8. Remove fatal failures in SuiteSparse when symbolic factorization
+       fails.
+    9. Fix all clients of SuiteSparse to deal with null symbolic factors.
     
-    Thanks to Timothy Langlois for reporting this.
+    This is a temporary fix to deal with some production problems. A more
+    extensive cleanup and testing regime will be put in place in a
+    subsequent CL.
     
-    Change-Id: I57bb1cd69d78ab1897ead3627539a0da11b97455
+    Change-Id: I1f60d539799dd95db7ecc340911e261fa4824f92
 
-commit 8f33332c598d8209df73eb1c729e0abe2c890468
+commit a674e0f8534ea6948f70a72fe9718e07b3d039ff
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Aug 18 23:25:00 2013 -0700
+Date:   Thu Nov 21 22:12:15 2013 -0800
 
-    Documentation update for 1.7.0rc2
+    Fix corrector_test.cc.
     
-    Change-Id: I6b0c19bed57b51a0f6591c60a4ae0d849c62451b
+    Fix two death tests dealing with the sign of the gradient.
+    
+    Change-Id: Ic91d54a64cc509307c94fce6d1fca083078936e2
 
-commit ad2819a1afa94990022999a96eb158add68419e0
+commit a8006af3110e98d64fb369e958fc00ec88d771a3
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed Nov 20 19:56:06 2013 +0000
+
+    Adding threads libraries to exported dependencies if using OpenMP.
+    
+    - Previously we were only adding the flags to the link flags for the
+      Ceres project, which resulted in them not being exported. Thus
+      projects importing Ceres (if using OpenMP) would have to manually
+      specify them in addition to CERES_LIBRARIES.
+    
+    Change-Id: If0354cc07e84dbebfc870a8862e1a8ca64659791
+
+commit 6c0d96424e2c27326757936a3738f9efc37c6c24
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Aug 17 23:44:09 2013 -0700
+Date:   Wed Nov 20 11:52:01 2013 -0800
 
-    Fix breakage on old versions of SuiteSparse.
+    Minor documentation fix.
     
-    Thanks to Fisher Yu for reporting this.
+    Thanks to Satya Mallick.
     
-    Change-Id: Iefa89816cbb60e3512338a7c2a65655c017877ac
+    Change-Id: I556f1c141bf16739d54450351b0f29fd4ea40014
 
-commit 880cba0939b2caa2641a5752373ffd47b64edd0f
+commit 7747bb0e6b0e54366933ed75c1bcafe6a1109c3d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Nov 20 11:29:22 2013 -0800
+
+    Minor corrections to the documentation.
+    
+    Thanks to Satya Mallick for reporting these.
+    
+    Change-Id: Ia52e08a7e21d5247dc475cfbf10bf57265aa118f
+
+commit 3fca2c4b2fae9abcaa9611f2bd3885ce6b11963b
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 18 10:26:49 2013 +0000
+
+    Decreasing update threshold for BFGS as per L-BFGS.
+    
+    - Improves performance of BFGS on NIST, as per L-BFGS.
+    - Adding explanation of origin and purpose of Secant condition
+      tolerance check for Hessian update in (L)BFGS.
+    
+    Change-Id: If57b9957d31d8629c772c19a069e1e56e727b350
+
+commit 54fcbf893852272ba2158d6a56572a2eb3ccc41f
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Nov 19 10:12:05 2013 -0800
+
+    Relax the requirements on loss functiond derivatives.
+    
+    We now require that the first derivative of the loss function
+    be positive only if the second derivative is non-zero. This is
+    because when the second derivative is non-positive, we do not use
+    the second order correction suggested by BANS and instead use
+    a simpler first order strategy which does not use a division by
+    the gradient of the loss function.
+    
+    Change-Id: I3d65713f152611998e196ff389a7081acfdfd8c1
+
+commit db98425b94c9eff9b125bf4a854545162e8c1aec
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Nov 15 14:14:09 2013 -0800
+
+    Small bugfix to logging.h from Scott Ettinger.
+    
+    Change-Id: Ie6d51e7883adf36c6fc7a78ff95afab6a78e488b
+
+commit 4d0e626b55f36ab8f44a4acc8157b85cfecd4673
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Fri Nov 15 13:53:44 2013 +0000
+
+    Fixing gflags HINTS variable names (adding missing “_DIR”).
+    
+    - The HINTS variables for gflags were incorrectly used as
+      GFLAGS_[INCLUDE/LIBRARY]_HINTS when they should have been
+      GFLAGS_[INCLUDE/LIBRARY]_DIR_HINTS as per the docs.
+    - Also removing a completed TODO in the main CMakeLists.
+    - Updating method of extracting current directory in CeresConfig.cmake
+      to avoid use of CMAKE_CURRENT_LIST_DIR, which was not present in
+      CMake =< v2.8.3.
+    
+    Change-Id: I42ae696e3b785febe48688d912f0f343e8947cb0
+
+commit bf4c1b76e4926c738fc805e9ff4be0ed584d9eee
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu Nov 14 21:27:20 2013 +0000
+
+    Decreasing threshold at which L-BFGS Hessian is updated.
+    
+    - Decreasing threshold at which L-BFGS Hessian is updated from 1e-10
+      to 1e-14 results in a very significant improvement in NIST scores
+      (43 -> 53 for CUBIC).
+    - Adding comment in FindPolynomialRoots() explaining why behaviour
+      is correct.
+    
+    Change-Id: If668e087e7a86d29659aa74e8528b192b604c841
+
+commit 7124c3474cd201134c3a3350b46aca468f1edafa
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu Nov 7 16:10:02 2013 +0000
+
+    Fixes for some line search bugs & corner cases.
+    
+    - Increase precision of numeric values output in error messages to
+      allow for easier debugging.
+    - Ensure termination after Wolfe search bracketing phase if bracket
+      width has been shrunk to below tolerance.
+    - Cleaned up return value for BracketingPhase(), now false iff
+      optimisation should stop, true otherwise.
+    - Fix bug whereby we would mark a step size as satisfying the Wolfe
+      conditions when it did not due to numerical issues in the cost
+      function.
+    - Adding explanation of a subtlety in which a zoom could still be
+      acceptably invoked with bracket_low.f > bracket_high.f.
+    - Replacing hard check of a pre-condition of ZoomPhase() with a
+      conditional return if not satisfied to address issue whereby a
+      bracket could be incorrectly identified due to inconsistent values
+      & gradients returned from the cost function.
+    - Adding missing check for step size validity in line search minimizer.
+    - Adding ToDebugString() for FunctionSample.
+    
+    Change-Id: Iad98e635749877f80c079ebad126bf022d82232d
+
+commit 54fc9423673886ac9ed3fe329a80f07544aeea70
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu Nov 14 11:42:00 2013 +0000
+
+    Removing incorrect specialisation of install dirs on Windows.
+    
+    - Previously on Windows the leaf include & lib install directories
+      passed to CeresConfig.cmake.in when configured where capitalised on
+      Windows.
+    - This capitalisation was incorrect, as the actual paths used are
+      specified in the install() statements and are always in the standard
+      lower-case form.
+    - This likely did not cause any issues previously as although NTFS is
+      case sensitive, the Win32 API is not, and most applications access
+      files through the Win32 API, and are thus not case-sensitive.
+    
+    Change-Id: I335b6e2d10a1c64f320c2a1a68eeda1b22344e73
+
+commit fcbbb11e37386097b1427dc3aa89f264d6951ded
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed Nov 13 22:22:30 2013 +0000
+
+    Ensure build paths for dependencies are searched in FindPackage(Ceres)
+    
+    - Append to hint locations used by FindPackage scripts for public
+      dependencies (glog & Eigen) the locations of the dependencies when
+      Ceres was built.
+    - This means that the user should not have to supply them again when
+      using find_package(Ceres) even if they are installed in a
+      non-standard location.
+    
+    Change-Id: I9550de91025ba47f01f1ea3c3fefe80fe38d14ff
+
+commit 7899e45d378f589a67ad8e042bf6a7cb7e15df00
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed Nov 13 21:08:27 2013 +0000
+
+    Fixing a documentation typo, DIRS -> DIR in HINTS variables.
+    
+    Change-Id: I42b75a5e0b8a451c3a43ab29d0c14856e4b86ab8
+
+commit 1a041c35b780e60c3b497eb096b72ad20f47960e
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Nov 12 14:17:52 2013 -0800
+
+    Update to 1.8.0.
+    
+    Change-Id: Id42e594f03e3575d06e18c1ef66df64f43d86839
+
+commit 36b26139296060511718b3ef0da03a52706db481
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu Nov 7 16:57:36 2013 +0000
+
+    Fix ordering of ParseCommandLineFlags() & InitGoogleTest() for Windows.
+    
+    - On Windows gtest passes additional non-gflags command line flags
+      for death-tests, to avoid gflags invoking an error for these flags
+      InitGoogleTest() must be called before ParseCommandLineFlags() to
+      handle and remove them before gflags parses the remaining flags.
+    
+    Change-Id: I0c705ecd3aa029b70a2589b592e6a2c192745c0e
+
+commit 8c155d51fab099ee7bf64f4bdbfeda82881925a5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Nov 8 08:04:44 2013 -0800
+
+    Speed up the application of robust loss functions.
+    
+    Since we added special handling for the case for rho[2] < 0,
+    the bulk of CorrectJacobian is pointless in the common case.
+    So add a simple one dimensional loop which rescales the Jacobian.
+    This speeds up this method immensely.
+    
+    The robustification of a Jacobian gets speeded up by > 50%.
+    
+    Change-Id: I97c4e897ccbb5521c053e1fb931c5d0d32f542c7
+
+commit 58792dc8ee0e4b56331f33f753f1b1932c5c2960
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Nov 6 09:42:46 2013 -0800
+
+    Update to 1.8.0rc2.
+    
+    Change-Id: Ifbf5312377bf1791a29aefd3edc3a765999c5824
+
+commit af04d7f18740faf452e9171af530aa1bdead44bb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Nov 5 13:47:30 2013 -0800
+
+    Remove DCHECK_GE checks from fixed_array.h
+    
+    This triggers -Wtype-limits warnings on comparisons
+    which are always true, since the test being done is
+    n >= 0, where n is of type size_t, which is always
+    true.
+    
+    This causes problems when compiling Ceres on linux
+    with miniglog.
+    
+    Change-Id: Ia1d1d1483e03469c71fde029b62ca6d84e9b27e0
+
+commit b5be6b9c065a02158337ee7eacfdb8be811dec7f
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Tue Nov 5 13:10:27 2013 +0000
+
+    Cleaning up messages output when SuiteSparse is not found.
+    
+    - Automatically generated failure message now provides more
+      information as to which sub-modules are missing.
+    
+    Change-Id: I6eed94af49263540b8f87917b75c41b8f49658a0
+
+commit 9ba0b352a282f08b1b6368a5690434407d7c81af
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Nov 5 13:04:56 2013 -0800
+
+    Lint and other cleanups from William Rucklidge
+    
+    Change-Id: I7fb23c2db85f0f121204560b79f1966f3d584431
+
+commit 69bd65ff4368ce2841519f00ff48c5284c1743a3
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 4 23:01:14 2013 +0000
+
+    Downgrading warning messages when optional deps are not found.
+    
+    - Now when find_package() is called for a dependency without the
+      REQUIRED or QUIET qualifiers, we emit no priority (above STATUS, but
+      below WARNING) messages and continue.
+    
+    Change-Id: I8cdeda7a8f6c91d45fb7f24fb366244c6c9b66e1
+
+commit b0a8731fcdde31e6c37a54e8c1e1c00f853c0d5c
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 4 20:32:40 2013 +0000
+
+    Removing duplicate SuiteSparse found message.
+    
+    - Also flipping ordering of variables in
+      find_package_handle_standard_args() so that the automatically
+      generated message prints the include directories, not TRUE.
+    
+    Change-Id: I2bf62eacd5c96f27152e9542b9a74651243a584e
+
+commit 6fed9fe0de9d1737095c24e19ad8df9735b7e572
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 4 18:33:05 2013 +0000
+
+    Fix FindPackage scripts to emit warnings, not errors if not found.
+    
+    - Previously we used message priority: SEND_ERROR when a package was
+      not found and find_package() was called without QUIET or REQUIRED,
+      which emits an error message, and prevents generation, but continues
+      configuration.
+    - The fact SEND_ERROR induces an error message was confusing for users
+      as it implies that something bad has happened and they cannot
+      continue, when in fact we were disabling the option in question
+      and were thus able to continue, all they had to do was re-configure.
+    
+    - This commit also reorders the search lists for includes/libraries
+      so that we always search user installed locations (e.g. /usr/local)
+      before system installed locations.  Thus we will now always prefer
+      a user install to a system install if both are available, which is
+      likely to be the users desired intention.
+    
+    Change-Id: Ide84919f27d3373f31282f70c685720cd77a6723
+
+commit cada337149cbc4b9e6f2bae14593b87ecf8f1a5c
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Nov 4 18:08:24 2013 +0000
+
+    Fixing CXSparse include directories statement.
+    
+    - Reported as issue #135:
+      https://code.google.com/p/ceres-solver/issues/detail?id=135.
+    - CXSPARSE_INCLUDE was the legacy include directory variable, since
+      the buildsystem updates we now use the CMake standard:
+      CXSPARSE_INCLUDE_DIRS.
+    
+    Change-Id: Iab0c2de14d524bb9e9da230bc574b5e6f09e1f31
+
+commit c71085ed326239dc2d318d848ded9a99e4e3c107
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Oct 31 13:56:38 2013 -0700
+
+    Update to 1.8.0rc1.
+    
+    Change-Id: Iaa10fd5a20be2ef84aca0119306c44669d87cc5d
+
+commit 88a703f44ff0d6d5d4601584fa77f5ce853025f4
 Author: Petter Strandmark <petter.strandmark@gmail.com>
-Date:   Fri Aug 16 20:05:30 2013 +0200
+Date:   Thu Oct 31 21:13:48 2013 +0100
 
-    Fix warning C4373 in Visual Studio
+    Fix compilation in Visual C++ 2013.
     
-    The warning occurs because an overridden function added a const
-    to one argument.
+    I had to fix the following things to make Ceres compile in 2013:
+     * Not link to 'm' (GNU math library).
+     * Excplicitly convert an std::ostream to bool.
+     * Include <algorithm> for std::max.
     
-    Change-Id: Idd24f7c6ab60064747104bfc75ae9bf112f61b3e
+    Change-Id: I3ff65413baf8711364360d46dd71fd553fa63e72
 
-commit d61b68aaac3fa51b8fca8b1a268e83b0d5da01ea
+commit f06b9face5bfbbc2b338aa2460bee2298a3865c5
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Aug 16 17:02:56 2013 -0700
+Date:   Sun Oct 27 21:38:13 2013 -0700
 
-    Lint cleanups from William Rucklidge
+    Add support for multiple visibility clustering algorithms.
     
-    Change-Id: Ia4756ef97e65837d55838ee0b30806a234565bfd
+    The original visibility based preconditioning paper and
+    implementation only used the canonical views algorithm.
+    
+    This algorithm for large dense graphs can be particularly
+    expensive. As its worst case complexity is cubic in size
+    of the graph.
+    
+    Further, for many uses the SCHUR_JACOBI preconditioner
+    was both effective enough while being cheap. It however
+    suffers from a fatal flaw. If the camera parameter blocks
+    are split between two or more parameter blocks, e.g,
+    extrinsics and intrinsics. The preconditioner because
+    it is block diagonal will not capture the interactions
+    between them.
+    
+    Using CLUSTER_JACOBI or CLUSTER_TRIDIAGONAL will fix
+    this problem but as mentioned above this can be quite
+    expensive depending on the problem.
+    
+    This change extends the visibility based preconditioner
+    to allow for multiple clustering algorithms. And adds
+    a simple thresholded single linkage clustering algorithm
+    which allows you to construct versions of CLUSTER_JACOBI
+    and CLUSTER_TRIDIAGONAL preconditioners that are cheap
+    to construct and are more effective than SCHUR_JACOBI.
+    
+    Currently the constants controlling the threshold above
+    which edges are considered in the single linkage algorithm
+    are not exposed. This would be done in a future change.
+    
+    Change-Id: I7ddc36790943f24b19c7f08b10694ae9a822f5c9
 
-commit b22d063075ec545a59a25abd5d83e4642dc329c2
+commit 5a161a2b9653489ee9040f054b24df971e6b9bbc
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 15 22:55:23 2013 -0700
+Date:   Tue Oct 29 22:08:15 2013 -0700
 
-    Reduce memory usage in covariance estimation.
+    Template specializations for PartitionedMatrixView.
     
-    When using the SPARSE_QR algorithm, now a Q-less
-    factorization is used. This results in significantly
-    less memory usage.
+    This speeds up the matrix vector products in the
+    IterativeSchurSolver by upto 40%.
     
-    The inversion of the semi-normal equations is now
-    threaded using openmp. Indeed if one has SuiteSparse
-    compiled with TBB, then both the factorization
-    and the inversion are completely threaded.
-    
-    Change-Id: Ia07591e48e7958d427ef91ff9e67662f6e982c21
+    Change-Id: Ib5e8d77c7269cf5ffdd2d161893734bb6d38215d
 
-commit f258e4624f5bd86105ea28b9b92dd70a3f4a3a44
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Aug 15 14:50:08 2013 +0600
-
-    Move most of suitesparse/cxsparse ifdef code to their headers
-    
-    Main purpose of this is to make implementation files free from
-    endless ifdef blocks every time this libraries are needed to be
-    included. This would hopefully prevent compilation errors in
-    the future caused by missing ifdef around header include.
-    
-    This also includes some stubs added to suitesparse/cxsparse
-    headers to make code even more free from ifdefs.
-    
-    Change-Id: Ic8554e7df31d8c4751583fe004b99e71b3c9087b
-
-commit dc60d9c4519b5eb5e2cff8741680fecf4d6eb2c5
+commit e5ce1170bc9993085c81a788e16eb48f1b2fdb97
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 15 10:13:45 2013 -0700
+Date:   Tue Oct 29 07:40:51 2013 -0700
 
-    Fix broken android build.
+    Minor bug fix to autodiff.h
     
-    Change-Id: I6f27e3ef9bd678f7393c9f573491064978e9c368
+    Change-Id: Ib41050a2f2ba1898c71ff19d74f8eca2496212c0
 
-commit 367b65e17a541a9f29b9ea63682fe6f6b5b54074
+commit 9e9a7d6ca0e75727293f94452d602f02b56d10ba
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Aug 9 10:35:37 2013 -0700
+Date:   Tue Oct 29 06:54:44 2013 -0700
 
-    Multiple dense linear algebra backends.
+    Documentation update.
     
-    1. When a LAPACK implementation is present, then
-    DENSE_QR, DENSE_NORMAL_CHOLESKY and DENSE_SCHUR
-    can use it for doing dense linear algebra operations.
+    Add documentation for the new methods added to Problem.
+    Fix a bunch of ReST bugs.
     
-    2. The user can switch dense linear algebra libraries
-    by setting Solver::Options::dense_linear_algebra_library_type.
-    
-    3. Solver::Options::sparse_linear_algebra_library is now
-    Solver::Options::sparse_linear_algebra_library_type to be consistent
-    with all the other enums in Solver::Options.
-    
-    4. Updated documentation as well as Solver::Summary::FullReport
-    to reflect these changes.
-    
-    Change-Id: I5ab930bc15e90906b648bc399b551e6bd5d6498f
+    Change-Id: I8a79a84040cfa8a679cc5355baccbe6d69bc9e70
 
-commit 080d1d04bdf722c3f602833c4c07ac1c5d26fcc0
+commit c6bafdd02c33ec0ccb705578d83e4f601ddeedea
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 12 16:28:37 2013 -0700
+Date:   Mon Oct 28 19:38:08 2013 -0700
 
-    Use more performant, less conservative Eigen solvers.
+    Comments from Jim Roseborough.
     
-    colPivHouseholderQR -> householderQR
-    ldlt -> llt.
+    1. Fix the tolerance on the rotation matrix conversion test.
+    2. Fix some out of date comments.
     
-    The resulting performance differences are significant enough
-    to justify switching.
-    
-    LAPACK's dgels routine used for solving linear least squares
-    problems does not use pivoting either.
-    
-    Similarly, we are not actually using the fact that the matrix
-    being factorized can be indefinite when using LDLT factorization, so
-    its not clear that the performance hit is worth it.
-    
-    These two changes result in Eigen being able to use blocking
-    algorithms, which for Cholesky factorization, brings the performance
-    closer to hardware optimized LAPACK. Similarly for dense QR
-    factorization, on intel there is a 2x speedup.
-    
-    Change-Id: I4459ee0fc8eb87d58e2b299dfaa9e656d539dc5e
+    Change-Id: I65e80da1f96d7b4d9ac0630ad8cb708c41739840
 
-commit fb465a03b83fad2dceaea091ee3763c3dc6e83d2
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Aug 5 22:35:14 2013 -0700
-
-    Fix compilation error caused by missing suitesparse headers
-    
-    Covariance implementation file used to unconditionally include
-    SuiteSparseQR.hpp which caused compilation error in cases you
-    don't have SuiteSuite installed to the system
-    
-    Moved the include to #ifdef block.
-    
-    Change-Id: I3a52c0f81711b2b70ae625fe80b758ecb0817cc6
-
-commit 2460bf0733b4070e52d68a4a85046c1b20913e2c
-Author: Steven Lovegrove <stevenlovegrove@gmail.com>
-Date:   Sun Jul 21 13:13:11 2013 -0400
-
-    Check GCC Version before adding -fast compiler option on OSX.
-    
-    -fast compiler option is only supported using Apple's GCC packaged with XCode.
-    Other GCC versions will fail when this flag is enabled. This commit checks the
-    GCC version on OSX and only enables this flag when < 4.3. Apple's GCC is
-    currently 4.2.1 and a user is unlikely to install a non-apple version this old
-    on OSX.
-    
-    Change-Id: Ifca9149625c065cd16559d7e30c218a322cf79aa
-
-commit c5bcfc01af37b4f667be075c3c58dc024f3c7f06
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Jul 19 15:50:27 2013 -0700
-
-    Lint fixes from Jim Roseborough.
-    
-    Change-Id: If93e1972041b36410225a509e3c8c7c818f92124
-
-commit 16924168ce0b3e29d9b1e16a08d2b3d2930e017a
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 18 12:52:35 2013 -0700
-
-    Update version from 1.6.0 -> 1.7.0rc1.
-    
-    Change-Id: I420a8907142bffad0e3aa6c7196541ca2309c099
-
-commit 588228bdadcc0a1ffc55442a0672998241e53e09
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 18 11:29:19 2013 -0700
-
-    Add the ability to turn shared library compilation on and off
-    
-    Change-Id: Ib9eacfbc894bb2b66aafff3b930c63e2ad8a555e
-
-commit 6d93450cb563dc992cbc29ca069c886bf24bb458
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 18 11:08:07 2013 -0700
-
-    Fix build breakage on old versions of SuiteSparse.
-    
-    SuiteSparse_long is only defined in recent versions of SuiteSparse
-    as the index variable type for large matrices. In older versions
-    UF_long was used. Ubuntu still ships with an older version of
-    SuiteSparse, so an ifdef is needed to fix the build.
-    
-    This patch has been tested on mac and on linux with older and
-    newer versions of SuiteSparse.
-    
-    Change-Id: I4ada86d7973784a79bde4afec13ce3ca4e8dc225
-
-commit 42be9cafe6203745fb09d611773305433c117396
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 18 08:02:08 2013 -0700
-
-    Update documentation for Covariance
-    
-    Change-Id: Ia4a7347ef8267b7107698d85fcbfc986111958dc
-
-commit 5a974716e111e4aa87a4840902b957060bd644fc
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Jun 7 22:38:30 2013 -0700
-
-    Covariance estimation using SuiteSparseQR.
-    
-    Change-Id: I70d1686e3288fdde5f9723e832e15ffb857d6d85
-
-commit 719889b8b7a3ef6712516d169a4ce3a33d272fda
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jul 17 11:31:08 2013 -0700
-
-    Minor fixes
-    
-    1. Typo in c_api.h
-    2. The stream operator for FunctionSample is now in the ceres::internal namespace.
-    
-    Change-Id: Id927a7a49c47d8903505535749ecca78cd2e83b3
-
-commit 12cc164f79bb8a31e0eb3946e6f4898ac3c21c55
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Jul 17 12:08:33 2013 +0100
-
-    Minor fix to reject a line search config with negative L-BFGS rank.
-    
-    Change-Id: Iad4c678efe574ef6696c34bd2a0ce61a504c7344
-
-commit 9aa0e3cf7243a2e837bbfa22d4677010463f6a4e
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Fri Jul 5 20:22:37 2013 +0100
-
-    Adding Wolfe line search algorithm and full BFGS search direction options.
-    
-    Change-Id: I9d3fb117805bdfa5bc33613368f45ae8f10e0d79
-
-commit 51c772c843ccecca006c706a9f64b8cbaf5416f9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jul 16 16:42:52 2013 -0700
-
-    householderQR -> colPivHouseholderQR.
-    
-    Change-Id: Ida623e853711f665e7a9d3b140a93e861591f96d
-
-commit c2c6411d16db95cde0cc3a7a80bac87266234bb7
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Jul 13 18:47:49 2013 -0700
-
-    DENSE_QR solver now uses non pivoting QR decomposition.
-    
-    Change-Id: I9099221448ccf71d0de20b9f652405009a6c24c5
-
-commit 3c2ad4018c8d2271434b9ff2bd05437b96f4927c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jul 15 08:09:38 2013 -0700
-
-    Speed up Automatic differentiation by 7%.
-    
-    1. Templatize Make1stOrderPerturbation.
-    2. Convert a hard CHECK into DCHECK.
-    
-    Change-Id: I02cd67f2b87bc5722f1a090057d55f23e98d2c3b
-
-commit 0a07fbf8731adcdce98c8e73127d379199341132
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jul 10 11:57:35 2013 -0700
-
-    Use ATLAS as the example BLAS in building.rst
-    
-    OpenBLAS has subtle issues releated to threading. It
-    conflicts with the use of threads in the other parts of
-    the application.
-    
-    Careful users can still use it by disabling threads via
-    an environment variable, but by default we want to use
-    a BLAS/LAPACK that does not suffer from these problems.
-    
-    Change-Id: I8c1c0ed0b526453564c5f9ea69b646fac32fe027
-
-commit aee5597acf9c2c064977e937f52689254ebd1a39
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jul 9 23:30:07 2013 -0700
-
-    Minor fix to curve_fitting.c
-    
-    Change-Id: Ib3669a5c4c73178b088dc1e80141f844f807b179
-
-commit bd82f82c3afeb3c57fa03f61fdbb0388f9ed8b02
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jul 9 23:19:09 2013 -0700
-
-    More CMake file cleanup.
-    
-    Reduce the verbosity of the Cmake file. All the "Checking for"
-    messages have been removed since we log both success and failures.
-    
-    Further, UFConfig is only searched for if SuiteSparse_config cannot
-    be found.
-    
-    Change-Id: I601a6ffc808e566ff78ce232c86519ef413f0b33
-
-commit 9f4552b6475616df7e60681e60cd5afebb45a4ea
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jul 9 00:10:08 2013 -0700
-
-    Stop CMake from trying to detect OpenMP when using Clang.
-    
-    Change-Id: Ie14c6466475b401ba35dbf13adc2e8701999c969
-
-commit 6e8bd501b25dc308df7b1a5eed16edfd8442002e
+commit fda69b52130955479591e8f03f97b1cfceca369f
 Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 23 01:49:08 2013 -0700
+Date:   Thu Oct 10 00:25:24 2013 -0700
 
-    Extend the C API to support loss functions
+    Export the structure of a problem to the public API
     
-    This extends the C API to support loss functions. Both
-    user-supplied cost functions as well as the stock Ceres cost
-    functions (Cauchy, Huber, etc) are supported. In addition, this
-    adds a simple unit test for the C API.
+    This adds three new public methods to ceres::Problem:
     
-    Supporting loss functions required changing the signature of the
-    ceres_add_residual_block() function to also take a thunk for the
-    loss function.
+      Problem::GetResidualBlocks()
+      Problem::GetParameterBlocksForResidualBlock()
+      Problem::GetResidualBlocksForParameterBlock()
     
-    Change-Id: Iefa58cf709adbb8f24588e5eb6aed9aef46b6d73
+    These permit access to the underlying graph structure of the problem.
+    
+    Change-Id: I55a4c7f0e5f325f140cb4830e7a7070554594650
 
-commit 1ab7fde626c3d3ac02664183f21fedd397785bea
+commit 63bcdffa7d188b8d8c5309a62c255ba33f061764
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jul 8 10:03:49 2013 -0700
+Date:   Sun Oct 27 21:34:13 2013 -0700
 
-    Update gmock and gtest to the latest svn versions.
+    Add the 2_d_d SchurEliminator specialization.
     
-    This fixes a variety of mac/clang/c++11 issues.
+    This occurs far too often in bundle adjustment problems to be ignored.
     
-    Change-Id: I52e76d733cd53c9bb2fda125e51a6b58a90e41b3
+    Change-Id: Ib137f1566acf5fffa63e50a55fe8e78ea9eb1c14
 
-commit eeedd2e191f5ce404453c735061ad13bd45b939b
+commit 602096c91363a0b9384f887a15c82e2dac1fb923
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Jul 7 23:04:31 2013 -0700
+Date:   Sun Oct 27 05:09:38 2013 -0700
 
-    Rationalize some of the variable names in Solver::Options.
+    Move CERES_HASH_NAMESPACE macros to collections_port.h
     
-    lm_max_diagonal -> max_lm_diagonal
-    lm_min_diagonal -> min_lm_diagonal
-    linear_solver_max_num_iterations -> max_linear_solver_iterations
-    linear_solver_min_num_iterations -> min_linear_solver_iterations
+    Now that we have a clearer understanding of the naming rules
+    there is no need for these macro definitions to be done in
+    the cmake file.
     
-    This follows the pattern for the other parameters in Solver::Options
-    where, the max/min is the first word followed by the name of the
-    parameter.
+    This cleans up the compilation command line.
     
-    Change-Id: I0893610fceb6b7983fdb458a65522ba7079596a7
+    Change-Id: Idc8fc7a7c9376e021dc4790af66e599105351917
 
-commit 7a8f79792467e56012d43b5f9aa7aefce14d5ee9
+commit f6b67df54ad6daa7036f5b6619243f722d678892
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jul 3 09:03:55 2013 -0700
+Date:   Fri Oct 25 06:24:19 2013 -0700
 
-    Lint fixes
+    Fix handling of unordered_map/unordered_set on OSX 10.9.0.
     
-    Change-Id: Ic453597488ef92723a81a224e7443e8f454b25da
+    Depending on the compiler + standard library combination,
+    unordered_map/set may or may not be available. If available
+    they maybe in the std or the std::tr1 namespaces.
+    
+    Apple switched to using libc++ with 10.9.0 which places
+    unordered_map in std, breaking our assumptions about the
+    platform.
+    
+    This change refactors our logic for dealing with the namespace
+    switching, making it a three state thing rather than two. There
+    are three defines now, CERES_NO_UNORDERED_MAP, CERES_STD_UNORDERED_MAP
+    and CERES_TR1_UNORDERED_MAP. Earlier the first two were conflated
+    into one, leading to the breakage.
+    
+    Change-Id: I904fe8c49529169bdefa9f2ee6d629e7eab0b855
 
-commit 67ccb7379e7eab709480e227323ea48ea91e7ccc
+commit 21d6a99fe68e99fa51db32d55f587b42ef9a476c
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jul 3 06:28:34 2013 -0700
+Date:   Fri Oct 25 10:20:24 2013 -0700
 
-    Fix broken build.
+    Fix AngleAxisToRotationMatrix near zero.
     
-    Change-Id: Ieb122bb96d5776f962fff6d6e9345dfc855bfed7
+    The Taylor series approximation had its sign flipped and the
+    tests did not catch it since we were switching exactly at zero,
+    which was not getting triggered.
+    
+    This changes modifies the tolerance, adds a test that triggers
+    and fixes the bug.
+    
+    Thanks to Michael Samples for reporting this.
+    
+    Change-Id: I6f92f6348e5d4421ffe194fba92c04285449484c
 
-commit 4f010b2db02f22cee8243ed83a49e63a305dbb76
+commit 0e2743e24d013b25109396cfa0d8d0f1e8e84964
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jul 1 08:01:01 2013 -0700
+Date:   Wed Oct 23 14:51:07 2013 -0700
 
-    Improve Summary::FullReport when line search is used.
+    Add BlockRandomAccessDiagonalMatrix.
     
-    Disable reporting of preconditioner when direct factorization
-    is being used.
+    This class is used in the SchurJacobiPreconditioner for
+    storing the preconditioner matrix. Using it speeds up
+    the computation of the preconditioner by ~15% due to
+    the elimination of a hash table lookup.
     
-    Change-Id: Id264d2292c5cab608724a6a8fab5d588db950468
+    Change-Id: Iba2b34aad0d9eb9bcb7f6e6fad16aa416aac0d2a
 
-commit 09244015e304b0ebfb2f2399edd2d97e3b9dcd8f
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Jun 30 14:33:23 2013 -0700
-
-    Expose line search parameters in Solver::Options.
-    
-    Change-Id: Ifc52980976e7bac73c8164d80518a5a19db1b79d
-
-commit 1c70ae9aa626e591cda987a970c240dd40d23a69
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Jun 30 12:50:43 2013 -0700
-
-    Fix Solver::Summary when line search is used.
-    
-    Also enable line search in bundle_adjuster.
-    
-    Change-Id: Ic4343a4334b9f5a6fdeab38d4e3e1f6932bbc601
-
-commit 70b06c89c7491d7749957c8454769bfcb0108a97
+commit 6a2bcaa1d55d38bc10d043f1458657caac2be7a7
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Jun 30 18:49:56 2013 +0100
+Date:   Wed Oct 23 14:06:44 2013 +0100
 
-    Fix update of L-BFGS history buffers after they become full.
+    Adding explicit link to libm for pure-C curve fitting example.
     
-    Previously there was an assignment dimension mismatch in the
-    history update; thus, over time, the history would contain
-    (only) replicated copies of the (max_num_corrections_ -1)-th
-    update and the most recent update.
+    - Any pure-C program #including <math.h> will need to link against
+      libm, some compilers will let an indirect link slide (via Ceres in
+      this case) but some won't.
     
-    Change-Id: I26203acf689686d41a5029c675ebbe001fe05d90
-
-commit a427c877f968d951b3cdcb5f5298deaf84647830
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jun 24 17:50:56 2013 -0700
-
-    Lint cleanup.
-    
-    Change-Id: Ie489f1ff182d99251ed8c0728cc6ea8e1c262ce0
+    Change-Id: I6890702fa0d2c3fbb747f0f81fc3fa3631839de4

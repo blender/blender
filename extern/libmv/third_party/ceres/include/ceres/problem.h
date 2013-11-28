@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -340,6 +340,26 @@ class Problem {
   // parameter blocks currently in the problem. After this call,
   // parameter_block.size() == NumParameterBlocks.
   void GetParameterBlocks(vector<double*>* parameter_blocks) const;
+
+  // Fills the passed residual_blocks vector with pointers to the
+  // residual blocks currently in the problem. After this call,
+  // residual_blocks.size() == NumResidualBlocks.
+  void GetResidualBlocks(vector<ResidualBlockId>* residual_blocks) const;
+
+  // Get all the parameter blocks that depend on the given residual block.
+  void GetParameterBlocksForResidualBlock(
+      const ResidualBlockId residual_block,
+      vector<double*>* parameter_blocks) const;
+
+  // Get all the residual blocks that depend on the given parameter block.
+  //
+  // If Problem::Options::enable_fast_parameter_block_removal is true, then
+  // getting the residual blocks is fast and depends only on the number of
+  // residual blocks. Otherwise, getting the residual blocks for a parameter
+  // block will incur a scan of the entire Problem object.
+  void GetResidualBlocksForParameterBlock(
+      const double* values,
+      vector<ResidualBlockId>* residual_blocks) const;
 
   // Options struct to control Problem::Evaluate.
   struct EvaluateOptions {

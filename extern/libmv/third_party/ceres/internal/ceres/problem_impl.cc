@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
-//         keir@google.com (Keir Mierle)
+//         mierle@gmail.com (Keir Mierle)
 
 #include "ceres/problem_impl.h"
 
@@ -452,7 +452,11 @@ template<typename Block>
 void ProblemImpl::DeleteBlockInVector(vector<Block*>* mutable_blocks,
                                       Block* block_to_remove) {
   CHECK_EQ((*mutable_blocks)[block_to_remove->index()], block_to_remove)
-      << "You found a Ceres bug! Block: " << block_to_remove->ToString();
+      << "You found a Ceres bug! \n"
+      << "Block requested: "
+      << block_to_remove->ToString() << "\n"
+      << "Block present: "
+      << (*mutable_blocks)[block_to_remove->index()]->ToString();
 
   // Prepare the to-be-moved block for the new, lower-in-index position by
   // setting the index to the blocks final location.
@@ -731,6 +735,57 @@ void ProblemImpl::GetParameterBlocks(vector<double*>* parameter_blocks) const {
   }
 }
 
+void ProblemImpl::GetResidualBlocks(
+    vector<ResidualBlockId>* residual_blocks) const {
+  CHECK_NOTNULL(residual_blocks);
+  *residual_blocks = program().residual_blocks();
+}
+
+void ProblemImpl::GetParameterBlocksForResidualBlock(
+    const ResidualBlockId residual_block,
+    vector<double*>* parameter_blocks) const {
+  int num_parameter_blocks = residual_block->NumParameterBlocks();
+  CHECK_NOTNULL(parameter_blocks)->resize(num_parameter_blocks);
+  for (int i = 0; i < num_parameter_blocks; ++i) {
+    (*parameter_blocks)[i] =
+        residual_block->parameter_blocks()[i]->mutable_user_state();
+  }
+}
+
+void ProblemImpl::GetResidualBlocksForParameterBlock(
+    const double* values,
+    vector<ResidualBlockId>* residual_blocks) const {
+  ParameterBlock* parameter_block =
+      FindParameterBlockOrDie(parameter_block_map_,
+                              const_cast<double*>(values));
+
+  if (options_.enable_fast_parameter_block_removal) {
+    // In this case the residual blocks that depend on the parameter block are
+    // stored in the parameter block already, so just copy them out.
+    CHECK_NOTNULL(residual_blocks)->resize(
+        parameter_block->mutable_residual_blocks()->size());
+    std::copy(parameter_block->mutable_residual_blocks()->begin(),
+              parameter_block->mutable_residual_blocks()->end(),
+              residual_blocks->begin());
+    return;
+  }
+
+  // Find residual blocks that depend on the parameter block.
+  CHECK_NOTNULL(residual_blocks)->clear();
+  const int num_residual_blocks = NumResidualBlocks();
+  for (int i = 0; i < num_residual_blocks; ++i) {
+    ResidualBlock* residual_block =
+        (*(program_->mutable_residual_blocks()))[i];
+    const int num_parameter_blocks = residual_block->NumParameterBlocks();
+    for (int j = 0; j < num_parameter_blocks; ++j) {
+      if (residual_block->parameter_blocks()[j] == parameter_block) {
+        residual_blocks->push_back(residual_block);
+        // The parameter blocks are guaranteed unique.
+        break;
+      }
+    }
+  }
+}
 
 }  // namespace internal
 }  // namespace ceres

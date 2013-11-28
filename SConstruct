@@ -285,6 +285,9 @@ if 'cudakernels' in B.targets:
     env['WITH_BF_CYCLES_CUDA_BINARIES'] = True
     env['WITH_BF_PYTHON'] = False
 
+# Configure paths for automated configuration test programs
+env['CONFIGUREDIR'] = os.path.abspath(os.path.normpath(os.path.join(env['BF_BUILDDIR'], "sconf_temp")))
+env['CONFIGURELOG'] = os.path.abspath(os.path.normpath(os.path.join(env['BF_BUILDDIR'], "config.log")))
 
 #############################################################################
 ###################    Automatic configuration for OSX     ##################

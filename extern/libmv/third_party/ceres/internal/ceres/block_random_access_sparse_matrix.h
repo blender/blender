@@ -47,7 +47,7 @@
 namespace ceres {
 namespace internal {
 
-// A threaf safe square block sparse implementation of
+// A thread safe square block sparse implementation of
 // BlockRandomAccessMatrix. Internally a TripletSparseMatrix is used
 // for doing the actual storage. This class augments this matrix with
 // an unordered_map that allows random read/write access.

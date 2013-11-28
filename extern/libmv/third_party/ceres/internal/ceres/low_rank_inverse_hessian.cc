@@ -35,6 +35,41 @@
 namespace ceres {
 namespace internal {
 
+// The (L)BFGS algorithm explicitly requires that the secant equation:
+//
+//   B_{k+1} * s_k = y_k
+//
+// Is satisfied at each iteration, where B_{k+1} is the approximated
+// Hessian at the k+1-th iteration, s_k = (x_{k+1} - x_{k}) and
+// y_k = (grad_{k+1} - grad_{k}). As the approximated Hessian must be
+// positive definite, this is equivalent to the condition:
+//
+//   s_k^T * y_k > 0     [s_k^T * B_{k+1} * s_k = s_k^T * y_k > 0]
+//
+// This condition would always be satisfied if the function was strictly
+// convex, alternatively, it is always satisfied provided that a Wolfe line
+// search is used (even if the function is not strictly convex).  See [1]
+// (p138) for a proof.
+//
+// Although Ceres will always use a Wolfe line search when using (L)BFGS,
+// practical implementation considerations mean that the line search
+// may return a point that satisfies only the Armijo condition, and thus
+// could violate the Secant equation.  As such, we will only use a step
+// to update the Hessian approximation if:
+//
+//   s_k^T * y_k > tolerance
+//
+// It is important that tolerance is very small (and >=0), as otherwise we
+// might skip the update too often and fail to capture important curvature
+// information in the Hessian.  For example going from 1e-10 -> 1e-14 improves
+// the NIST benchmark score from 43/54 to 53/54.
+//
+// [1] Nocedal J., Wright S., Numerical Optimization, 2nd Ed. Springer, 1999.
+//
+// TODO(alexs.mac): Consider using Damped BFGS update instead of
+// skipping update.
+const double kLBFGSSecantConditionHessianUpdateTolerance = 1e-14;
+
 LowRankInverseHessian::LowRankInverseHessian(
     int num_parameters,
     int max_num_corrections,
@@ -52,9 +87,12 @@ LowRankInverseHessian::LowRankInverseHessian(
 bool LowRankInverseHessian::Update(const Vector& delta_x,
                                    const Vector& delta_gradient) {
   const double delta_x_dot_delta_gradient = delta_x.dot(delta_gradient);
-  if (delta_x_dot_delta_gradient <= 1e-10) {
-    VLOG(2) << "Skipping LBFGS Update, delta_x_dot_delta_gradient too small: "
-            << delta_x_dot_delta_gradient;
+  if (delta_x_dot_delta_gradient <=
+      kLBFGSSecantConditionHessianUpdateTolerance) {
+    VLOG(2) << "Skipping L-BFGS Update, delta_x_dot_delta_gradient too "
+            << "small: " << delta_x_dot_delta_gradient << ", tolerance: "
+            << kLBFGSSecantConditionHessianUpdateTolerance
+            << " (Secant condition).";
     return false;
   }
 
@@ -133,6 +171,10 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
     //     20(5), 863-874, 1974.
     // [2] Nocedal J., Wright S., Numerical Optimization, Springer, 1999.
     search_direction *= approximate_eigenvalue_scale_;
+
+    VLOG(4) << "Applying approximate_eigenvalue_scale: "
+            << approximate_eigenvalue_scale_ << " to initial inverse Hessian "
+            << "approximation.";
   }
 
   for (int i = 0; i < num_corrections_; ++i) {

@@ -278,6 +278,25 @@ bool StringToCovarianceAlgorithmType(
   return false;
 }
 
+const char* VisibilityClusteringTypeToString(
+    VisibilityClusteringType type) {
+  switch (type) {
+    CASESTR(CANONICAL_VIEWS);
+    CASESTR(SINGLE_LINKAGE);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToVisibilityClusteringType(
+    string value,
+    VisibilityClusteringType* type) {
+  UpperCase(&value);
+  STRENUM(CANONICAL_VIEWS);
+  STRENUM(SINGLE_LINKAGE);
+  return false;
+}
+
 const char* SolverTerminationTypeToString(SolverTerminationType type) {
   switch (type) {
     CASESTR(NO_CONVERGENCE);
@@ -288,18 +307,6 @@ const char* SolverTerminationTypeToString(SolverTerminationType type) {
     CASESTR(USER_ABORT);
     CASESTR(USER_SUCCESS);
     CASESTR(DID_NOT_RUN);
-    default:
-      return "UNKNOWN";
-  }
-}
-
-const char* LinearSolverTerminationTypeToString(
-    LinearSolverTerminationType type) {
-  switch (type) {
-    CASESTR(TOLERANCE);
-    CASESTR(MAX_ITERATIONS);
-    CASESTR(STAGNATION);
-    CASESTR(FAILURE);
     default:
       return "UNKNOWN";
   }

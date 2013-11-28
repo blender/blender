@@ -86,6 +86,7 @@ Solver::Summary::Summary()
     // accidentally reporting default values.
     : minimizer_type(TRUST_REGION),
       termination_type(DID_NOT_RUN),
+      error("ceres::Solve was not called."),
       initial_cost(-1.0),
       final_cost(-1.0),
       fixed_cost(-1.0),
@@ -119,20 +120,20 @@ Solver::Summary::Summary()
       inner_iterations_given(false),
       inner_iterations_used(false),
       preconditioner_type(IDENTITY),
+      visibility_clustering_type(CANONICAL_VIEWS),
       trust_region_strategy_type(LEVENBERG_MARQUARDT),
       dense_linear_algebra_library_type(EIGEN),
       sparse_linear_algebra_library_type(SUITE_SPARSE),
       line_search_direction_type(LBFGS),
-      line_search_type(ARMIJO) {
+      line_search_type(ARMIJO),
+      line_search_interpolation_type(BISECTION),
+      nonlinear_conjugate_gradient_type(FLETCHER_REEVES),
+      max_lbfgs_rank(-1) {
 }
 
 string Solver::Summary::BriefReport() const {
   string report = "Ceres Solver Report: ";
   if (termination_type == DID_NOT_RUN) {
-    CHECK(!error.empty())
-          << "Solver terminated with DID_NOT_RUN but the solver did not "
-          << "return a reason. This is a Ceres error. Please report this "
-          << "to the Ceres team";
     return report + "Termination: DID_NOT_RUN, because " + error;
   }
 
@@ -237,6 +238,14 @@ string Solver::Summary::FullReport() const {
                     PreconditionerTypeToString(preconditioner_type));
     }
 
+    if (preconditioner_type == CLUSTER_JACOBI ||
+        preconditioner_type == CLUSTER_TRIDIAGONAL) {
+      StringAppendF(&report, "Visibility clustering%24s%25s\n",
+                    VisibilityClusteringTypeToString(
+                        visibility_clustering_type),
+                    VisibilityClusteringTypeToString(
+                        visibility_clustering_type));
+    }
     StringAppendF(&report, "Threads             % 25d% 25d\n",
                   num_threads_given, num_threads_used);
     StringAppendF(&report, "Linear solver threads % 23d% 25d\n",
@@ -306,10 +315,6 @@ string Solver::Summary::FullReport() const {
   }
 
   if (termination_type == DID_NOT_RUN) {
-    CHECK(!error.empty())
-        << "Solver terminated with DID_NOT_RUN but the solver did not "
-        << "return a reason. This is a Ceres error. Please report this "
-        << "to the Ceres team";
     StringAppendF(&report, "Termination:           %20s\n",
                   "DID_NOT_RUN");
     StringAppendF(&report, "Reason: %s\n", error.c_str());

@@ -95,9 +95,19 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveUsingEigen(
 
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
-  summary.termination_type = TOLERANCE;
-  VectorRef(x, num_cols) =
-      lhs.selfadjointView<Eigen::Upper>().llt().solve(rhs);
+  summary.termination_type = LINEAR_SOLVER_SUCCESS;
+  Eigen::LLT<Matrix, Eigen::Upper> llt =
+      lhs.selfadjointView<Eigen::Upper>().llt();
+
+  if (llt.info() != Eigen::Success) {
+    summary.termination_type = LINEAR_SOLVER_FAILURE;
+    summary.message = "Eigen LLT decomposition failed.";
+  } else {
+    summary.termination_type = LINEAR_SOLVER_SUCCESS;
+    summary.message = "Success.";
+  }
+
+  VectorRef(x, num_cols) = llt.solve(rhs);
   event_logger.AddEvent("Solve");
   return summary;
 }
@@ -142,14 +152,14 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveUsingLAPACK(
       A->matrix().transpose() * ConstVectorRef(b, A->num_rows());
   event_logger.AddEvent("Product");
 
-  const int info = LAPACK::SolveInPlaceUsingCholesky(num_cols, lhs.data(), x);
-  event_logger.AddEvent("Solve");
-
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
-  summary.termination_type = info == 0 ? TOLERANCE : FAILURE;
-
-  event_logger.AddEvent("TearDown");
+  summary.termination_type =
+      LAPACK::SolveInPlaceUsingCholesky(num_cols,
+                                        lhs.data(),
+                                        x,
+                                        &summary.message);
+  event_logger.AddEvent("Solve");
   return summary;
 }
 }   // namespace internal

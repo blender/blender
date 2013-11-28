@@ -84,11 +84,8 @@ class OrderedGroups {
     element_to_group_.clear();
   }
 
-  // Remove the element, no matter what group it is in. If the element
-  // is not a member of any group, calling this method will result in
-  // a crash.
-  //
-  // Return value indicates if the element was actually removed.
+  // Remove the element, no matter what group it is in. Return value
+  // indicates if the element was actually removed.
   bool Remove(const T element) {
     const int current_group = GroupId(element);
     if (current_group < 0) {

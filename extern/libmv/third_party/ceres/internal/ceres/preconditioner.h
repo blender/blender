@@ -48,6 +48,7 @@ class Preconditioner : public LinearOperator {
   struct Options {
     Options()
         : type(JACOBI),
+          visibility_clustering_type(CANONICAL_VIEWS),
           sparse_linear_algebra_library_type(SUITE_SPARSE),
           num_threads(1),
           row_block_size(Eigen::Dynamic),
@@ -56,7 +57,7 @@ class Preconditioner : public LinearOperator {
     }
 
     PreconditionerType type;
-
+    VisibilityClusteringType visibility_clustering_type;
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
 
     // If possible, how many threads the preconditioner can use.

@@ -35,6 +35,7 @@
 #define CERES_INTERNAL_IMPLICIT_SCHUR_COMPLEMENT_H_
 
 #include "ceres/linear_operator.h"
+#include "ceres/linear_solver.h"
 #include "ceres/partitioned_matrix_view.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
@@ -96,7 +97,7 @@ class ImplicitSchurComplement : public LinearOperator {
   //
   // TODO(sameeragarwal): Get rid of the two bools below and replace
   // them with enums.
-  ImplicitSchurComplement(int num_eliminate_blocks, bool preconditioner);
+  ImplicitSchurComplement(const LinearSolver::Options& options);
   virtual ~ImplicitSchurComplement();
 
   // Initialize the Schur complement for a linear least squares
@@ -142,10 +143,9 @@ class ImplicitSchurComplement : public LinearOperator {
   void AddDiagonalAndInvert(const double* D, BlockSparseMatrix* matrix);
   void UpdateRhs();
 
-  int num_eliminate_blocks_;
-  bool preconditioner_;
+  const LinearSolver::Options& options_;
 
-  scoped_ptr<PartitionedMatrixView> A_;
+  scoped_ptr<PartitionedMatrixViewBase> A_;
   const double* D_;
   const double* b_;
 

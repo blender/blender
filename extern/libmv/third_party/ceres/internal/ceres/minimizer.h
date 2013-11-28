@@ -107,6 +107,7 @@ class Minimizer {
           options.line_search_sufficient_curvature_decrease;
       max_line_search_step_expansion =
           options.max_line_search_step_expansion;
+      is_silent = false;
       evaluator = NULL;
       trust_region_strategy = NULL;
       jacobian = NULL;
@@ -153,6 +154,8 @@ class Minimizer {
     double line_search_sufficient_curvature_decrease;
     double max_line_search_step_expansion;
 
+    // If true, then all logging is disabled.
+    bool is_silent;
 
     // List of callbacks that are executed by the Minimizer at the end
     // of each iteration.

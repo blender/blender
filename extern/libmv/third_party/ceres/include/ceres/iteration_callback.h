@@ -50,6 +50,7 @@ struct IterationSummary {
         cost(0.0),
         cost_change(0.0),
         gradient_max_norm(0.0),
+        gradient_norm(0.0),
         step_norm(0.0),
         eta(0.0),
         step_size(0.0),
@@ -99,6 +100,9 @@ struct IterationSummary {
 
   // Infinity norm of the gradient vector.
   double gradient_max_norm;
+
+  // 2-norm of the gradient vector.
+  double gradient_norm;
 
   // 2-norm of the size of the step computed by the optimization
   // algorithm.

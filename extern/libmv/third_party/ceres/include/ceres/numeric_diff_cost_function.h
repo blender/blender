@@ -95,6 +95,21 @@
 // "MyScalarCostFunctor", "1, 2, 2", describe the functor as computing
 // a 1-dimensional output from two arguments, both 2-dimensional.
 //
+// NumericDiffCostFunction also supports cost functions with a
+// runtime-determined number of residuals. For example:
+//
+//   CostFunction* cost_function
+//       = new NumericDiffCostFunction<MyScalarCostFunctor, CENTRAL, DYNAMIC, 2, 2>(
+//           new CostFunctorWithDynamicNumResiduals(1.0),               ^     ^  ^
+//           TAKE_OWNERSHIP,                                            |     |  |
+//           runtime_number_of_residuals); <----+                       |     |  |
+//                                              |                       |     |  |
+//                                              |                       |     |  |
+//             Actual number of residuals ------+                       |     |  |
+//             Indicate dynamic number of residuals --------------------+     |  |
+//             Dimension of x ------------------------------------------------+  |
+//             Dimension of y ---------------------------------------------------+
+//
 // The framework can currently accommodate cost functions of up to 10
 // independent variables, and there is no limit on the dimensionality
 // of each of them.
@@ -103,8 +118,6 @@
 // twice as many function evaluations than forward difference. Consider using
 // central differences begin with, and only after that works, trying forward
 // difference to improve performance.
-//
-// TODO(sameeragarwal): Add support for dynamic number of residuals.
 //
 // WARNING #1: A common beginner's error when first using
 // NumericDiffCostFunction is to get the sizing wrong. In particular,
@@ -177,17 +190,19 @@ class NumericDiffCostFunction
                                N5, N6, N7, N8, N9> {
  public:
   NumericDiffCostFunction(CostFunctor* functor,
+                          Ownership ownership = TAKE_OWNERSHIP,
+                          int num_residuals = kNumResiduals,
                           const double relative_step_size = 1e-6)
       :functor_(functor),
-       ownership_(TAKE_OWNERSHIP),
-       relative_step_size_(relative_step_size) {}
-
-  NumericDiffCostFunction(CostFunctor* functor,
-                          Ownership ownership,
-                          const double relative_step_size = 1e-6)
-      : functor_(functor),
-        ownership_(ownership),
-        relative_step_size_(relative_step_size) {}
+       ownership_(ownership),
+       relative_step_size_(relative_step_size) {
+    if (kNumResiduals == DYNAMIC) {
+      SizedCostFunction<kNumResiduals,
+                        N0, N1, N2, N3, N4,
+                        N5, N6, N7, N8, N9>
+          ::set_num_residuals(num_residuals);
+    }
+  }
 
   ~NumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
@@ -216,7 +231,7 @@ class NumericDiffCostFunction
       return false;
     }
 
-    if (!jacobians) {
+    if (jacobians == NULL) {
       return true;
     }
 
@@ -264,6 +279,9 @@ class NumericDiffCostFunction
                            functor_.get(),                              \
                            residuals,                                   \
                            relative_step_size_,                         \
+                          SizedCostFunction<kNumResiduals,              \
+                           N0, N1, N2, N3, N4,                          \
+                           N5, N6, N7, N8, N9>::num_residuals(),        \
                            parameters_reference_copy.get(),             \
                            jacobians[block])) {                         \
         return false;                                                   \

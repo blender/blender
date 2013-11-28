@@ -33,26 +33,37 @@
 #ifndef CERES_INTERNAL_COLLECTIONS_PORT_H_
 #define CERES_INTERNAL_COLLECTIONS_PORT_H_
 
-#if defined(CERES_NO_TR1)
+#if defined(CERES_NO_UNORDERED_MAP)
 #  include <map>
 #  include <set>
-#else
-#  if defined(_MSC_VER)
-#    include <unordered_map>
-#    include <unordered_set>
-#  else
-#    include <tr1/unordered_map>
-#    include <tr1/unordered_set>
-#  endif
 #endif
+
+#if defined(CERES_TR1_UNORDERED_MAP)
+#  include <tr1/unordered_map>
+#  include <tr1/unordered_set>
+#  define CERES_HASH_NAMESPACE_START namespace std { namespace tr1 {
+#  define CERES_HASH_NAMESPACE_END } }
+#endif
+
+#if defined(CERES_STD_UNORDERED_MAP)
+#  include <unordered_map>
+#  include <unordered_set>
+#  define CERES_HASH_NAMESPACE_START namespace std {
+#  define CERES_HASH_NAMESPACE_END }
+#endif
+
+#if !defined(CERES_NO_UNORDERED_MAP) && !defined(CERES_TR1_UNORDERED_MAP) && !defined(CERES_STD_UNORDERED_MAP)
+#error One of: CERES_NO_UNORDERED_MAP, CERES_TR1_UNORDERED_MAP, CERES_STD_UNORDERED_MAP must be defined!
+#endif
+
 #include <utility>
 #include "ceres/integral_types.h"
 #include "ceres/internal/port.h"
 
-// Some systems don't have access to TR1. In that case, substitute the hash
-// map/set with normal map/set. The price to pay is slightly slower speed for
-// some operations.
-#if defined(CERES_NO_TR1)
+// Some systems don't have access to unordered_map/unordered_set. In
+// that case, substitute the hash map/set with normal map/set. The
+// price to pay is slower speed for some operations.
+#if defined(CERES_NO_UNORDERED_MAP)
 
 namespace ceres {
 namespace internal {
@@ -71,11 +82,19 @@ struct HashSet : set<K> {};
 namespace ceres {
 namespace internal {
 
+#if defined(CERES_TR1_UNORDERED_MAP)
 template<typename K, typename V>
 struct HashMap : std::tr1::unordered_map<K, V> {};
-
 template<typename K>
 struct HashSet : std::tr1::unordered_set<K> {};
+#endif
+
+#if defined(CERES_STD_UNORDERED_MAP)
+template<typename K, typename V>
+struct HashMap : std::unordered_map<K, V> {};
+template<typename K>
+struct HashSet : std::unordered_set<K> {};
+#endif
 
 #if defined(_WIN32) && !defined(__MINGW64__) && !defined(__MINGW32__)
 #define GG_LONGLONG(x) x##I64
@@ -162,6 +181,5 @@ struct hash<pair<T, T> > {
 
 CERES_HASH_NAMESPACE_END
 
-#endif  // CERES_NO_TR1
-
+#endif  // CERES_NO_UNORDERED_MAP
 #endif  // CERES_INTERNAL_COLLECTIONS_PORT_H_

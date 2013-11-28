@@ -172,7 +172,7 @@ inline void Make1stOrderPerturbation(int offset, const T* src, JetT* dst) {
   for (int j = 0; j < N; ++j) {
     dst[j].a = src[j];
     dst[j].v.setZero();
-    dst[j].v[offset + j] = 1.0;
+    dst[j].v[offset + j] = T(1.0);
   }
 }
 

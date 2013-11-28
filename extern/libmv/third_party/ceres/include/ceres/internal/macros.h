@@ -145,12 +145,11 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 //
 //   Sprocket* AllocateSprocket() MUST_USE_RESULT;
 //
-#undef MUST_USE_RESULT
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) \
   && !defined(COMPILER_ICC)
-#define MUST_USE_RESULT __attribute__ ((warn_unused_result))
+#define CERES_MUST_USE_RESULT __attribute__ ((warn_unused_result))
 #else
-#define MUST_USE_RESULT
+#define CERES_MUST_USE_RESULT
 #endif
 
 // Platform independent macros to get aligned memory allocations.

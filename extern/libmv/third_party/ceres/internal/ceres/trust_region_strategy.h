@@ -33,7 +33,7 @@
 
 #include <string>
 #include "ceres/internal/port.h"
-#include "ceres/types.h"
+#include "ceres/linear_solver.h"
 
 namespace ceres {
 namespace internal {
@@ -106,7 +106,7 @@ class TrustRegionStrategy {
     Summary()
         : residual_norm(0.0),
           num_iterations(-1),
-          termination_type(FAILURE) {
+          termination_type(LINEAR_SOLVER_FAILURE) {
     }
 
     // If the trust region problem is,

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,18 +26,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: mierle@gmail.com (Keir Mierle)
-//         sameeragarwal@google.com (Sameer Agarwal)
-//         thadh@gmail.com (Thad Hughes)
+// Author: sameeragarwal@google.com (Sameer Agarwal)
+//         mierle@gmail.com (Keir Mierle)
 //
 // This autodiff implementation differs from the one found in
-// autodiff_cost_function.h by supporting autodiff on cost functions with
-// variable numbers of parameters with variable sizes. With the other
-// implementation, all the sizes (both the number of parameter blocks and the
-// size of each block) must be fixed at compile time.
+// autodiff_cost_function.h by supporting autodiff on cost functions
+// with variable numbers of parameters with variable sizes. With the
+// other implementation, all the sizes (both the number of parameter
+// blocks and the size of each block) must be fixed at compile time.
 //
-// The functor API differs slightly from the API for fixed size autodiff; the
-// expected interface for the cost functors is:
+// The functor API differs slightly from the API for fixed size
+// autodiff; the expected interface for the cost functors is:
 //
 //   struct MyCostFunctor {
 //     template<typename T>
@@ -46,8 +45,9 @@
 //     }
 //   }
 //
-// Since the sizing of the parameters is done at runtime, you must also specify
-// the sizes after creating the dynamic autodiff cost function. For example:
+// Since the sizing of the parameters is done at runtime, you must
+// also specify the sizes after creating the dynamic autodiff cost
+// function. For example:
 //
 //   DynamicAutoDiffCostFunction<MyCostFunctor, 3> cost_function(
 //       new MyCostFunctor());
@@ -55,10 +55,11 @@
 //   cost_function.AddParameterBlock(10);
 //   cost_function.SetNumResiduals(21);
 //
-// Under the hood, the implementation evaluates the cost function multiple
-// times, computing a small set of the derivatives (four by default, controlled
-// by the Stride template parameter) with each pass. There is a tradeoff with
-// the size of the passes; you may want to experiment with the stride.
+// Under the hood, the implementation evaluates the cost function
+// multiple times, computing a small set of the derivatives (four by
+// default, controlled by the Stride template parameter) with each
+// pass. There is a tradeoff with the size of the passes; you may want
+// to experiment with the stride.
 
 #ifndef CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_
 #define CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_

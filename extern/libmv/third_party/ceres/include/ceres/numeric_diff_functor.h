@@ -124,6 +124,8 @@ class NumericDiffFunctor {
                                       kNumResiduals,
                                       N0, N1, N2, N3, N4,
                                       N5, N6, N7, N8, N9>(new Functor,
+                                                          TAKE_OWNERSHIP,
+                                                          kNumResiduals,
                                                           relative_step_size)) {
   }
 
@@ -133,7 +135,10 @@ class NumericDiffFunctor {
                                              kNumResiduals,
                                              N0, N1, N2, N3, N4,
                                              N5, N6, N7, N8, N9>(
-                                                 functor, relative_step_size)) {
+                                                 functor,
+                                                 TAKE_OWNERSHIP,
+                                                 kNumResiduals,
+                                                 relative_step_size)) {
   }
 
   bool operator()(const double* x0, double* residuals) const {

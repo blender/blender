@@ -120,15 +120,24 @@ class SolverImpl {
       string* error);
 
   // Remove the fixed or unused parameter blocks and residuals
-  // depending only on fixed parameters from the problem. Also updates
-  // num_eliminate_blocks, since removed parameters changes the point
-  // at which the eliminated blocks is valid.  If fixed_cost is not
-  // NULL, the residual blocks that are removed are evaluated and the
-  // sum of their cost is returned in fixed_cost.
-  static bool RemoveFixedBlocksFromProgram(Program* program,
-                                           ParameterBlockOrdering* ordering,
-                                           double* fixed_cost,
-                                           string* error);
+  // depending only on fixed parameters from the program.
+  //
+  // If either linear_solver_ordering or inner_iteration_ordering are
+  // not NULL, the constant parameter blocks are removed from them
+  // too.
+  //
+  // If fixed_cost is not NULL, the residual blocks that are removed
+  // are evaluated and the sum of their cost is returned in
+  // fixed_cost.
+  //
+  // If a failure is encountered, the function returns false with a
+  // description of the failure in error.
+  static bool RemoveFixedBlocksFromProgram(
+      Program* program,
+      ParameterBlockOrdering* linear_solver_ordering,
+      ParameterBlockOrdering* inner_iteration_ordering,
+      double* fixed_cost,
+      string* error);
 
   static bool IsOrderingValid(const Solver::Options& options,
                               const ProblemImpl* problem_impl,

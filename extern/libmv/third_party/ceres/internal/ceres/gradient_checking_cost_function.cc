@@ -44,7 +44,7 @@
 #include "ceres/problem_impl.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
-#include "ceres/runtime_numeric_diff_cost_function.h"
+#include "ceres/dynamic_numeric_diff_cost_function.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -84,14 +84,24 @@ class GradientCheckingCostFunction : public CostFunction {
                                double relative_precision,
                                const string& extra_info)
       : function_(function),
-        finite_diff_cost_function_(
-            CreateRuntimeNumericDiffCostFunction(function,
-                                                 CENTRAL,
-                                                 relative_step_size)),
         relative_precision_(relative_precision),
         extra_info_(extra_info) {
-    *mutable_parameter_block_sizes() = function->parameter_block_sizes();
+    DynamicNumericDiffCostFunction<CostFunction, CENTRAL>*
+        finite_diff_cost_function =
+        new DynamicNumericDiffCostFunction<CostFunction, CENTRAL>(
+            function,
+            DO_NOT_TAKE_OWNERSHIP,
+            relative_step_size);
+
+    const vector<int16>& parameter_block_sizes =
+        function->parameter_block_sizes();
+    for (int i = 0; i < parameter_block_sizes.size(); ++i) {
+      finite_diff_cost_function->AddParameterBlock(parameter_block_sizes[i]);
+    }
+    *mutable_parameter_block_sizes() = parameter_block_sizes;
     set_num_residuals(function->num_residuals());
+    finite_diff_cost_function->SetNumResiduals(num_residuals());
+    finite_diff_cost_function_.reset(finite_diff_cost_function);
   }
 
   virtual ~GradientCheckingCostFunction() { }

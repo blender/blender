@@ -14,11 +14,10 @@ defs = []
 
 src += env.Glob('internal/ceres/*.cc')
 src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
+src += env.Glob('internal/ceres/generated/partitioned_matrix_view_d_d_d.cc')
 #src += env.Glob('internal/ceres/generated/*.cc')
 
 defs.append('CERES_HAVE_PTHREAD')
-defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
-defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_NO_CXSPARSE')
 defs.append('CERES_NO_LAPACK')
@@ -28,8 +27,17 @@ defs.append('CERES_HAVE_RWLOCK')
 if env['WITH_BF_OPENMP']:
     defs.append('CERES_USE_OPENMP')
 
-if 'Mac OS X 10.5' in env['MACOSX_SDK']:
-    defs.append('CERES_NO_TR1')
+conf = Configure(env)
+if conf.CheckCXXHeader("unordered_map"):
+    defs.append('CERES_STD_UNORDERED_MAP')
+elif conf.CheckCXXHeader("tr1/unordered_map"):
+    defs.append('CERES_TR1_UNORDERED_MAP')
+else:
+    print("-- Unable to find <unordered_map> or <tr1/unordered_map>. ")
+    print("-- Replacing unordered_map/set with map/set (warning: slower!)")
+    defs.append('CERES_NO_UNORDERED_MAP')
+
+env = conf.Finish()
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
 

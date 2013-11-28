@@ -94,7 +94,9 @@ bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
       //
       //   MatrixRef(blocks_[cells[c].block_id],
       //             col_block_size,
-      //             col_block_size).selfadjointView<Eigen::Upper>().rankUpdate(m);
+      //             col_block_size)
+      //      .selfadjointView<Eigen::Upper>()
+      //      .rankUpdate(m);
       //
     }
   }

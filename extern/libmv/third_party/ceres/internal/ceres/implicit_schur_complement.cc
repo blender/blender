@@ -35,21 +35,18 @@
 #include "ceres/block_structure.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/linear_solver.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
 
-ImplicitSchurComplement::ImplicitSchurComplement(int num_eliminate_blocks,
-                                                 bool preconditioner)
-    : num_eliminate_blocks_(num_eliminate_blocks),
-      preconditioner_(preconditioner),
-      A_(NULL),
+ImplicitSchurComplement::ImplicitSchurComplement(
+    const LinearSolver::Options& options)
+    : options_(options),
       D_(NULL),
-      b_(NULL),
-      block_diagonal_EtE_inverse_(NULL),
-      block_diagonal_FtF_inverse_(NULL) {
+      b_(NULL) {
 }
 
 ImplicitSchurComplement::~ImplicitSchurComplement() {
@@ -61,7 +58,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
   // Since initialization is reasonably heavy, perhaps we can save on
   // constructing a new object everytime.
   if (A_ == NULL) {
-    A_.reset(new PartitionedMatrixView(A, num_eliminate_blocks_));
+    A_.reset(PartitionedMatrixViewBase::Create(options_, A));
   }
 
   D_ = D;
@@ -71,7 +68,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
   // E'E and F'E.
   if (block_diagonal_EtE_inverse_ == NULL) {
     block_diagonal_EtE_inverse_.reset(A_->CreateBlockDiagonalEtE());
-    if (preconditioner_) {
+    if (options_.preconditioner_type == JACOBI) {
       block_diagonal_FtF_inverse_.reset(A_->CreateBlockDiagonalFtF());
     }
     rhs_.resize(A_->num_cols_f());
@@ -82,7 +79,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
     tmp_f_cols_.resize(A_->num_cols_f());
   } else {
     A_->UpdateBlockDiagonalEtE(block_diagonal_EtE_inverse_.get());
-    if (preconditioner_) {
+    if (options_.preconditioner_type == JACOBI) {
       A_->UpdateBlockDiagonalFtF(block_diagonal_FtF_inverse_.get());
     }
   }
@@ -91,7 +88,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
   // contributions from the diagonal D if it is non-null. Add that to
   // the block diagonals and invert them.
   AddDiagonalAndInvert(D_, block_diagonal_EtE_inverse_.get());
-  if (preconditioner_)  {
+  if (options_.preconditioner_type == JACOBI) {
     AddDiagonalAndInvert((D_ ==  NULL) ? NULL : D_ + A_->num_cols_e(),
                          block_diagonal_FtF_inverse_.get());
   }

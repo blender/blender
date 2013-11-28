@@ -38,6 +38,7 @@
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/conjugate_gradients_solver.h"
+#include "ceres/detect_structure.h"
 #include "ceres/implicit_schur_complement.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
@@ -69,35 +70,36 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   EventLogger event_logger("IterativeSchurComplementSolver::Solve");
 
   CHECK_NOTNULL(A->block_structure());
-
+  const int num_eliminate_blocks = options_.elimination_groups[0];
   // Initialize a ImplicitSchurComplement object.
   if (schur_complement_ == NULL) {
-    schur_complement_.reset(
-        new ImplicitSchurComplement(options_.elimination_groups[0],
-                                    options_.preconditioner_type == JACOBI));
+    DetectStructure(*(A->block_structure()),
+                    num_eliminate_blocks,
+                    &options_.row_block_size,
+                    &options_.e_block_size,
+                    &options_.f_block_size);
+    schur_complement_.reset(new ImplicitSchurComplement(options_));
   }
   schur_complement_->Init(*A, per_solve_options.D, b);
 
   const int num_schur_complement_blocks =
-      A->block_structure()->cols.size() - options_.elimination_groups[0];
+      A->block_structure()->cols.size() - num_eliminate_blocks;
   if (num_schur_complement_blocks == 0) {
     VLOG(2) << "No parameter blocks left in the schur complement.";
     LinearSolver::Summary cg_summary;
     cg_summary.num_iterations = 0;
-    cg_summary.termination_type = TOLERANCE;
+    cg_summary.termination_type = LINEAR_SOLVER_SUCCESS;
     schur_complement_->BackSubstitute(NULL, x);
     return cg_summary;
   }
 
   // Initialize the solution to the Schur complement system to zero.
-  //
-  // TODO(sameeragarwal): There maybe a better initialization than an
-  // all zeros solution. Explore other cheap starting points.
   reduced_linear_system_solution_.resize(schur_complement_->num_rows());
   reduced_linear_system_solution_.setZero();
 
-  // Instantiate a conjugate gradient solver that runs on the Schur complement
-  // matrix with the block diagonal of the matrix F'F as the preconditioner.
+  // Instantiate a conjugate gradient solver that runs on the Schur
+  // complement matrix with the block diagonal of the matrix F'F as
+  // the preconditioner.
   LinearSolver::Options cg_options;
   cg_options.max_num_iterations = options_.max_num_iterations;
   ConjugateGradientsSolver cg_solver(cg_options);
@@ -108,6 +110,8 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
 
   Preconditioner::Options preconditioner_options;
   preconditioner_options.type = options_.preconditioner_type;
+  preconditioner_options.visibility_clustering_type =
+      options_.visibility_clustering_type;
   preconditioner_options.sparse_linear_algebra_library_type =
       options_.sparse_linear_algebra_library_type;
   preconditioner_options.num_threads = options_.num_threads;
@@ -149,26 +153,26 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
         preconditioner_->Update(*A, per_solve_options.D);
     cg_per_solve_options.preconditioner = preconditioner_.get();
   }
-
   event_logger.AddEvent("Setup");
 
   LinearSolver::Summary cg_summary;
   cg_summary.num_iterations = 0;
-  cg_summary.termination_type = FAILURE;
+  cg_summary.termination_type = LINEAR_SOLVER_FAILURE;
 
+  // TODO(sameeragarwal): Refactor preconditioners to return a more
+  // sane message.
+  cg_summary.message = "Preconditioner update failed.";
   if (preconditioner_update_was_successful) {
     cg_summary = cg_solver.Solve(schur_complement_.get(),
                                  schur_complement_->rhs().data(),
                                  cg_per_solve_options,
                                  reduced_linear_system_solution_.data());
-    if (cg_summary.termination_type != FAILURE) {
+    if (cg_summary.termination_type != LINEAR_SOLVER_FAILURE &&
+        cg_summary.termination_type != LINEAR_SOLVER_FATAL_ERROR) {
       schur_complement_->BackSubstitute(
           reduced_linear_system_solution_.data(), x);
     }
   }
-
-  VLOG(2) << "CG Iterations : " << cg_summary.num_iterations;
-
   event_logger.AddEvent("Solve");
   return cg_summary;
 }

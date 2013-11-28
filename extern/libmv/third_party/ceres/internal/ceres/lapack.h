@@ -31,6 +31,10 @@
 #ifndef CERES_INTERNAL_LAPACK_H_
 #define CERES_INTERNAL_LAPACK_H_
 
+#include <string>
+#include "ceres/internal/port.h"
+#include "ceres/linear_solver.h"
+
 namespace ceres {
 namespace internal {
 
@@ -47,10 +51,14 @@ class LAPACK {
   //
   // This function uses the LAPACK dpotrf and dpotrs routines.
   //
-  // The return value is zero if the solve is successful.
-  static int SolveInPlaceUsingCholesky(int num_rows,
-                                       const double* lhs,
-                                       double* rhs_and_solution);
+  // The return value and the status string together describe whether
+  // the solver terminated successfully or not and if so, what was the
+  // reason for failure.
+  static LinearSolverTerminationType SolveInPlaceUsingCholesky(
+      int num_rows,
+      const double* lhs,
+      double* rhs_and_solution,
+      string* status);
 
   // The SolveUsingQR function requires a buffer for its temporary
   // computation. This function given the size of the lhs matrix will
@@ -73,13 +81,17 @@ class LAPACK {
   //
   // This function uses the LAPACK dgels routine.
   //
-  // The return value is zero if the solve is successful.
-  static int SolveUsingQR(int num_rows,
-                          int num_cols,
-                          const double* lhs,
-                          int work_size,
-                          double* work,
-                          double* rhs_and_solution);
+  // The return value and the status string together describe whether
+  // the solver terminated successfully or not and if so, what was the
+  // reason for failure.
+  static LinearSolverTerminationType SolveInPlaceUsingQR(
+      int num_rows,
+      int num_cols,
+      const double* lhs,
+      int work_size,
+      double* work,
+      double* rhs_and_solution,
+      string* status);
 };
 
 }  // namespace internal
