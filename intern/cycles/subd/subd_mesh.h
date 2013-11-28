@@ -35,8 +35,10 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifndef WITH_OPENSUBDIV
 class SubdVert;
 class SubdFace;
+#endif
 
 class DiagSplit;
 class Mesh;
@@ -46,9 +48,6 @@ class Mesh;
 class SubdMesh
 {
 public:
-	vector<SubdVert*> verts;
-	vector<SubdFace*> faces;
-
 	SubdMesh();
 	~SubdMesh();
 
@@ -60,6 +59,17 @@ public:
 
 	bool finish();
 	void tessellate(DiagSplit *split);
+
+protected:
+#ifdef WITH_OPENSUBDIV
+	void *_hbrmesh;
+	vector<float> positions;
+	int num_verts, num_ptex_faces;
+#else
+	vector<SubdVert*> verts;
+	vector<SubdFace*> faces;
+#endif
+
 };
 
 CCL_NAMESPACE_END
