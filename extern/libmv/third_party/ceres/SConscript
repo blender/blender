@@ -29,7 +29,14 @@ if env['WITH_BF_OPENMP']:
 
 conf = Configure(env)
 if conf.CheckCXXHeader("unordered_map"):
-    defs.append('CERES_STD_UNORDERED_MAP')
+    if conf.CheckType('std::unordered_map<int, int>', language = 'CXX', includes="#include <unordered_map>"):
+        defs.append('CERES_STD_UNORDERED_MAP')
+    elif conf.CheckType('std::tr1::unordered_map<int, int>', language = 'CXX', includes="#include <unordered_map>"):
+        defs.append('CERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE')
+    else:
+        print("-- Found <unordered_map> but can not find neither std::unordered_map nor std::tr1::unordered_map.")
+        print("-- Replacing unordered_map/set with map/set (warning: slower!)")
+        defs.append('CERES_NO_UNORDERED_MAP')
 elif conf.CheckCXXHeader("tr1/unordered_map"):
     defs.append('CERES_TR1_UNORDERED_MAP')
 else:

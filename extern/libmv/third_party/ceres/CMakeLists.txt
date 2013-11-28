@@ -310,9 +310,33 @@ if(WITH_OPENMP)
 endif()
 
 include(CheckIncludeFileCXX)
-CHECK_INCLUDE_FILE_CXX(unordered_map UNORDERED_MAP_IN_STD_NAMESPACE)
-if(UNORDERED_MAP_IN_STD_NAMESPACE)
-	ADD_DEFINITIONS(-DCERES_STD_UNORDERED_MAP)
+CHECK_INCLUDE_FILE_CXX(unordered_map HAVE_STD_UNORDERED_MAP_HEADER)
+if(HAVE_STD_UNORDERED_MAP_HEADER)
+	INCLUDE (CheckCXXSourceCompiles)
+	CHECK_CXX_SOURCE_COMPILES("#include <unordered_map>
+	                          int main() {
+	                            std::unordered_map<int, int> map;
+	                            return 0;
+	                          }"
+	                          HAVE_UNURDERED_MAP_IN_STD_NAMESPACE)
+	if(HAVE_UNURDERED_MAP_IN_STD_NAMESPACE)
+		ADD_DEFINITIONS(-DCERES_STD_UNORDERED_MAP)
+	else()
+		CHECK_CXX_SOURCE_COMPILES("#include <unordered_map>
+		                          int main() {
+		                            std::tr1::unordered_map<int, int> map;
+		                            return 0;
+		                          }"
+		                          HAVE_UNURDERED_MAP_IN_TR1_NAMESPACE)
+		if(HAVE_UNURDERED_MAP_IN_TR1_NAMESPACE)
+			ADD_DEFINITIONS(-DCERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+		else()
+			MESSAGE("-- Found <unordered_map> but can not find neither std::unordered_map "
+			        "nor std::tr1::unordered_map.")
+			MESSAGE("-- Replacing unordered_map/set with map/set (warning: slower!)")
+			ADD_DEFINITIONS(-DCERES_NO_UNORDERED_MAP)
+		endif()
+	endif()
 else()
 	CHECK_INCLUDE_FILE_CXX("tr1/unordered_map" UNORDERED_MAP_IN_TR1_NAMESPACE)
 	if(UNORDERED_MAP_IN_TR1_NAMESPACE)
