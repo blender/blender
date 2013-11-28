@@ -87,18 +87,57 @@ def test_lookup_coverage():
             print("%s.*" % rna_group)
 
 
-def test_urls():
-    pass  # TODO
-
-
 def test_language_coverage():
     pass  # TODO
+
+
+def test_urls():
+    import sys
+    import rna_wiki_reference
+
+    import urllib.error
+    from urllib.request import urlopen
+
+    prefix = rna_wiki_reference.url_manual_prefix
+    urls = {suffix for (rna_id, suffix) in rna_wiki_reference.url_manual_mapping}
+
+    urls_len = "%d" % len(urls)
+    print("")
+    print("-------------" + "-" * len(urls_len))
+    print("Testing URLS %s" % urls_len)
+    print("")
+
+    color_red = '\033[0;31m'
+    color_green = '\033[1;32m' color_normal = '\033[0m'
+
+    urls_fail = []
+
+    for url in sorted(urls):
+        url_full = prefix + url
+        print("  %s ... " % url_full, end="")
+        sys.stdout.flush()
+        try:
+            urllib.request.urlopen(url_full)
+            print(color_green + "OK" + color_normal)
+        except urllib.error.HTTPError:
+            print(color_red + "FAIL!" + color_normal)
+            urls_fail.append(url)
+
+    if urls_fail:
+        urls_len = "%d" % len(urls)
+        print("")
+        print("------------" + "-" * len(urls_len))
+        print("Failed URLS %s" % urls_len)
+        print("")
+        for url in urls_fail:
+            print("  %s%s%s" % (color_red, url, color_normal))
 
 
 def main():
     test_data()
     test_lookup_coverage()
     test_language_coverage()
+    test_urls()
 
 if __name__ == "__main__":
     main()
