@@ -876,7 +876,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread -lstdc++")
+	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread")
 
 	if((NOT WITH_HEADLESS) AND (NOT WITH_GHOST_SDL))
 		find_package(X11 REQUIRED)

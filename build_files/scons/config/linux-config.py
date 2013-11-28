@@ -247,7 +247,7 @@ C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-par
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
-LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
+LLIBS = ['util', 'c', 'm', 'dl', 'pthread']
 
 BF_PROFILE = False
 BF_PROFILE_CCFLAGS = ['-pg','-g']
