@@ -30,8 +30,6 @@ sources=`find ./lib -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | 
 headers=`find ./lib -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/' | sort -d`
 includes=`find ./include -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/' | sort -d`
 
-mkdir -p include/carve/external/boost
-cp patches/files/random.hpp include/carve/external/boost/random.hpp
 cp patches/files/config.h include/carve/config.h
 
 cat > CMakeLists.txt << EOF

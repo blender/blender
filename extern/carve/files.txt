@@ -25,7 +25,6 @@ include/carve/win32.h
 include/carve/edge_impl.hpp
 include/carve/carve.hpp
 include/carve/polyline.hpp
-include/carve/config.h
 include/carve/face_decl.hpp
 include/carve/matrix.hpp
 include/carve/classification.hpp
@@ -67,7 +66,6 @@ include/carve/djset.hpp
 include/carve/vertex_decl.hpp
 include/carve/csg_triangulator.hpp
 include/carve/poly.hpp
-include/carve/external/boost/random.hpp
 include/carve/timing.hpp
 include/carve/octree_decl.hpp
 include/carve/pointset_decl.hpp
