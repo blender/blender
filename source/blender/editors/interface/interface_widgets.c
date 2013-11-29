@@ -682,17 +682,14 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
-				glDisableClientState(GL_VERTEX_ARRAY);
 
 				/* light checkers */
 				glEnable(GL_POLYGON_STIPPLE);
 				glColor4ub(UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, 255);
 				glPolygonStipple(checker_stipple_sml);
 
-				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
-				glDisableClientState(GL_VERTEX_ARRAY);
 
 				glDisable(GL_POLYGON_STIPPLE);
 
@@ -700,7 +697,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				glColor4ubv((unsigned char *)wcol->inner);
-				glEnableClientState(GL_VERTEX_ARRAY);
 
 				for (a = 0; a < wtb->totvert; a++) {
 					x_mid += wtb->inner_v[a][0];
@@ -709,7 +705,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
-				glDisableClientState(GL_VERTEX_ARRAY);
 
 				/* 1/2 solid color */
 				glColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
@@ -719,7 +714,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 					inner_v_half[a][1] = wtb->inner_v[a][1];
 				}
 
-				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(2, GL_FLOAT, 0, inner_v_half);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
 				glDisableClientState(GL_VERTEX_ARRAY);
