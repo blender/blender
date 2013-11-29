@@ -50,6 +50,9 @@ public:
 	float3 fcolors[8];
 
 	DiffuseRampClosure() : CBSDFClosure(LABEL_DIFFUSE)
+	{}
+
+	void setup()
 	{
 		sc.prim = this;
 		m_shaderdata_flag = bsdf_diffuse_ramp_setup(&sc);

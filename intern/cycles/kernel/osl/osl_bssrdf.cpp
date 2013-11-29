@@ -52,6 +52,9 @@ using namespace OSL;
 class CubicBSSRDFClosure : public CBSSRDFClosure {
 public:
 	CubicBSSRDFClosure()
+	{}
+
+	void setup()
 	{
 		sc.type = CLOSURE_BSSRDF_CUBIC_ID;
 		sc.data0 = fabsf(average(radius));
@@ -90,6 +93,9 @@ CCLOSURE_PREPARE(closure_bssrdf_cubic_prepare, CubicBSSRDFClosure)
 class GaussianBSSRDFClosure : public CBSSRDFClosure {
 public:
 	GaussianBSSRDFClosure()
+	{}
+
+	void setup()
 	{
 		sc.type = CLOSURE_BSSRDF_GAUSSIAN_ID;
 		sc.data0 = fabsf(average(radius));

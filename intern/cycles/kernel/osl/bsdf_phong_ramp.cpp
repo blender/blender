@@ -49,6 +49,9 @@ public:
 	float3 fcolors[8];
 
 	PhongRampClosure() : CBSDFClosure(LABEL_GLOSSY)
+	{}
+
+	void setup()
 	{
 		sc.prim = this;
 		m_shaderdata_flag = bsdf_phong_ramp_setup(&sc);

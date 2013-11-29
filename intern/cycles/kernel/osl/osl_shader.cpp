@@ -156,6 +156,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 			sc.weight = weight;
 #endif
 
+			prim->setup();
+
 			switch (prim->category) {
 				case CClosurePrimitive::BSDF: {
 					CBSDFClosure *bsdf = (CBSDFClosure *)prim;
@@ -394,6 +396,8 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 #else
 			sc.weight = weight;
 #endif
+
+			prim->setup();
 
 			switch (prim->category) {
 				case CClosurePrimitive::Volume: {

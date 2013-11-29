@@ -96,8 +96,9 @@ public:
 		AmbientOcclusion, ///< Ambient occlusion
 	};
 
-	CClosurePrimitive (Category category_) : category (category_) { }
+	CClosurePrimitive (Category category_) : category (category_) {}
 	virtual ~CClosurePrimitive() {}
+	virtual void setup() {}
 
 	Category category;
 };
@@ -110,7 +111,7 @@ public:
 
 	CBSDFClosure(int scattering) : CClosurePrimitive(BSDF),
 	  m_scattering_label(scattering), m_shaderdata_flag(0)
-	{ }
+	{}
 
 	int scattering() const { return m_scattering_label; }
 	int shaderdata_flag() const { return m_shaderdata_flag; }
@@ -135,6 +136,10 @@ protected:
 class Upper##Closure : public CBSDFClosure { \
 public: \
 	Upper##Closure() : CBSDFClosure(TYPE) \
+	{ \
+	} \
+\
+	void setup() \
 	{ \
 		sc.prim = NULL; \
 		m_shaderdata_flag = bsdf_##lower##_setup(&sc); \
