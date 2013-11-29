@@ -51,23 +51,10 @@ using namespace OSL;
 
 class CubicBSSRDFClosure : public CBSSRDFClosure {
 public:
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "bssrdf_cubic"; }
-
-	void setup()
+	CubicBSSRDFClosure()
 	{
 		sc.type = CLOSURE_BSSRDF_CUBIC_ID;
 		sc.data0 = fabsf(average(radius));
-	}
-
-	bool mergeable(const ClosurePrimitive *other) const
-	{
-		return false;
-	}
-
-	void print_on(std::ostream &out) const
-	{
-		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))";
 	}
 };
 
@@ -96,29 +83,16 @@ ClosureParam *closure_bssrdf_cubic_extended_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_bssrdf_cubic_prepare, CubicBSSRDFClosure)
+CCLOSURE_PREPARE(closure_bssrdf_cubic_prepare, CubicBSSRDFClosure)
 
 /* Gaussian */
 
 class GaussianBSSRDFClosure : public CBSSRDFClosure {
 public:
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "bssrdf_gaussian"; }
-
-	void setup()
+	GaussianBSSRDFClosure()
 	{
 		sc.type = CLOSURE_BSSRDF_GAUSSIAN_ID;
 		sc.data0 = fabsf(average(radius));
-	}
-
-	bool mergeable(const ClosurePrimitive *other) const
-	{
-		return false;
-	}
-
-	void print_on(std::ostream &out) const
-	{
-		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))";
 	}
 };
 
@@ -146,7 +120,7 @@ ClosureParam *closure_bssrdf_gaussian_extended_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_bssrdf_gaussian_prepare, GaussianBSSRDFClosure)
+CCLOSURE_PREPARE(closure_bssrdf_gaussian_prepare, GaussianBSSRDFClosure)
 
 CCL_NAMESPACE_END
 

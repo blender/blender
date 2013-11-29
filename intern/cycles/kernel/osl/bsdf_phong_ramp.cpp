@@ -45,14 +45,10 @@ using namespace OSL;
 
 class PhongRampClosure : public CBSDFClosure {
 public:
-	PhongRampClosure() : CBSDFClosure(LABEL_GLOSSY) {}
 	Color3 colors[8];
 	float3 fcolors[8];
 
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "phong_ramp"; }
-
-	void setup()
+	PhongRampClosure() : CBSDFClosure(LABEL_GLOSSY)
 	{
 		sc.prim = this;
 		m_shaderdata_flag = bsdf_phong_ramp_setup(&sc);
@@ -61,19 +57,9 @@ public:
 			fcolors[i] = TO_FLOAT3(colors[i]);
 	}
 
-	bool mergeable(const ClosurePrimitive *other) const
-	{
-		return false;
-	}
-
 	void blur(float roughness)
 	{
 		bsdf_phong_ramp_blur(&sc, roughness);
-	}
-
-	void print_on(std::ostream &out) const
-	{
-		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))";
 	}
 
 	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const
@@ -109,7 +95,7 @@ ClosureParam *closure_bsdf_phong_ramp_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_bsdf_phong_ramp_prepare, PhongRampClosure)
+CCLOSURE_PREPARE(closure_bsdf_phong_ramp_prepare, PhongRampClosure)
 
 CCL_NAMESPACE_END
 

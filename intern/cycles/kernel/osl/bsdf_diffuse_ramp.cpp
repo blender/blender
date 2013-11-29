@@ -46,14 +46,10 @@ using namespace OSL;
 
 class DiffuseRampClosure : public CBSDFClosure {
 public:
-	DiffuseRampClosure() : CBSDFClosure(LABEL_DIFFUSE) {}
 	Color3 colors[8];
 	float3 fcolors[8];
 
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "diffuse_ramp"; }
-
-	void setup()
+	DiffuseRampClosure() : CBSDFClosure(LABEL_DIFFUSE)
 	{
 		sc.prim = this;
 		m_shaderdata_flag = bsdf_diffuse_ramp_setup(&sc);
@@ -62,19 +58,9 @@ public:
 			fcolors[i] = TO_FLOAT3(colors[i]);
 	}
 
-	bool mergeable(const ClosurePrimitive *other) const
-	{
-		return false;
-	}
-
 	void blur(float roughness)
 	{
 		bsdf_diffuse_ramp_blur(&sc, roughness);
-	}
-
-	void print_on(std::ostream &out) const
-	{
-		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))";
 	}
 
 	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const
@@ -109,7 +95,7 @@ ClosureParam *closure_bsdf_diffuse_ramp_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_bsdf_diffuse_ramp_prepare, DiffuseRampClosure)
+CCLOSURE_PREPARE(closure_bsdf_diffuse_ramp_prepare, DiffuseRampClosure)
 
 CCL_NAMESPACE_END
 

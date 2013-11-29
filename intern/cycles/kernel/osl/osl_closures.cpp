@@ -171,25 +171,16 @@ BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
 
 /* Registration */
 
-static void generic_closure_setup(OSL::RendererServices *, int id, void *data)
-{
-	assert(data);
-	OSL::ClosurePrimitive *prim = (OSL::ClosurePrimitive *)data;
-	prim->setup();
-}
-
-static bool generic_closure_compare(int id, const void *dataA, const void *dataB)
-{
-	assert(dataA && dataB);
-
-	OSL::ClosurePrimitive *primA = (OSL::ClosurePrimitive *)dataA;
-	OSL::ClosurePrimitive *primB = (OSL::ClosurePrimitive *)dataB;
-	return primA->mergeable(primB);
-}
-
 static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, OSL::ClosureParam *params, OSL::PrepareClosureFunc prepare)
 {
-	ss->register_closure(name, id, params, prepare, generic_closure_setup, generic_closure_compare);
+	/* optimization: it's possible to not use a prepare function at all and
+	 * only initialize the actual class when accessing the closure component
+	 * data, but then we need to map the id to the class somehow */
+#ifdef CLOSURE_PREPARE
+	ss->register_closure(name, id, params, prepare, NULL, NULL);
+#else
+	ss->register_closure(name, id, params, prepare, NULL);
+#endif
 }
 
 void OSLShader::register_closures(OSLShadingSystem *ss_)

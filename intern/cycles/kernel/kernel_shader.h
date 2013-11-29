@@ -764,11 +764,6 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 
 ccl_device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
 {
-#ifdef __OSL__
-	if(kg->osl && sc->prim)
-		return OSLShader::emissive_eval(sd, sc);
-#endif
-
 	return emissive_simple_eval(sd->Ng, sd->I);
 }
 

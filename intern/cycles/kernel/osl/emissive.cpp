@@ -50,18 +50,9 @@ using namespace OSL;
 /// outer_angle limit. It can also behave as a lambertian emitter
 /// if the provided angles are PI/2, which is the default
 ///
-class GenericEmissiveClosure : public EmissiveClosure {
+class GenericEmissiveClosure : public CClosurePrimitive {
 public:
-	GenericEmissiveClosure() { }
-
-	void setup() {}
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "emission"; }
-
-	void print_on(std::ostream &out) const
-	{
-		out << name() << "()";
-	}
+	GenericEmissiveClosure() : CClosurePrimitive(Emissive) { }
 
 	Color3 eval(const Vec3 &Ng, const Vec3 &omega_out) const
 	{
@@ -92,7 +83,7 @@ ClosureParam *closure_emission_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_emission_prepare, GenericEmissiveClosure)
+CCLOSURE_PREPARE(closure_emission_prepare, GenericEmissiveClosure)
 
 CCL_NAMESPACE_END
 

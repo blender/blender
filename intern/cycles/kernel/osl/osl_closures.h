@@ -66,36 +66,51 @@ void closure_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_gaussian_prepare(OSL::RendererServices *, int id, void *data);
 
-enum {
-	AmbientOcclusion = 100
-};
-
-#define CLOSURE_PREPARE(name, classname)          \
+#define CCLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \
 {                                                 \
 	memset(data, 0, sizeof(classname));           \
 	new (data) classname();                       \
 }
 
-#define CLOSURE_PREPARE_STATIC(name, classname) static CLOSURE_PREPARE(name, classname)
+#define CCLOSURE_PREPARE_STATIC(name, classname) static CCLOSURE_PREPARE(name, classname)
 
 #define CLOSURE_FLOAT3_PARAM(st, fld) \
-    { TypeDesc::TypeVector, reckless_offsetof(st, fld), NULL, sizeof(OSL::Vec3) }
+	{ TypeDesc::TypeVector, reckless_offsetof(st, fld), NULL, sizeof(OSL::Vec3) }
 
 #define TO_VEC3(v) OSL::Vec3(v.x, v.y, v.z)
 #define TO_COLOR3(v) OSL::Color3(v.x, v.y, v.z)
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
 
+/* Closure */
+
+class CClosurePrimitive {
+public:
+	enum Category {
+		BSDF,             ///< Reflective and/or transmissive surface
+		BSSRDF,           ///< Sub-surface light transfer
+		Emissive,         ///< Light emission
+		Background,       ///< Background emission
+		Volume,           ///< Volume scattering
+		Holdout,          ///< Holdout from alpha
+		AmbientOcclusion, ///< Ambient occlusion
+	};
+
+	CClosurePrimitive (Category category_) : category (category_) { }
+	virtual ~CClosurePrimitive() {}
+
+	Category category;
+};
+
 /* BSDF */
 
-class CBSDFClosure : public OSL::ClosurePrimitive {
+class CBSDFClosure : public CClosurePrimitive {
 public:
 	ShaderClosure sc;
 
-	CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
+	CBSDFClosure(int scattering) : CClosurePrimitive(BSDF),
 	  m_scattering_label(scattering), m_shaderdata_flag(0)
-	{ memset(&sc, 0, sizeof(sc)); }
-	~CBSDFClosure() { }
+	{ }
 
 	int scattering() const { return m_scattering_label; }
 	int shaderdata_flag() const { return m_shaderdata_flag; }
@@ -119,29 +134,15 @@ protected:
 \
 class Upper##Closure : public CBSDFClosure { \
 public: \
-	Upper##Closure() : CBSDFClosure(TYPE) {} \
-	size_t memsize() const { return sizeof(*this); } \
-	const char *name() const { return #lower; } \
-\
-	void setup() \
+	Upper##Closure() : CBSDFClosure(TYPE) \
 	{ \
 		sc.prim = NULL; \
 		m_shaderdata_flag = bsdf_##lower##_setup(&sc); \
 	} \
 \
-	bool mergeable(const ClosurePrimitive *other) const \
-	{ \
-		return false; \
-	} \
-	\
 	void blur(float roughness) \
 	{ \
 		bsdf_##svmlower##_blur(&sc, roughness); \
-	} \
-\
-	void print_on(std::ostream &out) const \
-	{ \
-		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))"; \
 	} \
 \
 	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
@@ -178,7 +179,7 @@ static ClosureParam *bsdf_##lower##_params() \
 	return params; \
 } \
 \
-CLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
+CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 

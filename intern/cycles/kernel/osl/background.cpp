@@ -46,14 +46,9 @@ using namespace OSL;
 /// to return a color in background shaders. No methods,
 /// only the weight is taking into account
 ///
-class GenericBackgroundClosure : public OSL::BackgroundClosure {
+class GenericBackgroundClosure : public CClosurePrimitive {
 public:
-	GenericBackgroundClosure() {}
-
-	void setup() {};
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "background"; }
-	void print_on(std::ostream &out) const { out << name() << " ()"; }
+	GenericBackgroundClosure() : CClosurePrimitive(Background) {}
 };
 
 /// Holdout closure
@@ -63,14 +58,9 @@ public:
 /// point. No parameters, only the weight will be
 /// used
 ///
-class HoldoutClosure : ClosurePrimitive {
+class HoldoutClosure : CClosurePrimitive {
 public:
-	HoldoutClosure () : ClosurePrimitive(Holdout) {}
-
-	void setup() {};
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "holdout"; }
-	void print_on(std::ostream &out) const { out << name() << " ()"; }
+	HoldoutClosure () : CClosurePrimitive(Holdout) {}
 };
 
 /// ambient occlusion closure
@@ -79,14 +69,9 @@ public:
 /// to return a color in ambient occlusion shaders. No methods,
 /// only the weight is taking into account
 ///
-class AmbientOcclusionClosure : public ClosurePrimitive {
+class AmbientOcclusionClosure : public CClosurePrimitive {
 public:
-	AmbientOcclusionClosure () : ClosurePrimitive((ClosurePrimitive::Category)AmbientOcclusion) {}
-
-	void setup() {};
-	size_t memsize() const { return sizeof(*this); }
-	const char *name() const { return "ambient_occlusion"; }
-	void print_on(std::ostream &out) const { out << name() << " ()"; }
+	AmbientOcclusionClosure () : CClosurePrimitive(AmbientOcclusion) {}
 };
 
 ClosureParam *closure_background_params()
@@ -98,7 +83,7 @@ ClosureParam *closure_background_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_background_prepare, GenericBackgroundClosure)
+CCLOSURE_PREPARE(closure_background_prepare, GenericBackgroundClosure)
 
 ClosureParam *closure_holdout_params()
 {
@@ -108,7 +93,7 @@ ClosureParam *closure_holdout_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
+CCLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
 
 ClosureParam *closure_ambient_occlusion_params()
 {
@@ -119,7 +104,7 @@ ClosureParam *closure_ambient_occlusion_params()
 	return params;
 }
 
-CLOSURE_PREPARE(closure_ambient_occlusion_prepare, AmbientOcclusionClosure)
+CCLOSURE_PREPARE(closure_ambient_occlusion_prepare, AmbientOcclusionClosure)
 
 CCL_NAMESPACE_END
 

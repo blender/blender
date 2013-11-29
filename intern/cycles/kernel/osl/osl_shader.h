@@ -66,11 +66,6 @@ public:
 	                        const float3& omega_in, float& pdf);
 	static void bsdf_blur(ShaderClosure *sc, float roughness);
 
-	static float3 emissive_eval(const ShaderData *sd, const ShaderClosure *sc);
-
-	static float3 volume_eval_phase(const ShaderClosure *sc,
-	                                const float3 omega_in, const float3 omega_out);
-
 	/* attributes */
 	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem);
 };

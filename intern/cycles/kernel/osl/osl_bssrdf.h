@@ -37,20 +37,20 @@
 #include <OSL/oslexec.h>
 #include <OSL/genclosure.h>
 
+#include "osl_closures.h"
+
 #include "kernel_types.h"
 
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
-class CBSSRDFClosure : public OSL::ClosurePrimitive {
+class CBSSRDFClosure : public CClosurePrimitive {
 public:
 	ShaderClosure sc;
 	float3 radius;
 
-	CBSSRDFClosure() : OSL::ClosurePrimitive(BSSRDF) { memset(&sc, 0, sizeof(sc)); }
-	~CBSSRDFClosure() { }
-
+	CBSSRDFClosure() : CClosurePrimitive(BSSRDF) { }
 	int scattering() const { return LABEL_DIFFUSE; }
 };
 
