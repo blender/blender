@@ -895,17 +895,20 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 					}
 					break;
 				case 's':
-					sfra = MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					sfra = atoi(argv[2]);
+					CLAMP(sfra, 1, MAXFRAME);
 					argc--;
 					argv++;
 					break;
 				case 'e':
-					efra = MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					efra = atoi(argv[2]);
+					CLAMP(efra, 1, MAXFRAME);
 					argc--;
 					argv++;
 					break;
 				case 'j':
-					ps.fstep = MIN2(MAXFRAME, MAX2(1, atoi(argv[2])));
+					ps.fstep = atoi(argv[2]);
+					CLAMP(ps.fstep, 1, MAXFRAME);
 					swaptime *= ps.fstep;
 					argc--;
 					argv++;
