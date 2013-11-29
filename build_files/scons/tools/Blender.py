@@ -425,7 +425,7 @@ def buildinfo(lenv, build_type):
             process = subprocess.Popen(['git', 'rev-parse', '--short', '@{u}'],
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             build_hash, stderr = process.communicate()
-            build_hash = build_hash.rstrip('\n')
+            build_hash = build_hash.strip()
             build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
 
             if build_hash == '':
