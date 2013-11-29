@@ -1751,6 +1751,7 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 
 bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
+	const int n = index - CustomData_get_layer_index(data, type);
 	int i;
 	
 	if (index < 0) return 0;
@@ -1767,7 +1768,7 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 
 	if (i != -1) {
 		/* don't decrement zero index */
-		const int index_nonzero = index ? index : 1;
+		const int index_nonzero = n ? n : 1;
 		CustomDataLayer *layer;
 
 		for (layer = &data->layers[i]; i < data->totlayer && layer->type == type; i++, layer++) {
