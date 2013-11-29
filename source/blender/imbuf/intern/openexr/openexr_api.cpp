@@ -36,6 +36,7 @@
 #include <string>
 #include <set>
 #include <errno.h>
+#include <algorithm>
 
 #include <openexr_api.h>
 

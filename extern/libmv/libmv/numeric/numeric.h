@@ -44,9 +44,11 @@
   inline long lround(double d) {
     return (long)(d>0 ? d+0.5 : ceil(d-0.5));
   }
+#if _MSC_VER < 1800
   inline int round(double d) {
     return (d>0) ? int(d+0.5) : int(d-0.5);
   }
+#endif
   typedef unsigned int uint;
 #endif  // _WIN32
 

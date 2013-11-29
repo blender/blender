@@ -144,9 +144,13 @@ static const int NAN_INT = 0x7FC00000;
 
 #ifdef WIN32
 #  ifndef FREE_WINDOWS
-#    define isnan(n) _isnan(n)
+#    ifndef isnan
+#		define isnan(n) _isnan(n)
+#	 endif
 #    define finite _finite
-#    define hypot _hypot
+#    ifndef hypot
+#		define hypot(a, b) _hypot(a, b)
+#	endif
 #  endif
 #endif
 

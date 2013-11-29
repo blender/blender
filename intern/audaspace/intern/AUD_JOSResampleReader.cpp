@@ -36,6 +36,7 @@
 
 /* MSVC does not have lrint */
 #ifdef _MSC_VER
+#if _MSC_VER < 1800  
 #ifdef _M_X64
 #include <emmintrin.h>
 static inline int lrint(double d)
@@ -54,6 +55,7 @@ static inline int lrint(double d)
 
 	return i;
 }
+#endif
 #endif
 #endif
 

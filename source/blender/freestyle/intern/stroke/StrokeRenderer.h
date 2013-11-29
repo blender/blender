@@ -30,6 +30,7 @@
 
 #include <map>
 #include <string.h>
+#include <algorithm>
 #include <utility>
 #include <vector>
 

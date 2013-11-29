@@ -29,6 +29,7 @@
  */
 
 #include <stdexcept>
+#include <algorithm>
 #include <memory>
 
 #include "OccluderSource.h"

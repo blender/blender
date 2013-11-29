@@ -29,6 +29,7 @@
  */
 
 #include <stdlib.h>
+#include <algorithm>
 
 #include "BLI_utildefines.h"
 

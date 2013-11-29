@@ -29,6 +29,7 @@
  */
 
 #include <string>
+#include <algorithm>
 #include "../system/FreestyleConfig.h"
 #include "../system/Precision.h"
 

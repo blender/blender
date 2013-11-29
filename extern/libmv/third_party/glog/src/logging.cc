@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <iomanip>
 #include <string>
+#include <algorithm>
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>  // For _exit.
 #endif
