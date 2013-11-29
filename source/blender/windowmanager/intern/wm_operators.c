@@ -296,6 +296,11 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		retval = opm->type->modal(C, opm, event);
 		OPERATOR_RETVAL_CHECK(retval);
 
+		/* if we're halfway through using a tool and cancel it, clear the options [#37149] */
+		if (retval & OPERATOR_CANCELLED) {
+			WM_operator_properties_clear(opm->ptr);
+		}
+
 		/* if this one is done but it's not the last operator in the macro */
 		if ((retval & OPERATOR_FINISHED) && opm->next) {
 			MacroData *md = op->customdata;
@@ -915,6 +920,15 @@ void WM_operator_properties_reset(wmOperator *op)
 			}
 		}
 		RNA_PROP_END;
+	}
+}
+
+void WM_operator_properties_clear(PointerRNA *ptr)
+{
+	IDProperty *properties = ptr->data;
+
+	if (properties) {
+		IDP_ClearProperty(properties);
 	}
 }
 
