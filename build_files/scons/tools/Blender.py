@@ -419,11 +419,18 @@ def buildinfo(lenv, build_type):
             build_commit_timestamp = '0'
             build_branch = 'unknown'
         else:
-            build_hash = os.popen('git rev-parse --short @{u}').read().strip()
+            import subprocess
+            no_upstream = False
+
+            process = subprocess.Popen(['git', 'rev-parse', '--short', '@{u}'],
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            build_hash, stderr = process.communicate()
+
             build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
 
             if build_hash == '':
                 build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+                no_upstream = True
 
             # ## Check for local modifications
             has_local_changes = False
@@ -434,7 +441,7 @@ def buildinfo(lenv, build_type):
 
             if changed_files:
                 has_local_changes = True
-            else:
+            elif no_upstream == False:
                 unpushed_log = os.popen('git log @{u}..').read().strip()
                 has_local_changes = unpushed_log != ''
 

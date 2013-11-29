@@ -17,7 +17,8 @@ if(EXISTS ${SOURCE_DIR}/.git)
 		execute_process(COMMAND git rev-parse --short @{u}
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		                OUTPUT_STRIP_TRAILING_WHITESPACE
+		                ERROR_QUIET)
 
 		if (MY_WC_HASH STREQUAL "")
 			# Local branch, not set to upstream.
@@ -25,7 +26,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
 			execute_process(COMMAND git rev-parse --short HEAD
 			                WORKING_DIRECTORY ${SOURCE_DIR}
 			                OUTPUT_VARIABLE MY_WC_HASH
-		        	        OUTPUT_STRIP_TRAILING_WHITESPACE)
+			                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		endif()
 
 		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
@@ -55,7 +56,8 @@ if(EXISTS ${SOURCE_DIR}/.git)
 			execute_process(COMMAND git log @{u}..
 			                WORKING_DIRECTORY ${SOURCE_DIR}
 			                OUTPUT_VARIABLE _git_unpushed_log
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+			                OUTPUT_STRIP_TRAILING_WHITESPACE
+			                ERROR_QUIET)
 			if(NOT _git_unpushed_log STREQUAL "")
 				set(MY_WC_BRANCH "${MY_WC_BRANCH} (modified)")
 			endif()
