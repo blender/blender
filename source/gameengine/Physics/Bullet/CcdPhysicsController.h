@@ -478,8 +478,11 @@ protected:
 	CcdPhysicsController* m_parentCtrl;
 
 	int m_savedCollisionFlags;
+	short m_savedCollisionFilterGroup;
+	short m_savedCollisionFilterMask;
 	MT_Scalar m_savedMass;
 	bool m_suspended;
+
 
 	void GetWorldOrientation(btMatrix3x3& mat);
 
