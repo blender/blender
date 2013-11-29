@@ -1344,6 +1344,8 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking, L
 	/* Use some default name. */
 	strcpy(plane_track->name, "Plane Track");
 
+	plane_track->image_opacity = 1.0f;
+
 	/* Use selected tracks from given list as a plane. */
 	plane_track->point_tracks = MEM_mallocN(sizeof(MovieTrackingTrack *) * num_selected_tracks, "new plane tracks array");
 	for (track = tracks->first, track_index = 0; track; track = track->next) {

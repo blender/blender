@@ -48,6 +48,7 @@
 #include "BLI_math_base.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
@@ -1038,12 +1039,127 @@ static void getArrowEndPoint(const int width, const int height, const float zoom
 	add_v2_v2v2(end_point, start_corner, direction);
 }
 
-static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_track,
+static void homogeneous_2d_to_gl_matrix(/*const*/ float matrix[3][3],
+                                        float gl_matrix[4][4])
+{
+	gl_matrix[0][0] = matrix[0][0];
+	gl_matrix[0][1] = matrix[0][1];
+	gl_matrix[0][2] = 0.0f;
+	gl_matrix[0][3] = matrix[0][2];
+
+	gl_matrix[1][0] = matrix[1][0];
+	gl_matrix[1][1] = matrix[1][1];
+	gl_matrix[1][2] = 0.0f;
+	gl_matrix[1][3] = matrix[1][2];
+
+	gl_matrix[2][0] = 0.0f;
+	gl_matrix[2][1] = 0.0f;
+	gl_matrix[2][2] = 1.0f;
+	gl_matrix[2][3] = 0.0f;
+
+	gl_matrix[3][0] = matrix[2][0];
+	gl_matrix[3][1] = matrix[2][1];
+	gl_matrix[3][2] = 0.0f;
+	gl_matrix[3][3] = matrix[2][2];
+}
+
+static void draw_plane_marker_image(Scene *scene,
+                                    MovieTrackingPlaneTrack *plane_track,
+                                    MovieTrackingPlaneMarker *plane_marker)
+{
+	Image *image = plane_track->image;
+	ImBuf *ibuf;
+	void *lock;
+
+	if (image == NULL) {
+		return;
+	}
+
+	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+
+	if (ibuf) {
+		unsigned char *display_buffer;
+		void *cache_handle;
+
+		if (image->flag & IMA_VIEW_AS_RENDER) {
+			display_buffer = IMB_display_buffer_acquire(ibuf,
+			                                            &scene->view_settings,
+			                                            &scene->display_settings,
+			                                            &cache_handle);
+		}
+		else {
+			display_buffer = IMB_display_buffer_acquire(ibuf, NULL,
+			                                            &scene->display_settings,
+			                                            &cache_handle);
+		}
+
+		if (display_buffer) {
+			GLuint texid, last_texid;
+			float frame_corners[4][2] = {{0.0f, 0.0f},
+			                             {1.0f, 0.0f},
+			                             {1.0f, 1.0f},
+			                             {0.0f, 1.0f}};
+			float perspective_matrix[3][3];
+			float gl_matrix[4][4];
+			BKE_tracking_homography_between_two_quads(frame_corners,
+			                                          plane_marker->corners,
+			                                          perspective_matrix);
+
+			homogeneous_2d_to_gl_matrix(perspective_matrix, gl_matrix);
+
+			if (plane_track->image_opacity != 1.0f) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+			}
+
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor4f(1.0, 1.0, 1.0, plane_track->image_opacity);
+
+			last_texid = glaGetOneInteger(GL_TEXTURE_2D);
+			glEnable(GL_TEXTURE_2D);
+			glGenTextures(1, (GLuint *)&texid);
+
+			glBindTexture(GL_TEXTURE_2D, texid);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA,
+			             GL_UNSIGNED_BYTE, display_buffer);
+
+			glPushMatrix();
+			glMultMatrixf(gl_matrix);
+
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 0.0f);
+			glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, 1.0f);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 1.0f);
+			glEnd();
+
+			glPopMatrix();
+
+			glBindTexture(GL_TEXTURE_2D, last_texid);
+			glDisable(GL_TEXTURE_2D);
+
+			if (plane_track->image_opacity != 1.0f) {
+				glDisable(GL_BLEND);
+			}
+		}
+
+		IMB_display_buffer_release(cache_handle);
+	}
+
+	BKE_image_release_ibuf(image, ibuf, lock);
+}
+
+static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlaneTrack *plane_track,
                                  MovieTrackingPlaneMarker *plane_marker, bool is_active_track,
                                  bool draw_outline, int width, int height)
 {
 	bool tiny = (sc->flag & SC_SHOW_TINY_MARKER) != 0;
 	bool is_selected_track = plane_track->flag & SELECT;
+	bool draw_plane_quad = plane_track->image == NULL || plane_track->image_opacity == 0.0f;
 	float px[2];
 
 	if (draw_outline) {
@@ -1063,6 +1179,11 @@ static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_t
 	px[0] = 1.0f / width / sc->zoom;
 	px[1] = 1.0f / height / sc->zoom;
 
+	/* Draw image */
+	if (draw_outline == false) {
+		draw_plane_marker_image(scene, plane_track, plane_marker);
+	}
+
 	if (draw_outline) {
 		if (!tiny) {
 			glLineWidth(3.0f);
@@ -1073,34 +1194,36 @@ static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_t
 		glEnable(GL_LINE_STIPPLE);
 	}
 
-	/* Draw rectangle itself. */
-	glBegin(GL_LINE_LOOP);
-	glVertex2fv(plane_marker->corners[0]);
-	glVertex2fv(plane_marker->corners[1]);
-	glVertex2fv(plane_marker->corners[2]);
-	glVertex2fv(plane_marker->corners[3]);
-	glEnd();
-
-	/* Draw axis. */
-	if (!draw_outline) {
-		float end_point[2];
-		glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT);
-
-		getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
-		glColor3f(1.0, 0.0, 0.0f);
-		glBegin(GL_LINES);
+	if (draw_plane_quad) {
+		/* Draw rectangle itself. */
+		glBegin(GL_LINE_LOOP);
 		glVertex2fv(plane_marker->corners[0]);
-		glVertex2fv(end_point);
+		glVertex2fv(plane_marker->corners[1]);
+		glVertex2fv(plane_marker->corners[2]);
+		glVertex2fv(plane_marker->corners[3]);
 		glEnd();
 
-		getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
-		glColor3f(0.0, 1.0, 0.0f);
-		glBegin(GL_LINES);
-		glVertex2fv(plane_marker->corners[0]);
-		glVertex2fv(end_point);
-		glEnd();
+		/* Draw axis. */
+		if (!draw_outline) {
+			float end_point[2];
+			glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT);
 
-		glPopAttrib();
+			getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
+			glColor3f(1.0, 0.0, 0.0f);
+			glBegin(GL_LINES);
+			glVertex2fv(plane_marker->corners[0]);
+			glVertex2fv(end_point);
+			glEnd();
+
+			getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
+			glColor3f(0.0, 1.0, 0.0f);
+			glBegin(GL_LINES);
+			glVertex2fv(plane_marker->corners[0]);
+			glVertex2fv(end_point);
+			glEnd();
+
+			glPopAttrib();
+		}
 	}
 
 	/* Draw sliders. */
@@ -1122,32 +1245,32 @@ static void draw_plane_marker_ex(SpaceClip *sc, MovieTrackingPlaneTrack *plane_t
 	}
 }
 
-static void draw_plane_marker_outline(SpaceClip *sc, MovieTrackingPlaneTrack *plane_track,
+static void draw_plane_marker_outline(SpaceClip *sc, Scene *scene, MovieTrackingPlaneTrack *plane_track,
                                       MovieTrackingPlaneMarker *plane_marker, int width, int height)
 {
-	draw_plane_marker_ex(sc, plane_track, plane_marker, false, true, width, height);
+	draw_plane_marker_ex(sc, scene, plane_track, plane_marker, false, true, width, height);
 }
 
-static void draw_plane_marker(SpaceClip *sc, MovieTrackingPlaneTrack *plane_track,
+static void draw_plane_marker(SpaceClip *sc, Scene *scene, MovieTrackingPlaneTrack *plane_track,
                               MovieTrackingPlaneMarker *plane_marker, bool is_active_track,
                               int width, int height)
 {
-	draw_plane_marker_ex(sc, plane_track, plane_marker, is_active_track, false, width, height);
+	draw_plane_marker_ex(sc, scene, plane_track, plane_marker, is_active_track, false, width, height);
 }
 
-static void draw_plane_track(SpaceClip *sc, MovieTrackingPlaneTrack *plane_track,
+static void draw_plane_track(SpaceClip *sc, Scene *scene, MovieTrackingPlaneTrack *plane_track,
                              int framenr, bool is_active_track, int width, int height)
 {
 	MovieTrackingPlaneMarker *plane_marker;
 
 	plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
 
-	draw_plane_marker_outline(sc, plane_track, plane_marker, width, height);
-	draw_plane_marker(sc, plane_track, plane_marker, is_active_track, width, height);
+	draw_plane_marker_outline(sc, scene, plane_track, plane_marker, width, height);
+	draw_plane_marker(sc, scene, plane_track, plane_marker, is_active_track, width, height);
 }
 
 /* Draw all kind of tracks. */
-static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
+static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, MovieClip *clip,
                                  int width, int height, float zoomx, float zoomy)
 {
 	float x, y;
@@ -1179,6 +1302,15 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	glScalef(width, height, 0);
 
 	act_track = BKE_tracking_track_get_active(tracking);
+
+	/* Draw plane tracks */
+	active_plane_track = BKE_tracking_plane_track_get_active(tracking);
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		draw_plane_track(sc, scene, plane_track, framenr, plane_track == active_plane_track, width, height);
+	}
 
 	if (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
 		int count = 0;
@@ -1346,15 +1478,6 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 		glPointSize(1.0f);
 		glDisable(GL_POINT_SMOOTH);
-	}
-
-	/* Draw plane tracks */
-	active_plane_track = BKE_tracking_plane_track_get_active(tracking);
-	for (plane_track = plane_tracks_base->first;
-	     plane_track;
-	     plane_track = plane_track->next)
-	{
-		draw_plane_track(sc, plane_track, framenr, plane_track == active_plane_track, width, height);
 	}
 
 	glPopMatrix();
@@ -1666,7 +1789,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 
 	if (width && height) {
 		draw_stabilization_border(sc, ar, width, height, zoomx, zoomy);
-		draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
+		draw_tracking_tracks(sc, scene, ar, clip, width, height, zoomx, zoomy);
 		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}
 

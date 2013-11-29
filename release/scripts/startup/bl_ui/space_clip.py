@@ -592,6 +592,11 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
 
         layout.prop(active_track, "name")
         layout.prop(active_track, "use_auto_keying")
+        layout.prop(active_track, "image")
+
+        row = layout.row()
+        row.active = active_track.image is not None
+        row.prop(active_track, "image_opacity", text="Opacity")
 
 
 class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):

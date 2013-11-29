@@ -2529,4 +2529,19 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		}
 	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
+			MovieClip *clip;
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				MovieTrackingPlaneTrack *plane_track;
+				for (plane_track = clip->tracking.plane_tracks.first;
+				     plane_track;
+				     plane_track = plane_track->next)
+				{
+					plane_track->image_opacity = 1.0f;
+				}
+			}
+		}
+	}
 }

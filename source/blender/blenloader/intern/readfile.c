@@ -6777,6 +6777,15 @@ static void lib_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracks
 	}
 }
 
+static void lib_link_moviePlaneTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+{
+	MovieTrackingPlaneTrack *plane_track;
+
+	for (plane_track = tracksbase->first; plane_track; plane_track = plane_track->next) {
+		plane_track->image = newlibadr_us(fd, clip->id.lib, plane_track->image);
+	}
+}
+
 static void lib_link_movieclip(FileData *fd, Main *main)
 {
 	MovieClip *clip;
@@ -6792,6 +6801,7 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 			clip->gpd = newlibadr_us(fd, clip->id.lib, clip->gpd);
 			
 			lib_link_movieTracks(fd, clip, &tracking->tracks);
+			lib_link_moviePlaneTracks(fd, clip, &tracking->plane_tracks);
 
 			for (object = tracking->objects.first; object; object = object->next) {
 				lib_link_movieTracks(fd, clip, &object->tracks);

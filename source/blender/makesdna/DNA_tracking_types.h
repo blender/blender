@@ -44,6 +44,7 @@
 
 struct bGPdata;
 struct ImBuf;
+struct Image;
 struct MovieReconstructedCamera;
 struct MovieTrackingCamera;
 struct MovieTrackingBundle;
@@ -189,8 +190,11 @@ typedef struct MovieTrackingPlaneTrack {
 
 	int flag;    /* flags (selection, ...) */
 
+	struct Image *image;                 /* Image displaying during editing */
+	float image_opacity;                 /* Opacity of the image */
+
 	/* Runtime data */
-	int last_marker, pad2;               /* Most recently used marker */
+	int last_marker;                     /* Most recently used marker */
 } MovieTrackingPlaneTrack;
 
 typedef struct MovieTrackingSettings {
