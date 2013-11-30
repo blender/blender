@@ -1134,7 +1134,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		et->setData("falloff_type", &(lamp->falloff_type));
 		et->setData("clipsta", &(lamp->clipsta));
 		et->setData("clipend", &(lamp->clipend));
-		et->setData("shadspotsize", &(lamp->shadspotsize));
 		et->setData("bias", &(lamp->bias));
 		et->setData("soft", &(lamp->soft));
 		et->setData("compressthresh", &(lamp->compressthresh));

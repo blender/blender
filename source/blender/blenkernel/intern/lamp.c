@@ -70,7 +70,6 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	la->bufsize = 512;
 	la->clipsta = 0.5f;
 	la->clipend = 40.0f;
-	la->shadspotsize = 45.0f;
 	la->samp = 3;
 	la->bias = 1.0f;
 	la->soft = 3.0f;
