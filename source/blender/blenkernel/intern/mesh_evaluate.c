@@ -42,7 +42,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_bitmap.h"
-#include "BLI_scanfill.h"
+#include "BLI_polyfill2d.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_alloca.h"
@@ -1298,10 +1298,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
 	MFace *mface, *mf;
-	ScanFillContext sf_ctx;
-	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
-	ScanFillFace *sf_tri;
-	MemArena *sf_arena = NULL;
+	MemArena *arena = NULL;
 	int *mface_to_poly_map;
 	int lindex[4]; /* only ever use 3 in this case */
 	int poly_index, j, mface_index;
@@ -1375,60 +1372,60 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		}
 #endif /* USE_TESSFACE_SPEEDUP */
 		else {
-#define USE_TESSFACE_CALCNORMAL
+			const float *co_curr, *co_prev;
 
-			unsigned int totfilltri;
-
-#ifdef USE_TESSFACE_CALCNORMAL
 			float normal[3];
+
+			float axis_mat[3][3];
+			float (*projverts)[2];
+			unsigned int (*tris)[3];
+
+			const unsigned int loopstart = (unsigned int)mp->loopstart;
+			const int totfilltri = mp->totloop - 2;
+
+			if (UNLIKELY(arena == NULL)) {
+				arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+			}
+
+			tris = BLI_memarena_alloc(arena, (int)sizeof(*tris) * totfilltri);
+			projverts = BLI_memarena_alloc(arena, (int)sizeof(*projverts) * mp->totloop);
+
 			zero_v3(normal);
-#endif
-			ml = mloop + mp->loopstart;
 
-			if (UNLIKELY(sf_arena == NULL)) {
-				sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
-			}
-
-			BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
-			sf_vert_first = NULL;
-			sf_vert_last = NULL;
+			/* calc normal */
+			ml = mloop + loopstart;
+			co_prev = mvert[ml[mp->totloop - 1].v].co;
 			for (j = 0; j < mp->totloop; j++, ml++) {
-				sf_vert = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
-
-				sf_vert->keyindex = (unsigned int)(mp->loopstart + j);
-
-				if (sf_vert_last) {
-					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
-#ifdef USE_TESSFACE_CALCNORMAL
-					add_newell_cross_v3_v3v3(normal, sf_vert_last->co, sf_vert->co);
-#endif
-				}
-
-				if (!sf_vert_first)
-					sf_vert_first = sf_vert;
-				sf_vert_last = sf_vert;
+				co_curr = mvert[ml->v].co;
+				add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
+				co_prev = co_curr;
 			}
-			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
-#ifdef USE_TESSFACE_CALCNORMAL
-			add_newell_cross_v3_v3v3(normal, sf_vert_last->co, sf_vert_first->co);
 			if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
 				normal[2] = 1.0f;
 			}
-			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, normal);
-#else
-			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
-#endif
-			BLI_assert(totfilltri <= (unsigned int)(mp->totloop - 2));
-			(void)totfilltri;
 
-			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
+			/* project verts to 2d */
+			axis_dominant_v3_to_m3(axis_mat, normal);
+
+			ml = mloop + loopstart;
+			for (j = 0; j < mp->totloop; j++, ml++) {
+				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
+			}
+
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, (unsigned int)mp->totloop, tris, arena);
+
+			/* apply fill */
+			ml = mloop + loopstart;
+			for (j = 0; j < totfilltri; j++) {
+				unsigned int *tri = tris[j];
+
 				mface_to_poly_map[mface_index] = poly_index;
 				mf = &mface[mface_index];
 
 				/* set loop indices, transformed to vert indices later */
-				mf->v1 = sf_tri->v1->keyindex;
-				mf->v2 = sf_tri->v2->keyindex;
-				mf->v3 = sf_tri->v3->keyindex;
+				mf->v1 = loopstart + tri[0];
+				mf->v2 = loopstart + tri[1];
+				mf->v3 = loopstart + tri[2];
 				mf->v4 = 0;
 
 				mf->mat_nr = mp->mat_nr;
@@ -1441,15 +1438,13 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 				mface_index++;
 			}
 
-			BLI_scanfill_end_arena(&sf_ctx, sf_arena);
-
-#undef USE_TESSFACE_CALCNORMAL
+			BLI_memarena_clear(arena);
 		}
 	}
 
-	if (sf_arena) {
-		BLI_memarena_free(sf_arena);
-		sf_arena = NULL;
+	if (arena) {
+		BLI_memarena_free(arena);
+		arena = NULL;
 	}
 
 	CustomData_free(fdata, totface);

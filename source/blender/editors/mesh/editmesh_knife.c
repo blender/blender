@@ -2913,17 +2913,16 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
  */
 static void edvm_mesh_knife_face_point(BMFace *f, float r_cent[3])
 {
-	int tottri = f->len - 2;
-	BMLoop **loops     = BLI_array_alloca(loops, f->len);
-	int    (*index)[3] = BLI_array_alloca(index, tottri);
+	const int tottri = f->len - 2;
+	BMLoop **loops = BLI_array_alloca(loops, f->len);
+	unsigned int  (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
 	float const *best_co[3] = {NULL};
 	float best_area  = -1.0f;
 	bool ok = false;
 
-	tottri = BM_face_calc_tessellation(f, loops, index);
-	BLI_assert(tottri <= f->len - 2);
+	BM_face_calc_tessellation(f, loops, index);
 
 	for (j = 0; j < tottri; j++) {
 		const float *p1 = loops[index[j][0]]->v->co;

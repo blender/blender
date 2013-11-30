@@ -36,7 +36,7 @@
 #include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
-#include "BLI_scanfill.h"
+#include "BLI_polyfill2d.h"
 #include "BLI_listbase.h"
 
 #include "bmesh.h"
@@ -176,22 +176,19 @@ static void bm_face_calc_poly_center_mean_vertex_cos(BMFace *f, float r_cent[3],
  * \param r_loops  Store face loop pointers, (f->len)
  * \param r_index  Store triangle triples, indicies into \a r_loops,  ((f->len - 2) * 3)
  */
-int BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, int (*_r_index)[3])
+void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (*r_index)[3])
 {
-	int *r_index = (int *)_r_index;
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter;
-	int totfilltri;
 
 	if (f->len == 3) {
 		*r_loops++ = (l_iter = l_first);
 		*r_loops++ = (l_iter = l_iter->next);
 		*r_loops++ = (         l_iter->next);
 
-		r_index[0] = 0;
-		r_index[1] = 1;
-		r_index[2] = 2;
-		totfilltri = 1;
+		r_index[0][0] = 0;
+		r_index[0][1] = 1;
+		r_index[0][2] = 2;
 	}
 	else if (f->len == 4) {
 		*r_loops++ = (l_iter = l_first);
@@ -199,72 +196,31 @@ int BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, int (*_r_index)
 		*r_loops++ = (l_iter = l_iter->next);
 		*r_loops++ = (         l_iter->next);
 
-		r_index[0] = 0;
-		r_index[1] = 1;
-		r_index[2] = 2;
+		r_index[0][0] = 0;
+		r_index[0][1] = 1;
+		r_index[0][2] = 2;
 
-		r_index[3] = 0;
-		r_index[4] = 2;
-		r_index[5] = 3;
-		totfilltri = 2;
+		r_index[1][0] = 0;
+		r_index[1][1] = 2;
+		r_index[1][2] = 3;
 	}
 	else {
+		float axis_mat[3][3];
+		float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
 		int j;
 
-		ScanFillContext sf_ctx;
-		ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
-		/* ScanFillEdge *e; */ /* UNUSED */
-		ScanFillFace *sf_tri;
-
-		BLI_scanfill_begin(&sf_ctx);
+		axis_dominant_v3_to_m3(axis_mat, f->no);
 
 		j = 0;
 		l_iter = l_first;
 		do {
-			sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
-			sf_vert->tmp.p = l_iter;
-
-			if (sf_vert_last) {
-				/* e = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
-			}
-
-			sf_vert_last = sf_vert;
-			if (sf_vert_first == NULL) {
-				sf_vert_first = sf_vert;
-			}
-
+			mul_v2_m3v3(projverts[j], axis_mat, l_iter->v->co);
 			r_loops[j] = l_iter;
-
-			/* mark order */
-			BM_elem_index_set(l_iter, j++); /* set_loop */
-
 		} while ((l_iter = l_iter->next) != l_first);
 
 		/* complete the loop */
-		BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
-
-		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
-		BLI_assert(totfilltri <= f->len - 2);
-		BLI_assert(totfilltri == BLI_countlist(&sf_ctx.fillfacebase));
-
-		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
-			int i1 = BM_elem_index_get((BMLoop *)sf_tri->v1->tmp.p);
-			int i2 = BM_elem_index_get((BMLoop *)sf_tri->v2->tmp.p);
-			int i3 = BM_elem_index_get((BMLoop *)sf_tri->v3->tmp.p);
-
-			if (i1 > i2) { SWAP(int, i1, i2); }
-			if (i2 > i3) { SWAP(int, i2, i3); }
-			if (i1 > i2) { SWAP(int, i1, i2); }
-
-			*r_index++ = i1;
-			*r_index++ = i2;
-			*r_index++ = i3;
-		}
-
-		BLI_scanfill_end(&sf_ctx);
+		BLI_polyfill_calc((const float (*)[2])projverts, f->len, r_index);
 	}
-
-	return totfilltri;
 }
 
 /**
@@ -832,10 +788,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	int edge_array_len;
 	bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
 
-#define SF_EDGE_IS_BOUNDARY 0xff
-
 	BLI_assert(BM_face_is_normal_valid(f));
-
 
 	if (f->len == 4) {
 		BMVert *v1, *v2;
@@ -911,47 +864,39 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		}
 	}
 	else if (f->len > 4) {
-		/* scanfill */
-		ScanFillContext sf_ctx;
-		ScanFillVert *sf_vert, *sf_vert_prev = NULL;
-		ScanFillEdge *sf_edge;
-		ScanFillFace *sf_tri;
-		int totfilltri;
 
-		/* populate scanfill */
-		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		float axis_mat[3][3];
+		float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
+		BMLoop **loops = BLI_array_alloca(loops, f->len);
+		unsigned int (*tris)[3] = BLI_array_alloca(tris, f->len);
+		const int totfilltri = f->len - 2;
+		const int last_tri = f->len - 3;
+		int i;
 
-		/* step once before entering the loop */
-		sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
-		sf_vert->tmp.p = l_iter;
-		sf_vert_prev = sf_vert;
-		l_iter = l_iter->next;
+		//BLI_assert(BM_face_is_normal_valid(f));
 
-		do {
-			sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
-			sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
-			sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
+		axis_dominant_v3_to_m3(axis_mat, f->no);
 
-			sf_vert->tmp.p = l_iter;
-			sf_vert_prev = sf_vert;
-		} while ((l_iter = l_iter->next) != l_first);
+		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l_iter = l_iter->next) {
+			loops[i] = l_iter;
+			mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
+		}
 
-		sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_ctx.fillvertbase.first);
-		sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
+		BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, tris,
+		                        sf_arena);
 
-		/* calculate filled triangles */
-		totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, f->no);
-		BLI_assert(totfilltri <= f->len - 2);
-
+		if (use_beauty) {
+			edge_array = BLI_array_alloca(edge_array, orig_f_len - 3);
+			edge_array_len = 0;
+		}
 
 		/* loop over calculated triangles and create new geometry */
-		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+		for (i = 0; i < totfilltri; i++) {
 			/* the order is reverse, otherwise the normal is flipped */
 			BMLoop *l_tri[3] = {
-			    sf_tri->v3->tmp.p,
-			    sf_tri->v2->tmp.p,
-			    sf_tri->v1->tmp.p};
+			    loops[tris[i][2]],
+			    loops[tris[i][1]],
+			    loops[tris[i][0]]};
 
 			BMVert *v_tri[3] = {
 			    l_tri[0]->v,
@@ -969,7 +914,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			BM_elem_attrs_copy(bm, bm, l_tri[2], l_new->prev);
 
 			/* add all but the last face which is swapped and removed (below) */
-			if (sf_tri->next) {
+			if (i != last_tri) {
 				if (use_tag) {
 					BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 				}
@@ -977,35 +922,36 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 					r_faces_new[nf_i++] = f_new;
 				}
 			}
-		}
 
-		if (use_beauty || use_tag) {
-			ScanFillEdge *sf_edge;
-			edge_array = BLI_array_alloca(edge_array, orig_f_len - 3);
-			edge_array_len = 0;
+			/* we know any edge that we create and _isnt_ */
+			if (use_beauty || use_tag) {
+				/* new faces loops */
+				l_iter = l_first = l_new;
+				do {
+					BMEdge *e = l_iter->e;
+					/* confusing! if its not a boundary now, we know it will be later
+					 * since this will be an edge of one of the new faces which we're in the middle of creating */
+					bool is_new_edge = (l_iter == l_iter->radial_next);
 
-			for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
-				BMLoop *l1 = sf_edge->v1->tmp.p;
-				BMLoop *l2 = sf_edge->v2->tmp.p;
+					if (is_new_edge) {
+						if (use_beauty) {
+							BM_elem_index_set(e, edge_array_len);  /* set_dirty */
+							edge_array[edge_array_len] = e;
+							edge_array_len++;
+						}
 
-				BMEdge *e = BM_edge_exists(l1->v, l2->v);
-				if (sf_edge->tmp.c != SF_EDGE_IS_BOUNDARY) {
+						if (use_tag) {
+							BM_elem_flag_enable(e, BM_ELEM_TAG);
 
-					if (use_beauty) {
-						BM_elem_index_set(e, edge_array_len);  /* set_dirty */
-						edge_array[edge_array_len] = e;
-						edge_array_len++;
+						}
 					}
-
-					if (use_tag) {
-						BM_elem_flag_enable(e, BM_ELEM_TAG);
+					else {
+						if (use_tag) {
+							BM_elem_flag_disable(e, BM_ELEM_TAG);
+						}
 					}
-				}
-				else if (use_tag) {
-					BM_elem_flag_disable(e, BM_ELEM_TAG);
-				}
+				} while ((l_iter = l_iter->next) != l_first);
 			}
-
 		}
 
 		if ((!use_beauty) || (!r_faces_new)) {
@@ -1016,6 +962,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		}
 
 		if (use_beauty) {
+			BLI_assert(edge_array_len <= orig_f_len - 3);
+
 			bm->elem_index_dirty |= BM_EDGE;
 			BM_mesh_beautify_fill(bm, edge_array, edge_array_len, 0, 0, 0, 0);
 
@@ -1075,13 +1023,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				BM_face_kill(bm, f_new);
 			}
 		}
-
-		/* garbage collection */
-		BLI_scanfill_end_arena(&sf_ctx, sf_arena);
 	}
-
-#undef SF_EDGE_IS_BOUNDARY
-
 }
 
 /**
@@ -1290,11 +1232,9 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 
 	BMIter iter;
 	BMFace *efa;
-	BMLoop *l;
 	int i = 0;
 
-	ScanFillContext sf_ctx;
-	MemArena *sf_arena = NULL;
+	MemArena *arena = NULL;
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		/* don't consider two-edged faces */
@@ -1315,6 +1255,7 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 			i += 1;
 #else
 			/* more cryptic but faster */
+			BMLoop *l;
 			BMLoop **l_ptr = looptris[i++];
 			l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
 			l_ptr[1] = l = l->next;
@@ -1341,6 +1282,7 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 			i += 1;
 #else
 			/* more cryptic but faster */
+			BMLoop *l;
 			BMLoop **l_ptr_a = looptris[i++];
 			BMLoop **l_ptr_b = looptris[i++];
 			(l_ptr_a[0] = l_ptr_b[0] = l = BM_FACE_FIRST_LOOP(efa));
@@ -1354,70 +1296,53 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 
 		else {
 			int j;
+
 			BMLoop *l_iter;
 			BMLoop *l_first;
+			BMLoop **l_arr;
 
-			ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
-			/* ScanFillEdge *e; */ /* UNUSED */
-			ScanFillFace *sf_tri;
-			int totfilltri;
+			float axis_mat[3][3];
+			float (*projverts)[2];
+			unsigned int (*tris)[3];
 
-			if (UNLIKELY(sf_arena == NULL)) {
-				sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
+			const int totfilltri = efa->len - 2;
+
+			if (UNLIKELY(arena == NULL)) {
+				arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
 
-			BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
+			tris = BLI_memarena_alloc(arena, sizeof(*tris) * totfilltri);
+			l_arr = BLI_memarena_alloc(arena, sizeof(*l_arr) * efa->len);
+			projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * efa->len);
 
-			/* scanfill time */
+			axis_dominant_v3_to_m3(axis_mat, efa->no);
+
 			j = 0;
 			l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
 			do {
-				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
-				sf_vert->tmp.p = l_iter;
-
-				if (sf_vert_last) {
-					/* e = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
-				}
-
-				sf_vert_last = sf_vert;
-				if (sf_vert_first == NULL) {
-					sf_vert_first = sf_vert;
-				}
-
-				/*mark order */
-				BM_elem_index_set(l_iter, j++); /* set_loop */
-
+				l_arr[j] = l_iter;
+				mul_v2_m3v3(projverts[j], axis_mat, l_iter->v->co);
+				j++;
 			} while ((l_iter = l_iter->next) != l_first);
 
-			/* complete the loop */
-			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, efa->len, tris, arena);
 
-			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
-			BLI_assert(totfilltri <= efa->len - 2);
-			(void)totfilltri;
-
-			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];
-				BMLoop *l1 = sf_tri->v1->tmp.p;
-				BMLoop *l2 = sf_tri->v2->tmp.p;
-				BMLoop *l3 = sf_tri->v3->tmp.p;
+				unsigned int *tri = tris[j];
 
-				if (BM_elem_index_get(l1) > BM_elem_index_get(l2)) { SWAP(BMLoop *, l1, l2); }
-				if (BM_elem_index_get(l2) > BM_elem_index_get(l3)) { SWAP(BMLoop *, l2, l3); }
-				if (BM_elem_index_get(l1) > BM_elem_index_get(l2)) { SWAP(BMLoop *, l1, l2); }
-
-				l_ptr[0] = l1;
-				l_ptr[1] = l2;
-				l_ptr[2] = l3;
+				l_ptr[0] = l_arr[tri[2]];
+				l_ptr[1] = l_arr[tri[1]];
+				l_ptr[2] = l_arr[tri[0]];
 			}
 
-			BLI_scanfill_end_arena(&sf_ctx, sf_arena);
+			BLI_memarena_clear(arena);
 		}
 	}
 
-	if (sf_arena) {
-		BLI_memarena_free(sf_arena);
-		sf_arena = NULL;
+	if (arena) {
+		BLI_memarena_free(arena);
+		arena = NULL;
 	}
 
 	*r_looptris_tot = i;
