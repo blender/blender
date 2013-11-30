@@ -519,12 +519,15 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 /* both startup.blend and userpref.blend are checked */
 /* the optional paramater custom_file points to an alterntive startup page */
 /* custom_file can be NULL */
-int wm_homefile_read(bContext *C, ReportList *reports, short from_memory, const char *custom_file)
+int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const char *custom_file)
 {
 	ListBase wmbase;
 	char startstr[FILE_MAX];
 	char prefstr[FILE_MAX];
 	int success = 0;
+
+	/* options exclude eachother */
+	BLI_assert((from_memory && custom_file) == 0);
 
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
 
@@ -652,15 +655,15 @@ int wm_history_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 int wm_homefile_read_exec(bContext *C, wmOperator *op)
 {
-	int from_memory = (strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0);
-	char filepath_buffer[FILE_MAX] = "";
-	char *filepath = NULL;
+	const bool from_memory = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
+	char filepath_buf[FILE_MAX];
+	const char *filepath = NULL;
 
-	if (!from_memory)
-	{
-		RNA_string_get(op->ptr, "filepath", filepath_buffer);
-		if (filepath_buffer[0] != '\0') {
-			filepath = filepath_buffer;
+	if (!from_memory) {
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_string_get(op->ptr, prop, filepath_buf);
+			filepath = filepath_buf;
 			if (BLI_access(filepath, R_OK)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Can't read alternative start-up file: '%s'", filepath);
 				return OPERATOR_CANCELLED;

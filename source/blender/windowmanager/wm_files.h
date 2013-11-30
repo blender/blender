@@ -35,7 +35,7 @@ void		wm_read_history(void);
 int			wm_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
 int			wm_history_read_exec(bContext *C, wmOperator *op);
 int			wm_homefile_read_exec(struct bContext *C, struct wmOperator *op);
-int			wm_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory, const char *filepath);
+int			wm_homefile_read(struct bContext *C, struct ReportList *reports, bool from_memory, const char *filepath);
 int			wm_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 int			wm_userpref_write_exec(struct bContext *C, struct wmOperator *op);
 
