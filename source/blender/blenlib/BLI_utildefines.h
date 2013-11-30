@@ -300,6 +300,12 @@
 #define ARRAY_HAS_ITEM(arr_item, arr_start, tot) \
 	((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(tot))
 
+#define ARRAY_DELETE(arr, index, tot_delete, tot)  { \
+		BLI_assert(index + tot_delete <= tot);  \
+		memmove(&(arr)[(index)], \
+		        &(arr)[(index) + (tot_delete)], \
+		         (((tot) - (index)) - (tot_delete)) * sizeof(*(arr))); \
+	} (void)0
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */

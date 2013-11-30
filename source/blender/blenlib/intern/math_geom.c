@@ -88,16 +88,6 @@ float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const flo
 	return normalize_v3(n);
 }
 
-float area_tri_v2(const float v1[2], const float v2[2], const float v3[2])
-{
-	return 0.5f * fabsf((v1[0] - v2[0]) * (v2[1] - v3[1]) + (v1[1] - v2[1]) * (v3[0] - v2[0]));
-}
-
-float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2])
-{
-	return 0.5f * ((v1[0] - v2[0]) * (v2[1] - v3[1]) + (v1[1] - v2[1]) * (v3[0] - v2[0]));
-}
-
 /* only convex Quadrilaterals */
 float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
@@ -157,30 +147,35 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	area = 0.0f;
 	for (a = 0; a < nr; a++) {
 		area += (co_curr[px] - co_prev[px]) * (co_curr[py] + co_prev[py]);
-		co_prev = verts[a];
-		co_curr = verts[a + 1];
+		co_prev = co_curr;
+		co_curr += 3;
 	}
 
 	return fabsf(0.5f * area / max);
 }
 
-float area_poly_v2(int nr, float verts[][2])
+float cross_poly_v2(int nr, float verts[][2])
 {
 	int a;
-	float area;
-	float *co_curr, *co_prev;
+	float cross;
+	const float *co_curr, *co_prev;
 
 	/* The Trapezium Area Rule */
 	co_prev = verts[nr - 1];
 	co_curr = verts[0];
-	area = 0.0f;
+	cross = 0.0f;
 	for (a = 0; a < nr; a++) {
-		area += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
-		co_prev = verts[a];
-		co_curr = verts[a + 1];
+		cross += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+		co_prev = co_curr;
+		co_curr += 2;
 	}
 
-	return fabsf(0.5f * area);
+	return cross;
+}
+
+float area_poly_v2(int nr, float verts[][2])
+{
+	return fabsf(0.5f * cross_poly_v2(nr, verts));
 }
 
 /********************************* Planes **********************************/
