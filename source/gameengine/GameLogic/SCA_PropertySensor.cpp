@@ -207,6 +207,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 
 				result = (min <= val) && (val <= max);
 			}
+			orgprop->Release();
 
 		break;
 		}
