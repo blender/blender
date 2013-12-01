@@ -938,6 +938,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 							BM_elem_index_set(e, edge_array_len);  /* set_dirty */
 							edge_array[edge_array_len] = e;
 							edge_array_len++;
+							BM_elem_flag_enable(e, BM_ELEM_TAG);
 						}
 
 						if (use_tag) {
@@ -945,11 +946,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 						}
 					}
-					else {
-						if (use_tag) {
-							BM_elem_flag_disable(e, BM_ELEM_TAG);
-						}
-					}
+					/* note, never disable tag's */
 				} while ((l_iter = l_iter->next) != l_first);
 			}
 		}
