@@ -234,7 +234,7 @@ static float _final_goal(Object *ob, BodyPoint *bp)/*jow_go_for2_5 */
 		if (!(ob->softflag & OB_SB_GOAL)) return (0.0f);
 		if (sb&&bp) {
 			if (bp->goal < 0.0f) return (0.0f);
-			f = sb->mingoal + bp->goal*ABS(sb->maxgoal - sb->mingoal);
+			f = sb->mingoal + bp->goal * fabsf(sb->maxgoal - sb->mingoal);
 			f = pow(f, 4.0f);
 			return (f);
 		}
@@ -316,7 +316,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 
 
 	/* blow it up with forcefield ranges */
-	hull = MAX2(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
+	hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
 	/* alloc and copy verts*/
 	pccd_M->mvert = MEM_dupallocN(cmd->xnew);
@@ -325,13 +325,13 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 	for (i=0; i < pccd_M->totvert; i++) {
 		/* evaluate limits */
 		copy_v3_v3(v, pccd_M->mvert[i].co);
-		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0], v[0]-hull);
-		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1], v[1]-hull);
-		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2], v[2]-hull);
+		pccd_M->bbmin[0] = min_ff(pccd_M->bbmin[0], v[0] - hull);
+		pccd_M->bbmin[1] = min_ff(pccd_M->bbmin[1], v[1] - hull);
+		pccd_M->bbmin[2] = min_ff(pccd_M->bbmin[2], v[2] - hull);
 
-		pccd_M->bbmax[0] = MAX2(pccd_M->bbmax[0], v[0]+hull);
-		pccd_M->bbmax[1] = MAX2(pccd_M->bbmax[1], v[1]+hull);
-		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2], v[2]+hull);
+		pccd_M->bbmax[0] = max_ff(pccd_M->bbmax[0], v[0] + hull);
+		pccd_M->bbmax[1] = max_ff(pccd_M->bbmax[1], v[1] + hull);
+		pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
 
 	}
 	/* alloc and copy faces*/
@@ -349,44 +349,43 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 		mima->maxx=mima->maxy=mima->maxz=-1e30f;
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v1].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v2].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v3].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		if (mface->v4) {
 			copy_v3_v3(v, pccd_M->mvert[mface->v4].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+			mima->minx = min_ff(mima->minx, v[0] - hull);
+			mima->miny = min_ff(mima->miny, v[1] - hull);
+			mima->minz = min_ff(mima->minz, v[2] - hull);
+			mima->maxx = max_ff(mima->maxx, v[0] + hull);
+			mima->maxy = max_ff(mima->maxy, v[1] + hull);
+			mima->maxz = max_ff(mima->maxz, v[2] + hull);
 		}
 
-
-	mima++;
-	mface++;
-
+		mima++;
+		mface++;
 	}
+
 	return pccd_M;
 }
 static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
@@ -414,7 +413,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 
 
 	/* blow it up with forcefield ranges */
-	hull = MAX2(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
+	hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
 	/* rotate current to previous */
 	if (pccd_M->mprevvert) MEM_freeN(pccd_M->mprevvert);
@@ -426,23 +425,23 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 	for (i=0; i < pccd_M->totvert; i++) {
 		/* evaluate limits */
 		copy_v3_v3(v, pccd_M->mvert[i].co);
-		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0], v[0]-hull);
-		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1], v[1]-hull);
-		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2], v[2]-hull);
+		pccd_M->bbmin[0] = min_ff(pccd_M->bbmin[0], v[0] - hull);
+		pccd_M->bbmin[1] = min_ff(pccd_M->bbmin[1], v[1] - hull);
+		pccd_M->bbmin[2] = min_ff(pccd_M->bbmin[2], v[2] - hull);
 
-		pccd_M->bbmax[0] = MAX2(pccd_M->bbmax[0], v[0]+hull);
-		pccd_M->bbmax[1] = MAX2(pccd_M->bbmax[1], v[1]+hull);
-		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2], v[2]+hull);
+		pccd_M->bbmax[0] = max_ff(pccd_M->bbmax[0], v[0] + hull);
+		pccd_M->bbmax[1] = max_ff(pccd_M->bbmax[1], v[1] + hull);
+		pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
 
 		/* evaluate limits */
 		copy_v3_v3(v, pccd_M->mprevvert[i].co);
-		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0], v[0]-hull);
-		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1], v[1]-hull);
-		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2], v[2]-hull);
+		pccd_M->bbmin[0] = min_ff(pccd_M->bbmin[0], v[0] - hull);
+		pccd_M->bbmin[1] = min_ff(pccd_M->bbmin[1], v[1] - hull);
+		pccd_M->bbmin[2] = min_ff(pccd_M->bbmin[2], v[2] - hull);
 
-		pccd_M->bbmax[0] = MAX2(pccd_M->bbmax[0], v[0]+hull);
-		pccd_M->bbmax[1] = MAX2(pccd_M->bbmax[1], v[1]+hull);
-		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2], v[2]+hull);
+		pccd_M->bbmax[0] = max_ff(pccd_M->bbmax[0], v[0] + hull);
+		pccd_M->bbmax[1] = max_ff(pccd_M->bbmax[1], v[1] + hull);
+		pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
 
 	}
 
@@ -456,72 +455,72 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 		mima->maxx=mima->maxy=mima->maxz=-1e30f;
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v1].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v2].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mvert[mface->v3].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		if (mface->v4) {
 			copy_v3_v3(v, pccd_M->mvert[mface->v4].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+			mima->minx = min_ff(mima->minx, v[0] - hull);
+			mima->miny = min_ff(mima->miny, v[1] - hull);
+			mima->minz = min_ff(mima->minz, v[2] - hull);
+			mima->maxx = max_ff(mima->maxx, v[0] + hull);
+			mima->maxy = max_ff(mima->maxy, v[1] + hull);
+			mima->maxz = max_ff(mima->maxz, v[2] + hull);
 		}
 
 
 		copy_v3_v3(v, pccd_M->mprevvert[mface->v1].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mprevvert[mface->v2].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		copy_v3_v3(v, pccd_M->mprevvert[mface->v3].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+		mima->minx = min_ff(mima->minx, v[0] - hull);
+		mima->miny = min_ff(mima->miny, v[1] - hull);
+		mima->minz = min_ff(mima->minz, v[2] - hull);
+		mima->maxx = max_ff(mima->maxx, v[0] + hull);
+		mima->maxy = max_ff(mima->maxy, v[1] + hull);
+		mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
 		if (mface->v4) {
 			copy_v3_v3(v, pccd_M->mprevvert[mface->v4].co);
-		mima->minx = MIN2(mima->minx, v[0]-hull);
-		mima->miny = MIN2(mima->miny, v[1]-hull);
-		mima->minz = MIN2(mima->minz, v[2]-hull);
-		mima->maxx = MAX2(mima->maxx, v[0]+hull);
-		mima->maxy = MAX2(mima->maxy, v[1]+hull);
-		mima->maxz = MAX2(mima->maxz, v[2]+hull);
+			mima->minx = min_ff(mima->minx, v[0] - hull);
+			mima->miny = min_ff(mima->miny, v[1] - hull);
+			mima->minz = min_ff(mima->minz, v[2] - hull);
+			mima->maxx = max_ff(mima->maxx, v[0] + hull);
+			mima->maxy = max_ff(mima->maxy, v[1] + hull);
+			mima->maxz = max_ff(mima->maxz, v[2] + hull);
 		}
 
 
@@ -818,10 +817,10 @@ static void calculate_collision_balls(Object *ob)
 		for (b=bp->nofsprings;b>0;b--) {
 			bs = sb->bspring + bp->springs[b-1];
 			if (bs->springtype == SB_EDGE) {
-			akku += bs->len;
-			akku_count++,
-			min = MIN2(bs->len, min);
-			max = MAX2(bs->len, max);
+				akku += bs->len;
+				akku_count++;
+				min = min_ff(bs->len, min);
+				max = max_ff(bs->len, max);
 			}
 		}
 
@@ -1345,24 +1344,26 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 			bf->flag &= ~BFF_INTERSECT;
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			if (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos, sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos,
-				&damp,	feedback, ob->lay, ob, timenow)) {
+			                                   &damp, feedback, ob->lay, ob, timenow))
+			{
 				Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
 				Vec3PlusStVec(sb->bpoint[bf->v2].force, tune, feedback);
 				Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
 //				Vec3PlusStVec(bf->ext_force, tune, feedback);
 				bf->flag |= BFF_INTERSECT;
-				choke = MIN2(MAX2(damp, choke), 1.0f);
+				choke = min_ff(max_ff(damp, choke), 1.0f);
 			}
 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			if ((bf->v4) && (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos, sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos,
-				&damp,	feedback, ob->lay, ob, timenow))) {
+			                                                &damp, feedback, ob->lay, ob, timenow)))
+			{
 				Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
 				Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
 				Vec3PlusStVec(sb->bpoint[bf->v4].force, tune, feedback);
 //				Vec3PlusStVec(bf->ext_force, tune, feedback);
 				bf->flag |= BFF_INTERSECT;
-				choke = MIN2(MAX2(damp, choke), 1.0f);
+				choke = min_ff(max_ff(damp, choke), 1.0f);
 			}
 /*---edges intruding*/
 
@@ -1372,24 +1373,26 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 				tune = -1.0f;
 				feedback[0]=feedback[1]=feedback[2]=0.0f;
 				if (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos, sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos,
-					&damp,	feedback, ob->lay, ob, timenow)) {
-				Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
-				Vec3PlusStVec(sb->bpoint[bf->v2].force, tune, feedback);
-				Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
-//						Vec3PlusStVec(bf->ext_force, tune, feedback);
-						bf->flag |= BFF_CLOSEVERT;
-						choke = MIN2(MAX2(damp, choke), 1.0f);
+					&damp,	feedback, ob->lay, ob, timenow))
+				{
+					Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
+					Vec3PlusStVec(sb->bpoint[bf->v2].force, tune, feedback);
+					Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
+//					Vec3PlusStVec(bf->ext_force, tune, feedback);
+					bf->flag |= BFF_CLOSEVERT;
+					choke = min_ff(max_ff(damp, choke), 1.0f);
 				}
 
 				feedback[0]=feedback[1]=feedback[2]=0.0f;
 				if ((bf->v4) && (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos, sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos,
-					&damp,	feedback, ob->lay, ob, timenow))) {
-				Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
-				Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
-				Vec3PlusStVec(sb->bpoint[bf->v4].force, tune, feedback);
-//						Vec3PlusStVec(bf->ext_force, tune, feedback);
-						bf->flag |= BFF_CLOSEVERT;
-						choke = MIN2(MAX2(damp, choke), 1.0f);
+				                                            &damp, feedback, ob->lay, ob, timenow)))
+				{
+					Vec3PlusStVec(sb->bpoint[bf->v1].force, tune, feedback);
+					Vec3PlusStVec(sb->bpoint[bf->v3].force, tune, feedback);
+					Vec3PlusStVec(sb->bpoint[bf->v4].force, tune, feedback);
+//					Vec3PlusStVec(bf->ext_force, tune, feedback);
+					bf->flag |= BFF_CLOSEVERT;
+					choke = min_ff(max_ff(damp, choke), 1.0f);
 				}
 			}
 /*--- close vertices*/
@@ -1397,11 +1400,11 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 		bf = sb->scratch->bodyface;
 		for (a=0; a<sb->scratch->totface; a++, bf++) {
 			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT)) {
-				sb->bpoint[bf->v1].choke2=MAX2(sb->bpoint[bf->v1].choke2, choke);
-				sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2, choke);
-				sb->bpoint[bf->v3].choke2=MAX2(sb->bpoint[bf->v3].choke2, choke);
+				sb->bpoint[bf->v1].choke2 = max_ff(sb->bpoint[bf->v1].choke2, choke);
+				sb->bpoint[bf->v2].choke2 = max_ff(sb->bpoint[bf->v2].choke2, choke);
+				sb->bpoint[bf->v3].choke2 = max_ff(sb->bpoint[bf->v3].choke2, choke);
 				if (bf->v4) {
-				sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2, choke);
+					sb->bpoint[bf->v2].choke2 = max_ff(sb->bpoint[bf->v2].choke2, choke);
 				}
 			}
 		}
@@ -1423,12 +1426,8 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 	float t, el;
 	int a, deflected=0;
 
-	aabbmin[0] = MIN2(edge_v1[0], edge_v2[0]);
-	aabbmin[1] = MIN2(edge_v1[1], edge_v2[1]);
-	aabbmin[2] = MIN2(edge_v1[2], edge_v2[2]);
-	aabbmax[0] = MAX2(edge_v1[0], edge_v2[0]);
-	aabbmax[1] = MAX2(edge_v1[1], edge_v2[1]);
-	aabbmax[2] = MAX2(edge_v1[2], edge_v2[2]);
+	minmax_v3v3_v3(aabbmin, aabbmax, edge_v1);
+	minmax_v3v3_v3(aabbmin, aabbmax, edge_v2);
 
 	el = len_v3v3(edge_v1, edge_v2);
 
@@ -1481,7 +1480,8 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 						(aabbmin[1] > mima->maxy) ||
 						(aabbmax[2] < mima->minz) ||
 						(aabbmin[2] > mima->maxz)
-						) {
+						)
+					{
 						mface++;
 						mima++;
 						continue;
@@ -1526,7 +1526,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 						sub_v3_v3v3(v2, edge_v2, nv2);
 						i1 = dot_v3v3(v1, d_nvect);
 						i2 = dot_v3v3(v2, d_nvect);
-						intrusiondepth = -MIN2(i1, i2)/el;
+						intrusiondepth = -min_ff(i1, i2) / el;
 						Vec3PlusStVec(force, intrusiondepth, d_nvect);
 						*damp=ob->pd->pdef_sbdamp;
 						deflected = 2;
@@ -1543,9 +1543,9 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 							float intrusiondepth, i1, i2;
 							sub_v3_v3v3(v1, edge_v1, nv4);
 							sub_v3_v3v3(v2, edge_v2, nv4);
-						i1 = dot_v3v3(v1, d_nvect);
-						i2 = dot_v3v3(v2, d_nvect);
-						intrusiondepth = -MIN2(i1, i2)/el;
+							i1 = dot_v3v3(v1, d_nvect);
+							i2 = dot_v3v3(v2, d_nvect);
+							intrusiondepth = -min_ff(i1, i2) / el;
 
 
 							Vec3PlusStVec(force, intrusiondepth, d_nvect);
@@ -1624,7 +1624,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					normalize_v3(vel);
 					if (ob->softflag & OB_SB_AERO_ANGLE) {
 						normalize_v3(sp);
-						Vec3PlusStVec(bs->ext_force, f*(1.0f-ABS(dot_v3v3(vel, sp))), vel);
+						Vec3PlusStVec(bs->ext_force, f * (1.0f - fabsf(dot_v3v3(vel, sp))), vel);
 					}
 					else {
 						Vec3PlusStVec(bs->ext_force, f, vel); // to keep compatible with 2.45 release files
@@ -2947,9 +2947,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				bp->vec[1] = bp->prevvec[1] + 0.5f * (dv[1] + bp->prevdv[1]);
 				bp->vec[2] = bp->prevvec[2] + 0.5f * (dv[2] + bp->prevdv[2]);
 				/* compare euler to heun to estimate error for step sizing */
-				maxerrvel = MAX2(maxerrvel, ABS(dv[0] - bp->prevdv[0]));
-				maxerrvel = MAX2(maxerrvel, ABS(dv[1] - bp->prevdv[1]));
-				maxerrvel = MAX2(maxerrvel, ABS(dv[2] - bp->prevdv[2]));
+				maxerrvel = max_ff(maxerrvel, fabsf(dv[0] - bp->prevdv[0]));
+				maxerrvel = max_ff(maxerrvel, fabsf(dv[1] - bp->prevdv[1]));
+				maxerrvel = max_ff(maxerrvel, fabsf(dv[2] - bp->prevdv[2]));
 			}
 			else { add_v3_v3(bp->vec, bp->force); }
 
@@ -2962,15 +2962,15 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			mul_v3_fl(dx, forcetime);
 
 			/* the freezer coming sooner or later */
-			/*
+#if 0
 			if ((dot_v3v3(dx, dx)<freezeloc )&&(dot_v3v3(bp->force, bp->force)<freezeforce )) {
 				bp->frozen /=2;
 			}
 			else {
-				bp->frozen = MIN2(bp->frozen*1.05f, 1.0f);
+				bp->frozen = min_ff(bp->frozen*1.05f, 1.0f);
 			}
 			mul_v3_fl(dx, bp->frozen);
-			*/
+#endif
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1) {
 				copy_v3_v3(bp->prevpos, bp->pos);
@@ -2981,9 +2981,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				bp->pos[0] = bp->prevpos[0] + 0.5f * ( dx[0] + bp->prevdx[0]);
 				bp->pos[1] = bp->prevpos[1] + 0.5f * ( dx[1] + bp->prevdx[1]);
 				bp->pos[2] = bp->prevpos[2] + 0.5f * ( dx[2] + bp->prevdx[2]);
-				maxerrpos = MAX2(maxerrpos, ABS(dx[0] - bp->prevdx[0]));
-				maxerrpos = MAX2(maxerrpos, ABS(dx[1] - bp->prevdx[1]));
-				maxerrpos = MAX2(maxerrpos, ABS(dx[2] - bp->prevdx[2]));
+				maxerrpos = max_ff(maxerrpos, fabsf(dx[0] - bp->prevdx[0]));
+				maxerrpos = max_ff(maxerrpos, fabsf(dx[1] - bp->prevdx[1]));
+				maxerrpos = max_ff(maxerrpos, fabsf(dx[2] - bp->prevdx[2]));
 
 				/* bp->choke is set when we need to pull a vertex or edge out of the collider.
 				 * the collider object signals to get out by pushing hard. on the other hand
@@ -3000,12 +3000,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			else { add_v3_v3(bp->pos, dx);}
 		}/*snap*/
 		/* so while we are looping BPs anyway do statistics on the fly */
-		aabbmin[0] = MIN2(aabbmin[0], bp->pos[0]);
-		aabbmin[1] = MIN2(aabbmin[1], bp->pos[1]);
-		aabbmin[2] = MIN2(aabbmin[2], bp->pos[2]);
-		aabbmax[0] = MAX2(aabbmax[0], bp->pos[0]);
-		aabbmax[1] = MAX2(aabbmax[1], bp->pos[1]);
-		aabbmax[2] = MAX2(aabbmax[2], bp->pos[2]);
+		minmax_v3v3_v3(aabbmin, aabbmax, bp->pos);
 		if (bp->loc_flag & SBF_DOFUZZY) fuzzy =1;
 	} /*for*/
 
@@ -3017,9 +3012,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
 	if (err) { /* so step size will be controlled by biggest difference in slope */
 		if (sb->solverflags & SBSO_OLDERR)
-		*err = MAX2(maxerrpos, maxerrvel);
+			*err = max_ff(maxerrpos, maxerrvel);
 		else
-		*err = maxerrpos;
+			*err = maxerrpos;
 		//printf("EP %f EV %f\n", maxerrpos, maxerrvel);
 		if (fuzzy) {
 			*err /= sb->fuzzyness;
@@ -3972,7 +3967,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 			if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
 
 				if (forcetime > forcetimemin) {
-					forcetime = MAX2(forcetime / 2.0f, forcetimemin);
+					forcetime = max_ff(forcetime / 2.0f, forcetimemin);
 					softbody_restore_prev_step(ob);
 					//printf("down, ");
 				}
@@ -3994,12 +3989,12 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 					}
 				}
 				timedone += forcetime;
-				newtime=MIN2(forcetimemax, MAX2(newtime, forcetimemin));
+				newtime = min_ff(forcetimemax, max_ff(newtime, forcetimemin));
 				//if (newtime > forcetime) printf("up, ");
 				if (forcetime > 0.0f)
-					forcetime = MIN2(dtime - timedone, newtime);
+					forcetime = min_ff(dtime - timedone, newtime);
 				else
-					forcetime = MAX2(dtime - timedone, newtime);
+					forcetime = max_ff(dtime - timedone, newtime);
 			}
 			loops++;
 			if (sb->solverflags & SBSO_MONITOR ) {
