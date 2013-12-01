@@ -2335,7 +2335,7 @@ int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 	vec[3][0] = rect->xmax;
 	vec[3][1] = rect->ymax;
 	
-	dist = 0.5f * ABS(vec[0][0] - vec[3][0]);
+	dist = 0.5f * fabsf(vec[0][0] - vec[3][0]);
 	
 	vec[1][0] = vec[0][0] + dist;
 	vec[1][1] = vec[0][1];

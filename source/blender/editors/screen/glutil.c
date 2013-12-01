@@ -143,7 +143,7 @@ void fdrawbezier(float vec[4][3])
 	float dist;
 	float curve_res = 24, spline_step = 0.0f;
 	
-	dist = 0.5f * ABS(vec[0][0] - vec[3][0]);
+	dist = 0.5f * fabsf(vec[0][0] - vec[3][0]);
 	
 	/* check direction later, for top sockets */
 	vec[1][0] = vec[0][0] + dist;

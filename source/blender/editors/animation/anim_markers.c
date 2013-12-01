@@ -173,7 +173,7 @@ TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x)
 	
 	if (markers) {
 		for (marker = markers->first; marker; marker = marker->next) {
-			dist = ABS((float)marker->frame - x);
+			dist = fabsf((float)marker->frame - x);
 			
 			if (dist < min_dist) {
 				min_dist = dist;

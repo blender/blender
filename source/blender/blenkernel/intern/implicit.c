@@ -1265,7 +1265,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			k = clmd->sim_parms->structural;
 
-			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
+			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
 
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 
@@ -1305,7 +1305,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		
 		k = clmd->sim_parms->goalspring;
 		
-		scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
+		scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
 			
 		k = verts [s->ij].goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 		
@@ -1324,7 +1324,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			k = clmd->sim_parms->bending;
 			
-			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);
+			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_bend - k);
 			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));

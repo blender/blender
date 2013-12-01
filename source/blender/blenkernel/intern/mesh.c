@@ -251,7 +251,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 				for (k = 0; k < dv1->totweight; k++, dw1++, dw2++) {
 					if (dw1->def_nr != dw2->def_nr)
 						return MESHCMP_DVERT_GROUPMISMATCH;
-					if (ABS(dw1->weight - dw2->weight) > thresh)
+					if (fabsf(dw1->weight - dw2->weight) > thresh)
 						return MESHCMP_DVERT_WEIGHTMISMATCH;
 				}
 			}

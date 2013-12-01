@@ -1972,7 +1972,7 @@ static void removeDoublesPeel(ListBase *depth_peels)
 	for (peel = depth_peels->first; peel; peel = peel->next) {
 		DepthPeel *next_peel = peel->next;
 
-		if (next_peel && ABS(peel->depth - next_peel->depth) < 0.0015f) {
+		if (next_peel && fabsf(peel->depth - next_peel->depth) < 0.0015f) {
 			peel->next = next_peel->next;
 			
 			if (next_peel->next) {
