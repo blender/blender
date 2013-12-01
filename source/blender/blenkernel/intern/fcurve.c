@@ -1148,6 +1148,10 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 		/* stop here... */
 		return 0.0f;
 	}
+	else {
+		dtar1->flag &= ~DTAR_FLAG_INVALID;
+		dtar2->flag &= ~DTAR_FLAG_INVALID;
+	}
 	
 	/* use the final posed locations */
 	mat4_to_quat(q1, pchan->pose_mat);
