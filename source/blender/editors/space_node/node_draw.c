@@ -562,16 +562,21 @@ int node_tweak_area_default(bNode *node, int x, int y)
 int node_get_colorid(bNode *node)
 {
 	switch (node->typeinfo->nclass) {
-		case NODE_CLASS_INPUT:      return TH_NODE_IN_OUT;
-		case NODE_CLASS_OUTPUT:     return (node->flag & NODE_DO_OUTPUT) ? TH_NODE_IN_OUT : TH_NODE;
+		case NODE_CLASS_INPUT:      return TH_NODE_INPUT;
+		case NODE_CLASS_OUTPUT:     return (node->flag & NODE_DO_OUTPUT) ? TH_NODE_OUTPUT : TH_NODE;
 		case NODE_CLASS_CONVERTOR:  return TH_NODE_CONVERTOR;
-		case NODE_CLASS_OP_COLOR:
-		case NODE_CLASS_OP_VECTOR:
-		case NODE_CLASS_OP_FILTER:  return TH_NODE_OPERATOR;
+		case NODE_CLASS_OP_COLOR:   return TH_NODE_COLOR;
+		case NODE_CLASS_OP_VECTOR:  return TH_NODE_VECTOR;
+		case NODE_CLASS_OP_FILTER:  return TH_NODE_FILTER;
 		case NODE_CLASS_GROUP:      return TH_NODE_GROUP;
 		case NODE_CLASS_INTERFACE:  return TH_NODE_INTERFACE;
 		case NODE_CLASS_MATTE:      return TH_NODE_MATTE;
 		case NODE_CLASS_DISTORT:    return TH_NODE_DISTORT;
+		case NODE_CLASS_TEXTURE:    return TH_NODE_TEXTURE;
+		case NODE_CLASS_SHADER:     return TH_NODE_SHADER;
+		case NODE_CLASS_SCRIPT:     return TH_NODE_SCRIPT;
+		case NODE_CLASS_PATTERN:    return TH_NODE_PATTERN;
+		case NODE_CLASS_LAYOUT:     return TH_NODE_LAYOUT;
 		default:                    return TH_NODE;
 	}
 }

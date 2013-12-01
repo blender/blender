@@ -257,10 +257,15 @@ typedef struct ThemeSpace {
 	char noodle_curving;
 
 	/* syntax for textwindow and nodes */
-	char syntaxl[4], syntaxs[4];
-	char syntaxb[4], syntaxn[4];
-	char syntaxv[4], syntaxc[4];
-	char syntaxd[4], syntaxr[4];
+	char syntaxl[4], syntaxs[4]; // in nodespace used for backdrop matte 
+	char syntaxb[4], syntaxn[4]; // in nodespace used for color input
+	char syntaxv[4], syntaxc[4]; // in nodespace used for converter group
+	char syntaxd[4], syntaxr[4]; // in nodespace used for distort 
+
+	char nodeclass_output[4], nodeclass_filter[4];
+	char nodeclass_vector[4], nodeclass_texture[4];
+	char nodeclass_shader[4], nodeclass_script[4];
+	char nodeclass_pattern[4], nodeclass_layout[4];
 	
 	char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];		/* for sequence editor */
 	char effect[4], transition[4], meta[4];
