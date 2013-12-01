@@ -1157,3 +1157,10 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 
 	glaDrawImBuf_glsl(ibuf, x, y, zoomfilter, view_settings, display_settings);
 }
+
+void cpack(unsigned int x)
+{
+	glColor3ub( ( (x)        & 0xFF),
+	            (((x) >>  8) & 0xFF),
+	            (((x) >> 16) & 0xFF) );
+}

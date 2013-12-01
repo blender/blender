@@ -53,7 +53,7 @@
  * color, while not being endian-sensitive. On little-endians, this
  * is the same as doing a 'naive' indexing, on big-endian, it is not!
  * */
-#define cpack(x)    glColor3ub( ((x) & 0xFF), (((x) >> 8) & 0xFF), (((x) >> 16) & 0xFF) )
+void cpack(unsigned int x);
 
 #define glMultMatrixf(x)  glMultMatrixf( (float *)(x))
 #define glLoadMatrixf(x)  glLoadMatrixf( (float *)(x))
