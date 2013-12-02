@@ -2554,7 +2554,7 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 			dyn_data->items_shown = 0;
 
 			/* Implicitly add heading/trailing wildcards if needed. */
-			if (len + 3 <= 32) {
+			if (slen + 3 <= sizeof(filter_buff)) {
 				filter = filter_buff;
 			}
 			else {
