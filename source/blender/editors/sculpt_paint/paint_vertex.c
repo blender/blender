@@ -2366,12 +2366,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			else totindex = 0;
 		}
 
-		if (use_face_sel && me->mpoly) {
+		if (use_face_sel && me->totpoly) {
+			MPoly *mpoly = me->mpoly;
 			for (index = 0; index < totindex; index++) {
 				if (indexar[index] && indexar[index] <= me->totpoly) {
-					MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
+					MPoly *mp = &mpoly[indexar[index] - 1];
 
-					if ((mpoly->flag & ME_FACE_SEL) == 0) {
+					if ((mp->flag & ME_FACE_SEL) == 0) {
 						indexar[index] = 0;
 					}
 				}

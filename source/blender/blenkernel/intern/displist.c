@@ -1179,8 +1179,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	/* add an orco layer if needed */
 	add_orco_dm(ob, derivedFinal, orcodm);
 
-	if (orcodm)
-		orcodm->release(orcodm);
+	orcodm->release(orcodm);
 }
 
 void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,

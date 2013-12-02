@@ -62,11 +62,7 @@ bool free_gpencil_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps, *gpsn;
 	bool changed = (gpf->strokes.first != NULL);
-	
-	/* error checking */
-	if (gpf == NULL)
-		return false;
-	
+
 	/* free strokes */
 	for (gps = gpf->strokes.first; gps; gps = gpsn) {
 		gpsn = gps->next;
