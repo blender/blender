@@ -210,10 +210,14 @@ class USERPREF_PT_interface(Panel):
 
         col.label(text="Menus:")
         col.prop(view, "use_mouse_over_open")
-        col.label(text="Menu Open Delay:")
-        col.prop(view, "open_toplevel_delay", text="Top Level")
-        col.prop(view, "open_sublevel_delay", text="Sub Level")
+        sub = col.column()
+        sub.active = view.use_mouse_over_open
 
+        sub.prop(view, "open_toplevel_delay", text="Top Level")
+        sub.prop(view, "open_sublevel_delay", text="Sub Level")
+
+        col.separator()
+        col.separator()
         col.separator()
 
         col.prop(view, "show_splash")
