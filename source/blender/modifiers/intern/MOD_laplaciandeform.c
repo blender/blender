@@ -721,10 +721,13 @@ static void LaplacianDeformModifier_do(
 				MEM_SAFE_FREE(lmd->vertexco);
 				lmd->total_verts = 0;
 				deleteLaplacianSystem(sys);
+				lmd->cache_system = NULL;
 				initSystem(lmd, ob, dm, filevertexCos, numVerts);
 				sys = lmd->cache_system; /* may have been reallocated */
 				MEM_SAFE_FREE(filevertexCos);
-				laplacianDeformPreview(sys, vertexCos);
+				if (sys) {
+					laplacianDeformPreview(sys, vertexCos);
+				}
 			}
 			else {
 				if (sysdif == LAPDEFORM_SYSTEM_CHANGE_VERTEXES) {
