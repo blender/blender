@@ -33,6 +33,8 @@
  * - advance the ear to clip each iteration
  *   to avoid fan-filling convex shapes (USE_CLIP_EVEN).
  *
+ * - avoid intersection tests when there are no convex points (USE_CONVEX_SKIP).
+ *
  * \note
  *
  * No globals - keep threadsafe.
@@ -52,6 +54,8 @@
 
 /* avoid fan-fill topology */
 #define USE_CLIP_EVEN
+#define USE_CONVEX_SKIP
+// #define USE_CONVEX_SKIP_TEST
 
 typedef signed char eSign;
 enum {
@@ -66,6 +70,9 @@ typedef struct PolyFill {
 	const float (*coords)[2];
 	unsigned int  coords_tot;
 	eSign        *coords_sign;
+#ifdef USE_CONVEX_SKIP
+	unsigned int  coords_tot_concave;
+#endif
 
 	/* A polygon with n vertices has a triangulation of n-2 triangles. */
 	unsigned int (*tris)[3];
@@ -126,18 +133,46 @@ static void pf_triangulate(PolyFill *pf)
 	while (pf->coords_tot > 3) {
 		unsigned int i_prev, i_next;
 
+#ifdef USE_CONVEX_SKIP
+		eSign sign_orig_prev, sign_orig_next;
+#endif
+
+
 #ifdef USE_CLIP_EVEN
 		index_ear_tip = pf_ear_tip_find(pf, index_ear_tip);
 #else
 		index_ear_tip = pf_ear_tip_find(pf);
 #endif
+
+#ifdef USE_CONVEX_SKIP
+		if (coords_sign[index_ear_tip] != CONVEX) {
+			pf->coords_tot_concave -= 1;
+		}
+#endif
+
 		pf_ear_tip_cut(pf, index_ear_tip);
 
 		/* The type of the two vertices adjacent to the clipped vertex may have changed. */
 		i_prev = pf_index_prev(pf, index_ear_tip);
 		i_next = (index_ear_tip == pf->coords_tot) ? 0 : index_ear_tip;
+
+#ifdef USE_CONVEX_SKIP
+		sign_orig_prev = coords_sign[i_prev];
+		sign_orig_next = coords_sign[i_next];
+#endif
+
 		coords_sign[i_prev] = pf_coord_sign_calc(pf, i_prev);
 		coords_sign[i_next] = pf_coord_sign_calc(pf, i_next);
+
+#ifdef USE_CONVEX_SKIP
+		/* check if any verts became convex the (else if)
+		 * case is highly unlikely but may happen with degenerate polygons */
+		if               ((sign_orig_prev != CONVEX) && (coords_sign[i_prev] == CONVEX))  pf->coords_tot_concave -= 1;
+		else if (UNLIKELY((sign_orig_prev == CONVEX) && (coords_sign[i_prev] != CONVEX))) pf->coords_tot_concave += 1;
+
+		if               ((sign_orig_next != CONVEX) && (coords_sign[i_next] == CONVEX))  pf->coords_tot_concave -= 1;
+		else if (UNLIKELY((sign_orig_next == CONVEX) && (coords_sign[i_next] != CONVEX))) pf->coords_tot_concave += 1;
+#endif
 
 #ifdef USE_CLIP_EVEN
 		index_ear_tip = i_prev;
@@ -232,6 +267,33 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 
 	const float *v1, *v2, *v3;
 
+#ifdef USE_CONVEX_SKIP
+	unsigned int coords_tot_concave_checked = 0;
+#endif
+
+
+#ifdef USE_CONVEX_SKIP
+
+#ifdef USE_CONVEX_SKIP_TEST
+	/* check if counting is wrong */
+	{
+		unsigned int coords_tot_concave_test = 0;
+		unsigned int i = pf->coords_tot;
+		while (i--) {
+			if (coords_sign[i] != CONVEX) {
+				coords_tot_concave_test += 1;
+			}
+		}
+		BLI_assert(coords_tot_concave_test == pf->coords_tot_concave);
+	}
+#endif
+
+	/* fast-path for circles */
+	if (pf->coords_tot_concave == 0) {
+		return true;
+	}
+#endif
+
 	if (UNLIKELY(coords_sign[index_ear_tip] == CONCAVE)) {
 		return false;
 	}
@@ -260,6 +322,13 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 			{
 				return false;
 			}
+
+#ifdef USE_CONVEX_SKIP
+			coords_tot_concave_checked += 1;
+			if (coords_tot_concave_checked == pf->coords_tot_concave) {
+				break;
+			}
+#endif
 		}
 	}
 	return true;
@@ -312,6 +381,9 @@ void BLI_polyfill_calc_ex(
 	pf.coords = coords;
 	pf.coords_tot = coords_tot;
 	pf.coords_sign = r_coords_sign;
+#ifdef USE_CONVEX_SKIP
+	pf.coords_tot_concave = 0;
+#endif
 	pf.tris = r_tris;
 	pf.tris_tot = 0;
 
@@ -332,6 +404,11 @@ void BLI_polyfill_calc_ex(
 
 	for (i = 0; i < coords_tot; i++) {
 		coords_sign[i] = pf_coord_sign_calc(&pf, i);
+#ifdef USE_CONVEX_SKIP
+		if (coords_sign[i] != CONVEX) {
+			pf.coords_tot_concave += 1;
+		}
+#endif
 	}
 
 	pf_triangulate(&pf);
