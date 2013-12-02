@@ -1604,7 +1604,7 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 	}
 	else {
 		/* convert text to hidden test using asterisks (e.g. pass -> ****) */
-		int i, len = BLI_strlen_utf8(but->drawstr);
+		const size_t len = BLI_strlen_utf8(but->drawstr);
 
 		/* remap cursor positions */
 		if (but->pos >= 0) {
@@ -1617,7 +1617,7 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		BLI_strncpy(password_str, but->drawstr, UI_MAX_DRAW_STR);
 
 		memset(but->drawstr, '*', len);
-		but->drawstr[i] = '\0';
+		but->drawstr[len] = '\0';
 	}
 }
 
