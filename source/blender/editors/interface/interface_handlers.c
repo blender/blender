@@ -1896,7 +1896,7 @@ static bool ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directi
 			int step;
 			BLI_str_cursor_step_utf8(str, len, &pos, direction, jump, true);
 			step = pos - but->pos;
-			memmove(&str[but->pos], &str[but->pos + step], (len + 1) - but->pos);
+			memmove(&str[but->pos], &str[but->pos + step], (len + 1) - (but->pos + step));
 			changed = true;
 		}
 	}

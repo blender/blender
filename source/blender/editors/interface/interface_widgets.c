@@ -1008,13 +1008,9 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 
 	while (but->strwidth > okwidth) {
 		float width;
-		char buf[UI_MAX_DRAW_STR];
 
-		/* copy draw string */
-		BLI_strncpy_utf8(buf, but->drawstr, sizeof(buf));
 		/* string position of cursor */
-		buf[but->pos] = 0;
-		width = BLF_width(fstyle->uifont_id, buf + but->ofs, sizeof(buf) - but->ofs);
+		width = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, but->pos - but->ofs);
 
 		/* if cursor is at 20 pixels of right side button we clip left */
 		if (width > okwidth - 20) {
