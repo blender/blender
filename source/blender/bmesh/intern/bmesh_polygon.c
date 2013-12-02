@@ -764,17 +764,22 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
  * \brief BMESH TRIANGULATE FACE
  *
  * Breaks all quads and ngons down to triangles.
- * It uses scanfill for the ngons splitting, and
+ * It uses polyfill for the ngons splitting, and
  * the beautify operator when use_beauty is true.
  *
  * \param r_faces_new if non-null, must be an array of BMFace pointers,
  * with a length equal to (f->len - 3). It will be filled with the new
  * triangles (not including the original triangle).
  *
+ * \note The number of faces is _almost_ always (f->len - 3),
+ *       However there may be faces that already occupying the
+ *       triangles we would make, so the caller must check \a r_faces_new_tot.
+ *
  * \note use_tag tags new flags and edges.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
+                         int *r_faces_new_tot,
                          MemArena *sf_arena,
                          const int quad_method,
                          const int ngon_method,
@@ -789,6 +794,9 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
 
 	BLI_assert(BM_face_is_normal_valid(f));
+
+	/* ensure both are valid or NULL */
+	BLI_assert((r_faces_new == NULL) == (r_faces_new_tot == NULL));
 
 	if (f->len == 4) {
 		BMVert *v1, *v2;
@@ -873,8 +881,6 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		const int last_tri = f->len - 3;
 		int i;
 
-		//BLI_assert(BM_face_is_normal_valid(f));
-
 		axis_dominant_v3_to_m3(axis_mat, f->no);
 
 		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l_iter = l_iter->next) {
@@ -935,10 +941,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 					if (is_new_edge) {
 						if (use_beauty) {
-							BM_elem_index_set(e, edge_array_len);  /* set_dirty */
 							edge_array[edge_array_len] = e;
 							edge_array_len++;
-							BM_elem_flag_enable(e, BM_ELEM_TAG);
 						}
 
 						if (use_tag) {
@@ -961,7 +965,6 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		if (use_beauty) {
 			BLI_assert(edge_array_len <= orig_f_len - 3);
 
-			bm->elem_index_dirty |= BM_EDGE;
 			BM_mesh_beautify_fill(bm, edge_array, edge_array_len, 0, 0, 0, 0);
 
 			if (r_faces_new) {
@@ -1012,7 +1015,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 #undef FACE_USED_SET
 
 				/* nf_i doesn't include the last face */
-				BLI_assert(nf_i == orig_f_len - 3);
+				BLI_assert(nf_i <= orig_f_len - 3);
 
 				/* we can't delete the real face, because some of the callers expect it to remain valid.
 				 * so swap data and delete the last created tri */
@@ -1020,6 +1023,10 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				BM_face_kill(bm, f_new);
 			}
 		}
+	}
+
+	if (r_faces_new_tot) {
+		*r_faces_new_tot = nf_i;
 	}
 }
 

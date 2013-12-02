@@ -47,13 +47,13 @@ static void bm_face_triangulate_mapping(BMesh *bm, BMFace *face, MemArena *sf_ar
                                         const bool use_tag,
                                         BMOperator *op, BMOpSlot *slot_facemap_out)
 {
-	const int faces_array_tot = face->len - 3;
+	int faces_array_tot = face->len - 3;
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
 	BLI_assert(face->len > 3);
 
-	BM_face_triangulate(bm, face, faces_array, sf_arena, quad_method, ngon_method, use_tag);
+	BM_face_triangulate(bm, face, faces_array, &faces_array_tot, sf_arena, quad_method, ngon_method, use_tag);
 
-	if (faces_array) {
+	if (faces_array_tot) {
 		int i;
 		BMO_slot_map_elem_insert(op, slot_facemap_out, face, face);
 		for (i = 0; i < faces_array_tot; i++) {
@@ -87,7 +87,7 @@ void BM_mesh_triangulate(BMesh *bm, const int quad_method, const int ngon_method
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
 			if (face->len > 3) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
-					BM_face_triangulate(bm, face, NULL, sf_arena, quad_method, ngon_method, tag_only);
+					BM_face_triangulate(bm, face, NULL, NULL, sf_arena, quad_method, ngon_method, tag_only);
 				}
 			}
 		}

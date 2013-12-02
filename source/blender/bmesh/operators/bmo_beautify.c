@@ -71,13 +71,10 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		    BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
 		    BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
 		{
-			BM_elem_index_set(e, edge_array_len);  /* set_dirty */
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			edge_array[edge_array_len] = e;
 			edge_array_len++;
 		}
 	}
-	bm->elem_index_dirty |= BM_EDGE;
 
 	BM_mesh_beautify_fill(bm, edge_array, edge_array_len, flag, method, ELE_NEW, FACE_MARK | ELE_NEW);
 

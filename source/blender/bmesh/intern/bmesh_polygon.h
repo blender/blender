@@ -54,7 +54,9 @@ void  BM_vert_normal_update_all(BMVert *v) ATTR_NONNULL();
 void  BM_face_normal_flip(BMesh *bm, BMFace *f) ATTR_NONNULL();
 bool  BM_face_point_inside_test(BMFace *f, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-void  BM_face_triangulate(BMesh *bm, BMFace *f, BMFace **newfaces,
+void  BM_face_triangulate(BMesh *bm, BMFace *f,
+                          BMFace **r_faces_new,
+                          int     *r_faces_new_tot,
                           struct MemArena *sf_arena,
                           const int quad_method, const int ngon_method,
                           const bool use_tag) ATTR_NONNULL(1, 2);

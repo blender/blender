@@ -294,11 +294,22 @@ static float bm_edge_calc_rotate_beauty(const BMEdge *e, const short flag, const
 /* -------------------------------------------------------------------- */
 /* Update the edge cost of rotation in the heap */
 
+BLI_INLINE bool edge_in_array(const BMEdge *e, const BMEdge **edge_array, const int edge_array_len)
+{
+	const int index = BM_elem_index_get(e);
+	return ((index >= 0) &&
+	        (index < edge_array_len) &&
+	        (e == edge_array[index]));
+}
+
 /* recalc an edge in the heap (surrounding geometry has changed) */
 static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
+                                              /* only for testing the edge is in the array */
+                                              const BMEdge **edge_array, const int edge_array_len,
+
                                               const short flag, const short method)
 {
-	if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+	if (edge_in_array(e, edge_array, edge_array_len)) {
 		const int i = BM_elem_index_get(e);
 		GSet *e_state_set = edge_state_arr[i];
 
@@ -335,26 +346,38 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 
 /* we have rotated an edge, tag other edges and clear this one */
 static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
+                                       const BMEdge **edge_array, const int edge_array_len,
+                                       /* only for testing the edge is in the array */
                                        const short flag, const short method)
 {
-	BMLoop *l;
+	int i;
+
+	BMEdge *e_arr[4] = {
+	    e->l->next->e,
+	    e->l->prev->e,
+	    e->l->radial_next->next->e,
+	    e->l->radial_next->prev->e,
+	};
+
 	BLI_assert(e->l->f->len == 3 &&
 	           e->l->radial_next->f->len == 3);
 
-	l = e->l;
-	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr, flag, method);
-	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr, flag, method);
-	l = l->radial_next;
-	bm_edge_update_beauty_cost_single(l->next->e, eheap, eheap_table, edge_state_arr, flag, method);
-	bm_edge_update_beauty_cost_single(l->prev->e, eheap, eheap_table, edge_state_arr, flag, method);
+	BLI_assert(BM_edge_face_count(e) == 2);
+
+	for (i = 0; i < 4; i++) {
+		bm_edge_update_beauty_cost_single(
+		        e_arr[i],
+		        eheap, eheap_table, edge_state_arr,
+		        edge_array, edge_array_len,
+		        flag, method);
+	}
 }
 
 /* -------------------------------------------------------------------- */
 /* Beautify Fill */
 
 /**
- * \note All edges in \a edge_array must be tagged and
- * have their index values set according to their position in the array.
+ * \note This function sets the edge indicies to invalid values.
  */
 void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
                                   const short flag, const short method,
@@ -384,14 +407,22 @@ void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_
 		else {
 			eheap_table[i] = NULL;
 		}
+
+		BM_elem_index_set(e, i);  /* set_dirty */
 	}
+	bm->elem_index_dirty |= BM_EDGE;
 
 	while (BLI_heap_is_empty(eheap) == false) {
 		BMEdge *e = BLI_heap_popmin(eheap);
 		i = BM_elem_index_get(e);
 		eheap_table[i] = NULL;
 
+		BLI_assert(BM_edge_face_count(e) == 2);
+
 		e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
+
+		BLI_assert(e == NULL || BM_edge_face_count(e) == 2);
+
 		if (LIKELY(e)) {
 			GSet *e_state_set = edge_state_arr[i];
 
@@ -414,7 +445,9 @@ void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_
 			BM_elem_index_set(e, i);
 
 			/* recalculate faces connected on the heap */
-			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr, flag, method);
+			bm_edge_update_beauty_cost(e, eheap, eheap_table, edge_state_arr,
+			                           (const BMEdge **)edge_array, edge_array_len,
+			                           flag, method);
 
 			/* update flags */
 			if (oflag_edge)
