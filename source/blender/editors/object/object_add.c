@@ -999,7 +999,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 		BKE_nlatrack_add_strip(nlt, strip);
 
 		/* auto-name the strip, and give the track an interesting name  */
-		strcpy(nlt->name, DATA_("SoundTrack"));
+		BLI_strncpy(nlt->name, DATA_("SoundTrack"), sizeof(nlt->name));
 		BKE_nlastrip_validate_name(adt, strip);
 
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);

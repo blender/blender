@@ -3510,7 +3510,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	if (BLI_countlist(&ob->particlesystem) > 1)
 		BLI_snprintf(psys->name, sizeof(psys->name), DATA_("ParticleSystem %i"), BLI_countlist(&ob->particlesystem));
 	else
-		strcpy(psys->name, DATA_("ParticleSystem"));
+		BLI_strncpy(psys->name, DATA_("ParticleSystem"), sizeof(psys->name));
 
 	md = modifier_new(eModifierType_ParticleSystem);
 
