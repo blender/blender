@@ -87,7 +87,7 @@ void clip_draw_curfra_label(const int framenr, const float x, const float y)
 	BLF_size(fontid, 11.0f, U.dpi);
 	BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
-	BLF_width_and_height(fontid, numstr, &font_dims[0], &font_dims[1]);
+	BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
 
 	glRecti(x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
 

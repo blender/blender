@@ -967,11 +967,11 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
 	but->ofs = 0;
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr);
+	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
 
 	while (but->strwidth > okwidth) {
 		ui_text_clip_give_next_off(but);
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 		if (but->strwidth < 10) break;
 	}
 
@@ -1001,10 +1001,10 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	if (but->ofs > but->pos)
 		but->ofs = but->pos;
 
-	if (BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth)
+	if (BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr)) <= okwidth)
 		but->ofs = 0;
 
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 
 	while (but->strwidth > okwidth) {
 		float width;
@@ -1014,7 +1014,7 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 		BLI_strncpy_utf8(buf, but->drawstr, sizeof(buf));
 		/* string position of cursor */
 		buf[but->pos] = 0;
-		width = BLF_width(fstyle->uifont_id, buf + but->ofs);
+		width = BLF_width(fstyle->uifont_id, buf + but->ofs, sizeof(buf) - but->ofs);
 
 		/* if cursor is at 20 pixels of right side button we clip left */
 		if (width > okwidth - 20) {
@@ -1032,7 +1032,7 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 			but->drawstr[len - bytes] = 0;
 		}
 
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 
 		if (but->strwidth < 10) break;
 	}
@@ -1061,7 +1061,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr);
+	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
 	but->ofs = 0;
 	
 
@@ -1089,7 +1089,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 			drawstr_len -= bytes;
 			// BLI_assert(strlen(but->drawstr) == drawstr_len);
 			
-			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 			if (but->strwidth < 10) break;
 		}
 	
@@ -1097,7 +1097,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 		/* after the leading text is gone, chop off the : and following space, with ofs */
 		while ((but->strwidth > okwidth) && (but->ofs < 2)) {
 			ui_text_clip_give_next_off(but);
-			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 			if (but->strwidth < 10) break;
 		}
 		
@@ -1115,7 +1115,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 		but->drawstr[drawstr_len] = 0;
 		// BLI_assert(strlen(but->drawstr) == drawstr_len);
 		
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 		if (but->strwidth < 10) break;
 	}
 	
@@ -1146,7 +1146,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	/* text button selection and cursor */
 	if (but->editstr && but->pos != -1) {
-		short t = 0, pos = 0, ch;
+		short t = 0, pos = 0;
 		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 
 		if ((but->selend - but->selsta) > 0) {
@@ -1157,23 +1157,13 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			if (but->drawstr[0] != 0) {
 
 				if (but->selsta >= but->ofs) {
-					ch = but->drawstr[selsta_tmp];
-					but->drawstr[selsta_tmp] = 0;
-					
-					selsta_draw = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
-					
-					but->drawstr[selsta_tmp] = ch;
+					selsta_draw = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, selsta_tmp - but->ofs);
 				}
 				else {
 					selsta_draw = 0;
 				}
-				
-				ch = but->drawstr[selend_tmp];
-				but->drawstr[selend_tmp] = 0;
-				
-				selwidth_draw = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
-				
-				but->drawstr[selend_tmp] = ch;
+
+				selwidth_draw = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, selend_tmp - but->ofs);
 
 				glColor4ubv((unsigned char *)wcol->item);
 				glRects(rect->xmin + selsta_draw, rect->ymin + 2, rect->xmin + selwidth_draw, rect->ymax - 2);
@@ -1184,12 +1174,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			pos = but->pos;
 			if (pos >= but->ofs) {
 				if (but->drawstr[0] != 0) {
-					ch = but->drawstr[pos];
-					but->drawstr[pos] = 0;
-					
-					t = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs) / but->aspect;
-					
-					but->drawstr[pos] = ch;
+					t = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, pos - but->ofs) / but->aspect;
 				}
 
 				glColor3f(0.20, 0.6, 0.9);
@@ -1216,7 +1201,8 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	glColor4ubv((unsigned char *)wcol->text);
 
-	uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs, &font_xofs, &font_yofs);
+	uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs,
+	                   sizeof(but->drawstr) - but->ofs, &font_xofs, &font_yofs);
 
 	if (but->menu_key != '\0') {
 		char fixedbuf[128];
@@ -1239,7 +1225,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			}
 
 			fixedbuf[ul_index] = '\0';
-			ul_advance = BLF_width(fstyle->uifont_id, fixedbuf);
+			ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index);
 
 			BLF_position(fstyle->uifont_id, rect->xmin + font_xofs + ul_advance, rect->ymin + font_yofs, 0.0f);
 			BLF_draw(fstyle->uifont_id, "_", 2);
@@ -3528,7 +3514,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 		cpoin = strchr(name, UI_SEP_CHAR);
 		if (cpoin) {
 			*cpoin = 0;
-			rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1) + 10;
+			rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + 10;
 		}
 	}
 	
@@ -3574,7 +3560,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	
 	widget_draw_preview(iconid, 1.0f, rect);
 	
-	BLF_width_and_height(fstyle->uifont_id, name, &font_dims[0], &font_dims[1]);
+	BLF_width_and_height(fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
 
 	/* text rect */
 	trect.xmin += 0;

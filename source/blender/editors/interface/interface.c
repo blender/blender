@@ -218,7 +218,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 	
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (bt->type != SEPR) {
-			j = BLF_width(style->widget.uifont_id, bt->drawstr);
+			j = BLF_width(style->widget.uifont_id, bt->drawstr, sizeof(bt->drawstr));
 
 			if (j > i) i = j;
 		}

@@ -406,7 +406,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	/* title color */
 	UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.8f, 10);
 
-	width = BLF_width(fontid, label);
+	width = BLF_width(fontid, label, sizeof(label));
 	ascender = BLF_ascender(fontid);
 	
 	/* 'x' doesn't need aspect correction */

@@ -541,7 +541,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
 
-				BLF_width_and_height(blf_mono_font, numstr, &numstr_size[0], &numstr_size[1]);
+				BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
 				pos[0] = co_ss[1][0] + (cap_size * 2.0f);
 				pos[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
@@ -627,7 +627,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
 
-				BLF_width_and_height(blf_mono_font, numstr, &numstr_size[0], &numstr_size[1]);
+				BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
 				mid_v2_v2v2(pos, co_ss[0], co_ss[2]);
 

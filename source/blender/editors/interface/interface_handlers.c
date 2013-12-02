@@ -1616,8 +1616,7 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		/* save original string */
 		BLI_strncpy(password_str, but->drawstr, UI_MAX_DRAW_STR);
 
-		for (i = 0; i < len; i++)
-			but->drawstr[i] = '*';
+		memset(but->drawstr, '*', len);
 		but->drawstr[i] = '\0';
 	}
 }
@@ -1656,9 +1655,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 	ui_button_text_password_hide(password_str, but, FALSE);
 
 	origstr = MEM_mallocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
-	
+
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
-	
+
 	/* XXX solve generic, see: #widget_draw_text_icon */
 	if (but->type == NUM || but->type == NUMSLI) {
 		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
@@ -1680,7 +1679,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
 				/* 0.25 == scale factor for less sensitivity */
-				if (BLF_width(fstyle->uifont_id, origstr + i) > (startx - x) * 0.25f) {
+				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) > (startx - x) * 0.25f) {
 					break;
 				}
 			}
@@ -1702,7 +1701,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
 		while (true) {
-			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs);
+			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX);
 
 			/* check if position is found */
 			if (cdist < x) {

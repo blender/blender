@@ -415,7 +415,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	}
 }
 
-void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
+void blf_font_boundbox(FontBLF *font, const char *str, size_t len, rctf *box)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
@@ -435,7 +435,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 
 	blf_font_ensure_ascii_table(font);
 
-	while (str[i]) {
+	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == BLI_UTF8_ERR)
@@ -468,7 +468,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	}
 }
 
-void blf_font_width_and_height(FontBLF *font, const char *str, float *width, float *height)
+void blf_font_width_and_height(FontBLF *font, const char *str, size_t len, float *width, float *height)
 {
 	float xa, ya;
 	rctf box;
@@ -482,12 +482,12 @@ void blf_font_width_and_height(FontBLF *font, const char *str, float *width, flo
 		ya = 1.0f;
 	}
 
-	blf_font_boundbox(font, str, &box);
+	blf_font_boundbox(font, str, len, &box);
 	*width  = (BLI_rctf_size_x(&box) * xa);
 	*height = (BLI_rctf_size_y(&box) * ya);
 }
 
-float blf_font_width(FontBLF *font, const char *str)
+float blf_font_width(FontBLF *font, const char *str, size_t len)
 {
 	float xa;
 	rctf box;
@@ -497,11 +497,11 @@ float blf_font_width(FontBLF *font, const char *str)
 	else
 		xa = 1.0f;
 
-	blf_font_boundbox(font, str, &box);
+	blf_font_boundbox(font, str, len, &box);
 	return BLI_rctf_size_x(&box) * xa;
 }
 
-float blf_font_height(FontBLF *font, const char *str)
+float blf_font_height(FontBLF *font, const char *str, size_t len)
 {
 	float ya;
 	rctf box;
@@ -511,7 +511,7 @@ float blf_font_height(FontBLF *font, const char *str)
 	else
 		ya = 1.0f;
 
-	blf_font_boundbox(font, str, &box);
+	blf_font_boundbox(font, str, len, &box);
 	return BLI_rctf_size_y(&box) * ya;
 }
 

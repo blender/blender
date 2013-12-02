@@ -592,44 +592,44 @@ int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth)
 	return columns;
 }
 
-void BLF_boundbox(int fontid, const char *str, rctf *box)
+void BLF_boundbox(int fontid, const char *str, size_t len, rctf *box)
 {
 	FontBLF *font = blf_get(fontid);
 
 	if (font) {
-		blf_font_boundbox(font, str, box);
+		blf_font_boundbox(font, str, len, box);
 	}
 }
 
-void BLF_width_and_height(int fontid, const char *str, float *width, float *height)
+void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_width, float *r_height)
 {
 	FontBLF *font = blf_get(fontid);
 
 	if (font && font->glyph_cache) {
-		blf_font_width_and_height(font, str, width, height);
+		blf_font_width_and_height(font, str, len, r_width, r_height);
 	}
 	else {
-		*width = *height = 0.0f;
+		*r_width = *r_height = 0.0f;
 	}
 }
 
-void BLF_width_and_height_default(const char *str, float *width, float *height)
+void BLF_width_and_height_default(const char *str, size_t len, float *r_width, float *r_height)
 {
 	if (!blf_global_font_init()) {
-		*width = *height = 0.0f;
+		*r_width = *r_height = 0.0f;
 		return;
 	}
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	BLF_width_and_height(global_font_default, str, width, height);
+	BLF_width_and_height(global_font_default, str, len, r_width, r_height);
 }
 
-float BLF_width(int fontid, const char *str)
+float BLF_width(int fontid, const char *str, size_t len)
 {
 	FontBLF *font = blf_get(fontid);
 
 	if (font && font->glyph_cache) {
-		return blf_font_width(font, str);
+		return blf_font_width(font, str, len);
 	}
 
 	return 0.0f;
@@ -646,21 +646,21 @@ float BLF_fixed_width(int fontid)
 	return 0.0f;
 }
 
-float BLF_width_default(const char *str)
+float BLF_width_default(const char *str, size_t len)
 {
 	if (!blf_global_font_init())
 		return 0.0f;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	return BLF_width(global_font_default, str);
+	return BLF_width(global_font_default, str, len);
 }
 
-float BLF_height(int fontid, const char *str)
+float BLF_height(int fontid, const char *str, size_t len)
 {
 	FontBLF *font = blf_get(fontid);
 
 	if (font && font->glyph_cache) {
-		return blf_font_height(font, str);
+		return blf_font_height(font, str, len);
 	}
 
 	return 0.0f;
@@ -710,14 +710,14 @@ float BLF_ascender(int fontid)
 	return 0.0f;
 }
 
-float BLF_height_default(const char *str)
+float BLF_height_default(const char *str, size_t len)
 {
 	if (!blf_global_font_init())
 		return 0.0f;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 
-	return BLF_height(global_font_default, str);
+	return BLF_height(global_font_default, str, len);
 }
 
 void BLF_rotation(int fontid, float angle)

@@ -55,10 +55,10 @@ void blf_font_draw(struct FontBLF *font, const char *str, size_t len);
 void blf_font_draw_ascii(struct FontBLF *font, const char *str, size_t len);
 int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t len, int cwidth);
 void blf_font_buffer(struct FontBLF *font, const char *str);
-void blf_font_boundbox(struct FontBLF *font, const char *str, struct rctf *box);
-void blf_font_width_and_height(struct FontBLF *font, const char *str, float *width, float *height);
-float blf_font_width(struct FontBLF *font, const char *str);
-float blf_font_height(struct FontBLF *font, const char *str);
+void blf_font_boundbox(struct FontBLF *font, const char *str, size_t len, struct rctf *box);
+void blf_font_width_and_height(struct FontBLF *font, const char *str, size_t len, float *width, float *height);
+float blf_font_width(struct FontBLF *font, const char *str, size_t len);
+float blf_font_height(struct FontBLF *font, const char *str, size_t len);
 float blf_font_fixed_width(struct FontBLF *font);
 void blf_font_free(struct FontBLF *font);
 

@@ -2196,7 +2196,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	int col_pack_prev = 0;
 
 	/* investigate using BLF_ascender() */
-	const float default_height = strings.first ? BLF_height_default("28") : 0.0f;
+	const float default_height = strings.first ? BLF_height_default("28", 3) : 0.0f;
 	
 	// glMatrixMode(GL_PROJECTION);
 	// glPushMatrix();

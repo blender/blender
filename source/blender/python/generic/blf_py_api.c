@@ -180,7 +180,7 @@ static PyObject *py_blf_dimensions(PyObject *UNUSED(self), PyObject *args)
 	if (!PyArg_ParseTuple(args, "is:blf.dimensions", &fontid, &text))
 		return NULL;
 
-	BLF_width_and_height(fontid, text, &r_width, &r_height);
+	BLF_width_and_height(fontid, text, INT_MAX, &r_width, &r_height);
 
 	ret = PyTuple_New(2);
 	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(r_width));

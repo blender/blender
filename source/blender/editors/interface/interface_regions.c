@@ -660,7 +660,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	h = BLF_height_max(data->fstyle.uifont_id);
 
 	for (a = 0, fontw = 0, fonth = 0; a < data->totline; a++) {
-		w = BLF_width(data->fstyle.uifont_id, data->lines[a]);
+		w = BLF_width(data->fstyle.uifont_id, data->lines[a], sizeof(data->lines[a]));
 		fontw = max_ff(fontw, (float)w);
 		fonth += (a == 0) ? h : h + TIP_MARGIN_Y;
 	}

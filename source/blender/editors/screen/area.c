@@ -1825,7 +1825,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_co
 
 	/* box fill entire width or just around text */
 	if (!block)
-		rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, text) + 1.2f * U.widget_unit);
+		rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, text, BLF_DRAW_STR_DUMMY_MAX) + 1.2f * U.widget_unit);
 
 	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 

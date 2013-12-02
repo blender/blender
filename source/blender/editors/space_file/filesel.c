@@ -435,7 +435,7 @@ float file_string_width(const char *str)
 {
 	uiStyle *style = UI_GetStyle();
 	uiStyleFontSet(&style->widget);
-	return BLF_width(style->widget.uifont_id, str);
+	return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 float file_font_pointsize(void)

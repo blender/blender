@@ -1758,7 +1758,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 
 	ED_region_visible_rect(ar, &rect);
 	
-	BLF_width_and_height_default(printable, &printable_size[0], &printable_size[1]);
+	BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 	
 	xco = rect.xmax - (int)printable_size[0] - 10;
 	yco = rect.ymax - (int)printable_size[1] - 10;
