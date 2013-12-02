@@ -30,10 +30,12 @@
  *  \ingroup bli
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_memarena.h"
 #include "BLI_linklist.h"
 #include "BLI_strict_flags.h"
@@ -44,16 +46,16 @@
 
 struct MemArena {
 	unsigned char *curbuf;
-	int bufsize, cursize;
 	const char *name;
-
-	int use_calloc;
-	int align;
-
 	LinkNode *bufs;
+
+	size_t bufsize, cursize;
+	size_t align;
+
+	bool use_calloc;
 };
 
-MemArena *BLI_memarena_new(const int bufsize, const char *name)
+MemArena *BLI_memarena_new(const size_t bufsize, const char *name)
 {
 	MemArena *ma = MEM_callocN(sizeof(*ma), "memarena");
 	ma->bufsize = bufsize;
@@ -77,7 +79,7 @@ void BLI_memarena_use_malloc(MemArena *ma)
 	ma->use_calloc = 0;
 }
 
-void BLI_memarena_use_align(struct MemArena *ma, const int align)
+void BLI_memarena_use_align(struct MemArena *ma, const size_t align)
 {
 	/* align should be a power of two */
 	ma->align = align;
@@ -102,12 +104,12 @@ static void memarena_curbuf_align(MemArena *ma)
 {
 	unsigned char *tmp;
 
-	tmp = (unsigned char *)PADUP( (intptr_t) ma->curbuf, ma->align);
-	ma->cursize -= (int)(tmp - ma->curbuf);
+	tmp = (unsigned char *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
+	ma->cursize -= (size_t)(tmp - ma->curbuf);
 	ma->curbuf = tmp;
 }
 
-void *BLI_memarena_alloc(MemArena *ma, int size)
+void *BLI_memarena_alloc(MemArena *ma, size_t size)
 {
 	void *ptr;
 
@@ -119,14 +121,11 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 		if (size > ma->bufsize - (ma->align - 1)) {
 			ma->cursize = PADUP(size + 1, ma->align);
 		}
-		else
+		else {
 			ma->cursize = ma->bufsize;
+		}
 
-		if (ma->use_calloc)
-			ma->curbuf = MEM_callocN((size_t)ma->cursize, ma->name);
-		else
-			ma->curbuf = MEM_mallocN((size_t)ma->cursize, ma->name);
-
+		ma->curbuf = (ma->use_calloc ? MEM_callocN : MEM_mallocN)(ma->cursize, ma->name);
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 		memarena_curbuf_align(ma);
 	}
@@ -142,6 +141,19 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 	return ptr;
 }
 
+void *BLI_memarena_calloc(MemArena *ma, size_t size)
+{
+	void *ptr;
+
+	/* no need to use this function call if we're calloc'ing by default */
+	BLI_assert(ma->use_calloc == false);
+
+	ptr = BLI_memarena_alloc(ma, size);
+	memset(ptr, 0, size);
+
+	return ptr;
+}
+
 /**
  * Clear for reuse, avoids re-allocation when an arena may
  * otherwise be free'd and recreated.
@@ -150,7 +162,7 @@ void BLI_memarena_clear(MemArena *ma)
 {
 	if (ma->bufs) {
 		unsigned char *curbuf_prev;
-		int curbuf_used;
+		size_t curbuf_used;
 
 		if (ma->bufs->next) {
 			BLI_linklist_freeN(ma->bufs->next);
@@ -162,11 +174,11 @@ void BLI_memarena_clear(MemArena *ma)
 		memarena_curbuf_align(ma);
 
 		/* restore to original size */
-		curbuf_used = (int)(curbuf_prev - ma->curbuf);
+		curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
 		ma->cursize += curbuf_used;
 
 		if (ma->use_calloc) {
-			memset(ma->curbuf, 0, (size_t)curbuf_used);
+			memset(ma->curbuf, 0, curbuf_used);
 		}
 	}
 

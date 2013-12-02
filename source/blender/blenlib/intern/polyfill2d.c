@@ -421,8 +421,8 @@ void BLI_polyfill_calc_arena(
 
         struct MemArena *arena)
 {
-	unsigned int *indicies = BLI_memarena_alloc(arena, (int)(sizeof(*indicies) * coords_tot));
-	eSign *coords_sign = BLI_memarena_alloc(arena, (int)(sizeof(*coords_sign) * coords_tot));
+	unsigned int *indicies = BLI_memarena_alloc(arena, sizeof(*indicies) * coords_tot);
+	eSign *coords_sign = BLI_memarena_alloc(arena, sizeof(*coords_sign) * coords_tot);
 
 	BLI_polyfill_calc_ex(
 	        coords, coords_tot,

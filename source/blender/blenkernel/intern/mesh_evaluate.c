@@ -1387,8 +1387,8 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 				arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
 
-			tris = BLI_memarena_alloc(arena, (int)sizeof(*tris) * totfilltri);
-			projverts = BLI_memarena_alloc(arena, (int)sizeof(*projverts) * mp->totloop);
+			tris = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)totfilltri);
+			projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)mp->totloop);
 
 			zero_v3(normal);
 

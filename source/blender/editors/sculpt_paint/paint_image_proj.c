@@ -3294,8 +3294,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		projIma->ima = node->link;
 		projIma->touch = 0;
 		projIma->ibuf = BKE_image_acquire_ibuf(projIma->ima, NULL, NULL);
-		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		projIma->partRedrawRect =  BLI_memarena_calloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 	}
 
 	/* we have built the array, discard the linked list */
@@ -3344,8 +3343,7 @@ static void project_paint_end(ProjPaintState *ps)
 
 		for (a = 0, last_projIma = ps->projImages; a < ps->image_tot; a++, last_projIma++) {
 			int size = sizeof(void **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
-			last_projIma->undoRect = (void **) BLI_memarena_alloc(arena, size);
-			memset(last_projIma->undoRect, 0, size);
+			last_projIma->undoRect = (void **) BLI_memarena_calloc(arena, size);
 			last_projIma->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 
