@@ -922,10 +922,10 @@ if(UNIX AND NOT APPLE)
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	# CLang is the same as GCC for now.
-	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	# Solaris CC
-	elseif(CMAKE_CXX_COMPILER_ID MATCHES "SunPro")
+	elseif(CMAKE_C_COMPILER_ID MATCHES "SunPro")
 		set(PLATFORM_CFLAGS "-pipe -features=extensions -fPIC -D__FUNCTION__=__func__")
 		
 	# Intel C++ Compiler
@@ -1781,7 +1781,7 @@ elseif(APPLE)
 	if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 		set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
 		set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
-		if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
 			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
 			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
 		endif()
@@ -2028,7 +2028,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 		ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
 	endif()
 
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 
 	# strange, clang complains these are not supported, but then yses them.
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
@@ -2240,6 +2240,9 @@ if(FIRST_RUN)
 
 
 	endmacro()
+
+	message(STATUS "C Compiler:   \"${CMAKE_C_COMPILER_ID}\"")
+	message(STATUS "C++ Compiler: \"${CMAKE_CXX_COMPILER_ID}\"")
 
 	info_cfg_text("Build Options:")
 	info_cfg_option(WITH_GAMEENGINE)

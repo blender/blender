@@ -530,7 +530,7 @@ macro(remove_strict_flags)
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
 	endif()
 
-	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
 		remove_cc_flag("-Wunused-parameter")
 		remove_cc_flag("-Wunused-variable")
 		remove_cc_flag("-Werror=[^ ]+")
@@ -555,7 +555,7 @@ macro(remove_strict_flags_file
 	foreach(_SOURCE ${ARGV})
 
 		if(CMAKE_COMPILER_IS_GNUCC OR
-		  (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+		  (CMAKE_C_COMPILER_ID MATCHES "Clang"))
 
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
