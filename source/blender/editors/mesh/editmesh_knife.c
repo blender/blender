@@ -1076,7 +1076,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
  * In such a case we should have gotten hits on edges or verts of the face. */
 static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
                                      const float s[2],
-                                     const float v1[2], const float v2[2],
+                                     const float v1[3], const float v2[3],
                                      BMFace *f,
                                      const float face_tol,
                                      float intersectp[3])
