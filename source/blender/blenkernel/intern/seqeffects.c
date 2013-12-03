@@ -1246,8 +1246,8 @@ typedef struct WipeZone {
 
 static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
 {
-	wipezone->flip = (wipe->angle < 0);
-	wipezone->angle = tanf(DEG2RADF(fabsf(wipe->angle)));
+	wipezone->flip = (wipe->angle < 0.0f);
+	wipezone->angle = tanf(fabsf(wipe->angle));
 	wipezone->xo = xo;
 	wipezone->yo = yo;
 	wipezone->width = (int)(wipe->edgeWidth * ((xo + yo) / 2.0f));

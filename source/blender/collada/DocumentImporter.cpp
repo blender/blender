@@ -1127,6 +1127,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		et->setData("energy", &(lamp->energy));
 		et->setData("dist", &(lamp->dist));
 		et->setData("spotsize", &(lamp->spotsize));
+		lamp->spotsize = DEG2RADF(lamp->spotsize);
 		et->setData("spotblend", &(lamp->spotblend));
 		et->setData("halo_intensity", &(lamp->haint));
 		et->setData("att1", &(lamp->att1));
@@ -1223,7 +1224,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
 				if (IS_EQ(att2, 0.0f) && att1 > 0)
 					lamp->falloff_type = LA_FALLOFF_INVLINEAR;
-				lamp->spotsize = light->getFallOffAngle().getValue();
+				lamp->spotsize = DEG2RADF(light->getFallOffAngle().getValue());
 				lamp->spotblend = light->getFallOffExponent().getValue();
 			}
 			break;

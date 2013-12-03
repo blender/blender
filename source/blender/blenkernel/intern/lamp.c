@@ -63,7 +63,7 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	la->r = la->g = la->b = la->k = 1.0f;
 	la->haint = la->energy = 1.0f;
 	la->dist = 25.0f;
-	la->spotsize = 45.0f;
+	la->spotsize = DEG2RADF(45.0f);
 	la->spotblend = 0.15f;
 	la->att2 = 1.0f;
 	la->mode = LA_SHAD_BUF;

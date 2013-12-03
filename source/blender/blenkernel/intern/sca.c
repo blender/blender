@@ -44,6 +44,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -405,8 +406,8 @@ void init_actuator(bActuator *act)
 		sa->sound3D.rolloff_factor = 1.0f;
 		sa->sound3D.reference_distance = 1.0f;
 		sa->sound3D.max_gain = 1.0f;
-		sa->sound3D.cone_inner_angle = 360.0f;
-		sa->sound3D.cone_outer_angle = 360.0f;
+		sa->sound3D.cone_inner_angle = DEG2RADF(360.0f);
+		sa->sound3D.cone_outer_angle = DEG2RADF(360.0f);
 		sa->sound3D.max_distance = FLT_MAX;
 		break;
 	case ACT_OBJECT:

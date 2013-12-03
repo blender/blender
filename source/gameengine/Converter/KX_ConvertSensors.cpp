@@ -431,7 +431,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					// or the blenderradarsensor->angle?
 					// nzc: the angle is the opening angle. We need to init with 
 					// the axis-hull angle,so /2.0.
-					MT_Scalar factor = tan(MT_radians((blenderradarsensor->angle) / 2.0f));
+					MT_Scalar factor = tan(blenderradarsensor->angle * 0.5f);
 					//MT_Scalar coneradius = coneheight * (factor / 2);
 					MT_Scalar coneradius = coneheight * factor;
 					

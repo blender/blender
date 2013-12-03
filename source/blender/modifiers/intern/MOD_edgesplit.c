@@ -55,7 +55,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 	BMesh *bm;
 	BMIter iter;
 	BMEdge *e;
-	float threshold = cosf((emd->split_angle + 0.00001f) * (float)M_PI / 180.0f);
+	float threshold = cosf(emd->split_angle + 0.000000175f);
 	const bool calc_face_normals = (emd->flags & MOD_EDGESPLIT_FROMANGLE) != 0;
 
 	bm = DM_to_bmesh(dm, calc_face_normals);
@@ -107,7 +107,7 @@ static void initData(ModifierData *md)
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
 
 	/* default to 30-degree split angle, sharpness from both angle & flag */
-	emd->split_angle = 30;
+	emd->split_angle = DEG2RADF(30.0f);
 	emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
 }
 

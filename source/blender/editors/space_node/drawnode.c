@@ -2010,7 +2010,7 @@ static void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bN
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
 	const float aspect = backdropWidth / backdropHeight;
-	const float rad = DEG2RADF(-boxmask->rotation);
+	const float rad = -boxmask->rotation;
 	const float cosine = cosf(rad);
 	const float sine = sinf(rad);
 	const float halveBoxWidth = backdropWidth * (boxmask->width / 2.0f);
@@ -2048,7 +2048,7 @@ static void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
 	const float aspect = backdropWidth / backdropHeight;
-	const float rad = DEG2RADF(-ellipsemask->rotation);
+	const float rad = -ellipsemask->rotation;
 	const float cosine = cosf(rad);
 	const float sine = sinf(rad);
 	const float halveBoxWidth = backdropWidth * (ellipsemask->width / 2.0f);

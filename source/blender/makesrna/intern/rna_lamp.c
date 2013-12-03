@@ -156,19 +156,6 @@ static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 	WM_main_add_notifier(NC_LAMP | ND_SKY, la);
 }
 
-/* only for rad/deg conversion! can remove later */
-static float rna_Lamp_spot_size_get(PointerRNA *ptr)
-{
-	Lamp *la = ptr->id.data;
-	return DEG2RADF(la->spotsize);
-}
-
-static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
-{
-	Lamp *la = ptr->id.data;
-	la->spotsize = RAD2DEGF(value);
-}
-
 static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Lamp *la = (Lamp *)ptr->data;
@@ -800,11 +787,9 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "spot_size", PROP_FLOAT, PROP_ANGLE);
-	/* RNA_def_property_float_sdna(prop, NULL, "spotsize"); */
-	RNA_def_property_range(prop, M_PI / 180.0, M_PI);
+	RNA_def_property_float_sdna(prop, NULL, "spotsize");
+	RNA_def_property_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f));
 	RNA_def_property_ui_text(prop, "Spot Size", "Angle of the spotlight beam");
-	/* only for deg/rad conversion */
-	RNA_def_property_float_funcs(prop, "rna_Lamp_spot_size_get", "rna_Lamp_spot_size_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "show_cone", PROP_BOOLEAN, PROP_NONE);

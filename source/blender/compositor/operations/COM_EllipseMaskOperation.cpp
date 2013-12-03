@@ -38,7 +38,7 @@ void EllipseMaskOperation::initExecution()
 {
 	this->m_inputMask = this->getInputSocketReader(0);
 	this->m_inputValue = this->getInputSocketReader(1);
-	const double rad = DEG2RAD((double)this->m_data->rotation);
+	const double rad = (double)this->m_data->rotation;
 	this->m_cosine = cos(rad);
 	this->m_sine = sin(rad);
 	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();

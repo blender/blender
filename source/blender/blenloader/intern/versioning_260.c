@@ -2530,7 +2530,88 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 269, 4)) {
+		/* Internal degrees to radians conversions... */
+		{
+			Scene *scene;
+			Object *ob;
+			Lamp *lamp;
+
+			for (lamp = main->lamp.first; lamp; lamp = lamp->id.next)
+				lamp->spotsize = DEG2RADF(lamp->spotsize);
+
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				bSensor *bs;
+				bActuator *ba;
+
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_EdgeSplit) {
+						EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
+						emd->split_angle = DEG2RADF(emd->split_angle);
+					}
+					else if (md->type == eModifierType_Bevel) {
+						BevelModifierData *bmd = (BevelModifierData *)md;
+						bmd->bevel_angle = DEG2RADF(bmd->bevel_angle);
+					}
+				}
+
+				for (bs = ob->sensors.first; bs; bs = bs->next) {
+					if (bs->type == SENS_RADAR) {
+						bRadarSensor *brs = bs->data;
+						brs->angle = DEG2RADF(brs->angle);
+					}
+				}
+
+				for (ba = ob->actuators.first; ba; ba = ba->next) {
+					if (ba->type == ACT_CONSTRAINT) {
+						bConstraintActuator *bca = ba->data;
+						if (bca->type == ACT_CONST_TYPE_ORI) {
+							bca->minloc[0] = DEG2RADF(bca->minloc[0]);
+							bca->maxloc[0] = DEG2RADF(bca->maxloc[0]);
+						}
+					}
+					else if (ba->type == ACT_SOUND) {
+						bSoundActuator *bsa = ba->data;
+						bsa->sound3D.cone_outer_angle = DEG2RADF(bsa->sound3D.cone_outer_angle);
+						bsa->sound3D.cone_inner_angle = DEG2RADF(bsa->sound3D.cone_inner_angle);
+					}
+				}
+			}
+
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				Sequence *seq;
+				SEQ_BEGIN (scene->ed, seq)
+				{
+					if (seq->type == SEQ_TYPE_WIPE) {
+						WipeVars *wv = seq->effectdata;
+						wv->angle = DEG2RADF(wv->angle);
+					}
+				}
+				SEQ_END
+			}
+
+			FOREACH_NODETREE(main, ntree, id) {
+				if (ntree->type == NTREE_COMPOSIT) {
+					bNode *node;
+					for (node = ntree->nodes.first; node; node = node->next) {
+						if (node->type == CMP_NODE_BOKEHIMAGE) {
+							NodeBokehImage *n = node->storage;
+							n->angle = DEG2RADF(n->angle);
+						}
+						if (node->type == CMP_NODE_MASK_BOX) {
+							NodeBoxMask *n = node->storage;
+							n->rotation = DEG2RADF(n->rotation);
+						}
+						if (node->type == CMP_NODE_MASK_ELLIPSE) {
+							NodeEllipseMask *n = node->storage;
+							n->rotation = DEG2RADF(n->rotation);
+						}
+					}
+				}
+			} FOREACH_NODETREE_END
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
 			MovieClip *clip;
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {

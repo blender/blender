@@ -1216,7 +1216,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		mul_mat3_m4_v3(ob->obmat, vvec);
 
 		x = -la->dist;
-		y = cosf(la->spotsize * (float)(M_PI / 360.0));
+		y = cosf(la->spotsize * 0.5f);
 		z = x * sqrtf(1.0f - y * y);
 
 		spotvolume(lvec, vvec, y);

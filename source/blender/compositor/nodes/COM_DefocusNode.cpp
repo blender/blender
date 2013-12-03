@@ -85,7 +85,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	
 	BokehImageOperation *bokeh = new BokehImageOperation();
 	NodeBokehImage *bokehdata = new NodeBokehImage();
-	bokehdata->angle = RAD2DEGF(data->rotation);
+	bokehdata->angle = data->rotation;
 	bokehdata->rounding = 0.0f;
 	bokehdata->flaps = data->bktype;
 	if (data->bktype < 3) {

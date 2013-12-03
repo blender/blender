@@ -51,7 +51,9 @@
 
 #include "BKE_scene.h"
 #include "MEM_guardedalloc.h"
- 
+
+#include "BLI_math.h"
+
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
                                RAS_IRasterizer* rasterizer,
                                const RAS_LightObject&	lightobj,
@@ -158,7 +160,7 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 			//vec[1] = -base->object->obmat[2][1];
 			//vec[2] = -base->object->obmat[2][2];
 			glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPOT_DIRECTION, vec);
-			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, m_lightobj.m_spotsize / 2.0f);
+			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, RAD2DEGF(m_lightobj.m_spotsize * 0.5f));
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_EXPONENT, 128.0f * m_lightobj.m_spotblend);
 		}
 		else {
@@ -360,7 +362,7 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("color", KX_LightObject, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_FLOAT_RW("lin_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att1),
 	KX_PYATTRIBUTE_FLOAT_RW("quad_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att2),
-	KX_PYATTRIBUTE_FLOAT_RW("spotsize", 1, 180, KX_LightObject, m_lightobj.m_spotsize),
+	KX_PYATTRIBUTE_RW_FUNCTION("spotsize", KX_LightObject, pyattr_get_spotsize, pyattr_set_spotsize),
 	KX_PYATTRIBUTE_FLOAT_RW("spotblend", 0, 1, KX_LightObject, m_lightobj.m_spotblend),
 	KX_PYATTRIBUTE_RO_FUNCTION("SPOT", KX_LightObject, pyattr_get_typeconst),
 	KX_PYATTRIBUTE_RO_FUNCTION("SUN", KX_LightObject, pyattr_get_typeconst),
@@ -388,6 +390,28 @@ int KX_LightObject::pyattr_set_color(void *self_v, const KX_PYATTRIBUTE_DEF *att
 		return PY_SET_ATTR_SUCCESS;
 	}
 	return PY_SET_ATTR_FAIL;
+}
+
+PyObject *KX_LightObject::pyattr_get_spotsize(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
+	return Py_BuildValue("f", RAD2DEGF(self->m_lightobj.m_spotsize));
+}
+
+int KX_LightObject::pyattr_set_spotsize(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
+
+	float spotsize = (float)PyFloat_AsDouble(value);
+	if (PyErr_Occurred())
+		return PY_SET_ATTR_FAIL;
+
+	if (spotsize < 1.0f)
+		spotsize = 1.0f;
+	else if (spotsize > 180.0f)
+		spotsize = 180.0f;
+	self->m_lightobj.m_spotsize = DEG2RADF(spotsize);
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject *KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

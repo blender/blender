@@ -3793,9 +3793,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	
 	lar->spotsi= la->spotsize;
 	if (lar->mode & LA_HALO) {
-		if (lar->spotsi>170.0f) lar->spotsi= 170.0f;
+		if (lar->spotsi > DEG2RADF(170.0f)) lar->spotsi = DEG2RADF(170.0f);
 	}
-	lar->spotsi= cosf( (float)M_PI*lar->spotsi/360.0f );
+	lar->spotsi= cosf(lar->spotsi * 0.5f);
 	lar->spotbl= (1.0f-lar->spotsi)*la->spotblend;
 
 	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));

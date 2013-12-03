@@ -101,7 +101,7 @@ void LightsExporter::operator()(Object *ob)
 	else if (la->type == LA_SPOT) {
 		COLLADASW::SpotLight cla(mSW, la_id, la_name);
 		cla.setColor(col, false, "color");
-		cla.setFallOffAngle(la->spotsize, false, "fall_off_angle");
+		cla.setFallOffAngle(RAD2DEGF(la->spotsize), false, "fall_off_angle");
 		cla.setFallOffExponent(la->spotblend, false, "fall_off_exponent");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
@@ -147,7 +147,7 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb, "blender_shadow_b");
 	cla.addExtraTechniqueParameter("blender", "energy", la->energy, "blender_energy");
 	cla.addExtraTechniqueParameter("blender", "dist", la->dist, "blender_dist");
-	cla.addExtraTechniqueParameter("blender", "spotsize", la->spotsize);
+	cla.addExtraTechniqueParameter("blender", "spotsize", RAD2DEGF(la->spotsize));
 	cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
 	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint, "blnder_halo_intensity");
 	cla.addExtraTechniqueParameter("blender", "att1", la->att1);

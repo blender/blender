@@ -1784,7 +1784,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 				/* spot lamp */
 				negate_v3_v3(direction, base->object->obmat[2]);
 				glLightfv(GL_LIGHT0+count, GL_SPOT_DIRECTION, direction);
-				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, la->spotsize/2.0f);
+				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, RAD2DEGF(la->spotsize * 0.5f));
 				glLightf(GL_LIGHT0+count, GL_SPOT_EXPONENT, 128.0f*la->spotblend);
 			}
 			else

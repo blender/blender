@@ -80,7 +80,7 @@
 /* This little block needed for linking to Blender... */
 #include "BKE_text.h"
 #include "BLI_blenlib.h"
-#include "BLI_math_base.h"
+#include "BLI_math.h"
 #include "BLI_path_util.h"
 
 #include "KX_NetworkMessageActuator.h"
@@ -386,8 +386,8 @@ void BL_ConvertActuators(const char* maggiename,
 					bool is3d = soundact->flag & ACT_SND_3D_SOUND ? true : false;
 					boost::shared_ptr<AUD_IFactory> snd_sound;
 					KX_3DSoundSettings settings;
-					settings.cone_inner_angle = soundact->sound3D.cone_inner_angle;
-					settings.cone_outer_angle = soundact->sound3D.cone_outer_angle;
+					settings.cone_inner_angle = RAD2DEGF(soundact->sound3D.cone_inner_angle);
+					settings.cone_outer_angle = RAD2DEGF(soundact->sound3D.cone_outer_angle);
 					settings.cone_outer_gain = soundact->sound3D.cone_outer_gain;
 					settings.max_distance = soundact->sound3D.max_distance;
 					settings.max_gain = soundact->sound3D.max_gain;
@@ -571,8 +571,8 @@ void BL_ConvertActuators(const char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
-					min = (float)(((float)MT_2_PI * conact->minloc[0]) / 360.0f);
-					max = (float)(((float)MT_2_PI * conact->maxloc[0]) / 360.0f);
+					min = conact->minloc[0];
+					max = conact->maxloc[0];
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;

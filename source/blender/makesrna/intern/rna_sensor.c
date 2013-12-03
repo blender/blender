@@ -31,6 +31,7 @@
 #include "DNA_sensor_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BLF_translation.h"
 
@@ -663,10 +664,9 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Along which axis the radar cone is cast");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	/*XXX TODO - use radians internally then change to PROP_ANGLE */
-	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0, 179.9);
-	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone (in degrees)");
+	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0.0, DEG2RADF(179.9f));
+	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
