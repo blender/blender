@@ -60,6 +60,7 @@ KM_HIERARCHY = [
 
         ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change
 
+        ('View3D Walk Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
