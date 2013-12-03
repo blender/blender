@@ -3758,8 +3758,9 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 	copy_v3_v3(rgb, ps->brush->rgb);
 
 	if (ps->is_texbrush) {
-		/* XXX actually should convert texrgb from linear to srgb here */
 		mul_v3_v3(rgb, texrgb);
+		/* TODO(sergey): Support texture paint color space. */
+		linearrgb_to_srgb_v3_v3(rgb, rgb);
 	}
 
 	rgb_float_to_uchar(rgba_ub, rgb);

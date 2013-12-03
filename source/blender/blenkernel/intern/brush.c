@@ -45,6 +45,7 @@
 #include "BKE_texture.h"
 #include "BKE_icons.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -638,6 +639,16 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		rgba[1] = intensity;
 		rgba[2] = intensity;
 		rgba[3] = 1.0f;
+	}
+	else {
+		if (br->mtex.tex->type == TEX_IMAGE && br->mtex.tex->ima) {
+			ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(br->mtex.tex->ima, &br->mtex.tex->iuser, pool);
+			/* For consistency, sampling always returns color in linear space */
+			if (tex_ibuf->rect_float == NULL) {
+				IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, tex_ibuf->rect_colorspace);
+			}
+			BKE_image_pool_release_ibuf(br->mtex.tex->ima, tex_ibuf, pool);
+		}
 	}
 
 	return intensity;
