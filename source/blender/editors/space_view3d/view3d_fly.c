@@ -257,9 +257,11 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 }
 
 /* FlyInfo->state */
-#define FLY_RUNNING     0
-#define FLY_CANCEL      1
-#define FLY_CONFIRM     2
+enum {
+	FLY_RUNNING     = 0,
+	FLY_CANCEL      = 1,
+	FLY_CONFIRM     = 2,
+};
 
 static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
@@ -322,12 +324,10 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
 	fly->draw_handle_pixel = ED_region_draw_cb_activate(fly->ar->type, drawFlyPixel, fly, REGION_DRAW_POST_PIXEL);
 
-	fly->rv3d->rflag |= RV3D_NAVIGATING; /* so we draw the corner margins */
+	fly->rv3d->rflag |= RV3D_NAVIGATING;
 
 	/* detect whether to start with Z locking */
-	upvec[0] = 1.0f;
-	upvec[1] = 0.0f;
-	upvec[2] = 0.0f;
+	copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 	copy_m3_m4(mat, fly->rv3d->viewinv);
 	mul_m3_v3(mat, upvec);
 	if (fabsf(upvec[2]) < 0.1f) {
@@ -346,7 +346,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
 static int flyEnd(bContext *C, FlyInfo *fly)
 {
-	RegionView3D *rv3d = fly->rv3d;
+	wmWindow *win;
+	RegionView3D *rv3d;
 
 	if (fly->state == FLY_RUNNING)
 		return OPERATOR_RUNNING_MODAL;
@@ -355,14 +356,16 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	puts("\n-- fly end --");
 #endif
 
-	WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), fly->timer);
+	win = CTX_wm_window(C);
+	rv3d = fly->rv3d;
+
+	WM_event_remove_timer(CTX_wm_manager(C), win, fly->timer);
 
 	ED_region_draw_cb_exit(fly->ar->type, fly->draw_handle_pixel);
 
 	ED_view3d_cameracontrol_release(fly->v3d_camera_control, fly->state == FLY_CANCEL);
 
 	rv3d->rflag &= ~RV3D_NAVIGATING;
-//XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
 	if (fly->ndof)
 		MEM_freeN(fly->ndof);
@@ -720,9 +723,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 			if (fly->pan_view == true) {
 				/* pan only */
-				dvec_tmp[0] = -moffset[0];
-				dvec_tmp[1] = -moffset[1];
-				dvec_tmp[2] = 0;
+				copy_v3_fl3(dvec_tmp, -moffset[0], -moffset[1], 0.0f);
 
 				if (fly->use_precision) {
 					dvec_tmp[0] *= 0.1f;
@@ -738,9 +739,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 				/* rotate about the X axis- look up/down */
 				if (moffset[1]) {
-					upvec[0] = 1;
-					upvec[1] = 0;
-					upvec[2] = 0;
+					copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 					/* Rotate about the relative up vec */
 					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[1] * time_redraw * -FLY_ROTATE_FAC);
@@ -757,9 +756,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				if (moffset[0]) {
 
 					/* if we're upside down invert the moffset */
-					upvec[0] = 0.0f;
-					upvec[1] = 1.0f;
-					upvec[2] = 0.0f;
+					copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 
 					if (upvec[2] < 0.0f)
@@ -767,14 +764,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 					/* make the lock vectors */
 					if (fly->zlock) {
-						upvec[0] = 0.0f;
-						upvec[1] = 0.0f;
-						upvec[2] = 1.0f;
+						copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
 					}
 					else {
-						upvec[0] = 0.0f;
-						upvec[1] = 1.0f;
-						upvec[2] = 0.0f;
+						copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
 						mul_m3_v3(mat, upvec);
 					}
 
@@ -789,18 +782,14 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 
 				if (fly->zlock == FLY_AXISLOCK_STATE_ACTIVE) {
-					upvec[0] = 1.0f;
-					upvec[1] = 0.0f;
-					upvec[2] = 0.0f;
+					copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 
 					/* make sure we have some z rolling */
 					if (fabsf(upvec[2]) > 0.00001f) {
 						roll = upvec[2] * 5.0f;
-						upvec[0] = 0.0f; /* rotate the view about this axis */
-						upvec[1] = 0.0f;
-						upvec[2] = 1.0f;
-
+						/* rotate the view about this axis */
+						copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
 						mul_m3_v3(mat, upvec);
 						/* Rotate about the relative up vec */
 						axis_angle_to_quat(tmp_quat, upvec,
@@ -817,18 +806,13 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 				/* only apply xcorrect when mouse isn't applying x rot */
 				if (fly->xlock == FLY_AXISLOCK_STATE_ACTIVE && moffset[1] == 0) {
-					upvec[0] = 0;
-					upvec[1] = 0;
-					upvec[2] = 1;
+					copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
 					mul_m3_v3(mat, upvec);
 					/* make sure we have some z rolling */
 					if (fabsf(upvec[2]) > 0.00001f) {
 						roll = upvec[2] * -5.0f;
-
-						upvec[0] = 1.0f; /* rotate the view about this axis */
-						upvec[1] = 0.0f;
-						upvec[2] = 0.0f;
-
+						/* rotate the view about this axis */
+						copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 						mul_m3_v3(mat, upvec);
 
 						/* Rotate about the relative up vec */
