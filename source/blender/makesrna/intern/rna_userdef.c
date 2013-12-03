@@ -2917,7 +2917,7 @@ static void rna_def_userdef_walk_navigation(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_gravity", PROP_BOOLEAN, PROP_BOOLEAN);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_WALK_GRAVITY);
-	RNA_def_property_ui_text(prop, "Gravity", "Walks with gravity, or free navigate");
+	RNA_def_property_ui_text(prop, "Gravity", "Walk with gravity, or free navigate");
 
 	prop = RNA_def_property(srna, "use_mouse_reverse", PROP_BOOLEAN, PROP_BOOLEAN);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_WALK_MOUSE_REVERSE);

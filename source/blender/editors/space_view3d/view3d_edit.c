@@ -3910,7 +3910,7 @@ void VIEW3D_OT_navigate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Navigation";
-	ot->description = "Interactively navigate around the scene. It uses the mode (walk/fly) preference";
+	ot->description = "Interactively navigate around the scene (uses the mode (walk/fly) preference)";
 	ot->idname = "VIEW3D_OT_navigate";
 
 	/* api callbacks */
