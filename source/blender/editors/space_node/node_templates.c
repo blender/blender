@@ -436,6 +436,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 		char name[UI_MAX_NAME_STR];
 		const char *cur_node_name = NULL;
 		int i, num = 0;
+		int icon = ICON_NONE;
 		
 		if (compatibility && !(ntype->compatibility & compatibility))
 			continue;
@@ -461,7 +462,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 				
 				uiItemL(column, IFACE_(cname), ICON_NODE);
 				but = block->buttons.last;
-				but->drawflag = UI_BUT_TEXT_LEFT;
 				
 				first = 0;
 			}
@@ -469,18 +469,21 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			if (num > 1) {
 				if (!cur_node_name || !STREQ(cur_node_name, items[i].node_name)) {
 					cur_node_name = items[i].node_name;
-					uiItemL(column, IFACE_(cur_node_name), ICON_NODE);
-					but = block->buttons.last;
-					but->drawflag = UI_BUT_TEXT_LEFT;
+					/* XXX Do not use uiItemL here, it would add an empty icon as we are in a menu! */
+					uiDefBut(block, LABEL, 0, IFACE_(cur_node_name), 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
+					         NULL, 0.0, 0.0, 0.0, 0.0, "");
 				}
-				
-				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", IFACE_(items[i].socket_name));
+
+				BLI_snprintf(name, UI_MAX_NAME_STR, "%s", IFACE_(items[i].socket_name));
+				icon = ICON_BLANK1;
 			}
-			else
+			else {
 				BLI_strncpy(name, IFACE_(items[i].node_name), UI_MAX_NAME_STR);
+				icon = ICON_NONE;
+			}
 			
-			but = uiDefBut(block, BUT, 0, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
-			               NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Add node to input"));
+			but = uiDefIconTextBut(block, BUT, 0, icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
+			                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Add node to input"));
 			
 			argN = MEM_dupallocN(arg);
 			argN->item = items[i];
