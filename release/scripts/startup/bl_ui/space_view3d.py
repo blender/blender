@@ -435,6 +435,7 @@ class VIEW3D_MT_view_navigation(Menu):
         layout.separator()
 
         layout.operator("view3d.fly")
+        layout.operator("view3d.walk")
 
 
 class VIEW3D_MT_view_align(Menu):

@@ -374,6 +374,17 @@ typedef struct SolidLight {
 	float col[4], spec[4], vec[4];
 } SolidLight;
 
+typedef struct WalkNavigation {
+	float mouse_speed;  /* speed factor for look around */
+	float walk_speed;
+	float walk_speed_factor;
+	float view_height;
+	float jump_height;
+	float teleport_time;  /* duration to use for teleporting */
+	short flag;
+	short pad[3];
+} WalkNavigation;
+
 typedef struct UserDef {
 	/* UserDef has separate do-version handling, and can be read from other files */
 	int versionfile, subversionfile;
@@ -477,7 +488,7 @@ typedef struct UserDef {
 	float gpencil_new_layer_col[4]; /* default color for newly created Grease Pencil layers */
 
 	short tweak_threshold;
-	short pad3;
+	char navigation_mode, pad;
 
 	char author[80];	/* author name for file formats supporting it */
 
@@ -486,6 +497,8 @@ typedef struct UserDef {
 	
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
 	float pixelsize;			/* private, set by GHOST, to multiply DPI with */
+
+	struct WalkNavigation walk_navigation;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -551,6 +564,18 @@ typedef enum eViewZoom_Style {
 	USER_ZOOM_SCALE			= 1,
 	USER_ZOOM_DOLLY			= 2
 } eViewZoom_Style;
+
+/* navigation_mode */
+typedef enum eViewNavigation_Method {
+	VIEW_NAVIGATION_WALK = 0,
+	VIEW_NAVIGATION_FLY  = 1,
+} eViewNavigation_Method;
+
+/* flag */
+typedef enum eWalkNavigation_Flag {
+	USER_WALK_GRAVITY			= (1 << 0),
+	USER_WALK_MOUSE_REVERSE		= (1 << 1),
+} eWalkNavigation_Flag;
 
 /* uiflag */
 typedef enum eUserpref_UI_Flag {

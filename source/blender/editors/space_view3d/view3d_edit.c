@@ -3889,6 +3889,35 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+static int view3d_navigate_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+	eViewNavigation_Method mode = U.navigation_mode;
+
+	switch (mode) {
+		case VIEW_NAVIGATION_FLY:
+			WM_operator_name_call(C, "VIEW3D_OT_fly", WM_OP_INVOKE_DEFAULT, NULL);
+			break;
+		case VIEW_NAVIGATION_WALK:
+		default:
+			WM_operator_name_call(C, "VIEW3D_OT_walk", WM_OP_INVOKE_DEFAULT, NULL);
+			break;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_navigate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Navigation";
+	ot->description = "Interactively navigate around the scene. It uses the mode (walk/fly) preference";
+	ot->idname = "VIEW3D_OT_navigate";
+
+	/* api callbacks */
+	ot->invoke = view3d_navigate_invoke;
+	ot->poll = ED_operator_view3d_active;
+}
+
 
 /* ******************** add background image operator **************** */
 
