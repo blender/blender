@@ -19,7 +19,11 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from bl_ui.properties_paint_common import UnifiedPaintPanel, brush_texture_settings, brush_mask_texture_settings
+from bl_ui.properties_paint_common import (
+        UnifiedPaintPanel,
+        brush_texture_settings,
+        brush_mask_texture_settings,
+        )
 from bpy.app.translations import pgettext_iface as iface_
 
 

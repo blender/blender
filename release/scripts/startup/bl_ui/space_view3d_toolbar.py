@@ -19,9 +19,11 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
-from bl_ui.properties_paint_common import UnifiedPaintPanel
-from bl_ui.properties_paint_common import brush_texture_settings
-from bl_ui.properties_paint_common import brush_mask_texture_settings
+from bl_ui.properties_paint_common import (
+        UnifiedPaintPanel,
+        brush_texture_settings,
+        brush_mask_texture_settings,
+        )
 
 
 class View3DPanel():
