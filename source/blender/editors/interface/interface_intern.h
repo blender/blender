@@ -501,7 +501,7 @@ int ui_step_name_menu(uiBut *but, int step);
 struct AutoComplete;
 
 /* interface_panel.c */
-extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event);
+extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event, struct ARegion *ar);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */

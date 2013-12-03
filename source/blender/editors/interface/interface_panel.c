@@ -496,19 +496,6 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	}
 }
 
-static void rectf_scale(rctf *rect, const float scale)
-{
-	float centx = BLI_rctf_cent_x(rect);
-	float centy = BLI_rctf_cent_y(rect);
-	float sizex = BLI_rctf_size_x(rect) * 0.5f * scale;
-	float sizey = BLI_rctf_size_y(rect) * 0.5f * scale;
-	
-	rect->xmin = centx - sizex;
-	rect->xmax = centx + sizex;
-	rect->ymin = centy - sizey;
-	rect->ymax = centy + sizey;
-}
-
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
@@ -565,7 +552,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		itemrect.ymin = headrect.ymin;
 		itemrect.ymax = headrect.ymax;
 
-		rectf_scale(&itemrect, 0.7f);
+		BLI_rctf_scale(&itemrect, 0.7f);
 		ui_draw_panel_dragwidget(&itemrect);
 	}
 
@@ -619,7 +606,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
 
-	rectf_scale(&itemrect, 0.35f);
+	BLI_rctf_scale(&itemrect, 0.35f);
 
 	if (panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_rect(&itemrect, 'h');
@@ -1133,9 +1120,8 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 /* XXX should become modal keymap */
 /* AKey is opening/closing panels, independent of button state now */
 
-int ui_handler_panel_region(bContext *C, const wmEvent *event)
+int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 {
-	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
 	int retval, mx, my;

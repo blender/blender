@@ -7851,7 +7851,7 @@ static int ui_handler_region(bContext *C, const wmEvent *event, void *UNUSED(use
 	/* either handle events for already activated button or try to activate */
 	but = ui_but_find_activated(ar);
 
-	retval = ui_handler_panel_region(C, event);
+	retval = ui_handler_panel_region(C, event, ar);
 
 	if (retval == WM_UI_HANDLER_CONTINUE)
 		retval = ui_handle_list_event(C, event, ar);
