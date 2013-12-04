@@ -1209,6 +1209,14 @@ int main(int argc, char **argv)
 
 #endif /* if 0 */
 
+/* even though DNA supports, 'long' shouldn't be used since it can be either 32 or 64bit,
+ * use int or int64_t instead.
+ * Only valid use would be as a runtime variable if an API expected a long,
+ * but so far we dont have this happening. */
+#ifdef __GNUC__
+#  pragma GCC poison long
+#endif
+
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "DNA_ID.h"
