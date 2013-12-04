@@ -1601,6 +1601,15 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 			}
 			SEQ_END;
 		}
+
+		SEQP_BEGIN (ed, seq)
+		{
+			if (seq->seq1 || seq->seq2 || seq->seq3) {
+				BKE_sequence_calc(scene, seq);
+			}
+		}
+		SEQ_END;
+
 		/* as last: */
 		BKE_sequencer_sort(scene);
 	}
