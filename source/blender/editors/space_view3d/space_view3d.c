@@ -46,6 +46,7 @@
 #include "BKE_icons.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "ED_render.h"
@@ -828,7 +829,9 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 				case ND_SHADING:
 				case ND_NODES:
 					if ((v3d->drawtype == OB_MATERIAL) ||
-					    (v3d->drawtype == OB_TEXTURE && scene->gm.matmode == GAME_MAT_GLSL))
+					    (v3d->drawtype == OB_TEXTURE &&
+					         (scene->gm.matmode == GAME_MAT_GLSL ||
+					          BKE_scene_use_new_shading_nodes(scene))))
 					{
 						ED_region_tag_redraw(ar);
 					}
