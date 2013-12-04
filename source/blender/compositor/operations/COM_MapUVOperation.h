@@ -46,7 +46,9 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	
+
+	void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
+
 	/**
 	 * Initialize the execution
 	 */
@@ -58,5 +60,9 @@ public:
 	void deinitExecution();
 
 	void setAlpha(float alpha) { this->m_alpha = alpha; }
+
+private:
+	bool read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha);
 };
+
 #endif

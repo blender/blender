@@ -81,14 +81,16 @@ void ReadBufferOperation::executePixelExtend(float output[4], float x, float y, 
 	}
 }
 
-void ReadBufferOperation::executePixelFiltered(float output[4], float x, float y, float dx, float dy, PixelSampler sampler)
+void ReadBufferOperation::executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2], PixelSampler sampler)
 {
 	if (m_single_value) {
 		/* write buffer has a single value stored at (0,0) */
 		m_buffer->read(output, 0, 0);
 	}
 	else {
-		m_buffer->readEWA(output, x, y, dx, dy, sampler);
+		const float uv[2] = { x, y };
+		const float deriv[2][2] = { {dx[0], dx[1]}, {dy[0], dy[1]} };
+		m_buffer->readEWA(output, uv, deriv, sampler);
 	}
 }
 

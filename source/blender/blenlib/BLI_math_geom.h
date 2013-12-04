@@ -222,6 +222,8 @@ int barycentric_inside_triangle_v2(const float w[3]);
 
 void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
 void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);
+void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
+                           const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);
 
 /* use to find the point of a UV on a face */
 void interp_bilinear_quad_v3(float data[4][3], float u, float v, float res[3]);

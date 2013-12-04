@@ -49,54 +49,92 @@ void DisplaceOperation::initExecution()
 	this->m_height_x4 = this->getHeight() * 4;
 }
 
-
-/* minimum distance (in pixels) a pixel has to be displaced
- * in order to take effect */
-#define DISPLACE_EPSILON    0.01f
-
-void DisplaceOperation::executePixel(float output[4], int x, int y, void *data)
+void DisplaceOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	float inVector[4];
-	float inScale[4];
+	float xy[2] = { x, y };
+	float uv[2], deriv[2][2];
 
-	float p_dx, p_dy;   /* main displacement in pixel space */
-	float d_dx, d_dy;
-	float dxt, dyt;
-	float u, v;
-
-	this->m_inputScaleXProgram->readSampled(inScale, x, y, COM_PS_NEAREST);
-	float xs = inScale[0];
-	this->m_inputScaleYProgram->readSampled(inScale, x, y, COM_PS_NEAREST);
-	float ys = inScale[0];
-
-	/* clamp x and y displacement to triple image resolution - 
-	 * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
-	CLAMP(xs, -this->m_width_x4, this->m_width_x4);
-	CLAMP(ys, -this->m_height_x4, this->m_height_x4);
-
-	this->m_inputVectorProgram->readSampled(inVector, x, y, COM_PS_NEAREST);
-	p_dx = inVector[0] * xs;
-	p_dy = inVector[1] * ys;
-
-	/* displaced pixel in uv coords, for image sampling */
-	u = x - p_dx + 0.5f;
-	v = y - p_dy + 0.5f;
-
-	/* calc derivatives */
-	this->m_inputVectorProgram->readSampled(inVector, x + 1, y, COM_PS_NEAREST);
-	d_dx = inVector[0] * xs;
-	this->m_inputVectorProgram->readSampled(inVector, x, y + 1, COM_PS_NEAREST);
-	d_dy = inVector[1] * ys;
-
-	/* clamp derivatives to minimum displacement distance in UV space */
-	dxt = p_dx - d_dx;
-	dyt = p_dy - d_dy;
-
-	dxt = signf(dxt) * max_ff(fabsf(dxt), DISPLACE_EPSILON) / this->getWidth();
-	dyt = signf(dyt) * max_ff(fabsf(dyt), DISPLACE_EPSILON) / this->getHeight();
+	pixelTransform(xy, uv, deriv);
 
 	/* EWA filtering (without nearest it gets blurry with NO distortion) */
-	this->m_inputColorProgram->readFiltered(output, u, v, dxt, dyt, COM_PS_NEAREST);
+	this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1], COM_PS_BILINEAR);
+}
+
+bool DisplaceOperation::read_displacement(float x, float y, float xscale, float yscale, const float origin[2], float &r_u, float &r_v)
+{
+	float width = m_inputVectorProgram->getWidth();
+	float height = m_inputVectorProgram->getHeight();
+	if (x < 0.0f || x >= width || y < 0.0f || y >= height) {
+		r_u = 0.0f;
+		r_v = 0.0f;
+		return false;
+	}
+	else {
+		float col[4];
+		m_inputVectorProgram->readSampled(col, x, y, COM_PS_BILINEAR);
+		r_u = origin[0] - col[0]*xscale + 0.5f;
+		r_v = origin[1] - col[1]*yscale + 0.5f;
+		return true;
+	}
+}
+
+void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2])
+{
+	float col[4];
+	float uv[2]; /* temporary variables for derivative estimation */
+	int num;
+
+	m_inputScaleXProgram->readSampled(col, xy[0], xy[1], COM_PS_NEAREST);
+	float xs = col[0];
+	m_inputScaleYProgram->readSampled(col, xy[0], xy[1], COM_PS_NEAREST);
+	float ys = col[0];
+	/* clamp x and y displacement to triple image resolution - 
+	 * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
+	CLAMP(xs, -m_width_x4, m_width_x4);
+	CLAMP(ys, -m_height_x4, m_height_x4);
+
+	/* displaced pixel in uv coords, for image sampling */
+	read_displacement(xy[0], xy[1], xs, ys, xy, r_uv[0], r_uv[1]);
+
+	/* Estimate partial derivatives using 1-pixel offsets */
+	const float epsilon[2] = { 1.0f, 1.0f };
+	
+	zero_v2(r_deriv[0]);
+	zero_v2(r_deriv[1]);
+
+	num = 0;
+	if (read_displacement(xy[0] + epsilon[0], xy[1], xs, ys, xy, uv[0], uv[1])) {
+		r_deriv[0][0] += uv[0] - r_uv[0];
+		r_deriv[1][0] += uv[1] - r_uv[1];
+		++num;
+	}
+	if (read_displacement(xy[0] - epsilon[0], xy[1], xs, ys, xy, uv[0], uv[1])) {
+		r_deriv[0][0] += r_uv[0] - uv[0];
+		r_deriv[1][0] += r_uv[1] - uv[1];
+		++num;
+	}
+	if (num > 0) {
+		float numinv = 1.0f / (float)num;
+		r_deriv[0][0] *= numinv;
+		r_deriv[1][0] *= numinv;
+	}
+
+	num = 0;
+	if (read_displacement(xy[0], xy[1] + epsilon[1], xs, ys, xy, uv[0], uv[1])) {
+		r_deriv[0][1] += uv[0] - r_uv[0];
+		r_deriv[1][1] += uv[1] - r_uv[1];
+		++num;
+	}
+	if (read_displacement(xy[0], xy[1] - epsilon[1], xs, ys, xy, uv[0], uv[1])) {
+		r_deriv[0][1] += r_uv[0] - uv[0];
+		r_deriv[1][1] += r_uv[1] - uv[1];
+		++num;
+	}
+	if (num > 0) {
+		float numinv = 1.0f / (float)num;
+		r_deriv[0][1] *= numinv;
+		r_deriv[1][1] *= numinv;
+	}
 }
 
 void DisplaceOperation::deinitExecution()
@@ -126,10 +164,10 @@ bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffer
 
 	/* vector */
 	operation = getInputOperation(1);
-	vectorInput.xmax = input->xmax + 2;
-	vectorInput.xmin = input->xmin;
-	vectorInput.ymax = input->ymax + 2;
-	vectorInput.ymin = input->ymin;
+	vectorInput.xmax = input->xmax + 1;
+	vectorInput.xmin = input->xmin - 1;
+	vectorInput.ymax = input->ymax + 1;
+	vectorInput.ymin = input->ymin - 1;
 	if (operation->determineDependingAreaOfInterest(&vectorInput, readOperation, output)) {
 		return true;
 	}

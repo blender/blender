@@ -48,7 +48,9 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float output[4], int x, int y, void *data);
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+	
+	void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2]);
 	
 	/**
 	 * Initialize the execution
@@ -59,5 +61,8 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
+
+private:
+	bool read_displacement(float x, float y, float xscale, float yscale, const float origin[2], float &r_u, float &r_v);
 };
 #endif

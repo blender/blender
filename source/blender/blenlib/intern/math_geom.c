@@ -2685,6 +2685,13 @@ void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const 
 /* bilinear reverse */
 void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
 {
+	resolve_quad_uv_deriv(r_uv, NULL, st, st0, st1, st2, st3);
+}
+
+/* bilinear reverse with derivatives */
+void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
+                           const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
+{
 	const double signed_area = (st0[0] * st1[1] - st0[1] * st1[0]) + (st1[0] * st2[1] - st1[1] * st2[0]) +
 	                           (st2[0] * st3[1] - st2[1] * st3[0]) + (st3[0] * st0[1] - st3[1] * st0[0]);
 
@@ -2731,6 +2738,32 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 
 		if (IS_ZERO(denom) == 0)
 			r_uv[1] = (float)((double)((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
+	}
+
+	if (r_deriv) {
+		float tmp1[2], tmp2[2], s[2], t[2];
+		double denom;
+		
+		/* clear outputs */
+		zero_v2(r_deriv[0]);
+		zero_v2(r_deriv[1]);
+		
+		sub_v2_v2v2(tmp1, st1, st0);
+		sub_v2_v2v2(tmp2, st2, st3);
+		interp_v2_v2v2(s, tmp1, tmp2, r_uv[1]);
+		sub_v2_v2v2(tmp1, st3, st0);
+		sub_v2_v2v2(tmp2, st2, st1);
+		interp_v2_v2v2(t, tmp1, tmp2, r_uv[0]);
+
+		denom = t[0]*s[1] - t[1]*s[0];
+
+		if (!IS_ZERO(denom)) {
+			double inv_denom = 1.0 / denom;
+			r_deriv[0][0] = -t[1] * inv_denom;
+			r_deriv[0][1] =  t[0] * inv_denom;
+			r_deriv[1][0] =  s[1] * inv_denom;
+			r_deriv[1][1] = -s[0] * inv_denom;
+		}
 	}
 }
 

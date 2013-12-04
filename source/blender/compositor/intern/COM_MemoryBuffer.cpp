@@ -214,136 +214,108 @@ static const float EWA_WTS[EWA_MAXIDX + 1] = {
 	0.00754159f, 0.00625989f, 0.00498819f, 0.00372644f, 0.00247454f, 0.00123242f, 0.f
 };
 
-static void radangle2imp(float a2, float b2, float th, float *A, float *B, float *C, float *F)
+static void ellipse_bounds(float A, float B, float C, float F, float &xmax, float &ymax)
 {
-	float ct2 = cosf(th);
-	const float st2 = 1.f - ct2 * ct2;    // <- sin(th)^2
-	ct2 *= ct2;
-	*A = a2 * st2 + b2 * ct2;
-	*B = (b2 - a2) * sinf(2.f * th);
-	*C = a2 * ct2 + b2 * st2;
-	*F = a2 * b2;
-}
-
-// all tests here are done to make sure possible overflows are hopefully minimized
-static void imp2radangle(float A, float B, float C, float F, float *a, float *b, float *th, float *ecc)
-{
-	if (F <= 1e-5f) {   // use arbitrary major radius, zero minor, infinite eccentricity
-		*a = sqrtf(A > C ? A : C);
-		*b = 0.f;
-		*ecc = 1e10f;
-		*th = 0.5f * (atan2f(B, A - C) + (float)M_PI);
+	float denom = 4.0f*A*C - B*B;
+	if (denom > 0.0f && A != 0.0f && C != 0.0f) {
+		xmax = sqrt(F)/(2.0f*A) * (sqrt(F*(4.0f*A - B*B/C)) + B*B*sqrt(F/(C*denom)));
+		ymax = sqrt(F)/(2.0f*C) * (sqrt(F*(4.0f*C - B*B/A)) + B*B*sqrt(F/(A*denom)));
 	}
 	else {
-		const float AmC = A - C, ApC = A + C, F2 = F * 2.f;
-		const float r = sqrtf(AmC * AmC + B * B);
-		float d = ApC - r;
-		*a = (d <= 0.f) ? sqrtf(A > C ? A : C) : sqrtf(F2 / d);
-		d = ApC + r;
-		if (d <= 0.f) {
-			*b = 0.f;
-			*ecc = 1e10f;
-		}
-		else {
-			*b = sqrtf(F2 / d);
-			*ecc = *a / *b;
-		}
-		/* incr theta by 0.5 * pi (angle of major axis) */
-		*th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
+		xmax = 0.0f;
+		ymax = 0.0f;
 	}
 }
 
-static float clipuv(float x, float limit)
+static void ellipse_params(float Ux, float Uy, float Vx, float Vy, float &A, float &B, float &C, float &F, float &umax, float &vmax)
 {
-	x = (x < 0) ? 0 : ((x >= limit) ? (limit - 1) : x);
-	return x;
+	A = Vx*Vx + Vy*Vy;
+	B = -2.0f * (Ux*Vx + Uy*Vy);
+	C = Ux*Ux + Uy*Uy;
+	F = A*C - B*B * 0.25f;
+
+	float factor = (F != 0.0f ? (float)(EWA_MAXIDX+1) / F : 0.0f);
+	A *= factor;
+	B *= factor;
+	C *= factor;
+	F = (float)(EWA_MAXIDX+1);
+
+	ellipse_bounds(A, B, C, sqrtf(F), umax, vmax);
 }
 
 /**
- * \note \a sampler at the moment is either 'COM_PS_NEAREST' or not, other values won't matter.
+ * Filtering method based on
+ * "Creating raster omnimax images from multiple perspective views using the elliptical weighted average filter"
+ * by Ned Greene and Paul S. Heckbert (1986)
  */
-void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler)
+void MemoryBuffer::readEWA(float result[4], const float uv[2], const float derivatives[2][2], PixelSampler sampler)
 {
-	const int width = this->getWidth(), height = this->getHeight();
-	
-	// scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
-	// scaling by aspect ratio alone does the opposite, so try something in between instead...
-	const float ff2 = width, ff = sqrtf(ff2), q = height / ff;
-	const float Ux = dx * ff, Vx = dx * q, Uy = dy * ff, Vy = dy * q;
-	float A = Vx * Vx + Vy * Vy;
-	float B = -2.f * (Ux * Vx + Uy * Vy);
-	float C = Ux * Ux + Uy * Uy;
-	float F = A * C - B * B * 0.25f;
-	float a, b, th, ecc, a2, b2, ue, ve, U0, V0, DDQ, U, ac1, ac2, BU, d;
-	int u, v, u1, u2, v1, v2;
-	// The so-called 'high' quality ewa method simply adds a constant of 1 to both A & C,
-	// so the ellipse always covers at least some texels. But since the filter is now always larger,
-	// it also means that everywhere else it's also more blurry then ideally should be the case.
-	// So instead here the ellipse radii are modified instead whenever either is too low.
-	// Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
-	// and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
-	// (minimum values: const float rmin = intpol ? 1.f : 0.5f;)
+	zero_v4(result);
+	int width = this->getWidth(), height = this->getHeight();
+	if (width == 0 || height == 0)
+		return;
 
-	/* note: 0.765625f is too sharp, 1.0 will not blur with an exact pixel sample
-	 * useful to avoid blurring when there is no distortion */
-#if 0
-	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 0.765625f) / ff2;
-#else
-	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 1.0f     ) / ff2;
-#endif
-	imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
-	if ((b2 = b * b) < rmin) {
-		if ((a2 = a * a) < rmin) {
-			B = 0.f;
-			A = C = rmin;
-			F = A * C;
-		}
-		else {
-			b2 = rmin;
-			radangle2imp(a2, b2, th, &A, &B, &C, &F);
-		}
-	}
+	float u = uv[0], v = uv[1];
+	float Ux = derivatives[0][0], Vx = derivatives[1][0], Uy = derivatives[0][1], Vy = derivatives[1][1];
+	float A, B, C, F, ue, ve;
+	ellipse_params(Ux, Uy, Vx, Vy, A, B, C, F, ue, ve);
 
-	ue = ff * sqrtf(C);
-	ve = ff * sqrtf(A);
-	d = (float)(EWA_MAXIDX + 1) / (F * ff2);
-	A *= d;
-	B *= d;
-	C *= d;
+	/* Note: highly eccentric ellipses can lead to large texture space areas to filter!
+	 * This is limited somewhat by the EWA_WTS size in the loop, but a nicer approach
+	 * could be the one found in
+	 * "High Quality Elliptical Texture Filtering on GPU"
+	 * by Pavlos Mavridis and Georgios Papaioannou
+	 * in which the eccentricity of the ellipse is clamped.
+	 */
 
-	U0 = fx;
-	V0 = fy;
-	u1 = (int)(floorf(U0 - ue));
-	u2 = (int)(ceilf(U0 + ue));
-	v1 = (int)(floorf(V0 - ve));
-	v2 = (int)(ceilf(V0 + ve));
-	U0 -= 0.5f;
-	V0 -= 0.5f;
-	DDQ = 2.f * A;
-	U = u1 - U0;
-	ac1 = A * (2.f * U + 1.f);
-	ac2 = A * U * U;
-	BU = B * U;
+	int U0 = (int)u;
+	int V0 = (int)v;
+	/* pixel offset for interpolation */
+	float ufac = u - floor(u), vfac = v - floor(v);
+	/* filter size */
+	int u1 = (int)(u - ue);
+	int u2 = (int)(u + ue);
+	int v1 = (int)(v - ve);
+	int v2 = (int)(v + ve);
 
-	d = result[0] = result[1] = result[2] = result[3] = 0.f;
-	for (v = v1; v <= v2; ++v) {
-		const float V = v - V0;
-		float DQ = ac1 + B * V;
-		float Q = (C * V + BU) * V + ac2;
-		for (u = u1; u <= u2; ++u) {
-			if (Q < (float)(EWA_MAXIDX + 1)) {
+	/* sane clamping to avoid unnecessarily huge loops */
+	/* note: if eccentricity gets clamped (see above),
+	 * the ue/ve limits can also be lowered accordingly
+	 */
+	if (U0-u1 > EWA_MAXIDX) u1 = U0 - EWA_MAXIDX;
+	if (u2-U0 > EWA_MAXIDX) u2 = U0 + EWA_MAXIDX;
+	if (V0-v1 > EWA_MAXIDX) v1 = V0 - EWA_MAXIDX;
+	if (v2-V0 > EWA_MAXIDX) v2 = V0 + EWA_MAXIDX;
+
+	float DDQ = 2.f * A;
+	float U = u1 - U0;
+	float ac1 = A * (2.f*U + 1.f);
+	float ac2 = A * U*U;
+	float BU = B * U;
+
+	float sum = 0.0f;
+	for (int v = v1; v <= v2; ++v) {
+		float V = v - V0;
+
+		float DQ = ac1 + B*V;
+		float Q = (C*V + BU)*V + ac2;
+		for (int u = u1; u <= u2; ++u) {
+			if (Q < F) {
 				float tc[4];
-				const float wt = EWA_WTS[(Q < 0.f) ? 0 : (unsigned int)Q];
-				read(tc, clipuv(u, width), clipuv(v, height));
+				const float wt = EWA_WTS[CLAMPIS((int)Q, 0, EWA_MAXIDX)];
+				switch (sampler) {
+					case COM_PS_NEAREST: read(tc, u, v); break;
+					case COM_PS_BILINEAR: readBilinear(tc, (float)u+ufac, (float)v+vfac); break;
+					case COM_PS_BICUBIC: readBilinear(tc, (float)u+ufac, (float)v+vfac); break; /* XXX no readBicubic method yet */
+					default: zero_v4(tc); break;
+				}
 				madd_v4_v4fl(result, tc, wt);
-				d += wt;
+				sum += wt;
 			}
 			Q += DQ;
 			DQ += DDQ;
 		}
 	}
 	
-	// d should hopefully never be zero anymore
-	d = 1.f / d;
-	mul_v4_fl(result, d);
+	mul_v4_fl(result, (sum != 0.0f ? 1.0f / sum : 0.0f));
 }

@@ -42,50 +42,100 @@ void MapUVOperation::initExecution()
 
 void MapUVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	float inputUV[4];
-	float uv_a[4], uv_b[4];
-	float u, v;
+	float xy[2] = { x, y };
+	float uv[2], deriv[2][2], alpha;
 
-	float dx, dy;
-	float uv_l, uv_r;
-	float uv_u, uv_d;
-
-	this->m_inputUVProgram->readSampled(inputUV, x, y, sampler);
-	if (inputUV[2] == 0.f) {
+	pixelTransform(xy, uv, deriv, alpha);
+	if (alpha == 0.0f) {
 		zero_v4(output);
 		return;
 	}
-	/* adaptive sampling, red (U) channel */
-	this->m_inputUVProgram->readSampled(uv_a, x - 1, y, COM_PS_NEAREST);
-	this->m_inputUVProgram->readSampled(uv_b, x + 1, y, COM_PS_NEAREST);
-	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-
-	dx = 0.5f * (uv_l + uv_r);
-
-	/* adaptive sampling, green (V) channel */
-	this->m_inputUVProgram->readSampled(uv_a, x, y - 1, COM_PS_NEAREST);
-	this->m_inputUVProgram->readSampled(uv_b, x, y + 1, COM_PS_NEAREST);
-	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
-
-	dy = 0.5f * (uv_u + uv_d);
-
-	/* UV to alpha threshold */
-	const float threshold = this->m_alpha * 0.05f;
-	float alpha = 1.0f - threshold * (dx + dy);
-	if (alpha < 0.f) alpha = 0.f;
-	else alpha *= inputUV[2];
 
 	/* EWA filtering */
-	u = inputUV[0] * this->m_inputColorProgram->getWidth();
-	v = inputUV[1] * this->m_inputColorProgram->getHeight();
-
-	this->m_inputColorProgram->readFiltered(output, u, v, dx, dy, COM_PS_NEAREST);
+	this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1], COM_PS_BILINEAR);
+	
+	/* UV to alpha threshold */
+	const float threshold = this->m_alpha * 0.05f;
+	/* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
+	 * this calculation is not very well defined, should be looked into if it becomes a problem ...
+	 */
+	float du = len_v2(deriv[0]);
+	float dv = len_v2(deriv[1]);
+	float factor = 1.0f - threshold * (du + dv);
+	if (factor < 0.f) alpha = 0.f;
+	else alpha *= factor;
 
 	/* "premul" */
 	if (alpha < 1.0f) {
 		mul_v4_fl(output, alpha);
+	}
+}
+
+bool MapUVOperation::read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha)
+{
+	float width = m_inputUVProgram->getWidth();
+	float height = m_inputUVProgram->getHeight();
+	if (x < 0.0f || x >= width || y < 0.0f || y >= height) {
+		r_u = 0.0f;
+		r_v = 0.0f;
+		r_alpha = 0.0f;
+		return false;
+	}
+	else {
+		float col[4];
+		m_inputUVProgram->readSampled(col, x, y, COM_PS_BILINEAR);
+		r_u = col[0] * width;
+		r_v = col[1] * height;
+		r_alpha = col[2];
+		return true;
+	}
+}
+
+void MapUVOperation::pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha)
+{
+	float uv[2], alpha; /* temporary variables for derivative estimation */
+	int num;
+
+	read_uv(xy[0], xy[1], r_uv[0], r_uv[1], r_alpha);
+
+	/* Estimate partial derivatives using 1-pixel offsets */
+	const float epsilon[2] = { 1.0f, 1.0f };
+
+	zero_v2(r_deriv[0]);
+	zero_v2(r_deriv[1]);
+
+	num = 0;
+	if (read_uv(xy[0] + epsilon[0], xy[1], uv[0], uv[1], alpha)) {
+		r_deriv[0][0] += uv[0] - r_uv[0];
+		r_deriv[1][0] += uv[1] - r_uv[1];
+		++num;
+	}
+	if (read_uv(xy[0] - epsilon[0], xy[1], uv[0], uv[1], alpha)) {
+		r_deriv[0][0] += r_uv[0] - uv[0];
+		r_deriv[1][0] += r_uv[1] - uv[1];
+		++num;
+	}
+	if (num > 0) {
+		float numinv = 1.0f / (float)num;
+		r_deriv[0][0] *= numinv;
+		r_deriv[1][0] *= numinv;
+	}
+
+	num = 0;
+	if (read_uv(xy[0], xy[1] + epsilon[1], uv[0], uv[1], alpha)) {
+		r_deriv[0][1] += uv[0] - r_uv[0];
+		r_deriv[1][1] += uv[1] - r_uv[1];
+		++num;
+	}
+	if (read_uv(xy[0], xy[1] - epsilon[1], uv[0], uv[1], alpha)) {
+		r_deriv[0][1] += r_uv[0] - uv[0];
+		r_deriv[1][1] += r_uv[1] - uv[1];
+		++num;
+	}
+	if (num > 0) {
+		float numinv = 1.0f / (float)num;
+		r_deriv[0][1] *= numinv;
+		r_deriv[1][1] *= numinv;
 	}
 }
 
