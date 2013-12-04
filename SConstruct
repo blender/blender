@@ -373,7 +373,9 @@ if env['OURPLATFORM']=='darwin':
 
     #Intel Macs are CoreDuo and Up
     if env['MACOSX_ARCHITECTURE'] == 'i386' or env['MACOSX_ARCHITECTURE'] == 'x86_64':
-        env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-ftree-vectorize','-msse','-msse2','-msse3']
+        env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-msse','-msse2','-msse3']
+        if env['XCODE_CUR_VER'] >= '5':
+            env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-ftree-vectorize'] # clang xcode 4 does not accept flag
     else:
         env['CCFLAGS'] =  env['CCFLAGS']+['-fno-strict-aliasing']
 
@@ -409,7 +411,7 @@ if env['OURPLATFORM']=='darwin':
     #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
     # if your compiler does not have accurate suffix you may have to enable it by hand !
     if env['WITH_BF_OPENMP'] == 1:
-        if env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.6.1':
+        if env['CC'].split('/')[len(env['CC'].split('/'))-1].strip('llvm - gcc clang') >= '4.6.1': # strip down to version string if any
             env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
             print B.bc.OKGREEN + "Using OpenMP"
         else:
@@ -419,7 +421,7 @@ if env['OURPLATFORM']=='darwin':
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
         # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
-        if env['CC'].split('/')[len(env['CC'].split('/'))-1][4:] >= '4.8':
+        if env['CC'].split('/')[len(env['CC'].split('/'))-1].strip('llvm - gcc clang') >= '4.8': # strip down to version string if any
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-loslexec','-loslquery'])
         else:
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
