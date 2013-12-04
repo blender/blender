@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_linklist_stack.h"
 
 #include "BLF_translation.h"
 
@@ -1571,6 +1572,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	int redo;
 	int scroll;
 
+	BLI_SMALLSTACK_DECLARE(pt_stack, PanelType *);
+
 	if (contextnr >= 0)
 		is_context_new = UI_view2d_tab_set(v2d, contextnr);
 	
@@ -1592,7 +1595,22 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	}
 
 	scroll = v2d->scroll;
-	
+
+
+	/* collect panels to draw */
+	for (pt = ar->type->paneltypes.last; pt; pt = pt->prev) {
+		/* verify context */
+		if (context && pt->context[0] && !STREQ(context, pt->context)) {
+			continue;
+		}
+
+		/* draw panel */
+		if (pt->draw && (!pt->poll || pt->poll(C, pt))) {
+			BLI_SMALLSTACK_PUSH(pt_stack, pt);
+		}
+	}
+
+
 	/* sortof hack - but we cannot predict the height of panels, until it's being generated */
 	/* the layout engine works with fixed width (from v2d->cur), which is being set at end of the loop */
 	/* in case scroller settings (hide flags) differ from previous, the whole loop gets done again */
@@ -1613,63 +1631,57 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		/* set view2d view matrix  - uiBeginBlock() stores it */
 		UI_view2d_view_ortho(v2d);
 
-		for (pt = ar->type->paneltypes.first; pt; pt = pt->next) {
-			/* verify context */
-			if (context)
-				if (pt->context[0] && strcmp(context, pt->context) != 0)
-					continue;
+		BLI_SMALLSTACK_ITER_BEGIN(pt_stack, pt)
+		{
+			block = uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
+			panel = uiBeginPanel(sa, ar, block, pt, &open);
 
-			/* draw panel */
-			if (pt->draw && (!pt->poll || pt->poll(C, pt))) {
-				block = uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-				panel = uiBeginPanel(sa, ar, block, pt, &open);
+			/* bad fixed values */
+			triangle = (int)(UI_UNIT_Y * 1.1f);
 
-				/* bad fixed values */
-				triangle = (int)(UI_UNIT_Y * 1.1f);
+			if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+				/* for enabled buttons */
+				panel->layout = uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+				                              triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, style);
 
-				if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
-					/* for enabled buttons */
-					panel->layout = uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					                              triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, style);
+				pt->draw_header(C, panel);
 
-					pt->draw_header(C, panel);
-
-					uiBlockLayoutResolve(block, &xco, &yco);
-					panel->labelofs = xco - triangle;
-					panel->layout = NULL;
-				}
-				else {
-					panel->labelofs = 0;
-				}
-
-				if (open) {
-					short panelContext;
-					
-					/* panel context can either be toolbar region or normal panels region */
-					if (ar->regiontype == RGN_TYPE_TOOLS)
-						panelContext = UI_LAYOUT_TOOLBAR;
-					else
-						panelContext = UI_LAYOUT_PANEL;
-					
-					panel->layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
-					                              style->panelspace, 0, w - 2 * style->panelspace, em, style);
-
-					pt->draw(C, panel);
-
-					uiBlockLayoutResolve(block, &xco, &yco);
-					panel->layout = NULL;
-
-					yco -= 2 * style->panelspace;
-					uiEndPanel(block, w, -yco);
-				}
-				else {
-					yco = 0;
-					uiEndPanel(block, w, 0);
-				}
-
-				uiEndBlock(C, block);
+				uiBlockLayoutResolve(block, &xco, &yco);
+				panel->labelofs = xco - triangle;
+				panel->layout = NULL;
 			}
+			else {
+				panel->labelofs = 0;
+			}
+
+			if (open) {
+				short panelContext;
+
+				/* panel context can either be toolbar region or normal panels region */
+				if (ar->regiontype == RGN_TYPE_TOOLS)
+					panelContext = UI_LAYOUT_TOOLBAR;
+				else
+					panelContext = UI_LAYOUT_PANEL;
+
+				panel->layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
+				                              style->panelspace, 0, w - 2 * style->panelspace, em, style);
+
+				pt->draw(C, panel);
+
+				uiBlockLayoutResolve(block, &xco, &yco);
+				panel->layout = NULL;
+
+				yco -= 2 * style->panelspace;
+				uiEndPanel(block, w, -yco);
+			}
+			else {
+				yco = 0;
+				uiEndPanel(block, w, 0);
+			}
+
+			uiEndBlock(C, block);
 		}
+		BLI_SMALLSTACK_ITER_END;
 
 		/* align panels and return size */
 		uiEndPanels(C, ar, &x, &y);
@@ -1706,6 +1718,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		}
 	}
 	
+	BLI_SMALLSTACK_FREE(pt_stack);
 	
 	/* clear */
 	if (ar->overlap) {

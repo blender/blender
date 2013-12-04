@@ -147,6 +147,17 @@
 	(_BLI_SMALLSTACK_CAST(var) ((_##var##_stack) ? \
 	(_BLI_SMALLSTACK_DEL(var), (_##var##_free->link)) : NULL))
 
+/* loop over stack members last-added-first */
+#define BLI_SMALLSTACK_ITER_BEGIN(var, item) \
+	{ \
+		LinkNode *_##var##_iter; \
+		for (_##var##_iter = _##var##_stack; _##var##_iter; _##var##_iter = _##var##_iter->next) { \
+			item = _BLI_SMALLSTACK_CAST(var) (_##var##_iter->link); \
+
+#define BLI_SMALLSTACK_ITER_END \
+		} \
+	} (void)0
+
 #define BLI_SMALLSTACK_FREE(var)  { \
 	(void)&(_##var##_type); \
 } (void)0
