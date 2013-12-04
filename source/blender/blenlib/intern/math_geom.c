@@ -2759,10 +2759,10 @@ void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
 
 		if (!IS_ZERO(denom)) {
 			double inv_denom = 1.0 / denom;
-			r_deriv[0][0] = -t[1] * inv_denom;
-			r_deriv[0][1] =  t[0] * inv_denom;
-			r_deriv[1][0] =  s[1] * inv_denom;
-			r_deriv[1][1] = -s[0] * inv_denom;
+			r_deriv[0][0] = (double)-t[1] * inv_denom;
+			r_deriv[0][1] = (double) t[0] * inv_denom;
+			r_deriv[1][0] = (double) s[1] * inv_denom;
+			r_deriv[1][1] = (double)-s[0] * inv_denom;
 		}
 	}
 }
