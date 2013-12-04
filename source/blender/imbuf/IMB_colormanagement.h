@@ -191,11 +191,6 @@ bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C
 /* Finish GLSL-based display space conversion */
 void IMB_colormanagement_finish_glsl_draw(void);
 
-/* Configures GLSL shader for conversion from space defined by role to scene linear space */
-bool IMB_colormanagement_setup_transform_from_role_glsl(int role, bool predivide);
-/* Finish GLSL-based color space conversion */
-void IMB_colormanagement_finish_glsl_transform(void);
-
 /* Roles */
 enum {
 	COLOR_ROLE_SCENE_LINEAR = 0,

@@ -3147,36 +3147,3 @@ void IMB_colormanagement_finish_glsl_draw(void)
 {
 	OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
 }
-
-/* ** Color space conversion using GLSL shader  ** */
-
-/**
- * Configures GLSL shader for conversion from space defined by role
- * to scene linear space
- *
- * Will create appropriate OCIO processor and setup GLSL shader,
- * so further 2D texture usage will use this conversion.
- *
- * Role is an pseudonym for a color space, see bottom of file
- * IMB_colormanagement.h for list of available roles.
- *
- * When there's no need to apply transform on 2D textures, use
- * IMB_colormanagement_finish_glsl_transform().
- */
-bool IMB_colormanagement_setup_transform_from_role_glsl(int role, bool predivide)
-{
-	OCIO_ConstProcessorRcPtr *processor;
-	ColorSpace *colorspace;
-
-	colorspace = colormanage_colorspace_get_roled(role);
-
-	processor = colorspace_to_scene_linear_processor(colorspace);
-
-	return OCIO_setupGLSLDraw(&global_glsl_state.transform_ocio_glsl_state, processor, NULL, predivide);
-}
-
-/* Finish GLSL-based color space conversion */
-void IMB_colormanagement_finish_glsl_transform(void)
-{
-	OCIO_finishGLSLDraw(global_glsl_state.transform_ocio_glsl_state);
-}
