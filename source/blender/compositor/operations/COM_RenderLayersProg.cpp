@@ -75,13 +75,15 @@ void RenderLayersBaseProg::initExecution()
 void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, PixelSampler sampler)
 {
 	unsigned int offset;
-	int ix, iy;
 	int width = this->getWidth(), height = this->getHeight();
 
 	switch (sampler) {
-		case COM_PS_NEAREST:
-			ix = x;
-			iy = y;
+		case COM_PS_NEAREST: {
+			int ix = x;
+			int iy = y;
+			if (ix < 0 || iy < 0 || ix >= width || iy >= height)
+				break;
+
 			offset = (iy * width + ix) * this->m_elementsize;
 
 			if (this->m_elementsize == 1)
@@ -90,8 +92,8 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 				copy_v3_v3(output, &this->m_inputBuffer[offset]);
 			else
 				copy_v4_v4(output, &this->m_inputBuffer[offset]);
-
 			break;
+		}
 
 		case COM_PS_BILINEAR:
 			BLI_bilinear_interpolation_fl(this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
@@ -137,7 +139,7 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 	int iy = y;
 #endif
 
-	if (this->m_inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
+	if (this->m_inputBuffer == NULL) {
 		zero_v4(output);
 	}
 	else {

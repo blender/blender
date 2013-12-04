@@ -105,6 +105,10 @@ BLI_INLINE void bicubic_interpolation(const unsigned char *byte_buffer, const fl
 
 	/* sample area entirely outside image? */
 	if (ceil(u) < 0 || floor(u) > width - 1 || ceil(v) < 0 || floor(v) > height - 1) {
+		if (float_output)
+			float_output[0] = float_output[1] = float_output[2] = float_output[3] = 0.0f;
+		if (byte_output)
+			byte_output[0] = byte_output[1] = byte_output[2] = byte_output[3] = 0;
 		return;
 	}
 
@@ -263,14 +267,15 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 	y1 = (int)floor(v);
 	y2 = (int)ceil(v);
 
-	/* sample area entirely outside image? */
-	if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
-		return;
-	}
-
 	if (float_output) {
 		const float *row1, *row2, *row3, *row4;
 		float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		/* sample area entirely outside image? */
+		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
+			float_output[0] = float_output[1] = float_output[2] = float_output[3] = 0.0f;
+			return;
+		}
 
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
@@ -307,6 +312,12 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 	else {
 		const unsigned char *row1, *row2, *row3, *row4;
 		unsigned char empty[4] = {0, 0, 0, 0};
+
+		/* sample area entirely outside image? */
+		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
+			byte_output[0] = byte_output[1] = byte_output[2] = byte_output[3] = 0;
+			return;
+		}
 
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;

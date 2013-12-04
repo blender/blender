@@ -148,7 +148,7 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 
 void ImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	if ((this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) {
 		zero_v4(output);
 	}
 	else {
@@ -160,7 +160,7 @@ void ImageAlphaOperation::executePixelSampled(float output[4], float x, float y,
 {
 	float tempcolor[4];
 
-	if ((this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) {
 		output[0] = 0.0f;
 	}
 	else {
@@ -172,11 +172,15 @@ void ImageAlphaOperation::executePixelSampled(float output[4], float x, float y,
 
 void ImageDepthOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	if (this->m_depthBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+	if (this->m_depthBuffer == NULL) {
 		output[0] = 0.0f;
 	}
 	else {
-		int offset = y * this->m_width + x;
-		output[0] = this->m_depthBuffer[offset];
+		if (x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight())
+			output[0] = 0.0f;
+		else {
+			int offset = y * this->m_width + x;
+			output[0] = this->m_depthBuffer[offset];
+		}
 	}
 }

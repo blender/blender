@@ -90,7 +90,7 @@ void MovieClipBaseOperation::executePixelSampled(float output[4], float x, float
 {
 	ImBuf *ibuf = this->m_movieClipBuffer;
 
-	if (ibuf == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+	if (ibuf == NULL) {
 		zero_v4(output);
 	}
 	else if (ibuf->rect == NULL && ibuf->rect_float == NULL) {

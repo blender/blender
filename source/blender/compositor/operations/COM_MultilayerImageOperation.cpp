@@ -44,9 +44,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
 
 void MultilayerColorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	int yi = y;
-	int xi = x;
-	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL) {
 		zero_v4(output);
 	}
 	else {
@@ -64,34 +62,48 @@ void MultilayerColorOperation::executePixelSampled(float output[4], float x, flo
 			}
 		}
 		else {
-			int offset = (yi * this->getWidth() + xi) * 3;
-			copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+			int yi = y;
+			int xi = x;
+			if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight())
+				zero_v4(output);
+			else {
+				int offset = (yi * this->getWidth() + xi) * 3;
+				copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+			}
 		}
 	}
 }
 
 void MultilayerValueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	int yi = y;
-	int xi = x;
-	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL) {
 		output[0] = 0.0f;
 	}
 	else {
-		float result = this->m_imageFloatBuffer[yi * this->getWidth() + xi];
-		output[0] = result;
+		int yi = y;
+		int xi = x;
+		if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight())
+			output[0] = 0.0f;
+		else {
+			float result = this->m_imageFloatBuffer[yi * this->getWidth() + xi];
+			output[0] = result;
+		}
 	}
 }
 
 void MultilayerVectorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	int yi = y;
-	int xi = x;
-	if (this->m_imageFloatBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageFloatBuffer == NULL) {
 		output[0] = 0.0f;
 	}
 	else {
-		int offset = (yi * this->getWidth() + xi) * 3;
-		copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+		int yi = y;
+		int xi = x;
+		if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight())
+			output[0] = 0.0f;
+		else {
+			int offset = (yi * this->getWidth() + xi) * 3;
+			copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+		}
 	}
 }

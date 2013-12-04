@@ -232,6 +232,10 @@ void nearest_interpolation_color(struct ImBuf *in, unsigned char outI[4], float 
 
 	/* sample area entirely outside image? */
 	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) {
+		if (outI)
+			outI[0] = outI[1] = outI[2] = outI[3] = 0;
+		if (outF)
+			outF[0] = outF[1] = outF[2] = outF[3] = 0.0f;
 		return;
 	}
 
