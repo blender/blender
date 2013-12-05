@@ -261,6 +261,19 @@ void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d)
 }
 #endif
 
+static void view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	if (rv3d->render_engine) {
+		WM_jobs_kill_type(wm, ar, WM_JOB_TYPE_RENDER_PREVIEW);
+		if (rv3d->render_engine->re)
+			RE_Database_Free(rv3d->render_engine->re);
+		RE_engine_free(rv3d->render_engine);
+		rv3d->render_engine = NULL;
+	}
+}
+
 void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 {
 	wmWindowManager *wm = bmain->wm.first;
@@ -269,15 +282,8 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 		ARegion *ar;
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			RegionView3D *rv3d = ar->regiondata;
-
-			if (rv3d && rv3d->render_engine) {
-				WM_jobs_kill_type(wm, ar, WM_JOB_TYPE_RENDER_PREVIEW);
-				if (rv3d->render_engine->re)
-					RE_Database_Free(rv3d->render_engine->re);
-				RE_engine_free(rv3d->render_engine);
-				rv3d->render_engine = NULL;
-			}
+			if (ar->regiondata)
+				view3d_stop_render_preview(wm, ar);
 		}
 	}
 }
@@ -508,14 +514,11 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static void view3d_main_area_exit(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
-	if (rv3d->render_engine) {
-		RE_engine_free(rv3d->render_engine);
-		rv3d->render_engine = NULL;
-	}
+	view3d_stop_render_preview(wm, ar);
 
 	if (rv3d->gpuoffscreen) {
 		GPU_offscreen_free(rv3d->gpuoffscreen);
