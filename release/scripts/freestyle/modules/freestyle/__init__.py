@@ -18,4 +18,4 @@
 
 # module members
 from _freestyle import Operators
-from . import chainingiterators, functions, predicates, types, utils
+from . import chainingiterators, functions, predicates, shaders, types, utils
