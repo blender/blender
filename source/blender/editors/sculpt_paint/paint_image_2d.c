@@ -49,6 +49,7 @@
 #include "BKE_report.h"
 
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -902,7 +903,7 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *maskb, const f
 	
 	/* blend into canvas */
 	for (a = 0; a < tot; a++) {
-		imapaint_dirty_region(s->image, s->canvas,
+		ED_imapaint_dirty_region(s->image, s->canvas,
 		                      region[a].destx, region[a].desty,
 		                      region[a].width, region[a].height);
 	
@@ -1111,7 +1112,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
 		ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, s->sima ? &s->sima->iuser : NULL, NULL);
 
 		imapaint_image_update(s->sima, s->image, ibuf, false);
-		imapaint_clear_partial_redraw();
+		ED_imapaint_clear_partial_redraw();
 
 		BKE_image_release_ibuf(s->image, ibuf, NULL);
 

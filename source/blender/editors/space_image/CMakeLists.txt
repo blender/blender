@@ -30,6 +30,7 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../gpu
 )
 
 set(INC_SYS

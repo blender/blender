@@ -58,6 +58,8 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
+#include "GPU_draw.h"
+
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -85,6 +87,7 @@
 #include "PIL_time.h"
 
 #include "image_intern.h"
+#include "ED_sculpt.h"
 
 /******************** view navigation utilities *********************/
 
@@ -1860,6 +1863,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+	SpaceImage *sima = CTX_wm_space_image(C);
+	/* undo is supported only on image paint mode currently */
+	bool support_undo = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
 
 	/* flags indicate if this channel should be inverted */
 	const short r = RNA_boolean_get(op->ptr, "invert_r");
@@ -1872,6 +1878,14 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	if (ibuf == NULL)  /* TODO: this should actually never happen, but does for render-results -> cleanup */
 		return OPERATOR_CANCELLED;
 
+	if (support_undo) {
+		ED_undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
+							  ED_image_undo_restore, ED_image_undo_free);
+		/* not strictly needed, because we only imapaint_dirty_region to invalidate all tiles
+		 * but better do this right in case someone copies this for a tool that uses partial redraw better */
+		ED_imapaint_clear_partial_redraw();
+		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
+	}
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
 	if (ibuf->rect_float) {
 		
@@ -1903,8 +1917,15 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	}
 
 	ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
+
 	if (ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;
+
+	if (support_undo)
+		ED_undo_paint_push_end(UNDO_PAINT_IMAGE);
+
+	/* force GPU reupload, all image is invalid */
+	GPU_free_image(ima);
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 

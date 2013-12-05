@@ -238,7 +238,7 @@ void image_undo_remove_masks(void)
 	}
 }
 
-void image_undo_restore(bContext *C, ListBase *lb)
+void ED_image_undo_restore(bContext *C, ListBase *lb)
 {
 	Main *bmain = CTX_data_main(C);
 	Image *ima = NULL;
@@ -304,7 +304,7 @@ void image_undo_restore(bContext *C, ListBase *lb)
 	IMB_freeImBuf(tmpibuf);
 }
 
-void image_undo_free(ListBase *lb)
+void ED_image_undo_free(ListBase *lb)
 {
 	UndoImageTile *tile;
 
@@ -314,7 +314,7 @@ void image_undo_free(ListBase *lb)
 
 /* Imagepaint Partial Redraw & Dirty Region */
 
-void imapaint_clear_partial_redraw(void)
+void ED_imapaint_clear_partial_redraw(void)
 {
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }
@@ -331,7 +331,7 @@ void imapaint_region_tiles(ImBuf *ibuf, int x, int y, int w, int h, int *tx, int
 	*ty = (y >> IMAPAINT_TILE_BITS);
 }
 
-void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
+void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	ImBuf *tmpibuf = NULL;
 	int tilex, tiley, tilew, tileh, tx, ty;
@@ -506,8 +506,8 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, float mou
 	}
 
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
-	                      image_undo_restore, image_undo_free);
+	ED_undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
+	                      ED_image_undo_restore, ED_image_undo_free);
 
 	{
 		UnifiedPaintSettings *ups = &settings->unified_paint_settings;
@@ -582,7 +582,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		paint_2d_stroke_done(pop->custom_paint);
 	}
 
-	undo_paint_push_end(UNDO_PAINT_IMAGE);
+	ED_undo_paint_push_end(UNDO_PAINT_IMAGE);
 
 	/* duplicate warning, see texpaint_init */
 #if 0

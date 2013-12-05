@@ -65,8 +65,20 @@ void ED_keymap_paint(struct wmKeyConfig *keyconf);
 #define UNDO_PAINT_IMAGE    0
 #define UNDO_PAINT_MESH     1
 
+typedef void (*UndoRestoreCb)(struct bContext *C, struct ListBase *lb);
+typedef void (*UndoFreeCb)(struct ListBase *lb);
+
 int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_free(void);
 int ED_undo_paint_valid(int type, const char *name);
+void ED_undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free);
+void ED_undo_paint_push_end(int type);
+
+/* image painting specific undo */
+void ED_image_undo_restore(struct bContext *C, struct ListBase *lb);
+void ED_image_undo_free(struct ListBase *lb);
+void ED_imapaint_clear_partial_redraw(void);
+void ED_imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+
 
 #endif

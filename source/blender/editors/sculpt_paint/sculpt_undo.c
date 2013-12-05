@@ -819,7 +819,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 
 void sculpt_undo_push_begin(const char *name)
 {
-	undo_paint_push_begin(UNDO_PAINT_MESH, name,
+	ED_undo_paint_push_begin(UNDO_PAINT_MESH, name,
 	                      sculpt_undo_restore, sculpt_undo_free);
 }
 
@@ -839,5 +839,5 @@ void sculpt_undo_push_end(void)
 			BKE_pbvh_node_layer_disp_free(unode->node);
 	}
 
-	undo_paint_push_end(UNDO_PAINT_MESH);
+	ED_undo_paint_push_end(UNDO_PAINT_MESH);
 }

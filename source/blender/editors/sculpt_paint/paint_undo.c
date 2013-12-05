@@ -223,7 +223,7 @@ static void undo_stack_free(UndoStack *stack)
 
 /* Exported Functions */
 
-void undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free)
+void ED_undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free)
 {
 	if (type == UNDO_PAINT_IMAGE)
 		undo_stack_push_begin(&ImageUndoStack, name, restore, free);
@@ -253,7 +253,7 @@ void undo_paint_push_count_alloc(int type, int size)
 		MeshUndoStack.current->undosize += size;
 }
 
-void undo_paint_push_end(int type)
+void ED_undo_paint_push_end(int type)
 {
 	if (type == UNDO_PAINT_IMAGE)
 		undo_stack_push_end(&ImageUndoStack);

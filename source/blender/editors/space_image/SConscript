@@ -42,6 +42,7 @@ incs = [
     '../../makesrna',
     '../../render/extern/include',
     '../../windowmanager',
+    '../../gpu',
     ]
 incs = ' '.join(incs)
 
