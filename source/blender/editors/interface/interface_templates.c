@@ -2971,7 +2971,9 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		case UILST_LAYOUT_COMPACT:
 			row = uiLayoutRow(layout, TRUE);
 
-			if (dataptr->data && prop && dyn_data->items_shown > 0) {
+			if ((dataptr->data && prop) && (dyn_data->items_shown > 0) &&
+			    (activei >= 0) && (activei < dyn_data->items_shown))
+			{
 				PointerRNA *itemptr = &items_ptr[activei].item;
 				int org_i = items_ptr[activei].org_idx;
 
