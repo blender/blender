@@ -1420,6 +1420,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 			                    (height - SCANLINE_BLOCK_SIZE * i) :
 			                    SCANLINE_BLOCK_SIZE;
 			int scanline_offset = channels * start_scanline * width;
+			int scanline_offset4 = 4 * start_scanline * width;
 			bool is_straight_alpha, predivide;
 
 			display_buffer_apply_get_linear_buffer(handle, start_scanline, num_scanlines,
@@ -1440,7 +1441,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 			/* copy result to output buffers */
 			if (display_buffer_byte) {
 				/* do conversion */
-				IMB_buffer_byte_from_float(display_buffer_byte + scanline_offset, linear_buffer,
+				IMB_buffer_byte_from_float(display_buffer_byte + scanline_offset4, linear_buffer,
 				                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
 				                           predivide, width, num_scanlines, width, width);
 			}
