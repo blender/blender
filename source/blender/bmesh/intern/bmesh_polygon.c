@@ -216,6 +216,7 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
 		do {
 			mul_v2_m3v3(projverts[j], axis_mat, l_iter->v->co);
 			r_loops[j] = l_iter;
+			j++;
 		} while ((l_iter = l_iter->next) != l_first);
 
 		/* complete the loop */
