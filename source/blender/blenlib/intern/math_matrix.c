@@ -31,6 +31,8 @@
 #include <assert.h>
 #include "BLI_math.h"
 
+#include "BLI_strict_flags.h"
+
 /********************************* Init **************************************/
 
 void zero_m3(float m[3][3])
@@ -115,17 +117,17 @@ void copy_m4_m3(float m1[4][4], float m2[3][3]) /* no clear */
 void copy_m3_m3d(float R[3][3], double A[3][3])
 {
 	/* Keep it stupid simple for better data flow in CPU. */
-	R[0][0] = A[0][0];
-	R[0][1] = A[0][1];
-	R[0][2] = A[0][2];
+	R[0][0] = (float)A[0][0];
+	R[0][1] = (float)A[0][1];
+	R[0][2] = (float)A[0][2];
 
-	R[1][0] = A[1][0];
-	R[1][1] = A[1][1];
-	R[1][2] = A[1][2];
+	R[1][0] = (float)A[1][0];
+	R[1][1] = (float)A[1][1];
+	R[1][2] = (float)A[1][2];
 
-	R[2][0] = A[2][0];
-	R[2][1] = A[2][1];
-	R[2][2] = A[2][2];
+	R[2][0] = (float)A[2][0];
+	R[2][1] = (float)A[2][1];
+	R[2][2] = (float)A[2][2];
 }
 
 void swap_m3m3(float m1[3][3], float m2[3][3])
@@ -711,11 +713,11 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 
 	for (i = 0; i < 4; i++) {
 		/* Look for row with max pivot */
-		max = fabs(tempmat[i][i]);
+		max = fabsf(tempmat[i][i]);
 		maxj = i;
 		for (j = i + 1; j < 4; j++) {
 			if (fabsf(tempmat[j][i]) > max) {
-				max = fabs(tempmat[j][i]);
+				max = fabsf(tempmat[j][i]);
 				maxj = j;
 			}
 		}
@@ -1029,7 +1031,7 @@ bool is_orthonormal_m4(float m[4][4])
 
 bool is_uniform_scaled_m3(float m[3][3])
 {
-	const float eps = 1e-7;
+	const float eps = 1e-7f;
 	float t[3][3];
 	float l1, l2, l3, l4, l5, l6;
 
@@ -1626,7 +1628,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	int m = 4;
 	int n = 4;
 	int maxiter = 200;
-	int nu = min_ff(m, n);
+	int nu = min_ii(m, n);
 
 	float *work = work1;
 	float *e = work2;
@@ -1637,14 +1639,14 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	/* Reduce A to bidiagonal form, storing the diagonal elements
 	 * in s and the super-diagonal elements in e. */
 
-	int nct = min_ff(m - 1, n);
-	int nrt = max_ff(0, min_ff(n - 2, m));
+	int nct = min_ii(m - 1, n);
+	int nrt = max_ii(0, min_ii(n - 2, m));
 
 	copy_m4_m4(A, A_);
 	zero_m4(U);
 	zero_v4(s);
 
-	for (k = 0; k < max_ff(nct, nrt); k++) {
+	for (k = 0; k < max_ii(nct, nrt); k++) {
 		if (k < nct) {
 
 			/* Compute the transformation for the k-th column and
@@ -1748,7 +1750,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 
 	/* Set up the final bidiagonal matrix or order p. */
 
-	p = min_ff(n, m + 1);
+	p = min_ii(n, m + 1);
 	if (nct < n) {
 		s[nct] = A[nct][nct];
 	}

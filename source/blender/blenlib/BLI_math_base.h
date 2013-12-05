@@ -139,6 +139,9 @@ static const int NAN_INT = 0x7FC00000;
 #ifndef hypotf
 #define hypotf(a, b) ((float)hypot(a, b))
 #endif
+#ifndef copysignf
+#define copysignf(a, b) ((float)copysign(a, b))
+#endif
 
 #endif  /* C99 or POSIX.1-2001 */
 
@@ -214,9 +217,17 @@ MINLINE float interpf(float a, float b, float t);
 
 MINLINE float min_ff(float a, float b);
 MINLINE float max_ff(float a, float b);
+MINLINE float min_fff(float a, float b, float c);
+MINLINE float max_fff(float a, float b, float c);
+MINLINE float min_ffff(float a, float b, float c, float d);
+MINLINE float max_ffff(float a, float b, float c, float d);
 
 MINLINE int min_ii(int a, int b);
 MINLINE int max_ii(int a, int b);
+MINLINE int min_iii(int a, int b, int c);
+MINLINE int max_iii(int a, int b, int c);
+MINLINE int min_iiii(int a, int b, int c, int d);
+MINLINE int max_iiii(int a, int b, int c, int d);
 
 MINLINE float signf(float f);
 
@@ -229,6 +240,9 @@ MINLINE int power_of_2_min_i(int n);
 
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
+
+MINLINE unsigned int highest_order_bit_i(unsigned int n);
+MINLINE unsigned short highest_order_bit_s(unsigned short n);
 
 MINLINE float shell_angle_to_dist(const float angle);
 

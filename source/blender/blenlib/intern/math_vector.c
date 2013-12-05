@@ -27,9 +27,9 @@
  *  \ingroup bli
  */
 
-
-
 #include "BLI_math.h"
+
+#include "BLI_strict_flags.h"
 
 //******************************* Interpolation *******************************/
 
@@ -497,8 +497,8 @@ void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
  */
 void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
 {
-	const float costheta = cos(angle);
-	const float sintheta = sin(angle);
+	const float costheta = cosf(angle);
+	const float sintheta = sinf(angle);
 
 	/* double check they are normalized */
 	BLI_ASSERT_UNIT_V3(axis);

@@ -27,7 +27,6 @@
  *  \ingroup bli
  */
 
-
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
@@ -36,26 +35,26 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLI_strict_flags.h"
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
-	int i;
-	float f, p, q, t;
-
-	if (s == 0.0f) {
+	if (UNLIKELY(s == 0.0f)) {
 		*r = v;
 		*g = v;
 		*b = v;
 	}
 	else {
+		float i, f, p, q, t;
 		h = (h - floorf(h)) * 6.0f;
 
-		i = (int)floorf(h);
+		i = floorf(h);
 		f = h - i;
 		p = v * (1.0f - s);
 		q = v * (1.0f - (s * f));
 		t = v * (1.0f - (s * (1.0f - f)));
 
-		switch (i) {
+		switch ((int)i) {
 			case 0:
 				*r = v;
 				*g = t;
@@ -213,9 +212,9 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 		return;
 	}
 
-	*r = ri * (1.0f / 255.0f);
-	*g = gi * (1.0f / 255.0f);
-	*b = bi * (1.0f / 255.0f);
+	*r = (float)ri * (1.0f / 255.0f);
+	*g = (float)gi * (1.0f / 255.0f);
+	*b = (float)bi * (1.0f / 255.0f);
 	CLAMP(*r, 0.0f, 1.0f);
 	CLAMP(*g, 0.0f, 1.0f);
 	CLAMP(*b, 0.0f, 1.0f);
@@ -365,15 +364,15 @@ void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int 
 
 unsigned int hsv_to_cpack(float h, float s, float v)
 {
-	short r, g, b;
+	unsigned int r, g, b;
 	float rf, gf, bf;
 	unsigned int col;
 
 	hsv_to_rgb(h, s, v, &rf, &gf, &bf);
 
-	r = (short) (rf * 255.0f);
-	g = (short) (gf * 255.0f);
-	b = (short) (bf * 255.0f);
+	r = (unsigned int) (rf * 255.0f);
+	g = (unsigned int) (gf * 255.0f);
+	b = (unsigned int) (bf * 255.0f);
 
 	col = (r + (g * 256) + (b * 256 * 256));
 	return col;
@@ -381,17 +380,15 @@ unsigned int hsv_to_cpack(float h, float s, float v)
 
 unsigned int rgb_to_cpack(float r, float g, float b)
 {
-	int ir, ig, ib;
+	unsigned int ir, ig, ib;
 
-	ir = (int)floor(255.0f * r);
-	if (ir < 0) ir = 0;
-	else if (ir > 255) ir = 255;
-	ig = (int)floor(255.0f * g);
-	if (ig < 0) ig = 0;
-	else if (ig > 255) ig = 255;
-	ib = (int)floor(255.0f * b);
-	if (ib < 0) ib = 0;
-	else if (ib > 255) ib = 255;
+	ir = (unsigned int)floorf(255.0f * max_ff(r, 0.0f));
+	ig = (unsigned int)floorf(255.0f * max_ff(g, 0.0f));
+	ib = (unsigned int)floorf(255.0f * max_ff(b, 0.0f));
+
+	if (ir > 255) ir = 255;
+	if (ig > 255) ig = 255;
+	if (ib > 255) ib = 255;
 
 	return (ir + (ig * 256) + (ib * 256 * 256));
 }
@@ -601,14 +598,14 @@ static float index_to_float(const unsigned short i)
 void BLI_init_srgb_conversion(void)
 {
 	static int initialized = 0;
-	int i, b;
+	unsigned int i, b;
 
 	if (initialized) return;
 	initialized = 1;
 
 	/* Fill in the lookup table to convert floats to bytes: */
 	for (i = 0; i < 0x10000; i++) {
-		float f = linearrgb_to_srgb(index_to_float(i)) * 255.0f;
+		float f = linearrgb_to_srgb(index_to_float((unsigned short)i)) * 255.0f;
 		if (f <= 0) BLI_color_to_srgb_table[i] = 0;
 		else if (f < 255) BLI_color_to_srgb_table[i] = (unsigned short) (f * 0x100 + 0.5f);
 		else BLI_color_to_srgb_table[i] = 0xff00;
@@ -620,13 +617,13 @@ void BLI_init_srgb_conversion(void)
 		BLI_color_from_srgb_table[b] = f;
 		i = hipart(f);
 		/* replace entries so byte->float->byte does not change the data: */
-		BLI_color_to_srgb_table[i] = b * 0x100;
+		BLI_color_to_srgb_table[i] = (unsigned short)(b * 0x100);
 	}
 }
 static float inverse_srgb_companding(float v)
 {
 	if (v > 0.04045f) {
-		return powf((v + 0.055f) / 1.055f, 2.4);
+		return powf((v + 0.055f) / 1.055f, 2.4f);
 	}
 	else {
 		return v / 12.92f;
@@ -650,7 +647,7 @@ static float xyz_to_lab_component(float v)
 	const float k = 903.3f;
 
 	if (v > eps) {
-		return pow(v, 1.0f / 3.0f);
+		return powf(v, 1.0f / 3.0f);
 	}
 	else {
 		return (k * v + 16.0f) / 116.0f;

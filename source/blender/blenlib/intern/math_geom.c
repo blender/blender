@@ -27,13 +27,13 @@
  *  \ingroup bli
  */
 
-
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
+
+#include "BLI_strict_flags.h"
 
 /********************************** Polygons *********************************/
 
@@ -321,7 +321,7 @@ float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
 	const float length = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
 	const float fac = side / length;
-	return copysign(length * (fac * fac), side);
+	return copysignf(length * (fac * fac), side);
 }
 
 /**
@@ -394,7 +394,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 	/* Check if P in edge region of AB, if so return projection of P onto AB */
 	vc = d1 * d4 - d3 * d2;
 	if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
-		float v = d1 / (d1 - d3);
+		v = d1 / (d1 - d3);
 		/* barycentric coordinates (1-v,v,0) */
 		madd_v3_v3v3fl(r, a, ab, v);
 		return;
@@ -411,7 +411,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 	/* Check if P in edge region of AC, if so return projection of P onto AC */
 	vb = d5 * d2 - d1 * d6;
 	if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
-		float w = d2 / (d2 - d6);
+		w = d2 / (d2 - d6);
 		/* barycentric coordinates (1-w,0,w) */
 		madd_v3_v3v3fl(r, a, ac, w);
 		return;
@@ -419,7 +419,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 	/* Check if P in edge region of BC, if so return projection of P onto BC */
 	va = d3 * d6 - d5 * d4;
 	if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
-		float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+		w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
 		/* barycentric coordinates (0,1-w,w) */
 		sub_v3_v3v3(r, c, b);
 		mul_v3_fl(r, w);
@@ -451,9 +451,9 @@ int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], co
 	div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
 	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
 
-	lambda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+	lambda = (float)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
-	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+	mu = (float)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
 	if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
 		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
@@ -637,7 +637,7 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 		return 1;
 	}
 	else if (i > 0.0f) {
-		const float i_sqrt = sqrt(i); /* avoid calc twice */
+		const float i_sqrt = sqrtf(i);  /* avoid calc twice */
 
 		/* first intersection */
 		mu = (-b + i_sqrt) / (2.0f * a);
@@ -689,7 +689,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 		return 1;
 	}
 	else if (i > 0.0f) {
-		const float i_sqrt = sqrt(i); /* avoid calc twice */
+		const float i_sqrt = sqrtf(i);  /* avoid calc twice */
 
 		/* first intersection */
 		mu = (-b + i_sqrt) / (2.0f * a);
@@ -747,9 +747,9 @@ bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsign
 
 	angletot = fabsf(angletot);
 	if (use_holes) {
-		const int nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
+		const float nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
 		angletot -= nested * (float)(M_PI * 2.0);
-		return (angletot > 4.0f) != (nested % 2);
+		return (angletot > 4.0f) != ((int)nested % 2);
 	}
 	else {
 		return (angletot > 4.0f);
@@ -795,9 +795,9 @@ bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsign
 
 	angletot = fabsf(angletot);
 	if (use_holes) {
-		const int nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
+		const float nested = floorf((angletot / (float)(M_PI * 2.0)) + 0.00001f);
 		angletot -= nested * (float)(M_PI * 2.0);
-		return (angletot > 4.0f) != (nested % 2);
+		return (angletot > 4.0f) != ((int)nested % 2);
 	}
 	else {
 		return (angletot > 4.0f);
@@ -2000,7 +2000,7 @@ void fill_poly_v2i_n(
 	/* originally by Darel Rex Finley, 2007 */
 
 	int  nodes, pixel_y, i, j, swap;
-	int *node_x = MEM_mallocN(sizeof(*node_x) * (nr + 1), __func__);
+	int *node_x = MEM_mallocN(sizeof(*node_x) * (size_t)(nr + 1), __func__);
 
 	/* Loop through the rows of the image. */
 	for (pixel_y = ymin; pixel_y < ymax; pixel_y++) {
@@ -2376,7 +2376,7 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 
 /* given an array with some invalid values this function interpolates valid values
  * replacing the invalid ones */
-int interp_sparse_array(float *array, int const list_size, const float skipval)
+int interp_sparse_array(float *array, const int list_size, const float skipval)
 {
 	int found_invalid = 0;
 	int found_valid = 0;
@@ -2400,11 +2400,11 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 		float valid_last = skipval;
 		int valid_ofs = 0;
 
-		float *array_up = MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
-		float *array_down = MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+		float *array_up = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
+		float *array_down = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
 
-		int *ofs_tot_up = MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tup");
-		int *ofs_tot_down = MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
+		int *ofs_tot_up = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tup");
+		int *ofs_tot_down = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tdown");
 
 		for (i = 0; i < list_size; i++) {
 			if (array[i] == skipval) {
@@ -2435,7 +2435,8 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 		for (i = 0; i < list_size; i++) {
 			if (array[i] == skipval) {
 				if (array_up[i] != skipval && array_down[i] != skipval) {
-					array[i] = ((array_up[i] * ofs_tot_down[i]) + (array_down[i] * ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+					array[i] = ((array_up[i]   * (float)ofs_tot_down[i]) +
+					            (array_down[i] * (float)ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
 				}
 				else if (array_up[i] != skipval) {
 					array[i] = array_up[i];
@@ -2705,7 +2706,7 @@ void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
 
 	/* C = (p1-p) X (p1-p2) */
 	const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
-	const double denom = a - 2 * b + fC;
+	double denom = a - 2 * b + fC;
 
 	/* clear outputs */
 	zero_v2(r_uv);
@@ -2729,7 +2730,7 @@ void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
 		const double denom_s = (1 - r_uv[0]) * (st0[0] - st3[0]) + r_uv[0] * (st1[0] - st2[0]);
 		const double denom_t = (1 - r_uv[0]) * (st0[1] - st3[1]) + r_uv[0] * (st1[1] - st2[1]);
 		int i = 0;
-		double denom = denom_s;
+		denom = denom_s;
 
 		if (fabs(denom_s) < fabs(denom_t)) {
 			i = 1;
@@ -2742,7 +2743,6 @@ void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
 
 	if (r_deriv) {
 		float tmp1[2], tmp2[2], s[2], t[2];
-		double denom;
 		
 		/* clear outputs */
 		zero_v2(r_deriv[0]);
@@ -2755,14 +2755,14 @@ void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
 		sub_v2_v2v2(tmp2, st2, st1);
 		interp_v2_v2v2(t, tmp1, tmp2, r_uv[0]);
 
-		denom = t[0]*s[1] - t[1]*s[0];
+		denom = t[0] * s[1] - t[1] * s[0];
 
 		if (!IS_ZERO(denom)) {
 			double inv_denom = 1.0 / denom;
-			r_deriv[0][0] = (double)-t[1] * inv_denom;
-			r_deriv[0][1] = (double) t[0] * inv_denom;
-			r_deriv[1][0] = (double) s[1] * inv_denom;
-			r_deriv[1][1] = (double)-s[0] * inv_denom;
+			r_deriv[0][0] = (float)((double)-t[1] * inv_denom);
+			r_deriv[0][1] = (float)((double) t[0] * inv_denom);
+			r_deriv[1][0] = (float)((double) s[1] * inv_denom);
+			r_deriv[1][1] = (float)((double)-s[0] * inv_denom);
 		}
 	}
 }
@@ -3099,7 +3099,6 @@ void accumulate_vertex_normals_poly(float **vertnos, const float polyno[3],
 	/* accumulate angle weighted face normal */
 	{
 		const float *prev_edge = vdiffs[nverts - 1];
-		int i;
 
 		for (i = 0; i < nverts; i++) {
 			const float *cur_edge = vdiffs[i];
@@ -3215,7 +3214,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 			}
 		}
 		if (!weight || !rweight) {
-			accu_weight = accu_rweight = list_size;
+			accu_weight = accu_rweight = (float)list_size;
 		}
 
 		mul_v3_fl(accu_com, 1.0f / accu_weight);

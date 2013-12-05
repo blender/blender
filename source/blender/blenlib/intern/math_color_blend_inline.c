@@ -60,10 +60,10 @@ MINLINE void blend_color_mix_byte(unsigned char dst[4], const unsigned char src1
 		tmp[2] = (mt * src1[3] * src1[2]) + (t * 255 * src2[2]);
 		tmp[3] = (mt * src1[3]) + (t * 255);
 
-		dst[0] = divide_round_i(tmp[0], tmp[3]);
-		dst[1] = divide_round_i(tmp[1], tmp[3]);
-		dst[2] = divide_round_i(tmp[2], tmp[3]);
-		dst[3] = divide_round_i(tmp[3], 255);
+		dst[0] = (unsigned char)divide_round_i(tmp[0], tmp[3]);
+		dst[1] = (unsigned char)divide_round_i(tmp[1], tmp[3]);
+		dst[2] = (unsigned char)divide_round_i(tmp[2], tmp[3]);
+		dst[3] = (unsigned char)divide_round_i(tmp[3], 255);
 	}
 	else {
 		/* no op */
@@ -85,9 +85,9 @@ MINLINE void blend_color_add_byte(unsigned char dst[4], const unsigned char src1
 		tmp[1] = (src1[1] * 255) + (src2[1] * t);
 		tmp[2] = (src1[2] * 255) + (src2[2] * t);
 
-		dst[0] = min_ii(divide_round_i(tmp[0], 255), 255);
-		dst[1] = min_ii(divide_round_i(tmp[1], 255), 255);
-		dst[2] = min_ii(divide_round_i(tmp[2], 255), 255);
+		dst[0] = (unsigned char)min_ii(divide_round_i(tmp[0], 255), 255);
+		dst[1] = (unsigned char)min_ii(divide_round_i(tmp[1], 255), 255);
+		dst[2] = (unsigned char)min_ii(divide_round_i(tmp[2], 255), 255);
 		dst[3] = src1[3];
 	}
 	else {
@@ -110,9 +110,9 @@ MINLINE void blend_color_sub_byte(unsigned char dst[4], const unsigned char src1
 		tmp[1] = (src1[1] * 255) - (src2[1] * t);
 		tmp[2] = (src1[2] * 255) - (src2[2] * t);
 
-		dst[0] = max_ii(divide_round_i(tmp[0], 255), 0);
-		dst[1] = max_ii(divide_round_i(tmp[1], 255), 0);
-		dst[2] = max_ii(divide_round_i(tmp[2], 255), 0);
+		dst[0] = (unsigned char)max_ii(divide_round_i(tmp[0], 255), 0);
+		dst[1] = (unsigned char)max_ii(divide_round_i(tmp[1], 255), 0);
+		dst[2] = (unsigned char)max_ii(divide_round_i(tmp[2], 255), 0);
 		dst[3] = src1[3];
 	}
 	else {
@@ -136,9 +136,9 @@ MINLINE void blend_color_mul_byte(unsigned char dst[4], const unsigned char src1
 		tmp[1] = (mt * src1[1] * 255) + (t * src1[1] * src2[1]);
 		tmp[2] = (mt * src1[2] * 255) + (t * src1[2] * src2[2]);
 
-		dst[0] = divide_round_i(tmp[0], 255 * 255);
-		dst[1] = divide_round_i(tmp[1], 255 * 255);
-		dst[2] = divide_round_i(tmp[2], 255 * 255);
+		dst[0] = (unsigned char)divide_round_i(tmp[0], 255 * 255);
+		dst[1] = (unsigned char)divide_round_i(tmp[1], 255 * 255);
+		dst[2] = (unsigned char)divide_round_i(tmp[2], 255 * 255);
 		dst[3] = src1[3];
 	}
 	else {
@@ -162,9 +162,9 @@ MINLINE void blend_color_lighten_byte(unsigned char dst[4], const unsigned char 
 		tmp[1] = (mt * src1[1]) + (t * max_ii(src1[1], src2[1]));
 		tmp[2] = (mt * src1[2]) + (t * max_ii(src1[2], src2[2]));
 
-		dst[0] = divide_round_i(tmp[0], 255);
-		dst[1] = divide_round_i(tmp[1], 255);
-		dst[2] = divide_round_i(tmp[2], 255);
+		dst[0] = (unsigned char)divide_round_i(tmp[0], 255);
+		dst[1] = (unsigned char)divide_round_i(tmp[1], 255);
+		dst[2] = (unsigned char)divide_round_i(tmp[2], 255);
 		dst[3] = src1[3];
 	}
 	else {
@@ -188,9 +188,9 @@ MINLINE void blend_color_darken_byte(unsigned char dst[4], const unsigned char s
 		tmp[1] = (mt * src1[1]) + (t * min_ii(src1[1], src2[1]));
 		tmp[2] = (mt * src1[2]) + (t * min_ii(src1[2], src2[2]));
 
-		dst[0] = divide_round_i(tmp[0], 255);
-		dst[1] = divide_round_i(tmp[1], 255);
-		dst[2] = divide_round_i(tmp[2], 255);
+		dst[0] = (unsigned char)divide_round_i(tmp[0], 255);
+		dst[1] = (unsigned char)divide_round_i(tmp[1], 255);
+		dst[2] = (unsigned char)divide_round_i(tmp[2], 255);
 		dst[3] = src1[3];
 	}
 	else {
@@ -211,7 +211,7 @@ MINLINE void blend_color_erase_alpha_byte(unsigned char dst[4], const unsigned c
 		dst[0] = src1[0];
 		dst[1] = src1[1];
 		dst[2] = src1[2];
-		dst[3] = max_ii(src1[3] - divide_round_i(t * src2[3], 255), 0);
+		dst[3] = (unsigned char)max_ii(src1[3] - divide_round_i(t * src2[3], 255), 0);
 	}
 	else {
 		/* no op */
@@ -231,7 +231,7 @@ MINLINE void blend_color_add_alpha_byte(unsigned char dst[4], const unsigned cha
 		dst[0] = src1[0];
 		dst[1] = src1[1];
 		dst[2] = src1[2];
-		dst[3] = min_ii(src1[3] + divide_round_i(t * src2[3], 255), 255);
+		dst[3] = (unsigned char)min_ii(src1[3] + divide_round_i(t * src2[3], 255), 255);
 	}
 	else {
 		/* no op */
@@ -251,10 +251,10 @@ MINLINE void blend_color_interpolate_byte(unsigned char dst[4], const unsigned c
 	int tmp = (mt * src1[3] + t * src2[3]);
 
 	if (tmp > 0) {
-		dst[0] = divide_round_i(mt * src1[0] * src1[3] + t * src2[0] * src2[3], tmp);
-		dst[1] = divide_round_i(mt * src1[1] * src1[3] + t * src2[1] * src2[3], tmp);
-		dst[2] = divide_round_i(mt * src1[2] * src1[3] + t * src2[2] * src2[3], tmp);
-		dst[3] = divide_round_i(tmp, 255);
+		dst[0] = (unsigned char)divide_round_i(mt * src1[0] * src1[3] + t * src2[0] * src2[3], tmp);
+		dst[1] = (unsigned char)divide_round_i(mt * src1[1] * src1[3] + t * src2[1] * src2[3], tmp);
+		dst[2] = (unsigned char)divide_round_i(mt * src1[2] * src1[3] + t * src2[2] * src2[3], tmp);
+		dst[3] = (unsigned char)divide_round_i(tmp, 255);
 	}
 	else {
 		dst[0] = src1[0];

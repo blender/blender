@@ -580,9 +580,9 @@ MINLINE void negate_v4_v4(float r[4], const float a[4])
 /* could add more... */
 MINLINE void negate_v3_short(short r[3])
 {
-	r[0] = -r[0];
-	r[1] = -r[1];
-	r[2] = -r[2];
+	r[0] = (short)-r[0];
+	r[1] = (short)-r[1];
+	r[2] = (short)-r[2];
 }
 
 MINLINE float dot_v2v2(const float a[2], const float b[2])
@@ -654,7 +654,7 @@ MINLINE float len_manhattan_v2(const float v[2])
 
 MINLINE int len_manhattan_v2_int(const int v[2])
 {
-	return ABS(v[0]) + ABS(v[1]);
+	return abs(v[0]) + abs(v[1]);
 }
 
 MINLINE float len_manhattan_v3(const float v[3])

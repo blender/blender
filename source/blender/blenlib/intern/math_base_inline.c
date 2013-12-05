@@ -182,7 +182,7 @@ MINLINE unsigned short highest_order_bit_s(unsigned short n)
 	n |= (n >>  2);
 	n |= (n >>  4);
 	n |= (n >>  8);
-	return n - (n >> 1);
+	return (unsigned short)(n - (n >> 1));
 }
 
 MINLINE float min_ff(float a, float b)

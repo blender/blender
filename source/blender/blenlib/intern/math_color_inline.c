@@ -173,10 +173,6 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 	srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
-/* color macros for themes */
-#define rgba_char_args_set_fl(col, r, g, b, a) \
-	rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
-
 MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a)
 {
 	col[0] = r;
@@ -228,7 +224,9 @@ MINLINE float rgb_to_grayscale(const float rgb[3])
 
 MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
 {
-	return (76 * (unsigned short) rgb[0] + 148 * (unsigned short) rgb[1] + 31 * (unsigned short) rgb[2]) / 255;
+	return (unsigned char)(((76  * (unsigned short)rgb[0]) +
+	                        (148 * (unsigned short)rgb[1]) +
+	                        (31  * (unsigned short)rgb[2])) / 255);
 }
 
 /* luma from defined by 'YCC_JFIF', see #rgb_to_ycc */
@@ -239,7 +237,9 @@ MINLINE float rgb_to_luma(const float rgb[3])
 
 MINLINE unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
 {
-	return (76 * (unsigned short) rgb[0] + 150 * (unsigned short) rgb[1] + 29 * (unsigned short) rgb[2]) / 255;
+	return (unsigned char)(((76  * (unsigned short)rgb[0]) +
+	                        (150 * (unsigned short)rgb[1]) +
+	                        (29  * (unsigned short)rgb[2])) / 255);
 }
 
 /* gamma-corrected RGB --> CIE XYZ

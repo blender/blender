@@ -27,9 +27,9 @@
  *  \ingroup bli
  */
 
-
-
 #include "BLI_math.h"
+
+#include "BLI_strict_flags.h"
 
 /* WARNING: MSVC compiling hack for double_round() */
 #if (defined(WIN32) || defined(WIN64)) && !(defined(FREE_WINDOWS))

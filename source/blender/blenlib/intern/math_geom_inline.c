@@ -79,7 +79,7 @@ MINLINE void add_sh_shsh(float r[9], const float a[9], const float b[9])
 		r[i] = a[i] + b[i];
 }
 
-MINLINE float dot_shsh(float a[9], float b[9])
+MINLINE float dot_shsh(const float a[9], const float b[9])
 {
 	float r = 0.0f;
 	int i;
