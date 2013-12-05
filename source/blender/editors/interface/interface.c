@@ -3972,7 +3972,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 				const char *tc1, *tc2;
 
 				tc1 = strstr(but->str, "%t");
-				tc2 = strstr(but->str, "|"); /* XXX For some reason strchr seems to not work here? */
+				tc2 = strstr(but->str, UI_SEP_CHAR_S);
 
 				if (tc2 && (!tc1 || tc1 > tc2))
 					tc1 = tc2;

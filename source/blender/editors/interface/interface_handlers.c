@@ -60,6 +60,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
@@ -1554,6 +1555,15 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			WM_clipboard_text_set(str, 0);
 
 			MEM_freeN(str);
+		}
+	}
+	/* menu (any type) */
+	else if (ELEM(but->type, MENU, PULLDOWN)) {
+		MenuType *mt = uiButGetMenuType(but);
+		if (mt) {
+			char str[32 + sizeof(mt->idname)];
+			BLI_snprintf(str, sizeof(str), "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+			WM_clipboard_text_set(str, 0);
 		}
 	}
 }

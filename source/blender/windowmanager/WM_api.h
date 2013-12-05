@@ -75,7 +75,7 @@ void		WM_init_state_normal_set(void);
 void		WM_init_native_pixels(bool do_it);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
-void		WM_exit_ext			(struct bContext *C, const short do_python);
+void		WM_exit_ext			(struct bContext *C, const bool do_python);
 
 void		WM_exit				(struct bContext *C) ATTR_NORETURN;
 
@@ -164,7 +164,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 
 			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
-int			WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
+bool        WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 
 			/* notifiers */
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
@@ -182,7 +182,7 @@ void		wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
 			/* at maximum, every timestep seconds it triggers event_type events */
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep);
 void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer);
-void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer, int dosleep);
+void        WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer, bool do_sleep);
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
@@ -379,13 +379,13 @@ enum {
 
 struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag, int job_type);
 
-int			WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
+bool        WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
 void       *WM_jobs_customdata(struct wmWindowManager *wm, void *owner);
 void       *WM_jobs_customdata_from_type(struct wmWindowManager *wm, int job_type);
 
-int         WM_jobs_is_running(struct wmJob *);
+bool        WM_jobs_is_running(struct wmJob *);
 void       *WM_jobs_customdata_get(struct wmJob *);
 void        WM_jobs_customdata_set(struct wmJob *, void *customdata, void (*free)(void *));
 void        WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
@@ -402,14 +402,14 @@ void		WM_jobs_kill_all(struct wmWindowManager *wm);
 void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type);
 
-int			WM_jobs_has_running(struct wmWindowManager *wm);
+bool        WM_jobs_has_running(struct wmWindowManager *wm);
 
 void		WM_job_main_thread_lock_acquire(struct wmJob *job);
 void		WM_job_main_thread_lock_release(struct wmJob *job);
 
 			/* clipboard */
-char       *WM_clipboard_text_get(int selection);
-void        WM_clipboard_text_set(char *buf, int selection);
+char       *WM_clipboard_text_get(bool selection);
+void        WM_clipboard_text_set(const char *buf, bool selection);
 
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);
@@ -421,7 +421,7 @@ void		WM_redraw_windows(struct bContext *C);
 void        WM_main_playanim(int argc, const char **argv);
 
 /* debugging only, convenience function to write on crash */
-int write_crash_blend(void);
+bool write_crash_blend(void);
 
 #ifdef __cplusplus
 }

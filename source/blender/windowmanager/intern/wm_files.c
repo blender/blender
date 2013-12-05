@@ -832,7 +832,7 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 }
 
 /* easy access from gdb */
-int write_crash_blend(void)
+bool write_crash_blend(void)
 {
 	char path[FILE_MAX];
 	int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on crash file */

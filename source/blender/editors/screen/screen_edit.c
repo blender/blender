@@ -1144,7 +1144,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	
 		/* wake up animtimer */
 		if (win->screen->animtimer)
-			WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
+			WM_event_timer_sleep(wm, win, win->screen->animtimer, false);
 	}
 
 	if (G.debug & G_DEBUG_EVENTS) {
@@ -1423,7 +1423,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer = NULL;
 		if (wt)
-			WM_event_timer_sleep(wm, win, wt, 1);
+			WM_event_timer_sleep(wm, win, wt, true);
 		
 		ED_screen_exit(C, win, oldscreen);
 		oldscreen->animtimer = wt;

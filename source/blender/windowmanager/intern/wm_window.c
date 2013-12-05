@@ -1137,7 +1137,7 @@ void wm_ghost_exit(void)
 /* **************** timer ********************** */
 
 /* to (de)activate running timers temporary */
-void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer, int dosleep)
+void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer, bool do_sleep)
 {
 	wmTimer *wt;
 	
@@ -1146,7 +1146,7 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *t
 			break;
 
 	if (wt)
-		wt->sleep = dosleep;
+		wt->sleep = do_sleep;
 }
 
 wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
@@ -1199,7 +1199,7 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 
 /* ******************* clipboard **************** */
 
-char *WM_clipboard_text_get(int selection)
+char *WM_clipboard_text_get(bool selection)
 {
 	char *p, *p2, *buf, *newbuf;
 
@@ -1224,7 +1224,7 @@ char *WM_clipboard_text_get(int selection)
 	return newbuf;
 }
 
-void WM_clipboard_text_set(char *buf, int selection)
+void WM_clipboard_text_set(const char *buf, bool selection)
 {
 	if (!G.background) {
 #ifdef _WIN32
