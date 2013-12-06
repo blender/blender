@@ -1101,13 +1101,15 @@ static void draw_plane_marker_image(Scene *scene,
 			                             {0.0f, 1.0f}};
 			float perspective_matrix[3][3];
 			float gl_matrix[4][4];
+			bool transparent = false;
 			BKE_tracking_homography_between_two_quads(frame_corners,
 			                                          plane_marker->corners,
 			                                          perspective_matrix);
 
 			homogeneous_2d_to_gl_matrix(perspective_matrix, gl_matrix);
 
-			if (plane_track->image_opacity != 1.0f) {
+			if (plane_track->image_opacity != 1.0f || ibuf->planes == 32) {
+				transparent = true;
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 			}
@@ -1142,7 +1144,7 @@ static void draw_plane_marker_image(Scene *scene,
 			glBindTexture(GL_TEXTURE_2D, last_texid);
 			glDisable(GL_TEXTURE_2D);
 
-			if (plane_track->image_opacity != 1.0f) {
+			if (transparent) {
 				glDisable(GL_BLEND);
 			}
 		}
