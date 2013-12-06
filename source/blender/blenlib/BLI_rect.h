@@ -68,8 +68,12 @@ bool BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, cons
 bool BLI_rcti_compare(const struct rcti *rect_a, const struct rcti *rect_b);
 bool BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
 bool BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
+bool BLI_rcti_isect_x(const rcti *rect, const int x);
+bool BLI_rcti_isect_y(const rcti *rect, const int y);
 bool BLI_rcti_isect_pt(const struct rcti *rect, const int x, const int y);
 bool BLI_rcti_isect_pt_v(const struct rcti *rect, const int xy[2]);
+bool BLI_rctf_isect_x(const rctf *rect, const float x);
+bool BLI_rctf_isect_y(const rctf *rect, const float y);
 bool BLI_rctf_isect_pt(const struct rctf *rect, const float x, const float y);
 bool BLI_rctf_isect_pt_v(const struct rctf *rect, const float xy[2]);
 bool BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
