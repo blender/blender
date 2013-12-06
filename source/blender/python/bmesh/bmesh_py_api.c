@@ -42,6 +42,7 @@
 
 #include "bmesh_py_ops.h"
 #include "bmesh_py_utils.h"
+#include "bmesh_py_geometry.h"
 
 #include "BKE_editmesh.h"
 
@@ -198,6 +199,10 @@ PyObject *BPyInit_bmesh(void)
 	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "geometry", (submodule = BPyInit_bmesh_geometry()));
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 

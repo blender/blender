@@ -219,6 +219,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"bmesh", BPyInit_bmesh},
 	// {(char *)"bmesh.types", BPyInit_bmesh_types},
 	// {(char *)"bmesh.utils", BPyInit_bmesh_utils},
+	// {(char *)"bmesh.utils", BPyInit_bmesh_geometry},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif

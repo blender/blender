@@ -33,6 +33,7 @@ set(INC_SYS
 
 set(SRC
 	bmesh_py_api.c
+	bmesh_py_geometry.c
 	bmesh_py_ops.c
 	bmesh_py_ops_call.c
 	bmesh_py_types.c
@@ -42,6 +43,7 @@ set(SRC
 	bmesh_py_utils.c
 
 	bmesh_py_api.h
+	bmesh_py_geometry.h
 	bmesh_py_ops.h
 	bmesh_py_ops_call.h
 	bmesh_py_types.h

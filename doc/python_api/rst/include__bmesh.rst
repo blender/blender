@@ -9,6 +9,7 @@ Submodules:
 * :mod:`bmesh.ops`
 * :mod:`bmesh.types`
 * :mod:`bmesh.utils`
+* :mod:`bmesh.geometry`
 
 
 Intro
