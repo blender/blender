@@ -5069,6 +5069,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 			/* Turn on X plane mirror symmetry by default */
 			ts->sculpt->flags |= SCULPT_SYMM_X;
+
+			/* Make sure at least dyntopo subdivision is enabled */
+			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
 		}
 
 		if (!ts->sculpt->detail_size)
