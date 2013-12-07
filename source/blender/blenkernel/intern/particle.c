@@ -3652,6 +3652,7 @@ static void default_particle_settings(ParticleSettings *part)
 	if (!part->effector_weights)
 		part->effector_weights = BKE_add_effector_weights(NULL);
 
+	part->omat = 1;
 	part->use_modifier_stack = false;
 }
 

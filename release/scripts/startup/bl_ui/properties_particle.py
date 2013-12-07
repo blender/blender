@@ -797,7 +797,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
         part = particle_get_settings(context)
 
         row = layout.row()
-        row.prop(part, "material")
+        row.prop(part, "material_slot", text="")
         if psys:
             row.prop(psys, "parent")
 
