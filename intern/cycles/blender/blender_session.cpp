@@ -625,28 +625,42 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 void BlenderSession::update_status_progress()
 {
 	string timestatus, status, substatus;
+	string scene = "";
 	float progress;
-	double total_time;
+	double total_time, remaining_time = 0;
 	char time_str[128];
 	float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
 	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
+	int samples = session->tile_manager.state.sample + 1;
+	int total_samples = session->tile_manager.num_samples;
 
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	timestatus = string_printf("Mem:%.2fM, Peak:%.2fM", mem_used, mem_peak);
+	
 
 	if(background) {
-		timestatus += " | " + b_scene.name();
+		if(progress>0)
+			remaining_time = (1-progress) * (total_time / progress);
+
+		scene += " | " + b_scene.name();
 		if(b_rlay_name != "")
-			timestatus += ", "  + b_rlay_name;
+			scene += ", "  + b_rlay_name;
 	}
 	else {
-		timestatus += " | ";
-
 		BLI_timestr(total_time, time_str, sizeof(time_str));
-		timestatus += "Time:" + string(time_str);
+		timestatus = "Time:" + string(time_str) + " | ";
+
+		if(samples > 0 && total_samples != USHRT_MAX)
+			remaining_time = (total_samples - samples) * (total_time / samples);
 	}
+	
+	if(remaining_time>0) {
+		BLI_timestr(remaining_time, time_str, sizeof(time_str));
+		timestatus += "Remaining:" + string(time_str) + " | ";
+	}
+	
+	timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", mem_used, mem_peak);
 
 	if(status.size() > 0)
 		status = " | " + status;
@@ -654,12 +668,12 @@ void BlenderSession::update_status_progress()
 		status += " | " + substatus;
 
 	if(status != last_status) {
-		b_engine.update_stats("", (timestatus + status).c_str());
 		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
 	}
 	if(progress != last_progress) {
 		b_engine.update_progress(progress);
+		b_engine.update_stats("", (timestatus + scene + status).c_str());
 		last_progress = progress;
 	}
 }
