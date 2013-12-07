@@ -1520,7 +1520,8 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 }
 
-static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
+static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, const rctf *butr,
+                                    RNAUpdateCb *cb)
 {
 	uiBut *bt;
 	float unit = BLI_rctf_size_x(butr) / 14.0f;
@@ -1556,7 +1557,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	uiBlockEndAlign(block);
 }
 
-static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr,
+static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand *coba, const rctf *butr,
                                      int small, RNAUpdateCb *cb)
 {
 	if (small)

@@ -2172,7 +2172,7 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, co
 }
 
 /* no clip (yet) */
-void UI_view2d_text_cache_rectf(View2D *v2d, rctf *rect, const char *str, const char col[4])
+void UI_view2d_text_cache_rectf(View2D *v2d, const rctf *rect, const char *str, const char col[4])
 {
 	int len = strlen(str) + 1;
 	View2DString *v2s = MEM_callocN(sizeof(View2DString) + len, "View2DString");

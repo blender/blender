@@ -873,7 +873,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 	ED_region_tag_redraw(ar);
 }
 
-static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
+static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr)
 {
 	/* thumbnail preview */
 	if (data->preview) {
@@ -881,27 +881,27 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / data->prv_rows;
 		int row, col;
 		
-		*rect = data->bbox;
+		*r_rect = data->bbox;
 		
 		col = itemnr % data->prv_cols;
 		row = itemnr / data->prv_cols;
 		
-		rect->xmin += col * butw;
-		rect->xmax = rect->xmin + butw;
+		r_rect->xmin += col * butw;
+		r_rect->xmax = r_rect->xmin + butw;
 		
-		rect->ymax = data->bbox.ymax - MENU_TOP - (row * buth);
-		rect->ymin = rect->ymax - buth;
+		r_rect->ymax = data->bbox.ymax - MENU_TOP - (row * buth);
+		r_rect->ymin = r_rect->ymax - buth;
 	}
 	/* list view */
 	else {
 		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / SEARCH_ITEMS;
 		
-		*rect = data->bbox;
-		rect->xmin = data->bbox.xmin + 3.0f;
-		rect->xmax = data->bbox.xmax - 3.0f;
+		*r_rect = data->bbox;
+		r_rect->xmin = data->bbox.xmin + 3.0f;
+		r_rect->xmax = data->bbox.xmax - 3.0f;
 		
-		rect->ymax = data->bbox.ymax - MENU_TOP - itemnr * buth;
-		rect->ymin = rect->ymax - buth;
+		r_rect->ymax = data->bbox.ymax - MENU_TOP - itemnr * buth;
+		r_rect->ymin = r_rect->ymax - buth;
 	}
 	
 }

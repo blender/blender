@@ -118,7 +118,7 @@ typedef struct uiWidgetType {
 	void (*state)(struct uiWidgetType *, int state);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
-	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *,  rcti *);
+	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *, rcti *);
 	
 } uiWidgetType;
 
@@ -606,7 +606,7 @@ static void widget_check_trias(uiWidgetTrias *tria, const rcti *rect)
 
 
 /* prepares shade colors */
-static void shadecolors4(char coltop[4], char *coldown, const char *color, short shadetop, short shadedown)
+static void shadecolors4(char coltop[4], char coldown[4], const char *color, short shadetop, short shadedown)
 {
 	
 	coltop[0] = CLAMPIS(color[0] + shadetop, 0, 255);

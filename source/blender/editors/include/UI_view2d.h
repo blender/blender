@@ -208,7 +208,7 @@ short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d,
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d, float x, float y, const char *str, const char col[4]);
-void UI_view2d_text_cache_rectf(struct View2D *v2d, struct rctf *rect, const char *str, const char col[4]);
+void UI_view2d_text_cache_rectf(struct View2D *v2d, const struct rctf *rect, const char *str, const char col[4]);
 void UI_view2d_text_cache_draw(struct ARegion *ar);
 
 /* operators */

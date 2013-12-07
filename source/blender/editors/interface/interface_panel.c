@@ -413,7 +413,7 @@ static void ui_draw_x_icon(float x, float y)
 
 #define PNL_ICON    UI_UNIT_X  /* could be UI_UNIT_Y too */
 
-static void ui_draw_panel_scalewidget(rcti *rect)
+static void ui_draw_panel_scalewidget(const rcti *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
@@ -464,7 +464,7 @@ static void ui_draw_panel_dragwidget(const rctf *rect)
 }
 
 
-static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *rect, char dir)
+static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const rcti *rect, char dir)
 {
 	Panel *panel = block->panel;
 	rcti hrect;
@@ -497,7 +497,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 }
 
 /* panel integrated in buttonswindow, tool/property lists etc */
-void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
+void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect)
 {
 	Panel *panel = block->panel;
 	rcti headrect;

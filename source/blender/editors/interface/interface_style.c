@@ -190,7 +190,7 @@ void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
 	*r_yofs = yofs;
 }
 
-void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
+void uiStyleFontDraw(uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float xofs, yofs;
 	uiStyleFontDrawExt(fs, rect, str,
@@ -198,7 +198,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
 }
 
 /* drawn same as above, but at 90 degree angle */
-void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
+void uiStyleFontDrawRotated(uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float height;
 	int xofs, yofs;

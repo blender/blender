@@ -502,22 +502,22 @@ struct AutoComplete;
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event, struct ARegion *ar);
-extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
+extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, const rcti *rect);
 
 /* interface_draw.c */
 extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
 
-void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 
 /* interface_handlers.c */
 extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);

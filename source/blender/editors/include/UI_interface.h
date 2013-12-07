@@ -904,8 +904,8 @@ void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct Prop
 void uiStyleFontSet(struct uiFontStyle *fs);
 void uiStyleFontDrawExt(struct uiFontStyle *fs, const struct rcti *rect, const char *str,
                         size_t len, float *r_xofs, float *r_yofs);
-void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, const char *str);
-void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, const char *str);
+void uiStyleFontDraw(struct uiFontStyle *fs, const struct rcti *rect, const char *str);
+void uiStyleFontDrawRotated(struct uiFontStyle *fs, const struct rcti *rect, const char *str);
 
 int UI_GetStringWidth(const char *str); // XXX temp
 void UI_DrawString(float x, float y, const char *str); // XXX temp
