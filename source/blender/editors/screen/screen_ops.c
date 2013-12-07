@@ -3602,9 +3602,6 @@ static void SCREEN_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = screen_new_exec;
 	ot->poll = WM_operator_winactive;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************* delete screen operator *********************/
@@ -3621,15 +3618,12 @@ static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Delete Screen";  /* was scene */
+	ot->name = "Delete Screen";
 	ot->description = "Delete active screen";
 	ot->idname = "SCREEN_OT_delete";
 	
 	/* api callbacks */
 	ot->exec = screen_delete_exec;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /********************* new scene operator *********************/
