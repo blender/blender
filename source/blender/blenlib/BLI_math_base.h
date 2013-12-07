@@ -183,13 +183,6 @@ static const int NAN_INT = 0x7FC00000;
 } (void)0
 #endif
 
-#ifndef CLAMP
-#  define CLAMP(a, b, c)  {         \
-	if ((a) < (b)) (a) = (b);       \
-	else if ((a) > (c)) (a) = (c);  \
-} (void)0
-#endif
-
 #if BLI_MATH_DO_INLINE
 #include "intern/math_base_inline.c"
 #endif

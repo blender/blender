@@ -180,8 +180,6 @@
 } (void)0
 
 
-#define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
-
 #define FTOCHAR(val) (char)(((val) <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f)))
 #define FTOUSHORT(val) ((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (unsigned short)(val * 65535.0f + 0.5f))
 #define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8))
@@ -242,12 +240,37 @@
 } (void)0
 
 /* some misc stuff.... */
+
+/* avoid multiple access & type conversions for supported compilers */
+#if defined(__GNUC__) || defined(__clang__)
+
+#define ABS(a)  ({ \
+	typeof(a) a_ = (a); \
+	((a_) < 0 ? (-(a_)) : (a_)); })
+
+#define CLAMPIS(a, b, c)  ({ \
+	typeof(a) a_ = (a), b_ = (b), c_ = (c); \
+	((a_) < (b_) ? (b_) : (a_) > (c_) ? (c_) : (a_)); })
+
+#define CLAMP(a, b, c)  {            \
+	typeof(a) b_ = (b), c_ = (c);   \
+	if      ((a) < (b_)) (a) = (b_); \
+	else if ((a) > (c_)) (a) = (c_); \
+} (void)0
+
+#else
+
+#define ABS(a)  ((a) < 0 ? (-(a)) : (a))
+
+#define CLAMPIS(a, b, c)  ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
+
 #define CLAMP(a, b, c)  {           \
-	if ((a) < (b)) (a) = (b);       \
+	if      ((a) < (b)) (a) = (b);  \
 	else if ((a) > (c)) (a) = (c);  \
 } (void)0
 
-#define CLAMPIS(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
+#endif
+
 
 #define IS_EQ(a, b)  ( \
 	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \
