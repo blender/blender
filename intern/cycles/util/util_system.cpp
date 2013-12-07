@@ -101,9 +101,7 @@ string system_cpu_brand_string()
 		replace_string(brand, "(TM)", "");
 		replace_string(brand, "(R)", "");
 
-		size_t i;
-		if((i = brand.find("  ")) != string::npos)
-			brand = brand.substr(0, i);
+		brand = string_strip(brand);
 
 		return brand;
 	}

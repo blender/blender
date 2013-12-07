@@ -45,25 +45,24 @@ public:
 	device_ptr unique_ptr;
 
 	MultiDevice(DeviceInfo& info, Stats &stats, bool background_)
-	: Device(stats), unique_ptr(1)
+	: Device(info, stats, background_), unique_ptr(1)
 	{
 		Device *device;
-		background = background_;
 
 		foreach(DeviceInfo& subinfo, info.multi_devices) {
 			device = Device::create(subinfo, stats, background);
 			devices.push_back(SubDevice(device));
 		}
 
-#if 0 //def WITH_NETWORK
+#ifdef WITH_NETWORK
 		/* try to add network devices */
 		ServerDiscovery discovery(true);
 		time_sleep(1.0);
 
-		list<string> servers = discovery.get_server_list();
+		vector<string> servers = discovery.get_server_list();
 
 		foreach(string& server, servers) {
-			device = device_network_create(info, server.c_str());
+			device = device_network_create(info, stats, server.c_str());
 			if(device)
 				devices.push_back(SubDevice(device));
 		}

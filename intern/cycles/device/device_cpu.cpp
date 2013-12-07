@@ -45,11 +45,13 @@ class CPUDevice : public Device
 public:
 	TaskPool task_pool;
 	KernelGlobals kernel_globals;
+
 #ifdef WITH_OSL
 	OSLGlobals osl_globals;
 #endif
 	
-	CPUDevice(Stats &stats) : Device(stats)
+	CPUDevice(DeviceInfo& info, Stats &stats, bool background)
+	: Device(info, stats, background)
 	{
 #ifdef WITH_OSL
 		kernel_globals.osl = &osl_globals;
@@ -401,9 +403,9 @@ public:
 	}
 };
 
-Device *device_cpu_create(DeviceInfo& info, Stats &stats)
+Device *device_cpu_create(DeviceInfo& info, Stats &stats, bool background)
 {
-	return new CPUDevice(stats);
+	return new CPUDevice(info, stats, background);
 }
 
 void device_cpu_info(vector<DeviceInfo>& devices)

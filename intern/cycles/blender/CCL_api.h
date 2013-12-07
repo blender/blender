@@ -30,7 +30,7 @@ typedef struct CCLDeviceInfo {
 	int value;
 } CCLDeviceInfo;
 
-CCLDeviceInfo *CCL_compute_device_list(int opencl);
+CCLDeviceInfo *CCL_compute_device_list(int device_type);
 
 /* create python module _cycles used by addon */
 

@@ -26,7 +26,7 @@ set(SRC
 	device_task.cpp
 )
 
-if(WITH_NETWORK)
+if(WITH_CYCLES_NETWORK)
 	list(APPEND SRC
 		device_network.cpp
 	)

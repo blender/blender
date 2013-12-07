@@ -171,7 +171,8 @@ public:
 		cuda_assert(cuCtxSetCurrent(NULL));
 	}
 
-	CUDADevice(DeviceInfo& info, Stats &stats, bool background_) : Device(stats)
+    CUDADevice(DeviceInfo& info, Stats &stats, bool background_)
+	: Device(info, stats, background_)
 	{
 		first_error = true;
 		background = background_;

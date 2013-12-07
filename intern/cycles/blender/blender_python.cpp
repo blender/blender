@@ -482,12 +482,34 @@ void *CCL_python_module_init()
 	Py_INCREF(Py_False);
 #endif
 
+#ifdef WITH_NETWORK
+	PyModule_AddObject(mod, "with_network", Py_True);
+	Py_INCREF(Py_True);
+#else /* WITH_NETWORK */
+	PyModule_AddObject(mod, "with_network", Py_False);
+	Py_INCREF(Py_False);
+#endif /* WITH_NETWORK */
+
 	return (void*)mod;
 }
 
-CCLDeviceInfo *CCL_compute_device_list(int opencl)
+CCLDeviceInfo *CCL_compute_device_list(int device_type)
 {
-	ccl::DeviceType type = (opencl)? ccl::DEVICE_OPENCL: ccl::DEVICE_CUDA;
+	ccl::DeviceType type;
+	switch(device_type) {
+		case 0:
+			type = ccl::DEVICE_CUDA;
+			break;
+		case 1:
+			type = ccl::DEVICE_OPENCL;
+			break;
+		case 2:
+			type = ccl::DEVICE_NETWORK;
+			break;
+		default:
+			type = ccl::DEVICE_NONE;
+			break;
+	}
 	return ccl::compute_device_list(type);
 }
 

@@ -127,7 +127,7 @@ Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 
 	switch(info.type) {
 		case DEVICE_CPU:
-			device = device_cpu_create(info, stats);
+			device = device_cpu_create(info, stats, background);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:
@@ -158,9 +158,6 @@ Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 		default:
 			return NULL;
 	}
-
-	if(device)
-		device->info = info;
 
 	return device;
 }

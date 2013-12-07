@@ -96,5 +96,14 @@ bool string_endswith(const string& s, const char *end)
         return strncmp(s.c_str() + s.size() - len, end, len) == 0;
 }
 
+string string_strip(const string& s)
+{
+	string result = s;
+	result.erase(0, result.find_first_not_of(' '));
+	result.erase(result.find_last_not_of(' ') + 1);
+	return result;
+
+}
+
 CCL_NAMESPACE_END
 

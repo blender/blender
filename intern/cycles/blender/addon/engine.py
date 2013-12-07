@@ -88,3 +88,7 @@ def available_devices():
 def with_osl():
     import _cycles
     return _cycles.with_osl
+    
+def with_network():
+    import _cycles
+    return _cycles.with_network

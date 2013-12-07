@@ -28,6 +28,8 @@
 #include <boost/thread.hpp>
 
 #include <iostream>
+#include <sstream>
+#include <deque>
 
 #include "buffers.h"
 
@@ -70,12 +72,12 @@ public:
 	: name(name_), socket(socket_), archive(archive_stream), sent(false)
 	{
 		archive & name_;
+
+		fprintf(stderr, "rpc send %s\n", name.c_str());
 	}
 
 	~RPCSend()
 	{
-		if(!sent)
-			fprintf(stderr, "Error: RPC %s not sent\n", name.c_str());
 	}
 
 	void add(const device_memory& mem)
@@ -98,13 +100,14 @@ public:
 		archive & task.offset & task.stride;
 		archive & task.shader_input & task.shader_output & task.shader_eval_type;
 		archive & task.shader_x & task.shader_w;
+		archive & task.need_finish_queue;
 	}
 
 	void add(const RenderTile& tile)
 	{
 		archive & tile.x & tile.y & tile.w & tile.h;
 		archive & tile.start_sample & tile.num_samples & tile.sample;
-		archive & tile.offset & tile.stride;
+		archive & tile.resolution & tile.offset & tile.stride;
 		archive & tile.buffer & tile.rng_state;
 	}
 
@@ -178,6 +181,7 @@ public:
 			size_t data_size;
 
 			if((header_stream >> hex >> data_size)) {
+
 				vector<char> data(data_size);
 				size_t len = boost::asio::read(socket, boost::asio::buffer(data));
 
@@ -191,15 +195,19 @@ public:
 					archive = new boost::archive::text_iarchive(*archive_stream);
 
 					*archive & name;
+					fprintf(stderr, "rpc receive %s\n", name.c_str());
 				}
-				else
-					cout << "Network receive error: data size doens't match header\n";
+				else {
+					cout << "Network receive error: data size doesn't match header\n";
+				}
 			}
-			else
+			else {
 				cout << "Network receive error: can't decode data size from header\n";
+			}
 		}
-		else
+		else {
 			cout << "Network receive error: invalid header size\n";
+		}
 	}
 
 	~RPCReceive()
@@ -235,9 +243,10 @@ public:
 
 		*archive & type & task.x & task.y & task.w & task.h;
 		*archive & task.rgba_byte & task.rgba_half & task.buffer & task.sample & task.num_samples;
-		*archive & task.resolution & task.offset & task.stride;
+		*archive & task.offset & task.stride;
 		*archive & task.shader_input & task.shader_output & task.shader_eval_type;
 		*archive & task.shader_x & task.shader_w;
+		*archive & task.need_finish_queue;
 
 		task.type = (DeviceTask::Type)type;
 	}
@@ -247,7 +256,7 @@ public:
 		*archive & tile.x & tile.y & tile.w & tile.h;
 		*archive & tile.start_sample & tile.num_samples & tile.sample;
 		*archive & tile.resolution & tile.offset & tile.stride;
-		*archive & tile.buffer & tile.rng_state & tile.rgba_byte & tile.rgba_half;
+		*archive & tile.buffer & tile.rng_state;
 
 		tile.buffers = NULL;
 	}
@@ -303,12 +312,12 @@ public:
 		delete work;
 	}
 
-	list<string> get_server_list()
+	vector<string> get_server_list()
 	{
-		list<string> result;
+		vector<string> result;
 
 		mutex.lock();
-		result = servers;
+		result = vector<string>(servers.begin(), servers.end());
 		mutex.unlock();
 
 		return result;
@@ -333,11 +342,8 @@ private:
 					mutex.lock();
 
 					/* add address if it's not already in the list */
-					bool found = false;
-
-					foreach(string& server, servers)
-						if(server == address)
-							found = true;
+					bool found = std::find(servers.begin(), servers.end(),
+							address) != servers.end();
 
 					if(!found)
 						servers.push_back(address);
@@ -393,10 +399,21 @@ private:
 	/* buffer and endpoint for receiving messages */
 	char receive_buffer[256];
 	boost::asio::ip::udp::endpoint receive_endpoint;
+	
+	// os, version, devices, status, host name, group name, ip as far as fields go
+	struct ServerInfo {
+		string cycles_version;
+		string os;
+		int device_count;
+		string status;
+		string host_name;
+		string group_name;
+		string host_addr;
+	};
 
 	/* collection of server addresses in list */
 	bool collect_servers;
-	list<string> servers;
+	vector<string> servers;
 };
 
 CCL_NAMESPACE_END
