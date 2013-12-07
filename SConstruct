@@ -304,7 +304,7 @@ if env['OURPLATFORM']=='darwin':
     ver = re.search(r'[0-9]+(\.[0-9]+)+', line)
     if ver:
         env['CCVERSION'] = ver.group(0)
-    frontend = re.search(r'gcc', line) or re.search(r'clang', line) or re.search(r'llvm-gcc', line)
+    frontend = re.search(r'gcc', line) or re.search(r'clang', line) or re.search(r'llvm-gcc', line)  or re.search(r'icc', line)
     if frontend:
         env['MACOSX_COMPILER'] = frontend.group(0)
 
