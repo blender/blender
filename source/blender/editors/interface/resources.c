@@ -913,6 +913,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tima.back,   53, 53, 53, 255);
 	rgba_char_args_set(btheme->tima.vertex, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tima.vertex_select, 255, 133, 0, 255);
+	rgba_char_args_set(btheme->tima.wire_edit, 192, 192, 192, 255);
+	rgba_char_args_set(btheme->tima.edge_select, 255, 133, 0, 255);
 	btheme->tima.vertex_size = 3;
 	btheme->tima.facedot_size = 3;
 	rgba_char_args_set(btheme->tima.face,   255, 255, 255, 10);
@@ -2218,14 +2220,22 @@ void init_userdef_do_versions(void)
 
 	/* NOTE!! from now on use U.versionfile and U.subversionfile */
 
-	if (U.versionfile < 269 || (U.versionfile == 268 && U.subversionfile < 3)) {
+	if (U.versionfile < 268 || (U.versionfile == 268 && U.subversionfile < 3)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_test_set(btheme->tima.uv_others, 96, 96, 96, 255);
 			rgba_char_args_test_set(btheme->tima.uv_shadow, 112, 112, 112, 255);
 		}
 	}
-	
+
+	if (U.versionfile < 269 || (U.versionfile == 269 && U.subversionfile < 5)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tima.wire_edit, 192, 192, 192, 255);
+			rgba_char_args_set(btheme->tima.edge_select, 255, 133, 0, 255);
+		}
+	}
+
 	if (U.versionfile < 270) {
 		/* grease pencil - new layer color */
 		if (U.gpencil_new_layer_col[3] < 0.1f) {

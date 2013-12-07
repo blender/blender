@@ -694,12 +694,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 			
 			glLineWidth(1);
-			col2[0] = col2[1] = col2[2] = 192; col2[3] = 255;
-			glColor4ubv((unsigned char *)col2); 
-			
+			UI_GetThemeColor4ubv(TH_WIRE_EDIT, col2);
+			glColor4ubv((unsigned char *)col2);
+
 			if (me->drawflag & ME_DRAWEDGES) {
 				int sel, lastsel = -1;
-				UI_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
+				UI_GetThemeColor4ubv(TH_EDGE_SELECT, col1);
 
 				if (interpedges) {
 					glShadeModel(GL_SMOOTH);
