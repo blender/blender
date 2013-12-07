@@ -780,6 +780,9 @@ static int paste_selection(Object *obedit, ReportList *reports)
 
 	/* Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT */
 	if (cu->len + len <= MAXTEXT) {
+
+		kill_selection(obedit, 0);
+
 		if (len) {
 			int size = (cu->len * sizeof(wchar_t)) - (cu->pos * sizeof(wchar_t)) + sizeof(wchar_t);
 			memmove(ef->textbuf + cu->pos + len, ef->textbuf + cu->pos, size);
