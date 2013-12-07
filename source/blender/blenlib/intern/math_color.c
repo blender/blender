@@ -35,9 +35,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#ifndef __MINGW32__
 #include "BLI_strict_flags.h"
-#endif
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
