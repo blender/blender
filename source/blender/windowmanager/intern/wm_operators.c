@@ -1957,7 +1957,6 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 		
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_homefile_write_exec;
-	ot->poll = WM_operator_winactive;
 }
 
 static int wm_userpref_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
@@ -1974,7 +1973,6 @@ static void WM_OT_userpref_autoexec_path_add(wmOperatorType *ot)
 	ot->description = "Add path to exclude from autoexecution";
 
 	ot->exec = wm_userpref_autoexec_add_exec;
-	ot->poll = WM_operator_winactive;
 
 	ot->flag = OPTYPE_INTERNAL;
 }
@@ -1996,7 +1994,6 @@ static void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
 	ot->description = "Remove path to exclude from autoexecution";
 
 	ot->exec = wm_userpref_autoexec_remove_exec;
-	ot->poll = WM_operator_winactive;
 
 	ot->flag = OPTYPE_INTERNAL;
 
@@ -2011,7 +2008,6 @@ static void WM_OT_save_userpref(wmOperatorType *ot)
 	
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_userpref_write_exec;
-	ot->poll = WM_operator_winactive;
 }
 
 static void WM_OT_read_history(wmOperatorType *ot)
@@ -2470,7 +2466,6 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 	ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
 	
 	ot->exec = wm_recover_last_session_exec;
-	ot->poll = WM_operator_winactive;
 }
 
 /* *************** recover auto save **************** */
@@ -2515,7 +2510,6 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	
 	ot->exec = wm_recover_auto_save_exec;
 	ot->invoke = wm_recover_auto_save_invoke;
-	ot->poll = WM_operator_winactive;
 
 	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_LONGDISPLAY);
@@ -2743,7 +2737,6 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_exit_blender_exec;
-	ot->poll = WM_operator_winactive;
 }
 
 /* *********************** */

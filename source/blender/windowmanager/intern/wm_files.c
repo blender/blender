@@ -977,7 +977,7 @@ int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	int fileflags;
 
 	/* check current window and close it if temp */
-	if (win->screen->temp)
+	if (win && win->screen->temp)
 		wm_window_close(C, wm, win);
 	
 	/* update keymaps in user preferences */
