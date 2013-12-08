@@ -200,18 +200,22 @@ OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.0.1"
-OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
-OPENEXR_VERSION_MIN="2.0"
-ILMBASE_VERSION="2.0.1"
+OPENEXR_VERSION="2.1.0"
+OPENEXR_VERSION_MIN="2.0.1"
+#OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
+OPENEXR_SOURCE="https://github.com/mont29/openexr.git"
+OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
+ILMBASE_VERSION="2.1.0"
 ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="1.1.10"
-OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
-OIIO_VERSION_MIN="1.1"
+OIIO_VERSION="1.3.9"
+OIIO_VERSION_MIN="1.3.9"
+#OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
+OIIO_SOURCE="https://github.com/mont29/oiio.git"
+OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
@@ -224,9 +228,11 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.3.2"
+OSL_VERSION="1.4.0"
 OSL_VERSION_MIN=$OSL_VERSION
-OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
+#OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
+OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
+OSL_REPO_UID="175989f2610a7d54e8edfb5ace0143e28e11ac70"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
@@ -855,7 +861,7 @@ clean_ILMBASE() {
 
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  ilmbase_magic=6
+  ilmbase_magic=8
   _init_ilmbase
 
   # Clean install if needed!
@@ -883,24 +889,6 @@ compile_ILMBASE() {
       tar -C $SRC --transform "s,(.*/?)ilmbase-[^/]*(.*),\1ILMBase-$ILMBASE_VERSION\2,x" \
           -xf $_src.tar.gz
 
-      cd $_src
-
-      # XXX Ugly patching hack!
-      cat << EOF | patch -p1
---- a/Half/CMakeLists.txt
-+++ b/Half/CMakeLists.txt
-@@ -47,6 +47,7 @@
- 
- INSTALL ( FILES 
-   half.h
-+  halfExport.h
-   halfFunction.h
-   halfLimits.h
-   DESTINATION
-EOF
-
-      cd $CWD
-
     fi
 
     cd $_src
@@ -914,6 +902,9 @@ EOF
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    if [ $ALL_STATIC == true ]; then
+      cmake_d="$cmake_d -D BUILD_SHARED_LIBS=OFF"
+    fi
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -958,7 +949,7 @@ clean_OPENEXR() {
 
 compile_OPENEXR() {
   # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=11
+  openexr_magic=12
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
@@ -983,130 +974,26 @@ compile_OPENEXR() {
     if [ ! -d $_src ]; then
       INFO "Downloading OpenEXR-$OPENEXR_VERSION"
       mkdir -p $SRC
-      wget -c $OPENEXR_SOURCE -O $_src.tar.gz
 
-      INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
-      tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" \
-          -xf $_src.tar.gz
+#      wget -c $OPENEXR_SOURCE -O $_src.tar.gz
 
-      cd $_src
+#      INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
+#      tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" \
+#          -xf $_src.tar.gz
 
-      # XXX Ugly patching hack!
-      cat << EOF | patch -p1
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -42,7 +42,7 @@
- ADD_SUBDIRECTORY ( exrmakepreview )
- ADD_SUBDIRECTORY ( exrenvmap )
- ADD_SUBDIRECTORY ( exrmultiview )
--ADD_SUBDIRECTORY ( exr2aces )
-+#ADD_SUBDIRECTORY ( exr2aces )
- ADD_SUBDIRECTORY ( exrmultipart )
- 
- ##########################
-@@ -52,11 +52,11 @@
- # Documentation
- INSTALL ( FILES
-   doc/TechnicalIntroduction.pdf
--  doc/TechnicalIntroduction_2.0.pdf
-+#  doc/TechnicalIntroduction_2.0.pdf
-   doc/ReadingAndWritingImageFiles.pdf
-   doc/OpenEXRFileLayout.pdf
--  doc/OpenEXRFileLayout_2.0.pdf
--  doc/ReadingAndWritingImageFiles_2.0.pdf
-+#  doc/OpenEXRFileLayout_2.0.pdf
-+#  doc/ReadingAndWritingImageFiles_2.0.pdf
-   doc/MultiViewOpenEXR.pdf
-   DESTINATION
-   ${CMAKE_INSTALL_PREFIX}/share/doc/OpenEXR-2.0.0
---- a/IlmImfFuzzTest/CMakeLists.txt
-+++ b/IlmImfFuzzTest/CMakeLists.txt
-@@ -4,7 +4,9 @@
-   fuzzFile.cpp
-   main.cpp
-   testFuzzScanLines.cpp
-+  testFuzzDeepScanLines.cpp
-   testFuzzTiles.cpp
-+  testFuzzDeepTiles.cpp
-   )
- 
- TARGET_LINK_LIBRARIES ( IlmImfFuzzTest IlmImf Iex Imath Half IlmThread ${PTHREAD_LIB} ${Z_LIB})
---- a/IlmImfTest/CMakeLists.txt
-+++ b/IlmImfTest/CMakeLists.txt
-@@ -19,22 +19,28 @@
-   testCustomAttributes.cpp
-   testDeepScanLineBasic.cpp
-   testDeepScanLineHuge.cpp
-+  testDeepScanLineMultipleRead.cpp
-   testDeepTiledBasic.cpp
-+  testBadTypeAttributes.cpp
-   testExistingStreams.cpp
-+  testFutureProofing.cpp
-   testHuf.cpp
-   testInputPart.cpp
-   testIsComplete.cpp
-   testLineOrder.cpp
-   testLut.cpp
-   testMagic.cpp
-   testMultiPartApi.cpp
-   testMultiPartFileMixingBasic.cpp
-   testMultiPartSharedAttributes.cpp
-   testMultiPartThreading.cpp
-   testMultiScanlinePartThreading.cpp
-   testMultiTiledPartThreading.cpp
-   testMultiView.cpp
-   testNativeFormat.cpp
-+  testOptimized.cpp
-+  testOptimizedInterleavePatterns.cpp
-+  testPartHelper.cpp
-   testPreviewImage.cpp
-   testRgba.cpp
-   testRgbaThreading.cpp
---- a/IlmImf/CMakeLists.txt
-+++ b/IlmImf/CMakeLists.txt
-@@ -153,18 +153,18 @@
-   ImfCompositeDeepScanLine.cpp
- )
- 
--ADD_LIBRARY ( IlmImf STATIC
--  \${ILMIMF_SRCS}
--)
--
--# TARGET_LINK_LIBRARIES ( IlmImf)
--
--ADD_DEPENDENCIES ( IlmImf b44ExpLogTable )
-+ADD_LIBRARY ( IlmImf STATIC \${ILMIMF_SRCS} )
-+ADD_DEPENDENCIES ( IlmImf b44ExpLogTable )
-+
-+ADD_LIBRARY ( IlmImf_dyn SHARED \${ILMIMF_SRCS} )
-+SET_TARGET_PROPERTIES ( IlmImf_dyn PROPERTIES OUTPUT_NAME IlmImf)
-+ADD_DEPENDENCIES ( IlmImf_dyn b44ExpLogTable )
-+TARGET_LINK_LIBRARIES ( IlmImf_dyn Iex Imath Half IlmThread \${Z_LIB} \${PTHREAD_LIB} )
- 
- # Libraries
- 
- INSTALL ( TARGETS
--  IlmImf
-+  IlmImf IlmImf_dyn
-   DESTINATION
-   \${CMAKE_INSTALL_PREFIX}/lib
- )
-@@ -168,6 +167,8 @@
- INSTALL ( FILES
-   ${CMAKE_SOURCE_DIR}/config/OpenEXRConfig.h
-   ImfForward.h
-+  ImfNamespace.h
-+  ImfPartHelper.h
-   ImfExport.h
-   ImfAttribute.h
-   ImfBoxAttribute.h
-EOF
-
-      cd $CWD
+      git clone $OPENEXR_SOURCE $_src
 
     fi
 
     cd $_src
+
+    # XXX For now, always update from latest repo...
+    git pull origin master
+
+    # Stick to same rev as windows' libs...
+    git checkout $OPENEXR_REPO_UID
+    git reset --hard
+
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
@@ -1125,7 +1012,7 @@ EOF
       cflags="-fPIC"
     fi
 
-    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ../OpenEXR
 
     make -j$THREADS && make install
 
@@ -1172,7 +1059,7 @@ clean_OIIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=12
+  oiio_magic=14
   _init_oiio
 
   # Clean install if needed!
@@ -1191,161 +1078,25 @@ compile_OIIO() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      wget -c $OIIO_SOURCE -O "$_src.tar.gz"
+#      wget -c $OIIO_SOURCE -O "$_src.tar.gz"
 
-      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-      tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
-          -xf $_src.tar.gz
+#      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
+#      tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+#          -xf $_src.tar.gz
 
-      cd $_src
-
-      # XXX Ugly patching hack!
-      cat << EOF | patch -p1
---- a/src/libOpenImageIO/CMakeLists.txt
-+++ b/src/libOpenImageIO/CMakeLists.txt
-@@ -289,12 +289,12 @@
- 
- add_executable (imagebuf_test imagebuf_test.cpp)
--link_ilmbase (imagebuf_test)
- target_link_libraries (imagebuf_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (imagebuf_test)
- add_test (unit_imagebuf imagebuf_test)
- 
- add_executable (imagebufalgo_test imagebufalgo_test.cpp)
--link_ilmbase (imagebufalgo_test)
- target_link_libraries (imagebufalgo_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (imagebufalgo_test)
- add_test (unit_imagebufalgo imagebufalgo_test)
- 
- 
-@@ -340,5 +340,6 @@
- 
- add_executable (imagespeed_test imagespeed_test.cpp)
- target_link_libraries (imagespeed_test OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (imagespeed_test)
- #add_test (unit_hash hash_test)
- 
---- a/src/iconvert/CMakeLists.txt
-+++ b/src/iconvert/CMakeLists.txt
-@@ -1,6 +1,6 @@
- set (iconvert_srcs iconvert.cpp)
- add_executable (iconvert \${iconvert_srcs})
--link_ilmbase (iconvert)
- target_link_libraries (iconvert OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (iconvert)
- oiio_install_targets (iconvert)
- 
---- a/src/idiff/CMakeLists.txt
-+++ b/src/idiff/CMakeLists.txt
-@@ -1,6 +1,6 @@
- set (idiff_srcs idiff.cpp)
- add_executable (idiff \${idiff_srcs})
--link_ilmbase (idiff)
- target_link_libraries (idiff OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (idiff)
- oiio_install_targets (idiff)
- 
---- a/src/igrep/CMakeLists.txt
-+++ b/src/igrep/CMakeLists.txt
-@@ -1,6 +1,6 @@
- set (igrep_srcs igrep.cpp)
- add_executable (igrep \${igrep_srcs})
--link_ilmbase (igrep)
- target_link_libraries (igrep OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (igrep)
- oiio_install_targets (igrep)
- 
---- a/src/iinfo/CMakeLists.txt
-+++ b/src/iinfo/CMakeLists.txt
-@@ -3,7 +3,7 @@
- if (MSVC)
-     set_target_properties (OpenImageIO PROPERTIES LINK_FLAGS psapi.lib)
- endif (MSVC)
--link_ilmbase (iinfo)
- target_link_libraries (iinfo OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (iinfo)
- oiio_install_targets (iinfo)
- 
---- a/src/maketx/CMakeLists.txt
-+++ b/src/maketx/CMakeLists.txt
-@@ -1,6 +1,6 @@
- set (maketx_srcs maketx.cpp)
- add_executable (maketx \${maketx_srcs})
--link_ilmbase (maketx)
- target_link_libraries (maketx OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (maketx)
- oiio_install_targets (maketx)
- 
---- a/src/oiiotool/CMakeLists.txt
-+++ b/src/oiiotool/CMakeLists.txt
-@@ -1,6 +1,6 @@
- set (oiiotool_srcs oiiotool.cpp diff.cpp imagerec.cpp printinfo.cpp)
- add_executable (oiiotool \${oiiotool_srcs})
--link_ilmbase (oiiotool)
- target_link_libraries (oiiotool OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (oiiotool)
- oiio_install_targets (oiiotool)
- 
---- a/src/testtex/CMakeLists.txt
-+++ b/src/testtex/CMakeLists.txt
-@@ -1,5 +1,5 @@
- set (testtex_srcs testtex.cpp)
- add_executable (testtex \${testtex_srcs})
--link_ilmbase (testtex)
- target_link_libraries (testtex OpenImageIO \${Boost_LIBRARIES} \${CMAKE_DL_LIBS})
-+link_ilmbase (testtex)
- 
---- a/src/cmake/modules/FindIlmBase.cmake
-+++ b/src/cmake/modules/FindIlmBase.cmake
-@@ -109,11 +109,13 @@
- # Generic search paths
- set (IlmBase_generic_include_paths
-   /usr/include
-+  /usr/include/\${CMAKE_LIBRARY_ARCHITECTURE}
-   /usr/local/include
-   /sw/include
-   /opt/local/include)
- set (IlmBase_generic_library_paths
-   /usr/lib
-+  /usr/lib/\${CMAKE_LIBRARY_ARCHITECTURE}
-   /usr/local/lib
-   /sw/lib
-   /opt/local/lib)
---- a/src/cmake/modules/FindOpenEXR.cmake
-+++ b/src/cmake/modules/FindOpenEXR.cmake
-@@ -105,11 +105,13 @@
- # Generic search paths
- set (OpenEXR_generic_include_paths
-   /usr/include
-+  /usr/include/\${CMAKE_LIBRARY_ARCHITECTURE}
-   /usr/local/include
-   /sw/include
-   /opt/local/include)
- set (OpenEXR_generic_library_paths
-   /usr/lib
-+  /usr/lib/\${CMAKE_LIBRARY_ARCHITECTURE}
-   /usr/local/lib
-   /sw/lib
-   /opt/local/lib)
---- a/src/libutil/tbb_misc.cpp
-+++ b/src/libutil/tbb_misc.cpp
-@@ -44,7 +44,8 @@
- 
- using namespace std;
- 
--#include "tbb/tbb_machine.h"
-+//#include "tbb/tbb_machine.h"
-+#include "tbb/tbb_assert_impl.h"
- 
- namespace tbb {
- 
-EOF
-
-      cd $CWD
+      git clone $OIIO_SOURCE $_src
 
     fi
 
     cd $_src
+
+    # XXX For now, always update from latest repo...
+    git pull origin master
+
+    # Stick to same rev as windows' libs...
+    git checkout $OIIO_REPO_UID
+    git reset --hard
+
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
@@ -1362,6 +1113,7 @@ EOF
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
       cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
       cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+      cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
     fi
 
     # Optional tests and cmd tools
@@ -1396,7 +1148,7 @@ EOF
       cflags="-fPIC"
     fi
 
-    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ../src
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
 
     make -j$THREADS && make install
     make clean
@@ -1541,7 +1293,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=11
+  osl_magic=13
   _init_osl
 
   # Clean install if needed!
@@ -1558,17 +1310,24 @@ compile_OSL() {
     if [ ! -d $_src ]; then
       mkdir -p $SRC
 
-      wget -c $OSL_SOURCE -O "$_src.tar.gz"
+#      wget -c $OSL_SOURCE -O "$_src.tar.gz"
 
-      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
-      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
-          -xf $_src.tar.gz
-      cd $_src
-      #git checkout blender-fixes
-      cd $CWD
+#      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
+#      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
+#          -xf $_src.tar.gz
+
+      git clone $OSL_SOURCE $_src
+
     fi
 
     cd $_src
+
+    # XXX For now, always update from latest repo...
+    git pull origin master
+
+    # Stick to same rev as windows' libs...
+    git checkout $OSL_REPO_UID
+    git reset --hard
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1584,8 +1343,8 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
 
     if [ $_with_built_openexr == true ]; then
-      #cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr" # XXX Not used!
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
+      cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
     fi
 
     if [ -d $INST/boost ]; then
@@ -1608,7 +1367,7 @@ compile_OSL() {
       fi
     fi
 
-    cmake $cmake_d ../src
+    cmake $cmake_d ..
 
     make -j$THREADS && make install
     make clean
@@ -2077,6 +1836,8 @@ install_DEB() {
     check_package_version_ge_DEB libopenexr-dev $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_DEB libopenexr-dev
+      OPENEXR_VERSION=`get_package_version_DEB libopenexr-dev`
+      ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
@@ -2486,6 +2247,8 @@ install_RPM() {
     check_package_version_ge_RPM $OPENEXR_DEV $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM $OPENEXR_DEV
+      OPENEXR_VERSION=`get_package_version_RPM $OPENEXR_DEV`
+      ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
@@ -2782,6 +2545,8 @@ install_ARCH() {
     check_package_version_ge_ARCH openexr $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH openexr
+      OPENEXR_VERSION=`get_package_version_ARCH openexr`
+      ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
@@ -3025,8 +2790,10 @@ print_info() {
 
   if [ -d $INST/openexr ]; then
     _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
+    _2="-D OPENEXR_VERSION=$OPENEXR_VERSION"
     INFO "  $_1"
-    _buildargs="$_buildargs $_1"
+    INFO "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   _1="-D WITH_CYCLES_OSL=ON"
@@ -3095,6 +2862,15 @@ print_info() {
 
   if [ -d $INST/openexr ]; then
     INFO "BF_OPENEXR = '$INST/openexr'"
+
+    _ilm_libs_ext=""
+    version_ge $OPENEXR_VERSION "2.1.0"
+    if [ $? -eq 0 ]; then
+      _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
+    fi
+    INFO "BF_OPENEXR_LIB = 'Half IlmImf$_ilm_libs_ext Iex$_ilm_libs_ext Imath$_ilm_libs_ext '"
+    INFO "BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.a'"
+
   fi
   # XXX Always static for now :/
   INFO "WITH_BF_STATICOPENEXR = True"
