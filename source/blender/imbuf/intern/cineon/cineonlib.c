@@ -40,8 +40,6 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-#include "logImageLib.h"
-
 #include "MEM_guardedalloc.h"
 
 /*
