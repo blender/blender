@@ -138,7 +138,7 @@ def write_sysinfo(op):
     else:
         output.write("Blender was built without OpenImageIO support\n")
 
-    output.write("OpenShadingLanguuage: ")
+    output.write("OpenShadingLanguage: ")
     if bpy.app.build_options.cycles:
         if bpy.app.build_options.cycles_osl:
             from _cycles import osl_version_string
