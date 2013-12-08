@@ -179,7 +179,7 @@ def validate_arguments(args, bc):
             'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
             'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
             'C_WARN', 'CC_WARN', 'CXX_WARN',
-            'LLIBS', 'PLATFORM_LINKFLAGS', 'MACOSX_ARCHITECTURE', 'MACOSX_SDK', 'XCODE_CUR_VER', 'MACOSX_COMPILER',
+            'LLIBS', 'PLATFORM_LINKFLAGS', 'MACOSX_ARCHITECTURE', 'MACOSX_SDK', 'XCODE_CUR_VER', 'C_COMPILER_ID',
             'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS', 'MACOSX_DEPLOYMENT_TARGET'
     ]
 
@@ -504,7 +504,7 @@ def read_opts(env, cfg, args):
         ('MACOSX_SDK', 'Set OS X SDK', ''),
         ('XCODE_CUR_VER', 'Detect XCode version', ''),
         ('MACOSX_DEPLOYMENT_TARGET', 'Detect OS X target version', ''),
-        ('MACOSX_COMPILER', 'Detect the resolved compiler', ''),
+        ('C_COMPILER_ID', 'Detect the resolved compiler', ''),
 
         (BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
         ('BF_PROFILE_CFLAGS', 'C only profiling flags', []),
