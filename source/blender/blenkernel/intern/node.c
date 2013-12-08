@@ -134,16 +134,12 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
 	
 	node_add_sockets_from_type(ntree, node, ntype);
 
-	/* Composite node will only show previews for input classes 
-	 * by default, other will be hidden 
-	 * but can be made visible with the show_preview option */
-	if (ntree->typeinfo->type == NTREE_COMPOSIT && ntype->nclass != NODE_CLASS_INPUT) {
-		node->flag &= ~NODE_PREVIEW;
-	}	
-	
 	if (ntype->initfunc != NULL)
 		ntype->initfunc(ntree, node);
-	
+
+	if (ntree->typeinfo->node_add_init != NULL)
+		ntree->typeinfo->node_add_init(ntree, node);
+
 	/* extra init callback */
 	if (ntype->initfunc_api) {
 		PointerRNA ptr;

@@ -218,6 +218,15 @@ static void update(bNodeTree *ntree)
 	}
 }
 
+static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode) {
+	/* Composite node will only show previews for input classes 
+	 * by default, other will be hidden 
+	 * but can be made visible with the show_preview option */
+	if (bnode->typeinfo->nclass != NODE_CLASS_INPUT) {
+		bnode->flag &= ~NODE_PREVIEW;
+	}	
+}
+
 bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp(void)
@@ -238,6 +247,7 @@ void register_node_tree_type_cmp(void)
 	tt->local_merge = local_merge;
 	tt->update = update;
 	tt->get_from_context = composite_get_from_context;
+	tt->node_add_init = composite_node_add_init;
 	
 	tt->ext.srna = &RNA_CompositorNodeTree;
 	

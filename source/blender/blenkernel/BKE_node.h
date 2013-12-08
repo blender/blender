@@ -306,6 +306,8 @@ typedef struct bNodeTreeType {
 	void (*update)(struct bNodeTree *ntree);
 	
 	int (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
+
+	void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 	
 	/* RNA integration */
 	ExtensionRNA ext;
