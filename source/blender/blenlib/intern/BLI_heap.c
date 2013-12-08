@@ -125,7 +125,7 @@ Heap *BLI_heap_new_ex(unsigned int tot_reserve)
 {
 	Heap *heap = (Heap *)MEM_callocN(sizeof(Heap), __func__);
 	/* ensure we have at least one so we can keep doubling it */
-	heap->bufsize = MAX2(1, tot_reserve);
+	heap->bufsize = MAX2(1u, tot_reserve);
 	heap->tree = (HeapNode **)MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
 	heap->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "heap arena");
 

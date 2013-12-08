@@ -257,7 +257,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	}
 
 	if (flag & BLI_MEMPOOL_ALLOW_ITER) {
-		pool->esize = MAX2(esize, (int)sizeof(BLI_freenode));
+		pool->esize = MAX2(esize, (unsigned int)sizeof(BLI_freenode));
 	}
 	else {
 		pool->esize = esize;

@@ -66,11 +66,6 @@ BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1, 1};
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
-#ifndef MIN2
-#define MIN2(x, y) ((x) < (y) ? (x) : (y))
-#define MAX2(x, y) ((x) > (y) ? (x) : (y))
-#endif
-
 /* pedantic check for '.', do this since its a hassle for translators */
 #ifndef NDEBUG
 #  define DESCR_CHECK(description, id1, id2)                                  \

@@ -48,11 +48,26 @@
 #endif
 
 /* min/max */
+#if defined(__GNUC__) || defined(__clang__)
+
+#define MIN2(x, y)  ({  \
+	typeof(x) x_ = (x); \
+	typeof(y) y_ = (y); \
+	((x_) < (y_) ? (x_) : (y_)); })
+
+#define MAX2(x, y)  ({  \
+	typeof(x) x_ = (x); \
+	typeof(y) y_ = (y); \
+	((x_) > (y_) ? (x_) : (y_)); })
+
+#else
 #define MIN2(x, y)          ((x) < (y) ? (x) : (y))
+#define MAX2(x, y)          ((x) > (y) ? (x) : (y))
+#endif
+
 #define MIN3(x, y, z)       (MIN2(MIN2((x), (y)), (z)))
 #define MIN4(x, y, z, a)    (MIN2(MIN2((x), (y)), MIN2((z), (a))))
 
-#define MAX2(x, y)          ((x) > (y) ? (x) : (y))
 #define MAX3(x, y, z)       (MAX2(MAX2((x), (y)), (z)))
 #define MAX4(x, y, z, a)    (MAX2(MAX2((x), (y)), MAX2((z), (a))))
 
