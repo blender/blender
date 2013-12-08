@@ -412,12 +412,26 @@ matrix transpose (matrix m) BUILTIN;
 
 // Pattern generation
 
-float step (float edge, float x) BUILTIN;
 color step (color edge, color x) BUILTIN;
 point step (point edge, point x) BUILTIN;
 vector step (vector edge, vector x) BUILTIN;
 normal step (normal edge, normal x) BUILTIN;
+float step (float edge, float x) BUILTIN;
 float smoothstep (float edge0, float edge1, float x) BUILTIN;
+
+float aastep (float edge, float s, float dedge, float ds) {
+    // Box filtered AA step
+    float width = fabs(dedge) + fabs(ds);
+    float halfwidth = 0.5*width;
+    float e1 = edge-halfwidth;
+    return (s <= e1) ? 0.0 : ((s >= (edge+halfwidth)) ? 1.0 : (s-e1)/width);
+}
+float aastep (float edge, float s, float ds) {
+    return aastep (edge, s, filterwidth(edge), ds);
+}
+float aastep (float edge, float s) {
+    return aastep (edge, s, filterwidth(edge), filterwidth(s));
+}
 
 
 // Derivatives and area operators
