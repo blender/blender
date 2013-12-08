@@ -492,8 +492,8 @@ void *CCL_python_module_init()
 #else
 	PyModule_AddObject(mod, "with_osl", Py_False);
 	Py_INCREF(Py_False);
-	PyModule_AddStringCOnstant(mod, "osl_version", "unknown");
-	PyModule_AddStringCOnstant(mod, "osl_version_string", "unknown");
+	PyModule_AddStringConstant(mod, "osl_version", "unknown");
+	PyModule_AddStringConstant(mod, "osl_version_string", "unknown");
 #endif
 
 #ifdef WITH_NETWORK
