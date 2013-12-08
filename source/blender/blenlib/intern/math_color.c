@@ -39,53 +39,58 @@
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
-	if (UNLIKELY(s == 0.0f)) {
-		*r = v;
-		*g = v;
-		*b = v;
-	}
-	else {
-		float i, f, p, q, t;
+	if (s != 0.0f) {
+		float i, f, p;
 		h = (h - floorf(h)) * 6.0f;
 
 		i = floorf(h);
 		f = h - i;
-		p = v * (1.0f - s);
-		q = v * (1.0f - (s * f));
-		t = v * (1.0f - (s * (1.0f - f)));
 
-		switch ((int)i) {
-			case 0:
-				*r = v;
-				*g = t;
-				*b = p;
-				break;
-			case 1:
-				*r = q;
-				*g = v;
-				*b = p;
-				break;
-			case 2:
-				*r = p;
-				*g = v;
-				*b = t;
-				break;
-			case 3:
-				*r = p;
-				*g = q;
-				*b = v;
-				break;
-			case 4:
-				*r = t;
-				*g = p;
-				*b = v;
-				break;
-			case 5:
-				*r = v;
-				*g = p;
-				*b = q;
-				break;
+		/* avoid computing q/t when not needed */
+		p = (v * (1.0f - s));
+#define q   (v * (1.0f - (s * f)))
+#define t   (v * (1.0f - (s * (1.0f - f))))
+
+		/* faster to compare floats then int conversion */
+		if (i < 1.0f) {
+			*r = v;
+			*g = t;
+			*b = p;
 		}
+		else if (i < 2.0f) {
+			*r = q;
+			*g = v;
+			*b = p;
+		}
+		else if (i < 3.0f) {
+			*r = p;
+			*g = v;
+			*b = t;
+		}
+		else if (i < 4.0f) {
+			*r = p;
+			*g = q;
+			*b = v;
+		}
+		else if (i < 5.0f) {
+			*r = t;
+			*g = p;
+			*b = v;
+		}
+		else {
+			*r = v;
+			*g = p;
+			*b = q;
+		}
+
+#undef q
+#undef t
+
+	}
+	else {
+		*r = v;
+		*g = v;
+		*b = v;
 	}
 }
 
@@ -223,8 +228,7 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	float h, s, v;
-	float cmax, cmin, cdelta;
-	float rc, gc, bc;
+	float cmax, cmin;
 
 	cmax = r;
 	cmin = r;
@@ -234,37 +238,45 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	cmin = (b < cmin ? b : cmin);
 
 	v = cmax; /* value */
-	if (cmax != 0.0f)
-		s = (cmax - cmin) / cmax;
-	else {
-		s = 0.0f;
-	}
-	if (s == 0.0f)
-		h = -1.0f;
-	else {
-		cdelta = cmax - cmin;
-		rc = (cmax - r) / cdelta;
-		gc = (cmax - g) / cdelta;
-		bc = (cmax - b) / cdelta;
+	if (cmax != 0.0f) {
+		float cdelta;
 
-		if (r == cmax) {
-			h = bc - gc;
-		}
-		else if (g == cmax) {
-			h = 2.0f + rc - bc;
+		cdelta = cmax - cmin;
+		s = cdelta / cmax;
+
+		if (s != 0.0f) {
+			float rc, gc, bc;
+
+			rc = (cmax - r) / cdelta;
+			gc = (cmax - g) / cdelta;
+			bc = (cmax - b) / cdelta;
+
+			if (r == cmax) {
+				h = bc - gc;
+				if (h < 0.0f) {
+					h += 6.0f;
+				}
+			}
+			else if (g == cmax) {
+				h = 2.0f + rc - bc;
+			}
+			else {
+				h = 4.0f + gc - rc;
+			}
+
+			h *= (1.0f / 6.0f);
 		}
 		else {
-			h = 4.0f + gc - rc;
+			h = 0.0f;
 		}
-
-		h = h * 60.0f;
-		if (h < 0.0f)
-			h += 360.0f;
+	}
+	else {
+		h = 0.0f;
+		s = 0.0f;
 	}
 
+	*lh = h;
 	*ls = s;
-	*lh = h / 360.0f;
-	if (*lh < 0.0f) *lh = 0.0f;
 	*lv = v;
 }
 
