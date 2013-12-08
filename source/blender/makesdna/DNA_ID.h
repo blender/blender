@@ -111,12 +111,12 @@ typedef struct ID {
 	struct ID *newid;
 	struct Library *lib;
 	char name[66]; /* MAX_ID_NAME */
-	short pad, us;
 	/**
 	 * LIB_... flags report on status of the datablock this ID belongs
 	 * to.
 	 */
 	short flag;
+	int us;
 	int icon_id, pad2;
 	IDProperty *properties;
 } ID;
