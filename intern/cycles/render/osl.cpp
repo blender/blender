@@ -724,13 +724,17 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 	} while(!nodes_done);
 }
 
-void OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
+OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
 {
 	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
 
 	current_type = type;
 
+#if OSL_LIBRARY_VERSION_CODE >= 10501
+	OSL::ShadingAttribStateRef group = ss->ShaderGroupBegin(shader->name.c_str());
+#else
 	ss->ShaderGroupBegin(shader->name.c_str());
+#endif
 
 	ShaderNode *output = graph->output();
 	set<ShaderNode*> dependencies;
@@ -757,12 +761,19 @@ void OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 		assert(0);
 
 	ss->ShaderGroupEnd();
+
+#if OSL_LIBRARY_VERSION_CODE >= 10501
+	return group;
+#else
+	OSL::ShadingAttribStateRef group = ss->state();
+	ss->clear_state();
+	return group;
+#endif
 }
 
 void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 {
 	if(shader->need_update) {
-		OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
 		ShaderGraph *graph = shader->graph;
 		ShaderNode *output = (graph)? graph->output(): NULL;
 
@@ -788,18 +799,12 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 
 		/* generate surface shader */
 		if(shader->used && graph && output->input("Surface")->link) {
-			compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
-			shader->osl_surface_ref = ss->state();
+			shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 
-			if(shader->graph_bump) {
-				ss->clear_state();
-				compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
-				shader->osl_surface_bump_ref = ss->state();
-			}
+			if(shader->graph_bump)
+				shader->osl_surface_bump_ref = compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
 			else
 				shader->osl_surface_bump_ref = shader->osl_surface_ref;
-
-			ss->clear_state();
 
 			shader->has_surface = true;
 		}
@@ -810,21 +815,16 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 
 		/* generate volume shader */
 		if(shader->used && graph && output->input("Volume")->link) {
-			compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
+			shader->osl_volume_ref = compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
 			shader->has_volume = true;
-
-			shader->osl_volume_ref = ss->state();
-			ss->clear_state();
 		}
 		else
 			shader->osl_volume_ref = OSL::ShadingAttribStateRef();
 
 		/* generate displacement shader */
 		if(shader->used && graph && output->input("Displacement")->link) {
-			compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
+			shader->osl_displacement_ref = compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
 			shader->has_displacement = true;
-			shader->osl_displacement_ref = ss->state();
-			ss->clear_state();
 		}
 		else
 			shader->osl_displacement_ref = OSL::ShadingAttribStateRef();
