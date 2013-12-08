@@ -118,6 +118,36 @@ def write_sysinfo(op):
     else:
         output.write("Blender was built without FFmpeg support\n")
 
+    output.write("\nOther Libraries:\n")
+    output.write(lilies)
+    ocio = bpy.app.ocio
+    output.write("OpenColorIO: ")
+    if ocio.supported:
+        if ocio.version_string == "fallback":
+            output.write("Blender was built with OpenColorIO, " +
+                         "but it currently uses fallback color management.\n")
+        else:
+            output.write("%s\n" % (ocio.version_string))
+    else:
+        output.write("Blender was built without OpenColorIO support\n")
+
+    oiio = bpy.app.oiio
+    output.write("OpenImageIO: ")
+    if ocio.supported :
+        output.write("%s\n" % (oiio.version_string))
+    else:
+        output.write("Blender was built without OpenImageIO support\n")
+
+    output.write("OpenShadingLanguuage: ")
+    if bpy.app.build_options.cycles:
+        if bpy.app.build_options.cycles_osl:
+            from _cycles import osl_version_string
+            output.write("%s\n" % (osl_version_string))
+        else:
+            output.write("Blender was built without OpenShadingLanguage support in Cycles\n")
+    else:
+        output.write("Blender was built without Cycles support\n")
+
     if bpy.app.background:
         output.write("\nOpenGL: missing, background mode\n")
     else:

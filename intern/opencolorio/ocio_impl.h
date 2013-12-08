@@ -110,6 +110,9 @@ public:
 	                           OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide) = 0;
 	virtual void finishGLSLDraw(struct OCIO_GLSLDrawState *state) = 0;
 	virtual void freeGLState(struct OCIO_GLSLDrawState *state_r) = 0;
+
+	virtual const char *getVersionString(void) = 0;
+	virtual int getVersionHex(void) = 0;
 };
 
 class FallbackImpl : public IOCIOImpl {
@@ -194,6 +197,9 @@ public:
 	                   OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide);
 	void finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 	void freeGLState(struct OCIO_GLSLDrawState *state_r);
+
+	const char *getVersionString(void);
+	int getVersionHex(void);
 };
 
 #ifdef WITH_OCIO
@@ -279,6 +285,9 @@ public:
 	                   OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide);
 	void finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 	void freeGLState(struct OCIO_GLSLDrawState *state_r);
+
+	const char *getVersionString(void);
+	int getVersionHex(void);
 };
 #endif
 

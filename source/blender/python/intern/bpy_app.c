@@ -34,6 +34,8 @@
 #include "bpy_app.h"
 
 #include "bpy_app_ffmpeg.h"
+#include "bpy_app_ocio.h"
+#include "bpy_app_oiio.h"
 #include "bpy_app_build_options.h"
 
 #include "bpy_app_translations.h"
@@ -93,6 +95,8 @@ static PyStructSequence_Field app_info_fields[] = {
 
 	/* submodules */
 	{(char *)"ffmpeg", (char *)"FFmpeg library information backend"},
+	{(char *)"ocio", (char *)"OpenColorIO library information backend"},
+	{(char *)"oiio", (char *)"OpenImageIO library information backend"},
 	{(char *)"build_options", (char *)"A set containing most important enabled optional build features"},
 	{(char *)"handlers", (char *)"Application handler callbacks"},
 	{(char *)"translations", (char *)"Application and addons internationalization API"},
@@ -167,6 +171,8 @@ static PyObject *make_app_info(void)
 #endif
 
 	SetObjItem(BPY_app_ffmpeg_struct());
+	SetObjItem(BPY_app_ocio_struct());
+	SetObjItem(BPY_app_oiio_struct());
 	SetObjItem(BPY_app_build_options_struct());
 	SetObjItem(BPY_app_handlers_struct());
 	SetObjItem(BPY_app_translations_struct());

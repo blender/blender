@@ -193,6 +193,9 @@ int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorR
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state);
 
+const char *OCIO_getVersionString(void);
+int OCIO_getVersionHex(void);
+
 #ifdef __cplusplus
 }
 #endif

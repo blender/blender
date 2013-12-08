@@ -275,6 +275,11 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 	}
 }
 
+int OIIO_getVersionHex(void)
+{
+	return openimageio_version();
+}
+
 } // export "C"
 
 

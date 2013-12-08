@@ -609,3 +609,13 @@ void OCIOImpl::matrixTransformScale(float *m44, float *offset4, const float *sca
 {
 	MatrixTransform::Scale(m44, offset4, scale4f);
 }
+
+const char *OCIOImpl::getVersionString(void)
+{
+	return GetVersion();
+}
+
+int OCIOImpl::getVersionHex(void)
+{
+	return GetVersionHex();
+}

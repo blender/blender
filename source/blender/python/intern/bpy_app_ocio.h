@@ -15,43 +15,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2013 Blender Foundation
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s):
+ * Contributor(s): Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/imbuf/intern/oiio/openimageio_api.h
- *  \ingroup openimageio
+/** \file blender/python/intern/bpy_app_ocio.h
+ *  \ingroup pythonintern
  */
 
+#ifndef __BPY_APP_OCIO_H__
+#define __BPY_APP_OCIO_H__
 
-#ifndef __OPENIMAGEIO_API_H__
-#define __OPENIMAGEIO_API_H__
+PyObject *BPY_app_ocio_struct(void);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdio.h>
-
-struct ImBuf;
-
-int		imb_is_a_photoshop			(const char *name);
-
-int		imb_save_photoshop			(struct ImBuf *ibuf, const char *name, int flags);
-
-struct ImBuf *imb_load_photoshop (const char *name, int flags, char *colorspace);
-
-int OIIO_getVersionHex(void);
-
-#ifdef __cplusplus
-}
-
-#endif
-
-#endif  /* __OPENIMAGEIO_API_H__ */
+#endif  /* __BPY_APP_OCIO_H__ */

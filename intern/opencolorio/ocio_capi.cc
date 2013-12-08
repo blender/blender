@@ -338,3 +338,13 @@ void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state)
 {
 	impl->freeGLState(state);
 }
+
+const char *OCIO_getVersionString(void)
+{
+	return impl->getVersionString();
+}
+
+int OCIO_getVersionHex(void)
+{
+	return impl->getVersionHex();
+}

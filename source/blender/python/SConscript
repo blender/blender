@@ -183,8 +183,13 @@ if env['WITH_BF_SMOKE']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['WITH_BF_OIIO']:
+if env['WITH_BF_OCIO']:
     defs.append('WITH_OCIO')
+    incs += ' ' + '#/intern/opencolorio'
+
+if env['WITH_BF_OIIO']:
+    defs.append('WITH_OPENIMAGEIO')
+    incs += ' ../../imbuf/intern/oiio'
 
 if env['WITH_BF_PLAYER']:
     defs.append('WITH_PLAYER')

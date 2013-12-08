@@ -431,3 +431,13 @@ void FallbackImpl::finishGLSLDraw(OCIO_GLSLDrawState * /*state*/)
 void FallbackImpl::freeGLState(struct OCIO_GLSLDrawState * /*state_r*/)
 {
 }
+
+const char *FallbackImpl::getVersionString(void)
+{
+	return "fallback";
+}
+
+int FallbackImpl::getVersionHex(void)
+{
+	return 0;
+}
