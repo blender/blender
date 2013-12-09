@@ -496,6 +496,8 @@
                         vertex_select="#ff8500"
                         vertex_size="3"
                         vertex_unreferenced="#000000"
+                        wire_edit="#C0C0C0"
+                        edge_select="#FF8500"
                         face="#ffffff0a"
                         face_select="#ff85003c"
                         face_dot="#ff8500"
