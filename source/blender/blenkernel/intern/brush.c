@@ -307,7 +307,7 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST_FLAG(BRUSH_ADAPTIVE_SPACE);
 	BR_TEST_FLAG(BRUSH_LOCK_SIZE);
 	BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
-	BR_TEST_FLAG(BRUSH_RESTORE_MESH);
+	BR_TEST_FLAG(BRUSH_DRAG_DOT);
 	BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
 	BR_TEST_FLAG(BRUSH_RANDOM_ROTATION);
 	BR_TEST_FLAG(BRUSH_PLANE_TRIM);
@@ -910,7 +910,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 
 	/* jitter-ed brush gives weird and unpredictable result for this
 	 * kinds of stroke, so manually disable jitter usage (sergey) */
-	use_jitter &= (brush->flag & (BRUSH_RESTORE_MESH | BRUSH_ANCHORED)) == 0;
+	use_jitter &= (brush->flag & (BRUSH_DRAG_DOT | BRUSH_ANCHORED)) == 0;
 
 	if (use_jitter) {
 		float rand_pos[2];

@@ -2255,11 +2255,6 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	if (me->editflag & ME_EDIT_MIRROR_X) {
 		wpd->vgroup_mirror = wpaint_mirror_vgroup_ensure(ob, wpd->vgroup_active);
 	}
-
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->draw_pressure = true;
-	}
 	
 	return TRUE;
 }
@@ -2551,11 +2546,6 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 				}
 			}
 		}
-	}
-
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->draw_pressure = false;
 	}
 
 	DAG_id_tag_update(ob->data, 0);
@@ -2875,11 +2865,6 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->draw_pressure = true;
-	}
-
 	return 1;
 }
 
@@ -3102,11 +3087,6 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 	if (vpd->mfacetag)
 		MEM_freeN(vpd->mfacetag);
-
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->draw_pressure = false;
-	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 

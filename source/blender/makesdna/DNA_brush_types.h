@@ -140,7 +140,7 @@ typedef enum BrushFlags {
 	BRUSH_LOCK_SIZE = (1 << 20),
 //	BRUSH_TEXTURE_OVERLAY = (1 << 21), /* obsolete, use overlay_flags |= BRUSH_OVERLAY_PRIMARY instead */
 	BRUSH_EDGE_TO_EDGE = (1 << 22),
-	BRUSH_RESTORE_MESH = (1 << 23),
+	BRUSH_DRAG_DOT = (1 << 23),
 	BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
 	BRUSH_RANDOM_ROTATION = (1 << 25),
 	BRUSH_PLANE_TRIM = (1 << 26),

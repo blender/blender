@@ -76,6 +76,7 @@ typedef struct PaintStroke {
 	ViewContext vc;
 	bglMats mats;
 	Brush *brush;
+	UnifiedPaintSettings *ups;
 
 	/* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
 	 * to smooth the stroke */
@@ -174,7 +175,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 
 	/* Truly temporary data that isn't stored in properties */
 
-	ups->draw_pressure = TRUE;
+	ups->stroke_active = true;
 	ups->pressure_value = stroke->cached_pressure;
 
 	ups->pixel_radius = BKE_brush_size_get(scene, brush);
@@ -247,7 +248,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		else
 			copy_v2_v2(ups->anchored_initial_mouse, stroke->initial_mouse);
 
-		ups->draw_anchored = 1;
+		ups->draw_anchored = true;
 	}
 	else if (brush->flag & BRUSH_RAKE) {
 		if (!stroke->brush_init)
@@ -467,8 +468,10 @@ PaintStroke *paint_stroke_new(bContext *C,
                               StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
-
+	ToolSettings *toolsettings = CTX_data_tool_settings(C);
+	UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
 	Brush *br = stroke->brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+
 	view3d_set_viewcontext(C, &stroke->vc);
 	if (stroke->vc.v3d)
 		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
@@ -479,6 +482,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->redraw = redraw;
 	stroke->done = done;
 	stroke->event_type = event_type; /* for modal, return event */
+	stroke->ups = ups;
 
 	/* initialize here to avoid initialization conflict with threaded strokes */
 	curvemapping_initialize(br->curve);
@@ -498,6 +502,14 @@ void paint_stroke_data_free(struct wmOperator *op)
 static void stroke_done(struct bContext *C, struct wmOperator *op)
 {
 	struct PaintStroke *stroke = op->customdata;
+	UnifiedPaintSettings *ups = stroke->ups;
+
+	ups->draw_anchored = false;
+	ups->stroke_active = false;
+
+	/* reset rotation here to avoid doing so in cursor display */
+	if (!(stroke->brush->flag & BRUSH_RAKE))
+		ups->brush_rotation = 0.0f;
 
 	if (stroke->stroke_started) {
 		if (stroke->redraw)
@@ -556,7 +568,7 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 {
 	if (!(br->flag & BRUSH_SMOOTH_STROKE) ||
 	     (br->flag & BRUSH_ANCHORED) ||
-	     (br->flag & BRUSH_RESTORE_MESH))
+	     (br->flag & BRUSH_DRAG_DOT))
 	{
 		return false;
 	}

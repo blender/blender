@@ -165,15 +165,15 @@ static int is_effected(float planes[4][4], const float co[3])
 
 static void flip_plane(float out[4], const float in[4], const char symm)
 {
-	if (symm & SCULPT_SYMM_X)
+	if (symm & PAINT_SYMM_X)
 		out[0] = -in[0];
 	else
 		out[0] = in[0];
-	if (symm & SCULPT_SYMM_Y)
+	if (symm & PAINT_SYMM_Y)
 		out[1] = -in[1];
 	else
 		out[1] = in[1];
-	if (symm & SCULPT_SYMM_Z)
+	if (symm & PAINT_SYMM_Z)
 		out[2] = -in[2];
 	else
 		out[2] = in[2];
@@ -198,7 +198,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i, symmpass;
-	int symm = sd->flags & 7;
+	int symm = sd->paint.symmetry_flags & 7;
 
 	mode = PAINT_MASK_FLOOD_VALUE;
 	value = select ? 1.0 : 0.0;

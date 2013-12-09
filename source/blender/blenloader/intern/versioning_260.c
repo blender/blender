@@ -2625,4 +2625,24 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 269, 7)) {
+		Scene *scene;
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			Sculpt *sd = scene->toolsettings->sculpt;
+
+			if (sd) {
+				int symmetry_flags = sd->flags & 7;
+
+				if (symmetry_flags & SCULPT_SYMM_X)
+					sd->paint.symmetry_flags |= PAINT_SYMM_X;
+				if (symmetry_flags & SCULPT_SYMM_Y)
+					sd->paint.symmetry_flags |= PAINT_SYMM_Y;
+				if (symmetry_flags & SCULPT_SYMM_Z)
+					sd->paint.symmetry_flags |= PAINT_SYMM_Z;
+				if (symmetry_flags & SCULPT_SYMMETRY_FEATHER)
+					sd->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
+			}
+		}
+	}
 }

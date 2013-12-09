@@ -770,7 +770,8 @@ typedef struct Paint {
 	 * smooth the stroke */
 	int num_input_samples;
 	
-	int pad;
+	/* flags used for symmetry */
+	int symmetry_flags;
 } Paint;
 
 /* ------------------------------------------- */
@@ -919,8 +920,10 @@ typedef struct UnifiedPaintSettings {
 	int   anchored_size;
 	float anchored_initial_mouse[2];
 
+	/* check is there an ongoing stroke right now */
+	int stroke_active;
+
 	/* drawing pressure */
-	int draw_pressure;
 	float pressure_value;
 
 	/* position of mouse, used to sample the texture */
@@ -1550,16 +1553,29 @@ typedef enum {
 	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
 } PaintFlags;
 
+/* Paint.symmetry_flags
+ * (for now just a duplicate of sculpt symmetry flags) */
+typedef enum SymmetryFlags {
+	PAINT_SYMM_X = (1 << 0),
+	PAINT_SYMM_Y = (1 << 1),
+	PAINT_SYMM_Z = (1 << 2),
+	PAINT_SYMMETRY_FEATHER = (1 << 3)
+} SymmetryFlags;
+
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
+	/* deprecated, part of paint struct symmetry_flags now */
 	SCULPT_SYMM_X = (1 << 0),
 	SCULPT_SYMM_Y = (1 << 1),
 	SCULPT_SYMM_Z = (1 << 2),
+
 	SCULPT_LOCK_X = (1 << 3),
 	SCULPT_LOCK_Y = (1 << 4),
 	SCULPT_LOCK_Z = (1 << 5),
+	/* deprecated, part of paint struct symmetry_flags now */
 	SCULPT_SYMMETRY_FEATHER = (1 << 6),
+
 	SCULPT_USE_OPENMP = (1 << 7),
 	SCULPT_ONLY_DEFORM = (1 << 8),
 	SCULPT_SHOW_DIFFUSE = (1 << 9),

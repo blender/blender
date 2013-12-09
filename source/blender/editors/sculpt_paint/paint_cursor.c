@@ -569,7 +569,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
-			if (primary && ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
+			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
 				glScalef(1.0f / ups->pressure_value, 1.0f / ups->pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
@@ -694,7 +694,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 
 		/* scale based on tablet pressure */
-		if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
+		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 			do_pop = true;
 			glPushMatrix();
 			glLoadIdentity();
@@ -788,7 +788,7 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 		                                                    projected_radius);
 
 		/* scale 3D brush radius by pressure */
-		if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush))
+		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush))
 			unprojected_radius *= ups->pressure_value;
 
 		/* set cached value in either Brush or UnifiedPaintSettings */
@@ -828,11 +828,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	outline_col = brush->add_col;
 	final_radius = BKE_brush_size_get(scene, brush) * zoomx;
 
-	if (brush->flag & BRUSH_RAKE)
-		/* here, translation contains the mouse coordinates. */
-		paint_calculate_rake_rotation(ups, translation);
-	else if (!(brush->flag & BRUSH_ANCHORED))
-		ups->brush_rotation = 0.0;
+	/* don't calculate rake angles while a stroke is active because the rake variables are global and
+	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
+	if (!ups->stroke_active) {
+		if (brush->flag & BRUSH_RAKE)
+			/* here, translation contains the mouse coordinates. */
+			paint_calculate_rake_rotation(ups, translation);
+	}
 
 	/* draw overlay */
 	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
@@ -883,7 +885,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	glTranslatef(translation[0], translation[1], 0);
 
 	/* draw an inner brush */
-	if (ups->draw_pressure && BKE_brush_use_size_pressure(scene, brush)) {
+	if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
 		/* inner at full alpha */
 		glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * ups->pressure_value, 40);
 		/* outer at half alpha */
