@@ -1878,7 +1878,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 		/* if solid && posemode, we draw again with polygonoffset */
 		else if ((dt > OB_WIRE) && (arm->flag & ARM_POSEMODE)) {
-			bglPolygonOffset(rv3d->dist, 1.0);
+			ED_view3d_polygon_offset(rv3d, 1.0);
 		}
 		else {
 			/* and we use selection indices if not done yet */
@@ -1986,7 +1986,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 		/* restore things */
 		if (!ELEM(arm->drawtype, ARM_WIRE, ARM_LINE) && (dt > OB_WIRE) && (arm->flag & ARM_POSEMODE))
-			bglPolygonOffset(rv3d->dist, 0.0);
+			ED_view3d_polygon_offset(rv3d, 0.0);
 	}
 	
 	/* restore */
@@ -2154,7 +2154,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 			index = 0;
 	}
 	else if (dt > OB_WIRE) 
-		bglPolygonOffset(rv3d->dist, 1.0f);
+		ED_view3d_polygon_offset(rv3d, 1.0);
 	else if (arm->flag & ARM_EDITMODE) 
 		index = 0;  /* do selection codes */
 	
@@ -2221,7 +2221,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 		/* pass */
 	}
 	else if (dt > OB_WIRE) {
-		bglPolygonOffset(rv3d->dist, 0.0f);
+		ED_view3d_polygon_offset(rv3d, 0.0);
 	}
 	
 	/* finally names and axes */

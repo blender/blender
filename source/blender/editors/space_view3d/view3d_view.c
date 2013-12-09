@@ -721,6 +721,25 @@ bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy
 	return params.is_ortho;
 }
 
+/**
+ * Use instead of: ``bglPolygonOffset(rv3d->dist, ...)`` see bug [#37727]
+ */
+void ED_view3d_polygon_offset(const RegionView3D *rv3d, float dist)
+{
+	float viewdist = rv3d->dist;
+
+	/* special exception for ortho camera (viewdist isnt used for perspective cameras) */
+	if (dist != 0.0f) {
+		if (rv3d->persp == RV3D_CAMOB) {
+			if (rv3d->is_persp == false) {
+				viewdist = 1.0f / max_ff(fabsf(rv3d->winmat[0][0]), fabsf(rv3d->winmat[1][1]));
+			}
+		}
+	}
+
+	bglPolygonOffset(viewdist, dist);
+}
+
 /*!
  * \param rect for picking, NULL not to use.
  */

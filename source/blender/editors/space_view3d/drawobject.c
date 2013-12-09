@@ -3123,7 +3123,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		if (dt > OB_WIRE) {
 			draw_mesh_paint_weight_faces(finalDM, true, draw_em_fancy__setFaceOpts, me->edit_btmesh);
 
-			bglPolygonOffset(rv3d->dist, 1.0);
+			ED_view3d_polygon_offset(rv3d, 1.0);
 			glDepthMask(0);
 		}
 		else {
@@ -3173,7 +3173,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		 * write to show selected edge wires better */
 		UI_ThemeColor(TH_WIRE_EDIT);
 
-		bglPolygonOffset(rv3d->dist, 1.0);
+		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);
 	}
 	else {
@@ -3319,12 +3319,12 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 	if (dt > OB_WIRE) {
 		glDepthMask(1);
-		bglPolygonOffset(rv3d->dist, 0.0);
+		ED_view3d_polygon_offset(rv3d, 0.0);
 		GPU_disable_material();
 	}
 #if 0  /* currently not needed */
 	else if (use_occlude_wire) {
-		bglPolygonOffset(rv3d->dist, 0.0);
+		ED_view3d_polygon_offset(rv3d, 0.0);
 	}
 #endif
 }
@@ -3565,7 +3565,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		 * otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
 		 */
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
-			bglPolygonOffset(rv3d->dist, 1.0);
+			ED_view3d_polygon_offset(rv3d, 1.0);
 			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
@@ -3573,7 +3573,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			glDepthMask(1);
-			bglPolygonOffset(rv3d->dist, 0.0);
+			ED_view3d_polygon_offset(rv3d, 0.0);
 		}
 	}
 	
@@ -3583,10 +3583,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if (!use_depth) glDisable(GL_DEPTH_TEST);
-		else            bglPolygonOffset(rv3d->dist, 1.0);
+		else            ED_view3d_polygon_offset(rv3d, 1.0);
 		drawSelectedVertices(dm, ob->data);
 		if (!use_depth) glEnable(GL_DEPTH_TEST);
-		else            bglPolygonOffset(rv3d->dist, 0.0);
+		else            ED_view3d_polygon_offset(rv3d, 0.0);
 		
 		glPointSize(1.0f);
 	}
@@ -5756,7 +5756,7 @@ static void draw_empty_cone(float size)
 static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 {
 	cpack(0);
-	bglPolygonOffset(rv3d->dist, -1.0);
+	ED_view3d_polygon_offset(rv3d, -1.0);
 	set_inverted_drawing(1);
 	glBegin(GL_QUADS);
 	glVertex2fv(textcurs[0]);
@@ -5765,7 +5765,7 @@ static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 	glVertex2fv(textcurs[3]);
 	glEnd();
 	set_inverted_drawing(0);
-	bglPolygonOffset(rv3d->dist, 0.0);
+	ED_view3d_polygon_offset(rv3d, 0.0);
 }
 
 static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
@@ -6377,7 +6377,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 			glColor3ubv(ob_wire_col);
 		}
 
-		bglPolygonOffset(rv3d->dist, 1.0);
+		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 
 		if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
@@ -6403,7 +6403,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 		}
 
 		glDepthMask(1);
-		bglPolygonOffset(rv3d->dist, 0.0);
+		ED_view3d_polygon_offset(rv3d, 0.0);
 	}
 }
 
@@ -7556,7 +7556,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				else
 					bm_solidoffs = 1;
 
-				bglPolygonOffset(rv3d->dist, 1.0);
+				ED_view3d_polygon_offset(rv3d, 1.0);
 
 				/* we draw edges always, for loop (select) tools */
 				bbs_mesh_wire(em, dm, bm_solidoffs);
@@ -7571,7 +7571,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					bm_vertoffs = bm_wireoffs;
 				}
 
-				bglPolygonOffset(rv3d->dist, 0.0);
+				ED_view3d_polygon_offset(rv3d, 0.0);
 
 				dm->release(dm);
 			}

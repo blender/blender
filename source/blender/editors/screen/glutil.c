@@ -981,7 +981,9 @@ void bgl_get_mats(bglMats *mats)
 
 /* *************** glPolygonOffset hack ************* */
 
-/* dist is only for ortho now... */
+/**
+ * \note \a viewdist is only for ortho at the moment.
+ */
 void bglPolygonOffset(float viewdist, float dist) 
 {
 	static float winmat[16], offset = 0.0;

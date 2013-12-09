@@ -170,7 +170,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	bglPolygonOffset(rv3d->dist, 1.0);
+	ED_view3d_polygon_offset(rv3d, 1.0);
 
 	/* Draw (Hidden) Edges */
 	setlinestyle(1);
@@ -188,7 +188,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 		glDisable(GL_BLEND);
 	}
 	
-	bglPolygonOffset(rv3d->dist, 1.0);
+	ED_view3d_polygon_offset(rv3d, 1.0);
 
 	/* Draw Stippled Outline for selected faces */
 	glColor3ub(255, 255, 255);
@@ -196,7 +196,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_mesh_face_select__setSelectOpts, &data);
 	setlinestyle(0);
 
-	bglPolygonOffset(rv3d->dist, 0.0);  /* resets correctly now, even after calling accumulated offsets */
+	ED_view3d_polygon_offset(rv3d, 0.0);  /* resets correctly now, even after calling accumulated offsets */
 
 	MEM_freeN(data.edge_flags);
 }
@@ -1055,7 +1055,7 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const boo
 	 * rather than the shading, this is also forced in wire view */
 
 	if (use_depth) {
-		bglPolygonOffset(rv3d->dist, 1.0);
+		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 	}
 	else {
@@ -1070,7 +1070,7 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const boo
 	dm->drawMappedEdges(dm, (DMSetDrawOptions)edgemask_cb, user_data);
 
 	if (use_depth) {
-		bglPolygonOffset(rv3d->dist, 0.0);
+		ED_view3d_polygon_offset(rv3d, 0.0);
 		glDepthMask(1);
 	}
 	else {
