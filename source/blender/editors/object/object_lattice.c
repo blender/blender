@@ -251,18 +251,13 @@ static int lattice_select_more_less(bContext *C, const bool select)
 	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 	BPoint *bp;
 	const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-	int i, w, u, v;
+	int u, v, w;
 	BLI_bitmap *selpoints;
 
 	lt->actbp = LT_ACTBP_NONE;
 
-	bp = lt->def;
 	selpoints = BLI_BITMAP_NEW(tot, __func__);
-	for (i = 0; i < tot; i++, bp++) {
-		if (bp->f1 & SELECT) {
-			BLI_BITMAP_SET(selpoints, i);
-		}
-	}
+	BKE_lattice_bitmap_from_flag(lt, selpoints, SELECT, false, false);
 
 	bp = lt->def;
 	for (w = 0; w < lt->pntsw; w++) {

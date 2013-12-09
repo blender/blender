@@ -89,6 +89,10 @@ void BKE_lattice_translate(struct Lattice *lt, float offset[3], int do_keys);
 
 int  BKE_lattice_index_from_uvw(struct Lattice *lt, const int u, const int v, const int w);
 void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index, int *r_u, int *r_v, int *r_w);
+int  BKE_lattice_index_flip(struct Lattice *lt, const int index,
+                            const bool flip_u, const bool flip_v, const bool flip_w);
+void BKE_lattice_bitmap_from_flag(struct Lattice *lt, unsigned int *bitmap, const short flag,
+                                  const bool clear, const bool respecthide);
 
 #endif
 

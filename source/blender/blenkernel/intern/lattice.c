@@ -36,9 +36,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_bitmap.h"
+#include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -63,7 +64,7 @@
 
 #include "BKE_deform.h"
 
-int BKE_lattice_index_from_uvw(struct Lattice *lt,
+int BKE_lattice_index_from_uvw(Lattice *lt,
                                const int u, const int v, const int w)
 {
 	const int totu = lt->pntsu;
@@ -72,7 +73,7 @@ int BKE_lattice_index_from_uvw(struct Lattice *lt,
 	return (w * (totu * totv) + (v * totu) + u);
 }
 
-void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index,
+void BKE_lattice_index_to_uvw(Lattice *lt, const int index,
                               int *r_u, int *r_v, int *r_w)
 {
 	const int totu = lt->pntsu;
@@ -81,6 +82,49 @@ void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index,
 	*r_u = (index % totu);
 	*r_v = (index / totu) % totv;
 	*r_w = (index / (totu * totv));
+}
+
+int BKE_lattice_index_flip(Lattice *lt, const int index,
+                           const bool flip_u, const bool flip_v, const bool flip_w)
+{
+	int u, v, w;
+
+	BKE_lattice_index_to_uvw(lt, index, &u, &v, &w);
+
+	if (flip_u) {
+		u = (lt->pntsu - 1) - u;
+	}
+
+	if (flip_v) {
+		v = (lt->pntsv - 1) - v;
+	}
+
+	if (flip_w) {
+		w = (lt->pntsw - 1) - w;
+	}
+
+	return BKE_lattice_index_from_uvw(lt, u, v, w);
+}
+
+void BKE_lattice_bitmap_from_flag(Lattice *lt, BLI_bitmap *bitmap, const short flag,
+                                  const bool clear, const bool respecthide)
+{
+	const unsigned int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+	unsigned int i;
+	BPoint *bp;
+
+	bp = lt->def;
+	for (i = 0; i < tot; i++, bp++) {
+		if ((bp->f1 & flag) && (!respecthide || !bp->hide)) {
+			BLI_BITMAP_SET(bitmap, i);
+		}
+		else {
+			if (clear) {
+				BLI_BITMAP_CLEAR(bitmap, i);
+			}
+		}
+	}
+
 }
 
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)
@@ -1072,7 +1116,7 @@ struct BPoint *BKE_lattice_active_point_get(Lattice *lt)
 	}
 }
 
-void BKE_lattice_center_median(struct Lattice *lt, float cent[3])
+void BKE_lattice_center_median(Lattice *lt, float cent[3])
 {
 	int i, numVerts;
 
@@ -1087,7 +1131,7 @@ void BKE_lattice_center_median(struct Lattice *lt, float cent[3])
 	mul_v3_fl(cent, 1.0f / (float)numVerts);
 }
 
-void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3])
+void BKE_lattice_minmax(Lattice *lt, float min[3], float max[3])
 {
 	int i, numVerts;
 
@@ -1098,7 +1142,7 @@ void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3])
 		minmax_v3v3_v3(min, max, lt->def[i].vec);
 }
 
-void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3])
+void BKE_lattice_center_bounds(Lattice *lt, float cent[3])
 {
 	float min[3], max[3];
 
