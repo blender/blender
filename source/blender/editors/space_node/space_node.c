@@ -555,11 +555,15 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	SpaceNode *snode = (SpaceNode *)sl;
 	SpaceNode *snoden = MEM_dupallocN(snode);
 
-	/* clear or remove stuff from old */
-	snoden->nodetree = NULL;
-	snoden->linkdrag.first = snoden->linkdrag.last = NULL;
-	
 	BLI_duplicatelist(&snoden->treepath, &snode->treepath);
+
+	/* clear or remove stuff from old */
+	snoden->linkdrag.first = snoden->linkdrag.last = NULL;
+
+	/* Note: no need to set node tree user counts,
+	 * the editor only keeps at least 1 (id_us_ensure_real),
+	 * which is already done by the original SpaceNode.
+	 */
 
 	return (SpaceLink *)snoden;
 }
