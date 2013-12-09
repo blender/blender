@@ -386,17 +386,16 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 		if(parent_hide)
 			hide_as_dupli_child_original = true;
 	
+	hide_triangles = hide_emitter;
+
 	if(show_emitter) {
-		hide_triangles = false;
 		return false;
 	}
 	else if(hair_present) {
-		hide_triangles = true;
-		return (hide_emitter || hide_as_dupli_child_original);
+		return hide_as_dupli_child_original;
 	}
 	else {
-		hide_triangles = false;
-		return (hide_emitter || hide_as_dupli_parent || hide_as_dupli_child_original);
+		return (hide_as_dupli_parent || hide_as_dupli_child_original);
 	}
 }
 
