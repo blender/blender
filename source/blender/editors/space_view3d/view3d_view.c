@@ -110,6 +110,16 @@ float *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
 	else return scene->cursor;
 }
 
+Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
+{
+	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
+	if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
+		return v3d->camera->data;
+	}
+	else {
+		return NULL;
+	}
+}
 
 /* ****************** smooth view operator ****************** */
 /* This operator is one of the 'timer refresh' ones like animation playback */

@@ -2996,12 +2996,12 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 		/* draw darkened background color. no alpha because border render does
 		 * partial redraw and will not redraw the area behind this info bar */
 		float alpha = 1.0f - fill_color[3];
-	
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera && v3d->camera->type == OB_CAMERA) {
-			Camera *ca = v3d->camera->data;
+		Camera *camera = ED_view3d_camera_data_get(v3d, rv3d);
 
-			if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT))
-				alpha *= (1.0f - ca->passepartalpha);
+		if (camera) {
+			if (camera->flag & CAM_SHOWPASSEPARTOUT) {
+				alpha *= (1.0f - camera->passepartalpha);
+			}
 		}
 
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, fill_color);

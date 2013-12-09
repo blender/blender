@@ -85,6 +85,8 @@ typedef struct ViewDepths {
 float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d);
 void   ED_view3d_cursor3d_position(struct bContext *C, float fp[3], const int mval[2]);
 
+struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D *rv3d);
+
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist);
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist);
 
