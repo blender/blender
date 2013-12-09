@@ -88,7 +88,7 @@ public:
 
 	void createVertexColorSource(std::string geom_id, Mesh *me);
 
-	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index);
+	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index, bool is_single_layer);
 
 	//creates <source> for texcoords
 	void createTexcoordsSource(std::string geom_id, Mesh *me);

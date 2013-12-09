@@ -357,9 +357,9 @@ void GeometryExporter::createPolylist(short material_index,
 
 			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
-									makeUrl(makeTexcoordSourceId(geom_id, i)),
-									2, // offset always 2, this is only until we have optimized UV sets
-									i  // set number equals UV map index
+									makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings->active_uv_only)),
+									2, // this is only until we have optimized UV sets
+									(this->export_settings->active_uv_only) ? 0 : i  // only_active_uv exported -> we have only one set
 									);
 			til.push_back(input3);
 		}
@@ -474,10 +474,15 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 }
 
 
-std::string GeometryExporter::makeTexcoordSourceId(std::string& geom_id, int layer_index)
+std::string GeometryExporter::makeTexcoordSourceId(std::string& geom_id, int layer_index, bool is_single_layer)
 {
 	char suffix[20];
-	sprintf(suffix, "-%d", layer_index);
+	if (is_single_layer) {
+		suffix[0] = '\0';
+	}
+	else {
+		sprintf(suffix, "-%d", layer_index);
+	}
 	return getIdBySemantics(geom_id, COLLADASW::InputSemantic::TEXCOORD) + suffix;
 }
 
@@ -493,7 +498,6 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
 	// write <source> for each layer
 	// each <source> will get id like meshName + "map-channel-1"
-	int map_index = 0;
 	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
 	for (int a = 0; a < num_layers; a++) {
 
@@ -501,7 +505,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 			MLoopUV *mloops = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a);
 			
 			COLLADASW::FloatSourceF source(mSW);
-			std::string layer_id = makeTexcoordSourceId(geom_id, map_index++);
+			std::string layer_id = makeTexcoordSourceId(geom_id, a, this->export_settings->active_uv_only);
 			source.setId(layer_id);
 			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
 			
