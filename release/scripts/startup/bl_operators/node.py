@@ -97,9 +97,6 @@ class NodeAddOperator():
                 print(str(e))
                 # Continue despite invalid attribute
 
-        if space.use_hidden_preview:
-            node.show_preview = False
-
         node.select = True
         tree.nodes.active = node
         node.location = space.cursor_location
