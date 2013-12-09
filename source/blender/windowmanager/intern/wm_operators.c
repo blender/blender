@@ -611,6 +611,47 @@ char *WM_operator_pystring(bContext *C, wmOperator *op,
 	return WM_operator_pystring_ex(C, op, all_args, macro_args, op->type, op->ptr);
 }
 
+
+/**
+ * \return true if the string was shortened
+ */
+bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
+{
+	const int str_len = strlen(str);
+	const char *parens_start = strchr(str, '(');
+
+	if (parens_start) {
+		const int parens_start_pos = parens_start - str;
+		const char *parens_end = strrchr(parens_start + 1, ')');
+
+		if (parens_end) {
+			const int parens_len = parens_end - parens_start;
+
+			if (parens_len > str_len_max) {
+				const char *comma_first = strchr(parens_start, ',');
+
+				/* truncate after the first comma */
+				if (comma_first) {
+					const char end_str[] = " ... )";
+					const int end_str_len = sizeof(end_str) - 1;
+
+					/* leave a place for the first argument*/
+					const int new_str_len = (comma_first - parens_start) + 1;
+
+					if (str_len >= new_str_len + parens_start_pos + end_str_len + 1) {
+						/* append " ... )" to the string after the comma */
+						memcpy(str + new_str_len + parens_start_pos, end_str, end_str_len + 1);
+
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 /* return NULL if no match is found */
 #if 0
 static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)

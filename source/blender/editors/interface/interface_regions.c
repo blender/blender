@@ -541,6 +541,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		str = WM_operator_pystring_ex(C, NULL, false, false, but->optype, opptr);
 
+		/* avoid overly verbose tips (eg, arrays of 20 layers), exact limit is arbitrary */
+		WM_operator_pystring_abbreviate(str, 32);
+
 		/* operator info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), str);
