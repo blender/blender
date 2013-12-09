@@ -542,6 +542,8 @@ enum {
 	OB_NAVMESH               = 1 << 20,
 	OB_HASOBSTACLE           = 1 << 21,
 	OB_CHARACTER             = 1 << 22,
+
+	OB_RECORD_ANIMATION      = 1 << 23,
 };
 
 /* ob->gameflag2 */

@@ -112,6 +112,7 @@ KX_GameObject::KX_GameObject(
       m_pInstanceObjects(NULL),
       m_pDupliGroupObject(NULL),
       m_actionManager(NULL),
+      m_bRecordAnimation(false),
       m_isDeformable(false)
 
 #ifdef WITH_PYTHON
@@ -1791,6 +1792,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMin",		KX_GameObject, pyattr_get_lin_vel_min, pyattr_set_lin_vel_min),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMax",		KX_GameObject, pyattr_get_lin_vel_max, pyattr_set_lin_vel_max),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
+	KX_PYATTRIBUTE_RW_FUNCTION("record_animation",	KX_GameObject, pyattr_get_record_animation,	pyattr_set_record_animation),
 	KX_PYATTRIBUTE_BOOL_RW    ("occlusion", KX_GameObject, m_bOccluder),
 	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_worldPosition,	pyattr_set_localPosition),
 	KX_PYATTRIBUTE_RO_FUNCTION("localInertia",	KX_GameObject, pyattr_get_localInertia),
@@ -2257,6 +2259,28 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	self->UpdateBuckets(false);
 	return PY_SET_ATTR_SUCCESS;
 }
+
+PyObject *KX_GameObject::pyattr_get_record_animation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	return PyBool_FromLong(self->IsRecordAnimation());
+}
+
+int KX_GameObject::pyattr_set_record_animation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	int param = PyObject_IsTrue(value);
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "gameOb.record_animation = bool: KX_GameObject, expected boolean");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->SetRecordAnimation(param);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+
 
 PyObject *KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

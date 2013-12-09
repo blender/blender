@@ -151,10 +151,16 @@ base class --- :class:`SCA_IObject`
       visibility flag.
 
       :type: boolean
-      
+
       .. note::
-      
+
          Game logic will still run for invisible objects.
+
+   .. attribute:: record_animation
+
+      Record animation for this object.
+
+      :type: boolean
 
    .. attribute:: color
 

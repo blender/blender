@@ -1513,6 +1513,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	objprop.m_character = (blenderobject->gameflag & OB_CHARACTER) != 0;
+	objprop.m_record_animation = (blenderobject->gameflag & OB_RECORD_ANIMATION) != 0;
 	
 	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
 	if (objprop.m_angular_rigidbody || !objprop.m_dyna )

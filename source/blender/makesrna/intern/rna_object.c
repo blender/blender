@@ -1646,6 +1646,10 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Physics Type", "Select the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop = RNA_def_property(srna, "use_record_animation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_RECORD_ANIMATION);
+	RNA_def_property_ui_text(prop, "Record Animation", "Record animation objects without physics");
+
 	prop = RNA_def_property(srna, "use_actor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ACTOR);
 	RNA_def_property_ui_text(prop, "Actor", "Object is detected by the Near and Radar sensor");

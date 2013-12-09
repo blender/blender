@@ -706,8 +706,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 		for (g=0;g<numObjects;g++)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
-			if (gameObj->IsDynamic())
-			{
+			if (gameObj->IsRecordAnimation()) {
 				
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject)
@@ -769,7 +768,7 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
 			CListValue* parentList = scene->GetRootParentList();
 			for (int ix=0;ix<parentList->GetCount();ix++) {
 				KX_GameObject* gameobj = (KX_GameObject*)parentList->GetValue(ix);
-				if (!gameobj->IsDynamic()) {
+				if (!gameobj->IsRecordAnimation()) {
 					Object* blenderobject = gameobj->GetBlenderObject();
 					if (!blenderobject)
 						continue;
@@ -821,8 +820,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			Object* blenderObject = gameObj->GetBlenderObject();
-			if (blenderObject && blenderObject->parent==NULL && gameObj->IsDynamic())
-			{
+			if (blenderObject && blenderObject->parent==NULL && gameObj->IsRecordAnimation()) {
 
 				if (blenderObject->adt==NULL)
 					BKE_id_add_animdata(&blenderObject->id);
@@ -939,9 +937,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 		for (g=0;g<numObjects;g++)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
-			if (gameObj->IsDynamic())
-			{
-				
+			if (gameObj->IsRecordAnimation()) {
 #if 0
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)

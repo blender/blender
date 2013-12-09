@@ -156,6 +156,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             col = layout.column()
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
+            col.prop(game, "use_record_animation")
             col.prop(ob, "hide_render", text="Invisible")
 
             layout.separator()
