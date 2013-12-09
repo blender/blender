@@ -90,7 +90,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Object:")
-        col.operator("object.duplicate_move")
+        col.operator("object.duplicate_move", text="Duplicate")
         col.operator("object.delete")
         col.operator("object.join")
 
