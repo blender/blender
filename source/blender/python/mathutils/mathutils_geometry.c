@@ -970,9 +970,9 @@ PyDoc_STRVAR(M_Geometry_distance_point_to_plane_doc,
 "\n"
 "   :arg pt: Point\n"
 "   :type pt: :class:`mathutils.Vector`\n"
-"   :arg plane_co: First point of the quad\n"
+"   :arg plane_co: A point on the plane\n"
 "   :type plane_co: :class:`mathutils.Vector`\n"
-"   :arg plane_no: Second point of the quad\n"
+"   :arg plane_no: The direction the plane is facing\n"
 "   :type plane_no: :class:`mathutils.Vector`\n"
 "   :rtype: float\n"
 );
