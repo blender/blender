@@ -224,6 +224,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(LATTICE_OT_select_less);
 	WM_operatortype_append(LATTICE_OT_select_ungrouped);
 	WM_operatortype_append(LATTICE_OT_select_random);
+	WM_operatortype_append(LATTICE_OT_select_mirror);
 	WM_operatortype_append(LATTICE_OT_make_regular);
 	WM_operatortype_append(LATTICE_OT_flip);
 

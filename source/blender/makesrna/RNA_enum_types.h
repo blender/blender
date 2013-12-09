@@ -114,6 +114,7 @@ extern EnumPropertyItem rigidbody_object_shape_items[];
 extern EnumPropertyItem rigidbody_constraint_type_items[];
 
 extern EnumPropertyItem object_axis_items[];
+extern EnumPropertyItem object_axis_unsigned_items[];
 
 extern EnumPropertyItem controller_type_items[];
 
