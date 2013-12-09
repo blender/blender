@@ -296,7 +296,16 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 	}
 	else if (ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS | OB_DUPLIFACES))) {
 		/* Dupli Verts/Faces */
-		int tot = count_duplilist(ob->parent);
+		int tot;
+
+		/* metaball dupli-instances are tessellated once */
+		if (ob->type == OB_MBALL) {
+			tot = 1;
+		}
+		else {
+			tot = count_duplilist(ob->parent);
+		}
+
 		stats->totobj += tot;
 		stats_object(ob, base->flag & SELECT, tot, stats);
 	}
