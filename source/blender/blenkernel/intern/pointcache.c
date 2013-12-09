@@ -1769,7 +1769,7 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 /* Check to see if point number "index" is in pm, uses binary search for index data. */
 int BKE_ptcache_mem_index_find(PTCacheMem *pm, unsigned int index)
 {
-	if (pm->data[BPHYS_DATA_INDEX]) {
+	if (pm->totpoint > 0 && pm->data[BPHYS_DATA_INDEX]) {
 		unsigned int *data = pm->data[BPHYS_DATA_INDEX];
 		unsigned int mid, low = 0, high = pm->totpoint - 1;
 
