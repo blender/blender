@@ -441,6 +441,11 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(b
 	}
 }
 
+static char *rna_ColorManagedDisplaySettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("display_settings");
+}
+
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
 {
 	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
@@ -520,6 +525,12 @@ static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, int val
 		view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
 	}
 }
+
+static char *rna_ColorManagedViewSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("view_settings");
+}
+
 
 static int rna_ColorManagedColorspaceSettings_colorspace_get(struct PointerRNA *ptr)
 {
@@ -609,6 +620,16 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 			WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 		}
 	}
+}
+
+static char *rna_ColorManagedSequencerColorspaceSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("sequencer_colorspace_settings");
+}
+
+static char *rna_ColorManagedInputColorspaceSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("colorspace_settings");
 }
 
 static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1011,6 +1032,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
 	/* ** Display Settings  **  */
 	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ColorManagedDisplaySettings_path");
 	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
 
 	prop = RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
@@ -1023,6 +1045,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
 	/* ** View Settings  **  */
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ColorManagedViewSettings_path");
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
 
 	prop = RNA_def_property(srna, "look", PROP_ENUM, PROP_NONE);
@@ -1068,6 +1091,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
 	/* ** Colorspace **  */
 	srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ColorManagedInputColorspaceSettings_path");
 	RNA_def_struct_ui_text(srna, "ColorManagedInputColorspaceSettings", "Input color space settings");
 
 	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
@@ -1079,7 +1103,9 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Input Color Space", "Color space of the image or movie on disk");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
+	//
 	srna = RNA_def_struct(brna, "ColorManagedSequencerColorspaceSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ColorManagedSequencerColorspaceSettings_path");
 	RNA_def_struct_ui_text(srna, "ColorManagedSequencerColorspaceSettings", "Input color space settings");
 
 	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
