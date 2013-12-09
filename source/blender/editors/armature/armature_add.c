@@ -793,7 +793,9 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 			ebone->rad_tail = newbone->rad_head;
 			
 			newbone->flag |= BONE_CONNECTED;
-			
+
+			newbone->prop = NULL;
+
 			unique_editbone_name(arm->edbo, newbone->name, NULL);
 			
 			/* correct parent bones */
