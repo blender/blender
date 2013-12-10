@@ -218,7 +218,8 @@ static void update(bNodeTree *ntree)
 	}
 }
 
-static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode) {
+static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode)
+{
 	/* Composite node will only show previews for input classes 
 	 * by default, other will be hidden 
 	 * but can be made visible with the show_preview option */

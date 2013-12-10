@@ -1025,9 +1025,9 @@ static void area_move_set_limits(bScreen *sc, int dir, int winsizex, int winsize
 			int x1;
 			areamin = AREAMINX;
 			
-			if(sa->v1->vec.x > 0)
+			if (sa->v1->vec.x > 0)
 				areamin += U.pixelsize;
-			if(sa->v4->vec.x < winsizex - 1)
+			if (sa->v4->vec.x < winsizex - 1)
 				areamin += U.pixelsize;
 			
 			x1 = sa->v4->vec.x - sa->v1->vec.x + 1 - areamin;

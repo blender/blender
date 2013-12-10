@@ -402,8 +402,8 @@ static EnumPropertyItem *rna_Particule_Material_itemf(bContext *C, PointerRNA *U
 	int totitem = 0;
 	int i;
 
-	if (ob->totcol > 0){
-		for (i = 1; i<=ob->totcol; i++) {
+	if (ob->totcol > 0) {
+		for (i = 1; i <= ob->totcol; i++) {
 			ma = give_current_material(ob, i);
 			tmp.value = i;
 			tmp.icon = ICON_MATERIAL_DATA;

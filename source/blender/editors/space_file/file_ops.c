@@ -1253,7 +1253,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg_but)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
-	uiBut *but = (uiBut*)arg_but;
+	uiBut *but = arg_but;
 	char matched_file[FILE_MAX];
 	char filepath[sizeof(sfile->params->dir)];
 

@@ -2344,7 +2344,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					int autocomplete = ui_textedit_autocomplete(C, but, data);
 					changed = autocomplete != AUTOCOMPLETE_NO_MATCH;
 
-					if(autocomplete == AUTOCOMPLETE_FULL_MATCH)
+					if (autocomplete == AUTOCOMPLETE_FULL_MATCH)
 						button_activate_state(C, but, BUTTON_STATE_EXIT);
 
 					update = true;  /* do live update for tab key */
@@ -2595,7 +2595,7 @@ int ui_button_open_menu_direction(uiBut *but)
 }
 
 /* Hack for uiList LISTROW buttons to "give" events to overlaying TEX buttons (cltr-clic rename feature & co). */
-static uiBut* ui_but_list_row_text_activate(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event,
+static uiBut *ui_but_list_row_text_activate(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event,
                                             uiButtonActivateType activate_type)
 {
 	ARegion *ar = CTX_wm_region(C);

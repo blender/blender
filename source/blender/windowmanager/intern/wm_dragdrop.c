@@ -367,7 +367,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				x = cursorx - drag->sx / 2;
 
 				if (cursory + drag->sy / 2 + padding + iconsize < winsizey)
- 					y = cursory + drag->sy / 2 + padding;
+					y = cursory + drag->sy / 2 + padding;
 				else
 					y = cursory - drag->sy / 2 - padding - iconsize - padding - iconsize;
 			}
@@ -375,7 +375,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				x = cursorx - 2 * padding;
 
 				if (cursory + iconsize + iconsize < winsizey)
- 					y = cursory + iconsize;
+					y = cursory + iconsize;
 				else
 					y = cursory - iconsize - 2 * UI_DPI_FAC;
 			}

@@ -216,10 +216,10 @@ static const float EWA_WTS[EWA_MAXIDX + 1] = {
 
 static void ellipse_bounds(float A, float B, float C, float F, float &xmax, float &ymax)
 {
-	float denom = 4.0f*A*C - B*B;
+	float denom = 4.0f * A * C - B * B;
 	if (denom > 0.0f && A != 0.0f && C != 0.0f) {
-		xmax = sqrt(F)/(2.0f*A) * (sqrt(F*(4.0f*A - B*B/C)) + B*B*sqrt(F/(C*denom)));
-		ymax = sqrt(F)/(2.0f*C) * (sqrt(F*(4.0f*C - B*B/A)) + B*B*sqrt(F/(A*denom)));
+		xmax = sqrt(F) / (2.0f * A) * (sqrt(F * (4.0f * A - B * B / C)) + B * B * sqrt(F / (C * denom)));
+		ymax = sqrt(F) / (2.0f * C) * (sqrt(F * (4.0f * C - B * B / A)) + B * B * sqrt(F / (A * denom)));
 	}
 	else {
 		xmax = 0.0f;
@@ -227,18 +227,19 @@ static void ellipse_bounds(float A, float B, float C, float F, float &xmax, floa
 	}
 }
 
-static void ellipse_params(float Ux, float Uy, float Vx, float Vy, float &A, float &B, float &C, float &F, float &umax, float &vmax)
+static void ellipse_params(float Ux, float Uy, float Vx, float Vy,
+                           float &A, float &B, float &C, float &F, float &umax, float &vmax)
 {
-	A = Vx*Vx + Vy*Vy;
-	B = -2.0f * (Ux*Vx + Uy*Vy);
-	C = Ux*Ux + Uy*Uy;
-	F = A*C - B*B * 0.25f;
+	A = Vx * Vx + Vy * Vy;
+	B = -2.0f * (Ux * Vx + Uy * Vy);
+	C = Ux * Ux + Uy * Uy;
+	F = A * C - B * B * 0.25f;
 
-	float factor = (F != 0.0f ? (float)(EWA_MAXIDX+1) / F : 0.0f);
+	float factor = (F != 0.0f ? (float)(EWA_MAXIDX + 1) / F : 0.0f);
 	A *= factor;
 	B *= factor;
 	C *= factor;
-	F = (float)(EWA_MAXIDX+1);
+	F = (float)(EWA_MAXIDX + 1);
 
 	ellipse_bounds(A, B, C, sqrtf(F), umax, vmax);
 }
@@ -282,31 +283,31 @@ void MemoryBuffer::readEWA(float result[4], const float uv[2], const float deriv
 	/* note: if eccentricity gets clamped (see above),
 	 * the ue/ve limits can also be lowered accordingly
 	 */
-	if (U0-u1 > EWA_MAXIDX) u1 = U0 - EWA_MAXIDX;
-	if (u2-U0 > EWA_MAXIDX) u2 = U0 + EWA_MAXIDX;
-	if (V0-v1 > EWA_MAXIDX) v1 = V0 - EWA_MAXIDX;
-	if (v2-V0 > EWA_MAXIDX) v2 = V0 + EWA_MAXIDX;
+	if (U0 - u1 > EWA_MAXIDX) u1 = U0 - EWA_MAXIDX;
+	if (u2 - U0 > EWA_MAXIDX) u2 = U0 + EWA_MAXIDX;
+	if (V0 - v1 > EWA_MAXIDX) v1 = V0 - EWA_MAXIDX;
+	if (v2 - V0 > EWA_MAXIDX) v2 = V0 + EWA_MAXIDX;
 
-	float DDQ = 2.f * A;
+	float DDQ = 2.0f * A;
 	float U = u1 - U0;
-	float ac1 = A * (2.f*U + 1.f);
-	float ac2 = A * U*U;
+	float ac1 = A * (2.0f * U + 1.0f);
+	float ac2 = A * U * U;
 	float BU = B * U;
 
 	float sum = 0.0f;
 	for (int v = v1; v <= v2; ++v) {
 		float V = v - V0;
 
-		float DQ = ac1 + B*V;
-		float Q = (C*V + BU)*V + ac2;
+		float DQ = ac1 + B * V;
+		float Q = (C * V + BU) * V + ac2;
 		for (int u = u1; u <= u2; ++u) {
 			if (Q < F) {
 				float tc[4];
 				const float wt = EWA_WTS[CLAMPIS((int)Q, 0, EWA_MAXIDX)];
 				switch (sampler) {
 					case COM_PS_NEAREST: read(tc, u, v); break;
-					case COM_PS_BILINEAR: readBilinear(tc, (float)u+ufac, (float)v+vfac); break;
-					case COM_PS_BICUBIC: readBilinear(tc, (float)u+ufac, (float)v+vfac); break; /* XXX no readBicubic method yet */
+					case COM_PS_BILINEAR: readBilinear(tc, (float)u + ufac, (float)v + vfac); break;
+					case COM_PS_BICUBIC: readBilinear(tc, (float)u + ufac, (float)v + vfac); break; /* XXX no readBicubic method yet */
 					default: zero_v4(tc); break;
 				}
 				madd_v4_v4fl(result, tc, wt);
