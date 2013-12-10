@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -187,6 +188,8 @@ typedef struct FlyInfo {
 	bool use_freelook;
 
 	int mval[2]; /* latest 2D mouse values */
+	int center_mval[2]; /* center mouse values */
+	float width, height; /* camera viewport dimensions */
 	wmNDOFMotionData *ndof;  /* latest 3D mouse values */
 
 	/* fly state state */
@@ -214,15 +217,27 @@ typedef struct FlyInfo {
 static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
 	FlyInfo *fly = arg;
+	rctf viewborder;
+	int xoff, yoff;
+	float x1, x2, y1, y2;
+
+	if (fly->scene->camera) {
+		ED_view3d_calc_camera_border(fly->scene, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+		xoff = viewborder.xmin;
+		yoff = viewborder.ymin;
+	}
+	else {
+		xoff = 0;
+		yoff = 0;
+	}
 
 	/* draws 4 edge brackets that frame the safe area where the
 	 * mouse can move during fly mode without spinning the view */
-	float x1, x2, y1, y2;
 
-	x1 = 0.45f * (float)fly->ar->winx;
-	y1 = 0.45f * (float)fly->ar->winy;
-	x2 = 0.55f * (float)fly->ar->winx;
-	y2 = 0.55f * (float)fly->ar->winy;
+	x1 = xoff + 0.45f * fly->width;
+	y1 = yoff + 0.45f * fly->height;
+	x2 = xoff + 0.55f * fly->width;
+	y2 = yoff + 0.55f * fly->height;
 	cpack(0);
 
 	glBegin(GL_LINES);
@@ -266,6 +281,8 @@ enum {
 static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
+	rctf viewborder;
+
 	float upvec[3]; /* tmp */
 	float mat[3][3];
 
@@ -338,8 +355,26 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	        fly->scene, fly->v3d, fly->rv3d,
 	        (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
+	/* calculate center */
+	if (fly->scene->camera) {
+		ED_view3d_calc_camera_border(fly->scene, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+
+		fly->width = BLI_rctf_size_x(&viewborder);
+		fly->height = BLI_rctf_size_y(&viewborder);
+
+		fly->center_mval[0] = viewborder.xmin + fly->width / 2;
+		fly->center_mval[1] = viewborder.ymin + fly->height / 2;
+	}
+	else {
+		fly->width = fly->ar->winx;
+		fly->height = fly->ar->winy;
+
+		fly->center_mval[0] = fly->width / 2;
+		fly->center_mval[1] = fly->height / 2;
+	}
+
 	/* center the mouse, probably the UI mafia are against this but without its quite annoying */
-	WM_cursor_warp(win, fly->ar->winrct.xmin + fly->ar->winx / 2, fly->ar->winrct.ymin + fly->ar->winy / 2);
+	WM_cursor_warp(win, fly->ar->winrct.xmin + fly->center_mval[0], fly->ar->winrct.ymin + fly->center_mval[1]);
 
 	return 1;
 }
@@ -509,7 +544,6 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 				fly->pan_view = true;
 				break;
 			case FLY_MODAL_PAN_DISABLE:
-//XXX2.5				WM_cursor_warp(CTX_wm_window(C), cent_orig[0], cent_orig[1]);
 				fly->pan_view = false;
 				break;
 
@@ -632,7 +666,6 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	 * a fly loop where the user can move move the view as if they are flying
 	 */
 	RegionView3D *rv3d = fly->rv3d;
-	ARegion *ar = fly->ar;
 
 	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
 	float dvec[3] = {0, 0, 0}; /* this is the direction thast added to the view offset per redraw */
@@ -643,8 +676,6 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	float moffset[2]; /* mouse offset from the views center */
 	float tmp_quat[4]; /* used for rotating the view */
 
-//	int cent_orig[2], /* view center */
-//XXX- can avoid using //   cent[2], /* view center modified */
 	int xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 
 #ifdef NDOF_FLY_DEBUG
@@ -654,18 +685,14 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	}
 #endif
 
-	xmargin = ar->winx / 20.0f;
-	ymargin = ar->winy / 20.0f;
-
-	// UNUSED
-	// cent_orig[0] = ar->winrct.xmin + ar->winx / 2;
-	// cent_orig[1] = ar->winrct.ymin + ar->winy / 2;
+	xmargin = fly->width / 20.0f;
+	ymargin = fly->height / 20.0f;
 
 	{
 
 		/* mouse offset from the center */
-		moffset[0] = fly->mval[0] - ar->winx / 2;
-		moffset[1] = fly->mval[1] - ar->winy / 2;
+		moffset[0] = fly->mval[0] - fly->center_mval[0];
+		moffset[1] = fly->mval[1] - fly->center_mval[1];
 
 		/* enforce a view margin */
 		if      (moffset[0] >  xmargin) moffset[0] -= xmargin;
@@ -683,12 +710,12 @@ static int flyApply(bContext *C, FlyInfo *fly)
 		 * the mouse moves isn't linear */
 
 		if (moffset[0]) {
-			moffset[0] /= ar->winx - (xmargin * 2);
+			moffset[0] /= fly->width - (xmargin * 2);
 			moffset[0] *= fabsf(moffset[0]);
 		}
 
 		if (moffset[1]) {
-			moffset[1] /= ar->winy - (ymargin * 2);
+			moffset[1] /= fly->height - (ymargin * 2);
 			moffset[1] *= fabsf(moffset[1]);
 		}
 
