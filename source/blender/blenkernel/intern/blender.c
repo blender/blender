@@ -897,6 +897,12 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 	ListBase *lbarray[MAX_LIBARRAY], *fromarray[MAX_LIBARRAY];
 	int a, retval;
 	
+	/* path backup/restore */
+	void     *path_list_backup;
+	const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
+
+	path_list_backup = BKE_bpath_list_backup(G.main, path_list_flag);
+
 	BLO_main_expander(copybuffer_doit);
 	BLO_expand_main(NULL, G.main);
 	
@@ -938,6 +944,11 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 	/* set id flag to zero; */
 	flag_all_listbases_ids(LIB_NEED_EXPAND | LIB_DOIT, 0);
 	
+	if (path_list_backup) {
+		BKE_bpath_list_restore(G.main, path_list_flag, path_list_backup);
+		BKE_bpath_list_free(path_list_backup);
+	}
+
 	return retval;
 }
 
