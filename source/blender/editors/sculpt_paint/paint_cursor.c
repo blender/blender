@@ -830,11 +830,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* don't calculate rake angles while a stroke is active because the rake variables are global and
 	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
-	if (!ups->stroke_active) {
-		if (brush->flag & BRUSH_RAKE)
-			/* here, translation contains the mouse coordinates. */
-			paint_calculate_rake_rotation(ups, translation);
-	}
+	if (!ups->stroke_active && (brush->flag & BRUSH_RAKE))
+		paint_calculate_rake_rotation(ups, translation);
 
 	/* draw overlay */
 	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);

@@ -1590,6 +1590,8 @@ typedef enum SymmetryFlags {
 	PAINT_SYMMETRY_FEATHER = (1 << 3)
 } SymmetryFlags;
 
+#define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
+
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {

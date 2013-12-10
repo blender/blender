@@ -198,7 +198,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i, symmpass;
-	int symm = sd->paint.symmetry_flags & 7;
+	int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
 	mode = PAINT_MASK_FLOOD_VALUE;
 	value = select ? 1.0 : 0.0;

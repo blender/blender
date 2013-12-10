@@ -3467,7 +3467,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
-	const char symm = sd->paint.symmetry_flags & 7;
+	const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 	int i;
 
 	float feather = calc_symmetry_feather(sd, ss->cache);
