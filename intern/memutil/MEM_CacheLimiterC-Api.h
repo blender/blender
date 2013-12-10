@@ -47,6 +47,9 @@ typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void*);
 /* function used to measure priority of item when freeing memory */
 typedef int (*MEM_CacheLimiter_ItemPriority_Func) (void*, int);
 
+/* function to check whether item could be destroyed */
+typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func) (void*);
+
 #ifndef __MEM_CACHELIMITER_H__
 void MEM_CacheLimiter_set_maximum(size_t m);
 size_t MEM_CacheLimiter_get_maximum(void);
@@ -144,6 +147,9 @@ void *MEM_CacheLimiter_get(MEM_CacheLimiterHandleC *handle);
 
 void MEM_CacheLimiter_ItemPriority_Func_set(MEM_CacheLimiterC *This,
                                             MEM_CacheLimiter_ItemPriority_Func item_priority_func);
+
+void MEM_CacheLimiter_ItemDestroyable_Func_set(MEM_CacheLimiterC *This,
+                                               MEM_CacheLimiter_ItemDestroyable_Func item_destroyable_func);
 
 size_t MEM_CacheLimiter_get_memory_in_use(MEM_CacheLimiterC *This);
 

@@ -254,11 +254,26 @@ static int get_item_priority(void *item_v, int default_priority)
 	return priority;
 }
 
+static bool get_item_destroyable(void *item_v)
+{
+	MovieCacheItem *item = (MovieCacheItem *) item_v;
+	/* IB_BITMAPDIRTY means image was modified from inside blender and
+	 * changes are not saved to disk.
+	 *
+	 * Such buffers are never to be freed.
+	 */
+	if (item->ibuf->userflags & IB_BITMAPDIRTY) {
+		return false;
+	}
+	return true;
+}
+
 void IMB_moviecache_init(void)
 {
 	limitor = new_MEM_CacheLimiter(IMB_moviecache_destructor, get_item_size);
 
 	MEM_CacheLimiter_ItemPriority_Func_set(limitor, get_item_priority);
+	MEM_CacheLimiter_ItemDestroyable_Func_set(limitor, get_item_destroyable);
 }
 
 void IMB_moviecache_destruct(void)
