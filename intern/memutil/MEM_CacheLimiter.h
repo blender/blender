@@ -138,8 +138,8 @@ public:
 	typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
 	typedef int    (*MEM_CacheLimiter_ItemPriority_Func) (void *item, int default_priority);
 
-	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func getDataSize_)
-		: getDataSize(getDataSize_) {
+	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func data_size_func)
+		: data_size_func(data_size_func) {
 	}
 
 	~MEM_CacheLimiter() {
@@ -162,10 +162,16 @@ public:
 	}
 
 	size_t get_memory_in_use() {
-		if (getDataSize)
-			return total_size();
-		else
-			return MEM_get_memory_in_use();
+		size_t size = 0;
+		if (data_size_func) {
+			for (iterator it = queue.begin(); it != queue.end(); it++) {
+				size += data_size_func((*it)->get()->get_data());
+			}
+		}
+		else {
+			size = MEM_get_memory_in_use();
+		}
+		return size;
 	}
 
 	void enforce_limits() {
@@ -188,15 +194,15 @@ public:
 			if (!elem)
 				break;
 
-			if (getDataSize) {
-				cur_size = getDataSize(elem->get()->get_data());
+			if (data_size_func) {
+				cur_size = data_size_func(elem->get()->get_data());
 			}
 			else {
 				cur_size = mem_in_use;
 			}
 
 			if (elem->destroy_if_possible()) {
-				if (getDataSize) {
+				if (data_size_func) {
 					mem_in_use -= cur_size;
 				}
 				else {
@@ -207,15 +213,21 @@ public:
 	}
 
 	void touch(MEM_CacheLimiterHandle<T> * handle) {
-		queue.push_back(handle);
-		queue.erase(handle->me);
-		iterator it = queue.end();
-		--it;
-		handle->me = it;
+		/* If we're using custom priority callback re-arranging the queue
+		 * doesn't make much sense because we'll iterate it all to get
+		 * least priority element anyway.
+		 */
+		if (item_priority_func == NULL) {
+			queue.push_back(handle);
+			queue.erase(handle->me);
+			iterator it = queue.end();
+			--it;
+			handle->me = it;
+		}
 	}
 
 	void set_item_priority_func(MEM_CacheLimiter_ItemPriority_Func item_priority_func) {
-		getItemPriority = item_priority_func;
+		this->item_priority_func = item_priority_func;
 	}
 
 private:
@@ -223,41 +235,42 @@ private:
 	typedef std::list<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
 	typedef typename MEM_CacheQueue::iterator iterator;
 
-	size_t total_size() {
-		size_t size = 0;
-		for (iterator it = queue.begin(); it != queue.end(); it++) {
-			size+= getDataSize((*it)->get()->get_data());
-		}
-		return size;
-	}
-
 	MEM_CacheElementPtr get_least_priority_destroyable_element(void) {
 		if (queue.empty())
 			return NULL;
 
-		if (!getItemPriority)
-			return *queue.begin();
-
 		MEM_CacheElementPtr best_match_elem = NULL;
-		int best_match_priority = 0;
-		iterator it;
-		int i;
 
-		for (it = queue.begin(), i = 0; it != queue.end(); it++, i++) {
-			MEM_CacheElementPtr elem = *it;
-
-			if (!elem->can_destroy())
-				continue;
-
-			/* by default 0 means highest priority element */
-			/* casting a size type to int is questionable,
-			   but unlikely to cause problems */
-			int priority = -((int)(queue.size()) - i - 1);
-			priority = getItemPriority(elem->get()->get_data(), priority);
-
-			if (priority < best_match_priority || best_match_elem == NULL) {
-				best_match_priority = priority;
+		if (!item_priority_func) {
+			for (iterator it = queue.begin(); it != queue.end(); it++) {
+				MEM_CacheElementPtr elem = *it;
+				if (!elem->can_destroy())
+					continue;
 				best_match_elem = elem;
+				break;
+			}
+		}
+		else {
+			int best_match_priority = 0;
+			iterator it;
+			int i;
+
+			for (it = queue.begin(), i = 0; it != queue.end(); it++, i++) {
+				MEM_CacheElementPtr elem = *it;
+
+				if (!elem->can_destroy())
+					continue;
+
+				/* by default 0 means highest priority element */
+				/* casting a size type to int is questionable,
+				   but unlikely to cause problems */
+				int priority = -((int)(queue.size()) - i - 1);
+				priority = item_priority_func(elem->get()->get_data(), priority);
+
+				if (priority < best_match_priority || best_match_elem == NULL) {
+					best_match_priority = priority;
+					best_match_elem = elem;
+				}
 			}
 		}
 
@@ -265,8 +278,8 @@ private:
 	}
 
 	MEM_CacheQueue queue;
-	MEM_CacheLimiter_DataSize_Func getDataSize;
-	MEM_CacheLimiter_ItemPriority_Func getItemPriority;
+	MEM_CacheLimiter_DataSize_Func data_size_func;
+	MEM_CacheLimiter_ItemPriority_Func item_priority_func;
 };
 
-#endif // __MEM_CACHELIMITER_H__
+#endif  // __MEM_CACHELIMITER_H__
