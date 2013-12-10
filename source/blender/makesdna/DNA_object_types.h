@@ -609,7 +609,7 @@ enum {
 /* ob->shapeflag */
 enum {
 	OB_SHAPE_LOCK       = 1 << 0,
-	OB_SHAPE_TEMPLOCK   = 1 << 1,  /* deprecated */
+	// OB_SHAPE_TEMPLOCK   = 1 << 1,  /* deprecated */
 	OB_SHAPE_EDIT_MODE  = 1 << 2,
 };
 

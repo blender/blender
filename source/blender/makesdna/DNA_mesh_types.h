@@ -140,6 +140,10 @@ typedef struct TFace {
 	short mode, tile, unwrap;
 } TFace;
 
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison TFace
+#endif
+
 /* **************** MESH ********************* */
 
 /* texflag */
@@ -164,7 +168,7 @@ typedef struct TFace {
 
 /* me->flag */
 /* #define ME_ISDONE		1 */
-#define ME_DEPRECATED	2
+/* #define ME_DEPRECATED	2 */
 #define ME_TWOSIDED		4
 #define ME_UVEFFECT		8
 #define ME_VCOLEFFECT	16

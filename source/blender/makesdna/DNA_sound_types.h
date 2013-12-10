@@ -33,6 +33,7 @@
 #ifndef __DNA_SOUND_TYPES_H__
 #define __DNA_SOUND_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 
 /* stupid... could easily be solved */
@@ -109,14 +110,21 @@ typedef enum eSound_Type {
 #endif
 
 /* spacesound->flag */
-#define SND_DRAWFRAMES	1
-#define SND_CFRA_NUM	2
+enum {
+	SND_DRAWFRAMES  = 1,
+	SND_CFRA_NUM    = 2,
+};
 
-#define SOUND_FLAGS_3D					(1 << 3) /* deprecated! used for sound actuator loading */
-#define SOUND_FLAGS_CACHING				(1 << 4)
-#define SOUND_FLAGS_MONO				(1 << 5)
+enum {
+	SOUND_FLAGS_3D          = (1 << 3),  /* deprecated! used for sound actuator loading */
+	SOUND_FLAGS_CACHING     = (1 << 4),
+	SOUND_FLAGS_MONO        = (1 << 5),
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison SOUND_FLAGS_3D
+#endif
 
 /* to DNA_sound_types.h*/
 
 #endif
-

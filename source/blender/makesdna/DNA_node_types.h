@@ -153,8 +153,8 @@ typedef enum eNodeSocketFlag {
 	SOCK_HIDDEN = 2,					/* hidden is user defined, to hide unused */
 	SOCK_IN_USE = 4,					/* for quick check if socket is linked */
 	SOCK_UNAVAIL = 8,					/* unavailable is for dynamic sockets */
-	__SOCK_DYNAMIC = 16,				/* DEPRECATED  dynamic socket (can be modified by user) */
-	__SOCK_INTERNAL = 32,				/* DEPRECATED  group socket should not be exposed */
+	// SOCK_DYNAMIC = 16,				/* DEPRECATED  dynamic socket (can be modified by user) */
+	// SOCK_INTERNAL = 32,				/* DEPRECATED  group socket should not be exposed */
 	SOCK_COLLAPSED = 64,				/* socket collapsed in UI */
 	SOCK_HIDE_VALUE = 128,				/* hide socket value, if it gets auto default */
 	SOCK_AUTO_HIDDEN__DEPRECATED = 256	/* socket hidden automatically, to distinguish from manually hidden */
@@ -227,7 +227,7 @@ typedef struct bNode {
 #define NODE_TEST			256
 	/* node is disabled */
 #define NODE_MUTED			512
-#define NODE_CUSTOM_NAME	1024	/* deprecated! */
+// #define NODE_CUSTOM_NAME	1024	/* deprecated! */
 	/* group node types: use const outputs by default */
 #define NODE_CONST_OUTPUT	(1<<11)
 	/* node is always behind others */
@@ -966,9 +966,15 @@ typedef struct NodeShaderNormalMap {
 #define SHD_NORMAL_MAP_BLENDER_WORLD	4
 
 /* subsurface */
-#define SHD_SUBSURFACE_COMPATIBLE		0 // Deprecated
-#define SHD_SUBSURFACE_CUBIC			1
-#define SHD_SUBSURFACE_GAUSSIAN			2
+enum {
+	SHD_SUBSURFACE_COMPATIBLE		= 0, // Deprecated
+	SHD_SUBSURFACE_CUBIC			= 1,
+	SHD_SUBSURFACE_GAUSSIAN			= 2,
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison SHD_SUBSURFACE_COMPATIBLE
+#endif
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

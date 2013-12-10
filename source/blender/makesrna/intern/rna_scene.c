@@ -2655,27 +2655,6 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem freestyle_raycasting_algorithm_items[] = {
-		{FREESTYLE_ALGO_REGULAR, "REGULAR", 0, "Normal Ray Casting", "Consider all FEdges in each ViewEdge"},
-		{FREESTYLE_ALGO_FAST, "FAST", 0, "Fast Ray Casting", "Sample some FEdges in each ViewEdge"},
-		{FREESTYLE_ALGO_VERYFAST, "VERYFAST", 0, "Very Fast Ray Casting",
-		                          "Sample one FEdge in each ViewEdge; do not save list of occluders"},
-		{FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL, "CULLEDADAPTIVETRADITIONAL", 0,
-		                                             "Culled Traditional Visibility Detection",
-		                                             "Culled adaptive grid with heuristic density and "
-		                                             "traditional QI calculation"},
-		{FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL, "ADAPTIVETRADITIONAL", 0, "Unculled Traditional Visibility Detection",
-		                                      "Adaptive grid with heuristic density and traditional QI calculation"},
-		{FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE, "CULLEDADAPTIVECUMULATIVE", 0,
-		                                            "Culled Cumulative Visibility Detection",
-		                                            "Culled adaptive grid with heuristic density and "
-		                                            "cumulative QI calculation"},
-		{FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE, "ADAPTIVECUMULATIVE", 0, "Unculled Cumulative Visibility Detection",
-		                                     "Adaptive grid with heuristic density and cumulative QI calculation"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-
 	/* FreestyleLineSet */
 
 	srna = RNA_def_struct(brna, "FreestyleLineSet", NULL);
@@ -2920,12 +2899,6 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, freestyle_ui_mode_items);
 	RNA_def_property_ui_text(prop, "Control Mode", "Select the Freestyle control mode");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
-	prop = RNA_def_property(srna, "raycasting_algorithm", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "raycasting_algorithm");
-	RNA_def_property_enum_items(prop, freestyle_raycasting_algorithm_items);
-	RNA_def_property_ui_text(prop, "Raycasting Algorithm", "Select the Freestyle raycasting algorithm");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_culling", PROP_BOOLEAN, PROP_NONE);

@@ -358,8 +358,8 @@ enum {
 
 /* mtface->flag */
 enum {
-	TF_SELECT = (1 << 0),  /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
-	TF_ACTIVE = (1 << 1),  /* deprecated! */
+	// TF_SELECT = (1 << 0),  /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
+	// TF_ACTIVE = (1 << 1),  /* deprecated! */
 	TF_SEL1   = (1 << 2),
 	TF_SEL2   = (1 << 3),
 	TF_SEL3   = (1 << 4),
@@ -377,7 +377,7 @@ enum {
 	TF_CONVERTED  = (1 << 5),  /* tface converted to material */
 
 	TF_SHAREDCOL  = (1 << 6),
-	TF_TILES      = (1 << 7),  /* deprecated */
+	// TF_TILES      = (1 << 7),  /* deprecated */
 	TF_BILLBOARD  = (1 << 8),
 	TF_TWOSIDE    = (1 << 9),
 	TF_INVISIBLE  = (1 << 10),

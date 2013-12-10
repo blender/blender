@@ -83,7 +83,6 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 	FreestyleModuleConfig *module, *new_module;
 
 	new_config->mode = config->mode;
-	new_config->raycasting_algorithm = config->raycasting_algorithm; /* deprecated */
 	new_config->flags = config->flags;
 	new_config->sphere_radius = config->sphere_radius;
 	new_config->dkr_epsilon = config->dkr_epsilon;

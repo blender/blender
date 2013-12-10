@@ -30,6 +30,7 @@
 #ifndef __DNA_ARMATURE_TYPES_H__
 #define __DNA_ARMATURE_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
@@ -156,6 +157,10 @@ typedef enum eArmature_DeformFlag {
 	ARM_DEF_INVERT_VGROUP	= (1<<4)
 } eArmature_DeformFlag;
 
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison ARM_DEF_B_BONE_REST
+#endif
+
 /* armature->pathflag */
 // XXX deprecated... old animation system (armature only viz)
 typedef enum eArmature_PathFlag {
@@ -165,6 +170,10 @@ typedef enum eArmature_PathFlag {
 	ARM_PATH_ACFRA		= (1<<3),
 	ARM_PATH_KFNOS		= (1<<4)
 } eArmature_PathFlag;
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison ARM_PATH_FNUMS ARM_PATH_KFRAS ARM_PATH_HEADS ARM_PATH_ACFRA ARM_PATH_KFNOS
+#endif
 
 /* armature->ghosttype */
 // XXX deprecated... old animation system (armature only viz)

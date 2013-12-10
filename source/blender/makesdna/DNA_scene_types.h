@@ -196,7 +196,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_SOLID	1
 #define SCE_LAY_ZTRA	2
 #define SCE_LAY_HALO	4
-#define SCE_LAY_EDGE	8 /* deprecated */
+// #define SCE_LAY_EDGE	8 /* deprecated */
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
 #define SCE_LAY_FRS		64
@@ -725,9 +725,15 @@ typedef struct GameData {
 #define GAME_PLAYER_DESKTOP_RESOLUTION		(1 << 1)
 
 /* GameData.matmode */
-#define GAME_MAT_TEXFACE	0 /* deprecated */
-#define GAME_MAT_MULTITEX	1
-#define GAME_MAT_GLSL		2
+enum {
+	GAME_MAT_TEXFACE    = 0, /* deprecated */
+	GAME_MAT_MULTITEX   = 1,
+	GAME_MAT_GLSL       = 2,
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison GAME_MAT_TEXFACE
+#endif
 
 /* UV Paint */
 #define UV_SCULPT_LOCK_BORDERS				1
@@ -1223,7 +1229,7 @@ typedef struct Scene {
 #define R_GAMMA			0x0004
 #define R_ORTHO			0x0008
 #define R_ENVMAP		0x0010
-#define R_EDGE			0x0020 /* deprecated */
+/*#define R_EDGE			0x0020 deprecated */
 #define R_FIELDS		0x0040
 #define R_FIELDSTILL	0x0080
 /*#define R_RADIO			0x0100 */ /* deprecated */
@@ -1333,21 +1339,36 @@ typedef struct Scene {
 /*#define R_ALPHAKEY		2*/ /* deprecated, shouldn't be used */
 
 /* color_mgt_flag */
-#define R_COLOR_MANAGEMENT              (1 << 0)  /* deprecated, should only be used in versioning code only */
-/*#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)*/  /* deprecated, shouldn't be used */
+enum {
+	R_COLOR_MANAGEMENT              = (1 << 0),  /* deprecated, should only be used in versioning code only */
+	/*R_COLOR_MANAGEMENT_PREDIVIDE    = (1 << 1)*/  /* deprecated, shouldn't be used */
+};
+
+#if 0  /* TODO */
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison R_COLOR_MANAGEMENT
+#endif
+#endif
 
 /* subimtype, flag options for imtype */
-#define R_OPENEXR_HALF    1                                      /*deprecated*/
-#define R_OPENEXR_ZBUF    2                                      /*deprecated*/
-#define R_PREVIEW_JPG    4                                       /*deprecated*/
-#define R_CINEON_LOG     8                                       /*deprecated*/
-#define R_TIFF_16BIT    16                                       /*deprecated*/
+enum {
+	R_OPENEXR_HALF	= 1,  /*deprecated*/
+	R_OPENEXR_ZBUF	= 2,  /*deprecated*/
+	R_PREVIEW_JPG	= 4,  /*deprecated*/
+	R_CINEON_LOG	= 8,  /*deprecated*/
+	R_TIFF_16BIT	= 16, /*deprecated*/
 
-#define R_JPEG2K_12BIT    32 /* Jpeg2000 */                      /*deprecated*/
-#define R_JPEG2K_16BIT    64                                     /*deprecated*/
-#define R_JPEG2K_YCC    128 /* when disabled use RGB */          /*deprecated*/
-#define R_JPEG2K_CINE_PRESET    256                              /*deprecated*/
-#define R_JPEG2K_CINE_48FPS        512                           /*deprecated*/
+	R_JPEG2K_12BIT			=     32,  /* Jpeg2000 */                    /*deprecated*/
+	R_JPEG2K_16BIT			=     64,                                    /*deprecated*/
+	R_JPEG2K_YCC			=     128,  /* when disabled use RGB */      /*deprecated*/
+	R_JPEG2K_CINE_PRESET	=     256,                                   /*deprecated*/
+	R_JPEG2K_CINE_48FPS		=     512,                                   /*deprecated*/
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison R_OPENEXR_HALF R_OPENEXR_ZBUF R_PREVIEW_JPG R_CINEON_LOG R_TIFF_16BIT
+#pragma GCC poison R_JPEG2K_12BIT R_JPEG2K_16BIT R_JPEG2K_YCC R_JPEG2K_CINE_PRESET R_JPEG2K_CINE_48FPS
+#endif
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
@@ -1542,9 +1563,16 @@ typedef enum eVGroupSelect {
 #define AUDIO_SCRUB		          (1<<2)
 #define AUDIO_VOLUME_ANIMATED     (1<<3)
 
-#define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
-#define FFMPEG_AUTOSPLIT_OUTPUT 2
-#define FFMPEG_LOSSLESS_OUTPUT  4
+enum {
+	FFMPEG_MULTIPLEX_AUDIO  = 1,  /* deprecated, you can choose none as audiocodec now */
+	FFMPEG_AUTOSPLIT_OUTPUT = 2,
+	FFMPEG_LOSSLESS_OUTPUT  = 4,
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison FFMPEG_MULTIPLEX_AUDIO
+#endif
+
 
 /* Paint.flags */
 typedef enum {
@@ -1589,6 +1617,11 @@ typedef enum SculptFlags {
 	/* If set, dynamic-topology brushes will collapse short edges */
 	SCULPT_DYNTOPO_COLLAPSE = (1 << 11)
 } SculptFlags;
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison SCULPT_SYMM_X SCULPT_SYMM_Y SCULPT_SYMM_Z SCULPT_SYMMETRY_FEATHER
+#endif
+
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1

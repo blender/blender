@@ -142,7 +142,7 @@ typedef struct World {
 
 /* mode */
 #define WO_MIST	               1
-#define WO_STARS               2 /* deprecated */
+//#define WO_STARS               2 /* deprecated */
 /*#define WO_DOF                 4*/
 #define WO_ACTIVITY_CULLING	   8
 #define WO_ENV_LIGHT   		  16
@@ -151,10 +151,16 @@ typedef struct World {
 #define WO_INDIRECT_LIGHT	  128
 
 /* aomix */
-#define WO_AOADD	0
-#define WO_AOSUB	1 /* deprecated */
-#define WO_AOADDSUB	2 /* deprecated */
-#define WO_AOMUL	3
+enum {
+	WO_AOADD    = 0,
+	WO_AOSUB    = 1,  /* deprecated */
+	WO_AOADDSUB = 2,  /* deprecated */
+	WO_AOMUL    = 3,
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison WO_AOSUB WO_AOADDSUB
+#endif
 
 /* ao_samp_method - methods for sampling the AO hemi */
 #define WO_AOSAMP_CONSTANT			0

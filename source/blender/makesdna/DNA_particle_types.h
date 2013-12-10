@@ -509,7 +509,7 @@ typedef struct ParticleSystem {
 #define PSYS_GLOBAL_HAIR	2
 #define PSYS_HAIR_DYNAMICS	4
 #define	PSYS_KEYED_TIMING	8
-#define PSYS_ENABLED		16	/* deprecated */
+//#define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_HAIR_UPDATED	32  /* signal for updating hair particle mode */
 #define PSYS_DRAWING		64
 #define PSYS_USE_IMAT		128

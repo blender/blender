@@ -3079,7 +3079,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				part->id.flag |= (ob->id.flag & LIB_NEED_LINK);
 
 				psys->totpart = 0;
-				psys->flag = PSYS_ENABLED|PSYS_CURRENT;
+				psys->flag = PSYS_CURRENT;
 
 				BLI_addtail(&ob->particlesystem, psys);
 

@@ -33,13 +33,19 @@
 #define __DNA_SMOKE_TYPES_H__
 
 /* flags */
-#define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
-#define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
-#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
+enum {
+	MOD_SMOKE_HIGHRES = (1 << 1),  /* enable high resolution */
+	MOD_SMOKE_DISSOLVE = (1 << 2),  /* let smoke dissolve */
+	MOD_SMOKE_DISSOLVE_LOG = (1 << 3),  /* using 1/x for dissolve */
 
-#define MOD_SMOKE_HIGH_SMOOTH (1<<5) /* -- Deprecated -- */
-#define MOD_SMOKE_FILE_LOAD (1<<6) /* flag for file load */
-#define MOD_SMOKE_ADAPTIVE_DOMAIN (1<<7)
+	MOD_SMOKE_HIGH_SMOOTH = (1 << 5),  /* -- Deprecated -- */
+	MOD_SMOKE_FILE_LOAD = (1 << 6),  /* flag for file load */
+	MOD_SMOKE_ADAPTIVE_DOMAIN = (1 << 7),
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison MOD_SMOKE_HIGH_SMOOTH
+#endif
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)

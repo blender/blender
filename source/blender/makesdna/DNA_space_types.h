@@ -455,10 +455,10 @@ typedef enum eScreen_Redraws_Flag {
 	TIME_ALL_3D_WIN        = (1 << 1),
 	TIME_ALL_ANIM_WIN      = (1 << 2),
 	TIME_ALL_BUTS_WIN      = (1 << 3),
-	TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
+	// TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
 	TIME_SEQ               = (1 << 5),
 	TIME_ALL_IMAGE_WIN     = (1 << 6),
-	TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
+	// TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
 	TIME_NODES             = (1 << 8),
 	TIME_CLIPS             = (1 << 9),
 } eScreen_Redraws_Flag;
@@ -1178,6 +1178,11 @@ typedef enum eSpace_Type {
 	
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;
+
+// TODO: SPACE_SCRIPT
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison SPACE_IMASEL SPACE_SOUND
+#endif
 
 #define IMG_SIZE_FALLBACK 256
 

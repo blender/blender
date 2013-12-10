@@ -44,6 +44,20 @@
 #  endif
 #endif
 
+
+/* poison pragma */
+#ifdef DNA_DEPRECATED_ALLOW
+#  define DNA_DEPRECATED_GCC_POISON 0
+#else
+   /* enable the pragma if we can */
+#  ifdef __GNUC__
+#    define DNA_DEPRECATED_GCC_POISON 1
+#  else
+#    define DNA_DEPRECATED_GCC_POISON 0
+#  endif
+#endif
+
+
 /* hrmf, we need a better include then this */
 #include "../blenlib/BLI_sys_types.h" /* needed for int64_t only! */
 

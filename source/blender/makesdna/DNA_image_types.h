@@ -32,6 +32,7 @@
 #ifndef __DNA_IMAGE_TYPES_H__
 #define __DNA_IMAGE_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_color_types.h"  /* for color management */
 
@@ -122,18 +123,24 @@ typedef struct Image {
 /* **************** IMAGE ********************* */
 
 /* Image.flag */
-#define IMA_FIELDS			1
-#define IMA_STD_FIELD		2
-#define IMA_DO_PREMUL		4    /* deprecated, should not be used */
-#define IMA_REFLECT			16
-#define IMA_NOCOLLECT   	32
-// #define IMA_DONE_TAG		64  // UNUSED
-#define IMA_OLD_PREMUL		128
-/*#define IMA_CM_PREDIVIDE	256*/  /* deprecated, should not be used */
-#define IMA_USED_FOR_RENDER	512
-#define IMA_USER_FRAME_IN_RANGE	1024 /* for image user, but these flags are mixed */
-#define IMA_VIEW_AS_RENDER	2048
-#define IMA_IGNORE_ALPHA	4096
+enum {
+	IMA_FIELDS              = (1 << 0),
+	IMA_STD_FIELD           = (1 << 1),
+	IMA_DO_PREMUL           = (1 << 2),  /* deprecated, should not be used */
+	IMA_REFLECT             = (1 << 4),
+	IMA_NOCOLLECT           = (1 << 5),
+	//IMA_DONE_TAG          = (1 << 6),  // UNUSED
+	IMA_OLD_PREMUL          = (1 << 7),
+	// IMA_CM_PREDIVIDE     = (1 << 8),  /* deprecated, should not be used */
+	IMA_USED_FOR_RENDER     = (1 << 9),
+	IMA_USER_FRAME_IN_RANGE = (1 << 10), /* for image user, but these flags are mixed */
+	IMA_VIEW_AS_RENDER      = (1 << 11),
+	IMA_IGNORE_ALPHA        = (1 << 12),
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison IMA_DO_PREMUL
+#endif
 
 /* Image.tpageflag */
 #define IMA_TILES			1

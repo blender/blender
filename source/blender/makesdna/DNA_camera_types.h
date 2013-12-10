@@ -73,38 +73,50 @@ typedef struct Camera {
 /* **************** CAMERA ********************* */
 
 /* type */
-#define CAM_PERSP		0
-#define CAM_ORTHO		1
-#define CAM_PANO		2
+enum {
+	CAM_PERSP       = 0,
+	CAM_ORTHO       = 1,
+	CAM_PANO        = 2,
+};
 
 /* dtx */
-#define CAM_DTX_CENTER			1
-#define CAM_DTX_CENTER_DIAG		2
-#define CAM_DTX_THIRDS			4
-#define CAM_DTX_GOLDEN			8
-#define CAM_DTX_GOLDEN_TRI_A	16
-#define CAM_DTX_GOLDEN_TRI_B	32
-#define CAM_DTX_HARMONY_TRI_A	64
-#define CAM_DTX_HARMONY_TRI_B	128
+enum {
+	CAM_DTX_CENTER          = (1 << 0),
+	CAM_DTX_CENTER_DIAG     = (1 << 1),
+	CAM_DTX_THIRDS          = (1 << 2),
+	CAM_DTX_GOLDEN          = (1 << 3),
+	CAM_DTX_GOLDEN_TRI_A    = (1 << 4),
+	CAM_DTX_GOLDEN_TRI_B    = (1 << 5),
+	CAM_DTX_HARMONY_TRI_A   = (1 << 6),
+	CAM_DTX_HARMONY_TRI_B   = (1 << 7),
+};
 
 /* flag */
-#define CAM_SHOWLIMITS	1
-#define CAM_SHOWMIST	2
-#define CAM_SHOWPASSEPARTOUT	4
-#define CAM_SHOWTITLESAFE	8
-#define CAM_SHOWNAME		16
-#define CAM_ANGLETOGGLE		32
-#define CAM_DS_EXPAND		64
-#define CAM_PANORAMA		128 /* deprecated */
-#define CAM_SHOWSENSOR		256
+enum {
+	CAM_SHOWLIMITS          = (1 << 0),
+	CAM_SHOWMIST            = (1 << 1),
+	CAM_SHOWPASSEPARTOUT    = (1 << 2),
+	CAM_SHOWTITLESAFE       = (1 << 3),
+	CAM_SHOWNAME            = (1 << 4),
+	CAM_ANGLETOGGLE         = (1 << 5),
+	CAM_DS_EXPAND           = (1 << 6),
+	CAM_PANORAMA            = (1 << 7), /* deprecated */
+	CAM_SHOWSENSOR          = (1 << 8),
+};
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison CAM_PANORAMA
+#endif
 
 /* yafray: dof sampling switch */
 /* #define CAM_YF_NO_QMC	512 */ /* deprecated */
 
 /* Sensor fit */
-#define CAMERA_SENSOR_FIT_AUTO	0
-#define CAMERA_SENSOR_FIT_HOR	1
-#define CAMERA_SENSOR_FIT_VERT	2
+enum {
+	CAMERA_SENSOR_FIT_AUTO  = 0,
+	CAMERA_SENSOR_FIT_HOR   = 1,
+	CAMERA_SENSOR_FIT_VERT  = 2,
+};
 
 #define DEFAULT_SENSOR_WIDTH	32.0f
 #define DEFAULT_SENSOR_HEIGHT	18.0f

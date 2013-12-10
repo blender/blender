@@ -819,6 +819,10 @@ enum {
 	MOD_SOLIDIFY_FLIP           = (1 << 5),
 };
 
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison MOD_SOLIDIFY_RIM_MATERIAL
+#endif
+
 typedef struct ScrewModifierData {
 	ModifierData modifier;
 
@@ -1189,6 +1193,10 @@ typedef struct TriangulateModifierData {
 enum {
 	MOD_TRIANGULATE_BEAUTY = (1 << 0), /* deprecated */
 };
+
+#if (DNA_DEPRECATED_GCC_POISON == 1)
+#pragma GCC poison MOD_TRIANGULATE_BEAUTY
+#endif
 
 /* Triangulate methods - NGons */
 enum {

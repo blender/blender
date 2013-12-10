@@ -142,7 +142,6 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 			part->type = PART_FLUID;
 			psys->part = part;
 			psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
-			psys->flag |= PSYS_ENABLED;
 			BLI_strncpy(psys->name, "FluidParticles", sizeof(psys->name));
 			BLI_addtail(&ob->particlesystem, psys);
 
