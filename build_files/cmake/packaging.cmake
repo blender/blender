@@ -24,7 +24,7 @@ set(MY_WC_HASH "unknown")
 if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
 	include(FindGit)
 	if(GIT_FOUND)
-		message("-- Found Git: ${GIT_EXECUTABLE}")
+		message(STATUS "-- Found Git: ${GIT_EXECUTABLE}")
 		execute_process(COMMAND git rev-parse --short @{u}
 		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
