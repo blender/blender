@@ -172,7 +172,7 @@ typedef struct ScrArea {
 	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
 									 * runtuime variable, updated by executing operators */
-	short pad;
+	char temp, pad;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
 	

@@ -662,6 +662,10 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 /* test if screen vertices should be scaled */
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
+	/* clamp Y size of header sized areas when expanding windows
+	 * avoids annoying empty space around file menu */
+#define USE_HEADER_SIZE_CLAMP
+
 	const int headery_init = ED_area_headersize();
 	ScrVert *sv = NULL;
 	ScrArea *sa;
@@ -685,7 +689,35 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	
 	sizex = max[0] - min[0] + 1;
 	sizey = max[1] - min[1] + 1;
-	
+
+
+#ifdef USE_HEADER_SIZE_CLAMP
+#define TEMP_BOTTOM 1
+#define TEMP_TOP 2
+
+	/* if the window's Y axis grows, clamp header sized areas */
+	if (sizey < winsizey) {  /* growing? */
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+			sa->temp = 0;
+
+			if (ar && !(ar->flag & RGN_FLAG_HIDDEN)) {
+				if (sa->v2->vec.y == sizey - 1) {
+					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_init + 4) {
+						sa->temp = TEMP_TOP;
+					}
+				}
+				else if (sa->v1->vec.y == 0) {
+					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_init + 4) {
+						sa->temp = TEMP_BOTTOM;
+					}
+				}
+			}
+		}
+	}
+#endif
+
+
 	if (sizex != winsizex || sizey != winsizey) {
 		facx = ((float)winsizex) / ((float)sizex - 1);
 		facy = ((float)winsizey) / ((float)sizey - 1);
@@ -709,7 +741,54 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			CLAMP(sv->vec.y, 0, winsizey - 1);
 		}
 	}
-	
+
+
+#ifdef USE_HEADER_SIZE_CLAMP
+	if (sizey < winsizey) {  /* growing? */
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			ScrEdge *se = NULL;
+
+			if (sa->temp == 0)
+				continue;
+
+			if (sa->v1 == sa->v2)
+				continue;
+
+			/* adjust headery if verts are along the edge of window */
+			if (sa->temp == TEMP_TOP) {
+				/* lower edge */
+				const int yval = sa->v2->vec.y - headery_init;
+				se = screen_findedge(sc, sa->v4, sa->v1);
+				select_connected_scredge(sc, se);
+				for (sv = sc->vertbase.first; sv; sv = sv->next) {
+					if (sv != sa->v2 && sv != sa->v3) {
+						if (sv->flag) {
+							sv->vec.y = yval;
+						}
+					}
+				}
+			}
+			else {
+				/* upper edge */
+				const int yval = sa->v1->vec.y + headery_init;
+				se = screen_findedge(sc, sa->v2, sa->v3);
+				select_connected_scredge(sc, se);
+				for (sv = sc->vertbase.first; sv; sv = sv->next) {
+					if (sv != sa->v1 && sv != sa->v4) {
+						if (sv->flag) {
+							sv->vec.y = yval;
+						}
+					}
+				}
+			}
+		}
+	}
+
+#undef TEMP_BOTTOM
+#undef TEMP_TOP
+#endif
+
+
 	/* test for collapsed areas. This could happen in some blender version... */
 	/* ton: removed option now, it needs Context... */
 	
