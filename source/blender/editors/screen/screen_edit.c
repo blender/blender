@@ -662,6 +662,7 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 /* test if screen vertices should be scaled */
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
+	const int headery_init = ED_area_headersize();
 	ScrVert *sv = NULL;
 	ScrArea *sa;
 	int sizex, sizey;
@@ -714,7 +715,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	
 	/* make each window at least ED_area_headersize() high */
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		int headery = ED_area_headersize();
+		int headery = headery_init;
 		
 		/* adjust headery if verts are along the edge of window */
 		if (sa->v1->vec.y > 0)
@@ -732,13 +733,13 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 				
 				/* all selected vertices get the right offset */
 				yval = sa->v2->vec.y - headery + 1;
-				sv = sc->vertbase.first;
-				while (sv) {
+				for (sv = sc->vertbase.first; sv; sv = sv->next) {
 					/* if is a collapsed area */
 					if (sv != sa->v2 && sv != sa->v3) {
-						if (sv->flag) sv->vec.y = yval;
+						if (sv->flag) {
+							sv->vec.y = yval;
+						}
 					}
-					sv = sv->next;
 				}
 			}
 		}
