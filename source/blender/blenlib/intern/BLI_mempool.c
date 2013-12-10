@@ -295,7 +295,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 
 	pool->totused++;
 
-	if (!(pool->free)) {
+	if (UNLIKELY(pool->free == NULL)) {
 		/* need to allocate a new chunk */
 		BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
 		mempool_chunk_add(pool, mpchunk, NULL);

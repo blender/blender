@@ -117,7 +117,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 	 * size up to multiple of 8 */
 	size = PADUP(size, ma->align);
 
-	if (size > ma->cursize) {
+	if (UNLIKELY(size > ma->cursize)) {
 		if (size > ma->bufsize - (ma->align - 1)) {
 			ma->cursize = PADUP(size + 1, ma->align);
 		}
