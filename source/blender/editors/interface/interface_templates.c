@@ -2664,8 +2664,11 @@ static void prepare_list(uiList *ui_list, int len, int activei, int rows, int ma
 	if (columns == 0)
 		columns = 9;
 
-	if (ui_list->list_grip >= rows) {
-		maxrows = rows = ui_list->list_grip;
+	if (ui_list->list_grip >= (rows - 1) && ui_list->list_grip != 0) {
+		/* Only enable auto-size mode when we have dragged one row away from minimum size.
+		 * Avoids to switch too easily to auto-size mode when resizing to minimum size...
+		 */
+		maxrows = rows = max_ii(ui_list->list_grip, rows);
 	}
 	else {
 		ui_list->list_grip = 0;  /* Reset to auto-size mode. */
