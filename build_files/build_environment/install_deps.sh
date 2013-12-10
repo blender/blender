@@ -2869,7 +2869,7 @@ print_info() {
       _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
     fi
     INFO "BF_OPENEXR_LIB = 'Half IlmImf$_ilm_libs_ext Iex$_ilm_libs_ext Imath$_ilm_libs_ext '"
-    INFO "BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.a ${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.a'"
+    INFO "BF_OPENEXR_LIB_STATIC = '\${BF_OPENEXR}/lib/libHalf.a \${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.a'"
 
   fi
   # XXX Always static for now :/
