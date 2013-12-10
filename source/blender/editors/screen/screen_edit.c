@@ -686,10 +686,8 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	sizey = max[1] - min[1] + 1;
 	
 	if (sizex != winsizex || sizey != winsizey) {
-		facx = winsizex;
-		facx /= (float)sizex;
-		facy = winsizey;
-		facy /= (float)sizey;
+		facx = ((float)winsizex) / ((float)sizex - 1);
+		facy = ((float)winsizey) / ((float)sizey - 1);
 		
 		/* make sure it fits! */
 		for (sv = sc->vertbase.first; sv; sv = sv->next) {
