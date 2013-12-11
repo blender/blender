@@ -179,7 +179,7 @@ void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
 	if (fs->kerning == 1)
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 
-	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+	BLF_draw(fs->uifont_id, str, len);
 	BLF_disable(fs->uifont_id, BLF_CLIPPING);
 	if (fs->shadow)
 		BLF_disable(fs->uifont_id, BLF_SHADOW);
