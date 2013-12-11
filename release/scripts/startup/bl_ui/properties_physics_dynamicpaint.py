@@ -323,7 +323,8 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
         ob = context.object
 
         layout.prop(surface, "init_color_type", expand=False)
-        layout.separator()
+        if surface.init_color_type != 'NONE':
+            layout.separator()
 
         # dissolve
         if surface.init_color_type == 'COLOR':
