@@ -301,11 +301,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		{
 			uiItemL(col, IFACE_("Key:"), ICON_NONE);
 			
-			but = uiDefButR(block, NUM, B_REDR, IFACE_("Frame"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, IFACE_("Frame:"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "co", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_update_cb, fcu, bezt);
 			
-			but = uiDefButR(block, NUM, B_REDR, IFACE_("Value"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, IFACE_("Value:"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "co", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_update_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
@@ -315,11 +315,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ)) {
 			uiItemL(col, IFACE_("Left Handle:"), ICON_NONE);
 			
-			but = uiDefButR(block, NUM, B_REDR, "X", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, "X:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_left", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			
-			but = uiDefButR(block, NUM, B_REDR, "Y", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, "Y:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_left", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
@@ -329,11 +329,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		if (bezt->ipo == BEZT_IPO_BEZ) {
 			uiItemL(col, IFACE_("Right Handle:"), ICON_NONE);
 			
-			but = uiDefButR(block, NUM, B_REDR, "X", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, "X:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			
-			but = uiDefButR(block, NUM, B_REDR, "Y", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefButR(block, NUM, B_REDR, "Y:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
