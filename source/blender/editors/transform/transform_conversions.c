@@ -5071,7 +5071,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 		/* get flags used for inserting keyframes */
 		flag = ANIM_get_keyframing_flags(scene, 1);
 		
-		/* add datasource override for the camera object */
+		/* add datasource override for the object */
 		ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL); 
 		
 		if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
