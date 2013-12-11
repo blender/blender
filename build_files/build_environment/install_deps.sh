@@ -96,7 +96,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Build and install the OpenCOLLADA libraries.
 
     --all-static
-        Build libraries as statically as possible, to create static builds of Blender.
+        *BROKEN CURRENTLY, do not use!* Build libraries as statically as possible, to create static builds of Blender.
 
     --force-all
         Force the rebuild of all built libraries.
@@ -335,6 +335,7 @@ while true; do
       NUMPY_FORCE_REBUILD=true
       BOOST_FORCE_REBUILD=true
       OCIO_FORCE_REBUILD=true
+      OPENEXR_FORCE_REBUILD=true
       OIIO_FORCE_REBUILD=true
       LLVM_FORCE_REBUILD=true
       OSL_FORCE_REBUILD=true
@@ -545,7 +546,10 @@ magic_compile_set() {
 # Note: should clean nicely in $INST, but not in $SRC, when we switch to a new version of a lib...
 _clean() {
   rm -rf `readlink -f $_inst_shortcut`
-  rm -rf $_src
+  # Only remove $_src dir when not using git repo (avoids to re-clone the whole repo every time!!!).
+  if [ $_git == false ]; then
+    rm -rf $_src
+  fi
   rm -rf $_inst
   rm -rf $_inst_shortcut
 }
@@ -569,6 +573,7 @@ run_ldconfig() {
 #### Build Python ####
 _init_python() {
   _src=$SRC/Python-$PYTHON_VERSION
+  _git=false
   _inst=$INST/python-$PYTHON_VERSION
   _inst_shortcut=$INST/python-3.3
 }
@@ -632,6 +637,7 @@ compile_Python() {
 ##### Build Numpy #####
 _init_numpy() {
   _src=$SRC/numpy-$NUMPY_VERSION
+  _git=false
   _inst=$INST/numpy-$NUMPY_VERSION
   _python=$INST/python-$PYTHON_VERSION
   _site=lib/python3.3/site-packages
@@ -693,6 +699,7 @@ compile_Numpy() {
 #### Build Boost ####
 _init_boost() {
   _src=$SRC/boost-$BOOST_VERSION
+  _git=false
   _inst=$INST/boost-$BOOST_VERSION
   _inst_shortcut=$INST/boost
 }
@@ -761,6 +768,7 @@ compile_Boost() {
 #### Build OCIO ####
 _init_ocio() {
   _src=$SRC/OpenColorIO-$OCIO_VERSION
+  _git=false
   _inst=$INST/ocio-$OCIO_VERSION
   _inst_shortcut=$INST/ocio
 }
@@ -804,20 +812,19 @@ compile_OCIO() {
     mkdir build
     cd build
 
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D OCIO_BUILD_APPS=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_PYGLUE=OFF"
+
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
     else
       cflags="-fPIC"
     fi
 
-    cmake -D CMAKE_BUILD_TYPE=Release \
-          -D CMAKE_PREFIX_PATH=$_inst \
-          -D CMAKE_INSTALL_PREFIX=$_inst \
-          -D CMAKE_CXX_FLAGS="$cflags" \
-          -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
-          -D OCIO_BUILD_APPS=OFF \
-          -D OCIO_BUILD_PYGLUE=OFF \
-          ..
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
 
     make -j$THREADS && make install
 
@@ -845,11 +852,14 @@ compile_OCIO() {
     INFO "Own OpenColorIO-$OCIO_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-ocio option."
   fi
+
+  run_ldconfig "ocio"
 }
 
 #### Build ILMBase ####
 _init_ilmbase() {
   _src=$SRC/ILMBase-$ILMBASE_VERSION
+  _git=false
   _inst=$TMP/ilmbase-$ILMBASE_VERSION
   _inst_shortcut=$TMP/ilmbase
 }
@@ -904,6 +914,8 @@ compile_ILMBASE() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     if [ $ALL_STATIC == true ]; then
       cmake_d="$cmake_d -D BUILD_SHARED_LIBS=OFF"
+    else
+      cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
     fi
 
     if file /bin/cp | grep -q '32-bit'; then
@@ -937,6 +949,7 @@ compile_ILMBASE() {
 #### Build OpenEXR ####
 _init_openexr() {
   _src=$SRC/OpenEXR-$OPENEXR_VERSION
+  _git=true
   _inst=$_openexr_inst
   _inst_shortcut=$INST/openexr
 }
@@ -1005,6 +1018,11 @@ compile_OPENEXR() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$_ilmbase_inst"
+    if [ $ALL_STATIC == true ]; then
+      cmake_d="$cmake_d -D BUILD_SHARED_LIBS=OFF"
+    else
+      cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
+    fi
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1048,6 +1066,7 @@ compile_OPENEXR() {
 #### Build OIIO ####
 _init_oiio() {
   _src=$SRC/OpenImageIO-$OIIO_VERSION
+  _git=true
   _inst=$INST/oiio-$OIIO_VERSION
   _inst_shortcut=$INST/oiio
 }
@@ -1107,7 +1126,14 @@ compile_OIIO() {
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D BUILDSTATIC=OFF"
+    cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
+    if [ $ALL_STATIC == true ]; then
+      cmake_d="$cmake_d -D BUILDSTATIC=ON"
+      cmake_d="$cmake_d -D LINKSTATIC=ON"
+    else
+      cmake_d="$cmake_d -D BUILDSTATIC=OFF"
+      cmake_d="$cmake_d -D LINKSTATIC=OFF"
+    fi
 
     if [ $_with_built_openexr == true ]; then
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
@@ -1120,6 +1146,8 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_QT=OFF"
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
 
@@ -1177,6 +1205,7 @@ compile_OIIO() {
 _init_llvm() {
   _src=$SRC/LLVM-$LLVM_VERSION
   _src_clang=$SRC/CLANG-$LLVM_VERSION
+  _git=false
   _inst=$INST/llvm-$LLVM_VERSION
   _inst_shortcut=$INST/llvm
 }
@@ -1282,6 +1311,7 @@ EOF
 #### Build OSL ####
 _init_osl() {
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
+  _git=true
   _inst=$INST/osl-$OSL_VERSION
   _inst_shortcut=$INST/osl
 }
@@ -1338,9 +1368,13 @@ compile_OSL() {
 
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D BUILDSTATIC=ON"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
+    if [ $ALL_STATIC == true ]; then
+      cmake_d="$cmake_d -D BUILDSTATIC=ON"
+    else
+      cmake_d="$cmake_d -D BUILDSTATIC=OFF"
+    fi
 
     if [ $_with_built_openexr == true ]; then
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
@@ -1387,11 +1421,14 @@ compile_OSL() {
     INFO "Own OpenShadingLanguage-$OSL_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-osl option."
   fi
+
+  run_ldconfig "osl"
 }
 
 #### Build OpenCOLLADA ####
 _init_opencollada() {
   _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
+  _git=true
   _inst=$INST/opencollada-$OPENCOLLADA_VERSION
   _inst_shortcut=$INST/opencollada
 }
@@ -1442,6 +1479,12 @@ compile_OpenCOLLADA() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_EXPAT=OFF"
     cmake_d="$cmake_d -D USE_LIBXML=ON"
+    # XXX Does not work!
+#    if [ $ALL_STATIC == true ]; then
+#      cmake_d="$cmake_d -D USE_STATIC=ON"
+#    else
+#      cmake_d="$cmake_d -D USE_STATIC=OFF"
+#    fi
     cmake_d="$cmake_d -D USE_STATIC=ON"
 
     cmake $cmake_d ../
@@ -2857,8 +2900,9 @@ print_info() {
   if [ -d $INST/ocio ]; then
     INFO "BF_OCIO = '$INST/ocio'"
   fi
-  # XXX Always static for now :/
-  INFO "WITH_BF_STATICOCIO = True"
+  if $ALL_STATIC; then
+    INFO "WITH_BF_STATICOCIO = True"
+  fi
 
   if [ -d $INST/openexr ]; then
     INFO "BF_OPENEXR = '$INST/openexr'"
@@ -2869,11 +2913,19 @@ print_info() {
       _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
     fi
     INFO "BF_OPENEXR_LIB = 'Half IlmImf$_ilm_libs_ext Iex$_ilm_libs_ext Imath$_ilm_libs_ext '"
-    INFO "BF_OPENEXR_LIB_STATIC = '\${BF_OPENEXR}/lib/libHalf.a \${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.a'"
+    if $ALL_STATIC; then
+      INFO "BF_OPENEXR_LIB_STATIC = '\${BF_OPENEXR}/lib/libHalf.a \${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.a \${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.a'"
+    else
+      # BF_OPENEXR_LIB does not work, things like '-lIlmImf-2_1' do not suit ld.
+      # For now, hack around!!!
+      INFO "BF_OPENEXR_LIB_STATIC = '\${BF_OPENEXR}/lib/libHalf.so \${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.so'"
+      INFO "WITH_BF_STATICOPENEXR = True"
+    fi
 
   fi
-  # XXX Always static for now :/
-  INFO "WITH_BF_STATICOPENEXR = True"
+  if $ALL_STATIC; then
+    INFO "WITH_BF_STATICOPENEXR = True"
+  fi
 
   INFO "WITH_BF_OIIO = True"
   if [ -d $INST/oiio ]; then
@@ -2923,7 +2975,7 @@ print_info() {
     INFO "WITH_BF_3DMOUSE = False"
   fi
 
-  if $ALL_STATIC; then
+  if [ $ALL_STATIC -o $WITH_OPENCOLLADA ]; then
     INFO "LLIBS = [\""xml2"\", \""expat"\"] + LLIBS"
   fi
 
