@@ -1619,11 +1619,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		
 		if (vertical) {
 			w = BLI_rctf_size_x(&v2d->cur);
-			em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
+			em = (ar->type->prefsizex) ? 10 : 20; /* works out to 10*UI_UNIT_X or 20*UI_UNIT_X */
 		}
 		else {
 			w = UI_PANEL_WIDTH;
-			em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
+			em = (ar->type->prefsizex) ? 10 : 20;
 		}
 		
 		/* create panels */
