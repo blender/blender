@@ -329,19 +329,19 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;
-	int winsizex = WM_window_pixels_x(win);
-	int winsizey = WM_window_pixels_y(win);
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
 
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xCCCC);
-	sdrawline(rect->xmin - winsizex, rect->ymin, rect->xmin + winsizex, rect->ymin);
-	sdrawline(rect->xmin, rect->ymin - winsizey, rect->xmin, rect->ymin + winsizey);
+	sdrawline(rect->xmin - winsize_x, rect->ymin, rect->xmin + winsize_x, rect->ymin);
+	sdrawline(rect->xmin, rect->ymin - winsize_y, rect->xmin, rect->ymin + winsize_y);
 	
 	glColor3ub(255, 255, 255);
 	glLineStipple(1, 0x3333);
-	sdrawline(rect->xmin - winsizex, rect->ymin, rect->xmin + winsizex, rect->ymin);
-	sdrawline(rect->xmin, rect->ymin - winsizey, rect->xmin, rect->ymin + winsizey);
+	sdrawline(rect->xmin - winsize_x, rect->ymin, rect->xmin + winsize_x, rect->ymin);
+	sdrawline(rect->xmin, rect->ymin - winsize_y, rect->xmin, rect->ymin + winsize_y);
 	glDisable(GL_LINE_STIPPLE);
 }
 

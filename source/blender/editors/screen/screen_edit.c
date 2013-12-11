@@ -265,7 +265,9 @@ int scredge_is_horizontal(ScrEdge *se)
 }
 
 /* need win size to make sure not to include edges along screen edge */
-ScrEdge *screen_find_active_scredge(bScreen *sc, int winsizex, int winsizey, int mx, int my)
+ScrEdge *screen_find_active_scredge(bScreen *sc,
+                                    const int winsize_x, const int winsize_y,
+                                    const int mx, const int my)
 {
 	ScrEdge *se;
 	int safety = U.widget_unit / 10;
@@ -274,7 +276,7 @@ ScrEdge *screen_find_active_scredge(bScreen *sc, int winsizex, int winsizey, int
 	
 	for (se = sc->edgebase.first; se; se = se->next) {
 		if (scredge_is_horizontal(se)) {
-			if (se->v1->vec.y > 0 && se->v1->vec.y < winsizey - 1) {
+			if (se->v1->vec.y > 0 && se->v1->vec.y < winsize_y - 1) {
 				short min, max;
 				min = MIN2(se->v1->vec.x, se->v2->vec.x);
 				max = MAX2(se->v1->vec.x, se->v2->vec.x);
@@ -284,7 +286,7 @@ ScrEdge *screen_find_active_scredge(bScreen *sc, int winsizex, int winsizey, int
 			}
 		}
 		else {
-			if (se->v1->vec.x > 0 && se->v1->vec.x < winsizex - 1) {
+			if (se->v1->vec.x > 0 && se->v1->vec.x < winsize_x - 1) {
 				short min, max;
 				min = MIN2(se->v1->vec.y, se->v2->vec.y);
 				max = MAX2(se->v1->vec.y, se->v2->vec.y);
@@ -458,6 +460,9 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 /* uses window size */
 bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
@@ -468,9 +473,9 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	sc->winid = win->winid;
 
 	sv1 = screen_addvert(sc, 0, 0);
-	sv2 = screen_addvert(sc, 0, WM_window_pixels_y(win) - 1);
-	sv3 = screen_addvert(sc, WM_window_pixels_x(win) - 1, WM_window_pixels_y(win) - 1);
-	sv4 = screen_addvert(sc, WM_window_pixels_x(win) - 1, 0);
+	sv2 = screen_addvert(sc, 0, winsize_y - 1);
+	sv3 = screen_addvert(sc, winsize_x - 1, winsize_y - 1);
+	sv4 = screen_addvert(sc, winsize_x - 1, 0);
 	
 	screen_addedge(sc, sv1, sv2);
 	screen_addedge(sc, sv2, sv3);
@@ -660,7 +665,7 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 }
 
 /* test if screen vertices should be scaled */
-static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
+static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 {
 	/* clamp Y size of header sized areas when expanding windows
 	 * avoids annoying empty space around file menu */
@@ -669,7 +674,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	const int headery_init = ED_area_headersize();
 	ScrVert *sv = NULL;
 	ScrArea *sa;
-	int sizex, sizey;
+	int winsize_x_prev, winsize_y_prev;
 	float facx, facy, tempf, min[2], max[2];
 	
 	/* calculate size */
@@ -687,8 +692,8 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		sv->vec.y -= min[1];
 	}
 	
-	sizex = max[0] - min[0] + 1;
-	sizey = max[1] - min[1] + 1;
+	winsize_x_prev = (max[0] - min[0]) + 1;
+	winsize_y_prev = (max[1] - min[1]) + 1;
 
 
 #ifdef USE_HEADER_SIZE_CLAMP
@@ -696,19 +701,20 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 #define TEMP_TOP 2
 
 	/* if the window's Y axis grows, clamp header sized areas */
-	if (sizey < winsizey) {  /* growing? */
+	if (winsize_y_prev < winsize_y) {  /* growing? */
+		const int headery_margin_max = headery_init + 4;
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 			sa->temp = 0;
 
 			if (ar && !(ar->flag & RGN_FLAG_HIDDEN)) {
-				if (sa->v2->vec.y == sizey - 1) {
-					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_init + 4) {
+				if (sa->v2->vec.y == winsize_y_prev - 1) {
+					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
 						sa->temp = TEMP_TOP;
 					}
 				}
 				else if (sa->v1->vec.y == 0) {
-					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_init + 4) {
+					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
 						sa->temp = TEMP_BOTTOM;
 					}
 				}
@@ -718,9 +724,9 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 #endif
 
 
-	if (sizex != winsizex || sizey != winsizey) {
-		facx = ((float)winsizex) / ((float)sizex - 1);
-		facy = ((float)winsizey) / ((float)sizey - 1);
+	if (winsize_x_prev != winsize_x || winsize_y_prev != winsize_y) {
+		facx = ((float)winsize_x) / ((float)winsize_x_prev - 1);
+		facy = ((float)winsize_y) / ((float)winsize_y_prev - 1);
 		
 		/* make sure it fits! */
 		for (sv = sc->vertbase.first; sv; sv = sv->next) {
@@ -731,20 +737,20 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			//sv->vec.x += AREAGRID - 1;
 			//sv->vec.x -=  (sv->vec.x % AREAGRID);
 
-			CLAMP(sv->vec.x, 0, winsizex - 1);
+			CLAMP(sv->vec.x, 0, winsize_x - 1);
 			
 			tempf = ((float)sv->vec.y) * facy;
 			sv->vec.y = (short)(tempf + 0.5f);
 			//sv->vec.y += AREAGRID - 1;
 			//sv->vec.y -=  (sv->vec.y % AREAGRID);
 
-			CLAMP(sv->vec.y, 0, winsizey - 1);
+			CLAMP(sv->vec.y, 0, winsize_y - 1);
 		}
 	}
 
 
 #ifdef USE_HEADER_SIZE_CLAMP
-	if (sizey < winsizey) {  /* growing? */
+	if (winsize_y_prev < winsize_y) {  /* growing? */
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			ScrEdge *se = NULL;
 
@@ -784,6 +790,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		}
 	}
 
+#undef USE_HEADER_SIZE_CLAMP
 #undef TEMP_BOTTOM
 #undef TEMP_TOP
 #endif
@@ -799,7 +806,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		/* adjust headery if verts are along the edge of window */
 		if (sa->v1->vec.y > 0)
 			headery += U.pixelsize;
-		if (sa->v2->vec.y < winsizey - 1)
+		if (sa->v2->vec.y < winsize_y - 1)
 			headery += U.pixelsize;
 		
 		if (sa->v2->vec.y - sa->v1->vec.y + 1 < headery) {
@@ -1111,6 +1118,9 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 /* only for edge lines between areas, and the blended join arrows */
 void ED_screen_draw(wmWindow *win)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	ScrArea *sa;
 	ScrArea *sa1 = NULL;
 	ScrArea *sa2 = NULL;
@@ -1124,10 +1134,10 @@ void ED_screen_draw(wmWindow *win)
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
 		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
-		drawscredge_area(sa, WM_window_pixels_x(win), WM_window_pixels_y(win), 0);
+		drawscredge_area(sa, winsize_x, winsize_y, 0);
 	}
 	for (sa = win->screen->areabase.first; sa; sa = sa->next)
-		drawscredge_area(sa, WM_window_pixels_x(win), WM_window_pixels_y(win), 1);
+		drawscredge_area(sa, winsize_x, winsize_y, 1);
 	
 	/* blended join arrow */
 	if (sa1 && sa2) {
@@ -1196,18 +1206,20 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {	
 	/* exception for bg mode, we only need the screen context */
 	if (!G.background) {
+		const int winsize_x = WM_window_pixels_x(win);
+		const int winsize_y = WM_window_pixels_y(win);
 		ScrArea *sa;
 		rcti winrct;
 	
 		winrct.xmin = 0;
-		winrct.xmax = WM_window_pixels_x(win) - 1;
+		winrct.xmax = winsize_x - 1;
 		winrct.ymin = 0;
-		winrct.ymax = WM_window_pixels_y(win) - 1;
+		winrct.ymax = winsize_y - 1;
 		
 		/* header size depends on DPI, let's verify */
 		screen_refresh_headersizes();
 		
-		screen_test_scale(win->screen, WM_window_pixels_x(win), WM_window_pixels_y(win));
+		screen_test_scale(win->screen, winsize_x, winsize_y);
 		
 		if (win->screen->mainwin == 0)
 			win->screen->mainwin = wm_subwindow_open(win, &winrct);
@@ -1334,10 +1346,11 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 /* case when on area-edge or in azones, or outside window */
 static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	AZone *az = NULL;
 	ScrArea *sa;
-	int winsizex = WM_window_pixels_x(win);
-	int winsizey = WM_window_pixels_y(win);
 	
 	for (sa = win->screen->areabase.first; sa; sa = sa->next)
 		if ((az = is_in_area_actionzone(sa, &event->x)))
@@ -1354,7 +1367,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 		}
 	}
 	else {
-		ScrEdge *actedge = screen_find_active_scredge(win->screen, winsizex, winsizey, event->x, event->y);
+		ScrEdge *actedge = screen_find_active_scredge(win->screen, winsize_x, winsize_y, event->x, event->y);
 		
 		if (actedge) {
 			if (scredge_is_horizontal(actedge))

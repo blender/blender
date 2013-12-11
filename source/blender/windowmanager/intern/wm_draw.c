@@ -429,6 +429,9 @@ static void wm_draw_triple_fail(bContext *C, wmWindow *win)
 
 static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	GLint maxsize;
 	int x, y;
 
@@ -437,22 +440,22 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 		triple->target = GL_TEXTURE_RECTANGLE_ARB;
 		triple->nx = 1;
 		triple->ny = 1;
-		triple->x[0] = WM_window_pixels_x(win);
-		triple->y[0] = WM_window_pixels_y(win);
+		triple->x[0] = winsize_x;
+		triple->y[0] = winsize_y;
 	}
 	else if (GPU_non_power_of_two_support()) {
 		triple->target = GL_TEXTURE_2D;
 		triple->nx = 1;
 		triple->ny = 1;
-		triple->x[0] = WM_window_pixels_x(win);
-		triple->y[0] = WM_window_pixels_y(win);
+		triple->x[0] = winsize_x;
+		triple->y[0] = winsize_y;
 	}
 	else {
 		triple->target = GL_TEXTURE_2D;
 		triple->nx = 0;
 		triple->ny = 0;
-		split_width(WM_window_pixels_x(win), MAX_N_TEX, triple->x, &triple->nx);
-		split_width(WM_window_pixels_y(win), MAX_N_TEX, triple->y, &triple->ny);
+		split_width(winsize_x, MAX_N_TEX, triple->x, &triple->nx);
+		split_width(winsize_y, MAX_N_TEX, triple->y, &triple->ny);
 	}
 
 	/* generate texture names */
