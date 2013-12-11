@@ -21,6 +21,8 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
+from bpy.types import Curve, SurfaceCurve, TextCurve
+
 
 class CurveButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -29,15 +31,25 @@ class CurveButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type in {'CURVE', 'SURFACE', 'FONT'} and context.curve)
+        return (context.curve is not None)
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):
-    """Same as above but for curves only"""
-
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'CURVE' and context.curve)
+        return (type(context.curve) is Curve)
+
+
+class CurveButtonsPanelSurface(CurveButtonsPanel):
+    @classmethod
+    def poll(cls, context):
+        return (type(context.curve) is SurfaceCurve)
+
+
+class CurveButtonsPanelText(CurveButtonsPanel):
+    @classmethod
+    def poll(cls, context):
+        return (type(context.curve) is TextCurve)
 
 
 class CurveButtonsPanelActive(CurveButtonsPanel):
@@ -46,7 +58,7 @@ class CurveButtonsPanelActive(CurveButtonsPanel):
     @classmethod
     def poll(cls, context):
         curve = context.curve
-        return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
+        return (curve and type(curve) is not TextCurve and curve.splines.active)
 
 
 class DATA_PT_context_curve(CurveButtonsPanel, Panel):
@@ -56,14 +68,14 @@ class DATA_PT_context_curve(CurveButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        obj = context.object
         curve = context.curve
         space = context.space_data
 
-        if ob:
-            layout.template_ID(ob, "data")
+        if obj:
+            layout.template_ID(obj, "data")
         elif curve:
-            layout.template_ID(space, "pin_id")  # XXX: broken
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
@@ -72,11 +84,10 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         curve = context.curve
-        is_surf = (ob.type == 'SURFACE')
-        is_curve = (ob.type == 'CURVE')
-        is_text = (ob.type == 'FONT')
+        is_surf = type(curve) is SurfaceCurve
+        is_curve = type(curve) is Curve
+        is_text = type(curve) is TextCurve
 
         if is_curve:
             row = layout.row()
@@ -143,16 +154,8 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
         layout.operator("curve.match_texture_space")
 
 
-class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
+class DATA_PT_geometry_curve(CurveButtonsPanelSurface, Panel):
     bl_label = "Geometry"
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if obj and obj.type == 'SURFACE':
-            return False
-
-        return context.curve
 
     def draw(self, context):
         layout = self.layout
@@ -216,10 +219,9 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         curve = context.curve
         act_spline = curve.splines.active
-        is_surf = (ob.type == 'SURFACE')
+        is_surf = type(curve) is SurfaceCurve
         is_poly = (act_spline.type == 'POLY')
 
         split = layout.split()
@@ -281,12 +283,8 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             layout.prop(act_spline, "use_smooth")
 
 
-class DATA_PT_font(CurveButtonsPanel, Panel):
+class DATA_PT_font(CurveButtonsPanelText, Panel):
     bl_label = "Font"
-
-    @classmethod
-    def poll(cls, context):
-        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -345,12 +343,8 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
         row.prop(char, "use_small_caps")
 
 
-class DATA_PT_paragraph(CurveButtonsPanel, Panel):
+class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
     bl_label = "Paragraph"
-
-    @classmethod
-    def poll(cls, context):
-        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -374,12 +368,8 @@ class DATA_PT_paragraph(CurveButtonsPanel, Panel):
         col.prop(text, "offset_y", text="Y")
 
 
-class DATA_PT_text_boxes(CurveButtonsPanel, Panel):
+class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
     bl_label = "Text Boxes"
-
-    @classmethod
-    def poll(cls, context):
-        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
