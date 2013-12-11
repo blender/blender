@@ -5143,6 +5143,22 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 		
+		/* only calculate paths if there are paths to be recalculated,
+		 * assuming that since we've autokeyed the transforms this is
+		 * now safe to apply...
+		 * 
+		 * NOTE: only do this when there's context info
+		 */
+		if (C && (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
+			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
+			ED_objects_recalculate_paths(C, scene);
+			
+			/* XXX: there's potential here for problems with unkeyed rotations/scale, 
+			 *      but for now (until proper data-locality for baking operations),
+			 *      this should be a better fix for T24451 and T37755
+			 */
+		}
+		
 		/* free temp info */
 		BLI_freelistN(&dsources);
 	}
@@ -5787,7 +5803,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* do nothing */
 	}
 	else { /* Objects */
-		int i, recalcObPaths = 0;
+		int i;
 
 		BLI_assert(t->flag & (T_OBJECT | T_TEXTURE));
 
@@ -5824,36 +5840,14 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* Set autokey if necessary */
 			if (!canceled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
-				
-				/* only calculate paths if there are paths to be recalculated */
-				if (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)
-					recalcObPaths = 1;
 			}
+			
 			/* restore rigid body transform */
 			if (ob->rigidbody_object && canceled) {
 				float ctime = BKE_scene_frame_get(t->scene);
 				if (BKE_rigidbody_check_sim_running(t->scene->rigidbody_world, ctime))
 					BKE_rigidbody_aftertrans_update(ob, td->ext->oloc, td->ext->orot, td->ext->oquat, td->ext->orotAxis, td->ext->orotAngle);
 			}
-		}
-		
-		/* recalculate motion paths for objects (if necessary) 
-		 * NOTE: only do this when there is context info
-		 */
-		if (C && recalcObPaths) {
-			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
-			ED_objects_recalculate_paths(C, t->scene);
-
-			/* recalculating the frame positions means we loose our original transform if its not auto-keyed [#24451]
-			 * this hack re-applies it, which is annoying, only alternatives are...
-			 * - don't recalc paths.
-			 * - have an BKE_object_handle_update() which gives is the new transform without touching the objects.
-			 * - only recalc paths on auto-keying.
-			 * - ED_objects_recalculate_paths could backup/restore transforms.
-			 * - re-apply the transform which is simplest in this case. (2 lines below)
-			 */
-			t->redraw |= TREDRAW_HARD;
-			transformApply(C, t);
 		}
 	}
 
