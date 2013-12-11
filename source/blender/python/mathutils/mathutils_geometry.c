@@ -576,12 +576,14 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 {
 	VectorObject *line_a, *line_b, *plane_co, *plane_no;
 	float isect[3];
+	int no_flip = false;
 
 	if (!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
 	                      &vector_Type, &line_a,
 	                      &vector_Type, &line_b,
 	                      &vector_Type, &plane_co,
-	                      &vector_Type, &plane_no))
+	                      &vector_Type, &plane_no,
+	                      &no_flip))
 	{
 		return NULL;
 	}
@@ -601,6 +603,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
+	/* TODO: implements no_flip */
 	if (isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec) == 1) {
 		return Vector_CreatePyObject(isect, 3, Py_NEW, NULL);
 	}
@@ -633,7 +636,7 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 	float isect_co[3];
 	float isect_no[3];
 
-	if (!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_plane_plane",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:intersect_plane_plane",
 	                      &vector_Type, &plane_a_co,
 	                      &vector_Type, &plane_a_no,
 	                      &vector_Type, &plane_b_co,
