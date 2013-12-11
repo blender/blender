@@ -148,6 +148,9 @@ enum {
 /* bit-row */
 #define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
 
+/* split numbuts by ':' and align l/r */
+#define USE_NUMBUTS_LR_ALIGN
+
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;

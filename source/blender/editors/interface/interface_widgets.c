@@ -1124,6 +1124,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 {
 	int drawstr_left_len = UI_MAX_DRAW_STR;
 	char *drawstr_right = NULL;
+	bool use_right_only = false;
 	
 	/* for underline drawing */
 	float font_xofs, font_yofs;
@@ -1198,10 +1199,31 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		}
 	}
 	
+#ifdef USE_NUMBUTS_LR_ALIGN
+	if (!drawstr_right && ELEM(but->type, NUM, NUMSLI) && (but->editstr == NULL)) {
+		drawstr_right = strchr(but->drawstr + but->ofs, ':');
+		if (drawstr_right) {
+			drawstr_right++;
+			drawstr_left_len = (drawstr_right - but->drawstr);
+
+			while (*drawstr_right == ' ') {
+				drawstr_right++;
+			}
+		}
+		else {
+			/* no prefix, even so use only cpoin */
+			drawstr_right = but->drawstr + but->ofs;
+			use_right_only = true;
+		}
+	}
+#endif
+
 	glColor4ubv((unsigned char *)wcol->text);
 
-	uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs,
-	                   drawstr_left_len - but->ofs, &font_xofs, &font_yofs);
+	if (!use_right_only) {
+		uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs,
+		                   drawstr_left_len - but->ofs, &font_xofs, &font_yofs);
+	}
 
 	if (but->menu_key != '\0') {
 		char fixedbuf[128];
@@ -2273,7 +2295,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	uiWidgetBase wtb;
 	const float rad = 0.5f * BLI_rcti_size_y(rect);
-	float textofs = rad * 0.75f;
+	float textofs = rad * 0.85f;
 
 	if (state & UI_SELECT)
 		SWAP(short, wcol->shadetop, wcol->shadedown);

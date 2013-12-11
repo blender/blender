@@ -2867,6 +2867,11 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	{
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}
+#ifdef USE_NUMBUTS_LR_ALIGN
+	else if (ELEM(but->type, NUM, NUMSLI)) {
+		but->drawflag |= UI_BUT_TEXT_LEFT;
+	}
+#endif
 
 	but->drawflag |= (block->flag & UI_BUT_ALIGN);
 

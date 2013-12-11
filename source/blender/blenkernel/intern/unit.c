@@ -392,7 +392,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 		while (unit->name_short[j] && (i < len_max)) {
 			str[i++] = unit->name_short[j++];
 		}
-
+#if 0
 		if (pad) {
 			/* this loop only runs if so many zeros were removed that
 			 * the unit name only used padded chars,
@@ -402,6 +402,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 				str[i++] = pad;
 			}
 		}
+#endif
 	}
 
 	/* terminate no matter whats done with padding above */
