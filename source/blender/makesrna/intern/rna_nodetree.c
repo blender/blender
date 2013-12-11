@@ -793,6 +793,11 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 
 	nodeFindNode(ntree, fromsock, &fromnode, NULL);
 	nodeFindNode(ntree, tosock, &tonode, NULL);
+	/* check validity of the sockets:
+	 * if sockets from different trees are passed in this will fail!
+	 */
+	if (!fromnode || !tonode)
+		return NULL;
 	
 	if (&fromsock->in_out == &tosock->in_out) {
 		BKE_report(reports, RPT_ERROR, "Same input/output direction of sockets");
