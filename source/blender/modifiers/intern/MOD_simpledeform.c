@@ -248,7 +248,7 @@ static void initData(ModifierData *md)
 	smd->axis = 0;
 
 	smd->origin   =  NULL;
-	smd->factor   =  0.35f;
+	smd->factor   =  DEG2RADF(45.0f);
 	smd->limit[0] =  0.0f;
 	smd->limit[1] =  1.0f;
 }
