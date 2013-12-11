@@ -2438,36 +2438,47 @@ void ui_check_but(uiBut *but)
 		case NUMSLI:
 
 			if (!but->editstr) {
+				const char *drawstr_suffix = NULL;
+				size_t slen;
+
 				UI_GET_BUT_VALUE_INIT(but, value);
+
+				slen = BLI_strncpy_rlen(but->drawstr, but->str, sizeof(but->drawstr));
 
 				if (ui_is_but_float(but)) {
 					if (value == (double) FLT_MAX) {
-						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+						slen += BLI_strncpy_rlen(but->drawstr + slen, "inf", sizeof(but->drawstr) - slen);
 					}
 					else if (value == (double) -FLT_MAX) {
-						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+						slen += BLI_strncpy_rlen(but->drawstr + slen, "-inf", sizeof(but->drawstr) - slen);
 					}
 					/* support length type buttons */
 					else if (ui_is_but_unit(but)) {
 						char new_str[sizeof(but->drawstr)];
 						ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
-						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+						slen += BLI_strncpy_rlen(but->drawstr + slen, new_str, sizeof(but->drawstr) - slen);
 					}
 					else {
 						const int prec = ui_but_float_precision(but, value);
-						BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+						slen += BLI_snprintf(but->drawstr + slen, sizeof(but->drawstr) - slen, "%.*f", prec, value);
 					}
 				}
 				else {
-					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
+					slen += BLI_snprintf(but->drawstr + slen, sizeof(but->drawstr) - slen, "%d", (int)value);
 				}
 
 				if (but->rnaprop) {
 					PropertySubType pstype = RNA_property_subtype(but->rnaprop);
 
-					if (pstype == PROP_PERCENTAGE)
-						strcat(but->drawstr, "%");
+					if (pstype == PROP_PERCENTAGE) {
+						drawstr_suffix = "%";
+					}
 				}
+
+				if (drawstr_suffix) {
+					BLI_strncpy(but->drawstr + slen, drawstr_suffix, sizeof(but->drawstr) - slen);
+				}
+
 			}
 			break;
 
