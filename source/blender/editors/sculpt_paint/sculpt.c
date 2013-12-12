@@ -3873,25 +3873,6 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->scale[1] = max_scale / ob->size[1];
 	cache->scale[2] = max_scale / ob->size[2];
 
-	if (sd->gravity_object) {
-		Object *gravity_object = sd->gravity_object;
-		float rmat[3][3], loc[3], size[3];
-
-		/* get gravity vector in world space */
-		copy_v3_v3(cache->gravity_direction, gravity_object->obmat[2]);
-		normalize_v3(cache->gravity_direction);
-
-		/* transform to sculpted object space by inverting object rotation matrix */
-		mat4_to_loc_rot_size(loc, rmat, size, ob->obmat);
-		/* transposition of orthogonal matrix (rotation), inverts */
-		transpose_m3(rmat);
-		mul_m3_v3(rmat, cache->gravity_direction);
-	}
-	else {
-		cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0;
-		cache->gravity_direction[2] = sd->gravity_factor;
-	}
-
 	cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
 
 	cache->flag = 0;
@@ -3956,6 +3937,21 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	copy_m3_m4(mat, ob->imat);
 	mul_m3_v3(mat, viewDir);
 	normalize_v3_v3(cache->true_view_normal, viewDir);
+
+	/* get gravity vector in world space */
+	if (sd->gravity_object) {
+		Object *gravity_object = sd->gravity_object;
+
+		copy_v3_v3(cache->gravity_direction, gravity_object->obmat[2]);
+	}
+	else {
+		cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0;
+		cache->gravity_direction[2] = 1.0;
+	}
+
+	/* transform to sculpted object space by inverting object rotation matrix */
+	mul_m3_v3(mat, cache->gravity_direction);
+	normalize_v3(cache->gravity_direction);
 
 	/* Initialize layer brush displacements and persistent coords */
 	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
