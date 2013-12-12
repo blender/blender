@@ -1704,7 +1704,7 @@ install_DEB() {
              libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
              libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
              libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
-             libsdl1.2-dev libfftw3-dev patch bzip2"
+             libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libyaml-cpp-dev libtinyxml-dev"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -1940,7 +1940,7 @@ install_DEB() {
       INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
     else
       INFO ""
-      install_packages_DEB libpcre3-dev libxml2-dev
+      install_packages_DEB libpcre3-dev
       # Find path to libxml shared lib...
       _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
       # No package
@@ -2124,7 +2124,8 @@ install_RPM() {
   _packages="gcc gcc-c++ make scons libtiff-devel freetype-devel libjpeg-devel\
              libpng-devel libX11-devel libXi-devel wget ncurses-devel \
              readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch"
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
+             libxml2-devel yaml-cpp-devel tinyxml-devel"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -2363,7 +2364,7 @@ install_RPM() {
       INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
     else
       INFO ""
-      install_packages_RPM pcre-devel libxml2-devel git
+      install_packages_RPM pcre-devel git
       # Find path to libxml shared lib...
       _XML2_LIB=`rpm -ql libxml2-devel | grep -e ".*/libxml2.so"`
       # No package...
@@ -2462,7 +2463,8 @@ install_ARCH() {
   THEORA_DEV="libtheora"
 
   _packages="base-devel scons cmake libxi glew libpng libtiff wget openal \
-             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw"
+             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw \
+             libxml2 yaml-cpp tinyxml"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
