@@ -1311,14 +1311,18 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
 
 		if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
-			rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+			if (but->editstr || but->ofs == 0) {
+				rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+			}
 		}
 		else if ((but->drawflag & UI_BUT_TEXT_RIGHT)) {
 			rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 		}
 	}
 	else if ((but->drawflag & UI_BUT_TEXT_LEFT)) {
-		rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+		if (but->ofs == 0) {
+			rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+		}
 	}
 	else if ((but->drawflag & UI_BUT_TEXT_RIGHT)) {
 		rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
