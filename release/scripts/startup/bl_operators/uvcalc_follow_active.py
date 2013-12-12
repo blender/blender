@@ -41,6 +41,9 @@ def extend(obj, operator, EXTEND_MODE):
     if f_act is None:
         operator.report({'ERROR'}, "No active face")
         return
+    if not f_act.select:
+        operator.report({'ERROR'}, "No active face is not selected")
+        return
     elif len(f_act.verts) != 4:
         operator.report({'ERROR'}, "Active face must be a quad")
         return
