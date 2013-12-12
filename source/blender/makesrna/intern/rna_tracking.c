@@ -1483,7 +1483,7 @@ static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* image opacity */
-	prop = RNA_def_property(srna, "image_opacity", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "image_opacity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Image Opacity", "Opacity of the image");
