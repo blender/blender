@@ -948,6 +948,7 @@ if env['OURPLATFORM']!='darwin':
 
         po_dir = os.path.join("release", "datafiles", "locale", "po")
 
+        # font files
         for intpath in internationalpaths:
             for dp, dn, df in os.walk(intpath):
                 if '.git' in df:
@@ -968,6 +969,7 @@ if env['OURPLATFORM']!='darwin':
                     env.Execute(Mkdir(dir))
                 scriptinstall.append(env.Install(dir=dir,source=source))
 
+        # .mo files
         for f in os.listdir(po_dir):
             if not f.endswith(".po"):
                 continue
@@ -979,6 +981,12 @@ if env['OURPLATFORM']!='darwin':
             dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
             dir = os.path.join(dir, "datafiles", "locale", locale_name, "LC_MESSAGES")
             scriptinstall.append(env.InstallAs(os.path.join(dir, "blender.mo"), mo_file))
+
+        # languages file
+        dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+        dir = os.path.join(dir, "datafiles", "locale")
+        languages_file = os.path.join("release", "datafiles", "locale", "languages")
+        scriptinstall.append(env.InstallAs(os.path.join(dir, "languages"), languages_file))
 
 #-- icons
 if env['OURPLATFORM']=='linux':
