@@ -3949,7 +3949,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		cache->gravity_direction[2] = 1.0;
 	}
 
-	/* transform to sculpted object space by inverting object rotation matrix */
+	/* transform to sculpted object space */
 	mul_m3_v3(mat, cache->gravity_direction);
 	normalize_v3(cache->gravity_direction);
 

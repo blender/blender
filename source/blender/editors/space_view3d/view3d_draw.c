@@ -3396,7 +3396,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 				{
 					Brush *br = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
 
-					if (br && br->imagepaint_tool == PAINT_TOOL_CLONE)
+					if (br && (br->imagepaint_tool == PAINT_TOOL_CLONE))
 						drawcursor(scene, ar, v3d);
 
 					break;
