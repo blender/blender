@@ -154,7 +154,7 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
         layout.operator("curve.match_texture_space")
 
 
-class DATA_PT_geometry_curve(CurveButtonsPanelSurface, Panel):
+class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
     bl_label = "Geometry"
 
     def draw(self, context):
