@@ -36,7 +36,6 @@
 
 #include "bvh.h"
 #include "BLI_memarena.h"
-#include "BKE_global.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -165,16 +164,18 @@ inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float min[3], float ma
 		for (i = 0; i + 4 <= node->nchilds; i += 4) {
 			float *res = node->child_bb + 6 * i;
 			for (int j = 0; j < 3; j++) {
-				min[j] = min_ff(res[4 * j + 0],
-				         min_ff(res[4 * j + 1],
-				         min_ff(res[4 * j + 2],
-				         min_ff(res[4 * j + 3], min[j]))));
+				min[j] = min_ff(min[j],
+				                min_ffff(res[4 * j + 0],
+				                         res[4 * j + 1],
+				                         res[4 * j + 2],
+				                         res[4 * j + 3]));
 			}
 			for (int j = 0; j < 3; j++) {
-				max[j] = max_ff(res[4 * (j + 3) + 0],
-				         max_ff(res[4 * (j + 3) + 1],
-				         max_ff(res[4 * (j + 3) + 2],
-				         max_ff(res[4 * (j + 3) + 3], max[j]))));
+				max[j] = max_ff(max[j],
+				                max_ffff(res[4 * j + 0],
+				                         res[4 * j + 1],
+				                         res[4 * j + 2],
+				                         res[4 * j + 3]));
 			}
 		}
 
@@ -213,13 +214,15 @@ struct Reorganize_SVBVH {
 	
 	~Reorganize_SVBVH()
 	{
-		if (G.debug & G_DEBUG) {
+#ifdef DEBUG
+		{
 			printf("%f childs per node\n", childs_per_node / nodes);
 			printf("%d childs BB are useless\n", useless_bb);
 			for (int i = 0; i < 16; i++) {
 				printf("%i childs per node: %d/%d = %f\n", i, nodes_with_childs[i], nodes,  nodes_with_childs[i] / float(nodes));
 			}
 		}
+#endif
 	}
 	
 	SVBVHNode *create_node(int nchilds)

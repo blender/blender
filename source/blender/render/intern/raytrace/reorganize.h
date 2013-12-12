@@ -38,8 +38,6 @@
 #include <queue>
 #include <vector>
 
-#include "BKE_global.h"
-
 #ifdef _WIN32
 #  ifdef INFINITY
 #    undef INFINITY
@@ -482,12 +480,19 @@ struct VBVH_optimalPackSIMD {
 	Node *transform(Node *node)
 	{
 		if (RE_rayobject_isAligned(node->child)) {
+#ifdef DEBUG
 			static int num = 0;
 			bool first = false;
 			if (num == 0) { num++; first = true; }
-			
+#endif
+
 			calc_costs(node);
-			if ((G.debug & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize);
+
+#ifdef DEBUG
+			if (first) {
+				printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize);
+			}
+#endif
 			node->optimize();
 		}
 		return node;
