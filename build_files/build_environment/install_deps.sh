@@ -219,8 +219,8 @@ OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
-LLVM_VERSION="3.1"
-LLVM_VERSION_MIN="3.0"
+LLVM_VERSION="3.3"
+LLVM_VERSION_MIN="3.3"
 LLVM_VERSION_FOUND=""
 LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
 LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
@@ -1323,7 +1323,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=13
+  osl_magic=14
   _init_osl
 
   # Clean install if needed!
@@ -1906,20 +1906,28 @@ install_DEB() {
     INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
   else
     INFO ""
-    check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
+    check_package_DEB llvm-$LLVM_VERSION-dev
     if [ $? -eq 0 ]; then
-      install_packages_DEB llvm-dev clang
-      have_llvm=true
-      LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
-      clean_LLVM
-    else
-      install_packages_DEB libffi-dev
-      # LLVM can't find the debian ffi header dir
-      _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-      INFO ""
-      compile_LLVM
+      install_packages_DEB llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
+      clean_LLVM
+    else
+      check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
+      if [ $? -eq 0 ]; then
+        install_packages_DEB llvm-dev clang
+        have_llvm=true
+        LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
+        clean_LLVM
+      else
+        install_packages_DEB libffi-dev
+        # LLVM can't find the debian ffi header dir
+        _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+        INFO ""
+        compile_LLVM
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      fi
     fi
   fi
 
