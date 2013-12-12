@@ -34,16 +34,16 @@
 #include <fcntl.h>
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include <time.h>
 
 #ifdef _WIN32
-#define open _open
-#define close _close
+#  define open _open
+#  define close _close
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -82,7 +82,7 @@
 #include "IMB_moviecache.h"
 
 #ifdef WITH_OPENEXR
-#include "intern/openexr/openexr_multi.h"
+#  include "intern/openexr/openexr_multi.h"
 #endif
 
 #include "NOD_composite.h"
