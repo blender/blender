@@ -201,89 +201,6 @@ bool BKE_mesh_center_median(struct Mesh *me, float cent[3]);
 bool BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
 bool BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 
-
-/* map from uv vertex to face (for select linked, stitch, uv suburf) */
-
-/* UvVertMap */
-#define STD_UV_CONNECT_LIMIT  0.0001f
-
-typedef struct UvVertMap {
-	struct UvMapVert **vert;
-	struct UvMapVert *buf;
-} UvVertMap;
-
-typedef struct UvMapVert {
-	struct UvMapVert *next;
-	unsigned int f;
-	unsigned char tfindex, separate, flag;
-} UvMapVert;
-
-/* UvElement stores per uv information so that we can quickly access information for a uv.
- * it is actually an improved UvMapVert, including an island and a direct pointer to the face
- * to avoid initializing face arrays */
-typedef struct UvElement {
-	/* Next UvElement corresponding to same vertex */
-	struct UvElement *next;
-	/* Face the element belongs to */
-	struct BMLoop *l;
-	/* index in loop. */
-	unsigned short tfindex;
-	/* Whether this element is the first of coincident elements */
-	unsigned char separate;
-	/* general use flag */
-	unsigned char flag;
-	/* If generating element map with island sorting, this stores the island index */
-	unsigned short island;
-} UvElement;
-
-
-/* UvElementMap is a container for UvElements of a mesh. It stores some UvElements belonging to the
- * same uv island in sequence and the number of uvs per island so it is possible to access all uvs
- * belonging to an island directly by iterating through the buffer.
- */
-typedef struct UvElementMap {
-	/* address UvElements by their vertex */
-	struct UvElement **vert;
-	/* UvElement Store */
-	struct UvElement *buf;
-	/* Total number of UVs in the layer. Useful to know */
-	int totalUVs;
-	/* Number of Islands in the mesh */
-	int totalIslands;
-	/* Stores the starting index in buf where each island begins */
-	int *islandIndices;
-} UvElementMap;
-
-/* invalid island index is max short. If any one has the patience
- * to make that many islands, he can bite me :p */
-#define INVALID_ISLAND 0xFFFF
-
-/* Connectivity data */
-typedef struct MeshElemMap {
-	int *indices;
-	int count;
-} MeshElemMap;
-
-/* mapping */
-UvVertMap *BKE_mesh_uv_vert_map_create(
-        struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
-        unsigned int totpoly, unsigned int totvert, int selected, float *limit);
-UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
-void       BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
-
-void BKE_mesh_vert_poly_map_create(
-        MeshElemMap **r_map, int **r_mem,
-        const struct MPoly *mface, const struct MLoop *mloop,
-        int totvert, int totface, int totloop);
-void BKE_mesh_vert_edge_map_create(
-        MeshElemMap **r_map, int **r_mem,
-        const struct MEdge *medge, int totvert, int totedge);
-void BKE_mesh_edge_poly_map_create(
-        MeshElemMap **r_map, int **r_mem,
-        const struct MEdge *medge, const int totedge,
-        const struct MPoly *mpoly, const int totpoly,
-        const struct MLoop *mloop, const int totloop);
-
 /* tessface */
 void BKE_mesh_loops_to_mface_corners(
         struct CustomData *fdata, struct CustomData *ldata,
@@ -334,13 +251,6 @@ void BKE_mesh_flush_select_from_verts_ex(
         struct MEdge *medge,       const int totedge,
         struct MPoly *mpoly,       const int totpoly);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
-
-/* smoothgroups */
-int *BKE_mesh_calc_smoothgroups(
-        const struct MEdge *medge, const int totedge,
-        const struct MPoly *mpoly, const int totpoly,
-        const struct MLoop *mloop, const int totloop,
-        int *r_totgroup, const bool use_bitflags);
 
 /* spatial evaluation */
 void BKE_mesh_calc_relative_deform(

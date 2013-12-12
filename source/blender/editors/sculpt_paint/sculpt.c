@@ -62,6 +62,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"

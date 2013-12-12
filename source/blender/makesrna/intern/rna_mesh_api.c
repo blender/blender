@@ -39,14 +39,15 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_mesh.h"
-#include "ED_mesh.h"
-
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
 
 #include "DNA_mesh_types.h"
+
+#include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
+#include "ED_mesh.h"
 
 static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *mesh2)
 {
