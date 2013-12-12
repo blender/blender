@@ -38,6 +38,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "BLF_translation.h"
 
@@ -180,7 +181,10 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else if (st) {
 		st->text = text;
+		st->left = 0;
 		st->top = 0;
+		st->scroll_accum[0] = 0.0f;
+		st->scroll_accum[1] = 0.0f;
 		text_drawcache_tag_update(st, 1);
 	}
 
@@ -251,7 +255,10 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	}
 	else if (st) {
 		st->text = text;
+		st->left = 0;
 		st->top = 0;
+		st->scroll_accum[0] = 0.0f;
+		st->scroll_accum[1] = 0.0f;
 	}
 
 	text_drawcache_tag_update(st, 1);
@@ -2115,8 +2122,8 @@ enum {
 };
 
 typedef struct TextScroll {
-	short old[2];
-	short delta[2];
+	int old[2];
+	int delta[2];
 
 	int first;
 	int scrollbar;
@@ -2153,39 +2160,48 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	TextScroll *tsc = op->customdata;
 	int mval[2] = {event->x, event->y};
-	short txtdelta[2] = {0, 0};
+	int scroll_steps[2] = {0, 0};
 
 	text_update_character_width(st);
 
+	/* compute mouse move distance */
 	if (tsc->first) {
 		tsc->old[0] = mval[0];
 		tsc->old[1] = mval[1];
 		tsc->first = 0;
 	}
 
-	tsc->delta[0] += mval[0] - tsc->old[0];
-	tsc->delta[1] += mval[1] - tsc->old[1];
+	if (event->type != MOUSEPAN) {
+		tsc->delta[0] = mval[0] - tsc->old[0];
+		tsc->delta[1] = mval[1] - tsc->old[1];
+	}
 
+	/* accumulate scroll, in float values for events that give less than one
+	 * line offset but taken together should still scroll */
 	if (!tsc->scrollbar) {
-		txtdelta[0] = -tsc->delta[0] / st->cwidth;
-		txtdelta[1] = tsc->delta[1] / (st->lheight_dpi + TXT_LINE_SPACING);
-
-		tsc->delta[0] %= st->cwidth;
-		tsc->delta[1] %= (st->lheight_dpi + TXT_LINE_SPACING);
+		st->scroll_accum[0] += -tsc->delta[0] / (float)st->cwidth;
+		st->scroll_accum[1] += tsc->delta[1] / (float)(st->lheight_dpi + TXT_LINE_SPACING);
 	}
 	else {
-		txtdelta[1] = -tsc->delta[1] * st->pix_per_line;
-		tsc->delta[1] += txtdelta[1] / st->pix_per_line;
+		st->scroll_accum[1] += -tsc->delta[1] * st->pix_per_line;
 	}
 
-	if (txtdelta[0] || txtdelta[1]) {
-		txt_screen_skip(st, ar, txtdelta[1]);
+	/* round to number of lines to scroll */
+	scroll_steps[0] = (int)st->scroll_accum[0];
+	scroll_steps[1] = (int)st->scroll_accum[1];
+
+	st->scroll_accum[0] -= scroll_steps[0];
+	st->scroll_accum[1] -= scroll_steps[1];
+
+	/* perform vertical and/or horizontal scroll */
+	if (scroll_steps[0] || scroll_steps[1]) {
+		txt_screen_skip(st, ar, scroll_steps[1]);
 
 		if (st->wordwrap) {
 			st->left = 0;
 		}
 		else {
-			st->left += txtdelta[0];
+			st->left += scroll_steps[0];
 			if (st->left < 0) st->left = 0;
 		}
 
@@ -2352,8 +2368,6 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		tsc->old[0] = ar->winrct.xmin + BLI_rcti_cent_x(&st->txtbar);
 		tsc->old[1] = ar->winrct.ymin + BLI_rcti_cent_y(&st->txtbar);
 
-		tsc->delta[0] = 0;
-		tsc->delta[1] = 0;
 		tsc->first = 0;
 		tsc->zone = SCROLLHANDLE_BAR;
 		text_scroll_apply(C, op, event);

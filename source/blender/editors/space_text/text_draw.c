@@ -1495,6 +1495,9 @@ void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 
 	if (st->top < 0) st->top = 0;
 	if (st->left < 0) st->left = 0;
+
+	st->scroll_accum[0] = 0.0f;
+	st->scroll_accum[1] = 0.0f;
 }
 
 void text_update_cursor_moved(bContext *C)

@@ -849,6 +849,8 @@ typedef struct SpaceText {
 	char pad[4];
 
 	void *drawcache; /* cache for faster drawing */
+
+	float scroll_accum[2]; /* runtime, for scroll increments smaller than a line */
 } SpaceText;
 
 

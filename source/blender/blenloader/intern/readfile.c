@@ -6414,7 +6414,9 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			else if (sl->spacetype == SPACE_TEXT) {
 				SpaceText *st= (SpaceText *)sl;
 				
-				st->drawcache= NULL;
+				st->drawcache = NULL;
+				st->scroll_accum[0] = 0.0f;
+				st->scroll_accum[1] = 0.0f;
 			}
 			else if (sl->spacetype == SPACE_TIME) {
 				SpaceTime *stime = (SpaceTime *)sl;
