@@ -248,6 +248,12 @@ static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
 	             MTEX_MAP_MODE_RANDOM);
 }
 
+static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return br->sculpt_tool != SCULPT_TOOL_MASK;
+}
+
 static int rna_BrushCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -556,6 +562,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	SCULPT_TOOL_CAPABILITY(has_smooth_stroke, "Has Smooth Stroke");
 	SCULPT_TOOL_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
 	SCULPT_TOOL_CAPABILITY(has_strength, "Has Strength");
+	SCULPT_TOOL_CAPABILITY(has_gravity, "Has Gravity");
 
 #undef SCULPT_CAPABILITY
 }

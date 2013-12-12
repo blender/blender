@@ -850,6 +850,13 @@ typedef struct Sculpt {
 
 	/* Direction used for SCULPT_OT_symmetrize operator */
 	int symmetrize_direction;
+
+	/* gravity factor for sculpting */
+	float gravity_factor;
+	int pad;
+
+	struct Object *gravity_object;
+	void *pad2;
 } Sculpt;
 
 typedef struct UvSculpt {

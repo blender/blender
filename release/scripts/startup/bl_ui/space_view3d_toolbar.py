@@ -1023,8 +1023,16 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
+        capabilities = sculpt.brush.sculpt_capabilities
+
+        col = layout.column(align=True)
+        col.active = capabilities.has_gravity
+        col.label(text="Gravity:")
+        col.prop(sculpt, "gravity", slider=True, text="Factor")
+        col.prop(sculpt, "gravity_object")
 
         layout.label(text="Lock:")
+        
         row = layout.row(align=True)
         row.prop(sculpt, "lock_x", text="X", toggle=True)
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
