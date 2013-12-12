@@ -35,10 +35,19 @@
 #  include <libkern/OSAtomic.h>
 #elif defined(_MSC_VER)
 #  include <windows.h>
+#elif defined(__arm__)
+/* Attempt to fix compilation error on Debian armel kernel.
+ * arm7 architecture does have both 32 and 64bit atomics, however
+ * it's gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
+ */
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_8
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_4
 #endif
 
 /* needed for int types */
 #include "../../source/blender/blenlib/BLI_sys_types.h"
+#include <stdlib.h>
+#include <stddef.h>
 
 /* little macro so inline keyword works */
 #if defined(_MSC_VER)
