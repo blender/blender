@@ -88,6 +88,7 @@ void IDP_UnlinkID(struct IDProperty *prop);
 
 /** Sync values from one group to another, only where they match */
 void IDP_SyncGroupValues(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
+void IDP_SyncGroupTypes(struct IDProperty *dest, const struct IDProperty *src, const bool do_arraylen) ATTR_NONNULL();
 void IDP_ReplaceGroupInGroup(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
 void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
 void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite) ATTR_NONNULL();

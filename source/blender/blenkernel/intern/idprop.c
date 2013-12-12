@@ -506,6 +506,34 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
 	}
 }
 
+void IDP_SyncGroupTypes(IDProperty *dst, const IDProperty *src, const bool do_arraylen)
+{
+	IDProperty *prop_dst, *prop_dst_next;
+	const IDProperty *prop_src;
+
+	for (prop_dst = dst->data.group.first; prop_dst; prop_dst = prop_dst_next) {
+		prop_dst_next = prop_dst->next;
+		if ((prop_src = IDP_GetPropertyFromGroup((IDProperty *)src, prop_dst->name))) {
+			/* check of we should replace? */
+			if ((prop_dst->type != prop_src->type || prop_dst->subtype != prop_src->subtype) ||
+			    (do_arraylen && ELEM(prop_dst->type, IDP_ARRAY, IDP_IDPARRAY) && (prop_src->len != prop_dst->len)))
+			{
+				IDP_FreeFromGroup(dst, prop_dst);
+				prop_dst = IDP_CopyProperty(prop_src);
+
+				dst->len++;
+				BLI_insertlinkbefore(&dst->data.group, prop_dst_next, prop_dst);
+			}
+			else if (prop_dst->type == IDP_GROUP) {
+				IDP_SyncGroupTypes(prop_dst, prop_src, do_arraylen);
+			}
+		}
+		else {
+			IDP_FreeFromGroup(dst, prop_dst);
+		}
+	}
+}
+
 /**
  * Replaces all properties with the same name in a destination group from a source group.
  */

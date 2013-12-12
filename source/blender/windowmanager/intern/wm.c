@@ -121,6 +121,21 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
 	op->type = ot;
 	op->ptr->type = ot->srna;
+
+	/* ensure compatible properties */
+	if (op->properties) {
+		PointerRNA ptr;
+
+		WM_operator_properties_create_ptr(&ptr, ot);
+
+		WM_operator_properties_default(&ptr, false);
+
+		if (ptr.data) {
+			IDP_SyncGroupTypes(op->properties, ptr.data, true);
+		}
+
+		WM_operator_properties_free(&ptr);
+	}
 }
 
 static void wm_reports_free(wmWindowManager *wm)
