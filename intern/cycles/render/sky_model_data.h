@@ -103,7 +103,7 @@ the model.
 
 // Uses Sep 9 pattern / Aug 23 mean dataset
 
-double datasetXYZ1[] = 
+static const double datasetXYZ1[] =
 {
 	// albedo 0, turbidity 1
 	-1.117001e+000,
@@ -1207,7 +1207,7 @@ double datasetXYZ1[] =
 	6.232887e-001,
 };
 
-double datasetXYZRad1[] = 
+static const double datasetXYZRad1[] =
 {
 	// albedo 0, turbidity 1
 	1.560219e+000,
@@ -1351,7 +1351,7 @@ double datasetXYZRad1[] =
 	2.523432e+001,
 };
 
-double datasetXYZ2[] = 
+static const double datasetXYZ2[] =
 {
 	// albedo 0, turbidity 1
 	-1.127942e+000,
@@ -2455,7 +2455,7 @@ double datasetXYZ2[] =
 	6.118645e-001,
 };
 
-double datasetXYZRad2[] = 
+static const double datasetXYZRad2[] =
 {
 	// albedo 0, turbidity 1
 	1.632341e+000,
@@ -2599,7 +2599,7 @@ double datasetXYZRad2[] =
 	2.641780e+001,
 };
 
-double datasetXYZ3[] = 
+static const double datasetXYZ3[] =
 {
 	// albedo 0, turbidity 1
 	-1.310023e+000,
@@ -3703,7 +3703,7 @@ double datasetXYZ3[] =
 	6.791814e-001,
 };
 
-double datasetXYZRad3[] = 
+static const double datasetXYZRad3[] =
 {
 	// albedo 0, turbidity 1
 	1.168084e+000,
@@ -3849,14 +3849,14 @@ double datasetXYZRad3[] =
 
 
 
-double* datasetsXYZ[] =
+static const double* datasetsXYZ[] =
 {
 	datasetXYZ1,
 	datasetXYZ2,
 	datasetXYZ3
 };
 
-double* datasetsXYZRad[] =
+static const double* datasetsXYZRad[] =
 {
 	datasetXYZRad1,
 	datasetXYZRad2,
