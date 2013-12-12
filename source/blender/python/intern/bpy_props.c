@@ -88,6 +88,7 @@ static EnumPropertyItem property_subtype_string_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem property_subtype_number_items[] = {
+	{PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},

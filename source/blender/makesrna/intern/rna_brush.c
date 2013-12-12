@@ -726,7 +726,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* number values */
-	prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
@@ -747,7 +747,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Jitter", "Jitter the position of the brush while painting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "jitter_absolute", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "jitter_absolute", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "jitter_absolute");
 	RNA_def_property_range(prop, 0, 1000000);
 	RNA_def_property_ui_text(prop, "Jitter", "Jitter the position of the brush in pixels while painting");

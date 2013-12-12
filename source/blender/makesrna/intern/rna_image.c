@@ -701,6 +701,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_int_vector(srna, "size", 2, NULL, 0, 0, "Size",
 	                          "Width and height in pixels, zero when image data cant be loaded", 0, 0);
+	RNA_def_property_subtype(prop, PROP_PIXEL);
 	RNA_def_property_int_funcs(prop, "rna_Image_size_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

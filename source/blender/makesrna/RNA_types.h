@@ -116,6 +116,7 @@ typedef enum PropertySubType {
 	PROP_PASSWORD          = 6, /* a string which should not be displayed in UI */
 
 	/* numbers */
+	PROP_PIXEL             = 12,
 	PROP_UNSIGNED          = 13,
 	PROP_PERCENTAGE        = 14,
 	PROP_FACTOR            = 15,

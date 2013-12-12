@@ -60,6 +60,7 @@ EnumPropertyItem property_subtype_items[] = {
 	{PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
 	/* numbers */
+	{PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
@@ -1085,6 +1086,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_NONE, "NONE", 0, "None", ""},
 		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
+		{PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
 		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
 		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 		{PROP_FACTOR, "FACTOR", 0, "Factor", ""},

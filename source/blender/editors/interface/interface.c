@@ -2473,6 +2473,9 @@ void ui_check_but(uiBut *but)
 					if (pstype == PROP_PERCENTAGE) {
 						drawstr_suffix = "%";
 					}
+					else if (pstype == PROP_PIXEL) {
+						drawstr_suffix = " px";
+					}
 				}
 
 				if (drawstr_suffix) {

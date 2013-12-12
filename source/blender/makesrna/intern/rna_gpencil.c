@@ -489,7 +489,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	/* Line Thickness */
-	prop = RNA_def_property(srna, "line_width", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "line_width", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of strokes (in pixels)");
