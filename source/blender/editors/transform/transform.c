@@ -198,12 +198,13 @@ static void applySeqSlide(TransInfo *t, const int mval[2]);
 /* end transform callbacks */
 
 
-static bool transdata_check_local_center(TransInfo *t)
+static bool transdata_check_local_center(TransInfo *t, short around)
 {
-	return ((t->around == V3D_LOCAL) && (
+	return ((around == V3D_LOCAL) && (
 	            (t->flag & (T_OBJECT | T_POSE)) ||
 	            (t->obedit && ELEM4(t->obedit->type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE)) ||
-	            (t->spacetype == SPACE_IPO))
+	            (t->spacetype == SPACE_IPO) ||
+	            (t->options & (CTX_MOVIECLIP | CTX_MASK)))
 	        );
 }
 
@@ -3138,7 +3139,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	}
 	
 	/* local constraint shouldn't alter center */
-	if (transdata_check_local_center(t)) {
+	if (transdata_check_local_center(t, t->around)) {
 		copy_v3_v3(center, td->center);
 	}
 	else if (t->options & CTX_MOVIECLIP) {
@@ -3534,9 +3535,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	const float *center;
 
 	/* local constraint shouldn't alter center */
-	if (transdata_check_local_center(t) ||
-	    ((around == V3D_LOCAL) && (t->options & CTX_MOVIECLIP)))
-	{
+	if (transdata_check_local_center(t, around)) {
 		center = td->center;
 	}
 	else {
