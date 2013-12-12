@@ -1983,6 +1983,7 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		BLI_assert(idprop->len == RNA_property_array_length(ptr, prop));
 		if (prop->arraydimension == 0)
 			values[0] = RNA_property_int_get(ptr, prop);
 		else
@@ -2071,6 +2072,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		BLI_assert(idprop->len == RNA_property_array_length(ptr, prop));
 		if (prop->arraydimension == 0)
 			IDP_Int(idprop) = values[0];
 		else
@@ -2243,6 +2245,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		BLI_assert(idprop->len == RNA_property_array_length(ptr, prop));
 		if (prop->arraydimension == 0)
 			values[0] = RNA_property_float_get(ptr, prop);
 		else if (idprop->subtype == IDP_FLOAT) {
@@ -2337,6 +2340,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	BLI_assert(RNA_property_array_check(prop) != false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		BLI_assert(idprop->len == RNA_property_array_length(ptr, prop));
 		if (prop->arraydimension == 0) {
 			if (idprop->type == IDP_FLOAT)
 				IDP_Float(idprop) = values[0];
