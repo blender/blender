@@ -117,6 +117,10 @@ void BKE_mesh_edge_poly_map_create(
         const struct MEdge *medge, const int totedge,
         const struct MPoly *mpoly, const int totpoly,
         const struct MLoop *mloop, const int totloop);
+void BKE_mesh_origindex_map_create(
+        MeshElemMap **r_map, int **r_mem,
+        const int totorig,
+        const int *final_origindex, const int totfinal);
 
 /* smoothgroups */
 int *BKE_mesh_calc_smoothgroups(

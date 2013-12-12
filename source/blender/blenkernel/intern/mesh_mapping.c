@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 
 #include "BKE_mesh_mapping.h"
+#include "BKE_customdata.h"
 
 #include "BLI_strict_flags.h"
 
@@ -289,6 +290,58 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map, int **r_mem,
 	*r_mem = indices;
 }
 
+/**
+ * This function creates a map so the source-data (vert/edge/loop/poly)
+ * can loop over the destination data (using the destination arrays origindex).
+ *
+ * This has the advantage that it can operate on any data-types.
+ *
+ * \param totsource  The total number of elements the that \a final_origindex points to.
+ * \param totfinal  The size of \a final_origindex
+ * \param final_origindex  The size of the final array.
+ *
+ * \note ``totsource`` could be ``totpoly``,
+ *       ``totfinal`` could be ``tottessface`` and ``final_origindex`` its ORIGINDEX customdata.
+ *       This would allow an MPoly to loop over its tessfaces.
+ */
+void BKE_mesh_origindex_map_create(MeshElemMap **r_map, int **r_mem,
+                                   const int totsource,
+                                   const int *final_origindex, const int totfinal)
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totsource, "poly-tessface map");
+	int *indices = MEM_mallocN(sizeof(int) * (size_t)totfinal, "poly-tessface map mem");
+	int *index_step;
+	int i;
+
+	/* count face users */
+	for (i = 0; i < totfinal; i++) {
+		if (final_origindex[i] != ORIGINDEX_NONE) {
+			BLI_assert(final_origindex[i] < totsource);
+			map[final_origindex[i]].count++;
+		}
+	}
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < totsource; i++) {
+		map[i].indices = index_step;
+		index_step += map[i].count;
+
+		/* re-count, using this as an index below */
+		map[i].count = 0;
+	}
+
+	/* assign poly-tessface users */
+	for (i = 0; i < totfinal; i++) {
+		if (final_origindex[i] != ORIGINDEX_NONE) {
+			MeshElemMap *map_ele = &map[final_origindex[i]];
+			map_ele->indices[map_ele->count++] = i;
+		}
+	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
 
 /** \} */
 

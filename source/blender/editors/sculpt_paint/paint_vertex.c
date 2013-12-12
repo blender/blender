@@ -56,6 +56,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
@@ -2756,11 +2757,11 @@ typedef struct VPaintData {
 
 	/* modify 'me->mcol' directly, since the derived mesh is drawing from this
 	 * array, otherwise we need to refresh the modifier stack */
-	int use_fast_update;
+	bool use_fast_update;
 
 	/* mpoly -> mface mapping */
-	MemArena *polyfacemap_arena;
-	ListBase *polyfacemap;
+	MeshElemMap *polyfacemap;
+	void *polyfacemap_mem;
 
 	/* loops tagged as having been painted, to apply shared vertex color
 	 * blending only to modified loops */
@@ -2772,31 +2773,19 @@ typedef struct VPaintData {
 
 static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 {
-	MFace *mf;
-	PolyFaceMap *e;
-	int *origIndex;
-	int i;
+	const int *tessface_origindex;
 
-	vd->polyfacemap_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vpaint tmp");
-	BLI_memarena_use_calloc(vd->polyfacemap_arena);
+	vd->polyfacemap = NULL;
+	vd->polyfacemap_mem = NULL;
 
-	vd->polyfacemap = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(ListBase) * me->totpoly);
+	tessface_origindex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
 
-	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
-	mf = me->mface;
-
-	if (!origIndex)
+	if (!tessface_origindex)
 		return;
 
-	for (i = 0; i < me->totface; i++, mf++, origIndex++) {
-		if (*origIndex == ORIGINDEX_NONE)
-			continue;
-
-		e = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(PolyFaceMap));
-		e->facenr = i;
-		
-		BLI_addtail(&vd->polyfacemap[*origIndex], e);
-	}
+	BKE_mesh_origindex_map_create(&vd->polyfacemap, (int **)&vd->polyfacemap_mem,
+	                              me->totpoly,
+	                              tessface_origindex, me->totface);
 }
 
 static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float UNUSED(mouse[2]))
@@ -2868,6 +2857,15 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	return 1;
 }
 
+BLI_INLINE int mesh_tessface_vertex_index(MFace *tessface, unsigned int v)
+{
+	if (tessface->v1 == v) return 0;
+	if (tessface->v2 == v) return 1;
+	if (tessface->v3 == v) return 2;
+	if (v && (tessface->v4 == v)) return 3;
+	return -1;
+}
+
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
                               const unsigned int index, const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
@@ -2879,7 +2877,6 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	MCol *mc;
 	MLoop *ml;
 	MLoopCol *mlc;
-	PolyFaceMap *e;
 	unsigned int *lcol = ((unsigned int *)me->mloopcol) + mpoly->loopstart;
 	unsigned int *lcolorig = ((unsigned int *)vp->vpaint_prev) + mpoly->loopstart;
 	bool *mlooptag = (vpd->mlooptag) ? vpd->mlooptag + mpoly->loopstart : NULL;
@@ -2942,31 +2939,28 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	}
 
 	if (vpd->use_fast_update) {
+		const MeshElemMap *map = &vpd->polyfacemap[index];
+
 		/* update vertex colors for tessellations incrementally,
 		 * rather then regenerating the tessellation altogether */
-		for (e = vpd->polyfacemap[index].first; e; e = e->next) {
-			mf = &me->mface[e->facenr];
-			mc = &me->mcol[e->facenr * 4];
-			mftag = &vpd->mfacetag[e->facenr * 4];
+		for (i = 0; i < map->count; i++) {
+			const int index_tessface = map->indices[i];
+
+			mf = &me->mface[index_tessface];
+			mc = &me->mcol[index_tessface * 4];
+			mftag = &vpd->mfacetag[index_tessface * 4];
 
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
+
 			for (j = 0; j < totloop; j++, ml++, mlc++) {
-				if (ml->v == mf->v1) {
-					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 0);
-					if (mlooptag) mftag[0] = mlooptag[j];
-				}
-				else if (ml->v == mf->v2) {
-					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 1);
-					if (mlooptag) mftag[1] = mlooptag[j];
-				}
-				else if (ml->v == mf->v3) {
-					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 2);
-					if (mlooptag) mftag[2] = mlooptag[j];
-				}
-				else if (mf->v4 && ml->v == mf->v4) {
-					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 3);
-					if (mlooptag) mftag[3] = mlooptag[j];
+				/* search for the loop vertex within the tessface */
+				const int fidx = mesh_tessface_vertex_index(mf, ml->v);
+				if (fidx != -1) {
+					MESH_MLOOPCOL_TO_MCOL(mlc, mc + fidx);
+					if (mlooptag) {
+						mftag[fidx] = mlooptag[j];
+					}
 				}
 			}
 		}
@@ -3078,8 +3072,12 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	/* frees prev buffer */
 	copy_vpaint_prev(ts->vpaint, NULL, 0);
 
-	if (vpd->polyfacemap_arena) {
-		BLI_memarena_free(vpd->polyfacemap_arena);
+	if (vpd->polyfacemap) {
+		MEM_freeN(vpd->polyfacemap);
+	}
+
+	if (vpd->polyfacemap_mem) {
+		MEM_freeN(vpd->polyfacemap_mem);
 	}
 
 	if (vpd->mlooptag)
