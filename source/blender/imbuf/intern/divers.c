@@ -132,7 +132,7 @@ MINLINE float dither_random_value(float s, float t)
 	copy_v2_fl2(st, s, t);
 
 	value = sinf(dot_v2v2(st, vec)) * 43758.5453f;
-	return value - floor(value);
+	return value - floorf(value);
 }
 
 /************************* Generic Buffer Conversion *************************/
