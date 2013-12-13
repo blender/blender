@@ -122,14 +122,11 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     if cache.use_external:
         split = layout.split(percentage=0.35)
         col = split.column()
-        col.label(text="File Name:")
-        if cache.use_external:
-            col.label(text="File Path:")
+        col.label(text="Index Number:")
+        col.label(text="File Path:")
 
         col = split.column()
-        sub = col.split(percentage=0.70, align=True)
-        sub.prop(cache, "name", text="")
-        sub.prop(cache, "index", text="")
+        col.prop(cache, "index", text="")
         col.prop(cache, "filepath", text="")
 
         cache_info = cache.info
@@ -140,11 +137,6 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             if not bpy.data.is_saved:
                 layout.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
-
-        if cache.use_disk_cache:
-            layout.prop(cache, "name", text="File Name")
-        else:
-            layout.prop(cache, "name", text="Cache Name")
 
     if not cache.use_external or cachetype == 'SMOKE':
         row = layout.row(align=True)
