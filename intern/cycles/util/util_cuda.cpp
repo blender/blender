@@ -408,8 +408,8 @@ string cuCompilerPath()
 		"/Developer/NVIDIA/CUDA-5.0/bin",
 		"/usr/local/cuda-5.0/bin",
 		"/usr/local/cuda/bin",
-		"/Developer/NVIDIA/CUDA-4.2/bin",
-		"/usr/local/cuda-4.2/bin", 
+		"/Developer/NVIDIA/CUDA-6.0/bin",
+		"/usr/local/cuda-6.0/bin",
 		"/Developer/NVIDIA/CUDA-5.5/bin",
 		"/usr/local/cuda-5.5/bin",
 		NULL};
