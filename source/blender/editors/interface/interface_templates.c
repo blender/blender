@@ -908,7 +908,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 					uiButSetFlag(but, UI_BUT_DISABLED);
 				uiButSetFunc(but, modifiers_setOnCage, ob, md);
 			}
-			else {
+			else if (modifier_supportsCage(scene, md)) {
 				uiBlockEndAlign(block);
 
 				/* place holder button */

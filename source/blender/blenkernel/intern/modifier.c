@@ -263,6 +263,18 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 		mti->copyData(md, target);
 }
 
+
+bool modifier_supportsCage(struct Scene *scene, ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	md->scene = scene;
+
+	return ((!mti->isDisabled || !mti->isDisabled(md, 0)) &&
+			(mti->flags & eModifierTypeFlag_SupportsEditmode) &&
+			modifier_supportsMapping(md));
+}
+
 bool modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
