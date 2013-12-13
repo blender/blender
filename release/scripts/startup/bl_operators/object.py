@@ -474,10 +474,10 @@ class ShapeTransfer(Operator):
 
 
 class JoinUVs(Operator):
-    """Transfer UV Layouts from active to selected objects """ \
+    """Transfer UV Maps from active to selected objects """ \
     """(needs matching geometry)"""
     bl_idname = "object.join_uvs"
-    bl_label = "Transfer UV Layouts"
+    bl_label = "Transfer UV Maps"
 
     @classmethod
     def poll(cls, context):
