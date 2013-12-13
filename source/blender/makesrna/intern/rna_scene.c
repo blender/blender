@@ -1382,11 +1382,11 @@ static void rna_GameSettings_exit_key_set(PointerRNA *ptr, int value)
 		gm->exitkey = value;
 }
 
-static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
+static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[], int frame)
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag = SELECT;
-	marker->frame = 1;
+	marker->frame = frame;
 	BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
 	BLI_addtail(&scene->markers, marker);
 
@@ -4912,7 +4912,7 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve");
 	parm = RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
+	parm = RNA_def_int(func, "frame", 1, -MAXFRAME, MAXFRAME, "", "The frame for the new marker", -MAXFRAME, MAXFRAME);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created timeline marker");
 	RNA_def_function_return(func, parm);
 
