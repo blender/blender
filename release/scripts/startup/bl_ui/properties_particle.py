@@ -430,9 +430,10 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
             layout.label(text="Angular Velocity:")
 
             split = layout.split()
+
             col = split.column(align=True)
             col.prop(part, "angular_velocity_mode", text="")
-            sub = col.column()
+            sub = col.column(align=True)
             sub.active = part.angular_velocity_mode != 'NONE'
             sub.prop(part, "angular_velocity_factor", text="")
 
