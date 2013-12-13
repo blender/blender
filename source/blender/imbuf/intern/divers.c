@@ -31,7 +31,6 @@
  *  \ingroup imbuf
  */
 
-#include "BLI_rand.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -107,63 +106,33 @@ void IMB_interlace(ImBuf *ibuf)
 /************************* Floyd-Steinberg dithering *************************/
 
 typedef struct DitherContext {
-	int *error_buf, *e;
-	int v[4], v0[4], v1[4];
-	float f;
+	float dither;
 } DitherContext;
 
-static DitherContext *create_dither_context(int w, float factor)
+static DitherContext *create_dither_context(float dither)
 {
 	DitherContext *di;
-	int i;
-	
-	di = MEM_callocN(sizeof(DitherContext), "dithering context");
-	di->f = factor / 16.0f;
-	di->error_buf = MEM_callocN(4 * (w + 1) * sizeof(int), "dithering error");
-	di->e = di->error_buf;
 
-	for (i = 0; i < 4; ++i)
-		di->v[i] = di->v0[i] = di->v1[i] = 1024.0f * (BLI_frand() - 0.5f);
+	di = MEM_mallocN(sizeof(DitherContext), "dithering context");
+	di->dither = dither;
 
 	return di;
 }
 
 static void clear_dither_context(DitherContext *di)
 {
-	MEM_freeN(di->error_buf);
 	MEM_freeN(di);
 }
 
-static void dither_finish_row(DitherContext *di)
+MINLINE float dither_random_value(float s, float t)
 {
-	int i;
+	static float vec[2] = {12.9898f, 78.233f};
+	float st[2];
+	float value;
+	copy_v2_fl2(st, s, t);
 
-	for (i = 0; i < 4; i++)
-		di->v[i] = di->v0[i] = di->v1[i] = 0;
-
-	di->e = di->error_buf;
-}
-
-MINLINE unsigned char dither_value(unsigned short v_in, DitherContext *di, int i)
-{
-	int dv, d2;
-	unsigned char v_out;
-
-	di->v[i] = v_in + (2 * di->v[i] + di->e[4]) * di->f;
-	CLAMP(di->v[i], 0, 0xFF00);
-	v_out = USHORTTOUCHAR(di->v[i]);
-	di->v[i] -= v_out << 8;
-	dv = di->v[i];
-	d2 = di->v[i] << 1;
-	di->v[i] += d2;
-	*(di->e++) = di->v[i] + di->v0[i];
-	di->v[i] += d2;
-
-	di->v0[i] = di->v[i] + di->v1[i];
-	di->v1[i] = dv;
-	di->v[i] += d2;
-
-	return v_out;
+	value = sinf(dot_v2v2(st, vec)) * 43758.5453f;
+	return value - floor(value);
 }
 
 /************************* Generic Buffer Conversion *************************/
@@ -176,18 +145,32 @@ MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
 	b[3] = USHORTTOUCHAR(us[3]);
 }
 
-MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], DitherContext *di)
+MINLINE unsigned char ftochar(float value)
 {
-	b[0] = dither_value(us[0], di, 0);
-	b[1] = dither_value(us[1], di, 1);
-	b[2] = dither_value(us[2], di, 2);
-	b[3] = dither_value(us[3], di, 3);
+	return FTOCHAR(value);
 }
 
-MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext *di)
+MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], DitherContext *di, float s, float t)
 {
-	unsigned short us[4] = {FTOUSHORT(f[0]), FTOUSHORT(f[1]), FTOUSHORT(f[2]), FTOUSHORT(f[3])};
-	ushort_to_byte_dither_v4(b, us, di);
+#define USHORTTOFLOAT(val) ((float)val / 65535.0f)
+	float dither_value = dither_random_value(s, t) * 0.005f * di->dither;
+
+	b[0] = ftochar(dither_value + USHORTTOFLOAT(us[0]));
+	b[1] = ftochar(dither_value + USHORTTOFLOAT(us[1]));
+	b[2] = ftochar(dither_value + USHORTTOFLOAT(us[2]));
+	b[3] = USHORTTOUCHAR(us[3]);
+
+#undef USHORTTOFLOAT
+}
+
+MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext *di, float s, float t)
+{
+	float dither_value = dither_random_value(s, t) * 0.005f * di->dither;
+
+	b[0] = ftochar(dither_value + f[0]);
+	b[1] = ftochar(dither_value + f[1]);
+	b[2] = ftochar(dither_value + f[2]);
+	b[3] = FTOCHAR(f[3]);
 }
 
 /* float to byte pixels, output 4-channel RGBA */
@@ -198,15 +181,19 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 	float tmp[4];
 	int x, y;
 	DitherContext *di = NULL;
+	float inv_width = 1.0f / width,
+	      inv_height = 1.0f / height;
 
 	/* we need valid profiles */
 	BLI_assert(profile_to != IB_PROFILE_NONE);
 	BLI_assert(profile_from != IB_PROFILE_NONE);
 
 	if (dither)
-		di = create_dither_context(width, dither);
+		di = create_dither_context(dither);
 
 	for (y = 0; y < height; y++) {
+		float t = y * inv_height;
+
 		if (channels_from == 1) {
 			/* single channel input */
 			const float *from = rect_from + stride_from * y;
@@ -256,12 +243,12 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				if (dither && predivide) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
 						premul_to_straight_v4_v4(straight, from);
-						float_to_byte_dither_v4(to, straight, di);
+						float_to_byte_dither_v4(to, straight, di, (float) x * inv_width, t);
 					}
 				}
 				else if (dither) {
 					for (x = 0; x < width; x++, from += 4, to += 4)
-						float_to_byte_dither_v4(to, from, di);
+						float_to_byte_dither_v4(to, from, di, (float) x * inv_width, t);
 				}
 				else if (predivide) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
@@ -283,13 +270,13 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 					for (x = 0; x < width; x++, from += 4, to += 4) {
 						premul_to_straight_v4_v4(straight, from);
 						linearrgb_to_srgb_ushort4(us, from);
-						ushort_to_byte_dither_v4(to, us, di);
+						ushort_to_byte_dither_v4(to, us, di, (float) x * inv_width, t);
 					}
 				}
 				else if (dither) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
 						linearrgb_to_srgb_ushort4(us, from);
-						ushort_to_byte_dither_v4(to, us, di);
+						ushort_to_byte_dither_v4(to, us, di, (float) x * inv_width, t);
 					}
 				}
 				else if (predivide) {
@@ -311,13 +298,13 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				if (dither && predivide) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_predivide_v4(tmp, from);
-						float_to_byte_dither_v4(to, tmp, di);
+						float_to_byte_dither_v4(to, tmp, di, (float) x * inv_width, t);
 					}
 				}
 				else if (dither) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_v4(tmp, from);
-						float_to_byte_dither_v4(to, tmp, di);
+						float_to_byte_dither_v4(to, tmp, di, (float) x * inv_width, t);
 					}
 				}
 				else if (predivide) {
@@ -334,9 +321,6 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				}
 			}
 		}
-
-		if (dither)
-			dither_finish_row(di);
 	}
 
 	if (dither)

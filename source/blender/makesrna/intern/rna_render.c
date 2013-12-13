@@ -73,6 +73,7 @@ static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene
 {
 	IMB_colormanagement_setup_glsl_draw(&scene->view_settings,
 	                                    &scene->display_settings,
+	                                    scene->r.dither_intensity,
 	                                    false);
 }
 

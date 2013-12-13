@@ -1086,10 +1086,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			type = GL_FLOAT;
 
 			if (ibuf->float_colorspace) {
-				glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->float_colorspace, true);
+				glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->float_colorspace, ibuf->dither, true);
 			}
 			else {
-				glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, true);
+				glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
 			}
 		}
 		else if (ibuf->rect) {
@@ -1097,7 +1097,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			format = GL_RGBA;
 			type = GL_UNSIGNED_BYTE;
 
-			glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->rect_colorspace, false);
+			glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, ibuf->rect_colorspace, ibuf->dither, false);
 		}
 		else {
 			format = GL_RGBA;

@@ -419,7 +419,8 @@ bool FallbackImpl::supportGLSLDraw(void)
 }
 
 bool FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState ** /*state_r*/, OCIO_ConstProcessorRcPtr * /*processor*/,
-                                 OCIO_CurveMappingSettings * /*curve_mapping_settings*/, bool /*predivide*/)
+                                 OCIO_CurveMappingSettings * /*curve_mapping_settings*/,
+                                 float /*dither*/,  bool /*predivide*/)
 {
 	return false;
 }

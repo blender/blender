@@ -3091,7 +3091,8 @@ bool IMB_colormanagement_support_glsl_draw(const ColorManagedViewSettings *UNUSE
  */
 bool IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettings *view_settings,
                                                     const ColorManagedDisplaySettings *display_settings,
-                                                    struct ColorSpace *from_colorspace, bool predivide)
+                                                    struct ColorSpace *from_colorspace,
+                                                    float dither, bool predivide)
 {
 	ColorManagedViewSettings default_view_settings;
 	const ColorManagedViewSettings *applied_view_settings;
@@ -3114,33 +3115,35 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettin
 
 	return OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor,
 	                          global_glsl_state.use_curve_mapping ? &global_glsl_state.curve_mapping_settings : NULL,
-	                          predivide);
+	                          dither, predivide);
 }
 
 /* Configures GLSL shader for conversion from scene linear to display space */
 bool IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_settings,
                                          const ColorManagedDisplaySettings *display_settings,
-                                         bool predivide)
+                                         float dither, bool predivide)
 {
 	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
-	                                                      NULL, predivide);
+	                                                      NULL, dither, predivide);
 }
 
 /* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
-bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *from_colorspace, bool predivide)
+bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C, struct ColorSpace *from_colorspace,
+                                                        float dither, bool predivide)
 {
 	ColorManagedViewSettings *view_settings;
 	ColorManagedDisplaySettings *display_settings;
 
 	IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
 
-	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings, from_colorspace, predivide);
+	return IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings, from_colorspace,
+	                                                      dither, predivide);
 }
 
 /* Same as setup_glsl_draw, but color management settings are guessing from a given context */
-bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, bool predivide)
+bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bool predivide)
 {
-	return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, NULL, predivide);
+	return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, NULL, dither, predivide);
 }
 
 /* Finish GLSL-based display space conversion */

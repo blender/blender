@@ -189,7 +189,7 @@ void OCIO_matrixTransformScale(float *m44, float *offset4, const float *scale4);
 
 int OCIO_supportGLSLDraw(void);
 int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRcPtr *processor,
-                       OCIO_CurveMappingSettings *curve_mapping_settings, bool predivide);
+                       OCIO_CurveMappingSettings *curve_mapping_settings, float dither, bool predivide);
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state);
 void OCIO_freeOGLState(struct OCIO_GLSLDrawState *state);
 

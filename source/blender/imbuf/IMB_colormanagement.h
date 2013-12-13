@@ -178,16 +178,17 @@ bool IMB_colormanagement_support_glsl_draw(const struct ColorManagedViewSettings
 /* Configures GLSL shader for conversion from scene linear to display space */
 bool IMB_colormanagement_setup_glsl_draw(const struct ColorManagedViewSettings *view_settings,
                                          const struct ColorManagedDisplaySettings *display_settings,
-                                         bool predivide);
+                                         float dither, bool predivide);
 /* Same as above, but display space conversion happens from a specified space */
 bool IMB_colormanagement_setup_glsl_draw_from_space(const struct ColorManagedViewSettings *view_settings,
                                                     const struct ColorManagedDisplaySettings *display_settings,
                                                     struct ColorSpace *colorspace,
-                                                    bool predivide);
+                                                    float dither, bool predivide);
 /* Same as setup_glsl_draw, but color management settings are guessing from a given context */
-bool IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C, bool predivide);
+bool IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C, float dither, bool predivide);
 /* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
-bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *colorspace, bool predivide);
+bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C, struct ColorSpace *colorspace,
+                                                        float dither, bool predivide);
 /* Finish GLSL-based display space conversion */
 void IMB_colormanagement_finish_glsl_draw(void);
 
