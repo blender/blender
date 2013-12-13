@@ -542,8 +542,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 	}
 
 	ima = project_paint_face_image(ps, ps->dm_mtface, face_index);
-	ibuf = ima->ibufs.first; /* we must have got the imbuf before getting here */
-	if (!ibuf) return 0;
+	ibuf = BKE_image_get_first_ibuf(ima); /* we must have got the imbuf before getting here */
 
 	if (interp) {
 		float x, y;
@@ -599,6 +598,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 			}
 		}
 	}
+	IMB_freeImBuf(ibuf);
 	return 1;
 }
 

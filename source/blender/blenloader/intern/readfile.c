@@ -1317,9 +1317,8 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 	fd->imamap = oldnewmap_new();
 	
 	for (; ima; ima = ima->id.next) {
-		Link *ibuf = ima->ibufs.first;
-		for (; ibuf; ibuf = ibuf->next)
-			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
+		if (ima->cache)
+			oldnewmap_insert(fd->imamap, ima->cache, ima->cache, 0);
 		if (ima->gputexture)
 			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
 		if (ima->rr)
@@ -1355,19 +1354,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	}
 	
 	for (; ima; ima = ima->id.next) {
-		Link *ibuf, *next;
-		
-		/* this mirrors direct_link_image */
-		for (ibuf = ima->ibufs.first; ibuf; ibuf = next) {
-			next = ibuf->next;
-			if (NULL == newimaadr(fd, ibuf)) {	/* so was restored */
-				BLI_remlink(&ima->ibufs, ibuf);
-				ima->bindcode = 0;
-				ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
-				ima->gputexture = NULL;
-				ima->rr = NULL;
-			}
-		}
+		ima->cache = newmclipadr(fd, ima->cache);
 		for (i = 0; i < IMA_MAX_RENDER_SLOT; i++)
 			ima->renders[i] = newimaadr(fd, ima->renders[i]);
 		
@@ -3281,34 +3268,16 @@ static void lib_link_image(FileData *fd, Main *main)
 	}
 }
 
-static void link_ibuf_list(FileData *fd, ListBase *lb)
-{
-	Link *ln, *prev;
-	
-	if (lb->first == NULL) return;
-	
-	lb->first = newimaadr(fd, lb->first);
-	ln = lb->first;
-	prev = NULL;
-	while (ln) {
-		ln->next = newimaadr(fd, ln->next);
-		ln->prev = prev;
-		prev = ln;
-		ln = ln->next;
-	}
-	lb->last = prev;
-}
-
 static void direct_link_image(FileData *fd, Image *ima)
 {
 	/* for undo system, pointers could be restored */
 	if (fd->imamap)
-		link_ibuf_list(fd, &ima->ibufs);
+		ima->cache = newmclipadr(fd, ima->cache);
 	else
-		ima->ibufs.first = ima->ibufs.last = NULL;
+		ima->cache = NULL;
 
 	/* if not restored, we keep the binded opengl index */
-	if (ima->ibufs.first == NULL) {
+	if (!fd->imamap) {
 		ima->bindcode = 0;
 		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 		ima->gputexture = NULL;

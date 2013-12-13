@@ -79,14 +79,7 @@ static void rna_Image_animated_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 
 static int rna_Image_dirty_get(PointerRNA *ptr)
 {
-	Image *ima = (Image *)ptr->data;
-	ImBuf *ibuf;
-
-	for (ibuf = ima->ibufs.first; ibuf; ibuf = ibuf->next)
-		if (ibuf->userflags & IB_BITMAPDIRTY)
-			return 1;
-	
-	return 0;
+	return BKE_image_is_dirty((Image *)ptr->data);
 }
 
 static void rna_Image_source_set(PointerRNA *ptr, int value)
@@ -210,31 +203,16 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 {
 	Image *image = (Image *)ptr->data;
 	if (BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
-		ImBuf *ibuf;
 		int ftype = BKE_imtype_to_ftype(value);
-
-#if 0
-		ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
-		if (ibuf)
-			ibuf->ftype = ftype;
-#endif
-
-		/* to be safe change all buffer file types */
-		/* TODO: this is never threadsafe */
-		for (ibuf = image->ibufs.first; ibuf; ibuf = ibuf->next) {
-			ibuf->ftype = ftype;
-		}
+		BKE_image_file_format_set(image, ftype);
 	}
 }
 
 static int rna_Image_has_data_get(PointerRNA *ptr)
 {
-	Image *im = (Image *)ptr->data;
+	Image *image = (Image *)ptr->data;
 
-	if (im->ibufs.first)
-		return 1;
-
-	return 0;
+	return BKE_image_has_loaded_ibuf(image);
 }
 
 static void rna_Image_size_get(PointerRNA *ptr, int *values)

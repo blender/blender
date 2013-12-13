@@ -93,6 +93,7 @@ void GPU_render_text(MTFace *tface, int mode,
 {
 	if ((mode & GEMAT_TEXT) && (textlen>0) && tface->tpage) {
 		Image* ima = (Image *)tface->tpage;
+		ImBuf *first_ibuf;
 		int index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 		float advance_tab;
@@ -117,7 +118,8 @@ void GPU_render_text(MTFace *tface, int mode,
 		glPushMatrix();
 		
 		/* get the tab width */
-		matrixGlyph((ImBuf *)ima->ibufs.first, ' ', & centerx, &centery,
+		first_ibuf = BKE_image_get_first_ibuf(ima);
+		matrixGlyph(first_ibuf, ' ', &centerx, &centery,
 			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 		
 		advance_tab= advance * 4; /* tab width could also be an option */
@@ -143,7 +145,7 @@ void GPU_render_text(MTFace *tface, int mode,
 			
 			// space starts at offset 1
 			// character = character - ' ' + 1;
-			matrixGlyph((ImBuf *)ima->ibufs.first, character, & centerx, &centery,
+			matrixGlyph(first_ibuf, character, & centerx, &centery,
 				&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 
 			uv[0][0] = (tface->uv[0][0] - centerx) * sizex + transx;
@@ -184,6 +186,8 @@ void GPU_render_text(MTFace *tface, int mode,
 			line_start -= advance; /* so we can go back to the start of the line */
 		}
 		glPopMatrix();
+
+		IMB_freeImBuf(first_ibuf);
 	}
 }
 

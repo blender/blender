@@ -127,7 +127,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (ima) {
 		
 		/* hack for icon render */
-		if (ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
+		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
 
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
@@ -1094,7 +1094,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	if (ibuf==NULL && ima==NULL) return retval;
 
 	if (ima) {	/* hack for icon render */
-		if ((ima->ibufs.first == NULL) && (R.r.scemode & R_NO_IMAGE_LOAD)) return retval;
+		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima)) {
+			return retval;
+		}
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
 	}
 
@@ -1515,7 +1517,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (ima) {
 
 		/* hack for icon render */
-		if (ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
+		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
 		
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);

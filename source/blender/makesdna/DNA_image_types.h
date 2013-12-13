@@ -40,6 +40,7 @@ struct PackedFile;
 struct Scene;
 struct anim;
 struct ImBuf;
+struct MovieCache;
 struct RenderResult;
 struct GPUTexture;
 
@@ -74,7 +75,7 @@ typedef struct Image {
 	
 	char name[1024];			/* file path, 1024 = FILE_MAX */
 	
-	ListBase ibufs;					/* not written in file */
+	struct MovieCache *cache;	/* not written in file */
 	struct GPUTexture *gputexture;	/* not written in file */
 	
 	/* sources from: */

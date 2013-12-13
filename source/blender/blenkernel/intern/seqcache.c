@@ -195,7 +195,7 @@ void BKE_sequencer_cache_cleanup(void)
 	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
-static int seqcache_key_check_seq(void *userkey, void *userdata)
+static bool seqcache_key_check_seq(ImBuf *UNUSED(ibuf), void *userkey, void *userdata)
 {
 	SeqCacheKey *key = (SeqCacheKey *) userkey;
 	Sequence *seq = (Sequence *) userdata;

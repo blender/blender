@@ -235,6 +235,12 @@ float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame);
 
 /* Guess offset for the first frame in the sequence */
 int BKE_image_sequence_guess_offset(struct Image *image);
+
+bool BKE_image_is_dirty(struct Image *image);
+void BKE_image_file_format_set(struct Image *image, int ftype);
+bool BKE_image_has_loaded_ibuf(struct Image *image);
+struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
+struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
 #ifdef __cplusplus
 }
 #endif

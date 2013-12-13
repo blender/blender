@@ -63,8 +63,18 @@ struct ImBuf *IMB_moviecache_get(struct MovieCache *cache, void *userkey);
 int IMB_moviecache_has_frame(struct MovieCache *cache, void *userkey);
 void IMB_moviecache_free(struct MovieCache *cache);
 
-void IMB_moviecache_cleanup(struct MovieCache *cache, int (cleanup_check_cb) (void *userkey, void *userdata), void *userdata);
+void IMB_moviecache_cleanup(struct MovieCache *cache,
+                            bool (cleanup_check_cb) (struct ImBuf *ibuf, void *userkey, void *userdata),
+                            void *userdata);
 
 void IMB_moviecache_get_cache_segments(struct MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r);
+
+struct MovieCacheIter;
+struct MovieCacheIter *IMB_moviecacheIter_new(struct MovieCache *cache);
+void IMB_moviecacheIter_free(struct MovieCacheIter *iter);
+bool IMB_moviecacheIter_done(struct MovieCacheIter *iter);
+void IMB_moviecacheIter_step(struct MovieCacheIter *iter);
+struct ImBuf *IMB_moviecacheIter_getImBuf(struct MovieCacheIter *iter);
+void *IMB_moviecacheIter_getUserKey(struct MovieCacheIter *iter);
 
 #endif

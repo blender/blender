@@ -145,7 +145,7 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 	
 	// first check for dirty images
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
-		if (ima->ibufs.first) { /* XXX FIX */
+		if (BKE_image_has_loaded_ibuf(ima)) { /* XXX FIX */
 			ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 			
 			if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
