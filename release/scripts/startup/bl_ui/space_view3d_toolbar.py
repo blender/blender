@@ -292,6 +292,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
+        col.operator("curve.normals_make_consistent")
+
+        col = layout.column(align=True)
         col.label(text="Modeling:")
         col.operator("curve.extrude_move", text="Extrude")
         col.operator("curve.subdivide")

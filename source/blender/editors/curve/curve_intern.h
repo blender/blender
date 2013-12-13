@@ -88,6 +88,7 @@ void CURVE_OT_spline_type_set(struct wmOperatorType *ot);
 void CURVE_OT_radius_set(struct wmOperatorType *ot);
 void CURVE_OT_spline_weight_set(struct wmOperatorType *ot);
 void CURVE_OT_handle_type_set(struct wmOperatorType *ot);
+void CURVE_OT_normals_make_consistent(struct wmOperatorType *ot);
 void CURVE_OT_shade_smooth(struct wmOperatorType *ot);
 void CURVE_OT_shade_flat(struct wmOperatorType *ot);
 void CURVE_OT_tilt_clear(struct wmOperatorType *ot);

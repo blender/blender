@@ -113,6 +113,7 @@ int BKE_nurbList_verts_count_without_handles(struct ListBase *nurb);
 void BKE_nurbList_free(struct ListBase *lb);
 void BKE_nurbList_duplicate(struct ListBase *lb1,  struct ListBase *lb2);
 void BKE_nurbList_handles_set(struct ListBase *editnurb, short code);
+void BKE_nurbList_handles_recalculate(struct ListBase *editnurb, const bool calc_length, const char flag);
 
 void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag);
 void BKE_nurbList_flag_set(ListBase *editnurb, short flag);

@@ -3393,6 +3393,72 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	}
 }
 
+void BKE_nurbList_handles_recalculate(ListBase *editnurb, const bool calc_length, const char flag)
+{
+	Nurb *nu;
+	BezTriple *bezt;
+	int a;
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			bool changed = false;
+
+			for (a = nu->pntsu, bezt = nu->bezt; a--; bezt++) {
+
+				const bool h1_select = (bezt->f1 & flag) == flag;
+				const bool h2_select = (bezt->f3 & flag) == flag;
+
+				if (h1_select || h2_select) {
+
+					/* Override handle types to HD_AUTO and recalculate */
+
+					char h1_back, h2_back;
+					float co1_back[3], co2_back[3];
+
+					h1_back = bezt->h1;
+					h2_back = bezt->h2;
+
+					bezt->h1 = HD_AUTO;
+					bezt->h2 = HD_AUTO;
+
+					copy_v3_v3(co1_back, bezt->vec[0]);
+					copy_v3_v3(co2_back, bezt->vec[2]);
+
+					BKE_nurb_handle_calc_simple(nu, bezt);
+
+					bezt->h1 = h1_back;
+					bezt->h2 = h2_back;
+
+					if (h1_select) {
+						if (!calc_length) {
+							dist_ensure_v3_v3fl(bezt->vec[0], bezt->vec[1], len_v3v3(co1_back, bezt->vec[1]));
+						}
+					}
+					else {
+						copy_v3_v3(bezt->vec[0], co1_back);
+					}
+
+					if (h2_select) {
+						if (!calc_length) {
+							dist_ensure_v3_v3fl(bezt->vec[2], bezt->vec[1], len_v3v3(co2_back, bezt->vec[1]));
+						}
+					}
+					else {
+						copy_v3_v3(bezt->vec[2], co2_back);
+					}
+
+					changed = true;
+				}
+			}
+
+			if (changed) {
+				/* Recalculate the whole curve */
+				BKE_nurb_handles_calc(nu);
+			}
+		}
+	}
+}
+
 void BKE_nurbList_flag_set(ListBase *editnurb, short flag)
 {
 	Nurb *nu;

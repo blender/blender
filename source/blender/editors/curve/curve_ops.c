@@ -95,6 +95,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_radius_set);
 	WM_operatortype_append(CURVE_OT_spline_weight_set);
 	WM_operatortype_append(CURVE_OT_handle_type_set);
+	WM_operatortype_append(CURVE_OT_normals_make_consistent);
 	WM_operatortype_append(CURVE_OT_shade_smooth);
 	WM_operatortype_append(CURVE_OT_shade_flat);
 	WM_operatortype_append(CURVE_OT_tilt_clear);
@@ -265,6 +266,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
+
+	WM_keymap_add_item(keymap, "CURVE_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	
