@@ -124,10 +124,8 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 
 		if(line_method == CURVE_ACCURATE)
 			kcurve->curveflags |= CURVE_KN_ACCURATE;
-		if(line_method == CURVE_CORRECTED)
+		else if(line_method == CURVE_CORRECTED)
 			kcurve->curveflags |= CURVE_KN_INTERSECTCORRECTION;
-		if(line_method == CURVE_POSTCORRECTED)
-			kcurve->curveflags |= CURVE_KN_POSTINTERSECTCORRECTION;
 
 		if(use_tangent_normal)
 			kcurve->curveflags |= CURVE_KN_TANGENTGNORMAL;

@@ -75,14 +75,7 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 		sd->shader = __float_as_int(curvedata.z);
 		sd->segment = isect->segment;
-
-		float tcorr = isect->t;
-		if(kernel_data.curve.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
-			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
-			sd->ray_length = tcorr;
-		}
-
-		sd->P = bvh_curve_refine(kg, sd, isect, ray, tcorr);
+		sd->P = bvh_curve_refine(kg, sd, isect, ray);
 	}
 	else {
 #endif

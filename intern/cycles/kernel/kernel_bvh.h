@@ -1071,9 +1071,10 @@ ccl_device_inline float3 curvepoint(float t, float3 p0, float3 p1, float3 p2, fl
 	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
 }
 
-ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float t)
+ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray)
 {
 	int flag = kernel_data.curve.curveflags;
+	float t = isect->t;
 	float3 P = ray->P;
 	float3 D = ray->D;
 

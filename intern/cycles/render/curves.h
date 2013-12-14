@@ -49,7 +49,6 @@ typedef enum curve_triangles {
 typedef enum curve_lines {
 	CURVE_ACCURATE,
 	CURVE_CORRECTED,
-	CURVE_POSTCORRECTED,
 	CURVE_UNCORRECTED
 } curve_lines;
 
