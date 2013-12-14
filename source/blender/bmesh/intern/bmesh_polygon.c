@@ -983,9 +983,12 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 				for (i = 0; i < edge_array_len; i++) {
 					BMFace *f_a, *f_b;
 					BMEdge *e = edge_array[i];
+#ifndef NDEBUG
 					const bool ok = BM_edge_face_pair(e, &f_a, &f_b);
-
 					BLI_assert(ok);
+#else
+					BM_edge_face_pair(e, &f_a, &f_b);
+#endif
 
 					if (FACE_USED_TEST(f_a) == false) {
 						FACE_USED_SET(f_a);
@@ -1233,7 +1236,11 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 
 	/* this assumes all faces can be scan-filled, which isn't always true,
 	 * worst case we over alloc a little which is acceptable */
+#ifndef NDEBUG
 	const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+#else
+	poly_to_tri_count(bm->totface, bm->totloop);
+#endif
 
 	BMIter iter;
 	BMFace *efa;
