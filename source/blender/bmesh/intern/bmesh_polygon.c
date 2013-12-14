@@ -1238,8 +1238,6 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 	 * worst case we over alloc a little which is acceptable */
 #ifndef NDEBUG
 	const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-#else
-	poly_to_tri_count(bm->totface, bm->totloop);
 #endif
 
 	BMIter iter;
