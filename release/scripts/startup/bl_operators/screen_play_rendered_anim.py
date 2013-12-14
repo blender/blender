@@ -121,7 +121,7 @@ class PlayRenderedAnim(Operator):
         else:
             frame_start = scene.frame_start
             frame_end = scene.frame_end
-        if preset in {'BLENDER24', 'INTERNAL'}:
+        if preset == 'INTERNAL':
             opts = ["-a",
                     "-f", str(rd.fps), str(rd.fps_base),
                     "-s", str(frame_start),
