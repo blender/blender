@@ -170,7 +170,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 
 		if(slot == float_images.size()) {
 			/* max images limit reached */
-			if(float_images.size() == TEX_NUM_FLOAT_IMAGES) {
+			if(float_images.size() == tex_num_float_images) {
 				printf("ImageManager::add_image: float image limit reached %d, skipping '%s'\n",
 				       tex_num_float_images, filename.c_str());
 				return -1;
