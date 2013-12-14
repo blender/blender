@@ -1202,7 +1202,7 @@ void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
  *
  * \return angle in radians
  */
-float BM_edge_calc_face_angle(const BMEdge *e)
+float BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback)
 {
 	if (BM_edge_is_manifold(e)) {
 		const BMLoop *l1 = e->l;
@@ -1210,8 +1210,12 @@ float BM_edge_calc_face_angle(const BMEdge *e)
 		return angle_normalized_v3v3(l1->f->no, l2->f->no);
 	}
 	else {
-		return DEG2RADF(90.0f);
+		return fallback;
 	}
+}
+float BM_edge_calc_face_angle(const BMEdge *e)
+{
+	return BM_edge_calc_face_angle_ex(e, DEG2RADF(90.0f));
 }
 
 /**
@@ -1222,7 +1226,7 @@ float BM_edge_calc_face_angle(const BMEdge *e)
  *
  * \return angle in radians
  */
-float BM_edge_calc_face_angle_signed(const BMEdge *e)
+float BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback)
 {
 	if (BM_edge_is_manifold(e)) {
 		BMLoop *l1 = e->l;
@@ -1231,8 +1235,12 @@ float BM_edge_calc_face_angle_signed(const BMEdge *e)
 		return BM_edge_is_convex(e) ? angle : -angle;
 	}
 	else {
-		return DEG2RADF(90.0f);
+		return fallback;
 	}
+}
+float BM_edge_calc_face_angle_signed(const BMEdge *e)
+{
+	return BM_edge_calc_face_angle_signed_ex(e, DEG2RADF(90.0f));
 }
 
 /**

@@ -73,7 +73,9 @@ void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]);
 void    BM_loop_calc_face_direction(BMLoop *l, float r_normal[3]);
 void    BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3]);
 
+float   BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback);
 float   BM_edge_calc_face_angle(const BMEdge *e);
+float   BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback);
 float   BM_edge_calc_face_angle_signed(const BMEdge *e);
 void    BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3]);
 
