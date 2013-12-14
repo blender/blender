@@ -33,7 +33,6 @@
 #include <math.h>
 
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -51,7 +50,6 @@
 #include "BLI_endian_switch.h"
 
 #include "BKE_anim.h"
-#include "BKE_brush.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -3385,34 +3383,16 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-		Object *ob = OBACT;
+		Object *ob;
 
-		if (ob) {
-			switch (ob->mode) {
-				case OB_MODE_SCULPT:
-					break;
-
-				case OB_MODE_TEXTURE_PAINT:
-				{
-					Brush *br = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
-
-					if (br && (br->imagepaint_tool == PAINT_TOOL_CLONE))
-						drawcursor(scene, ar, v3d);
-
-					break;
-				}
-
-				default:
-					drawcursor(scene, ar, v3d);
-					break;
-			}
-		}
+		drawcursor(scene, ar, v3d);
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
 			draw_view_axis(rv3d, &rect);
 		else
 			draw_view_icon(rv3d, &rect);
 
+		ob = OBACT;
 		if (U.uiflag & USER_DRAWVIEWINFO)
 			draw_selected_name(scene, ob, &rect);
 	}
