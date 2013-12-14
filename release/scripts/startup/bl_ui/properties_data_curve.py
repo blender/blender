@@ -157,6 +157,10 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
 class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
     bl_label = "Geometry"
 
+    @classmethod
+    def poll(cls, context):
+        return (type(context.curve) in {Curve, TextCurve})
+
     def draw(self, context):
         layout = self.layout
 
