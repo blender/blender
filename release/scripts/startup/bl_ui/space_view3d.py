@@ -64,6 +64,8 @@ class VIEW3D_HT_header(Header):
                 sub.menu("INFO_MT_surface_add", text="Add")
             elif mode_string == 'EDIT_METABALL':
                 sub.menu("INFO_MT_metaball_add", text="Add")
+            elif mode_string == 'EDIT_ARMATURE':
+                sub.menu("INFO_MT_edit_armature_add", text="Add")
 
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
@@ -900,20 +902,15 @@ class INFO_MT_metaball_add(Menu):
         layout.operator_enum("object.metaball_add", "type")
 
 
-class INFO_MT_edit_curve_add(Menu):
-    bl_idname = "INFO_MT_edit_curve_add"
-    bl_label = "Add"
+class INFO_MT_edit_armature_add(Menu):
+    bl_idname = "INFO_MT_edit_armature_add"
+    bl_label = "Armature"
 
     def draw(self, context):
-        is_surf = context.active_object.type == 'SURFACE'
-
         layout = self.layout
-        layout.operator_context = 'EXEC_REGION_WIN'
 
-        if is_surf:
-            INFO_MT_surface_add.draw(self, context)
-        else:
-            INFO_MT_curve_add.draw(self, context)
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("armature.bone_primitive_add", text="Single Bone", icon='BONE_DATA')
 
 
 class INFO_MT_armature_add(Menu):
