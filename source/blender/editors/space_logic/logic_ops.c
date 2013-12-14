@@ -706,37 +706,6 @@ static void LOGIC_OT_actuator_move(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
 }
 
-/* ************* TexFace Converter Operator ************* */
-static int texface_convert_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Main *bmain = CTX_data_main(C);
-	do_version_tface(bmain, 0);
-	
-	return OPERATOR_FINISHED;
-}
-
-static int texface_convert_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	return texface_convert_exec(C, op);
-}
-
-static void LOGIC_OT_texface_convert(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "TexFace to Material Converter";
-	ot->description = "Convert old texface settings into material. It may create new materials if needed";
-	ot->idname = "LOGIC_OT_texface_convert";
-
-	/* api callbacks */
-	ot->invoke = texface_convert_invoke;
-	ot->exec = texface_convert_exec;
-//	ot->poll = texface_convert_poll;
- 
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-
 /* ************************ view ********************* */
 
 static int logic_view_all_exec(bContext *C, wmOperator *op)
@@ -782,6 +751,5 @@ void ED_operatortypes_logic(void)
 	WM_operatortype_append(LOGIC_OT_actuator_remove);
 	WM_operatortype_append(LOGIC_OT_actuator_add);
 	WM_operatortype_append(LOGIC_OT_actuator_move);
-	WM_operatortype_append(LOGIC_OT_texface_convert);
 	WM_operatortype_append(LOGIC_OT_view_all);
 }

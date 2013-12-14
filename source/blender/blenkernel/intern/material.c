@@ -1919,7 +1919,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 
 #define MAT_BGE_DISPUTED -99999
 
-int do_version_tface(Main *main, int fileload)
+int do_version_tface(Main *main)
 {
 	Mesh *me;
 	Material *ma;
@@ -1929,6 +1929,9 @@ int do_version_tface(Main *main, int fileload)
 	int a;
 	int flag;
 	int index;
+	
+	/* Operator in help menu has been removed for 2.7x */
+	int fileload = 1;
 
 	/* sometimes mesh has no materials but will need a new one. In those
 	 * cases we need to ignore the mf->mat_nr and only look at the face
@@ -2072,7 +2075,7 @@ int do_version_tface(Main *main, int fileload)
 		if (ma->game.flag == MAT_BGE_DISPUTED) {
 			ma->game.flag = 0;
 			if (fileload) {
-				printf("Warning: material \"%s\" skipped - to convert old game texface to material go to the Help menu.\n", ma->id.name + 2);
+				printf("Warning: material \"%s\" skipped.\n", ma->id.name + 2);
 				nowarning = 0;
 			}
 			else {

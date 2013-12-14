@@ -7349,7 +7349,7 @@ static void convert_tface_mt(FileData *fd, Main *main)
 		gmain = G.main;
 		G.main = main;
 		
-		if (!(do_version_tface(main, 1))) {
+		if (!(do_version_tface(main))) {
 			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem (see error in console)");
 		}
 		

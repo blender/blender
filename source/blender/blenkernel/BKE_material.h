@@ -111,8 +111,8 @@ void free_matcopybuf(void);
 void copy_matcopybuf(struct Material *ma);
 void paste_matcopybuf(struct Material *ma);
 
-/* handle backward compatibility for tface/materials called from doversion (fileload=1) or Help Menu (fileload=0) */	
-int do_version_tface(struct Main *main, int fileload);
+/* handle backward compatibility for tface/materials called from doversion */	
+int do_version_tface(struct Main *main);
 
 #ifdef __cplusplus
 }
