@@ -1,9 +1,13 @@
 uniform sampler2D image_texture;
 uniform sampler3D lut3d_texture;
-uniform bool predivide;
 
 #ifdef USE_DITHER
 uniform float dither;
+#endif
+
+#ifdef USE_TEXTURE_SIZE
+uniform float image_texture_width;
+uniform float image_texture_height;
 #endif
 
 #ifdef USE_CURVE_MAPPING
@@ -115,7 +119,11 @@ float dither_random_value(vec2 co)
 vec2 round_to_pixel(vec2 st)
 {
 	vec2 result;
+#ifdef USE_TEXTURE_SIZE
+	vec2 size = vec2(image_texture_width, image_texture_height);
+#else
 	vec2 size = textureSize(image_texture, 0);
+#endif
 	result.x = float(int(st.x * size.x)) / size.x;
 	result.y = float(int(st.y * size.y)) / size.y;
 	return result;
@@ -139,12 +147,15 @@ void main()
 #ifdef USE_CURVE_MAPPING
 	col = curvemapping_evaluate_premulRGBF(col);
 #endif
-	if (predivide && col[3] > 0.0 && col[3] < 1.0) {
+
+#ifdef USE_PREDIVIDE
+	if (col[3] > 0.0 && col[3] < 1.0) {
 		float inv_alpha = 1.0 / col[3];
 		col[0] *= inv_alpha;
 		col[1] *= inv_alpha;
 		col[2] *= inv_alpha;
 	}
+#endif
 
 	/* NOTE: This is true we only do de-premul here and NO premul
 	 *       and the reason is simple -- opengl is always configured
