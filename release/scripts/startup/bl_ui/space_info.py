@@ -210,7 +210,7 @@ class INFO_MT_render(Menu):
         layout.separator()
 
         layout.operator("render.view_show")
-        layout.operator("render.play_rendered_anim")
+        layout.operator("render.play_rendered_anim", icon='PLAY')
 
 
 class INFO_MT_window(Menu):

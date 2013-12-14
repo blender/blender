@@ -69,9 +69,7 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
         row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
 
-        split = layout.split(1 / 3)
-        split.operator("render.play_rendered_anim", text="Play", icon='PLAY')
-        split.prop(rd, "display_mode", text="Display")
+        layout.prop(rd, "display_mode", text="Display")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
