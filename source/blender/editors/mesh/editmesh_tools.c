@@ -3120,10 +3120,31 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+	const float angle_max = M_PI;
+	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	char hflag;
+
+	if (angle_limit >= angle_max) {
+		hflag = BM_ELEM_SELECT;
+	}
+	else {
+		BMIter iter;
+		BMEdge *e;
+
+		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(e, BM_ELEM_TAG,
+			                 (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
+			                  BM_edge_calc_face_angle_ex(e, angle_max) < angle_limit));
+
+		}
+
+		hflag = BM_ELEM_TAG;
+	}
+
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "geom.out", true,
-	        "beautify_fill faces=%hf edges=ae",
-	        BM_ELEM_SELECT))
+	        "beautify_fill faces=%hf edges=%he",
+	        BM_ELEM_SELECT, hflag))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3135,6 +3156,8 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_beautify_fill(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Beautify Faces";
 	ot->idname = "MESH_OT_beautify_fill";
@@ -3146,6 +3169,11 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(180.0f));
 }
 
 
