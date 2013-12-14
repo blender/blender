@@ -63,14 +63,16 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
         layout.separator()
-
-        row = layout.row()
+        
+        split = layout.split()
+        
+        row = split.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        sub = row.row()
+        sub = row.row(align=True)
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group")
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
-        layout.prop(md, "use_multi_modifier")
+        split.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
@@ -250,16 +252,20 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.row().prop(md, "deform_axis", expand=True)
 
     def DECIMATE(self, layout, ob, md):
+        decimate_type = md.decimate_type
+
         row = layout.row()
         row.prop(md, "decimate_type", expand=True)
-        decimate_type = md.decimate_type
 
         if decimate_type == 'COLLAPSE':
             layout.prop(md, "ratio")
-            row = layout.row()
+            
+            split = layout.split()
+            row = split.row(align=True)
             row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-            row.prop(md, "invert_vertex_group")
-            layout.prop(md, "use_collapse_triangulate")
+            row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+            
+            split.prop(md, "use_collapse_triangulate")
         elif decimate_type == 'UNSUBDIV':
             layout.prop(md, "iterations")
         else:  # decimate_type == 'DISSOLVE':
@@ -435,33 +441,35 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Mode:")
         col.prop(md, "mode", text="")
+
         col = split.column()
         if md.mode == 'ARMATURE':
             col.label(text="Armature:")
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
             col.label(text="Vertex Group:")
-            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-
-        sub = col.column()
-        sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group")
+            row = col.row(align=True)
+            row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+            sub = row.row(align=True)
+            sub.active = bool(md.vertex_group)
+            sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
     def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        sub = col.column()
-        sub.label(text="Object:")
-        sub.prop(md, "object", text="")
-        sub.active = not md.is_bound
+        col.active = not md.is_bound
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+        
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-
-        sub = col.column()
+        
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group")
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
         layout.separator()
 
@@ -781,27 +789,37 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "thickness")
         col.prop(md, "thickness_clamp")
-        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        
+        col.separator()
+        
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        
+        sub = col.row()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "thickness_vertex_group", text="Factor") 
 
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
         col.prop(md, "edge_crease_rim", text="Rim")
-        col.label(text="Material Index Offset:")
 
         col = split.column()
 
         col.prop(md, "offset")
         col.prop(md, "use_flip_normals")
-        sub = col.column()
-        sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group", text="Invert")
-        sub.prop(md, "thickness_vertex_group", text="Factor")
 
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
         col.prop(md, "use_rim")
-
+        
+        col.separator()
+        
+        col.label(text="Material Index Offset:")
+        
         sub = col.column()
         row = sub.split(align=True, percentage=0.4)
         row.prop(md, "material_offset", text="")
