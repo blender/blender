@@ -148,8 +148,6 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 {
 	int *groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totface, __func__);
-	int faces_len;
-	BMFace **faces_arr = BM_iter_as_arrayN(bm, BM_FACES_OF_MESH, NULL, &faces_len, NULL, 0);
 	BMFace **faces_grp = MEM_mallocN(sizeof(*faces_grp) * bm->totface, __func__);
 
 	int (*group_index)[2];
@@ -158,8 +156,9 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	                                               0, BM_EDGE);
 	int i;
 
-
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_FLAG);
+
+	BM_mesh_elem_table_ensure(bm, BM_FACE);
 
 	for (i = 0; i < group_tot; i++) {
 		const int fg_sta = group_index[i][0];
@@ -168,7 +167,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 		bool is_calc = false;
 
 		for (j = 0; j < fg_len; j++) {
-			faces_grp[j] = faces_arr[groups_array[fg_sta + j]];
+			faces_grp[j] = BM_face_at_index(bm, groups_array[fg_sta + j]);
 
 			if (is_calc == false) {
 				is_calc = BMO_elem_flag_test_bool(bm, faces_grp[j], FACE_FLAG);
@@ -180,8 +179,6 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-
-	if (faces_arr) MEM_freeN(faces_arr);
 	MEM_freeN(faces_grp);
 
 	MEM_freeN(groups_array);
