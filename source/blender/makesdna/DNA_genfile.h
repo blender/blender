@@ -68,7 +68,7 @@ void DNA_struct_switch_endian(struct SDNA *oldsdna, int oldSDNAnr, char *data);
 char *DNA_struct_get_compareflags(struct SDNA *sdna, struct SDNA *newsdna);
 void *DNA_struct_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data);
 
-int DNA_elem_array_size(const char *astr, int len);
+int DNA_elem_array_size(const char *str);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
 bool DNA_struct_elem_find(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);

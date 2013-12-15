@@ -178,19 +178,16 @@ static int le_int(int temp)
 /**
  * parses the "[n]" on the end of an array name and returns the number of array elements n.
  */
-int DNA_elem_array_size(const char *astr, int len)
+int DNA_elem_array_size(const char *str)
 {
 	int a, mul = 1;
-	char str[100], *cp = NULL;
+	const char *cp = NULL;
 
-	memcpy(str, astr, len + 1);
-
-	for (a = 0; a < len; a++) {
+	for (a = 0; str[a]; a++) {
 		if (str[a] == '[') {
 			cp = &(str[a + 1]);
 		}
 		else if (str[a] == ']' && cp) {
-			str[a] = 0;
 			mul *= atoi(cp);
 		}
 	}
@@ -246,7 +243,7 @@ static int elementsize(const SDNA *sdna, short type, short name)
 		/* has the name an extra length? (array) */
 		mul = 1;
 		if (cp[namelen - 1] == ']') {
-			mul = DNA_elem_array_size(cp, namelen);
+			mul = DNA_elem_array_size(cp);
 		}
 		
 		len = sdna->pointerlen * mul;
@@ -255,7 +252,7 @@ static int elementsize(const SDNA *sdna, short type, short name)
 		/* has the name an extra length? (array) */
 		mul = 1;
 		if (cp[namelen - 1] == ']') {
-			mul = DNA_elem_array_size(cp, namelen);
+			mul = DNA_elem_array_size(cp);
 		}
 		
 		len = mul * sdna->typelens[type];
@@ -729,7 +726,7 @@ static void cast_elem(
 
 	eSDNA_Type ctypenr, otypenr;
 
-	arrlen = DNA_elem_array_size(name, strlen(name));
+	arrlen = DNA_elem_array_size(name);
 
 	if ( (otypenr = sdna_type_nr(otype)) == -1 ||
 	     (ctypenr = sdna_type_nr(ctype)) == -1)
@@ -820,7 +817,7 @@ static void cast_pointer(int curlen, int oldlen, const char *name, char *curdata
 #endif
 	int arrlen;
 	
-	arrlen = DNA_elem_array_size(name, strlen(name));
+	arrlen = DNA_elem_array_size(name);
 	
 	while (arrlen > 0) {
 	
@@ -990,8 +987,8 @@ static void reconstruct_elem(
 
 			if (oname[countpos] == '[' && strncmp(name, oname, countpos) == 0) {  /* basis equal */
 				
-				cursize = DNA_elem_array_size(name, strlen(name));
-				oldsize = DNA_elem_array_size(oname, strlen(oname));
+				cursize = DNA_elem_array_size(name);
+				oldsize = DNA_elem_array_size(oname);
 
 				if (ispointer(name)) {  /* handle pointer or functionpointer */
 					cast_pointer(newsdna->pointerlen, oldsdna->pointerlen,
@@ -1091,9 +1088,9 @@ static void reconstruct_struct(
 				curSDNAnr = DNA_struct_find_nr(newsdna, type);
 				
 				/* array! */
-				mul = DNA_elem_array_size(name, strlen(name));
+				mul = DNA_elem_array_size(name);
 				nameo = oldsdna->names[sppo[1]];
-				mulo = DNA_elem_array_size(nameo, strlen(nameo));
+				mulo = DNA_elem_array_size(nameo);
 				
 				eleno = elementsize(oldsdna, sppo[0], sppo[1]);
 				
@@ -1164,7 +1161,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 			if (cpo) {
 				oldSDNAnr = DNA_struct_find_nr(oldsdna, type);
 				
-				mul = DNA_elem_array_size(name, strlen(name));
+				mul = DNA_elem_array_size(name);
 				elena = elen / mul;
 
 				while (mul--) {
@@ -1178,7 +1175,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 			if (ispointer(name)) {
 				if (oldsdna->pointerlen == 8) {
 					
-					mul = DNA_elem_array_size(name, strlen(name));
+					mul = DNA_elem_array_size(name);
 					cpo = cur;
 					while (mul--) {
 						cval = cpo[0]; cpo[0] = cpo[7]; cpo[7] = cval;
@@ -1207,7 +1204,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 					}
 					
 					if (skip == false) {
-						mul = DNA_elem_array_size(name, strlen(name));
+						mul = DNA_elem_array_size(name);
 						cpo = cur;
 						while (mul--) {
 							cval = cpo[0];
@@ -1223,7 +1220,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 				           spc[0] == SDNA_TYPE_FLOAT))
 				{
 
-					mul = DNA_elem_array_size(name, strlen(name));
+					mul = DNA_elem_array_size(name);
 					cpo = cur;
 					while (mul--) {
 						cval = cpo[0];
@@ -1238,7 +1235,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 				else if ( (spc[0] == SDNA_TYPE_INT64) ||
 				          (spc[0] == SDNA_TYPE_UINT64))
 				{
-					mul = DNA_elem_array_size(name, strlen(name));
+					mul = DNA_elem_array_size(name);
 					cpo = cur;
 					while (mul--) {
 						cval = cpo[0]; cpo[0] = cpo[7]; cpo[7] = cval;

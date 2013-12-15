@@ -348,7 +348,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			if (strstr(membername, "["))
 				smember->arraylength = 0;
 			else
-				smember->arraylength = DNA_elem_array_size(smember->name, strlen(smember->name));
+				smember->arraylength = DNA_elem_array_size(smember->name);
 
 			smember->pointerlevel = 0;
 			for (b = 0; dnaname[b] == '*'; b++)

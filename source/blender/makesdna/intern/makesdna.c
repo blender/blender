@@ -201,7 +201,7 @@ static int convert_include(char *filename);
 /**
  * Determine how many bytes are needed for an array.
  */ 
-static int arraysize(char *astr, int len);
+static int arraysize(const char *str);
 
 /**
  * Determine how many bytes are needed for each struct.
@@ -699,19 +699,16 @@ static int convert_include(char *filename)
 	return 0;
 }
 
-static int arraysize(char *astr, int len)
+static int arraysize(const char *str)
 {
 	int a, mul = 1;
-	char str[100], *cp = NULL;
-
-	memcpy(str, astr, len + 1);
+	const char *cp = NULL;
 	
-	for (a = 0; a < len; a++) {
+	for (a = 0; str[a]; a++) {
 		if (str[a] == '[') {
 			cp = &(str[a + 1]);
 		}
 		else if (str[a] == ']' && cp) {
-			str[a] = 0;
 			/* if 'cp' is a preprocessor definition, it will evaluate to 0,
 			 * the caller needs to check for this case and throw an error */
 			mul *= atoi(cp);
@@ -725,7 +722,7 @@ static int calculate_structlens(int firststruct)
 {
 	int a, b, len_native, len_64, unknown = nr_structs, lastunknown, structtype, type, mul, namelen;
 	short *sp, *structpoin;
-	char *cp;
+	const char *cp;
 	int has_pointer, dna_error = 0;
 		
 	while (unknown) {
@@ -756,7 +753,7 @@ static int calculate_structlens(int firststruct)
 						has_pointer = 1;
 						/* has the name an extra length? (array) */
 						mul = 1;
-						if (cp[namelen - 1] == ']') mul = arraysize(cp, namelen);
+						if (cp[namelen - 1] == ']') mul = arraysize(cp);
 
 						if (mul == 0) {
 							printf("Zero array size found or could not parse %s: '%.*s'\n", types[structtype], namelen + 1, cp);
@@ -794,7 +791,7 @@ static int calculate_structlens(int firststruct)
 					else if (typelens_native[type]) {
 						/* has the name an extra length? (array) */
 						mul = 1;
-						if (cp[namelen - 1] == ']') mul = arraysize(cp, namelen);
+						if (cp[namelen - 1] == ']') mul = arraysize(cp);
 
 						if (mul == 0) {
 							printf("Zero array size found or could not parse %s: '%.*s'\n", types[structtype], namelen + 1, cp);
