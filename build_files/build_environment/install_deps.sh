@@ -1843,7 +1843,7 @@ install_DEB() {
         if [ $? -eq 0 ]; then
           install_packages_DEB python$PYTHON_VERSION_MIN-numpy
         elif $NUMPY_REQUIRED; then
-          WANING "Valid python package but no valid numpy package!" \
+          WARNING "Valid python package but no valid numpy package!" \
                  "    Building both Python and Numpy from sources!"
           _do_compile=true
         else
