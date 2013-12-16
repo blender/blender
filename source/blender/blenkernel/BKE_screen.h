@@ -171,6 +171,7 @@ typedef struct PanelType {
 	char label[BKE_ST_MAXNAME];               /* for panel header */
 	char translation_context[BKE_ST_MAXNAME];
 	char context[BKE_ST_MAXNAME];             /* for buttons window */
+	char category[BKE_ST_MAXNAME];            /* for category tabs */
 	int space_type;
 	int region_type;
 

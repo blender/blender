@@ -1568,10 +1568,16 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	Panel *panel;
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
-	int x, y, xco, yco, w, em, triangle, open;
+	int x, y, xco, yco, w, em, triangle;
 	bool is_context_new = 0;
 	int redo;
 	int scroll;
+
+	bool use_category_tabs = (ar->regiontype == RGN_TYPE_TOOLS);  /* XXX, should use some better check? */
+	/* offset panels for small vertical tab area */
+	const char *category = NULL;
+	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
+	int margin_x = 0;
 
 	BLI_SMALLSTACK_DECLARE(pt_stack, PanelType *);
 
@@ -1612,6 +1618,31 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	}
 
 
+	/* collect categories */
+	if (use_category_tabs) {
+		UI_panel_category_clear_all(ar);
+
+		/* gather unique categories */
+		BLI_SMALLSTACK_ITER_BEGIN(pt_stack, pt)
+		{
+			if (pt->category[0]) {
+				if (!UI_panel_category_find(ar, pt->category)) {
+					UI_panel_category_add(ar, pt->category);
+				}
+			}
+		}
+		BLI_SMALLSTACK_ITER_END;
+
+		if (!UI_panel_category_is_visible(ar)) {
+			use_category_tabs = false;
+		}
+		else {
+			category = UI_panel_category_active_get(ar, true);
+			margin_x = category_tabs_width;
+		}
+	}
+
+
 	/* sortof hack - but we cannot predict the height of panels, until it's being generated */
 	/* the layout engine works with fixed width (from v2d->cur), which is being set at end of the loop */
 	/* in case scroller settings (hide flags) differ from previous, the whole loop gets done again */
@@ -1625,6 +1656,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			w = UI_PANEL_WIDTH;
 			em = (ar->type->prefsizex) ? 10 : 20;
 		}
+
+		w -= margin_x;
 		
 		/* create panels */
 		uiBeginPanels(C, ar);
@@ -1634,8 +1667,19 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 		BLI_SMALLSTACK_ITER_BEGIN(pt_stack, pt)
 		{
+			bool open;
+
+			panel = uiPanelFindByType(ar, pt);
+
+			if (pt->category[0] && !STREQ(category, pt->category)) {
+				if ((panel == NULL) || ((panel->flag & PNL_PIN) == 0)) {
+					continue;
+				}
+			}
+
+			/* draw panel */
 			block = uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel = uiBeginPanel(sa, ar, block, pt, &open);
+			panel = uiBeginPanel(sa, ar, block, pt, panel, &open);
 
 			/* bad fixed values */
 			triangle = (int)(UI_UNIT_Y * 1.1f);
@@ -1745,6 +1789,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
 	
+	if (use_category_tabs) {
+		UI_panel_category_draw_all(ar, category);
+	}
+
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);

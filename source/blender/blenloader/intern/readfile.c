@@ -6125,6 +6125,8 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		pa->type = NULL;
 	}
 
+	link_list(fd, &ar->panels_category_active);
+
 	link_list(fd, &ar->ui_lists);
 
 	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
@@ -6161,6 +6163,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->v2d.tab_num = 0;
 	ar->v2d.tab_cur = 0;
 	ar->v2d.sms = NULL;
+	ar->panels_category.first = ar->panels_category.last = NULL;
 	ar->handlers.first = ar->handlers.last = NULL;
 	ar->uiblocks.first = ar->uiblocks.last = NULL;
 	ar->headerstr = NULL;

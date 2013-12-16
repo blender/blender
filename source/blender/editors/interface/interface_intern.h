@@ -124,14 +124,6 @@ enum {
 #define PNL_GRID    (UI_UNIT_Y / 5) /* 4 default */
 #define PNL_HEADER  (UI_UNIT_Y + 4) /* 24 default */
 
-/* panel->flag */
-#define PNL_SELECT  1
-#define PNL_CLOSEDX 2
-#define PNL_CLOSEDY 4
-#define PNL_CLOSED  6
-/*#define PNL_TABBED	8*/ /*UNUSED*/
-#define PNL_OVERLAP 16
-
 /* Button text selection:
  * extension direction, selextend, inside ui_do_but_TEX */
 #define EXTEND_LEFT     1
@@ -505,7 +497,7 @@ struct AutoComplete;
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event, struct ARegion *ar);
-extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, const rcti *rect);
+extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, const rcti *rect, const bool show_pin);
 
 /* interface_draw.c */
 extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
@@ -531,6 +523,7 @@ extern bool ui_button_is_active(struct ARegion *ar);
 extern int ui_button_open_menu_direction(uiBut *but);
 extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore);
 void ui_button_clipboard_free(void);
+void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);

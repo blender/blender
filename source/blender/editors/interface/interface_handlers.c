@@ -5272,6 +5272,25 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	uiPupBlock(C, menu_add_shortcut, but);
 }
 
+/**
+ * menu to chow when right clicking on the panel header
+ */
+void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
+{
+	bScreen *sc = CTX_wm_screen(C);
+	PointerRNA ptr;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	RNA_pointer_create(&sc->id, &RNA_Panel, pa, &ptr);
+
+	pup = uiPupMenuBegin(C, IFACE_("Panel"), ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+	if (UI_panel_category_is_visible(ar)) {
+		uiItemR(layout, &ptr, "use_pin", 0, "Pin" UI_SEP_CHAR_S "Alt+Left Mouse", ICON_NONE);
+	}
+	uiPupMenuEnd(C, pup);
+}
 
 static bool ui_but_menu(bContext *C, uiBut *but)
 {

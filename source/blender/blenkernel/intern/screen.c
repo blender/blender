@@ -173,6 +173,8 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	newar->prev = newar->next = NULL;
 	newar->handlers.first = newar->handlers.last = NULL;
 	newar->uiblocks.first = newar->uiblocks.last = NULL;
+	newar->panels_category.first = newar->panels_category.last = NULL;
+	newar->panels_category_active.first = newar->panels_category_active.last = NULL;
 	newar->ui_lists.first = newar->ui_lists.last = NULL;
 	newar->swinid = 0;
 	
@@ -306,6 +308,8 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		}
 	}
 	BLI_freelistN(&ar->ui_lists);
+	BLI_freelistN(&ar->panels_category);
+	BLI_freelistN(&ar->panels_category_active);
 }
 
 /* not area itself */

@@ -1209,7 +1209,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if (block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
 	else if (block->panel)
-		ui_draw_aligned_panel(&style, block, &rect);
+		ui_draw_aligned_panel(&style, block, &rect, UI_panel_category_is_visible(ar));
 
 	/* widgets */
 	for (but = block->buttons.first; but; but = but->next) {

@@ -980,6 +980,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_define_verify_sdna(TRUE);
 
+	prop = RNA_def_property(srna, "bl_category", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->category");
+	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
@@ -1004,6 +1009,12 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, panel_flag_items);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
+
+	prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PNL_PIN);
+	RNA_def_property_ui_text(prop, "Pin",  "");
+	/* XXX, should only tag region for redraw */
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_uilist(BlenderRNA *brna)

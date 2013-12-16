@@ -45,6 +45,7 @@ struct ListBase;
 struct ARegion;
 struct ARegionType;
 struct ScrArea;
+struct wmEvent;
 struct wmWindow;
 struct wmWindowManager;
 struct wmOperator;
@@ -175,6 +176,8 @@ enum {
 
 #define UI_PANEL_WIDTH          340
 #define UI_COMPACT_PANEL_WIDTH  160
+
+#define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 0.9f)
 
 /* but->drawflag - these flags should only affect how the button is drawn. */
 /* Note: currently, these flags _are not passed_ to the widget's state() or draw() functions
@@ -665,9 +668,22 @@ void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
 void uiEndPanels(const struct bContext *C, struct ARegion *ar, int *x, int *y);
 void uiDrawPanels(const struct bContext *C, struct ARegion *ar);
 
-struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
+struct Panel *uiPanelFindByType(struct ARegion *ar, struct PanelType *pt);
+struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block,
+                           struct PanelType *pt, struct Panel *pa, bool *r_open);
 void uiEndPanel(uiBlock *block, int width, int height);
 void uiScalePanels(struct ARegion *ar, float new_width);
+
+bool                       UI_panel_category_is_visible(struct ARegion *ar);
+void                       UI_panel_category_add(struct ARegion *ar, const char *name);
+struct PanelCategoryDyn   *UI_panel_category_find(struct ARegion *ar, const char *idname);
+struct PanelCategoryStack *UI_panel_category_active_find(struct ARegion *ar, const char *idname);
+const char                *UI_panel_category_active_get(struct ARegion *ar, bool set_fallback);
+void                       UI_panel_category_active_set(struct ARegion *ar, const char *idname);
+struct PanelCategoryDyn   *UI_panel_category_find_mouse_over_ex(struct ARegion *ar, const int x, const int y);
+struct PanelCategoryDyn   *UI_panel_category_find_mouse_over(struct ARegion *ar, const struct wmEvent *event);
+void                       UI_panel_category_clear_all(struct ARegion *ar);
+void                       UI_panel_category_draw_all(struct ARegion *ar, const char *category_id_active);
 
 /* Handlers
  *
