@@ -985,7 +985,11 @@ static bool imagecache_check_free_anim(ImBuf *ibuf, void *UNUSED(userkey), void 
 /* except_frame is weak, only works for seqs without offset... */
 void BKE_image_free_anim_ibufs(Image *ima, int except_frame)
 {
-	IMB_moviecache_cleanup(ima->cache, imagecache_check_free_anim, &except_frame);
+	BLI_spin_lock(&image_spin);
+	if (ima->cache != NULL) {
+		IMB_moviecache_cleanup(ima->cache, imagecache_check_free_anim, &except_frame);
+	}
+	BLI_spin_unlock(&image_spin);
 }
 
 void BKE_image_all_free_anim_ibufs(int cfra)
