@@ -447,6 +447,8 @@ void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *i
 {
 	GHashIterator *iter;
 
+	check_unused_keys(cache);
+
 	iter = BLI_ghashIterator_new(cache->hash);
 	while (!BLI_ghashIterator_done(iter)) {
 		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
@@ -454,7 +456,7 @@ void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *i
 
 		BLI_ghashIterator_step(iter);
 
-		if (item->ibuf == NULL || cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
+		if (cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
 			PRINT("%s: cache '%s' remove item %p\n", __func__, cache->name, item);
 
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
@@ -554,7 +556,11 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 
 struct MovieCacheIter *IMB_moviecacheIter_new(MovieCache *cache)
 {
-	GHashIterator *iter = BLI_ghashIterator_new(cache->hash);
+	GHashIterator *iter;
+
+	check_unused_keys(cache);
+	iter = BLI_ghashIterator_new(cache->hash);
+
 	return (struct MovieCacheIter *) iter;
 }
 
