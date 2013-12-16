@@ -2309,10 +2309,8 @@ void init_userdef_do_versions(void)
 void init_userdef_factory(void)
 {
 	/* defaults from T37518 */
-	U.uiflag2 |= USER_REGION_OVERLAP;
 
 	U.uiflag |= USER_AUTOPERSP;
-	U.uiflag |= USER_ORBIT_SELECTION;
 	U.uiflag |= USER_ZBUF_CURSOR;
 	U.uiflag |= USER_QUIT_PROMPT;
 	U.uiflag |= USER_CONTINUOUS_MOUSE;
