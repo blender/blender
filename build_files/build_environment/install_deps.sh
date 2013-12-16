@@ -2879,10 +2879,8 @@ print_info() {
 
   if [ -d $INST/openexr ]; then
     _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
-    _2="-D OPENEXR_VERSION=$OPENEXR_VERSION"
     PRINT "  $_1"
-    PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs $_1"
   fi
 
   _1="-D WITH_CYCLES_OSL=ON"
