@@ -845,7 +845,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	                         "Track pattern from given frame when tracking marker to next frame");
 
 	/* default_margin */
-	prop = RNA_def_property(srna, "default_margin", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "default_margin", PROP_INT, PROP_PIXEL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "default_margin");
 	RNA_def_property_range(prop, 0, 300);
@@ -986,7 +986,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Units", "Units used for camera focal length");
 
 	/* Principal Point */
-	prop = RNA_def_property(srna, "principal", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "principal", PROP_FLOAT, PROP_PIXEL);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_sdna(prop, NULL, "principal");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1180,7 +1180,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	                         "Track pattern from given frame when tracking marker to next frame");
 
 	/* margin */
-	prop = RNA_def_property(srna, "margin", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "margin", PROP_INT, PROP_PIXEL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "margin");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
