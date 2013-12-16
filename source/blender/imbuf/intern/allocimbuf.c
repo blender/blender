@@ -201,7 +201,7 @@ bool addzbufImBuf(ImBuf *ibuf)
 	
 	IMB_freezbufImBuf(ibuf);
 	
-	size = (size_t)(ibuf->x * ibuf->y) * sizeof(unsigned int);
+	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(unsigned int);
 
 	if ((ibuf->zbuf = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuf;
@@ -220,7 +220,7 @@ bool addzbuffloatImBuf(ImBuf *ibuf)
 	
 	IMB_freezbuffloatImBuf(ibuf);
 	
-	size = (size_t)(ibuf->x * ibuf->y) * sizeof(float);
+	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(float);
 
 	if ((ibuf->zbuf_float = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_zbuffloat;
@@ -300,7 +300,7 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf)
 	if (ibuf->rect_float)
 		imb_freerectfloatImBuf(ibuf);  /* frees mipmap too, hrm */
 	
-	size = (size_t)(ibuf->x * ibuf->y) * sizeof(float[4]);
+	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(float[4]);
 
 	ibuf->channels = 4;
 	if ((ibuf->rect_float = MEM_mapallocN(size, __func__))) {
@@ -324,7 +324,7 @@ bool imb_addrectImBuf(ImBuf *ibuf)
 		MEM_freeN(ibuf->rect);
 	ibuf->rect = NULL;
 	
-	size = (size_t)(ibuf->x * ibuf->y) * sizeof(unsigned int);
+	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(unsigned int);
 
 	if ((ibuf->rect = MEM_mapallocN(size, __func__))) {
 		ibuf->mall |= IB_rect;

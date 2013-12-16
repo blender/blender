@@ -682,7 +682,6 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
-		rect_float = ibuf->rect_float;
 
 		if (colorspace_settings->name[0] == '\0') {
 			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
@@ -690,11 +689,13 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
 		}
 
-		IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
+		if (ibuf != NULL) {
+			rect_float = ibuf->rect_float;
+			IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
+		}
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
-		rect = (unsigned char *)ibuf->rect;
 
 		if (colorspace_settings->name[0] == '\0') {
 			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
@@ -702,7 +703,14 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
 		}
 
-		IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
+		if (ibuf != NULL) {
+			rect = (unsigned char *)ibuf->rect;
+			IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
+		}
+	}
+
+	if (!ibuf) {
+		return NULL;
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
