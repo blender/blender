@@ -917,7 +917,7 @@ static int region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
 				if (ELEM3(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
 					return 1;
 			}
-			else if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
+			else if (sa->spacetype == SPACE_IMAGE) {
 				if (ELEM4(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
 					return 1;
 			}
