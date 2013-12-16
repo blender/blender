@@ -454,7 +454,7 @@ void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *i
 
 		BLI_ghashIterator_step(iter);
 
-		if (cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
+		if (item->ibuf == NULL || cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
 			PRINT("%s: cache '%s' remove item %p\n", __func__, cache->name, item);
 
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
