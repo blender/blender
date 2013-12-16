@@ -837,7 +837,6 @@ void assign_material_id(ID *id, Material *ma, short act)
 void assign_material(Object *ob, Material *ma, short act, int assign_type)
 {
 	Material *mao, **matar, ***matarar;
-	char *matbits;
 	short *totcolp;
 	char bit = 0;
 
@@ -889,16 +888,8 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 
 	if (act > ob->totcol) {
 		/* Need more space in the material arrays */
-		matar = MEM_callocN(sizeof(void *) * act, "matarray2");
-		matbits = MEM_callocN(sizeof(char) * act, "matbits1");
-		if (ob->totcol) {
-			memcpy(matar, ob->mat, sizeof(void *) * ob->totcol);
-			memcpy(matbits, ob->matbits, sizeof(char) * (*totcolp));
-			MEM_freeN(ob->mat);
-			MEM_freeN(ob->matbits);
-		}
-		ob->mat = matar;
-		ob->matbits = matbits;
+		ob->mat = MEM_recallocN_id(ob->mat, sizeof(void *) * act, "matarray2");
+		ob->matbits = MEM_recallocN_id(ob->matbits, sizeof(char) * act, "matbits1");
 		ob->totcol = act;
 	}
 	
