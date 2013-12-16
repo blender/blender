@@ -969,10 +969,11 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 	but->ofs = 0;
 	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
 
-	while (but->strwidth > okwidth) {
-		ui_text_clip_give_next_off(but);
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
-		if (but->strwidth < 10) break;
+	if (but->strwidth > okwidth) {
+		float strwidth;
+		but->ofs = BLF_width_to_rstrlen(fstyle->uifont_id, but->drawstr,
+		                                sizeof(but->drawstr), okwidth, &strwidth);
+		but->strwidth = strwidth;
 	}
 
 	if (fstyle->kerning == 1) {
@@ -1102,17 +1103,12 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 
 	/* Now just remove trailing chars */
 	/* once the label's gone, chop off the least significant digits */
-	while (but->strwidth > okwidth) {
-		int bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + drawstr_len));
-		if (bytes < 0)
-			bytes = 1;
-
-		drawstr_len -= bytes;
+	if (but->strwidth > okwidth) {
+		float strwidth;
+		drawstr_len = BLF_width_to_strlen(fstyle->uifont_id, but->drawstr + but->ofs,
+		                                  drawstr_len - but->ofs, okwidth, &strwidth) + but->ofs;
+		but->strwidth = strwidth;
 		but->drawstr[drawstr_len] = 0;
-		// BLI_assert(strlen(but->drawstr) == drawstr_len);
-		
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
-		if (but->strwidth < 10) break;
 	}
 	
 	if (fstyle->kerning == 1)
