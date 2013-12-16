@@ -49,6 +49,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
+#include "BLI_alloca.h"
 #include "BLI_linklist.h"  /* linknode */
 #include "BLI_strict_flags.h"
 
@@ -413,6 +414,134 @@ void blf_font_buffer(FontBLF *font, const char *str)
 		pen_x += (int)g->advance;
 		g_prev = g;
 	}
+}
+
+size_t blf_font_width_to_strlen(FontBLF *font, const char *str, size_t len, float width, float *r_width)
+{
+	unsigned int c;
+	GlyphBLF *g, *g_prev = NULL;
+	FT_Vector delta;
+	int pen_x = 0;
+	size_t i = 0, i_prev;
+	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
+	const int width_i = (int)width + 1;
+	int width_new;
+
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
+
+	blf_font_ensure_ascii_table(font);
+
+	while ((i_prev = i), (width_new = pen_x), ((i < len) && str[i]))
+	{
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
+
+		if (c == BLI_UTF8_ERR)
+			break;
+		if (g == NULL)
+			continue;
+		if (has_kerning)
+			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+
+		pen_x += (int)g->advance;
+
+		if (width_i < pen_x) {
+			break;
+		}
+
+		g_prev = g;
+	}
+
+	if (r_width) {
+		*r_width = (float)width_new;
+	}
+
+	return i_prev;
+}
+
+size_t blf_font_width_to_rstrlen(FontBLF *font, const char *str, size_t len, float width, float *r_width)
+{
+	unsigned int c;
+	GlyphBLF *g, *g_prev = NULL;
+	FT_Vector delta;
+	int pen_x = 0;
+	size_t i = 0, i_prev;
+	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
+	const int width_i = (int)width + 1;
+	int width_new;
+
+	bool is_malloc;
+	int (*width_accum)[2];
+	int width_accum_ofs = 0;
+
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
+
+	/* skip allocs in simple cases */
+	len = BLI_strnlen(str, len);
+	if (width_i <= 1 || len == 0) {
+		if (r_width) {
+			*r_width = 0.0f;
+		}
+		return len;
+	}
+
+	if (len < 2048) {
+		width_accum = BLI_array_alloca(width_accum, len);
+		is_malloc = false;
+	}
+	else {
+		width_accum = MEM_mallocN(sizeof(*width_accum) * len, __func__);
+		is_malloc = true;
+	}
+
+	blf_font_ensure_ascii_table(font);
+
+	while ((i < len) && str[i]) {
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
+
+		if (c == BLI_UTF8_ERR)
+			break;
+		if (g == NULL)
+			continue;
+		if (has_kerning)
+			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+
+		pen_x += (int)g->advance;
+
+		width_accum[width_accum_ofs][0] = (int)i;
+		width_accum[width_accum_ofs][1] = pen_x;
+		width_accum_ofs++;
+
+		g_prev = g;
+	}
+
+	if (pen_x > width_i && width_accum_ofs != 0) {
+		const int min_x = pen_x - width_i;
+
+		/* search backwards */
+		width_new = pen_x;
+		while (width_accum_ofs-- > 0) {
+			if (min_x > width_accum[width_accum_ofs][1]) {
+				break;
+			}
+		}
+		width_accum_ofs++;
+		width_new = pen_x - width_accum[width_accum_ofs][1];
+		i_prev = (size_t)width_accum[width_accum_ofs][0];
+	}
+	else {
+		width_new = pen_x;
+		i_prev = 0;
+	}
+
+	if (is_malloc) {
+		MEM_freeN(width_accum);
+	}
+
+	if (r_width) {
+		*r_width = (float)width_new;
+	}
+
+	return i_prev;
 }
 
 void blf_font_boundbox(FontBLF *font, const char *str, size_t len, rctf *box)
