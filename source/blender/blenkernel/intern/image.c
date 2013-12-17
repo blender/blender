@@ -2277,6 +2277,15 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 						IMB_freeImBuf(ibuf);
 					}
 				}
+
+				/* Changing source type to generated will likely change file format
+				 * used by generated image buffer. Saving different file format to
+				 * the old name might confuse other applications.
+				 *
+				 * Here we ensure original image path wouldn't be used when saving
+				 * generated image.
+				 */
+				ima->name[0] = '\0';
 			}
 
 #if 0
