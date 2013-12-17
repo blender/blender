@@ -86,7 +86,7 @@ static string opencl_kernel_build_options(const string& platform, const string *
 		build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=32 -cl-nv-verbose ";
 
 	else if(platform == "Apple")
-		build_options += "-D__KERNEL_OPENCL_APPLE__ -Wno-missing-prototypes ";
+		build_options += "-D__KERNEL_OPENCL_APPLE__ ";
 
 	else if(platform == "AMD Accelerated Parallel Processing")
 		build_options += "-D__KERNEL_OPENCL_AMD__ ";
