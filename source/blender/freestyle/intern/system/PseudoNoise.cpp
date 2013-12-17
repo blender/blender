@@ -25,14 +25,14 @@
  *  \date 16/06/2003
  */
 
-#include <math.h>
+#include "BLI_math.h"
 
 #include "PseudoNoise.h"
 #include "RandGen.h"
 
 static int modf_to_index(Freestyle::real x, unsigned int range)
 {
-	if (isfinite(x)) {
+	if (finite(x)) {
 		Freestyle::real tmp;
 		int i = abs((int)(modf(x, &tmp) * range));
 		BLI_assert(i >= 0 && i < range);
