@@ -243,6 +243,9 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_bake_image);
 	WM_operatortype_append(OBJECT_OT_drop_named_material);
 	WM_operatortype_append(OBJECT_OT_laplaciandeform_bind);
+
+	WM_operatortype_append(OBJECT_OT_lod_add);
+	WM_operatortype_append(OBJECT_OT_lod_remove);
 }
 
 void ED_operatormacros_object(void)

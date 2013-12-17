@@ -809,6 +809,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 				case ND_CONSTRAINT:
 				case ND_KEYS:
 				case ND_PARTICLE:
+				case ND_LOD:
 					ED_region_tag_redraw(ar);
 					break;
 			}

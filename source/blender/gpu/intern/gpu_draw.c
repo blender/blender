@@ -1392,6 +1392,8 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	int gamma = BKE_scene_check_color_management_enabled(scene);
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	int use_matcap = (v3d->flag2 & V3D_SHOW_SOLID_MATCAP); /* assumes v3d->defmaterial->preview is set */
+
+	ob = BKE_object_lod_matob_get(ob, scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));

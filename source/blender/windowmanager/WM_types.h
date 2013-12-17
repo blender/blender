@@ -297,6 +297,7 @@ typedef struct wmNotifier {
 #define ND_PARTICLE			(27<<16)
 #define ND_POINTCACHE		(28<<16)
 #define ND_PARENT			(29<<16)
+#define ND_LOD				(30<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)

@@ -255,5 +255,9 @@ void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 /* object_bake.c */
 void OBJECT_OT_bake_image(wmOperatorType *ot);
 
+/* object_lod.c */
+void OBJECT_OT_lod_add(struct wmOperatorType *ot);
+void OBJECT_OT_lod_remove(struct wmOperatorType *ot);
+
 #endif /* __OBJECT_INTERN_H__ */
 

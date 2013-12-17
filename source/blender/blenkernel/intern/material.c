@@ -675,7 +675,7 @@ Material *give_current_material(Object *ob, short act)
 {
 	Material ***matarar, *ma;
 	short *totcolp;
-	
+
 	if (ob == NULL) return NULL;
 	
 	/* if object cannot have material, (totcolp == NULL) */

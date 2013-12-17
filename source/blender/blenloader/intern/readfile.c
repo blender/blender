@@ -4492,6 +4492,16 @@ static void lib_link_object(FileData *fd, Main *main)
 				ob->rigidbody_constraint->ob1 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob1);
 				ob->rigidbody_constraint->ob2 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob2);
 			}
+
+			{
+				LodLevel *level;
+				for (level = ob->lodlevels.first; level; level = level->next) {
+					level->source = newlibadr(fd, ob->id.lib, level->source);
+
+					if (!level->source && level == ob->lodlevels.first)
+						level->source = ob;
+				}
+			}
 		}
 	}
 	
@@ -5026,6 +5036,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	if (ob->sculpt) {
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
+
+	link_list(fd, &ob->lodlevels);
+	ob->currentlod = ob->lodlevels.first;
 }
 
 /* ************ READ SCENE ***************** */
@@ -8396,6 +8409,12 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->rigidbody_constraint->ob2);
 	}
 
+	if (ob->currentlod) {
+		LodLevel *level;
+		for (level = ob->lodlevels.first; level; level = level->next) {
+			expand_doit(fd, mainvar, level->source);
+		}
+	}
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)

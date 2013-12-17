@@ -105,6 +105,13 @@ enum {
 	BOUNDBOX_DIRTY  = (1 << 1),
 };
 
+typedef struct LodLevel {
+	struct LodLevel *next, *prev;
+	struct Object *source;
+	int flags;
+	float distance;
+} LodLevel;
+
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
@@ -278,6 +285,9 @@ typedef struct Object {
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
+
+	ListBase lodlevels;		/* contains data for levels of detail */
+	LodLevel *currentlod;
 
 	/* Runtime valuated curve-specific data, not stored in the file */
 	struct CurveCache *curve_cache;
@@ -468,6 +478,12 @@ enum {
 	OB_BOUND_CONVEX_HULL   = 5,
 /*	OB_BOUND_DYN_MESH      = 6, */ /*UNUSED*/
 	OB_BOUND_CAPSULE       = 7,
+};
+
+/* lod flags */
+enum {
+	OB_LOD_USE_MESH		= 1 << 0,
+	OB_LOD_USE_MAT		= 1 << 1,
 };
 
 

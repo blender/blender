@@ -71,6 +71,8 @@ typedef unsigned long uint_ptr;
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 #include "KX_ObstacleSimulation.h"
 
+#include "BKE_object.h"
+
 #include "BL_ActionManager.h"
 #include "BL_Action.h"
 
@@ -730,6 +732,43 @@ void KX_GameObject::RemoveMeshes()
 	//note: meshes can be shared, and are deleted by KX_BlenderSceneConverter
 
 	m_meshes.clear();
+}
+
+void KX_GameObject::AddLodMesh(RAS_MeshObject* mesh)
+{
+	m_lodmeshes.push_back(mesh);
+}
+
+void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
+{
+	// Handle dupligroups
+	if (this->m_pInstanceObjects) {
+		KX_GameObject * instob;
+		int count = this->m_pInstanceObjects->GetCount();
+		for (int i = 0; i < count; i++) {
+			instob = (KX_GameObject*)this->m_pInstanceObjects->GetValue(i);
+			instob->UpdateLod(cam_pos);
+		}
+	}
+
+	if (this->m_lodmeshes.empty()) return;
+
+	MT_Vector3 delta = this->NodeGetWorldPosition() - cam_pos;
+	float distance2 = delta.length2();
+
+	int level = 0;
+	Object *bob = this->GetBlenderObject();
+	LodLevel *lod = (LodLevel*) bob->lodlevels.first;
+	for (; lod; lod = lod->next, level++) {
+		if (!lod->source) level--;
+		if (!lod->next || lod->next->distance * lod->next->distance > distance2) break;
+	}
+
+	RAS_MeshObject *mesh = this->m_lodmeshes[level];
+
+	if (mesh != this->m_meshes[0]) {
+		this->GetScene()->ReplaceMesh(this, mesh, true, false);
+	}
 }
 
 void KX_GameObject::UpdateTransform()

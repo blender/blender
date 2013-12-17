@@ -1956,6 +1956,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
+	LodLevel *savedlod;
 	DupliObject *dob_prev = NULL, *dob, *dob_next = NULL;
 	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
@@ -1975,6 +1976,13 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object = dob->ob;
+
+		/* Make sure lod is updated from dupli's position */
+
+		copy_m4_m4(dob->ob->obmat, dob->mat);
+		savedlod = dob->ob->currentlod;
+		BKE_object_lod_update(dob->ob, rv3d->viewinv[3]);
+		
 
 		/* extra service: draw the duplicator in drawtype of parent, minimum taken
 		 * to allow e.g. boundbox box objects in groups for LOD */
@@ -2051,13 +2059,13 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			glLoadMatrixf(rv3d->viewmat);
 		}
 		else {
-			copy_m4_m4(dob->ob->obmat, dob->mat);
 			draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
 		}
 
 		tbase.object->dt = dt;
 		tbase.object->dtx = dtx;
 		tbase.object->transflag = transflag;
+		tbase.object->currentlod = savedlod;
 	}
 	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
@@ -3183,6 +3191,18 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 	}
 }
 
+static void update_lods(Scene *scene, float camera_pos[3])
+{
+	Scene *sce_iter;
+	Base *base;
+	Object *ob;
+
+	for (SETLOOPER(scene, sce_iter, base)) {
+		ob = base->object;
+		BKE_object_lod_update(ob, camera_pos);
+	}
+}
+
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
 {
@@ -3204,6 +3224,9 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	/* Make sure LoDs are up to date */
+	update_lods(scene, rv3d->viewinv[3]);
 
 	/* clear the background */
 	view3d_main_area_clear(scene, v3d, ar);

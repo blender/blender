@@ -3359,7 +3359,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
                             const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
-	Object *ob = base->object;
+	Object *ob = BKE_object_lod_meshob_get(base->object, scene);
 	Mesh *me = ob->data;
 	Material *ma = give_current_material(ob, 1);
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO) && !BKE_scene_use_new_shading_nodes(scene));

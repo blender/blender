@@ -544,6 +544,9 @@ public:
 
 	// Resume a suspended scene.
 	void Resume();
+
+	// Update the mesh for objects based on level of detail settings
+	void UpdateObjectLods(void);
 	
 	// Update the activity box settings for objects in this scene, if needed.
 	void UpdateObjectActivity(void);
