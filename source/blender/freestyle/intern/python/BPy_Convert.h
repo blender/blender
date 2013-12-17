@@ -165,7 +165,7 @@ bool Vec2f_ptr_from_PyTuple(PyObject *obj, Vec2f *vec);
 bool Vec3f_ptr_from_PyTuple(PyObject *obj, Vec3f *vec);
 bool Vec3r_ptr_from_PyTuple(PyObject *obj, Vec3r *vec);
 
-int float_array_from_PyObject(PyObject *obj, float *v, int n);
+bool float_array_from_PyObject(PyObject *obj, float *v, int n);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
