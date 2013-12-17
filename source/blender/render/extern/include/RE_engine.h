@@ -132,7 +132,7 @@ void RE_result_load_from_file(struct RenderResult *result, struct ReportList *re
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int merge_results);
 
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);

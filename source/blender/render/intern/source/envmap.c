@@ -168,8 +168,8 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	copy_m4_m4(envre->viewmat_orig, re->viewmat_orig);
 	
 	/* callbacks */
-	envre->display_draw = re->display_draw;
-	envre->ddh = re->ddh;
+	envre->display_update = re->display_update;
+	envre->duh = re->duh;
 	envre->test_break = re->test_break;
 	envre->tbh = re->tbh;
 	

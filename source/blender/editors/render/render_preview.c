@@ -625,7 +625,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 /* **************************** new shader preview system ****************** */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_draw(void *spv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
+static void shader_preview_update(void *spv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
 {
 	ShaderPreview *sp = spv;
 	
@@ -734,7 +734,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* callbacs are cleared on GetRender() */
 	if (ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
-		RE_display_draw_cb(re, sp, shader_preview_draw);
+		RE_display_update_cb(re, sp, shader_preview_update);
 	}
 	/* set this for all previews, default is react to G.is_break still */
 	RE_test_break_cb(re, sp, shader_preview_break);

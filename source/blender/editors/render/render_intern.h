@@ -35,6 +35,7 @@
 struct wmOperatorType;
 struct RenderResult;
 struct Scene;
+struct ScrArea;
 
 /* render_shading.c */
 void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);
@@ -86,11 +87,8 @@ void RENDER_OT_render(struct wmOperatorType *ot);
 void render_view3d_update(struct RenderEngine *engine, const struct bContext *C);
 void render_view3d_draw(struct RenderEngine *engine, const struct bContext *C);
 
-/* render_opengl.c uses this */
-void image_buffer_rect_update(struct Scene *scene, struct RenderResult *rr, struct ImBuf *ibuf, volatile struct rcti *renrect);
-
 /* render_view.c */
-void render_view_open(struct bContext *C, int mx, int my);
+struct ScrArea *render_view_open(struct bContext *C, int mx, int my);
 
 void RENDER_OT_view_show(struct wmOperatorType *ot);
 void RENDER_OT_view_cancel(struct wmOperatorType *ot);

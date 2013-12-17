@@ -94,11 +94,17 @@
 static int render_break(void *rjv);
 
 /* called inside thread! */
-void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volatile rcti *renrect)
+static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, ImageUser *iuser, volatile rcti *renrect)
 {
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
+	int linear_stride, linear_offset_x, linear_offset_y;
+
+	if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
+		/* The whole image buffer it so be color managed again anyway. */
+		return;
+	}
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
@@ -138,33 +144,55 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 	if (xmax < 1 || ymax < 1) return;
 
-	/* find current float rect for display, first case is after composite... still weak */
-	if (rr->rectf)
-		rectf = rr->rectf;
-	else {
-		if (rr->rect32) {
-			/* special case, currently only happens with sequencer rendering,
-			 * which updates the whole frame, so we can only mark display buffer
-			 * as invalid here (sergey)
-			 */
-			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-			return;
-		}
+	/* The thing here is, the logic below (which was default behavior
+	 * of how rectf is acquiring since forever) gives float buffer for
+	 * composite output only. This buffer can not be used for other
+	 * passes obviously.
+	 *
+	 * We might try finding corresponding for pass buffer in render result
+	 * (which is actually missing when rendering with Cycles, who only
+	 * writes all the passes when the tile is finished) or use float
+	 * buffer from image buffer as reference, which is easier to use and
+	 * contains all the data we need anyway.
+	 *                                              - sergey -
+	 */
+	/* TODO(sergey): Need to check has_combined here? */
+	if (iuser->pass == 0) {
+		/* find current float rect for display, first case is after composite... still weak */
+		if (rr->rectf)
+			rectf = rr->rectf;
 		else {
-			if (rr->renlay == NULL || rr->renlay->rectf == NULL) return;
-			rectf = rr->renlay->rectf;
+			if (rr->rect32) {
+				/* special case, currently only happens with sequencer rendering,
+				 * which updates the whole frame, so we can only mark display buffer
+				 * as invalid here (sergey)
+				 */
+				ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+				return;
+			}
+			else {
+				if (rr->renlay == NULL || rr->renlay->rectf == NULL) return;
+				rectf = rr->renlay->rectf;
+			}
 		}
+		if (rectf == NULL) return;
+
+		rectf += 4 * (rr->rectx * ymin + xmin);
+		linear_stride = rr->rectx;
+		linear_offset_x = rxmin;
+		linear_offset_y = rymin;
 	}
-	if (rectf == NULL) return;
+	else {
+		rectf = ibuf->rect_float;
+		linear_stride = ibuf->x;
+		linear_offset_x = 0;
+		linear_offset_y = 0;
+	}
 
-	if (ibuf->rect == NULL)
-		imb_addrectImBuf(ibuf);
-
-	rectf += 4 * (rr->rectx * ymin + xmin);
-
-	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
+	IMB_partial_display_buffer_update(ibuf, rectf, NULL,
+	                                  linear_stride, linear_offset_x, linear_offset_y,
 	                                  &scene->view_settings, &scene->display_settings,
-	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, true);
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, false);
 }
 
 /* ****************************** render invoking ***************** */
@@ -262,7 +290,6 @@ typedef struct RenderJob {
 	Main *main;
 	Scene *scene;
 	Render *re;
-	wmWindow *win;
 	SceneRenderLayer *srl;
 	struct Object *camera_override;
 	int lay_override;
@@ -275,6 +302,9 @@ typedef struct RenderJob {
 	short *do_update;
 	float *progress;
 	ReportList *reports;
+	int orig_layer;
+	int last_layer;
+	ScrArea *sa;
 } RenderJob;
 
 static void render_freejob(void *rjv)
@@ -402,6 +432,64 @@ static void render_progress_update(void *rjv, float progress)
 	}
 }
 
+/* Not totally reliable, but works fine in most of cases and
+ * in worst case would just make it so extra color management
+ * for the whole render result is applied (which was already
+ * happening already).
+ */
+static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, ImageUser *iuser)
+{
+	wmWindowManager *wm;
+	ScrArea *first_sa = NULL, *matched_sa = NULL;
+
+	/* image window, compo node users */
+	for (wm = rj->main->wm.first; wm && matched_sa == NULL; wm = wm->id.next) { /* only 1 wm */
+		wmWindow *win;
+		for (win = wm->windows.first; win && matched_sa == NULL; win = win->next) {
+			ScrArea *sa;
+			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+				if (sa->spacetype == SPACE_IMAGE) {
+					SpaceImage *sima = sa->spacedata.first;
+					if (sima->image == rj->image) {
+						if (first_sa == NULL) {
+							first_sa = sa;
+						}
+						if (sa == rj->sa) {
+							matched_sa = sa;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (matched_sa == NULL) {
+		matched_sa = first_sa;
+	}
+
+	if (matched_sa) {
+		SpaceImage *sima = matched_sa->spacedata.first;
+		RenderResult *main_rr = RE_AcquireResultRead(rj->re);
+
+		/* TODO(sergey): is there faster way to get the layer index? */
+		if (rr->renlay) {
+			int layer = BLI_findstringindex(&main_rr->layers,
+			                                (char *)rr->renlay->name,
+			                                offsetof(RenderLayer, name));
+			if (layer != rj->last_layer) {
+				sima->iuser.layer = layer;
+				rj->last_layer = layer;
+			}
+		}
+
+		iuser->pass = sima->iuser.pass;
+		iuser->layer = sima->iuser.layer;
+
+		RE_ReleaseResult(rj->re);
+	}
+}
+
 static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
 {
 	RenderJob *rj = rjv;
@@ -423,9 +511,17 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	}
 
 	/* update part of render */
+	render_image_update_pass_and_layer(rj, rr, &rj->iuser);
 	ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
 	if (ibuf) {
-		image_buffer_rect_update(rj->scene, rr, ibuf, renrect);
+		/* Don't waste time on CPU side color management if
+		 * image will be displayed using GLSL.
+		 */
+		if (ibuf->channels == 1 ||
+		    U.image_draw_method != IMAGE_DRAW_METHOD_GLSL)
+		{
+			image_buffer_rect_update(rj->scene, rr, ibuf, &rj->iuser, renrect);
+		}
 
 		/* make jobs timer to send notifier */
 		*(rj->do_update) = TRUE;
@@ -449,6 +545,28 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay_override, rj->scene->r.cfra, rj->write_still);
 
 	RE_SetReports(rj->re, NULL);
+}
+
+static void render_image_restore_layer(RenderJob *rj)
+{
+	wmWindowManager *wm;
+
+	/* image window, compo node users */
+	for (wm = rj->main->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+		wmWindow *win;
+		for (win = wm->windows.first; win; win = win->next) {
+			ScrArea *sa;
+			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+				if (sa == rj->sa) {
+					if (sa->spacetype == SPACE_IMAGE) {
+						SpaceImage *sima = sa->spacedata.first;
+						sima->iuser.layer = rj->orig_layer;
+					}
+					return;
+				}
+			}
+		}
+	}
 }
 
 static void render_endjob(void *rjv)
@@ -479,6 +597,10 @@ static void render_endjob(void *rjv)
 	if (rj->srl) {
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
+	}
+
+	if (rj->sa) {
+		render_image_restore_layer(rj);
 	}
 
 	/* XXX render stability hack */
@@ -592,6 +714,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
 	Object *active_object = CTX_data_active_object(C);
+	ScrArea *sa;
 	
 	/* only one render job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
@@ -644,7 +767,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	// store spare
 
 	/* ensure at least 1 area shows result */
-	render_view_open(C, event->x, event->y);
+	sa = render_view_open(C, event->x, event->y);
 
 	jobflag = WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS;
 	
@@ -658,7 +781,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj = MEM_callocN(sizeof(RenderJob), "render job");
 	rj->main = mainp;
 	rj->scene = scene;
-	rj->win = CTX_wm_window(C);
 	rj->srl = srl;
 	rj->camera_override = camera_override;
 	rj->lay_override = 0;
@@ -667,6 +789,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->iuser.scene = scene;
 	rj->iuser.ok = 1;
 	rj->reports = op->reports;
+	rj->orig_layer = 0;
+	rj->last_layer = 0;
+	rj->sa = sa;
+
+	if (sa) {
+		SpaceImage *sima = sa->spacedata.first;
+		rj->orig_layer = sima->iuser.layer;
+	}
 
 	if (v3d) {
 		if (scene->lay != v3d->lay) {
@@ -699,7 +829,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	re = RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_draw_lock_cb(re, rj, render_drawlock);
-	RE_display_draw_cb(re, rj, image_rect_update);
+	RE_display_update_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
 	RE_progress_cb(re, rj, render_progress_update);
 
@@ -850,7 +980,7 @@ static int render_view3d_break(void *rpv)
 	return *(rp->stop);
 }
 
-static void render_view3d_draw_update(void *rpv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
+static void render_view3d_display_update(void *rpv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
 {
 	RenderPreview *rp = rpv;
 	
@@ -908,7 +1038,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	
 	/* set this always, rp is different for each job */
 	RE_test_break_cb(re, rp, render_view3d_break);
-	RE_display_draw_cb(re, rp, render_view3d_draw_update);
+	RE_display_update_cb(re, rp, render_view3d_display_update);
 	RE_stats_draw_cb(re, rp, render_view3d_renderinfo_cb);
 	
 	rstats = RE_GetStats(re);

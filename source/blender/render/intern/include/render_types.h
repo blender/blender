@@ -252,8 +252,8 @@ struct Render
 	void *dih;
 	void (*display_clear)(void *handle, RenderResult *rr);
 	void *dch;
-	void (*display_draw)(void *handle, RenderResult *rr, volatile rcti *rect);
-	void *ddh;
+	void (*display_update)(void *handle, RenderResult *rr, volatile rcti *rect);
+	void *duh;
 	
 	void (*stats_draw)(void *handle, RenderStats *ri);
 	void *sdh;

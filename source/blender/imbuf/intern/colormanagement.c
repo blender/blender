@@ -1887,6 +1887,13 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 	bool requires_linear_float = BKE_imtype_requires_linear_float(image_format_data->imtype);
 	bool do_alpha_under = image_format_data->planes != R_IMF_PLANES_RGBA;
 
+	if (ibuf->rect_float && ibuf->rect &&
+	    (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0)
+	{
+		IMB_rect_from_float(ibuf);
+		ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
+	}
+
 	do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
 
 	if (do_colormanagement || do_alpha_under) {
@@ -2663,7 +2670,18 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				float pixel[4];
 
 				if (linear_buffer) {
-					copy_v4_v4(pixel, (float *) linear_buffer + linear_index);
+					if (channels == 4) {
+						copy_v4_v4(pixel, (float *) linear_buffer + linear_index);
+					}
+					else if (channels == 3) {
+						copy_v3_v3(pixel, (float *) linear_buffer + linear_index);
+					}
+					else if (channels == 1) {
+						pixel[0] = linear_buffer[linear_index];
+					}
+					else {
+						BLI_assert(!"Unsupported number of channels in partial buffer update");
+					}
 				}
 				else if (byte_buffer) {
 					rgba_uchar_to_float(pixel, byte_buffer + linear_index);
@@ -2678,12 +2696,32 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				if (display_buffer_float) {
 					int index = ((y - ymin) * width + (x - xmin)) * channels;
 
-					copy_v4_v4(display_buffer_float + index, pixel);
+					if (channels == 4) {
+						copy_v4_v4(display_buffer_float + index, pixel);
+					}
+					else if (channels == 3) {
+						copy_v3_v3(display_buffer_float + index, pixel);
+					}
+					else /* if (channels == 1) */ {
+						display_buffer_float[index] = pixel[0];
+					}
 				}
 				else {
-					float pixel_straight[4];
-					premul_to_straight_v4_v4(pixel_straight, pixel);
-					rgba_float_to_uchar(display_buffer + display_index, pixel_straight);
+					if (channels == 4) {
+						float pixel_straight[4];
+						premul_to_straight_v4_v4(pixel_straight, pixel);
+						rgba_float_to_uchar(display_buffer + display_index, pixel_straight);
+					}
+					else if (channels == 3) {
+						rgb_float_to_uchar(display_buffer + display_index, pixel);
+						display_buffer[display_index + 1] = 255;
+					}
+					else /* if (channels == 1) */ {
+						display_buffer[display_index] =
+							display_buffer[display_index + 1] =
+							display_buffer[display_index + 2] =
+							display_buffer[display_index + 3] = FTOCHAR(pixel[0]);
+					}
 				}
 			}
 		}
@@ -2729,7 +2767,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		int channels = ibuf->channels;
 		int width = xmax - xmin;
 		int height = ymax - ymin;
-		int rect_index = (ymin * ibuf->x + xmin) * channels;
+		int rect_index = (ymin * ibuf->x + xmin) * 4;
 		int linear_index = ((ymin - offset_y) * stride + (xmin - offset_x)) * channels;
 
 		IMB_buffer_byte_from_float(rect + rect_index, linear_buffer + linear_index, channels, ibuf->dither,

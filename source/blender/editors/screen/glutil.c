@@ -1050,39 +1050,6 @@ void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
 	/* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
 	force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
 
-	/* This is actually lots of crap, but currently not sure about
-	 * more clear way to bypass partial buffer update crappyness
-	 * while rendering.
-	 *
-	 * The thing is -- render engines are only updating byte and
-	 * display buffers for active render result opened in image
-	 * editor. This works fine to show render progress without
-	 * switching render layers in image editor user, but this is
-	 * completely useless for GLSL display, where we need to have
-	 * original buffer which we could color manage.
-	 *
-	 * For the time of rendering, we'll stick back to slower CPU
-	 * display buffer update. GLSL could be used as soon as some
-	 * fixes (?) are done in render itself, so we'll always have
-	 * image buffer with relevant float buffer opened while
-	 * rendering.
-	 *
-	 * On the other hand, when using Cycles, stressing GPU with
-	 * GLSL could backfire on a performance.
-	 *                                         - sergey -
-	 */
-	if (G.is_rendering) {
-		/* Try to detect whether we're drawing render result,
-		 * other images could have both rect and rect_float
-		 * but they'll be synchronized
-		 */
-		if (ibuf->rect_float && ibuf->rect &&
-		    ((ibuf->mall & IB_rectfloat) == 0))
-		{
-			force_fallback = true;
-		}
-	}
-
 	/* Try to draw buffer using GLSL display transform */
 	if (force_fallback == false) {
 		int ok;

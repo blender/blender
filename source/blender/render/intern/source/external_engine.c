@@ -235,11 +235,11 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 
 	if (result) {
 		result->renlay = result->layers.first; /* weak, draws first layer always */
-		re->display_draw(re->ddh, result, NULL);
+		re->display_update(re->duh, result, NULL);
 	}
 }
 
-void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel)
+void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel, int merge_results)
 {
 	Render *re = engine->re;
 
@@ -260,7 +260,9 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 			 * buffers, we are going to get openexr save errors */
 			fprintf(stderr, "RenderEngine.end_result: dimensions do not match any OpenEXR tile.\n");
 		}
+	}
 
+	if (!cancel || merge_results) {
 		if (re->result->do_exr_tile)
 			render_result_exr_file_merge(re->result, result);
 		else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW)))
@@ -269,7 +271,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 		/* draw */
 		if (!re->test_break(re->tbh)) {
 			result->renlay = result->layers.first; /* weak, draws first layer always */
-			re->display_draw(re->ddh, result, NULL);
+			re->display_update(re->duh, result, NULL);
 		}
 	}
 
