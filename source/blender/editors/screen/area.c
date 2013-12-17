@@ -1671,7 +1671,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 			panel = uiPanelFindByType(ar, pt);
 
-			if (pt->category[0] && !STREQ(category, pt->category)) {
+			if (use_category_tabs && pt->category[0] && !STREQ(category, pt->category)) {
 				if ((panel == NULL) || ((panel->flag & PNL_PIN) == 0)) {
 					continue;
 				}
