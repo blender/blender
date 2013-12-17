@@ -81,6 +81,15 @@ struct FCurve *verify_fcurve(struct bAction *act, const char group[], struct Poi
 /* -------- */
 
 /* Lesser Keyframing API call:
+ *  Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,
+ *  but also through RNA when editing an ID prop, see T37103).
+ */
+void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct ReportList *reports,
+                             struct PointerRNA *ptr);
+
+/* -------- */
+
+/* Lesser Keyframing API call:
  *  Use this when validation of necessary animation data isn't necessary as it already
  *  exists, and there is a beztriple that can be directly copied into the array.
  */

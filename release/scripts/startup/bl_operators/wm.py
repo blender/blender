@@ -1045,6 +1045,7 @@ class WM_OT_properties_edit(Operator):
 
         # First remove
         item = eval("context.%s" % data_path)
+        prop_type_old = type(item[prop_old])
 
         rna_idprop_ui_prop_clear(item, prop_old)
         exec_str = "del item['%s']" % prop_old
@@ -1066,6 +1067,33 @@ class WM_OT_properties_edit(Operator):
             prop_ui["soft_max"] = prop_ui["max"] = prop_type(self.max)
 
         prop_ui["description"] = self.description
+
+        # If we have changed the type of the property, update its potential anim curves!
+        if prop_type_old != prop_type:
+            data_path = '["%s"]' % prop
+            done = set()
+            def _update(fcurves):
+                for fcu in fcurves:
+                    if fcu not in done and fcu.data_path == data_path:
+                        fcu.update_autoflags(item)
+                        done.add(fcu)
+
+            def _update_strips(strips):
+                for st in strips:
+                    if st.type in {'CLIP'} and st.action:
+                        _update(st.action.fcurves)
+                    elif st.type in {'META'}:
+                        _update_strips(st.strips)
+
+            adt = getattr(item, "animation_data", None)
+            if adt is not None:
+                if adt.action:
+                    _update(adt.action.fcurves)
+                if adt.drivers:
+                    _update(adt.drivers)
+                if adt.nla_tracks:
+                    for nt in adt.nla_tracks:
+                        _update_strips(nt.strips)
 
         # otherwise existing buttons which reference freed
         # memory may crash blender [#26510]

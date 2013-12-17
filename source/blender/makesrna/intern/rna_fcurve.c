@@ -1858,6 +1858,14 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	                            "Min/Max values", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
+
+	func = RNA_def_function(srna, "update_autoflags", "update_autoflags_fcurve"); /* calls the C/API direct */
+	RNA_def_function_ui_description(func, "Update FCurve flags set automatically from affected property "
+	                                      "(currently, integer/discrete flags set when the property is not a float)");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "data", "AnyType", "Data",
+	                       "Data containing the property controlled by given FCurve");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 }
 
 /* *********************** */

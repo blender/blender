@@ -229,6 +229,63 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 	return fcu;
 }
 
+/* Helper */
+static void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
+{
+	/* set additional flags for the F-Curve (i.e. only integer values) */
+	fcu->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
+	switch (RNA_property_type(prop)) {
+		case PROP_FLOAT:
+			/* do nothing */
+			break;
+		case PROP_INT:
+			/* do integer (only 'whole' numbers) interpolation between all points */
+			fcu->flag |= FCURVE_INT_VALUES;
+			break;
+		default:
+			/* do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
+			 * values at all) interpolation between all points
+			 *    - however, we must also ensure that evaluated values are only integers still
+			 */
+			fcu->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
+			break;
+	}
+}
+
+/*  Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,
+ *  but also through RNA when editing an ID prop, see T37103).
+ */
+void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, struct PointerRNA *ptr)
+{
+	PointerRNA tmp_ptr;
+	PropertyRNA *prop;
+	int old_flag = fcu->flag;
+
+	if ((ptr->id.data == NULL) && (ptr->data == NULL)) {
+		BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this fcurve");
+		return;
+	}
+
+	/* try to get property we should be affecting */
+	if (RNA_path_resolve_property(ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
+		/* property not found... */
+		const char *idname = (ptr->id.data) ? ((ID *)ptr->id.data)->name : TIP_("<No ID pointer>");
+
+		BKE_reportf(reports, RPT_ERROR,
+		            "Could not update flags for this fcurve, as RNA path is invalid for the given ID "
+		            "(ID = %s, path = %s)",
+		            idname, fcu->rna_path);
+		return;
+	}
+
+	update_autoflags_fcurve_direct(fcu, prop);
+
+	if (old_flag != fcu->flag) {
+		/* Same as if keyframes had been changed */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	}
+}
+
 /* ************************************************** */
 /* KEYFRAME INSERTION */
 
@@ -835,24 +892,7 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 		}
 	}
 	
-	/* set additional flags for the F-Curve (i.e. only integer values) */
-	fcu->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
-	switch (RNA_property_type(prop)) {
-		case PROP_FLOAT:
-			/* do nothing */
-			break;
-		case PROP_INT:
-			/* do integer (only 'whole' numbers) interpolation between all points */
-			fcu->flag |= FCURVE_INT_VALUES;
-			break;
-		default:
-			/* do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
-			 * values at all) interpolation between all points
-			 *	- however, we must also ensure that evaluated values are only integers still
-			 */
-			fcu->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
-			break;
-	}
+	update_autoflags_fcurve_direct(fcu, prop);
 	
 	/* obtain value to give keyframe */
 	if ( (flag & INSERTKEY_MATRIX) && 
