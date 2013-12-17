@@ -172,7 +172,7 @@ DO_INLINE void mul_fvectorT_fvectorS(float to[3][3], float vectorA[3], float vec
 	mul_fvector_S(to[2], to[2], aS);
 }
 
-
+#if 0
 /* printf vector[3] on console: for debug output */
 static void print_fvector(float m3[3])
 {
@@ -190,6 +190,8 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 		print_fvector(fLongVector[i]);
 	}
 }
+#endif
+
 /* create long vector */
 DO_INLINE lfVector *create_lfvector(unsigned int verts)
 {
