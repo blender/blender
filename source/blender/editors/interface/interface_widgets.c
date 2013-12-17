@@ -1121,9 +1121,6 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	int drawstr_left_len = UI_MAX_DRAW_STR;
 	char *drawstr_right = NULL;
 	bool use_right_only = false;
-	
-	/* for underline drawing */
-	float font_xofs, font_yofs;
 
 	uiStyleFontSet(fstyle);
 	
@@ -1217,38 +1214,41 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	glColor4ubv((unsigned char *)wcol->text);
 
 	if (!use_right_only) {
+		/* for underline drawing */
+		float font_xofs, font_yofs;
+
 		uiStyleFontDrawExt(fstyle, rect, but->drawstr + but->ofs,
 		                   drawstr_left_len - but->ofs, &font_xofs, &font_yofs);
-	}
 
-	if (but->menu_key != '\0') {
-		char fixedbuf[128];
-		char *str;
+		if (but->menu_key != '\0') {
+			char fixedbuf[128];
+			char *str;
 
-		BLI_strncpy(fixedbuf, but->drawstr + but->ofs, min_ii(sizeof(fixedbuf), drawstr_left_len));
+			BLI_strncpy(fixedbuf, but->drawstr + but->ofs, min_ii(sizeof(fixedbuf), drawstr_left_len));
 
-		str = strchr(fixedbuf, but->menu_key - 32); /* upper case */
-		if (str == NULL)
-			str = strchr(fixedbuf, but->menu_key);
+			str = strchr(fixedbuf, but->menu_key - 32); /* upper case */
+			if (str == NULL)
+				str = strchr(fixedbuf, but->menu_key);
 
-		if (str) {
-			int ul_index = -1;
-			float ul_advance;
+			if (str) {
+				int ul_index = -1;
+				float ul_advance;
 
-			ul_index = (int)(str - fixedbuf);
+				ul_index = (int)(str - fixedbuf);
 
-			if (fstyle->kerning == 1) {
-				BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-			}
+				if (fstyle->kerning == 1) {
+					BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+				}
 
-			fixedbuf[ul_index] = '\0';
-			ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index);
+				fixedbuf[ul_index] = '\0';
+				ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index);
 
-			BLF_position(fstyle->uifont_id, rect->xmin + font_xofs + ul_advance, rect->ymin + font_yofs, 0.0f);
-			BLF_draw(fstyle->uifont_id, "_", 2);
+				BLF_position(fstyle->uifont_id, rect->xmin + font_xofs + ul_advance, rect->ymin + font_yofs, 0.0f);
+				BLF_draw(fstyle->uifont_id, "_", 2);
 
-			if (fstyle->kerning == 1) {
-				BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+				if (fstyle->kerning == 1) {
+					BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+				}
 			}
 		}
 	}
