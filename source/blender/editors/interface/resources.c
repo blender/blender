@@ -580,6 +580,37 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = btheme->tui.yaxis; break;
 				case TH_AXIS_Z:
 					cp = btheme->tui.zaxis; break;
+
+				case TH_INFO_SELECTED:
+					cp = ts->info_selected;
+					break;
+				case TH_INFO_SELECTED_TEXT:
+					cp = ts->info_selected_text;
+					break;
+				case TH_INFO_ERROR:
+					cp = ts->info_error;
+					break;
+				case TH_INFO_ERROR_TEXT:
+					cp = ts->info_error_text;
+					break;
+				case TH_INFO_WARNING:
+					cp = ts->info_warning;
+					break;
+				case TH_INFO_WARNING_TEXT:
+					cp = ts->info_warning_text;
+					break;
+				case TH_INFO_INFO:
+					cp = ts->info_info;
+					break;
+				case TH_INFO_INFO_TEXT:
+					cp = ts->info_info_text;
+					break;
+				case TH_INFO_DEBUG:
+					cp = ts->info_debug;
+					break;
+				case TH_INFO_DEBUG_TEXT:
+					cp = ts->info_debug_text;
+					break;
 			}
 		}
 	}
@@ -974,6 +1005,16 @@ void ui_theme_init_default(void)
 	/* space info */
 	btheme->tinfo = btheme->tv3d;
 	rgba_char_args_set_fl(btheme->tinfo.back,   0.45, 0.45, 0.45, 1.0);
+	rgba_char_args_set(btheme->tinfo.info_selected, 96, 128, 255, 255);
+	rgba_char_args_set(btheme->tinfo.info_selected_text, 255, 255, 255, 255);
+	rgba_char_args_set(btheme->tinfo.info_error, 220, 0, 0, 255);
+	rgba_char_args_set(btheme->tinfo.info_error_text, 0, 0, 0, 255);
+	rgba_char_args_set(btheme->tinfo.info_warning, 220, 128, 96, 255);
+	rgba_char_args_set(btheme->tinfo.info_warning_text, 0, 0, 0, 255);
+	rgba_char_args_set(btheme->tinfo.info_info, 0, 170, 0, 255);
+	rgba_char_args_set(btheme->tinfo.info_info_text, 0, 0, 0, 255);
+	rgba_char_args_set(btheme->tinfo.info_debug, 196, 196, 196, 255);
+	rgba_char_args_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
 
 	/* space user preferences */
 	btheme->tuserpref = btheme->tv3d;
@@ -2279,7 +2320,22 @@ void init_userdef_do_versions(void)
 			rgba_char_args_test_set(btheme->tnode.nodeclass_pattern, r, g, b, 255);
 			rgba_char_args_test_set(btheme->tnode.nodeclass_layout, r, g, b, 255);
 		}
-		
+	}
+
+	if (U.versionfile < 269 || (U.versionfile == 269 && U.subversionfile < 8)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_test_set(btheme->tinfo.info_selected, 96, 128, 255, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_selected_text, 255, 255, 255, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_error, 220, 0, 0, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_error_text, 0, 0, 0, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_warning, 220, 128, 96, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_warning_text, 0, 0, 0, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_info, 0, 170, 0, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_info_text, 0, 0, 0, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_debug, 196, 196, 196, 255);
+			rgba_char_args_test_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
+		}
 	}
 	
 	if (U.versionfile < 270) {
