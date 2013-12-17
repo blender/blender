@@ -108,7 +108,9 @@ static SpinLock image_spin;
 /* quick lookup: supports 1 million frames, thousand passes */
 #define IMA_MAKE_INDEX(frame, index)    ((frame) << 10) + index
 #define IMA_INDEX_FRAME(index)          (index >> 10)
+/*
 #define IMA_INDEX_PASS(index)           (index & ~1023)
+*/
 
 /* ******** IMAGE CACHE ************* */
 
