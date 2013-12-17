@@ -1292,8 +1292,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS");
 	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
 	RNA_def_struct_refine_func(srna, "rna_Curve_refine");
-	
-	rna_def_animdata_common(srna);
+
 
 	prop = RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
@@ -1513,6 +1512,10 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Curve_is_editmode_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
+
+	rna_def_animdata_common(srna);
+
+	RNA_api_curve(srna);
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

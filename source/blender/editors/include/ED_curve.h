@@ -51,6 +51,7 @@ void    ED_operatormacros_curve(void);
 void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
+void ED_curve_transform(struct Curve *cv, float mat[4][4]);
 void CU_deselect_all(struct Object *obedit);
 void CU_select_all(struct Object *obedit);
 void CU_select_swap(struct Object *obedit);

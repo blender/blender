@@ -112,7 +112,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 		           "transforms stored are relative to the old rest pose");
 
 	/* Get editbones of active armature to alter */
-	ED_armature_to_edit(ob);
+	ED_armature_to_edit(arm);
 	
 	/* get pose of active object and move it out of posemode */
 	pose = ob->pose;
@@ -160,8 +160,8 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* convert editbones back to bones, and then free the edit-data */
-	ED_armature_from_edit(ob);
-	ED_armature_edit_free(ob);
+	ED_armature_from_edit(arm);
+	ED_armature_edit_free(arm);
 	
 	/* flush positions of posebones */
 	BKE_pose_where_is(scene, ob);

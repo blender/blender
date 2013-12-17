@@ -128,7 +128,7 @@ void ED_editors_exit(bContext *C)
 					}
 				}
 				else if (ob->type == OB_ARMATURE) {
-					ED_armature_edit_free(ob);
+					ED_armature_edit_free(ob->data);
 				}
 			}
 		}

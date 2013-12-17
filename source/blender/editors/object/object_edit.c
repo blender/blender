@@ -343,9 +343,9 @@ static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 		}
 	}
 	else if (obedit->type == OB_ARMATURE) {
-		ED_armature_from_edit(obedit);
+		ED_armature_from_edit(obedit->data);
 		if (freedata)
-			ED_armature_edit_free(obedit);
+			ED_armature_edit_free(obedit->data);
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		load_editNurb(obedit);
@@ -493,7 +493,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MESH, scene);
 	}
 	else if (ob->type == OB_ARMATURE) {
-		bArmature *arm = base->object->data;
+		bArmature *arm = ob->data;
 		if (!arm) return;
 		/*
 		 * The function BKE_object_obdata_is_libdata make a problem here, the
@@ -509,7 +509,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		}
 		ok = 1;
 		scene->obedit = ob;
-		ED_armature_to_edit(ob);
+		ED_armature_to_edit(arm);
 		/* to ensure all goes in restposition and without striding */
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
 

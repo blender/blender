@@ -469,6 +469,11 @@ static int rna_Armature_is_editmode_get(PointerRNA *ptr)
 	return (arm->edbo != NULL);
 }
 
+void rna_Armature_transform(struct bArmature *arm, float *mat)
+{
+	ED_armature_transform(arm, (float (*)[4])mat);
+}
+
 #else
 
 static void rna_def_bone_common(StructRNA *srna, int editbone)
@@ -877,6 +882,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
@@ -911,7 +917,12 @@ static void rna_def_armature(BlenderRNA *brna)
 	                       "Armature datablock containing a hierarchy of bones, usually used for rigging characters");
 	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
 	RNA_def_struct_sdna(srna, "bArmature");
-	
+
+	func = RNA_def_function(srna, "transform", "rna_Armature_transform");
+	RNA_def_function_ui_description(func, "Transform armature bones by a matrix");
+	prop = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+
 	/* Animation Data */
 	rna_def_animdata_common(srna);
 	

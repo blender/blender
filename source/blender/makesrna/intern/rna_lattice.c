@@ -50,6 +50,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "ED_lattice.h"
 
 static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
@@ -362,6 +363,8 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	/* pointers */
 	rna_def_animdata_common(srna);
+
+	RNA_api_lattice(srna);
 }
 
 void RNA_def_lattice(BlenderRNA *brna)

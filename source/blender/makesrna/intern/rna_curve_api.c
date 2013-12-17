@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/rna_meta_api.c
+/** \file blender/makesrna/intern/rna_curve_api.c
  *  \ingroup RNA
  */
 
@@ -38,24 +38,24 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_mball.h"
+#include "ED_curve.h"
 
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-void rna_Meta_transform(struct MetaBall *mb, float *mat)
+void rna_Curve_transform(Curve *cu, float *mat)
 {
-	ED_mball_transform(mb, (float (*)[4])mat);
+	ED_curve_transform(cu, (float (*)[4])mat);
 }
 #else
 
-void RNA_api_meta(StructRNA *srna)
+void RNA_api_curve(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func = RNA_def_function(srna, "transform", "rna_Meta_transform");
-	RNA_def_function_ui_description(func, "Transform meta elements by a matrix");
+	func = RNA_def_function(srna, "transform", "rna_Curve_transform");
+	RNA_def_function_ui_description(func, "Transform curve by a matrix");
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }

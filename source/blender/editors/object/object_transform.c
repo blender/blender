@@ -512,7 +512,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		}
 		else if (ob->type == OB_MBALL) {
 			MetaBall *mb = ob->data;
-			ED_mball_transform(mb, (float *)mat);
+			ED_mball_transform(mb, mat);
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = ob->data;

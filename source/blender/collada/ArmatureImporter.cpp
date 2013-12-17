@@ -341,7 +341,7 @@ void ArmatureImporter::create_armature_bones( )
 		if (!ob_arm)
 			continue;
 
-		ED_armature_to_edit(ob_arm);
+		ED_armature_to_edit(ob_arm->data);
 
 		/*
 		 * TODO:
@@ -356,12 +356,12 @@ void ArmatureImporter::create_armature_bones( )
 		// exit armature edit mode
 		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
-		ED_armature_from_edit(ob_arm);
+		ED_armature_from_edit(ob_arm->data);
 
 		//This serves no purpose, as pose is automatically reset later, in BKE_where_is_bone()
 		//set_pose(ob_arm, *ri, NULL, NULL);
 
-		ED_armature_edit_free(ob_arm);
+		ED_armature_edit_free(ob_arm->data);
 		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
 }
@@ -454,7 +454,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	}
 
 	// enter armature edit mode
-	ED_armature_to_edit(ob_arm);
+	ED_armature_to_edit(ob_arm->data);
 
 	leaf_bones.clear();
 	totbone = 0;
@@ -485,8 +485,8 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	fix_leaf_bones();
 
 	// exit armature edit mode
-	ED_armature_from_edit(ob_arm);
-	ED_armature_edit_free(ob_arm);
+	ED_armature_from_edit(ob_arm->data);
+	ED_armature_edit_free(ob_arm->data);
 	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 }

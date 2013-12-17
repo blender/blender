@@ -103,8 +103,10 @@ set(APISRC
 	rna_armature_api.c
 	rna_camera_api.c
 	rna_controller_api.c
+	rna_curve_api.c
 	rna_fcurve_api.c
 	rna_image_api.c
+	rna_lattice_api.c
 	rna_main_api.c
 	rna_material_api.c
 	rna_mesh_api.c

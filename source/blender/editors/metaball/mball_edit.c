@@ -751,18 +751,17 @@ void undo_push_mball(bContext *C, const char *name)
 	undo_editmode_push(C, name, get_data, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
 }
 
-/* matrix is 4x4 */
-void ED_mball_transform(MetaBall *mb, float *mat)
+void ED_mball_transform(MetaBall *mb, float mat[4][4])
 {
 	MetaElem *me;
 	float quat[4];
-	const float scale = mat4_to_scale((float (*)[4])mat);
+	const float scale = mat4_to_scale(mat);
 	const float scale_sqrt = sqrtf(scale);
 
-	mat4_to_quat(quat, (float (*)[4])mat);
+	mat4_to_quat(quat, mat);
 
 	for (me = mb->elems.first; me; me = me->next) {
-		mul_m4_v3((float (*)[4])mat, &me->x);
+		mul_m4_v3(mat, &me->x);
 		mul_qt_qtqt(me->quat, quat, me->quat);
 		me->rad *= scale;
 		/* hrmf, probably elems shouldn't be
@@ -774,4 +773,5 @@ void ED_mball_transform(MetaBall *mb, float *mat)
 			mul_v3_fl(&me->expx, scale_sqrt);
 		}
 	}
+	DAG_id_tag_update(&mb->id, 0);
 }

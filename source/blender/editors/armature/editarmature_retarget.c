@@ -2416,7 +2416,7 @@ static void adjustGraphs(bContext *C, RigGraph *rigg)
 
 	/* Turn the list into an armature */
 	arm->edbo = rigg->editbones;
-	ED_armature_from_edit(rigg->ob);
+	ED_armature_from_edit(arm);
 	
 	ED_undo_push(C, "Retarget Skeleton");
 }
@@ -2443,7 +2443,7 @@ static void retargetGraphs(bContext *C, RigGraph *rigg)
 
 	/* Turn the list into an armature */
 	arm->edbo = rigg->editbones;
-	ED_armature_from_edit(rigg->ob);
+	ED_armature_from_edit(arm);
 }
 
 const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)

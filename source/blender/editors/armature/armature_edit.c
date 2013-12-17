@@ -65,17 +65,27 @@
 
 void ED_armature_apply_transform(Object *ob, float mat[4][4])
 {
-	EditBone *ebone;
 	bArmature *arm = ob->data;
+
+	/* Put the armature into editmode */
+	ED_armature_to_edit(arm);
+
+	/* Transform the bones*/
+	ED_armature_transform_bones(arm, mat);
+
+	/* Turn the list into an armature */
+	ED_armature_from_edit(arm);
+	ED_armature_edit_free(arm);
+}
+
+void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4])
+{
+	EditBone *ebone;
 	float scale = mat4_to_scale(mat);   /* store the scale of the matrix here to use on envelopes */
 	float mat3[3][3];
-	
+
 	copy_m3_m4(mat3, mat);
 	normalize_m3(mat3);
-	
-	/* Put the armature into editmode */
-	ED_armature_to_edit(ob);
-	
 	/* Do the rotations */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		float tmat[3][3];
@@ -89,7 +99,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 		/* transform the bone */
 		mul_m4_v3(mat, ebone->head);
 		mul_m4_v3(mat, ebone->tail);
-		
+
 		/* apply the transfiormed roll back */
 		mat3_to_vec_roll(tmat, NULL, &ebone->roll);
 		
@@ -101,10 +111,24 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 		ebone->xwidth   *= scale;
 		ebone->zwidth   *= scale;
 	}
-	
-	/* Turn the list into an armature */
-	ED_armature_from_edit(ob);
-	ED_armature_edit_free(ob);
+}
+
+void ED_armature_transform(struct bArmature *arm, float mat[4][4])
+{
+	if (arm->edbo) {
+		ED_armature_transform_bones(arm, mat);
+	}
+	else {
+		/* Put the armature into editmode */
+		ED_armature_to_edit(arm);
+
+		/* Transform the bones */
+		ED_armature_transform_bones(arm, mat);
+
+		/* Go back to object mode*/
+		ED_armature_from_edit(arm);
+		ED_armature_edit_free(arm);
+	}
 }
 
 /* exported for use in editors/object/ */
@@ -118,7 +142,7 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 
 	/* Put the armature into editmode */
 	if (ob != obedit) {
-		ED_armature_to_edit(ob);
+		ED_armature_to_edit(arm);
 		obedit = NULL; /* we cant use this so behave as if there is no obedit */
 	}
 
@@ -160,8 +184,8 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 	
 	/* Turn the list into an armature */
 	if (obedit == NULL) {
-		ED_armature_from_edit(ob);
-		ED_armature_edit_free(ob);
+		ED_armature_from_edit(arm);
+		ED_armature_edit_free(arm);
 	}
 
 	/* Adjust object location for new centerpoint */

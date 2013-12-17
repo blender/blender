@@ -204,7 +204,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Get editbones of active armature to add editbones to */
-	ED_armature_to_edit(ob);
+	ED_armature_to_edit(arm);
 	
 	/* get pose of active object and move it out of posemode */
 	pose = ob->pose;
@@ -216,7 +216,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			bArmature *curarm = base->object->data;
 			
 			/* Make a list of editbones in current armature */
-			ED_armature_to_edit(base->object);
+			ED_armature_to_edit(base->object->data);
 			
 			/* Get Pose of current armature */
 			opose = base->object->pose;
@@ -286,8 +286,8 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	
 	DAG_relations_tag_update(bmain);  /* because we removed object(s) */
 
-	ED_armature_from_edit(ob);
-	ED_armature_edit_free(ob);
+	ED_armature_from_edit(arm);
+	ED_armature_edit_free(arm);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	
@@ -409,7 +409,7 @@ static void separate_armature_bones(Object *ob, short sel)
 	EditBone *curbone;
 	
 	/* make local set of editbones to manipulate here */
-	ED_armature_to_edit(ob);
+	ED_armature_to_edit(arm);
 	
 	/* go through pose-channels, checking if a bone should be removed */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchann) {
@@ -449,8 +449,8 @@ static void separate_armature_bones(Object *ob, short sel)
 	}
 	
 	/* exit editmode (recalculates pchans too) */
-	ED_armature_from_edit(ob);
-	ED_armature_edit_free(ob);
+	ED_armature_from_edit(ob->data);
+	ED_armature_edit_free(ob->data);
 }
 
 /* separate selected bones into their armature */
@@ -492,8 +492,8 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 	
-	ED_armature_from_edit(obedit);
-	ED_armature_edit_free(obedit);
+	ED_armature_from_edit(obedit->data);
+	ED_armature_edit_free(obedit->data);
 	
 	/* 2) duplicate base */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
@@ -518,7 +518,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	/* 5) restore original conditions */
 	obedit = oldob;
 	
-	ED_armature_to_edit(obedit);
+	ED_armature_to_edit(obedit->data);
 	
 	BKE_report(op->reports, RPT_INFO, "Separated bones");
 

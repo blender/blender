@@ -492,9 +492,8 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 }
 
 /* put EditMode back in Object */
-void ED_armature_from_edit(Object *obedit)
+void ED_armature_from_edit(bArmature *arm)
 {
-	bArmature *arm = obedit->data;
 	EditBone *eBone, *neBone;
 	Bone *newBone;
 	Object *obt;
@@ -601,12 +600,11 @@ void ED_armature_from_edit(Object *obedit)
 			BKE_pose_rebuild(obt, arm);
 	}
 	
-	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&arm->id, 0);
 }
 
-void ED_armature_edit_free(struct Object *ob)
+void ED_armature_edit_free(struct bArmature *arm)
 {
-	bArmature *arm = ob->data;
 	EditBone *eBone;
 	
 	/*	Clear the editbones list */
@@ -628,11 +626,9 @@ void ED_armature_edit_free(struct Object *ob)
 }
 
 /* Put armature in EditMode */
-void ED_armature_to_edit(Object *ob)
+void ED_armature_to_edit(bArmature *arm)
 {
-	bArmature *arm = ob->data;
-	
-	ED_armature_edit_free(ob);
+	ED_armature_edit_free(arm);
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 	arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, NULL, arm->act_bone);
 
