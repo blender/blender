@@ -60,6 +60,19 @@ void BPY_python_start(int argc, const char **argv);
 void BPY_python_end(void);
 void BPY_python_reset(struct bContext *C);
 
+
+/* global interpreter lock */
+
+typedef void *BPy_ThreadStatePtr;
+
+BPy_ThreadStatePtr BPY_thread_save(void);
+void BPY_thread_restore(BPy_ThreadStatePtr tstate);
+
+/* our own wrappers to Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS */
+#define BPy_BEGIN_ALLOW_THREADS { BPy_ThreadStatePtr _bpy_saved_tstate = BPY_thread_save(); (void)0
+#define BPy_END_ALLOW_THREADS BPY_thread_restore(_bpy_saved_tstate); } (void)0
+
+
 /* 2.5 UI Scripts */
 int		BPY_filepath_exec(struct bContext *C, const char *filepath, struct ReportList *reports);
 int		BPY_text_exec(struct bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump);

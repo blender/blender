@@ -69,6 +69,10 @@
 
 #include "UI_resources.h"
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 #include "view3d_intern.h"  /* own include */
 
 /* ******************** manage regions ********************* */
@@ -266,7 +270,16 @@ static void view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
 	RegionView3D *rv3d = ar->regiondata;
 
 	if (rv3d->render_engine) {
+#ifdef WITH_PYTHON
+		BPy_BEGIN_ALLOW_THREADS;
+#endif
+
 		WM_jobs_kill_type(wm, ar, WM_JOB_TYPE_RENDER_PREVIEW);
+
+#ifdef WITH_PYTHON
+		BPy_END_ALLOW_THREADS;
+#endif
+
 		if (rv3d->render_engine->re)
 			RE_Database_Free(rv3d->render_engine->re);
 		RE_engine_free(rv3d->render_engine);
