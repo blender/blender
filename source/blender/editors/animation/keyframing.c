@@ -255,7 +255,7 @@ static void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 /*  Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,
  *  but also through RNA when editing an ID prop, see T37103).
  */
-void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, struct PointerRNA *ptr)
+void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr)
 {
 	PointerRNA tmp_ptr;
 	PropertyRNA *prop;

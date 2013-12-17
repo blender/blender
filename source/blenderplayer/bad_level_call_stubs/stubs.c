@@ -541,6 +541,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, vo
 void WM_operator_bl_idname(char *to, const char *from) {STUB_ASSERT(0);}
 void WM_operator_py_idname(char *to, const char *from) {STUB_ASSERT(0);}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height) {STUB_ASSERT(0);}
+void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct ReportList *reports, struct PointerRNA *ptr) {STUB_ASSERT(0);}
 short insert_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) {STUB_ASSERT(0); return 0;}
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) {STUB_ASSERT(0); return 0;}
 char *WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op, const bool all_args, struct wmOperatorType *ot, struct PointerRNA *opptr) {STUB_ASSERT(0); return (char *)NULL;}
