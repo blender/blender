@@ -30,6 +30,19 @@
 #include "PseudoNoise.h"
 #include "RandGen.h"
 
+static int modf_to_index(Freestyle::real x, unsigned int range)
+{
+	if (isfinite(x)) {
+		Freestyle::real tmp;
+		int i = abs((int)(modf(x, &tmp) * range));
+		BLI_assert(i >= 0 && i < range);
+		return i;
+	}
+	else {
+		return 0;
+	}
+}
+
 namespace Freestyle {
 
 real PseudoNoise::_values[];
@@ -46,7 +59,7 @@ void PseudoNoise::init(long seed)
 real PseudoNoise::linearNoise(real x)
 {
 	real tmp;
-	int i = abs((int)(modf(x, &tmp) * NB_VALUE_NOISE));
+	int i = modf_to_index(x, NB_VALUE_NOISE);
 	real x1 = _values[i], x2 = _values[(i + 1) % NB_VALUE_NOISE];
 	real t = modf(x * NB_VALUE_NOISE, &tmp);
 	return x1 * (1 - t) + x2 * t;
@@ -64,9 +77,9 @@ static real LanczosWindowed(real t)
 real PseudoNoise::smoothNoise(real x)
 {
 	real tmp;
-	int i = abs((int)(modf(x, &tmp) * NB_VALUE_NOISE));
+	int i = modf_to_index(x, NB_VALUE_NOISE);
 	int h = i - 1;
-	if (h < 0) {
+	if (UNLIKELY(h < 0)) {
 		h = NB_VALUE_NOISE + h;
 	}
 
