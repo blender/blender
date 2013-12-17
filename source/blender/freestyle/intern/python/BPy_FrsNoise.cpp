@@ -136,7 +136,7 @@ static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObje
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
-	if (!Vec2f_ptr_from_PyObject(obj1, &vec)) {
+	if (!Vec2f_ptr_from_PyObject(obj1, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
@@ -170,7 +170,7 @@ static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObje
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
-	if (!Vec3f_ptr_from_PyObject(obj1, &vec)) {
+	if (!Vec3f_ptr_from_PyObject(obj1, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
@@ -216,7 +216,7 @@ static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObj
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
-	if (!Vec2f_ptr_from_PyObject(obj, &vec)) {
+	if (!Vec2f_ptr_from_PyObject(obj, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
@@ -242,7 +242,7 @@ static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObj
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
-	if (!Vec3f_ptr_from_PyObject(obj, &vec)) {
+	if (!Vec3f_ptr_from_PyObject(obj, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}

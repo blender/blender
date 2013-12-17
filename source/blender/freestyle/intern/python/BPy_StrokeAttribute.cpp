@@ -315,7 +315,7 @@ static PyObject * StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self, 
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
 		return NULL;
-	if (!Vec2f_ptr_from_PyObject(obj, &vec)) {
+	if (!Vec2f_ptr_from_PyObject(obj, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
@@ -344,7 +344,7 @@ static PyObject * StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self, 
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
 		return NULL;
-	if (!Vec3f_ptr_from_PyObject(obj, &vec)) {
+	if (!Vec3f_ptr_from_PyObject(obj, vec)) {
 		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}

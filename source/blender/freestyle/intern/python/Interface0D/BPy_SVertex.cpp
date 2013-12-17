@@ -111,7 +111,7 @@ static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject 
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &py_normal))
 		return NULL;
-	if (!Vec3r_ptr_from_PyObject(py_normal, &n)) {
+	if (!Vec3r_ptr_from_PyObject(py_normal, n)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
