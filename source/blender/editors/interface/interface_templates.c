@@ -2525,12 +2525,12 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 		int order_idx = 0, i = 0;
 
 		if (order_by_name) {
-			names = MEM_callocN(sizeof(StringCmp) * len, AT);
+			names = MEM_callocN(sizeof(StringCmp) * len, "StringCmp");
 		}
 		if (filter_raw[0]) {
 			size_t idx = 0, slen = strlen(filter_raw);
 
-			dyn_data->items_filter_flags = MEM_callocN(sizeof(int) * len, AT);
+			dyn_data->items_filter_flags = MEM_callocN(sizeof(int) * len, "items_filter_flags");
 			dyn_data->items_shown = 0;
 
 			/* Implicitly add heading/trailing wildcards if needed. */
@@ -2538,7 +2538,7 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 				filter = filter_buff;
 			}
 			else {
-				filter = filter_dyn = MEM_mallocN((slen + 3) * sizeof(char), AT);
+				filter = filter_dyn = MEM_mallocN((slen + 3) * sizeof(char), "filter_dyn");
 			}
 			if (filter_raw[idx] != '*') {
 				filter[idx++] = '*';
@@ -2601,7 +2601,7 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 			 */
 			qsort(names, order_idx, sizeof(StringCmp), cmpstringp);
 
-			dyn_data->items_filter_neworder = MEM_mallocN(sizeof(int) * order_idx, AT);
+			dyn_data->items_filter_neworder = MEM_mallocN(sizeof(int) * order_idx, "items_filter_neworder");
 			for (new_idx = 0; new_idx < order_idx; new_idx++) {
 				dyn_data->items_filter_neworder[names[new_idx].org_idx] = new_idx;
 			}
@@ -2790,13 +2790,13 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	ui_list = BLI_findstring(&ar->ui_lists, ui_list_id, offsetof(uiList, list_id));
 
 	if (!ui_list) {
-		ui_list = MEM_callocN(sizeof(uiList), AT);
+		ui_list = MEM_callocN(sizeof(uiList), "uiList");
 		BLI_strncpy(ui_list->list_id, ui_list_id, sizeof(ui_list->list_id));
 		BLI_addtail(&ar->ui_lists, ui_list);
 	}
 
 	if (!ui_list->dyn_data) {
-		ui_list->dyn_data = MEM_callocN(sizeof(uiListDyn), AT);
+		ui_list->dyn_data = MEM_callocN(sizeof(uiListDyn), "uiList.dyn_data");
 	}
 	dyn_data = ui_list->dyn_data;
 
@@ -2836,7 +2836,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		items_shown = dyn_data->items_shown;
 		if (items_shown >= 0) {
 			bool activei_mapping_pending = true;
-			items_ptr = MEM_mallocN(sizeof(_uilist_item) * items_shown, AT);
+			items_ptr = MEM_mallocN(sizeof(_uilist_item) * items_shown, __func__);
 			//printf("%s: items shown: %d.\n", __func__, items_shown);
 			RNA_PROP_BEGIN (dataptr, itemptr, prop)
 			{
