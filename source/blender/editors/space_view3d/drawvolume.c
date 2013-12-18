@@ -86,7 +86,7 @@ struct GPUTexture;
 #  include "PIL_time_utildefines.h"
 #endif
 
-static int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
+static int intersect_edges(float (*points)[3], float a, float b, float c, float d, float edges[12][2][3])
 {
 	int i;
 	float t;
@@ -96,9 +96,9 @@ static int intersect_edges(float *points, float a, float b, float c, float d, fl
 		t = -(a * edges[i][0][0] + b * edges[i][0][1] + c * edges[i][0][2] + d) /
 		     (a * edges[i][1][0] + b * edges[i][1][1] + c * edges[i][1][2]);
 		if ((t > 0) && (t < 1)) {
-			points[numpoints * 3 + 0] = edges[i][0][0] + edges[i][1][0] * t;
-			points[numpoints * 3 + 1] = edges[i][0][1] + edges[i][1][1] * t;
-			points[numpoints * 3 + 2] = edges[i][0][2] + edges[i][1][2] * t;
+			points[numpoints][0] = edges[i][0][0] + edges[i][1][0] * t;
+			points[numpoints][1] = edges[i][0][1] + edges[i][1][1] * t;
+			points[numpoints][2] = edges[i][0][2] + edges[i][1][2] * t;
 			numpoints++;
 		}
 	}
@@ -120,9 +120,14 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
                        int res[3], float dx, float UNUSED(base_scale), float viewnormal[3],
                        GPUTexture *tex_shadow, GPUTexture *tex_flame)
 {
+	const float ob_sizei[3] = {
+	    1.0f / fabsf(ob->size[0]),
+	    1.0f / fabsf(ob->size[1]),
+	    1.0f / fabsf(ob->size[2])};
+
 	int i, j, k, n, good_index;
 	float d /*, d0 */ /* UNUSED */, dd, ds;
-	float *points = NULL;
+	float (*points)[3] = NULL;
 	int numpoints = 0;
 	float cor[3] = {1.0f, 1.0f, 1.0f};
 	int gl_depth = 0, gl_blend = 0;
@@ -403,6 +408,10 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		cor[2] = (float)res[2] / (float)power_of_2_max_i(res[2]);
 	}
 
+	cor[0] /= size[0];
+	cor[1] /= size[1];
+	cor[2] /= size[2];
+
 	/* our slices are defined by the plane equation a*x + b*y +c*z + d = 0
 	 * (a,b,c), the plane normal, are given by viewdir
 	 * d is the parameter along the view direction. the first d is given by
@@ -416,7 +425,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	// printf("d0: %f, dd: %f, ds: %f\n\n", d0, dd, ds);
 
-	points = MEM_callocN(sizeof(float) * 12 * 3, "smoke_points_preview");
+	points = MEM_callocN(sizeof(*points) * 12, "smoke_points_preview");
 
 	while (1) {
 		float p0[3];
@@ -439,16 +448,13 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		// printf("points: %d\n", numpoints);
 
 		if (numpoints > 2) {
-			copy_v3_v3(p0, points);
+			copy_v3_v3(p0, points[0]);
 
 			/* sort points to get a convex polygon */
 			for (i = 1; i < numpoints - 1; i++) {
 				for (j = i + 1; j < numpoints; j++) {
-					if (!convex(p0, viewnormal, &points[j * 3], &points[i * 3])) {
-						float tmp2[3];
-						copy_v3_v3(tmp2, &points[j * 3]);
-						copy_v3_v3(&points[j * 3], &points[i * 3]);
-						copy_v3_v3(&points[i * 3], tmp2);
+					if (!convex(p0, viewnormal, points[j], points[i])) {
+						swap_v3_v3(points[i], points[j]);
 					}
 				}
 			}
@@ -459,12 +465,12 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			glBegin(GL_POLYGON);
 			glColor3f(1.0, 1.0, 1.0);
 			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i * 3 + 0] - min[0]) * cor[0] / size[0],
-				             (points[i * 3 + 1] - min[1]) * cor[1] / size[1],
-				             (points[i * 3 + 2] - min[2]) * cor[2] / size[2]);
-				glVertex3f(points[i * 3 + 0] / fabsf(ob->size[0]),
-				           points[i * 3 + 1] / fabsf(ob->size[1]),
-				           points[i * 3 + 2] / fabsf(ob->size[2]));
+				glTexCoord3d((points[i][0] - min[0]) * cor[0],
+				             (points[i][1] - min[1]) * cor[1],
+				             (points[i][2] - min[2]) * cor[2]);
+				glVertex3f(points[i][0] * ob_sizei[0],
+				           points[i][1] * ob_sizei[1],
+				           points[i][2] * ob_sizei[2]);
 			}
 			glEnd();
 
@@ -474,12 +480,12 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			glBegin(GL_POLYGON);
 			glColor3f(1.0, 1.0, 1.0);
 			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i * 3 + 0] - min[0]) * cor[0] / size[0],
-				             (points[i * 3 + 1] - min[1]) * cor[1] / size[1],
-				             (points[i * 3 + 2] - min[2]) * cor[2] / size[2]);
-				glVertex3f(points[i * 3 + 0] / fabsf(ob->size[0]),
-				           points[i * 3 + 1] / fabsf(ob->size[1]),
-				           points[i * 3 + 2] / fabsf(ob->size[2]));
+				glTexCoord3d((points[i][0] - min[0]) * cor[0],
+				             (points[i][1] - min[1]) * cor[1],
+				             (points[i][2] - min[2]) * cor[2]);
+				glVertex3f(points[i][0] * ob_sizei[0],
+				           points[i][1] * ob_sizei[1],
+				           points[i][2] * ob_sizei[2]);
 			}
 			glEnd();
 		}
