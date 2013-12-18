@@ -856,7 +856,7 @@ void BLF_state_print(int fontid)
 {
 	FontBLF *font = blf_get(fontid);
 	if (font) {
-		printf("fontid %d %p\n", fontid, font->name, (void *)font);
+		printf("fontid %d %p\n", fontid, (void *)font);
 		printf("  name:    '%s'\n", font->name);
 		printf("  size:     %u\n", font->size);
 		printf("  dpi:      %u\n", font->dpi);
