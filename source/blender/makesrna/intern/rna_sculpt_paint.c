@@ -464,11 +464,6 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode");
 
 	/* vertex paint only */
-	prop = RNA_def_property(srna, "use_all_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
-	RNA_def_property_ui_text(prop, "All Faces", "Paint on all faces inside brush");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
 	prop = RNA_def_property(srna, "use_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_NORMALS);
 	RNA_def_property_ui_text(prop, "Normals", "Apply the vertex normal before painting");

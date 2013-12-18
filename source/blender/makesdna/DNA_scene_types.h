@@ -880,7 +880,7 @@ typedef struct VPaint {
 /* VPaint.flag */
 enum {
 	// VP_COLINDEX  = (1 << 0),  /* only paint onto active material*/  /* deprecated since before 2.49 */
-	VP_AREA         = (1 << 1),
+	// VP_AREA      = (1 << 1),  /* deprecated since 2.70 */
 	VP_NORMALS      = (1 << 3),
 	VP_SPRAY        = (1 << 4),
 	// VP_MIRROR_X  = (1 << 5),  /* deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X) */

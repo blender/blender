@@ -1155,7 +1155,6 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         col = layout.column()
         row = col.row()
 
-        row.prop(wpaint, "use_all_faces")
         row.prop(wpaint, "use_normal")
         col = layout.column()
         row = col.row()
@@ -1193,7 +1192,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         col = layout.column()
         row = col.row()
         #col.prop(vpaint, "mode", text="")
-        row.prop(vpaint, "use_all_faces")
         row.prop(vpaint, "use_normal")
         col.prop(vpaint, "use_spray")
 

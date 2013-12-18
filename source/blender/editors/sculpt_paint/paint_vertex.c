@@ -188,10 +188,7 @@ static VPaint *new_vpaint(int wpaint)
 {
 	VPaint *vp = MEM_callocN(sizeof(VPaint), "VPaint");
 	
-	vp->flag = VP_AREA + VP_SPRAY;
-	
-	if (wpaint)
-		vp->flag = VP_AREA;
+	vp->flag = (wpaint) ? 0 : VP_SPRAY;
 
 	return vp;
 }
@@ -2344,23 +2341,16 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* which faces are involved */
 	if (use_depth) {
-		if (wp->flag & VP_AREA) {
-			char editflag_prev = me->editflag;
+		char editflag_prev = me->editflag;
 
-			/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
-			me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-			if (use_vert_sel) {
-				/* Ugly x2, we need this so hidden faces don't draw */
-				me->editflag |= ME_EDIT_PAINT_FACE_SEL;
-			}
-			totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-			me->editflag = editflag_prev;
+		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
+		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+		if (use_vert_sel) {
+			/* Ugly x2, we need this so hidden faces don't draw */
+			me->editflag |= ME_EDIT_PAINT_FACE_SEL;
 		}
-		else {
-			indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
-			if (indexar[0]) totindex = 1;
-			else totindex = 0;
-		}
+		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
+		me->editflag = editflag_prev;
 
 		if (use_face_sel && me->totpoly) {
 			MPoly *mpoly = me->mpoly;
@@ -2996,14 +2986,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	/* which faces are involved */
-	if (vp->flag & VP_AREA) {
-		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-	}
-	else {
-		indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
-		if (indexar[0]) totindex = 1;
-		else totindex = 0;
-	}
+	totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
 
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
