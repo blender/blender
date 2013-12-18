@@ -3014,8 +3014,8 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 	mul_v3_fl(offset, bstrength);
 
 	/* threaded loop over nodes */
-	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-	for(n = 0; n < totnode; n++) {
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	for (n = 0; n < totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
 		float (*proxy)[3];
@@ -3027,12 +3027,12 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if (sculpt_brush_test_sq(&test, vd.co)) {
 				const float fade = tex_strength(ss, brush, vd.co, sqrt(test.dist),
-	                                            ss->cache->sculpt_normal_symm, vd.no,
-	                                            vd.fno, vd.mask ? *vd.mask : 0.0f);
+				                                ss->cache->sculpt_normal_symm, vd.no,
+				                                vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
-				if(vd.mvert)
+				if (vd.mvert)
 					vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
 			}
 		}

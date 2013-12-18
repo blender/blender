@@ -146,7 +146,7 @@ static void imagecache_put(Image *image, int index, ImBuf *ibuf)
 	IMB_moviecache_put(image->cache, &key, ibuf);
 }
 
-static struct ImBuf* imagecache_get(Image *image, int index)
+static struct ImBuf *imagecache_get(Image *image, int index)
 {
 	if (image->cache) {
 		ImageCacheKey key;

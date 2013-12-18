@@ -1518,7 +1518,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 
 			row = uiLayoutRow(split, FALSE);
 			uiDefButS(block, NUM, 0, "", 0, 0, 5.0f * UI_UNIT_X, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot - 1)),
-					  0, 0, TIP_("Choose active color stop"));
+			          0, 0, TIP_("Choose active color stop"));
 			row = uiLayoutRow(split, FALSE);
 			uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
 			bt = block->buttons.last;
@@ -1533,7 +1533,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 
 			row = uiLayoutRow(subsplit, FALSE);
 			uiDefButS(block, NUM, 0, "", 0, 0, 5.0f * UI_UNIT_X, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot - 1)),
-					  0, 0, TIP_("Choose active color stop"));
+			          0, 0, TIP_("Choose active color stop"));
 			row = uiLayoutRow(subsplit, FALSE);
 			uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
 			bt = block->buttons.last;

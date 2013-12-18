@@ -271,8 +271,8 @@ bool modifier_supportsCage(struct Scene *scene, ModifierData *md)
 	md->scene = scene;
 
 	return ((!mti->isDisabled || !mti->isDisabled(md, 0)) &&
-			(mti->flags & eModifierTypeFlag_SupportsEditmode) &&
-			modifier_supportsMapping(md));
+	        (mti->flags & eModifierTypeFlag_SupportsEditmode) &&
+	        modifier_supportsMapping(md));
 }
 
 bool modifier_couldBeCage(struct Scene *scene, ModifierData *md)
