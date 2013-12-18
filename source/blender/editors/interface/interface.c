@@ -230,13 +230,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 	/* cope with multi collumns */
 	bt = block->buttons.first;
 	while (bt) {
-		if (bt->next && bt->rect.xmin < bt->next->rect.xmin) {
-			nextcol = 1;
-			col++;
-		}
-		else {
-			nextcol = 0;
-		}
+		nextcol = (bt->next && bt->rect.xmin < bt->next->rect.xmin);
 		
 		bt->rect.xmin = x1addval;
 		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
@@ -247,8 +241,10 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 
 		ui_check_but(bt);  /* clips text again */
 		
-		if (nextcol)
+		if (nextcol) {
 			x1addval += i + block->bounds;
+			col++;
+		}
 		
 		bt = bt->next;
 	}
