@@ -23,7 +23,8 @@ from bpy.types import Operator
 from bpy.props import (StringProperty,
                        BoolProperty,
                        EnumProperty,
-                       IntProperty)
+                       IntProperty,
+                       FloatProperty)
 
 
 class SelectPattern(Operator):
