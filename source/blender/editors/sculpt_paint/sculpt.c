@@ -4290,12 +4290,16 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	float ray_start[3], ray_end[3], ray_normal[3], dist;
 	float obimat[4][4];
 	SculptRaycastData srd;
+	bool original;
+	RegionView3D *rv3d;
 
 	view3d_set_viewcontext(C, &vc);
 	
+	rv3d = vc.ar->regiondata;
 	ob = vc.obact;
 	ss = ob->sculpt;
 	cache = ss->cache;
+	original = (cache) ? cache->original : 0;
 
 	sculpt_stroke_modifiers_check(C, ob);
 
@@ -4309,15 +4313,24 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	dist = normalize_v3(ray_normal);
 
+	if (!rv3d->is_persp) {
+		BKE_pbvh_raycast_project_ray_root(ss->pbvh, srd.original, ray_start, ray_end, ray_normal);
+
+		/* recalculate the normal */
+		sub_v3_v3v3(ray_normal, ray_end, ray_start);
+		dist = normalize_v3(ray_normal);
+	}
+
+	srd.original = original;
 	srd.ss = vc.obact->sculpt;
+	srd.hit = 0;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
 	srd.dist = dist;
-	srd.hit = 0;
-	srd.original = (cache) ? cache->original : 0;
+
 	BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd,
 	                 ray_start, ray_normal, srd.original);
-	
+
 	copy_v3_v3(out, ray_normal);
 	mul_v3_fl(out, srd.dist);
 	add_v3_v3(out, ray_start);

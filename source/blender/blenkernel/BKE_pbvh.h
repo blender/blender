@@ -97,6 +97,12 @@ int BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use
                           const float ray_start[3], const float ray_normal[3],
                           float *dist);
 
+/* for orthographic cameras, project the far away ray segment points to the root node so
+ * we can have better precision. Warning, this function assumes that ray begins and ends outside
+ * bounding box! */
+void BKE_pbvh_raycast_project_ray_root(PBVH *bvh, bool original, float ray_start[3],
+                                       float ray_end[3], float ray_normal[3]);
+
 /* Drawing */
 
 void BKE_pbvh_node_draw(PBVHNode *node, void *data);

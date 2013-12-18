@@ -1541,6 +1541,49 @@ int BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use
 	return hit;
 }
 
+void BKE_pbvh_raycast_project_ray_root (PBVH *bvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3])
+{
+	if (bvh->nodes) {
+		float rootmin_start, rootmin_end;
+		float bb_min_root[3], bb_max_root[3], bb_center[3], bb_diff[3];
+		IsectRayAABBData ray;
+		float ray_normal_inv[3];
+		float offset = 1.0f + 1e-3f;
+		float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
+
+		if (original)
+			BKE_pbvh_node_get_original_BB(bvh->nodes, bb_min_root, bb_max_root);
+		else
+			BKE_pbvh_node_get_BB(bvh->nodes, bb_min_root, bb_max_root);
+
+		/* slightly offset min and max in case we have a zero width node (due to a plane mesh for instance),
+		 * or faces very close to the bounding box boundary. */
+		mid_v3_v3v3(bb_center, bb_max_root, bb_min_root);
+		/* diff should be same for both min/max since it's calculated from center */
+		sub_v3_v3v3(bb_diff, bb_max_root, bb_center);
+		/* handles case of zero width bb */
+		add_v3_v3(bb_diff, offset_vec);
+		madd_v3_v3v3fl(bb_max_root, bb_center, bb_diff, offset);
+		madd_v3_v3v3fl(bb_min_root, bb_center, bb_diff, -offset);
+
+		/* first project start ray */
+		isect_ray_aabb_initialize(&ray, ray_start, ray_normal);
+		if (!isect_ray_aabb(&ray, bb_min_root, bb_max_root, &rootmin_start))
+			return;
+
+		/* then the end ray */
+		mul_v3_v3fl(ray_normal_inv, ray_normal, -1.0);
+		isect_ray_aabb_initialize(&ray, ray_end, ray_normal_inv);
+		/* unlikely to fail exiting if entering succeeded, still keep this here */
+		if (!isect_ray_aabb(&ray, bb_min_root, bb_max_root, &rootmin_end))
+			return;
+
+		madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);
+		madd_v3_v3v3fl(ray_end, ray_end, ray_normal_inv, rootmin_end);
+	}
+}
+
+
 //#include <GL/glew.h>
 
 typedef struct {
