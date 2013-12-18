@@ -267,11 +267,6 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 		}
 	}
 
-	/* ensure panels without header are at the top */
-	if (pt->flag & PNL_NO_HEADER) {
-		pa->sortorder = 0;
-	}
-
 	/* Do not allow closed panels without headers! Else user could get "disappeared" UI! */
 	if ((pt->flag & PNL_NO_HEADER) && (pa->flag & PNL_CLOSED)) {
 		pa->flag &= ~PNL_CLOSED;
@@ -290,16 +285,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 			break;
 	
 	if (newpanel) {
-		if (palast) {
-			pa->sortorder = palast->sortorder + 1;
-		}
-		else {
-			pa->sortorder = 0;
-
-			for (palast = ar->panels.first; palast; palast = palast->next)
-				if (pa->sortorder <= palast->sortorder)
-					pa->sortorder = palast->sortorder + 1;
-		}
+		pa->sortorder = (palast) ? palast->sortorder + 1 : 0;
 
 		for (panext = ar->panels.first; panext; panext = panext->next)
 			if (panext != pa && panext->sortorder >= pa->sortorder)
@@ -1016,6 +1002,7 @@ void uiScalePanels(ARegion *ar, float new_width)
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->panel) {
 			float fac = new_width / (float)block->panel->sizex;
+			printf("scaled %f\n", fac);
 			block->panel->sizex = new_width;
 			
 			for (but = block->buttons.first; but; but = but->next) {
