@@ -290,7 +290,7 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 void applyProject(TransInfo *t)
 {
 	/* XXX FLICKER IN OBJECT MODE */
-	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0 && (t->con.mode & CON_APPLY) == 0) {
+	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0) {
 		TransData *td = t->data;
 		float tvec[3];
 		float imat[4][4];
