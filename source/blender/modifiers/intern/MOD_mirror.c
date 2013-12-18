@@ -187,6 +187,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
 				*vtmap_a = maxVerts + i;
 				tot_vtargetmap++;
+
+				/* average location */
+				mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
+				copy_v3_v3(mv_prev->co, mv->co);
 			}
 			else {
 				*vtmap_a = -1;
