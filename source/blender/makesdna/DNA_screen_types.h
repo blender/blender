@@ -365,6 +365,7 @@ enum {
 /* region do_draw */
 #define RGN_DRAW			1
 #define RGN_DRAW_PARTIAL	2
+#define RGN_DRAWING			4
 
 #endif
 

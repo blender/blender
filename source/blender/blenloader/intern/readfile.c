@@ -6183,7 +6183,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->swinid = 0;
 	ar->type = NULL;
 	ar->swap = 0;
-	ar->do_draw = FALSE;
+	ar->do_draw = 0;
 	ar->regiontimer = NULL;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }

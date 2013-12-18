@@ -419,6 +419,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		BLI_rcti_isect(&ar->winrct, &ar->drawrct, &ar->drawrct);
 		scissor_pad = false;
 	}
+
+	ar->do_draw |= RGN_DRAWING;
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct, scissor_pad);
@@ -453,7 +455,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	glDisable(GL_BLEND);
 #endif
 
-	ar->do_draw = FALSE;
+	ar->do_draw = 0;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
@@ -469,7 +471,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 void ED_region_tag_redraw(ARegion *ar)
 {
-	if (ar) {
+	/* don't tag redraw while drawing, it shouldn't happen normally
+	 * but python scripts can cause this to happen indirectly */
+	if (ar && !(ar->do_draw & RGN_DRAWING)) {
 		/* zero region means full region redraw */
 		ar->do_draw = RGN_DRAW;
 		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
@@ -484,7 +488,7 @@ void ED_region_tag_redraw_overlay(ARegion *ar)
 
 void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 {
-	if (ar) {
+	if (ar && !(ar->do_draw & RGN_DRAWING)) {
 		if (!ar->do_draw) {
 			/* no redraw set yet, set partial region */
 			ar->do_draw = RGN_DRAW_PARTIAL;
