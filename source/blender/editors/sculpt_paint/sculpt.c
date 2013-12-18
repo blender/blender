@@ -3014,7 +3014,7 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 	mul_v3_fl(offset, bstrength);
 
 	/* threaded loop over nodes */
-#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -3162,6 +3162,11 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	}
 }
 
+static bool sculpt_brush_supports_gravity(Brush *br, Sculpt *sd)
+{
+	return !ELEM(br->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH) && sd->gravity_factor > 0.0f;
+}
+
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 {
 	SculptSession *ss = ob->sculpt;
@@ -3267,7 +3272,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			}
 		}
 
-		if (brush->sculpt_tool != SCULPT_TOOL_MASK && sd->gravity_factor > 0.0f)
+		if (sculpt_brush_supports_gravity(brush, sd))
 			do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
 
 		MEM_freeN(nodes);
@@ -3309,7 +3314,9 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
 	BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
-	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+	/* first line is tools that don't support proxies */
+	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
+	    sculpt_brush_supports_gravity(brush, sd)) {
 		/* these brushes start from original coordinates */
 		const int use_orco = (ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
 		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB));
@@ -3939,19 +3946,21 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	normalize_v3_v3(cache->true_view_normal, viewDir);
 
 	/* get gravity vector in world space */
-	if (sd->gravity_object) {
-		Object *gravity_object = sd->gravity_object;
+	if (sculpt_brush_supports_gravity(brush, sd)) {
+		if (sd->gravity_object) {
+			Object *gravity_object = sd->gravity_object;
 
-		copy_v3_v3(cache->gravity_direction, gravity_object->obmat[2]);
-	}
-	else {
-		cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0;
-		cache->gravity_direction[2] = 1.0;
-	}
+			copy_v3_v3(cache->gravity_direction, gravity_object->obmat[2]);
+		}
+		else {
+			cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0;
+			cache->gravity_direction[2] = 1.0;
+		}
 
-	/* transform to sculpted object space */
-	mul_m3_v3(mat, cache->gravity_direction);
-	normalize_v3(cache->gravity_direction);
+		/* transform to sculpted object space */
+		mul_m3_v3(mat, cache->gravity_direction);
+		normalize_v3(cache->gravity_direction);
+	}
 
 	/* Initialize layer brush displacements and persistent coords */
 	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {

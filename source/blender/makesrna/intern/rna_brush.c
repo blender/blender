@@ -251,7 +251,7 @@ static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return br->sculpt_tool != SCULPT_TOOL_MASK;
+	return !ELEM(br->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH);
 }
 
 static int rna_BrushCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
