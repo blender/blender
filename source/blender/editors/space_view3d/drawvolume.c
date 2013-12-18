@@ -132,6 +132,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	float cor[3] = {1.0f, 1.0f, 1.0f};
 	int gl_depth = 0, gl_blend = 0;
 
+	int use_fire = (sds->active_fields & SM_ACTIVE_FIRE);
+
 	/* draw slices of smoke is adapted from c++ code authored
 	 * by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
 	float cv[][3] = {
@@ -460,22 +462,32 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			}
 
 			/* render fire slice */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2, 1.0, 0.0, 0.0, 0.0);
-			glBegin(GL_POLYGON);
-			glColor3f(1.0, 1.0, 1.0);
-			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i][0] - min[0]) * cor[0],
-				             (points[i][1] - min[1]) * cor[1],
-				             (points[i][2] - min[2]) * cor[2]);
-				glVertex3f(points[i][0] * ob_sizei[0],
-				           points[i][1] * ob_sizei[1],
-				           points[i][2] * ob_sizei[2]);
+			if (use_fire) {
+				if (GLEW_VERSION_1_4)
+					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
+				else
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2, 1.0, 0.0, 0.0, 0.0);
+				glBegin(GL_POLYGON);
+				glColor3f(1.0, 1.0, 1.0);
+				for (i = 0; i < numpoints; i++) {
+					glTexCoord3d((points[i][0] - min[0]) * cor[0],
+								 (points[i][1] - min[1]) * cor[1],
+								 (points[i][2] - min[2]) * cor[2]);
+					glVertex3f(points[i][0] * ob_sizei[0],
+							   points[i][1] * ob_sizei[1],
+							   points[i][2] * ob_sizei[2]);
+				}
+				glEnd();
 			}
-			glEnd();
 
 			/* render smoke slice */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			if (GLEW_VERSION_1_4)
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			else
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2, -1.0, 0.0, 0.0, 0.0);
 			glBegin(GL_POLYGON);
 			glColor3f(1.0, 1.0, 1.0);
