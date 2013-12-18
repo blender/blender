@@ -2055,8 +2055,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 			IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
 			                                  ibuf->x, 0, 0, applied_view_settings, display_settings,
 			                                  ibuf->invalid_rect.xmin, ibuf->invalid_rect.ymin,
-			                                  ibuf->invalid_rect.xmax, ibuf->invalid_rect.ymax,
-			                                  false);
+			                                  ibuf->invalid_rect.xmax, ibuf->invalid_rect.ymax);
 		}
 
 		BLI_rcti_init(&ibuf->invalid_rect, 0, 0, 0, 0);
@@ -2769,22 +2768,8 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, const unsigned char *byte_buffer,
                                        int stride, int offset_x, int offset_y, const ColorManagedViewSettings *view_settings,
                                        const ColorManagedDisplaySettings *display_settings,
-                                       int xmin, int ymin, int xmax, int ymax, bool update_orig_byte_buffer)
+                                       int xmin, int ymin, int xmax, int ymax)
 {
-	if ((ibuf->rect && ibuf->rect_float) || update_orig_byte_buffer) {
-		/* update byte buffer created by legacy color management */
-
-		unsigned char *rect = (unsigned char *) ibuf->rect;
-		int channels = ibuf->channels;
-		int width = xmax - xmin;
-		int height = ymax - ymin;
-		int rect_index = (ymin * ibuf->x + xmin) * 4;
-		int linear_index = ((ymin - offset_y) * stride + (xmin - offset_x)) * channels;
-
-		IMB_buffer_byte_from_float(rect + rect_index, linear_buffer + linear_index, channels, ibuf->dither,
-		                           IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, TRUE, width, height, ibuf->x, stride);
-	}
-
 	if (ibuf->display_buffer_flags) {
 		ColormanageCacheViewSettings cache_view_settings;
 		ColormanageCacheDisplaySettings cache_display_settings;

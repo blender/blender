@@ -192,7 +192,7 @@ static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf
 	IMB_partial_display_buffer_update(ibuf, rectf, NULL,
 	                                  linear_stride, linear_offset_x, linear_offset_y,
 	                                  &scene->view_settings, &scene->display_settings,
-	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, false);
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
 }
 
 /* ****************************** render invoking ***************** */

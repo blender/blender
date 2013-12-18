@@ -298,13 +298,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if (ibuf) {
-		/* update display buffer */
-		if (ibuf->rect == NULL)
-			imb_addrectImBuf(ibuf);
-
-		IMB_partial_display_buffer_update(ibuf, rr->rectf, rect, rr->rectx, 0, 0,
-		                                  &scene->view_settings, &scene->display_settings,
-		                                  0, 0, rr->rectx, rr->recty, true);
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
 		/* write file for animation */
 		if (oglrender->write_still) {

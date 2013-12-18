@@ -171,7 +171,7 @@ void ViewerOperation::updateImage(rcti *rect)
 {
 	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, NULL, getWidth(), 0, 0,
 	                                  this->m_viewSettings, this->m_displaySettings,
-	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax, false);
+	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	this->updateDraw();
 }
