@@ -746,7 +746,7 @@ void uiButExecute(const bContext *C, uiBut *but)
 
 /* use to check if we need to disable undo, but don't make any changes
  * returns FALSE if undo needs to be disabled. */
-static int ui_is_but_rna_undo(uiBut *but)
+static int ui_is_but_rna_undo(const uiBut *but)
 {
 	if (but->rnapoin.id.data) {
 		/* avoid undo push for buttons who's ID are screen or wm level
@@ -1527,7 +1527,7 @@ void ui_set_but_vectorf(uiBut *but, const float vec[3])
 	}
 }
 
-bool ui_is_but_float(uiBut *but)
+bool ui_is_but_float(const uiBut *but)
 {
 	if (but->pointype == UI_BUT_POIN_FLOAT && but->poin)
 		return true;
@@ -1538,7 +1538,7 @@ bool ui_is_but_float(uiBut *but)
 	return false;
 }
 
-bool ui_is_but_bool(uiBut *but)
+bool ui_is_but_bool(const uiBut *but)
 {
 	if (ELEM4(but->type, TOG, TOGN, ICONTOG, ICONTOGN))
 		return true;
@@ -1550,7 +1550,7 @@ bool ui_is_but_bool(uiBut *but)
 }
 
 
-bool ui_is_but_unit(uiBut *but)
+bool ui_is_but_unit(const uiBut *but)
 {
 	UnitSettings *unit = but->block->unit;
 	const int unit_type = uiButGetUnitType(but);
@@ -3642,7 +3642,7 @@ void uiButSetUnitType(uiBut *but, const int unit_type)
 	but->unit_type = (unsigned char)(RNA_SUBTYPE_UNIT_VALUE(unit_type));
 }
 
-int uiButGetUnitType(uiBut *but)
+int uiButGetUnitType(const uiBut *but)
 {
 	int ownUnit = (int)but->unit_type;
 	

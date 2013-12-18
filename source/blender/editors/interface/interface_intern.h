@@ -396,12 +396,12 @@ extern int  ui_get_but_string_max_length(uiBut *but);
 extern void ui_set_but_default(struct bContext *C, const bool all);
 
 extern void ui_check_but(uiBut *but);
-extern bool ui_is_but_float(uiBut *but);
-extern bool ui_is_but_bool(uiBut *but);
-extern bool ui_is_but_unit(uiBut *but);
+extern bool ui_is_but_float(const uiBut *but);
+extern bool ui_is_but_bool(const uiBut *but);
+extern bool ui_is_but_unit(const uiBut *but);
 extern bool ui_is_but_rna_valid(uiBut *but);
-extern bool ui_is_but_utf8(uiBut *but);
-extern bool ui_is_but_search_unlink_visible(uiBut *but);
+extern bool ui_is_but_utf8(const uiBut *but);
+extern bool ui_is_but_search_unlink_visible(const uiBut *but);
 
 extern int  ui_is_but_push_ex(uiBut *but, double *value);
 extern int  ui_is_but_push(uiBut *but);

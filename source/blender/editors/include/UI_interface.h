@@ -522,7 +522,7 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block, int type, struct wmOperatorType *ot
 struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
 
 void uiButSetUnitType(uiBut *but, const int unit_type);
-int uiButGetUnitType(uiBut *but);
+int uiButGetUnitType(const uiBut *but);
 
 enum {
 	BUT_GET_RNAPROP_IDENTIFIER = 1,

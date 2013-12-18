@@ -237,7 +237,7 @@ typedef struct uiAfterFunc {
 
 
 
-static bool ui_is_but_interactive(uiBut *but, const bool labeledit);
+static bool ui_is_but_interactive(const uiBut *but, const bool labeledit);
 static bool ui_but_contains_pt(uiBut *but, int mx, int my);
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static uiBut *ui_but_find_mouse_over_ex(ARegion *ar, int x, int y, bool ctrl);
@@ -383,7 +383,7 @@ static void ui_mouse_scale_warp(uiHandleButtonData *data,
 }
 
 /* file selectors are exempt from utf-8 checks */
-bool ui_is_but_utf8(uiBut *but)
+bool ui_is_but_utf8(const uiBut *but)
 {
 	if (but->rnaprop) {
 		const int subtype = RNA_property_subtype(but->rnaprop);
@@ -869,7 +869,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 	}
 }
 
-static bool ui_is_but_drag_toggle(uiBut *but)
+static bool ui_is_but_drag_toggle(const uiBut *but)
 {
 	return ((ui_is_but_bool(but) == true) &&
 	        /* menu check is importnt so the button dragged over isn't removed instantly */
@@ -5969,7 +5969,7 @@ static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
  * Can we mouse over the button or is it hidden/disabled/layout.
  * Note: ctrl is kind of a hack currently, so that non-embossed TEX button behaves as a label when ctrl is not pressed.
  */
-static bool ui_is_but_interactive(uiBut *but, const bool labeledit)
+static bool ui_is_but_interactive(const uiBut *but, const bool labeledit)
 {
 	/* note, LABEL is included for highlights, this allows drags */
 	if ((but->type == LABEL) && but->dragpoin == NULL)
@@ -5988,7 +5988,7 @@ static bool ui_is_but_interactive(uiBut *but, const bool labeledit)
 	return true;
 }
 
-bool ui_is_but_search_unlink_visible(uiBut *but)
+bool ui_is_but_search_unlink_visible(const uiBut *but)
 {
 	BLI_assert(but->type == SEARCH_MENU_UNLINK);
 	return ((but->editstr == NULL) &&
