@@ -1655,8 +1655,13 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 {
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
 	uiFontStyle *fstyle = &style->widget;
+	const float aspect = but->block->aspect;
+	const short fstyle_points_prev = fstyle->points;
+
 	float startx = but->rect.xmin;
 	char *origstr, password_str[UI_MAX_DRAW_STR];
+
+	ui_fontscale(&fstyle->points, aspect);
 
 	uiStyleFontSet(fstyle);
 
@@ -1671,7 +1676,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	/* XXX solve generic, see: #widget_draw_text_icon */
 	if (but->type == NUM || but->type == NUMSLI) {
-		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
+		startx += (int)(UI_TEXT_MARGIN_X * U.widget_unit);
 	}
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (but->flag & UI_HAS_ICON) {
@@ -1690,7 +1695,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
 				/* 0.25 == scale factor for less sensitivity */
-				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) > (startx - x) * 0.25f) {
+				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) * aspect > (startx - x) * 0.25f) {
 					break;
 				}
 			}
@@ -1712,7 +1717,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
 		while (true) {
-			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX);
+			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX) * aspect;
 
 			/* check if position is found */
 			if (cdist < x) {
@@ -1746,6 +1751,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 	ui_button_text_password_hide(password_str, but, TRUE);
 
 	MEM_freeN(origstr);
+
+	fstyle->points = fstyle_points_prev;
 }
 
 static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, const float x)
