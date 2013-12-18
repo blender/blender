@@ -2690,17 +2690,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				}
 
 				if (!is_data) {
-					if (channels == 4) {
-						IMB_colormanagement_processor_apply_v4_predivide(cm_processor, pixel);
-					}
-					else if (channels == 3) {
-						IMB_colormanagement_processor_apply_v3(cm_processor, pixel);
-					}
-					else /* if (channels == 1) */ {
-						if (cm_processor->curve_mapping) {
-							curve_mapping_apply_pixel(cm_processor->curve_mapping, pixel, 1);
-						}
-					}
+					IMB_colormanagement_processor_apply_pixel(cm_processor, pixel, channels);
 				}
 
 				if (display_buffer_float) {
@@ -2915,6 +2905,24 @@ void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, 
 
 	if (cm_processor->processor)
 		OCIO_processorApplyRGB(cm_processor->processor, pixel);
+}
+
+void IMB_colormanagement_processor_apply_pixel(struct ColormanageProcessor *cm_processor, float *pixel, int channels)
+{
+	if (channels == 4) {
+		IMB_colormanagement_processor_apply_v4_predivide(cm_processor, pixel);
+	}
+	else if (channels == 3) {
+		IMB_colormanagement_processor_apply_v3(cm_processor, pixel);
+	}
+	else if (channels == 1) {
+		if (cm_processor->curve_mapping) {
+			curve_mapping_apply_pixel(cm_processor->curve_mapping, pixel, 1);
+		}
+	}
+	else {
+		BLI_assert(!"Incorrect number of channels passed to IMB_colormanagement_processor_apply_pixel");
+	}
 }
 
 void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, float *buffer, int width, int height,
