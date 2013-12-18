@@ -1023,7 +1023,7 @@ typedef struct {
 	Sculpt *sd;
 	SculptSession *ss;
 	float radius_squared;
-	int original;
+	bool original;
 } SculptSearchSphereData;
 
 /* Test AABB against sphere */
@@ -1085,12 +1085,13 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 
 	SculptSession *ss = ob->sculpt;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
-	int n, original;
+	int n;
+	bool original;
 
 	/* Grab brush requires to test on original data (see r33888 and
 	 * bug #25371) */
 	original = (BKE_paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
-	            TRUE : ss->cache->original);
+	            true : ss->cache->original);
 
 	/* In general the original coords are not available with dynamic
 	 * topology
@@ -1101,7 +1102,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 	 * so we don't actually need to use modified coords.
 	 */
 	if (ss->bm || brush->sculpt_tool == SCULPT_TOOL_MASK)
-		original = FALSE;
+		original = false;
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -3115,7 +3116,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	                      SCULPT_TOOL_GRAB,
 	                      SCULPT_TOOL_ROTATE,
 	                      SCULPT_TOOL_THUMB,
-	                      SCULPT_TOOL_LAYER);
+	                      SCULPT_TOOL_LAYER) ? true : ss->cache->original;
 
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
@@ -3182,7 +3183,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 	                      SCULPT_TOOL_GRAB,
 	                      SCULPT_TOOL_ROTATE,
 	                      SCULPT_TOOL_THUMB,
-	                      SCULPT_TOOL_LAYER);
+	                      SCULPT_TOOL_LAYER) ? true : ss->cache->original;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
 	/* Only act if some verts are inside the brush area */
@@ -3318,8 +3319,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
 	    sculpt_brush_supports_gravity(brush, sd)) {
 		/* these brushes start from original coordinates */
-		const int use_orco = (ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
-		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB));
+		const bool use_orco = ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
+		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB) ? true : ss->cache->original;
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
