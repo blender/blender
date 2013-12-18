@@ -850,3 +850,24 @@ void BLF_draw_buffer(int fontid, const char *str)
 		blf_font_buffer(font, str);
 	}
 }
+
+#ifdef DEBUG
+void BLF_state_print(int fontid)
+{
+	FontBLF *font = blf_get(fontid);
+	if (font) {
+		printf("fontid %d %p\n", fontid, font->name, (void *)font);
+		printf("  name:    '%s'\n", font->name);
+		printf("  size:     %u\n", font->size);
+		printf("  dpi:      %u\n", font->dpi);
+		printf("  pos:      %.6f %.6f %.6f\n", UNPACK3(font->pos));
+		printf("  aspect:   (%d) %.6f %.6f %.6f\n", (font->flags & BLF_ROTATION) != 0, UNPACK3(font->aspect));
+		printf("  angle:    (%d) %.6f\n", (font->flags & BLF_ASPECT) != 0, font->angle);
+		printf("  flag:     %d\n", font->flags);
+	}
+	else {
+		printf("fontid %d (NULL)\n", fontid);
+	}
+	fflush(stdout);
+}
+#endif
