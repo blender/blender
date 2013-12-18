@@ -2665,7 +2665,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 	if (cm_processor) {
 		for (y = ymin; y < ymax; y++) {
 			for (x = xmin; x < xmax; x++) {
-				int display_index = (y * display_stride + x) * channels;
+				int display_index = (y * display_stride + x) * 4;
 				int linear_index = ((y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
 				float pixel[4];
 
@@ -2675,6 +2675,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 					}
 					else if (channels == 3) {
 						copy_v3_v3(pixel, (float *) linear_buffer + linear_index);
+						pixel[3] = 1.0f;
 					}
 					else if (channels == 1) {
 						pixel[0] = linear_buffer[linear_index];
@@ -2690,7 +2691,17 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				}
 
 				if (!is_data) {
-					IMB_colormanagement_processor_apply_v4_predivide(cm_processor, pixel);
+					if (channels == 4) {
+						IMB_colormanagement_processor_apply_v4_predivide(cm_processor, pixel);
+					}
+					else if (channels == 3) {
+						IMB_colormanagement_processor_apply_v3(cm_processor, pixel);
+					}
+					else /* if (channels == 1) */ {
+						if (cm_processor->curve_mapping) {
+							curve_mapping_apply_pixel(cm_processor->curve_mapping, pixel, 1);
+						}
+					}
 				}
 
 				if (display_buffer_float) {
@@ -2714,7 +2725,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 					}
 					else if (channels == 3) {
 						rgb_float_to_uchar(display_buffer + display_index, pixel);
-						display_buffer[display_index + 1] = 255;
+						display_buffer[display_index + 3] = 255;
 					}
 					else /* if (channels == 1) */ {
 						display_buffer[display_index] =
