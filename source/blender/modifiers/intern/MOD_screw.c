@@ -746,12 +746,23 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						}
 					}
 
-					/* vc_no_tmp2 - is a line 90d from the pivot to the vec
+					/* tmp_vec2 - is a line 90d from the pivot to the vec
 					 * This is used so the resulting normal points directly away from the middle */
 					cross_v3_v3v3(tmp_vec2, axis_vec, vc->co);
 
-					/* edge average vector and right angle to the pivot make the normal */
-					cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
+					if (UNLIKELY(is_zero_v3(tmp_vec2))) {
+						/* we're _on_ the axis, so copy it based on our winding */
+						if (vc->e[0]->v2 == i) {
+							negate_v3_v3(vc->no, axis_vec);
+						}
+						else {
+							copy_v3_v3(vc->no, axis_vec);
+						}
+					}
+					else {
+						/* edge average vector and right angle to the pivot make the normal */
+						cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
+					}
 
 				}
 				else {
