@@ -34,6 +34,8 @@
 
 #include "rna_internal.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -42,7 +44,6 @@
 #include "BKE_group.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
@@ -121,12 +122,13 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this group is instanced as a dupli");
-
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
