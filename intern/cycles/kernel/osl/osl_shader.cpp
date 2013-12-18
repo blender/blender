@@ -150,11 +150,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 
 		if (prim) {
 			ShaderClosure sc;
+
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
-			sc.weight = weight*TO_FLOAT3(comp->w);
-#else
-			sc.weight = weight;
+			weight = weight*TO_FLOAT3(comp->w);
 #endif
+			sc.weight = weight;
 
 			prim->setup();
 
@@ -391,11 +391,11 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 
 		if (prim) {
 			ShaderClosure sc;
+
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
-			sc.weight = weight*TO_FLOAT3(comp->w);
-#else
-			sc.weight = weight;
+			weight = weight*TO_FLOAT3(comp->w);
 #endif
+			sc.weight = weight;
 
 			prim->setup();
 
