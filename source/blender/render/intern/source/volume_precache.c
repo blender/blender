@@ -95,7 +95,7 @@ static int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset
 }
 
 /* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
-static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), const float co[3])
+static int point_inside_obi(RayObject *tree, ObjectInstanceRen *obi, const float co[3])
 {
 	Isect isect= {{0}};
 	float dir[3] = {0.0f, 0.0f, 1.0f};
@@ -112,7 +112,9 @@ static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), con
 	isect.orig.face= NULL;
 	isect.orig.ob = NULL;
 
+	RE_instance_rotate_ray(obi, &isect);
 	final_depth = intersect_outside_volume(tree, &isect, dir, limit, depth);
+	RE_instance_rotate_ray_restore(obi, &isect);
 	
 	/* even number of intersections: point is outside
 	 * odd number: point is inside */

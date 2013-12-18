@@ -5268,6 +5268,8 @@ void RE_DataBase_IncrementalView(Render *re, float viewmat[4][4], int restore)
 	copy_m4_m4(re->viewmat, viewmat);
 	invert_m4_m4(re->viewinv, re->viewmat);
 	
+	init_camera_inside_volumes(re);
+
 	env_rotate_scene(re, tmat, !restore);
 
 	/* SSS points distribution depends on view */

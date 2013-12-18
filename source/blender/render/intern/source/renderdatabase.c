@@ -80,6 +80,7 @@
 
 #include "RE_render_ext.h"	/* externtex */
 
+#include "rayintersection.h"
 #include "rayobject.h"
 #include "renderpipeline.h"
 #include "render_types.h"
@@ -1417,6 +1418,42 @@ void RE_makeRenderInstances(Render *re)
 
 	BLI_freelistN(&re->instancetable);
 	re->instancetable= newlist;
+}
+
+/* four functions to facilitate envmap rotation for raytrace */
+void RE_instance_rotate_ray_start(ObjectInstanceRen *obi, Isect *is)
+{
+	if (obi && (obi->flag & R_ENV_TRANSFORMED)) {
+		copy_v3_v3(is->origstart, is->start);
+		mul_m4_v3(obi->imat, is->start);
+	}
+}
+
+void RE_instance_rotate_ray_dir(ObjectInstanceRen *obi, Isect *is)
+{
+	if (obi && (obi->flag & R_ENV_TRANSFORMED)) {
+		float end[3];
+
+		copy_v3_v3(is->origdir, is->dir);
+		add_v3_v3v3(end, is->origstart, is->dir);
+
+		mul_m4_v3(obi->imat, end);
+		sub_v3_v3v3(is->dir, end, is->start);
+	}
+}
+
+void RE_instance_rotate_ray(ObjectInstanceRen *obi, Isect *is)
+{
+	RE_instance_rotate_ray_start(obi, is);
+	RE_instance_rotate_ray_dir(obi, is);
+}
+
+void RE_instance_rotate_ray_restore(ObjectInstanceRen *obi, Isect *is)
+{
+	if (obi && (obi->flag & R_ENV_TRANSFORMED)) {
+		copy_v3_v3(is->start, is->origstart);
+		copy_v3_v3(is->dir, is->origdir);
+	}
 }
 
 int clip_render_object(float boundbox[2][3], float bounds[4], float winmat[4][4])
