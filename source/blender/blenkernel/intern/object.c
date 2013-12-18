@@ -1046,8 +1046,8 @@ void BKE_object_lod_add(Object *ob)
 
 static int lod_cmp(void *a, void *b)
 {
-	LodLevel *loda = (LodLevel*)a;
-	LodLevel *lodb = (LodLevel*)b;
+	LodLevel *loda = (LodLevel *)a;
+	LodLevel *lodb = (LodLevel *)b;
 
 	if (loda->distance < lodb->distance) return -1;
 	return loda->distance > lodb->distance;
@@ -1085,7 +1085,7 @@ bool BKE_object_lod_remove(Object *ob, int level)
 	return true;
 }
 
-static LodLevel* lod_level_select(Object *ob, float cam_loc[3])
+static LodLevel *lod_level_select(Object *ob, const float cam_loc[3])
 {
 	LodLevel *current = ob->currentlod;
 	float ob_loc[3], delta[3];
@@ -1097,15 +1097,15 @@ static LodLevel* lod_level_select(Object *ob, float cam_loc[3])
 	sub_v3_v3v3(delta, ob_loc, cam_loc);
 	distance2 = len_squared_v3(delta);
 
-	/* check for higher LoD */
 	if (distance2 < current->distance*current->distance) {
-		while (current->prev && distance2 < current->distance*current->distance) {
+		/* check for higher LoD */
+		while (current->prev && distance2 < (current->distance * current->distance)) {
 			current = current->prev;
 		}
 	}
-	/* check for lower LoD */
 	else {
-		while (current->next && distance2 > current->next->distance*current->next->distance) {
+		/* check for lower LoD */
+		while (current->next && distance2 > (current->next->distance * current->next->distance)) {
 			current = current->next;
 		}
 	}
@@ -1121,8 +1121,8 @@ bool BKE_object_lod_is_usable(Object *ob, Scene *scene)
 
 bool BKE_object_lod_update(Object *ob, float camera_position[3])
 {
-	LodLevel* cur_level = ob->currentlod;
-	LodLevel* new_level = lod_level_select(ob, camera_position);
+	LodLevel *cur_level = ob->currentlod;
+	LodLevel *new_level = lod_level_select(ob, camera_position);
 
 	if (new_level != cur_level) {
 		ob->currentlod = new_level;
@@ -1139,7 +1139,7 @@ static Object *lod_ob_get(Object *ob, Scene *scene, int flag)
 	if (!current || !BKE_object_lod_is_usable(ob, scene))
 		return ob;
 
-	while( current->prev && (!(current->flags & flag) || !current->source || current->source->type != OB_MESH)) {
+	while (current->prev && (!(current->flags & flag) || !current->source || current->source->type != OB_MESH)) {
 		current = current->prev;
 	}
 
@@ -1372,9 +1372,9 @@ static void copy_object_lod(Object *obn, Object *ob)
 	BLI_duplicatelist(&obn->lodlevels, &ob->lodlevels);
 
 	if (obn->lodlevels.first)
-		((LodLevel*)obn->lodlevels.first)->source = obn;
+		((LodLevel *)obn->lodlevels.first)->source = obn;
 
-	obn->currentlod = (LodLevel*) obn->lodlevels.first;
+	obn->currentlod = (LodLevel *)obn->lodlevels.first;
 }
 
 bool BKE_object_pose_context_check(Object *ob)

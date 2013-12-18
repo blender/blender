@@ -48,7 +48,7 @@
 
 #include "object_intern.h"
 
-static int object_lod_add_exec(bContext *C, wmOperator *op)
+static int object_lod_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	BKE_object_lod_add(ob);
@@ -57,8 +57,6 @@ static int object_lod_add_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_lod_add(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Add Level of Detail";
 	ot->description = "Add a level of detail to this object";
@@ -76,10 +74,11 @@ static int object_lod_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	int index = RNA_int_get(op->ptr, "index");
-	if(!BKE_object_lod_remove(ob, index))
+
+	if (!BKE_object_lod_remove(ob, index))
 		return OPERATOR_CANCELLED;
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_LOD, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_OBJECT | ND_LOD, CTX_wm_view3d(C));
 	return OPERATOR_FINISHED;
 }
 

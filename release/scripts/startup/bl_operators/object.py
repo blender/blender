@@ -790,7 +790,7 @@ class LodByName(Operator):
     def execute(self, context):
         scene = context.scene
         ob = context.active_object
-        
+
         prefix = ""
         suffix = ""
         name = ""
@@ -855,11 +855,20 @@ class LodGenerate(Operator):
     bl_label = "Generate Levels of Detail"
     bl_options = {'REGISTER', 'UNDO'}
 
-    count = bpy.props.IntProperty(name="Count", default=3)
-    target = bpy.props.FloatProperty(name="Target Size", default=0.1,
-                                        min=0.0, max=1.0)
-    package = bpy.props.BoolProperty(name="Package into Group", default=False)
-    
+    count = IntProperty(
+            name="Count",
+            default=3,
+            )
+    target = FloatProperty(
+            name="Target Size",
+            min=0.0, max=1.0,
+            default=0.1,
+            )
+    package = BoolProperty(
+            name="Package into Group",
+            default=False,
+            )
+
     @classmethod
     def poll(cls, context):
         return (context.active_object is not None)
@@ -899,7 +908,7 @@ class LodGenerate(Operator):
             if lod_prefix:
                 lod.name = lod_prefix + str(i) + lod_name
             else:
-                lod.name = lod_name + lod_suffix  + str(i)
+                lod.name = lod_name + lod_suffix + str(i)
 
             lod.location.y = ob.location.y + 3.0 * i
 
@@ -907,8 +916,8 @@ class LodGenerate(Operator):
                 modifier = lod.modifiers.new("lod_decimate", "DECIMATE")
             else:
                 modifier = lod.modifiers[-1]
-                
-            modifier.ratio = 1.0 - step*(i)
+
+            modifier.ratio = 1.0 - step * i
 
             ob.lod_levels[i].object = lod
 

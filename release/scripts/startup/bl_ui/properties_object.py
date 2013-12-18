@@ -130,7 +130,7 @@ class OBJECT_MT_lod_tools(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("object.lod_by_name", text="Set By Name")
         layout.operator("object.lod_generate", text="Generate")
         layout.operator("object.lod_clear_all", text="Clear All", icon='PANEL_CLOSE')
@@ -151,7 +151,8 @@ class OBJECT_PT_levels_of_detail(ObjectButtonsPanel, Panel):
         col = layout.column()
 
         for i, level in enumerate(ob.lod_levels):
-            if i == 0: continue
+            if i == 0:
+                continue
             box = col.box()
             row = box.row()
             row.prop(level, "object", text="")
