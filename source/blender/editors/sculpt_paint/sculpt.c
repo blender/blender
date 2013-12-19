@@ -117,11 +117,6 @@ void ED_sculpt_force_update(bContext *C)
 	}
 }
 
-float *ED_sculpt_get_last_stroke(struct Object *ob)
-{
-	return (ob && ob->sculpt && ob->sculpt->last_stroke_valid) ? ob->sculpt->last_stroke : NULL;
-}
-
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 {
 	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
@@ -4575,7 +4570,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		/* update last stroke position */
 		ob->sculpt->last_stroke_valid = 1;
-		copy_v3_v3(ob->sculpt->last_stroke, ss->cache->true_location);
+		ED_sculpt_get_average_stroke(ob, ob->sculpt->last_stroke);
 		mul_m4_v3(ob->obmat, ob->sculpt->last_stroke);
 
 		sculpt_cache_free(ss->cache);
