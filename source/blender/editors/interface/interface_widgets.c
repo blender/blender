@@ -1307,6 +1307,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if (ELEM(but->type, NUM, NUMSLI)) {
 		ui_text_clip_right_label(fstyle, but, rect);
 	}
+	/* Special hack for non-embossed TEX buttons in uiList (we want them to behave as much as possible as labels). */
+	else if ((but->type == TEX) && (but->flag & UI_BUT_LIST_ITEM) && (but->dt & UI_EMBOSSN)) {
+		but->ofs = 0;
+	}
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		ui_text_clip_left(fstyle, but, rect);
 	}
