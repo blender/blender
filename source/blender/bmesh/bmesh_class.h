@@ -227,7 +227,7 @@ typedef struct BMesh {
 	int shapenr;
 	
 	int walkers, totflags;
-	ListBase selected, error_stack;
+	ListBase selected;
 
 	BMFace *act_face;
 
