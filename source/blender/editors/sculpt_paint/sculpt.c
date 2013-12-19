@@ -317,6 +317,9 @@ typedef struct StrokeCache {
 	int alt_smooth;
 
 	float plane_trim_squared;
+
+	bool supports_gravity;
+	float true_gravity_direction[3];
 	float gravity_direction[3];
 
 	rcti previous_r; /* previous redraw rectangle */
@@ -3163,11 +3166,6 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	}
 }
 
-static bool sculpt_brush_supports_gravity(Brush *br, Sculpt *sd)
-{
-	return !ELEM(br->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH) && sd->gravity_factor > 0.0f;
-}
-
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 {
 	SculptSession *ss = ob->sculpt;
@@ -3273,7 +3271,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			}
 		}
 
-		if (sculpt_brush_supports_gravity(brush, sd))
+		if (ss->cache->supports_gravity)
 			do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
 
 		MEM_freeN(nodes);
@@ -3317,10 +3315,10 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
 	/* first line is tools that don't support proxies */
 	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
-	    sculpt_brush_supports_gravity(brush, sd)) {
+	    ss->cache->supports_gravity) {
 		/* these brushes start from original coordinates */
 		const bool use_orco = ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
-		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB) ? true : ss->cache->original;
+		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
@@ -3484,6 +3482,10 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 
 	mul_m4_v3(cache->symm_rot_mat, cache->location);
 	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
+
+	if (cache->supports_gravity)
+		flip_v3_v3(cache->gravity_direction, cache->true_gravity_direction, symm);
+		mul_m4_v3(cache->symm_rot_mat, cache->gravity_direction);
 }
 
 typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush);
@@ -3946,21 +3948,22 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	mul_m3_v3(mat, viewDir);
 	normalize_v3_v3(cache->true_view_normal, viewDir);
 
+	cache->supports_gravity = !ELEM(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH) && sd->gravity_factor > 0.0f;
 	/* get gravity vector in world space */
-	if (sculpt_brush_supports_gravity(brush, sd)) {
+	if (cache->supports_gravity) {
 		if (sd->gravity_object) {
 			Object *gravity_object = sd->gravity_object;
 
-			copy_v3_v3(cache->gravity_direction, gravity_object->obmat[2]);
+			copy_v3_v3(cache->true_gravity_direction, gravity_object->obmat[2]);
 		}
 		else {
-			cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0;
-			cache->gravity_direction[2] = 1.0;
+			cache->true_gravity_direction[0] = cache->true_gravity_direction[1] = 0.0;
+			cache->true_gravity_direction[2] = 1.0;
 		}
 
 		/* transform to sculpted object space */
-		mul_m3_v3(mat, cache->gravity_direction);
-		normalize_v3(cache->gravity_direction);
+		mul_m3_v3(mat, cache->true_gravity_direction);
+		normalize_v3(cache->true_gravity_direction);
 	}
 
 	/* Initialize layer brush displacements and persistent coords */
