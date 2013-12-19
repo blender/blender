@@ -759,23 +759,6 @@ static float integrate_overlap(Brush *br)
 	return max;
 }
 
-/* Uses symm to selectively flip any axis of a coordinate. */
-static void flip_v3_v3(float out[3], const float in[3], const char symm)
-{
-	if (symm & PAINT_SYMM_X)
-		out[0] = -in[0];
-	else
-		out[0] = in[0];
-	if (symm & PAINT_SYMM_Y)
-		out[1] = -in[1];
-	else
-		out[1] = in[1];
-	if (symm & PAINT_SYMM_Z)
-		out[2] = -in[2];
-	else
-		out[2] = in[2];
-}
-
 static void flip_v3(float v[3], const char symm)
 {
 	flip_v3_v3(v, v, symm);
@@ -3478,9 +3461,10 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	mul_m4_v3(cache->symm_rot_mat, cache->location);
 	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
 
-	if (cache->supports_gravity)
+	if (cache->supports_gravity) {
 		flip_v3_v3(cache->gravity_direction, cache->true_gravity_direction, symm);
 		mul_m4_v3(cache->symm_rot_mat, cache->gravity_direction);
+	}
 }
 
 typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush);

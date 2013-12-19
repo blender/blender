@@ -342,6 +342,23 @@ int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, 
 	return 1;
 }
 
+/* Uses symm to selectively flip any axis of a coordinate. */
+void flip_v3_v3(float out[3], const float in[3], const char symm)
+{
+	if (symm & PAINT_SYMM_X)
+		out[0] = -in[0];
+	else
+		out[0] = in[0];
+	if (symm & PAINT_SYMM_Y)
+		out[1] = -in[1];
+	else
+		out[1] = in[1];
+	if (symm & PAINT_SYMM_Z)
+		out[2] = -in[2];
+	else
+		out[2] = in[2];
+}
+
 /* used for both 3d view and image window */
 void paint_sample_color(const bContext *C, ARegion *ar, int x, int y)    /* frontbuf */
 {

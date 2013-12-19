@@ -219,6 +219,7 @@ int vert_paint_poll(struct bContext *C);
 int mask_paint_poll(struct bContext *C);
 
 int facemask_paint_poll(struct bContext *C);
+void flip_v3_v3(float out[3], const float in[3], const char symm);
 
 /* stroke operator */
 typedef enum BrushStrokeMode {

@@ -94,6 +94,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i;
+#ifdef _OPENMP
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+#endif
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
@@ -108,6 +111,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	sculpt_undo_push_begin("Mask flood fill");
 
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (i = 0; i < totnode; i++) {
 		PBVHVertexIter vi;
 
@@ -231,7 +235,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 
 			BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
 
-#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 			for (i = 0; i < totnode; i++) {
 				PBVHVertexIter vi;
 				bool any_masked = false;
@@ -270,6 +274,7 @@ typedef struct LassoMaskData {
 	bool *px;
 	int width;
 	rcti rect; /* bounding box for scanfilling */
+	int symmpass;
 } LassoMaskData;
 
 
@@ -280,9 +285,11 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 {
 	float scr_co_f[2];
 	short scr_co_s[2];
+	float co_final[3];
 
+	flip_v3_v3(co_final, co, data->symmpass);
 	/* first project point to 2d space */
-	ED_view3d_project_float_v2_m4(data->vc->ar, co, scr_co_f, data->projviewobjmat);
+	ED_view3d_project_float_v2_m4(data->vc->ar, co_final, scr_co_f, data->projviewobjmat);
 
 	scr_co_s[0] = scr_co_f[0];
 	scr_co_s[1] = scr_co_f[1];
@@ -309,20 +316,19 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 	int (*mcords)[2] = (int (*)[2])WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
-		float clip_planes[4][4];
+		float clip_planes[4][4], clip_planes_final[4][4];
 		BoundBox bb;
 		bglMats mats = {{0}};
 		Object *ob;
 		ViewContext vc;
 		LassoMaskData data;
-#ifdef _OPENMP
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-#endif
+		int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 		struct MultiresModifierData *mmd;
 		DerivedMesh *dm;
 		PBVH *pbvh;
 		PBVHNode **nodes;
-		int totnode, i;
+		int totnode, i, symmpass;
 		PaintMaskFloodMode mode = PAINT_MASK_FLOOD_VALUE;
 		bool select = true; /* TODO: see how to implement deselection */
 		float value = select ? 1.0 : 0.0;
@@ -356,37 +362,54 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		pbvh = dm->getPBVH(ob, dm);
 		ob->sculpt->pbvh = pbvh;
 
-		/* gather nodes inside lasso's enclosing rectangle (should greatly help with bigger meshes) */
-		BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes, &nodes, &totnode);
-
 		sculpt_undo_push_begin("Mask lasso fill");
 
-#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-		for (i = 0; i < totnode; i++) {
-			PBVHVertexIter vi;
-			bool any_masked = false;
+		for (symmpass = 0; symmpass <= symm; ++symmpass) {
+			if (symmpass == 0 ||
+					(symm & symmpass &&
+					 (symm != 5 || symmpass != 3) &&
+					 (symm != 6 || (symmpass != 3 && symmpass != 5))))
+			{
+				int j = 0;
 
-			BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-				if (is_effected_lasso(&data, vi.co)) {
-					if (!any_masked) {
-						any_masked = true;
-
-						sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-
-						BKE_pbvh_node_mark_redraw(nodes[i]);
-						if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-							multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
-					}
-
-					mask_flood_fill_set_elem(vi.mask, mode, value);
+				/* flip the planes symmetrically as needed */
+				for (; j < 4; j++) {
+					flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
 				}
-			} BKE_pbvh_vertex_iter_end;
+
+				data.symmpass = symmpass;
+
+				/* gather nodes inside lasso's enclosing rectangle (should greatly help with bigger meshes) */
+				BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
+
+				#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+				for (i = 0; i < totnode; i++) {
+					PBVHVertexIter vi;
+					bool any_masked = false;
+
+					BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
+						if (is_effected_lasso(&data, vi.co)) {
+							if (!any_masked) {
+								any_masked = true;
+
+								sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+
+								BKE_pbvh_node_mark_redraw(nodes[i]);
+								if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+									multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+							}
+
+							mask_flood_fill_set_elem(vi.mask, mode, value);
+						}
+					} BKE_pbvh_vertex_iter_end;
+				}
+
+				if (nodes)
+					MEM_freeN(nodes);
+			}
 		}
 
 		sculpt_undo_push_end();
-
-		if (nodes)
-			MEM_freeN(nodes);
 
 		ED_region_tag_redraw(vc.ar);
 		MEM_freeN((void *)mcords);
