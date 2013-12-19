@@ -328,10 +328,11 @@ Mesh *rna_Main_meshes_new_from_object(
 
 			BKE_displist_free(&dispbase);
 
-			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
+			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked.
+			 * if it didn't the curve did not have any segments or otherwise 
+			 * would have generated an empty mesh */
 			if (tmpobj->type != OB_MESH) {
 				BKE_libblock_free_us(&(G.main->object), tmpobj);
-				BKE_report(reports, RPT_ERROR, "Cannot convert curve to mesh (does the curve have any segments?)");
 				return NULL;
 			}
 
