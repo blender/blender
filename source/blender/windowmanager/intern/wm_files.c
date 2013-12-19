@@ -883,7 +883,7 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	}
 	
 	/* Check if file write permission is ok */
-	if (!BLI_file_is_writable(filepath)) {
+	if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
 		return -1;
 	}
