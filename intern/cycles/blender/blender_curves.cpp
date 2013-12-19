@@ -400,7 +400,7 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotC
 
 	for( int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
-			if(CData->curve_length[curve] == 0.0f)
+			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
 			float3 xbasis;
@@ -462,7 +462,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 
 	for( int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
-			if(CData->curve_length[curve] == 0.0f)
+			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
 			float3 firstxbasis = cross(make_float3(1.0f,0.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]);
@@ -685,11 +685,10 @@ void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset
 
 	for( int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
+				continue;
 
 			for( int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
-				if(CData->curve_length[curve] == 0.0f)
-					continue;
-
 				time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
 
 				for(int section = 0 ; section < resol; section++) {
@@ -730,7 +729,7 @@ void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offs
 
 	for( int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
 		for( int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
-			if(CData->curve_length[curve] == 0.0f)
+			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
 			for( int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
@@ -941,8 +940,11 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, int 
 				float3 *fdata = attr_vcol->data_float3();
 
 				if(fdata) {
-					for(size_t curve = 0; curve < CData.curve_vcol.size() ;curve++)
-						fdata[curve] = color_srgb_to_scene_linear(CData.curve_vcol[curve]);
+					size_t i = 0;
+
+					for(size_t curve = 0; curve < CData.curve_vcol.size(); curve++)
+						if(!(CData.curve_keynum[curve] <= 1 || CData.curve_length[curve] == 0.0f))
+							fdata[i++] = color_srgb_to_scene_linear(CData.curve_vcol[curve]);
 				}
 			}
 		}
@@ -983,8 +985,11 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, int 
 					float3 *uv = attr_uv->data_float3();
 
 					if(uv) {
+						size_t i = 0;
+
 						for(size_t curve = 0; curve < CData.curve_uv.size(); curve++)
-							uv[curve] = CData.curve_uv[curve];
+							if(!(CData.curve_keynum[curve] <= 1 || CData.curve_length[curve] == 0.0f))
+								uv[i++] = CData.curve_uv[curve];
 					}
 				}
 			}
