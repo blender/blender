@@ -271,7 +271,7 @@ static void clContextError(const char *errinfo, const void *private_info, size_t
 	printf("OPENCL error: %s\n", errinfo);
 }
 
-void WorkScheduler::initialize(bool use_opencl)
+void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 {
 	/* initialize highlighting */
 	if (!g_highlightInitialized) {
@@ -287,11 +287,23 @@ void WorkScheduler::initialize(bool use_opencl)
 	}
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
+	/* deinitialize if number of threads doesn't match */
+	if (g_cpudevices.size() != num_cpu_threads) {
+		Device *device;
+
+		while (g_cpudevices.size() > 0) {
+			device = g_cpudevices.back();
+			g_cpudevices.pop_back();
+			device->deinitialize();
+			delete device;
+		}
+
+		g_cpuInitialized = false;
+	}
+
 	/* initialize CPU threads */
 	if (!g_cpuInitialized) {
-		int numberOfCPUThreads = BLI_system_thread_count();
-
-		for (int index = 0; index < numberOfCPUThreads; index++) {
+		for (int index = 0; index < num_cpu_threads; index++) {
 			CPUDevice *device = new CPUDevice();
 			device->initialize();
 			g_cpudevices.push_back(device);

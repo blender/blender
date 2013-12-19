@@ -26,6 +26,7 @@ extern "C" {
 #include "BLI_threads.h"
 }
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_global.h"
 
 #include "COM_compositor.h"
@@ -72,7 +73,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
 	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
-	WorkScheduler::initialize(use_opencl);
+	WorkScheduler::initialize(use_opencl, BKE_render_num_threads(rd));
 
 	/* set progress bar to 0% and status to init compositing */
 	editingtree->progress(editingtree->prh, 0.0);

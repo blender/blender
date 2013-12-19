@@ -77,7 +77,7 @@ public:
 	 *
 	 * This function can be called multiple times to lazily initialize OpenCL.
 	 */
-	static void initialize(bool use_opencl);
+	static void initialize(bool use_opencl, int num_cpu_threads);
 
 	/**
 	 * @brief deinitialize the WorkScheduler
