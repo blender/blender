@@ -1497,6 +1497,12 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 	}
 
 	/* planes */
+	/* TODO(sergey): Channels doesn't correspond actual planes used for image buffer
+	 *               For example byte buffer will have 4 channels but it might easily
+	 *               be BW or RGB image.
+	 *
+	 *               Need to use im_format->planes = imbuf->planes instead?
+	 */
 	switch (imbuf->channels) {
 		case 0:
 		case 4: im_format->planes = R_IMF_PLANES_RGBA;

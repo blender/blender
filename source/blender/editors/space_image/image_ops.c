@@ -1233,8 +1233,6 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		Image *ima = sima->image;
 		short is_depth_set = FALSE;
 
-		simopts->im_format.planes = ibuf->planes;
-
 		if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
 			/* imtype */
 			simopts->im_format = scene->r.im_format;
@@ -1250,6 +1248,9 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			}
 			simopts->im_format.quality = ibuf->ftype & 0xff;
 		}
+
+		simopts->im_format.planes = ibuf->planes;
+
 		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
@@ -1430,8 +1431,16 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 		WM_cursor_wait(0);
 
-		if (colormanaged_ibuf != ibuf)
+		if (colormanaged_ibuf != ibuf) {
+			/* This guys might be modified by image buffer write functions,
+			 * need to copy them back from color managed image buffer to an
+			 * original one, so file type of image is being properly updated.
+			 */
+			ibuf->ftype = colormanaged_ibuf->ftype;
+			ibuf->planes = colormanaged_ibuf->planes;
+
 			IMB_freeImBuf(colormanaged_ibuf);
+		}
 	}
 
 	ED_space_image_release_buffer(sima, ibuf, lock);
