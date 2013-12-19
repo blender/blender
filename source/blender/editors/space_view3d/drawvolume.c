@@ -535,8 +535,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	if (gl_depth) {
 		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
 	}
+
+	glDepthMask(GL_TRUE);
 }
 
 #ifdef SMOKE_DEBUG_VELOCITY

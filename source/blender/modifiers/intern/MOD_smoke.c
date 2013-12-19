@@ -105,7 +105,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
-	if(flag & MOD_APPLY_ORCO)
+	if (flag & MOD_APPLY_ORCO)
 		return dm;
 
 	return smokeModifier_do(smd, md->scene, ob, dm);
