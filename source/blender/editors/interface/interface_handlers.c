@@ -398,6 +398,40 @@ bool ui_is_but_utf8(const uiBut *but)
 
 static ListBase UIAfterFuncs = {NULL, NULL};
 
+static uiAfterFunc *ui_afterfunc_new(void)
+{
+	uiAfterFunc *after;
+
+	after = MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+
+	BLI_addtail(&UIAfterFuncs, after);
+
+	return after;
+}
+
+/**
+ * For executing operators after the button is pressed.
+ * (some non operator buttons need to trigger operators), see: [#37795]
+ *
+ * \note Can only call while handling buttons.
+ */
+PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, bool create_props)
+{
+	PointerRNA *ptr = NULL;
+	uiAfterFunc *after = ui_afterfunc_new();
+
+	after->optype = ot;
+	after->opcontext = opcontext;
+
+	if (create_props) {
+		ptr = MEM_callocN(sizeof(PointerRNA), __func__);
+		WM_operator_properties_create_ptr(ptr, ot);
+		after->opptr = ptr;
+	}
+
+	return ptr;
+}
+
 static void ui_apply_but_func(bContext *C, uiBut *but)
 {
 	uiAfterFunc *after;
@@ -410,7 +444,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	if (but->func || but->funcN || block->handle_func || but->rename_func ||
 	    (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop)
 	{
-		after = MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+		after = ui_afterfunc_new();
 
 		if (but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
 			/* exception, this will crash due to removed button otherwise */
@@ -452,8 +486,6 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		but->optype = NULL;
 		but->opcontext = 0;
 		but->opptr = NULL;
-
-		BLI_addtail(&UIAfterFuncs, after);
 	}
 }
 
@@ -477,9 +509,8 @@ static void ui_apply_undo(uiBut *but)
 		}
 
 		/* delayed, after all other funcs run, popups are closed, etc */
-		after = MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+		after = ui_afterfunc_new();
 		BLI_strncpy(after->undostr, str, sizeof(after->undostr));
-		BLI_addtail(&UIAfterFuncs, after);
 	}
 }
 
@@ -5840,7 +5871,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		    (event->type == BACKSPACEKEY && event->val == KM_PRESS))
 		{
 			/* ctrl+backspace = reset active button; backspace = reset a whole array*/
-			ui_set_but_default(C, !event->ctrl);
+			ui_set_but_default(C, !event->ctrl, true);
 			ED_region_tag_redraw(data->region);
 			retval = WM_UI_HANDLER_BREAK;
 		}

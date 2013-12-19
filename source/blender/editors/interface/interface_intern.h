@@ -393,7 +393,7 @@ extern bool ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern bool ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value);
 extern int  ui_get_but_string_max_length(uiBut *but);
 
-extern void ui_set_but_default(struct bContext *C, const bool all);
+extern void ui_set_but_default(struct bContext *C, const bool all, const bool use_afterfunc);
 
 extern void ui_check_but(uiBut *but);
 extern bool ui_is_but_float(const uiBut *but);
@@ -515,6 +515,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wc
 void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 
 /* interface_handlers.c */
+PointerRNA *ui_handle_afterfunc_add_operator(struct wmOperatorType *ot, int opcontext, bool create_props);
 extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but);
