@@ -524,6 +524,16 @@ static void rna_FModifier_blending_range(PointerRNA *ptr, float *min, float *max
 	*max = fcm->efra - fcm->sfra;
 }
 
+static void rna_FModifier_verify_data_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	FModifier *fcm = (FModifier *)ptr->data;
+	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+
+	/* call the verify callback on the modifier if applicable */
+	if (fmi && fmi->verify_data)
+		fmi->verify_data(fcm);
+}
+
 static void rna_FModifier_active_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	FModifier *fm, *fmo = (FModifier *)ptr->data;
@@ -834,19 +844,17 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	                         "the existing values instead of overwriting them");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
-	/* XXX this has a special validation func */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, generator_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Type of generator to use");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-	
+	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_verify_data_update");
 	
 	/* order of the polynomial */
-	/* XXX this has a special validation func */
 	prop = RNA_def_property(srna, "poly_order", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Polynomial Order",
 	                         "The highest power of 'x' for this polynomial (number of coefficients - 1)");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_verify_data_update");
 	
 	/* coefficients array */
 	prop = RNA_def_property(srna, "coefficients", PROP_FLOAT, PROP_NONE);
