@@ -985,15 +985,20 @@ elseif(WIN32)
 		# Setup 64bit and 64bit windows systems
 		if(CMAKE_CL_64)
 			message(STATUS "64 bit compiler detected.")
-			if(MSVC11)
+			if(MSVC12)
+				message(STATUS "Visual C++ 2013 detected.")
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64_vc12)
+			elseif(MSVC11)
 				message(STATUS "Visual C++ 2012 detected.")
 				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64_vc11)
 			else()
 				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
 			endif()
-		else()
-		# Setup 32bit windows systems
-			if(MSVC11)
+		else() # Setup 32bit windows systems
+			if(MSVC12)
+				message(STATUS "Visual C++ 2013 detected.")
+				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows_vc12)
+			elseif(MSVC11)
 				message(STATUS "Visual C++ 2012 detected.")
 				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows_vc11)
 			else()
@@ -1012,13 +1017,19 @@ elseif(WIN32)
 
 	if(WITH_OPENAL)
 		set(OPENAL ${LIBDIR}/openal)
-		set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
-		if(MSVC11)
-			set(OPENAL_LIBRARY openal32)
-		else()
-			set(OPENAL_LIBRARY wrap_oal)
-		endif()
+		set(OPENALDIR ${LIBDIR}/openal)
+		find_package(OPENAL)
+
+		if(NOT OPENAL_FOUND)
+			message(WARNING "Setting static openAL paths")
+			set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
+			if(MSVC11 OR MSVC12)
+				set(OPENAL_LIBRARY openal32)
+			else()
+				set(OPENAL_LIBRARY wrap_oal)
+			endif()
 		set(OPENAL_LIBPATH ${OPENAL}/lib)
+		endif()
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
@@ -1067,7 +1078,7 @@ elseif(WIN32)
 		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
 
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
-		if(MSVC11)
+		if(MSVC11 OR MSVC12)
 			add_definitions(/D_ALLOW_KEYWORD_MACROS)
 		endif()
 
@@ -1097,6 +1108,13 @@ elseif(WIN32)
 		set(CXX_WARNINGS "${_WARNINGS}")
 		unset(_WARNINGS)
 
+		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
+		set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
+		set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
+		set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
+		set(ZLIB_DIR ${LIBDIR}/zlib)
+		find_package(zlib) # we want to find before finding things that depend on it like png
+
 		if(WITH_MOD_CLOTH_ELTOPO)
 			set(LAPACK ${LIBDIR}/lapack)
 			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
@@ -1108,15 +1126,17 @@ elseif(WIN32)
 			)
 		endif()
 
-		set(PNG_LIBRARIES libpng)
-		set(JPEG_LIBRARIES libjpeg)
-		
-		set(PNG "${LIBDIR}/png")
-		set(PNG_INCLUDE_DIR "${PNG}/include")
-		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
+		set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
+		find_package(png)
+		if(NOT PNG_FOUND)
+			message(WARNING "Using HARDCODED libpng locations")
+			set(PNG_LIBRARIES libpng)
+			set(PNG "${LIBDIR}/png")
+			set(PNG_INCLUDE_DIR "${PNG}/include")
+			set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
+		endif()
 
-		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
-		set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
+		set(JPEG_LIBRARIES libjpeg)
 
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
@@ -1168,27 +1188,33 @@ elseif(WIN32)
 				${LIBDIR}/ffmpeg/include
 				${LIBDIR}/ffmpeg/include/msvc
 			)
-			# MSVC11 FFMPEG libs are newer
-			if(MSVC11)
+			find_package(FFMPEG)
+			if(NOT FFMPEG_FOUND)
+				message(WARNING "Using HARDCODED ffmpeg locations")
+				# MSVC11 FFMPEG libs are newer
+				if(MSVC11)
+					set(FFMPEG_LIBRARY_VERSION 54)
+					set(FFMPEG_LIBRARY_VERSION_AVU 52)
+				else()
+					set(FFMPEG_LIBRARY_VERSION 53)
+					set(FFMPEG_LIBRARY_VERSION_AVU 51)
+				endif()
 				set(FFMPEG_LIBRARIES
-					${LIBDIR}/ffmpeg/lib/avcodec-54.lib
-					${LIBDIR}/ffmpeg/lib/avformat-54.lib
-					${LIBDIR}/ffmpeg/lib/avdevice-54.lib
-					${LIBDIR}/ffmpeg/lib/avutil-52.lib
+					${LIBDIR}/ffmpeg/lib/avcodec-${FFMPEG_LIBRARY_VERSION}.lib
+					${LIBDIR}/ffmpeg/lib/avformat-${FFMPEG_LIBRARY_VERSION}.lib
+					${LIBDIR}/ffmpeg/lib/avdevice-${FFMPEG_LIBRARY_VERSION}.lib
+					${LIBDIR}/ffmpeg/lib/avutil-${FFMPEG_LIBRARY_VERSION_AVU}.lib
 					${LIBDIR}/ffmpeg/lib/swscale-2.lib
-				)
-			else()
-				set(FFMPEG_LIBRARIES
-					${LIBDIR}/ffmpeg/lib/avcodec-53.lib
-					${LIBDIR}/ffmpeg/lib/avformat-53.lib
-					${LIBDIR}/ffmpeg/lib/avdevice-53.lib
-					${LIBDIR}/ffmpeg/lib/avutil-51.lib
-					${LIBDIR}/ffmpeg/lib/swscale-2.lib
-				)
+					)
 			endif()
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
+			set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
+			set(OPENEXR_VERSION "2.1")
+			find_package(OPENEXR REQUIRED)
+			if(NOT OPENEXR_FOUND)
+			message(WARNING "Using HARDCODED OpenEXR locations")
 			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
@@ -1200,6 +1226,7 @@ elseif(WIN32)
 				${OPENEXR_LIBPATH}/Imath.lib
 				${OPENEXR_LIBPATH}/IlmThread.lib
 			)
+			endif(NOT OPENEXR_FOUND)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
@@ -1232,33 +1259,47 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_BOOST)
-			set(BOOST ${LIBDIR}/boost)
-			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			if(MSVC11)
-				set(BOOST_LIBPATH ${BOOST}/lib)
-				set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
-				set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
-			else()
-				set(BOOST_LIBPATH ${BOOST}/lib)
-				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
-				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")
-			endif()
-			set(BOOST_LIBRARIES
-				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
-				optimized libboost_regex-${BOOST_POSTFIX}
-				optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
-				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
-				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
 			if(WITH_CYCLES_OSL)
-				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-					optimized libboost_wave-${BOOST_POSTFIX}
-					debug libboost_wave-${BOOST_DEBUG_POSTFIX})
-			endif()
+				set(boost_extra_libs wave)
+			endif(WITH_CYCLES_OSL)
 			if(WITH_INTERNATIONAL)
-				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-					optimized libboost_locale-${BOOST_POSTFIX}
-					debug libboost_locale-${BOOST_DEBUG_POSTFIX})
+				list(APPEND boost_extra_libs locale)
+			endif(WITH_INTERNATIONAL)
+			find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
+			IF(NOT Boost_FOUND)
+				message(WARNING "USING HARDCODED boost locations")
+				set(BOOST ${LIBDIR}/boost)
+				set(BOOST_INCLUDE_DIR ${BOOST}/include)
+				if(MSVC11)
+					set(BOOST_LIBPATH ${BOOST}/lib)
+					set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
+					set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
+				else()
+					set(BOOST_LIBPATH ${BOOST}/lib)
+					set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
+					set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")
+				endif()
+				set(BOOST_LIBRARIES
+					optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
+					optimized libboost_regex-${BOOST_POSTFIX}
+					optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
+					debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+					debug libboost_regex-${BOOST_DEBUG_POSTFIX}
+					debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+				if(WITH_CYCLES_OSL)
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_wave-${BOOST_POSTFIX}
+						debug libboost_wave-${BOOST_DEBUG_POSTFIX})
+				endif()
+				if(WITH_INTERNATIONAL)
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_locale-${BOOST_POSTFIX}
+						debug libboost_locale-${BOOST_DEBUG_POSTFIX})
+				endif()
+			else() # we found boost using find_package
+				set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+				set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+				set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
 			endif()
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
