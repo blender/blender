@@ -5256,7 +5256,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 					RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 					if (item) {
-						bool is_first = false;
+						bool is_first = true;
 						for (; item->identifier; item++) {
 							if (item->identifier[0] && item->value & val) {
 								BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
