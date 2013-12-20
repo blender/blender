@@ -222,9 +222,9 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 
 	for (symmpass = 0; symmpass <= symm; ++symmpass) {
 		if (symmpass == 0 ||
-			(symm & symmpass &&
-			 (symm != 5 || symmpass != 3) &&
-			 (symm != 6 || (symmpass != 3 && symmpass != 5))))
+		    (symm & symmpass &&
+		     (symm != 5 || symmpass != 3) &&
+		     (symm != 6 || (symmpass != 3 && symmpass != 5))))
 		{
 			int j = 0;
 
@@ -365,10 +365,10 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		sculpt_undo_push_begin("Mask lasso fill");
 
 		for (symmpass = 0; symmpass <= symm; ++symmpass) {
-			if (symmpass == 0 ||
-					(symm & symmpass &&
-					 (symm != 5 || symmpass != 3) &&
-					 (symm != 6 || (symmpass != 3 && symmpass != 5))))
+			if ((symmpass == 0) ||
+			    (symm & symmpass &&
+			     (symm != 5 || symmpass != 3) &&
+			     (symm != 6 || (symmpass != 3 && symmpass != 5))))
 			{
 				int j = 0;
 

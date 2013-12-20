@@ -3293,7 +3293,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
 	/* first line is tools that don't support proxies */
 	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
-	    ss->cache->supports_gravity) {
+	    ss->cache->supports_gravity)
+	{
 		/* these brushes start from original coordinates */
 		const bool use_orco = ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
 		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);

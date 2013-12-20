@@ -473,11 +473,11 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 				glColor3f(1.0, 1.0, 1.0);
 				for (i = 0; i < numpoints; i++) {
 					glTexCoord3d((points[i][0] - min[0]) * cor[0],
-								 (points[i][1] - min[1]) * cor[1],
-								 (points[i][2] - min[2]) * cor[2]);
+					             (points[i][1] - min[1]) * cor[1],
+					             (points[i][2] - min[2]) * cor[2]);
 					glVertex3f(points[i][0] * ob_sizei[0],
-							   points[i][1] * ob_sizei[1],
-							   points[i][2] * ob_sizei[2]);
+					           points[i][1] * ob_sizei[1],
+					           points[i][2] * ob_sizei[2]);
 				}
 				glEnd();
 			}
