@@ -626,11 +626,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			const unsigned int resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
 			const unsigned int resol = CLAMPIS(MAX2(resol_a, resol_b), 4, 512);
 
-			diff_points = BKE_mask_spline_differentiate_with_resolution_ex(
+			diff_points = BKE_mask_spline_differentiate_with_resolution(
 			                  spline, &tot_diff_point, resol);
 
 			if (do_feather) {
-				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
+				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(
 				                          spline, &tot_diff_feather_points, resol, FALSE);
 				BLI_assert(diff_feather_points);
 			}
