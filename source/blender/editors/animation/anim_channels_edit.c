@@ -60,6 +60,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframes_edit.h" // XXX move the select modes out of there!
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -2308,7 +2309,7 @@ static void ANIM_OT_channels_rename(wmOperatorType *ot)
 /* ******************** Mouse-Click Operator *********************** */
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
-static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_index, short selectmode)
+static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -2393,6 +2394,9 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 				ob->flag |= SELECT;
 				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
+			
+			/* change active object - regardless of whether it is now selected [T37883] */
+			ED_base_object_activate(C, base); /* adds notifier */
 			
 			if ((adt) && (adt->flag & ADT_UI_SELECTED))
 				adt->flag |= ADT_UI_ACTIVE;
@@ -2662,7 +2666,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
 	UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	
 	/* handle mouse-click in the relevant channel then */
-	notifierFlags = mouse_anim_channels(&ac, x, channel_index, selectmode);
+	notifierFlags = mouse_anim_channels(C, &ac, channel_index, selectmode);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, NULL);
