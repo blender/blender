@@ -180,6 +180,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* cache background */
 	glColor4ub(128, 128, 255, 64);
@@ -1795,6 +1796,14 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}
 
+	draw_movieclip_cache(sc, ar, clip, scene);
+	draw_movieclip_notes(sc, ar);
+}
+
+void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *ar)
+{
+	Scene *scene = CTX_data_scene(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	draw_movieclip_cache(sc, ar, clip, scene);
 	draw_movieclip_notes(sc, ar);
 }

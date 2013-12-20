@@ -1214,6 +1214,8 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		glPopMatrix();
 	}
 
+	clip_draw_cache_and_notes(C, sc, ar);
+
 	if (sc->flag & SC_SHOW_GPENCIL) {
 		/* Grease Pencil */
 		clip_draw_grease_pencil((bContext *)C, true);
