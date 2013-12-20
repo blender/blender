@@ -823,17 +823,17 @@ static bool delete_action_keys(bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_delete_exec(bContext *C, wmOperator *op)
+static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
-	bool changed;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* delete keyframes */
-	changed = delete_action_keys(&ac);
+	if (!delete_action_keys(&ac))
+		return OPERATOR_CANCELLED;
 	
 	/* validate keyframes after editing */
 	if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
@@ -842,9 +842,6 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
-	if (changed)
-		BKE_report(op->reports, RPT_INFO, "Deleted selected keyframes");
-
 	return OPERATOR_FINISHED;
 }
  
@@ -856,6 +853,7 @@ void ACTION_OT_delete(wmOperatorType *ot)
 	ot->description = "Remove all selected keyframes";
 	
 	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = actkeys_delete_exec;
 	ot->poll = ED_operator_action_active;
 	

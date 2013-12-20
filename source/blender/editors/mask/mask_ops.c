@@ -38,7 +38,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
-#include "BKE_report.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
@@ -943,12 +942,12 @@ static void delete_feather_points(MaskSplinePoint *point)
 	}
 }
 
-static int delete_exec(bContext *C, wmOperator *op)
+static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
-	int num_deleted = 0;
+	bool changed = false;
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
@@ -984,8 +983,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 
 				BKE_mask_layer_shape_changed_remove(masklay, mask_layer_shape_ofs, tot_point_orig);
-
-				num_deleted++;
 			}
 			else {
 				MaskSplinePoint *new_points;
@@ -1013,8 +1010,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 						spline->tot_point--;
 
 						BKE_mask_layer_shape_changed_remove(masklay, mask_layer_shape_ofs + j, 1);
-
-						num_deleted++;
 					}
 				}
 
@@ -1026,6 +1021,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				ED_mask_select_flush_all(mask);
 			}
 
+			changed = true;
 			spline = next_spline;
 		}
 
@@ -1036,15 +1032,14 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (num_deleted == 0)
+	if (!changed) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* TODO: only update edited splines */
 	BKE_mask_update_display(mask, CFRA);
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-
-	BKE_reportf(op->reports, RPT_INFO, "Deleted %d control points from mask '%s'", num_deleted, mask->id.name);
 
 	return OPERATOR_FINISHED;
 }
@@ -1057,6 +1052,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 	ot->idname = "MASK_OT_delete";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_exec;
 	ot->poll = ED_maskedit_mask_poll;
 

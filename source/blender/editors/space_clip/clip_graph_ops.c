@@ -43,7 +43,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_depsgraph.h"
-#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -472,18 +471,17 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 
 /******************** delete curve operator ********************/
 
-static int delete_curve_exec(bContext *C, wmOperator *op)
+static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
-	if (act_track) {
-		clip_delete_track(C, clip, act_track);
+	if (!act_track)
+		return OPERATOR_CANCELLED;
 
-		BKE_report(op->reports, RPT_INFO, "Deleted track");
-	}
+	clip_delete_track(C, clip, act_track);
 
 	return OPERATOR_FINISHED;
 }
@@ -496,6 +494,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_graph_delete_curve";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_curve_exec;
 	ot->poll = ED_space_clip_tracking_poll;
 

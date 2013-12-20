@@ -1137,13 +1137,13 @@ void ARMATURE_OT_split(wmOperatorType *ot)
 
 /* previously delete_armature */
 /* only editmode! */
-static int armature_delete_selected_exec(bContext *C, wmOperator *op)
+static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
 	EditBone *curBone, *ebone_next;
 	bConstraint *con;
 	Object *obedit = CTX_data_edit_object(C); // XXX get from context
-	int num_deleted = 0;
+	bool changed = false;
 	arm = obedit->data;
 
 	/* cancel if nothing selected */
@@ -1200,12 +1200,13 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 			if (curBone->flag & BONE_SELECTED) {
 				if (curBone == arm->act_edbone) arm->act_edbone = NULL;
 				ED_armature_edit_bone_remove(arm, curBone);
-				num_deleted++;
+				changed = true;
 			}
 		}
 	}
 	
-	BKE_reportf(op->reports, RPT_INFO, "Deleted %d bones", num_deleted);
+	if (!changed)
+		return OPERATOR_CANCELLED;
 	
 	ED_armature_sync_selection(arm->edbo);
 
@@ -1222,6 +1223,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 	ot->description = "Remove selected bones from the armature";
 	
 	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = armature_delete_selected_exec;
 	ot->poll = ED_operator_editarmature;
 	
