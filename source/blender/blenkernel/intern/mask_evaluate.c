@@ -222,11 +222,6 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int wi
 	return BKE_mask_spline_differentiate_with_resolution_ex(spline, tot_diff_point, resol);
 }
 
-float (*BKE_mask_spline_differentiate(MaskSpline *spline, unsigned int *tot_diff_point))[2]
-{
-	return BKE_mask_spline_differentiate_with_resolution(spline, 0, 0, tot_diff_point);
-}
-
 /* ** feather points self-intersection collapse routine ** */
 
 typedef struct FeatherEdgesBucket {
@@ -734,19 +729,6 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 	}
 }
 
-float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
-                                                                      unsigned int *tot_feather_point, const int do_feather_isect))[2]
-{
-	unsigned int resol = BKE_mask_spline_feather_resolution(spline, width, height);
-
-	return BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, tot_feather_point, resol, do_feather_isect);
-}
-
-float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, unsigned int *tot_feather_point))[2]
-{
-	return BKE_mask_spline_feather_differentiated_points_with_resolution(spline, 0, 0, tot_feather_point, TRUE);
-}
-
 float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
@@ -822,11 +804,6 @@ float *BKE_mask_point_segment_feather_diff_with_resolution(MaskSpline *spline, M
 	return feather;
 }
 
-float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *point, unsigned int *tot_feather_point)
-{
-	return BKE_mask_point_segment_feather_diff_with_resolution(spline, point, 0, 0, tot_feather_point);
-}
-
 float *BKE_mask_point_segment_diff_with_resolution(MaskSpline *spline, MaskSplinePoint *point,
                                                    int width, int height, unsigned int *tot_diff_point)
 {
@@ -855,9 +832,4 @@ float *BKE_mask_point_segment_diff_with_resolution(MaskSpline *spline, MaskSplin
 	copy_v2_v2(fp + 2 * resol, bezt_next->vec[1]);
 
 	return diff_points;
-}
-
-float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point, unsigned int *tot_diff_point)
-{
-	return BKE_mask_point_segment_diff_with_resolution(spline, point, 0, 0, tot_diff_point);
 }
