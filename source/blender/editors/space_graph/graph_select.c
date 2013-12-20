@@ -259,7 +259,7 @@ static void borderselect_graphkeys(bAnimContext *ac, rcti rect, short mode, shor
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
-		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag);
 
 		/* apply NLA mapping to all the keyframes, since it's easier than trying to
 		 * guess when a callback might use something different
