@@ -97,6 +97,7 @@
 #include "IMB_thumbs.h"
 
 #include "ED_datafiles.h"
+#include "ED_fileselect.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
@@ -662,7 +663,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 
 int wm_history_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-	/* TODO, read bookmarks */
+	ED_file_read_bookmarks();
 	wm_read_history();
 	return OPERATOR_FINISHED;
 }

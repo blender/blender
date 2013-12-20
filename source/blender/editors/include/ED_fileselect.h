@@ -106,5 +106,7 @@ void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
 int ED_file_extension_icon(const char *relname);
 
+void ED_file_read_bookmarks(void);
+
 #endif /* __ED_FILESELECT_H__ */
 

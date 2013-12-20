@@ -637,16 +637,8 @@ void ED_spacetype_file(void)
 
 void ED_file_init(void)
 {
-	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
-	
-	fsmenu_read_system(fsmenu_get(), TRUE);
+	ED_file_read_bookmarks();
 
-	if (cfgdir) {
-		char name[FILE_MAX];
-		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
-		fsmenu_read_bookmarks(fsmenu_get(), name);
-	}
-	
 	if (G.background == FALSE) {
 		filelist_init_icons();
 	}
@@ -656,9 +648,25 @@ void ED_file_init(void)
 
 void ED_file_exit(void)
 {
-	fsmenu_free(fsmenu_get());
+	fsmenu_free();
 
 	if (G.background == FALSE) {
 		filelist_free_icons();
 	}
 }
+
+void ED_file_read_bookmarks(void)
+{
+	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+	
+	fsmenu_free();
+
+	fsmenu_read_system(fsmenu_get(), TRUE);
+
+	if (cfgdir) {
+		char name[FILE_MAX];
+		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+		fsmenu_read_bookmarks(fsmenu_get(), name);
+	}
+}
+

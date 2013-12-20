@@ -545,11 +545,16 @@ void fsmenu_refresh_system_category(struct FSMenu *fsmenu)
 	fsmenu_read_system(fsmenu, TRUE);
 }
 
-void fsmenu_free(struct FSMenu *fsmenu)
+void fsmenu_free(void)
 {
-	fsmenu_free_category(fsmenu, FS_CATEGORY_SYSTEM);
-	fsmenu_free_category(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
-	fsmenu_free_category(fsmenu, FS_CATEGORY_BOOKMARKS);
-	fsmenu_free_category(fsmenu, FS_CATEGORY_RECENT);
-	MEM_freeN(fsmenu);
+	if (g_fsmenu) {
+		fsmenu_free_category(g_fsmenu, FS_CATEGORY_SYSTEM);
+		fsmenu_free_category(g_fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
+		fsmenu_free_category(g_fsmenu, FS_CATEGORY_BOOKMARKS);
+		fsmenu_free_category(g_fsmenu, FS_CATEGORY_RECENT);
+		MEM_freeN(g_fsmenu);
+	}
+
+	g_fsmenu = NULL;
 }
+

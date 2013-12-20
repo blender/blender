@@ -270,6 +270,8 @@ void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct
 void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) {STUB_ASSERT(0);}
 void ED_render_engine_changed(struct Main *bmain) {STUB_ASSERT(0);}
 
+void ED_file_read_bookmarks(void) {STUB_ASSERT(0);}
+
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob) {STUB_ASSERT(0); return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob) {STUB_ASSERT(0);}
 
