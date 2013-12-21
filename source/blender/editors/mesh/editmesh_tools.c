@@ -4513,24 +4513,17 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 	const bool use_replace         = RNA_boolean_get(op->ptr, "use_replace");
 	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const bool use_crease          = RNA_boolean_get(op->ptr, "use_crease");
+	const float crease_weight      = RNA_float_get(op->ptr,   "crease_weight");
 	const float thickness          = RNA_float_get(op->ptr,   "thickness");
+	const float offset             = RNA_float_get(op->ptr,   "offset");
 
 	EDBM_op_init(em, &bmop, op,
-	             "wireframe faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b use_crease=%b "
-	             "thickness=%f",
-	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_crease,
-	             thickness);
+	             "wireframe faces=%hf use_replace=%b use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+	             "use_crease=%b crease_weight=%f thickness=%f offset=%f",
+	             BM_ELEM_SELECT, use_replace, use_boundary, use_even_offset, use_relative_offset,
+	             use_crease, crease_weight, thickness, offset);
 
 	BMO_op_exec(em->bm, &bmop);
-
-	if (use_replace) {
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
-
-		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-		             "delete geom=%hvef context=%i",
-		             BM_ELEM_TAG, DEL_FACES);
-	}
 
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
@@ -4564,14 +4557,14 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_boundary",        true,  "Boundary",        "Inset face boundaries");
 	RNA_def_boolean(ot->srna, "use_even_offset",     true,  "Offset Even",     "Scale the offset to give more even thickness");
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
-	RNA_def_boolean(ot->srna, "use_crease",          false, "Crease",          "Crease hub edges for improved subsurf");
-
+	RNA_def_boolean(ot->srna, "use_replace",         true,	"Replace",		   "Remove original faces");
 	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
-
-
-	RNA_def_boolean(ot->srna, "use_replace",         true, "Replace", "Remove original faces");
+	RNA_def_float(ot->srna, "offset", 0.01f, 0.0f, FLT_MAX, "Offset", "", 0.0f, 10.0f);
+	RNA_def_boolean(ot->srna, "use_crease",          false, "Crease",          "Crease hub edges for improved subsurf");
+	prop = RNA_def_float(ot->srna, "crease_weight", 0.01f, 0.0f, FLT_MAX, "Crease weight", "", 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
 }
 
 #ifdef WITH_BULLET

@@ -136,6 +136,8 @@ set(SRC
 	tools/bmesh_path.h
 	tools/bmesh_triangulate.c
 	tools/bmesh_triangulate.h
+	tools/bmesh_wireframe.c
+	tools/bmesh_wireframe.h
 
 	bmesh_class.h
 

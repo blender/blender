@@ -1694,12 +1694,16 @@ static BMOpDefine bmo_wireframe_def = {
 	"wireframe",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},   /* input faces */
+	 {"thickness", BMO_OP_SLOT_FLT},
+	 {"offset", BMO_OP_SLOT_FLT},
+	 {"use_replace", BMO_OP_SLOT_BOOL},
 	 {"use_boundary", BMO_OP_SLOT_BOOL},
 	 {"use_even_offset", BMO_OP_SLOT_BOOL},
 	 {"use_crease", BMO_OP_SLOT_BOOL},
+	 {"crease_weight", BMO_OP_SLOT_FLT},
 	 {"thickness", BMO_OP_SLOT_FLT},
 	 {"use_relative_offset", BMO_OP_SLOT_BOOL},
-	 {"depth", BMO_OP_SLOT_FLT},
+	 {"material_offset", BMO_OP_SLOT_INT},
 	 {{'\0'}},
 	},
 	/* slots_out */
