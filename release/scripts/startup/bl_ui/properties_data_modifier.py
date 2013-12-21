@@ -1189,5 +1189,36 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="UV Map:")
         col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
+    def WIREFRAME(self, layout, ob, md):
+        has_vgroup = bool(md.vertex_group)
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "thickness", text="Thickness")
+
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
+        sub.active = has_vgroup
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        row = col.row(align=True)
+        row.active = has_vgroup
+        row.prop(md, "thickness_vertex_group", text="Factor")
+
+        col.prop(md, "use_crease", text="Crease Edges")
+        col.prop(md, "crease_weight", text="Crease Weight")
+
+        col = split.column()
+
+        col.prop(md, "offset")
+        col.prop(md, "use_even_offset", text="Even Thickness")
+        col.prop(md, "use_relative_offset", text="Relative Thickness")
+        col.prop(md, "use_boundary", text="Boundary")
+        col.prop(md, "use_replace", text="Replace Original")
+
+        col.prop(md, "material_offset", text="Material Offset")
+
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

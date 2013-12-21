@@ -81,6 +81,7 @@ typedef enum ModifierType {
 	eModifierType_UVWarp            = 45,
 	eModifierType_MeshCache         = 46,
 	eModifierType_LaplacianDeform   = 47,
+	eModifierType_Wireframe         = 48,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1320,6 +1321,27 @@ typedef struct LaplacianDeformModifierData {
 enum {
 	MOD_LAPLACIANDEFORM_BIND = 1,
 };
+
+/* many of these options match 'solidify' */
+typedef struct WireframeModifierData {
+	ModifierData modifier;
+	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+	float offset;
+	float offset_fac;
+	float offset_fac_vg;
+	float crease_weight;
+	short flag, mat_ofs;
+} WireframeModifierData;
+
+enum {
+	MOD_WIREFRAME_INVERT_VGROUP = (1 << 0),
+	MOD_WIREFRAME_REPLACE       = (1 << 1),
+	MOD_WIREFRAME_BOUNDARY      = (1 << 2),
+	MOD_MESHCACHE_OFS_EVEN      = (1 << 3),
+	MOD_MESHCACHE_OFS_RELATIVE  = (1 << 4),
+	MOD_MESHCACHE_CREASE        = (1 << 5),
+};
+
 
 
 #endif  /* __DNA_MODIFIER_TYPES_H__ */
