@@ -102,6 +102,8 @@ static DerivedMesh* WireframeModifier_do( WireframeModifierData *wmd, Object *ob
 	result = CDDM_from_bmesh(bm, true);
 	BM_mesh_free(bm);
 
+	result->dirty |= DM_DIRTY_NORMALS;
+
 	return result;
 
 }
