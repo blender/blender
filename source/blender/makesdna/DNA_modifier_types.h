@@ -603,7 +603,7 @@ typedef struct MeshDeformModifierData {
 	struct Object *object;          /* mesh object */
 	char defgrp_name[64];           /* optional vertexgroup name, MAX_VGROUP_NAME */
 
-	short gridsize, flag, mode, pad;
+	short gridsize, flag, pad[2];
 
 	/* result of static binding */
 	MDefInfluence *bindinfluences;  /* influences */
@@ -614,7 +614,7 @@ typedef struct MeshDeformModifierData {
 	/* result of dynamic binding */
 	MDefCell *dyngrid;              /* grid with dynamic binding cell points */
 	MDefInfluence *dyninfluences;   /* dynamic binding vertex influences */
-	int *dynverts, *pad2;           /* is this vertex bound or not? */
+	int *dynverts;                  /* is this vertex bound or not? */
 	int dyngridsize;                /* size of the dynamic bind grid */
 	int totinfluence;               /* total number of vertex influences */
 	float dyncellmin[3];            /* offset of the dynamic bind grid */

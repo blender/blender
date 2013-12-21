@@ -82,6 +82,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	MeshDeformModifierData *tmmd = (MeshDeformModifierData *) target;
 
 	tmmd->gridsize = mmd->gridsize;
+	tmmd->flag = mmd->flag;
 	tmmd->object = mmd->object;
 }
 
