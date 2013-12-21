@@ -525,13 +525,19 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 
 static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
 {
-	Object *ob = (Object *)ptr->id.data;
-	ob->pd->forcefield = value;
-	if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
-		ob->empty_drawtype = OB_SINGLE_ARROW;
-	}
-	else {
-		ob->empty_drawtype = OB_PLAINAXES;
+	PartDeflect *part_deflect = (PartDeflect *) ptr->data;
+
+	part_deflect->forcefield = value;
+
+	if (!particle_id_check(ptr)) {
+		Object *ob = (Object *)ptr->id.data;
+		ob->pd->forcefield = value;
+		if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
+			ob->empty_drawtype = OB_SINGLE_ARROW;
+		}
+		else {
+			ob->empty_drawtype = OB_PLAINAXES;
+		}
 	}
 }
 
