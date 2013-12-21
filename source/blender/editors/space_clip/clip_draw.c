@@ -1795,17 +1795,16 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 		draw_tracking_tracks(sc, scene, ar, clip, width, height, zoomx, zoomy);
 		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}
-
-	draw_movieclip_cache(sc, ar, clip, scene);
-	draw_movieclip_notes(sc, ar);
 }
 
 void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
-	draw_movieclip_cache(sc, ar, clip, scene);
-	draw_movieclip_notes(sc, ar);
+	if (clip) {
+		draw_movieclip_cache(sc, ar, clip, scene);
+		draw_movieclip_notes(sc, ar);
+	}
 }
 
 /* draw grease pencil */
