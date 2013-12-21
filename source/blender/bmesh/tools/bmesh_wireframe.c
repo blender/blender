@@ -301,8 +301,8 @@ void BM_mesh_wireframe(
 			else {
 				madd_v3_v3v3fl(tvec, v_src->co, v_src->no, ofs_mid * fac);
 
-				madd_v3_v3v3fl(verts_neg[i]->co, tvec, v_src->no, (ofs_mid - ofs_orig) * fac);
-				madd_v3_v3v3fl(verts_pos[i]->co, tvec, v_src->no,  (ofs_mid - ofs_new) * fac);
+				madd_v3_v3v3fl(verts_neg[i]->co, tvec, v_src->no, (ofs_orig - ofs_mid) * fac);
+				madd_v3_v3v3fl(verts_pos[i]->co, tvec, v_src->no,  (ofs_new - ofs_mid) * fac);
 			}
 		}
 		else {
