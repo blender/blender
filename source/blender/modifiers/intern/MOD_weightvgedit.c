@@ -89,24 +89,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	WeightVGEditModifierData *wmd  = (WeightVGEditModifierData *) md;
 	WeightVGEditModifierData *twmd = (WeightVGEditModifierData *) target;
 
-	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
+	modifier_copyData_generic(md, target);
 
-	twmd->edit_flags             = wmd->edit_flags;
-	twmd->falloff_type           = wmd->falloff_type;
-	twmd->default_weight         = wmd->default_weight;
-
-	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
-
-	twmd->add_threshold          = wmd->add_threshold;
-	twmd->rem_threshold          = wmd->rem_threshold;
-
-	twmd->mask_constant          = wmd->mask_constant;
-	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
-	twmd->mask_texture           = wmd->mask_texture;
-	twmd->mask_tex_use_channel   = wmd->mask_tex_use_channel;
-	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
-	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
-	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
+	twmd->cmap_curve = curvemapping_copy(wmd->cmap_curve);
 
 	if (twmd->mask_texture) {
 		id_us_plus(&twmd->mask_texture->id);

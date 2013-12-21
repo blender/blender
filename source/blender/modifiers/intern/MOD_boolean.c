@@ -52,11 +52,11 @@
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 	BooleanModifierData *tbmd = (BooleanModifierData *) target;
-
-	tbmd->object = bmd->object;
-	tbmd->operation = bmd->operation;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

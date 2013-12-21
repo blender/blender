@@ -642,14 +642,12 @@ static void init_data(ModifierData *md)
 
 static void copy_data(ModifierData *md, ModifierData *target)
 {
+#if 0
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
 	LaplacianSmoothModifierData *tsmd = (LaplacianSmoothModifierData *) target;
+#endif
 
-	tsmd->lambda = smd->lambda;
-	tsmd->lambda_border = smd->lambda_border;
-	tsmd->repeat = smd->repeat;
-	tsmd->flag = smd->flag;
-	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
+	modifier_copyData_generic(md, target);
 }
 
 static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))

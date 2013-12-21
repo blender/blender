@@ -68,32 +68,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 	MeshCacheModifierData *tmcmd = (MeshCacheModifierData *)target;
-
-	tmcmd->flag = mcmd->flag;
-	tmcmd->type = mcmd->type;
-
-	tmcmd->time_mode = mcmd->time_mode;
-	tmcmd->play_mode = mcmd->play_mode;
-
-	tmcmd->forward_axis = mcmd->forward_axis;
-	tmcmd->up_axis      = mcmd->up_axis;
-	tmcmd->flip_axis    = mcmd->flip_axis;
-
-	tmcmd->interp = mcmd->interp;
-
-	tmcmd->frame_start = mcmd->frame_start;
-	tmcmd->frame_scale = mcmd->frame_scale;
-
-	tmcmd->factor = mcmd->factor;
-	tmcmd->deform_mode = mcmd->deform_mode;
-
-	tmcmd->eval_frame  = mcmd->eval_frame;
-	tmcmd->eval_time   = mcmd->eval_time;
-	tmcmd->eval_factor = mcmd->eval_factor;
-
-	BLI_strncpy(tmcmd->filepath, mcmd->filepath, sizeof(tmcmd->filepath));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool dependsOnTime(ModifierData *md)

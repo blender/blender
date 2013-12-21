@@ -69,17 +69,12 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
+#endif
 	DisplaceModifierData *tdmd = (DisplaceModifierData *) target;
 
-	tdmd->texture = dmd->texture;
-	tdmd->strength = dmd->strength;
-	tdmd->direction = dmd->direction;
-	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
-	tdmd->midlevel = dmd->midlevel;
-	tdmd->texmapping = dmd->texmapping;
-	tdmd->map_object = dmd->map_object;
-	BLI_strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, sizeof(tdmd->uvlayer_name));
+	modifier_copyData_generic(md, target);
 
 	if (tdmd->texture) {
 		id_us_plus(&tdmd->texture->id);

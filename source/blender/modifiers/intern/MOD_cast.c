@@ -66,16 +66,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	CastModifierData *cmd = (CastModifierData *) md;
 	CastModifierData *tcmd = (CastModifierData *) target;
-
-	tcmd->fac = cmd->fac;
-	tcmd->radius = cmd->radius;
-	tcmd->size = cmd->size;
-	tcmd->flag = cmd->flag;
-	tcmd->type = cmd->type;
-	tcmd->object = cmd->object;
-	BLI_strncpy(tcmd->defgrp_name, cmd->defgrp_name, sizeof(tcmd->defgrp_name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

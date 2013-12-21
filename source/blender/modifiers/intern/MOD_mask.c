@@ -57,13 +57,11 @@
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	MaskModifierData *mmd = (MaskModifierData *) md;
 	MaskModifierData *tmmd = (MaskModifierData *) target;
-	
-	BLI_strncpy(tmmd->vgroup, mmd->vgroup, sizeof(tmmd->vgroup));
-	tmmd->flag = mmd->flag;
-	tmmd->mode = mmd->mode;
-	tmmd->ob_arm = mmd->ob_arm;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))

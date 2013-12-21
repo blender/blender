@@ -61,15 +61,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	MultiresModifierData *mmd = (MultiresModifierData *) md;
 	MultiresModifierData *tmmd = (MultiresModifierData *) target;
-
-	tmmd->lvl = mmd->lvl;
-	tmmd->sculptlvl = mmd->sculptlvl;
-	tmmd->renderlvl = mmd->renderlvl;
-	tmmd->totlvl = mmd->totlvl;
-	tmmd->simple = mmd->simple;
-	tmmd->flags = mmd->flags;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,

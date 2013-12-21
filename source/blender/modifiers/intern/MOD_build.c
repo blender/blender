@@ -62,13 +62,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	BuildModifierData *bmd = (BuildModifierData *) md;
 	BuildModifierData *tbmd = (BuildModifierData *) target;
-
-	tbmd->start = bmd->start;
-	tbmd->length = bmd->length;
-	tbmd->randomize = bmd->randomize;
-	tbmd->seed = bmd->seed;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

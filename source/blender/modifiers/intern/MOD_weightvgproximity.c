@@ -254,25 +254,12 @@ static void freeData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	WeightVGProximityModifierData *wmd  = (WeightVGProximityModifierData *) md;
+#endif
 	WeightVGProximityModifierData *twmd = (WeightVGProximityModifierData *) target;
 
-	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
-	twmd->proximity_mode         = wmd->proximity_mode;
-	twmd->proximity_flags        = wmd->proximity_flags;
-	twmd->proximity_ob_target    = wmd->proximity_ob_target;
-
-	twmd->falloff_type           = wmd->falloff_type;
-
-	twmd->mask_constant          = wmd->mask_constant;
-	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
-	twmd->mask_texture           = wmd->mask_texture;
-	twmd->mask_tex_use_channel   = wmd->mask_tex_use_channel;
-	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
-	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
-	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
-	twmd->min_dist               = wmd->min_dist;
-	twmd->max_dist               = wmd->max_dist;
+	modifier_copyData_generic(md, target);
 
 	if (twmd->mask_texture) {
 		id_us_plus(&twmd->mask_texture->id);

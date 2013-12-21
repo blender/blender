@@ -113,11 +113,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
 	EdgeSplitModifierData *temd = (EdgeSplitModifierData *) target;
-
-	temd->split_angle = emd->split_angle;
-	temd->flags = emd->flags;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob), DerivedMesh *dm,

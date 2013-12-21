@@ -66,15 +66,11 @@ static void initData(ModifierData *md)
 }
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 	ParticleInstanceModifierData *tpimd = (ParticleInstanceModifierData *) target;
-
-	tpimd->ob = pimd->ob;
-	tpimd->psys = pimd->psys;
-	tpimd->flag = pimd->flag;
-	tpimd->axis = pimd->axis;
-	tpimd->position = pimd->position;
-	tpimd->random_position = pimd->random_position;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool isDisabled(ModifierData *md, int useRenderParams)

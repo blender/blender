@@ -59,11 +59,7 @@
 static void initData(ModifierData *md)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-	int i;
 
-	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
-		umd->projectors[i] = NULL;
-	umd->image = NULL;
 	umd->flags = 0;
 	umd->num_projectors = 1;
 	umd->aspectx = umd->aspecty = 1.0f;
@@ -72,20 +68,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
-	int i;
-
-	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
-		tumd->projectors[i] = umd->projectors[i];
-	tumd->image = umd->image;
-	tumd->flags = umd->flags;
-	tumd->num_projectors = umd->num_projectors;
-	tumd->aspectx = umd->aspectx;
-	tumd->aspecty = umd->aspecty;
-	tumd->scalex = umd->scalex;
-	tumd->scaley = umd->scaley;
-	BLI_strncpy(tumd->uvlayer_name, umd->uvlayer_name, sizeof(umd->uvlayer_name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))

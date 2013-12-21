@@ -124,17 +124,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	ScrewModifierData *sltmd = (ScrewModifierData *) md;
 	ScrewModifierData *tltmd = (ScrewModifierData *) target;
-	
-	tltmd->ob_axis = sltmd->ob_axis;
-	tltmd->angle = sltmd->angle;
-	tltmd->axis = sltmd->axis;
-	tltmd->flag = sltmd->flag;
-	tltmd->steps = sltmd->steps;
-	tltmd->render_steps = sltmd->render_steps;
-	tltmd->screw_ofs = sltmd->screw_ofs;
-	tltmd->iter = sltmd->iter;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,

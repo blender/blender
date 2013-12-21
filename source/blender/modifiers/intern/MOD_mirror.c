@@ -59,12 +59,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 	MirrorModifierData *tmmd = (MirrorModifierData *) target;
-
-	tmmd->flag = mmd->flag;
-	tmmd->tolerance = mmd->tolerance;
-	tmmd->mirror_ob = mmd->mirror_ob;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob,

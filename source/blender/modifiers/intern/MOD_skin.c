@@ -1835,10 +1835,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	SkinModifierData *smd = (SkinModifierData *) md;
 	SkinModifierData *tsmd = (SkinModifierData *) target;
-
-	*tsmd = *smd;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,

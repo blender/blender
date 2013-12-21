@@ -62,15 +62,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	RemeshModifierData *rmd = (RemeshModifierData *) md;
 	RemeshModifierData *trmd = (RemeshModifierData *) target;
-
-	trmd->threshold = rmd->threshold;
-	trmd->scale = rmd->scale;
-	trmd->hermite_num = rmd->hermite_num;
-	trmd->depth = rmd->depth;
-	trmd->flag = rmd->flag;
-	trmd->mode = rmd->mode;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 #ifdef WITH_MOD_REMESH

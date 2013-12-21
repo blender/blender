@@ -76,10 +76,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	TriangulateModifierData *smd = (TriangulateModifierData *) md;
 	TriangulateModifierData *tsmd = (TriangulateModifierData *) target;
-
-	*tsmd = *smd;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,

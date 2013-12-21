@@ -61,13 +61,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	SmoothModifierData *smd = (SmoothModifierData *) md;
 	SmoothModifierData *tsmd = (SmoothModifierData *) target;
-
-	tsmd->fac = smd->fac;
-	tsmd->repeat = smd->repeat;
-	tsmd->flag = smd->flag;
-	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

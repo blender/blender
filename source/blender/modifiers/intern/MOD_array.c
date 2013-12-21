@@ -84,21 +84,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 	ArrayModifierData *tamd = (ArrayModifierData *) target;
-
-	tamd->start_cap = amd->start_cap;
-	tamd->end_cap = amd->end_cap;
-	tamd->curve_ob = amd->curve_ob;
-	tamd->offset_ob = amd->offset_ob;
-	tamd->count = amd->count;
-	copy_v3_v3(tamd->offset, amd->offset);
-	copy_v3_v3(tamd->scale, amd->scale);
-	tamd->length = amd->length;
-	tamd->merge_dist = amd->merge_dist;
-	tamd->fit_type = amd->fit_type;
-	tamd->offset_type = amd->offset_type;
-	tamd->flags = amd->flags;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static void foreachObjectLink(

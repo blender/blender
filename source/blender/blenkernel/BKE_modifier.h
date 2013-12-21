@@ -318,6 +318,7 @@ void          modifier_free(struct ModifierData *md);
 
 void          modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
+void          modifier_copyData_generic(const struct ModifierData *md, struct ModifierData *target);
 void          modifier_copyData(struct ModifierData *md, struct ModifierData *target);
 bool          modifier_dependsOnTime(struct ModifierData *md);
 bool          modifier_supportsMapping(struct ModifierData *md);

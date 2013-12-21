@@ -70,15 +70,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DecimateModifierData *tdmd = (DecimateModifierData *) target;
-
-	tdmd->percent = dmd->percent;
-	tdmd->iter = dmd->iter;
-	tdmd->angle = dmd->angle;
-	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
-	tdmd->flag = dmd->flag;
-	tdmd->mode = dmd->mode;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

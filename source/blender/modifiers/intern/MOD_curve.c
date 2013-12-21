@@ -59,12 +59,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	CurveModifierData *cmd = (CurveModifierData *) md;
 	CurveModifierData *tcmd = (CurveModifierData *) target;
-
-	tcmd->defaxis = cmd->defaxis;
-	tcmd->object = cmd->object;
-	BLI_strncpy(tcmd->name, cmd->name, sizeof(tcmd->name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

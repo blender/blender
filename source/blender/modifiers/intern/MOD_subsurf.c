@@ -60,13 +60,15 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+#endif
 	SubsurfModifierData *tsmd = (SubsurfModifierData *) target;
 
-	tsmd->flags = smd->flags;
-	tsmd->levels = smd->levels;
-	tsmd->renderLevels = smd->renderLevels;
-	tsmd->subdivType = smd->subdivType;
+	modifier_copyData_generic(md, target);
+
+	tsmd->emCache = tsmd->mCache = NULL;
+
 }
 
 static void freeData(ModifierData *md)

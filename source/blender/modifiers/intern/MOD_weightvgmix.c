@@ -134,23 +134,12 @@ static void freeData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData *) md;
+#endif
 	WeightVGMixModifierData *twmd = (WeightVGMixModifierData *) target;
 
-	BLI_strncpy(twmd->defgrp_name_a, wmd->defgrp_name_a, sizeof(twmd->defgrp_name_a));
-	BLI_strncpy(twmd->defgrp_name_b, wmd->defgrp_name_b, sizeof(twmd->defgrp_name_b));
-	twmd->default_weight_a       = wmd->default_weight_a;
-	twmd->default_weight_b       = wmd->default_weight_b;
-	twmd->mix_mode               = wmd->mix_mode;
-	twmd->mix_set                = wmd->mix_set;
-
-	twmd->mask_constant          = wmd->mask_constant;
-	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
-	twmd->mask_texture           = wmd->mask_texture;
-	twmd->mask_tex_use_channel   = wmd->mask_tex_use_channel;
-	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
-	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
-	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
+	modifier_copyData_generic(md, target);
 
 	if (twmd->mask_texture) {
 		id_us_plus(&twmd->mask_texture->id);

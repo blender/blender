@@ -72,13 +72,14 @@ static void freeData(ModifierData *md)
 }
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
+#endif
 	ExplodeModifierData *temd = (ExplodeModifierData *) target;
 
+	modifier_copyData_generic(md, target);
+
 	temd->facepa = NULL;
-	temd->flag = emd->flag;
-	temd->protect = emd->protect;
-	temd->vgroup = emd->vgroup;
 }
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {

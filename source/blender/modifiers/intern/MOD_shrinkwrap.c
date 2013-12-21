@@ -64,19 +64,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	ShrinkwrapModifierData *smd  = (ShrinkwrapModifierData *)md;
 	ShrinkwrapModifierData *tsmd = (ShrinkwrapModifierData *)target;
-
-	tsmd->target    = smd->target;
-	tsmd->auxTarget = smd->auxTarget;
-
-	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
-
-	tsmd->keepDist  = smd->keepDist;
-	tsmd->shrinkType = smd->shrinkType;
-	tsmd->shrinkOpts = smd->shrinkOpts;
-	tsmd->projAxis = smd->projAxis;
-	tsmd->subsurfLevels = smd->subsurfLevels;
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

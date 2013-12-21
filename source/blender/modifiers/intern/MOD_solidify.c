@@ -176,19 +176,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
 	SolidifyModifierData *tsmd = (SolidifyModifierData *) target;
-	tsmd->offset = smd->offset;
-	tsmd->offset_fac = smd->offset_fac;
-	tsmd->offset_fac_vg = smd->offset_fac_vg;
-	tsmd->offset_clamp = smd->offset_clamp;
-	tsmd->crease_inner = smd->crease_inner;
-	tsmd->crease_outer = smd->crease_outer;
-	tsmd->crease_rim = smd->crease_rim;
-	tsmd->flag = smd->flag;
-	tsmd->mat_ofs = smd->mat_ofs;
-	tsmd->mat_ofs_rim = smd->mat_ofs_rim;
-	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
