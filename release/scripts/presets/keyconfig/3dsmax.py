@@ -82,7 +82,7 @@ kmi = km.keymap_items.new('info.reports_display_update', 'TIMER_REPORT', 'ANY', 
 km = kc.keymaps.new('Screen', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('screen.animation_step', 'TIMER0', 'ANY', any=True)
-kmi = km.keymap_items.new('screen.region_blend', 'TIMER_REGION', 'ANY', any=True)
+kmi = km.keymap_items.new('screen.region_blend', 'TIMERREGION', 'ANY', any=True)
 kmi = km.keymap_items.new('screen.screen_set', 'RIGHT_ARROW', 'PRESS', ctrl=True)
 kmi.properties.delta = 1
 kmi = km.keymap_items.new('screen.screen_set', 'LEFT_ARROW', 'PRESS', ctrl=True)
