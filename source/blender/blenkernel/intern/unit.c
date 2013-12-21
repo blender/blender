@@ -260,9 +260,12 @@ static struct bUnitCollection buNaturalTimeCollection = {buNaturalTimeDef, 3, 0,
 
 
 static struct bUnitDef buNaturalRotDef[] = {
-	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI / 180.0, 0.0,	B_UNIT_DEF_NONE},
-//	{"radian", "radians",			"r", NULL, "Radians",		1.0, 0.0,			B_UNIT_DEF_NONE},
-//	{"turn", "turns",				"t", NULL, "Turns",			1.0/(M_PI*2.0), 0.0,B_UNIT_DEF_NONE},
+	{"degree",    "degrees",     "°",  "d",   "Degrees",     M_PI / 180.0,             0.0,  B_UNIT_DEF_NONE},
+	/* arcminutes/arcseconds are used in Astronomy/Navigation areas... */
+	{"arcminute", "arcminutes",  "'",  NULL,  "Arcminutes",  (M_PI / 180.0) / 60.0,    0.0,  B_UNIT_DEF_SUPPRESS},
+	{"arcsecond", "arcseconds",  "\"", NULL,  "Arcseconds",  (M_PI / 180.0) / 3600.0,  0.0,  B_UNIT_DEF_SUPPRESS},
+	{"radian",    "radians",     "r",  NULL,  "Radians",     1.0,                      0.0,  B_UNIT_DEF_NONE},
+//	{"turn",      "turns",       "t",  NULL,  "Turns",       1.0 / (M_PI * 2.0),       0.0,  B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef) / sizeof(bUnitDef)};
@@ -340,12 +343,12 @@ static void unit_dual_convert(double value, bUnitCollection *usys, bUnitDef **un
 	*unit_b = unit_best_fit(*value_b, usys, *unit_a, 1);
 }
 
-static int unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
-                          /* non exposed options */
-                          bUnitDef *unit, char pad)
+static size_t unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
+                             /* non exposed options */
+                             bUnitDef *unit, char pad)
 {
 	double value_conv;
-	int len, i;
+	size_t len, i;
 
 	if (unit) {
 		/* use unit without finding the best one */
@@ -413,8 +416,10 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	return i;
 }
 
-/* Used for drawing number buttons, try keep fast */
-void bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad)
+/* Used for drawing number buttons, try keep fast.
+ * Return the length of the generated string.
+ */
+size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
@@ -430,20 +435,21 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 
 		/* check the 2 is a smaller unit */
 		if (unit_b > unit_a) {
-			int i = unit_as_string(str, len_max, value_a, prec, usys, unit_a, '\0');
+			size_t i;
+			i = unit_as_string(str, len_max, value_a, prec, usys, unit_a, '\0');
 
 			/* is there enough space for at least 1 char of the next unit? */
 			if (i + 2 < len_max) {
 				str[i++] = ' ';
 
 				/* use low precision since this is a smaller unit */
-				unit_as_string(str + i, len_max - i, value_b, prec ? 1 : 0, usys, unit_b, '\0');
+				i += unit_as_string(str + i, len_max - i, value_b, prec ? 1 : 0, usys, unit_b, '\0');
 			}
-			return;
+			return i;
 		}
 	}
 
-	unit_as_string(str, len_max, value, prec, usys, NULL, pad ? ' ' : '\0');
+	return unit_as_string(str, len_max, value, prec, usys, NULL, pad ? ' ' : '\0');
 }
 
 BLI_INLINE int isalpha_or_utf8(const int ch)
@@ -606,15 +612,8 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 		return 0;
 	}
 
-	{ /* make lowercase */
-		int i;
-		char *ch = str;
-
-		for (i = 0; (i < len_max) && (*ch != '\0'); i++, ch++) {
-			if ((*ch >= 'A') && (*ch <= 'Z'))
-				*ch += ('a' - 'A');
-		}
-	}
+	/* make lowercase */
+	BLI_ascii_strtolower(str, len_max);
 
 	for (unit = usys->units; unit->name; unit++) {
 		/* in case there are multiple instances */

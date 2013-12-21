@@ -46,4 +46,8 @@ incs = [
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
+    incs.append('../../python')
+
 env.BlenderLib ( 'bf_editors_util', sources, incs, defines=defs, libtype=['core','player'], priority=[330,210] )

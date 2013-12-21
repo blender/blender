@@ -27,40 +27,49 @@
 #ifndef __ED_NUMINPUT_H__
 #define __ED_NUMINPUT_H__
 
-/*
- *  The ctrl value has different meaning:
- *      0           : No value has been typed
- *
- *      otherwise, |value| - 1 is where the cursor is located after the period
- *      Positive    : number is positive
- *      Negative    : number is negative
- */
+#define NUM_STR_REP_LEN 64
+#define NUM_MAX_ELEMENTS 3
 
 typedef struct NumInput {
-	short  idx;
-	short  idx_max;
-	short  flag;        /* Different flags to indicate different behaviors                                */
-	char   inv[3];      /* If the value is inverted or not                                                */
-	float  val[3];      /* Direct value of the input                                                      */
-	int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
-	float  increment;
+	short  idx_max;                      /* idx_max < NUM_MAX_ELEMENTS */
+	int    unit_sys;
+	int    unit_type[NUM_MAX_ELEMENTS];  /* Each value can have a different type */
+	bool   unit_use_radians;
+
+	short  flag;                         /* Flags affecting all values' behavior */
+	short  val_flag[NUM_MAX_ELEMENTS];   /* Per-value flags */
+	float  val[NUM_MAX_ELEMENTS];        /* Direct value of the input */
+	float  val_org[NUM_MAX_ELEMENTS];    /* Original value of the input, for reset */
+	float  val_inc[NUM_MAX_ELEMENTS];    /* Increment steps */
+
+	short  idx;                          /* Active element/value */
+	char   str[NUM_STR_REP_LEN];         /* String as typed by user for edited value (we assume ASCII world!) */
+	/* Current position of cursor in edited value str (first byte of "current" letter, so 0 for an empty str) */
+	int    str_cur;
 } NumInput;
 
-/* NUMINPUT FLAGS */
-#define NUM_NULL_ONE        2
-#define NUM_NO_NEGATIVE     4
-#define NUM_NO_ZERO         8
-#define NUM_NO_FRACTION     16
-#define NUM_AFFECT_ALL      32
+/* NumInput.flag */
+enum {
+	NUM_AFFECT_ALL      = (1 << 0),
+};
+
+/* NumInput.val_flag[] */
+enum {
+	/* Public! */
+	NUM_NULL_ONE        = (1 << 0),
+	NUM_NO_NEGATIVE     = (1 << 1),
+	NUM_NO_ZERO         = (1 << 2),
+	NUM_NO_FRACTION     = (1 << 3),
+	/* (1 << 9) and above are reserved for internal flags! */
+};
 
 /*********************** NumInput ********************************/
 
 void initNumInput(NumInput *n);
-#define NUM_STR_REP_LEN 20 /* str must be NUM_STR_LEN * (idx_max + 1) length. */
 void outputNumInput(NumInput *n, char *str);
 bool hasNumInput(const NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
-bool handleNumInput(NumInput *n, const struct wmEvent *event);
+bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);
 
 #define NUM_MODAL_INCREMENT_UP   18
 #define NUM_MODAL_INCREMENT_DOWN 19
