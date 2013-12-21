@@ -32,7 +32,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj.mode == 'EDIT'
+        return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
         mesh = context.object.data
@@ -70,7 +70,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj.mode == 'EDIT'
+        return (obj is not None and obj.mode == 'EDIT')
 
     @staticmethod
     def extrude_region(context, use_vert_normals):
@@ -119,7 +119,7 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj.mode == 'EDIT'
+        return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
         return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True)
