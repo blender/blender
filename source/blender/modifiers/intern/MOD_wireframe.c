@@ -45,7 +45,7 @@ static void initData(ModifierData *md)
 {
 	WireframeModifierData *wmd = (WireframeModifierData *)md;
 	wmd->offset = 0.02f;
-	wmd->flag = MOD_WIREFRAME_REPLACE | MOD_MESHCACHE_OFS_EVEN;
+	wmd->flag = MOD_WIREFRAME_REPLACE | MOD_WIREFRAME_OFS_EVEN;
 	wmd->crease_weight = 1.0f;
 }
 
@@ -89,9 +89,9 @@ static DerivedMesh* WireframeModifier_do( WireframeModifierData *wmd, Object *ob
 	       wmd->offset, wmd->offset_fac, wmd->offset_fac_vg,
 	       (wmd->flag & MOD_WIREFRAME_REPLACE) != 0,
 	       (wmd->flag & MOD_WIREFRAME_BOUNDARY) != 0,
-	       (wmd->flag & MOD_MESHCACHE_OFS_EVEN) != 0,
-	       (wmd->flag & MOD_MESHCACHE_OFS_RELATIVE) != 0,
-	       (wmd->flag & MOD_MESHCACHE_CREASE) != 0,
+	       (wmd->flag & MOD_WIREFRAME_OFS_EVEN) != 0,
+	       (wmd->flag & MOD_WIREFRAME_OFS_RELATIVE) != 0,
+	       (wmd->flag & MOD_WIREFRAME_CREASE) != 0,
 	       wmd->crease_weight,
 	       defgrp_index,
 	       (wmd->flag & MOD_WIREFRAME_INVERT_VGROUP) != 0,
