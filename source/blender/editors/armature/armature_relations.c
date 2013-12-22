@@ -66,13 +66,63 @@
 /* *************************************** Join *************************************** */
 /* NOTE: no operator define here as this is exported to the Object-level operator */
 
+static void joined_armature_fix_links_constraints(
+        Object *tarArm, Object *srcArm, bPoseChannel *pchan, EditBone *curbone,
+        ListBase *lb)
+{
+	bConstraint *con;
+
+	for (con = lb->first; con; con = con->next) {
+		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
+		ListBase targets = {NULL, NULL};
+		bConstraintTarget *ct;
+
+		/* constraint targets */
+		if (cti && cti->get_constraint_targets) {
+			cti->get_constraint_targets(con, &targets);
+
+			for (ct = targets.first; ct; ct = ct->next) {
+				if (ct->tar == srcArm) {
+					if (ct->subtarget[0] == '\0') {
+						ct->tar = tarArm;
+					}
+					else if (STREQ(ct->subtarget, pchan->name)) {
+						ct->tar = tarArm;
+						BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
+					}
+				}
+			}
+
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(con, &targets, 0);
+		}
+
+		/* action constraint? (pose constraints only) */
+		if (con->type == CONSTRAINT_TYPE_ACTION) {
+			bActionConstraint *data = con->data; // XXX old animation system
+			bAction *act;
+			bActionChannel *achan;
+
+			if (data->act) {
+				act = data->act;
+
+				for (achan = act->chanbase.first; achan; achan = achan->next) {
+					if (STREQ(achan->name, pchan->name)) {
+						BLI_strncpy(achan->name, curbone->name, sizeof(achan->name));
+					}
+				}
+			}
+		}
+
+	}
+}
+
 /* Helper function for armature joining - link fixing */
 static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChannel *pchan, EditBone *curbone)
 {
 	Object *ob;
 	bPose *pose;
 	bPoseChannel *pchant;
-	bConstraint *con;
 	
 	/* let's go through all objects in database */
 	for (ob = G.main->object.first; ob; ob = ob->id.next) {
@@ -80,78 +130,13 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 		if (ob->type == OB_ARMATURE) {
 			pose = ob->pose;
 			for (pchant = pose->chanbase.first; pchant; pchant = pchant->next) {
-				for (con = pchant->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
-					
-					/* constraint targets */
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct = targets.first; ct; ct = ct->next) {
-							if (ct->tar == srcArm) {
-								if (ct->subtarget[0] == '\0') {
-									ct->tar = tarArm;
-								}
-								else if (strcmp(ct->subtarget, pchan->name) == 0) {
-									ct->tar = tarArm;
-									BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
-								}
-							}
-						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 0);
-					}
-					
-					/* action constraint? */
-					if (con->type == CONSTRAINT_TYPE_ACTION) {
-						bActionConstraint *data = con->data; // XXX old animation system
-						bAction *act;
-						bActionChannel *achan;
-						
-						if (data->act) {
-							act = data->act;
-							
-							for (achan = act->chanbase.first; achan; achan = achan->next) {
-								if (strcmp(achan->name, pchan->name) == 0)
-									BLI_strncpy(achan->name, curbone->name, sizeof(achan->name));
-							}
-						}
-					}
-					
-				}
+				joined_armature_fix_links_constraints(tarArm, srcArm, pchan, curbone, &pchant->constraints);
 			}
 		}
 			
 		/* fix object-level constraints */
 		if (ob != srcArm) {
-			for (con = ob->constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
-				ListBase targets = {NULL, NULL};
-				bConstraintTarget *ct;
-				
-				/* constraint targets */
-				if (cti && cti->get_constraint_targets) {
-					cti->get_constraint_targets(con, &targets);
-					
-					for (ct = targets.first; ct; ct = ct->next) {
-						if (ct->tar == srcArm) {
-							if (ct->subtarget[0] == '\0') {
-								ct->tar = tarArm;
-							}
-							else if (strcmp(ct->subtarget, pchan->name) == 0) {
-								ct->tar = tarArm;
-								BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
-							}
-						}
-					}
-					
-					if (cti->flush_constraint_targets)
-						cti->flush_constraint_targets(con, &targets, 0);
-				}
-			}
+			joined_armature_fix_links_constraints(tarArm, srcArm, pchan, curbone, &ob->constraints);
 		}
 		
 		/* See if an object is parented to this armature */
@@ -159,8 +144,9 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			/* Is object parented to a bone of this src armature? */
 			if (ob->partype == PARBONE) {
 				/* bone name in object */
-				if (!strcmp(ob->parsubstr, pchan->name))
+				if (STREQ(ob->parsubstr, pchan->name)) {
 					BLI_strncpy(ob->parsubstr, curbone->name, sizeof(ob->parsubstr));
+				}
 			}
 			
 			/* make tar armature be new parent */
