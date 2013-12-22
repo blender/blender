@@ -958,9 +958,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	}
 
 #if 0 //XXX25
-	#if !defined(WIN32) && !defined(__APPLE__)
+#if !defined(WIN32) && !defined(__APPLE__)
 	if (fork()) exit(0);
-	#endif
+#endif
 #endif //XXX25
 
 	{

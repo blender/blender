@@ -27,7 +27,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	#include "BKE_colortools.h"
+#  include "BKE_colortools.h"
 #ifdef __cplusplus
 }
 #endif

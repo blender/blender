@@ -29,7 +29,7 @@
  *  \ingroup shdnodes
  */
  
- #include "../node_shader_util.h"
+#include "../node_shader_util.h"
 
 /* **************** Vector Transform ******************** */ 
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {

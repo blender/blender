@@ -30,11 +30,11 @@
 #include "BLI_math_color.h"
 
 extern "C" {
-	#include "BKE_movieclip.h"
-	#include "BKE_tracking.h"
+#  include "BKE_movieclip.h"
+#  include "BKE_tracking.h"
 
-	#include "IMB_imbuf.h"
-	#include "IMB_imbuf_types.h"
+#  include "IMB_imbuf.h"
+#  include "IMB_imbuf_types.h"
 }
 
 KeyingScreenOperation::KeyingScreenOperation() : NodeOperation()

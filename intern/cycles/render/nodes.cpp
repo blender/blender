@@ -2473,9 +2473,9 @@ ParticleInfoNode::ParticleInfoNode()
 	add_output("Age", SHADER_SOCKET_FLOAT);
 	add_output("Lifetime", SHADER_SOCKET_FLOAT);
 	add_output("Location", SHADER_SOCKET_POINT);
-	#if 0	/* not yet supported */
+#if 0	/* not yet supported */
 	add_output("Rotation", SHADER_SOCKET_QUATERNION);
-	#endif
+#endif
 	add_output("Size", SHADER_SOCKET_FLOAT);
 	add_output("Velocity", SHADER_SOCKET_VECTOR);
 	add_output("Angular Velocity", SHADER_SOCKET_VECTOR);
@@ -2491,10 +2491,10 @@ void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Location")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
-	#if 0	/* not yet supported */
+#if 0	/* not yet supported */
 	if(!output("Rotation")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
-	#endif
+#endif
 	if(!output("Size")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Velocity")->links.empty())

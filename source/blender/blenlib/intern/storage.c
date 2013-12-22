@@ -522,11 +522,11 @@ int BLI_stat(const char *path, struct stat *buffer)
 	UTF16_ENCODE(path);
 
 	/* workaround error in MinGW64 headers, normally, a wstat should work */
-	#ifndef __MINGW64__
+#ifndef __MINGW64__
 	r = _wstat(path_16, buffer);
-	#else
+#else
 	r = _wstati64(path_16, buffer);
-	#endif
+#endif
 
 	UTF16_UN_ENCODE(path);
 	return r;

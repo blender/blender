@@ -24,7 +24,7 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ExecutionSystem.h"
 extern "C" {
-	#include "BKE_colortools.h"
+#  include "BKE_colortools.h"
 }
 #include "BLI_utildefines.h"
 

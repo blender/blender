@@ -2273,10 +2273,10 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals
 	 * no need to duplicate verts.
 	 * WATCH THIS, bmesh only change!,
 	 * need to take care of the side effects here - campbell */
-	#if 0
+#if 0
 	/* we don't want to overwrite any referenced layers */
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
-	#endif
+#endif
 
 
 	if (dm->numTessFaceData == 0) {

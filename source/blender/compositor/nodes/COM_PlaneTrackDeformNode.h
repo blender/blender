@@ -23,8 +23,8 @@
 #include "DNA_node_types.h"
 
 extern "C" {
-	#include "DNA_movieclip_types.h"
-	#include "DNA_node_types.h"
+#  include "DNA_movieclip_types.h"
+#  include "DNA_node_types.h"
 }
 
 /**

@@ -28,7 +28,7 @@
 #include "COM_Node.h"
 
 extern "C" {
-	#include "BKE_node.h"
+#  include "BKE_node.h"
 }
 
 /**

@@ -3064,7 +3064,7 @@ bool BKE_tracking_context_step(MovieTrackingContext *context)
 	frame_width = destination_ibuf->x;
 	frame_height = destination_ibuf->y;
 
-	#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size > 1)
+#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size > 1)
 	for (a = 0; a < map_size; a++) {
 		TrackContext *track_context = NULL;
 		MovieTrackingTrack *track;
@@ -3103,7 +3103,7 @@ bool BKE_tracking_context_step(MovieTrackingContext *context)
 				                                    dst_pixel_x, dst_pixel_y);
 			}
 
-			#pragma omp critical
+#pragma omp critical
 			{
 				tracking_insert_new_marker(context, track, marker, curfra, tracked,
 				                           frame_width, frame_height, dst_pixel_x, dst_pixel_y);
@@ -4468,7 +4468,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 	 * But need to keep an eye on this if the function will be
 	 * used in other cases.
 	 */
-	#pragma omp parallel for if (tmpibuf->y > 128)
+#pragma omp parallel for if (tmpibuf->y > 128)
 	for (j = 0; j < tmpibuf->y; j++) {
 		int i;
 		for (i = 0; i < tmpibuf->x; i++) {

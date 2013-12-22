@@ -5594,7 +5594,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
 			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
- #endif
+#endif
 		}
 		else if (but->optype) {
 			WM_operator_py_idname(buf, but->optype->idname);

@@ -28,11 +28,11 @@
 #include "BLI_math_color.h"
 
 extern "C" {
-	#include "BLI_jitter.h"
+#  include "BLI_jitter.h"
 
-	#include "BKE_movieclip.h"
-	#include "BKE_node.h"
-	#include "BKE_tracking.h"
+#  include "BKE_movieclip.h"
+#  include "BKE_node.h"
+#  include "BKE_tracking.h"
 }
 
 PlaneTrackMaskOperation::PlaneTrackMaskOperation() : PlaneTrackCommonOperation()

@@ -25,7 +25,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLOR)

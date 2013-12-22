@@ -32,11 +32,11 @@
 #include "COM_defines.h"
 #include "BLI_math.h"
 extern "C" {
-	#include "MEM_guardedalloc.h"
-	#include "IMB_imbuf.h"
-	#include "IMB_imbuf_types.h"
-	#include "IMB_colormanagement.h"
-	#include "BKE_node.h"
+#  include "MEM_guardedalloc.h"
+#  include "IMB_imbuf.h"
+#  include "IMB_imbuf_types.h"
+#  include "IMB_colormanagement.h"
+#  include "BKE_node.h"
 }
 
 

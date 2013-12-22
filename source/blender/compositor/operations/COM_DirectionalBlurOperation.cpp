@@ -24,7 +24,7 @@
 #include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()

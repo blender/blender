@@ -24,7 +24,7 @@
 #include "BLI_math.h"
 
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 BilateralBlurOperation::BilateralBlurOperation() : NodeOperation()

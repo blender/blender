@@ -111,7 +111,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	sculpt_undo_push_begin("Mask flood fill");
 
-	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (i = 0; i < totnode; i++) {
 		PBVHVertexIter vi;
 
@@ -235,7 +235,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 
 			BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
 
-			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 			for (i = 0; i < totnode; i++) {
 				PBVHVertexIter vi;
 				bool any_masked = false;
@@ -382,7 +382,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 				/* gather nodes inside lasso's enclosing rectangle (should greatly help with bigger meshes) */
 				BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
 
-				#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 				for (i = 0; i < totnode; i++) {
 					PBVHVertexIter vi;
 					bool any_masked = false;

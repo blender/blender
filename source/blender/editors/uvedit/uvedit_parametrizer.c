@@ -52,24 +52,24 @@
 /* Utils */
 
 #if 0
-	#define param_assert(condition)
-	#define param_warning(message)
-	#define param_test_equals_ptr(condition)
-	#define param_test_equals_int(condition)
+#  define param_assert(condition)
+#  define param_warning(message)
+#  define param_test_equals_ptr(condition)
+#  define param_test_equals_int(condition)
 #else
-	#define param_assert(condition) \
+#  define param_assert(condition) \
 		if (!(condition)) \
 			{ /*printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();*/ } (void)0
-	#define param_warning(message) \
+#  define param_warning(message) \
 		{ /*printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);*/ } (void)0
-#if 0
-	#define param_test_equals_ptr(str, a, b) \
+#  if 0
+#    define param_test_equals_ptr(str, a, b) \
 		if (a != b) \
 			{ /*printf("Equals %s => %p != %p\n", str, a, b);*/ } (void)0
-	#define param_test_equals_int(str, a, b) \
+#    define param_test_equals_int(str, a, b) \
 		if (a != b) \
 			{ /*printf("Equals %s => %d != %d\n", str, a, b);*/ } (void)0
-#endif
+#  endif
 #endif
 typedef enum PBool {
 	P_TRUE = 1,

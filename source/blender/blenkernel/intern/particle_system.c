@@ -2704,7 +2704,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 					temp_spring.delete_flag = 0;
 
 					/* sph_spring_add is not thread-safe. - z0r */
-					#pragma omp critical
+#pragma omp critical
 					sph_spring_add(psys[0], &temp_spring);
 				}
 			}
@@ -4378,7 +4378,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			if (part->fluid->solver == SPH_SOLVER_DDR) {
 				/* Apply SPH forces using double-density relaxation algorithm
 				 * (Clavat et. al.) */
-				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
+#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 				LOOP_DYNAMIC_PARTICLES {
 					/* do global forces & effectors */
 					basic_integrate(sim, p, pa->state.time, cfra);
@@ -4393,7 +4393,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 					 * particles,  thus rotation has not a direct sense for them */
 					basic_rotate(part, pa, pa->state.time, timestep);
 
-					#pragma omp critical
+#pragma omp critical
 					if (part->time_flag & PART_TIME_AUTOSF)
 						update_courant_num(sim, pa, dtime, &sphdata);
 				}
@@ -4407,19 +4407,19 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				 * and Monaghan). Note that, unlike double-density relaxation,
 				 * this algorithm is separated into distinct loops. */
 
-				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
+#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 				LOOP_DYNAMIC_PARTICLES {
 					basic_integrate(sim, p, pa->state.time, cfra);
 				}
 
 				/* calculate summation density */
-				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
+#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 				LOOP_DYNAMIC_PARTICLES {
 					sphclassical_calc_dens(pa, pa->state.time, &sphdata);
 				}
 
 				/* do global forces & effectors */
-				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
+#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 				LOOP_DYNAMIC_PARTICLES {
 					/* actual fluids calculations */
 					sph_integrate(sim, pa, pa->state.time, &sphdata);
@@ -4431,7 +4431,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 					 * particles,  thus rotation has not a direct sense for them */
 					basic_rotate(part, pa, pa->state.time, timestep);
 
-					#pragma omp critical
+#pragma omp critical
 					if (part->time_flag & PART_TIME_AUTOSF)
 						update_courant_num(sim, pa, dtime, &sphdata);
 				}
@@ -4526,7 +4526,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 	}
 
 	/* fluid sim particle import handling, actual loading of particles from file */
-	#ifdef WITH_MOD_FLUID
+#ifdef WITH_MOD_FLUID
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(sim->ob, eModifierType_Fluidsim);
 		
@@ -4620,7 +4620,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			
 		} // fluid sim particles done
 	}
-	#endif // WITH_MOD_FLUID
+#endif // WITH_MOD_FLUID
 }
 
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))

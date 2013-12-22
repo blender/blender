@@ -29,11 +29,11 @@
 #include "BLI_math_color.h"
 
 extern "C" {
-	#include "BLI_jitter.h"
+#  include "BLI_jitter.h"
 
-	#include "BKE_movieclip.h"
-	#include "BKE_node.h"
-	#include "BKE_tracking.h"
+#  include "BKE_movieclip.h"
+#  include "BKE_node.h"
+#  include "BKE_tracking.h"
 }
 
 BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], float deriv[2][2])

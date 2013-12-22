@@ -241,12 +241,12 @@ setCurrentDisplaySetting(
 		}
 
 		if (best_fit != -1) {
-	#  ifdef _DEBUG
+#  ifdef _DEBUG
 			printf("Switching to video mode %dx%d %dx%d %d\n",
 			       vidmodes[best_fit]->hdisplay, vidmodes[best_fit]->vdisplay,
 			       vidmodes[best_fit]->htotal, vidmodes[best_fit]->vtotal,
 			       calculate_rate(vidmodes[best_fit]));
-	#  endif
+#  endif
 
 			/* change to the mode */
 			XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);

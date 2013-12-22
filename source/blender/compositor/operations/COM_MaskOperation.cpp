@@ -29,7 +29,7 @@
 #include "BLI_math.h"
 
 extern "C" {
-	#include "BKE_mask.h"
+#  include "BKE_mask.h"
 }
 
 MaskOperation::MaskOperation() : NodeOperation()

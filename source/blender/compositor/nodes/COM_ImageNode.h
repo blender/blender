@@ -26,7 +26,7 @@
 #include "DNA_node_types.h"
 #include "DNA_image_types.h"
 extern "C" {
-	#include "RE_engine.h"
+#  include "RE_engine.h"
 }
 
 /**

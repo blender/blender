@@ -27,7 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-	#include "RE_render_ext.h"
+#  include "RE_render_ext.h"
 }
 
 

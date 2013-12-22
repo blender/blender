@@ -785,7 +785,7 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 		}
 
 		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6)) {
-			#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 			for (z = sds->res_min[2]; z < sds->res_max[2]; z++) {
 				int x, y;
 				for (x = sds->res_min[0]; x < sds->res_max[0]; x++)
@@ -1352,7 +1352,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 			/* begin thread safe malloc */
 			BLI_begin_threaded_malloc();
 
-			#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 			for (z = min[2]; z < max[2]; z++) {
 				int x, y;
 				for (x = min[0]; x < max[0]; x++)
@@ -1632,7 +1632,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		}
 
 		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6)) {
-			#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 			for (z = min[2]; z < max[2]; z++) {
 				int x, y;
 				for (x = min[0]; x < max[0]; x++)
@@ -2377,7 +2377,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 		int x;
 
 		// precalculate wind forces
-		#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 		for (x = 0; x < sds->res[0]; x++)
 		{
 			int y, z;

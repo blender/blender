@@ -317,7 +317,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
 	/* create vertices */
-	#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
+#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
 	for (y = 0; y <= res_y; y++) {
 		for (x = 0; x <= res_x; x++) {
 			const int i = y * (res_x + 1) + x;
@@ -329,7 +329,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	}
 
 	/* create faces */
-	#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
+#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
 	for (y = 0; y < res_y; y++) {
 		for (x = 0; x < res_x; x++) {
 			const int fi = y * res_x + x;
@@ -367,7 +367,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 		if (mloopuvs) { /* unlikely to fail */
 			ix = 1.0 / rx;
 			iy = 1.0 / ry;
-			#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
+#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
 			for (y = 0; y < res_y; y++) {
 				for (x = 0; x < res_x; x++) {
 					const int i = y * res_x + x;

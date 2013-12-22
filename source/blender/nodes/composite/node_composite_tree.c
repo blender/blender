@@ -62,7 +62,7 @@
 #include "node_composite_util.h"
 
 #ifdef WITH_COMPOSITOR
-	#include "COM_compositor.h"
+#  include "COM_compositor.h"
 #endif
 
 static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
@@ -287,11 +287,11 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 		/* XXX this stuff is called all the time, don't want that.
 		 * Updates should only happen when actually necessary.
 		 */
-		#if 0
+#if 0
 		else if (node->type == CMP_NODE_IMAGE) {
 			nodeUpdate(ntree, node);
 		}
-		#endif
+#endif
 	}
 
 }

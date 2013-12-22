@@ -26,9 +26,9 @@
 #include "COM_TrackPositionOperation.h"
 
 extern "C" {
-	#include "DNA_movieclip_types.h"
+#  include "DNA_movieclip_types.h"
 
-	#include "BKE_node.h"
+#  include "BKE_node.h"
 }
 
 TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)

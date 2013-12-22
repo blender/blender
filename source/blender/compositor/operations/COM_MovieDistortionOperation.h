@@ -28,8 +28,8 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-	#include "BKE_tracking.h"
-	#include "PIL_time.h"
+#  include "BKE_tracking.h"
+#  include "PIL_time.h"
 }
 
 #define COM_DISTORTIONCACHE_MAXSIZE 10

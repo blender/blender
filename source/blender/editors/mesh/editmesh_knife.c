@@ -228,7 +228,7 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f);
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 256
+#define HEADER_LENGTH 256
 	char header[HEADER_LENGTH];
 
 	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, "
@@ -238,8 +238,8 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 	             WM_bool_as_string(kcd->ignore_edge_snapping),
 	             WM_bool_as_string(kcd->angle_snapping),
 	             WM_bool_as_string(kcd->cut_through));
-
 	ED_area_headerprint(CTX_wm_area(C), header);
+#undef HEADER_LENGTH
 }
 
 static void knife_project_v2(const KnifeTool_OpData *kcd, const float co[3], float sco[2])

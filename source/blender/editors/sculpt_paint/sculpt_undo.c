@@ -284,17 +284,18 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 		int i, totnode;
 		PBVHNode **nodes;
 
-		#ifdef _OPENMP
+#ifdef _OPENMP
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-		#else
+#else
 		(void)C;
-		#endif
+#endif
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-		for (i = 0; i < totnode; i++)
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+		for (i = 0; i < totnode; i++) {
 			BKE_pbvh_node_mark_redraw(nodes[i]);
+		}
 	}
 	else {
 		/* A bit lame, but for now just recreate the PBVH. The alternative

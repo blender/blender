@@ -936,7 +936,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	 *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
 	 */
 
-	#pragma omp parallel for private(n) schedule(static)
+#pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
@@ -965,11 +965,11 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 					if (bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
 						/* this seems like it could be very slow but profile
 						 * does not show this, so just leave it for now? */
-						#pragma omp atomic
+#pragma omp atomic
 						vnor[v][0] += fn[0];
-						#pragma omp atomic
+#pragma omp atomic
 						vnor[v][1] += fn[1];
-						#pragma omp atomic
+#pragma omp atomic
 						vnor[v][2] += fn[2];
 					}
 				}
@@ -980,7 +980,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 		}
 	}
 
-	#pragma omp parallel for private(n) schedule(static)
+#pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
@@ -1017,7 +1017,7 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
 	int n;
 
 	/* update BB, redraw flag */
-	#pragma omp parallel for private(n) schedule(static)
+#pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
@@ -1816,7 +1816,7 @@ PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node)
 {
 	int index, totverts;
 
-	#pragma omp critical
+#pragma omp critical
 	{
 
 		index = node->proxy_count;
@@ -1837,7 +1837,7 @@ PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node)
 
 void BKE_pbvh_node_free_proxies(PBVHNode *node)
 {
-	#pragma omp critical
+#pragma omp critical
 	{
 		int p;
 

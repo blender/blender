@@ -27,10 +27,10 @@
 #include "COM_ConvertColorProfileOperation.h"
 
 extern "C" {
-	#include "DNA_movieclip_types.h"
-	#include "BKE_movieclip.h"
-	#include "BKE_tracking.h"
-	#include "IMB_imbuf.h"
+#  include "DNA_movieclip_types.h"
+#  include "BKE_movieclip.h"
+#  include "BKE_tracking.h"
+#  include "IMB_imbuf.h"
 }
 
 MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)

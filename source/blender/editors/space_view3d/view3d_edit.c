@@ -3440,14 +3440,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						rv3d->lpersp = rv3d->persp;
 					}
 
-	#if 0
+#if 0
 					if (G.qual == LR_ALTKEY) {
 						if (oldcamera && is_an_active_object(oldcamera)) {
 							v3d->camera = oldcamera;
 						}
 						handle_view3d_lock();
 					}
-	#endif
+#endif
 					
 					/* first get the default camera for the view lock type */
 					if (v3d->scenelock) {

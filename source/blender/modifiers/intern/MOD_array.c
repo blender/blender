@@ -469,7 +469,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				                                  amd, &index_len);
 			}
 
-			#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
+#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 
 			/* ensure this is set */
 			BLI_assert(index_len != -1);
@@ -490,7 +490,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				BMO_slot_map_elem_insert(&weld_op, slot_targetmap, v, v2);
 			}
 
-			#undef _E
+#undef _E
 		}
 
 		/* already copied earlier, but after executation more slot

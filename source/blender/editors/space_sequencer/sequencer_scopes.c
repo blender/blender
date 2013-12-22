@@ -461,7 +461,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
 	memset(bins, 0, sizeof(bins));
 
-	#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
+#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
 	for (y = 0; y < ibuf->y; y++) {
 		unsigned int cur_bins[3][HIS_STEPS];
 
@@ -475,7 +475,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 			cur_bins[2][pixel[2]]++;
 		}
 
-		#pragma omp critical
+#pragma omp critical
 		{
 			int i;
 			for (i = 0; i < HIS_STEPS; i++) {
@@ -538,7 +538,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
 	memset(bins, 0, sizeof(bins));
 
-	#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
+#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
 	for (y = 0; y < ibuf->y; y++) {
 		unsigned int cur_bins[3][HIS_STEPS];
 
@@ -552,7 +552,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 			cur_bins[2][get_bin_float(pixel[2])]++;
 		}
 
-		#pragma omp critical
+#pragma omp critical
 		{
 			int i;
 			for (i = 0; i < HIS_STEPS; i++) {

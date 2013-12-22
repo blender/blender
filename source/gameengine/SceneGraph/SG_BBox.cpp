@@ -33,8 +33,8 @@
 
 #include <math.h>
  
- #include "SG_BBox.h"
- #include "SG_Node.h"
+#include "SG_BBox.h"
+#include "SG_Node.h"
  
 SG_BBox::SG_BBox() :
 	m_min(0.0, 0.0, 0.0),

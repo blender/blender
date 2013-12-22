@@ -25,7 +25,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 BlurBaseOperation::BlurBaseOperation(DataType data_type) : NodeOperation()

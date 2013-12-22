@@ -1529,11 +1529,11 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
 		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-		#if 0
+#if 0
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
 		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-		#endif
+#endif
 
 		index += stitch_preview->uvs_per_polygon[i];
 	}

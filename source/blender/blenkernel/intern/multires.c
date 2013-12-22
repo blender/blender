@@ -1049,7 +1049,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 	k = 0; /*current loop/mdisp index within the mloop array*/
 
-	#pragma omp parallel for private(i) if (totloop * gridSize * gridSize >= CCG_OMP_LIMIT)
+#pragma omp parallel for private(i) if (totloop * gridSize * gridSize >= CCG_OMP_LIMIT)
 
 	for (i = 0; i < totpoly; ++i) {
 		const int numVerts = mpoly[i].totloop;
@@ -1064,7 +1064,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 			/* when adding new faces in edit mode, need to allocate disps */
 			if (!mdisp->disps)
-			#pragma omp critical
+#pragma omp critical
 			{
 				multires_reallocate_mdisps(totloop, mdisps, totlvl);
 			}
@@ -1074,7 +1074,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 			/* if needed, reallocate multires paint mask */
 			if (gpm && gpm->level < key.level) {
 				gpm->level = key.level;
-				#pragma omp critical
+#pragma omp critical
 				{
 					if (gpm->data)
 						MEM_freeN(gpm->data);
@@ -2209,7 +2209,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dGridSize = multires_side_tot[high_mmd.totlvl];
 	dSkip = (dGridSize - 1) / (gridSize - 1);
 
-	#pragma omp parallel for private(i) if (me->totface * gridSize * gridSize * 4 >= CCG_OMP_LIMIT)
+#pragma omp parallel for private(i) if (me->totface * gridSize * gridSize * 4 >= CCG_OMP_LIMIT)
 	for (i = 0; i < me->totpoly; ++i) {
 		const int numVerts = mpoly[i].totloop;
 		MDisps *mdisp = &mdisps[mpoly[i].loopstart];

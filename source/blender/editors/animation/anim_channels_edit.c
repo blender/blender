@@ -215,10 +215,10 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 						sel = ACHANNEL_SETFLAG_CLEAR;
 					break;
 				case ANIMTYPE_OBJECT:
-				#if 0   /* for now, do not take object selection into account, since it gets too annoying */
+#if 0   /* for now, do not take object selection into account, since it gets too annoying */
 					if (ale->flag & SELECT)
 						sel = ACHANNEL_SETFLAG_CLEAR;
-				#endif
+#endif
 					break;
 				case ANIMTYPE_GROUP:
 					if (ale->flag & AGRP_SELECTED)
@@ -286,7 +286,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 			}
 			case ANIMTYPE_OBJECT:
 			{
-			#if 0   /* for now, do not take object selection into account, since it gets too annoying */
+#if 0   /* for now, do not take object selection into account, since it gets too annoying */
 				Base *base = (Base *)ale->data;
 				Object *ob = base->object;
 
@@ -296,7 +296,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 				if (ob->adt) {
 					ACHANNEL_SET_FLAG(ob, sel, ADT_UI_SELECTED);
 				}
-			#endif
+#endif
 				break;
 			}
 			case ANIMTYPE_GROUP:

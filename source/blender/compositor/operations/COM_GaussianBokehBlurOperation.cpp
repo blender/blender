@@ -24,7 +24,7 @@
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM_DT_COLOR)

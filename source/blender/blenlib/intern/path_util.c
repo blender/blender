@@ -268,7 +268,7 @@ bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
 
 /* little helper macro for BLI_uniquename */
 #ifndef GIVE_STRADDR
-	#define GIVE_STRADDR(data, offset) ( ((char *)data) + offset)
+#  define GIVE_STRADDR(data, offset) ( ((char *)data) + offset)
 #endif
 
 /* Generic function to set a unique name. It is only designed to be used in situations

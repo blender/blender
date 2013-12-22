@@ -27,7 +27,7 @@
 #include "COM_SetColorOperation.h"
 
 extern "C" {
-	#include "BLI_listbase.h"
+#  include "BLI_listbase.h"
 }
 
 MuteNode::MuteNode(bNode *editorNode) : Node(editorNode)

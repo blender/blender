@@ -445,9 +445,9 @@ static short ok_bezier_frame(KeyframeEditData *ked, BezTriple *bezt)
 	short ok = 0;
 	
 	/* frame is stored in f1 property (this float accuracy check may need to be dropped?) */
-	#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][0], ked->f1)
+#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][0], ked->f1)
 	KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-	#undef KEY_CHECK_OK
+#undef KEY_CHECK_OK
 	
 	/* return ok flags */
 	return ok;
@@ -458,9 +458,9 @@ static short ok_bezier_framerange(KeyframeEditData *ked, BezTriple *bezt)
 	short ok = 0;
 	
 	/* frame range is stored in float properties */
-	#define KEY_CHECK_OK(_index) ((bezt->vec[_index][0] > ked->f1) && (bezt->vec[_index][0] < ked->f2))
+#define KEY_CHECK_OK(_index) ((bezt->vec[_index][0] > ked->f1) && (bezt->vec[_index][0] < ked->f2))
 	KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-	#undef KEY_CHECK_OK
+#undef KEY_CHECK_OK
 	
 	/* return ok flags */
 	return ok;
@@ -485,9 +485,9 @@ static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 	 *	- this float accuracy check may need to be dropped?
 	 *	- should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
 	 */
-	#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
+#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
 	KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-	#undef KEY_CHECK_OK
+#undef KEY_CHECK_OK
 	
 	/* return ok flags */
 	return ok;
@@ -498,9 +498,9 @@ static short ok_bezier_valuerange(KeyframeEditData *ked, BezTriple *bezt)
 	short ok = 0;
 	
 	/* value range is stored in float properties */
-	#define KEY_CHECK_OK(_index) ((bezt->vec[_index][1] > ked->f1) && (bezt->vec[_index][1] < ked->f2))
+#define KEY_CHECK_OK(_index) ((bezt->vec[_index][1] > ked->f1) && (bezt->vec[_index][1] < ked->f2))
 	KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-	#undef KEY_CHECK_OK
+#undef KEY_CHECK_OK
 	
 	/* return ok flags */
 	return ok;
@@ -512,9 +512,9 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 	if (ked->data) {
 		short ok = 0;
 		
-		#define KEY_CHECK_OK(_index) BLI_rctf_isect_pt_v(ked->data, bezt->vec[_index])
+#define KEY_CHECK_OK(_index) BLI_rctf_isect_pt_v(ked->data, bezt->vec[_index])
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-		#undef KEY_CHECK_OK
+#undef KEY_CHECK_OK
 		
 		/* return ok flags */
 		return ok;

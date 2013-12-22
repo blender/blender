@@ -32,8 +32,8 @@
 
 
 #ifdef WIN32
-	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-	#include <windows.h>
+#  pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+#  include <windows.h>
 #endif
 
 #include "GL/glew.h"

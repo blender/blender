@@ -1789,7 +1789,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 		arc = nextArc;
 	}
 	
-	#endif
+#endif
 	
 	return value;
 }

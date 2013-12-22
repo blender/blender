@@ -26,9 +26,9 @@
 #include "DNA_scene_types.h"
 
 extern "C" {
-	#include "RE_pipeline.h"
-	#include "RE_shader_ext.h"
-	#include "RE_render_ext.h"
+#  include "RE_pipeline.h"
+#  include "RE_shader_ext.h"
+#  include "RE_render_ext.h"
 }
 
 /* ******** Render Layers Base Prog ******** */

@@ -3136,7 +3136,7 @@ void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, 
 	 * created in makesrna, which can not be associated to a bNodeType immediately,
 	 * since bNodeTypes are registered afterward ...
 	 */
-	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		case ID: \
 			BLI_strncpy(ntype->idname, #Category #StructName, sizeof(ntype->idname)); \
 			ntype->ext.srna = RNA_struct_find(#Category #StructName); \
@@ -3145,7 +3145,7 @@ void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, 
 			break;
 	
 	switch (type) {
-	#include "NOD_static_types.h"
+#include "NOD_static_types.h"
 	}
 	
 	/* make sure we have a valid type (everything registered) */

@@ -169,15 +169,15 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 	float dx = 6;
 	/* text colors */
 	/* XXX colored text not allowed in Blender UI */
-	#if 0
+#if 0
 	unsigned char red[3] = {255, 50, 50};
 	unsigned char green[3] = {0, 255, 0};
 	unsigned char blue[3] = {100, 100, 255};
-	#else
+#else
 	unsigned char red[3] = {255, 255, 255};
 	unsigned char green[3] = {255, 255, 255};
 	unsigned char blue[3] = {255, 255, 255};
-	#endif
+#endif
 	float hue = 0, sat = 0, val = 0, lum = 0, u = 0, v = 0;
 	float col[4], finalcol[4];
 

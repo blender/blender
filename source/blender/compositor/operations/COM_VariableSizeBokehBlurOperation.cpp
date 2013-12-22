@@ -25,7 +25,7 @@
 #include "COM_OpenCLDevice.h"
 
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation()

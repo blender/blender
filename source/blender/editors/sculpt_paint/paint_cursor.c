@@ -197,7 +197,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 		pool = BKE_image_pool_new();
 
-		#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
 			int i;
 			float y;
@@ -371,7 +371,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
 		curvemapping_initialize(br->curve);
 
-		#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
 			int i;
 			float y;

@@ -29,9 +29,9 @@
 #include "BLI_math_vector.h"
 
 extern "C" {
-	#include "MEM_guardedalloc.h"
-	#include "IMB_imbuf.h"
-	#include "IMB_imbuf_types.h"
+#  include "MEM_guardedalloc.h"
+#  include "IMB_imbuf.h"
+#  include "IMB_imbuf_types.h"
 }
 
 

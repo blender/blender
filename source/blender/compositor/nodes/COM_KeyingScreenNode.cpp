@@ -26,7 +26,7 @@
 #include "COM_KeyingScreenOperation.h"
 
 extern "C" {
-	#include "DNA_movieclip_types.h"
+#  include "DNA_movieclip_types.h"
 }
 
 KeyingScreenNode::KeyingScreenNode(bNode *editorNode) : Node(editorNode)

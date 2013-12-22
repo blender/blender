@@ -468,7 +468,7 @@ bool Application::processEvent(GHOST_IEvent *event)
 		std::cout << "GHOST_kEventCursorButton"; break;
 	case GHOST_kEventCursorMove:
 		std::cout << "GHOST_kEventCursorMove"; break;
- #endif
+#endif
 		case GHOST_kEventWheel:
 		{
 			GHOST_TEventWheelData *wheelData = (GHOST_TEventWheelData *) event->getData();

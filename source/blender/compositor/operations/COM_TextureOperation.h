@@ -28,10 +28,10 @@
 #include "DNA_texture_types.h"
 #include "BLI_listbase.h"
 extern "C" {
-	#include "RE_pipeline.h"
-	#include "RE_shader_ext.h"
-	#include "RE_render_ext.h"
-	#include "MEM_guardedalloc.h"
+#  include "RE_pipeline.h"
+#  include "RE_shader_ext.h"
+#  include "RE_render_ext.h"
+#  include "MEM_guardedalloc.h"
 }
 
 /**

@@ -746,10 +746,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
 
 							/* no need for these attrs */
-	#if 0
+#if 0
 							sf_vert->tmp.u = sf_vert_tot;
 							sf_vert->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
-	#endif
+#endif
 							sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
 							sf_vert_tot++;
 						}

@@ -426,7 +426,7 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 	tmp.icon = ICON_NONE;
 	RNA_enum_item_add(&item, &totitem, &tmp);
 	
-	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 	if (STREQ(#Category, "Node")) { \
 		tmp.value = ID; \
 		tmp.identifier = EnumName; \
@@ -435,11 +435,11 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 		tmp.icon = ICON_NONE; \
 		RNA_enum_item_add(&item, &totitem, &tmp); \
 	}
-	#include "../../nodes/NOD_static_types.h"
-	#undef DefNode
+#include "../../nodes/NOD_static_types.h"
+#undef DefNode
 	
 	if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
-		#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		if (STREQ(#Category, "ShaderNode")) { \
 			tmp.value = ID; \
 			tmp.identifier = EnumName; \
@@ -448,12 +448,12 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 			tmp.icon = ICON_NONE; \
 			RNA_enum_item_add(&item, &totitem, &tmp); \
 		}
-		#include "../../nodes/NOD_static_types.h"
-		#undef DefNode
+#include "../../nodes/NOD_static_types.h"
+#undef DefNode
 	}
 
 	if (RNA_struct_is_a(ptr->type, &RNA_CompositorNode)) {
-		#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		if (STREQ(#Category, "CompositorNode")) { \
 			tmp.value = ID; \
 			tmp.identifier = EnumName; \
@@ -462,12 +462,12 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 			tmp.icon = ICON_NONE; \
 			RNA_enum_item_add(&item, &totitem, &tmp); \
 		}
-		#include "../../nodes/NOD_static_types.h"
-		#undef DefNode
+#include "../../nodes/NOD_static_types.h"
+#undef DefNode
 	}
 	
 	if (RNA_struct_is_a(ptr->type, &RNA_TextureNode)) {
-		#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		if (STREQ(#Category, "TextureNode")) { \
 			tmp.value = ID; \
 			tmp.identifier = EnumName; \
@@ -476,8 +476,8 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 			tmp.icon = ICON_NONE; \
 			RNA_enum_item_add(&item, &totitem, &tmp); \
 		}
-		#include "../../nodes/NOD_static_types.h"
-		#undef DefNode
+#include "../../nodes/NOD_static_types.h"
+#undef DefNode
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -7657,7 +7657,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_nodetree(brna);
 	rna_def_texture_nodetree(brna);
 	
-	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 	{ \
 		srna = define_specific_node(brna, #Category #StructName, #Category, UIName, UIDesc, DefFunc); \
 		if (ID == CMP_NODE_OUTPUT_FILE) { \
@@ -7669,7 +7669,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	/* hack, don't want to add include path to RNA just for this, since in the future RNA types
 	 * for nodes should be defined locally at runtime anyway ...
 	 */
-	#include "../../nodes/NOD_static_types.h"
+#include "../../nodes/NOD_static_types.h"
 	
 	/* Node group types need to be defined for shader, compositor, texture nodes individually.
 	 * Cannot use the static types header for this, since they share the same int id.

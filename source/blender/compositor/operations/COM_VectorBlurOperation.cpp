@@ -27,7 +27,7 @@
 
 // use the implementation of blender internal renderer to calculate the vector blur.
 extern "C" {
-	#include "RE_pipeline.h"
+#  include "RE_pipeline.h"
 }
 
 VectorBlurOperation::VectorBlurOperation() : NodeOperation()

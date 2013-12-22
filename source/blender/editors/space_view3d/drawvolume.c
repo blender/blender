@@ -244,10 +244,10 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 #endif
 
 	/* generate flame spectrum texture */
-	#define SPEC_WIDTH 256
-	#define FIRE_THRESH 7
-	#define MAX_FIRE_ALPHA 0.06f
-	#define FULL_ON_FIRE 100
+#define SPEC_WIDTH 256
+#define FIRE_THRESH 7
+#define MAX_FIRE_ALPHA 0.06f
+#define FULL_ON_FIRE 100
 	spec_data = malloc(SPEC_WIDTH * 4 * sizeof(unsigned char));
 	flame_get_spectrum(spec_data, SPEC_WIDTH, 1500, 3000);
 	spec_pixels = malloc(SPEC_WIDTH * 4 * 16 * 16 * sizeof(float));
@@ -270,6 +270,11 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	}
 
 	tex_spec = GPU_texture_create_1D(SPEC_WIDTH, spec_pixels, NULL);
+
+#undef SPEC_WIDTH
+#undef FIRE_THRESH
+#undef MAX_FIRE_ALPHA
+#undef FULL_ON_FIRE
 
 	sub_v3_v3v3(size, max, min);
 

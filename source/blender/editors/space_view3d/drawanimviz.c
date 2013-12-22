@@ -147,7 +147,7 @@ void draw_motion_path_instance(Scene *scene,
 		 * - black for before current frame, green for current frame, blue for after current frame
 		 * - intensity decreases as distance from current frame increases
 		 */
-		#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max - min)) + min)
+#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max - min)) + min)
 		if (frame < CFRA) {
 			/* black - before cfra */
 			if (sel) {
@@ -182,7 +182,8 @@ void draw_motion_path_instance(Scene *scene,
 			}
 			UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
 		}
-		
+#undef SET_INTENSITY
+
 		/* draw a vertex with this color */
 		glVertex3fv(mpv->co);
 	}

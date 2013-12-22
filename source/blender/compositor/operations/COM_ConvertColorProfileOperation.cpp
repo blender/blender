@@ -23,7 +23,7 @@
 #include "COM_ConvertColorProfileOperation.h"
 
 extern "C" {
-	#include "IMB_imbuf.h"
+#  include "IMB_imbuf.h"
 }
 ConvertColorProfileOperation::ConvertColorProfileOperation() : NodeOperation()
 {

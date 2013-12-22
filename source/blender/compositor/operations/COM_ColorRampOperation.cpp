@@ -25,7 +25,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	#include "BKE_texture.h"
+#  include "BKE_texture.h"
 #ifdef __cplusplus
 }
 #endif
