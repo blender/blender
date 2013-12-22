@@ -52,6 +52,8 @@ extern "C"
 {
 #endif  // __cplusplus
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
+
 #include "BLI_threads.h"
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
@@ -437,6 +439,7 @@ int main(int argc, char** argv)
 	free_main(G.main);
 	G.main = NULL;
 
+	MEM_CacheLimiter_set_disabled(true);
 	IMB_init();
 	BKE_images_init();
 	BKE_modifier_init();

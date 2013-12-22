@@ -69,6 +69,8 @@ class MEM_CacheLimiter;
 extern "C" {
 	void MEM_CacheLimiter_set_maximum(size_t m);
 	size_t MEM_CacheLimiter_get_maximum();
+	void MEM_CacheLimiter_set_disabled(bool disabled);
+	bool MEM_CacheLimiter_is_disabled(void);
 };
 #endif
 
@@ -177,7 +179,12 @@ public:
 
 	void enforce_limits() {
 		size_t max = MEM_CacheLimiter_get_maximum();
+		bool is_disabled = MEM_CacheLimiter_is_disabled();
 		size_t mem_in_use, cur_size;
+
+		if (is_disabled) {
+			return;
+		}
 
 		if (max == 0) {
 			return;

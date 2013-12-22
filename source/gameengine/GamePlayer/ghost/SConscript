@@ -41,6 +41,7 @@ incs = [
     '#intern/string',
     '#intern/ghost',
     '#intern/guardedalloc',
+    '#intern/memutil',
     '#intern/moto/include',
     '#intern/container',
     '#intern/audaspace/intern',

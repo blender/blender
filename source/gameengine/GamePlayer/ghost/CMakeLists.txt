@@ -50,6 +50,7 @@ set(INC
 	../../../../intern/ghost
 	../../../../intern/guardedalloc
 	../../../../intern/string
+	../../../../intern/memutil
 )
 
 set(INC_SYS

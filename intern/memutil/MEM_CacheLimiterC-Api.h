@@ -53,6 +53,8 @@ typedef bool (*MEM_CacheLimiter_ItemDestroyable_Func) (void*);
 #ifndef __MEM_CACHELIMITER_H__
 void MEM_CacheLimiter_set_maximum(size_t m);
 size_t MEM_CacheLimiter_get_maximum(void);
+void MEM_CacheLimiter_set_disabled(bool disabled);
+bool MEM_CacheLimiter_is_disabled(void);
 #endif /* __MEM_CACHELIMITER_H__ */
 
 /**
