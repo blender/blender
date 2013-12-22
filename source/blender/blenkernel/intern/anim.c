@@ -943,6 +943,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
                              int level, short flag)
 {
+	const bool use_rotation = (par->transflag & OB_DUPLIROT) != 0;
 	Object *ob, *ob_iter;
 	Mesh *me = par->data;
 	Base *base = NULL;
@@ -1034,14 +1035,19 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					if (ob->type != OB_MBALL) ob->flag |= OB_DONE;  /* doesnt render */
 
 					if (me->edit_btmesh) {
-						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void *) &vdd, DM_FOREACH_USE_NORMAL);
+						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void *) &vdd,
+						                      use_rotation ? DM_FOREACH_USE_NORMAL : 0);
 					}
 					else {
+						const float *no_pt = use_rotation ? no : NULL;
 						for (a = 0; a < totvert; a++) {
 							dm->getVertCo(dm, a, vec);
-							dm->getVertNo(dm, a, no);
+
+							if (use_rotation) {
+								dm->getVertNo(dm, a, no);
+							}
 							
-							vertex_dupli__mapFunc(&vdd, a, vec, no, NULL);
+							vertex_dupli__mapFunc(&vdd, a, vec, no_pt, NULL);
 						}
 					}
 					if (sce) {
