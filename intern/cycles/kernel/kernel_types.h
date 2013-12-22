@@ -60,10 +60,8 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_CUDA__
 #define __KERNEL_SHADING__
-#if __CUDA_ARCH__ >= 200
 #define __KERNEL_ADV_SHADING__
 #define __BRANCHED_PATH__
-#endif
 #endif
 
 #ifdef __KERNEL_OPENCL__
@@ -807,8 +805,7 @@ typedef struct KernelCurves {
 
 	float minimum_width;
 	float maximum_width;
-	float curve_epsilon;
-	int pad2;
+	int pad2, pad3;
 } KernelCurves;
 
 typedef struct KernelBlackbody {
