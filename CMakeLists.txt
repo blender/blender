@@ -956,116 +956,7 @@ if(UNIX AND NOT APPLE)
 
 elseif(WIN32)
 
-	# this file is included anyway when building under Windows with cl.exe
-	#  include(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
-
-	if(CMAKE_COMPILER_IS_GNUCC)
-		include(CheckCSourceCompiles)
-		# Setup 64bit and 64bit windows systems
-		CHECK_C_SOURCE_COMPILES("
-			#ifndef __MINGW64__
-			#error
-			#endif
-			int main(void) { return 0; }
-			" 
-			WITH_MINGW64)
-		
-		if(WITH_MINGW64)
-			message(STATUS "Compiling for 64 bit with MinGW-w64.")
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
-		else()
-			message(STATUS "Compiling for 32 bit with MinGW-w32.")
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
-			
-			if(WITH_RAYOPTIMIZATION)
-				message(WARNING "MinGW-w32 is known to be unstable with 'WITH_RAYOPTIMIZATION' option enabled.")
-			endif()
-		endif()
-	else()
-		# Setup 64bit and 64bit windows systems
-		if(CMAKE_CL_64)
-			message(STATUS "64 bit compiler detected.")
-			if(MSVC12)
-				message(STATUS "Visual C++ 2013 detected.")
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64_vc12)
-			elseif(MSVC11)
-				message(STATUS "Visual C++ 2012 detected.")
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64_vc11)
-			else()
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
-			endif()
-		else() # Setup 32bit windows systems
-			if(MSVC12)
-				message(STATUS "Visual C++ 2013 detected.")
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows_vc12)
-			elseif(MSVC11)
-				message(STATUS "Visual C++ 2012 detected.")
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows_vc11)
-			else()
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
-			endif()
-		endif()
-	endif()
-		
 	add_definitions(-DWIN32)
-
-	set(JPEG "${LIBDIR}/jpeg")
-	set(JPEG_INCLUDE_DIR "${JPEG}/include")
-	set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
-
-	set(WINTAB_INC ${LIBDIR}/wintab/include)
-
-	if(WITH_OPENAL)
-		set(OPENAL ${LIBDIR}/openal)
-		set(OPENALDIR ${LIBDIR}/openal)
-		find_package(OPENAL)
-
-		if(NOT OPENAL_FOUND)
-			message(WARNING "Setting static openAL paths")
-			set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
-			if(MSVC11 OR MSVC12)
-				set(OPENAL_LIBRARY openal32)
-			else()
-				set(OPENAL_LIBRARY wrap_oal)
-			endif()
-		set(OPENAL_LIBPATH ${OPENAL}/lib)
-		endif()
-	endif()
-
-	if(WITH_CODEC_SNDFILE)
-		set(SNDFILE ${LIBDIR}/sndfile)
-		set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
-		set(SNDFILE_LIBRARIES libsndfile-1)
-		set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
-	endif()
-
-	if(WITH_SDL)
-		set(SDL ${LIBDIR}/sdl)
-		set(SDL_INCLUDE_DIR ${SDL}/include)
-		set(SDL_LIBRARY SDL)
-		set(SDL_LIBPATH ${SDL}/lib)
-	endif()
-
-	if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-		add_definitions(-D__SSE__ -D__MMX__)
-	endif()
-
-	if(WITH_CYCLES_OSL)
-		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-	
-		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
-		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
-		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
-		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
-		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-	
-		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
-			set(OSL_FOUND TRUE)
-		else()
-			message(STATUS "OSL not found")
-		endif()
-	endif()
 
 	if(MSVC)
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
@@ -1082,31 +973,72 @@ elseif(WIN32)
 			add_definitions(/D_ALLOW_KEYWORD_MACROS)
 		endif()
 
-		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
-		set(CMAKE_C_FLAGS   "/nologo /J /Gd"       CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc /MP" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_C_FLAGS   "/nologo /J /Gd /MP"       CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
-			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi /MP" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI /MP" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /MT" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /MT" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /MT /MP" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /MT /MP" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi /MP" CACHE STRING "MSVC MT flags " FORCE)
 		if(CMAKE_CL_64)
-			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /Zi /MP" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /RTC1 /MTd /ZI /MP" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /MT" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /MT" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /MT /MP" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /MT /MP" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi /MP" CACHE STRING "MSVC MT flags " FORCE)
 
 		# most msvc warnings are C & C++
 		set(_WARNINGS "/W3 /wd4018 /wd4244 /wd4305 /wd4800 /wd4181 /wd4065 /wd4267 /we4013 /wd4200")
 		set(C_WARNINGS "${_WARNINGS}")
 		set(CXX_WARNINGS "${_WARNINGS}")
 		unset(_WARNINGS)
+
+		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
+
+		# MSVC only, Mingw doesnt need
+		if(CMAKE_CL_64)
+			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /OPT:NOREF ${PLATFORM_LINKFLAGS}")
+		else()
+			set(PLATFORM_LINKFLAGS "/MACHINE:IX86 /LARGEADDRESSAWARE ${PLATFORM_LINKFLAGS}")
+		endif()
+
+		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
+
+		if(NOT DEFINED LIBDIR)
+			# Setup 64bit and 64bit windows systems
+			if(CMAKE_CL_64)
+				message(STATUS "64 bit compiler detected.")
+				set(LIBDIR_BASE ${CMAKE_SOURCE_DIR}/../lib/win64)
+			else()
+				message(STATUS "32 bit compiler detected.")
+				set(LIBDIR_BASE ${CMAKE_SOURCE_DIR}/../lib/windows)
+			endif()
+			if(MSVC12)
+				message(STATUS "Visual C++ 2013 detected.")
+				set(LIBDIR ${LIBDIR_BASE}_vc12)
+			elseif(MSVC11)
+				message(STATUS "Visual C++ 2012 detected.")
+				set(LIBDIR ${LIBDIR_BASE}_vc11)
+			else()
+				set(LIBDIR ${LIBDIR_BASE})
+			endif()
+		else()
+			message(STATUS using LIBDIR  ${LIBDIR})
+		endif()
+
+		# Add each of our libraries to our cmake_prefix_path so find_package() could work
+		FILE(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
+		FOREACH(child ${children})
+		IF(IS_DIRECTORY ${LIBDIR}/${child})
+			LIST(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+		ENDIF()
+		ENDFOREACH()
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 		set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
@@ -1115,20 +1047,10 @@ elseif(WIN32)
 		set(ZLIB_DIR ${LIBDIR}/zlib)
 		find_package(zlib) # we want to find before finding things that depend on it like png
 
-		if(WITH_MOD_CLOTH_ELTOPO)
-			set(LAPACK ${LIBDIR}/lapack)
-			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
-			set(LAPACK_LIBPATH ${LAPACK}/lib)
-			set(LAPACK_LIBRARIES
-				${LIBDIR}/lapack/lib/libf2c.lib
-				${LIBDIR}/lapack/lib/clapack_nowrap.lib
-				${LIBDIR}/lapack/lib/BLAS_nowrap.lib
-			)
-		endif()
 
-		set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
 		find_package(png)
 		if(NOT PNG_FOUND)
+			set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
 			message(WARNING "Using HARDCODED libpng locations")
 			set(PNG_LIBRARIES libpng)
 			set(PNG "${LIBDIR}/png")
@@ -1136,7 +1058,7 @@ elseif(WIN32)
 			set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 		endif()
 
-		set(JPEG_LIBRARIES libjpeg)
+		find_package(jpeg REQUIRED)
 
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
@@ -1147,6 +1069,7 @@ elseif(WIN32)
 			${LIBDIR}/freetype/include/freetype2
 		)
 		set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
+		find_package(freetype REQUIRED)
 
 		if(WITH_FFTW3)
 			set(FFTW3 ${LIBDIR}/fftw3)
@@ -1230,8 +1153,13 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
+		# Try to find tiff first then complain and set static and maybe wrong paths
+		find_package(TIFF)
+		if(NOT TIFF_FOUND)
+			message(WARNING "Using HARDCODED libtiff locations")
 			set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
 			set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
+		endif()
 		endif()
 
 		if(WITH_JACK)
@@ -1305,6 +1233,7 @@ elseif(WIN32)
 		endif()
 			
 		if(WITH_OPENIMAGEIO)
+			find_package(OpenImageIO)
 			set(OPENIMAGEIO ${LIBDIR}/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 			set(OPENIMAGEIO_LIBRARIES optimized OpenImageIO debug OpenImageIO_d)
@@ -1324,23 +1253,46 @@ elseif(WIN32)
 			set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
 			set(OPENCOLORIO_DEFINITIONS)
 		endif()
+		
 
-		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
-
-		# MSVC only, Mingw doesnt need
-		if(CMAKE_CL_64)
-			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /OPT:NOREF ${PLATFORM_LINKFLAGS}")
-		else()
-			set(PLATFORM_LINKFLAGS "/MACHINE:IX86 /LARGEADDRESSAWARE ${PLATFORM_LINKFLAGS}")
+		if(WITH_MOD_CLOTH_ELTOPO)
+			set(LAPACK ${LIBDIR}/lapack)
+			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
+			set(LAPACK_LIBPATH ${LAPACK}/lib)
+			set(LAPACK_LIBRARIES
+				${LIBDIR}/lapack/lib/libf2c.lib
+				${LIBDIR}/lapack/lib/clapack_nowrap.lib
+				${LIBDIR}/lapack/lib/BLAS_nowrap.lib
+			)
 		endif()
-
-		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 		# used in many places so include globally, like OpenGL
 		blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
 	elseif(CMAKE_COMPILER_IS_GNUCC)
-	# keep GCC specific stuff here
+		# keep GCC specific stuff here
+		include(CheckCSourceCompiles)
+		# Setup 64bit and 64bit windows systems
+		CHECK_C_SOURCE_COMPILES("
+			#ifndef __MINGW64__
+			#error
+			#endif
+			int main(void) { return 0; }
+			" 
+			WITH_MINGW64)
+		
+		if(WITH_MINGW64)
+			message(STATUS "Compiling for 64 bit with MinGW-w64.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
+		else()
+			message(STATUS "Compiling for 32 bit with MinGW-w32.")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
+			
+			if(WITH_RAYOPTIMIZATION)
+				message(WARNING "MinGW-w32 is known to be unstable with 'WITH_RAYOPTIMIZATION' option enabled.")
+			endif()
+		endif()
+		
 		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
@@ -1373,6 +1325,10 @@ elseif(WIN32)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		set(ZLIB_LIBRARIES z)
 
+		set(JPEG "${LIBDIR}/jpeg")
+		set(JPEG_INCLUDE_DIR "${JPEG}/include")
+		set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
+		
 		# comes with own pthread library
 		if(NOT WITH_MINGW64)
 			set(PTHREADS ${LIBDIR}/pthreads)
@@ -1534,6 +1490,62 @@ elseif(WIN32)
 		## for re-distribution, so users dont need mingw installed
 		# set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
 
+	endif()
+	
+	# Things common to both mingw and MSVC  should go here
+
+	set(WINTAB_INC ${LIBDIR}/wintab/include)
+
+	if(WITH_OPENAL)
+		set(OPENAL ${LIBDIR}/openal)
+		set(OPENALDIR ${LIBDIR}/openal)
+		find_package(OPENAL)
+
+		if(NOT OPENAL_FOUND)
+			message(WARNING "Setting static openAL paths")
+			set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
+			if(MSVC11 OR MSVC12)
+				set(OPENAL_LIBRARY openal32)
+			else()
+				set(OPENAL_LIBRARY wrap_oal)
+			endif()
+		set(OPENAL_LIBPATH ${OPENAL}/lib)
+		endif()
+	endif()
+
+	if(WITH_CODEC_SNDFILE)
+		set(SNDFILE ${LIBDIR}/sndfile)
+		set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
+		set(SNDFILE_LIBRARIES libsndfile-1)
+		set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
+	endif()
+
+	if(WITH_SDL)
+		set(SDL ${LIBDIR}/sdl)
+		set(SDL_INCLUDE_DIR ${SDL}/include)
+		set(SDL_LIBRARY SDL)
+		set(SDL_LIBPATH ${SDL}/lib)
+	endif()
+
+	if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		add_definitions(-D__SSE__ -D__MMX__)
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
+	
+		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
+	
+		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+			set(OSL_FOUND TRUE)
+		else()
+			message(STATUS "OSL not found")
+		endif()
 	endif()
 
 elseif(APPLE)
