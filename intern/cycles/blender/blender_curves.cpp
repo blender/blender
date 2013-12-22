@@ -32,9 +32,9 @@ CCL_NAMESPACE_BEGIN
 /* Hair curve functions */
 
 void curveinterp_v3_v3v3v3v3(float3 *p, float3 *v1, float3 *v2, float3 *v3, float3 *v4, const float w[4]);
-void interp_weights(float t, float data[4], int type);
+void interp_weights(float t, float data[4]);
 float shaperadius(float shape, float root, float tip, float time);
-void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData, int interpolation);
+void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData);
 bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool background, int uv_num);
 bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool background, int vcol_num);
 bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool background);
@@ -67,39 +67,17 @@ ParticleCurveData::~ParticleCurveData()
 	curvekey_time.clear();
 }
 
-void interp_weights(float t, float data[4], int type)
+void interp_weights(float t, float data[4])
 {
-	float t2, t3, fc;
-	
-	switch (type) {
-		case CURVE_LINEAR:
-			data[0] =          0.0f;
-			data[1] = -t     + 1.0f;
-			data[2] =  t;
-			data[3] =          0.0f;
-			break;
-		case CURVE_CARDINAL:
-			t2 = t * t;
-			t3 = t2 * t;
-			fc = 0.71f;
+	/* Cardinal curve interpolation */
+	float t2 = t * t;
+	float t3 = t2 * t;
+	float fc = 0.71f;
 
-			data[0] = -fc          * t3  + 2.0f * fc          * t2 - fc * t;
-			data[1] =  (2.0f - fc) * t3  + (fc - 3.0f)        * t2 + 1.0f;
-			data[2] =  (fc - 2.0f) * t3  + (3.0f - 2.0f * fc) * t2 + fc * t;
-			data[3] =  fc          * t3  - fc * t2;
-			break;
-		case CURVE_BSPLINE:
-			t2 = t * t;
-			t3 = t2 * t;
-
-			data[0] = -0.16666666f * t3  + 0.5f * t2   - 0.5f * t    + 0.16666666f;
-			data[1] =  0.5f        * t3  - t2                        + 0.66666666f;
-			data[2] = -0.5f        * t3  + 0.5f * t2   + 0.5f * t    + 0.16666666f;
-			data[3] =  0.16666666f * t3;
-			break;
-		default:
-			break;
-	}
+	data[0] = -fc          * t3  + 2.0f * fc          * t2 - fc * t;
+	data[1] =  (2.0f - fc) * t3  + (fc - 3.0f)        * t2 + 1.0f;
+	data[2] =  (fc - 2.0f) * t3  + (3.0f - 2.0f * fc) * t2 + fc * t;
+	data[3] =  fc          * t3  - fc * t2;
 }
 
 void curveinterp_v3_v3v3v3v3(float3 *p, float3 *v1, float3 *v2, float3 *v3, float3 *v4, const float w[4])
@@ -124,7 +102,7 @@ float shaperadius(float shape, float root, float tip, float time)
 
 /* curve functions */
 
-void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData, int interpolation)
+void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData)
 {
 	float3 ckey_loc1 = CData->curvekey_co[key];
 	float3 ckey_loc2 = ckey_loc1;
@@ -147,7 +125,7 @@ void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyl
 
 	float t[4];
 
-	interp_weights((float)seg / (float)segno, t, interpolation);
+	interp_weights((float)seg / (float)segno, t);
 
 	if(keyloc)
 		curveinterp_v3_v3v3v3v3(keyloc, &ckey_loc1, &ckey_loc2, &ckey_loc3, &ckey_loc4, t);
@@ -486,7 +464,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 					float3 ickey_loc = make_float3(0.0f,0.0f,0.0f);
 					float time = 0.0f;
 
-					InterpolateKeySegments(subv, 1, curvekey, curve, &ickey_loc, &time, CData , 1);
+					InterpolateKeySegments(subv, 1, curvekey, curve, &ickey_loc, &time, CData);
 
 					float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
 
