@@ -40,7 +40,6 @@ def draw_repeat_tools(context, layout):
     col.operator("screen.repeat_last")
     col.operator("screen.repeat_history", text="History...")
 
-
 # Keyframing tools
 def draw_keyframing_tools(context, layout):
     col = layout.column(align=True)
@@ -48,7 +47,6 @@ def draw_keyframing_tools(context, layout):
     row = col.row(align=True)
     row.operator("anim.keyframe_insert_menu", text="Insert")
     row.operator("anim.keyframe_delete_v3d", text="Remove")
-
 
 # Grease Pencil tools
 def draw_gpencil_tools(context, layout):
@@ -69,12 +67,12 @@ def draw_gpencil_tools(context, layout):
 
     col.operator("view3d.ruler")
 
-
 # ********** default tools for object-mode ****************
 
-class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
+class VIEW3D_PT_tools_basic(View3DPanel, Panel):
+    bl_category = "Basic"
     bl_context = "objectmode"
-    bl_label = "Object Tools"
+    bl_label = "Basic"
 
     def draw(self, context):
         layout = self.layout
@@ -84,24 +82,35 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
-
-        col = layout.column(align=True)
-        col.operator("object.origin_set", text="Origin")
-
-        col = layout.column(align=True)
-        col.label(text="Object:")
-        col.operator("object.duplicate_move", text="Duplicate")
-        col.operator("object.delete")
-        col.operator("object.join")
-
+            
         active_object = context.active_object
         if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
+
+            col = layout.column(align=True)
+            col.label(text="Object:")
+            col.operator("object.join")
+            col.operator("object.duplicate_move", text="Duplicate")
+            col.operator("object.duplicate_move_linked", text="Duplicate Linked")
+            col.operator("object.delete")
+
+            col = layout.column(align=True)
+            col.operator("object.origin_set", text="Origin")
 
             col = layout.column(align=True)
             col.label(text="Shading:")
             row = col.row(align=True)
             row.operator("object.shade_smooth", text="Smooth")
             row.operator("object.shade_flat", text="Flat")
+
+class VIEW3D_PT_tools_animation(View3DPanel, Panel):
+    bl_category = "Animation"
+    bl_context = "objectmode"
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
 
         draw_keyframing_tools(context, layout)
 
@@ -111,15 +120,10 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
         row.operator("object.paths_calculate", text="Calculate")
         row.operator("object.paths_clear", text="Clear")
 
-        draw_repeat_tools(context, layout)
-
-        draw_gpencil_tools(context, layout)
-
-
 class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
+    bl_category = "Physics"
     bl_context = "objectmode"
     bl_label = "Rigid Body Tools"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -142,8 +146,26 @@ class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
         col.label(text="Constraints:")
         col.operator("rigidbody.connect", text="Connect")
 
-# ********** default tools for editmode_mesh ****************
+# Grease Pencil tools
+class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):
+    bl_category = "Grease Pencil"
+    bl_label = "Grease Pencil"
 
+    def draw(self, context):
+        layout = self.layout
+        draw_gpencil_tools(context, layout)
+
+class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
+    bl_category = "History"
+    bl_context = "objectmode"
+    bl_label = "History"
+
+    def draw(self, context):
+        layout = self.layout     
+
+        draw_repeat_tools(context, layout)
+
+# ********** default tools for editmode_mesh ****************
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
     bl_context = "mesh_edit"
