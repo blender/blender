@@ -161,8 +161,18 @@ class INFO_MT_file_external_data(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("file.pack_all", text="Pack into .blend file")
-        layout.operator("file.unpack_all", text="Unpack into Files")
+        icon = 'CHECKBOX_HLT' if bpy.data.use_autopack else 'CHECKBOX_DEHLT'
+        layout.operator("file.autopack_toggle", icon=icon)
+
+        layout.separator()
+
+        pack_all = layout.row()
+        pack_all.operator("file.pack_all")
+        pack_all.active = not bpy.data.use_autopack
+
+        unpack_all = layout.row()
+        unpack_all.operator("file.unpack_all")
+        unpack_all.active = not bpy.data.use_autopack
 
         layout.separator()
 

@@ -70,7 +70,7 @@
 
 #include "info_intern.h"
 
-/********************* pack blend file libararies operator *********************/
+/********************* pack blend file libaries operator *********************/
 
 static int pack_libraries_exec(bContext *C, wmOperator *op)
 {
@@ -124,6 +124,36 @@ void FILE_OT_unpack_libraries(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/********************* toogle auto-pack operator *********************/
+
+static int autopack_toggle_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+
+	if(G.fileflags & G_AUTOPACK) {
+		G.fileflags &= ~G_AUTOPACK;		
+	}
+	else {
+		packAll(bmain, op->reports);
+		G.fileflags |= G_AUTOPACK;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_autopack_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Automatically Pack Into .blend";
+	ot->idname = "FILE_OT_autopack_toggle";
+	ot->description = "Automatically pack all external files into the .blend file";
+	
+	/* api callbacks */
+	ot->exec = autopack_toggle_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
 /********************* pack all operator *********************/
 
@@ -168,7 +198,7 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 void FILE_OT_pack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Pack All";
+	ot->name = "Pack All Into .blend";
 	ot->idname = "FILE_OT_pack_all";
 	ot->description = "Pack all used external files into the .blend";
 	
@@ -214,7 +244,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	count = countPackedFiles(bmain);
 	
 	if (!count) {
-		BKE_report(op->reports, RPT_WARNING, "No packed files (auto-pack disabled)");
+		BKE_report(op->reports, RPT_WARNING, "No packed files to unpack");
 		G.fileflags &= ~G_AUTOPACK;
 		return OPERATOR_CANCELLED;
 	}
@@ -238,7 +268,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 void FILE_OT_unpack_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Unpack All";
+	ot->name = "Unpack All Into Files";
 	ot->idname = "FILE_OT_unpack_all";
 	ot->description = "Unpack all files packed into this .blend to external ones";
 	

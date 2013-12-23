@@ -42,6 +42,22 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
+static int rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
+{
+	if (G.fileflags & G_AUTOPACK)
+		return 1;
+
+	return 0;
+}
+
+static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), int value)
+{
+	if (value)
+		G.fileflags |= G_AUTOPACK;
+	else
+		G.fileflags &= ~G_AUTOPACK;
+}
+
 static int rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
 {
 	return G.relbase_valid;
@@ -355,6 +371,10 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_saved_get", NULL);
 	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
+
+	prop = RNA_def_property(srna, "use_autopack", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_use_autopack_get", "rna_Main_use_autopack_set");
+	RNA_def_property_ui_text(prop, "Use Autopack", "Automatically pack all external data into .blend file");
 
 	for (i = 0; lists[i].name; i++) {
 		prop = RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);
