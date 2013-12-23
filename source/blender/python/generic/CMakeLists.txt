@@ -35,6 +35,7 @@ set(SRC
 	bgl.c
 	blf_py_api.c
 	bpy_internal_import.c
+	bpy_threads.c
 	idprop_py_api.c
 	py_capi_utils.c
 
