@@ -47,26 +47,27 @@ using namespace std;
 class RAS_IStorage;
 class RAS_ICanvas;
 
-#define RAS_MAX_TEXCO	8	// match in BL_Material
-#define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
+#define RAS_MAX_TEXCO  8     /* match in BL_Material */
+#define RAS_MAX_ATTRIB 16    /* match in BL_BlenderShader */
 
 enum RAS_STORAGE_TYPE	{
 	RAS_AUTO_STORAGE,
 	RAS_IMMEDIATE,
 	RAS_VA,
-	RAS_VBO
+	RAS_VBO,
 };
 
-struct	OglDebugShape
+struct OglDebugShape
 {
 	enum SHAPE_TYPE{
-		LINE, CIRCLE
+		LINE,
+		CIRCLE,
 	};
-	SHAPE_TYPE  m_type;
-	MT_Vector3	m_pos;
-	MT_Vector3	m_param;
-	MT_Vector3	m_param2;
-	MT_Vector3	m_color;
+	SHAPE_TYPE m_type;
+	MT_Vector3 m_pos;
+	MT_Vector3 m_param;
+	MT_Vector3 m_param2;
+	MT_Vector3 m_color;
 };
 
 /**
@@ -74,78 +75,76 @@ struct	OglDebugShape
  */
 class RAS_OpenGLRasterizer : public RAS_IRasterizer
 {
-
-	RAS_ICanvas*	m_2DCanvas;
+	RAS_ICanvas *m_2DCanvas;
 	
-	// fogging vars
-	bool			m_fogenabled;
-	float			m_fogstart;
-	float			m_fogdist;
-	float			m_fogr;
-	float			m_fogg;
-	float			m_fogb;
+	/* fogging vars */
+	bool m_fogenabled;
+	float m_fogstart;
+	float m_fogdist;
+	float m_fogr;
+	float m_fogg;
+	float m_fogb;
 	
-	float			m_redback;
-	float			m_greenback;
-	float			m_blueback;
-	float			m_alphaback;
+	float m_redback;
+	float m_greenback;
+	float m_blueback;
+	float m_alphaback;
 	
-	float			m_ambr;
-	float			m_ambg;
-	float			m_ambb;
-	double			m_time;
-	MT_Matrix4x4	m_viewmatrix;
-	MT_Matrix4x4	m_viewinvmatrix;
-	MT_Point3		m_campos;
-	bool			m_camortho;
+	float m_ambr;
+	float m_ambg;
+	float m_ambb;
+	double m_time;
+	MT_Matrix4x4 m_viewmatrix;
+	MT_Matrix4x4 m_viewinvmatrix;
+	MT_Point3 m_campos;
+	bool m_camortho;
 
-	StereoMode		m_stereomode;
-	StereoEye		m_curreye;
-	float			m_eyeseparation;
-	float			m_focallength;
-	bool			m_setfocallength;
-	int				m_noOfScanlines;
+	StereoMode m_stereomode;
+	StereoEye m_curreye;
+	float m_eyeseparation;
+	float m_focallength;
+	bool m_setfocallength;
+	int m_noOfScanlines;
 
-	short			m_prevafvalue;
+	short m_prevafvalue;
 
-	//motion blur
-	int	m_motionblur;
-	float	m_motionblurvalue;
+	/* motion blur */
+	int m_motionblur;
+	float m_motionblurvalue;
 
 	bool m_usingoverrideshader;
 
-	// Render tools
-	void*	m_clientobject;
-	void*	m_auxilaryClientInfo;
-	std::vector<struct	RAS_LightObject*> m_lights;
-	int		m_lastlightlayer;
-	bool	m_lastlighting;
-	void	*m_lastauxinfo;
+	/* Render tools */
+	void *m_clientobject;
+	void *m_auxilaryClientInfo;
+	std::vector<struct RAS_LightObject *> m_lights;
+	int m_lastlightlayer;
+	bool m_lastlighting;
+	void *m_lastauxinfo;
 	unsigned int m_numgllights;
 
 protected:
-	int				m_drawingmode;
-	TexCoGen		m_texco[RAS_MAX_TEXCO];
-	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
-	int				m_attrib_layer[RAS_MAX_ATTRIB];
-	int				m_texco_num;
-	int				m_attrib_num;
-	//int				m_last_alphablend;
-	bool			m_last_frontface;
+	int m_drawingmode;
+	TexCoGen m_texco[RAS_MAX_TEXCO];
+	TexCoGen m_attrib[RAS_MAX_ATTRIB];
+	int m_attrib_layer[RAS_MAX_ATTRIB];
+	int m_texco_num;
+	int m_attrib_num;
+	/* int m_last_alphablend; */
+	bool m_last_frontface;
 
-	/** Stores the caching information for the last material activated. */
+	/* Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
 
-	/**
-	 * Making use of a Strategy design pattern for storage behavior.
+	/* Making use of a Strategy design pattern for storage behavior.
 	 * Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
-	int				m_storage_type;
-	RAS_IStorage*	m_storage;
-	RAS_IStorage*	m_failsafe_storage; //So derived mesh can use immediate mode
+	int m_storage_type;
+	RAS_IStorage *m_storage;
+	RAS_IStorage *m_failsafe_storage; /* So derived mesh can use immediate mode */
 
 public:
 	double GetTime();
-	RAS_OpenGLRasterizer(RAS_ICanvas* canv, int storage=RAS_AUTO_STORAGE);
+	RAS_OpenGLRasterizer(RAS_ICanvas *canv, int storage=RAS_AUTO_STORAGE);
 	virtual ~RAS_OpenGLRasterizer();
 
 	/*enum DrawType
@@ -162,130 +161,79 @@ public:
 			KX_DEPTHMASK_ENABLED =1,
 			KX_DEPTHMASK_DISABLED,
 	};*/
-	virtual void	SetDepthMask(DepthMask depthmask);
+	virtual void SetDepthMask(DepthMask depthmask);
 
-	virtual bool	SetMaterial(const RAS_IPolyMaterial& mat);
-	virtual bool	Init();
-	virtual void	Exit();
-	virtual bool	BeginFrame(int drawingmode, double time);
-	virtual void	ClearColorBuffer();
-	virtual void	ClearDepthBuffer();
-	virtual void	ClearCachingInfo(void);
-	virtual void	EndFrame();
-	virtual void	SetRenderArea();
+	virtual bool SetMaterial(const RAS_IPolyMaterial &mat);
+	virtual bool Init();
+	virtual void Exit();
+	virtual bool BeginFrame(int drawingmode, double time);
+	virtual void ClearColorBuffer();
+	virtual void ClearDepthBuffer();
+	virtual void ClearCachingInfo(void);
+	virtual void EndFrame();
+	virtual void SetRenderArea();
 
-	virtual void	SetStereoMode(const StereoMode stereomode);
+	virtual void SetStereoMode(const StereoMode stereomode);
 	virtual RAS_IRasterizer::StereoMode GetStereoMode();
-	virtual bool	Stereo();
-	virtual bool	InterlacedStereo();
-	virtual void	SetEye(const StereoEye eye);
-	virtual StereoEye	GetEye();
-	virtual void	SetEyeSeparation(const float eyeseparation);
-	virtual float	GetEyeSeparation();
-	virtual void	SetFocalLength(const float focallength);
-	virtual float	GetFocalLength();
+	virtual bool Stereo();
+	virtual bool InterlacedStereo();
+	virtual void SetEye(const StereoEye eye);
+	virtual StereoEye GetEye();
+	virtual void SetEyeSeparation(const float eyeseparation);
+	virtual float GetEyeSeparation();
+	virtual void SetFocalLength(const float focallength);
+	virtual float GetFocalLength();
 
-	virtual void	SwapBuffers();
+	virtual void SwapBuffers();
 
-	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
-	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
-	virtual void	IndexPrimitives_3DText(class RAS_MeshSlot& ms,
-						class RAS_IPolyMaterial* polymat);
+	virtual void IndexPrimitives(class RAS_MeshSlot &ms);
+	virtual void IndexPrimitivesMulti(class RAS_MeshSlot &ms);
+	virtual void IndexPrimitives_3DText(class RAS_MeshSlot &ms, class RAS_IPolyMaterial *polymat);
 
-	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
-	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
-	virtual void	SetViewMatrix(
-						const MT_Matrix4x4 & mat,
-						const MT_Matrix3x3 & ori,
-						const MT_Point3 & pos,
-						bool perspective
-					);
+	virtual void SetProjectionMatrix(MT_CmMatrix4x4 &mat);
+	virtual void SetProjectionMatrix(const MT_Matrix4x4 &mat);
+	virtual void SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Matrix3x3 &ori, const MT_Point3 &pos, bool perspective);
 
-	virtual const	MT_Point3& GetCameraPosition();
-	virtual bool	GetCameraOrtho();
+	virtual const MT_Point3& GetCameraPosition();
+	virtual bool GetCameraOrtho();
 	
-	virtual void	SetFog(
-						float start,
-						float dist,
-						float r,
-						float g,
-						float b
-					);
+	virtual void SetFog(float start, float dist, float r, float g, float b);
+	virtual void SetFogColor(float r, float g, float b);
+	virtual void SetFogStart(float fogstart);
+	virtual void SetFogEnd(float fogend);
+	void DisableFog();
+	virtual void DisplayFog();
+	virtual bool IsFogEnabled();
 
-	virtual void	SetFogColor(
-						float r,
-						float g,
-						float b
-					);
-
-	virtual void	SetFogStart(float fogstart);
-	virtual void	SetFogEnd(float fogend);
-
-	void			DisableFog();
-	virtual void	DisplayFog();
-	virtual bool	IsFogEnabled();
-
-	virtual void	SetBackColor(
-						float red,
-						float green,
-						float blue,
-						float alpha
-					);
+	virtual void SetBackColor(float red, float green, float blue, float alpha);
 	
-	virtual void	SetDrawingMode(int drawingmode);
-	virtual int		GetDrawingMode();
+	virtual void SetDrawingMode(int drawingmode);
+	virtual int GetDrawingMode();
 
-	virtual void	SetCullFace(bool enable);
-	virtual void	SetLines(bool enable);
+	virtual void SetCullFace(bool enable);
+	virtual void SetLines(bool enable);
 
 	virtual MT_Matrix4x4 GetFrustumMatrix(
-							float left,
-							float right,
-							float bottom,
-							float top,
-							float frustnear,
-							float frustfar,
-							float focallength,
-							bool perspective
-						);
-
+	        float left, float right, float bottom, float top,
+	        float frustnear, float frustfar, 
+	        float focallength, bool perspective);
 	virtual MT_Matrix4x4 GetOrthoMatrix(
-							float left,
-							float right,
-							float bottom,
-							float top,
-							float frustnear,
-							float frustfar
-						);
+	        float left, float right, float bottom, float top,
+	        float frustnear, float frustfar);
 
-	virtual void	SetSpecularity(
-						float specX,
-						float specY,
-						float specZ,
-						float specval
-					);
+	virtual void SetSpecularity(float specX, float specY, float specZ, float specval);
+	virtual void SetShinyness(float shiny);
+	virtual void SetDiffuse(float difX, float difY, float difZ, float diffuse);
+	virtual void SetEmissive(float eX, float eY, float eZ, float e);
 
-	virtual void	SetShinyness(float shiny);
-	virtual void	SetDiffuse(
-						float difX,
-						float difY,
-						float difZ,
-						float diffuse
-					);
-	virtual void	SetEmissive(float eX,
-								float eY,
-								float eZ,
-								float e
-							   );
+	virtual void SetAmbientColor(float red, float green, float blue);
+	virtual void SetAmbient(float factor);
 
-	virtual void	SetAmbientColor(float red, float green, float blue);
-	virtual void	SetAmbient(float factor);
+	virtual void SetPolygonOffset(float mult, float add);
 
-	virtual void	SetPolygonOffset(float mult, float add);
+	virtual void FlushDebugShapes();
 
-	virtual	void	FlushDebugShapes();
-
-	virtual	void DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
+	virtual void DrawDebugLine(const MT_Vector3 &from,const MT_Vector3 &to, const MT_Vector3 &color)
 	{
 		OglDebugShape line;
 		line.m_type = OglDebugShape::LINE;
@@ -295,8 +243,8 @@ public:
 		m_debugShapes.push_back(line);
 	}
 
-	virtual	void DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-									const MT_Vector3& normal, int nsector)
+	virtual void DrawDebugCircle(const MT_Vector3 &center, const MT_Scalar radius, const MT_Vector3 &color,
+	                             const MT_Vector3 &normal, int nsector)
 	{
 		OglDebugShape line;
 		line.m_type = OglDebugShape::CIRCLE;
@@ -317,14 +265,14 @@ public:
 
 	void TexCoord(const RAS_TexVert &tv);
 
-	const MT_Matrix4x4&	GetViewMatrix() const;
-	const MT_Matrix4x4&	GetViewInvMatrix() const;
+	const MT_Matrix4x4 &GetViewMatrix() const;
+	const MT_Matrix4x4 &GetViewInvMatrix() const;
 	
-	virtual void	EnableMotionBlur(float motionblurvalue);
-	virtual void	DisableMotionBlur();
-	virtual float	GetMotionBlurValue() { return m_motionblurvalue; }
-	virtual int		GetMotionBlurState() { return m_motionblur; }
-	virtual void	SetMotionBlurState(int newstate)
+	virtual void EnableMotionBlur(float motionblurvalue);
+	virtual void DisableMotionBlur();
+	virtual float GetMotionBlurValue() { return m_motionblurvalue; }
+	virtual int GetMotionBlurState() { return m_motionblur; }
+	virtual void SetMotionBlurState(int newstate)
 	{
 		if (newstate < 0)
 			m_motionblur = 0;
@@ -332,68 +280,50 @@ public:
 			m_motionblur = 2;
 		else 
 			m_motionblur = newstate;
-	};
+	}
 
-	virtual void	SetAlphaBlend(int alphablend);
-	virtual void	SetFrontFace(bool ccw);
+	virtual void SetAlphaBlend(int alphablend);
+	virtual void SetFrontFace(bool ccw);
 	
-	virtual void	SetAnisotropicFiltering(short level);
-	virtual short	GetAnisotropicFiltering();
+	virtual void SetAnisotropicFiltering(short level);
+	virtual short GetAnisotropicFiltering();
 
-	virtual void	SetMipmapping(MipmapOption val);
+	virtual void SetMipmapping(MipmapOption val);
 	virtual MipmapOption GetMipmapping();
 
-	virtual void	SetUsingOverrideShader(bool val);
-	virtual bool	GetUsingOverrideShader();
+	virtual void SetUsingOverrideShader(bool val);
+	virtual bool GetUsingOverrideShader();
 
 	/**
 	 * Render Tools
 	 */
-	void	EnableOpenGLLights();
-	void	DisableOpenGLLights();
-	void	ProcessLighting(bool uselights, const MT_Transform& viewmat);
+	void EnableOpenGLLights();
+	void DisableOpenGLLights();
+	void ProcessLighting(bool uselights, const MT_Transform &viewmat);
 
-	void	RenderBox2D(int xco,
-						int yco,
-						int width,
-						int height,
-						float percentage);
+	void RenderBox2D(int xco, int yco, int width, int height, float percentage);
+	void RenderText3D(int fontid, const char *text, int size, int dpi,
+	                  const float color[4], const double mat[16], float aspect);
+	void RenderText2D(RAS_TEXT_RENDER_MODE mode, const char *text,
+	                  int xco, int yco, int width, int height);
 
+	void applyTransform(double *oglmatrix, int objectdrawmode);
 
-	void	RenderText3D(int fontid,
-						 const char* text,
-						 int size,
-						 int dpi,
-						 float* color,
-						 double* mat,
-						 float aspect);
+	void PushMatrix();
+	void PopMatrix();
 
-	void	RenderText2D(RAS_TEXT_RENDER_MODE mode,
-						 const char* text,
-						 int xco,
-						 int yco,
-						 int width,
-						 int height);
+	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, void * const data);
+	bool NeedRayCast(struct KX_ClientObjectInfo *) { return true; }
 
-	void	applyTransform(double* oglmatrix, int objectdrawmode);
-
-	void	PushMatrix();
-	void	PopMatrix();
-
-	bool RayHit(struct KX_ClientObjectInfo* client, class KX_RayCast* result, void * const data);
-	bool NeedRayCast(struct KX_ClientObjectInfo*) { return true; }
-
-
-	void AddLight(struct RAS_LightObject* lightobject);
-
-	void RemoveLight(struct RAS_LightObject* lightobject);
-	int ApplyLights(int objectlayer, const MT_Transform& viewmat);
+	void AddLight(struct RAS_LightObject *lightobject);
+	void RemoveLight(struct RAS_LightObject *lightobject);
+	int ApplyLights(int objectlayer, const MT_Transform &viewmat);
 
 	void MotionBlur();
 
-	void SetClientObject(void* obj);
+	void SetClientObject(void *obj);
 
-	void SetAuxilaryClientInfo(void* inf);
+	void SetAuxilaryClientInfo(void *inf);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

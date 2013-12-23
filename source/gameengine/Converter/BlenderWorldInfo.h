@@ -36,68 +36,44 @@
 
 class BlenderWorldInfo : public KX_WorldInfo
 {
-	bool			m_hasworld;
-	float			m_backgroundcolor[3];
+	bool m_hasworld;
+	float m_backgroundcolor[3];
 
-	bool			m_hasmist;
-	float			m_miststart;
-	float			m_mistdistance;
-	float			m_mistcolor[3];
+	bool m_hasmist;
+	float m_miststart;
+	float m_mistdistance;
+	float m_mistcolor[3];
 
-	float			m_ambientcolor[3];
+	float m_ambientcolor[3];
 
 public:
-	BlenderWorldInfo(struct Scene *blenderscene, struct World* blenderworld);
+	BlenderWorldInfo(struct Scene *blenderscene, struct World *blenderworld);
 	~BlenderWorldInfo();
 
-	bool	hasWorld();
-	bool	hasMist();
-	float	getBackColorRed();
-	float	getBackColorGreen();
-	float	getBackColorBlue();
-	
-	float	getAmbientColorRed();
-	float	getAmbientColorGreen();
-	float	getAmbientColorBlue();
+	bool hasWorld();
+	bool hasMist();
+	float getBackColorRed();
+	float getBackColorGreen();
+	float getBackColorBlue();
 
-	float	getMistStart();
-	float	getMistDistance();
-	float	getMistColorRed();
-	float	getMistColorGreen();
-	float	getMistColorBlue();
+	float getAmbientColorRed();
+	float getAmbientColorGreen();
+	float getAmbientColorBlue();
 
-	void
-	setBackColor(
-		float r,
-		float g,
-		float b
-	);
-		void
-	setMistStart(
-		float d
-	);
+	float getMistStart();
+	float getMistDistance();
+	float getMistColorRed();
+	float getMistColorGreen();
+	float getMistColorBlue();
 
-		void
-	setMistDistance(
-		float d
-	);
+	void setBackColor(float r, float g, float b);
+	void setMistStart(float d);
+	void setMistDistance(float d);
+	void setMistColorRed(float d);
+	void setMistColorGreen(float d);
+	void setMistColorBlue(float d);
 
-		void
-	setMistColorRed(
-		float d
-	);
 
-		void
-	setMistColorGreen(
-		float d
-	);
-
-		void
-	setMistColorBlue(
-		float d
-	);   
-	
-	
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BlenderWorldInfo")
 #endif

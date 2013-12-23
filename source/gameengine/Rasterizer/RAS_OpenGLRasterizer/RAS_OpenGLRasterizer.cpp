@@ -1439,13 +1439,9 @@ void RAS_OpenGLRasterizer::RenderBox2D(int xco,
 	glEnable(GL_DEPTH_TEST);
 }
 
-void RAS_OpenGLRasterizer::RenderText3D(int fontid,
-										 const char* text,
-										 int size,
-										 int dpi,
-										 float* color,
-										 double* mat,
-										 float aspect)
+void RAS_OpenGLRasterizer::RenderText3D(
+        int fontid, const char *text, int size, int dpi,
+        const float color[4], const double mat[16], float aspect)
 {
 	/* gl prepping */
 	DisableForText();
@@ -1464,17 +1460,16 @@ void RAS_OpenGLRasterizer::RenderText3D(int fontid,
 
 	BLF_size(fontid, size, dpi);
 	BLF_position(fontid, 0, 0, 0);
-	BLF_draw(fontid, (char *)text, 65535);
+	BLF_draw(fontid, text, 65535);
 
 	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
 }
 
-void RAS_OpenGLRasterizer::RenderText2D(RAS_TEXT_RENDER_MODE mode,
-										 const char* text,
-										 int xco,
-										 int yco,
-										 int width,
-										 int height)
+void RAS_OpenGLRasterizer::RenderText2D(
+        RAS_TEXT_RENDER_MODE mode,
+        const char* text,
+        int xco, int yco,
+        int width, int height)
 {
 	/* This is a rather important line :( The gl-mode hasn't been left
 	 * behind quite as neatly as we'd have wanted to. I don't know
@@ -1497,14 +1492,14 @@ void RAS_OpenGLRasterizer::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 		glColor3ub(0, 0, 0);
 		BLF_size(blf_mono_font, 11, 72);
 		BLF_position(blf_mono_font, (float)xco+1, (float)(height-yco-1), 0.0f);
-		BLF_draw(blf_mono_font, (char *)text, 65535);/* XXX, use real len */
+		BLF_draw(blf_mono_font, text, 65535); /* XXX, use real len */
 	}
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
 	BLF_size(blf_mono_font, 11, 72);
 	BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
-	BLF_draw(blf_mono_font, (char *)text, 65535); /* XXX, use real len */
+	BLF_draw(blf_mono_font, text, 65535); /* XXX, use real len */
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

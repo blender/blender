@@ -34,32 +34,33 @@
 
 #include "KX_Python.h"
 #include "STR_String.h"
+#include "MT_Vector3.h"
 
 typedef enum {
 	psl_Lowest = 0,
-	psl_Highest
+	psl_Highest,
 } TPythonSecurityLevel;
 
 extern bool gUseVisibilityTemp;
 
 #ifdef WITH_PYTHON
-PyObject*	initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene* ketsjiscene);
-PyObject*	initGameKeys();
-PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
-PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie, int argc, char** argv);
-PyObject*	initVideoTexture(void); 
-void		exitGamePlayerPythonScripting();
-PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie);
-void		exitGamePythonScripting();
+PyObject *initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene *ketsjiscene);
+PyObject *initGameKeys();
+PyObject *initRasterizer(class RAS_IRasterizer *rasty,class RAS_ICanvas *canvas);
+PyObject *initGamePlayerPythonScripting(const STR_String &progname, TPythonSecurityLevel level,
+                                        struct Main *maggie, int argc, char **argv);
+PyObject *initVideoTexture(void); 
+PyObject *initGamePythonScripting(const STR_String &progname, TPythonSecurityLevel level, struct Main *maggie);
 
+void exitGamePlayerPythonScripting();
+void exitGamePythonScripting();
 void setupGamePython(KX_KetsjiEngine *ketsjiengine, KX_Scene *startscene, Main *blenderdata,
-                     PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv);
-
-void		setGamePythonPath(const char *path);
-void		resetGamePythonPath();
-void		pathGamePythonConfig( char *path );
-int			saveGamePythonConfig( char **marshal_buffer);
-int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);
+                     PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char **argv);
+void setGamePythonPath(const char *path);
+void resetGamePythonPath();
+void pathGamePythonConfig(char *path);
+int saveGamePythonConfig(char **marshal_buffer);
+int loadGamePythonConfig(char *marshal_buffer, int marshal_length);
 #endif
 
 void addImportMain(struct Main *maggie);
@@ -68,9 +69,9 @@ void removeImportMain(struct Main *maggie);
 class KX_KetsjiEngine;
 class KX_Scene;
 
-void KX_SetActiveScene(class KX_Scene* scene);
-class KX_Scene* KX_GetActiveScene();
-class KX_KetsjiEngine* KX_GetActiveEngine();
+void KX_SetActiveScene(class KX_Scene *scene);
+class KX_Scene *KX_GetActiveScene();
+class KX_KetsjiEngine *KX_GetActiveEngine();
 
 typedef int (*PyNextFrameFunc)(void *);
 
@@ -82,11 +83,9 @@ struct PyNextFrameState {
 };
 extern struct PyNextFrameState pynextframestate;
 
-#include "MT_Vector3.h"
-
-void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
-void		KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-                                         const MT_Vector3& normal, int nsector);
+void KX_RasterizerDrawDebugLine(const MT_Vector3 &from,const MT_Vector3 &to,const MT_Vector3 &color);
+void KX_RasterizerDrawDebugCircle(const MT_Vector3 &center, const MT_Scalar radius, const MT_Vector3 &color,
+                                  const MT_Vector3 &normal, int nsector);
 
 
 #endif  /* __KX_PYTHONINIT_H__ */
