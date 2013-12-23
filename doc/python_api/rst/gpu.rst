@@ -515,7 +515,7 @@ Notes
 1. Calculation of the *mat4_lamp_to_perspective* matrix for a spot lamp.
 
    The following pseudo code shows how the *mat4_lamp_to_perspective* matrix is computed
-   in blender for uniforms of :data:`gpu.GPU_DYNAMIC_LAMP_DYNPERSMAT` type::
+   in blender for uniforms of :data:`gpu.GPU_DYNAMIC_LAMP_DYNPERSMAT` type:
 
    .. code-block:: python
 
