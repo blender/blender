@@ -148,6 +148,7 @@ static int nr_structs = 0;
 static char **names, *namedata;      /* at address names[a] is string a */
 static char **types, *typedata;      /* at address types[a] is string a */
 static short *typelens_native;       /* at typelens[a] is the length of type 'a' on this systems bitness (32 or 64) */
+static short *typelens_32;           /* contains sizes as they are calculated on 32 bit systems */
 static short *typelens_64;           /* contains sizes as they are calculated on 64 bit systems */
 static short **structs, *structdata; /* at sp = structs[a] is the first address of a struct definition
                                       * sp[0] is type number
@@ -246,6 +247,7 @@ static int add_type(const char *str, int len)
 		if (strcmp(str, types[nr]) == 0) {
 			if (len) {
 				typelens_native[nr] = len;
+				typelens_32[nr] = len;
 				typelens_64[nr] = len;
 			}
 			return nr;
@@ -262,6 +264,7 @@ static int add_type(const char *str, int len)
 	strcpy(cp, str);
 	types[nr_types] = cp;
 	typelens_native[nr_types] = len;
+	typelens_32[nr_types] = len;
 	typelens_64[nr_types] = len;
 	
 	if (nr_types >= maxnr) {
@@ -720,7 +723,7 @@ static int arraysize(const char *str)
 
 static int calculate_structlens(int firststruct)
 {
-	int a, b, len_native, len_64, unknown = nr_structs, lastunknown, structtype, type, mul, namelen;
+	int a, b, len_native, len_32, len_64, unknown = nr_structs, lastunknown, structtype, type, mul, namelen;
 	short *sp, *structpoin;
 	const char *cp;
 	int has_pointer, dna_error = 0;
@@ -739,6 +742,7 @@ static int calculate_structlens(int firststruct)
 				
 				sp = structpoin + 2;
 				len_native = 0;
+				len_32 = 0;
 				len_64 = 0;
 				has_pointer = 0;
 				
@@ -780,6 +784,7 @@ static int calculate_structlens(int firststruct)
 						}
 
 						len_native += sizeof(void *) * mul;
+						len_32 += 4 * mul;
 						len_64 += 8 * mul;
 
 					}
@@ -821,11 +826,13 @@ static int calculate_structlens(int firststruct)
 						}
 
 						len_native += mul * typelens_native[type];
+						len_32 += mul * typelens_32[type];
 						len_64 += mul * typelens_64[type];
 						
 					}
 					else {
 						len_native = 0;
+						len_32 = 0;
 						len_64 = 0;
 						break;
 					}
@@ -836,10 +843,11 @@ static int calculate_structlens(int firststruct)
 				}
 				else {
 					typelens_native[structtype] = len_native;
+					typelens_32[structtype] = len_32;
 					typelens_64[structtype] = len_64;
 					/* two ways to detect if a struct contains a pointer:
-					 * has_pointer is set or len_64 != len_native */
-					if (has_pointer || len_64 != len_native) {
+					 * has_pointer is set or len_native  doesn't match any of 32/64bit lengths*/
+					if (has_pointer || len_64 != len_native || len_32 != len_native) {
 						if (len_64 % 8) {
 							printf("Sizeerror 8 in struct: %s (add %d bytes)\n", types[structtype], len_64 % 8);
 							dna_error = 1;
@@ -961,6 +969,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	names = MEM_callocN(sizeof(char *) * maxnr, "names");
 	types = MEM_callocN(sizeof(char *) * maxnr, "types");
 	typelens_native = MEM_callocN(sizeof(short) * maxnr, "typelens_native");
+	typelens_32 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
 	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
@@ -1127,6 +1136,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	MEM_freeN(names);
 	MEM_freeN(types);
 	MEM_freeN(typelens_native);
+	MEM_freeN(typelens_32);
 	MEM_freeN(typelens_64);
 	MEM_freeN(structs);
 
