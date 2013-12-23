@@ -1331,6 +1331,7 @@ typedef struct WireframeModifierData {
 	float offset_fac_vg;
 	float crease_weight;
 	short flag, mat_ofs;
+	short pad[2];
 } WireframeModifierData;
 
 enum {
