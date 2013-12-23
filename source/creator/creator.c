@@ -779,7 +779,7 @@ static int set_audio(int argc, const char **argv, void *UNUSED(data))
 static int set_output(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
-	if (argc >= 1) {
+	if (argc > 1) {
 		Scene *scene = CTX_data_scene(C);
 		if (scene) {
 			BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
@@ -897,7 +897,7 @@ static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
 static int set_extension(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
-	if (argc >= 1) {
+	if (argc > 1) {
 		Scene *scene = CTX_data_scene(C);
 		if (scene) {
 			if (argv[1][0] == '0') {
