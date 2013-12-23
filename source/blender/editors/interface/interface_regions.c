@@ -430,7 +430,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiTooltipData *data;
 /*	IDProperty *prop;*/
 	char buf[512];
-	float fonth, fontw, aspect = but->block->aspect;
+	/* aspect values that shrink text are likely unreadable */
+	const float aspect = min_ff(1.0f, but->block->aspect);
+	float fonth, fontw;
 	int winx /*, winy */, ofsx, ofsy, w, h, a;
 	rctf rect_fl;
 	rcti rect_i;
