@@ -1327,26 +1327,56 @@ BMLoop *BM_face_find_longest_loop(BMFace *f)
 }
 
 /**
- * Returns the edge existing between v1 and v2, or NULL if there isn't one.
+ * Returns the edge existing between \a v_a and \a v_b, or NULL if there isn't one.
  *
  * \note multiple edges may exist between any two vertices, and therefore
  * this function only returns the first one found.
  */
-BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
+#if 0
+BMEdge *BM_edge_exists(BMVert *v_a, BMVert *v_b)
 {
 	BMIter iter;
 	BMEdge *e;
 
-	BLI_assert(v1 != v2);
-	BLI_assert(v1->head.htype == BM_VERT && v2->head.htype == BM_VERT);
 
-	BM_ITER_ELEM (e, &iter, v1, BM_EDGES_OF_VERT) {
-		if (e->v1 == v2 || e->v2 == v2)
+	BLI_assert(v_a != v_b);
+	BLI_assert(v_a->head.htype == BM_VERT && v_b->head.htype == BM_VERT);
+
+	BM_ITER_ELEM (e, &iter, v_a, BM_EDGES_OF_VERT) {
+		if (e->v1 == v_b || e->v2 == v_b)
 			return e;
 	}
 
 	return NULL;
 }
+#else
+BMEdge *BM_edge_exists(BMVert *v_a, BMVert *v_b)
+{
+	/* speedup by looping over both edges verts
+	 * where one vert may connect to many edges but not the other. */
+
+	BMEdge *e_a, *e_b;
+
+	BLI_assert(v_a != v_b);
+	BLI_assert(v_a->head.htype == BM_VERT && v_b->head.htype == BM_VERT);
+
+	if ((e_a = v_a->e) && (e_b = v_b->e)) {
+		BMEdge *e_a_iter = e_a, *e_b_iter = e_b;
+
+		do {
+			if (BM_vert_in_edge(e_a_iter, v_b)) {
+				return e_a_iter;
+			}
+			if (BM_vert_in_edge(e_b_iter, v_a)) {
+				return e_b_iter;
+			}
+		} while (((e_a_iter = bmesh_disk_edge_next(e_a_iter, v_a)) != e_a) &&
+		         ((e_b_iter = bmesh_disk_edge_next(e_b_iter, v_b)) != e_b));
+	}
+
+	return NULL;
+}
+#endif
 
 /**
  * Returns an edge sharing the same vertices as this one.
