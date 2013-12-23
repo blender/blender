@@ -275,7 +275,9 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
         elif ob.dupli_type == 'FACES':
             row = layout.row()
             row.prop(ob, "use_dupli_faces_scale", text="Scale")
-            row.prop(ob, "dupli_faces_scale", text="Inherit Scale")
+            sub = row.row()
+            sub.active = ob.use_dupli_faces_scale
+            sub.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
             layout.prop(ob, "dupli_group", text="Group")
