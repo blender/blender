@@ -27,14 +27,6 @@
  * these functions are slightly different from the original Python API,
  * don't throw SIGABRT even if the thread state is NULL. */
 
-/** \file blender/python/intern/bpy_interface.c
- *  \ingroup pythonintern
- *
- * This file deals with embedding the python interpreter within blender,
- * starting and stopping python and exposing blender/python modules so they can
- * be accesses from scripts.
- */
-
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
 #  undef _POSIX_C_SOURCE

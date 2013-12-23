@@ -75,7 +75,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 }
 
-static DerivedMesh* WireframeModifier_do( WireframeModifierData *wmd, Object *ob, DerivedMesh *dm)
+static DerivedMesh *WireframeModifier_do( WireframeModifierData *wmd, Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	BMesh *bm;

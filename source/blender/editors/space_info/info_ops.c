@@ -130,7 +130,7 @@ static int autopack_toggle_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 
-	if(G.fileflags & G_AUTOPACK) {
+	if (G.fileflags & G_AUTOPACK) {
 		G.fileflags &= ~G_AUTOPACK;		
 	}
 	else {
