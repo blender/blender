@@ -41,15 +41,6 @@
 #include "intern/bmesh_private.h"
 
 /**
- * Returns whether or not a given vertex is
- * is part of a given edge.
- */
-bool BM_vert_in_edge(const BMEdge *e, const BMVert *v)
-{
-	return bmesh_vert_in_edge(e, v);
-}
-
-/**
  * \brief Other Loop in Face Sharing an Edge
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
@@ -354,32 +345,6 @@ bool BM_edge_in_face(BMEdge *e, BMFace *f)
 }
 
 /**
- * Returns whether or not a given edge is is part of a given loop.
- */
-bool BM_edge_in_loop(BMEdge *e, BMLoop *l)
-{
-	return (l->e == e || l->prev->e == e);
-}
-
-/**
- * Returns whether or not two vertices are in
- * a given edge
- */
-bool BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
-{
-	return bmesh_verts_in_edge(v1, v2, e);
-}
-
-/**
- * Given a edge and one of its vertices, returns
- * the other vertex.
- */
-BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
-{
-	return bmesh_edge_other_vert_get(e, v);
-}
-
-/**
  * Given a edge and a loop (assumes the edge is manifold). returns
  * the other faces loop, sharing the same vertex.
  *
@@ -665,15 +630,6 @@ bool BM_vert_is_wire(const BMVert *v)
 }
 
 /**
- * Tests whether or not the edge is part of a wire.
- * (ie: has no faces attached to it)
- */
-bool BM_edge_is_wire(const BMEdge *e)
-{
-	return (e->l == NULL);
-}
-
-/**
  * A vertex is non-manifold if it meets the following conditions:
  * 1: Loose - (has no edges/faces incident upon it).
  * 2: Joins two distinct regions - (two pyramids joined at the tip).
@@ -740,44 +696,6 @@ bool BM_vert_is_manifold(const BMVert *v)
 }
 
 /**
- * Tests whether or not this edge is manifold.
- * A manifold edge has exactly 2 faces attached to it.
- */
-
-#if 1 /* fast path for checking manifold */
-bool BM_edge_is_manifold(const BMEdge *e)
-{
-	const BMLoop *l = e->l;
-	return (l && (l->radial_next != l) &&             /* not 0 or 1 face users */
-	             (l->radial_next->radial_next == l)); /* 2 face users */
-}
-#else
-int BM_edge_is_manifold(BMEdge *e)
-{
-	int count = BM_edge_face_count(e);
-	if (count == 2) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-#endif
-
-/**
- * Tests that the edge is manifold and
- * that both its faces point the same way.
- */
-bool BM_edge_is_contiguous(const BMEdge *e)
-{
-	const BMLoop *l = e->l;
-	const BMLoop *l_other;
-	return (l && ((l_other = l->radial_next) != l) &&  /* not 0 or 1 face users */
-	             (l_other->radial_next == l) &&        /* 2 face users */
-	             (l_other->v != l->v));
-}
-
-/**
  * Check if the edge is convex or concave
  * (depends on face winding)
  */
@@ -797,30 +715,6 @@ bool BM_edge_is_convex(const BMEdge *e)
 	}
 	return true;
 }
-
-/**
- * Tests whether or not an edge is on the boundary
- * of a shell (has one face associated with it)
- */
-
-#if 1 /* fast path for checking boundary */
-bool BM_edge_is_boundary(const BMEdge *e)
-{
-	const BMLoop *l = e->l;
-	return (l && (l->radial_next == l));
-}
-#else
-int BM_edge_is_boundary(BMEdge *e)
-{
-	int count = BM_edge_face_count(e);
-	if (count == 1) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-#endif
 
 bool BM_vert_is_boundary(const BMVert *v)
 {

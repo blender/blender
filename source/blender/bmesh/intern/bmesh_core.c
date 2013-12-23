@@ -862,7 +862,7 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 		for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
 			edok = 0;
 			for (j = 0; j < len; j++) {
-				edok = bmesh_verts_in_edge(l_iter->v, l_iter->next->v, edar[j]);
+				edok = BM_verts_in_edge(l_iter->v, l_iter->next->v, edar[j]);
 				if (edok) {
 					l_iter->e = edar[j];
 					break;
@@ -1424,9 +1424,9 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	int i;
 #endif
 
-	BLI_assert(bmesh_vert_in_edge(e, tv) != false);
+	BLI_assert(BM_vert_in_edge(e, tv) != false);
 
-	v_old = bmesh_edge_other_vert_get(e, tv);
+	v_old = BM_edge_other_vert(e, tv);
 
 #ifndef NDEBUG
 	valence1 = bmesh_disk_count(v_old);
@@ -1489,7 +1489,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			l_new->v = v_new;
 
 			/* assign the correct edge to the correct loop */
-			if (bmesh_verts_in_edge(l_new->v, l_new->next->v, e)) {
+			if (BM_verts_in_edge(l_new->v, l_new->next->v, e)) {
 				l_new->e = e;
 				l->e = e_new;
 
@@ -1507,7 +1507,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 				bmesh_radial_append(l_new->e, l_new);
 				bmesh_radial_append(l->e, l);
 			}
-			else if (bmesh_verts_in_edge(l_new->v, l_new->next->v, e_new)) {
+			else if (BM_verts_in_edge(l_new->v, l_new->next->v, e_new)) {
 				l_new->e = e_new;
 				l->e = e;
 
@@ -1541,7 +1541,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			//BMESH_ASSERT(l->radial_next == l);
 			BMESH_ASSERT(!(l->prev->e != e_new && l->next->e != e_new));
 
-			edok = bmesh_verts_in_edge(l->v, l->next->v, e);
+			edok = BM_verts_in_edge(l->v, l->next->v, e);
 			BMESH_ASSERT(edok != false);
 			BMESH_ASSERT(l->v != l->next->v);
 			BMESH_ASSERT(l->e != l->next->e);
@@ -1557,7 +1557,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			BMESH_ASSERT(l->e == e_new);
 			// BMESH_ASSERT(l->radial_next == l);
 			BMESH_ASSERT(!(l->prev->e != e && l->next->e != e));
-			edok = bmesh_verts_in_edge(l->v, l->next->v, e_new);
+			edok = BM_verts_in_edge(l->v, l->next->v, e_new);
 			BMESH_ASSERT(edok != false);
 			BMESH_ASSERT(l->v != l->next->v);
 			BMESH_ASSERT(l->e != l->next->e);
@@ -1619,7 +1619,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 	int len, radlen = 0, i;
 	bool edok, halt = false;
 
-	if (bmesh_vert_in_edge(e_kill, v_kill) == 0) {
+	if (BM_vert_in_edge(e_kill, v_kill) == 0) {
 		return NULL;
 	}
 
@@ -1632,9 +1632,9 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 #endif
 
 		e_old = bmesh_disk_edge_next(e_kill, v_kill);
-		tv = bmesh_edge_other_vert_get(e_kill, v_kill);
-		v_old = bmesh_edge_other_vert_get(e_old, v_kill);
-		halt = bmesh_verts_in_edge(v_kill, tv, e_old); /* check for double edges */
+		tv = BM_edge_other_vert(e_kill, v_kill);
+		v_old = BM_edge_other_vert(e_old, v_kill);
+		halt = BM_verts_in_edge(v_kill, tv, e_old); /* check for double edges */
 		
 		if (halt) {
 			return NULL;
@@ -1722,7 +1722,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 			/* Validate loop cycle of all faces attached to 'e_old' */
 			for (i = 0, l = e_old->l; i < radlen; i++, l = l->radial_next) {
 				BMESH_ASSERT(l->e == e_old);
-				edok = bmesh_verts_in_edge(l->v, l->next->v, e_old);
+				edok = BM_verts_in_edge(l->v, l->next->v, e_old);
 				BMESH_ASSERT(edok != false);
 				edok = bmesh_loop_validate(l->f);
 				BMESH_ASSERT(edok != false);

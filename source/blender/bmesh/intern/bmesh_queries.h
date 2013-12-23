@@ -32,16 +32,16 @@ int     BM_verts_in_face_count(BMFace *f, BMVert **varr, int len);
 bool    BM_verts_in_face(BMFace *f, BMVert **varr, int len);
 
 bool    BM_edge_in_face(BMEdge *e, BMFace *f);
-bool    BM_edge_in_loop(BMEdge *e, BMLoop *l);
+BLI_INLINE bool    BM_edge_in_loop(const BMEdge *e, const BMLoop *l);
 
-bool    BM_vert_in_edge(const BMEdge *e, const BMVert *v);
-bool    BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
+BLI_INLINE bool    BM_vert_in_edge(const BMEdge *e, const BMVert *v);
+BLI_INLINE bool    BM_verts_in_edge(const BMVert *v1, const BMVert *v2, const BMEdge *e);
 
 float   BM_edge_calc_length(BMEdge *e);
 float   BM_edge_calc_length_squared(BMEdge *e);
 bool    BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb);
 bool    BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb);
-BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v);
+BLI_INLINE BMVert *BM_edge_other_vert(BMEdge *e, const BMVert *v);
 BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l);
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v);
 BMLoop *BM_loop_other_edge_loop(BMLoop *l, BMVert *v);
@@ -57,13 +57,13 @@ int     BM_vert_face_count(BMVert *v);
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e);
 
 bool    BM_vert_is_wire(const BMVert *v);
-bool    BM_edge_is_wire(const BMEdge *e);
+BLI_INLINE bool    BM_edge_is_wire(const BMEdge *e);
 
 bool    BM_vert_is_manifold(const BMVert *v);
-bool    BM_edge_is_manifold(const BMEdge *e);
+BLI_INLINE bool    BM_edge_is_manifold(const BMEdge *e);
 bool    BM_vert_is_boundary(const BMVert *v);
-bool    BM_edge_is_boundary(const BMEdge *e);
-bool    BM_edge_is_contiguous(const BMEdge *e);
+BLI_INLINE bool    BM_edge_is_boundary(const BMEdge *e);
+BLI_INLINE bool    BM_edge_is_contiguous(const BMEdge *e);
 bool    BM_edge_is_convex(const BMEdge *e);
 
 bool    BM_loop_is_convex(const BMLoop *l);
@@ -133,5 +133,7 @@ int   BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_in
 
 /* not really any good place  to put this */
 float bmesh_subd_falloff_calc(const int falloff, float val);
+
+#include "bmesh_queries_inline.h"
 
 #endif /* __BMESH_QUERIES_H__ */

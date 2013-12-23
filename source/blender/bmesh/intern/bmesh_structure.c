@@ -40,29 +40,6 @@
  *	MISC utility functions.
  */
 
-bool bmesh_vert_in_edge(const BMEdge *e, const BMVert *v)
-{
-	if (e->v1 == v || e->v2 == v) return true;
-	return false;
-}
-bool bmesh_verts_in_edge(const BMVert *v1, const BMVert *v2, const BMEdge *e)
-{
-	if (e->v1 == v1 && e->v2 == v2) return true;
-	else if (e->v1 == v2 && e->v2 == v1) return true;
-	return false;
-}
-
-BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v)
-{
-	if (e->v1 == v) {
-		return e->v2;
-	}
-	else if (e->v2 == v) {
-		return e->v1;
-	}
-	return NULL;
-}
-
 bool bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new)
 {
 	if (e->v1 == v_orig) {
@@ -209,31 +186,6 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 	dl1->next = dl1->prev = NULL;
 }
 
-/**
- * \brief Next Disk Edge
- *
- * Find the next edge in a disk cycle
- *
- * \return Pointer to the next edge in the disk cycle for the vertex v.
- */
-BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v)
-{
-	if (v == e->v1)
-		return e->v1_disk_link.next;
-	if (v == e->v2)
-		return e->v2_disk_link.next;
-	return NULL;
-}
-
-BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v)
-{
-	if (v == e->v1)
-		return e->v1_disk_link.prev;
-	if (v == e->v2)
-		return e->v2_disk_link.prev;
-	return NULL;
-}
-
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 {
 	BMEdge *e_iter, *e_first;
@@ -242,7 +194,7 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 		e_first = e_iter = v1->e;
 
 		do {
-			if (bmesh_verts_in_edge(v1, v2, e_iter)) {
+			if (BM_verts_in_edge(v1, v2, e_iter)) {
 				return e_iter;
 			}
 		} while ((e_iter = bmesh_disk_edge_next(e_iter, v1)) != e_first);

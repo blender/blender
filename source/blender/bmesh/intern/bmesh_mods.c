@@ -461,7 +461,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
                                const bool join_faces, const bool kill_degenerate_faces)
 {
 	BMEdge *e_new = NULL;
-	BMVert *tv = bmesh_edge_other_vert_get(e_kill, v_kill);
+	BMVert *tv = BM_edge_other_vert(e_kill, v_kill);
 
 	BMEdge *e2;
 	BMVert *tv2;
@@ -575,7 +575,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 
 	/* in this case we want to keep all faces and not join them,
 	 * rather just get rid of the vertex - see bug [#28645] */
-	BMVert *tv  = bmesh_edge_other_vert_get(e_kill, v_kill);
+	BMVert *tv  = BM_edge_other_vert(e_kill, v_kill);
 	if (tv) {
 		BMEdge *e2 = bmesh_disk_edge_next(e_kill, v_kill);
 		if (e2) {
@@ -642,7 +642,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		}
 	}
 
-	v2 = bmesh_edge_other_vert_get(e, v);
+	v2 = BM_edge_other_vert(e, v);
 	v_new = bmesh_semv(bm, v, e, r_e);
 
 	BLI_assert(v_new != NULL);
