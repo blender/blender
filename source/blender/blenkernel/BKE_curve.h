@@ -60,6 +60,9 @@ typedef struct CurveCache {
 #define CU_DO_TILT(cu, nu) (((nu->flag & CU_2D) && (cu->flag & CU_3D) == 0) ? 0 : 1)
 #define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || ((cu)->flag & CU_PATH_RADIUS) || (cu)->bevobj || (cu)->ext1 != 0.0f || (cu)->ext2 != 0.0f) ? 1 : 0)
 
+/* not 3d and not unfilled */
+#define CU_DO_2DFILL(cu)  ((((cu)->flag & CU_3D) == 0) && (((cu)->flag & (CU_FRONT | CU_BACK)) != 0))
+
 /* ** Curve ** */
 void BKE_curve_unlink(struct Curve *cu);
 void BKE_curve_free(struct Curve *cu);

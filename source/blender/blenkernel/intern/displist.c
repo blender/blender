@@ -645,10 +645,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 
 static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dispbase)
 {
-	if (cu->flag & CU_3D)
-		return;
-
-	if ((cu->flag & (CU_FRONT | CU_BACK)) == 0)
+	if (!CU_DO_2DFILL(cu))
 		return;
 
 	if (dispbase->first && ((DispList *) dispbase->first)->type == DL_SURF) {
