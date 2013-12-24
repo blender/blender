@@ -48,7 +48,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 		/* ok: if v_tar is NULL (e.g. not in the map) then it's
 		 *     a target vert, otherwise it's a double */
 		if (v_tar) {
-			BMLoop *l_tar = BM_face_vert_share_loop(f, v_tar);
+			l_tar = BM_face_vert_share_loop(f, v_tar);
 
 			if (l_tar && (l_tar != l) && !BM_loop_is_adjacent(l_tar, l)) {
 				l_double = l;
