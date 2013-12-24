@@ -144,7 +144,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 			if (l->f->len > 3) {
 				BMLoop *l_new;
 				BLI_assert(l->prev->v != l->next->v);
-				BM_face_split(bm, l->f, l->prev->v, l->next->v, &l_new, NULL, true);
+				BM_face_split(bm, l->f, l->prev, l->next, &l_new, NULL, true);
 				BM_elem_flag_merge_into(l_new->e, l->e, l->prev->e);
 			}
 		}

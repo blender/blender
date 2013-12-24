@@ -2237,6 +2237,7 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	BMesh *bm = kcd->em->bm;
 	KnifeEdge *kfe, *kfelast;
 	BMVert *v1, *v2;
+	BMLoop *l_v1, *l_v2;
 	BMFace *f_new;
 	Ref *ref;
 	KnifeVert *kfv, *kfvprev;
@@ -2262,27 +2263,35 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	}
 	BLI_assert(i == nco);
 	l_new = NULL;
-	if (nco == 0) {
-		/* Want to prevent creating two-sided polygons */
-		if (v1 == v2 || BM_edge_exists(v1, v2)) {
-			f_new = NULL;
+
+	if ((l_v1 = BM_face_vert_share_loop(f, v1)) &&
+	    (l_v2 = BM_face_vert_share_loop(f, v2)))
+	{
+		if (nco == 0) {
+			/* Want to prevent creating two-sided polygons */
+			if (v1 == v2 || BM_edge_exists(v1, v2)) {
+				f_new = NULL;
+			}
+			else {
+				f_new = BM_face_split(bm, f, l_v1, l_v2, &l_new, NULL, true);
+			}
 		}
 		else {
-			f_new = BM_face_split(bm, f, v1, v2, &l_new, NULL, true);
+			f_new = BM_face_split_n(bm, f, l_v1, l_v2, cos, nco, &l_new, NULL);
+			if (f_new) {
+				/* Now go through lnew chain matching up chain kv's and assign real v's to them */
+				for (l_iter = l_new->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
+					BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
+					if (kcd->select_result) {
+						BM_edge_select_set(bm, l_iter->e, true);
+					}
+					kverts[i]->v = l_iter->v;
+				}
+			}
 		}
 	}
 	else {
-		f_new = BM_face_split_n(bm, f, v1, v2, cos, nco, &l_new, NULL);
-		if (f_new) {
-			/* Now go through lnew chain matching up chain kv's and assign real v's to them */
-			for (l_iter = l_new->next, i = 0; i < nco; l_iter = l_iter->next, i++) {
-				BLI_assert(equals_v3v3(cos[i], l_iter->v->co));
-				if (kcd->select_result) {
-					BM_edge_select_set(bm, l_iter->e, true);
-				}
-				kverts[i]->v = l_iter->v;
-			}
-		}
+		f_new = NULL;
 	}
 
 	/* the select chain above doesnt account for the first loop */

@@ -1258,7 +1258,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  *
  * \return A BMFace pointer
  */
-BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
+BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMLoop *l_v1, BMLoop *l_v2,
                    BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
                    ListBase *holes,
@@ -1275,21 +1275,12 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 
 	BMFace *f2;
 	BMLoop *l_iter, *l_first;
-	BMLoop *l_v1 = NULL, *l_v2 = NULL, *l_f1 = NULL, *l_f2 = NULL;
+	BMLoop *l_f1 = NULL, *l_f2 = NULL;
 	BMEdge *e;
-	int i, len, f1len, f2len;
+	BMVert *v1 = l_v1->v, *v2 = l_v2->v;
+	int f1len, f2len;
 
-	/* verify that v1 and v2 are in face */
-	len = f->len;
-	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < len; i++, l_iter = l_iter->next) {
-		if (l_iter->v == v1) l_v1 = l_iter;
-		else if (l_iter->v == v2) l_v2 = l_iter;
-	}
-
-	if (!l_v1 || !l_v2) {
-		BLI_assert(0);
-		return NULL;
-	}
+	BLI_assert(f == l_v1->f && f == l_v2->f);
 
 	/* allocate new edge between v1 and v2 */
 	e = BM_edge_create(bm, v1, v2, example, no_double ? BM_CREATE_NO_DOUBLE : BM_CREATE_NOP);

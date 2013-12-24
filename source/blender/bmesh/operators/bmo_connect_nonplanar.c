@@ -86,7 +86,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 	return delta_z;
 }
 
-static bool bm_face_split_find(BMFace *f, BMVert *v_pair[2], float *r_angle)
+static bool bm_face_split_find(BMFace *f, BMLoop *l_pair[2], float *r_angle)
 {
 	BMLoop *l_iter, *l_first;
 	BMLoop **l_arr = BLI_array_alloca(l_arr, f->len);
@@ -111,9 +111,7 @@ static bool bm_face_split_find(BMFace *f, BMVert *v_pair[2], float *r_angle)
 			BMLoop *l_b = l_arr[i_b];
 			/* check these are not touching
 			 * (we could be smarter here) */
-			if ((l_a->next != l_b) &&
-			    (l_a->prev != l_b))
-			{
+			if (!BM_loop_is_adjacent(l_a, l_b)) {
 				/* first calculate normals */
 				float no_a[3], no_b[3];
 
@@ -130,8 +128,8 @@ static bool bm_face_split_find(BMFace *f, BMVert *v_pair[2], float *r_angle)
 						BM_face_legal_splits(f, &l_split, 1);
 						if (l_split[0]) {
 							err_best = err_test;
-							v_pair[0] = l_a->v;
-							v_pair[1] = l_b->v;
+							l_pair[0] = l_a;
+							l_pair[1] = l_b;
 
 							angle_best = angle_normalized_v3v3(no_a, no_b);
 							found = true;
@@ -151,13 +149,14 @@ static bool bm_face_split_find(BMFace *f, BMVert *v_pair[2], float *r_angle)
 
 static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], const float angle_limit)
 {
-	BMVert *v_pair[2];
+	BMLoop *l_pair[2];
 	float angle;
 
-	if (bm_face_split_find(f, v_pair, &angle) && (angle > angle_limit)) {
+	if (bm_face_split_find(f, l_pair, &angle) && (angle > angle_limit)) {
 		BMFace *f_new;
 		BMLoop *l_new;
-		f_new = BM_face_split(bm, f, v_pair[0], v_pair[1], &l_new, NULL, false);
+
+		f_new = BM_face_split(bm, f, l_pair[0], l_pair[1], &l_new, NULL, false);
 		if (f_new) {
 			r_f_pair[0] = f;
 			r_f_pair[1] = f_new;

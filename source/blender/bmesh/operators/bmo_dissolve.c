@@ -99,7 +99,7 @@ static void bm_face_split(BMesh *bm, const short oflag)
 						if (BMO_elem_flag_test(bm, l->next->v, oflag) == 0 &&
 						    BMO_elem_flag_test(bm, l->prev->v, oflag) == 0)
 						{
-							BM_face_split(bm, l->f, l->next->v, l->prev->v, NULL, NULL, true);
+							BM_face_split(bm, l->f, l->next, l->prev, NULL, NULL, true);
 						}
 					}
 				}

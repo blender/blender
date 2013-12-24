@@ -2095,7 +2095,7 @@ static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 			BMLoop *l_new;
 			BMFace *f_new;
 			BLI_assert(v_fan == l_fan->v);
-			f_new = BM_face_split(bm, f, l_fan->v, l_fan->next->next->v, &l_new, NULL, FALSE);
+			f_new = BM_face_split(bm, f, l_fan, l_fan->next->next, &l_new, NULL, FALSE);
 
 			if (f_new->len > f->len) {
 				f = f_new;
@@ -2140,7 +2140,7 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 				l_b = l_b->next;
 			}
 			else {
-				BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, FALSE);
+				BM_face_split(bm, f, l_a, l_b, &l_new, NULL, FALSE);
 				f = l_new->f;
 
 				/* walk around the new face to get the next verts to split */

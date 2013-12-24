@@ -49,6 +49,8 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v);
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v);
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step);
 BMLoop *BM_vert_find_first_loop(BMVert *v);
+BMFace *BM_vert_pair_share_face(BMVert *v_a, BMVert *v_b,
+                                BMLoop **r_l_a, BMLoop **r_l_b);
 
 int     BM_vert_edge_count_nonwire(BMVert *v);
 int     BM_vert_edge_count(BMVert *v);
@@ -67,6 +69,7 @@ BLI_INLINE bool    BM_edge_is_contiguous(const BMEdge *e);
 bool    BM_edge_is_convex(const BMEdge *e);
 
 bool    BM_loop_is_convex(const BMLoop *l);
+BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b);
 
 float   BM_loop_calc_face_angle(BMLoop *l);
 void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]);

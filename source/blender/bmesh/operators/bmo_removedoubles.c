@@ -40,30 +40,32 @@
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {
 	BMIter liter;
-	BMLoop *l;
-	BMVert *v2, *v_double;
+	BMLoop *l, *l_tar, *l_double;
 	bool split = false;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		v2 = BMO_slot_map_elem_get(slot_targetmap, l->v);
-		/* ok: if v2 is NULL (e.g. not in the map) then it's
+		BMVert *v_tar = BMO_slot_map_elem_get(slot_targetmap, l->v);
+		/* ok: if v_tar is NULL (e.g. not in the map) then it's
 		 *     a target vert, otherwise it's a double */
-		if ((v2 && BM_vert_in_face(f, v2)) &&
-		    (v2 != l->prev->v) &&
-		    (v2 != l->next->v))
-		{
-			v_double = l->v;
-			split = true;
-			break;
+		if (v_tar) {
+			BMLoop *l_tar = BM_face_vert_share_loop(f, v_tar);
+
+			if (l_tar && (l_tar != l) && !BM_loop_is_adjacent(l_tar, l)) {
+				l_double = l;
+				split = true;
+				break;
+			}
 		}
 	}
 
-	if (split && v_double != v2) {
+	if (split) {
 		BMLoop *l_new;
-		BMFace *f2 = BM_face_split(bm, f, v_double, v2, &l_new, NULL, false);
+		BMFace *f_new;
 
-		remdoubles_splitface(f, bm, op, slot_targetmap);
-		remdoubles_splitface(f2, bm, op, slot_targetmap);
+		f_new = BM_face_split(bm, f, l_double, l_tar, &l_new, NULL, false);
+
+		remdoubles_splitface(f,     bm, op, slot_targetmap);
+		remdoubles_splitface(f_new, bm, op, slot_targetmap);
 	}
 }
 

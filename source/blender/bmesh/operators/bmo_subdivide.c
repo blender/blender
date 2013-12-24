@@ -133,28 +133,23 @@ typedef struct SubDPattern {
 
 /* connects face with smallest len, which I think should always be correct for
  * edge subdivision */
-static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f_new)
+static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace **r_f_new)
 {
-	BMIter iter, iter2;
-	BMVert *v;
 	BMLoop *l_new;
-	BMFace *f, *f_cur = NULL;
+	BMLoop *l_a, *l_b;
+	BMFace *f;
 
 	/* this isn't the best thing in the world.  it doesn't handle cases where there's
 	 * multiple faces yet.  that might require a convexity test to figure out which
 	 * face is "best" and who knows what for non-manifold conditions. */
-	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_VERT, v1); f; f = BM_iter_step(&iter)) {
-		for (v = BM_iter_new(&iter2, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&iter2)) {
-			if (v == v2) {
-				if (!f_cur || f->len < f_cur->len) f_cur = f;
-			}
-		}
-	}
+	f = BM_vert_pair_share_face(v_a, v_b, &l_a, &l_b);
 
-	if (f_cur) {
-		f = BM_face_split(bm, f_cur, v1, v2, &l_new, NULL, false);
+	if (f) {
+		BMFace *f_new;
+
+		f_new = BM_face_split(bm, f, l_a, l_b, &l_new, NULL, false);
 		
-		if (r_f_new) *r_f_new = f;
+		if (r_f_new) *r_f_new = f_new;
 		return l_new ? l_new->e : NULL;
 	}
 
@@ -1118,7 +1113,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				if (loops_split[j][0]) {
 					BMFace *f_new;
 					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);
-					f_new = BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &l_new, NULL, false);
+					f_new = BM_face_split(bm, face, loops_split[j][0], loops_split[j][1], &l_new, NULL, false);
 					if (f_new) {
 						BMO_elem_flag_enable(bm, l_new->e, ELE_INNER);
 					}

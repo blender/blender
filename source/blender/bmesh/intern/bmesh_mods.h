@@ -35,15 +35,13 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v);
 
 BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const bool do_del);
 
-BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f);
-
 BMFace *BM_face_split(BMesh *bm, BMFace *f,
-                      BMVert *v1, BMVert *v2,
+                      BMLoop *l_a, BMLoop *l_b,
                       BMLoop **r_l,
                       BMEdge *example, const bool no_double);
 
 BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
-                        BMVert *v1, BMVert *v2,
+                        BMLoop *l_a, BMLoop *l_b,
                         float cos[][3], int n,
                         BMLoop **r_l, BMEdge *example);
 

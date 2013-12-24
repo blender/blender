@@ -828,7 +828,7 @@ static void bm_face_slice(BMesh *bm, BMLoop *l, const int cuts)
 
 	for (i = 0; i < cuts; i++) {
 		/* no chance of double */
-		BM_face_split(bm, l_new->f, l_new->prev->v, l_new->next->next->v, &l_new, NULL, false);
+		BM_face_split(bm, l_new->f, l_new->prev, l_new->next->next, &l_new, NULL, false);
 		if (l_new->f->len < l_new->radial_next->f->len) {
 			l_new = l_new->radial_next;
 		}

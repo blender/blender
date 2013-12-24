@@ -127,5 +127,14 @@ BLI_INLINE int BM_edge_is_boundary(BMEdge *e)
 }
 #endif
 
+/**
+ * Tests whether one loop is next to another within the same face.
+ */
+BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b)
+{
+	BLI_assert(l_a->f == l_b->f);
+	BLI_assert(l_a != l_b);
+	return (ELEM(l_b, l_a->next, l_a->prev));
+}
 
 #endif /* __BMESH_QUERIES_INLINE_H__ */
