@@ -166,7 +166,8 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
                         const unsigned char cp[4], const float fp[4], const float linearcol[4], int *zp, float *zpf)
 {
 	char str[256];
-	float dx = 6;
+	int dx = 6;
+	const int dy = 0.3f * UI_UNIT_Y;
 	/* text colors */
 	/* XXX colored text not allowed in Blender UI */
 #if 0
@@ -193,21 +194,21 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 
 	glColor3ub(255, 255, 255);
 	BLI_snprintf(str, sizeof(str), "X:%-4d  Y:%-4d |", x, y);
-	BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_Y, 0);
+	BLF_position(blf_mono_font, dx, dy, 0);
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 	dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 	if (zp) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.4f |", 0.5f + 0.5f * (((float)*zp) / (float)0x7fffffff));
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 	if (zpf) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.3f |", *zpf);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
@@ -220,7 +221,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  R:%-3d", cp[0]);
 		else
 			BLI_snprintf(str, sizeof(str), "  R:-");
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
@@ -231,7 +232,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  G:%-3d", cp[1]);
 		else
 			BLI_snprintf(str, sizeof(str), "  G:-");
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
@@ -242,7 +243,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  B:%-3d", cp[2]);
 		else
 			BLI_snprintf(str, sizeof(str), "  B:-");
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
@@ -254,7 +255,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 				BLI_snprintf(str, sizeof(str), "  A:%-3d", cp[3]);
 			else
 				BLI_snprintf(str, sizeof(str), "- ");
-			BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+			BLF_position(blf_mono_font, dx, dy, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str, sizeof(str));
 		}
@@ -274,7 +275,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  &scene->view_settings, &scene->display_settings);
 
 			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
-			BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+			BLF_position(blf_mono_font, dx, dy, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str, sizeof(str));
 		}
@@ -348,12 +349,12 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		}
 		
 		BLI_snprintf(str, sizeof(str), "V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
@@ -362,22 +363,22 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		rgb_to_yuv(finalcol[0], finalcol[1], finalcol[2], &lum, &u, &v);
 
 		BLI_snprintf(str, sizeof(str), "H:%-.4f", hue);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 		BLI_snprintf(str, sizeof(str), "  S:%-.4f", sat);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 		BLI_snprintf(str, sizeof(str), "  V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
+		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
