@@ -931,7 +931,7 @@ public:
 		size_t global_size[2] = {global_size_round_up(local_size[0], w), global_size_round_up(local_size[1], h)};
 
 		/* run kernel */
-		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, local_size, 0, NULL, NULL);
+		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL);
 		opencl_assert(ciErr);
 		opencl_assert(clFlush(cqCommandQueue));
 	}
