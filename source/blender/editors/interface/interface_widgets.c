@@ -181,18 +181,6 @@ static const unsigned int check_tria_face[4][3] = {
 	{3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}
 };
 
-GLubyte const checker_stipple_sml[32 * 32 / 8] =
-{
-	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
-	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
-	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
-	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
-	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-};
-
 /* ************************************************* */
 
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
@@ -681,15 +669,15 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				float x_mid = 0.0f; /* used for dumb clamping of values */
 
 				/* dark checkers */
-				glColor4ub(UI_TRANSP_DARK, UI_TRANSP_DARK, UI_TRANSP_DARK, 255);
+				glColor4ub(UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, 255);
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
 
 				/* light checkers */
 				glEnable(GL_POLYGON_STIPPLE);
-				glColor4ub(UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, 255);
-				glPolygonStipple(checker_stipple_sml);
+				glColor4ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, 255);
+				glPolygonStipple(stipple_checker_8px);
 
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);

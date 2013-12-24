@@ -59,6 +59,7 @@ extern const unsigned char stipple_halftone[128];
 extern const unsigned char stipple_quarttone[128];
 extern const unsigned char stipple_diag_stripes_pos[128];
 extern const unsigned char stipple_diag_stripes_neg[128];
+extern const unsigned char stipple_checker_8px[128];
 
 /**
  * Draw a lined (non-looping) arc with the given

@@ -165,6 +165,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_default_view, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], const float linearcol[4], int *zp, float *zpf)
 {
+	rcti color_rect;
 	char str[256];
 	int dx = 6;
 	const int dy = 0.3f * UI_UNIT_Y;
@@ -317,23 +318,47 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 	}
 
 	glDisable(GL_BLEND);
-	glColor3fv(finalcol);
 	dx += 0.25f * UI_UNIT_X;
-	glBegin(GL_QUADS);
-	glVertex2f(dx, 0.15f * UI_UNIT_Y);
-	glVertex2f(dx, 0.85f * UI_UNIT_Y);
-	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.85 * UI_UNIT_Y);
-	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.15f * UI_UNIT_Y);
-	glEnd();
+
+	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), 0.15f * UI_UNIT_Y, 0.85f * UI_UNIT_Y);
+
+	if (channels == 4) {
+		rcti color_rect_half;
+		int color_quater_x, color_quater_y;
+
+		color_rect_half = color_rect;
+		color_rect_half.xmax = BLI_rcti_cent_x(&color_rect);
+		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+
+		color_rect_half = color_rect;
+		color_rect_half.xmin = BLI_rcti_cent_x(&color_rect);
+
+		color_quater_x = BLI_rcti_cent_x(&color_rect_half);
+		color_quater_y = BLI_rcti_cent_y(&color_rect_half);
+
+		glColor4ub(UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, 255);
+		glRecti(color_rect_half.xmin, color_rect_half.ymin, color_rect_half.xmax, color_rect_half.ymax);
+
+		glColor4ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, 255);
+		glRecti(color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
+		glRecti(color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(UNPACK3(finalcol), fp ? fp[3] : (cp[3] / 255.0f));
+		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+		glDisable(GL_BLEND);
+	}
+	else {
+		glColor3fv(finalcol);
+		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+	}
 
 	/* draw outline */
 	glColor3ub(128, 128, 128);
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(dx, 0.15f * UI_UNIT_Y);
-	glVertex2f(dx, 0.85f * UI_UNIT_Y);
-	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.85f * UI_UNIT_Y);
-	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.15f * UI_UNIT_Y);
-	glEnd();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	dx += 1.75f * UI_UNIT_X;
 

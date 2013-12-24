@@ -726,8 +726,8 @@ void UI_exit(void);
 #define UI_LAYOUT_MENU          2
 #define UI_LAYOUT_TOOLBAR       3
 
-#define UI_UNIT_X               U.widget_unit
-#define UI_UNIT_Y               U.widget_unit
+#define UI_UNIT_X               ((void)0, U.widget_unit)
+#define UI_UNIT_Y               ((void)0, U.widget_unit)
 
 #define UI_LAYOUT_ALIGN_EXPAND  0
 #define UI_LAYOUT_ALIGN_LEFT    1
@@ -747,6 +747,10 @@ void UI_exit(void);
 /* uiLayoutOperatorButs flags */
 #define UI_LAYOUT_OP_SHOW_TITLE 1
 #define UI_LAYOUT_OP_SHOW_EMPTY 2
+
+/* used for transp checkers */
+#define UI_ALPHA_CHECKER_DARK 100
+#define UI_ALPHA_CHECKER_LIGHT 160
 
 /* flags to set which corners will become rounded:
  *

@@ -935,11 +935,11 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 	/* first background, to show tranparency */
 
-	glColor4ub(UI_TRANSP_DARK, UI_TRANSP_DARK, UI_TRANSP_DARK, 255);
+	glColor4ub(UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, 255);
 	glRectf(x1, y1, x1 + sizex, y1 + sizey);
 	glEnable(GL_POLYGON_STIPPLE);
-	glColor4ub(UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, 255);
-	glPolygonStipple(checker_stipple_sml);
+	glColor4ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, 255);
+	glPolygonStipple(stipple_checker_8px);
 	glRectf(x1, y1, x1 + sizex, y1 + sizey);
 	glDisable(GL_POLYGON_STIPPLE);
 
