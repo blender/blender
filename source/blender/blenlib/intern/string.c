@@ -582,7 +582,7 @@ void BLI_ascii_strtolower(char *str, const size_t len)
 {
 	size_t i;
 
-	for (i = 0; i < len; i++)
+	for (i = 0; (i < len) && str[i]; i++)
 		if (str[i] >= 'A' && str[i] <= 'Z')
 			str[i] += 'a' - 'A';
 }
@@ -591,7 +591,7 @@ void BLI_ascii_strtoupper(char *str, const size_t len)
 {
 	size_t i;
 
-	for (i = 0; i < len; i++)
+	for (i = 0; (i < len) && str[i]; i++)
 		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
 }
