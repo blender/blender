@@ -941,7 +941,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 	// Without checking names, we get some reuse we don't want that can cause
 	// problems with material LoDs.
-	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL) {
+	if (blenderobj && ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)) {
 		const char *bge_name = meshobj->GetName().ReadPtr();
 		const char *blender_name = ((ID *)blenderobj->data)->name + 2;
 		if (STREQ(bge_name, blender_name)) {
