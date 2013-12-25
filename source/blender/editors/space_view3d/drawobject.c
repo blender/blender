@@ -6593,6 +6593,48 @@ static void draw_object_matcap_check(Scene *scene, View3D *v3d, Object *ob)
 
 }
 
+static void draw_rigidbody_shape(Object *ob)
+{
+	BoundBox *bb = NULL;
+	float size[3], vec[8][3];
+
+	if (ob->type == OB_MESH) {
+		bb = BKE_mesh_boundbox_get(ob);
+	}
+
+	if (bb == NULL)
+		return;
+
+	switch (ob->rigidbody_object->shape) {
+		case RB_SHAPE_BOX:
+			size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+			size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+			size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+			
+			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
+			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
+			vec[0][1] = vec[1][1] = vec[4][1] = vec[5][1] = -size[1];
+			vec[2][1] = vec[3][1] = vec[6][1] = vec[7][1] = +size[1];
+			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
+			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
+			
+			draw_box(vec);
+			break;
+		case RB_SHAPE_SPHERE:
+			draw_bb_quadric(bb, OB_BOUND_SPHERE, true);
+			break;
+		case RB_SHAPE_CONE:
+			draw_bb_quadric(bb, OB_BOUND_CONE, true);
+			break;
+		case RB_SHAPE_CYLINDER:
+			draw_bb_quadric(bb, OB_BOUND_CYLINDER, true);
+			break;
+		case RB_SHAPE_CAPSULE:
+			draw_bb_quadric(bb, OB_BOUND_CAPSULE, true);
+			break;
+	}
+}
+
 /**
  * main object drawing function, draws in selection
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
@@ -7156,6 +7198,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				draw_bounding_volume(scene, ob, ob->collision_boundtype);
 				setlinestyle(0);
 			}
+		}
+		if (ob->rigidbody_object) {
+			draw_rigidbody_shape(ob);
 		}
 
 		/* draw extra: after normal draw because of makeDispList */
