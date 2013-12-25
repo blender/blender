@@ -72,6 +72,16 @@ static int ED_space_clip_graph_poll(bContext *C)
 	return FALSE;
 }
 
+static int clip_graph_knots_poll(bContext *C)
+{
+	if (ED_space_clip_graph_poll(C)) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
+
+		return (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) != 0;
+	}
+	return FALSE;
+}
+
 typedef struct {
 	int action;
 } SelectUserData;
@@ -302,7 +312,7 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = select_exec;
 	ot->invoke = select_invoke;
-	ot->poll = ED_space_clip_graph_poll;
+	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -394,7 +404,7 @@ void CLIP_OT_graph_select_border(wmOperatorType *ot)
 	ot->invoke = WM_border_select_invoke;
 	ot->exec = border_select_graph_exec;
 	ot->modal = WM_border_select_modal;
-	ot->poll = ED_space_clip_graph_poll;
+	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -461,7 +471,7 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = graph_select_all_markers_exec;
-	ot->poll = ED_space_clip_graph_poll;
+	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -496,7 +506,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_curve_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -536,7 +546,7 @@ void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = delete_knot_exec;
-	ot->poll = ED_space_clip_graph_poll;
+	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

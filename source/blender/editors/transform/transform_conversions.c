@@ -6380,6 +6380,10 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 	/* count */
 	t->total = 0;
 
+	if ((sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) == 0) {
+		return;
+	}
+
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
