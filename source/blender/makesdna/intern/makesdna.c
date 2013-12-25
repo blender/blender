@@ -970,7 +970,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	types = MEM_callocN(sizeof(char *) * maxnr, "types");
 	typelens_native = MEM_callocN(sizeof(short) * maxnr, "typelens_native");
 	typelens_32 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
-	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
+	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_32");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
 	/* insertion of all known types */
@@ -981,7 +981,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	add_type("short", 2);    /* SDNA_TYPE_SHORT */
 	add_type("ushort", 2);   /* SDNA_TYPE_USHORT */
 	add_type("int", 4);      /* SDNA_TYPE_INT */
-	add_type("long", 4);     /* SDNA_TYPE_LONG */		/* should it be 8 on 64 bits? */
+	add_type("long", 4);     /* SDNA_TYPE_LONG */  /* maybe 4 or 8 bytes depending on platform, disallowed for now */
 	add_type("ulong", 4);    /* SDNA_TYPE_ULONG */
 	add_type("float", 4);    /* SDNA_TYPE_FLOAT */
 	add_type("double", 8);   /* SDNA_TYPE_DOUBLE */
