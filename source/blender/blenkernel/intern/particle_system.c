@@ -1106,7 +1106,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		/* Grid distribution */
 		if (part->distr==PART_DISTR_GRID && from != PART_FROM_VERT) {
 			BLI_srandom(31415926 + psys->seed);
-			dm= CDDM_from_mesh((Mesh*)ob->data, ob);
+			dm= CDDM_from_mesh((Mesh*)ob->data);
 			DM_ensure_tessface(dm);
 			distribute_grid(dm,psys);
 			dm->release(dm);
@@ -1145,7 +1145,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		if (psys->part->use_modifier_stack)
 			dm = finaldm;
 		else
-			dm= CDDM_from_mesh((Mesh*)ob->data, ob);
+			dm= CDDM_from_mesh((Mesh*)ob->data);
 
 		/* BMESH ONLY, for verts we don't care about tessfaces */
 		if (from != PART_FROM_VERT) {

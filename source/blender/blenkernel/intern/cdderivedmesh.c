@@ -1802,9 +1802,9 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numTessFaces, int numLoops
 	return dm;
 }
 
-DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
+DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
-	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
+	CDDerivedMesh *cddm = cdDM_create(__func__);
 	DerivedMesh *dm = &cddm->dm;
 	CustomDataMask mask = CD_MASK_MESH & (~CD_MASK_MDISPS);
 	int alloctype;

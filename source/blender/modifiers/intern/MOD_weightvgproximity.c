@@ -473,7 +473,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					if (me->edit_btmesh)
 						target_dm = CDDM_from_editbmesh(me->edit_btmesh, FALSE, FALSE);
 					else
-						target_dm = CDDM_from_mesh(me, obr);
+						target_dm = CDDM_from_mesh(me);
 				}
 				free_target_dm = TRUE;
 			}

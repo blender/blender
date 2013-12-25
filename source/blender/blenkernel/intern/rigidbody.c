@@ -256,7 +256,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	rbCollisionShape *shape = NULL;
 
 	if (ob->type == OB_MESH) {
-		DerivedMesh *dm = CDDM_from_mesh(ob->data, ob);
+		DerivedMesh *dm = CDDM_from_mesh(ob->data);
 
 		MVert *mvert;
 		MFace *mface;

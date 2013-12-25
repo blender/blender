@@ -116,7 +116,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	
 	/* if possible use/create DerivedMesh */
 	if (derivedData) dm = CDDM_copy(derivedData);
-	else if (ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	else if (ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data);
 	
 	if (!ob->pd) {
 		printf("CollisionModifier deformVerts: Should not happen!\n");

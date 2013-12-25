@@ -53,7 +53,7 @@ int CDDM_Check(struct DerivedMesh *dm);
  * original data in Mesh, but it is safe to apply vertex coordinates or
  * calculate normals as those functions will automatically create new
  * data to not overwrite the original */
-struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh, struct Object *ob);
+struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh);
 
 struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, int use_mdisps);
 

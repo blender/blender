@@ -1728,7 +1728,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 
 	if (!dm) {
 		free_dm = true;
-		dm = CDDM_from_mesh(meshobj->GetMesh(), NULL);
+		dm = CDDM_from_mesh(meshobj->GetMesh());
 		DM_ensure_tessface(dm);
 	}
 

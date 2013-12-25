@@ -384,7 +384,7 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 	switch (type) {
 		case 0:
 			if (ob->type == OB_MESH) {
-				dm = CDDM_from_mesh(ob->data, ob);
+				dm = CDDM_from_mesh(ob->data);
 				ret = DM_debug_info(dm);
 				dm_release = TRUE;
 			}

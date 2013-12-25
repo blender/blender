@@ -179,7 +179,7 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 	DerivedMesh *dm = derivedData;
 
-	if (!derivedData) dm = CDDM_from_mesh((Mesh *)ob->data, ob);
+	if (!derivedData) dm = CDDM_from_mesh((Mesh *)ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);

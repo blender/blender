@@ -838,9 +838,9 @@ void DM_interp_poly_data(DerivedMesh *source, DerivedMesh *dest,
 }
 
 ///
-DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
+DerivedMesh *mesh_create_derived(Mesh *me, float (*vertCos)[3])
 {
-	DerivedMesh *dm = CDDM_from_mesh(me, ob);
+	DerivedMesh *dm = CDDM_from_mesh(me);
 	
 	if (!dm)
 		return NULL;
@@ -874,7 +874,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
 		modwrap_deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
-		dm = mesh_create_derived(me, ob, deformedVerts);
+		dm = mesh_create_derived(me, deformedVerts);
 
 		if (build_shapekey_layers)
 			add_shapekey_layers(dm, me, ob);
@@ -882,7 +882,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		MEM_freeN(deformedVerts);
 	}
 	else {
-		DerivedMesh *tdm = mesh_create_derived(me, ob, NULL);
+		DerivedMesh *tdm = mesh_create_derived(me, NULL);
 
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
@@ -953,7 +953,7 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em, int lay
 	int free;
 
 	if (em) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
-	else dm = CDDM_from_mesh(me, ob);
+	else dm = CDDM_from_mesh(me);
 
 	orco = get_orco_coords_dm(ob, em, layer, &free);
 
@@ -1533,7 +1533,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 * coordinates (vpaint, etc.)
 		 */
 		if (deform_r) {
-			*deform_r = CDDM_from_mesh(me, ob);
+			*deform_r = CDDM_from_mesh(me);
 			 
 			if (build_shapekey_layers)
 				add_shapekey_layers(dm, me, ob);
@@ -1659,7 +1659,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 			else {
-				dm = CDDM_from_mesh(me, ob);
+				dm = CDDM_from_mesh(me);
 				ASSERT_IS_VALID_DM(dm);
 
 				if (build_shapekey_layers)
@@ -1823,7 +1823,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 #endif
 	}
 	else {
-		finaldm = CDDM_from_mesh(me, ob);
+		finaldm = CDDM_from_mesh(me);
 		
 		if (build_shapekey_layers) {
 			add_shapekey_layers(finaldm, me, ob);

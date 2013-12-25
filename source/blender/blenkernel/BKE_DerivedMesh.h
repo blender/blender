@@ -651,7 +651,7 @@ DerivedMesh *getEditDerivedBMesh(struct BMEditMesh *em, struct Object *ob,
 DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 /* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived(struct Mesh *me, struct Object *ob, float (*vertCos)[3]);
+DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
                                       CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
