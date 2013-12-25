@@ -6288,6 +6288,8 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 	if (ob->gameflag & OB_BOUNDS) { /* bounds need to be drawn around origin for game engine */
 
 		if (type == OB_BOUND_BOX) {
+			float vec[8][3], size[3];
+			
 			size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
 			size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
 			size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
