@@ -321,7 +321,7 @@ void BKE_object_free_derived_caches(Object *ob)
 }
 
 /* do not free object itself */
-void BKE_object_free(Object *ob)
+void BKE_object_free_ex(Object *ob, bool do_id_user)
 {
 	int a;
 	
@@ -364,7 +364,7 @@ void BKE_object_free(Object *ob)
 	if (ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if (ob->pose)
-		BKE_pose_free(ob->pose);
+		BKE_pose_free_ex(ob->pose, do_id_user);
 	if (ob->mpath)
 		animviz_free_motionpath(ob->mpath);
 	BKE_bproperty_free_list(&ob->prop);
@@ -397,6 +397,11 @@ void BKE_object_free(Object *ob)
 			free_path(ob->curve_cache->path);
 		MEM_freeN(ob->curve_cache);
 	}
+}
+
+void BKE_object_free(Object *ob)
+{
+	BKE_object_free_ex(ob, true);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)

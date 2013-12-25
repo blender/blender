@@ -134,13 +134,16 @@ void action_groups_clear_tempflags(struct bAction *act);
 /* Pose API ----------------- */	
 
 void                 BKE_pose_channel_free(struct bPoseChannel *pchan);
+void                 BKE_pose_channel_free_ex(struct bPoseChannel *pchan, bool do_id_user);
 
 void                 BKE_pose_channels_free(struct bPose *pose);
+void                 BKE_pose_channels_free_ex(struct bPose *pose, bool do_id_user);
 
 void                 BKE_pose_channels_hash_make(struct bPose *pose);
 void                 BKE_pose_channels_hash_free(struct bPose *pose);
 
 void                 BKE_pose_free(struct bPose *pose);
+void                 BKE_pose_free_ex(struct bPose *pose, bool do_id_user);
 void                 BKE_pose_copy_data(struct bPose **dst, struct bPose *src, const bool copy_constraints);
 void                 BKE_pose_channel_copy_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);

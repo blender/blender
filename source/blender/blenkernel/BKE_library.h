@@ -74,6 +74,7 @@ struct ListBase *which_libbase(struct Main *mainlib, short type);
 int set_listbasepointers(struct Main *main, struct ListBase **lb);
 
 void BKE_libblock_free(struct ListBase *lb, void *idv);
+void BKE_libblock_free_ex(struct ListBase *lb, void *idv, bool do_id_user);
 void BKE_libblock_free_us(struct ListBase *lb, void *idv);
 void BKE_libblock_free_data(struct ID *id);
 void free_main(struct Main *mainvar);
