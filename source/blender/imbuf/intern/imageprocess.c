@@ -41,7 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_threads.h"
+#include "BLI_task.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
@@ -288,48 +288,54 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 
 /*********************** Threaded image processing *************************/
 
+static void processor_apply_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+{
+	void (*do_thread) (void *) = (void (*) (void *)) BLI_task_pool_userdata(pool);
+	do_thread(taskdata);
+}
+
 void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
                                   void (init_handle) (void *handle, int start_line, int tot_line,
                                                       void *customdata),
                                   void *(do_thread) (void *))
 {
+	const int lines_per_task = 64;
+
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool;
+
 	void *handles;
-	ListBase threads;
+	int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
+	int i, start_line;
 
-	int i, tot_thread = BLI_system_thread_count();
-	int start_line, tot_line;
+	task_pool = BLI_task_pool_create(task_scheduler, do_thread);
 
-	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
-
-	if (tot_thread > 1)
-		BLI_init_threads(&threads, do_thread, tot_thread);
+	handles = MEM_callocN(handle_size * total_tasks, "processor apply threaded handles");
 
 	start_line = 0;
-	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
 
-	for (i = 0; i < tot_thread; i++) {
-		int cur_tot_line;
+	for (i = 0; i < total_tasks; i++) {
+		int lines_per_current_task;
 		void *handle = ((char *) handles) + handle_size * i;
 
-		if (i < tot_thread - 1)
-			cur_tot_line = tot_line;
+		if (i < total_tasks - 1)
+			lines_per_current_task = lines_per_task;
 		else
-			cur_tot_line = buffer_lines - start_line;
+			lines_per_current_task = buffer_lines - start_line;
 
-		init_handle(handle, start_line, cur_tot_line, init_customdata);
+		init_handle(handle, start_line, lines_per_current_task, init_customdata);
 
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, handle);
+		BLI_task_pool_push(task_pool, processor_apply_func, handle, false, TASK_PRIORITY_LOW);
 
-		start_line += tot_line;
+		start_line += lines_per_task;
 	}
 
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		do_thread(handles);
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
 
+	/* Free memory. */
 	MEM_freeN(handles);
+	BLI_task_pool_free(task_pool);
 }
 
 /* Alpha-under */

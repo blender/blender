@@ -1318,13 +1318,11 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	handle->float_colorspace = init_data->float_colorspace;
 }
 
-static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, int start_scanline, int num_scanlines,
+static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, int height,
                                                    float *linear_buffer, bool *is_straight_alpha)
 {
 	int channels = handle->channels;
 	int width = handle->width;
-	int height = num_scanlines;
-	int scanline_offset = channels * start_scanline * width;
 
 	int buffer_size = channels * width * height;
 
@@ -1342,7 +1340,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 		int i;
 
 		/* first convert byte buffer to float, keep in image space */
-		for (i = 0, fp = linear_buffer, cp = byte_buffer + scanline_offset;
+		for (i = 0, fp = linear_buffer, cp = byte_buffer;
 		     i < width * height;
 		     i++, fp += channels, cp += channels)
 		{
@@ -1375,7 +1373,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 		const char *from_colorspace = handle->float_colorspace;
 		const char *to_colorspace = global_role_scene_linear;
 
-		memcpy(linear_buffer, handle->buffer + scanline_offset, buffer_size * sizeof(float));
+		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 
 		if (!is_data && !is_data_display) {
 			IMB_colormanagement_transform(linear_buffer, width, height, channels,
@@ -1391,7 +1389,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 		 * using duplicated buffer here
 		 */
 
-		memcpy(linear_buffer, handle->buffer + scanline_offset, buffer_size * sizeof(float));
+		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 
 		*is_straight_alpha = false;
 	}
@@ -1421,69 +1419,50 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 		}
 	}
 	else {
-#define SCANLINE_BLOCK_SIZE 64
-		/* TODO(sergey): Instead of nasty scanline-blocking in per-scanline-block thread we might
-		 *               better to use generic task scheduler, but that would need extra testing
-		 *               before deploying into production.
-		 */
-
-		int scanlines = (height + SCANLINE_BLOCK_SIZE - 1) / SCANLINE_BLOCK_SIZE;
-		int i;
-		float *linear_buffer = MEM_mallocN(channels * width * SCANLINE_BLOCK_SIZE * sizeof(float),
+		bool is_straight_alpha, predivide;
+		float *linear_buffer = MEM_mallocN(channels * width * height * sizeof(float),
 		                                   "color conversion linear buffer");
 
-		for (i = 0; i < scanlines; i ++) {
-			int start_scanline = i * SCANLINE_BLOCK_SIZE;
-			int num_scanlines = (i == scanlines - 1) ?
-			                    (height - SCANLINE_BLOCK_SIZE * i) :
-			                    SCANLINE_BLOCK_SIZE;
-			int scanline_offset = channels * start_scanline * width;
-			int scanline_offset4 = 4 * start_scanline * width;
-			bool is_straight_alpha, predivide;
+		display_buffer_apply_get_linear_buffer(handle, height, linear_buffer, &is_straight_alpha);
 
-			display_buffer_apply_get_linear_buffer(handle, start_scanline, num_scanlines,
-			                                       linear_buffer, &is_straight_alpha);
-			predivide = is_straight_alpha == false;
+		predivide = is_straight_alpha == false;
 
-			if (is_data) {
-				/* special case for data buffers - no color space conversions,
-				 * only generate byte buffers
-				 */
-			}
-			else {
-				/* apply processor */
-				IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, num_scanlines, channels,
-				                                    predivide);
-			}
+		if (is_data) {
+			/* special case for data buffers - no color space conversions,
+			 * only generate byte buffers
+			 */
+		}
+		else {
+			/* apply processor */
+			IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels,
+			                                    predivide);
+		}
 
-			/* copy result to output buffers */
-			if (display_buffer_byte) {
-				/* do conversion */
-				IMB_buffer_byte_from_float(display_buffer_byte + scanline_offset4, linear_buffer,
-				                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-				                           predivide, width, num_scanlines, width, width);
-			}
+		/* copy result to output buffers */
+		if (display_buffer_byte) {
+			/* do conversion */
+			IMB_buffer_byte_from_float(display_buffer_byte, linear_buffer,
+			                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+			                           predivide, width, height, width, width);
+		}
 
-			if (display_buffer) {
-				memcpy(display_buffer + scanline_offset, linear_buffer, width * num_scanlines * channels * sizeof(float));
+		if (display_buffer) {
+			memcpy(display_buffer, linear_buffer, width * height * channels * sizeof(float));
 
-				if (is_straight_alpha && channels == 4) {
-					int i;
-					float *fp;
+			if (is_straight_alpha && channels == 4) {
+				int i;
+				float *fp;
 
-					for (i = 0, fp = display_buffer;
-					     i < width * num_scanlines;
-					     i++, fp += channels)
-					{
-						straight_to_premul_v4(fp);
-					}
+				for (i = 0, fp = display_buffer;
+				     i < width * height;
+				     i++, fp += channels)
+				{
+					straight_to_premul_v4(fp);
 				}
 			}
 		}
 
 		MEM_freeN(linear_buffer);
-
-#undef SCANLINE_BLOCK_SIZE
 	}
 
 	return NULL;
