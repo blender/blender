@@ -6200,7 +6200,7 @@ static void get_local_bounds(Object *ob, float center[3], float size[3])
 }
 #endif
 
-static void draw_bb_quadric(BoundBox *bb, char type)
+static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 {
 	float size[3], cent[3];
 	GLUquadricObj *qobj = gluNewQuadric();
@@ -6211,9 +6211,14 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 	size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
 	size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 
-	cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
-	cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
-	cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+	if (around_origin) {
+		zero_v3(cent);
+	}
+	else {
+		cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
+		cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
+		cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+	}
 	
 	glPushMatrix();
 	if (type == OB_BOUND_SPHERE) {
@@ -6277,11 +6282,35 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		BKE_boundbox_init_from_minmax(bb, min, max);
 	}
 	
-	if (bb == NULL) return;
+	if (bb == NULL)
+		return;
 	
-	if (type == OB_BOUND_BOX) draw_box(bb->vec);
-	else draw_bb_quadric(bb, type);
-	
+	if (ob->gameflag & OB_BOUNDS) { /* bounds need to be drawn around origin for game engine */
+
+		if (type == OB_BOUND_BOX) {
+			size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+			size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+			size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+			
+			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
+			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
+			vec[0][1] = vec[1][1] = vec[4][1] = vec[5][1] = -size[1];
+			vec[2][1] = vec[3][1] = vec[6][1] = vec[7][1] = +size[1];
+			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
+			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
+			
+			draw_box(vec);
+		}
+		else {
+			draw_bb_quadric(bb, type, true);
+		}
+	}
+	else {
+		if (type == OB_BOUND_BOX)
+			draw_box(bb->vec);
+		else
+			draw_bb_quadric(bb, type, false);
+	}
 }
 
 static void drawtexspace(Object *ob)
