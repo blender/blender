@@ -950,7 +950,7 @@ void BKE_libblock_free_ex(ListBase *lb, void *idv, bool do_id_user)
 			BKE_action_free((bAction *)id);
 			break;
 		case ID_NT:
-			ntreeFreeTree((bNodeTree *)id);
+			ntreeFreeTree_ex((bNodeTree *)id, do_id_user);
 			break;
 		case ID_BR:
 			BKE_brush_free((Brush *)id);

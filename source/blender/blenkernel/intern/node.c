@@ -1714,8 +1714,11 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 		}
 	}
 	
-	/* XXX not nice, but needed to free localized node groups properly */
-	free_localized_node_groups(ntree);
+	/* when freeing main, this would check other ntree's which may have been freed, see [#37939] */
+	if (do_id_user) {
+		/* XXX not nice, but needed to free localized node groups properly */
+		free_localized_node_groups(ntree);
+	}
 	
 	/* unregister associated RNA types */
 	ntreeInterfaceTypeFree(ntree);
