@@ -969,8 +969,8 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	names = MEM_callocN(sizeof(char *) * maxnr, "names");
 	types = MEM_callocN(sizeof(char *) * maxnr, "types");
 	typelens_native = MEM_callocN(sizeof(short) * maxnr, "typelens_native");
-	typelens_32 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
-	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_32");
+	typelens_32 = MEM_callocN(sizeof(short) * maxnr, "typelens_32");
+	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
 	/* insertion of all known types */
