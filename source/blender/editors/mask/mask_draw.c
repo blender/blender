@@ -590,8 +590,6 @@ static float *threaded_mask_rasterize(Mask *mask, const int width, const int hei
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
 
-	BLI_begin_threaded_malloc();
-
 	scanlines_per_thread = height / num_threads;
 	for (i = 0; i < num_threads; i++) {
 		ThreadedMaskRasterizeData *data = MEM_mallocN(sizeof(ThreadedMaskRasterizeData),
@@ -614,7 +612,6 @@ static float *threaded_mask_rasterize(Mask *mask, const int width, const int hei
 
 	/* Free memory. */
 	BLI_task_pool_free(task_pool);
-	BLI_end_threaded_malloc();
 	BKE_maskrasterize_handle_free(handle);
 
 	return buffer;
