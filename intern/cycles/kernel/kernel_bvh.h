@@ -406,17 +406,12 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 						coverage = (min(d1 / mw_extension, 1.0f) + min(-d0 / mw_extension, 1.0f)) * 0.5f;
 				}
 				
-				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon) {
+				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon || isect->t < p_curr.z) {
 					tree++;
 					level = tree & -tree;
 					continue;
 				}
-				/* compare z distances */
-				if (isect->t < p_curr.z) {
-					tree++;
-					level = tree & -tree;
-					continue;
-				}
+
 				t = p_curr.z;
 			}
 			else {
@@ -453,7 +448,6 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				float rootd = sqrtf(td);
 				float correction = ((-tb - rootd)/(2*cyla));
 				t = tcentre + correction;
-				float w = (zcentre + (tg.z * correction))/l;
 
 				float3 dp_st = (3 * curve_coef[3] * i_st + 2 * curve_coef[2]) * i_st + curve_coef[1];
 				if (dot(tg, dp_st)< 0)
@@ -462,11 +456,9 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				if (dot(tg, dp_en) < 0)
 					dp_en *= -1;
 
-
 				if(flags & CURVE_KN_BACKFACING && (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f)) {
 					correction = ((-tb + rootd)/(2*cyla));
 					t = tcentre + correction;
-					w = (zcentre + (tg.z * correction))/l;
 				}			
 
 				if (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f) {
@@ -475,6 +467,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 					continue;
 				}
 
+				float w = (zcentre + (tg.z * correction))/l;
 				w = clamp((float)w, 0.0f, 1.0f);
 				/* compute u on the curve segment */
 				u = i_st * (1 - w) + i_en * w;
