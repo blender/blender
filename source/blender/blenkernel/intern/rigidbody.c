@@ -225,25 +225,46 @@ void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc)
 /* ************************************** */
 /* Setup Utilities - Validate Sim Instances */
 
+/* get the appropriate DerivedMesh based on rigid body mesh source */
+static DerivedMesh *rigidbody_get_mesh(Object *ob)
+{
+	if (ob->rigidbody_object->mesh_source == RBO_MESH_DEFORM) {
+		return ob->derivedDeform;
+	}
+	else if (ob->rigidbody_object->mesh_source == RBO_MESH_FINAL) {
+		return ob->derivedFinal;
+	}
+	else {
+		return CDDM_from_mesh(ob->data);
+	}
+}
+
 /* create collision shape of mesh - convex hull */
 static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob, float margin, bool *can_embed)
 {
 	rbCollisionShape *shape = NULL;
-	Mesh *me = NULL;
+	DerivedMesh *dm = NULL;
+	MVert *mvert = NULL;
+	int totvert = 0;
 
 	if (ob->type == OB_MESH && ob->data) {
-		me = ob->data;
+		dm = rigidbody_get_mesh(ob);
+		mvert   = (dm) ? dm->getVertArray(dm) : NULL;
+		totvert = (dm) ? dm->getNumVerts(dm) : 0;
 	}
 	else {
 		printf("ERROR: cannot make Convex Hull collision shape for non-Mesh object\n");
 	}
 
-	if (me && me->totvert) {
-		shape = RB_shape_new_convex_hull((float *)me->mvert, sizeof(MVert), me->totvert, margin, can_embed);
+	if (totvert) {
+		shape = RB_shape_new_convex_hull((float *)mvert, sizeof(MVert), totvert, margin, can_embed);
 	}
 	else {
 		printf("ERROR: no vertices to define Convex Hull collision shape with\n");
 	}
+
+	if (dm && ob->rigidbody_object->mesh_source == RBO_MESH_BASE)
+		dm->release(dm);
 
 	return shape;
 }
@@ -256,14 +277,18 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	rbCollisionShape *shape = NULL;
 
 	if (ob->type == OB_MESH) {
-		DerivedMesh *dm = CDDM_from_mesh(ob->data);
-
+		DerivedMesh *dm = NULL;
 		MVert *mvert;
 		MFace *mface;
 		int totvert;
 		int totface;
 
+		dm = rigidbody_get_mesh(ob);
+
 		/* ensure mesh validity, then grab data */
+		if (dm == NULL)
+			return NULL;
+
 		DM_ensure_tessface(dm);
 
 		mvert   = (dm) ? dm->getVertArray(dm) : NULL;
@@ -323,7 +348,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 		}
 
 		/* cleanup temp data */
-		if (dm) {
+		if (dm && ob->rigidbody_object->mesh_source == RBO_MESH_BASE) {
 			dm->release(dm);
 		}
 	}
@@ -425,7 +450,8 @@ void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
 		rbo->physics_shape = new_shape;
 		RB_shape_set_margin(rbo->physics_shape, RBO_GET_MARGIN(rbo));
 	}
-	else { /* otherwise fall back to box shape */
+	/* use box shape if we can't fall back to old shape */
+	else if (rbo->physics_shape == NULL) {
 		rbo->shape = RB_SHAPE_BOX;
 		BKE_rigidbody_validate_sim_shape(ob, true);
 	}
@@ -797,6 +823,8 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 		rbo->shape = RB_SHAPE_CONVEXH;
 	else
 		rbo->shape = RB_SHAPE_TRIMESH;
+
+	rbo->mesh_source = RBO_MESH_DEFORM;
 
 	/* set initial transform */
 	mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
