@@ -1030,6 +1030,17 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 	if (rbo->physics_object == NULL)
 		return;
 
+	if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
+		DerivedMesh *dm = ob->derivedDeform;
+		if (dm) {
+			MVert *mvert = dm->getVertArray(dm);
+			int totvert = dm->getNumVerts(dm);
+			BoundBox *bb = BKE_object_boundbox_get(ob);
+
+			RB_shape_trimesh_update(rbo->physics_shape, (float*)mvert, totvert, sizeof(MVert), bb->vec[0], bb->vec[6]);
+		}
+	}
+
 	mat4_decompose(loc, rot, scale, ob->obmat);
 
 	/* update scale for all objects */

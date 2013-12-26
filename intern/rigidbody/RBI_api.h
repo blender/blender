@@ -247,6 +247,8 @@ extern void RB_shape_delete(rbCollisionShape *shape);
 extern float RB_shape_get_margin(rbCollisionShape *shape);
 extern void RB_shape_set_margin(rbCollisionShape *shape, float value);
 
+extern void RB_shape_trimesh_update(rbCollisionShape *shape, float *vertices, int num_verts, int vert_stride, float min[3], float max[3]);
+
 /* ********************************** */
 /* Constraints */
 
