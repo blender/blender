@@ -86,9 +86,24 @@ struct rbRigidBody {
 	int col_groups;
 };
 
+struct rbVert {
+	float x, y, z;
+};
+struct rbTri {
+	int v0, v1, v2;
+};
+
+struct rbMeshData {
+	btTriangleIndexVertexArray *index_array;
+	rbVert *vertices;
+	rbTri *triangles;
+	int num_vertices;
+	int num_triangles;
+};
+
 struct rbCollisionShape {
 	btCollisionShape *cshape;
-	btTriangleMesh *mesh;
+	rbMeshData *mesh;
 };
 
 struct rbFilterCallback : public btOverlapFilterCallback
@@ -692,57 +707,71 @@ rbCollisionShape *RB_shape_new_convex_hull(float *verts, int stride, int count, 
 
 /* Setup (Triangle Mesh) ---------- */
 
-/* Need to call rbTriMeshNewData() followed by rbTriMeshAddTriangle() several times 
- * to set up the mesh buffer BEFORE calling rbShapeNewTriMesh(). Otherwise,
- * we get nasty crashes...
- */
+/* Need to call RB_trimesh_finish() after creating triangle mesh and adding vertices and triangles */
 
-rbMeshData *RB_trimesh_data_new()
+rbMeshData *RB_trimesh_data_new(int num_tris, int num_verts)
 {
-	// XXX: welding threshold?
-	return (rbMeshData *) new btTriangleMesh(true, false);
+	rbMeshData *mesh = new rbMeshData;
+	mesh->vertices = new rbVert[num_verts];
+	mesh->triangles = new rbTri[num_tris];
+	mesh->num_vertices = num_verts;
+	mesh->num_triangles = num_tris;
+	
+	return mesh;
+}
+
+static void RB_trimesh_data_delete(rbMeshData *mesh)
+{
+	delete mesh->index_array;
+	delete mesh->vertices;
+	delete mesh->triangles;
+	delete mesh;
 }
  
-void RB_trimesh_add_triangle(rbMeshData *mesh, const float v1[3], const float v2[3], const float v3[3])
+void RB_trimesh_add_vertices(rbMeshData *mesh, float *vertices, int num_verts, int vert_stride)
 {
-	btTriangleMesh *meshData = reinterpret_cast<btTriangleMesh*>(mesh);
-	
-	/* cast vertices to usable forms for Bt-API */
-	btVector3 vtx1((btScalar)v1[0], (btScalar)v1[1], (btScalar)v1[2]);
-	btVector3 vtx2((btScalar)v2[0], (btScalar)v2[1], (btScalar)v2[2]);
-	btVector3 vtx3((btScalar)v3[0], (btScalar)v3[1], (btScalar)v3[2]);
-	
-	/* add to the mesh 
-	 *	- remove duplicated verts is enabled
-	 */
-	meshData->addTriangle(vtx1, vtx2, vtx3, false);
+	for (int i = 0; i < num_verts; i++) {
+		float *vert = (float*)(((char*)vertices + i * vert_stride));
+		mesh->vertices[i].x = vert[0];
+		mesh->vertices[i].y = vert[1];
+		mesh->vertices[i].z = vert[2];
+	}
+}
+void RB_trimesh_add_triangle_indices(rbMeshData *mesh, int num, int index0, int index1, int index2)
+{
+	mesh->triangles[num].v0 = index0;
+	mesh->triangles[num].v1 = index1;
+	mesh->triangles[num].v2 = index2;
+}
+
+void RB_trimesh_finish(rbMeshData *mesh)
+{
+	mesh->index_array = new btTriangleIndexVertexArray(mesh->num_triangles, (int*)mesh->triangles, sizeof(rbTri),
+	                                                   mesh->num_vertices, (float*)mesh->vertices, sizeof(rbVert));
 }
  
 rbCollisionShape *RB_shape_new_trimesh(rbMeshData *mesh)
 {
 	rbCollisionShape *shape = new rbCollisionShape;
-	btTriangleMesh *tmesh = reinterpret_cast<btTriangleMesh*>(mesh);
 	
 	/* triangle-mesh we create is a BVH wrapper for triangle mesh data (for faster lookups) */
 	// RB_TODO perhaps we need to allow saving out this for performance when rebuilding?
-	btBvhTriangleMeshShape *unscaledShape = new btBvhTriangleMeshShape(tmesh, true, true);
+	btBvhTriangleMeshShape *unscaledShape = new btBvhTriangleMeshShape(mesh->index_array, true, true);
 	
 	shape->cshape = new btScaledBvhTriangleMeshShape(unscaledShape, btVector3(1.0f, 1.0f, 1.0f));
-	shape->mesh = tmesh;
+	shape->mesh = mesh;
 	return shape;
 }
 
 rbCollisionShape *RB_shape_new_gimpact_mesh(rbMeshData *mesh)
 {
 	rbCollisionShape *shape = new rbCollisionShape;
-	/* interpret mesh buffer as btTriangleIndexVertexArray (i.e. an impl of btStridingMeshInterface) */
-	btTriangleMesh *tmesh = reinterpret_cast<btTriangleMesh*>(mesh);
 	
-	btGImpactMeshShape *gimpactShape = new btGImpactMeshShape(tmesh);
+	btGImpactMeshShape *gimpactShape = new btGImpactMeshShape(mesh->index_array);
 	gimpactShape->updateBound(); // TODO: add this to the update collision margin call?
 	
 	shape->cshape = gimpactShape;
-	shape->mesh = tmesh;
+	shape->mesh = mesh;
 	return shape;
 }
 
@@ -756,7 +785,7 @@ void RB_shape_delete(rbCollisionShape *shape)
 			delete child_shape;
 	}
 	if (shape->mesh)
-		delete shape->mesh;
+		RB_trimesh_data_delete(shape->mesh);
 	delete shape->cshape;
 	delete shape;
 }

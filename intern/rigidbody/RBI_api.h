@@ -227,8 +227,10 @@ extern rbCollisionShape *RB_shape_new_convex_hull(float *verts, int stride, int 
 /* Setup (Triangle Mesh) ---------- */
 
 /* 1 */
-extern rbMeshData *RB_trimesh_data_new(void);
-extern void RB_trimesh_add_triangle(rbMeshData *mesh, const float v1[3], const float v2[3], const float v3[3]);
+extern rbMeshData *RB_trimesh_data_new(int num_tris, int num_verts);
+extern void RB_trimesh_add_vertices(rbMeshData *mesh, float *vertices, int num_verts, int vert_stride);
+extern void RB_trimesh_add_triangle_indices(rbMeshData *mesh, int num, int index0, int index1, int index2);
+extern void RB_trimesh_finish(rbMeshData *mesh);
 /* 2a - Triangle Meshes */
 extern rbCollisionShape *RB_shape_new_trimesh(rbMeshData *mesh);
 /* 2b - GImpact Meshes */
