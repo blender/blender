@@ -50,8 +50,6 @@
 
 #include "BLI_strict_flags.h"
 
-#define SIGN_EPS 0.000001f
-
 /* avoid fan-fill topology */
 #define USE_CLIP_EVEN
 #define USE_CONVEX_SKIP
@@ -97,7 +95,7 @@ static void         pf_ear_tip_cut(PolyFill *pf, unsigned int index_ear_tip);
 
 BLI_INLINE eSign signum_i(float a)
 {
-	if (UNLIKELY(fabsf(a) < SIGN_EPS))
+	if (UNLIKELY(a == 0.0f))
 		return  0;
 	else if (a > 0.0f)
 		return  1;
@@ -105,9 +103,23 @@ BLI_INLINE eSign signum_i(float a)
 		return -1;
 }
 
+/**
+ * alternative version of #area_tri_signed_v2
+ * needed because of float precision issues
+ *
+ * \note removes / 2 since its not needed since we only need ths sign.
+ */
+BLI_INLINE float area_tri_signed_v2_alt_2x(const float v1[2], const float v2[2], const float v3[2])
+{
+	return ((v1[0] * (v2[1] - v3[1])) +
+	        (v2[0] * (v3[1] - v1[1])) +
+	        (v3[0] * (v1[1] - v2[1])));
+}
+
+
 static eSign span_tri_v2_sign(const float v1[2], const float v2[2], const float v3[2])
 {
-	return signum_i(area_tri_signed_v2(v3, v2, v1));
+	return signum_i(area_tri_signed_v2_alt_2x(v3, v2, v1));
 }
 
 static unsigned int *pf_tri_add(PolyFill *pf)
