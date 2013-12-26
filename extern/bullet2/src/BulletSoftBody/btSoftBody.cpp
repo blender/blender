@@ -3027,7 +3027,8 @@ void btSoftBody::PSolve_RContacts(btSoftBody* psb, btScalar kst, btScalar ti)
 	{
 		const RContact&		c = psb->m_rcontacts[i];
 		const sCti&			cti = c.m_cti;	
-		if (cti.m_colObj->hasContactResponse()) {
+		if (cti.m_colObj->hasContactResponse()) 
+		{
 			btRigidBody* tmpRigid = (btRigidBody*)btRigidBody::upcast(cti.m_colObj);
 			const btVector3		va = tmpRigid ? tmpRigid->getVelocityInLocalPoint(c.m_c1)*dt : btVector3(0,0,0);
 			const btVector3		vb = c.m_node->m_x-c.m_node->m_q;	

@@ -284,6 +284,10 @@ static int btNanMask = 0x7F800001;
 #ifndef BT_INFINITY
 static  int btInfinityMask = 0x7F800000;
 #define BT_INFINITY (*(float*)&btInfinityMask)
+inline int btGetInfinityMask()//suppress stupid compiler warning
+{
+	return btInfinityMask;
+}
 #endif
 
 //use this, in case there are clashes (such as xnamath.h)
@@ -336,6 +340,10 @@ inline __m128 operator * (const __m128 A, const __m128 B)
 	#ifndef BT_INFINITY
 	static  int btInfinityMask = 0x7F800000;
 	#define BT_INFINITY (*(float*)&btInfinityMask)
+	inline int btGetInfinityMask()//suppress stupid compiler warning
+	{
+		return btInfinityMask;
+	}
 	#endif
 #endif//BT_USE_NEON
 
@@ -432,7 +440,7 @@ SIMD_FORCE_INLINE btScalar btFmod(btScalar x,btScalar y) { return fmodf(x,y); }
 #endif
 
 #define SIMD_PI           btScalar(3.1415926535897932384626433832795029)
-#define SIMD_2_PI         btScalar(2.0) * SIMD_PI
+#define SIMD_2_PI         (btScalar(2.0) * SIMD_PI)
 #define SIMD_HALF_PI      (SIMD_PI * btScalar(0.5))
 #define SIMD_RADS_PER_DEG (SIMD_2_PI / btScalar(360.0))
 #define SIMD_DEGS_PER_RAD  (btScalar(360.0) / SIMD_2_PI)
@@ -727,5 +735,6 @@ template <typename T>T* btAlignPointer(T* unalignedPtr, size_t alignment)
 	converter.integer &= bit_mask;
 	return converter.ptr;
 }
+
 
 #endif //BT_SCALAR_H

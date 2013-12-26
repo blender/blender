@@ -770,7 +770,7 @@ void	btCollisionWorld::objectQuerySingleInternal(const btConvexShape* castShape,
 									hitPointLocal,
 									hitFraction);
 
-								bool	normalInWorldSpace = false;
+								bool	normalInWorldSpace = true;
 
 								return m_resultCallback->addSingleResult(convexResult,normalInWorldSpace);
 							}

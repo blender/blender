@@ -20,10 +20,9 @@ subject to the following restrictions:
 
 ATTRIBUTE_ALIGNED16(class) btFixedConstraint : public btTypedConstraint
 {
-	btVector3 m_pivotInA;
-	btVector3 m_pivotInB;
-	btQuaternion m_relTargetAB;
 
+	btTransform m_frameInA;
+	btTransform m_frameInB;
 public:
 	btFixedConstraint(btRigidBody& rbA,btRigidBody& rbB, const btTransform& frameInA,const btTransform& frameInB);
 	

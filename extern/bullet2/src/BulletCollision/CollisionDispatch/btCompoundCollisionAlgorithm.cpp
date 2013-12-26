@@ -229,6 +229,7 @@ void btCompoundCollisionAlgorithm::processCollision (const btCollisionObjectWrap
 		removeChildAlgorithms();
 		
 		preallocateChildAlgorithms(body0Wrap,body1Wrap);
+		m_compoundShapeRevision = compoundShape->getUpdateRevision();
 	}
 
 
