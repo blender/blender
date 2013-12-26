@@ -364,7 +364,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 /* Create new physics sim collision shape for object and store it,
  * or remove the existing one first and replace...
  */
-void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
+static void rigidbody_validate_sim_shape(Object *ob, bool rebuild)
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
 	rbCollisionShape *new_shape = NULL;
@@ -455,7 +455,7 @@ void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
 	/* use box shape if we can't fall back to old shape */
 	else if (rbo->physics_shape == NULL) {
 		rbo->shape = RB_SHAPE_BOX;
-		BKE_rigidbody_validate_sim_shape(ob, true);
+		rigidbody_validate_sim_shape(ob, true);
 	}
 }
 
@@ -464,7 +464,7 @@ void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
 /* Create physics sim representation of object given RigidBody settings
  * < rebuild: even if an instance already exists, replace it
  */
-void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short rebuild)
+static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool rebuild)
 {
 	RigidBodyOb *rbo = (ob) ? ob->rigidbody_object : NULL;
 	float loc[3];
@@ -479,10 +479,9 @@ void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short re
 	/* make sure collision shape exists */
 	/* FIXME we shouldn't always have to rebuild collision shapes when rebuilding objects, but it's needed for constraints to update correctly */
 	if (rbo->physics_shape == NULL || rebuild)
-		BKE_rigidbody_validate_sim_shape(ob, true);
+		rigidbody_validate_sim_shape(ob, true);
 
-	if (rbo->physics_object) {
-		if (rebuild == false)
+	if (rbo->physics_object && rebuild == false) {
 			RB_dworld_remove_body(rbw->physics_world, rbo->physics_object);
 	}
 	if (!rbo->physics_object || rebuild) {
@@ -528,7 +527,7 @@ void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short re
 /* Create physics sim representation of constraint given rigid body constraint settings
  * < rebuild: even if an instance already exists, replace it
  */
-void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, short rebuild)
+static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, bool rebuild)
 {
 	RigidBodyCon *rbc = (ob) ? ob->rigidbody_constraint : NULL;
 	float loc[3];
@@ -555,8 +554,7 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 		return;
 	}
 
-	if (rbc->physics_constraint) {
-		if (rebuild == false)
+	if (rbc->physics_constraint && rebuild == false) {
 			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
 	}
 	if (rbc->physics_constraint == NULL || rebuild) {
@@ -700,7 +698,7 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 
 /* Create physics sim world given RigidBody world settings */
 // NOTE: this does NOT update object references that the scene uses, in case those aren't ready yet!
-void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, short rebuild)
+void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {
 	/* sanity checks */
 	if (rbw == NULL)
@@ -1132,7 +1130,7 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 				 *	- assume object to be active? That is the default for newly added settings...
 				 */
 				ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, RBO_TYPE_ACTIVE);
-				BKE_rigidbody_validate_sim_object(rbw, ob, true);
+				rigidbody_validate_sim_object(rbw, ob, true);
 
 				rbo = ob->rigidbody_object;
 			}
@@ -1141,15 +1139,15 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 				/* refresh object... */
 				if (rebuild) {
 					/* World has been rebuilt so rebuild object */
-					BKE_rigidbody_validate_sim_object(rbw, ob, true);
+					rigidbody_validate_sim_object(rbw, ob, true);
 				}
 				else if (rbo->flag & RBO_FLAG_NEEDS_VALIDATE) {
-					BKE_rigidbody_validate_sim_object(rbw, ob, false);
+					rigidbody_validate_sim_object(rbw, ob, false);
 				}
 				/* refresh shape... */
 				if (rbo->flag & RBO_FLAG_NEEDS_RESHAPE) {
 					/* mesh/shape data changed, so force shape refresh */
-					BKE_rigidbody_validate_sim_shape(ob, true);
+					rigidbody_validate_sim_shape(ob, true);
 					/* now tell RB sim about it */
 					// XXX: we assume that this can only get applied for active/passive shapes that will be included as rigidbodies
 					RB_body_set_collision_shape(rbo->physics_object, rbo->physics_shape);
@@ -1178,7 +1176,7 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 				 * constraint settings (perhaps it was added manually), add!
 				 */
 				ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, RBC_TYPE_FIXED);
-				BKE_rigidbody_validate_sim_constraint(rbw, ob, true);
+				rigidbody_validate_sim_constraint(rbw, ob, true);
 
 				rbc = ob->rigidbody_constraint;
 			}
@@ -1186,10 +1184,10 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 				/* perform simulation data updates as tagged */
 				if (rebuild) {
 					/* World has been rebuilt so rebuild constraint */
-					BKE_rigidbody_validate_sim_constraint(rbw, ob, true);
+					rigidbody_validate_sim_constraint(rbw, ob, true);
 				}
 				else if (rbc->flag & RBC_FLAG_NEEDS_VALIDATE) {
-					BKE_rigidbody_validate_sim_constraint(rbw, ob, false);
+					rigidbody_validate_sim_constraint(rbw, ob, false);
 				}
 				rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 			}
@@ -1396,10 +1394,7 @@ void BKE_rigidbody_free_constraint(Object *ob) {}
 struct RigidBodyOb *BKE_rigidbody_copy_object(Object *ob) { return NULL; }
 struct RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob) { return NULL; }
 void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc) {}
-void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild) {}
-void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
-void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
-void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, short rebuild) {}
+void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 struct RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene) { return NULL; }
 struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw) { return NULL; }
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}
