@@ -492,7 +492,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
 		return;
 	
 	for (lib = main->library.first; lib; lib = lib->id.next) {
-		Main *libmain = MEM_callocN(sizeof(Main), "libmain");
+		Main *libmain = BKE_main_new();
 		libmain->curlib = lib;
 		BLI_addtail(mainlist, libmain);
 	}
@@ -545,7 +545,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 		}
 	}
 	
-	m = MEM_callocN(sizeof(Main), "find_main");
+	m = BKE_main_new();
 	BLI_addtail(mainlist, m);
 	
 	lib = BKE_libblock_alloc(&m->library, ID_LI, "lib");
@@ -6548,7 +6548,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	lib->packedfile = direct_link_packedfile(fd, lib->packedfile);
 	
 	/* new main */
-	newmain= MEM_callocN(sizeof(Main), "directlink");
+	newmain = BKE_main_new();
 	BLI_addtail(fd->mainlist, newmain);
 	newmain->curlib = lib;
 	
@@ -7572,7 +7572,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	ListBase mainlist = {NULL, NULL};
 	
 	bfd = MEM_callocN(sizeof(BlendFileData), "blendfiledata");
-	bfd->main = MEM_callocN(sizeof(Main), "readfile_Main");
+	bfd->main = BKE_main_new();
 	BLI_addtail(&mainlist, bfd->main);
 	fd->mainlist = &mainlist;
 	

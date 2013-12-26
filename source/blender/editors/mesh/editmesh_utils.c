@@ -39,8 +39,10 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"
@@ -48,6 +50,7 @@
 #include "BKE_editmesh_bvh.h"
 
 #include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
+#include "BKE_scene.h"  /* XXX, only for eval_ctx used in EDBM_mesh_ensure_valid_dm_hack */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -111,7 +114,7 @@ void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
 	    (em->ob->recalc & OB_RECALC_DATA))
 	{
 		em->ob->recalc |= OB_RECALC_DATA;  /* since we may not have done selection flushing */
-		BKE_object_handle_update(scene, em->ob);
+		BKE_object_handle_update(G.main->eval_ctx, scene, em->ob);
 	}
 }
 

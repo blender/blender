@@ -82,6 +82,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -1009,6 +1010,12 @@ void BKE_libblock_free_us(ListBase *lb, void *idv)      /* test users */
 	}
 }
 
+Main *BKE_main_new(void)
+{
+	Main *bmain = MEM_callocN(sizeof(Main), "new main");
+	bmain->eval_ctx = MEM_callocN(sizeof(EvaluationContext), "EvaluationCintext");
+	return bmain;
+}
 
 void free_main(Main *mainvar)
 {
@@ -1069,6 +1076,7 @@ void free_main(Main *mainvar)
 		}
 	}
 
+	MEM_freeN(mainvar->eval_ctx);
 	MEM_freeN(mainvar);
 }
 

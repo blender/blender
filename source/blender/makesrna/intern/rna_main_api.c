@@ -358,7 +358,13 @@ Mesh *rna_Main_meshes_new_from_object(
 
 			if (render) {
 				ListBase disp = {NULL, NULL};
-				BKE_displist_make_mball_forRender(sce, ob, &disp);
+				/* TODO(sergey): This is gonna to work for until EvaluationContext
+				 *               only contains for_render flag. As soon as CoW is
+				 *               implemented, this is to be rethinked.
+				 */
+				EvaluationContext eval_ctx = {0};
+				eval_ctx.for_render = render;
+				BKE_displist_make_mball_forRender(&eval_ctx, sce, ob, &disp);
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 				BKE_displist_free(&disp);
 			}

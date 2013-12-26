@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 struct Base;
+struct EvaluationContext;
 struct Scene;
 struct Object;
 struct Camera;
@@ -162,8 +163,9 @@ void BKE_object_tfm_protected_restore(struct Object *ob,
                                       const ObjectTfmProtectedChannels *obtfm,
                                       const short protectflag);
 
-void BKE_object_handle_update(struct Scene *scene, struct Object *ob);
-void BKE_object_handle_update_ex(struct Scene *scene, struct Object *ob,
+void BKE_object_handle_update(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_object_handle_update_ex(struct EvaluationContext *eval_ctx,
+                                 struct Scene *scene, struct Object *ob,
                                  struct RigidBodyWorld *rbw);
 void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 

@@ -76,7 +76,8 @@
 /* --------------------- */
 /* forward declarations */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
+static void object_duplilist_recursive(EvaluationContext *eval_ctx,
+                                       ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
                                        int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag);
 
 /* ******************************************************************** */
@@ -326,11 +327,10 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 static void motionpaths_calc_update_scene(Scene *scene)
 {
 #if 1 // 'production' optimizations always on
-
 	/* rigid body simulation needs complete update to work correctly for now */
 	/* RB_TODO investigate if we could avoid updating everything */
 	if (BKE_scene_check_rigidbody_active(scene)) {
-		BKE_scene_update_for_newframe(G.main, scene, scene->lay);
+		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay);
 	}
 	else { /* otherwise we can optimize by restricting updates */
 		Base *base, *last = NULL;
@@ -352,7 +352,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		 * is animated but not attached to/updatable from objects */
 		for (base = scene->base.first; base; base = base->next) {
 			/* update this object */
-			BKE_object_handle_update(scene, base->object);
+			BKE_object_handle_update(G.main->eval_ctx, scene, base->object);
 			
 			/* if this is the last one we need to update, let's stop to save some time */
 			if (base == last)
@@ -365,7 +365,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	   *    that doesn't force complete update, but for now, this is the
 	   *    most accurate way!
 	   */
-	BKE_scene_update_for_newframe(G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
+	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
 #endif
 }
 
@@ -745,7 +745,8 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[4][4], 
 	return dob;
 }
 
-static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persistent_id[MAX_DUPLI_RECUR],
+static void group_duplilist(EvaluationContext *eval_ctx,
+                            ListBase *lb, Scene *scene, Object *ob, int persistent_id[MAX_DUPLI_RECUR],
                             int level, short flag)
 {
 	DupliObject *dob;
@@ -775,7 +776,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 	if (flag & DUPLILIST_DO_UPDATE) {
 		/* note: update is optional because we don't always need object
 		 * transformations to be correct. Also fixes bug [#29616]. */
-		BKE_group_handle_recalc_and_update(scene, ob, group);
+		BKE_group_handle_recalc_and_update(eval_ctx, scene, ob, group);
 	}
 
 	if (BKE_group_is_animated(group, ob))
@@ -792,15 +793,15 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 
 			/* check the group instance and object layers match, also that the object visible flags are ok. */
 			if ((dob->origlay & group->layer) == 0 ||
-			    ((G.is_rendering == FALSE) && dob->ob->restrictflag & OB_RESTRICT_VIEW) ||
-			    ((G.is_rendering == TRUE)  && dob->ob->restrictflag & OB_RESTRICT_RENDER))
+			    ((eval_ctx->for_render == false) && dob->ob->restrictflag & OB_RESTRICT_VIEW) ||
+			    ((eval_ctx->for_render == true)  && dob->ob->restrictflag & OB_RESTRICT_RENDER))
 			{
 				dob->no_draw = TRUE;
 			}
 
 			if (go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob_obmat_ofs, persistent_id, level + 1, id, flag);
+				object_duplilist_recursive(eval_ctx, &group->id, scene, go->ob, lb, ob_obmat_ofs, persistent_id, level + 1, id, flag);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}
@@ -877,6 +878,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int persist
 }
 
 typedef struct VertexDupliData {
+	EvaluationContext *eval_ctx;
 	ID *id; /* scene or group, for recursive loops */
 	int level;
 	short flag;
@@ -935,7 +937,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 		float tmpmat[4][4];
 		copy_m4_m4(tmpmat, vdd->ob->obmat);
 		copy_m4_m4(vdd->ob->obmat, obmat); /* pretend we are really this mat */
-		object_duplilist_recursive((ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->persistent_id, vdd->level + 1, index, vdd->flag);
+		object_duplilist_recursive(vdd->eval_ctx, (ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->persistent_id, vdd->level + 1, index, vdd->flag);
 		copy_m4_m4(vdd->ob->obmat, tmpmat);
 	}
 }
@@ -1071,7 +1073,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	dm->release(dm);
 }
 
-static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
+static void face_duplilist(EvaluationContext *eval_ctx,
+                           ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
                            int level, short flag)
 {
 	Object *ob, *ob_iter;
@@ -1237,7 +1240,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 							float tmpmat[4][4];
 							copy_m4_m4(tmpmat, ob->obmat);
 							copy_m4_m4(ob->obmat, obmat); /* pretend we are really this mat */
-							object_duplilist_recursive((ID *)id, scene, ob, lb, ob->obmat, persistent_id, level + 1, a, flag);
+							object_duplilist_recursive(eval_ctx, (ID *)id, scene, ob, lb, ob->obmat, persistent_id, level + 1, a, flag);
 							copy_m4_m4(ob->obmat, tmpmat);
 						}
 					}
@@ -1254,7 +1257,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4],
+static void new_particle_duplilist(EvaluationContext *eval_ctx,
+                                   ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4],
                                    int persistent_id[MAX_DUPLI_RECUR], ParticleSystem *psys,
                                    int level, short flag)
 {
@@ -1289,7 +1293,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if (!psys_check_enabled(par, psys))
 		return;
 
-	if (G.is_rendering == FALSE)
+	if (eval_ctx->for_render == false)
 		no_draw_flag |= PARS_NO_DISP;
 	
 	ctime = BKE_scene_frame_get(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
@@ -1341,7 +1345,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
 			if (flag & DUPLILIST_DO_UPDATE) {
-				BKE_group_handle_recalc_and_update(scene, par, part->dup_group);
+				BKE_group_handle_recalc_and_update(eval_ctx, scene, par, part->dup_group);
 			}
 
 			if (part->draw & PART_DRAW_COUNT_GR) {
@@ -1650,14 +1654,15 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 
 /* ------------- */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
+static void object_duplilist_recursive(EvaluationContext *eval_ctx,
+                                       ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
                                        int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag)
 {	
 	if ((ob->transflag & OB_DUPLI) == 0)
 		return;
 	
 	/* Should the dupli's be generated for this object? - Respect restrict flags */
-	if (G.is_rendering) {
+	if (eval_ctx->for_render) {
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			return;
 		}
@@ -1679,7 +1684,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 		/* particle system take up one level in id, the particles another */
 		for (; psys; psys = psys->next, psysid++) {
 			persistent_id[level] = psysid;
-			new_particle_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, psys, level + 2, flag);
+			new_particle_duplilist(eval_ctx, duplilist, id, scene, ob, par_space_mat, persistent_id, psys, level + 2, flag);
 		}
 
 		persistent_id[level] = 0;
@@ -1696,7 +1701,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	}
 	else if (ob->transflag & OB_DUPLIFACES) {
 		if (ob->type == OB_MESH)
-			face_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
+			face_duplilist(eval_ctx, duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
@@ -1706,7 +1711,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	else if (ob->transflag & OB_DUPLIGROUP) {
 		DupliObject *dob;
 		
-		group_duplilist(duplilist, scene, ob, persistent_id, level + 1, flag); /* now recursive */
+		group_duplilist(eval_ctx, duplilist, scene, ob, persistent_id, level + 1, flag); /* now recursive */
 
 		if (level == 0) {
 			for (dob = duplilist->first; dob; dob = dob->next)
@@ -1722,30 +1727,29 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 
 /* Returns a list of DupliObject
  * note; group dupli's already set transform matrix. see note in group_duplilist() */
-ListBase *object_duplilist_ex(Scene *sce, Object *ob, bool update, bool for_render)
+ListBase *object_duplilist_ex(EvaluationContext *eval_ctx, Scene *sce, Object *ob, bool update)
 {
 	ListBase *duplilist = MEM_mallocN(sizeof(ListBase), "duplilist");
 	int persistent_id[MAX_DUPLI_RECUR] = {0};
 	int flag = 0;
 
 	/* don't allow BKE_object_handle_update for viewport during render, can crash */
-	if (update && !(G.is_rendering && !for_render))
+	if (update && !(G.is_rendering && !eval_ctx->for_render))
 		flag |= DUPLILIST_DO_UPDATE;
-	if (for_render)
+	if (eval_ctx->for_render)
 		flag |= DUPLILIST_FOR_RENDER;
 
 	duplilist->first = duplilist->last = NULL;
-	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, persistent_id, 0, 0, flag);
+	object_duplilist_recursive(eval_ctx, (ID *)sce, sce, ob, duplilist, NULL, persistent_id, 0, 0, flag);
 	return duplilist;
 }
 
 /* note: previously updating was always done, this is why it defaults to be on
  * but there are likely places it can be called without updating */
-ListBase *object_duplilist(Scene *sce, Object *ob, bool for_render)
+ListBase *object_duplilist(EvaluationContext *eval_ctx, Scene *sce, Object *ob)
 {
-	return object_duplilist_ex(sce, ob, true, for_render);
+	return object_duplilist_ex(eval_ctx, sce, ob, true);
 }
-
 
 void free_object_duplilist(ListBase *lb)
 {

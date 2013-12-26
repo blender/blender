@@ -35,6 +35,8 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
@@ -374,7 +376,7 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		 * automatically building this data if invalid. Or something.
 		 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		BKE_object_handle_update(scene, obedit);
+		BKE_object_handle_update(G.main->eval_ctx, scene, obedit);
 
 		/* individual faces? */
 		if (nr == 2) {

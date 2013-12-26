@@ -120,6 +120,7 @@ void free_blender(void)
 	
 	IMB_exit();
 	BKE_images_exit();
+	DAG_exit();
 
 	BKE_brush_system_exit();
 
@@ -137,7 +138,7 @@ void initglobals(void)
 	
 	U.savetime = 1;
 
-	G.main = MEM_callocN(sizeof(Main), "initglobals");
+	G.main = BKE_main_new();
 
 	strcpy(G.ima, "//");
 

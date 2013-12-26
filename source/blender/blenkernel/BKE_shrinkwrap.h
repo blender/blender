@@ -37,7 +37,7 @@
 #include "BKE_customdata.h"
 struct DerivedMesh;
 struct Object;
-struct DerivedMesh *object_get_derived_final(struct Object *ob);
+struct DerivedMesh *object_get_derived_final(struct Object *ob, bool for_render);
 
 
 /* SpaceTransform stuff */
@@ -122,7 +122,7 @@ typedef struct ShrinkwrapCalcData {
 } ShrinkwrapCalcData;
 
 void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
-                               float (*vertexCos)[3], int numVerts);
+                               float (*vertexCos)[3], int numVerts, bool forRender);
 
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:

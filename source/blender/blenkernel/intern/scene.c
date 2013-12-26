@@ -58,6 +58,7 @@
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_task.h"
 
 #include "BLF_translation.h"
 
@@ -86,6 +87,8 @@
 #include "BKE_world.h"
 
 #include "RE_engine.h"
+
+#include "PIL_time.h"
 
 #include "IMB_colormanagement.h"
 
@@ -736,9 +739,9 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 /* used by metaballs
  * doesn't return the original duplicated object, only dupli's
  */
-int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
+int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
+                             Scene **scene, int val, Base **base, Object **ob)
 {
-	static int in_next_object = 0;
 	int run_again = 1;
 	
 	/* init */
@@ -746,18 +749,8 @@ int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base *
 		iter->fase = F_START;
 		iter->dupob = NULL;
 		iter->duplilist = NULL;
-		
-		/* XXX particle systems with metas+dupligroups call this recursively */
-		/* see bug #18725 */
-		if (in_next_object) {
-			printf("ERROR: Metaball generation called recursively, not supported\n");
-			
-			return F_ERROR;
-		}
 	}
 	else {
-		in_next_object = 1;
-		
 		/* run_again is set when a duplilist has been ended */
 		while (run_again) {
 			run_again = 0;
@@ -814,7 +807,7 @@ int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base *
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							iter->duplilist = object_duplilist((*scene), (*base)->object, FALSE);
+							iter->duplilist = object_duplilist_ex(eval_ctx, (*scene), (*base)->object, false);
 							
 							iter->dupob = iter->duplilist->first;
 
@@ -856,9 +849,6 @@ int BKE_scene_base_iter_next(SceneBaseIter *iter, Scene **scene, int val, Base *
 	}
 #endif
 
-	/* reset recursion test */
-	in_next_object = 0;
-	
 	return iter->fase;
 }
 
@@ -1128,7 +1118,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 }
 
 /* deps hack - do extra recalcs at end */
-static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
+static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 		
@@ -1137,7 +1127,7 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
-		scene_depsgraph_hack(scene->set, scene_parent);
+		scene_depsgraph_hack(eval_ctx, scene->set, scene_parent);
 	
 	for (base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
@@ -1152,7 +1142,7 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 				recalc |= OB_RECALC_DATA;
 			
 			ob->recalc |= recalc;
-			BKE_object_handle_update(scene_parent, ob);
+			BKE_object_handle_update(eval_ctx, scene_parent, ob);
 			
 			if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP)) {
 				GroupObject *go;
@@ -1161,7 +1151,7 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 					if (go->ob)
 						go->ob->recalc |= recalc;
 				}
-				BKE_group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
+				BKE_group_handle_recalc_and_update(eval_ctx, scene_parent, ob, ob->dup_group);
 			}
 		}
 	}
@@ -1186,32 +1176,240 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
-static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
+/* Used to visualize CPU threads activity during threaded object update,
+ * would pollute STDERR with whole bunch of timing information which then
+ * could be parsed and nicely visualized.
+ */
+#undef DETAILED_ANALYSIS_OUTPUT
+
+/* Mballs evaluation uses BKE_scene_base_iter_next which calls
+ * duplilist for all objects in the scene. This leads to conflict
+ * accessing and writting same data from multipl threads.
+ *
+ * Ideally Mballs shouldn't do such an iteration and use DAG
+ * queries instead. For the time being we've got new DAG
+ * let's keep it simple and update mballs in a ingle thread.
+ */
+#define MBALL_SINGLETHREAD_HACK
+
+typedef struct StatisicsEntry {
+	struct StatisicsEntry *next, *prev;
+	Object *object;
+	double start_time;
+	double duration;
+} StatisicsEntry;
+
+typedef struct ThreadedObjectUpdateState {
+	/* TODO(sergey): We might want this to be per-thread object. */
+	EvaluationContext *eval_ctx;
+	Scene *scene;
+	Scene *scene_parent;
+	double base_time;
+
+	/* Execution statistics */
+	ListBase statistics[BLENDER_MAX_THREADS];
+	bool has_updated_objects;
+
+#ifdef MBALL_SINGLETHREAD_HACK
+	bool has_mballs;
+#endif
+} ThreadedObjectUpdateState;
+
+static void scene_update_object_add_task(void *node, void *user_data);
+
+static void scene_update_all_bases(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
-	
-	scene->customdata_mask = scene_parent->customdata_mask;
 
-	/* sets first, we allow per definition current scene to have
-	 * dependencies on sets, but not the other way around. */
-	if (scene->set)
-		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
-	
-	/* scene objects */
 	for (base = scene->base.first; base; base = base->next) {
-		Object *ob = base->object;
-		
-		BKE_object_handle_update_ex(scene_parent, ob, scene->rigidbody_world);
-		
-		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
-			BKE_group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
-			
+		Object *object = base->object;
+
+		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world);
+
+		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
+			BKE_group_handle_recalc_and_update(eval_ctx, scene_parent, object, object->dup_group);
+
 		/* always update layer, so that animating layers works (joshua july 2010) */
 		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
 		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
 		// base->lay = ob->lay;
 	}
-	
+}
+
+static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
+{
+/* Disable print for now in favor of summary statistics at the end of update. */
+#define PRINT if (false) printf
+
+	ThreadedObjectUpdateState *state = (ThreadedObjectUpdateState *) BLI_task_pool_userdata(pool);
+	void *node = taskdata;
+	Object *object = DAG_get_node_object(node);
+	EvaluationContext *eval_ctx = state->eval_ctx;
+	Scene *scene = state->scene;
+	Scene *scene_parent = state->scene_parent;
+
+#ifdef MBALL_SINGLETHREAD_HACK
+	if (object && object->type == OB_MBALL) {
+		state->has_mballs = true;
+	}
+	else
+#endif
+	if (object) {
+		double start_time = 0.0;
+		bool add_to_stats = false;
+
+		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
+
+		if (G.debug & G_DEBUG) {
+			start_time = PIL_check_seconds_timer();
+
+			if (object->recalc & OB_RECALC_ALL) {
+				state->has_updated_objects = true;
+				add_to_stats = true;
+			}
+		}
+
+		/* We only update object itself here, dupli-group will be updated
+		 * separately from main thread because of we've got no idea about
+		 * dependnecies inside the group.
+		 */
+		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world);
+
+		/* Calculate statistics. */
+		if (add_to_stats) {
+			StatisicsEntry *entry;
+
+			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
+			entry->object = object;
+			entry->start_time = start_time;
+			entry->duration = PIL_check_seconds_timer() - start_time;
+
+			BLI_addtail(&state->statistics[threadid], entry);
+		}
+	}
+	else {
+		PRINT("Threda %d: update node %s\n", threadid,
+		      DAG_get_node_name(node));
+	}
+
+	/* Update will decrease child's valency and schedule child with zero valency. */
+	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
+
+#undef PRINT
+}
+
+static void scene_update_object_add_task(void *node, void *user_data)
+{
+	TaskPool *task_pool = user_data;
+
+	BLI_task_pool_push(task_pool, scene_update_object_func, node, false, TASK_PRIORITY_LOW);
+}
+
+static void print_threads_statistics(ThreadedObjectUpdateState *state)
+{
+	int i, tot_thread;
+
+	if ((G.debug & G_DEBUG) == 0) {
+		return;
+	}
+
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	if (state->has_updated_objects) {
+		tot_thread = BLI_system_thread_count();
+
+		fprintf(stderr, "objects update base time %f\n", state->base_time);
+
+		for (i = 0; i < tot_thread; i++) {
+			StatisicsEntry *entry;
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+			{
+				fprintf(stderr, "thread %d object %s start_time %f duration %f\n",
+				        i, entry->object->id.name + 2,
+				        entry->start_time, entry->duration);
+			}
+			BLI_freelistN(&state->statistics[i]);
+		}
+	}
+#else
+	tot_thread = BLI_system_thread_count();
+
+	for (i = 0; i < tot_thread; i++) {
+		int total_objects = 0;
+		double total_time = 0.0;
+		StatisicsEntry *entry;
+
+		if (state->has_updated_objects) {
+			/* Don't pollute output if no objects were updated. */
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+			{
+				total_objects++;
+				total_time += entry->duration;
+			}
+
+			printf("Thread %d: total %d objects in %f sec.\n", i, total_objects, total_time);
+
+			for (entry = state->statistics[i].first;
+			     entry;
+			     entry = entry->next)
+			{
+				printf("  %s in %f sec\n", entry->object->id.name + 2, entry->duration);
+			}
+		}
+
+		BLI_freelistN(&state->statistics[i]);
+	}
+#endif
+}
+
+static void scene_update_objects(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
+{
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool;
+	ThreadedObjectUpdateState state;
+
+	state.eval_ctx = eval_ctx;
+	state.scene = scene;
+	state.scene_parent = scene_parent;
+	memset(state.statistics, 0, sizeof(state.statistics));
+	state.has_updated_objects = false;
+	state.base_time = PIL_check_seconds_timer();
+#ifdef MBALL_SINGLETHREAD_HACK
+	state.has_mballs = false;
+#endif
+
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+
+	DAG_threaded_update_begin(scene, scene_update_object_add_task, task_pool);
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
+
+	if (G.debug & G_DEBUG) {
+		print_threads_statistics(&state);
+	}
+
+#ifdef MBALL_SINGLETHREAD_HACK
+	if (state.has_mballs) {
+		scene_update_all_bases(eval_ctx, scene, scene_parent);
+	}
+#endif
+}
+
+static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Scene *scene_parent)
+{
+	scene->customdata_mask = scene_parent->customdata_mask;
+
+	/* sets first, we allow per definition current scene to have
+	 * dependencies on sets, but not the other way around. */
+	if (scene->set)
+		scene_update_tagged_recursive(eval_ctx, bmain, scene->set, scene_parent);
+
+	/* scene objects */
+	scene_update_objects(eval_ctx, scene, scene_parent);
+
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
 
@@ -1223,8 +1421,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	
 }
 
-/* this is called in main loop, doing tagged updates before redraw */
-void BKE_scene_update_tagged(Main *bmain, Scene *scene)
+void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
 {
 	Scene *sce_iter;
 	
@@ -1251,7 +1448,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	 *
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
-	scene_update_tagged_recursive(bmain, scene, scene);
+	scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
 
 	/* extra call here to recalc scene animation (for sequencer) */
 	{
@@ -1271,10 +1468,13 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 }
 
 /* applies changes right away, does all sets too */
-void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
+void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	double start_time = PIL_check_seconds_timer();
+#endif
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
@@ -1329,9 +1529,9 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_do_rb_simulation_recursive(sce, ctime);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
-	scene_update_tagged_recursive(bmain, sce, sce);
+	scene_update_tagged_recursive(eval_ctx, bmain, sce, sce);
 
-	scene_depsgraph_hack(sce, sce);
+	scene_depsgraph_hack(eval_ctx, sce, sce);
 
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
@@ -1341,6 +1541,10 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 
 	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
+
+#ifdef DETAILED_ANALYSIS_OUTPUT
+	fprintf(stderr, "frame update start_time %f duration %f\n", start_time, PIL_check_seconds_timer() - start_time);
+#endif
 }
 
 /* return default layer, also used to patch old files */

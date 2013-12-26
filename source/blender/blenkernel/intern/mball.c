@@ -57,6 +57,7 @@
 /*  #include "BKE_object.h" */
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_library.h"
 #include "BKE_displist.h"
@@ -485,14 +486,15 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 	SceneBaseIter iter;
+	EvaluationContext *eval_ctx = G.main->eval_ctx;
 
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name + 2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL))
 		return;
 	
-	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob != active_object) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
@@ -530,14 +532,15 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 	SceneBaseIter iter;
+	EvaluationContext *eval_ctx = G.main->eval_ctx;
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL))
 		return NULL;
 
-	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob != bob) {
 				BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
@@ -1637,7 +1640,7 @@ static void polygonize(PROCESS *process, MetaBall *mb)
 	}
 }
 
-static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return totsize */
+static float init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)    /* return totsize */
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -1657,8 +1660,8 @@ static float init_meta(PROCESS *process, Scene *scene, Object *ob)    /* return 
 	BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 	
 	/* make main array */
-	BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL);
-	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &bob)) {
+	BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &bob)) {
 
 		if (bob->type == OB_MBALL) {
 			zero_size = 0;
@@ -2211,7 +2214,7 @@ static void init_metaball_octal_tree(PROCESS *process, int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], process->metaball_tree->depth);
 }
 
-static void mball_count(PROCESS *process, Scene *scene, Object *basis)
+static void mball_count(EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *basis)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -2225,10 +2228,10 @@ static void mball_count(PROCESS *process, Scene *scene, Object *basis)
 	process->totelem = 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
-	if (F_ERROR == BKE_scene_base_iter_next(&iter, &sce_iter, 0, NULL, NULL))
+	if (F_ERROR == BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL))
 		return;
 
-	while (BKE_scene_base_iter_next(&iter, &sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &ob)) {
 		if (ob->type == OB_MBALL) {
 			if (ob == bob) {
 				MetaBall *mb = ob->data;
@@ -2264,7 +2267,7 @@ static void mball_count(PROCESS *process, Scene *scene, Object *basis)
 	}
 }
 
-void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase, bool for_render)
+void BKE_mball_polygonize(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
 {
 	MetaBall *mb;
 	DispList *dl;
@@ -2274,10 +2277,10 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase, bool for
 
 	mb = ob->data;
 
-	mball_count(&process, scene, ob);
+	mball_count(eval_ctx, &process, scene, ob);
 
 	if (process.totelem == 0) return;
-	if ((for_render == false) && (mb->flag == MB_UPDATE_NEVER)) return;
+	if ((eval_ctx->for_render == false) && (mb->flag == MB_UPDATE_NEVER)) return;
 	if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) return;
 
 	process.thresh = mb->thresh;
@@ -2286,7 +2289,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase, bool for
 	process.mainb = MEM_mallocN(sizeof(void *) * process.totelem, "mainb");
 	
 	/* initialize all mainb (MetaElems) */
-	totsize = init_meta(&process, scene, ob);
+	totsize = init_meta(eval_ctx, &process, scene, ob);
 
 	/* if scene includes more than one MetaElem, then octal tree optimization is used */
 	if ((process.totelem >    1) && (process.totelem <=   64)) init_metaball_octal_tree(&process, 1);
@@ -2315,7 +2318,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase, bool for
 	}
 
 	/* width is size per polygonize cube */
-	if (for_render) {
+	if (eval_ctx->for_render) {
 		width = mb->rendersize;
 	}
 	else {

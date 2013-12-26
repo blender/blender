@@ -370,7 +370,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
-			BKE_scene_update_tagged(bmain, win->screen->scene);
+			BKE_scene_update_tagged(bmain->eval_ctx, bmain, win->screen->scene);
 		}
 	}
 

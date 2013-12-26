@@ -207,6 +207,20 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm,
 	return dm;
 }
 
+/* Get derived mesh for other object, which is used as an operand for the modifier,
+ * i.e. second operand for boolean modifier.
+ */
+DerivedMesh *get_dm_for_modifier(Object *ob, ModifierApplyFlag flag)
+{
+	if (flag & MOD_APPLY_RENDER) {
+		/* TODO(sergey): Use proper derived render in the future. */
+		return ob->derivedFinal;
+	}
+	else {
+		return ob->derivedFinal;
+	}
+}
+
 void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformVert **dvert, int *defgrp_index)
 {
 	*defgrp_index = defgroup_name_index(ob, name);

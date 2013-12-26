@@ -52,6 +52,7 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
+struct EvaluationContext;
 struct Object;
 struct MemArena;
 struct VertTableNode;
@@ -270,6 +271,7 @@ struct Render
 	struct ReportList *reports;
 
 	struct ImagePool *pool;
+	struct EvaluationContext *eval_ctx;
 };
 
 /* ------------------------------------------------------------------------- */

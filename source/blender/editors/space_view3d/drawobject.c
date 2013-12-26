@@ -59,6 +59,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -4056,7 +4057,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 			if (BKE_mball_is_basis(ob)) {
 				lb = ob->curve_cache ? &ob->curve_cache->disp : NULL;
 				if (ELEM(NULL, lb, lb->first)) {
-					BKE_displist_make_mball(scene, ob);
+					BKE_displist_make_mball(G.main->eval_ctx, scene, ob);
 					lb = &ob->curve_cache->disp;
 				}
 				if (lb->first == NULL) {
@@ -6268,7 +6269,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		if (BKE_mball_is_basis(ob)) {
 			bb = ob->bb;
 			if (bb == NULL) {
-				BKE_displist_make_mball(scene, ob);
+				BKE_displist_make_mball(G.main->eval_ctx, scene, ob);
 				bb = ob->bb;
 			}
 		}

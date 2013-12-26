@@ -2369,7 +2369,6 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
-		
 		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		BKE_solve_constraints(&ob->constraints, cob, ctime);
 		BKE_constraints_clear_evalob(cob);
@@ -2686,8 +2685,7 @@ bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_m
 	else {
 		ListBase *lb;
 		DupliObject *dob;
-		
-		lb = object_duplilist(scene, ob, FALSE);
+		lb = object_duplilist(G.main->eval_ctx, scene, ob);
 		for (dob = lb->first; dob; dob = dob->next) {
 			if ((use_hidden == false) && (dob->no_draw != 0)) {
 				/* pass */
@@ -2764,7 +2762,7 @@ void BKE_scene_foreach_display_point(
 				ListBase *lb;
 				DupliObject *dob;
 
-				lb = object_duplilist(scene, ob, FALSE);
+				lb = object_duplilist(G.main->eval_ctx, scene, ob);
 				for (dob = lb->first; dob; dob = dob->next) {
 					if (dob->no_draw == 0) {
 						BKE_object_foreach_display_point(dob->ob, dob->mat, func_cb, user_data);
@@ -2852,7 +2850,8 @@ bool BKE_object_parent_loop_check(const Object *par, const Object *ob)
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
 /* Ideally we shouldn't have to pass the rigid body world, but need bigger restructuring to avoid id */
-void BKE_object_handle_update_ex(Scene *scene, Object *ob,
+void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
+                                 Scene *scene, Object *ob,
                                  RigidBodyWorld *rbw)
 {
 	if (ob->recalc & OB_RECALC_ALL) {
@@ -2922,17 +2921,6 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 			switch (ob->type) {
 				case OB_MESH:
 				{
-#if 0               // XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
-					BMEditMesh *em = (ob == scene->obedit) ? BKE_editmesh_from_object(ob) : NULL;
-					BLI_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
-					if (em) {
-						makeDerivedMesh(scene, ob, em,  scene->customdata_mask, 0); /* was CD_MASK_BAREMESH */
-					}
-					else {
-						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask, 0);
-					}
-
-#else               /* ensure CD_MASK_BAREMESH for now */
 					BMEditMesh *em = (ob == scene->obedit) ? BKE_editmesh_from_object(ob) : NULL;
 					uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 					if (em) {
@@ -2941,7 +2929,6 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 					else {
 						makeDerivedMesh(scene, ob, NULL, data_mask, 0);
 					}
-#endif
 					break;
 				}
 				case OB_ARMATURE:
@@ -2957,7 +2944,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 					break;
 
 				case OB_MBALL:
-					BKE_displist_make_mball(scene, ob);
+					BKE_displist_make_mball(eval_ctx, scene, ob);
 					break;
 
 				case OB_CURVE:
@@ -3001,7 +2988,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 				while (psys) {
 					if (psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
-						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || G.is_rendering) &&
+						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || eval_ctx->for_render) &&
 						    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
 						     (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
 						{
@@ -3021,7 +3008,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 						psys = psys->next;
 				}
 
-				if (G.is_rendering && ob->transflag & OB_DUPLIPARTS) {
+				if (eval_ctx->for_render && ob->transflag & OB_DUPLIPARTS) {
 					/* this is to make sure we get render level duplis in groups:
 					 * the derivedmesh must be created before init_render_mesh,
 					 * since object_duplilist does dupliparticles before that */
@@ -3048,7 +3035,7 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
 		/* the no-group proxy case, we call update */
 		if (ob->proxy_group == NULL) {
 			// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
-			BKE_object_handle_update(scene, ob->proxy);
+			BKE_object_handle_update(eval_ctx, scene, ob->proxy);
 		}
 	}
 }
@@ -3057,9 +3044,9 @@ void BKE_object_handle_update_ex(Scene *scene, Object *ob,
  * e.g. "scene" <-- set 1 <-- set 2 ("ob" lives here) <-- set 3 <-- ... <-- set n
  * rigid bodies depend on their world so use BKE_object_handle_update_ex() to also pass along the corrent rigid body world
  */
-void BKE_object_handle_update(Scene *scene, Object *ob)
+void BKE_object_handle_update(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	BKE_object_handle_update_ex(scene, ob, NULL);
+	BKE_object_handle_update_ex(eval_ctx, scene, ob, NULL);
 }
 
 void BKE_object_sculpt_modifiers_changed(Object *ob)

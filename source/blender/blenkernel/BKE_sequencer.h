@@ -31,6 +31,7 @@
  */
 
 struct bContext;
+struct EvaluationContext;
 struct StripColorBalance;
 struct Editing;
 struct ImBuf;
@@ -89,6 +90,7 @@ void BKE_sequence_iterator_end(SeqIterator *iter);
 	}
 
 typedef struct SeqRenderData {
+	struct EvaluationContext *eval_ctx;
 	struct Main *bmain;
 	struct Scene *scene;
 	int rectx;
@@ -98,8 +100,8 @@ typedef struct SeqRenderData {
 	float motion_blur_shutter;
 } SeqRenderData;
 
-SeqRenderData BKE_sequencer_new_render_data(struct Main *bmain, struct Scene *scene, int rectx, int recty,
-                                            int preview_render_size);
+SeqRenderData BKE_sequencer_new_render_data(struct EvaluationContext *eval_ctx, struct Main *bmain,
+                                            struct Scene *scene, int rectx, int recty, int preview_render_size);
 
 /* Wipe effect */
 enum {

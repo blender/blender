@@ -55,6 +55,8 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
+#include "MOD_util.h"
+
 #include "bmesh.h"
 
 #include "depsgraph_private.h"
@@ -320,7 +322,7 @@ static void merge_first_last(BMesh *bm,
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
                                           Scene *scene, Object *ob, DerivedMesh *dm,
-                                          int UNUSED(initFlags))
+                                          ModifierApplyFlag flag)
 {
 	DerivedMesh *result;
 	BMesh *bm = DM_to_bmesh(dm, false);
@@ -340,9 +342,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* need to avoid infinite recursion here */
 	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH)
-		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
+		start_cap = get_dm_for_modifier(amd->start_cap, flag);
 	if (amd->end_cap && amd->end_cap != ob && amd->end_cap->type == OB_MESH)
-		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
+		end_cap = get_dm_for_modifier(amd->end_cap, flag);
 
 	unit_m4(offset);
 
@@ -571,12 +573,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+                                  ModifierApplyFlag flag)
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
-	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
+	result = arrayModifier_doArray(amd, md->scene, ob, dm, flag);
 
 	return result;
 }

@@ -560,7 +560,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, int parent
 		/* ignore cache clear during subframe updates
 		 *  to not mess up cache validity */
 		object_cacheIgnoreClear(ob, 1);
-		BKE_object_handle_update(scene, ob);
+		BKE_object_handle_update(G.main->eval_ctx, scene, ob);
 		object_cacheIgnoreClear(ob, 0);
 	}
 	else

@@ -57,6 +57,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -498,7 +499,9 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
 
 /*********************** sequencer pipeline functions *************************/
 
-SeqRenderData BKE_sequencer_new_render_data(Main *bmain, Scene *scene, int rectx, int recty, int preview_render_size)
+SeqRenderData BKE_sequencer_new_render_data(EvaluationContext *eval_ctx,
+                                            Main *bmain, Scene *scene, int rectx, int recty,
+                                            int preview_render_size)
 {
 	SeqRenderData rval;
 
@@ -509,6 +512,7 @@ SeqRenderData BKE_sequencer_new_render_data(Main *bmain, Scene *scene, int rectx
 	rval.preview_render_size = preview_render_size;
 	rval.motion_blur_samples = 0;
 	rval.motion_blur_shutter = 0;
+	rval.eval_ctx = eval_ctx;
 
 	return rval;
 }
@@ -1506,6 +1510,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	SeqRenderData render_context;
 	Sequence *seq = context->seq;
 	Scene *scene = context->scene;
+	Main *bmain = context->bmain;
 	int cfra;
 
 	if (seq->type == SEQ_TYPE_MOVIE) {
@@ -1527,7 +1532,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 
 	/* fail safe code */
 
-	render_context = BKE_sequencer_new_render_data(context->bmain, context->scene,
+	render_context = BKE_sequencer_new_render_data(bmain->eval_ctx, bmain, context->scene,
 	                                    (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
 	                                    (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 100);
 
@@ -2449,7 +2454,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 
 	const short is_rendering = G.is_rendering;
 	const short is_background = G.background;
-	const int do_seq_gl = G.is_rendering ?
+	const int do_seq_gl = is_rendering ?
 	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
 	int do_seq;
@@ -2505,7 +2510,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			context.scene->r.seq_prev_type = 3 /* == OB_SOLID */;
 
 		/* opengl offscreen render */
-		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(context.eval_ctx, context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty, IB_rect,
 		                           context.scene->r.seq_prev_type, context.scene->r.seq_flag & R_SEQ_SOLID_TEX,
 		                           TRUE, scene->r.alphamode, err_out);
@@ -2528,8 +2533,8 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		if (!is_thread_main || is_rendering == FALSE || is_background) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
-			
-			BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
+
+			BKE_scene_update_for_newframe(context.eval_ctx, context.bmain, scene, scene->lay);
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
@@ -2564,8 +2569,9 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	
 	scene->r.cfra = oldcfra;
 
-	if (frame != oldcfra)
-		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
+	if (frame != oldcfra) {
+		BKE_scene_update_for_newframe(context.eval_ctx, context.bmain, scene, scene->lay);
+	}
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */

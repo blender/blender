@@ -104,11 +104,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   ModifierApplyFlag flag)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
+	bool for_render = (flag & MOD_APPLY_RENDER) != 0;
 
 	if (flag & MOD_APPLY_ORCO)
 		return dm;
 
-	return smokeModifier_do(smd, md->scene, ob, dm);
+	return smokeModifier_do(smd, md->scene, ob, dm, for_render);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

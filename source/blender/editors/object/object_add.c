@@ -1234,7 +1234,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	if (!(base->object->transflag & OB_DUPLI))
 		return;
 
-	lb = object_duplilist(scene, base->object, FALSE);
+	lb = object_duplilist(bmain->eval_ctx, scene, base->object);
 
 	if (use_hierarchy || use_base_parent) {
 		dupli_gh = BLI_ghash_ptr_new("make_object_duplilist_real dupli_gh");
@@ -1670,7 +1670,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			}
 
 			if (!baseob->curve_cache || !baseob->curve_cache->disp.first) {
-				BKE_displist_make_mball(scene, baseob);
+				BKE_displist_make_mball(bmain->eval_ctx, scene, baseob);
 			}
 
 			if (!(baseob->flag & OB_DONE)) {

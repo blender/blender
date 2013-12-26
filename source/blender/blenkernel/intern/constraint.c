@@ -166,7 +166,7 @@ bConstraintOb *BKE_constraints_make_evalob(Scene *scene, Object *ob, void *subda
 			unit_m4(cob->startmat);
 			break;
 	}
-	
+
 	return cob;
 }
 
@@ -3351,7 +3351,8 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		float co[3] = {0.0f, 0.0f, 0.0f};
 		
 		SpaceTransform transform;
-		DerivedMesh *target = object_get_derived_final(ct->tar);
+		/* TODO(sergey): use proper for_render flag here when known. */
+		DerivedMesh *target = object_get_derived_final(ct->tar, false);
 		
 		BVHTreeFromMesh treeData = {NULL};
 		
@@ -4014,7 +4015,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				DerivedMesh *target = object_get_derived_final(depth_ob);
+				/* TODO(sergey): use proper for_render flag here when known. */
+				DerivedMesh *target = object_get_derived_final(depth_ob, false);
 				if (target) {
 					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 					BVHTreeRayHit hit;

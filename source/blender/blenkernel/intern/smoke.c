@@ -77,7 +77,9 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
 #include "BKE_effect.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -164,7 +166,7 @@ void smoke_initWaveletBlenderRNA(struct WTURBULENCE *UNUSED(wt), float *UNUSED(s
 void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), float *UNUSED(beta), float *UNUSED(dt_factor), float *UNUSED(vorticity),
                           int *UNUSED(border_colli), float *UNUSED(burning_rate), float *UNUSED(flame_smoke), float *UNUSED(flame_smoke_color),
                           float *UNUSED(flame_vorticity), float *UNUSED(flame_ignition_temp), float *UNUSED(flame_max_temp)) {}
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm)) { return NULL; }
+struct DerivedMesh *smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm), bool UNUSED(for_render)) { return NULL; }
 float smoke_get_velocity_at(struct Object *UNUSED(ob), float UNUSED(position[3]), float UNUSED(velocity[3])) { return 0.0f; }
 void flame_get_spectrum(unsigned char *UNUSED(spec), int UNUSED(width), float UNUSED(t1), float UNUSED(t2)) {}
 
@@ -943,7 +945,7 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 	BLI_freelistN(&pidlist);
 }
 
-static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int parent_recursion, float frame)
+static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int parent_recursion, float frame, bool for_render)
 {
 	SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
 	bConstraint *con;
@@ -956,8 +958,8 @@ static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int 
 	if (parent_recursion) {
 		int recursion = parent_recursion - 1;
 		int is_domain = 0;
-		if (ob->parent) is_domain += subframe_updateObject(scene, ob->parent, 0, recursion, frame);
-		if (ob->track) is_domain += subframe_updateObject(scene, ob->track, 0, recursion, frame);
+		if (ob->parent) is_domain += subframe_updateObject(scene, ob->parent, 0, recursion, frame, for_render);
+		if (ob->track) is_domain += subframe_updateObject(scene, ob->track, 0, recursion, frame, for_render);
 
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
@@ -974,7 +976,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int 
 				cti->get_constraint_targets(con, &targets);
 				for (ct = targets.first; ct; ct = ct->next) {
 					if (ct->tar)
-						subframe_updateObject(scene, ct->tar, 0, recursion, frame);
+						subframe_updateObject(scene, ct->tar, 0, recursion, frame, for_render);
 				}
 				/* free temp targets */
 				if (cti->flush_constraint_targets)
@@ -990,7 +992,7 @@ static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int 
 		/* ignore cache clear during subframe updates
 		 *  to not mess up cache validity */
 		object_cacheIgnoreClear(ob, 1);
-		BKE_object_handle_update(scene, ob);
+		BKE_object_handle_update(G.main->eval_ctx, scene, ob);
 		object_cacheIgnoreClear(ob, 0);
 	}
 	else
@@ -2014,7 +2016,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	}
 }
 
-static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt)
+static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt, bool for_render)
 {
 	Object **flowobjs = NULL;
 	EmissionMap *emaps = NULL;
@@ -2117,7 +2119,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 					}
 					else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
 						/* update flow object frame */
-						subframe_updateObject(scene, collob, 1, 5, BKE_scene_frame_get(scene));
+						subframe_updateObject(scene, collob, 1, 5, BKE_scene_frame_get(scene), for_render);
 
 						/* apply flow */
 						emit_from_derivedmesh(collob, sds, sfs, &em_temp, sdt);
@@ -2427,7 +2429,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	pdEndEffectors(&effectors);
 }
 
-static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
+static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps, bool for_render)
 {
 	SmokeDomainSettings *sds = smd->domain;
 	/* stability values copied from wturbulence.cpp */
@@ -2497,7 +2499,7 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	for (substep = 0; substep < totalSubsteps; substep++)
 	{
 		// calc animated obstacle velocities
-		update_flowsfluids(scene, ob, sds, dtSubdiv);
+		update_flowsfluids(scene, ob, sds, dtSubdiv, for_render);
 		update_obstacles(scene, ob, sds, dtSubdiv, substep, totalSubsteps);
 
 		if (sds->total_cells > 1) {
@@ -2594,7 +2596,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 	return result;
 }
 
-static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, bool for_render)
 {
 	if ((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{
@@ -2716,7 +2718,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 
 			}
 
-			step(scene, ob, smd, dm, scene->r.frs_sec / scene->r.frs_sec_base);
+			step(scene, ob, smd, dm, scene->r.frs_sec / scene->r.frs_sec_base, for_render);
 		}
 
 		// create shadows before writing cache so they get stored
@@ -2736,13 +2738,13 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	}
 }
 
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, bool for_render)
 {
 	/* lock so preview render does not read smoke data while it gets modified */
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
 
-	smokeModifier_process(smd, scene, ob, dm);
+	smokeModifier_process(smd, scene, ob, dm, for_render);
 
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_unlock(smd->domain->fluid_mutex);

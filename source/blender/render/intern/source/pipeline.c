@@ -59,9 +59,11 @@
 
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -373,6 +375,8 @@ Render *RE_NewRender(const char *name)
 		BLI_addtail(&RenderGlobal.renderlist, re);
 		BLI_strncpy(re->name, name, RE_MAXNAME);
 		BLI_rw_mutex_init(&re->resultmutex);
+		re->eval_ctx = MEM_callocN(sizeof(EvaluationContext), "re->eval_ctx");
+		re->eval_ctx->for_render = true;
 	}
 	
 	RE_InitRenderCB(re);
@@ -420,6 +424,7 @@ void RE_FreeRender(Render *re)
 	render_result_free(re->pushedresult);
 	
 	BLI_remlink(&RenderGlobal.renderlist, re);
+	MEM_freeN(re->eval_ctx);
 	MEM_freeN(re);
 }
 
@@ -1320,8 +1325,9 @@ static void do_render_blur_3d(Render *re)
 	re->i.curblur = 0;   /* stats */
 	
 	/* make sure motion blur changes get reset to current frame */
-	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0)
-		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
+	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
+		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, re->lay);
+	}
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
@@ -1590,21 +1596,117 @@ static bool rlayer_node_uses_alpha(bNodeTree *ntree, bNode *node)
 	return false;
 }
 
+/* Issue here is that it's possible that object which is used by boolean,
+ * array or shrinkwrap modifiers weren't displayed in the viewport before
+ * rendering. This leads to situations when apply() of this modifiers
+ * could not get ob->derivedFinal and modifiers are not being applied.
+ *
+ * This was worked around by direct call of get_derived_final() from those
+ * modifiers, but such approach leads to write conflicts with threaded
+ * update.
+ *
+ * Here we make sure derivedFinal will be calculated by update_for_newframe
+ * function later in the pipeline and all the modifiers are applied
+ * properly without hacks from their side.
+ *                                                  - sergey -
+ */
+#define DEPSGRAPH_WORKAROUND_HACK
+
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+static bool allow_render_mesh_object(Object *ob)
+{
+	/* override not showing object when duplis are used with particles */
+	if (ob->transflag & OB_DUPLIPARTS) {
+		/* pass */  /* let particle system(s) handle showing vs. not showing */
+	}
+	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
+		return false;
+	}
+	return true;
+}
+
+static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
+{
+	Scene *sce_iter;
+	Base *base;
+	for (SETLOOPER(scene, sce_iter, base)) {
+		Object *object = base->object;
+
+		if ((base->lay & renderlay) == 0) {
+			continue;
+		}
+
+		if (object->type == OB_MESH) {
+			if (allow_render_mesh_object(object)) {
+				ModifierData *md;
+				VirtualModifierData virtualModifierData;
+
+				for (md = modifiers_getVirtualModifierList(object, &virtualModifierData);
+				     md;
+				     md = md->next)
+				{
+					if (!modifier_isEnabled(scene, md, eModifierMode_Render)) {
+						continue;
+					}
+
+					if (md->type == eModifierType_Boolean) {
+						BooleanModifierData *bmd = (BooleanModifierData *)md;
+						if (bmd->object && bmd->object->type == OB_MESH) {
+							DAG_id_tag_update(&bmd->object->id, OB_RECALC_DATA);
+						}
+					}
+					else if (md->type == eModifierType_Array) {
+						ArrayModifierData *amd = (ArrayModifierData *)md;
+						if (amd->start_cap && amd->start_cap->type == OB_MESH) {
+							DAG_id_tag_update(&amd->start_cap->id, OB_RECALC_DATA);
+						}
+						if (amd->end_cap && amd->end_cap->type == OB_MESH) {
+							DAG_id_tag_update(&amd->end_cap->id, OB_RECALC_DATA);
+						}
+					}
+					else if (md->type == eModifierType_Shrinkwrap) {
+						ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+						if (smd->target  && smd->target->type == OB_MESH) {
+							DAG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+#endif
+
 static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
 	Scene *sce;
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+	int renderlay = re->lay;
+#endif
 	
-	for (sce = re->main->scene.first; sce; sce = sce->id.next)
+	for (sce = re->main->scene.first; sce; sce = sce->id.next) {
 		sce->id.flag &= ~LIB_DOIT;
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+		tag_dependend_objects_for_render(sce, renderlay);
+#endif
+	}
 	
 #ifdef WITH_FREESTYLE
-	for (sce = re->freestyle_bmain.scene.first; sce; sce = sce->id.next)
+	for (sce = re->freestyle_bmain.scene.first; sce; sce = sce->id.next) {
 		sce->id.flag &= ~LIB_DOIT;
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+		tag_dependend_objects_for_render(sce, renderlay);
+#endif
+	}
 #endif
 
-	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1))
+	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1)) {
 		re->scene->id.flag |= LIB_DOIT;
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+		tag_dependend_objects_for_render(re->scene, renderlay);
+#endif
+	}
 	
 	if (re->scene->nodetree == NULL) return;
 	
@@ -1632,6 +1734,9 @@ static void tag_scenes_for_render(Render *re)
 					if ((node->id->flag & LIB_DOIT) == 0) {
 						node->flag |= NODE_TEST;
 						node->id->flag |= LIB_DOIT;
+#ifdef DEPSGRAPH_WORKAROUND_HACK
+						tag_dependend_objects_for_render((Scene *) node->id, renderlay);
+#endif
 					}
 				}
 			}
@@ -2020,7 +2125,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				R.stats_draw = re->stats_draw;
 				
 				if (update_newframe)
-					BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
+					BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, re->lay);
 				
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
@@ -2095,14 +2200,12 @@ static void do_render_seq(Render *re)
 	if ((re->r.mode & R_BORDER) && (re->r.mode & R_CROP) == 0) {
 		/* if border rendering is used and cropping is disabled, final buffer should
 		 * be as large as the whole frame */
-		context = BKE_sequencer_new_render_data(re->main, re->scene,
-		                              re->winx, re->winy,
-		                              100);
+		context = BKE_sequencer_new_render_data(re->eval_ctx, re->main, re->scene,
+		                                        re->winx, re->winy, 100);
 	}
 	else {
-		context = BKE_sequencer_new_render_data(re->main, re->scene,
-		                              re->result->rectx, re->result->recty,
-		                              100);
+		context = BKE_sequencer_new_render_data(re->eval_ctx, re->main, re->scene,
+		                                        re->result->rectx, re->result->recty, 100);
 	}
 
 	out = BKE_sequencer_give_ibuf(context, cfra, 0);
@@ -2704,7 +2807,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				else
 					updatelay = re->lay;
 
-				BKE_scene_update_for_newframe(bmain, scene, updatelay);
+				BKE_scene_update_for_newframe(re->eval_ctx, bmain, scene, updatelay);
 				continue;
 			}
 			else

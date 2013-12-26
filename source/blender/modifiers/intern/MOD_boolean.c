@@ -1,3 +1,4 @@
+
 /*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -119,7 +120,7 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+                                  ModifierApplyFlag flag)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 	DerivedMesh *dm;
@@ -127,25 +128,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (!bmd->object)
 		return derivedData;
 
-
-	/* 2.63 used this... */
-	/* dm = bmd->object->derivedFinal; */
-
-	/* but we want to make sure we can get the object
-	 * in some cases the depsgraph fails us - especially for objects
-	 * in other scenes when compositing */
-	if (bmd->object != ob) {
-		/* weak! - but we can too easy end up with circular dep crash otherwise */
-		if (bmd->object->type == OB_MESH && modifiers_findByType(bmd->object, eModifierType_Boolean) == NULL) {
-			dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
-		}
-		else {
-			dm = bmd->object->derivedFinal;
-		}
-	}
-	else {
-		dm = NULL;
-	}
+	dm = get_dm_for_modifier(bmd->object, flag);
 
 	if (dm) {
 		DerivedMesh *result;

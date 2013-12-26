@@ -459,7 +459,7 @@ int RE_engine_render(Render *re, int do_all)
 			lay &= non_excluded_lay;
 		}
 
-		BKE_scene_update_for_newframe(re->main, re->scene, lay);
+		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, lay);
 	}
 
 	/* create render result */

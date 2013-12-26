@@ -158,6 +158,9 @@ endif()
 
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
+	list(APPEND INC
+		../../python
+	)
 endif()
 
 if(WITH_GAMEENGINE)

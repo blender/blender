@@ -46,6 +46,7 @@
 extern "C" {
 #endif
 
+struct EvaluationContext;
 struct Library;
 
 typedef struct Main {
@@ -92,6 +93,9 @@ typedef struct Main {
 	ListBase linestyle;
 
 	char id_tag_update[256];
+
+	/* Evaluation context used by viewport */
+	struct EvaluationContext *eval_ctx;
 } Main;
 
 #define MAIN_VERSION_ATLEAST(main, ver, subver) \

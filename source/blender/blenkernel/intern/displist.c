@@ -49,9 +49,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_material.h"
 #include "BKE_curve.h"
@@ -709,7 +711,7 @@ float BKE_displist_calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 	return displist_calc_taper(scene, taperobj, fac);
 }
 
-void BKE_displist_make_mball(Scene *scene, Object *ob)
+void BKE_displist_make_mball(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	if (!ob || ob->type != OB_MBALL)
 		return;
@@ -723,7 +725,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 
 	if (ob->type == OB_MBALL) {
 		if (ob == BKE_mball_basis_find(scene, ob)) {
-			BKE_mball_polygonize(scene, ob, &ob->curve_cache->disp, false);
+			BKE_mball_polygonize(eval_ctx, scene, ob, &ob->curve_cache->disp);
 			BKE_mball_texspace_calc(ob);
 
 			object_deform_mball(ob, &ob->curve_cache->disp);
@@ -733,9 +735,9 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 	}
 }
 
-void BKE_displist_make_mball_forRender(Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_displist_make_mball_forRender(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
 {
-	BKE_mball_polygonize(scene, ob, dispbase, true);
+	BKE_mball_polygonize(eval_ctx, scene, ob, dispbase);
 	BKE_mball_texspace_calc(ob);
 
 	object_deform_mball(ob, dispbase);

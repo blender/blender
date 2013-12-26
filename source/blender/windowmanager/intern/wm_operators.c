@@ -4141,7 +4141,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			
 			if (a & 1) scene->r.cfra--;
 			else scene->r.cfra++;
-			BKE_scene_update_for_newframe(bmain, scene, scene->lay);
+			BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
 		}
 		else if (type == 5) {
 
@@ -4156,7 +4156,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				if (scene->r.cfra > scene->r.efra)
 					scene->r.cfra = scene->r.sfra;
 
-				BKE_scene_update_for_newframe(bmain, scene, scene->lay);
+				BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
 				redraw_timer_window_swap(C);
 			}
 		}

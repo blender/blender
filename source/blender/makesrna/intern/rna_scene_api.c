@@ -54,6 +54,10 @@
 
 #include "ED_transform.h"
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
 	double cfra = (double)frame + (double)subframe;
@@ -61,7 +65,16 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	CLAMP(cfra, MINAFRAME, MAXFRAME);
 	BKE_scene_frame_set(scene, cfra);
 
-	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);
+#ifdef WITH_PYTHON
+	BPy_BEGIN_ALLOW_THREADS;
+#endif
+
+	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, (1 << 20) - 1);
+
+#ifdef WITH_PYTHON
+	BPy_END_ALLOW_THREADS;
+#endif
+
 	BKE_scene_camera_switch_update(scene);
 
 	/* don't do notifier when we're rendering, avoid some viewport crashes
@@ -78,7 +91,15 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 static void rna_Scene_update_tagged(Scene *scene)
 {
-	BKE_scene_update_tagged(G.main, scene);
+#ifdef WITH_PYTHON
+	BPy_BEGIN_ALLOW_THREADS;
+#endif
+
+	BKE_scene_update_tagged(G.main->eval_ctx, G.main, scene);
+
+#ifdef WITH_PYTHON
+	BPy_END_ALLOW_THREADS;
+#endif
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)

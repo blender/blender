@@ -39,6 +39,7 @@ extern "C" {
 
 struct AviCodecData;
 struct Base;
+struct EvaluationContext;
 struct bglMats;
 struct Main;
 struct Object;
@@ -85,7 +86,8 @@ typedef struct SceneBaseIter {
 	int fase;
 } SceneBaseIter;
 
-int          BKE_scene_base_iter_next(struct SceneBaseIter *iter, struct Scene **scene, int val, struct Base **base, struct Object **ob);
+int BKE_scene_base_iter_next(struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,
+                             struct Scene **scene, int val, struct Base **base, struct Object **ob);
 
 void BKE_scene_base_flag_to_objects(struct Scene *scene);
 void BKE_scene_base_flag_from_objects(struct Scene *scene);
@@ -111,9 +113,9 @@ float BKE_scene_frame_get(struct Scene *scene);
 float BKE_scene_frame_get_from_ctime(struct Scene *scene, const float frame);
 void  BKE_scene_frame_set(struct Scene *scene, double cfra);
 
-void BKE_scene_update_tagged(struct Main *bmain, struct Scene *sce);
-
-void BKE_scene_update_for_newframe(struct Main *bmain, struct Scene *sce, unsigned int lay);
+/* **  Scene evaluation ** */
+void BKE_scene_update_tagged(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce);
+void BKE_scene_update_for_newframe(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 struct SceneRenderLayer *BKE_scene_add_render_layer(struct Scene *sce, const char *name);
 int BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
