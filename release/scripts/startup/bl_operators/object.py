@@ -851,7 +851,7 @@ class LodClearAll(Operator):
 
 
 class LodGenerate(Operator):
-    """Generates levels of detail using the decimate modifier"""
+    """Generate levels of detail using the decimate modifier"""
     bl_idname = "object.lod_generate"
     bl_label = "Generate Levels of Detail"
     bl_options = {'REGISTER', 'UNDO'}
