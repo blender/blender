@@ -1157,18 +1157,6 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 		}
 
 		sd->N = sd->Ng;
-
-		if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
-			sd->N = -(D - tg * dot(tg, D));
-			sd->N = normalize(sd->N);
-		}
-		if (!(flag & CURVE_KN_TANGENTGNORMAL) && flag & CURVE_KN_TRUETANGENTGNORMAL) {
-			sd->N = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
-			if (gd != 0.0f) {
-				sd->N = sd->N - gd * tg ;
-				sd->N = normalize(sd->N);
-			}
-		}
 	}
 
 #ifdef __DPDU__

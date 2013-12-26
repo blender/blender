@@ -701,11 +701,11 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->triangle_method = CURVE_CAMERA_TRIANGLES;
 		curve_system_manager->resolution = 1;
 	}
-	if(curve_system_manager->primitive == CURVE_TRIANGLES && curve_system_manager->curve_shape == CURVE_THICK) {
+	else if(curve_system_manager->primitive == CURVE_TRIANGLES && curve_system_manager->curve_shape == CURVE_THICK) {
 		/* camera facing planes */
 		curve_system_manager->triangle_method = CURVE_TESSELATED_TRIANGLES;
 	}
-	if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
+	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
 		/* tangent shading */
 		curve_system_manager->line_method = CURVE_UNCORRECTED;
 		curve_system_manager->use_encasing = true;
@@ -713,13 +713,13 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->use_tangent_normal = true;
 		curve_system_manager->use_tangent_normal_geometry = true;
 	}
-	if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_THICK) {
+	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_THICK) {
 		curve_system_manager->line_method = CURVE_ACCURATE;
 		curve_system_manager->use_encasing = false;
 		curve_system_manager->use_tangent_normal = false;
 		curve_system_manager->use_tangent_normal_geometry = false;
 	}
-	if(curve_system_manager->primitive == CURVE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
+	else if(curve_system_manager->primitive == CURVE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
 		curve_system_manager->primitive = CURVE_RIBBONS;
 		curve_system_manager->use_backfacing = false;
 	}
