@@ -225,7 +225,10 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_NODUPLIS       = (1 << 11),
 	
 	/* for checking if we should keep some collapsed channel around (internal use only!) */
-	ANIMFILTER_TMP_PEEK       = (1 << 30)
+	ANIMFILTER_TMP_PEEK       = (1 << 30),
+
+	/* ignore ONLYSEL flag from filterflag, (internal use only!) */
+	ANIMFILTER_TMP_IGNORE_ONLYSEL = (1 << 31)
 } eAnimFilter_Flags;
 
 /* ---------- Flag Checking Macros ------------ */

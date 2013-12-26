@@ -1042,9 +1042,11 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
 		if (ads && owner_id) {
-			if ((ads->filterflag & ADS_FILTER_ONLYSEL) || (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0) {
-				if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
-					continue;
+			if ((filter_mode & ANIMFILTER_TMP_IGNORE_ONLYSEL) == 0) {
+				if ((ads->filterflag & ADS_FILTER_ONLYSEL) || (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0) {
+					if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
+						continue;
+				}
 			}
 		}
 		
@@ -1541,21 +1543,17 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 {
 	bNode *node;
 	size_t items = 0;
-	int group_filter_mode = filter_mode & ~ADS_FILTER_ONLYSEL;
 
 	items += animdata_filter_ds_nodetree_group(ac, anim_data, ads, owner_id, ntree, filter_mode);
 
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP) {
 			if (node->id) {
-				int filterflag = ads->filterflag;
-				if ((filter_mode & ADS_FILTER_ONLYSEL) && (node->flag & NODE_SELECT) == 0) {
+				if ((ads->filterflag & ADS_FILTER_ONLYSEL) && (node->flag & NODE_SELECT) == 0) {
 					continue;
 				}
-				/* TODO(sergey): A bit creepy, but this flag is not used from threads anyway. */
-				ads->filterflag &= ~ADS_FILTER_ONLYSEL;
-				items += animdata_filter_ds_nodetree_group(ac, anim_data, ads, owner_id, (bNodeTree *) node->id, group_filter_mode);
-				ads->filterflag = filterflag;
+				items += animdata_filter_ds_nodetree_group(ac, anim_data, ads, owner_id, (bNodeTree *) node->id,
+				                                           filter_mode | ANIMFILTER_TMP_IGNORE_ONLYSEL);
 			}
 		}
 	}
