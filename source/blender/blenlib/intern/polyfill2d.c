@@ -316,9 +316,9 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 			/* Because the polygon has clockwise winding order,
 			 * the area sign will be positive if the point is strictly inside.
 			 * It will be 0 on the edge, which we want to include as well. */
-			if ((span_tri_v2_sign(v1, v2, v) == CONVEX) &&
-			    (span_tri_v2_sign(v2, v3, v) == CONVEX) &&
-			    (span_tri_v2_sign(v3, v1, v) == CONVEX))
+			if ((span_tri_v2_sign(v1, v2, v) != CONCAVE) &&
+			    (span_tri_v2_sign(v2, v3, v) != CONCAVE) &&
+			    (span_tri_v2_sign(v3, v1, v) != CONCAVE))
 			{
 				return false;
 			}
