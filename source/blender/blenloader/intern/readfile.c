@@ -1354,7 +1354,13 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	}
 	
 	for (; ima; ima = ima->id.next) {
-		ima->cache = newmclipadr(fd, ima->cache);
+		ima->cache = newimaadr(fd, ima->cache);
+		if (ima->cache == NULL) {
+			ima->bindcode = 0;
+			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
+			ima->gputexture = NULL;
+			ima->rr = NULL;
+		}
 		for (i = 0; i < IMA_MAX_RENDER_SLOT; i++)
 			ima->renders[i] = newimaadr(fd, ima->renders[i]);
 		
@@ -3277,7 +3283,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->cache = NULL;
 
 	/* if not restored, we keep the binded opengl index */
-	if (!fd->imamap) {
+	if (!ima->cache) {
 		ima->bindcode = 0;
 		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 		ima->gputexture = NULL;
