@@ -92,7 +92,6 @@ CurveSystemManager::CurveSystemManager()
 	use_curves = true;
 	use_encasing = true;
 	use_backfacing = false;
-	use_tangent_normal = false;
 	use_tangent_normal_geometry = false;
 
 	need_update = true;
@@ -127,8 +126,6 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 		else if(line_method == CURVE_CORRECTED)
 			kcurve->curveflags |= CURVE_KN_INTERSECTCORRECTION;
 
-		if(use_tangent_normal)
-			kcurve->curveflags |= CURVE_KN_TANGENTGNORMAL;
 		if(use_tangent_normal_geometry)
 			kcurve->curveflags |= CURVE_KN_TRUETANGENTGNORMAL;
 		if(use_backfacing)
@@ -158,7 +155,6 @@ bool CurveSystemManager::modified(const CurveSystemManager& CurveSystemManager)
 		line_method == CurveSystemManager.line_method &&
 		primitive == CurveSystemManager.primitive &&
 		use_encasing == CurveSystemManager.use_encasing &&
-		use_tangent_normal == CurveSystemManager.use_tangent_normal &&
 		use_tangent_normal_geometry == CurveSystemManager.use_tangent_normal_geometry &&
 		encasing_ratio == CurveSystemManager.encasing_ratio &&
 		minimum_width == CurveSystemManager.minimum_width &&

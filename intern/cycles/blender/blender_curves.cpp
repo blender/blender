@@ -710,13 +710,11 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->line_method = CURVE_UNCORRECTED;
 		curve_system_manager->use_encasing = true;
 		curve_system_manager->use_backfacing = false;
-		curve_system_manager->use_tangent_normal = true;
 		curve_system_manager->use_tangent_normal_geometry = true;
 	}
 	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_THICK) {
 		curve_system_manager->line_method = CURVE_ACCURATE;
 		curve_system_manager->use_encasing = false;
-		curve_system_manager->use_tangent_normal = false;
 		curve_system_manager->use_tangent_normal_geometry = false;
 	}
 	else if(curve_system_manager->primitive == CURVE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {

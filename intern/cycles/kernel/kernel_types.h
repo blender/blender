@@ -792,8 +792,7 @@ typedef enum CurveFlag {
 	CURVE_KN_ACCURATE = 8,					/* use accurate intersections test? */
 	CURVE_KN_INTERSECTCORRECTION = 16,		/* correct for width after determing closest midpoint? */
 	CURVE_KN_TRUETANGENTGNORMAL = 32,		/* use tangent normal for geometry? */
-	CURVE_KN_TANGENTGNORMAL = 64,			/* use tangent normal for shader? */
-	CURVE_KN_RIBBONS = 128,					/* use flat curve ribbons */
+	CURVE_KN_RIBBONS = 64,					/* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {

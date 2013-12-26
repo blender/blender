@@ -1172,13 +1172,12 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         layout.prop(ccscene, "primitive", text="Primitive")
         layout.prop(ccscene, "shape", text="Shape")
 
-        if ccscene.primitive == 'TRIANGLES':
-            if ccscene.shape == 'THICK':
-                layout.prop(ccscene, "resolution", text="Resolution")
-        elif ccscene.primitive == 'LINE_SEGMENTS':
+        if (ccscene.primitive in {'CURVE_SEGMENTS', 'LINE_SEGMENTS'} and ccscene.shape == 'RIBBONS') == False:
             layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
-        elif ccscene.primitive in {'CURVE_SEGMENTS', 'CURVE_RIBBONS'}:
-            layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
+
+        if ccscene.primitive == 'TRIANGLES' and ccscene.shape == 'THICK':
+            layout.prop(ccscene, "resolution", text="Resolution")
+        elif ccscene.primitive == 'CURVE_SEGMENTS':
             layout.prop(ccscene, "subdivisions", text="Curve subdivisions")
 
         row = layout.row()

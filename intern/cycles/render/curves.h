@@ -97,7 +97,6 @@ public:
 	bool use_curves;
 	bool use_encasing;
 	bool use_backfacing;
-	bool use_tangent_normal;
 	bool use_tangent_normal_geometry;
 
 	bool need_update;
