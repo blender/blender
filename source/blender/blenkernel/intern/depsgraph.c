@@ -2735,7 +2735,7 @@ void DAG_threaded_update_begin(Scene *scene,
                                void (*func)(void *node, void *user_data),
                                void *user_data)
 {
-	DagNode *node, *root_node;
+	DagNode *node;
 
 	/* We reset num_pending_parents to zero first and tag node as not scheduled yet... */
 	for (node = scene->theDag->DagNode.first; node; node = node->next) {
@@ -2756,10 +2756,15 @@ void DAG_threaded_update_begin(Scene *scene,
 		}
 	}
 
-	/* Add root node to the queue. */
-	root_node = scene->theDag->DagNode.first;
-	root_node->scheduled = true;
-	func(root_node, user_data);
+	/* Add root nodes to the queue. */
+	BLI_spin_lock(&threaded_update_lock);
+	for (node = scene->theDag->DagNode.first; node; node = node->next) {
+		if (node->num_pending_parents == 0) {
+			node->scheduled = true;
+			func(node, user_data);
+		}
+	}
+	BLI_spin_unlock(&threaded_update_lock);
 }
 
 /* This function is called when handling node is done.
