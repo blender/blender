@@ -161,7 +161,6 @@ bool BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index
                                             struct MaskSpline **r_masklay_shape, int *r_index);
 int BKE_mask_layer_shape_spline_to_index(struct MaskLayer *masklay, struct MaskSpline *spline);
 
-/* TODO(sergey): do_init and do_init_interpolate are always true, so let's wipe them later. */
 void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay, int index,
                                       bool do_init, bool do_init_interpolate);
 
