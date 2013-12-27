@@ -214,7 +214,7 @@ The next example is an equivalent single line version of the script above which 
 
 .. code-block:: python
 
-   __import__('code').interact(local={k: v for ns in (globals(), locals()) for k, v in ns.items()})
+   __import__('code').interact(local=dict(globals(), **locals()))
 
 
 ``code.interact`` can be added at any line in the script and will pause the script an launch an interactive interpreter in the terminal, when you're done you can quit the interpreter and the script will continue execution.
