@@ -1293,7 +1293,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 	}
 
 	/* Update will decrease child's valency and schedule child with zero valency. */
-	DAG_threaded_update_handle_node_updated(node,scene_update_object_add_task, pool);
+	DAG_threaded_update_handle_node_updated(node, scene_update_object_add_task, pool);
 
 #undef PRINT
 }

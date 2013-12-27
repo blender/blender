@@ -112,9 +112,10 @@ void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *body);
 
 /* Collision detection */
 
-void RB_world_convex_sweep_test(rbDynamicsWorld *world, rbRigidBody *object,
-								const float loc_start[3], const float loc_end[3],
-	                            float v_location[3],  float v_hitpoint[3],  float v_normal[3], int *r_hit);
+void RB_world_convex_sweep_test(
+        rbDynamicsWorld *world, rbRigidBody *object,
+        const float loc_start[3], const float loc_end[3],
+        float v_location[3],  float v_hitpoint[3],  float v_normal[3], int *r_hit);
 
 /* ............ */
 

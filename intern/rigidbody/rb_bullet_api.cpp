@@ -265,7 +265,10 @@ void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *object)
 
 /* Collision detection */
 
-void RB_world_convex_sweep_test(rbDynamicsWorld *world, rbRigidBody *object, const float loc_start[3], const float loc_end[3], float v_location[3],  float v_hitpoint[3],  float v_normal[3], int *r_hit)
+void RB_world_convex_sweep_test(
+        rbDynamicsWorld *world, rbRigidBody *object,
+        const float loc_start[3], const float loc_end[3],
+        float v_location[3],  float v_hitpoint[3],  float v_normal[3], int *r_hit)
 {
 	btRigidBody *body = object->body;
 	btCollisionShape *collisionShape = body->getCollisionShape();
@@ -285,14 +288,14 @@ void RB_world_convex_sweep_test(rbDynamicsWorld *world, rbRigidBody *object, con
 		rayToTrans.setRotation(obRot);
 		rayToTrans.setOrigin(btVector3(loc_end[0], loc_end[1], loc_end[2]));
 		
-		world->dynamicsWorld->convexSweepTest((btConvexShape*) collisionShape, rayFromTrans, rayToTrans, result, 0);
+		world->dynamicsWorld->convexSweepTest((btConvexShape *)collisionShape, rayFromTrans, rayToTrans, result, 0);
 		
 		if (result.hasHit()) {
 			*r_hit = 1;
 			
-			v_location[0] = result.m_convexFromWorld[0]+(result.m_convexToWorld[0]-result.m_convexFromWorld[0])*result.m_closestHitFraction;
-			v_location[1] = result.m_convexFromWorld[1]+(result.m_convexToWorld[1]-result.m_convexFromWorld[1])*result.m_closestHitFraction;
-			v_location[2] = result.m_convexFromWorld[2]+(result.m_convexToWorld[2]-result.m_convexFromWorld[2])*result.m_closestHitFraction;
+			v_location[0] = result.m_convexFromWorld[0] + (result.m_convexToWorld[0] - result.m_convexFromWorld[0]) * result.m_closestHitFraction;
+			v_location[1] = result.m_convexFromWorld[1] + (result.m_convexToWorld[1] - result.m_convexFromWorld[1]) * result.m_closestHitFraction;
+			v_location[2] = result.m_convexFromWorld[2] + (result.m_convexToWorld[2] - result.m_convexFromWorld[2]) * result.m_closestHitFraction;
 			
 			v_hitpoint[0] = result.m_hitPointWorld[0];
 			v_hitpoint[1] = result.m_hitPointWorld[1];
@@ -307,7 +310,7 @@ void RB_world_convex_sweep_test(rbDynamicsWorld *world, rbRigidBody *object, con
 			*r_hit = 0;
 		}
 	}
-	else{
+	else {
 		/* we need to return a value if user passes non convex body, to report */
 		*r_hit = -2;
 	}
@@ -972,7 +975,7 @@ rbConstraint *RB_constraint_new_motor(float pivot[3], float orn[4], rbRigidBody 
 	/* unlock motor axes */
 	con->getTranslationalLimitMotor()->m_upperLimit.setValue(-1.0f, -1.0f, -1.0f);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 /* Cleanup ----------------------------- */
