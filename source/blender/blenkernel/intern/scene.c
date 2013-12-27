@@ -1184,7 +1184,7 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
 
 /* Mballs evaluation uses BKE_scene_base_iter_next which calls
  * duplilist for all objects in the scene. This leads to conflict
- * accessing and writting same data from multipl threads.
+ * accessing and writing same data from multiple threads.
  *
  * Ideally Mballs shouldn't do such an iteration and use DAG
  * queries instead. For the time being we've got new DAG
