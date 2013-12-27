@@ -486,67 +486,6 @@ ccl_device_inline int4 make_int4(const float3& f)
 
 #endif
 
-#ifdef __KERNEL_SSE2__
-
-/* SSE shuffle utility functions */
-
-#ifdef __KERNEL_SSSE3__
-
-/* faster version for SSSE3 */
-typedef __m128i shuffle_swap_t;
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
-{
-	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-}
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
-{
-	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
-}
-
-ccl_device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t& shuf)
-{
-	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf));
-}
-
-#else
-
-/* somewhat slower version for SSE2 */
-typedef int shuffle_swap_t;
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
-{
-	return 0;
-}
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
-{
-	return 1;
-}
-
-ccl_device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
-{
-	/* shuffle value must be a constant, so we need to branch */
-	if(shuf)
-		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 0, 3, 2));
-	else
-		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 1, 0));
-}
-
-#endif
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a, const __m128& b)
-{
-	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
-}
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& b)
-{
-	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
-}
-#endif
-
 /* Half Floats */
 
 #ifdef __KERNEL_OPENCL__

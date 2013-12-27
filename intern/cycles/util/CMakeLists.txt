@@ -50,6 +50,7 @@ set(SRC_HEADERS
 	util_path.h
 	util_progress.h
 	util_set.h
+	util_simd.h
 	util_stats.h
 	util_string.h
 	util_system.h
