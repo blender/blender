@@ -423,6 +423,11 @@ int RE_engine_render(Render *re, int do_all)
 	if (!do_all && (type->flag & RE_USE_POSTPROCESS))
 		return 0;
 
+	/* Lock drawing in UI during data phase. */
+	if (re->draw_lock) {
+		re->draw_lock(re->dlh, 1);
+	}
+
 	/* update animation here so any render layer animation is applied before
 	 * creating the render result */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0) {
@@ -476,8 +481,13 @@ int RE_engine_render(Render *re, int do_all)
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);
 
-	if (re->result == NULL)
+	if (re->result == NULL) {
+		/* Clear UI drawing locks. */
+		if (re->draw_lock) {
+			re->draw_lock(re->dlh, 0);
+		}
 		return 1;
+	}
 
 	/* set render info */
 	re->i.cfra = re->scene->r.cfra;
@@ -515,7 +525,12 @@ int RE_engine_render(Render *re, int do_all)
 
 	if (type->update)
 		type->update(engine, re->main, re->scene);
-	
+
+	/* Clear UI drawing locks. */
+	if (re->draw_lock) {
+		re->draw_lock(re->dlh, 0);
+	}
+
 	if (type->render)
 		type->render(engine, re->scene);
 
