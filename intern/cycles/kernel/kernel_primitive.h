@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
 {
-	if(sd->object == ~0)
+	if(sd->object == ~0 || sd->prim == ~0)
 		return (int)ATTR_STD_NOT_FOUND;
 
 #ifdef __OSL__

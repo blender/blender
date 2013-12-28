@@ -22,7 +22,7 @@ ccl_device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 	uint4 node, NodeAttributeType *type,
 	NodeAttributeType *mesh_type, AttributeElement *elem, int *offset, uint *out_offset)
 {
-	if(sd->object != ~0) {
+	if(sd->object != ~0 && sd->prim != ~0) {
 		/* find attribute by unique id */
 		uint id = node.y;
 		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
