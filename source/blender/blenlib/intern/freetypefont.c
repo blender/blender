@@ -65,6 +65,7 @@ static FT_Error err;
 
 static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
+	const float scale = vfd->scale;
 	const float eps = 0.0001f;
 	const float eps_sq = eps * eps;
 	/* Blender */
@@ -76,16 +77,8 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 	FT_GlyphSlot glyph;
 	FT_UInt glyph_index;
 	FT_Outline ftoutline;
-	float scale, height;
 	float dx, dy;
 	int j, k, l, m = 0;
-
-	/* adjust font size */
-	height = ((double) face->bbox.yMax - (double) face->bbox.yMin);
-	if (height != 0.0f)
-		scale = 1.0f / height;
-	else
-		scale = 1.0f / 1000.0f;
 
 	/*
 	 * Generate the character 3D data
@@ -401,6 +394,15 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 			return NULL;
 
 		lcode = charcode = FT_Get_First_Char(face, &glyph_index);
+	}
+
+
+	/* Adjust font size */
+	if (face->bbox.yMax != face->bbox.yMin) {
+		vfd->scale = (float)(1.0 / (double)(face->bbox.yMax - face->bbox.yMin));
+	}
+	else {
+		vfd->scale = 1.0f / 1000.0f;
 	}
 
 	/* Load characters */
