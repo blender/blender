@@ -942,7 +942,8 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	}
 }
 
-static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
+static void vertex_duplilist(EvaluationContext *eval_ctx,
+                             ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
                              int level, short flag)
 {
 	const bool use_rotation = (par->transflag & OB_DUPLIROT) != 0;
@@ -965,6 +966,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	/* simple preventing of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
 	
+	vdd.eval_ctx = eval_ctx;
+
 	em = BKE_editmesh_from_object(par);
 	
 	/* get derived mesh */
@@ -976,7 +979,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 		dm = editbmesh_get_derived_cage(scene, par, em, dm_mask);
 	else
 		dm = mesh_get_derived_final(scene, par, dm_mask);
-	
+
 	if (flag & DUPLILIST_FOR_RENDER)
 		vdd.orco = dm->getVertDataArray(dm, CD_ORCO);
 	else
@@ -1691,7 +1694,7 @@ static void object_duplilist_recursive(EvaluationContext *eval_ctx,
 	}
 	else if (ob->transflag & OB_DUPLIVERTS) {
 		if (ob->type == OB_MESH) {
-			vertex_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
+			vertex_duplilist(eval_ctx, duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
 		}
 		else if (ob->type == OB_FONT) {
 			if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
