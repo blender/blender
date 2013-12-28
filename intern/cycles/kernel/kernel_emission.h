@@ -225,7 +225,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int
 ccl_device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf, int bounce)
 {
 #ifdef __BACKGROUND__
-	int shader = kernel_data.background.shader;
+	int shader = kernel_data.background.surface_shader;
 
 	/* use visibility flag to skip lights */
 	if(shader & SHADER_EXCLUDE_ANY) {

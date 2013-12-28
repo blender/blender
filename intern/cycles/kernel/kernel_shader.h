@@ -376,7 +376,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->N = -ray->D;
 	sd->Ng = -ray->D;
 	sd->I = -ray->D;
-	sd->shader = kernel_data.background.shader;
+	sd->shader = kernel_data.background.surface_shader;
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 #ifdef __OBJECT_MOTION__
 	sd->time = ray->time;

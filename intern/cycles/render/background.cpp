@@ -65,16 +65,21 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kbackground->ao_distance = ao_distance;
 
 	kbackground->transparent = transparent;
-	kbackground->shader = scene->shader_manager->get_shader_id(shader);
+	kbackground->surface_shader = scene->shader_manager->get_shader_id(shader);
+
+	if(scene->shaders[shader]->has_volume)
+		kbackground->volume_shader = kbackground->surface_shader;
+	else
+		kbackground->volume_shader = SHADER_NO_ID;
 
 	if(!(visibility & PATH_RAY_DIFFUSE))
-		kbackground->shader |= SHADER_EXCLUDE_DIFFUSE;
+		kbackground->surface_shader |= SHADER_EXCLUDE_DIFFUSE;
 	if(!(visibility & PATH_RAY_GLOSSY))
-		kbackground->shader |= SHADER_EXCLUDE_GLOSSY;
+		kbackground->surface_shader |= SHADER_EXCLUDE_GLOSSY;
 	if(!(visibility & PATH_RAY_TRANSMIT))
-		kbackground->shader |= SHADER_EXCLUDE_TRANSMIT;
+		kbackground->surface_shader |= SHADER_EXCLUDE_TRANSMIT;
 	if(!(visibility & PATH_RAY_CAMERA))
-		kbackground->shader |= SHADER_EXCLUDE_CAMERA;
+		kbackground->surface_shader |= SHADER_EXCLUDE_CAMERA;
 
 	need_update = false;
 }
