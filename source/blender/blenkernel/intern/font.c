@@ -39,11 +39,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_path_util.h"
+#include "BLI_listbase.h"
+#include "BLI_ghash.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_vfontdata.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
@@ -66,16 +70,21 @@ static ThreadMutex vfont_mutex = BLI_MUTEX_INITIALIZER;
 void BKE_vfont_free_data(struct VFont *vfont)
 {
 	if (vfont->data) {
-		while (vfont->data->characters.first) {
-			VChar *che = vfont->data->characters.first;
+		if (vfont->data->characters) {
+			GHashIterator gh_iter;
+			GHASH_ITER (gh_iter, vfont->data->characters) {
+				VChar *che = BLI_ghashIterator_getValue(&gh_iter);
 
-			while (che->nurbsbase.first) {
-				Nurb *nu = che->nurbsbase.first;
-				if (nu->bezt) MEM_freeN(nu->bezt);
-				BLI_freelinkN(&che->nurbsbase, nu);
+				while (che->nurbsbase.first) {
+					Nurb *nu = che->nurbsbase.first;
+					if (nu->bezt) MEM_freeN(nu->bezt);
+					BLI_freelinkN(&che->nurbsbase, nu);
+				}
+
+				MEM_freeN(che);
 			}
 
-			BLI_freelinkN(&vfont->data->characters, che);
+			BLI_ghash_free(vfont->data->characters, NULL, NULL);
 		}
 
 		MEM_freeN(vfont->data);
@@ -279,16 +288,9 @@ VFont *BKE_vfont_builtin_get(void)
 	return BKE_vfont_load(G.main, FO_BUILTIN_NAME);
 }
 
-static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
+static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
 {
-	VChar *che = NULL;
-
-	/* TODO: use ghash */
-	for (che = vfd->characters.first; che; che = che->next) {
-		if (che->index == character)
-			break;
-	}
-	return che; /* NULL if not found */
+	return BLI_ghash_lookup(vfd->characters, SET_UINT_IN_POINTER(character));
 }
 		
 static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
@@ -326,7 +328,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 
 }
 
-static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo *info,
+static void buildchar(Main *bmain, Curve *cu, unsigned int character, CharInfo *info,
                       float ofsx, float ofsy, float rot, int charidx)
 {
 	BezTriple *bezt1, *bezt2;
@@ -1004,7 +1006,7 @@ makebreak:
 		ct = chartransdata;
 		if (cu->sepchar == 0) {
 			for (i = 0; i < slen; i++) {
-				unsigned long cha = (uintptr_t) mem[i];
+				unsigned int cha = (unsigned int) mem[i];
 				info = &(custrinfo[i]);
 				if (info->mat_nr > (ob->totcol)) {
 					/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */

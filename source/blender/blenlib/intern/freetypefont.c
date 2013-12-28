@@ -50,6 +50,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vfontdata.h"
 #include "BLI_listbase.h"
+#include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_math.h"
 
@@ -100,7 +101,6 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 
 		/* First we create entry for the new character to the character list */
 		che = (VChar *) MEM_callocN(sizeof(struct VChar), "objfnt_char");
-		BLI_addtail(&vfd->characters, che);
 
 		/* Take some data for modifying purposes */
 		glyph = face->glyph;
@@ -110,8 +110,10 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		che->index = charcode;
 		che->width = glyph->advance.x * scale;
 
+		BLI_ghash_insert(vfd->characters, SET_UINT_IN_POINTER(che->index), che);
+
 		/* Start converting the FT data */
-		npoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "endpoints");
+		npoints = (int *)MEM_mallocN((ftoutline.n_contours) * sizeof(int), "endpoints");
 		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
 		/* calculate total points of each contour */
@@ -319,6 +321,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 {
 	/* Variables */
 	FT_Face face;
+	const FT_ULong charcode_reserve = 256;
 	FT_ULong charcode = 0, lcode;
 	FT_UInt glyph_index;
 	const char *fontname;
@@ -393,7 +396,9 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 	}
 
 	/* Load characters */
-	while (charcode < 256) {
+	vfd->characters = BLI_ghash_int_new_ex(__func__, charcode_reserve);
+
+	while (charcode < charcode_reserve) {
 		/* Generate the font data */
 		freetypechar_to_vchar(face, charcode, vfd);
 
