@@ -42,7 +42,7 @@ ccl_device int quick_floor(float x)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128i quick_floor_sse(const __m128 *x)
+ccl_device_inline __m128i quick_floor_sse(const __m128 *x)
 {
     __m128i b = _mm_cvttps_epi32(*x);
     __m128i isneg = _mm_castps_si128(_mm_cmplt_ps(*x, _mm_set1_ps(0.0f)));
@@ -85,7 +85,7 @@ ccl_device uint hash(uint kx, uint ky, uint kz)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128i hash_sse(const __m128i *kx, const __m128i *ky, const __m128i *kz)
+ccl_device_inline __m128i hash_sse(const __m128i *kx, const __m128i *ky, const __m128i *kz)
 {
 #define rot(x,k) _mm_or_si128(_mm_slli_epi32((x), (k)), _mm_srli_epi32((x), 32-(k)))
 #define xor_rot(a, b, c) do {a = _mm_xor_si128(a, b); a = _mm_sub_epi32(a, rot(b, c));} while(0)
@@ -128,7 +128,7 @@ ccl_device float floorfrac(float x, int* i)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128 floorfrac_sse(const __m128 *x, __m128i *i)
+ccl_device_inline __m128 floorfrac_sse(const __m128 *x, __m128i *i)
 {
     *i = quick_floor_sse(x);
     return _mm_sub_ps(*x, _mm_cvtepi32_ps(*i));
@@ -141,7 +141,7 @@ ccl_device float fade(float t)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128 fade_sse(const __m128 *t)
+ccl_device_inline __m128 fade_sse(const __m128 *t)
 {
   __m128 a = FMA(*t, _mm_set1_ps(6.0f), _mm_set1_ps(-15.0f));
   __m128 b = FMA(*t, a, _mm_set1_ps(10.0f));
@@ -155,7 +155,7 @@ ccl_device float nerp(float t, float a, float b)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128 nerp_sse(const __m128 *t, const __m128 *a, const __m128 *b)
+ccl_device_inline __m128 nerp_sse(const __m128 *t, const __m128 *a, const __m128 *b)
 {
     __m128 x1 = _mm_mul_ps(_mm_sub_ps(_mm_set1_ps(1.0f), *t), *a);
     return FMA(*t, *b, x1);
@@ -172,7 +172,7 @@ ccl_device float grad(int hash, float x, float y, float z)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128 grad_sse(const __m128i *hash, const __m128 *x, const __m128 *y, const __m128 *z)
+ccl_device_inline __m128 grad_sse(const __m128i *hash, const __m128 *x, const __m128 *y, const __m128 *z)
 {
     __m128i c1 = _mm_set1_epi32(1);
     __m128i c2 = _mm_set1_epi32(2);
@@ -219,7 +219,7 @@ ccl_device float scale3(float result)
 }
 
 #if defined(__KERNEL_SSE2__)
-ccl_device __m128 scale3_sse(const __m128 *result)
+ccl_device_inline __m128 scale3_sse(const __m128 *result)
 {
     return _mm_mul_ps(_mm_set1_ps(0.9820f), *result);
 }
