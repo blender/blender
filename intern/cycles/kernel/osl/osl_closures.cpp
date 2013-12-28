@@ -55,6 +55,7 @@
 #include "closure/bsdf_westin.h"
 #include "closure/bsdf_toon.h"
 #include "closure/bsdf_hair.h"
+#include "closure/volume.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -169,6 +170,13 @@ BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, hair_transmission,
 #endif
 BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
 
+VOLUME_CLOSURE_CLASS_BEGIN(VolumeHenyeyGreenstein, henyey_greenstein, LABEL_VOLUME_SCATTER)
+	CLOSURE_FLOAT_PARAM(VolumeHenyeyGreensteinClosure, sc.data0),
+VOLUME_CLOSURE_CLASS_END(VolumeHenyeyGreenstein, henyey_greenstein)
+
+VOLUME_CLOSURE_CLASS_BEGIN(VolumeAbsorption, absorption, LABEL_SINGULAR)
+VOLUME_CLOSURE_CLASS_END(VolumeAbsorption, absorption)
+
 /* Registration */
 
 static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, OSL::ClosureParam *params, OSL::PrepareClosureFunc prepare)
@@ -248,6 +256,11 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_hair_reflection_params(), bsdf_hair_reflection_prepare);
 	register_closure(ss, "hair_transmission", id++,
 		bsdf_hair_transmission_params(), bsdf_hair_transmission_prepare);
+
+	register_closure(ss, "henyey_greenstein", id++,
+		volume_henyey_greenstein_params(), volume_henyey_greenstein_prepare);
+	register_closure(ss, "absorption", id++,
+		volume_absorption_params(), volume_absorption_prepare);
 }
 
 CCL_NAMESPACE_END

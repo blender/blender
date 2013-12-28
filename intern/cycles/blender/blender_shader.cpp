@@ -422,11 +422,11 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeAmbientOcclusion)) {
 		node = new AmbientOcclusionNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVolumeIsotropic)) {
-		node = new IsotropicVolumeNode();
+	else if (b_node.is_a(&RNA_ShaderNodeVolumeScatter)) {
+		node = new ScatterVolumeNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVolumeTransparent)) {
-		node = new TransparentVolumeNode();
+	else if (b_node.is_a(&RNA_ShaderNodeVolumeAbsorption)) {
+		node = new AbsorptionVolumeNode();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeNewGeometry)) {
 		node = new GeometryNode();

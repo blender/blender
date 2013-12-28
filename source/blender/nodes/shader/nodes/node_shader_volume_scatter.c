@@ -29,33 +29,35 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_volume_isotropic_in[] = {
+static bNodeSocketTemplate sh_node_volume_scatter_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Density"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("Anisotropy"),0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_volume_isotropic_out[] = {
+static bNodeSocketTemplate sh_node_volume_scatter_out[] = {
 	{	SOCK_SHADER, 0, N_("Volume")},
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_volume_isotropic(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
+static int node_shader_gpu_volume_scatter(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
 	return 0;
 }
 
 /* node type definition */
-void register_node_type_sh_volume_isotropic(void)
+void register_node_type_sh_volume_scatter(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_VOLUME_ISOTROPIC, "Isotropic Volume", NODE_CLASS_SHADER, 0);
+	sh_node_type_base(&ntype, SH_NODE_VOLUME_SCATTER, "Volume Scatter", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_volume_isotropic_in, sh_node_volume_isotropic_out);
+	node_type_socket_templates(&ntype, sh_node_volume_scatter_in, sh_node_volume_scatter_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_volume_isotropic);
+	node_type_gpu(&ntype, node_shader_gpu_volume_scatter);
 
 	nodeRegisterType(&ntype);
 }
+

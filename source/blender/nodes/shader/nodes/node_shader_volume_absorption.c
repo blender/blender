@@ -29,33 +29,33 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_volume_transparent_in[] = {
+static bNodeSocketTemplate sh_node_volume_absorption_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Density"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_volume_transparent_out[] = {
+static bNodeSocketTemplate sh_node_volume_absorption_out[] = {
 	{	SOCK_SHADER, 0, N_("Volume")},
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_volume_transparent(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
+static int node_shader_gpu_volume_absorption(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
 	return 0;
 }
 
 /* node type definition */
-void register_node_type_sh_volume_transparent(void)
+void register_node_type_sh_volume_absorption(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_VOLUME_TRANSPARENT, "Transparent Volume", NODE_CLASS_SHADER, 0);
+	sh_node_type_base(&ntype, SH_NODE_VOLUME_ABSORPTION, "Volume Absorption", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_volume_transparent_in, sh_node_volume_transparent_out);
+	node_type_socket_templates(&ntype, sh_node_volume_absorption_in, sh_node_volume_absorption_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_volume_transparent);
+	node_type_gpu(&ntype, node_shader_gpu_volume_absorption);
 
 	nodeRegisterType(&ntype);
 }

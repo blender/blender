@@ -54,6 +54,7 @@ OSL::ClosureParam *closure_bssrdf_cubic_params();
 OSL::ClosureParam *closure_bssrdf_gaussian_params();
 OSL::ClosureParam *closure_bssrdf_cubic_extended_params();
 OSL::ClosureParam *closure_bssrdf_gaussian_extended_params();
+OSL::ClosureParam *closure_henyey_greenstein_volume_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
@@ -65,6 +66,7 @@ void closure_westin_backscatter_prepare(OSL::RendererServices *, int id, void *d
 void closure_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_gaussian_prepare(OSL::RendererServices *, int id, void *data);
+void closure_henyey_greenstein_volume_prepare(OSL::RendererServices *, int id, void *data);
 
 #define CCLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \
@@ -185,6 +187,54 @@ static ClosureParam *bsdf_##lower##_params() \
 } \
 \
 CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
+
+
+/* Volume */
+
+class CVolumeClosure : public CClosurePrimitive {
+public:
+	ShaderClosure sc;
+
+	CVolumeClosure(int scattering) : CClosurePrimitive(Volume),
+	  m_scattering_label(scattering), m_shaderdata_flag(0)
+	{ memset(&sc, 0, sizeof(sc)); }
+	~CVolumeClosure() { }
+
+	int scattering() const { return m_scattering_label; }
+	int shaderdata_flag() const { return m_shaderdata_flag; }
+
+protected:
+	int m_scattering_label;
+	int m_shaderdata_flag;
+};
+
+#define VOLUME_CLOSURE_CLASS_BEGIN(Upper, lower, TYPE) \
+\
+class Upper##Closure : public CVolumeClosure { \
+public: \
+	Upper##Closure() : CVolumeClosure(TYPE) {} \
+\
+	void setup() \
+	{ \
+		sc.prim = NULL; \
+		m_shaderdata_flag = volume_##lower##_setup(&sc); \
+	} \
+}; \
+\
+static ClosureParam *volume_##lower##_params() \
+{ \
+	static ClosureParam params[] = {
+
+/* parameters */
+
+#define VOLUME_CLOSURE_CLASS_END(Upper, lower) \
+		CLOSURE_STRING_KEYPARAM("label"), \
+	    CLOSURE_FINISH_PARAM(Upper##Closure) \
+	}; \
+	return params; \
+} \
+\
+CCLOSURE_PREPARE_STATIC(volume_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 

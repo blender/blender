@@ -452,11 +452,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "background")) {
 			snode = new BackgroundNode();
 		}
-		else if(string_iequals(node.name(), "transparent_volume")) {
-			snode = new TransparentVolumeNode();
+		else if(string_iequals(node.name(), "absorption_volume")) {
+			snode = new AbsorptionVolumeNode();
 		}
-		else if(string_iequals(node.name(), "isotropic_volume")) {
-			snode = new IsotropicVolumeNode();
+		else if(string_iequals(node.name(), "scatter_volume")) {
+			snode = new ScatterVolumeNode();
 		}
 		else if(string_iequals(node.name(), "geometry")) {
 			snode = new GeometryNode();

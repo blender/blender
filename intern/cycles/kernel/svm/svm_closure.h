@@ -77,7 +77,7 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float
 	float3 weight = sc->weight * mix_weight;
 	float sample_weight = fabsf(average(weight));
 
-	if(sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
+	if(sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure < MAX_CLOSURE) {
 		sc->weight = weight;
 		sc->sample_weight = sample_weight;
 		sd->num_closure++;
@@ -390,7 +390,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR)
 				param1 = 0.0f;
 
-			if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
+			if(sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure+2 < MAX_CLOSURE) {
 				/* radius * scale */
 				float3 radius = stack_load_float3(stack, data_node.z)*param1;
 				/* sharpness */
@@ -473,24 +473,25 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 #endif
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
-	//float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
+	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
+	float density = param1;
 
 	switch(type) {
-		case CLOSURE_VOLUME_TRANSPARENT_ID: {
-			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+		case CLOSURE_VOLUME_ABSORPTION_ID: {
+			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight * density);
 
 			if(sc) {
-				float density = param1;
-				sd->flag |= volume_transparent_setup(sc, density);
+				sd->flag |= volume_absorption_setup(sc);
 			}
 			break;
 		}
-		case CLOSURE_VOLUME_ISOTROPIC_ID: {
-			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID: {
+			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight * density);
 
 			if(sc) {
-				float density = param1;
-				sd->flag |= volume_isotropic_setup(sc, density);
+				float g = param2;
+				sc->data0 = g;
+				sd->flag |= volume_henyey_greenstein_setup(sc);
 			}
 			break;
 		}

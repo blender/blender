@@ -195,15 +195,16 @@ void OSLShaderManager::shading_system_init()
 
 		/* our own ray types */
 		static const char *raytypes[] = {
-			"camera",		/* PATH_RAY_CAMERA */
-			"reflection",	/* PATH_RAY_REFLECT */
-			"refraction",	/* PATH_RAY_TRANSMIT */
-			"diffuse",		/* PATH_RAY_DIFFUSE */
-			"glossy",		/* PATH_RAY_GLOSSY */
-			"singular",		/* PATH_RAY_SINGULAR */
-			"transparent",	/* PATH_RAY_TRANSPARENT */
-			"shadow",		/* PATH_RAY_SHADOW_OPAQUE */
-			"shadow",		/* PATH_RAY_SHADOW_TRANSPARENT */
+			"camera",			/* PATH_RAY_CAMERA */
+			"reflection",		/* PATH_RAY_REFLECT */
+			"refraction",		/* PATH_RAY_TRANSMIT */
+			"diffuse",			/* PATH_RAY_DIFFUSE */
+			"glossy",			/* PATH_RAY_GLOSSY */
+			"singular",			/* PATH_RAY_SINGULAR */
+			"transparent",		/* PATH_RAY_TRANSPARENT */
+			"volume_scatter",	/* PATH_RAY_VOLUME_SCATTER */
+			"shadow",			/* PATH_RAY_SHADOW_OPAQUE */
+			"shadow",			/* PATH_RAY_SHADOW_TRANSPARENT */
 
 			"__unused__",
 			"__unused__",

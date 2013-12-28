@@ -187,7 +187,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 #endif
 
 					/* add */
-					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
+					if(sc.sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure < MAX_CLOSURE) {
 						sd->closure[sd->num_closure++] = sc;
 						sd->flag |= bsdf->shaderdata_flag();
 					}
@@ -243,7 +243,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 					CBSSRDFClosure *bssrdf = (CBSSRDFClosure *)prim;
 					float sample_weight = fabsf(average(weight));
 
-					if(sample_weight > 1e-5f && sd->num_closure+2 < MAX_CLOSURE) {
+					if(sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure+2 < MAX_CLOSURE) {
 						sc.sample_weight = sample_weight;
 
 						sc.type = bssrdf->sc.type;
@@ -401,18 +401,21 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 
 			switch (prim->category) {
 				case CClosurePrimitive::Volume: {
+					CVolumeClosure *volume = (CVolumeClosure *)prim;
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 
 					sc.sample_weight = sample_weight;
-					sc.type = CLOSURE_VOLUME_ID;
-					sc.data0 = 0.0f;
-					sc.data1 = 0.0f;
-					sc.prim = NULL;
+					sc.type = volume->sc.type;
+					sc.data0 = volume->sc.data0;
+					sc.data1 = volume->sc.data1;
 
 					/* add */
-					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE)
+					if(sc.sample_weight > CLOSURE_WEIGHT_CUTOFF &&
+					   sd->num_closure < MAX_CLOSURE) {
 						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= volume->shaderdata_flag();
+					}
 					break;
 				}
 				case CClosurePrimitive::Holdout:
@@ -451,6 +454,10 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 
 	if (kg->osl->volume_state[shader])
 		ss->execute(*octx, *(kg->osl->volume_state[shader]), *globals);
+	
+	/* flatten closure tree */
+	sd->num_closure = 0;
+	sd->randb_closure = randb;
 
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);

@@ -316,14 +316,14 @@ public:
 	ClosureType closure;
 };
 
-class TransparentVolumeNode : public VolumeNode {
+class AbsorptionVolumeNode : public VolumeNode {
 public:
-	SHADER_NODE_CLASS(TransparentVolumeNode)
+	SHADER_NODE_CLASS(AbsorptionVolumeNode)
 };
 
-class IsotropicVolumeNode : public VolumeNode {
+class ScatterVolumeNode : public VolumeNode {
 public:
-	SHADER_NODE_CLASS(IsotropicVolumeNode)
+	SHADER_NODE_CLASS(ScatterVolumeNode)
 };
 
 class HairBsdfNode : public BsdfNode {

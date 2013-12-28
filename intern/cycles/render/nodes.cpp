@@ -1951,7 +1951,7 @@ void AmbientOcclusionNode::compile(OSLCompiler& compiler)
 VolumeNode::VolumeNode()
 : ShaderNode("volume")
 {
-	closure = CLOSURE_VOLUME_ISOTROPIC_ID;
+	closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Density", SHADER_SOCKET_FLOAT, 1.0f);
@@ -1995,38 +1995,40 @@ void VolumeNode::compile(OSLCompiler& compiler)
 	assert(0);
 }
 
-/* Transparent Volume Closure */
+/* Absorption Volume Closure */
 
-TransparentVolumeNode::TransparentVolumeNode()
+AbsorptionVolumeNode::AbsorptionVolumeNode()
 {
-	closure = CLOSURE_VOLUME_TRANSPARENT_ID;
+	closure = CLOSURE_VOLUME_ABSORPTION_ID;
 }
 
-void TransparentVolumeNode::compile(SVMCompiler& compiler)
+void AbsorptionVolumeNode::compile(SVMCompiler& compiler)
 {
 	VolumeNode::compile(compiler, input("Density"), NULL);
 }
 
-void TransparentVolumeNode::compile(OSLCompiler& compiler)
+void AbsorptionVolumeNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_transparent_volume");
+	compiler.add(this, "node_absorption_volume");
 }
 
-/* Isotropic Volume Closure */
+/* Scatter Volume Closure */
 
-IsotropicVolumeNode::IsotropicVolumeNode()
+ScatterVolumeNode::ScatterVolumeNode()
 {
-	closure = CLOSURE_VOLUME_ISOTROPIC_ID;
+	closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+	
+	add_input("Anisotropy", SHADER_SOCKET_FLOAT, 0.0f);
 }
 
-void IsotropicVolumeNode::compile(SVMCompiler& compiler)
+void ScatterVolumeNode::compile(SVMCompiler& compiler)
 {
-	VolumeNode::compile(compiler, input("Density"), NULL);
+	VolumeNode::compile(compiler, input("Density"), input("Anisotropy"));
 }
 
-void IsotropicVolumeNode::compile(OSLCompiler& compiler)
+void ScatterVolumeNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_isotropic_volume");
+	compiler.add(this, "node_scatter_volume");
 }
 
 /* Hair BSDF Closure */
@@ -2304,6 +2306,7 @@ LightPathNode::LightPathNode()
 	add_output("Is Singular Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Reflection Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
+	add_output("Is Volume Scatter Ray", SHADER_SOCKET_FLOAT);
 	add_output("Ray Length", SHADER_SOCKET_FLOAT);
 	add_output("Ray Depth", SHADER_SOCKET_FLOAT);
 }
@@ -2355,6 +2358,12 @@ void LightPathNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_transmission, out->stack_offset);
 	}
 	
+	out = output("Is Volume Scatter Ray");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_volume_scatter, out->stack_offset);
+	}
+
 	out = output("Ray Length");
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);

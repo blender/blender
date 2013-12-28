@@ -868,17 +868,19 @@ ccl_device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+	float pdf;
 
 	for(int i = 0; i< sd->num_closure; i++) {
 		const ShaderClosure *sc = &sd->closure[i];
 
 		if(CLOSURE_IS_VOLUME(sc->type))
-			eval += volume_eval_phase(kg, sc, omega_in, omega_out);
+			eval += volume_eval_phase(sc, omega_in, omega_out, &pdf);
 	}
 
 	return eval;
 #else
-	return volume_eval_phase(kg, &sd->closure, omega_in, omega_out);
+	float pdf;
+	return volume_eval_phase(&sd->closure, omega_in, omega_out, &pdf);
 #endif
 }
 

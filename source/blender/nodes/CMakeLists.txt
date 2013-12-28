@@ -197,8 +197,8 @@ set(SRC
 	shader/nodes/node_shader_tex_sky.c
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
-	shader/nodes/node_shader_volume_isotropic.c
-	shader/nodes/node_shader_volume_transparent.c
+	shader/nodes/node_shader_volume_scatter.c
+	shader/nodes/node_shader_volume_absorption.c
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 
