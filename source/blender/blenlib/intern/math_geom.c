@@ -219,17 +219,41 @@ float volume_tetrahedron_v3(const float v1[3], const float v2[3], const float v3
 
 /* distance p to line v1-v2
  * using Hesse formula, NO LINE PIECE! */
+float dist_squared_to_line_v2(const float p[2], const float l1[2], const float l2[2])
+{
+	float a[2], deler;
+
+	a[0] = l1[1] - l2[1];
+	a[1] = l2[0] - l1[0];
+
+	deler = len_squared_v2(a);
+
+	if (deler != 0.0f) {
+		float f = ((p[0] - l1[0]) * a[0] +
+		           (p[1] - l1[1]) * a[1]);
+		return (f * f) / deler;
+	}
+	else {
+		return 0.0f;
+	}
+}
 float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float a[2], deler;
 
 	a[0] = l1[1] - l2[1];
 	a[1] = l2[0] - l1[0];
-	deler = (float)sqrt(a[0] * a[0] + a[1] * a[1]);
-	if (deler == 0.0f) return 0;
 
-	return fabsf((p[0] - l1[0]) * a[0] + (p[1] - l1[1]) * a[1]) / deler;
+	deler = len_squared_v2(a);
 
+	if (deler != 0.0f) {
+		float f = ((p[0] - l1[0]) * a[0] +
+		           (p[1] - l1[1]) * a[1]);
+		return fabsf(f) / sqrtf(deler);
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 /* distance p to line-piece v1-v2 */
@@ -350,13 +374,17 @@ float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l
 	return sqrtf(dist_squared_to_line_segment_v3(p, l1, l2));
 }
 
-float dist_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
+float dist_squared_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
 {
 	float closest[3];
 
 	closest_to_line_v3(closest, v1, l1, l2);
 
-	return len_v3v3(closest, v1);
+	return len_squared_v3v3(closest, v1);
+}
+float dist_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
+{
+	return sqrtf(dist_squared_to_line_v3(v1, l1, l2));
 }
 
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,

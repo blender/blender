@@ -62,6 +62,7 @@ typedef struct ScanFillVertLink {
 /* local funcs */
 
 #define SF_EPSILON   0.00003f
+#define SF_EPSILON_SQ (SF_EPSILON * SF_EPSILON)
 
 #define SF_VERT_AVAILABLE  1  /* available - in an edge */
 #define SF_VERT_ZERO_LEN 255
@@ -374,8 +375,8 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 					}
 					else {
 						if (boundinsideEV(eed, eve)) {
-							const float dist = dist_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
-							if (dist < SF_EPSILON) {
+							const float dist = dist_squared_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
+							if (dist < SF_EPSILON_SQ) {
 								/* new edge */
 								ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 								
