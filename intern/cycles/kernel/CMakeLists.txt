@@ -51,6 +51,7 @@ set(SRC_HEADERS
 	kernel_textures.h
 	kernel_triangle.h
 	kernel_types.h
+	kernel_volume.h
 )
 
 set(SRC_CLOSURE_HEADERS

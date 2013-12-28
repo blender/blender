@@ -133,7 +133,6 @@ void Scene::device_update(Device *device_, Progress& progress)
 	/* The order of updates is important, because there's dependencies between
 	 * the different managers, using data computed by previous managers.
 	 *
-	 * - Background generates shader graph compiled by shader manager.
 	 * - Image manager uploads images used by shaders.
 	 * - Camera may be used for adapative subdivison.
 	 * - Displacement shader must have all shader data available.
@@ -142,11 +141,6 @@ void Scene::device_update(Device *device_, Progress& progress)
 	
 	image_manager->set_pack_images(device->info.pack_images);
 
-	progress.set_status("Updating Background");
-	background->device_update(device, &dscene, this);
-
-	if(progress.get_cancel()) return;
-
 	progress.set_status("Updating Shaders");
 	shader_manager->device_update(device, &dscene, this, progress);
 
@@ -154,6 +148,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Images");
 	image_manager->device_update(device, &dscene, progress);
+
+	if(progress.get_cancel()) return;
+
+	progress.set_status("Updating Background");
+	background->device_update(device, &dscene, this);
 
 	if(progress.get_cancel()) return;
 

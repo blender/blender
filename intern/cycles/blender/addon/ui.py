@@ -780,15 +780,16 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        # world = context.world
-        # world and world.node_tree and CyclesButtonsPanel.poll(context)
-        return False
+        world = context.world
+        return world and world.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
         world = context.world
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
+        layout.prop(world.cycles, "homogeneous_volume")
 
 
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
@@ -926,9 +927,8 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        # mat = context.material
-        # mat and mat.node_tree and CyclesButtonsPanel.poll(context)
-        return False
+        mat = context.material
+        return mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

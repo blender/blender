@@ -388,9 +388,53 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->object = ~0;
 #endif
 	sd->prim = ~0;
+#ifdef __UV__
+	sd->u = 0.0f;
+	sd->v = 0.0f;
+#endif
+
+#ifdef __DPDU__
+	/* dPdu/dPdv */
+	sd->dPdu = make_float3(0.0f, 0.0f, 0.0f);
+	sd->dPdv = make_float3(0.0f, 0.0f, 0.0f);
+#endif
+
+#ifdef __RAY_DIFFERENTIALS__
+	/* differentials */
+	sd->dP = ray->dD;
+	differential_incoming(&sd->dI, sd->dP);
+	sd->du.dx = 0.0f;
+	sd->du.dy = 0.0f;
+	sd->dv.dx = 0.0f;
+	sd->dv.dy = 0.0f;
+#endif
+}
+
+/* ShaderData setup from point inside volume */
+
+ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int volume_shader, int bounce)
+{
+	/* vectors */
+	sd->P = ray->P;
+	sd->N = -ray->D;  
+	sd->Ng = -ray->D;
+	sd->I = -ray->D;
+	sd->shader = volume_shader;
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+#ifdef __OBJECT_MOTION__
+	sd->time = ray->time;
+#endif
+	sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
+	sd->ray_depth = bounce;
+
+#ifdef __INSTANCING__
+	sd->object = ~0; /* todo: fill this for texture coordinates */
+#endif
+	sd->prim = ~0;
 #ifdef __HAIR__
 	sd->segment = ~0;
 #endif
+
 #ifdef __UV__
 	sd->u = 0.0f;
 	sd->v = 0.0f;

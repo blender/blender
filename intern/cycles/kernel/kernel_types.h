@@ -58,12 +58,14 @@ CCL_NAMESPACE_BEGIN
 #endif
 #define __SUBSURFACE__
 #define __CMJ__
+#define __VOLUME__
 #endif
 
 #ifdef __KERNEL_CUDA__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #define __BRANCHED_PATH__
+//#define __VOLUME__
 #endif
 
 #ifdef __KERNEL_OPENCL__
@@ -478,7 +480,8 @@ typedef enum ShaderContext {
 	SHADER_CONTEXT_EMISSION = 2,
 	SHADER_CONTEXT_SHADOW = 3,
 	SHADER_CONTEXT_SSS = 4,
-	SHADER_CONTEXT_NUM = 5
+	SHADER_CONTEXT_VOLUME = 5,
+	SHADER_CONTEXT_NUM = 6
 } ShaderContext;
 
 /* Shader Data

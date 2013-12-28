@@ -93,6 +93,29 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float
 #endif
 }
 
+ccl_device_inline ShaderClosure *svm_node_closure_get_absorption(ShaderData *sd, float mix_weight)
+{
+#ifdef __MULTI_CLOSURE__
+	ShaderClosure *sc = &sd->closure[sd->num_closure];
+	float3 weight = (make_float3(1.0f, 1.0f, 1.0f) - sc->weight) * mix_weight;
+	float sample_weight = fabsf(average(weight));
+
+	if(sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure < MAX_CLOSURE) {
+		sc->weight = weight;
+		sc->sample_weight = sample_weight;
+		sd->num_closure++;
+#ifdef __OSL__
+		sc->prim = NULL;
+#endif
+		return sc;
+	}
+
+	return NULL;
+#else
+	return &sd->closure;
+#endif
+}
+
 ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, float randb, int path_flag, int *offset)
 {
 	uint type, param1_offset, param2_offset;
@@ -478,7 +501,7 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 
 	switch(type) {
 		case CLOSURE_VOLUME_ABSORPTION_ID: {
-			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight * density);
+			ShaderClosure *sc = svm_node_closure_get_absorption(sd, mix_weight * density);
 
 			if(sc) {
 				sd->flag |= volume_absorption_setup(sc);

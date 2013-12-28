@@ -3499,7 +3499,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_bsdf_hair();
 	register_node_type_sh_emission();
 	register_node_type_sh_holdout();
-	//register_node_type_sh_volume_absorption();
+	register_node_type_sh_volume_absorption();
 	//register_node_type_sh_volume_scatter();
 	register_node_type_sh_subsurface_scattering();
 	register_node_type_sh_mix_shader();

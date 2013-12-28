@@ -577,6 +577,12 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 min=1, max=10000,
                 default=4,
                 )
+        cls.homogeneous_volume = BoolProperty(
+                name="Homogeneous Volume",
+                description="When using volume rendering, assume volume has the same density everywhere, "
+                            "for faster rendering",
+                default=False,
+                )
 
     @classmethod
     def unregister(cls):

@@ -956,6 +956,9 @@ void BlenderSync::sync_world(bool update_all)
 			out = graph->output();
 
 			graph->connect(closure->output("Background"), out->input("Surface"));
+
+			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
+			shader->homogeneous_volume = get_boolean(cworld, "homogeneous_volume");
 		}
 
 		if(b_world) {
