@@ -3254,12 +3254,12 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 			}
 			else {
 				/* aligned handle? */
-				if (dist_to_line_v2(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < eps) {
+				if (dist_squared_to_line_v3(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < eps_sq) {
 					align = true;
 					bezt1->h1 = HD_ALIGN;
 				}
 				/* or vector handle? */
-				if (dist_to_line_v2(bezt1->vec[0], bezt1->vec[1], bezt0->vec[1]) < eps)
+				if (dist_squared_to_line_v3(bezt1->vec[0], bezt1->vec[1], bezt0->vec[1]) < eps_sq)
 					bezt1->h1 = HD_VECT;
 			}
 		}
@@ -3276,7 +3276,7 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
 				if (align) bezt1->h2 = HD_ALIGN;
 
 				/* or vector handle? */
-				if (dist_to_line_v2(bezt1->vec[2], bezt1->vec[1], bezt2->vec[1]) < eps)
+				if (dist_squared_to_line_v3(bezt1->vec[2], bezt1->vec[1], bezt2->vec[1]) < eps_sq)
 					bezt1->h2 = HD_VECT;
 			}
 		}
