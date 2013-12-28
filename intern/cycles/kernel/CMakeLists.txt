@@ -46,6 +46,7 @@ set(SRC_HEADERS
 	kernel_projection.h
 	kernel_random.h
 	kernel_shader.h
+	kernel_shadow.h
 	kernel_subsurface.h
 	kernel_textures.h
 	kernel_triangle.h
