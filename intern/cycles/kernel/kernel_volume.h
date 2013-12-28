@@ -64,11 +64,11 @@ ccl_device float3 volume_shader_get_absorption_coefficient(ShaderData *sd)
 }
 
 /* evaluate shader to get extinction coefficient at P */
-ccl_device float3 volume_extinction_sample(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx, float3 P)
+ccl_device float3 volume_extinction_sample(KernelGlobals *kg, ShaderData *sd, VolumeStack *stack, int path_flag, ShaderContext ctx, float3 P)
 {
 	sd->P = P;
 
-	shader_eval_volume(kg, sd, 0.0f, path_flag, ctx);
+	shader_eval_volume(kg, sd, stack, 0.0f, path_flag, ctx);
 
 	return volume_shader_get_extinction_coefficient(sd);
 }
@@ -82,10 +82,10 @@ ccl_device float3 volume_color_attenuation(float3 sigma, float t)
 
 /* get the volume attenuation over line segment defined by segment_ray, with the
  * assumption that there are surfaces blocking light between the endpoints */
-ccl_device float3 kernel_volume_get_shadow_attenuation(KernelGlobals *kg, PathState *state, Ray *segment_ray, int shader)
+ccl_device float3 kernel_volume_get_shadow_attenuation(KernelGlobals *kg, PathState *state, Ray *segment_ray)
 {
 	ShaderData sd;
-	shader_setup_from_volume(kg, &sd, segment_ray, shader, state->bounce);
+	shader_setup_from_volume(kg, &sd, segment_ray, state->volume_stack[0].shader, state->bounce);
 
 	/* do we have a volume shader? */
 	if(!(sd.flag & SD_HAS_VOLUME))
@@ -101,7 +101,7 @@ ccl_device float3 kernel_volume_get_shadow_attenuation(KernelGlobals *kg, PathSt
 		 * the extinction coefficient for the entire line segment */
 
 		/* todo: could this use sigma_t_cache? */
-		float3 sigma_t = volume_extinction_sample(kg, &sd, path_flag, ctx, segment_ray->P);
+		float3 sigma_t = volume_extinction_sample(kg, &sd, state->volume_stack, path_flag, ctx, segment_ray->P);
 
 		attenuation = volume_color_attenuation(sigma_t, segment_ray->t);
 	//}
@@ -111,13 +111,62 @@ ccl_device float3 kernel_volume_get_shadow_attenuation(KernelGlobals *kg, PathSt
 
 /* Volume Stack */
 
-/* todo: this assumes no overlapping volumes, needs to become a stack */
-ccl_device void kernel_volume_enter_exit(KernelGlobals *kg, ShaderData *sd, int *volume_shader)
+ccl_device void kernel_volume_stack_init(KernelGlobals *kg, VolumeStack *stack)
 {
-	if(sd->flag & SD_BACKFACING)
-		*volume_shader = kernel_data.background.volume_shader;
-	else
-		*volume_shader = (sd->flag & SD_HAS_VOLUME)? sd->shader: SHADER_NO_ID;
+	/* todo: this assumes camera is always in air, need to detect when it isn't */
+	if(kernel_data.background.volume_shader == SHADER_NO_ID) {
+		stack[0].shader = SHADER_NO_ID;
+	}
+	else {
+		stack[0].shader = kernel_data.background.volume_shader;
+		stack[0].object = ~0;
+		stack[1].shader = SHADER_NO_ID;
+	}
+}
+
+ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd, VolumeStack *stack)
+{
+	/* todo: we should have some way for objects to indicate if they want the
+	 * world shader to work inside them. excluding it by default is problematic
+	 * because non-volume objects can't be assumed to be closed manifolds */
+
+	if(!(sd->flag & SD_HAS_VOLUME))
+		return;
+	
+	if(sd->flag & SD_BACKFACING) {
+		/* exit volume object: remove from stack */
+		for(int i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+			if(stack[i].object == sd->object) {
+				/* shift back next stack entries */
+				do {
+					stack[i] = stack[i+1];
+					i++;
+				}
+				while(stack[i].shader != SHADER_NO_ID);
+
+				return;
+			}
+		}
+	}
+	else {
+		/* enter volume object: add to stack */
+		int i;
+
+		for(i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+			/* already in the stack? then we have nothing to do */
+			if(stack[i].object == sd->object)
+				return;
+		}
+
+		/* if we exceed the stack limit, ignore */
+		if(i >= VOLUME_STACK_SIZE-1)
+			return;
+
+		/* add to the end of the stack */
+		stack[i].shader = sd->shader;
+		stack[i].object = sd->object;
+		stack[i+1].shader = SHADER_NO_ID;
+	}
 }
 
 CCL_NAMESPACE_END

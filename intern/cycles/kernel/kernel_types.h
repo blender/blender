@@ -48,6 +48,8 @@ CCL_NAMESPACE_BEGIN
 
 #define SHADER_NO_ID			-1
 
+#define VOLUME_STACK_SIZE		16
+
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
@@ -511,10 +513,14 @@ enum ShaderDataFlag {
 	SD_HOMOGENEOUS_VOLUME = 8192,		/* has homogeneous volume */
 	SD_HAS_BSSRDF_BUMP = 16384,			/* bssrdf normal uses bump */
 
+	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HOMOGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
+
 	/* object flags */
 	SD_HOLDOUT_MASK = 32768,			/* holdout for camera rays */
 	SD_OBJECT_MOTION = 65536,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 131072 		/* vertices have transform applied */
+	SD_TRANSFORM_APPLIED = 131072, 		/* vertices have transform applied */
+
+	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED)
 };
 
 struct KernelGlobals;
@@ -598,6 +604,29 @@ typedef struct ShaderData {
 	struct KernelGlobals *osl_globals;
 #endif
 } ShaderData;
+
+/* Path State */
+
+#ifdef __VOLUME__
+typedef struct VolumeStack {
+	int object;
+	int shader;
+} VolumeStack;
+#endif
+
+typedef struct PathState {
+	int flag;
+	int bounce;
+
+	int diffuse_bounce;
+	int glossy_bounce;
+	int transmission_bounce;
+	int transparent_bounce;
+
+#ifdef __VOLUME__
+	VolumeStack volume_stack[VOLUME_STACK_SIZE];
+#endif
+} PathState;
 
 /* Constant Kernel Data
  *

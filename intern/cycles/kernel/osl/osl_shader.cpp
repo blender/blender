@@ -299,7 +299,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 	}
 }
 
-void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag, ShaderContext ctx)
+void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
 	/* setup shader globals from shader data */
 	OSLThreadData *tdata = kg->osl_tdata;
@@ -315,9 +315,6 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 		ss->execute(*octx, *(kg->osl->surface_state[shader]), *globals);
 
 	/* flatten closure tree */
-	sd->num_closure = 0;
-	sd->randb_closure = randb;
-
 	if (globals->Ci)
 		flatten_surface_closure_tree(sd, path_flag, globals->Ci);
 }
@@ -440,7 +437,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 	}
 }
 
-void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag, ShaderContext ctx)
+void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
 	/* setup shader globals from shader data */
 	OSLThreadData *tdata = kg->osl_tdata;
@@ -456,9 +453,6 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 		ss->execute(*octx, *(kg->osl->volume_state[shader]), *globals);
 	
 	/* flatten closure tree */
-	sd->num_closure = 0;
-	sd->randb_closure = randb;
-
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
 }

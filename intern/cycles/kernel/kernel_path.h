@@ -34,7 +34,6 @@
 #include "kernel_light.h"
 #include "kernel_emission.h"
 #include "kernel_passes.h"
-#include "kernel_path_state.h"
 
 #ifdef __SUBSURFACE__
 #include "kernel_subsurface.h"
@@ -44,6 +43,7 @@
 #include "kernel_volume.h"
 #endif
 
+#include "kernel_path_state.h"
 #include "kernel_shadow.h"
 
 CCL_NAMESPACE_BEGIN
@@ -93,10 +93,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 
 #ifdef __VOLUME__
 		/* volume attenuation */
-		if(state.volume_shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NO_ID) {
 			Ray segment_ray = ray;
 			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray, state.volume_shader);
+			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray);
 		}
 #endif
 
@@ -116,7 +116,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 		float rbsdf = path_rng_1D(kg, rng, sample, num_total_samples, rng_offset + PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_INDIRECT);
 #ifdef __BRANCHED_PATH__
-		shader_merge_closures(kg, &sd);
+		shader_merge_closures(&sd);
 #endif
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
@@ -291,7 +291,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 #ifdef __VOLUME__
 			/* enter/exit volume */
 			if(label & LABEL_TRANSMIT)
-				kernel_volume_enter_exit(kg, &sd, &state.volume_shader);
+				kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 #endif
 		}
 #ifdef __VOLUME__
@@ -308,7 +308,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 #endif
 
 			/* enter/exit volume */
-			kernel_volume_enter_exit(kg, &sd, &state.volume_shader);
+			kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 		}
 #endif
 		else {
@@ -411,7 +411,7 @@ ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rn
 #ifdef __VOLUME__
 		/* enter/exit volume */
 		if(label & LABEL_TRANSMIT)
-			kernel_volume_enter_exit(kg, sd, &state->volume_shader);
+			kernel_volume_stack_enter_exit(kg, sd, state->volume_stack);
 #endif
 		return true;
 	}
@@ -429,7 +429,7 @@ ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rn
 #endif
 
 		/* enter/exit volume */
-		kernel_volume_enter_exit(kg, sd, &state->volume_shader);
+		kernel_volume_stack_enter_exit(kg, sd, state->volume_stack);
 		return true;
 	}
 #endif
@@ -515,10 +515,10 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 #ifdef __VOLUME__
 		/* volume attenuation */
-		if(state.volume_shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NO_ID) {
 			Ray segment_ray = ray;
 			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray, state.volume_shader);
+			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray);
 		}
 #endif
 
@@ -769,7 +769,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __VOLUME__
 			/* enter/exit volume */
 			if(label & LABEL_TRANSMIT)
-				kernel_volume_enter_exit(kg, &sd, &state.volume_shader);
+				kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 #endif
 
 		}
@@ -787,7 +787,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 
 			/* enter/exit volume */
-			kernel_volume_enter_exit(kg, &sd, &state.volume_shader);
+			kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 		}
 #endif
 		else {
@@ -957,7 +957,7 @@ ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *
 #ifdef __VOLUME__
 			/* enter/exit volume */
 			if(label & LABEL_TRANSMIT)
-				kernel_volume_enter_exit(kg, sd, &ps.volume_shader);
+				kernel_volume_stack_enter_exit(kg, sd, ps.volume_stack);
 #endif
 
 			kernel_path_indirect(kg, rng, sample*num_samples + j, bsdf_ray, buffer,
@@ -1019,10 +1019,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 #ifdef __VOLUME__
 		/* volume attenuation */
-		if(state.volume_shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NO_ID) {
 			Ray segment_ray = ray;
 			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray, state.volume_shader);
+			throughput *= kernel_volume_get_shadow_attenuation(kg, &state, &segment_ray);
 		}
 #endif
 
@@ -1050,7 +1050,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray, state.bounce);
 		shader_eval_surface(kg, &sd, 0.0f, state.flag, SHADER_CONTEXT_MAIN);
-		shader_merge_closures(kg, &sd);
+		shader_merge_closures(&sd);
 
 		/* holdout */
 #ifdef __HOLDOUT__
@@ -1198,7 +1198,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 #ifdef __VOLUME__
 		/* enter/exit volume */
-		kernel_volume_enter_exit(kg, &sd, &state.volume_shader);
+		kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 #endif
 	}
 

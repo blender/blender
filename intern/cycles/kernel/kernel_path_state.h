@@ -16,20 +16,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct PathState {
-	int flag;
-	int bounce;
-
-	int diffuse_bounce;
-	int glossy_bounce;
-	int transmission_bounce;
-	int transparent_bounce;
-
-#ifdef __VOLUME__
-	int volume_shader;
-#endif
-} PathState;
-
 ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state)
 {
 	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
@@ -40,8 +26,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state)
 	state->transparent_bounce = 0;
 
 #ifdef __VOLUME__
-	/* todo: this assumes camera is always in air, need to detect when it isn't */
-	state->volume_shader = kernel_data.background.volume_shader;
+	kernel_volume_stack_init(kg, state->volume_stack);
 #endif
 }
 

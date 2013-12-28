@@ -44,9 +44,8 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
 			int bounce = state->transparent_bounce;
-
 #ifdef __VOLUME__
-			int volume_shader = state->volume_shader;
+			PathState ps = *state;
 #endif
 
 			for(;;) {
@@ -74,8 +73,8 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 #ifdef __VOLUME__
 					/* attenuation for last line segment towards light */
-					if(volume_shader != SHADER_NO_ID)
-						throughput *= kernel_volume_get_shadow_attenuation(kg, state, ray, volume_shader);
+					if(ps.volume_stack[0].shader != SHADER_NO_ID)
+						throughput *= kernel_volume_get_shadow_attenuation(kg, &ps, ray);
 #endif
 
 					*shadow *= throughput;
@@ -87,10 +86,10 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 #ifdef __VOLUME__
 				/* attenuation between last surface and next surface */
-				if(volume_shader != SHADER_NO_ID) {
+				if(ps.volume_stack[0].shader != SHADER_NO_ID) {
 					Ray segment_ray = *ray;
 					segment_ray.t = isect.t;
-					throughput *= kernel_volume_get_shadow_attenuation(kg, state, &segment_ray, volume_shader);
+					throughput *= kernel_volume_get_shadow_attenuation(kg, &ps, &segment_ray);
 				}
 #endif
 
@@ -111,10 +110,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 #ifdef __VOLUME__
 				/* exit/enter volume */
-				if(sd.flag & SD_BACKFACING)
-					volume_shader = kernel_data.background.volume_shader;
-				else
-					volume_shader = (sd.flag & SD_HAS_VOLUME)? sd.shader: SHADER_NO_ID;
+				kernel_volume_stack_enter_exit(kg, &sd, ps.volume_stack);
 #endif
 
 				bounce++;
@@ -122,9 +118,9 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 		}
 	}
 #ifdef __VOLUME__
-	else if(!result && state->volume_shader != SHADER_NO_ID) {
+	else if(!result && state->volume_stack[0].shader != SHADER_NO_ID) {
 		/* apply attenuation from current volume shader */
-		*shadow *= kernel_volume_get_shadow_attenuation(kg, state, ray, state->volume_shader);
+		*shadow *= kernel_volume_get_shadow_attenuation(kg, state, ray);
 	}
 #endif
 #endif

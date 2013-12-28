@@ -188,13 +188,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 	float closure_weight = 1.0f;
 	int offset = sd->shader & SHADER_MASK;
 
-#ifdef __MULTI_CLOSURE__
-	sd->num_closure = 0;
-	sd->randb_closure = randb;
-#else
-	sd->closure.type = NBUILTIN_CLOSURES;
-#endif
-
 	while(1) {
 		uint4 node = read_node(kg, &offset);
 

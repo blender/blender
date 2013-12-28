@@ -459,6 +459,41 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 	sd->ray_dP = ray->dP;
 }
 
+/* Merging */
+
+#if defined(__BRANCHED_PATH__) || defined(__VOLUME__)
+ccl_device void shader_merge_closures(ShaderData *sd)
+{
+	/* merge identical closures, better when we sample a single closure at a time */
+	for(int i = 0; i < sd->num_closure; i++) {
+		ShaderClosure *sci = &sd->closure[i];
+
+		for(int j = i + 1; j < sd->num_closure; j++) {
+			ShaderClosure *scj = &sd->closure[j];
+
+#ifdef __OSL__
+			if(!sci->prim && !scj->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#else
+			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#endif
+				sci->weight += scj->weight;
+				sci->sample_weight += scj->sample_weight;
+
+				int size = sd->num_closure - (j+1);
+				if(size > 0) {
+					for(int k = 0; k < size; k++) {
+						scj[k] = scj[k+1];
+					}
+				}
+
+				sd->num_closure--;
+				j--;
+			}
+		}
+	}
+}
+#endif
+
 /* BSDF */
 
 #ifdef __MULTI_CLOSURE__
@@ -851,9 +886,16 @@ ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 	float randb, int path_flag, ShaderContext ctx)
 {
+#ifdef __MULTI_CLOSURE__
+	sd->num_closure = 0;
+	sd->randb_closure = randb;
+#else
+	sd->closure.type = NBUILTIN_CLOSURES;
+#endif
+
 #ifdef __OSL__
-	if (kg->osl)
-		OSLShader::eval_surface(kg, sd, randb, path_flag, ctx);
+	if(kg->osl)
+		OSLShader::eval_surface(kg, sd, path_flag, ctx);
 	else
 #endif
 	{
@@ -871,9 +913,17 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 
 ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
+#ifdef __MULTI_CLOSURE__
+	sd->num_closure = 0;
+	sd->randb_closure = 0.0f;
+#else
+	sd->closure.type = NBUILTIN_CLOSURES;
+#endif
+
 #ifdef __OSL__
-	if (kg->osl)
+	if(kg->osl) {
 		return OSLShader::eval_background(kg, sd, path_flag, ctx);
+	}
 	else
 #endif
 
@@ -907,6 +957,7 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int 
 
 /* Volume */
 
+#ifdef __VOLUME__
 ccl_device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 	float3 omega_in, float3 omega_out)
 {
@@ -931,30 +982,77 @@ ccl_device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 /* Volume Evaluation */
 
 ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
-	float randb, int path_flag, ShaderContext ctx)
+	VolumeStack *stack, float randb, int path_flag, ShaderContext ctx)
 {
+	/* reset closures once at the start, we will be accumulating the closures
+	 * for all volumes in the stack into a single array of closures */
+#ifdef __MULTI_CLOSURE__
+	sd->num_closure = 0;
+	sd->randb_closure = randb;
+#else
+	sd->closure.type = NBUILTIN_CLOSURES;
+#endif
+
+	for(int i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+		/* setup shaderdata from stack. it's mostly setup already in
+		 * shader_setup_from_volume, this switching should be quick */
+		sd->object = stack[i].object;
+		sd->shader = stack[i].shader;
+
+		sd->flag &= ~(SD_SHADER_FLAGS|SD_OBJECT_FLAGS);
+		sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+
+		if(sd->object != ~0) {
+			sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
+
+#ifdef __OBJECT_MOTION__
+			/* todo: this is inefficient for motion blur, we should be
+			 * caching matrices instead of recomputing them each step */
+			shader_setup_object_transforms(kg, sd, sd->time);
+#endif
+		}
+
+		/* evaluate shader */
 #ifdef __SVM__
 #ifdef __OSL__
-	if (kg->osl)
-		OSLShader::eval_volume(kg, sd, randb, path_flag, ctx);
-	else
+		if(kg->osl) {
+			OSLShader::eval_volume(kg, sd, path_flag, ctx);
+		}
+		else
 #endif
-		svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, randb, path_flag);
+		{
+			svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, randb, path_flag);
+		}
 #endif
+
+		/* merge closures to avoid exceeding number of closures limit */
+		if(i > 0)
+			shader_merge_closures(sd);
+	}
 }
+#endif
 
 /* Displacement Evaluation */
 
 ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx)
 {
+#ifdef __MULTI_CLOSURE__
+	sd->num_closure = 0;
+	sd->randb_closure = 0.0f;
+#else
+	sd->closure.type = NBUILTIN_CLOSURES;
+#endif
+
 	/* this will modify sd->P */
 #ifdef __SVM__
 #ifdef __OSL__
-	if (kg->osl)
+	if(kg->osl)
 		OSLShader::eval_displacement(kg, sd, ctx);
 	else
 #endif
+	{
 		svm_eval_nodes(kg, sd, SHADER_TYPE_DISPLACEMENT, 0.0f, 0);
+	}
 #endif
 }
 
@@ -981,41 +1079,6 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 	int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
 
 	return (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
-}
-#endif
-
-/* Merging */
-
-#ifdef __BRANCHED_PATH__
-ccl_device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
-{
-	/* merge identical closures, better when we sample a single closure at a time */
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sci = &sd->closure[i];
-
-		for(int j = i + 1; j < sd->num_closure; j++) {
-			ShaderClosure *scj = &sd->closure[j];
-
-#ifdef __OSL__
-			if(!sci->prim && !scj->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
-#else
-			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
-#endif
-				sci->weight += scj->weight;
-				sci->sample_weight += scj->sample_weight;
-
-				int size = sd->num_closure - (j+1);
-				if(size > 0) {
-					for(int k = 0; k < size; k++) {
-						scj[k] = scj[k+1];
-					}
-				}
-
-				sd->num_closure--;
-				j--;
-			}
-		}
-	}
 }
 #endif
 
