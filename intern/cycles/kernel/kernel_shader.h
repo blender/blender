@@ -412,15 +412,15 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 
 /* ShaderData setup from point inside volume */
 
-ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int volume_shader, int bounce)
+ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce)
 {
 	/* vectors */
 	sd->P = ray->P;
 	sd->N = -ray->D;  
 	sd->Ng = -ray->D;
 	sd->I = -ray->D;
-	sd->shader = volume_shader;
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+	sd->shader = SHADER_NO_ID;
+	sd->flag = 0;
 #ifdef __OBJECT_MOTION__
 	sd->time = ray->time;
 #endif
@@ -992,6 +992,7 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 #else
 	sd->closure.type = NBUILTIN_CLOSURES;
 #endif
+	sd->flag = 0;
 
 	for(int i = 0; stack[i].shader != SHADER_NO_ID; i++) {
 		/* setup shaderdata from stack. it's mostly setup already in
