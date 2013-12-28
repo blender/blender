@@ -52,7 +52,7 @@ typedef struct VChar {
 
 VFontData *BLI_vfontdata_from_freetypefont(struct PackedFile *pf);
 
-int BLI_vfontchar_from_freetypefont(struct VFont *vfont, unsigned long character);
+VChar *BLI_vfontchar_from_freetypefont(struct VFont *vfont, unsigned long character);
 
 #endif
 

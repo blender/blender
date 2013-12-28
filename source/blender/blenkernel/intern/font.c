@@ -524,10 +524,7 @@ struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	utf8len = BLI_strlen_utf8(cu->str);
 	mem = MEM_mallocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 
-	BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
-
-	/* Count the wchar_t string length */
-	slen = wcslen(mem);
+	slen = BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
 
 	if (cu->ulheight == 0.0f)
 		cu->ulheight = 0.05f;
@@ -597,19 +594,18 @@ makebreak:
 		
 		if (vfont == NULL) break;
 
-		che = find_vfont_char(vfd, ascii);
+		if (i != slen) {
+			che = find_vfont_char(vfd, ascii);
 
-		/*
-		 * The character wasn't in the current curve base so load it
-		 * But if the font is built-in then do not try loading since
-		 * whole font is in the memory already
-		 */
-		if (che == NULL && BKE_vfont_is_builtin(vfont) == FALSE) {
-			BLI_vfontchar_from_freetypefont(vfont, ascii);
+			/*
+			 * The character wasn't in the current curve base so load it
+			 * But if the font is built-in then do not try loading since
+			 * whole font is in the memory already
+			 */
+			if (che == NULL && BKE_vfont_is_builtin(vfont) == false) {
+				che = BLI_vfontchar_from_freetypefont(vfont, ascii);
+			}
 		}
-
-		/* Try getting the character again from the list */
-		che = find_vfont_char(vfd, ascii);
 
 		/* No VFont found */
 		if (vfont == NULL) {

@@ -63,7 +63,7 @@ static FT_Library library;
 static FT_Error err;
 
 
-static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
+static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
 	const float eps = 0.0001f;
 	const float eps_sq = eps * eps;
@@ -287,11 +287,17 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 		}
 		if (npoints) MEM_freeN(npoints);
 		if (onpoints) MEM_freeN(onpoints);
+
+		return che;
 	}
+
+	return NULL;
 }
 
-static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
+static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 {
+	VChar *che;
+
 	/* Freetype2 */
 	FT_Face face;
 
@@ -302,18 +308,20 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 		                         vfont->temp_pf->size,
 		                         0,
 		                         &face);
-		if (err) return FALSE;
+		if (err) {
+			return NULL;
+		}
 	}
 	else {
 		err = TRUE;
-		return FALSE;
+		return NULL;
 	}
-		
+
 	/* Read the char */
-	freetypechar_to_vchar(face, charcode, vfont->data);
-	
+	che = freetypechar_to_vchar(face, charcode, vfont->data);
+
 	/* And everything went ok */
-	return TRUE;
+	return che;
 }
 
 
@@ -508,28 +516,26 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	return vfd;
 }
 
-int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
+VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 {
-	int success = FALSE;
+	VChar *che = NULL;
 
-	if (!vfont) return FALSE;
+	if (!vfont) return NULL;
 
 	/* Init Freetype */
 	err = FT_Init_FreeType(&library);
 	if (err) {
 		/* XXX error("Failed to load the Freetype font library"); */
-		return 0;
+		return NULL;
 	}
 
 	/* Load the character */
-	success = objchr_to_ftvfontdata(vfont, character);
-	if (success == FALSE) return FALSE;
+	che = objchr_to_ftvfontdata(vfont, character);
 
 	/* Free Freetype */
 	FT_Done_FreeType(library);
 
-	/* Ahh everything ok */
-	return TRUE;
+	return che;
 }
 
 #if 0
