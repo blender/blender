@@ -594,7 +594,7 @@ makebreak:
 		
 		if (vfont == NULL) break;
 
-		if (i != slen) {
+		if (!ELEM(ascii, '\n', '\0')) {
 			che = find_vfont_char(vfd, ascii);
 
 			/*
@@ -605,6 +605,9 @@ makebreak:
 			if (che == NULL && BKE_vfont_is_builtin(vfont) == false) {
 				che = BLI_vfontchar_from_freetypefont(vfont, ascii);
 			}
+		}
+		else {
+			che = NULL;
 		}
 
 		/* No VFont found */
