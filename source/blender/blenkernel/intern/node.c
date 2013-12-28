@@ -1676,14 +1676,19 @@ static void free_localized_node_groups(bNodeTree *ntree)
 {
 	bNode *node;
 	
+	/* Only localized node trees store a copy for each node group tree.
+	 * Each node group tree in a localized node tree can be freed,
+	 * since it is a localized copy itself (no risk of accessing free'd
+	 * data in main, see [#37939]).
+	 */
+	if (!(ntree->flag & NTREE_IS_LOCALIZED))
+		return;
+	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP && node->id) {
 			bNodeTree *ngroup = (bNodeTree *)node->id;
-			if (ngroup->flag & NTREE_IS_LOCALIZED) {
-				/* ntree is a localized copy: free it */
-				ntreeFreeTree_ex(ngroup, false);
-				MEM_freeN(ngroup);
-			}
+			ntreeFreeTree_ex(ngroup, false);
+			MEM_freeN(ngroup);
 		}
 	}
 }
@@ -1714,11 +1719,8 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 		}
 	}
 	
-	/* when freeing main, this would check other ntree's which may have been freed, see [#37939] */
-	if (do_id_user) {
-		/* XXX not nice, but needed to free localized node groups properly */
-		free_localized_node_groups(ntree);
-	}
+	/* XXX not nice, but needed to free localized node groups properly */
+	free_localized_node_groups(ntree);
 	
 	/* unregister associated RNA types */
 	ntreeInterfaceTypeFree(ntree);
