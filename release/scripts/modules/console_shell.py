@@ -43,7 +43,7 @@ def shell_run(text):
 PROMPT = "$ "
 
 
-def execute(context):
+def execute(context, is_interactive):
     sc = context.space_data
 
     try:
