@@ -463,6 +463,10 @@ int BKE_vfont_select_get(Object *ob, int *start, int *end)
 	
 	if (cu->editfont == NULL || ob->type != OB_FONT) return 0;
 
+	BLI_assert(cu->selstart >= 0 && cu->selstart <= cu->len + 1);
+	BLI_assert(cu->selend   >= 0 && cu->selend   <= cu->len + 1);
+	BLI_assert(cu->pos      >= 0 && cu->pos      <= cu->len);
+
 	if (cu->selstart == 0) return 0;
 	if (cu->selstart <= cu->selend) {
 		*start = cu->selstart - 1;

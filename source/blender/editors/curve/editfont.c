@@ -237,6 +237,8 @@ static void update_string(Curve *cu)
 
 	/* Copy the wchar to UTF-8 */
 	BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, len + 1);
+
+	BLI_assert(len == cu->len);
 }
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
