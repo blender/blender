@@ -64,7 +64,6 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
-static ThreadMutex vfont_mutex = BLI_MUTEX_INITIALIZER;
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /* The vfont code */
@@ -150,7 +149,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 
-		BLI_mutex_lock(&vfont_mutex);
+		BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
 
 		if (vfont->data) {
 			/* Check data again, since it might have been already
@@ -158,7 +157,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 			 * not accurate or threading, just prevents unneeded
 			 * lock if all the data is here for sure).
 			 */
-			BLI_mutex_unlock(&vfont_mutex);
+			BLI_rw_mutex_unlock(&vfont_rwlock);
 			return vfont->data;
 		}
 
@@ -200,7 +199,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 			}
 		}
 
-		BLI_mutex_unlock(&vfont_mutex);
+		BLI_rw_mutex_unlock(&vfont_rwlock);
 	}
 
 	return vfont->data;
