@@ -571,7 +571,7 @@ static int kill_selection(Object *obedit, int ins)  /* 1 == new character */
 		size = (cu->len * sizeof(wchar_t)) - (selstart * sizeof(wchar_t)) + (offset * sizeof(wchar_t));
 		memmove(ef->textbuf + selstart, ef->textbuf + getfrom, size);
 		memmove(ef->textbufinfo + selstart, ef->textbufinfo + getfrom, ((cu->len - selstart) + offset) * sizeof(CharInfo));
-		cu->len -= (selend - selstart) + offset;
+		cu->len -= ((selend - selstart) + 1) + offset;
 		cu->selstart = cu->selend = 0;
 	}
 
