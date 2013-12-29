@@ -626,11 +626,11 @@ PyDoc_STRVAR(M_Geometry_intersect_plane_plane_doc,
 "   :arg plane_b_no: Normal of the second plane\n"
 "   :type plane_b_no: :class:`mathutils.Vector`\n"
 "   :return: The line of the intersection represented as a point and a vector\n"
-"   :rtype: tuple pair of :class:`mathutils.Vector`\n"
+"   :rtype: tuple pair of :class:`mathutils.Vector` or None if the intersection can't be calculated\n"
 );
 static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObject *args)
 {
-	PyObject *ret;
+	PyObject *ret, *ret_co, *ret_no;
 	VectorObject *plane_a_co, *plane_a_no, *plane_b_co, *plane_b_no;
 
 	float isect_co[3];
@@ -660,15 +660,26 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	isect_plane_plane_v3(isect_co, isect_no,
-	                     plane_a_co->vec, plane_a_no->vec,
-	                     plane_b_co->vec, plane_b_no->vec);
+	if (isect_plane_plane_v3(isect_co, isect_no,
+	                         plane_a_co->vec, plane_a_no->vec,
+	                         plane_b_co->vec, plane_b_no->vec))
+	{
+		normalize_v3(isect_no);
 
-	normalize_v3(isect_no);
+		ret_co = Vector_CreatePyObject(isect_co, 3, Py_NEW, NULL);
+		ret_no = Vector_CreatePyObject(isect_no, 3, Py_NEW, NULL);
+	}
+	else {
+		ret_co = Py_None;
+		ret_no = Py_None;
+
+		Py_INCREF(ret_co);
+		Py_INCREF(ret_no);
+	}
 
 	ret = PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(isect_co, 3, Py_NEW, NULL));
-	PyTuple_SET_ITEM(ret, 1, Vector_CreatePyObject(isect_no, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 0, ret_co);
+	PyTuple_SET_ITEM(ret, 1, ret_no);
 	return ret;
 }
 

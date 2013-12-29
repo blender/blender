@@ -480,7 +480,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 
 /* don't move the camera, just yield the fit location */
 /* only valid for perspective cameras */
-int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
+bool BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
 {
 	float shift[2];
 	float plane_tx[4][3];
@@ -527,7 +527,7 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 	                                camera_to_frame_view_cb, &data_cb);
 
 	if (data_cb.tot <= 1) {
-		return FALSE;
+		return false;
 	}
 	else {
 		float plane_isect_1[3], plane_isect_1_no[3], plane_isect_1_other[3];
@@ -540,12 +540,15 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], sqrtf_signed(data_cb.dist_vals_sq[i]));
 		}
 
-		isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
-		                     plane_tx[0], data_cb.normal_tx[0],
-		                     plane_tx[2], data_cb.normal_tx[2]);
-		isect_plane_plane_v3(plane_isect_2, plane_isect_2_no,
-		                     plane_tx[1], data_cb.normal_tx[1],
-		                     plane_tx[3], data_cb.normal_tx[3]);
+		if ((!isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
+		                           plane_tx[0], data_cb.normal_tx[0],
+		                           plane_tx[2], data_cb.normal_tx[2])) ||
+		    (!isect_plane_plane_v3(plane_isect_2, plane_isect_2_no,
+		                           plane_tx[1], data_cb.normal_tx[1],
+		                           plane_tx[3], data_cb.normal_tx[3])))
+		{
+			return false;
+		}
 
 		add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
 		add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
@@ -554,7 +557,7 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 		                       plane_isect_2, plane_isect_2_other,
 		                       plane_isect_pt_1, plane_isect_pt_2) == 0)
 		{
-			return FALSE;
+			return false;
 		}
 		else {
 			float cam_plane_no[3] = {0.0f, 0.0f, -1.0f};
@@ -582,7 +585,7 @@ int BKE_camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object 
 			}
 
 
-			return TRUE;
+			return true;
 		}
 	}
 }

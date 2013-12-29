@@ -1185,7 +1185,7 @@ bool isect_line_plane_v3(float out[3],
  *
  * \note return normal isn't unit length
  */
-void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
+bool isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],
                           const float plane_b_co[3], const float plane_b_no[3])
 {
@@ -1193,7 +1193,7 @@ void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 	cross_v3_v3v3(r_isect_no, plane_a_no, plane_b_no); /* direction is simply the cross product */
 	cross_v3_v3v3(plane_a_co_other, plane_a_no, r_isect_no);
 	add_v3_v3(plane_a_co_other, plane_a_co);
-	isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no);
+	return isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no);
 }
 
 
