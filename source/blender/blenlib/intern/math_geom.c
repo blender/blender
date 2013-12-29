@@ -735,6 +735,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 }
 
 /* point in polygon (keep float and int versions in sync) */
+#if 0
 bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr,
                          const bool use_holes)
 {
@@ -815,6 +816,39 @@ bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsign
 		return (angletot > 4.0f);
 	}
 }
+
+#else
+
+bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr,
+                         const bool UNUSED(use_holes))
+{
+	unsigned int i, j;
+	bool isect = false;
+	for (i = 0, j = nr - 1; i < nr; j = i++) {
+		if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&
+		    (pt[0] < (verts[j][0] - verts[i][0]) * (pt[1] - verts[i][1]) / (verts[j][1] - verts[i][1]) + verts[i][0]))
+		{
+			isect = !isect;
+		}
+	}
+	return isect;
+}
+bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr,
+                             const bool UNUSED(use_holes))
+{
+	unsigned int i, j;
+	bool isect = false;
+	for (i = 0, j = nr - 1; i < nr; j = i++) {
+		if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&
+		    (pt[0] < (verts[j][0] - verts[i][0]) * (pt[1] - verts[i][1]) / (verts[j][1] - verts[i][1]) + verts[i][0]))
+		{
+			isect = !isect;
+		}
+	}
+	return isect;
+}
+
+#endif
 
 /* point in tri */
 
