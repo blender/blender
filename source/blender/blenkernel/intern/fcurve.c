@@ -2138,6 +2138,7 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
  */
 float evaluate_fcurve(FCurve *fcu, float evaltime)
 {
+	FModifierStackStorage *storage;
 	float cvalue = 0.0f;
 	float devaltime;
 	
@@ -2177,9 +2178,10 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 			}
 		}
 	}
-	
+
 	/* evaluate modifiers which modify time to evaluate the base curve at */
-	devaltime = evaluate_time_fmodifiers(&fcu->modifiers, fcu, cvalue, evaltime);
+	storage = evaluate_fmodifiers_storage_new(&fcu->modifiers);
+	devaltime = evaluate_time_fmodifiers(storage, &fcu->modifiers, fcu, cvalue, evaltime);
 	
 	/* evaluate curve-data 
 	 *	- 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying 
@@ -2191,8 +2193,10 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 		cvalue = fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 	
 	/* evaluate modifiers */
-	evaluate_value_fmodifiers(&fcu->modifiers, fcu, &cvalue, evaltime);
-	
+	evaluate_value_fmodifiers(storage, &fcu->modifiers, fcu, &cvalue, evaltime);
+
+	evaluate_fmodifiers_storage_free(storage);
+
 	/* if curve can only have integral values, perform truncation (i.e. drop the decimal part)
 	 * here so that the curve can be sampled correctly
 	 */

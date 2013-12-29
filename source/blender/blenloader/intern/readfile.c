@@ -2028,7 +2028,6 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 	for (fcm = list->first; fcm; fcm = fcm->next) {
 		/* relink general data */
 		fcm->data  = newdataadr(fd, fcm->data);
-		fcm->edata = NULL;
 		
 		/* do relinking of data for specific types */
 		switch (fcm->type) {

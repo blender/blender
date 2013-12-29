@@ -1981,6 +1981,7 @@ static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
 /* evaluate action-clip strip */
 static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
+	FModifierStackStorage *storage;
 	ListBase tmp_modifiers = {NULL, NULL};
 	NlaStrip *strip = nes->strip;
 	FCurve *fcu;
@@ -2001,7 +2002,8 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
 	
 	/* evaluate strip's modifiers which modify time to evaluate the base curves at */
-	evaltime = evaluate_time_fmodifiers(&tmp_modifiers, NULL, 0.0f, strip->strip_time);
+	storage = evaluate_fmodifiers_storage_new(&tmp_modifiers);
+	evaltime = evaluate_time_fmodifiers(storage, &tmp_modifiers, NULL, 0.0f, strip->strip_time);
 	
 	/* evaluate all the F-Curves in the action, saving the relevant pointers to data that will need to be used */
 	for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
@@ -2022,7 +2024,7 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 		/* apply strip's F-Curve Modifiers on this value 
 		 * NOTE: we apply the strip's original evaluation time not the modified one (as per standard F-Curve eval)
 		 */
-		evaluate_value_fmodifiers(&tmp_modifiers, fcu, &value, strip->strip_time);
+		evaluate_value_fmodifiers(storage, &tmp_modifiers, fcu, &value, strip->strip_time);
 		
 		
 		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
@@ -2032,7 +2034,10 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 		if (nec)
 			nlaevalchan_accumulate(nec, nes, value);
 	}
-	
+
+	/* free temporary storage */
+	evaluate_fmodifiers_storage_free(storage);
+
 	/* unlink this strip's modifiers from the parent's modifiers again */
 	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
 }
