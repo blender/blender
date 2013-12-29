@@ -4136,9 +4136,9 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float mval_fl[2];
 	float zfac;
 	bool flip;
+	bool depth_used = false;
 	
 	/* normally the caller should ensure this,
 	 * but this is called from areas that aren't already dealing with the viewport */
@@ -4154,36 +4154,17 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 		zfac = ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
 	}
 
-	if (ED_view3d_project_float_global(ar, fp, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-		bool depth_used = false;
-
-		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
-			view3d_operator_needs_opengl(C);
-			if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true, NULL))
-				depth_used = true;
-		}
-
-		if (depth_used == false) {
-			float dvec[3];
-			VECSUB2D(mval_fl, mval_fl, mval);
-			ED_view3d_win_to_delta(ar, mval_fl, dvec, zfac);
-			sub_v3_v3(fp, dvec);
-		}
-	}
-	else {
-		float tvec[3];
-
-		tvec[0] = ((float)(mval[0] - (ar->winx / 2))) * zfac / (ar->winx / 2);
-		tvec[1] = ((float)(mval[1] - (ar->winy / 2))) * zfac / (ar->winy / 2);
-		tvec[2] = (rv3d->persmat[0][3] * fp[0] +
-		           rv3d->persmat[1][3] * fp[1] +
-		           rv3d->persmat[2][3] * fp[2] +
-		           rv3d->persmat[3][3]) / zfac;
-
-		mul_mat3_m4_v3(rv3d->persinv, tvec);
-		sub_v3_v3v3(fp, tvec, rv3d->ofs);
+	if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
+		view3d_operator_needs_opengl(C);
+		if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true, NULL))
+			depth_used = true;
 	}
 
+	if (depth_used == false) {
+		float depth_pt[3];
+		copy_v3_v3(depth_pt, fp);
+		ED_view3d_win_to_3d_int(ar, depth_pt, mval, fp);
+	}
 }
 
 static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
