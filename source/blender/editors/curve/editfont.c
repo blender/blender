@@ -1430,9 +1430,7 @@ void make_editText(Object *obedit)
 	}
 	
 	/* Convert the original text to wchar_t */
-	BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4); /* length is bogus */
-
-	cu->len = wcslen(ef->textbuf);
+	cu->len = BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4); /* length is bogus */
 
 	memcpy(ef->textbufinfo, cu->strinfo, (cu->len) * sizeof(CharInfo));
 
