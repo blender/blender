@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_cursor_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
@@ -545,33 +546,6 @@ void ED_text_to_object(bContext *C, Text *text, int split_lines)
 }
 
 /********************** utilities ***************************/
-static short next_word(Curve *cu)
-{
-	short s;
-	for (s = cu->pos; ((cu->str[s]) && (cu->str[s] != ' ') && (cu->str[s] != '\n') &&
-	                   (cu->str[s] != 1) && (cu->str[s] != '\r'));
-	     s++)
-	{
-		/* pass */
-	}
-
-	return cu->str[s] ? (s + 1) : s;
-}
-
-static short prev_word(Curve *cu)
-{
-	short s;
-	
-	if (cu->pos == 0) return(0);
-	for (s = cu->pos - 2; ((cu->str[s]) && (cu->str[s] != ' ') && (cu->str[s] != '\n') &&
-	                       (cu->str[s] != 1) && (cu->str[s] != '\r'));
-	     s--)
-	{
-		/* pass */
-	}
-
-	return cu->str[s] ? (s + 1) : s;
-}
 
 static int kill_selection(Object *obedit, int ins)  /* 1 == new character */
 {
@@ -877,16 +851,24 @@ static int move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_WORD:
+		{
+			int pos = cu->pos;
 			if ((select) && (cu->selstart == 0)) cu->selstart = cu->selend = cu->pos + 1;
-			cu->pos = prev_word(cu);
+			BLI_str_cursor_step_wchar(ef->textbuf, cu->len, &pos, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, true);
+			cu->pos = pos;
 			cursmove = FO_CURS;
 			break;
+		}
 
 		case NEXT_WORD:
+		{
+			int pos = cu->pos;
 			if ((select) && (cu->selstart == 0)) cu->selstart = cu->selend = cu->pos + 1;
-			cu->pos = next_word(cu);
+			BLI_str_cursor_step_wchar(ef->textbuf, cu->len, &pos, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, true);
+			cu->pos = pos;
 			cursmove = FO_CURS;
 			break;
+		}
 
 		case PREV_CHAR:
 			if ((select) && (cu->selstart == 0)) cu->selstart = cu->selend = cu->pos + 1;
