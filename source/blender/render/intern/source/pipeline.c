@@ -2756,9 +2756,26 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 	re->flag |= R_ANIMATION;
 
-	if (BKE_imtype_is_movie(scene->r.im_format.imtype))
-		if (!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
+	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+		int width, height;
+		if (re->r.mode & R_BORDER) {
+			if ((re->r.mode & R_CROP) == 0) {
+				width = re->winx;
+				height = re->winy;
+			}
+			else {
+				width = re->rectx;
+				height = re->recty;
+			}
+		}
+		else {
+			width = re->rectx;
+			height = re->recty;
+		}
+
+		if (!mh->start_movie(scene, &re->r, width, height, re->reports))
 			G.is_break = TRUE;
+	}
 
 	if (mh->get_next_frame) {
 		while (!(G.is_break == 1)) {
