@@ -1480,29 +1480,32 @@ static int set_case(bContext *C, int ccase)
 	EditFont *ef = cu->editfont;
 	wchar_t *str;
 	int len;
+	int selstart, selend;
 	
-	len = wcslen(ef->textbuf);
-	str = ef->textbuf;
-	while (len) {
-		if (*str >= 'a' && *str <= 'z')
-			*str -= 32;
-		len--;
-		str++;
-	}
-	
-	if (ccase == CASE_LOWER) {
-		len = wcslen(ef->textbuf);
-		str = ef->textbuf;
+	if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
+		len = (selend - selstart) + 1;
+		str = &ef->textbuf[selstart];
 		while (len) {
-			if (*str >= 'A' && *str <= 'Z') {
-				*str += 32;
-			}
+			if (*str >= 'a' && *str <= 'z')
+				*str -= 32;
 			len--;
 			str++;
 		}
-	}
 
-	text_update_edited(C, scene, obedit, 1, FO_EDIT);
+		if (ccase == CASE_LOWER) {
+			len = (selend - selstart) + 1;
+			str = &ef->textbuf[selstart];
+			while (len) {
+				if (*str >= 'A' && *str <= 'Z') {
+					*str += 32;
+				}
+				len--;
+				str++;
+			}
+		}
+
+		text_update_edited(C, scene, obedit, 1, FO_EDIT);
+	}
 
 	return OPERATOR_FINISHED;
 }
