@@ -125,6 +125,8 @@ void BLI_spin_end(SpinLock *spin);
 #define THREAD_LOCK_READ    1
 #define THREAD_LOCK_WRITE   2
 
+#define BLI_RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
+
 typedef pthread_rwlock_t ThreadRWMutex;
 
 void BLI_rw_mutex_init(ThreadRWMutex *mutex);

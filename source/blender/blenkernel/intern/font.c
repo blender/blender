@@ -65,6 +65,7 @@
 #include "BKE_displist.h"
 
 static ThreadMutex vfont_mutex = BLI_MUTEX_INITIALIZER;
+static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /* The vfont code */
 void BKE_vfont_free_data(struct VFont *vfont)
@@ -595,7 +596,9 @@ makebreak:
 		if (vfont == NULL) break;
 
 		if (!ELEM(ascii, '\n', '\0')) {
+			BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
 			che = find_vfont_char(vfd, ascii);
+			BLI_rw_mutex_unlock(&vfont_rwlock);
 
 			/*
 			 * The character wasn't in the current curve base so load it
@@ -603,7 +606,17 @@ makebreak:
 			 * whole font is in the memory already
 			 */
 			if (che == NULL && BKE_vfont_is_builtin(vfont) == false) {
-				che = BLI_vfontchar_from_freetypefont(vfont, ascii);
+				BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
+				/* Check it once again, char might have been already load
+				 * between previous BLI_rw_mutex_unlock() and this BLI_rw_mutex_lock().
+				 *
+				 * Such a check should not be a bottleneck since it wouldn't
+				 * happen often once all the chars are load.
+				 */
+				if ((che = find_vfont_char(vfd, ascii)) == NULL) {
+					che = BLI_vfontchar_from_freetypefont(vfont, ascii);
+				}
+				BLI_rw_mutex_unlock(&vfont_rwlock);
 			}
 		}
 		else {
