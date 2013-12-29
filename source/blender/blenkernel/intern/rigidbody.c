@@ -314,7 +314,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 			/* init mesh data for collision shape */
 			mdata = RB_trimesh_data_new(tottris, totvert);
 			
-			RB_trimesh_add_vertices(mdata, (float*)mvert, totvert, sizeof(MVert));
+			RB_trimesh_add_vertices(mdata, (float *)mvert, totvert, sizeof(MVert));
 
 			/* loop over all faces, adding them as triangles to the collision shape
 			 * (so for some faces, more than triangle will get added)
@@ -482,7 +482,7 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 		rigidbody_validate_sim_shape(ob, true);
 
 	if (rbo->physics_object && rebuild == false) {
-			RB_dworld_remove_body(rbw->physics_world, rbo->physics_object);
+		RB_dworld_remove_body(rbw->physics_world, rbo->physics_object);
 	}
 	if (!rbo->physics_object || rebuild) {
 		/* remove rigid body if it already exists before creating a new one */
@@ -555,7 +555,7 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 	}
 
 	if (rbc->physics_constraint && rebuild == false) {
-			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+		RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
 	}
 	if (rbc->physics_constraint == NULL || rebuild) {
 		rbRigidBody *rb1 = rbc->ob1->rigidbody_object->physics_object;
@@ -1035,7 +1035,7 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 			int totvert = dm->getNumVerts(dm);
 			BoundBox *bb = BKE_object_boundbox_get(ob);
 
-			RB_shape_trimesh_update(rbo->physics_shape, (float*)mvert, totvert, sizeof(MVert), bb->vec[0], bb->vec[6]);
+			RB_shape_trimesh_update(rbo->physics_shape, (float *)mvert, totvert, sizeof(MVert), bb->vec[0], bb->vec[6]);
 		}
 	}
 

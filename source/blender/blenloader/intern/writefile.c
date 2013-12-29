@@ -1474,7 +1474,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			if (wmd->cmap_curve)
 				write_curvemapping(wd, wmd->cmap_curve);
 		}
-		else if(md->type==eModifierType_LaplacianDeform) {
+		else if (md->type==eModifierType_LaplacianDeform) {
 			LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData*) md;
 
 			writedata(wd, DATA, sizeof(float)*lmd->total_verts * 3, lmd->vertexco);

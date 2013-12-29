@@ -71,9 +71,9 @@ extern "C" {
 bItasc DefIKParam;
 
 // in case of animation mode, feedback and timestep is fixed
-#define ANIM_TIMESTEP   1.0
+// #define ANIM_TIMESTEP   1.0
 #define ANIM_FEEDBACK   0.8
-#define ANIM_QMAX       0.52
+// #define ANIM_QMAX       0.52
 
 
 // Structure pointed by bPose.ikdata
