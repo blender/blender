@@ -238,7 +238,7 @@ static void update_string(Curve *cu)
 	/* Copy the wchar to UTF-8 */
 	BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, len + 1);
 
-	BLI_assert(len == cu->len);
+	BLI_assert(wcslen(ef->textbuf) == cu->len);
 }
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
@@ -571,7 +571,7 @@ static int kill_selection(Object *obedit, int ins)  /* 1 == new character */
 		size = (cu->len * sizeof(wchar_t)) - (selstart * sizeof(wchar_t)) + (offset * sizeof(wchar_t));
 		memmove(ef->textbuf + selstart, ef->textbuf + getfrom, size);
 		memmove(ef->textbufinfo + selstart, ef->textbufinfo + getfrom, ((cu->len - selstart) + offset) * sizeof(CharInfo));
-		cu->len -= ((selend - selstart) + 1) + offset;
+		cu->len -= ((selend - selstart) + 1);
 		cu->selstart = cu->selend = 0;
 	}
 
