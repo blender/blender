@@ -39,7 +39,7 @@ ccl_device int volume_henyey_greenstein_setup(ShaderClosure *sc)
 	/* clamp anisotropy to avoid delta function */
 	sc->data0 = signf(sc->data0) * min(fabsf(sc->data0), 1.0f - 1e-3f);
 
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_SCATTER;
+	return SD_SCATTER|SD_PHASE_HAS_EVAL;
 }
 
 ccl_device float3 volume_henyey_greenstein_eval_phase(const ShaderClosure *sc, const float3 I, float3 omega_in, float *pdf)
@@ -103,13 +103,13 @@ ccl_device int volume_absorption_setup(ShaderClosure *sc)
 
 /* VOLUME CLOSURE */
 
-ccl_device float3 volume_eval_phase(const ShaderClosure *sc, const float3 I, float3 omega_in, float *pdf)
+ccl_device float3 volume_phase_eval(const ShaderData *sd, const ShaderClosure *sc, float3 omega_in, float *pdf)
 {
 	float3 eval;
 
 	switch(sc->type) {
 		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
-			eval = volume_henyey_greenstein_eval_phase(sc, I, omega_in, pdf);
+			eval = volume_henyey_greenstein_eval_phase(sc, sd->I, omega_in, pdf);
 			break;
 		default:
 			eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -119,7 +119,7 @@ ccl_device float3 volume_eval_phase(const ShaderClosure *sc, const float3 I, flo
 	return eval;
 }
 
-ccl_device int volume_sample(const ShaderData *sd, const ShaderClosure *sc, float randu,
+ccl_device int volume_phase_sample(const ShaderData *sd, const ShaderClosure *sc, float randu,
 	float randv, float3 *eval, float3 *omega_in, differential3 *domega_in, float *pdf)
 {
 	int label;

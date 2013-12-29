@@ -166,6 +166,7 @@ void BlenderSync::sync_integrator()
 	integrator->max_diffuse_bounce = get_int(cscene, "diffuse_bounces");
 	integrator->max_glossy_bounce = get_int(cscene, "glossy_bounces");
 	integrator->max_transmission_bounce = get_int(cscene, "transmission_bounces");
+	integrator->max_volume_bounce = get_int(cscene, "volume_bounces");
 
 	integrator->transparent_max_bounce = get_int(cscene, "transparent_max_bounces");
 	integrator->transparent_min_bounce = get_int(cscene, "transparent_min_bounces");
@@ -201,6 +202,7 @@ void BlenderSync::sync_integrator()
 	int ao_samples = get_int(cscene, "ao_samples");
 	int mesh_light_samples = get_int(cscene, "mesh_light_samples");
 	int subsurface_samples = get_int(cscene, "subsurface_samples");
+	int volume_samples = get_int(cscene, "volume_samples");
 
 	if(get_boolean(cscene, "use_square_samples")) {
 		integrator->diffuse_samples = diffuse_samples * diffuse_samples;
@@ -209,6 +211,7 @@ void BlenderSync::sync_integrator()
 		integrator->ao_samples = ao_samples * ao_samples;
 		integrator->mesh_light_samples = mesh_light_samples * mesh_light_samples;
 		integrator->subsurface_samples = subsurface_samples * subsurface_samples;
+		integrator->volume_samples = volume_samples * volume_samples;
 	} 
 	else {
 		integrator->diffuse_samples = diffuse_samples;
@@ -217,6 +220,7 @@ void BlenderSync::sync_integrator()
 		integrator->ao_samples = ao_samples;
 		integrator->mesh_light_samples = mesh_light_samples;
 		integrator->subsurface_samples = subsurface_samples;
+		integrator->volume_samples = volume_samples;
 	}
 	
 

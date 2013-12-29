@@ -33,6 +33,7 @@ public:
 	int max_diffuse_bounce;
 	int max_glossy_bounce;
 	int max_transmission_bounce;
+	int max_volume_bounce;
 	bool probalistic_termination;
 
 	int transparent_min_bounce;
@@ -59,6 +60,7 @@ public:
 	int ao_samples;
 	int mesh_light_samples;
 	int subsurface_samples;
+	int volume_samples;
 
 	enum Method {
 		BRANCHED_PATH = 0,

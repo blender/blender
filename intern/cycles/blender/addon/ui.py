@@ -139,6 +139,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "ao_samples", text="AO")
             sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
+            sub.prop(cscene, "volume_samples", text="Volume")
 
         if cscene.feature_set == 'EXPERIMENTAL' and (device_type == 'NONE' or cscene.device == 'CPU'):
             layout.row().prop(cscene, "sampling_pattern", text="Pattern")
@@ -208,6 +209,7 @@ class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "diffuse_bounces", text="Diffuse")
         sub.prop(cscene, "glossy_bounces", text="Glossy")
         sub.prop(cscene, "transmission_bounces", text="Transmission")
+        sub.prop(cscene, "volume_bounces", text="Volume")
 
 
 class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):

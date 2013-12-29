@@ -17,10 +17,9 @@
 CCL_NAMESPACE_BEGIN
 
 typedef enum VolumeIntegrateResult {
-	VOLUME_PATH_TERMINATED = 0,
-	VOLUME_PATH_SCATTERED = 1,
-	VOLUME_PATH_ATTENUATED = 2,
-	VOLUME_PATH_MISSED = 3
+	VOLUME_PATH_SCATTERED = 0,
+	VOLUME_PATH_ATTENUATED = 1,
+	VOLUME_PATH_MISSED = 2
 } VolumeIntegrateResult;
 
 /* Volume shader properties
@@ -35,10 +34,10 @@ typedef struct VolumeShaderCoefficients {
 } VolumeShaderCoefficients;
 
 /* evaluate shader to get extinction coefficient at P */
-ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *sd, VolumeStack *stack, int path_flag, ShaderContext ctx, float3 P, float3 *extinction)
+ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, float3 *extinction)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, stack, 0.0f, path_flag, ctx);
+	shader_eval_volume(kg, sd, state->volume_stack, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER)))
 		return false;
@@ -57,27 +56,37 @@ ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *s
 }
 
 /* evaluate shader to get absorption, scattering and emission at P */
-ccl_device bool volume_shader_sample(KernelGlobals *kg, ShaderData *sd, VolumeStack *stack, int path_flag, ShaderContext ctx, float3 P, VolumeShaderCoefficients *sample)
+ccl_device bool volume_shader_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, VolumeShaderCoefficients *coeff)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, stack, 0.0f, path_flag, ctx);
+	shader_eval_volume(kg, sd, state->volume_stack, state->flag, SHADER_CONTEXT_VOLUME);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER|SD_EMISSION)))
 		return false;
-
-	sample->sigma_a = make_float3(0.0f, 0.0f, 0.0f);
-	sample->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
-	sample->emission = make_float3(0.0f, 0.0f, 0.0f);
+	
+	coeff->sigma_a = make_float3(0.0f, 0.0f, 0.0f);
+	coeff->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
+	coeff->emission = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		const ShaderClosure *sc = &sd->closure[i];
 
 		if(sc->type == CLOSURE_VOLUME_ABSORPTION_ID)
-			sample->sigma_a += sc->weight;
+			coeff->sigma_a += sc->weight;
 		else if(sc->type == CLOSURE_EMISSION_ID)
-			sample->emission += sc->weight;
+			coeff->emission += sc->weight;
 		else if(CLOSURE_IS_VOLUME(sc->type))
-			sample->sigma_s += sc->weight;
+			coeff->sigma_s += sc->weight;
+	}
+
+	/* when at the max number of bounces, treat scattering as absorption */
+	if(sd->flag & SD_SCATTER) {
+		if(state->volume_bounce >= kernel_data.integrator.max_volume_bounce) {
+			coeff->sigma_a += coeff->sigma_s;
+			coeff->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
+			sd->flag &= ~SD_SCATTER;
+			sd->flag |= SD_ABSORPTION;
+		}
 	}
 
 	return true;
@@ -100,7 +109,7 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *st
 	return false;
 }
 
-/* Volumetric Shadows
+/* Volume Shadows
  *
  * These functions are used to attenuate shadow rays to lights. Both absorption
  * and scattering will block light, represented by the extinction coefficient. */
@@ -109,11 +118,9 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *st
  * the extinction coefficient for the entire line segment */
 ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, float3 *throughput)
 {
-	ShaderContext ctx = SHADER_CONTEXT_SHADOW;
-	int path_flag = PATH_RAY_SHADOW;
 	float3 sigma_t;
 
-	if(volume_shader_extinction_sample(kg, sd, state->volume_stack, path_flag, ctx, ray->P, &sigma_t))
+	if(volume_shader_extinction_sample(kg, sd, state, ray->P, &sigma_t))
 		*throughput *= volume_color_attenuation(sigma_t, ray->t);
 }
 
@@ -121,8 +128,6 @@ ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg, PathState *s
  * reach the end, get absorbed entirely, or run out of iterations */
 ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, float3 *throughput)
 {
-	ShaderContext ctx = SHADER_CONTEXT_SHADOW;
-	int path_flag = PATH_RAY_SHADOW;
 	float3 tp = *throughput;
 	const float tp_eps = 1e-10f; /* todo: this is likely not the right value */
 
@@ -136,7 +141,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 	float3 P = ray->P;
 	float3 sigma_t;
 
-	if(!volume_shader_extinction_sample(kg, sd, state->volume_stack, path_flag, ctx, P, &sigma_t))
+	if(!volume_shader_extinction_sample(kg, sd, state, P, &sigma_t))
 		sigma_t = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i < max_steps; i++) {
@@ -146,7 +151,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 		float3 new_sigma_t;
 
 		/* compute attenuation over segment */
-		if(volume_shader_extinction_sample(kg, sd, state->volume_stack, path_flag, ctx, new_P, &new_sigma_t)) {
+		if(volume_shader_extinction_sample(kg, sd, state, new_P, &new_sigma_t)) {
 			/* todo: we could avoid computing expf() for each step by summing,
 			 * because exp(a)*exp(b) = exp(a+b), but we still want a quick
 			 * tp_eps check too */
@@ -174,7 +179,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 
 /* get the volume attenuation over line segment defined by ray, with the
  * assumption that there are no surfaces blocking light between the endpoints */
-ccl_device void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *ray, float3 *throughput)
+ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *ray, float3 *throughput)
 {
 	ShaderData sd;
 	shader_setup_from_volume(kg, &sd, ray, state->bounce);
@@ -185,46 +190,81 @@ ccl_device void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *r
 		kernel_volume_shadow_homogeneous(kg, state, ray, &sd, throughput);
 }
 
-/* Volumetric Path */
+/* Volume Path */
 
 /* homogenous volume: assume shader evaluation at the starts gives
  * the volume shading coefficient for the entire line segment */
-ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput)
+ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGlobals *kg,
+	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput,
+	RNG *rng)
 {
-	ShaderContext ctx = SHADER_CONTEXT_VOLUME;
-	int path_flag = PATH_RAY_SHADOW;
 	VolumeShaderCoefficients coeff;
 
-	if(!volume_shader_sample(kg, sd, state->volume_stack, path_flag, ctx, ray->P, &coeff))
+	if(!volume_shader_sample(kg, sd, state, ray->P, &coeff))
 		return VOLUME_PATH_MISSED;
 
-	/* todo: in principle the SD_EMISSION, SD_ABSORPTION and SD_SCATTER flags
-	 * should ensure that one of the components is > 0 and so no division by
-	 * zero occurs, however this needs to be double-checked and tested */
-	
 	int closure_flag = sd->flag;
 	float t = ray->t;
+	float3 new_tp;
+	float3 transmittance;
 
-	/* compute attenuation from absorption */
-	float3 attenuation;
+	/* randomly scatter, and if we do t is shortened */
+	if(closure_flag & SD_SCATTER) {
+		float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 
-	if(closure_flag & SD_ABSORPTION)
-		attenuation = volume_color_attenuation(coeff.sigma_a, t);
+		/* set up variables for sampling */
+		float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
+		int channel = (int)(rphase*3.0f);
+		sd->randb_closure = rphase*3.0f - channel;
 
-	/* integrate emission attenuated by absorption
-	 * integral E * exp(-sigma_a * t) from 0 to t = E * (1 - exp(-sigma_a * t))/sigma_a
-	 * this goes to E * t as sigma_a goes to zero
+		/* pick random color channel, we use the Veach one-sample
+		 * model with balance heuristic for the channels */
+		float sample_sigma_t;
+
+		if(channel == 0)
+			sample_sigma_t = sigma_t.x;
+		else if(channel == 1)
+			sample_sigma_t = sigma_t.y;
+		else
+			sample_sigma_t = sigma_t.z;
+
+		/* xi is [0, 1[ so log(0) should never happen, division by zero is
+		 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
+		float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+		float sample_t = min(t, -logf(1.0f - xi)/sample_sigma_t);
+
+		transmittance = volume_color_attenuation(sigma_t, sample_t);
+
+		if(sample_t < t) {
+			float pdf = dot(sigma_t, transmittance);
+			new_tp = *throughput * coeff.sigma_s * transmittance * (3.0f / pdf);
+			t = sample_t;
+		}
+		else {
+			float pdf = (transmittance.x + transmittance.y + transmittance.z);
+			new_tp = *throughput * transmittance * (3.0f / pdf);
+		}
+	}
+	else if(closure_flag & SD_ABSORPTION) {
+		/* absorption only, no sampling needed */
+		transmittance = volume_color_attenuation(coeff.sigma_a, t);
+		new_tp = *throughput * transmittance;
+	}
+
+	/* integrate emission attenuated by extinction
+	 * integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
+	 * this goes to E * t as sigma_t goes to zero
 	 *
-	 * todo: we should use an epsilon to avoid precision issues near zero sigma_a */
+	 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
 	if(closure_flag & SD_EMISSION) {
 		float3 emission = coeff.emission;
 
 		if(closure_flag & SD_ABSORPTION) {
-			float3 sigma_a = coeff.sigma_a;
+			float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 
-			emission.x *= (sigma_a.x > 0.0f)? (1.0f - attenuation.x)/sigma_a.x: t;
-			emission.y *= (sigma_a.y > 0.0f)? (1.0f - attenuation.y)/sigma_a.y: t;
-			emission.z *= (sigma_a.z > 0.0f)? (1.0f - attenuation.z)/sigma_a.z: t;
+			emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: t;
+			emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: t;
+			emission.z *= (sigma_t.z > 0.0f)? (1.0f - transmittance.z)/sigma_t.z: t;
 		}
 		else
 			emission *= t;
@@ -233,18 +273,26 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 	}
 
 	/* modify throughput */
-	if(closure_flag & SD_ABSORPTION)
-		*throughput *= attenuation;
+	if(closure_flag & (SD_ABSORPTION|SD_SCATTER)) {
+		*throughput = new_tp;
+
+		/* prepare to scatter to new direction */
+		if(t < ray->t) {
+			/* adjust throughput and move to new location */
+			sd->P = ray->P + t*ray->D;
+
+			return VOLUME_PATH_SCATTERED;
+		}
+	}
 
 	return VOLUME_PATH_ATTENUATED;
 }
 
 /* heterogeneous volume: integrate stepping through the volume until we
  * reach the end, get absorbed entirely, or run out of iterations */
-ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput)
+ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlobals *kg,
+	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput, RNG *rng)
 {
-	ShaderContext ctx = SHADER_CONTEXT_VOLUME;
-	int path_flag = PATH_RAY_SHADOW;
 	VolumeShaderCoefficients coeff;
 	float3 tp = *throughput;
 	const float tp_eps = 1e-10f; /* todo: this is likely not the right value */
@@ -258,11 +306,21 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 	float t = 0.0f;
 	float3 P = ray->P;
 
-	if(!volume_shader_sample(kg, sd, state->volume_stack, path_flag, ctx, P, &coeff)) {
+	if(!volume_shader_sample(kg, sd, state, P, &coeff)) {
 		coeff.sigma_a = make_float3(0.0f, 0.0f, 0.0f);
 		coeff.sigma_s = make_float3(0.0f, 0.0f, 0.0f);
 		coeff.emission = make_float3(0.0f, 0.0f, 0.0f);
 	}
+
+	/* accumulate these values so we can use a single stratified number to sample */
+	float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
+	float3 accum_sigma_t = make_float3(0.0f, 0.0f, 0.0f);
+	float3 accum_sigma_s = make_float3(0.0f, 0.0f, 0.0f);
+
+	/* cache some constant variables */
+	float nlogxi;
+	int channel = -1;
+	bool has_scatter = false;
 
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
@@ -270,34 +328,103 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 		float3 new_P = ray->P + ray->D * new_t;
 		VolumeShaderCoefficients new_coeff;
 
-		/* compute attenuation over segment */
-		if(volume_shader_sample(kg, sd, state->volume_stack, path_flag, ctx, new_P, &new_coeff)) {
+		/* compute segment */
+		if(volume_shader_sample(kg, sd, state, new_P, &new_coeff)) {
 			int closure_flag = sd->flag;
 			float dt = new_t - t;
+			float3 new_tp;
+			float3 transmittance;
+			bool scatter = false;
 
-			/* compute attenuation from absorption */
-			float3 attenuation, sigma_a;
+			/* randomly scatter, and if we do dt and new_t are shortened */
+			if((closure_flag & SD_SCATTER) || (has_scatter && (closure_flag & SD_ABSORPTION))) {
+				has_scatter = true;
 
-			if(closure_flag & SD_ABSORPTION) {
+				/* average sigma_t and sigma_s over segment */
+				float3 last_sigma_t = coeff.sigma_a + coeff.sigma_s;
+				float3 new_sigma_t = new_coeff.sigma_a + new_coeff.sigma_s;
+				float3 sigma_t = 0.5f*(last_sigma_t + new_sigma_t);
+				float3 sigma_s = 0.5f*(coeff.sigma_s + new_coeff.sigma_s);
+
+				/* lazily set up variables for sampling */
+				if(channel == -1) {
+					float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+					nlogxi = -logf(1.0f - xi);
+
+					float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
+					channel = (int)(rphase*3.0f);
+					sd->randb_closure = rphase*3.0f - channel;
+				}
+
+				/* pick random color channel, we use the Veach one-sample
+				 * model with balance heuristic for the channels */
+				float sample_sigma_t;
+
+				if(channel == 0)
+					sample_sigma_t = accum_sigma_t.x + dt*sigma_t.x;
+				else if(channel == 1)
+					sample_sigma_t = accum_sigma_t.y + dt*sigma_t.y;
+				else
+					sample_sigma_t = accum_sigma_t.z + dt*sigma_t.z;
+
+				if(nlogxi < sample_sigma_t) {
+					/* compute sampling distance */
+					sample_sigma_t /= new_t;
+					new_t = nlogxi/sample_sigma_t;
+					dt = new_t - t;
+
+					transmittance = volume_color_attenuation(sigma_t, dt);
+
+					accum_transmittance *= transmittance;
+					accum_sigma_t = (accum_sigma_t + dt*sigma_t)/new_t;
+					accum_sigma_s = (accum_sigma_s + dt*sigma_s)/new_t;
+
+					/* todo: it's not clear to me that this is correct if we move
+					 * through a color volumed, needs verification */
+					float pdf = dot(accum_sigma_t, accum_transmittance);
+					new_tp = tp * accum_sigma_s * transmittance * (3.0f / pdf);
+
+					scatter = true;
+				}
+				else {
+					transmittance = volume_color_attenuation(sigma_t, dt);
+
+					accum_transmittance *= transmittance;
+					accum_sigma_t += dt*sigma_t;
+					accum_sigma_s += dt*sigma_s;
+
+					new_tp = tp * transmittance;
+				}
+			}
+			else if(closure_flag & SD_ABSORPTION) {
+				/* absorption only, no sampling needed */
+				float3 sigma_a = 0.5f*(coeff.sigma_a + new_coeff.sigma_a);
+				transmittance = volume_color_attenuation(sigma_a, dt);
+
+				accum_transmittance *= transmittance;
+				accum_sigma_t += dt*sigma_a;
+
+				new_tp = tp * transmittance;
+
 				/* todo: we could avoid computing expf() for each step by summing,
 				 * because exp(a)*exp(b) = exp(a+b), but we still want a quick
 				 * tp_eps check too */
-				sigma_a = 0.5f*(coeff.sigma_a + new_coeff.sigma_a);
-				attenuation = volume_color_attenuation(sigma_a, dt);
 			}
 
 			/* integrate emission attenuated by absorption 
-			 * integral E * exp(-sigma_a * t) from 0 to t = E * (1 - exp(-sigma_a * t))/sigma_a
-			 * this goes to E * t as sigma_a goes to zero
+			 * integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
+			 * this goes to E * t as sigma_t goes to zero
 			 *
-			 * todo: we should use an epsilon to avoid precision issues near zero sigma_a */
+			 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
 			if(closure_flag & SD_EMISSION) {
 				float3 emission = 0.5f*(coeff.emission + new_coeff.emission);
 
 				if(closure_flag & SD_ABSORPTION) {
-					emission.x *= (sigma_a.x > 0.0f)? (1.0f - attenuation.x)/sigma_a.x: dt;
-					emission.y *= (sigma_a.y > 0.0f)? (1.0f - attenuation.y)/sigma_a.y: dt;
-					emission.z *= (sigma_a.z > 0.0f)? (1.0f - attenuation.z)/sigma_a.z: dt;
+					float3 sigma_t = 0.5f*(coeff.sigma_a + coeff.sigma_s + new_coeff.sigma_a + new_coeff.sigma_s);
+
+					emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: dt;
+					emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: dt;
+					emission.z *= (sigma_t.z > 0.0f)? (1.0f - transmittance.z)/sigma_t.z: dt;
 				}
 				else
 					emission *= dt;
@@ -306,13 +433,22 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			}
 
 			/* modify throughput */
-			if(closure_flag & SD_ABSORPTION) {
-				tp *= attenuation;
+			if(closure_flag & (SD_ABSORPTION|SD_SCATTER)) {
+				tp = new_tp;
 
 				/* stop if nearly all light blocked */
 				if(tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps) {
 					tp = make_float3(0.0f, 0.0f, 0.0f);
 					break;
+				}
+
+				/* prepare to scatter to new direction */
+				if(scatter) {
+					/* adjust throughput and move to new location */
+					sd->P = ray->P + new_t*ray->D;
+					*throughput = tp;
+
+					return VOLUME_PATH_SCATTERED;
 				}
 			}
 
@@ -331,6 +467,13 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			break;
 	}
 
+	/* include pdf for volumes with scattering */
+	if(has_scatter) {
+		float pdf = (accum_transmittance.x + accum_transmittance.y + accum_transmittance.z);
+		if(pdf > 0.0f)
+			tp *= (3.0f/pdf);
+	}
+
 	*throughput = tp;
 
 	return VOLUME_PATH_ATTENUATED;
@@ -339,15 +482,15 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 /* get the volume attenuation and emission over line segment defined by
  * ray, with the assumption that there are no surfaces blocking light
  * between the endpoints */
-ccl_device VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg, PathState *state, Ray *ray, PathRadiance *L, float3 *throughput)
+ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
+	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
 {
-	ShaderData sd;
-	shader_setup_from_volume(kg, &sd, ray, state->bounce);
+	shader_setup_from_volume(kg, sd, ray, state->bounce);
 
 	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
-		return kernel_volume_integrate_heterogeneous(kg, state, ray, &sd, L, throughput);
+		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, rng);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, &sd, L, throughput);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, rng);
 }
 
 /* Volume Stack

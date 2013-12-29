@@ -32,6 +32,9 @@
 #ifdef __SUBSURFACE__
 #include "../closure/bssrdf.h"
 #endif
+#ifdef __VOLUME__
+#include "../closure/volume.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -124,6 +127,9 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
+		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+			label = volume_henyey_greenstein_sample(sc, sd->I, sd->dI.dx, sd->dI.dy, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			break;
 		default:
 			label = LABEL_NONE;
 			break;
@@ -204,6 +210,11 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 				eval = bsdf_hair_transmission_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #endif
+#ifdef __VOLUME__
+			case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+				eval = volume_henyey_greenstein_eval_phase(sc, sd->I, omega_in, pdf);
+				break;
+#endif
 			default:
 				eval = make_float3(0.0f, 0.0f, 0.0f);
 				break;
@@ -264,6 +275,11 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 				break;
 			case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 				eval = bsdf_hair_transmission_eval_transmit(sc, sd->I, omega_in, pdf);
+				break;
+#endif
+#ifdef __VOLUME__
+			case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+				eval = volume_henyey_greenstein_eval_phase(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			default:
@@ -344,6 +360,7 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 			bsdf_hair_reflection_blur(sc, roughness);
 			break;
 #endif
+		/* todo: do we want to blur volume closures? */
 		default:
 			break;
 	}

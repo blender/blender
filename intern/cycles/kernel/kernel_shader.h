@@ -27,7 +27,6 @@
 #include "closure/bsdf_util.h"
 #include "closure/bsdf.h"
 #include "closure/emissive.h"
-#include "closure/volume.h"
 
 #include "svm/svm.h"
 
@@ -958,37 +957,120 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int 
 /* Volume */
 
 #ifdef __VOLUME__
-ccl_device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
-	float3 omega_in, float3 omega_out)
-{
-#ifdef __MULTI_CLOSURE__
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-	float pdf;
 
+ccl_device_inline void _shader_volume_phase_multi_eval(const ShaderData *sd, const float3 omega_in, float *pdf,
+	int skip_phase, BsdfEval *result_eval, float sum_pdf, float sum_sample_weight)
+{
 	for(int i = 0; i< sd->num_closure; i++) {
+		if(i == skip_phase)
+			continue;
+
 		const ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_VOLUME(sc->type))
-			eval += volume_eval_phase(sc, omega_in, omega_out, &pdf);
+		if(CLOSURE_IS_PHASE(sc->type)) {
+			float phase_pdf = 0.0f;
+			float3 eval = volume_phase_eval(sd, sc, omega_in, &phase_pdf);
+
+			if(phase_pdf != 0.0f) {
+				bsdf_eval_accum(result_eval, sc->type, eval);
+				sum_pdf += phase_pdf;
+			}
+
+			sum_sample_weight += sc->sample_weight;
+		}
 	}
 
-	return eval;
-#else
-	float pdf;
-	return volume_eval_phase(&sd->closure, omega_in, omega_out, &pdf);
-#endif
+	*pdf = (sum_sample_weight > 0.0f)? sum_pdf/sum_sample_weight: 0.0f;
 }
+
+ccl_device void shader_volume_phase_eval(KernelGlobals *kg, const ShaderData *sd,
+	const float3 omega_in, BsdfEval *eval, float *pdf)
+{
+	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
+
+	_shader_volume_phase_multi_eval(sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
+}
+
+ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *sd,
+	float randu, float randv, BsdfEval *phase_eval,
+	float3 *omega_in, differential3 *domega_in, float *pdf)
+{
+	int sampled = 0;
+
+	if(sd->num_closure > 1) {
+		/* pick a phase closure based on sample weights */
+		float sum = 0.0f;
+
+		for(sampled = 0; sampled < sd->num_closure; sampled++) {
+			const ShaderClosure *sc = &sd->closure[sampled];
+			
+			if(CLOSURE_IS_PHASE(sc->type))
+				sum += sc->sample_weight;
+		}
+
+		float r = sd->randb_closure*sum;
+		sum = 0.0f;
+
+		for(sampled = 0; sampled < sd->num_closure; sampled++) {
+			const ShaderClosure *sc = &sd->closure[sampled];
+			
+			if(CLOSURE_IS_PHASE(sc->type)) {
+				sum += sc->sample_weight;
+
+				if(r <= sum)
+					break;
+			}
+		}
+
+		if(sampled == sd->num_closure) {
+			*pdf = 0.0f;
+			return LABEL_NONE;
+		}
+	}
+
+	/* todo: this isn't quite correct, we don't weight anisotropy properly
+	 * depending on color channels, even if this is perhaps not a common case */
+	const ShaderClosure *sc = &sd->closure[sampled];
+	int label;
+	float3 eval;
+
+	*pdf = 0.0f;
+	label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+
+	if(*pdf != 0.0f) {
+		bsdf_eval_init(phase_eval, sc->type, eval, kernel_data.film.use_light_pass);
+	}
+
+	return label;
+}
+
+ccl_device int shader_phase_sample_closure(KernelGlobals *kg, const ShaderData *sd,
+	const ShaderClosure *sc, float randu, float randv, BsdfEval *phase_eval,
+	float3 *omega_in, differential3 *domega_in, float *pdf)
+{
+	int label;
+	float3 eval;
+
+	*pdf = 0.0f;
+	label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+
+	if(*pdf != 0.0f)
+		bsdf_eval_init(phase_eval, sc->type, eval, kernel_data.film.use_light_pass);
+
+	return label;
+}
+
+#endif
 
 /* Volume Evaluation */
 
 ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
-	VolumeStack *stack, float randb, int path_flag, ShaderContext ctx)
+	VolumeStack *stack, int path_flag, ShaderContext ctx)
 {
 	/* reset closures once at the start, we will be accumulating the closures
 	 * for all volumes in the stack into a single array of closures */
 #ifdef __MULTI_CLOSURE__
 	sd->num_closure = 0;
-	sd->randb_closure = randb;
 #else
 	sd->closure.type = NBUILTIN_CLOSURES;
 #endif
@@ -1022,7 +1104,7 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 		else
 #endif
 		{
-			svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, randb, path_flag);
+			svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, 0.0f, path_flag);
 		}
 #endif
 
@@ -1031,7 +1113,6 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 			shader_merge_closures(sd);
 	}
 }
-#endif
 
 /* Displacement Evaluation */
 

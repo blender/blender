@@ -42,6 +42,8 @@ ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state, RNG 
 
 #ifdef __VOLUME__
 	if(kernel_data.integrator.use_volumes) {
+		state->volume_bounce = 0;
+
 		/* initialize volume stack with volume we are inside of */
 		kernel_volume_stack_init(kg, state->volume_stack);
 		/* seed RNG for cases where we can't use stratified samples */
@@ -61,6 +63,9 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, PathState *state, int 
 		state->flag |= PATH_RAY_TRANSPARENT;
 		state->transparent_bounce++;
 
+		/* random number generator next bounce */
+		state->rng_offset += PRNG_BOUNCE_NUM;
+
 		if(!kernel_data.integrator.transparent_shadows)
 			state->flag |= PATH_RAY_MIS_SKIP;
 
@@ -69,39 +74,51 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, PathState *state, int 
 
 	state->bounce++;
 
-	/* reflection/transmission */
-	if(label & LABEL_REFLECT) {
-		state->flag |= PATH_RAY_REFLECT;
-		state->flag &= ~(PATH_RAY_TRANSMIT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+#ifdef __VOLUME__
+	if(label & LABEL_VOLUME_SCATTER) {
+		/* volume scatter */
+		state->flag |= PATH_RAY_VOLUME_SCATTER;
+		state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_TRANSMIT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT|PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 
-		if(label & LABEL_DIFFUSE)
-			state->diffuse_bounce++;
-		else
-			state->glossy_bounce++;
+		state->volume_bounce++;
 	}
-	else {
-		kernel_assert(label & LABEL_TRANSMIT);
+	else
+#endif
+	{
+		/* surface reflection/transmission */
+		if(label & LABEL_REFLECT) {
+			state->flag |= PATH_RAY_REFLECT;
+			state->flag &= ~(PATH_RAY_TRANSMIT|PATH_RAY_VOLUME_SCATTER|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
 
-		state->flag |= PATH_RAY_TRANSMIT;
-		state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+			if(label & LABEL_DIFFUSE)
+				state->diffuse_bounce++;
+			else
+				state->glossy_bounce++;
+		}
+		else {
+			kernel_assert(label & LABEL_TRANSMIT);
 
-		state->transmission_bounce++;
-	}
+			state->flag |= PATH_RAY_TRANSMIT;
+			state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_VOLUME_SCATTER|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
 
-	/* diffuse/glossy/singular */
-	if(label & LABEL_DIFFUSE) {
-		state->flag |= PATH_RAY_DIFFUSE|PATH_RAY_DIFFUSE_ANCESTOR;
-		state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
-	}
-	else if(label & LABEL_GLOSSY) {
-		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_GLOSSY_ANCESTOR;
-		state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
-	}
-	else {
-		kernel_assert(label & LABEL_SINGULAR);
+			state->transmission_bounce++;
+		}
 
-		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
-		state->flag &= ~PATH_RAY_DIFFUSE;
+		/* diffuse/glossy/singular */
+		if(label & LABEL_DIFFUSE) {
+			state->flag |= PATH_RAY_DIFFUSE|PATH_RAY_DIFFUSE_ANCESTOR;
+			state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
+		}
+		else if(label & LABEL_GLOSSY) {
+			state->flag |= PATH_RAY_GLOSSY|PATH_RAY_GLOSSY_ANCESTOR;
+			state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
+		}
+		else {
+			kernel_assert(label & LABEL_SINGULAR);
+
+			state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
+			state->flag &= ~PATH_RAY_DIFFUSE;
+		}
 	}
 
 	/* random number generator next bounce */
@@ -136,7 +153,8 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, Path
 		if((state->bounce >= kernel_data.integrator.max_bounce) ||
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
-		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
+		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce) ||
+		   (state->volume_bounce >= kernel_data.integrator.max_volume_bounce))
 		{
 			return 0.0f;
 		}

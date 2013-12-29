@@ -103,7 +103,14 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
 
+#ifdef __VOLUME__
+	if(sd->prim != ~0)
+		shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+	else
+		shader_volume_phase_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+#else
 	shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+#endif
 
 	if(ls.shader & SHADER_USE_MIS) {
 		/* multiple importance sampling */

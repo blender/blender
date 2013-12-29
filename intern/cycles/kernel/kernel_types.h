@@ -190,7 +190,16 @@ enum PathTraceDimension {
 	PRNG_LIGHT_V = 5,
 	PRNG_LIGHT_F = 6,
 	PRNG_TERMINATE = 7,
-	PRNG_BOUNCE_NUM = 8
+
+#ifdef __VOLUME__
+	PRNG_PHASE_U = 8,
+	PRNG_PHASE_V = 9,
+	PRNG_PHASE = 10,
+	PRNG_SCATTER_DISTANCE = 11,
+	PRNG_BOUNCE_NUM = 12,
+#else
+	PRNG_BOUNCE_NUM = 8,
+#endif
 };
 
 enum SamplingPattern {
@@ -503,11 +512,12 @@ enum ShaderDataFlag {
 	SD_EMISSION = 2,		/* have emissive closure? */
 	SD_BSDF = 4,			/* have bsdf closure? */
 	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
+	SD_PHASE_HAS_EVAL = 8,	/* have non-singular phase closure? */
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
 	SD_BSSRDF = 32,			/* have bssrdf */
 	SD_HOLDOUT = 64,		/* have holdout closure? */
 	SD_ABSORPTION = 128,	/* have volume absorption closure? */
-	SD_SCATTER = 256,		/* have volume scattering closure? */
+	SD_SCATTER = 256,		/* have volume phase closure? */
 	SD_AO = 512,			/* have ao closure? */
 
 	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
@@ -646,6 +656,7 @@ typedef struct PathState {
 
 	/* volume rendering */
 #ifdef __VOLUME__
+	int volume_bounce;
 	RNG rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
@@ -791,6 +802,7 @@ typedef struct KernelIntegrator {
 	int max_diffuse_bounce;
 	int max_glossy_bounce;
 	int max_transmission_bounce;
+	int max_volume_bounce;
 
 	/* transparent */
 	int transparent_min_bounce;
@@ -830,7 +842,7 @@ typedef struct KernelIntegrator {
 	int use_volumes;
 	int volume_max_steps;
 	float volume_step_size;
-	int pad1, pad2;
+	int volume_samples;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

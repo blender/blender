@@ -220,6 +220,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=1,
                 )
 
+        cls.volume_samples = IntProperty(
+                name="Volume Samples",
+                description="Number of volume scattering samples to render for each AA sample",
+                min=1, max=10000,
+                default=1,
+                )
+
         cls.sampling_pattern = EnumProperty(
                 name="Sampling Pattern",
                 description="Random sampling pattern used by the integrator",
@@ -279,6 +286,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Maximum number of transmission bounces, bounded by total maximum",
                 min=0, max=1024,
                 default=12,
+                )
+        cls.volume_bounces = IntProperty(
+                name="Volume Bounces",
+                description="Maximum number of volumetric scattering events",
+                min=0, max=1024,
+                default=1,
                 )
 
         cls.transparent_min_bounces = IntProperty(
