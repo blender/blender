@@ -92,11 +92,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 #endif
 
 #ifdef __VOLUME__
-		/* volume attenuation */
+		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			Ray segment_ray = ray;
-			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &segment_ray, L, &throughput);
+			ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &ray, L, &throughput);
 		}
 #endif
 
@@ -514,11 +513,10 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 
 #ifdef __VOLUME__
-		/* volume attenuation */
+		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			Ray segment_ray = ray;
-			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &segment_ray, &L, &throughput);
+			ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &ray, &L, &throughput);
 		}
 #endif
 
@@ -1018,11 +1016,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #endif
 
 #ifdef __VOLUME__
-		/* volume attenuation */
+		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			Ray segment_ray = ray;
-			segment_ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &segment_ray, &L, &throughput);
+			ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &ray, &L, &throughput);
 		}
 #endif
 

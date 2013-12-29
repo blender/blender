@@ -500,25 +500,26 @@ enum ShaderDataFlag {
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
 	SD_BSSRDF = 32,			/* have bssrdf */
 	SD_HOLDOUT = 64,		/* have holdout closure? */
-	SD_VOLUME = 128,		/* have volume closure? */
-	SD_AO = 256,			/* have ao closure? */
+	SD_ABSORPTION = 128,	/* have volume absorption closure? */
+	SD_SCATTER = 256,		/* have volume scattering closure? */
+	SD_AO = 512,			/* have ao closure? */
 
-	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_VOLUME|SD_AO),
+	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
 
 	/* shader flags */
-	SD_USE_MIS = 512,					/* direct light sample */
-	SD_HAS_TRANSPARENT_SHADOW = 1024,	/* has transparent shadow */
-	SD_HAS_VOLUME = 2048,				/* has volume shader */
-	SD_HAS_ONLY_VOLUME = 4096,			/* has only volume shader, no surface */
-	SD_HOMOGENEOUS_VOLUME = 8192,		/* has homogeneous volume */
-	SD_HAS_BSSRDF_BUMP = 16384,			/* bssrdf normal uses bump */
+	SD_USE_MIS = 1024,					/* direct light sample */
+	SD_HAS_TRANSPARENT_SHADOW = 2048,	/* has transparent shadow */
+	SD_HAS_VOLUME = 4096,				/* has volume shader */
+	SD_HAS_ONLY_VOLUME = 8192,			/* has only volume shader, no surface */
+	SD_HOMOGENEOUS_VOLUME = 16384,		/* has homogeneous volume */
+	SD_HAS_BSSRDF_BUMP = 32768,			/* bssrdf normal uses bump */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HOMOGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 32768,			/* holdout for camera rays */
-	SD_OBJECT_MOTION = 65536,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 131072, 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 65536,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 131072,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 262144, 		/* vertices have transform applied */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED)
 };
