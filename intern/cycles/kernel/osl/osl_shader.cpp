@@ -415,11 +415,27 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 					}
 					break;
 				}
+				case CClosurePrimitive::Emissive: {
+					/* sample weight */
+					float sample_weight = fabsf(average(weight));
+
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_EMISSION_ID;
+					sc.data0 = 0.0f;
+					sc.data1 = 0.0f;
+					sc.prim = NULL;
+
+					/* flag */
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_EMISSION;
+					}
+					break;
+				}
 				case CClosurePrimitive::Holdout:
 					break; /* not implemented */
 				case CClosurePrimitive::Background:
 				case CClosurePrimitive::BSDF:
-				case CClosurePrimitive::Emissive:
 				case CClosurePrimitive::BSSRDF:
 				case CClosurePrimitive::AmbientOcclusion:
 					break; /* not relevant */
