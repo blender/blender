@@ -94,8 +94,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ra
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &ray, L, &throughput);
+			Ray volume_ray = ray;
+			volume_ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &volume_ray, L, &throughput);
 		}
 #endif
 
@@ -462,7 +463,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 	int num_samples = 0;
 #endif
 
-	path_state_init(kg, &state);
+	path_state_init(kg, &state, rng, sample);
 
 	/* path iteration */
 	for(;; rng_offset += PRNG_BOUNCE_NUM) {
@@ -515,8 +516,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &ray, &L, &throughput);
+			Ray volume_ray = ray;
+			volume_ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &volume_ray, &L, &throughput);
 		}
 #endif
 
@@ -988,7 +990,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 	int aa_samples = 0;
 #endif
 
-	path_state_init(kg, &state);
+	path_state_init(kg, &state, rng, sample);
 
 	for(;; rng_offset += PRNG_BOUNCE_NUM) {
 		/* intersect scene */
@@ -1018,8 +1020,9 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
 		if(state.volume_stack[0].shader != SHADER_NO_ID) {
-			ray.t = (hit)? isect.t: FLT_MAX;
-			kernel_volume_integrate(kg, &state, &ray, &L, &throughput);
+			Ray volume_ray = ray;
+			volume_ray.t = (hit)? isect.t: FLT_MAX;
+			kernel_volume_integrate(kg, &state, &volume_ray, &L, &throughput);
 		}
 #endif
 

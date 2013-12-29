@@ -40,6 +40,9 @@ Integrator::Integrator()
 	transparent_probalistic = true;
 	transparent_shadows = false;
 
+	volume_max_steps = 1024;
+	volume_step_size = 0.1;
+
 	no_caustics = false;
 	filter_glossy = 0.0f;
 	seed = 0;
@@ -92,6 +95,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 		kintegrator->transparent_min_bounce = kintegrator->transparent_max_bounce;
 
 	kintegrator->transparent_shadows = transparent_shadows;
+
+	kintegrator->volume_max_steps = volume_max_steps;
+	kintegrator->volume_step_size = volume_step_size;
 
 	kintegrator->no_caustics = no_caustics;
 	kintegrator->filter_glossy = (filter_glossy == 0.0f)? FLT_MAX: 1.0f/filter_glossy;
@@ -158,6 +164,8 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_max_bounce == integrator.transparent_max_bounce &&
 		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
+		volume_max_steps == integrator.volume_max_steps &&
+		volume_step_size == integrator.volume_step_size &&
 		no_caustics == integrator.no_caustics &&
 		filter_glossy == integrator.filter_glossy &&
 		layer_flag == integrator.layer_flag &&

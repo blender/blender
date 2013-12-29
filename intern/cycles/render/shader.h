@@ -62,7 +62,7 @@ public:
 	/* sampling */
 	bool use_mis;
 	bool use_transparent_shadow;
-	bool homogeneous_volume;
+	bool heterogeneous_volume;
 
 	/* synchronization */
 	bool need_update;

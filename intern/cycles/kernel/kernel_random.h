@@ -18,8 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef uint RNG;
-
 #ifdef __SOBOL__
 
 /* skip initial numbers that are not as well distributed, especially the
@@ -191,10 +189,6 @@ ccl_device void path_rng_end(KernelGlobals *kg, ccl_global uint *rng_state, RNG 
 #else
 
 /* Linear Congruential Generator */
-
-ccl_device float path_rng(KernelGlobals *kg, RNG& rng, int sample, int dimension)
-{
-}
 
 ccl_device_inline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
 {

@@ -74,7 +74,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 #ifdef __VOLUME__
 					/* attenuation for last line segment towards light */
 					if(ps.volume_stack[0].shader != SHADER_NO_ID)
-						kernel_volume_get_shadow_attenuation(kg, &ps, ray, &throughput);
+						kernel_volume_shadow(kg, &ps, ray, &throughput);
 #endif
 
 					*shadow *= throughput;
@@ -89,7 +89,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 				if(ps.volume_stack[0].shader != SHADER_NO_ID) {
 					Ray segment_ray = *ray;
 					segment_ray.t = isect.t;
-					kernel_volume_get_shadow_attenuation(kg, &ps, &segment_ray, &throughput);
+					kernel_volume_shadow(kg, &ps, &segment_ray, &throughput);
 				}
 #endif
 
@@ -120,7 +120,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 #ifdef __VOLUME__
 	else if(!result && state->volume_stack[0].shader != SHADER_NO_ID) {
 		/* apply attenuation from current volume shader */
-		kernel_volume_get_shadow_attenuation(kg, state, ray, shadow);
+		kernel_volume_shadow(kg, state, ray, shadow);
 	}
 #endif
 #endif

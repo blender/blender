@@ -43,7 +43,7 @@ Shader::Shader()
 
 	use_mis = true;
 	use_transparent_shadow = true;
-	homogeneous_volume = false;
+	heterogeneous_volume = true;
 
 	has_surface = false;
 	has_surface_transparent = false;
@@ -240,8 +240,8 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			 * the case with camera inside volumes too */
 			flag |= SD_HAS_TRANSPARENT_SHADOW;
 		}
-		if(shader->homogeneous_volume)
-			flag |= SD_HOMOGENEOUS_VOLUME;
+		if(shader->heterogeneous_volume)
+			flag |= SD_HETEROGENEOUS_VOLUME;
 		if(shader->has_bssrdf_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 		if(shader->has_converter_blackbody)

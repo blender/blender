@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state)
+ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state, RNG *rng, int sample)
 {
 	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
 	state->bounce = 0;
@@ -26,7 +26,15 @@ ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state)
 	state->transparent_bounce = 0;
 
 #ifdef __VOLUME__
-	kernel_volume_stack_init(kg, state->volume_stack);
+	if(kernel_data.integrator.use_volumes) {
+		/* initialize volume stack with volume we are inside of */
+		kernel_volume_stack_init(kg, state->volume_stack);
+		/* seed RNG for cases where we can't use stratified samples */
+		state->rng_congruential = lcg_init(*rng + sample*0x51633e2d);
+	}
+	else {
+		state->volume_stack[0].shader = SHADER_NO_ID;
+	}
 #endif
 }
 

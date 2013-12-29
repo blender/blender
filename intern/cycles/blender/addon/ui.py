@@ -152,6 +152,21 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         draw_samples_info(layout, cscene)
 
 
+class CyclesRender_PT_volume_sampling(CyclesButtonsPanel, Panel):
+    bl_label = "Volume Sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        split = layout.split()
+        split.prop(cscene, "volume_step_size")
+        split.prop(cscene, "volume_max_steps")
+
+
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_label = "Light Paths"
     bl_options = {'DEFAULT_CLOSED'}

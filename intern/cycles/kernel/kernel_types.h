@@ -153,6 +153,10 @@ CCL_NAMESPACE_BEGIN
 #error "OpenCL: mismatch between advanced shading flags in device_opencl.cpp and kernel_types.h"
 #endif
 
+/* Random Numbers */
+
+typedef uint RNG;
+
 /* Shader Evaluation */
 
 typedef enum ShaderEvalType {
@@ -511,10 +515,10 @@ enum ShaderDataFlag {
 	SD_HAS_TRANSPARENT_SHADOW = 2048,	/* has transparent shadow */
 	SD_HAS_VOLUME = 4096,				/* has volume shader */
 	SD_HAS_ONLY_VOLUME = 8192,			/* has only volume shader, no surface */
-	SD_HOMOGENEOUS_VOLUME = 16384,		/* has homogeneous volume */
+	SD_HETEROGENEOUS_VOLUME = 16384,	/* has heterogeneous volume */
 	SD_HAS_BSSRDF_BUMP = 32768,			/* bssrdf normal uses bump */
 
-	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HOMOGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
+	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
 
 	/* object flags */
 	SD_HOLDOUT_MASK = 65536,			/* holdout for camera rays */
@@ -625,6 +629,7 @@ typedef struct PathState {
 	int transparent_bounce;
 
 #ifdef __VOLUME__
+	RNG rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
 } PathState;
@@ -806,6 +811,9 @@ typedef struct KernelIntegrator {
 
 	/* volume render */
 	int use_volumes;
+	int volume_max_steps;
+	float volume_step_size;
+	int pad1, pad2;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

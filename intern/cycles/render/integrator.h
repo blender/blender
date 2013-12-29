@@ -40,6 +40,9 @@ public:
 	bool transparent_probalistic;
 	bool transparent_shadows;
 
+	int volume_max_steps;
+	float volume_step_size;
+
 	bool no_caustics;
 	float filter_glossy;
 
