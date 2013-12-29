@@ -441,23 +441,23 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSparseCholesky() {
   cholmod_jacobian_view.sorted = 1;
   cholmod_jacobian_view.packed = 1;
 
-  string status;
-  cholmod_factor* factor = ss.AnalyzeCholesky(&cholmod_jacobian_view, &status);
+  string message;
+  cholmod_factor* factor = ss.AnalyzeCholesky(&cholmod_jacobian_view, &message);
   event_logger.AddEvent("Symbolic Factorization");
   if (factor == NULL) {
     LOG(ERROR) << "Covariance estimation failed. "
                << "CHOLMOD symbolic cholesky factorization returned with: "
-               << status;
+               << message;
     return false;
   }
 
   LinearSolverTerminationType termination_type =
-      ss.Cholesky(&cholmod_jacobian_view, factor, &status);
+      ss.Cholesky(&cholmod_jacobian_view, factor, &message);
   event_logger.AddEvent("Numeric Factorization");
   if (termination_type != LINEAR_SOLVER_SUCCESS) {
     LOG(ERROR) << "Covariance estimation failed. "
                << "CHOLMOD numeric cholesky factorization returned with: "
-               << status;
+               << message;
     ss.Free(factor);
     return false;
   }
@@ -470,7 +470,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSparseCholesky() {
     LOG(ERROR) << "Cholesky factorization of J'J is not reliable. "
                << "Reciprocal condition number: "
                << reciprocal_condition_number << " "
-               << "min_reciprocal_condition_number : "
+               << "min_reciprocal_condition_number: "
                << options_.min_reciprocal_condition_number;
     ss.Free(factor);
     return false;
@@ -506,7 +506,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSparseCholesky() {
     }
 
     rhs_x[r] = 1.0;
-    cholmod_dense* solution = ss.Solve(factor, rhs);
+    cholmod_dense* solution = ss.Solve(factor, rhs, &message);
     double* solution_x = reinterpret_cast<double*>(solution->x);
     for (int idx = row_begin; idx < row_end; ++idx) {
       const int c = cols[idx];
@@ -822,7 +822,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
         LOG(ERROR) << "Cholesky factorization of J'J is not reliable. "
                    << "Reciprocal condition number: "
                    << singular_value_ratio * singular_value_ratio << " "
-                   << "min_reciprocal_condition_number : "
+                   << "min_reciprocal_condition_number: "
                    << options_.min_reciprocal_condition_number;
         return false;
       }

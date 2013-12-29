@@ -128,9 +128,9 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                            residuals.data(),
                            gradient.data(),
                            jacobian)) {
-    summary->error = "Terminating: Residual and Jacobian evaluation failed.";
-    summary->termination_type = NUMERICAL_FAILURE;
-    LOG_IF(WARNING, is_not_silent) << summary->error;
+    summary->message = "Terminating: Residual and Jacobian evaluation failed.";
+    summary->termination_type = FAILURE;
+    LOG_IF(WARNING, is_not_silent) << summary->message;
     return;
   }
 
@@ -154,13 +154,13 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       options_.gradient_tolerance * initial_gradient_max_norm;
 
   if (iteration_summary.gradient_max_norm <= absolute_gradient_tolerance) {
-    summary->error = StringPrintf("Terminating: Gradient tolerance reached. "
-                                    "Relative gradient max norm: %e <= %e",
-                                    (iteration_summary.gradient_max_norm /
-                                     initial_gradient_max_norm),
-                                    options_.gradient_tolerance);
-    summary->termination_type = GRADIENT_TOLERANCE;
-    VLOG_IF(1, is_not_silent) << summary->error;
+    summary->message = StringPrintf("Terminating: Gradient tolerance reached. "
+                                  "Relative gradient max norm: %e <= %e",
+                                  (iteration_summary.gradient_max_norm /
+                                   initial_gradient_max_norm),
+                                  options_.gradient_tolerance);
+    summary->termination_type = CONVERGENCE;
+    VLOG_IF(1, is_not_silent) << summary->message;
     return;
   }
 
@@ -188,18 +188,18 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
 
     iteration_start_time = WallTimeInSeconds();
     if (iteration_summary.iteration >= options_.max_num_iterations) {
-      summary->error = "Terminating: Maximum number of iterations reached.";
+      summary->message = "Terminating: Maximum number of iterations reached.";
       summary->termination_type = NO_CONVERGENCE;
-      VLOG_IF(1, is_not_silent) << summary->error;
+      VLOG_IF(1, is_not_silent) << summary->message;
       return;
     }
 
     const double total_solver_time = iteration_start_time - start_time +
         summary->preprocessor_time_in_seconds;
     if (total_solver_time >= options_.max_solver_time_in_seconds) {
-      summary->error = "Terminating: Maximum solver time reached.";
+      summary->message = "Terminating: Maximum solver time reached.";
       summary->termination_type = NO_CONVERGENCE;
-      VLOG_IF(1, is_not_silent) << summary->error;
+      VLOG_IF(1, is_not_silent) << summary->message;
       return;
     }
 
@@ -228,11 +228,11 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                               trust_region_step.data());
 
     if (strategy_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
-      summary->error =
+      summary->message =
           "Terminating. Linear solver failed due to unrecoverable "
           "non-numeric causes. Please see the error log for clues. ";
-      summary->termination_type = NUMERICAL_FAILURE;
-      LOG_IF(WARNING, is_not_silent) << summary->error;
+      summary->termination_type = FAILURE;
+      LOG_IF(WARNING, is_not_silent) << summary->message;
       return;
     }
 
@@ -244,15 +244,6 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
         strategy_summary.num_iterations;
     iteration_summary.step_is_valid = false;
     iteration_summary.step_is_successful = false;
-
-    if (strategy_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
-      summary->error =
-          "Terminating. Linear solver failed due to unrecoverable "
-          "non-numeric causes. Please see the error log for clues. ";
-      summary->termination_type = NUMERICAL_FAILURE;
-      LOG_IF(WARNING, is_not_silent) << summary->error;
-      return;
-    }
 
     double model_cost_change = 0.0;
     if (strategy_summary.termination_type != LINEAR_SOLVER_FAILURE) {
@@ -281,15 +272,15 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
     if (!iteration_summary.step_is_valid) {
       // Invalid steps can happen due to a number of reasons, and we
       // allow a limited number of successive failures, and return with
-      // NUMERICAL_FAILURE if this limit is exceeded.
+      // FAILURE if this limit is exceeded.
       if (++num_consecutive_invalid_steps >=
           options_.max_num_consecutive_invalid_steps) {
-        summary->error = StringPrintf(
+        summary->message = StringPrintf(
             "Terminating. Number of successive invalid steps more "
             "than Solver::Options::max_num_consecutive_invalid_steps: %d",
             options_.max_num_consecutive_invalid_steps);
-        summary->termination_type = NUMERICAL_FAILURE;
-        LOG_IF(WARNING, is_not_silent) << summary->error;
+        summary->termination_type = FAILURE;
+        LOG_IF(WARNING, is_not_silent) << summary->message;
         return;
       }
 
@@ -376,14 +367,14 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       const double step_size_tolerance =  options_.parameter_tolerance *
           (x_norm + options_.parameter_tolerance);
       if (iteration_summary.step_norm <= step_size_tolerance) {
-        summary->error =
+        summary->message =
             StringPrintf("Terminating. Parameter tolerance reached. "
                          "relative step_norm: %e <= %e.",
                          (iteration_summary.step_norm /
                           (x_norm + options_.parameter_tolerance)),
                          options_.parameter_tolerance);
-        summary->termination_type = PARAMETER_TOLERANCE;
-        VLOG_IF(1, is_not_silent) << summary->error;
+        summary->termination_type = CONVERGENCE;
+        VLOG_IF(1, is_not_silent) << summary->message;
         return;
       }
 
@@ -391,13 +382,13 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       const double absolute_function_tolerance =
           options_.function_tolerance * cost;
       if (fabs(iteration_summary.cost_change) < absolute_function_tolerance) {
-        summary->error =
+        summary->message =
             StringPrintf("Terminating. Function tolerance reached. "
                          "|cost_change|/cost: %e <= %e",
                          fabs(iteration_summary.cost_change) / cost,
                          options_.function_tolerance);
-        summary->termination_type = FUNCTION_TOLERANCE;
-        VLOG_IF(1, is_not_silent) << summary->error;
+        summary->termination_type = CONVERGENCE;
+        VLOG_IF(1, is_not_silent) << summary->message;
         return;
       }
 
@@ -494,10 +485,10 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                                residuals.data(),
                                gradient.data(),
                                jacobian)) {
-        summary->error =
+        summary->message =
             "Terminating: Residual and Jacobian evaluation failed.";
-        summary->termination_type = NUMERICAL_FAILURE;
-        LOG_IF(WARNING, is_not_silent) << summary->error;
+        summary->termination_type = FAILURE;
+        LOG_IF(WARNING, is_not_silent) << summary->message;
         return;
       }
 
@@ -505,14 +496,14 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       iteration_summary.gradient_norm = gradient.norm();
 
       if (iteration_summary.gradient_max_norm <= absolute_gradient_tolerance) {
-        summary->error =
+        summary->message =
             StringPrintf("Terminating: Gradient tolerance reached. "
                          "Relative gradient max norm: %e <= %e",
                          (iteration_summary.gradient_max_norm /
                           initial_gradient_max_norm),
                          options_.gradient_tolerance);
-        summary->termination_type = GRADIENT_TOLERANCE;
-        VLOG_IF(1, is_not_silent) << summary->error;
+        summary->termination_type = CONVERGENCE;
+        VLOG_IF(1, is_not_silent) << summary->message;
         return;
       }
 
@@ -575,9 +566,9 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
     iteration_summary.trust_region_radius = strategy->Radius();
     if (iteration_summary.trust_region_radius <
         options_.min_trust_region_radius) {
-      summary->error = "Termination. Minimum trust region radius reached.";
-      summary->termination_type = PARAMETER_TOLERANCE;
-      VLOG_IF(1, is_not_silent) << summary->error;
+      summary->message = "Termination. Minimum trust region radius reached.";
+      summary->termination_type = CONVERGENCE;
+      VLOG_IF(1, is_not_silent) << summary->message;
       return;
     }
 

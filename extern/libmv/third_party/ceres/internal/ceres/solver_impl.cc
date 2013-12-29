@@ -208,6 +208,22 @@ void SummarizeOrdering(ParameterBlockOrdering* ordering,
   }
 }
 
+void SummarizeGivenProgram(const Program& program, Solver::Summary* summary) {
+  summary->num_parameter_blocks = program.NumParameterBlocks();
+  summary->num_parameters = program.NumParameters();
+  summary->num_effective_parameters = program.NumEffectiveParameters();
+  summary->num_residual_blocks = program.NumResidualBlocks();
+  summary->num_residuals = program.NumResiduals();
+}
+
+void SummarizeReducedProgram(const Program& program, Solver::Summary* summary) {
+  summary->num_parameter_blocks_reduced = program.NumParameterBlocks();
+  summary->num_parameters_reduced = program.NumParameters();
+  summary->num_effective_parameters_reduced = program.NumEffectiveParameters();
+  summary->num_residual_blocks_reduced = program.NumResidualBlocks();
+  summary->num_residuals_reduced = program.NumResiduals();
+}
+
 }  // namespace
 
 void SolverImpl::TrustRegionMinimize(
@@ -351,29 +367,10 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   *CHECK_NOTNULL(summary) = Solver::Summary();
 
   summary->minimizer_type = TRUST_REGION;
-  summary->num_parameter_blocks = problem_impl->NumParameterBlocks();
-  summary->num_parameters = problem_impl->NumParameters();
-  summary->num_effective_parameters =
-      original_program->NumEffectiveParameters();
-  summary->num_residual_blocks = problem_impl->NumResidualBlocks();
-  summary->num_residuals = problem_impl->NumResiduals();
 
-  // Empty programs are usually a user error.
-  if (summary->num_parameter_blocks == 0) {
-    summary->error = "Problem contains no parameter blocks.";
-    LOG(ERROR) << summary->error;
-    return;
-  }
-
-  if (summary->num_residual_blocks == 0) {
-    summary->error = "Problem contains no residual blocks.";
-    LOG(ERROR) << summary->error;
-    return;
-  }
-
+  SummarizeGivenProgram(*original_program, summary);
   SummarizeOrdering(original_options.linear_solver_ordering,
                     &(summary->linear_solver_ordering_given));
-
   SummarizeOrdering(original_options.inner_iteration_ordering,
                     &(summary->inner_iteration_ordering_given));
 
@@ -404,9 +401,9 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   if (options.trust_region_minimizer_iterations_to_dump.size() > 0 &&
       options.trust_region_problem_dump_format_type != CONSOLE &&
       options.trust_region_problem_dump_directory.empty()) {
-    summary->error =
+    summary->message =
         "Solver::Options::trust_region_problem_dump_directory is empty.";
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
 
@@ -434,8 +431,8 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   }
 
   if (original_options.linear_solver_ordering != NULL) {
-    if (!IsOrderingValid(original_options, problem_impl, &summary->error)) {
-      LOG(ERROR) << summary->error;
+    if (!IsOrderingValid(original_options, problem_impl, &summary->message)) {
+      LOG(ERROR) << summary->message;
       return;
     }
     event_logger.AddEvent("CheckOrdering");
@@ -466,7 +463,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   scoped_ptr<Program> reduced_program(CreateReducedProgram(&options,
                                                            problem_impl,
                                                            &summary->fixed_cost,
-                                                           &summary->error));
+                                                           &summary->message));
 
   event_logger.AddEvent("CreateReducedProgram");
   if (reduced_program == NULL) {
@@ -475,29 +472,22 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
 
   SummarizeOrdering(options.linear_solver_ordering,
                     &(summary->linear_solver_ordering_used));
-
-  summary->num_parameter_blocks_reduced = reduced_program->NumParameterBlocks();
-  summary->num_parameters_reduced = reduced_program->NumParameters();
-  summary->num_effective_parameters_reduced =
-      reduced_program->NumEffectiveParameters();
-  summary->num_residual_blocks_reduced = reduced_program->NumResidualBlocks();
-  summary->num_residuals_reduced = reduced_program->NumResiduals();
+  SummarizeReducedProgram(*reduced_program, summary);
 
   if (summary->num_parameter_blocks_reduced == 0) {
     summary->preprocessor_time_in_seconds =
         WallTimeInSeconds() - solver_start_time;
 
     double post_process_start_time = WallTimeInSeconds();
-    LOG(INFO) << "Terminating: FUNCTION_TOLERANCE reached. "
-              << "No non-constant parameter blocks found.";
+
+     summary->message =
+        "Terminating: Function tolerance reached. "
+        "No non-constant parameter blocks found.";
+    summary->termination_type = CONVERGENCE;
+    VLOG(1) << summary->message;
 
     summary->initial_cost = summary->fixed_cost;
     summary->final_cost = summary->fixed_cost;
-
-    // FUNCTION_TOLERANCE is the right convergence here, as we know
-    // that the objective function is constant and cannot be changed
-    // any further.
-    summary->termination_type = FUNCTION_TOLERANCE;
 
     // Ensure the program state is set to the user parameters on the way out.
     original_program->SetParameterBlockStatePtrsToUserStatePtrs();
@@ -509,7 +499,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   }
 
   scoped_ptr<LinearSolver>
-      linear_solver(CreateLinearSolver(&options, &summary->error));
+      linear_solver(CreateLinearSolver(&options, &summary->message));
   event_logger.AddEvent("CreateLinearSolver");
   if (linear_solver == NULL) {
     return;
@@ -536,7 +526,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   scoped_ptr<Evaluator> evaluator(CreateEvaluator(options,
                                                   problem_impl->parameter_map(),
                                                   reduced_program.get(),
-                                                  &summary->error));
+                                                  &summary->message));
 
   event_logger.AddEvent("CreateEvaluator");
 
@@ -556,7 +546,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
                                         problem_impl->parameter_map(),
                                         summary));
       if (inner_iteration_minimizer == NULL) {
-        LOG(ERROR) << summary->error;
+        LOG(ERROR) << summary->message;
         return;
       }
     }
@@ -590,8 +580,8 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   // If the user aborted mid-optimization or the optimization
   // terminated because of a numerical failure, then return without
   // updating user state.
-  if (summary->termination_type == USER_ABORT ||
-      summary->termination_type == NUMERICAL_FAILURE) {
+  if (summary->termination_type == USER_FAILURE ||
+      summary->termination_type == FAILURE) {
     return;
   }
 
@@ -642,6 +632,8 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   *CHECK_NOTNULL(summary) = Solver::Summary();
 
   summary->minimizer_type = LINE_SEARCH;
+  SummarizeGivenProgram(*original_program, summary);
+
   summary->line_search_direction_type =
       original_options.line_search_direction_type;
   summary->max_lbfgs_rank = original_options.max_lbfgs_rank;
@@ -651,56 +643,50 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   summary->nonlinear_conjugate_gradient_type =
       original_options.nonlinear_conjugate_gradient_type;
 
-  summary->num_parameter_blocks = original_program->NumParameterBlocks();
-  summary->num_parameters = original_program->NumParameters();
-  summary->num_residual_blocks = original_program->NumResidualBlocks();
-  summary->num_residuals = original_program->NumResiduals();
-  summary->num_effective_parameters =
-      original_program->NumEffectiveParameters();
-
   // Validate values for configuration parameters supplied by user.
   if ((original_options.line_search_direction_type == ceres::BFGS ||
        original_options.line_search_direction_type == ceres::LBFGS) &&
       original_options.line_search_type != ceres::WOLFE) {
-    summary->error =
+    summary->message =
         string("Invalid configuration: require line_search_type == "
                "ceres::WOLFE when using (L)BFGS to ensure that underlying "
                "assumptions are guaranteed to be satisfied.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.max_lbfgs_rank <= 0) {
-    summary->error =
+    summary->message =
         string("Invalid configuration: require max_lbfgs_rank > 0");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.min_line_search_step_size <= 0.0) {
-    summary->error = "Invalid configuration: min_line_search_step_size <= 0.0.";
-    LOG(ERROR) << summary->error;
+    summary->message =
+        "Invalid configuration: min_line_search_step_size <= 0.0.";
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.line_search_sufficient_function_decrease <= 0.0) {
-    summary->error =
+    summary->message =
         string("Invalid configuration: require ") +
         string("line_search_sufficient_function_decrease <= 0.0.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.max_line_search_step_contraction <= 0.0 ||
       original_options.max_line_search_step_contraction >= 1.0) {
-    summary->error = string("Invalid configuration: require ") +
+    summary->message = string("Invalid configuration: require ") +
         string("0.0 < max_line_search_step_contraction < 1.0.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.min_line_search_step_contraction <=
       original_options.max_line_search_step_contraction ||
       original_options.min_line_search_step_contraction > 1.0) {
-    summary->error = string("Invalid configuration: require ") +
+    summary->message = string("Invalid configuration: require ") +
         string("max_line_search_step_contraction < ") +
         string("min_line_search_step_contraction <= 1.0.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   // Warn user if they have requested BISECTION interpolation, but constraints
@@ -718,37 +704,24 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
       << original_options.min_line_search_step_contraction
       << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
   if (original_options.max_num_line_search_step_size_iterations <= 0) {
-    summary->error = string("Invalid configuration: require ") +
+    summary->message = string("Invalid configuration: require ") +
         string("max_num_line_search_step_size_iterations > 0.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.line_search_sufficient_curvature_decrease <=
       original_options.line_search_sufficient_function_decrease ||
       original_options.line_search_sufficient_curvature_decrease > 1.0) {
-    summary->error = string("Invalid configuration: require ") +
+    summary->message = string("Invalid configuration: require ") +
         string("line_search_sufficient_function_decrease < ") +
         string("line_search_sufficient_curvature_decrease < 1.0.");
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
   if (original_options.max_line_search_step_expansion <= 1.0) {
-    summary->error = string("Invalid configuration: require ") +
+    summary->message = string("Invalid configuration: require ") +
         string("max_line_search_step_expansion > 1.0.");
-    LOG(ERROR) << summary->error;
-    return;
-  }
-
-  // Empty programs are usually a user error.
-  if (summary->num_parameter_blocks == 0) {
-    summary->error = "Problem contains no parameter blocks.";
-    LOG(ERROR) << summary->error;
-    return;
-  }
-
-  if (summary->num_residual_blocks == 0) {
-    summary->error = "Problem contains no residual blocks.";
-    LOG(ERROR) << summary->error;
+    LOG(ERROR) << summary->message;
     return;
   }
 
@@ -759,7 +732,6 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   // refactored to deal with the various bits of cleanups related to
   // line search.
   options.linear_solver_type = CGNR;
-
   options.linear_solver_ordering = NULL;
   options.inner_iteration_ordering = NULL;
 
@@ -777,8 +749,8 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   summary->num_threads_used = options.num_threads;
 
   if (original_options.linear_solver_ordering != NULL) {
-    if (!IsOrderingValid(original_options, problem_impl, &summary->error)) {
-      LOG(ERROR) << summary->error;
+    if (!IsOrderingValid(original_options, problem_impl, &summary->message)) {
+      LOG(ERROR) << summary->message;
       return;
     }
     options.linear_solver_ordering =
@@ -819,32 +791,23 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   scoped_ptr<Program> reduced_program(CreateReducedProgram(&options,
                                                            problem_impl,
                                                            &summary->fixed_cost,
-                                                           &summary->error));
+                                                           &summary->message));
   if (reduced_program == NULL) {
     return;
   }
 
-  summary->num_parameter_blocks_reduced = reduced_program->NumParameterBlocks();
-  summary->num_parameters_reduced = reduced_program->NumParameters();
-  summary->num_residual_blocks_reduced = reduced_program->NumResidualBlocks();
-  summary->num_effective_parameters_reduced =
-      reduced_program->NumEffectiveParameters();
-  summary->num_residuals_reduced = reduced_program->NumResiduals();
-
+  SummarizeReducedProgram(*reduced_program, summary);
   if (summary->num_parameter_blocks_reduced == 0) {
     summary->preprocessor_time_in_seconds =
         WallTimeInSeconds() - solver_start_time;
 
-    LOG(INFO) << "Terminating: FUNCTION_TOLERANCE reached. "
-              << "No non-constant parameter blocks found.";
-
-    // FUNCTION_TOLERANCE is the right convergence here, as we know
-    // that the objective function is constant and cannot be changed
-    // any further.
-    summary->termination_type = FUNCTION_TOLERANCE;
+    summary->message =
+        "Terminating: Function tolerance reached. "
+        "No non-constant parameter blocks found.";
+    summary->termination_type = CONVERGENCE;
+    VLOG(1) << summary->message;
 
     const double post_process_start_time = WallTimeInSeconds();
-
     SetSummaryFinalCost(summary);
 
     // Ensure the program state is set to the user parameters on the way out.
@@ -859,7 +822,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   scoped_ptr<Evaluator> evaluator(CreateEvaluator(options,
                                                   problem_impl->parameter_map(),
                                                   reduced_program.get(),
-                                                  &summary->error));
+                                                  &summary->message));
   if (evaluator == NULL) {
     return;
   }
@@ -886,8 +849,8 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   // If the user aborted mid-optimization or the optimization
   // terminated because of a numerical failure, then return without
   // updating user state.
-  if (summary->termination_type == USER_ABORT ||
-      summary->termination_type == NUMERICAL_FAILURE) {
+  if (summary->termination_type == USER_FAILURE ||
+      summary->termination_type == FAILURE) {
     return;
   }
 
@@ -1456,7 +1419,7 @@ CoordinateDescentMinimizer* SolverImpl::CreateInnerIterationMinimizer(
     for ( ; it != group_to_elements.end(); ++it) {
       if (!IsParameterBlockSetIndependent(it->second,
                                           program.residual_blocks())) {
-        summary->error =
+        summary->message =
             StringPrintf("The user-provided "
                          "parameter_blocks_for_inner_iterations does not "
                          "form an independent set. Group Id: %d", it->first);
@@ -1469,7 +1432,7 @@ CoordinateDescentMinimizer* SolverImpl::CreateInnerIterationMinimizer(
   if (!inner_iteration_minimizer->Init(program,
                                        parameter_map,
                                        *ordering_ptr,
-                                       &summary->error)) {
+                                       &summary->message)) {
     return NULL;
   }
 

@@ -99,6 +99,10 @@ class Program {
   // position of the parameter in the state and delta vector respectively.
   void SetParameterOffsetsAndIndex();
 
+  // Check if the internal state of the program (the indexing and the
+  // offsets) are correct.
+  bool IsValid() const;
+
   // See problem.h for what these do.
   int NumParameterBlocks() const;
   int NumParameters() const;

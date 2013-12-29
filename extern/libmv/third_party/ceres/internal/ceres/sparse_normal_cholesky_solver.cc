@@ -112,8 +112,15 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
   if (per_solve_options.D != NULL) {
     // Temporarily append a diagonal block to the A matrix, but undo
     // it before returning the matrix to the user.
-    CompressedRowSparseMatrix D(per_solve_options.D, num_cols);
-    A->AppendRows(D);
+    scoped_ptr<CompressedRowSparseMatrix> regularizer;
+    if (A->col_blocks().size() > 0) {
+      regularizer.reset(CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
+                            per_solve_options.D, A->col_blocks()));
+    } else {
+      regularizer.reset(new CompressedRowSparseMatrix(
+                            per_solve_options.D, num_cols));
+    }
+    A->AppendRows(*regularizer);
   }
 
   VectorRef(x, num_cols).setZero();
@@ -196,8 +203,15 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
   if (per_solve_options.D != NULL) {
     // Temporarily append a diagonal block to the A matrix, but undo
     // it before returning the matrix to the user.
-    CompressedRowSparseMatrix D(per_solve_options.D, num_cols);
-    A->AppendRows(D);
+    scoped_ptr<CompressedRowSparseMatrix> regularizer;
+    if (A->col_blocks().size() > 0) {
+      regularizer.reset(CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
+                            per_solve_options.D, A->col_blocks()));
+    } else {
+      regularizer.reset(new CompressedRowSparseMatrix(
+                            per_solve_options.D, num_cols));
+    }
+    A->AppendRows(*regularizer);
   }
 
   VectorRef(x, num_cols).setZero();

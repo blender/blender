@@ -1331,9 +1331,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
     // Of the things that can happen in the first pass, don't try the brute
     // pass (and second attempt) if the error is one of the terminations below.
-    if (result->termination == TrackRegionResult::PARAMETER_TOLERANCE ||
-        result->termination == TrackRegionResult::FUNCTION_TOLERANCE ||
-        result->termination == TrackRegionResult::GRADIENT_TOLERANCE ||
+    if (result->termination == TrackRegionResult::CONVERGENCE ||
         result->termination == TrackRegionResult::SOURCE_OUT_OF_BOUNDS ||
         result->termination == TrackRegionResult::DESTINATION_OUT_OF_BOUNDS ||
         result->termination == TrackRegionResult::INSUFFICIENT_PATTERN_AREA) {
@@ -1488,7 +1486,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
   // TODO(keir): Update the result statistics.
   // TODO(keir): Add a normalize-cross-correlation variant.
 
-  if (summary.termination_type == ceres::USER_ABORT) {
+  if (summary.termination_type == ceres::USER_FAILURE) {
     result->termination = TrackRegionResult::FELL_OUT_OF_BOUNDS;
     return;
   }
@@ -1500,8 +1498,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
   }
 
   // Avoid computing correlation for tracking failures.
-  HANDLE_TERMINATION(DID_NOT_RUN);
-  HANDLE_TERMINATION(NUMERICAL_FAILURE);
+  HANDLE_TERMINATION(FAILURE);
 
   // Otherwise, run a final correlation check.
   if (options.minimum_correlation > 0.0) {
@@ -1520,13 +1517,11 @@ void TemplatedTrackRegion(const FloatImage &image1,
   // than Ceres's parameter tolerance, which operates on the raw parameter
   // values rather than the pixel shifts of the patch corners.
   if (summary.termination_type == ceres::USER_SUCCESS) {
-    result->termination = TrackRegionResult::PARAMETER_TOLERANCE;
+    result->termination = TrackRegionResult::CONVERGENCE;
     return;
   }
 
-  HANDLE_TERMINATION(PARAMETER_TOLERANCE);
-  HANDLE_TERMINATION(FUNCTION_TOLERANCE);
-  HANDLE_TERMINATION(GRADIENT_TOLERANCE);
+  HANDLE_TERMINATION(CONVERGENCE);
   HANDLE_TERMINATION(NO_CONVERGENCE);
 #undef HANDLE_TERMINATION
 };

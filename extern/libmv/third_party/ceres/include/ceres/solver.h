@@ -714,14 +714,15 @@ class Solver {
     // termination.
     string FullReport() const;
 
+    bool IsSolutionUsable() const;
+
     // Minimizer summary -------------------------------------------------
     MinimizerType minimizer_type;
 
-    SolverTerminationType termination_type;
+    TerminationType termination_type;
 
-    // If the solver did not run, or there was a failure, a
-    // description of the error.
-    string error;
+    // Reason why the solver terminated.
+    string message;
 
     // Cost of the problem (value of the objective function) before
     // the optimization.

@@ -638,6 +638,9 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
     for (int i = 0; i < variable_parameter_blocks.size(); ++i) {
       variable_parameter_blocks[i]->SetVarying();
     }
+
+    program_->SetParameterBlockStatePtrsToUserStatePtrs();
+    program_->SetParameterOffsetsAndIndex();
     return false;
   }
 
@@ -696,6 +699,8 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
     }
   }
 
+  program_->SetParameterBlockStatePtrsToUserStatePtrs();
+  program_->SetParameterOffsetsAndIndex();
   return status;
 }
 

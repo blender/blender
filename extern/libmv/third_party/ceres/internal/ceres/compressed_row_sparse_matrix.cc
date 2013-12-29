@@ -31,6 +31,7 @@
 #include "ceres/compressed_row_sparse_matrix.h"
 
 #include <algorithm>
+#include <numeric>
 #include <vector>
 #include "ceres/crs_matrix.h"
 #include "ceres/internal/port.h"
@@ -215,10 +216,27 @@ void CompressedRowSparseMatrix::DeleteRows(int delta_rows) {
 
   num_rows_ -= delta_rows;
   rows_.resize(num_rows_ + 1);
+
+  // Walk the list of row blocks untill we reach the new number of
+  // rows and then drop the rest of the row blocks.
+  int num_row_blocks = 0;
+  int num_rows = 0;
+  while (num_row_blocks < row_blocks_.size() && num_rows < num_rows_) {
+    num_rows += row_blocks_[num_row_blocks];
+    ++num_row_blocks;
+  }
+
+  row_blocks_.resize(num_row_blocks);
 }
 
 void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
   CHECK_EQ(m.num_cols(), num_cols_);
+
+  CHECK(row_blocks_.size() == 0 || m.row_blocks().size() !=0)
+      << "Cannot append a matrix with row blocks to one without and vice versa."
+      << "This matrix has : " << row_blocks_.size() << " row blocks."
+      << "The matrix being appended has: " << m.row_blocks().size()
+      << " row blocks.";
 
   if (cols_.size() < num_nonzeros() + m.num_nonzeros()) {
     cols_.resize(num_nonzeros() + m.num_nonzeros());
@@ -239,6 +257,7 @@ void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
   }
 
   num_rows_ += m.num_rows();
+  row_blocks_.insert(row_blocks_.end(), m.row_blocks().begin(), m.row_blocks().end());
 }
 
 void CompressedRowSparseMatrix::ToTextFile(FILE* file) const {

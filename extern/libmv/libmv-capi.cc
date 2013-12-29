@@ -332,9 +332,7 @@ int libmv_trackRegion(const libmv_TrackRegionOptions *options,
 	}
 
 	/* TODO(keir): Update the termination string with failure details. */
-	if (track_region_result.termination == libmv::TrackRegionResult::PARAMETER_TOLERANCE ||
-	    track_region_result.termination == libmv::TrackRegionResult::FUNCTION_TOLERANCE  ||
-	    track_region_result.termination == libmv::TrackRegionResult::GRADIENT_TOLERANCE  ||
+	if (track_region_result.termination == libmv::TrackRegionResult::CONVERGENCE ||
 	    track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE)
 	{
 		tracking_result = true;

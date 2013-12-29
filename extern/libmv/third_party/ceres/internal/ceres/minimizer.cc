@@ -54,7 +54,7 @@ bool Minimizer::RunCallbacks(const vector<IterationCallback*> callbacks,
       VLOG(1) << "Terminating: User callback returned USER_SUCCESS.";
       return false;
     case SOLVER_ABORT:
-      summary->termination_type = USER_ABORT;
+      summary->termination_type = USER_FAILURE;
       VLOG(1) << "Terminating: User callback returned  USER_ABORT.";
       return false;
     default:

@@ -85,8 +85,8 @@ Solver::Summary::Summary()
     // Invalid values for most fields, to ensure that we are not
     // accidentally reporting default values.
     : minimizer_type(TRUST_REGION),
-      termination_type(DID_NOT_RUN),
-      error("ceres::Solve was not called."),
+      termination_type(FAILURE),
+      message("ceres::Solve was not called."),
       initial_cost(-1.0),
       final_cost(-1.0),
       fixed_cost(-1.0),
@@ -131,30 +131,20 @@ Solver::Summary::Summary()
       max_lbfgs_rank(-1) {
 }
 
-string Solver::Summary::BriefReport() const {
-  string report = "Ceres Solver Report: ";
-  if (termination_type == DID_NOT_RUN) {
-    return report + "Termination: DID_NOT_RUN, because " + error;
-  }
-
-  internal::StringAppendF(&report, "Iterations: %d",
-                          num_successful_steps + num_unsuccessful_steps);
-  internal::StringAppendF(&report, ", Initial cost: %e", initial_cost);
-
-  // If the solver failed or was aborted, then the final_cost has no
-  // meaning.
-  if (termination_type != NUMERICAL_FAILURE &&
-      termination_type != USER_ABORT) {
-    internal::StringAppendF(&report, ", Final cost: %e", final_cost);
-  }
-
-  internal::StringAppendF(&report, ", Termination: %s.",
-                          SolverTerminationTypeToString(termination_type));
-  return report;
-};
-
 using internal::StringAppendF;
 using internal::StringPrintf;
+
+string Solver::Summary::BriefReport() const {
+  return StringPrintf("Ceres Solver Report: "
+                      "Iterations: %d, "
+                      "Initial cost: %e, "
+                      "Final cost: %e, "
+                      "Termination: %s",
+                      num_successful_steps + num_unsuccessful_steps,
+                      initial_cost,
+                      final_cost,
+                      TerminationTypeToString(termination_type));
+};
 
 string Solver::Summary::FullReport() const {
   string report =
@@ -162,33 +152,19 @@ string Solver::Summary::FullReport() const {
       "Ceres Solver Report\n"
       "-------------------\n";
 
-  if (termination_type == DID_NOT_RUN) {
-    StringAppendF(&report, "                      Original\n");
-    StringAppendF(&report, "Parameter blocks    % 10d\n", num_parameter_blocks);
-    StringAppendF(&report, "Parameters          % 10d\n", num_parameters);
-    if (num_effective_parameters != num_parameters) {
-      StringAppendF(&report, "Effective parameters% 10d\n", num_parameters);
-    }
-
-    StringAppendF(&report, "Residual blocks     % 10d\n",
-                  num_residual_blocks);
-    StringAppendF(&report, "Residuals           % 10d\n\n",
-                  num_residuals);
-  } else {
-    StringAppendF(&report, "%45s    %21s\n", "Original", "Reduced");
-    StringAppendF(&report, "Parameter blocks    % 25d% 25d\n",
-                  num_parameter_blocks, num_parameter_blocks_reduced);
-    StringAppendF(&report, "Parameters          % 25d% 25d\n",
-                  num_parameters, num_parameters_reduced);
-    if (num_effective_parameters_reduced != num_parameters_reduced) {
-      StringAppendF(&report, "Effective parameters% 25d% 25d\n",
-                    num_effective_parameters, num_effective_parameters_reduced);
-    }
-    StringAppendF(&report, "Residual blocks     % 25d% 25d\n",
-                  num_residual_blocks, num_residual_blocks_reduced);
-    StringAppendF(&report, "Residual            % 25d% 25d\n",
-                  num_residuals, num_residuals_reduced);
+  StringAppendF(&report, "%45s    %21s\n", "Original", "Reduced");
+  StringAppendF(&report, "Parameter blocks    % 25d% 25d\n",
+                num_parameter_blocks, num_parameter_blocks_reduced);
+  StringAppendF(&report, "Parameters          % 25d% 25d\n",
+                num_parameters, num_parameters_reduced);
+  if (num_effective_parameters_reduced != num_parameters_reduced) {
+    StringAppendF(&report, "Effective parameters% 25d% 25d\n",
+                  num_effective_parameters, num_effective_parameters_reduced);
   }
+  StringAppendF(&report, "Residual blocks     % 25d% 25d\n",
+                num_residual_blocks, num_residual_blocks_reduced);
+  StringAppendF(&report, "Residual            % 25d% 25d\n",
+                num_residuals, num_residuals_reduced);
 
   if (minimizer_type == TRUST_REGION) {
     // TRUST_SEARCH HEADER
@@ -314,17 +290,10 @@ string Solver::Summary::FullReport() const {
                   num_threads_given, num_threads_used);
   }
 
-  if (termination_type == DID_NOT_RUN) {
-    StringAppendF(&report, "Termination:           %20s\n",
-                  "DID_NOT_RUN");
-    StringAppendF(&report, "Reason: %s\n", error.c_str());
-    return report;
-  }
-
   StringAppendF(&report, "\nCost:\n");
   StringAppendF(&report, "Initial        % 30e\n", initial_cost);
-  if (termination_type != NUMERICAL_FAILURE &&
-      termination_type != USER_ABORT) {
+  if (termination_type != FAILURE &&
+      termination_type != USER_FAILURE) {
     StringAppendF(&report, "Final          % 30e\n", final_cost);
     StringAppendF(&report, "Change         % 30e\n",
                   initial_cost - final_cost);
@@ -376,8 +345,14 @@ string Solver::Summary::FullReport() const {
                 total_time_in_seconds);
 
   StringAppendF(&report, "Termination:        %25s\n",
-                SolverTerminationTypeToString(termination_type));
+                TerminationTypeToString(termination_type));
   return report;
 };
+
+bool Solver::Summary::IsSolutionUsable() const {
+  return (termination_type == CONVERGENCE ||
+          termination_type == NO_CONVERGENCE ||
+          termination_type == USER_SUCCESS);
+}
 
 }  // namespace ceres

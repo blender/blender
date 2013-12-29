@@ -110,12 +110,9 @@ struct TrackRegionOptions {
 struct TrackRegionResult {
   enum Termination {
     // Ceres termination types, duplicated; though, not the int values.
-    PARAMETER_TOLERANCE,
-    FUNCTION_TOLERANCE,
-    GRADIENT_TOLERANCE,
+    CONVERGENCE,
     NO_CONVERGENCE,
-    DID_NOT_RUN,
-    NUMERICAL_FAILURE,
+    FAILURE,
 
     // Libmv specific errors.
     SOURCE_OUT_OF_BOUNDS,

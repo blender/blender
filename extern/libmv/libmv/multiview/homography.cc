@@ -330,9 +330,7 @@ bool EstimateHomography2DFromCorrespondences(
 
   LG << "Final refined matrix:\n" << *H;
 
-  return !(summary.termination_type == ceres::DID_NOT_RUN ||
-           summary.termination_type == ceres::NUMERICAL_FAILURE ||
-           summary.termination_type == ceres::USER_ABORT);
+  return summary.IsSolutionUsable();
 }
 
 /**

@@ -51,14 +51,14 @@ class LAPACK {
   //
   // This function uses the LAPACK dpotrf and dpotrs routines.
   //
-  // The return value and the status string together describe whether
+  // The return value and the message string together describe whether
   // the solver terminated successfully or not and if so, what was the
   // reason for failure.
   static LinearSolverTerminationType SolveInPlaceUsingCholesky(
       int num_rows,
       const double* lhs,
       double* rhs_and_solution,
-      string* status);
+      string* message);
 
   // The SolveUsingQR function requires a buffer for its temporary
   // computation. This function given the size of the lhs matrix will
@@ -81,7 +81,7 @@ class LAPACK {
   //
   // This function uses the LAPACK dgels routine.
   //
-  // The return value and the status string together describe whether
+  // The return value and the message string together describe whether
   // the solver terminated successfully or not and if so, what was the
   // reason for failure.
   static LinearSolverTerminationType SolveInPlaceUsingQR(
@@ -91,7 +91,7 @@ class LAPACK {
       int work_size,
       double* work,
       double* rhs_and_solution,
-      string* status);
+      string* message);
 };
 
 }  // namespace internal

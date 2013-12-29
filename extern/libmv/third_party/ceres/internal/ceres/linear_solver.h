@@ -62,7 +62,10 @@ enum LinearSolverTerminationType {
   // the linear system being poorly conditioned.
   LINEAR_SOLVER_FAILURE,
 
-  // Solver failed with a fatal error that cannot be recovered from.
+  // Solver failed with a fatal error that cannot be recovered from,
+  // e.g. CHOLMOD ran out of memory when computing the symbolic or
+  // numeric factorization or an underlying library was called with
+  // the wrong arguments.
   LINEAR_SOLVER_FATAL_ERROR
 };
 

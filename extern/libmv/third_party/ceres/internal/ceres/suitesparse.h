@@ -139,15 +139,15 @@ class SuiteSparse {
   // A is not modified, only the pattern of non-zeros of A is used,
   // the actual numerical values in A are of no consequence.
   //
-  // status contains an explanation of the failures if any.
+  // message contains an explanation of the failures if any.
   //
   // Caller owns the result.
-  cholmod_factor* AnalyzeCholesky(cholmod_sparse* A, string* status);
+  cholmod_factor* AnalyzeCholesky(cholmod_sparse* A, string* message);
 
   cholmod_factor* BlockAnalyzeCholesky(cholmod_sparse* A,
                                        const vector<int>& row_blocks,
                                        const vector<int>& col_blocks,
-                                       string* status);
+                                       string* message);
 
   // If A is symmetric, then compute the symbolic Cholesky
   // factorization of A(ordering, ordering). If A is unsymmetric, then
@@ -157,38 +157,38 @@ class SuiteSparse {
   // A is not modified, only the pattern of non-zeros of A is used,
   // the actual numerical values in A are of no consequence.
   //
-  // status contains an explanation of the failures if any.
+  // message contains an explanation of the failures if any.
   //
   // Caller owns the result.
   cholmod_factor* AnalyzeCholeskyWithUserOrdering(cholmod_sparse* A,
                                                   const vector<int>& ordering,
-                                                  string* status);
+                                                  string* message);
 
   // Perform a symbolic factorization of A without re-ordering A. No
   // postordering of the elimination tree is performed. This ensures
   // that the symbolic factor does not introduce an extra permutation
   // on the matrix. See the documentation for CHOLMOD for more details.
   //
-  // status contains an explanation of the failures if any.
+  // message contains an explanation of the failures if any.
   cholmod_factor* AnalyzeCholeskyWithNaturalOrdering(cholmod_sparse* A,
-                                                     string* status);
+                                                     string* message);
 
   // Use the symbolic factorization in L, to find the numerical
   // factorization for the matrix A or AA^T. Return true if
   // successful, false otherwise. L contains the numeric factorization
   // on return.
   //
-  // status contains an explanation of the failures if any.
+  // message contains an explanation of the failures if any.
   LinearSolverTerminationType Cholesky(cholmod_sparse* A,
                                        cholmod_factor* L,
-                                       string* status);
+                                       string* message);
 
   // Given a Cholesky factorization of a matrix A = LL^T, solve the
   // linear system Ax = b, and return the result. If the Solve fails
   // NULL is returned. Caller owns the result.
   //
-  // status contains an explanation of the failures if any.
-  cholmod_dense* Solve(cholmod_factor* L, cholmod_dense* b, string* solve);
+  // message contains an explanation of the failures if any.
+  cholmod_dense* Solve(cholmod_factor* L, cholmod_dense* b, string* message);
 
   // By virtue of the modeling layer in Ceres being block oriented,
   // all the matrices used by Ceres are also block oriented. When

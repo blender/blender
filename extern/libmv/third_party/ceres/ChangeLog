@@ -1,3 +1,147 @@
+commit 2b16b0080b6e673eaaf9ed478c9e971d9fcd65de
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Dec 20 15:22:26 2013 -0800
+
+    CompressedRowSparseMatrix::AppendRows and DeleteRows bugfix.
+    
+    CompressedRowSparseMatrix can store the row and column block structure
+    but the AppendRows and DeleteRows methods did not pay attention to them.
+    This meant that it was possible to get to a CompressedRowSparseMatrix
+    whose block structure did not match the contents of the matrix.
+    
+    This change fixes this problem.
+    
+    Change-Id: I1b3c807fc03d8c049ee20511e2bc62806d211b81
+
+commit 27bb4a8589c47a65b5ea2c01872a903043d0ef74
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Dec 18 13:06:58 2013 -0800
+
+    Handle empty problems consistently.
+    
+    Until now Ceres was inconsistent in the way it handled a solve
+    call on an "empty" Problem. If the problem did not contain
+    any residual or parameter blocks, it failed. However, if after
+    constructing the reduced program, the problem was found to not
+    contain any modifiable parameter blocks, it was considered a valid
+    problem which had a constant objective function value.
+    
+    When creating problems automatically, it is often the case that
+    an empty problem is a corner case. This change makes handling this
+    corner case consistent with the rest of Ceres logic.
+    
+    Change-Id: Ia9da09fbf5d5cd7eae6b39a92c1976b8645db9fe
+
+commit dcee120bac04911bf01d8365bddca87c74ce2af9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Dec 7 21:48:56 2013 -0800
+
+    Consolidate SolverTerminationType enum.
+    
+    1. Rename SolverTerminationType to TerminationType.
+    2. Consolidate the enum as
+      a. CONVERGENCE - subsumes FUNCTION_TOLERANCE, PARAMETER_TOLERANCE and GRADIENT_TOLERANCE
+      b. NO_CONVERGENCE
+      c. FAILURE - captures all kinds of failures including DID_NOT_RUN.
+      d. USER_SUCCESS
+      e. USER_FAILURE
+    3. Solver::Summary::error is renamed to be Solver::Summary::message, to both
+    reduce confusion as well as capture its true meaning.
+    
+    Change-Id: I27a382e66e67f5a4750d0ee914d941f6b53c326d
+
+commit d1cf320bb4f032cb14b20114a29ce2d867307492
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Nov 28 23:11:11 2013 +0600
+
+    Made collections port compatible with MSVC2008
+    
+    The issue was caused by the fact that in this version
+    of MSVC unordered_map class is defined in <unordered_map>
+    header file, but this file declares the class int std::tr1
+    namespace.
+    
+    This confused existing assumption that if there's an
+    existing <unordered_map> file then class is declared
+    in std namespace.
+    
+    Added an extra check to CMake which detects whether
+    it's std or std::tr1 which actually contains class
+    of unordered_map.
+    
+    Change-Id: Ic5cf41913895a6ce8e791cc7602d7cf5492c34de
+
+commit 324eccb5f6ce2a1a0061ec9f3c40778a029a2d97
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Dec 3 09:28:14 2013 -0800
+
+    Restore the state of the Problem after a call to Evaluate.
+    
+    Calling Problem::Evaluate mutates the state of the parameter blocks.
+    In particular, depending on the set and order of parameter blocks
+    passed to the evaluate call, it will change the internal indexing
+    used by the Program object used by ProblemImpl. This needs to be
+    undone before Evaluate returns, otherwise the Problem object
+    is in an invalid state.
+    
+    To help with testing and debugging in the future, a new method
+    Program::IsValid has been added which checks whether the problem
+    has its parameter and residual blocks in the right state.
+    
+    Thanks to Stefan Leutenegger for reporting this.
+    
+    Change-Id: I209b486a31433f0cbb58b570047649eca6d42b56
+
+commit 3b1ad31a1fe89fe0bd78e1fffdf22d47d43faaf5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Dec 2 15:43:20 2013 -0800
+
+    Fix build breakage on old versions of SuiteSparse.
+    
+    Change-Id: I2a061615fc374abef2ed323c298359002a6fc5f1
+
+commit 5fd480692b0a0c87e2af2f5a8754042a14f5f089
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Dec 2 12:16:53 2013 -0800
+
+    Add more documentation to the linear solver enums.
+    
+    Change-Id: Id57f76f73fa38043c0b6729972b1de8578ad7ede
+
+commit d73acd035359886dfa1c5762b01c6f6449edcab8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Dec 2 12:02:03 2013 -0800
+
+    Lint cleanup from William Rucklidge.
+    
+    Change-Id: I8abcfd369f41b895ce746a21a35f250fe05c39d1
+
+commit 3faac6a28cec4c99c41421d3f585f3786be443b3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Nov 28 07:13:26 2013 -0800
+
+    More lint cleanups and breakage fixes.
+    
+    The previous CL was a premature submit due to lack of coffee.
+    
+    Change-Id: Id425d0ef332f569a954f0413e6b1ae6087f40f30
+
+commit ed92366592a951041bd0367c24006101ef7b6286
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Nov 28 06:50:43 2013 -0800
+
+    Lint cleanup from William Rucklidge.
+    
+    Change-Id: I745810f5496a1b93263b20ff140f8883da61995e
+
+commit 34b6359f39884683f2bbf06c93040afd42ae135d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Nov 28 18:51:34 2013 +0600
+
+    Fix compilation error after recent enum rename in 33e01b9
+    
+    Change-Id: I920aa4754df6b013e86f0e77c61338d7a80e7f45
+
 commit 33e01b9c5e1416fe29c55ac0332cdca21c053c83
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Wed Nov 27 10:24:03 2013 -0800
@@ -537,148 +681,3 @@ Date:   Sun Oct 27 21:38:13 2013 -0700
     are not exposed. This would be done in a future change.
     
     Change-Id: I7ddc36790943f24b19c7f08b10694ae9a822f5c9
-
-commit 5a161a2b9653489ee9040f054b24df971e6b9bbc
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Oct 29 22:08:15 2013 -0700
-
-    Template specializations for PartitionedMatrixView.
-    
-    This speeds up the matrix vector products in the
-    IterativeSchurSolver by upto 40%.
-    
-    Change-Id: Ib5e8d77c7269cf5ffdd2d161893734bb6d38215d
-
-commit e5ce1170bc9993085c81a788e16eb48f1b2fdb97
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Oct 29 07:40:51 2013 -0700
-
-    Minor bug fix to autodiff.h
-    
-    Change-Id: Ib41050a2f2ba1898c71ff19d74f8eca2496212c0
-
-commit 9e9a7d6ca0e75727293f94452d602f02b56d10ba
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Oct 29 06:54:44 2013 -0700
-
-    Documentation update.
-    
-    Add documentation for the new methods added to Problem.
-    Fix a bunch of ReST bugs.
-    
-    Change-Id: I8a79a84040cfa8a679cc5355baccbe6d69bc9e70
-
-commit c6bafdd02c33ec0ccb705578d83e4f601ddeedea
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Oct 28 19:38:08 2013 -0700
-
-    Comments from Jim Roseborough.
-    
-    1. Fix the tolerance on the rotation matrix conversion test.
-    2. Fix some out of date comments.
-    
-    Change-Id: I65e80da1f96d7b4d9ac0630ad8cb708c41739840
-
-commit fda69b52130955479591e8f03f97b1cfceca369f
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Oct 10 00:25:24 2013 -0700
-
-    Export the structure of a problem to the public API
-    
-    This adds three new public methods to ceres::Problem:
-    
-      Problem::GetResidualBlocks()
-      Problem::GetParameterBlocksForResidualBlock()
-      Problem::GetResidualBlocksForParameterBlock()
-    
-    These permit access to the underlying graph structure of the problem.
-    
-    Change-Id: I55a4c7f0e5f325f140cb4830e7a7070554594650
-
-commit 63bcdffa7d188b8d8c5309a62c255ba33f061764
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Oct 27 21:34:13 2013 -0700
-
-    Add the 2_d_d SchurEliminator specialization.
-    
-    This occurs far too often in bundle adjustment problems to be ignored.
-    
-    Change-Id: Ib137f1566acf5fffa63e50a55fe8e78ea9eb1c14
-
-commit 602096c91363a0b9384f887a15c82e2dac1fb923
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Oct 27 05:09:38 2013 -0700
-
-    Move CERES_HASH_NAMESPACE macros to collections_port.h
-    
-    Now that we have a clearer understanding of the naming rules
-    there is no need for these macro definitions to be done in
-    the cmake file.
-    
-    This cleans up the compilation command line.
-    
-    Change-Id: Idc8fc7a7c9376e021dc4790af66e599105351917
-
-commit f6b67df54ad6daa7036f5b6619243f722d678892
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Oct 25 06:24:19 2013 -0700
-
-    Fix handling of unordered_map/unordered_set on OSX 10.9.0.
-    
-    Depending on the compiler + standard library combination,
-    unordered_map/set may or may not be available. If available
-    they maybe in the std or the std::tr1 namespaces.
-    
-    Apple switched to using libc++ with 10.9.0 which places
-    unordered_map in std, breaking our assumptions about the
-    platform.
-    
-    This change refactors our logic for dealing with the namespace
-    switching, making it a three state thing rather than two. There
-    are three defines now, CERES_NO_UNORDERED_MAP, CERES_STD_UNORDERED_MAP
-    and CERES_TR1_UNORDERED_MAP. Earlier the first two were conflated
-    into one, leading to the breakage.
-    
-    Change-Id: I904fe8c49529169bdefa9f2ee6d629e7eab0b855
-
-commit 21d6a99fe68e99fa51db32d55f587b42ef9a476c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Oct 25 10:20:24 2013 -0700
-
-    Fix AngleAxisToRotationMatrix near zero.
-    
-    The Taylor series approximation had its sign flipped and the
-    tests did not catch it since we were switching exactly at zero,
-    which was not getting triggered.
-    
-    This changes modifies the tolerance, adds a test that triggers
-    and fixes the bug.
-    
-    Thanks to Michael Samples for reporting this.
-    
-    Change-Id: I6f92f6348e5d4421ffe194fba92c04285449484c
-
-commit 0e2743e24d013b25109396cfa0d8d0f1e8e84964
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Oct 23 14:51:07 2013 -0700
-
-    Add BlockRandomAccessDiagonalMatrix.
-    
-    This class is used in the SchurJacobiPreconditioner for
-    storing the preconditioner matrix. Using it speeds up
-    the computation of the preconditioner by ~15% due to
-    the elimination of a hash table lookup.
-    
-    Change-Id: Iba2b34aad0d9eb9bcb7f6e6fad16aa416aac0d2a
-
-commit 6a2bcaa1d55d38bc10d043f1458657caac2be7a7
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Oct 23 14:06:44 2013 +0100
-
-    Adding explicit link to libm for pure-C curve fitting example.
-    
-    - Any pure-C program #including <math.h> will need to link against
-      libm, some compilers will let an indirect link slide (via Ceres in
-      this case) but some won't.
-    
-    Change-Id: I6890702fa0d2c3fbb747f0f81fc3fa3631839de4

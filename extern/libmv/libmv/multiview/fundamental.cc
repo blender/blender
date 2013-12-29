@@ -538,9 +538,7 @@ bool EstimateFundamentalFromCorrespondences(
 
   LG << "Final refined matrix:\n" << *F;
 
-  return !(summary.termination_type == ceres::DID_NOT_RUN ||
-           summary.termination_type == ceres::NUMERICAL_FAILURE ||
-           summary.termination_type == ceres::USER_ABORT);
+  return summary.IsSolutionUsable();
 }
 
 }  // namespace libmv

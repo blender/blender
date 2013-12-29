@@ -301,41 +301,42 @@ enum DoglegType {
   SUBSPACE_DOGLEG
 };
 
-enum SolverTerminationType {
-  // The minimizer did not run at all; usually due to errors in the user's
-  // Problem or the solver options.
-  DID_NOT_RUN,
+enum TerminationType {
+  // Minimizer terminated because one of the convergence criterion set
+  // by the user was satisfied.
+  //
+  // 1.  (new_cost - old_cost) < function_tolerance * old_cost;
+  // 2.  max_i |gradient_i| < gradient_tolerance * max_i|initial_gradient_i|
+  // 3.  |step|_2 <= parameter_tolerance * ( |x|_2 +  parameter_tolerance)
+  //
+  // The user's parameter blocks will be updated with the solution.
+  CONVERGENCE,
 
-  // The solver ran for maximum number of iterations specified by the
-  // user, but none of the convergence criterion specified by the user
-  // were met.
+  // The solver ran for maximum number of iterations or maximum amount
+  // of time specified by the user, but none of the convergence
+  // criterion specified by the user were met. The user's parameter
+  // blocks will be updated with the solution found so far.
   NO_CONVERGENCE,
 
-  // Minimizer terminated because
-  //  (new_cost - old_cost) < function_tolerance * old_cost;
-  FUNCTION_TOLERANCE,
-
-  // Minimizer terminated because
-  // max_i |gradient_i| < gradient_tolerance * max_i|initial_gradient_i|
-  GRADIENT_TOLERANCE,
-
-  // Minimized terminated because
-  //  |step|_2 <= parameter_tolerance * ( |x|_2 +  parameter_tolerance)
-  PARAMETER_TOLERANCE,
-
-  // The minimizer terminated because it encountered a numerical error
-  // that it could not recover from.
-  NUMERICAL_FAILURE,
+  // The minimizer terminated because of an error.  The user's
+  // parameter blocks will not be updated.
+  FAILURE,
 
   // Using an IterationCallback object, user code can control the
   // minimizer. The following enums indicate that the user code was
   // responsible for termination.
+  //
+  // Minimizer terminated successfully because a user
+  // IterationCallback returned SOLVER_TERMINATE_SUCCESSFULLY.
+  //
+  // The user's parameter blocks will be updated with the solution.
+  USER_SUCCESS,
 
-  // User's IterationCallback returned SOLVER_ABORT.
-  USER_ABORT,
-
-  // User's IterationCallback returned SOLVER_TERMINATE_SUCCESSFULLY
-  USER_SUCCESS
+  // Minimizer terminated because because a user IterationCallback
+  // returned SOLVER_ABORT.
+  //
+  // The user's parameter blocks will not be updated.
+  USER_FAILURE
 };
 
 // Enums used by the IterationCallback instances to indicate to the
@@ -459,7 +460,7 @@ bool StringToCovarianceAlgorithmType(
     string value,
     CovarianceAlgorithmType* type);
 
-const char* SolverTerminationTypeToString(SolverTerminationType type);
+const char* TerminationTypeToString(TerminationType type);
 
 bool IsSchurType(LinearSolverType type);
 bool IsSparseLinearAlgebraLibraryTypeAvailable(
