@@ -65,6 +65,8 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_style_toggle);
 	WM_operatortype_append(FONT_OT_style_set);
 
+	WM_operatortype_append(FONT_OT_select_all);
+
 	WM_operatortype_append(FONT_OT_text_copy);
 	WM_operatortype_append(FONT_OT_text_cut);
 	WM_operatortype_append(FONT_OT_text_paste);
@@ -207,6 +209,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_spacing", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", UPARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", DOWNARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
+
+	WM_keymap_add_item(keymap, "FONT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "FONT_OT_text_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "FONT_OT_text_cut", XKEY, KM_PRESS, KM_CTRL, 0);

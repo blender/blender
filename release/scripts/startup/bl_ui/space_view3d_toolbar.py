@@ -347,12 +347,6 @@ class VIEW3D_PT_tools_textedit(View3DPanel, Panel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="Text Edit:")
-        col.operator("font.text_copy", text="Copy")
-        col.operator("font.text_cut", text="Cut")
-        col.operator("font.text_paste", text="Paste")
-
-        col = layout.column(align=True)
         col.label(text="Set Case:")
         col.operator("font.case_set", text="To Upper").case = 'UPPER'
         col.operator("font.case_set", text="To Lower").case = 'LOWER'

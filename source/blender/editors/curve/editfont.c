@@ -675,6 +675,47 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to");
 }
 
+
+/* -------------------------------------------------------------------- */
+/* Select All */
+
+static int font_select_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = obedit->data;
+
+	if (cu->len) {
+		cu->selstart = 1;
+		cu->selend = cu->len;
+		cu->pos = cu->len;
+
+		text_update_edited(C, scene, obedit, true, FO_SELCHANGE);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+}
+
+void FONT_OT_select_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select All";
+	ot->description = "Select all text";
+	ot->idname = "FONT_OT_select_all";
+
+	/* api callbacks */
+	ot->exec = font_select_all_exec;
+	ot->poll = ED_operator_editfont;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
 /******************* copy text operator ********************/
 
 static void copy_selection(Object *obedit)
