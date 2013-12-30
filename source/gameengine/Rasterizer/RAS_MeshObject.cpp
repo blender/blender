@@ -458,9 +458,14 @@ void RAS_MeshObject::RemoveFromBuckets(void *clientobj)
 		if (!msp)
 			continue;
 
+		/* see [#37920] */
+#if 0
 		RAS_MeshSlot *ms = *msp;
 
-		it->m_bucket->RemoveMesh(ms);
+		it->m_bucket->RemoveMeshSlot(ms);
+#else
+		it->m_bucket->RemoveMesh(this);
+#endif
 		it->m_slots.remove(clientobj);
 	}
 }
