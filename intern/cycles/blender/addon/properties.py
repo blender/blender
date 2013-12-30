@@ -28,9 +28,9 @@ from bpy.props import (BoolProperty,
 import _cycles
 
 enum_devices = (
-  ('CPU', "CPU", "Use CPU for rendering"),
-  ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"),
-  )
+    ('CPU', "CPU", "Use CPU for rendering"),
+    ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"),
+    )
 
 if _cycles.with_network:
   enum_devices += (('NETWORK', "Networked Device", "Use networked device for rendering"),)
@@ -304,14 +304,16 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.volume_step_size = FloatProperty(
                 name="Step Size",
-                description="Distance between volume shader samples when rendering the volume. Lower values give more accurate and detailed results but also increased render time.",
+                description="Distance between volume shader samples when rendering the volume. "
+                            "Lower values give more accurate and detailed results but also increased render time",
                 default=0.1,
                 min=0.0000001, max=100000.0
                 )
 
         cls.volume_max_steps = IntProperty(
                 name="Max Steps",
-                description="Maximum number of steps through the volume before giving up, to protect from extremely long render times with big objects or small step sizes.",
+                description="Maximum number of steps through the volume before giving up, "
+                            "to protect from extremely long render times with big objects or small step sizes",
                 default=1024,
                 min=2, max=65536
                 )
