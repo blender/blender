@@ -1,4 +1,216 @@
-commit 2cd653e2952379da7daf56edcd9e71b0aa929f90
+commit b9e467e7c077b58199c4110f6967b7c18d1e7bf7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 20:34:39 2013 +0600
+
+    Update Ceres to the latest upstream
+    
+    This brings up much easier termination type usage,
+    which for us means we might use:
+    
+      ceres::Summary::IsSolutionUsable()
+    
+    instead of doing manual funky enum values check.
+
+commit 3aeb2367e50b52ca2b9d59d4f0f0b4bbfd6a05e8
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 20:43:24 2013 +0600
+
+    Update gtest to latest version 1.7.0
+    
+    Also reshuffled CMakeLists in order to avoid
+    conflicts happening between gflags bundled to
+    Ceres and third_party.
+
+commit 30aaa9cd0b4a4eb0948a17824e7e7622d8ebcb41
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 20:10:06 2013 +0600
+
+    Changes for VC2013
+    
+    Solves compilation error when using msvc2013
+    
+    Original patch is by Alexandr Kuznetsov to blender.git
+
+commit b204c0d25065a2b149de256929ff37d8f00f45bb
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Dec 31 20:05:58 2013 +0600
+
+    Eagerly attempt to refine a track before doing a brute search
+    
+    Before the refinement phase of tracking, a brute force SAD search
+    is run across the search area. This works well but is slow;
+    especially if the guess for the track's location is accurate.
+    
+    This patch runs a refinement phase before running a brute force
+    search, hoping that the guessed position (in x2, y2) is close to
+    the best answer. If it is, then no brute search is done. If it is
+    not, then a normal brute force search followed by refinement is
+    done.
+    
+    In some cases this may produce worse tracks than before; the
+    regressions will need investigation. The predictive motion model
+    (to be implemented) will reduce the probability of that happening.
+
+commit 5361513f0328ff94b53125d29129561bb03132e8
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Dec 31 20:04:46 2013 +0600
+
+    Fix bug where libmv tracking incorrectly succeeds on failure
+    
+    Before this patch, if Ceres returned USER_SUCCESS indicating that
+    Ceres was only changing the tracked quad slightly between
+    iterations (indicating convergence), no final correlation check
+    was done. This leads to incorrectly returning that the tracking
+    was successful, when it actually failed.
+
+commit ba9e63eed09e33a48bbcb081058f45ac16f8738e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 20:00:46 2013 +0600
+
+    Implementation of weighted tracks
+    
+    Added a weight field to Track structure which means
+    how much affect this track will have on the final
+    reconstruction.
+    
+    Currently it affects on BA step only which in most
+    cases will work just fine. However, it worth looking
+    into weight support for intersection/resection.
+
+commit 4600df8b685ca8c4daa22d6c3b0125fd42c3bc67
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 19:30:14 2013 +0600
+
+    Code cleanup: move function prototype to header file
+
+commit 0ce5b6efde774b3f042acf9e42c95674548f1c01
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 19:26:48 2013 +0600
+
+    Get rid of Allow Fallback option for euclidean resection
+    
+    It was rather confusing from the user usage point of view
+    and didn't get so much improvement after new bundle adjuster
+    was added.
+    
+    In the future we might want to switch resection to PPnP algorithm,
+    which could also might be a nice alternative to fallback option.
+
+commit 5d063426f4809000c27f38ed798e4224bbd09a6d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 19:24:05 2013 +0600
+
+    Use explicit declaration of int types sign
+    
+    Mainly needs to make blender happy with this custom
+    header which used to run into conflict with other int
+    types headers.
+    
+    Wouldn't harm being more explicit here anyway.
+
+commit c5be59dee94f94de369006c544080282cfb245cc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Dec 31 14:50:00 2013 +0600
+
+    Implement refinement of estimated homography/fundamental matrices
+    
+    It was only possible to perform algebraic estimation, which didn't
+    give so much accurate results.
+    
+    Implemented a way to perform algebraic estimation followed with
+    refinement step using Ceres minimizer.
+    
+    The code was actually mostly already there since keyframe selection
+    patch. Made such estimation a generic function in multiview/ and
+    hanged API for estimation in order to pass all additional options via
+    an options structure (the same way as it's done fr Ceres).
+    
+    Most of the options are straight-forward to understand,but some
+    deserves more description here:
+    
+    * expected_average_symmetric_distance is used as an early output check
+      and as soon as average symmetric error goes below this threshold
+      refining finishes.
+    
+      This distance is measured in the same units as input points are.
+    
+      It is arguable whether we need callback for this or not, but seems
+      Ceres doesn't have some kind of absolute threshold for function value
+      and function_tolerance behaves different from logic behind expected
+      symmetric error.
+    
+    * There' an option to normalize correspondences before estimating the
+      homography in order to increase estimation stability. See
+    
+        R. Hartley and A. Zisserman. Multiple View Geometry in Computer
+        Vision. Cambridge University Press, second edition, 2003.
+    
+        https://www.cs.ubc.ca/grads/resources/thesis/May09/Dubrofsky_Elan.pdf
+
+commit 1cdad972c4a9005e78891524cbd6d65600ca7e99
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Sep 25 16:12:29 2013 +0600
+
+    Code cleanup: Minor function capitalization fix
+    
+    Original patch by Joseph Mansfield to the Blender repository.
+
+commit 434316d084e8a41fd452f03610d7244d664948dc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Sep 25 16:07:43 2013 +0600
+
+    Code cleanup: spelling correction
+    
+    Original patch by Joseph Mansfield to the Blender repository.
+
+commit 5cfe8465ac70407c0959c53bcd5206657a1322a2
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Sep 25 16:02:48 2013 +0600
+
+    Fix for uninitialized covariance matrix
+    
+    Lead to unpredictable tracking termination criteria.
+
+commit fd86b77d413489649a989f075b061714ed9a72fc
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Sep 25 16:01:19 2013 +0600
+
+    Add Procrustes PNP ("PPnP") resection algorithm to libmv
+    
+    This adds a new Euclidean resection method, used to create the
+    initial reconstruction in the motion tracker, to libmv. The method
+    is based on the Procrustes PNP algorithm (aka "PPnP"). Currently
+    the algorithm is not connected with the motion tracker, but it
+    will be eventually since it supports initialization.
+    
+    Having an initial guess when doing resection is important for
+    ambiguous cases where potentially the user could offer extra
+    guidance to the solver, in the form of "this point is in front of
+    that point".
+    
+    Original patch by Keir Mierle made to Blender repository.
+
+commit 0d98e9bbde5d57f6cd9515ce8ff2786d322f29ea
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jun 18 19:24:07 2013 +0600
+
+    Compilation error when using clang
+    
+    Where couple of issues:
+    
+    - Overloaded assignment operator usage ambiguity
+      around some of the Eigen matrix assignment.
+    
+    - Using -O4 flag here on linux ended up in lots
+      of cryptic linker issues, even when using recently
+      release clang 3.3.
+    
+      Disabled forcing optimization flag for now.
+      We could end up with something smarter in the
+      future, but for now i'm not as much fan of
+      forcing compiler's flag.
+
+commit 2b90b3915671cb629f7aabed30a88f28450294f8
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Jun 1 16:20:35 2013 +0600
 
@@ -7,7 +219,7 @@ Date:   Sat Jun 1 16:20:35 2013 +0600
     Saves couple of time which used to waste on copying objects,
     also solves win32 compilation errors caused by alignment.
 
-commit f61b8198b9bddd8d2fa53feae7924aa23df48cbd
+commit 994c02d0ec55e9ae14a93a3ada6e5d4939247fc3
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu May 30 18:00:03 2013 +0600
 
@@ -16,7 +228,7 @@ Date:   Thu May 30 18:00:03 2013 +0600
     - Made some arguments passing to detector const.
     - Remove unneeded include from track_region header.
 
-commit 61ac890908a397860cabc60207500039876532cc
+commit 7d0c5325a38e61929f44206761b8aa3565631af5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon May 13 04:44:14 2013 +0600
 
@@ -26,13 +238,13 @@ Date:   Mon May 13 04:44:14 2013 +0600
     some boost of bundle adjuster (where jet could take some time to
     be passed by value).
 
-commit 4d005ff0771e0e28159be25f8da69d983641384f
+commit eb2e567df4567a54887d602aa95d6744aa154d8b
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon May 13 04:22:05 2013 +0600
 
     Minor code style cleanup.
 
-commit f003b9e3031db4592c2d91b1ea2538c73b7e767d
+commit ad3dbaaef10ea721230694311a359df152c7a44a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sun May 12 22:34:54 2013 +0600
 
@@ -46,7 +258,7 @@ Date:   Sun May 12 22:34:54 2013 +0600
       refining flags. Technically, all combinations
       are possible.
 
-commit f0e68f69e5c5f0fd82334246d382e59f1eb20164
+commit 4432eb80f27e929f8750229aaada625d4f3ac5ee
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sun May 12 22:19:31 2013 +0600
 
@@ -59,7 +271,7 @@ Date:   Sun May 12 22:19:31 2013 +0600
     It is possible that external user will send focal length of
     zero to be refined, but blender prevents this from happening.
 
-commit 7ed5e4da65d2c0df63a08b1e1f4b4de1855f1bf0
+commit 34a91c9b8acb0dba3382866fbd29bb9884edb98a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat May 11 20:33:54 2013 +0600
 
@@ -67,13 +279,13 @@ Date:   Sat May 11 20:33:54 2013 +0600
     
     Using change from glog's upstream for this.
 
-commit 7e162266f96abc25d80e2352cd77f21ed93593b7
+commit 87be4f030d025e4b29d9243d12bc458b2bb6762a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat May 11 19:50:57 2013 +0600
 
     Style cleanup, mainly pointed by Sameer in Ceres's codereview
 
-commit 42da053c6410b4f3fb13798c7e9c5f4a861b6825
+commit 7fa9c0b83d5e0fbd331add2952045076c2028d1b
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 18:30:40 2013 +0600
 
@@ -95,7 +307,7 @@ Date:   Fri May 10 18:30:40 2013 +0600
     case almost all eigen values getting zeroed
     on inverse leading to small expected error.
 
-commit f3eb090f7240f86799099fe86ce9386eb2bd3007
+commit 0477ef1aa8fc92848f03c45e32539210be583b80
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 17:59:40 2013 +0600
 
@@ -110,7 +322,7 @@ Date:   Fri May 10 17:59:40 2013 +0600
     - Renamed function to match better to what's going
       on in it.
 
-commit b917b48bd877eedd17dec907cacf0b27a36e717d
+commit fee2d7cc6003942f628c9a24b74008fd491b85b9
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 17:44:49 2013 +0600
 
@@ -129,7 +341,7 @@ Date:   Fri May 10 17:44:49 2013 +0600
     In own tests gives approx 2x boost, without
     visible affect on selected keyframe quality.
 
-commit 041b4b54fff66311347a307a5922c2516c76ee44
+commit b735649ead4d3d61f7896e46f35b1f7e0cecea3d
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Mar 14 14:53:42 2013 +0600
 
@@ -174,13 +386,13 @@ Date:   Thu Mar 14 14:53:42 2013 +0600
     
     - Cleaned style a bit.
 
-commit 94c4654f1145f86779bd0a7e8cda1fd2c751d27d
+commit 8bee982972a0b5bded3555b60e0987af685f85bd
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 13:27:21 2013 +0600
 
     Left extra debugging print in reconstruction scale by accident.
 
-commit 3886b488575ec5e79debce7b9f2e9824f5297c0f
+commit 7971967d24e3d8d505bd6e54523161ab5dd5b728
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 12:23:03 2013 +0600
 
@@ -197,13 +409,13 @@ Date:   Fri May 10 12:23:03 2013 +0600
     
     Works fine in own tests, but requires more tests.
 
-commit a5699d7dbe126024673f51aaa570f9f244f8da2f
+commit f34e73f6bd0041a31f779a78e1c2324f9799a4a2
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Apr 24 22:06:38 2013 +0600
 
     Forgot to add reconstruction scale to CMakeLists
 
-commit 2b7d2b44e6446bbcc23038f5dbb824feca888069
+commit de08cbaebe1b95673c4bc8f639aa0228414cf4a2
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Apr 24 19:40:39 2013 +0600
 
@@ -216,7 +428,7 @@ Date:   Wed Apr 24 19:40:39 2013 +0600
     Currently only available for euclidean pipeline,
     projective one is not finished anyway.
 
-commit ed1f650576dc6f5b648a026a2861c54827b0f5c9
+commit 30ecb7dd075527c0e49220744bae65ec208dbdf5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Apr 23 01:41:29 2013 +0600
 
@@ -225,7 +437,7 @@ Date:   Tue Apr 23 01:41:29 2013 +0600
     Default epsilon for isApprox was too small,
     leading to some false test failures.
 
-commit c44679a9a0fafdde6a0a22e7e5c8496fc9c93cd0
+commit d03b303c171b0b0a33ed0b31c9a744c9676492a9
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Apr 23 01:35:56 2013 +0600
 
@@ -234,7 +446,7 @@ Date:   Tue Apr 23 01:35:56 2013 +0600
     Brings optimization for DENSE_NORMAL_CHOLESKY and
     also fixes threading issues with BLAS.
 
-commit 03cbc88ce7f51aa26ba503acea2e984bcb78873c
+commit 0a352686de0e87d59a2e37dbd0fddb351cbea2b7
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 15 05:35:33 2013 +0600
 
@@ -248,7 +460,7 @@ Date:   Mon Apr 15 05:35:33 2013 +0600
     
     Also added basic synthetic unit test for modal solver.
 
-commit c78a68f980e778d40ce836fa1d7471cb7264d4a0
+commit 1742515b89ad5da53be95bfc574cbeffc51dc0e2
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 8 23:33:20 2013 +0600
 
@@ -276,7 +488,7 @@ Date:   Mon Apr 8 23:33:20 2013 +0600
     smaller functions, so it's now a bit easier
     to follow.
 
-commit 28c7566629c2cf5b03a787c9509856e87472eb2f
+commit 74bbeabf1c4570bfe04f3034afcde95134b3e161
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 8 23:31:57 2013 +0600
 
@@ -285,7 +497,7 @@ Date:   Mon Apr 8 23:31:57 2013 +0600
     Brings up some noticeable speed improvements. In particular
     the automatic differentiation and bundle adjustment solvers.
 
-commit efde9faa21e70b031d3cbcb2dcdcd38e597bf56e
+commit e47519b0442527533ee046dd9881212d169561da
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 8 02:21:26 2013 +0600
 
@@ -294,7 +506,7 @@ Date:   Mon Apr 8 02:21:26 2013 +0600
     Currently tools/track.cc is not used, but let's
     keep things a bit more up-to-date :)
 
-commit f8b5ea196fb00ab07d577e9738a60cdd1de16509
+commit f617741b1f2a0ac7981dd71144eba187521d9ac4
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 8 02:17:16 2013 +0600
 
@@ -306,7 +518,7 @@ Date:   Mon Apr 8 02:17:16 2013 +0600
     Some of them are failing tho, but that's completely
     different story to be addressed later.
 
-commit d2a7ee60a5845738f76b88bfc373eefc2cc8501a
+commit 7dbb5a37333fb6c5a729b8bafb317ea210735cbc
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 8 02:10:07 2013 +0600
 
@@ -315,7 +527,7 @@ Date:   Mon Apr 8 02:10:07 2013 +0600
     Otherwise you'll have infinite appending of Ceres-specific flags
     on every saving of any CmakeLists.txt.
 
-commit 45edb507bf46194dd55b7fc46a7d90ee3853834d
+commit b413d22280de2481a2e2acdcda8431f601d65448
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sun Apr 7 21:53:23 2013 +0600
 
@@ -333,7 +545,7 @@ Date:   Sun Apr 7 21:53:23 2013 +0600
     happen spontaneously as a part of other changes.
     And for sure shall not break anything.
 
-commit 7a9c83d3ccaa2f0015f88b9156d7662c46244b4a
+commit c9eb9d36bb1ca5d3037ce66633d812a224f77958
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 20:49:05 2013 +0600
 
@@ -351,7 +563,7 @@ Date:   Sat Apr 6 20:49:05 2013 +0600
     
     This reverts commit daa354c0735b954b0cd7725626e9a3d67416d46b.
 
-commit 15f3bb00340933ce753a1a55e9cde9383352e259
+commit 5bd89d9b8fb620e7e88bcbfa74165309b872f529
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 18:37:37 2013 +0600
 
@@ -361,7 +573,7 @@ Date:   Sat Apr 6 18:37:37 2013 +0600
     of how SampleLinear works - seems it's assumption about
     pixel center is not correct for internal sampling.
 
-commit 1146602972c07e99a9e4ab37d35ac83aec490e60
+commit d449b820fb3352cd981e06d737f2838adb3d36bd
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 16:54:08 2013 +0600
 
@@ -375,7 +587,7 @@ Date:   Sat Apr 6 16:54:08 2013 +0600
     Further, not actually sure this is nice idea
     to use KLT in such synthetic case.
 
-commit 1e22cbcac480863b6b5abc5c85f23dc70748933a
+commit 1e54624875284e9532f4880c067e80e474444b2e
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 16:40:59 2013 +0600
 
@@ -392,7 +604,7 @@ Date:   Sat Apr 6 16:40:59 2013 +0600
     more like "returned location is not so much
     accurate".
 
-commit 3ad5e0efa071f202ee7c2034d70dd97aa62b13aa
+commit b46c48e0e1862828df6dca711148c11b1f60777c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 00:38:40 2013 +0600
 
@@ -410,7 +622,7 @@ Date:   Sat Apr 6 00:38:40 2013 +0600
     Also fixed variable shadowing which lead to wrong
     markers positions (were either zero or undefined).
 
-commit 3a153c2b65f38653a36c36975018f68d42d60670
+commit a597ca9291ff7c6e209e0500945568afa84d8b4e
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sat Apr 6 00:12:12 2013 +0600
 
@@ -430,13 +642,13 @@ Date:   Sat Apr 6 00:12:12 2013 +0600
       * Some basic tests to check whether individual
         apply/invert works correct.
 
-commit e3b2bccba6145290738a6677c14f7369ec7a38cd
+commit a9a3016c7beb02e62655221d46783b206010d04c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 4 02:59:58 2013 +0600
 
     Suppress strict compiler warnings in glags/glog libraries
 
-commit 5fca459adcf0a3419fa9cd8d983dc2c952d02647
+commit 307f3449c3dc47ed0082a22c88f9ab42114c2a0f
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 4 01:20:18 2013 +0600
 
@@ -446,7 +658,7 @@ Date:   Thu Apr 4 01:20:18 2013 +0600
     
     Should be no functional changes :)
 
-commit 9a9dd458a622928b91dbd3c79900577923283838
+commit ecbbf9ebacc1cc98a2ecfe5ff90f7d5c66b8a605
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri Mar 29 00:20:29 2013 +0600
 
@@ -460,7 +672,7 @@ Date:   Fri Mar 29 00:20:29 2013 +0600
     use "b" (which is transformed one) instead of "a"
     when converting projective coordinate to 2D space.
 
-commit d35766cc9901609e32f4d80faba715695bea3c40
+commit 319657d68d6533177bfa4811985fd0d9d161c725
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri Mar 29 00:19:11 2013 +0600
 
@@ -468,137 +680,3 @@ Date:   Fri Mar 29 00:19:11 2013 +0600
     
     That commit included one change which shall have been
     go as separate commit with more detailed description.
-
-commit e8d71b4e96fd78eb60773b6557d66da672e65753
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 20:37:05 2013 +0600
-
-    Silenced more warnings
-    
-    - Added includes of own header to fast implementation files.
-    
-    - Camera intrinsics wouldn't complain about unknown pragma when
-      building without OpenMP support.
-    
-    TODO: Make it a CMake option to build libmv with OpenMP support.
-    	  Currently multi-threaded intrinsics only available when
-          using custom CMake rules for bundled libmv version
-          (as it's done in Blender).
-
-commit ad442812654f270dc088394410fda1b81b8dc450
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 20:18:51 2013 +0600
-
-    Multithreaded camera intrinsics
-    
-    Implemented multithreaded buffer (un)distortion
-    for camera intrinsics using OpenMP.
-    
-    By default, (un)distortion is single-threaded,
-    but it is possible to as CameraIntrinsics to
-    use more threads by calling SetThreads method.
-
-commit c88b4881096174a16a9f9e6fc2c9dcad3e255b25
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 18:45:09 2013 +0600
-
-    Movie functions implementation from panography header
-    into own CC implementation file.
-    
-    Before this all panography functions were declared as
-    static, which is not so much useful from re-useability
-    point of view.
-
-commit 2d2faf9104bc035722cff6775e1b8e7c93143aba
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 18:37:36 2013 +0600
-
-    Build shared Ceres library only if BUILD_SHARED_LIBS is enabled
-
-commit daa3ddd3260ccaf2bf9c72eadb89213d91e549ec
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 18:21:52 2013 +0600
-
-    Update Ceres to upstream version 1.5.0
-
-commit cf5dc678878345ea3f221ce50cb2b9e539c2ab38
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 27 15:06:24 2013 +0600
-
-    Code cleanup: removed more deprecated FFmpeg API usage
-    
-    This time in qt-tracker application.
-
-commit e2eb58c4230f94ef0c72fb4005e5434088d52e80
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 17:19:51 2013 +0600
-
-    Code cleanup: silent unused variables warnings
-
-commit af89bb24667e39b7e655173ea807fdcfbeef4422
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 16:54:14 2013 +0600
-
-    Code cleanup: no need to declare empty body for ProgressUpdateCallback:invoke
-    
-    Make force this method to be overridden by derivative classes.
-    Also removed currently unneeded callbacks.cc.
-
-commit 0441d4ee06fad0219256a5704f931eec916a3868
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 16:37:27 2013 +0600
-
-    Code cleanup: silent type narrowing in qt-tracker
-
-commit cd4b61c976448d0fdedefb3ed4b21d70e078f94b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 16:26:39 2013 +0600
-
-    Changes to unit testing
-    
-    - Move ceres test binaries to ${LIBMV_TESTS_OUTPUT_DIR}/ceres,
-      so they don't mess with libmv's application binaries and
-      tests.
-    
-    - Removed ceres_ prefix from ceres unit tests, only use this
-      prefix for targets (targets need to be unique name).
-    
-    - Added unit tests data for ceres, otherwise system_test fails.
-    
-    - Restored "test" makefile target.
-
-commit cf704ada08acc8b26167e7bfb3e1e88fd278de23
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 15:01:15 2013 +0600
-
-    Code cleanup: use rw-rw-r-- mode for source files
-
-commit 64b31e3e43acb52aaf6f591b9d1c2449bf6ef3bd
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 26 14:57:46 2013 +0600
-
-    Code cleanup: don't use deprecated FFmpeg API functions
-
-commit 2a3676499548ad5dba5a5c5eadf3bb71e640b612
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 5 17:40:52 2013 +0600
-
-    Switch from DENSE_NORMAL_CHOLESKY to DENSE_QR
-    
-    DENSE_QR is better behaved numerically and after recent
-    changes from Sameer there's no big difference in speed.
-
-commit bcb920df02133da5b7e55fbc74edb9222004eecc
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Mar 5 17:15:43 2013 +0600
-
-    Update Ceres to 1.5RC3
-    
-    It brings optimization of DENSE_QR and DENSE_SCHUR solvers.
-
-commit 473996468a4e67e7c860169181a4ff31ce9b8c80
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 1 17:44:54 2013 +0600
-
-    Fixed incorrect order of arguments passing
-    to EXPECT_EQ in keyframe selection tests.

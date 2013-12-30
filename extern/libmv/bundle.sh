@@ -7,14 +7,12 @@ else
   exit 1
 fi
 
-#BRANCH="keir"
-#BRANCH="Matthias-Fauconneau"
-BRANCH="Nazg-Gul"
+BRANCH="devel"
 
-repo="git://github.com/${BRANCH}/libmv.git"
+repo="git://git.blender.org/libmv.git"
 tmp=`mktemp -d`
 
-git clone $repo $tmp/libmv
+git clone -b $BRANCH $repo $tmp/libmv
 
 #git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log --since="1 month ago" > ChangeLog
 git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
