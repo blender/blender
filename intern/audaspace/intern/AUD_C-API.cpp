@@ -31,6 +31,11 @@
 #define __STDC_CONSTANT_MACROS
 #endif
 
+// quiet unudef define warning
+#ifdef __STDC_CONSTANT_MACROS
+// pass
+#endif
+
 #ifdef WITH_PYTHON
 #  include "AUD_PyInit.h"
 #  include "AUD_PyAPI.h"
