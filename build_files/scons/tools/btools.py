@@ -691,6 +691,8 @@ def buildslave(target=None, source=None, env=None):
 
     if env['MSVC_VERSION'] == '11.0':
         platform = env['OURPLATFORM'] + '11'
+    if env['MSVC_VERSION'] == '12.0':
+        platform = env['OURPLATFORM'] + '12'
 
     branch = env['BUILDBOT_BRANCH']
 
