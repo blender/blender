@@ -16,6 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+"""
+Helper functions used for Freestyle style module writing
+"""
+
 # module members
 from _freestyle import (
     ContextFunctions,

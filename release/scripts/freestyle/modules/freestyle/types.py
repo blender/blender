@@ -16,6 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+"""
+Submodule containing all Freestyle types
+"""
+
 # module members
 from _freestyle import (
     AdjacencyIterator,

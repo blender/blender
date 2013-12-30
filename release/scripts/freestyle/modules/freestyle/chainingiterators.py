@@ -16,13 +16,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+"""
+Chaining iterators used for the chaining operation to construct long
+strokes by concatenating feature edges according to selected chaining
+rules.  Also intended to be a collection of examples for defining
+chaining iterators in Python
+"""
+
 # module members
 from _freestyle import (
     ChainPredicateIterator,
     ChainSilhouetteIterator,
     )
 
-# modules for implementing chaining iterators
+# constructs for predicate definition in Python
 from freestyle.types import (
     AdjacencyIterator,
     ChainingIterator,
@@ -33,14 +40,18 @@ from freestyle.predicates import (
     ExternalContourUP1D,
     )
 from freestyle.utils import ContextFunctions as CF
+
 import bpy
 
-## the natural chaining iterator
-## It follows the edges of same nature following the topology of
-## objects with  preseance on silhouettes, then borders,
-## then suggestive contours, then everything else. It doesn't chain the same ViewEdge twice
-## You can specify whether to stay in the selection or not.
+
 class pyChainSilhouetteIterator(ChainingIterator):
+    """Natural chaining iterator
+
+    Follows the edges of the same nature following the topology of
+    objects, with decreasing priority for silhouettes, then borders,
+    then suggestive contours, then all other edge types.  A ViewEdge
+    is only chained once.
+    """
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
     def init(self):
@@ -83,14 +94,20 @@ class pyChainSilhouetteIterator(ChainingIterator):
                     break
         return winner
 
-## the natural chaining iterator
-## It follows the edges of same nature on the same
-## objects with  preseance on silhouettes, then borders,
-## then suggestive contours, then everything else. It doesn't chain the same ViewEdge twice
-## You can specify whether to stay in the selection or not.
-## You can specify whether to chain iterate over edges that were
-## already visited or not.
+
 class pyChainSilhouetteGenericIterator(ChainingIterator):
+    """Natural chaining iterator
+
+    Follows the edges of the same nature following the topology of
+    objects, with decreasing priority for silhouettes, then borders,
+    then suggestive contours, then all other edge types.
+
+    :arg stayInSelection: True if it is allowed to go out of the selection
+    :type stayInSelection: bool
+    :arg stayInUnvisited: May the same ViewEdge be chained twice
+    :type stayInUnvisited: bool
+    """
+
     def __init__(self, stayInSelection=True, stayInUnvisited=True):
         ChainingIterator.__init__(self, stayInSelection, stayInUnvisited, None, True)
     def init(self):
@@ -137,7 +154,10 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
                     break
         return winner
 
+
 class pyExternalContourChainingIterator(ChainingIterator):
+    """Chains by external contour"""
+
     def __init__(self):
         ChainingIterator.__init__(self, False, True, None, True)
         self._isExternalContour = ExternalContourUP1D()
@@ -153,10 +173,11 @@ class pyExternalContourChainingIterator(ChainingIterator):
         while not it.is_end:
             ave = it.object
             if self._isExternalContour(ave):
-                return 1
+                return True
             it.increment()
-        print("pyExternlContourChainingIterator : didn't find next edge")
-        return 0
+        if bpy.app.debug_freestyle:
+            print("pyExternalContourChainingIterator : didn't find next edge")
+        return False
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
@@ -181,9 +202,18 @@ class pyExternalContourChainingIterator(ChainingIterator):
                 it.increment()
         return winner
 
-## the natural chaining iterator
-## with a sketchy multiple touch
+
 class pySketchyChainSilhouetteIterator(ChainingIterator):
+    """Natural chaining iterator with a sketchy multiple touch
+
+    Chains the same ViewEdge multiple times to achieve a sketchy effect.
+
+    :arg rounds: Number of times every Viewedge is chained.
+    :type rounds: int
+    :arg stayInSelection: if False, edges outside of the selection can be chained.
+    :type stayInSelection: bool
+    """
+
     def __init__(self, nRounds=3,stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
         self._timeStamp = CF.get_time_stamp()+nRounds
@@ -237,10 +267,12 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
         return winner
 
 
-# Chaining iterator designed for sketchy style.
-# can chain several times the same ViewEdge
-# in order to produce multiple strokes per ViewEdge.
 class pySketchyChainingIterator(ChainingIterator):
+    """Chaining iterator designed for sketchy style
+
+    It chaines the same ViewEdge several times in order to produce
+    multiple strokes per ViewEdge.
+    """
     def __init__(self, nRounds=3, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
         self._timeStamp = CF.get_time_stamp()+nRounds
@@ -272,23 +304,27 @@ class pySketchyChainingIterator(ChainingIterator):
         return winner
 
 
-## Chaining iterator that fills small occlusions
-##     percent
-##        The max length of the occluded part
-##        expressed in % of the total chain length
 class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
+    """Chaining iterator that fills small occlusions
+
+    :arg percent: The maximul length of the occluded part, expressed
+        in a percentage of the total chain length.
+    :type percent: float
+    """
+
     def __init__(self, percent):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = 0
         self._percent = float(percent)
     def init(self):
-        # each time we're evaluating a chain length
-        # we try to do it once. Thus we reinit
-        # the chain length here:
+        # A chain's length should preferably be evaluated only once.
+        # Therefore, the chain length is reset here.
         self._length = 0
     def traverse(self, iter):
         winner = None
+
         winnerOrientation = False
+        winnerOrientation = 0
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -298,10 +334,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 ve = it.object
                 if ve.id == mateVE.id:
                     winner = ve
-                    if not it.is_incoming:
-                        winnerOrientation = True
-                    else:
-                        winnerOrientation = False
+                    winnerOrientation = not it.is_incoming
                     break
                 it.increment()
         else:
@@ -315,10 +348,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                         if (ve.nature & nat) != 0:
                             count = count+1
                             winner = ve
-                            if not it.is_incoming:
-                                winnerOrientation = True
-                            else:
-                                winnerOrientation = False
+                            winnerOrientation = not it.is_incoming
                         it.increment()
                     if count != 1:
                         winner = None
@@ -359,6 +389,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 # let's do the comparison:
                 # nw let's compute the length of this connex non selected part:
                 connexl = 0
+
                 _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
@@ -373,11 +404,13 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                     winner = None
         return winner
 
-## Chaining iterator that fills small occlusions
-##     size
-##        The max length of the occluded part
-##        expressed in pixels
+
 class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
+    """Chaining iterator that fills small occlusions
+
+    :arg size: The maximum length of the occluded part in pixels.
+    :type size: int
+    """
     def __init__(self, length):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = float(length)
@@ -395,10 +428,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                 ve = it.object
                 if ve.id == mateVE.id:
                     winner = ve
-                    if not it.is_incoming:
-                        winnerOrientation = True
-                    else:
-                        winnerOrientation = False
+                    winnerOrientation = not it.is_incoming
                     break
                 it.increment()
         else:
@@ -412,10 +442,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                         if (ve.nature & nat) != 0:
                             count = count+1
                             winner = ve
-                            if not it.is_incoming:
-                                winnerOrientation = True
-                            else:
-                                winnerOrientation = False
+                            winnerOrientation = not it.is_incoming
                         it.increment()
                     if count != 1:
                         winner = None
@@ -441,11 +468,14 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
         return winner
 
 
-## Chaining iterator that fills small occlusions
-##     percent
-##        The max length of the occluded part
-##        expressed in % of the total chain length
 class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
+    """Chaining iterator that fills small occlusions regardless of the
+    selection
+
+    :arg percent: The maximul length of the occluded part as a
+        percentage of the total chain length.
+    :type percent: float
+    """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = 0
@@ -468,10 +498,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                 ve = it.object
                 if ve.id == mateVE.id:
                     winner = ve
-                    if not it.is_incoming:
-                        winnerOrientation = True
-                    else:
-                        winnerOrientation = False
+                    winnerOrientation = not it.is_incoming
                     break
                 it.increment()
         else:
@@ -485,10 +512,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                         if (ve.nature & nat) != 0:
                             count = count+1
                             winner = ve
-                            if not it.is_incoming:
-                                winnerOrientation = True
-                            else:
-                                winnerOrientation = False
+                            winnerOrientation = not it.is_incoming
                         it.increment()
                     if count != 1:
                         winner = None
@@ -543,25 +567,28 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                     winner = None
         return winner
 
-## Chaining iterator that fills small occlusions without caring about the
-## actual selection
-##     percent
-##        The max length of the occluded part
-##        expressed in % of the total chain length
+
 class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
+    """Chaining iterator that fills small occlusions regardless of the
+    selection
+
+    :arg percent: The maximul length of the occluded part as a
+        percentage of the total chain length.
+    :type percent: float
+    """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = 0
         self._absLength = l
         self._percent = float(percent)
     def init(self):
-        # each time we're evaluating a chain length
-        # we try to do it once. Thus we reinit
-        # the chain length here:
+        # A chain's length should preverably be evaluated only once.
+        # Therefore, the chain length is reset here.
         self._length = 0
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
+
         #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
         tvertex = self.next_vertex
@@ -571,10 +598,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                 ve = it.object
                 if ve.id == mateVE.id:
                     winner = ve
-                    if not it.is_incoming:
-                        winnerOrientation = True
-                    else:
-                        winnerOrientation = False
+                    winnerOrientation = not it.is_incoming
                     break
                 it.increment()
         else:
@@ -588,10 +612,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                         if (ve.nature & nat) != 0:
                             count = count+1
                             winner = ve
-                            if not it.is_incoming:
-                                winnerOrientation = True
-                            else:
-                                winnerOrientation = False
+                            winnerOrientation = not it.is_incoming
                         it.increment()
                     if count != 1:
                         winner = None
@@ -647,12 +668,18 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
         return winner
 
 
-## the natural chaining iterator
-## It follows the edges of same nature on the same
-## objects with  preseance on silhouettes, then borders,
-## then suggestive contours, then everything else. It doesn't chain the same ViewEdge twice
-## You can specify whether to stay in the selection or not.
 class pyNoIdChainSilhouetteIterator(ChainingIterator):
+    """Natural chaining iterator
+
+    Follows the edges of the same nature following the topology of
+    objects, with decreasing priority for silhouettes, then borders,
+    then suggestive contours, then all other edge types.  It won't
+    chain the same ViewEdge twice.
+
+    :arg stayInSelection: True if it is allowed to go out of the selection
+    :type stayInSelection: bool
+    """
+
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
     def init(self):

@@ -16,6 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+"""
+Functions operating on vertices (0D elements) and polylines (1D
+elements).  Also intended to be a collection of examples for predicate
+definition in Python
+"""
+
 # module members
 from _freestyle import (
     ChainingTimeStampF1D,
@@ -71,7 +77,7 @@ from _freestyle import (
     ZDiscontinuityF1D,
     )
 
-# modules for implementing functions
+# constructs for function definition in Python
 from freestyle.types import (
     CurvePoint,
     IntegrationType,
@@ -82,15 +88,17 @@ from freestyle.types import (
     )
 from freestyle.utils import ContextFunctions as CF
 from freestyle.utils import integrate
-import math
-import mathutils
+
+from mathutils import Vector
 
 ## Functions for 0D elements (vertices)
 #######################################
 
 class CurveMaterialF0D(UnaryFunction0DMaterial):
-    # A replacement of the built-in MaterialF0D for stroke creation.
-    # MaterialF0D does not work with Curves and Strokes.
+    """
+    A replacement of the built-in MaterialF0D for stroke creation.
+    MaterialF0D does not work with Curves and Strokes.
+    """
     def __call__(self, inter):
         cp = inter.object
         assert(isinstance(cp, CurvePoint))
@@ -110,8 +118,8 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
         assert(isinstance(cp, CurvePoint))
         return cp.t2d
 
-## estimate anisotropy of density
 class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
+    """Estimates the anisotropy of density"""
     def __init__(self,level):
         UnaryFunction0DDouble.__init__(self)
         self.IsoDensity = ReadCompleteViewMapPixelF0D(level)
@@ -133,34 +141,36 @@ class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
             v = (cMax-cMin)/c_iso
         return v
 
-## Returns the gradient vector for a pixel
-##     l
-##         the level at which one wants to compute the gradient
 class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
-    def __init__(self, l):
+    """Returns the gradient vector for a pixel
+
+    :arg level: the level at which to compute the gradient
+    :type level: int
+    """
+    def __init__(self, level):
         UnaryFunction0DVec2f.__init__(self)
-        self._l = l
-        self._step = math.pow(2,self._l)
+        self._l = level
+        self._step = pow(2, self._l)
     def __call__(self, iter):
         p = iter.object.point_2d
         gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y)) - \
             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step)) - \
             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-        return mathutils.Vector([gx, gy])
+        return Vector((gx, gy))
 
 class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
     def __init__(self, l):
         UnaryFunction0DDouble.__init__(self)
         self._l = l
-        self._step = math.pow(2,self._l)
+        self._step = pow(2,self._l)
     def __call__(self, iter):
         p = iter.object.point_2d
         gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y)) - \
             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step)) - \
             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-        grad = mathutils.Vector([gx, gy])
+        grad = Vector((gx, gy))
         return grad.length
 
 ## Functions for 1D elements (curves)
