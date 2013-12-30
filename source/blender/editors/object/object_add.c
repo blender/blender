@@ -1093,7 +1093,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* delete has to handle all open scenes */
-	flag_listbase_ids(&bmain->scene, LIB_DOIT, 1);
+	BKE_main_id_flag_listbase(&bmain->scene, LIB_DOIT, 1);
 	for (win = wm->windows.first; win; win = win->next) {
 		scene = win->screen->scene;
 		
@@ -1216,7 +1216,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 
 	set_sca_new_poins();
 
-	clear_id_newpoins();
+	BKE_main_id_clear_newpoins(bmain);
 }
 
 /********************* Make Duplicates Real ************************/
@@ -1369,7 +1369,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	const short use_base_parent = RNA_boolean_get(op->ptr, "use_base_parent");
 	const short use_hierarchy = RNA_boolean_get(op->ptr, "use_hierarchy");
 
-	clear_id_newpoins();
+	BKE_main_id_clear_newpoins(bmain);
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -2029,7 +2029,7 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	Base *basen;
 	Object *ob;
 
-	clear_id_newpoins();
+	BKE_main_id_clear_newpoins(bmain);
 	clear_sca_new_poins();  /* sensor/contr/act */
 
 	basen = object_add_duplicate_internal(bmain, scene, base, dupflag);
@@ -2060,7 +2060,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	int linked = RNA_boolean_get(op->ptr, "linked");
 	int dupflag = (linked) ? 0 : U.dupflag;
 
-	clear_id_newpoins();
+	BKE_main_id_clear_newpoins(bmain);
 	clear_sca_new_poins();  /* sensor/contr/act */
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
@@ -2141,7 +2141,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	base->flag = ob->flag;
 
 	/* prepare dupli */
-	clear_id_newpoins();
+	BKE_main_id_clear_newpoins(bmain);
 	clear_sca_new_poins();  /* sensor/contr/act */
 
 	basen = object_add_duplicate_internal(bmain, scene, base, dupflag);

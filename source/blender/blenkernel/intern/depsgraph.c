@@ -894,9 +894,9 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	}
 	
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
-	tag_main_idcode(bmain, ID_MA, FALSE);
-	tag_main_idcode(bmain, ID_LA, FALSE);
-	tag_main_idcode(bmain, ID_GR, FALSE);
+	BKE_main_id_tag_idcode(bmain, ID_MA, false);
+	BKE_main_id_tag_idcode(bmain, ID_LA, false);
+	BKE_main_id_tag_idcode(bmain, ID_GR, false);
 	
 	/* add base node for scene. scene is always the first node in DAG */
 	scenenode = dag_add_node(dag, sce);
@@ -912,7 +912,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 			build_dag_group(dag, scenenode, sce, ob->dup_group, mask);
 	}
 	
-	tag_main_idcode(bmain, ID_GR, FALSE);
+	BKE_main_id_tag_idcode(bmain, ID_GR, false);
 	
 	/* Now all relations were built, but we need to solve 1 exceptional case;
 	 * When objects have multiple "parents" (for example parent + constraint working on same object)
@@ -2003,7 +2003,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 	GroupObject *go;
 	Scene *sce_iter;
 
-	tag_main_idcode(bmain, ID_GR, FALSE);
+	BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 	/* set ob flags where animated systems are */
 	for (SETLOOPER(scene, sce_iter, base)) {
@@ -2071,7 +2071,7 @@ static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 	/* if we have a windowmanager, look into windows */
 	if ((wm = bmain->wm.first)) {
 		
-		flag_listbase_ids(&bmain->scene, LIB_DOIT, 1);
+		BKE_main_id_flag_listbase(&bmain->scene, LIB_DOIT, 1);
 
 		for (win = wm->windows.first; win; win = win->next) {
 			if (win->screen && win->screen->scene->theDag) {
@@ -2146,7 +2146,7 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 		 * note armature poses or object matrices are preserved and do not
 		 * require updates, so we skip those */
 		dag_scene_flush_layers(scene, lay);
-		tag_main_idcode(bmain, ID_GR, FALSE);
+		BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 		for (SETLOOPER(scene, sce_iter, base)) {
 			ob = base->object;
@@ -2163,7 +2163,7 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 			}
 		}
 
-		tag_main_idcode(bmain, ID_GR, FALSE);
+		BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 		/* now tag update flags, to ensure deformers get calculated on redraw */
 		DAG_scene_update_flags(bmain, scene, lay, do_time);

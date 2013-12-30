@@ -221,10 +221,10 @@ void ED_preview_init_dbase(void)
 void ED_preview_free_dbase(void)
 {
 	if (G_pr_main)
-		free_main(G_pr_main);
+		BKE_main_free(G_pr_main);
 
 	if (G_pr_main_cycles)
-		free_main(G_pr_main_cycles);
+		BKE_main_free(G_pr_main_cycles);
 }
 
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)

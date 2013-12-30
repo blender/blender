@@ -436,7 +436,7 @@ int main(int argc, char** argv)
 
 	U.gameflags |= USER_DISABLE_VBO;
 	// We load our own G.main, so free the one that initglobals() gives us
-	free_main(G.main);
+	BKE_main_free(G.main);
 	G.main = NULL;
 
 	MEM_CacheLimiter_set_disabled(true);

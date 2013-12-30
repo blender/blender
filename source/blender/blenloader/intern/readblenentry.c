@@ -53,7 +53,7 @@
 
 
 #include "BKE_main.h"
-#include "BKE_library.h" // for free_main
+#include "BKE_library.h" // for BKE_main_free
 #include "BKE_idcode.h"
 #include "BKE_report.h"
 
@@ -343,7 +343,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 void BLO_blendfiledata_free(BlendFileData *bfd)
 {
 	if (bfd->main) {
-		free_main(bfd->main);
+		BKE_main_free(bfd->main);
 	}
 	
 	if (bfd->user) {

@@ -188,7 +188,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 			continue;
 
 		/* for recursive check */
-		tag_main_lb(&bmain->group, TRUE);
+		BKE_main_id_tag_listbase(&bmain->group, true);
 
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 		{
@@ -494,7 +494,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 	 * It is also  bad idea to add object to group which is in group which
 	 * contains our current object.
 	 */
-	tag_main_lb(&bmain->group, TRUE);
+	BKE_main_id_tag_listbase(&bmain->group, true);
 	if (ob->dup_group == group || check_group_contains_object_recursive(group, ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not add the group because of dependency cycle detected");
 		return OPERATOR_CANCELLED;

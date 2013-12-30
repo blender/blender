@@ -522,33 +522,35 @@ ListBase *which_libbase(Main *mainlib, short type)
 }
 
 /* Flag all ids in listbase */
-void flag_listbase_ids(ListBase *lb, short flag, short value)
+void BKE_main_id_flag_listbase(ListBase *lb, const short flag, const bool value)
 {
 	ID *id;
 	if (value) {
 		for (id = lb->first; id; id = id->next) id->flag |= flag;
 	}
 	else {
-		flag = ~flag;
-		for (id = lb->first; id; id = id->next) id->flag &= flag;
+		const short nflag = ~flag;
+		for (id = lb->first; id; id = id->next) id->flag &= nflag;
 	}
 }
 
 /* Flag all ids in listbase */
-void flag_all_listbases_ids(short flag, short value)
+void BKE_main_id_flag_all(Main *bmain, const short flag, const bool value)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
-	a = set_listbasepointers(G.main, lbarray);
-	while (a--) flag_listbase_ids(lbarray[a], flag, value);
+	a = set_listbasepointers(bmain, lbarray);
+	while (a--) {
+		BKE_main_id_flag_listbase(lbarray[a], flag, value);
+	}
 }
 
-void recalc_all_library_objects(Main *main)
+void BKE_main_lib_objects_recalc_all(Main *bmain)
 {
 	Object *ob;
 
 	/* flag for full recalc */
-	for (ob = main->object.first; ob; ob = ob->id.next)
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->id.lib)
 			ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 }
@@ -1017,7 +1019,7 @@ Main *BKE_main_new(void)
 	return bmain;
 }
 
-void free_main(Main *mainvar)
+void BKE_main_free(Main *mainvar)
 {
 	/* also call when reading a file, erase all, etc */
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -1436,8 +1438,10 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	return result;
 }
 
-/* Pull an ID out of a library (make it local). Only call this for IDs that
- * don't have other library users. */
+/**
+ * Pull an ID out of a library (make it local). Only call this for IDs that
+ * don't have other library users.
+ */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
 	bNodeTree *ntree = NULL;
@@ -1463,13 +1467,13 @@ void id_clear_lib_data(Main *bmain, ID *id)
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
-void clear_id_newpoins(void)
+void BKE_main_id_clear_newpoins(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
 	int a;
 
-	a = set_listbasepointers(G.main, lbarray);
+	a = set_listbasepointers(bmain, lbarray);
 	while (a--) {
 		id = lbarray[a]->first;
 		while (id) {
@@ -1526,7 +1530,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 #undef LIBTAG
 }
 
-void tag_main_lb(ListBase *lb, const short tag)
+void BKE_main_id_tag_listbase(ListBase *lb, const bool tag)
 {
 	ID *id;
 	if (tag) {
@@ -1541,21 +1545,21 @@ void tag_main_lb(ListBase *lb, const short tag)
 	}
 }
 
-void tag_main_idcode(struct Main *mainvar, const short type, const short tag)
+void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const bool tag)
 {
 	ListBase *lb = which_libbase(mainvar, type);
 
-	tag_main_lb(lb, tag);
+	BKE_main_id_tag_listbase(lb, tag);
 }
 
-void tag_main(struct Main *mainvar, const short tag)
+void BKE_main_id_tag_all(struct Main *mainvar, const bool tag)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
 
 	a = set_listbasepointers(mainvar, lbarray);
 	while (a--) {
-		tag_main_lb(lbarray[a], tag);
+		BKE_main_id_tag_listbase(lbarray[a], tag);
 	}
 }
 

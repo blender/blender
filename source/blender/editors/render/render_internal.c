@@ -578,7 +578,7 @@ static void render_endjob(void *rjv)
 	RE_InitRenderCB(rj->re);
 
 	if (rj->main != G.main)
-		free_main(rj->main);
+		BKE_main_free(rj->main);
 
 	/* else the frame will not update for the original value */
 	if (rj->anim && !(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {

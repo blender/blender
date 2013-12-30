@@ -132,7 +132,7 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							m_useglslmat(false),
 							m_use_mat_cache(true)
 {
-	tag_main(maggie, 0); /* avoid re-tagging later on */
+	BKE_main_id_tag_all(maggie, false);  /* avoid re-tagging later on */
 	m_newfilename = "";
 	m_threadinfo = new ThreadInfo();
 	pthread_mutex_init(&m_threadinfo->merge_lock, NULL);
@@ -1231,7 +1231,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
 		Main *main= *it;
 		if (main != maggie) {
-			tag_main(main, 0);
+			BKE_main_id_tag_all(main, false);
 		}
 		else {
 			maggie_index= i;
@@ -1244,7 +1244,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		return false;
 
 	m_DynamicMaggie.erase(m_DynamicMaggie.begin() + maggie_index);
-	tag_main(maggie, 1);
+	BKE_main_id_tag_all(maggie, true);
 
 
 	/* free all tagged objects */
@@ -1490,7 +1490,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	delete m_status_map[maggie->name];
 	m_status_map.erase(maggie->name);
 
-	free_main(maggie);
+	BKE_main_free(maggie);
 
 	return true;
 }

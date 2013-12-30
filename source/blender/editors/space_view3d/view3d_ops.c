@@ -62,9 +62,10 @@
 
 static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	char str[FILE_MAX];
 	
-	BKE_copybuffer_begin();
+	BKE_copybuffer_begin(bmain);
 	
 	/* context, selection, could be generalized */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)

@@ -78,19 +78,29 @@ void BKE_libblock_free_ex(struct ListBase *lb, void *idv, bool do_id_user);
 void BKE_libblock_free_us(struct ListBase *lb, void *idv);
 void BKE_libblock_free_data(struct ID *id);
 
-struct Main *BKE_main_new(void);
-void free_main(struct Main *mainvar);
 
-void tag_main_idcode(struct Main *mainvar, const short type, const short tag);
-void tag_main_lb(struct ListBase *lb, const short tag);
-void tag_main(struct Main *mainvar, const short tag);
+/* Main API */
+struct Main *BKE_main_new(void);
+void BKE_main_free(struct Main *mainvar);
+
+void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const bool tag);
+void BKE_main_id_tag_listbase(struct ListBase *lb, const bool tag);
+void BKE_main_id_tag_all(struct Main *mainvar, const bool tag);
+
+void BKE_main_id_flag_listbase(ListBase *lb, const short flag, const bool value);
+void BKE_main_id_flag_all(struct Main *bmain, const short flag, const bool value);
+
+void BKE_main_id_clear_newpoins(struct Main *bmain);
+
+void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 
 void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, const struct ID *id);
 void test_idbutton(char *name);
+
 void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only);
+
 struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void clear_id_newpoins(void);
 
 #if 0
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops,
@@ -98,10 +108,6 @@ void IDnames_to_pupstring(const char **str, const char *title, const char *extra
 void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops,
                            struct ListBase *lb, struct ID *link, short *nr);
 #endif
-
-void flag_listbase_ids(ListBase *lb, short flag, short value);
-void flag_all_listbases_ids(short flag, short value);
-void recalc_all_library_objects(struct Main *main);
 
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 void set_free_notifier_reference_cb(void (*func)(const void *) );

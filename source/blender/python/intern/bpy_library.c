@@ -324,7 +324,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	Main *mainl = NULL;
 	int err = 0;
 
-	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
+	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, true);
 
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(bmain, &(self->blo_handle), self->relpath);
@@ -395,7 +395,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		/* exception raised above, XXX, this leaks some memory */
 		BLO_blendhandle_close(self->blo_handle);
 		self->blo_handle = NULL;
-		flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
+		BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
 		return NULL;
 	}
 	else {
@@ -407,7 +407,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		/* copied from wm_operator.c */
 		{
 			/* mark all library linked objects to be updated */
-			recalc_all_library_objects(G.main);
+			BKE_main_lib_objects_recalc_all(G.main);
 
 			/* append, rather than linking */
 			if ((self->flag & FILE_LINK) == 0) {
@@ -415,7 +415,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 			}
 		}
 
-		flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
+		BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
 
 		Py_RETURN_NONE;
 	}

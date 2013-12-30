@@ -2385,8 +2385,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
 	 *
-	 * take extra care flag_all_listbases_ids(LIB_LINK_TAG, 0) is called after! */
-	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
+	 * take extra care BKE_main_id_flag_all(LIB_LINK_TAG, false) is called after! */
+	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(bmain, &bh, libname);
@@ -2404,7 +2404,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BLO_library_append_end(C, mainl, &bh, idcode, flag);
 	
 	/* mark all library linked objects to be updated */
-	recalc_all_library_objects(bmain);
+	BKE_main_lib_objects_recalc_all(bmain);
 	IMB_colormanagement_check_file_config(bmain);
 
 	/* append, rather than linking */
@@ -2416,7 +2416,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */
-	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
+	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
 	DAG_scene_relations_rebuild(bmain, scene);

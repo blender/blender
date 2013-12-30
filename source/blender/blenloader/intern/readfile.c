@@ -8946,7 +8946,7 @@ static Main *library_append_begin(Main *mainvar, FileData **fd, const char *file
 	(*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 	
 	/* clear for group instancing tag */
-	tag_main_lb(&(mainvar->group), 0);
+	BKE_main_id_tag_listbase(&(mainvar->group), false);
 
 	/* make mains */
 	blo_split_main((*fd)->mainlist, mainvar);
@@ -9026,7 +9026,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	}
 
 	/* clear group instancing tag */
-	tag_main_lb(&(mainvar->group), 0);
+	BKE_main_id_tag_listbase(&(mainvar->group), false);
 	
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
