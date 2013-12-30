@@ -74,6 +74,7 @@ void BKE_tracking_clipboard_paste_tracks(struct MovieTracking *tracking, struct 
 /* **** Track **** */
 struct MovieTrackingTrack *BKE_tracking_track_add(struct MovieTracking *tracking, struct ListBase *tracksbase,
                                                   float x, float y, int framenr, int width, int height);
+struct MovieTrackingTrack *BKE_tracking_track_duplicate(struct MovieTrackingTrack *track);
 void BKE_tracking_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 void BKE_tracking_track_free(struct MovieTrackingTrack *track);
 
