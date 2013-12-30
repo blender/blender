@@ -124,6 +124,9 @@
 #include "transform.h"
 #include "bmesh.h"
 
+/* disabled since it makes absolute snapping not work so nicely */
+// #define USE_NODE_CENTER
+
 /**
  * Transforming around ourselves is no use, fallback to individual origins,
  * useful for curve/armatures.
@@ -2379,6 +2382,7 @@ cleanup:
 /* *** NODE EDITOR *** */
 void flushTransNodes(TransInfo *t)
 {
+	const float dpi_fac = UI_DPI_FAC;
 	int a;
 	TransData *td;
 	TransData2D *td2d;
@@ -2388,10 +2392,15 @@ void flushTransNodes(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
 		bNode *node = td->extra;
-		
+
 		/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
-		node->locx = td2d->loc[0] / UI_DPI_FAC;
-		node->locy = td2d->loc[1] / UI_DPI_FAC;
+#ifdef USE_NODE_CENTER
+		node->locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
+		node->locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
+#else
+		node->locx = td2d->loc[0] / dpi_fac;
+		node->locy = td2d->loc[1] / dpi_fac;
+#endif
 	}
 	
 	/* handle intersection with noodles */
@@ -5957,12 +5966,17 @@ static void createTransObject(bContext *C, TransInfo *t)
 }
 
 /* transcribe given node into TransData2D for Transforming */
-static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
+static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const float dpi_fac)
 {
 	/* use top-left corner as the transform origin for nodes */
 	/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
-	td2d->loc[0] = UI_DPI_FAC * node->locx;
-	td2d->loc[1] = UI_DPI_FAC * node->locy;
+#ifdef USE_NODE_CENTER
+	td2d->loc[0] = (node->locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
+	td2d->loc[1] = (node->locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
+#else
+	td2d->loc[0] = node->locx * dpi_fac;
+	td2d->loc[1] = node->locy * dpi_fac;
+#endif
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
 
@@ -5971,8 +5985,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td->loc = td2d->loc;
 	copy_v3_v3(td->iloc, td->loc);
 	/* use node center instead of origin (top-left corner) */
-	td->center[0] = td2d->loc[0] + BLI_rctf_size_x(&node->totr);
-	td->center[1] = td2d->loc[1] + BLI_rctf_size_y(&node->totr);
+	td->center[0] = td2d->loc[0];
+	td->center[1] = td2d->loc[1];
 	td->center[2] = 0.0f;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
@@ -6001,6 +6015,7 @@ static int is_node_parent_select(bNode *node)
 
 static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 {
+	const float dpi_fac = UI_DPI_FAC;
 	TransData *td;
 	TransData2D *td2d;
 	SpaceNode *snode = t->sa->spacedata.first;
@@ -6031,7 +6046,7 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TRANSFORM) {
-			NodeToTransData(td++, td2d++, node);
+			NodeToTransData(td++, td2d++, node, dpi_fac);
 		}
 	}
 }
