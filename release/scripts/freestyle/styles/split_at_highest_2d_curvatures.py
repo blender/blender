@@ -22,7 +22,6 @@
 #  Purpose  : Draws the visible lines (chaining follows same nature lines)
 #             (most basic style module)
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.functions import pyInverseCurvature2DAngleF0D
 from freestyle.predicates import (
@@ -37,6 +36,8 @@ from freestyle.shaders import (
     IncreasingColorShader,
     TextureAssignerShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

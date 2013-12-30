@@ -21,7 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws each object's visible contour
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -35,6 +34,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D()))
 bpred = SameShapeIdBP1D()

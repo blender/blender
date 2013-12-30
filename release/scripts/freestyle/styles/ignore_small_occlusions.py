@@ -21,7 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : The strokes are drawn through small occlusions
 
-from freestyle import Operators
 from freestyle.chainingiterators import pyFillOcclusionsAbsoluteChainingIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
@@ -32,6 +31,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     SamplingShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 #Operators.bidirectional_chain(pyFillOcclusionsChainingIterator(0.1))

@@ -28,8 +28,6 @@
 #             ******** The Directional a priori density maps must          ****** 
 #             ******** have been computed prior to using this style module ******
 
-from freestyle import Operators
-from freestyle.types import IntegrationType
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.functions import DensityF1D
 from freestyle.predicates import (
@@ -45,6 +43,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     SamplingShader,
     )
+from freestyle.types import IntegrationType, Operators
+
 
 ## custom density predicate
 class pyDensityUP1D(UnaryPredicate1D):

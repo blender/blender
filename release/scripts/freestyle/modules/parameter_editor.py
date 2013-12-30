@@ -21,12 +21,12 @@
 #  Date     : 26/07/2010
 #  Purpose  : Interactive manipulation of stylization parameters
 
-from freestyle import Operators
 from freestyle.types import (
     BinaryPredicate1D,
     Interface0DIterator,
     Nature,
     Noise,
+    Operators,
     StrokeAttribute,
     UnaryPredicate0D,
     UnaryPredicate1D,

@@ -21,5 +21,4 @@ Top-level module containing all Freestyle stylization constructs
 """
 
 # module members
-from _freestyle import Operators
 from . import chainingiterators, functions, predicates, shaders, types, utils

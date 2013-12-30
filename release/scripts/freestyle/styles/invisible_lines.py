@@ -22,7 +22,6 @@
 #  Purpose  : Draws all lines whose Quantitative Invisibility 
 #             is different from 0
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     NotUP1D,
@@ -34,6 +33,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     SamplingShader,
     )
+from freestyle.types import Operators
+
 
 upred = NotUP1D(QuantitativeInvisibilityUP1D(0))
 Operators.select(upred)

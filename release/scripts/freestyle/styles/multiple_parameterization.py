@@ -27,7 +27,6 @@
 #             the strokes using a second parameterization that only
 #             covers the visible portions.
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
@@ -41,6 +40,8 @@ from freestyle.shaders import (
     TextureAssignerShader,
     pyHLRShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## Chain following the same nature, but without the restriction

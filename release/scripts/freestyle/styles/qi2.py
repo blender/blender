@@ -23,7 +23,6 @@
 #             *** Quantitative Invisibility must have been 
 #             enabled in the options dialog to use this style module ****
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     NotUP1D,
@@ -35,6 +34,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     SamplingShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(2))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(2)))

@@ -21,8 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws strokes that starts and stops at Tvertices (visible or not)
 
-from freestyle import Operators
-from freestyle.types import Nature
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     NotUP1D,
@@ -35,6 +33,8 @@ from freestyle.shaders import (
     IncreasingColorShader,
     TextureAssignerShader,
     )
+from freestyle.types import Nature, Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

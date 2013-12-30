@@ -23,7 +23,6 @@
 #             parameterization that covers the complete lines (visible+invisible)
 #             whereas only the visible portions are actually drawn
 
-from freestyle import Operators
 from freestyle.chainingiterators import pySketchyChainSilhouetteIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
@@ -38,6 +37,8 @@ from freestyle.shaders import (
     TextureAssignerShader,
     pyHLRShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(pySketchyChainSilhouetteIterator(3, False))

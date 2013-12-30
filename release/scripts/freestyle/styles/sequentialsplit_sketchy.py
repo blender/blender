@@ -23,8 +23,6 @@
 #             predicates to specify respectively the starting and
 #             the stopping extremities for strokes 
 
-from freestyle import Operators
-from freestyle.types import Nature
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     NotUP1D,
@@ -39,6 +37,8 @@ from freestyle.shaders import (
     SpatialNoiseShader,
     TextureAssignerShader,
     )
+from freestyle.types import Nature, Operators
+
 
 upred = QuantitativeInvisibilityUP1D(0)
 Operators.select(upred)

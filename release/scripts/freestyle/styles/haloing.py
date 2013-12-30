@@ -24,8 +24,6 @@
 #             object and trims them in order to produce
 #             a haloing effect around the target shape
 
-from freestyle import Operators
-from freestyle.types import Id
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -41,6 +39,8 @@ from freestyle.shaders import (
     TipRemoverShader,
     pyTVertexRemoverShader,
     )
+from freestyle.types import Id, Operators
+
 
 # id corresponds to the id of the target object 
 # (accessed by SHIFT+click)

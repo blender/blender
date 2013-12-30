@@ -20,8 +20,6 @@
 #  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
 #  Date     : 08/04/2005
 
-from freestyle import Operators
-from freestyle.types import IntegrationType, Stroke
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
@@ -34,6 +32,8 @@ from freestyle.shaders import (
     SamplingShader,
     StrokeTextureShader,
     )
+from freestyle.types import IntegrationType, Operators, Stroke
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator())

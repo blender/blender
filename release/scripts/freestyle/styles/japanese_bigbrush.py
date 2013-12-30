@@ -21,8 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Simulates a big brush fr oriental painting
 
-from freestyle import Operators
-from freestyle.types import IntegrationType
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.functions import pyInverseCurvature2DAngleF0D
 from freestyle.predicates import (
@@ -44,6 +42,8 @@ from freestyle.shaders import (
     pyNonLinearVaryingThicknessShader,
     pySamplingShader,
     )
+from freestyle.types import IntegrationType, Operators
+
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))

@@ -21,7 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Produces a blueprint using square contour strokes
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -39,6 +38,8 @@ from freestyle.shaders import (
     pyBluePrintSquaresShader,
     pyPerlinNoise1DShader,
     )
+from freestyle.types import Operators
+
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
 bpred = SameShapeIdBP1D()

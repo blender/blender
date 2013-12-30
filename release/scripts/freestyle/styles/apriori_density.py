@@ -21,7 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws lines having a high a priori density
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -35,6 +34,8 @@ from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     )
+from freestyle.types import Operators
+
 
 Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), pyHighViewMapDensityUP1D(0.1,5)))
 bpred = TrueBP1D()

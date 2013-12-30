@@ -22,7 +22,6 @@
 #  Purpose  : Draws the visible lines (chaining follows same nature lines)
 #             that do not belong to the external contour of the scene
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -39,6 +38,8 @@ from freestyle.shaders import (
     SpatialNoiseShader,
     TextureAssignerShader,
     )
+from freestyle.types import Operators
+
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)

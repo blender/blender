@@ -21,7 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws a smooth external contour
 
-from freestyle import Operators
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -37,6 +36,8 @@ from freestyle.shaders import (
     SamplingShader,
     SmoothingShader,
     )
+from freestyle.types import Operators
+
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)

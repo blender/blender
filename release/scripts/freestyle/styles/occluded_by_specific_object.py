@@ -21,8 +21,6 @@
 #  Date     : 04/08/2005
 #  Purpose  : Draws only the lines that are occluded by a given object
 
-from freestyle import Operators
-from freestyle.types import Id
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     AndUP1D,
@@ -36,6 +34,8 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     SamplingShader,
     )
+from freestyle.types import Id, Operators
+
 
 ## the id of the occluder (use SHIFT+click on the ViewMap to
 ## retrieve ids)
