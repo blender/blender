@@ -1113,7 +1113,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 		return NULL;
 	}
 	
-	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
+	main_newlib = BKE_main_new();
 	BKE_reports_init(&reports, RPT_STORE);
 
 	load_datablocks(main_newlib, bpy_openlib, path, idcode);
