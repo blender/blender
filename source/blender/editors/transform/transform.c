@@ -475,20 +475,15 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
 			}
 			break;
 		}
-		case SPACE_IMAGE:
-		case SPACE_CLIP:
-		case SPACE_IPO:
-		case SPACE_NLA:
+		default:
 		{
-			int a[2];
+			int a[2] = {0, 0};
 			projectIntView(t, vec, a);
 			adr[0] = a[0];
 			adr[1] = a[1];
-			return;
+			break;
 		}
 	}
-
-	zero_v2(adr);
 }
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 {
@@ -2053,7 +2048,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *even
 		unit_m3(t->spacemtx);
 		/*t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);*/
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		/*t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);*/
+		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else
 		unit_m3(t->spacemtx);
