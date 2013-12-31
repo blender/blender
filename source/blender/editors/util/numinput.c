@@ -294,6 +294,11 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				n->str_cur = 0;
 			}
 			return true;
+		case PADPERIOD:
+			/* Force numdot, some OSs/countries generate a comma char in this case, sic...  (T37992) */
+			ascii[0] = '.';
+			utf8_buf = ascii;
+			break;
 		case CKEY:
 			if (event->ctrl) {
 				/* Copy current str to the copypaste buffer. */
