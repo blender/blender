@@ -69,6 +69,30 @@ def draw_gpencil_tools(context, layout):
 
 # ********** default tools for object-mode ****************
 
+class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "objectmode"
+    bl_label = "Add Meshes"
+    
+    def draw (self, context):
+        layout = self.layout
+        
+        col = layout.column(align=True)
+        col.label(text="Primitives:")
+        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
+        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
+        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
+        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
+        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
+        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
+        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
+        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
+        
+        col = layout.column(align=True)
+        col.label(text="Special:")
+        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
+
 class VIEW3D_PT_tools_basic(View3DPanel, Panel):
     bl_category = "Basic"
     bl_context = "objectmode"
@@ -106,6 +130,7 @@ class VIEW3D_PT_tools_basic(View3DPanel, Panel):
             row = col.row(align=True)
             row.operator("object.shade_smooth", text="Smooth")
             row.operator("object.shade_flat", text="Flat")
+
 
 class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     bl_category = "Animation"
@@ -171,6 +196,30 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
         draw_repeat_tools(context, layout)
 
 # ********** default tools for editmode_mesh ****************
+
+class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "mesh_edit"
+    bl_label = "Add Meshes"
+    
+    def draw (self, context):
+        layout = self.layout
+        
+        col = layout.column(align=True)
+        col.label(text="Primitives:")
+        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
+        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
+        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
+        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
+        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
+        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
+        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
+        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
+        
+        col = layout.column(align=True)
+        col.label(text="Special:")
+        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
     bl_context = "mesh_edit"
