@@ -122,6 +122,11 @@ void WM_cursor_set(wmWindow *win, int curs)
 	 * only 1 pixel thick, use another one instead */
 	if (curs == CURSOR_EDIT)
 		curs = BC_CROSSCURSOR;
+#else
+	/* in case of large cursor, also use custom cursor because
+	 * large cursors don't work for system cursors */
+	if (U.curssize && curs == CURSOR_EDIT)
+		curs = BC_CROSSCURSOR;
 #endif
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
