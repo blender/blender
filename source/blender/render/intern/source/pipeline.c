@@ -1038,10 +1038,16 @@ static void threaded_tile_processor(Render *re)
 			thread[a].workqueue = workqueue;
 			thread[a].donequeue = donequeue;
 			thread[a].number = a;
+
 			if (render_display_update_enabled(re)) {
 				thread[a].display_update = re->display_update;
 				thread[a].duh = re->duh;
 			}
+			else {
+				thread[a].display_update = NULL;
+				thread[a].duh = NULL;
+			}
+
 			BLI_insert_thread(&threads, &thread[a]);
 		}
 		
