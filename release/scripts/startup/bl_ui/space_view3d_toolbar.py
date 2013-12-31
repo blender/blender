@@ -72,7 +72,7 @@ def draw_gpencil_tools(context, layout):
 class VIEW3D_PT_tools_basic(View3DPanel, Panel):
     bl_category = "Basic"
     bl_context = "objectmode"
-    bl_label = "Basic"
+    bl_label = "Object Operations"
 
     def draw(self, context):
         layout = self.layout
@@ -87,14 +87,19 @@ class VIEW3D_PT_tools_basic(View3DPanel, Panel):
         if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
 
             col = layout.column(align=True)
-            col.label(text="Object:")
-            col.operator("object.join")
-            col.operator("object.duplicate_move", text="Duplicate")
-            col.operator("object.duplicate_move_linked", text="Duplicate Linked")
-            col.operator("object.delete")
+            col.operator("transform.mirror", text="Mirror")
+            
+            col = layout.column(align=True)
+            col.operator("object.origin_set", text="Set Origin")
 
             col = layout.column(align=True)
-            col.operator("object.origin_set", text="Origin")
+            col.label(text="Object:")
+            col.operator("object.duplicate_move", text="Duplicate")
+            col.operator("object.duplicate_move_linked", text="Duplicate Linked")
+            
+            col = layout.column(align=True)
+            col.operator("object.join")
+            col.operator("object.delete")
 
             col = layout.column(align=True)
             col.label(text="Shading:")
