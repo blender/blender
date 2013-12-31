@@ -2111,7 +2111,7 @@ kmi = km.keymap_items.new('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', shift=
 kmi.properties.extend = False
 kmi.properties.deselect = False
 kmi.properties.toggle = True
-kmi = km.keymap_items.new('mesh.select_shortest_path', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('mesh.shortest_path_pick', 'SELECTMOUSE', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_all', 'LEFTMOUSE', 'CLICK')
 kmi.properties.action = 'DESELECT'
 kmi = km.keymap_items.new('mesh.select_all', 'I', 'PRESS', ctrl=True)
@@ -2145,9 +2145,11 @@ kmi = km.keymap_items.new('mesh.spin', 'R', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.fill', 'F', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.beautify_fill', 'F', 'PRESS', shift=True, alt=True)
 kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', ctrl=True)
-kmi.properties.use_beauty = True
+kmi.properties.quad_method = 'BEAUTY'
+kmi.properties.ngon_method = 'BEAUTY'
 kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', shift=True, ctrl=True)
-kmi.properties.use_beauty = False
+kmi.properties.quad_method = 'FIXED'
+kmi.properties.ngon_method = 'SCANFILL'
 kmi = km.keymap_items.new('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.rip_move', 'V', 'PRESS')
 kmi = km.keymap_items.new('mesh.rip_move_fill', 'V', 'PRESS', alt=True)
