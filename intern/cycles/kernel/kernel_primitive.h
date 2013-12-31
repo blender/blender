@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
 {
-	if(sd->object == ~0 || sd->prim == ~0)
+	if(sd->object == ~0)
 		return (int)ATTR_STD_NOT_FOUND;
 
 #ifdef __OSL__
@@ -47,6 +47,9 @@ ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id,
 
 		*elem = (AttributeElement)attr_map.y;
 		
+		if(sd->prim == ~0 && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
+			return ATTR_STD_NOT_FOUND;
+
 		/* return result */
 		return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 	}
@@ -74,6 +77,18 @@ ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData
 	else
 		return curve_attribute_float3(kg, sd, elem, offset, dx, dy);
 #endif
+}
+
+ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderData *sd, int offset)
+{
+	Transform tfm;
+
+	tfm.x = kernel_tex_fetch(__attributes_float3, offset + 0);
+	tfm.y = kernel_tex_fetch(__attributes_float3, offset + 1);
+	tfm.z = kernel_tex_fetch(__attributes_float3, offset + 2);
+	tfm.w = kernel_tex_fetch(__attributes_float3, offset + 3);
+
+	return tfm;
 }
 
 ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)

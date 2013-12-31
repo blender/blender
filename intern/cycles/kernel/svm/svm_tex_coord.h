@@ -24,21 +24,15 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_f
 
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
-			if(sd->object != ~0) {
-				data = sd->P;
+			data = sd->P;
+			if(sd->object != ~0)
 				object_inverse_position_transform(kg, sd, &data);
-			}
-			else
-				data = sd->P;
 			break;
 		}
 		case NODE_TEXCO_NORMAL: {
-			if(sd->object != ~0) {
-				data = sd->N;
+			data = sd->N;
+			if(sd->object != ~0)
 				object_inverse_normal_transform(kg, sd, &data);
-			}
-			else
-				data = sd->N;
 			break;
 		}
 		case NODE_TEXCO_CAMERA: {
@@ -73,6 +67,22 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_f
 			data = object_dupli_uv(kg, sd->object);
 			break;
 		}
+		case NODE_TEXCO_VOLUME_GENERATED: {
+			data = sd->P;
+
+			if(sd->object != ~0) {
+				AttributeElement attr_elem;
+				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
+
+				object_inverse_position_transform(kg, sd, &data);
+
+				if(attr_offset != ATTR_STD_NOT_FOUND) {
+					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
+					data = transform_point(&tfm, data);
+				}
+			}
+			break;
+		}
 	}
 
 	stack_store_float3(stack, out_offset, data);
@@ -85,21 +95,15 @@ ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, in
 
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
-			if(sd->object != ~0) {
-				data = sd->P + sd->dP.dx;
+			data = sd->P + sd->dP.dx;
+			if(sd->object != ~0)
 				object_inverse_position_transform(kg, sd, &data);
-			}
-			else
-				data = sd->P + sd->dP.dx;
 			break;
 		}
 		case NODE_TEXCO_NORMAL: {
-			if(sd->object != ~0) {
-				data = sd->N;
+			data = sd->N;
+			if(sd->object != ~0)
 				object_inverse_normal_transform(kg, sd, &data);
-			}
-			else
-				data = sd->N;
 			break;
 		}
 		case NODE_TEXCO_CAMERA: {
@@ -134,6 +138,22 @@ ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, in
 			data = object_dupli_uv(kg, sd->object);
 			break;
 		}
+		case NODE_TEXCO_VOLUME_GENERATED: {
+			data = sd->P + sd->dP.dx;
+
+			if(sd->object != ~0) {
+				AttributeElement attr_elem;
+				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
+
+				object_inverse_position_transform(kg, sd, &data);
+
+				if(attr_offset != ATTR_STD_NOT_FOUND) {
+					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
+					data = transform_point(&tfm, data);
+				}
+			}
+			break;
+		}
 	}
 
 	stack_store_float3(stack, out_offset, data);
@@ -149,21 +169,15 @@ ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, in
 
 	switch(type) {
 		case NODE_TEXCO_OBJECT: {
-			if(sd->object != ~0) {
-				data = sd->P + sd->dP.dy;
+			data = sd->P + sd->dP.dy;
+			if(sd->object != ~0)
 				object_inverse_position_transform(kg, sd, &data);
-			}
-			else
-				data = sd->P + sd->dP.dy;
 			break;
 		}
 		case NODE_TEXCO_NORMAL: {
-			if(sd->object != ~0) {
-				data = sd->N;
+			data = sd->N;
+			if(sd->object != ~0)
 				object_inverse_normal_transform(kg, sd, &data);
-			}
-			else
-				data = sd->N;
 			break;
 		}
 		case NODE_TEXCO_CAMERA: {
@@ -196,6 +210,22 @@ ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, in
 		}
 		case NODE_TEXCO_DUPLI_UV: {
 			data = object_dupli_uv(kg, sd->object);
+			break;
+		}
+		case NODE_TEXCO_VOLUME_GENERATED: {
+			data = sd->P + sd->dP.dy;
+
+			if(sd->object != ~0) {
+				AttributeElement attr_elem;
+				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
+
+				object_inverse_position_transform(kg, sd, &data);
+
+				if(attr_offset != ATTR_STD_NOT_FOUND) {
+					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
+					data = transform_point(&tfm, data);
+				}
+			}
 			break;
 		}
 	}

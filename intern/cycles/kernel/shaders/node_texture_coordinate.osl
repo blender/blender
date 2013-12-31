@@ -19,6 +19,7 @@
 shader node_texture_coordinate(
 	normal NormalIn = N,
 	int is_background = 0,
+	int is_volume = 0,
 	int from_dupli = 0,
 	string bump_offset = "center",
 
@@ -44,6 +45,15 @@ shader node_texture_coordinate(
 		if (from_dupli) {
 			getattribute("geom:dupli_generated", Generated); 
 			getattribute("geom:dupli_uv", UV);
+		}
+		else if(is_volume) {
+			Generated = transform("object", P);
+
+			matrix tfm;
+			if(getattribute("geom:generated_transform", tfm))
+				Generated = transform(tfm, Generated);
+
+			getattribute("geom:uv", UV);
 		}
 		else {
 			getattribute("geom:generated", Generated); 

@@ -120,8 +120,10 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	foreach(ShaderInput *input, inputs) {
 		if(!input->link) {
-			if(input->default_value == ShaderInput::TEXTURE_GENERATED)
+			if(input->default_value == ShaderInput::TEXTURE_GENERATED) {
 				attributes->add(ATTR_STD_GENERATED);
+				attributes->add(ATTR_STD_GENERATED_TRANSFORM); // XXX only for volumes!
+			}
 			else if(input->default_value == ShaderInput::TEXTURE_UV)
 				attributes->add(ATTR_STD_UV);
 		}

@@ -466,7 +466,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			OSLGlobals::Attribute osl_attr;
 
 			osl_attr.type = attr.type();
-			osl_attr.elem = ATTR_ELEMENT_VALUE;
+			osl_attr.elem = ATTR_ELEMENT_OBJECT;
 			osl_attr.value = attr;
 			osl_attr.offset = 0;
 
@@ -493,6 +493,8 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 				if(req.triangle_type == TypeDesc::TypeFloat)
 					osl_attr.type = TypeDesc::TypeFloat;
+				else if(req.triangle_type == TypeDesc::TypeMatrix)
+					osl_attr.type = TypeDesc::TypeMatrix;
 				else
 					osl_attr.type = TypeDesc::TypeColor;
 
@@ -513,6 +515,8 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 				if(req.curve_type == TypeDesc::TypeFloat)
 					osl_attr.type = TypeDesc::TypeFloat;
+				else if(req.curve_type == TypeDesc::TypeMatrix)
+					osl_attr.type = TypeDesc::TypeMatrix;
 				else
 					osl_attr.type = TypeDesc::TypeColor;
 
@@ -580,6 +584,8 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 				if(req.triangle_type == TypeDesc::TypeFloat)
 					attr_map[index].w = NODE_ATTR_FLOAT;
+				else if(req.triangle_type == TypeDesc::TypeMatrix)
+					attr_map[index].w = NODE_ATTR_MATRIX;
 				else
 					attr_map[index].w = NODE_ATTR_FLOAT3;
 			}
@@ -593,6 +599,8 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 				if(req.curve_type == TypeDesc::TypeFloat)
 					attr_map[index].w = NODE_ATTR_FLOAT;
+				else if(req.curve_type == TypeDesc::TypeMatrix)
+					attr_map[index].w = NODE_ATTR_MATRIX;
 				else
 					attr_map[index].w = NODE_ATTR_FLOAT3;
 			}
@@ -644,6 +652,15 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 
 			for(size_t k = 0; k < size; k++)
 				attr_float[offset+k] = data[k];
+		}
+		else if(mattr->type == TypeDesc::TypeMatrix) {
+			Transform *tfm = mattr->data_transform();
+			offset = attr_float3.size();
+
+			attr_float3.resize(attr_float3.size() + size*4);
+
+			for(size_t k = 0; k < size*4; k++)
+				attr_float3[offset+k] = (&tfm->x)[k];
 		}
 		else {
 			float3 *data = mattr->data_float3();

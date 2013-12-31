@@ -19,6 +19,7 @@
 
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_transform.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -34,7 +35,7 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 	/* string and matrix not supported! */
 	assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
 		type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-		type == TypeDesc::TypeNormal);
+		type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix);
 }
 
 void Attribute::reserve(int numverts, int numtris, int numcurves, int numkeys)
@@ -60,10 +61,21 @@ void Attribute::add(const float3& f)
 		buffer.push_back(data[i]);
 }
 
+void Attribute::add(const Transform& f)
+{
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
 size_t Attribute::data_sizeof() const
 {
 	if(type == TypeDesc::TypeFloat)
 		return sizeof(float);
+	else if(type == TypeDesc::TypeMatrix)
+		return sizeof(Transform);
 	else
 		return sizeof(float3);
 }
@@ -73,7 +85,8 @@ size_t Attribute::element_size(int numverts, int numtris, int numcurves, int num
 	size_t size;
 	
 	switch(element) {
-		case ATTR_ELEMENT_VALUE:
+		case ATTR_ELEMENT_OBJECT:
+		case ATTR_ELEMENT_MESH:
 			size = 1;
 			break;
 		case ATTR_ELEMENT_VERTEX:
@@ -151,6 +164,8 @@ const char *Attribute::standard_name(AttributeStandard std)
 		return "ptex_face_id";
 	else if(std == ATTR_STD_PTEX_UV)
 		return "ptex_uv";
+	else if(std == ATTR_STD_GENERATED_TRANSFORM)
+		return "generated_transform";
 	
 	return "";
 }
@@ -256,6 +271,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_PTEX_UV:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
 				break;
+			case ATTR_STD_GENERATED_TRANSFORM:
+				attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
+				break;
 			default:
 				assert(0);
 				break;
@@ -273,6 +291,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				break;
 			case ATTR_STD_CURVE_INTERCEPT:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
+				break;
+			case ATTR_STD_GENERATED_TRANSFORM:
+				attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
 				break;
 			default:
 				assert(0);

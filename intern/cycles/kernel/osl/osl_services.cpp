@@ -510,12 +510,22 @@ static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives,
 	return false;
 }
 
-static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
+static bool set_attribute_matrix(const Transform& tfm, TypeDesc type, void *val)
+{
+	if(type == TypeDesc::TypeMatrix) {
+		Transform transpose = transform_transpose(tfm);
+		memcpy(val, &transpose, sizeof(Transform));
+		return true;
+	}
+
+	return false;
+}
+
+static bool get_mesh_element_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
                                const TypeDesc& type, bool derivatives, void *val)
 {
 	if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-	    attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
-	{
+	    attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
 		float3 fval[3];
 		fval[0] = primitive_attribute_float3(kg, sd, attr.elem, attr.offset,
 		                                     (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
@@ -526,6 +536,18 @@ static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OS
 		fval[0] = primitive_attribute_float(kg, sd, attr.elem, attr.offset,
 		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float(fval, type, derivatives, val);
+	}
+	else {
+		return false;
+	}
+}
+
+static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
+                               const TypeDesc& type, bool derivatives, void *val)
+{
+	if (attr.type == TypeDesc::TypeMatrix) {
+		Transform tfm = primitive_attribute_matrix(kg, sd, attr.offset);
+		return set_attribute_matrix(tfm, type, val);
 	}
 	else {
 		return false;
@@ -745,9 +767,11 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	if (it != attribute_map.end()) {
 		const OSLGlobals::Attribute& attr = it->second;
 
-		if (attr.elem != ATTR_ELEMENT_VALUE) {
+		if (attr.elem != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
 			if (prim != ~0)
+				return get_mesh_element_attribute(kg, sd, attr, type, derivatives, val);
+			else
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
 		}
 		else {

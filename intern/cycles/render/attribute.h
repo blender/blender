@@ -31,6 +31,7 @@ class AttributeSet;
 class AttributeRequest;
 class AttributeRequestSet;
 class Mesh;
+struct Transform;
 
 /* Attribute
  *
@@ -57,13 +58,16 @@ public:
 	char *data() { return (buffer.size())? &buffer[0]: NULL; };
 	float3 *data_float3() { return (float3*)data(); }
 	float *data_float() { return (float*)data(); }
+	Transform *data_transform() { return (Transform*)data(); }
 
 	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
 	const float3 *data_float3() const { return (const float3*)data(); }
 	const float *data_float() const { return (const float*)data(); }
+	const Transform *data_transform() const { return (const Transform*)data(); }
 
 	void add(const float& f);
 	void add(const float3& f);
+	void add(const Transform& f);
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
 	static const char *standard_name(AttributeStandard std);

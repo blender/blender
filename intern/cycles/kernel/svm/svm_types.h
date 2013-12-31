@@ -107,7 +107,8 @@ typedef enum NodeType {
 
 typedef enum NodeAttributeType {
 	NODE_ATTR_FLOAT = 0,
-	NODE_ATTR_FLOAT3
+	NODE_ATTR_FLOAT3,
+	NODE_ATTR_MATRIX
 } NodeAttributeType;
 
 typedef enum NodeGeometry {
@@ -173,7 +174,8 @@ typedef enum NodeTexCoord {
 	NODE_TEXCO_WINDOW,
 	NODE_TEXCO_REFLECTION,
 	NODE_TEXCO_DUPLI_GENERATED,
-	NODE_TEXCO_DUPLI_UV
+	NODE_TEXCO_DUPLI_UV,
+	NODE_TEXCO_VOLUME_GENERATED
 } NodeTexCoord;
 
 typedef enum NodeMix {

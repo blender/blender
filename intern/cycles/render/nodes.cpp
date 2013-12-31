@@ -2193,6 +2193,13 @@ void TextureCoordinateNode::attributes(Shader *shader, AttributeRequestSet *attr
 		}
 	}
 
+	if(shader->has_volume) {
+		if(!from_dupli) {
+			if(!output("Generated")->links.empty())
+				attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+		}
+	}
+
 	ShaderNode::attributes(shader, attributes);
 }
 
@@ -2224,6 +2231,10 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			if(from_dupli) {
 				compiler.stack_assign(out);
 				compiler.add_node(texco_node, NODE_TEXCO_DUPLI_GENERATED, out->stack_offset);
+			}
+			else if(compiler.output_type() == SHADER_TYPE_VOLUME) {
+				compiler.stack_assign(out);
+				compiler.add_node(texco_node, NODE_TEXCO_VOLUME_GENERATED, out->stack_offset);
 			}
 			else {
 				int attr = compiler.attribute(ATTR_STD_GENERATED);
@@ -2294,6 +2305,8 @@ void TextureCoordinateNode::compile(OSLCompiler& compiler)
 	
 	if(compiler.background)
 		compiler.parameter("is_background", true);
+	if(compiler.output_type() == SHADER_TYPE_VOLUME)
+		compiler.parameter("is_volume", true);
 	
 	compiler.parameter("from_dupli", from_dupli);
 
