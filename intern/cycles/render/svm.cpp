@@ -18,6 +18,7 @@
 #include "graph.h"
 #include "light.h"
 #include "mesh.h"
+#include "nodes.h"
 #include "scene.h"
 #include "shader.h"
 #include "svm.h"

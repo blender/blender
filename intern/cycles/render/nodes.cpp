@@ -217,19 +217,19 @@ ShaderNode *ImageTextureNode::clone() const
 	return node;
 }
 
-void ImageTextureNode::attributes(AttributeRequestSet *attributes)
+void ImageTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 #ifdef WITH_PTEX
 	/* todo: avoid loading other texture coordinates when using ptex,
 	 * and hide texture coordinate socket in the UI */
-	if (string_endswith(filename, ".ptx")) {
+	if (shader->has_surface && string_endswith(filename, ".ptx")) {
 		/* ptex */
 		attributes->add(ATTR_STD_PTEX_FACE_ID);
 		attributes->add(ATTR_STD_PTEX_UV);
 	}
 #endif
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void ImageTextureNode::compile(SVMCompiler& compiler)
@@ -367,17 +367,17 @@ ShaderNode *EnvironmentTextureNode::clone() const
 	return node;
 }
 
-void EnvironmentTextureNode::attributes(AttributeRequestSet *attributes)
+void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 #ifdef WITH_PTEX
-	if (string_endswith(filename, ".ptx")) {
+	if (shader->has_surface && string_endswith(filename, ".ptx")) {
 		/* ptex */
 		attributes->add(ATTR_STD_PTEX_FACE_ID);
 		attributes->add(ATTR_STD_PTEX_UV);
 	}
 #endif
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void EnvironmentTextureNode::compile(SVMCompiler& compiler)
@@ -1533,14 +1533,16 @@ WardBsdfNode::WardBsdfNode()
 	add_input("Rotation", SHADER_SOCKET_FLOAT, 0.0f);
 }
 
-void WardBsdfNode::attributes(AttributeRequestSet *attributes)
+void WardBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	ShaderInput *tangent_in = input("Tangent");
+	if(shader->has_surface) {
+		ShaderInput *tangent_in = input("Tangent");
 
-	if(!tangent_in->link)
-		attributes->add(ATTR_STD_GENERATED);
+		if(!tangent_in->link)
+			attributes->add(ATTR_STD_GENERATED);
+	}
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void WardBsdfNode::compile(SVMCompiler& compiler)
@@ -2088,12 +2090,14 @@ GeometryNode::GeometryNode()
 	add_output("Backfacing", SHADER_SOCKET_FLOAT);
 }
 
-void GeometryNode::attributes(AttributeRequestSet *attributes)
+void GeometryNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(!output("Tangent")->links.empty())
-		attributes->add(ATTR_STD_GENERATED);
+	if(shader->has_surface) {
+		if(!output("Tangent")->links.empty())
+			attributes->add(ATTR_STD_GENERATED);
+	}
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void GeometryNode::compile(SVMCompiler& compiler)
@@ -2178,16 +2182,18 @@ TextureCoordinateNode::TextureCoordinateNode()
 	from_dupli = false;
 }
 
-void TextureCoordinateNode::attributes(AttributeRequestSet *attributes)
+void TextureCoordinateNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(!from_dupli) {
-		if(!output("Generated")->links.empty())
-			attributes->add(ATTR_STD_GENERATED);
-		if(!output("UV")->links.empty())
-			attributes->add(ATTR_STD_UV);
+	if(shader->has_surface) {
+		if(!from_dupli) {
+			if(!output("Generated")->links.empty())
+				attributes->add(ATTR_STD_GENERATED);
+			if(!output("UV")->links.empty())
+				attributes->add(ATTR_STD_UV);
+		}
 	}
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void TextureCoordinateNode::compile(SVMCompiler& compiler)
@@ -2490,7 +2496,7 @@ ParticleInfoNode::ParticleInfoNode()
 	add_output("Angular Velocity", SHADER_SOCKET_VECTOR);
 }
 
-void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
+void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	if(!output("Index")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
@@ -2511,7 +2517,7 @@ void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 	if(!output("Angular Velocity")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void ParticleInfoNode::compile(SVMCompiler& compiler)
@@ -2588,14 +2594,16 @@ HairInfoNode::HairInfoNode()
 	/*add_output("Fade", SHADER_SOCKET_FLOAT);*/
 }
 
-void HairInfoNode::attributes(AttributeRequestSet *attributes)
+void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	ShaderOutput *intercept_out = output("Intercept");
+	if(shader->has_surface) {
+		ShaderOutput *intercept_out = output("Intercept");
 
-	if(!intercept_out->links.empty())
-		attributes->add(ATTR_STD_CURVE_INTERCEPT);
+		if(!intercept_out->links.empty())
+			attributes->add(ATTR_STD_CURVE_INTERCEPT);
+	}
 	
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void HairInfoNode::compile(SVMCompiler& compiler)
@@ -3106,16 +3114,18 @@ AttributeNode::AttributeNode()
 	add_output("Fac",  SHADER_SOCKET_FLOAT);
 }
 
-void AttributeNode::attributes(AttributeRequestSet *attributes)
+void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	ShaderOutput *color_out = output("Color");
-	ShaderOutput *vector_out = output("Vector");
-	ShaderOutput *fac_out = output("Fac");
+	if(shader->has_surface) {
+		ShaderOutput *color_out = output("Color");
+		ShaderOutput *vector_out = output("Vector");
+		ShaderOutput *fac_out = output("Fac");
 
-	if(!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty())
-		attributes->add(attribute);
+		if(!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty())
+			attributes->add(attribute);
+	}
 	
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void AttributeNode::compile(SVMCompiler& compiler)
@@ -3831,9 +3841,9 @@ NormalMapNode::NormalMapNode()
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 }
 
-void NormalMapNode::attributes(AttributeRequestSet *attributes)
+void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(space == ustring("Tangent")) {
+	if(shader->has_surface && space == ustring("Tangent")) {
 		if(attribute == ustring("")) {
 			attributes->add(ATTR_STD_UV_TANGENT);
 			attributes->add(ATTR_STD_UV_TANGENT_SIGN);
@@ -3846,7 +3856,7 @@ void NormalMapNode::attributes(AttributeRequestSet *attributes)
 		attributes->add(ATTR_STD_VERTEX_NORMAL);
 	}
 	
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void NormalMapNode::compile(SVMCompiler& compiler)
@@ -3935,18 +3945,20 @@ TangentNode::TangentNode()
 	add_output("Tangent", SHADER_SOCKET_NORMAL);
 }
 
-void TangentNode::attributes(AttributeRequestSet *attributes)
+void TangentNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(direction_type == ustring("UV Map")) {
-		if(attribute == ustring(""))
-			attributes->add(ATTR_STD_UV_TANGENT);
+	if(shader->has_surface) {
+		if(direction_type == ustring("UV Map")) {
+			if(attribute == ustring(""))
+				attributes->add(ATTR_STD_UV_TANGENT);
+			else
+				attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+		}
 		else
-			attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+			attributes->add(ATTR_STD_GENERATED);
 	}
-	else
-		attributes->add(ATTR_STD_GENERATED);
 	
-	ShaderNode::attributes(attributes);
+	ShaderNode::attributes(shader, attributes);
 }
 
 void TangentNode::compile(SVMCompiler& compiler)

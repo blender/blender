@@ -93,15 +93,24 @@ void Shader::tag_update(Scene *scene)
 	if(use_mis && has_surface_emission)
 		scene->light_manager->need_update = true;
 
+	/* quick detection of which kind of shaders we have to avoid loading
+	 * e.g. surface attributes when there is only a volume shader. this could
+	 * be more fine grained but it's better than nothing */
+	OutputNode *output = graph->output();
+	has_surface = has_surface || output->input("Surface")->link;
+	has_volume = has_volume || output->input("Volume")->link;
+	has_displacement = has_displacement || output->input("Displacement")->link;
+
 	/* get requested attributes. this could be optimized by pruning unused
 	 * nodes here already, but that's the job of the shader manager currently,
 	 * and may not be so great for interactive rendering where you temporarily
 	 * disconnect a node */
+
 	AttributeRequestSet prev_attributes = attributes;
 
 	attributes.clear();
 	foreach(ShaderNode *node, graph->nodes)
-		node->attributes(&attributes);
+		node->attributes(this, &attributes);
 	
 	/* compare if the attributes changed, mesh manager will check
 	 * need_update_attributes, update the relevant meshes and clear it. */

@@ -21,6 +21,7 @@
 #include "osl.h"
 #include "scene.h"
 #include "shader.h"
+#include "nodes.h"
 
 #ifdef WITH_OSL
 

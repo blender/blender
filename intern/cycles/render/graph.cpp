@@ -116,7 +116,7 @@ ShaderOutput *ShaderNode::add_output(const char *name, ShaderSocketType type)
 	return output;
 }
 
-void ShaderNode::attributes(AttributeRequestSet *attributes)
+void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	foreach(ShaderInput *input, inputs) {
 		if(!input->link) {
@@ -151,9 +151,9 @@ ShaderNode *ShaderGraph::add(ShaderNode *node)
 	return node;
 }
 
-ShaderNode *ShaderGraph::output()
+OutputNode *ShaderGraph::output()
 {
-	return nodes.front();
+	return (OutputNode*)nodes.front();
 }
 
 ShaderGraph *ShaderGraph::copy()
