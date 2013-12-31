@@ -93,6 +93,25 @@ class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
         col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
         col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
+class VIEW3D_PT_tools_add_curve(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "objectmode"
+    bl_label = "Add Curves"
+    
+    def draw (self, context):
+        layout = self.layout
+        
+        col = layout.column(align=True)
+        
+        col.label(text="Bezier:")
+        col.operator("curve.primitive_bezier_curve_add", text="Bezier Curve", icon="CURVE_BEZCURVE")
+        col.operator("curve.primitive_bezier_circle_add", text="Bezier Circle", icon="CURVE_BEZCIRCLE")
+        
+        col.label(text="Nurbs:")
+        col.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon="CURVE_NCURVE")
+        col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
+        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
+
 class VIEW3D_PT_tools_basic(View3DPanel, Panel):
     bl_category = "Basic"
     bl_context = "objectmode"
@@ -331,6 +350,24 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
+class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "curve_edit"
+    bl_label = "Add Curves"
+    
+    def draw (self, context):
+        layout = self.layout
+        
+        col = layout.column(align=True)
+        
+        col.label(text="Bezier:")
+        col.operator("curve.primitive_bezier_curve_add", text="Bezier Curve", icon="CURVE_BEZCURVE")
+        col.operator("curve.primitive_bezier_circle_add", text="Bezier Circle", icon="CURVE_BEZCIRCLE")
+        
+        col.label(text="Nurbs:")
+        col.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon="CURVE_NCURVE")
+        col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
+        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
 
 class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
     bl_context = "curve_edit"
