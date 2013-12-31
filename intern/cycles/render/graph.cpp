@@ -17,6 +17,7 @@
 #include "attribute.h"
 #include "graph.h"
 #include "nodes.h"
+#include "shader.h"
 
 #include "util_algorithm.h"
 #include "util_debug.h"
@@ -121,11 +122,15 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 	foreach(ShaderInput *input, inputs) {
 		if(!input->link) {
 			if(input->default_value == ShaderInput::TEXTURE_GENERATED) {
-				attributes->add(ATTR_STD_GENERATED);
-				attributes->add(ATTR_STD_GENERATED_TRANSFORM); // XXX only for volumes!
+				if(shader->has_surface)
+					attributes->add(ATTR_STD_GENERATED);
+				if(shader->has_volume)
+					attributes->add(ATTR_STD_GENERATED_TRANSFORM);
 			}
-			else if(input->default_value == ShaderInput::TEXTURE_UV)
-				attributes->add(ATTR_STD_UV);
+			else if(input->default_value == ShaderInput::TEXTURE_UV) {
+				if(shader->has_surface)
+					attributes->add(ATTR_STD_UV);
+			}
 		}
 	}
 }

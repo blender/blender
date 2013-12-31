@@ -931,8 +931,6 @@ static void node_shader_buts_volume(uiLayout *layout, bContext *C, PointerRNA *U
 
 		if (cscene.data && RNA_enum_get(&cscene, "device") == 1)
 			uiItemL(layout, IFACE_("Volumes not supported on GPU"), ICON_ERROR);
-		else
-			uiItemL(layout, IFACE_("Volumes are work in progress"), ICON_ERROR);
 	}
 }
 
