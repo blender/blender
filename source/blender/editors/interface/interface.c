@@ -1757,6 +1757,9 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	else if (unit_type == PROP_UNIT_VOLUME) {
 		return value * pow(unit->scale_length, 3);
 	}
+	else if (unit_type == PROP_UNIT_MASS) {
+		return value * pow(unit->scale_length, 3);
+	}
 	else if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		Scene *scene = CTX_data_scene(but->block->evil_C);
 		return FRA2TIME(value);
