@@ -380,7 +380,6 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "scrollback", text="Console Scrollback")
 
         col.separator()
-        col.separator()
 
         col.label(text="Sound:")
         col.row().prop(system, "audio_device", expand=True)
@@ -393,13 +392,11 @@ class USERPREF_PT_system(Panel):
         sub.prop(system, "audio_sample_format", text="Sample Format")
 
         col.separator()
-        col.separator()
 
         col.label(text="Screencast:")
         col.prop(system, "screencast_fps")
         col.prop(system, "screencast_wait_time")
 
-        col.separator()
         col.separator()
 
         if hasattr(system, "compute_device_type"):
@@ -419,9 +416,15 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_mipmaps")
         col.prop(system, "use_gpu_mipmap")
         col.prop(system, "use_16bit_textures")
+
+        col.separator()
+
         col.label(text="Anisotropic Filtering")
         col.prop(system, "anisotropic_filter", text="")
         col.prop(system, "use_vertex_buffer_objects")
+
+        col.separator()
+
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
         col.prop(system, "multi_sample", text="")
@@ -429,8 +432,14 @@ class USERPREF_PT_system(Panel):
             col.label(text="Might fail for Mesh editing selection!")
             col.separator()
         col.prop(system, "use_region_overlap")
+        
+        col.separator()
+
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
+        
+        col.separator()
+
         col.label(text="Textures:")
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "texture_time_out", text="Time Out")
@@ -441,7 +450,6 @@ class USERPREF_PT_system(Panel):
         col.label(text="Images Draw Method:")
         col.prop(system, "image_draw_method", text="")
 
-        col.separator()
         col.separator()
 
         col.label(text="Sequencer / Clip Editor:")
@@ -905,11 +913,13 @@ class USERPREF_PT_file(Panel):
         col.prop(paths, "show_thumbnails")
 
         col.separator()
-        col.separator()
 
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
+        
+        col.separator()
+
         col.label(text="Auto Save:")
         col.prop(paths, "use_keep_session")
         col.prop(paths, "use_auto_save_temporary_files")
