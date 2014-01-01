@@ -603,7 +603,10 @@ typedef struct PrefetchQueue {
 	int initial_frame, current_frame, start_frame, end_frame;
 	short render_size, render_flag;
 
-	short direction;
+	/* If true prefecthing goes forward in time,
+	 * othwewise it goes backwards in time (starting from current frame).
+	 */
+	bool forward;
 
 	SpinLock spin;
 
@@ -707,17 +710,17 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 	{
 		int current_frame;
 
-		if (queue->direction > 0) {
+		if (queue->forward) {
 			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame + 1, queue->end_frame,
 			                                             queue->render_size, queue->render_flag, 1);
 			/* switch direction if read frames from current up to scene end frames */
 			if (current_frame > queue->end_frame) {
 				queue->current_frame = queue->initial_frame;
-				queue->direction = -1;
+				queue->forward = false;
 			}
 		}
 
-		if (queue->direction < 0) {
+		if (!queue->forward) {
 			current_frame = prefetch_find_uncached_frame(clip, queue->current_frame - 1, queue->start_frame,
 			                                             queue->render_size, queue->render_flag, -1);
 		}
@@ -732,7 +735,7 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 
 			queue->current_frame = current_frame;
 
-			if (queue->direction > 0) {
+			if (queue->forward) {
 				frames_processed = queue->current_frame - queue->initial_frame;
 			}
 			else {
@@ -808,7 +811,7 @@ static void start_prefetch_threads(MovieClip *clip, int start_frame, int current
 	queue.end_frame = end_frame;
 	queue.render_size = render_size;
 	queue.render_flag = render_flag;
-	queue.direction = 1;
+	queue.forward = 1;
 
 	queue.stop = stop;
 	queue.do_update = do_update;
