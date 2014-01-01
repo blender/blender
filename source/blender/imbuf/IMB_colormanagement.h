@@ -113,6 +113,9 @@ void IMB_colormanagement_display_settings_from_ctx(const struct bContext *C,
                                                    struct ColorManagedViewSettings **view_settings_r,
                                                    struct ColorManagedDisplaySettings **display_settings_r);
 
+const char *IMB_colormanagement_get_display_colorspace_name(const struct ColorManagedViewSettings *view_settings,
+                                                            const struct ColorManagedDisplaySettings *display_settings);
+
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);
@@ -153,9 +156,11 @@ void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, i
 
 /* ** Tile-based buffer management ** */
 void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_buffer, const unsigned char *buffer_byte,
-                                       int stride, int offset_x, int offset_y, const struct ColorManagedViewSettings *view_settings,
+                                       int stride, int offset_x, int offset_y,
+                                       const struct ColorManagedViewSettings *view_settings,
                                        const struct ColorManagedDisplaySettings *display_settings,
-                                       int xmin, int ymin, int xmax, int ymax);
+                                       int xmin, int ymin, int xmax, int ymax,
+                                       bool copy_display_to_byte_buffer);
 
 void IMB_partial_display_buffer_update_delayed(struct ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax);
 

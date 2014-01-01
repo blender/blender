@@ -49,6 +49,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
@@ -93,13 +94,39 @@
 /* Render Callbacks */
 static int render_break(void *rjv);
 
+typedef struct RenderJob {
+	Main *main;
+	Scene *scene;
+	Render *re;
+	SceneRenderLayer *srl;
+	struct Object *camera_override;
+	int lay_override;
+	bool v3d_override;
+	short anim, write_still;
+	Image *image;
+	ImageUser iuser;
+	bool image_outdated;
+	short *stop;
+	short *do_update;
+	float *progress;
+	ReportList *reports;
+	int orig_layer;
+	int last_layer;
+	ScrArea *sa;
+	ColorManagedViewSettings view_settings;
+	ColorManagedDisplaySettings display_settings;
+} RenderJob;
+
 /* called inside thread! */
-static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, ImageUser *iuser, volatile rcti *renrect)
+static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibuf, ImageUser *iuser, volatile rcti *renrect)
 {
+	Scene *scene = rj->scene;
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
 	int linear_stride, linear_offset_x, linear_offset_y;
+	ColorManagedViewSettings *view_settings;
+	ColorManagedDisplaySettings *display_settings;
 
 	if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
 		/* The whole image buffer it so be color managed again anyway. */
@@ -189,10 +216,23 @@ static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf
 		linear_offset_y = 0;
 	}
 
+	if (rr->do_exr_tile) {
+		/* We don't support changing color management settings during rendering
+		 * when using Save Buffers option.
+		 */
+		view_settings = &rj->view_settings;
+		display_settings = &rj->display_settings;
+	}
+	else {
+		view_settings = &scene->view_settings;
+		display_settings = &scene->display_settings;
+	}
+
 	IMB_partial_display_buffer_update(ibuf, rectf, NULL,
 	                                  linear_stride, linear_offset_x, linear_offset_y,
-	                                  &scene->view_settings, &scene->display_settings,
-	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
+	                                  view_settings, display_settings,
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax,
+	                                  rr->do_exr_tile);
 }
 
 /* ****************************** render invoking ***************** */
@@ -286,31 +326,11 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-typedef struct RenderJob {
-	Main *main;
-	Scene *scene;
-	Render *re;
-	SceneRenderLayer *srl;
-	struct Object *camera_override;
-	int lay_override;
-	bool v3d_override;
-	short anim, write_still;
-	Image *image;
-	ImageUser iuser;
-	bool image_outdated;
-	short *stop;
-	short *do_update;
-	float *progress;
-	ReportList *reports;
-	int orig_layer;
-	int last_layer;
-	ScrArea *sa;
-} RenderJob;
-
 static void render_freejob(void *rjv)
 {
 	RenderJob *rj = rjv;
 
+	BKE_color_managed_view_settings_free(&rj->view_settings);
 	MEM_freeN(rj);
 }
 
@@ -516,11 +536,16 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	if (ibuf) {
 		/* Don't waste time on CPU side color management if
 		 * image will be displayed using GLSL.
+		 *
+		 * Need to update rect if Save Buffers enabled because in
+		 * this case GLSL doesn't have original float buffer to
+		 * operate with.
 		 */
-		if (ibuf->channels == 1 ||
+		if (rr->do_exr_tile ||
+		    ibuf->channels == 1 ||
 		    U.image_draw_method != IMAGE_DRAW_METHOD_GLSL)
 		{
-			image_buffer_rect_update(rj->scene, rr, ibuf, &rj->iuser, renrect);
+			image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect);
 		}
 
 		/* make jobs timer to send notifier */
@@ -792,6 +817,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->orig_layer = 0;
 	rj->last_layer = 0;
 	rj->sa = sa;
+
+	BKE_color_managed_display_settings_copy(&rj->display_settings, &scene->display_settings);
+	BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);
 
 	if (sa) {
 		SpaceImage *sima = sa->spacedata.first;

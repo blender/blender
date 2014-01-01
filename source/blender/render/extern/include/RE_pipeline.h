@@ -91,6 +91,8 @@ typedef struct RenderLayer {
 	float *rectf;		/* 4 float, standard rgba buffer (read not above!) */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
+	int *display_buffer;	/* 4 char, optional color managed display buffer which is used when
+	                         * Save Buffer is enabled to display combined pass of the screen. */
 	int rectx, recty;
 
 	/* optional saved endresult on disk */
