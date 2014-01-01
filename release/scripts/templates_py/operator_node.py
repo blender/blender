@@ -1,7 +1,7 @@
 import bpy
 
 
-def main(context):
+def main(operator, context):
     space = context.space_data
     node_tree = space.node_tree
     node_active = context.active_node
@@ -43,7 +43,7 @@ class NodeOperator(bpy.types.Operator):
         return space.type == 'NODE_EDITOR'
 
     def execute(self, context):
-        main(context)
+        main(self, context)
         return {'FINISHED'}
 
 
