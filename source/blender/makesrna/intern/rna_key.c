@@ -432,6 +432,19 @@ static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
 	return (int)(pt - start) / key->elemsize;
 }
 
+static int rna_ShapeKeyBezierPoint_get_index(KeyBlock *kb, float *point)
+{
+	float *start = (float *)kb->data;
+	
+	/* Unlike with rna_ShapeKeyPoint_get_index(), we cannot use key->elemsize here
+	 * since the default value for curves (16) is actually designed for BPoints
+	 * (i.e. NURBS Surfaces). The magic number "12" here was found by empirical
+	 * testing on a 64-bit system, and is similar to what's used for meshes and 
+	 * lattices. For more details, see T38013
+	 */
+	return (int)(point - start) / 12;
+}
+
 static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 {
 	ID *id = (ID *)ptr->id.data;
@@ -444,7 +457,12 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 	
 	if (kb) {
 		char name_esc_kb[sizeof(kb->name) * 2];
-		int index = rna_ShapeKeyPoint_get_index(key, kb, point);
+		int index;
+		
+		if (ptr->type == &RNA_ShapeKeyBezierPoint)
+			index = rna_ShapeKeyBezierPoint_get_index(kb, point);
+		else
+			index = rna_ShapeKeyPoint_get_index(key, kb, point);
 
 		BLI_strescape(name_esc_kb, kb->name, sizeof(name_esc_kb));
 		
