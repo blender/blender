@@ -1046,25 +1046,25 @@ class USERPREF_PT_input(Panel):
         sub.label(text="Orbit Style:")
         sub.row().prop(inputs, "view_rotate_method", expand=True)
 
+        sub.separator()
+        
         sub.label(text="Zoom Style:")
         sub.row().prop(inputs, "view_zoom_method", text="")
         if inputs.view_zoom_method in {'DOLLY', 'CONTINUE'}:
             sub.row().prop(inputs, "view_zoom_axis", expand=True)
-            sub.prop(inputs, "invert_mouse_zoom")
+            sub.prop(inputs, "invert_mouse_zoom", text="Invert Mouse Zoom Direction")
 
         #sub.prop(inputs, "use_mouse_mmb_paste")
 
         #col.separator()
 
         sub = col.column()
-        sub.label(text="Mouse Wheel:")
         sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         if sys.platform == "darwin":
             sub = col.column()
-            sub.label(text="Trackpad:")
-            sub.prop(inputs, "use_trackpad_natural")
+            sub.prop(inputs, "use_trackpad_natural", text="Natural Trackpad Direction")
 
         col.separator()
         sub = col.column()
