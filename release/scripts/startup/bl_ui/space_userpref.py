@@ -932,8 +932,13 @@ class USERPREF_PT_file(Panel):
         col.label(text="Text Editor:")
         col.prop(system, "use_tabs_as_spaces")
 
-        col.label(text="Author:")
-        col.prop(system, "author", text="")
+        colsplit = col.split(percentage=0.95)
+        col1 = colsplit.split(percentage=0.3)
+
+        sub = col1.column()
+        sub.label(text="Author:")
+        sub = col1.column()
+        sub.prop(system, "author", text="")
 
 
 class USERPREF_MT_ndof_settings(Menu):
