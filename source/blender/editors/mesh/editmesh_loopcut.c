@@ -526,6 +526,29 @@ static int loopcut_exec(bContext *C, wmOperator *op)
 	return loopcut_init(C, op, NULL);
 }
 
+static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
+{
+	/* finish */
+	ED_region_tag_redraw(lcd->ar);
+	ED_area_headerprint(CTX_wm_area(C), NULL);
+
+	if (lcd->eed) {
+		/* set for redo */
+		BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
+		RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));
+
+		/* execute */
+		ringsel_finish(C, op);
+		ringsel_exit(C, op);
+	}
+	else {
+		ringcut_cancel(C, op);
+		return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
 static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	float smoothness = RNA_float_get(op->ptr, "smoothness");
@@ -554,6 +577,17 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 		}
+		else {
+			switch (event->type) {
+				case RETKEY:
+				case PADENTER:
+				case LEFTMOUSE: /* confirm */ // XXX hardcoded
+					return loopcut_finish(lcd, C, op);
+				default:
+					/* do nothing */;
+					break;
+			}
+		}
 	}
 	else {
 		bool handled = false;
@@ -561,27 +595,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case RETKEY:
 			case PADENTER:
 			case LEFTMOUSE: /* confirm */ // XXX hardcoded
-				if (event->val == KM_PRESS) {
-					/* finish */
-					ED_region_tag_redraw(lcd->ar);
-					ED_area_headerprint(CTX_wm_area(C), NULL);
-
-					if (lcd->eed) {
-						/* set for redo */
-						BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
-						RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));
-
-						/* execute */
-						ringsel_finish(C, op);
-						ringsel_exit(C, op);
-					}
-					else {
-						ringcut_cancel(C, op);
-						return OPERATOR_CANCELLED;
-					}
-
-					return OPERATOR_FINISHED;
-				}
+				if (event->val == KM_PRESS)
+					return loopcut_finish(lcd, C, op);
 				
 				ED_region_tag_redraw(lcd->ar);
 				handled = true;
