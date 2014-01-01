@@ -261,7 +261,9 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_text(prop, "Location",
+	                         "Original undeformed location used to calculate the strength of the deform effect "
+	                         "(edit/animate the Deformed Location instead)");
 
 	prop = RNA_def_property(srna, "co_deform", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
