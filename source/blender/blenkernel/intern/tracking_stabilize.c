@@ -169,7 +169,8 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 
 			stabilization_median_point_get(tracking, cfra, median);
 
-			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, translation, &tmp_scale, &angle);
+			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, translation,
+			                             &tmp_scale, &angle);
 
 			BKE_tracking_stabilization_data_to_mat4(width, height, aspect, translation, 1.0f, angle, mat);
 

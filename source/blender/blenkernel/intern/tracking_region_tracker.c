@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/tracking_tracker.c
+/** \file blender/blenkernel/intern/tracking_region_tracker.c
  *  \ingroup bke
  *
  * This file contains implementation of blender-side region tracker

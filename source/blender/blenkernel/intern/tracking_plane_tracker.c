@@ -230,7 +230,9 @@ BLI_INLINE void float_corners_to_double(/*const*/ float corners[4][2], double do
 	copy_v2db_v2fl(double_corners[3], corners[3]);
 }
 
-void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners[4][2], /*const*/ float corners[4][2], float H[3][3])
+void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners[4][2],
+                                               /*const*/ float corners[4][2],
+                                               float H[3][3])
 {
 	Vec2 x1[4], x2[4];
 	double H_double[3][3];
