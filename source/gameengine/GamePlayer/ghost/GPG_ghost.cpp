@@ -660,6 +660,9 @@ int main(int argc, char** argv)
 					else if (!strcmp(argv[i], "syncdoubling"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ABOVEBELOW;
 
+					else if (!strcmp(argv[i], "3dtvtopbottom"))
+						stereomode = RAS_IRasterizer::RAS_STEREO_3DTVTOPBOTTOM;
+
 					else if (!strcmp(argv[i], "anaglyph"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ANAGLYPH;
 

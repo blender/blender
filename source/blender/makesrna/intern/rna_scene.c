@@ -3087,6 +3087,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{STEREO_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", ""},
 		{STEREO_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-side", ""},
 		{STEREO_VINTERLACE, "VINTERLACE", 0, "Vinterlace", ""},
+		{STEREO_3DTVTOPBOTTOM, "3DTVTOPBOTTOM", 0, "3DTV Top-Bottom", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 		

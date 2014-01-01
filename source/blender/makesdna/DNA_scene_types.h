@@ -678,6 +678,7 @@ typedef struct GameData {
 #define STEREO_SIDEBYSIDE	6
 #define STEREO_VINTERLACE	7
 //#define STEREO_DOME		8
+#define STEREO_3DTVTOPBOTTOM 9
 
 /* physicsEngine */
 #define WOPHY_NONE		0

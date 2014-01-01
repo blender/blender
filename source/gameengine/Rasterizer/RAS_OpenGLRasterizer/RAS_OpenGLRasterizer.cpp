@@ -527,6 +527,28 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 					break;
 			}
 			break;
+		case RAS_STEREO_3DTVTOPBOTTOM:
+			switch (m_curreye) {
+				case RAS_STEREO_LEFTEYE:
+					// upper half of window
+					area.SetLeft(0);
+					area.SetBottom(m_2DCanvas->GetHeight() -
+						m_2DCanvas->GetHeight() / 2);
+	
+					area.SetRight(m_2DCanvas->GetWidth());
+					area.SetTop(m_2DCanvas->GetHeight());
+					m_2DCanvas->SetDisplayArea(&area);
+					break;
+				case RAS_STEREO_RIGHTEYE:
+					// lower half of window
+					area.SetLeft(0);
+					area.SetBottom(0);
+					area.SetRight(m_2DCanvas->GetWidth());
+					area.SetTop(m_2DCanvas->GetHeight() / 2);
+					m_2DCanvas->SetDisplayArea(&area);
+					break;
+			}
+			break;
 		case RAS_STEREO_SIDEBYSIDE:
 			switch (m_curreye)
 			{
@@ -841,6 +863,12 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 						break;
 			}
 			// leave bottom and top untouched
+			if (m_stereomode == RAS_STEREO_3DTVTOPBOTTOM) {
+				// restore the vertical frustrum because the 3DTV will 
+				// expande the top and bottom part to the full size of the screen
+				bottom *= 2.0f;
+				top *= 2.0f;
+			}
 	}
 	
 	glMatrixMode(GL_PROJECTION);
