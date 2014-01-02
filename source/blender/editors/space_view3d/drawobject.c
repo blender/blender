@@ -6366,7 +6366,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		bool has_faces = false;
 
 		if (dm) {
-			has_faces = dm->getNumTessFaces(dm);
+			has_faces = dm->getNumTessFaces(dm) > 0;
 		}
 		else {
 			has_faces = BKE_displist_has_faces(&ob->curve_cache->disp);
