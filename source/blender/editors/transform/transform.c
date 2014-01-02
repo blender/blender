@@ -6171,8 +6171,18 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %s (E)ven: %s, (F)lipped: %s"),
-		             &c[0], WM_bool_as_string(!is_proportional), WM_bool_as_string(flipped));
+		if (is_proportional) {
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %s (E)ven: %s"),
+			             &c[0], WM_bool_as_string(!is_proportional));
+		}
+		else {
+			BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %s (E)ven: %s, (F)lipped: %s"),
+			             &c[0], WM_bool_as_string(!is_proportional), WM_bool_as_string(flipped));
+		}
+	}
+	else if (is_proportional) {
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %.4f (E)ven: %s"),
+		             final, WM_bool_as_string(!is_proportional));
 	}
 	else {
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Edge Slide: %.4f (E)ven: %s, (F)lipped: %s"),
