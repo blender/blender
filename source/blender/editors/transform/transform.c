@@ -943,7 +943,14 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
-	if (event->type == MOUSEMOVE) {
+	/* Handle modal numinput events first, if already activated. */
+	if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
+	    hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event))
+	{
+		t->redraw |= TREDRAW_HARD;
+		handled = true;
+	}
+	else if (event->type == MOUSEMOVE) {
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
@@ -964,115 +971,61 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 	}
 	/* handle modal keymap first */
 	else if (event->type == EVT_MODAL_MAP) {
-		/* Handle modal numinput events first, if already activated. */
-		if (hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event)) {
-			t->redraw |= TREDRAW_HARD;
-			handled = true;
-		}
-		else {
-			switch (event->val) {
-				case TFM_MODAL_CANCEL:
-					t->state = TRANS_CANCEL;
+		switch (event->val) {
+			case TFM_MODAL_CANCEL:
+				t->state = TRANS_CANCEL;
+				handled = true;
+				break;
+			case TFM_MODAL_CONFIRM:
+				t->state = TRANS_CONFIRM;
+				handled = true;
+				break;
+			case TFM_MODAL_TRANSLATE:
+				/* only switch when... */
+				if (ELEM5(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+					resetTransModal(t);
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initTranslation(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw |= TREDRAW_HARD;
+					WM_event_add_mousemove(t->context);
 					handled = true;
-					break;
-				case TFM_MODAL_CONFIRM:
-					t->state = TRANS_CONFIRM;
+				}
+				else if (t->mode == TFM_SEQ_SLIDE) {
+					t->flag ^= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
 					handled = true;
-					break;
-				case TFM_MODAL_TRANSLATE:
-					/* only switch when... */
-					if (ELEM5(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
-						resetTransModal(t);
-						resetTransRestrictions(t);
-						restoreTransObjects(t);
-						initTranslation(t);
-						initSnapping(t, NULL); // need to reinit after mode change
-						t->redraw |= TREDRAW_HARD;
-						WM_event_add_mousemove(t->context);
-						handled = true;
-					}
-					else if (t->mode == TFM_SEQ_SLIDE) {
-						t->flag ^= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					else {
-						if (t->obedit && t->obedit->type == OB_MESH) {
-							if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
-								resetTransModal(t);
-								resetTransRestrictions(t);
-								restoreTransObjects(t);
-
-								/* first try edge slide */
-								initEdgeSlide(t);
-								/* if that fails, do vertex slide */
-								if (t->state == TRANS_CANCEL) {
-									t->state = TRANS_STARTING;
-									initVertSlide(t);
-								}
-								/* vert slide can fail on unconnected vertices (rare but possible) */
-								if (t->state == TRANS_CANCEL) {
-									t->state = TRANS_STARTING;
-									resetTransRestrictions(t);
-									restoreTransObjects(t);
-									initTranslation(t);
-								}
-								initSnapping(t, NULL); // need to reinit after mode change
-								t->redraw |= TREDRAW_HARD;
-								handled = true;
-								WM_event_add_mousemove(t->context);
-							}
-						}
-						else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-							if (t->mode == TFM_TRANSLATION) {
-								restoreTransObjects(t);
-
-								t->flag ^= T_ALT_TRANSFORM;
-								t->redraw |= TREDRAW_HARD;
-								handled = true;
-							}
-						}
-					}
-					break;
-				case TFM_MODAL_ROTATE:
-					/* only switch when... */
-					if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
-						if (ELEM6(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+				}
+				else {
+					if (t->obedit && t->obedit->type == OB_MESH) {
+						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
 							resetTransModal(t);
 							resetTransRestrictions(t);
-							
-							if (t->mode == TFM_ROTATION) {
-								restoreTransObjects(t);
-								initTrackball(t);
+							restoreTransObjects(t);
+
+							/* first try edge slide */
+							initEdgeSlide(t);
+							/* if that fails, do vertex slide */
+							if (t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								initVertSlide(t);
 							}
-							else {
+							/* vert slide can fail on unconnected vertices (rare but possible) */
+							if (t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								resetTransRestrictions(t);
 								restoreTransObjects(t);
-								initRotation(t);
+								initTranslation(t);
 							}
 							initSnapping(t, NULL); // need to reinit after mode change
 							t->redraw |= TREDRAW_HARD;
 							handled = true;
+							WM_event_add_mousemove(t->context);
 						}
 					}
-					break;
-				case TFM_MODAL_RESIZE:
-					/* only switch when... */
-					if (ELEM5(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
-						resetTransModal(t);
-						resetTransRestrictions(t);
-						restoreTransObjects(t);
-						initResize(t);
-						initSnapping(t, NULL); // need to reinit after mode change
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					else if (t->mode == TFM_SHRINKFATTEN) {
-						t->flag ^= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					else if (t->mode == TFM_RESIZE) {
-						if (t->options & CTX_MOVIECLIP) {
+					else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
+						if (t->mode == TFM_TRANSLATION) {
 							restoreTransObjects(t);
 
 							t->flag ^= T_ALT_TRANSFORM;
@@ -1080,379 +1033,407 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 							handled = true;
 						}
 					}
-					break;
-					
-				case TFM_MODAL_SNAP_INV_ON:
-					t->modifiers |= MOD_SNAP_INVERT;
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
-					break;
-				case TFM_MODAL_SNAP_INV_OFF:
-					t->modifiers &= ~MOD_SNAP_INVERT;
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
-					break;
-				case TFM_MODAL_SNAP_TOGGLE:
-					t->modifiers ^= MOD_SNAP;
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
-					break;
-				case TFM_MODAL_AXIS_X:
-					if ((t->flag & T_NO_CONSTRAINT) == 0) {
-						if (cmode == 'X') {
-							stopConstraint(t);
+				}
+				break;
+			case TFM_MODAL_ROTATE:
+				/* only switch when... */
+				if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
+					if (ELEM6(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+						resetTransModal(t);
+						resetTransRestrictions(t);
+						
+						if (t->mode == TFM_ROTATION) {
+							restoreTransObjects(t);
+							initTrackball(t);
 						}
 						else {
-							if (t->flag & T_2D_EDIT) {
-								setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), IFACE_("along X"));
-							}
-							else {
-								setUserConstraint(t, t->current_orientation, (CON_AXIS0), IFACE_("along %s X"));
-							}
+							restoreTransObjects(t);
+							initRotation(t);
 						}
+						initSnapping(t, NULL); // need to reinit after mode change
 						t->redraw |= TREDRAW_HARD;
 						handled = true;
 					}
-					break;
-				case TFM_MODAL_AXIS_Y:
-					if ((t->flag & T_NO_CONSTRAINT) == 0) {
-						if (cmode == 'Y') {
-							stopConstraint(t);
-						}
-						else {
-							if (t->flag & T_2D_EDIT) {
-								setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), IFACE_("along Y"));
-							}
-							else {
-								setUserConstraint(t, t->current_orientation, (CON_AXIS1), IFACE_("along %s Y"));
-							}
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_AXIS_Z:
-					if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-						if (cmode == 'Z') {
-							stopConstraint(t);
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS2), IFACE_("along %s Z"));
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_PLANE_X:
-					if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-						if (cmode == 'X') {
-							stopConstraint(t);
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS1 | CON_AXIS2), IFACE_("locking %s X"));
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_PLANE_Y:
-					if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-						if (cmode == 'Y') {
-							stopConstraint(t);
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS0 | CON_AXIS2), IFACE_("locking %s Y"));
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_PLANE_Z:
-					if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-						if (cmode == 'Z') {
-							stopConstraint(t);
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS0 | CON_AXIS1), IFACE_("locking %s Z"));
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_CONS_OFF:
-					if ((t->flag & T_NO_CONSTRAINT) == 0) {
-						stopConstraint(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_ADD_SNAP:
-					addSnapPoint(t);
+				}
+				break;
+			case TFM_MODAL_RESIZE:
+				/* only switch when... */
+				if (ELEM5(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+					resetTransModal(t);
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initResize(t);
+					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
-					break;
-				case TFM_MODAL_REMOVE_SNAP:
-					removeSnapPoint(t);
+				}
+				else if (t->mode == TFM_SHRINKFATTEN) {
+					t->flag ^= T_ALT_TRANSFORM;
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
-					break;
-				case TFM_MODAL_PROPSIZE:
-					/* MOUSEPAN usage... */
-					if (t->flag & T_PROP_EDIT) {
-						float fac = 1.0f + 0.005f *(event->y - event->prevy);
-						t->prop_size *= fac;
-						if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-							t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
-						calculatePropRatio(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_PROPSIZE_UP:
-					if (t->flag & T_PROP_EDIT) {
-						t->prop_size *= 1.1f;
-						if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-							t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
-						calculatePropRatio(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_PROPSIZE_DOWN:
-					if (t->flag & T_PROP_EDIT) {
-						t->prop_size *= 0.90909090f;
-						calculatePropRatio(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_EDGESLIDE_UP:
-				case TFM_MODAL_EDGESLIDE_DOWN:
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
-					break;
-				case TFM_MODAL_AUTOIK_LEN_INC:
-					if (t->flag & T_AUTOIK) {
-						transform_autoik_update(t, 1);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case TFM_MODAL_AUTOIK_LEN_DEC:
-					if (t->flag & T_AUTOIK) {
-						transform_autoik_update(t, -1);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				default:
-					break;
-			}
+				}
+				else if (t->mode == TFM_RESIZE) {
+					if (t->options & CTX_MOVIECLIP) {
+						restoreTransObjects(t);
 
-			/* Modal numinput events */
-			if (!handled && handleNumInput(t->context, &(t->num), event)) {
+						t->flag ^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+						handled = true;
+					}
+				}
+				break;
+				
+			case TFM_MODAL_SNAP_INV_ON:
+				t->modifiers |= MOD_SNAP_INVERT;
 				t->redraw |= TREDRAW_HARD;
 				handled = true;
-			}
+				break;
+			case TFM_MODAL_SNAP_INV_OFF:
+				t->modifiers &= ~MOD_SNAP_INVERT;
+				t->redraw |= TREDRAW_HARD;
+				handled = true;
+				break;
+			case TFM_MODAL_SNAP_TOGGLE:
+				t->modifiers ^= MOD_SNAP;
+				t->redraw |= TREDRAW_HARD;
+				handled = true;
+				break;
+			case TFM_MODAL_AXIS_X:
+				if ((t->flag & T_NO_CONSTRAINT) == 0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), IFACE_("along X"));
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS0), IFACE_("along %s X"));
+						}
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_AXIS_Y:
+				if ((t->flag & T_NO_CONSTRAINT) == 0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), IFACE_("along Y"));
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS1), IFACE_("along %s Y"));
+						}
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_AXIS_Z:
+				if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS2), IFACE_("along %s Z"));
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_PLANE_X:
+				if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS1 | CON_AXIS2), IFACE_("locking %s X"));
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_PLANE_Y:
+				if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0 | CON_AXIS2), IFACE_("locking %s Y"));
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_PLANE_Z:
+				if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0 | CON_AXIS1), IFACE_("locking %s Z"));
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_CONS_OFF:
+				if ((t->flag & T_NO_CONSTRAINT) == 0) {
+					stopConstraint(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_ADD_SNAP:
+				addSnapPoint(t);
+				t->redraw |= TREDRAW_HARD;
+				handled = true;
+				break;
+			case TFM_MODAL_REMOVE_SNAP:
+				removeSnapPoint(t);
+				t->redraw |= TREDRAW_HARD;
+				handled = true;
+				break;
+			case TFM_MODAL_PROPSIZE:
+				/* MOUSEPAN usage... */
+				if (t->flag & T_PROP_EDIT) {
+					float fac = 1.0f + 0.005f *(event->y - event->prevy);
+					t->prop_size *= fac;
+					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+					calculatePropRatio(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_PROPSIZE_UP:
+				if (t->flag & T_PROP_EDIT) {
+					t->prop_size *= 1.1f;
+					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+					calculatePropRatio(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_PROPSIZE_DOWN:
+				if (t->flag & T_PROP_EDIT) {
+					t->prop_size *= 0.90909090f;
+					calculatePropRatio(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_EDGESLIDE_UP:
+			case TFM_MODAL_EDGESLIDE_DOWN:
+				t->redraw |= TREDRAW_HARD;
+				handled = true;
+				break;
+			case TFM_MODAL_AUTOIK_LEN_INC:
+				if (t->flag & T_AUTOIK) {
+					transform_autoik_update(t, 1);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case TFM_MODAL_AUTOIK_LEN_DEC:
+				if (t->flag & T_AUTOIK) {
+					transform_autoik_update(t, -1);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			default:
+				break;
 		}
 	}
 	/* else do non-mapped events */
 	else if (event->val == KM_PRESS) {
-		/* Handle modal numinput events first, if already activated. */
-		if (hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event)) {
-			t->redraw |= TREDRAW_HARD;
-			handled = true;
-		}
-		else {
-			switch (event->type) {
-				case RIGHTMOUSE:
-					t->state = TRANS_CANCEL;
-					handled = true;
-					break;
-				/* enforce redraw of transform when modifiers are used */
-				case LEFTSHIFTKEY:
-				case RIGHTSHIFTKEY:
-					t->modifiers |= MOD_CONSTRAINT_PLANE;
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
-					break;
-
-				case SPACEKEY:
-					t->state = TRANS_CONFIRM;
-					handled = true;
-					break;
-
-				case MIDDLEMOUSE:
-					if ((t->flag & T_NO_CONSTRAINT) == 0) {
-						/* exception for switching to dolly, or trackball, in camera view */
-						if (t->flag & T_CAMERA) {
-							if (t->mode == TFM_TRANSLATION)
-								setLocalConstraint(t, (CON_AXIS2), IFACE_("along local Z"));
-							else if (t->mode == TFM_ROTATION) {
-								restoreTransObjects(t);
-								initTrackball(t);
-							}
-						}
-						else {
-							t->modifiers |= MOD_CONSTRAINT_SELECT;
-							if (t->con.mode & CON_APPLY) {
-								stopConstraint(t);
-							}
-							else {
-								if (event->shift) {
-									initSelectConstraint(t, t->spacemtx);
-								}
-								else {
-									/* bit hackish... but it prevents mmb select to print the orientation from menu */
-									strcpy(t->spacename, "global");
-									initSelectConstraint(t, mati);
-								}
-								postSelectConstraint(t);
-							}
-						}
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case ESCKEY:
-					t->state = TRANS_CANCEL;
-					handled = true;
-					break;
-				case PADENTER:
-				case RETKEY:
-					t->state = TRANS_CONFIRM;
-					handled = true;
-					break;
-				case GKEY:
-					/* only switch when... */
-					if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
-						resetTransModal(t);
-						resetTransRestrictions(t);
-						restoreTransObjects(t);
-						initTranslation(t);
-						initSnapping(t, NULL); // need to reinit after mode change
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case SKEY:
-					/* only switch when... */
-					if (ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
-						resetTransModal(t);
-						resetTransRestrictions(t);
-						restoreTransObjects(t);
-						initResize(t);
-						initSnapping(t, NULL); // need to reinit after mode change
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case RKEY:
-					/* only switch when... */
-					if (!(t->options & CTX_TEXTURE)) {
-						if (ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
-							resetTransModal(t);
-							resetTransRestrictions(t);
-
-							if (t->mode == TFM_ROTATION) {
-								restoreTransObjects(t);
-								initTrackball(t);
-							}
-							else {
-								restoreTransObjects(t);
-								initRotation(t);
-							}
-							initSnapping(t, NULL); // need to reinit after mode change
-							t->redraw |= TREDRAW_HARD;
-							handled = true;
-						}
-					}
-					break;
-				case CKEY:
-					if (event->alt) {
-						t->flag ^= T_PROP_CONNECTED;
-						sort_trans_data_dist(t);
-						calculatePropRatio(t);
-						t->redraw = TREDRAW_HARD;
-						handled = true;
-					}
-					else {
-						stopConstraint(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case XKEY:
-				case YKEY:
-				case ZKEY:
-					transform_event_xyz_constraint(t, event->type, cmode);
-					handled = true;
-					break;
-				case OKEY:
-					if (t->flag & T_PROP_EDIT && event->shift) {
-						t->prop_mode = (t->prop_mode + 1) % PROP_MODE_MAX;
-						calculatePropRatio(t);
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case PADPLUSKEY:
-					if (event->alt && t->flag & T_PROP_EDIT) {
-						t->prop_size *= 1.1f;
-						if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-							t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
-						calculatePropRatio(t);
-						t->redraw = TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case PAGEUPKEY:
-				case WHEELDOWNMOUSE:
-					if (t->flag & T_AUTOIK) {
-						transform_autoik_update(t, 1);
-					}
-					else {
-						view_editmove(event->type);
-					}
-					t->redraw = TREDRAW_HARD;
-					handled = true;
-					break;
-				case PADMINUS:
-					if (event->alt && t->flag & T_PROP_EDIT) {
-						t->prop_size *= 0.90909090f;
-						calculatePropRatio(t);
-						t->redraw = TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				case PAGEDOWNKEY:
-				case WHEELUPMOUSE:
-					if (t->flag & T_AUTOIK) {
-						transform_autoik_update(t, -1);
-					}
-					else {
-						view_editmove(event->type);
-					}
-					t->redraw = TREDRAW_HARD;
-					handled = true;
-					break;
-				case LEFTALTKEY:
-				case RIGHTALTKEY:
-					if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
-						t->flag |= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
-						handled = true;
-					}
-					break;
-				default:
-					break;
-			}
-
-			/* Numerical input events */
-			if (!handled && handleNumInput(t->context, &(t->num), event)) {
+		switch (event->type) {
+			case RIGHTMOUSE:
+				t->state = TRANS_CANCEL;
+				handled = true;
+				break;
+			/* enforce redraw of transform when modifiers are used */
+			case LEFTSHIFTKEY:
+			case RIGHTSHIFTKEY:
+				t->modifiers |= MOD_CONSTRAINT_PLANE;
 				t->redraw |= TREDRAW_HARD;
 				handled = true;
-			}
+				break;
+
+			case SPACEKEY:
+				t->state = TRANS_CONFIRM;
+				handled = true;
+				break;
+
+			case MIDDLEMOUSE:
+				if ((t->flag & T_NO_CONSTRAINT) == 0) {
+					/* exception for switching to dolly, or trackball, in camera view */
+					if (t->flag & T_CAMERA) {
+						if (t->mode == TFM_TRANSLATION)
+							setLocalConstraint(t, (CON_AXIS2), IFACE_("along local Z"));
+						else if (t->mode == TFM_ROTATION) {
+							restoreTransObjects(t);
+							initTrackball(t);
+						}
+					}
+					else {
+						t->modifiers |= MOD_CONSTRAINT_SELECT;
+						if (t->con.mode & CON_APPLY) {
+							stopConstraint(t);
+						}
+						else {
+							if (event->shift) {
+								initSelectConstraint(t, t->spacemtx);
+							}
+							else {
+								/* bit hackish... but it prevents mmb select to print the orientation from menu */
+								strcpy(t->spacename, "global");
+								initSelectConstraint(t, mati);
+							}
+							postSelectConstraint(t);
+						}
+					}
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case ESCKEY:
+				t->state = TRANS_CANCEL;
+				handled = true;
+				break;
+			case PADENTER:
+			case RETKEY:
+				t->state = TRANS_CONFIRM;
+				handled = true;
+				break;
+			case GKEY:
+				/* only switch when... */
+				if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+					resetTransModal(t);
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initTranslation(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case SKEY:
+				/* only switch when... */
+				if (ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
+					resetTransModal(t);
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initResize(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case RKEY:
+				/* only switch when... */
+				if (!(t->options & CTX_TEXTURE)) {
+					if (ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+						resetTransModal(t);
+						resetTransRestrictions(t);
+
+						if (t->mode == TFM_ROTATION) {
+							restoreTransObjects(t);
+							initTrackball(t);
+						}
+						else {
+							restoreTransObjects(t);
+							initRotation(t);
+						}
+						initSnapping(t, NULL); // need to reinit after mode change
+						t->redraw |= TREDRAW_HARD;
+						handled = true;
+					}
+				}
+				break;
+			case CKEY:
+				if (event->alt) {
+					t->flag ^= T_PROP_CONNECTED;
+					sort_trans_data_dist(t);
+					calculatePropRatio(t);
+					t->redraw = TREDRAW_HARD;
+					handled = true;
+				}
+				else {
+					stopConstraint(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case XKEY:
+			case YKEY:
+			case ZKEY:
+				transform_event_xyz_constraint(t, event->type, cmode);
+				handled = true;
+				break;
+			case OKEY:
+				if (t->flag & T_PROP_EDIT && event->shift) {
+					t->prop_mode = (t->prop_mode + 1) % PROP_MODE_MAX;
+					calculatePropRatio(t);
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case PADPLUSKEY:
+				if (event->alt && t->flag & T_PROP_EDIT) {
+					t->prop_size *= 1.1f;
+					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+					calculatePropRatio(t);
+					t->redraw = TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case PAGEUPKEY:
+			case WHEELDOWNMOUSE:
+				if (t->flag & T_AUTOIK) {
+					transform_autoik_update(t, 1);
+				}
+				else {
+					view_editmove(event->type);
+				}
+				t->redraw = TREDRAW_HARD;
+				handled = true;
+				break;
+			case PADMINUS:
+				if (event->alt && t->flag & T_PROP_EDIT) {
+					t->prop_size *= 0.90909090f;
+					calculatePropRatio(t);
+					t->redraw = TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			case PAGEDOWNKEY:
+			case WHEELUPMOUSE:
+				if (t->flag & T_AUTOIK) {
+					transform_autoik_update(t, -1);
+				}
+				else {
+					view_editmove(event->type);
+				}
+				t->redraw = TREDRAW_HARD;
+				handled = true;
+				break;
+			case LEFTALTKEY:
+			case RIGHTALTKEY:
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
+					t->flag |= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
+			default:
+				break;
 		}
 
 		/* Snapping key events */
@@ -1497,8 +1478,16 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 	}
 
 	// Per transform event, if present
-	if (t->handleEvent)
+	if (t->handleEvent && !handled)
 		t->redraw |= t->handleEvent(t, event);
+
+	/* Try to init modal numinput now, if possible. */
+	if (!(handled || t->redraw) && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
+	    handleNumInput(t->context, &(t->num), event))
+	{
+		t->redraw |= TREDRAW_HARD;
+		handled = true;
+	}
 
 	if (handled || t->redraw) {
 		return 0;
