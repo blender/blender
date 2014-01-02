@@ -965,12 +965,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	/* without this colors can flicker from previous opengl state */
-	glColor4ub(255, 255, 255, 255);
-
-	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
-	UI_view2d_curRect_validate(v2d);
-
 	/* only initialize the preview if a render is in progress */
 	if (G.is_rendering)
 		return;
@@ -1027,7 +1021,15 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 
 		scopes->reference_ibuf = ibuf;
+		viewrectx = scope->x;
+		viewrecty = scope->y;
 	}
+
+	/* without this colors can flicker from previous opengl state */
+	glColor4ub(255, 255, 255, 255);
+
+	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
+	UI_view2d_curRect_validate(v2d);
 
 	/* setting up the view - actual drawing starts here */
 	UI_view2d_view_ortho(v2d);
