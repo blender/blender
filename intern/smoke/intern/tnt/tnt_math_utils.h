@@ -7,7 +7,7 @@
 /* needed for fabs, sqrt() below */
 #include <cmath>
 
-#ifdef _WIN32
+#if (defined _WIN32) && (_MSC_VER < 1800)
 #define hypot _hypot
 #endif
 

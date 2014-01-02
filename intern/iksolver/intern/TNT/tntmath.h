@@ -34,7 +34,7 @@
 
 // conventional functions required by several matrix algorithms
 
-#ifdef _WIN32
+#if (defined _WIN32) && (_MSC_VER < 1800)
 #define hypot _hypot
 #endif
 
