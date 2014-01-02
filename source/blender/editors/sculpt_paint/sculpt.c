@@ -4307,7 +4307,7 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	dist = normalize_v3(ray_normal);
 
 	if (!rv3d->is_persp) {
-		BKE_pbvh_raycast_project_ray_root(ss->pbvh, srd.original, ray_start, ray_end, ray_normal);
+		BKE_pbvh_raycast_project_ray_root(ss->pbvh, original, ray_start, ray_end, ray_normal);
 
 		/* recalculate the normal */
 		sub_v3_v3v3(ray_normal, ray_end, ray_start);

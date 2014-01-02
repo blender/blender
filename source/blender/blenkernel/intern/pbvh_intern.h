@@ -39,7 +39,7 @@ typedef struct {
  * union'd structs */
 struct PBVHNode {
 	/* Opaque handle for drawing code */
-	struct GPU_Buffers *draw_buffers;
+	struct GPU_PBVH_Buffers *draw_buffers;
 
 	/* Voxel bounds */
 	BB vb;

@@ -1308,7 +1308,7 @@ typedef struct {
 	unsigned char color[3];
 } VertexBufferFormat;
 
-struct GPU_Buffers {
+struct GPU_PBVH_Buffers {
 	/* opengl buffer handles */
 	GLuint vert_buf, index_buf;
 	GLenum index_type;
@@ -1418,7 +1418,7 @@ static void gpu_color_from_mask_quad_set(const CCGKey *key,
 	glColor3f(diffuse_color[0] * color, diffuse_color[1] * color, diffuse_color[2] * color);
 }
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
+void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
                              int *vert_indices, int totvert, const float *vmask,
                              int (*face_vert_indices)[4], int show_diffuse_color)
 {
@@ -1553,16 +1553,16 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 	buffers->mvert = mvert;
 }
 
-GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
+GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
                                     MFace *mface, MVert *mvert,
                                     int *face_indices,
                                     int totface)
 {
-	GPU_Buffers *buffers;
+	GPU_PBVH_Buffers *buffers;
 	unsigned short *tri_data;
 	int i, j, k, tottri;
 
-	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	buffers->index_type = GL_UNSIGNED_SHORT;
 	buffers->smooth = mface[face_indices[0]].flag & ME_SMOOTH;
 
@@ -1634,7 +1634,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 	return buffers;
 }
 
-void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
+void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
                              const DMFlagMat *grid_flag_mats, int *grid_indices,
                              int totgrid, const CCGKey *key, int show_diffuse_color)
 {
@@ -1872,14 +1872,14 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 	return buffer;
 }
 
-GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
+GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
                                     BLI_bitmap **grid_hidden, int gridsize)
 {
-	GPU_Buffers *buffers;
+	GPU_PBVH_Buffers *buffers;
 	int totquad;
 	int fully_visible_totquad = (gridsize - 1) * (gridsize - 1) * totgrid;
 
-	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	buffers->grid_hidden = grid_hidden;
 	buffers->totgrid = totgrid;
 
@@ -2001,7 +2001,7 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer. */
-void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
+void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               BMesh *bm,
                               GHash *bm_faces,
                               GSet *bm_unique_verts,
@@ -2161,11 +2161,11 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 	}
 }
 
-GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading)
+GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading)
 {
-	GPU_Buffers *buffers;
+	GPU_PBVH_Buffers *buffers;
 
-	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	if (smooth_shading)
 		glGenBuffersARB(1, &buffers->index_buf);
 	glGenBuffersARB(1, &buffers->vert_buf);
@@ -2175,7 +2175,7 @@ GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading)
 	return buffers;
 }
 
-static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
+static void gpu_draw_buffers_legacy_mesh(GPU_PBVH_Buffers *buffers)
 {
 	const MVert *mvert = buffers->mvert;
 	int i, j;
@@ -2247,7 +2247,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 	}
 }
 
-static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers)
+static void gpu_draw_buffers_legacy_grids(GPU_PBVH_Buffers *buffers)
 {
 	const CCGKey *key = &buffers->gridkey;
 	int i, j, x, y, gridsize = buffers->gridkey.grid_size;
@@ -2373,7 +2373,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers)
 	}
 }
 
-void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
+void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 					  int wireframe)
 {
 	/* sets material from the first face, to solve properly face would need to
@@ -2466,7 +2466,7 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
 	}
 }
 
-int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color)
+int GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, int show_diffuse_color)
 {
 	float diffuse_color[4];
 
@@ -2492,7 +2492,7 @@ int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color)
 	       diffuse_color[2] != buffers->diffuse_color[2];
 }
 
-void GPU_free_buffers(GPU_Buffers *buffers)
+void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 {
 	if (buffers) {
 		if (buffers->vert_buf)

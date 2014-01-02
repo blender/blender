@@ -94,7 +94,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 	/* Build GPU buffers */
 	if (!G.background) {
 		int smooth = bvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING;
-		n->draw_buffers = GPU_build_bmesh_buffers(smooth);
+		n->draw_buffers = GPU_build_bmesh_pbvh_buffers(smooth);
 		n->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
 	}
 }
@@ -207,7 +207,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	n->layer_disp = NULL;
 	
 	if (n->draw_buffers) {
-		GPU_free_buffers(n->draw_buffers);
+		GPU_free_pbvh_buffers(n->draw_buffers);
 		n->draw_buffers = NULL;
 	}
 	n->flag &= ~PBVH_Leaf;

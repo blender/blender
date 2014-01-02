@@ -160,37 +160,37 @@ void GPU_buffer_unbind(void);
 int GPU_buffer_legacy(struct DerivedMesh *dm);
 
 /* Buffers for non-DerivedMesh drawing */
-typedef struct GPU_Buffers GPU_Buffers;
+typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
-GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
+GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
                                     struct MFace *mface, struct MVert *mvert,
                                     int *face_indices, int totface);
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
+void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
                              int *vert_indices, int totvert, const float *vmask,
                              int (*face_vert_indices)[4], int show_diffuse_color);
 
-GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
+GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize);
 
-GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading);
+GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading);
 
-void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
+void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               struct BMesh *bm,
                               struct GHash *bm_faces,
                               struct GSet *bm_unique_verts,
                               struct GSet *bm_other_verts);
 
-void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
+void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,
                              int *grid_indices, int totgrid, const struct CCGKey *key,
                              int show_diffuse_color);
 
-void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
+void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 					  int wireframe);
 
-int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color);
+int GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, int show_diffuse_color);
 
-void GPU_free_buffers(GPU_Buffers *buffers);
+void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers);
 
 #endif
