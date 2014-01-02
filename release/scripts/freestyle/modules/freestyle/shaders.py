@@ -1095,7 +1095,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
         sv_nb = sv_nb // self.__turns
         center = (p_min + p_max) / 2
         radius = center - p_min
-        p_new = Vecor((0,0))
+        p_new = Vector((0,0))
 #######################################################
         R = self.__random_radius
         C = self.__random_center
