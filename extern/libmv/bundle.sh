@@ -14,13 +14,7 @@ tmp=`mktemp -d`
 
 git clone -b $BRANCH $repo $tmp/libmv
 
-#git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log --since="1 month ago" > ChangeLog
 git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
-
-for p in `cat ./patches/series`; do
-  echo "Applying patch $p..."
-  cat ./patches/$p | patch -d $tmp/libmv -p1
-done
 
 find libmv -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
 find third_party -type f -not -iwholename '*.svn*' -not -iwholename '*third_party/ceres*' \
