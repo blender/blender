@@ -300,7 +300,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					emission.z *= (sigma_a.z > 0.0f)? (1.0f - attenuation.z)/sigma_a.z: dt;
 				}
 				else
-					emission *= t;
+					emission *= dt;
 
 				path_radiance_accum_emission(L, tp, emission, state->bounce);
 			}
