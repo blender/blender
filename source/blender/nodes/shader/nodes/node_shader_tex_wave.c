@@ -40,7 +40,7 @@ static bNodeSocketTemplate sh_node_tex_wave_in[] = {
 
 static bNodeSocketTemplate sh_node_tex_wave_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 

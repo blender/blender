@@ -35,7 +35,7 @@ static bNodeSocketTemplate sh_node_fresnel_in[] = {
 };
 
 static bNodeSocketTemplate sh_node_fresnel_out[] = {
-	{	SOCK_FLOAT, 0, N_("Fac"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Fac"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 

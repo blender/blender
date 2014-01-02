@@ -32,7 +32,7 @@
 static bNodeSocketTemplate sh_node_attribute_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	SOCK_VECTOR, 0, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, N_("Fac"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
+	{	SOCK_FLOAT, 0, N_("Fac"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 

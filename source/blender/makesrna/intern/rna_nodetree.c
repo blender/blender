@@ -3335,7 +3335,7 @@ static void def_sh_tex_sky(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Turbidity", "Atmospheric turbidity");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "ground_albedo", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "ground_albedo", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Ground Albedo", "Ground color that is subtly reflected in the sky");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -3861,7 +3861,7 @@ static void def_cmp_alpha_over(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeTwoFloats", "storage");
 	
-	prop = RNA_def_property(srna, "premul", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "premul", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Premul", "Mix Factor");

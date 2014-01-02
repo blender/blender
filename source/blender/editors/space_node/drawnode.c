@@ -139,7 +139,7 @@ static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *p
 	PointerRNA sockptr;
 	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, output, &sockptr);
 	
-	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
+	uiItemR(layout, &sockptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -153,7 +153,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr
 	
 	col = uiLayoutColumn(layout, FALSE);
 	uiTemplateColorPicker(col, &sockptr, "default_value", 1, 0, 0, 0);
-	uiItemR(col, &sockptr, "default_value", 0, "", ICON_NONE);
+	uiItemR(col, &sockptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
 }
 
 static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -830,7 +830,7 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), Po
 	uiLayout *col;
 	
 	col = uiLayoutColumn(layout, TRUE);
-	uiItemR(col, ptr, "offset", 0, IFACE_("Offset"), ICON_NONE);
+	uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
 	uiItemR(col, ptr, "offset_frequency", 0, IFACE_("Frequency"), ICON_NONE);
 	
 	col = uiLayoutColumn(layout, TRUE);
@@ -2498,7 +2498,7 @@ static void node_texture_buts_bricks(uiLayout *layout, bContext *UNUSED(C), Poin
 	uiLayout *col;
 	
 	col = uiLayoutColumn(layout, TRUE);
-	uiItemR(col, ptr, "offset", 0, IFACE_("Offset"), ICON_NONE);
+	uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
 	uiItemR(col, ptr, "offset_frequency", 0, IFACE_("Frequency"), ICON_NONE);
 	
 	col = uiLayoutColumn(layout, TRUE);
