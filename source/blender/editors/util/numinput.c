@@ -188,6 +188,100 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 	return true;
 }
 
+#define NUM_REVERSE_START "-("
+#define NUM_REVERSE_END ")"
+#define NUM_INVERSE_START "1/("
+#define NUM_INVERSE_END ")"
+
+static bool editstr_reverse_inverse_toggle(NumInput *n, const bool reverse, const bool inverse)
+{
+	/* This function just add or remove -(...) or 1/(...) around current expression. */
+	size_t len = strlen(n->str);
+	const size_t len_rev_start = strlen(NUM_REVERSE_START);
+	const size_t len_rev_end = strlen(NUM_REVERSE_END);
+	const size_t len_inv_start = strlen(NUM_INVERSE_START);
+	const size_t len_inv_end = strlen(NUM_INVERSE_END);
+	int len_start = 0, len_end = 0;
+	size_t off_start, off_end;
+
+	bool is_reversed = ((strncmp(n->str, NUM_REVERSE_START, len_rev_start) == 0) &&
+	                    (strncmp(n->str + len - len_rev_end, NUM_REVERSE_END, len_rev_end) == 0)) ||
+	                   ((strncmp(n->str + len_inv_start, NUM_REVERSE_START, len_rev_start) == 0) &&
+	                    (strncmp(n->str + len - len_rev_end - len_inv_end, NUM_REVERSE_END, len_rev_end) == 0));
+	bool is_inversed = ((strncmp(n->str, NUM_INVERSE_START, len_inv_start) == 0) &&
+	                    (strncmp(n->str + len - len_inv_end, NUM_INVERSE_END, len_inv_end) == 0)) ||
+	                   ((strncmp(n->str + len_rev_start, NUM_INVERSE_START, len_inv_start) == 0) &&
+	                    (strncmp(n->str + len - len_inv_end - len_rev_end, NUM_INVERSE_END, len_inv_end) == 0));
+
+	if ((!reverse && !inverse) || n->str[0] == '\0') {
+		return false;
+	}
+
+	if (reverse) {
+		if (is_reversed) {
+			len_start -= len_rev_start;
+			len_end -= len_rev_end;
+		}
+		else {
+			len_start += len_rev_start;
+			len_end += len_rev_end;
+		}
+	}
+	if (inverse) {
+		if (is_inversed) {
+			len_start -= len_inv_start;
+			len_end -= len_inv_end;
+		}
+		else {
+			len_start += len_inv_start;
+			len_end += len_inv_end;
+		}
+	}
+
+	if (len_start < 0) {
+		len -= (size_t)(-(len_start + len_end));
+		memmove(n->str, n->str + (size_t)(-len_start), len);
+	}
+	else if (len_start > 0) {
+		if (len + len_start + len_end > sizeof(n->str)) {
+			return false;  /* Not enough room in buffer... */
+		}
+		memmove(n->str + (size_t)len_start, n->str, len);
+		len += (size_t)(len_start + len_end);
+	}
+
+	if (reverse) {
+		is_reversed = !is_reversed;
+	}
+	if (inverse) {
+		is_inversed = !is_inversed;
+	}
+
+	off_start = 0;
+	off_end = len;
+	if (is_reversed) {
+		off_end -= len_rev_end;
+		memcpy(n->str + off_start, NUM_REVERSE_START, len_rev_start);
+		memcpy(n->str + off_end, NUM_REVERSE_END, len_rev_end);
+		off_start += len_rev_start;
+	}
+	if (is_inversed) {
+		off_end -= len_inv_end;
+		memcpy(n->str + off_start, NUM_INVERSE_START, len_inv_start);
+		memcpy(n->str + off_end, NUM_INVERSE_END, len_inv_end);
+		off_start += len_inv_start;
+	}
+
+	n->str[len] = '\0';
+	n->str_cur += len_start;
+	return true;
+}
+
+#undef NUM_REVERSE_START
+#undef NUM_REVERSE_END
+#undef NUM_INVERSE_START
+#undef NUM_INVERSE_END
+
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 {
 	const char *utf8_buf = NULL;
@@ -299,6 +393,18 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
+		case PADMINUS:
+			if (event->ctrl && editstr_reverse_inverse_toggle(n, true, false)) {
+				updated = true;
+				break;
+			}
+			/* fall-through */
+		case PADSLASHKEY:
+			if (event->ctrl && editstr_reverse_inverse_toggle(n, false, true)) {
+				updated = true;
+				break;
+			}
+			/* fall-through */
 		case CKEY:
 			if (event->ctrl) {
 				/* Copy current str to the copypaste buffer. */
