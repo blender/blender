@@ -919,6 +919,22 @@ class INFO_MT_metaball_add(Menu):
         layout.operator_enum("object.metaball_add", "type")
 
 
+class INFO_MT_edit_curve_add(Menu):
+    bl_idname = "INFO_MT_edit_curve_add"
+    bl_label = "Add"
+
+    def draw(self, context):
+        is_surf = context.active_object.type == 'SURFACE'
+
+        layout = self.layout
+        layout.operator_context = 'EXEC_REGION_WIN'
+
+        if is_surf:
+            INFO_MT_surface_add.draw(self, context)
+        else:
+            INFO_MT_curve_add.draw(self, context)
+
+
 class INFO_MT_edit_armature_add(Menu):
     bl_idname = "INFO_MT_edit_armature_add"
     bl_label = "Armature"
