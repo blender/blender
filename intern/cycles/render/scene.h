@@ -51,6 +51,8 @@ class CurveSystemManager;
 class Shader;
 class ShaderManager;
 class Progress;
+class BakeManager;
+class BakeData;
 
 /* Scene Device Data */
 
@@ -174,6 +176,7 @@ public:
 	ObjectManager *object_manager;
 	ParticleSystemManager *particle_system_manager;
 	CurveSystemManager *curve_system_manager;
+	BakeManager *bake_manager;
 
 	/* default shaders */
 	int default_surface;

@@ -212,7 +212,9 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 	}
 }
 
-ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_global float *buffer,
+#endif
+
+ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 	float3 throughput, int num_samples, PathState state, PathRadiance *L)
 {
 	/* path iteration */
@@ -378,7 +380,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 		}
 #endif
 
-#ifdef __EMISSION__
+#if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
 		if(kernel_data.integrator.use_direct_light) {
 			bool all = kernel_data.integrator.sample_all_lights_indirect;
 			kernel_branched_path_integrate_direct_lighting(kg, rng, &sd, &state, throughput, 1.0f, L, all);
@@ -455,10 +457,6 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 		}
 	}
 }
-
-#endif
-
-#ifdef __SUBSURFACE__
 
 ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, float3 *throughput, PathState *state, PathRadiance *L, Ray *ray)
@@ -569,7 +567,39 @@ ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rn
 	}
 }
 
+ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput)
+{
+	/* todo: solve correlation */
+	float bsdf_u, bsdf_v;
+
+	path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+
+	float ao_factor = kernel_data.background.ao_factor;
+	float3 ao_N;
+	float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
+	float3 ao_D;
+	float ao_pdf;
+	float3 ao_alpha = shader_bsdf_alpha(kg, sd);
+
+	sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+
+	if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+		Ray light_ray;
+		float3 ao_shadow;
+
+		light_ray.P = ray_offset(sd->P, sd->Ng);
+		light_ray.D = ao_D;
+		light_ray.t = kernel_data.background.ao_distance;
+#ifdef __OBJECT_MOTION__
+		light_ray.time = sd->time;
 #endif
+		light_ray.dP = sd->dP;
+		light_ray.dD = differential3_zero();
+
+		if(!shadow_blocked(kg, state, &light_ray, &ao_shadow))
+			path_radiance_accum_ao(L, throughput, ao_alpha, ao_bsdf, ao_shadow, state->bounce);
+	}
+}
 
 ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
 {
@@ -738,35 +768,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __AO__
 		/* ambient occlusion */
 		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
-			/* todo: solve correlation */
-			float bsdf_u, bsdf_v;
-			path_state_rng_2D(kg, rng, &state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-
-			float ao_factor = kernel_data.background.ao_factor;
-			float3 ao_N;
-			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
-			float3 ao_D;
-			float ao_pdf;
-			float3 ao_alpha = shader_bsdf_alpha(kg, &sd);
-
-			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
-
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
-				Ray light_ray;
-				float3 ao_shadow;
-
-				light_ray.P = ray_offset(sd.P, sd.Ng);
-				light_ray.D = ao_D;
-				light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
-				light_ray.time = sd.time;
-#endif
-				light_ray.dP = sd.dP;
-				light_ray.dD = differential3_zero();
-
-				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
-					path_radiance_accum_ao(&L, throughput, ao_alpha, ao_bsdf, ao_shadow, state.bounce);
-			}
+			kernel_path_ao(kg, &sd, &L, &state, rng, throughput);
 		}
 #endif
 
@@ -803,7 +805,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 						hit_state.ray_t = 0.0f;
 #endif
 
-						kernel_path_indirect(kg, rng, hit_ray, buffer, tp, state.num_samples, hit_state, &L);
+						kernel_path_indirect(kg, rng, hit_ray, tp, state.num_samples, hit_state, &L);
 
 						/* for render passes, sum and reset indirect light pass variables
 						 * for the next samples */
@@ -1022,7 +1024,7 @@ ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *
 			ps.ray_t = 0.0f;
 #endif
 
-			kernel_path_indirect(kg, rng, bsdf_ray, buffer, tp*num_samples_inv, num_samples, ps, L);
+			kernel_path_indirect(kg, rng, bsdf_ray, tp*num_samples_inv, num_samples, ps, L);
 
 			/* for render passes, sum and reset indirect light pass variables
 			 * for the next samples */
@@ -1110,7 +1112,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: use all-light sampling */
 					if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
-						kernel_path_indirect(kg, rng, pray, buffer, tp*num_samples_inv, num_samples, ps, &L);
+						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
 						/* for render passes, sum and reset indirect light pass variables
 						 * for the next samples */
@@ -1150,7 +1152,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: use all-light sampling */
 					if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
-						kernel_path_indirect(kg, rng, pray, buffer, tp*num_samples_inv, num_samples, ps, &L);
+						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
 						/* for render passes, sum and reset indirect light pass variables
 						 * for the next samples */

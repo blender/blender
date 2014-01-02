@@ -136,6 +136,7 @@ public:
 	void set_samples(int samples);
 	void set_pause(bool pause);
 
+	void update_scene();
 	void device_free();
 protected:
 	struct DelayedReset {
@@ -147,7 +148,6 @@ protected:
 
 	void run();
 
-	void update_scene();
 	void update_status_time(bool show_pause = false, bool show_done = false);
 
 	void tonemap(int sample);

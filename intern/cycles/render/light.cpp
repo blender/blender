@@ -29,7 +29,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static void shade_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels)
+static void shade_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels, Progress& progress)
 {
 	/* create input */
 	int width = res;
@@ -66,6 +66,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	main_task.shader_eval_type = SHADER_EVAL_BACKGROUND;
 	main_task.shader_x = 0;
 	main_task.shader_w = width*height;
+	main_task.get_cancel = function_bind(&Progress::get_cancel, &progress);
 
 	/* disabled splitting for now, there's an issue with multi-GPU mem_copy_from */
 	list<DeviceTask> split_tasks;
@@ -396,7 +397,7 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 	assert(res > 0);
 
 	vector<float3> pixels;
-	shade_background_pixels(device, dscene, res, pixels);
+	shade_background_pixels(device, dscene, res, pixels, progress);
 
 	if(progress.get_cancel())
 		return;

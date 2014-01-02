@@ -20,6 +20,7 @@
 #include "device.h"
 #include "scene.h"
 #include "session.h"
+#include "bake.h"
 
 #include "util_vector.h"
 
@@ -50,6 +51,8 @@ public:
 
 	/* offline render */
 	void render();
+
+	void bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, int num_pixels, int depth, float pixels[]);
 
 	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
 	void write_render_tile(RenderTile& rtile);

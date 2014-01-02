@@ -395,7 +395,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_avx_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.canceled())
+				if(task.get_cancel() || task_pool.canceled())
 					break;
 			}
 		}
@@ -406,7 +406,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse41_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.canceled())
+				if(task.get_cancel() || task_pool.canceled())
 					break;
 			}
 		}
@@ -417,7 +417,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.canceled())
+				if(task.get_cancel() || task_pool.canceled())
 					break;
 			}
 		}
@@ -428,7 +428,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.canceled())
+				if(task.get_cancel() || task_pool.canceled())
 					break;
 			}
 		}
@@ -438,7 +438,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.canceled())
+				if(task.get_cancel() || task_pool.canceled())
 					break;
 			}
 		}

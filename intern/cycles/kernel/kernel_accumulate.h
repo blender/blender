@@ -407,5 +407,26 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 	return L_sum;
 }
 
+ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance *L_sample, int num_samples)
+{
+	float fac = 1.0f/num_samples;
+
+	L->direct_diffuse += L_sample->direct_diffuse*fac;
+	L->direct_glossy += L_sample->direct_glossy*fac;
+	L->direct_transmission += L_sample->direct_transmission*fac;
+	L->direct_subsurface += L_sample->direct_subsurface*fac;
+
+	L->indirect_diffuse += L_sample->indirect_diffuse*fac;
+	L->indirect_glossy += L_sample->indirect_glossy*fac;
+	L->indirect_transmission += L_sample->indirect_transmission*fac;
+	L->indirect_subsurface += L_sample->indirect_subsurface*fac;
+
+	L->emission += L_sample->emission*fac;
+	L->background += L_sample->background*fac;
+	L->ao += L_sample->ao*fac;
+	L->shadow += L_sample->shadow*fac;
+	L->mist += L_sample->mist*fac;
+}
+
 CCL_NAMESPACE_END
 

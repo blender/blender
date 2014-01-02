@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include "background.h"
+#include "bake.h"
 #include "camera.h"
 #include "curves.h"
 #include "device.h"
@@ -54,6 +55,7 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	image_manager = new ImageManager();
 	particle_system_manager = new ParticleSystemManager();
 	curve_system_manager = new CurveSystemManager();
+	bake_manager = new BakeManager();
 
 	/* OSL only works on the CPU */
 	if(device_info_.type == DEVICE_CPU)
@@ -103,6 +105,8 @@ void Scene::free_memory(bool final)
 		particle_system_manager->device_free(device, &dscene);
 		curve_system_manager->device_free(device, &dscene);
 
+		bake_manager->device_free(device, &dscene);
+
 		if(!params.persistent_data || final)
 			image_manager->device_free(device, &dscene);
 
@@ -122,6 +126,7 @@ void Scene::free_memory(bool final)
 		delete particle_system_manager;
 		delete curve_system_manager;
 		delete image_manager;
+		delete bake_manager;
 	}
 }
 
@@ -208,6 +213,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel()) return;
 
+	progress.set_status("Updating Baking");
+	bake_manager->device_update(device, &dscene, this, progress);
+
+	if(progress.get_cancel()) return;
+
 	progress.set_status("Updating Device", "Writing constant memory");
 	device->const_copy_to("__data", &dscene.data, sizeof(dscene.data));
 }
@@ -258,7 +268,8 @@ bool Scene::need_reset()
 		|| integrator->need_update
 		|| shader_manager->need_update
 		|| particle_system_manager->need_update
-		|| curve_system_manager->need_update);
+		|| curve_system_manager->need_update
+		|| bake_manager->need_update);
 }
 
 void Scene::reset()

@@ -119,16 +119,20 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	task.shader_eval_type = SHADER_EVAL_DISPLACE;
 	task.shader_x = 0;
 	task.shader_w = d_output.size();
+	task.get_cancel = function_bind(&Progress::get_cancel, &progress);
 
 	device->task_add(task);
 	device->task_wait();
 
+	if(progress.get_cancel()) {
+		device->mem_free(d_input);
+		device->mem_free(d_output);
+		return false;
+	}
+
 	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
 	device->mem_free(d_input);
 	device->mem_free(d_output);
-
-	if(progress.get_cancel())
-		return false;
 
 	/* read result */
 	done.clear();

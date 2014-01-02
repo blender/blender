@@ -1227,6 +1227,54 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         row.prop(ccscene, "maximum_width", text="Max Ext.")
 
 
+class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
+    bl_label = "Bake"
+    bl_context = "render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        cbk = scene.render.bake
+
+        layout.operator("object.bake", icon='RENDER_STILL').type = \
+        cscene.bake_type
+
+        col = layout.column()
+        col.prop(cscene, "bake_type")
+
+        col.separator()
+        split = layout.split()
+
+        sub = split.column()
+        sub.prop(cbk, "use_clear")
+        sub.prop(cbk, "margin")
+
+        sub = split.column()
+        sub.prop(cbk, "use_selected_to_active")
+        sub = sub.column()
+
+        sub.active = cbk.use_selected_to_active
+        sub.prop(cbk, "cage_extrusion", text="Distance")
+        sub.prop_search(cbk, "cage", scene, "objects")
+
+        if cscene.bake_type == 'NORMAL':
+            col.separator()
+            box = col.box()
+            box.label(text="Normal Settings:")
+            box.prop(cbk, "normal_space", text="Space")
+
+            row = box.row(align=True)
+            row.label(text = "Swizzle:")
+            row.prop(cbk, "normal_r", text="")
+            row.prop(cbk, "normal_g", text="")
+            row.prop(cbk, "normal_b", text="")
+
+
 class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
     bl_label = "Cycles Hair Settings"
     bl_context = "particle"

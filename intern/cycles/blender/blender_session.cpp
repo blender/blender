@@ -14,6 +14,8 @@
  * limitations under the License
  */
 
+#include <stdlib.h>
+
 #include "background.h"
 #include "buffers.h"
 #include "camera.h"
@@ -21,6 +23,8 @@
 #include "integrator.h"
 #include "film.h"
 #include "light.h"
+#include "mesh.h"
+#include "object.h"
 #include "scene.h"
 #include "session.h"
 #include "shader.h"
@@ -259,6 +263,58 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 	return PASS_NONE;
 }
 
+static ShaderEvalType get_shader_type(const string& pass_type)
+{
+	const char *shader_type = pass_type.c_str();
+
+	/* data passes */
+	if(strcmp(shader_type, "NORMAL")==0)
+		return SHADER_EVAL_NORMAL;
+	else if(strcmp(shader_type, "UV")==0)
+		return SHADER_EVAL_UV;
+	else if(strcmp(shader_type, "DIFFUSE_COLOR")==0)
+		return SHADER_EVAL_DIFFUSE_COLOR;
+	else if(strcmp(shader_type, "GLOSSY_COLOR")==0)
+		return SHADER_EVAL_GLOSSY_COLOR;
+	else if(strcmp(shader_type, "TRANSMISSION_COLOR")==0)
+		return SHADER_EVAL_TRANSMISSION_COLOR;
+	else if(strcmp(shader_type, "SUBSURFACE_COLOR")==0)
+		return SHADER_EVAL_SUBSURFACE_COLOR;
+	else if(strcmp(shader_type, "EMIT")==0)
+		return SHADER_EVAL_EMISSION;
+
+	/* light passes */
+	else if(strcmp(shader_type, "AO")==0)
+		return SHADER_EVAL_AO;
+	else if(strcmp(shader_type, "COMBINED")==0)
+		return SHADER_EVAL_COMBINED;
+	else if(strcmp(shader_type, "SHADOW")==0)
+		return SHADER_EVAL_SHADOW;
+	else if(strcmp(shader_type, "DIFFUSE_DIRECT")==0)
+		return SHADER_EVAL_DIFFUSE_DIRECT;
+	else if(strcmp(shader_type, "GLOSSY_DIRECT")==0)
+		return SHADER_EVAL_GLOSSY_DIRECT;
+	else if(strcmp(shader_type, "TRANSMISSION_DIRECT")==0)
+		return SHADER_EVAL_TRANSMISSION_DIRECT;
+	else if(strcmp(shader_type, "SUBSURFACE_DIRECT")==0)
+		return SHADER_EVAL_SUBSURFACE_DIRECT;
+	else if(strcmp(shader_type, "DIFFUSE_INDIRECT")==0)
+		return SHADER_EVAL_DIFFUSE_INDIRECT;
+	else if(strcmp(shader_type, "GLOSSY_INDIRECT")==0)
+		return SHADER_EVAL_GLOSSY_INDIRECT;
+	else if(strcmp(shader_type, "TRANSMISSION_INDIRECT")==0)
+		return SHADER_EVAL_TRANSMISSION_INDIRECT;
+	else if(strcmp(shader_type, "SUBSURFACE_INDIRECT")==0)
+		return SHADER_EVAL_SUBSURFACE_INDIRECT;
+
+	/* extra */
+	else if(strcmp(shader_type, "ENVIRONMENT")==0)
+		return SHADER_EVAL_ENVIRONMENT;
+
+	else
+		return SHADER_EVAL_BAKE;
+}
+
 static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername)
 {
 	return b_engine.begin_result(x, y, w, h, layername);
@@ -414,6 +470,105 @@ void BlenderSession::render()
 	/* clear callback */
 	session->write_render_tile_cb = NULL;
 	session->update_render_tile_cb = NULL;
+
+	/* free all memory used (host and device), so we wouldn't leave render
+	 * engine with extra memory allocated
+	 */
+
+	session->device_free();
+
+	delete sync;
+	sync = NULL;
+}
+
+static void populate_bake_data(BakeData *data, BL::BakePixel pixel_array, const int num_pixels)
+{
+	BL::BakePixel bp = pixel_array;
+
+	int i;
+	for(i=0; i < num_pixels; i++) {
+		data->set(i, bp.primitive_id(), bp.uv());
+		bp = bp.next();
+	}
+}
+
+static bool is_light_pass(ShaderEvalType type)
+{
+	switch (type) {
+		case SHADER_EVAL_AO:
+		case SHADER_EVAL_COMBINED:
+		case SHADER_EVAL_SHADOW:
+		case SHADER_EVAL_DIFFUSE_DIRECT:
+		case SHADER_EVAL_GLOSSY_DIRECT:
+		case SHADER_EVAL_TRANSMISSION_DIRECT:
+		case SHADER_EVAL_SUBSURFACE_DIRECT:
+		case SHADER_EVAL_DIFFUSE_INDIRECT:
+		case SHADER_EVAL_GLOSSY_INDIRECT:
+		case SHADER_EVAL_TRANSMISSION_INDIRECT:
+		case SHADER_EVAL_SUBSURFACE_INDIRECT:
+			return true;
+		default:
+			return false;
+	}
+}
+
+void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, int num_pixels, int depth, float result[])
+{
+	ShaderEvalType shader_type = get_shader_type(pass_type);
+	size_t object_index = OBJECT_NONE;
+	int tri_offset = 0;
+
+	if(shader_type == SHADER_EVAL_UV) {
+		/* force UV to be available */
+		Pass::add(PASS_UV, scene->film->passes);
+	}
+
+	if(is_light_pass(shader_type)) {
+		/* force use_light_pass to be true */
+		Pass::add(PASS_LIGHT, scene->film->passes);
+	}
+
+	/* create device and update scene */
+	scene->film->tag_update(scene);
+	scene->integrator->tag_update(scene);
+
+	/* update scene */
+	sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+	sync->sync_data(b_v3d, b_engine.camera_override(), &python_thread_state);
+
+	/* get buffer parameters */
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+
+	scene->bake_manager->set_baking(true);
+
+	/* set number of samples */
+	session->tile_manager.set_samples(session_params.samples);
+	session->reset(buffer_params, session_params.samples);
+	session->update_scene();
+
+	/* find object index. todo: is arbitrary - copied from mesh_displace.cpp */
+	for(size_t i = 0; i < scene->objects.size(); i++) {
+		if(strcmp(scene->objects[i]->name.c_str(), b_object.name().c_str()) == 0) {
+			object_index = i;
+			tri_offset = scene->objects[i]->mesh->tri_offset;
+			break;
+		}
+	}
+
+	/* when used, non-instanced convention: object = ~object */
+	int object = ~object_index;
+
+	BakeData *bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
+
+	populate_bake_data(bake_data, pixel_array, num_pixels);
+
+	/* set number of samples */
+	session->tile_manager.set_samples(session_params.samples);
+	session->reset(buffer_params, session_params.samples);
+	session->update_scene();
+
+	scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_data, result);
 
 	/* free all memory used (host and device), so we wouldn't leave render
 	 * engine with extra memory allocated

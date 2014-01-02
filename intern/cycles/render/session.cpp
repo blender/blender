@@ -23,6 +23,7 @@
 #include "integrator.h"
 #include "scene.h"
 #include "session.h"
+#include "bake.h"
 
 #include "util_foreach.h"
 #include "util_function.h"
@@ -733,10 +734,14 @@ void Session::update_scene()
 		cam->tag_update();
 	}
 
-	/* number of samples is needed by multi jittered sampling pattern */
+	/* number of samples is needed by multi jittered
+	 * sampling pattern and by baking */
 	Integrator *integrator = scene->integrator;
+	BakeManager *bake_manager = scene->bake_manager;
 
-	if(integrator->sampling_pattern == SAMPLING_PATTERN_CMJ) {
+	if(integrator->sampling_pattern == SAMPLING_PATTERN_CMJ ||
+	   bake_manager->get_baking())
+	{
 		int aa_samples = tile_manager.num_samples;
 
 		if(aa_samples != integrator->aa_samples) {
