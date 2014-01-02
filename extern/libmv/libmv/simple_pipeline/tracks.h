@@ -68,7 +68,7 @@ class Tracks {
   Tracks(const Tracks &other);
 
   /// Construct a new tracks object using the given markers to start.
-  Tracks(const vector<Marker> &markers);
+  explicit Tracks(const vector<Marker> &markers);
 
   /*!
       Inserts a marker into the set. If there is already a marker for the given

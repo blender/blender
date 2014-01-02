@@ -78,6 +78,7 @@ std::vector<Feature> DetectFAST(const unsigned char* data,
     features.reserve(num_features);
 
     int prev_score = all_features[0].score;
+    const int min_distance_squared = min_distance * min_distance;
     for (int i = 0; i < num_features; ++i) {
       bool ok = true;
       Feature a = all_features[i];
@@ -88,7 +89,7 @@ std::vector<Feature> DetectFAST(const unsigned char* data,
       // compare each feature against filtered set
       for (int j = 0; j < features.size(); j++) {
         Feature& b = features[j];
-        if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
+        if ((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance_squared) {
           // already a nearby feature
           ok = false;
           break;

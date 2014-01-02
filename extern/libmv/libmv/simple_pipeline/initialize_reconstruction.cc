@@ -114,7 +114,7 @@ struct FundamentalSampsonCostFunction {
   typedef Vec9 XMatrixType;
 
   // Assumes markers are ordered by track.
-  FundamentalSampsonCostFunction(const vector<Marker> &markers)
+  explicit FundamentalSampsonCostFunction(const vector<Marker> &markers)
     : markers(markers) {}
 
   Vec operator()(const Vec9 &encoded_F) const {
