@@ -143,24 +143,17 @@ static const int NAN_INT = 0x7FC00000;
 #define copysignf(a, b) ((float)copysign(a, b))
 #endif
 
-#else /* C99 or POSIX.1-2001 */
-
-#ifdef WIN32
-#  ifndef FREE_WINDOWS
-#    ifndef isnan
-#		define isnan(n) _isnan(n)
-#	 endif
-#    ifndef hypot
-#		define hypot(a, b) _hypot(a, b)
-#	endif
-#  endif
-#endif
-
 #endif  /* C99 or POSIX.1-2001 */
 
 #ifdef WIN32
 #  ifndef FREE_WINDOWS
+#    if (!defined isnan) && (_MSC_VER < 1800)
+#		define isnan(n) _isnan(n)
+#	 endif
 #    define finite _finite
+#    if (!defined hypot) && (_MSC_VER < 1800)
+#		define hypot(a, b) _hypot(a, b)
+#	endif
 #  endif
 #endif
 
