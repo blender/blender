@@ -4151,66 +4151,80 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
 		if ((nu->flagu & CU_NURB_CYCLIC) == 0) {    /* not cyclic */
 			if (nu->type == CU_BEZIER) {
-				if (nu1 == NULL) {
-					if (BEZSELECTED_HIDDENHANDLES(cu, nu->bezt)) {
+				if (BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu - 1]))) {
+					/* Last point is selected, preferred for nu2 */
+					if (nu2 == NULL) {
+						nu2 = nu;
+					}
+					else if (nu1 == NULL) {
+						nu1 = nu;
+
+						/* Just in case both of first/last CV are selected check
+						 * whether we really need to switch the direction.
+						 */
+						if (!BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt)) {
+							BKE_nurb_direction_switch(nu1);
+							keyData_switchDirectionNurb(cu, nu1);
+						}
+					}
+				}
+				else if (BEZSELECTED_HIDDENHANDLES(cu, nu->bezt)) {
+					/* First point is selected, preferred for nu1 */
+					if (nu1 == NULL) {
 						nu1 = nu;
 					}
-					else {
-						if (BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu - 1]))) {
-							nu1 = nu;
-							BKE_nurb_direction_switch(nu);
-							keyData_switchDirectionNurb(cu, nu);
-						}
-					}
-				}
-				else if (nu2 == NULL) {
-					if (BEZSELECTED_HIDDENHANDLES(cu, nu->bezt)) {
+					else if (nu2 == NULL) {
 						nu2 = nu;
-						BKE_nurb_direction_switch(nu);
-						keyData_switchDirectionNurb(cu, nu);
-					}
-					else {
-						if (BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu - 1]))) {
-							nu2 = nu;
+
+						/* Just in case both of first/last CV are selected check
+						 * whether we really need to switch the direction.
+						 */
+						if (!BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu2->pntsu - 1]))) {
+							BKE_nurb_direction_switch(nu2);
+							keyData_switchDirectionNurb(cu, nu2);
 						}
 					}
-				}
-				else {
-					break;
 				}
 			}
 			else if (nu->pntsv == 1) {
+				/* Same logic as above: if first point is selected spline is
+				 * preferred for nu1, if last point is selected spline is
+				 * preferred for u2u.
+				 */
+
 				bp = nu->bp;
-				if (nu1 == NULL) {
-					if (bp->f1 & SELECT) {
-						nu1 = nu;
+				if (bp[nu->pntsu - 1].f1 & SELECT)  {
+					if (nu2 == NULL) {
+						nu2 = nu;
 					}
-					else {
-						bp = bp + (nu->pntsu - 1);
-						if (bp->f1 & SELECT) {
-							nu1 = nu;
+					else if (nu1 == NULL) {
+						nu1 = nu;
+
+						if ((bp->f1 & SELECT) == 0) {
 							BKE_nurb_direction_switch(nu);
 							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
 				}
-				else if (nu2 == NULL) {
-					if (bp->f1 & SELECT) {
-						nu2 = nu;
-						BKE_nurb_direction_switch(nu);
-						keyData_switchDirectionNurb(cu, nu);
+				else if (bp->f1 & SELECT) {
+					if (nu1 == NULL) {
+						nu1 = nu;
 					}
-					else {
-						bp = bp + (nu->pntsu - 1);
-						if (bp->f1 & SELECT) {
-							nu2 = nu;
+					else if (nu2 == NULL) {
+						nu2 = nu;
+
+						if ((bp[nu->pntsu - 1].f1 & SELECT) == 0) {
+							BKE_nurb_direction_switch(nu);
+							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
 				}
-				else {
-					break;
-				}
 			}
+		}
+
+		if (nu1 && nu2) {
+			/* Got second spline, no need to loop over rest of the splines. */
+			break;
 		}
 	}
 
