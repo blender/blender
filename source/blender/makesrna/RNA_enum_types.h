@@ -65,9 +65,14 @@ extern EnumPropertyItem modifier_triangulate_ngon_method_items[];
 
 extern EnumPropertyItem image_type_items[];
 extern EnumPropertyItem image_color_mode_items[];
-extern EnumPropertyItem image_depth_mode_items[];
+extern EnumPropertyItem image_color_depth_items[];
 extern EnumPropertyItem image_generated_type_items[];
 
+extern EnumPropertyItem normal_space_items[];
+extern EnumPropertyItem normal_swizzle_items[];
+extern EnumPropertyItem bake_save_mode_items[];
+
+extern EnumPropertyItem exr_codec_items[];
 extern EnumPropertyItem color_sets_items[];
 
 extern EnumPropertyItem beztriple_keyframe_type_items[];
@@ -118,6 +123,8 @@ extern EnumPropertyItem object_axis_items[];
 extern EnumPropertyItem object_axis_unsigned_items[];
 
 extern EnumPropertyItem controller_type_items[];
+
+extern EnumPropertyItem render_pass_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];
 

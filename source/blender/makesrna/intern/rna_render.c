@@ -38,7 +38,41 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
+#include "RE_engine.h"
 
+
+EnumPropertyItem render_pass_type_items[] = {
+	{SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
+	{SCE_PASS_Z, "Z", 0, "Z", ""},
+	{SCE_PASS_RGBA, "COLOR", 0, "Color", ""},
+	{SCE_PASS_DIFFUSE, "DIFFUSE", 0, "Diffuse", ""},
+	{SCE_PASS_SPEC, "SPECULAR", 0, "Specular", ""},
+	{SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
+	{SCE_PASS_AO, "AO", 0, "AO", ""},
+	{SCE_PASS_REFLECT, "REFLECTION", 0, "Reflection", ""},
+	{SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SCE_PASS_VECTOR, "VECTOR", 0, "Vector", ""},
+	{SCE_PASS_REFRACT, "REFRACTION", 0, "Refraction", ""},
+	{SCE_PASS_INDEXOB, "OBJECT_INDEX", 0, "Object Index", ""},
+	{SCE_PASS_UV, "UV", 0, "UV", ""},
+	{SCE_PASS_MIST, "MIST", 0, "Mist", ""},
+	{SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
+	{SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
+	{SCE_PASS_INDEXMA, "MATERIAL_INDEX", 0, "Material Index", ""},
+	{SCE_PASS_DIFFUSE_DIRECT, "DIFFUSE_DIRECT", 0, "Diffuse Direct", ""},
+	{SCE_PASS_DIFFUSE_INDIRECT, "DIFFUSE_INDIRECT", 0, "Diffuse Indirect", ""},
+	{SCE_PASS_DIFFUSE_COLOR, "DIFFUSE_COLOR", 0, "Diffuse Color", ""},
+	{SCE_PASS_GLOSSY_DIRECT, "GLOSSY_DIRECT", 0, "Glossy Direct", ""},
+	{SCE_PASS_GLOSSY_INDIRECT, "GLOSSY_INDIRECT", 0, "Glossy Indirect", ""},
+	{SCE_PASS_GLOSSY_COLOR, "GLOSSY_COLOR", 0, "Glossy Color", ""},
+	{SCE_PASS_TRANSM_DIRECT, "TRANSMISSION_DIRECT", 0, "Transmission Direct", ""},
+	{SCE_PASS_TRANSM_INDIRECT, "TRANSMISSION_INDIRECT", 0, "Transmission Indirect", ""},
+	{SCE_PASS_TRANSM_COLOR, "TRANSMISSION_COLOR", 0, "Transmission Color", ""},
+	{SCE_PASS_SUBSURFACE_DIRECT, "SUBSURFACE_DIRECT", 0, "Subsurface Direct", ""},
+	{SCE_PASS_SUBSURFACE_INDIRECT, "SUBSURFACE_INDIRECT", 0, "Subsurface Indirect", ""},
+	{SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE_COLOR", 0, "Subsurface Color", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -117,6 +151,30 @@ static void engine_render(RenderEngine *engine, struct Scene *scene)
 	RNA_parameter_list_free(&list);
 }
 
+static void engine_bake(RenderEngine *engine, struct Scene *scene, struct Object *object, const int pass_type,
+                        const struct BakePixel *pixel_array, const int num_pixels, const int depth, void *result)
+{
+	extern FunctionRNA rna_RenderEngine_bake_func;
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func = &rna_RenderEngine_bake_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "scene", &scene);
+	RNA_parameter_set_lookup(&list, "object", &object);
+	RNA_parameter_set_lookup(&list, "pass_type", &pass_type);
+	RNA_parameter_set_lookup(&list, "pixel_array", &pixel_array);
+	RNA_parameter_set_lookup(&list, "num_pixels", &num_pixels);
+	RNA_parameter_set_lookup(&list, "depth", &depth);
+	RNA_parameter_set_lookup(&list, "result", &result);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 static void engine_view_update(RenderEngine *engine, const struct bContext *context)
 {
 	extern FunctionRNA rna_RenderEngine_view_update_func;
@@ -189,7 +247,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine = {NULL};
 	PointerRNA dummyptr;
-	int have_function[5];
+	int have_function[6];
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type = &dummyet;
@@ -226,9 +284,10 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 
 	et->update = (have_function[0]) ? engine_update : NULL;
 	et->render = (have_function[1]) ? engine_render : NULL;
-	et->view_update = (have_function[2]) ? engine_view_update : NULL;
-	et->view_draw = (have_function[3]) ? engine_view_draw : NULL;
-	et->update_script_node = (have_function[4]) ? engine_update_script_node : NULL;
+	et->bake = (have_function[2]) ? engine_bake : NULL;
+	et->view_update = (have_function[3]) ? engine_view_update : NULL;
+	et->view_draw = (have_function[4]) ? engine_view_draw : NULL;
+	et->update_script_node = (have_function[5]) ? engine_update_script_node : NULL;
 
 	BLI_addtail(&R_engines, et);
 
@@ -317,6 +376,12 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 	memcpy(rpass->rect, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
+static PointerRNA rna_BakePixel_next_get(PointerRNA *ptr)
+{
+	BakePixel *bp = ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_BakePixel, bp + 1);
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_render_engine(BlenderRNA *brna)
@@ -343,6 +408,25 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Render scene into an image");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "scene", "Scene", "", "");
+
+	func = RNA_def_function(srna, "bake", NULL);
+	RNA_def_function_ui_description(func, "Bake passes");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+	prop = RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_pointer(func, "object", "Object", "", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_enum(func, "pass_type", render_pass_type_items, 0, "Pass", "Pass to bake");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_pointer(func, "pixel_array", "BakePixel", "", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_int(func, "num_pixels", 0, 0, INT_MAX, "Number of Pixels", "Size of the baking batch", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_int(func, "depth", 0, 0, INT_MAX, "Pixels depth", "Number of channels", 1, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	/* TODO, see how array size of 0 works, this shouldnt be used */
+	prop = RNA_def_pointer(func, "result", "AnyType", "", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	/* viewport render callbacks */
 	func = RNA_def_function(srna, "view_update", NULL);
@@ -588,39 +672,6 @@ static void rna_def_render_pass(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem pass_type_items[] = {
-		{SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
-		{SCE_PASS_Z, "Z", 0, "Z", ""},
-		{SCE_PASS_RGBA, "COLOR", 0, "Color", ""},
-		{SCE_PASS_DIFFUSE, "DIFFUSE", 0, "Diffuse", ""},
-		{SCE_PASS_SPEC, "SPECULAR", 0, "Specular", ""},
-		{SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
-		{SCE_PASS_AO, "AO", 0, "AO", ""},
-		{SCE_PASS_REFLECT, "REFLECTION", 0, "Reflection", ""},
-		{SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
-		{SCE_PASS_VECTOR, "VECTOR", 0, "Vector", ""},
-		{SCE_PASS_REFRACT, "REFRACTION", 0, "Refraction", ""},
-		{SCE_PASS_INDEXOB, "OBJECT_INDEX", 0, "Object Index", ""},
-		{SCE_PASS_UV, "UV", 0, "UV", ""},
-		{SCE_PASS_MIST, "MIST", 0, "Mist", ""},
-		{SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
-		{SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
-		{SCE_PASS_INDEXMA, "MATERIAL_INDEX", 0, "Material Index", ""},
-		{SCE_PASS_DIFFUSE_DIRECT, "DIFFUSE_DIRECT", 0, "Diffuse Direct", ""},
-		{SCE_PASS_DIFFUSE_INDIRECT, "DIFFUSE_INDIRECT", 0, "Diffuse Indirect", ""},
-		{SCE_PASS_DIFFUSE_COLOR, "DIFFUSE_COLOR", 0, "Diffuse Color", ""},
-		{SCE_PASS_GLOSSY_DIRECT, "GLOSSY_DIRECT", 0, "Glossy Direct", ""},
-		{SCE_PASS_GLOSSY_INDIRECT, "GLOSSY_INDIRECT", 0, "Glossy Indirect", ""},
-		{SCE_PASS_GLOSSY_COLOR, "GLOSSY_COLOR", 0, "Glossy Color", ""},
-		{SCE_PASS_TRANSM_DIRECT, "TRANSMISSION_DIRECT", 0, "Transmission Direct", ""},
-		{SCE_PASS_TRANSM_INDIRECT, "TRANSMISSION_INDIRECT", 0, "Transmission Indirect", ""},
-		{SCE_PASS_TRANSM_COLOR, "TRANSMISSION_COLOR", 0, "Transmission Color", ""},
-		{SCE_PASS_SUBSURFACE_DIRECT, "SUBSURFACE_DIRECT", 0, "Subsurface Direct", ""},
-		{SCE_PASS_SUBSURFACE_INDIRECT, "SUBSURFACE_INDIRECT", 0, "Subsurface Indirect", ""},
-		{SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE_COLOR", 0, "Subsurface Color", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	
 	srna = RNA_def_struct(brna, "RenderPass", NULL);
 	RNA_def_struct_ui_text(srna, "Render Pass", "");
 
@@ -641,7 +692,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "passtype");
-	RNA_def_property_enum_items(prop, pass_type_items);
+	RNA_def_property_enum_items(prop, render_pass_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
@@ -653,12 +704,56 @@ static void rna_def_render_pass(BlenderRNA *brna)
 	RNA_define_verify_sdna(1);
 }
 
+static void rna_def_render_bake_pixel(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "BakePixel", NULL);
+	RNA_def_struct_ui_text(srna, "Bake Pixel", "");
+
+	RNA_define_verify_sdna(0);
+
+	prop = RNA_def_property(srna, "primitive_id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "primitive_id");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_sdna(prop, NULL, "uv");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "du_dx", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "du_dx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "du_dy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "du_dy");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "dv_dx", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dv_dx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "dv_dy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dv_dy");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "next", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BakePixel");
+	RNA_def_property_pointer_funcs(prop, "rna_BakePixel_next_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	RNA_define_verify_sdna(1);
+}
+
 void RNA_def_render(BlenderRNA *brna)
 {
 	rna_def_render_engine(brna);
 	rna_def_render_result(brna);
 	rna_def_render_layer(brna);
 	rna_def_render_pass(brna);
+	rna_def_render_bake_pixel(brna);
 }
 
 #endif /* RNA_RUNTIME */

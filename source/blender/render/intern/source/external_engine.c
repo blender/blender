@@ -57,6 +57,7 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
+#include "RE_bake.h"
 
 #include "initrender.h"
 #include "render_types.h"
@@ -67,7 +68,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -76,7 +77,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME,
-	NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -400,6 +401,84 @@ void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
 RenderData *RE_engine_get_render_data(Render *re)
 {
 	return &re->r;
+}
+
+/* Bake */
+void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
+{
+	re->scene = scene;
+	re->main = bmain;
+	re->r = scene->r;
+
+	/* prevent crash when freeing the scene
+	 but it potentially leaves unfreed memory blocks
+	 not sure how to fix this yet -- dfelinto */
+	re->r.layers.first = re->r.layers.last = NULL;
+}
+
+bool RE_bake_has_engine(Render *re)
+{
+	RenderEngineType *type = RE_engines_find(re->r.engine);
+	return (bool)(type->bake);
+}
+
+bool RE_bake_engine(
+        Render *re, Object *object, const BakePixel pixel_array[],
+        const int num_pixels, const int depth,
+        const ScenePassType pass_type, float result[])
+{
+	RenderEngineType *type = RE_engines_find(re->r.engine);
+	RenderEngine *engine;
+	int persistent_data = re->r.mode & R_PERSISTENT_DATA;
+
+	/* set render info */
+	re->i.cfra = re->scene->r.cfra;
+	BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name) - 2);
+	re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
+
+	/* render */
+	engine = re->engine;
+
+	if (!engine) {
+		engine = RE_engine_create(type);
+		re->engine = engine;
+	}
+
+	engine->flag |= RE_ENGINE_RENDERING;
+
+	/* TODO: actually link to a parent which shouldn't happen */
+	engine->re = re;
+
+	engine->resolution_x = re->winx;
+	engine->resolution_y = re->winy;
+
+	RE_parts_init(re, false);
+	engine->tile_x = re->partx;
+	engine->tile_y = re->party;
+
+	/* update is only called so we create the engine.session */
+	if (type->update)
+		type->update(engine, re->main, re->scene);
+
+	if (type->bake)
+		type->bake(engine, re->scene, object, pass_type, pixel_array, num_pixels, depth, result);
+
+	engine->tile_x = 0;
+	engine->tile_y = 0;
+	engine->flag &= ~RE_ENGINE_RENDERING;
+
+	/* re->engine becomes zero if user changed active render engine during render */
+	if (!persistent_data || !re->engine) {
+		RE_engine_free(engine);
+		re->engine = NULL;
+	}
+
+	RE_parts_free(re);
+
+	if (BKE_reports_contain(re->reports, RPT_ERROR))
+		G.is_break = true;
+
+	return true;
 }
 
 /* Render */
