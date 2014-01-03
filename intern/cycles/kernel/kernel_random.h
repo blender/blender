@@ -227,6 +227,8 @@ ccl_device void path_rng_end(KernelGlobals *kg, ccl_global uint *rng_state, RNG 
 
 #endif
 
+/* Linear Congruential Generator */
+
 ccl_device uint lcg_step_uint(uint *rng)
 {
 	/* implicit mod 2^32 */
@@ -246,6 +248,48 @@ ccl_device uint lcg_init(uint seed)
 	uint rng = seed;
 	lcg_step_uint(&rng);
 	return rng;
+}
+
+/* Path Tracing Utility Functions
+ *
+ * For each random number in each step of the path we must have a unique
+ * dimension to avoid using the same sequence twice.
+ *
+ * For branches in the path we must be careful not to reuse the same number
+ * in a sequence and offset accordingly. */
+
+ccl_device_inline float path_state_rng_1D(KernelGlobals *kg, RNG *rng, PathState *state, int dimension)
+{
+	return path_rng_1D(kg, rng, state->sample, state->num_samples, state->rng_offset + dimension);
+}
+
+ccl_device_inline void path_state_rng_2D(KernelGlobals *kg, RNG *rng, PathState *state, int dimension, float *fx, float *fy)
+{
+	path_rng_2D(kg, rng, state->sample, state->num_samples, state->rng_offset + dimension, fx, fy);
+}
+
+ccl_device_inline float path_branched_rng_1D(KernelGlobals *kg, RNG *rng, PathState *state, int branch, int num_branches, int dimension)
+{
+	return path_rng_1D(kg, rng, state->sample*num_branches + branch, state->num_samples*num_branches, state->rng_offset + dimension);
+}
+
+ccl_device_inline void path_branched_rng_2D(KernelGlobals *kg, RNG *rng, PathState *state, int branch, int num_branches, int dimension, float *fx, float *fy)
+{
+	path_rng_2D(kg, rng, state->sample*num_branches + branch, state->num_samples*num_branches, state->rng_offset + dimension, fx, fy);
+}
+
+ccl_device_inline void path_state_branch(PathState *state, int branch, int num_branches)
+{
+	/* path is splitting into a branch, adjust so that each branch
+	 * still gets a unique sample from the same sequence */
+	state->rng_offset += PRNG_BOUNCE_NUM;
+	state->sample = state->sample*num_branches + branch;
+	state->num_samples = state->num_samples*num_branches;
+}
+
+ccl_device inline uint lcg_state_init(RNG *rng, PathState *state, uint scramble)
+{
+	return lcg_init(*rng + state->rng_offset + state->sample*scramble);
 }
 
 CCL_NAMESPACE_END

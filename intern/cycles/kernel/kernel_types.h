@@ -622,14 +622,29 @@ typedef struct VolumeStack {
 #endif
 
 typedef struct PathState {
-	int flag;
-	int bounce;
+	/* see enum PathRayFlag */
+	int flag;          
 
+	/* random number generator state */
+	int rng_offset;    /* dimension offset */
+	int sample;        /* path sample number */
+	int num_samples;   /* total number of times this path will be sampled */
+
+	/* bounce counting */
+	int bounce;
 	int diffuse_bounce;
 	int glossy_bounce;
 	int transmission_bounce;
 	int transparent_bounce;
 
+	/* multiple importance sampling */
+	float min_ray_pdf; /* smallest bounce pdf over entire path up to now */
+	float ray_pdf;     /* last bounce pdf */
+#ifdef __LAMP_MIS__
+	float ray_t;       /* accumulated distance through transparent surfaces */
+#endif
+
+	/* volume rendering */
 #ifdef __VOLUME__
 	RNG rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
