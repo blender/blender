@@ -162,7 +162,7 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
 
         col = layout.column(align=True)
 
-        col.label(text="Objects")
+        col.label(text="Objects:")
         col.operator("group.create")
         col.operator("group.objects_add_active")
         col.operator("group.objects_remove")
@@ -172,7 +172,7 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
 
         col.separator()
         
-        col.label(text="Object Data")
+        col.label(text="Object Data:")
         col.operator("object.make_links_data")
         col.operator("object.make_single_user")
         
