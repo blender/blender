@@ -76,13 +76,13 @@ def draw_gpencil_tools(context, layout):
 class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "objectmode"
-    bl_label = "Add Mesh"
+    bl_label = "Add Primitive"
     
     def draw (self, context):
         layout = self.layout
         
         col = layout.column(align=True)
-        col.label(text="Primitives:")
+        col.label(text="Mesh:")
         col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
         col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
         col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
@@ -90,101 +90,29 @@ class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
         col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
         col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
         col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
-        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
+        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")   
         
         col = layout.column(align=True)
-        col.label(text="Special:")
-        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
-        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
-
-class VIEW3D_PT_tools_add_curve(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Curve"
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
-        col.label(text="Bezier:")
+        col.label(text="Curve:")
         col.operator("curve.primitive_bezier_curve_add", text="Curve", icon="CURVE_BEZCURVE")
         col.operator("curve.primitive_bezier_circle_add", text="Circle", icon="CURVE_BEZCIRCLE")
-        
-        col.label(text="Nurbs:")
-        col.operator("curve.primitive_nurbs_curve_add", text="Curve", icon="CURVE_NCURVE")
-        col.operator("curve.primitive_nurbs_circle_add", text="Circle", icon="CURVE_NCIRCLE")
         col.operator("curve.primitive_nurbs_path_add", text="Path" , icon="CURVE_PATH")
-        
-        
-class VIEW3D_PT_tools_add_surface(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Surface"
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Curve", icon="SURFACE_NCURVE")
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Circle", icon="SURFACE_NCIRCLE")
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Surface", icon="SURFACE_NSURFACE")
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Cylinder", icon="SURFACE_NCYLINDER")
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Sphere", icon="SURFACE_NSPHERE")
-        col.operator("surface.primitive_nurbs_surface_curve_add", text="Torus", icon="SURFACE_NTORUS")
 
-class VIEW3D_PT_tools_add_meta(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Meta"
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
-        col.operator("object.metaball_add", text="Ball", icon="META_BALL").type='BALL'
-        col.operator("object.metaball_add", text="Capsule", icon="META_CAPSULE").type='CAPSULE'
-        col.operator("object.metaball_add", text="Plane", icon="META_PLANE").type='PLANE'
-        col.operator("object.metaball_add", text="Ellipsoid", icon="META_ELLIPSOID").type='ELLIPSOID'
-        col.operator("object.metaball_add", text="Cube", icon="META_CUBE").type='CUBE'
-        
-
-class VIEW3D_PT_tools_add_lamp(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Lamp"
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
+        col.label(text="Lamp:")
         col.operator("object.lamp_add", text="Point", icon="LAMP_POINT").type='POINT'
         col.operator("object.lamp_add", text="Sun", icon="LAMP_SUN").type='SUN'
         col.operator("object.lamp_add", text="Spot", icon="LAMP_SPOT").type='SPOT'
         col.operator("object.lamp_add", text="Hemi", icon="LAMP_HEMI").type='HEMI'
         col.operator("object.lamp_add", text="Area", icon="LAMP_AREA").type='AREA'
-        
-
-class VIEW3D_PT_tools_add_other(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Other"
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
+              
+        col.label(text="Other:")
         col.operator("object.text_add", text="Text", icon ="OUTLINER_OB_FONT")
         col.operator("object.armature_add",text="Armature", icon="OUTLINER_OB_ARMATURE")
         col.operator("object.add", text="Lattice", icon="OUTLINER_OB_LATTICE").type='LATTICE'
         col.operator("object.empty_add", text="Empty", icon="OUTLINER_OB_EMPTY").type='PLAIN_AXES'
-        col.operator("object.speaker_add", text="Speaker", icon="OUTLINER_OB_SPEAKER")
         col.operator("object.camera_add", text="Camera", icon="OUTLINER_OB_CAMERA")
-        col.operator("object.effector_add", text="Force Field", icon="OUTLINER_OB_EMPTY")
+        
 
 class VIEW3D_PT_tools_basic(View3DPanel, Panel):
     bl_category = "Basic"
