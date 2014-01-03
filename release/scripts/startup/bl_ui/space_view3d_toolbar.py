@@ -162,13 +162,15 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
 
         col = layout.column(align=True)
 
-        col.label(text="Objects:")
+        col.label(text="Group:")
         col.operator("group.create", text="New Group")
         col.operator("group.objects_add_active", text="Add to Active")
         col.operator("group.objects_remove", text="Remove from Group")
+        
+        col.label(text="Parent:")
         row = col.row(align=True)
-        row.operator("object.parent_set", text="Set Parent")
-        row.operator("object.parent_clear", text="Clear Parent")
+        row.operator("object.parent_set", text="Set")
+        row.operator("object.parent_clear", text="Clear")
 
         col.separator()
         
