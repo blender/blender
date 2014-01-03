@@ -3611,7 +3611,9 @@ bool BKE_image_has_loaded_ibuf(Image *image)
 	return has_loaded_ibuf;
 }
 
-/* References the result, IMB_freeImBuf is to be called to de-reference. */
+/* References the result, BKE_image_release_ibuf is to be called to de-reference.
+ * Use lock=NULL when calling BKE_image_release_ibuf().
+ */
 ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *name)
 {
 	ImBuf *ibuf = NULL;
@@ -3635,7 +3637,8 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *name)
 	return ibuf;
 }
 
-/* References the result, IMB_freeImBuf is to be called to de-reference.
+/* References the result, BKE_image_release_ibuf is to be called to de-reference.
+ * Use lock=NULL when calling BKE_image_release_ibuf().
  *
  * TODO(sergey): This is actually "get first entry from the cache", which is
  *               not so much predictable. But using first loaded image buffer

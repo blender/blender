@@ -598,7 +598,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 			}
 		}
 	}
-	IMB_freeImBuf(ibuf);
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 	return 1;
 }
 

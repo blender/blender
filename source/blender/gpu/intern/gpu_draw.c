@@ -187,7 +187,7 @@ void GPU_render_text(MTFace *tface, int mode,
 		}
 		glPopMatrix();
 
-		IMB_freeImBuf(first_ibuf);
+		BKE_image_release_ibuf(ima, first_ibuf, NULL);
 	}
 }
 

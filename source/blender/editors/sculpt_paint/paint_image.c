@@ -250,7 +250,6 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 
 	for (tile = lb->first; tile; tile = tile->next) {
 		short use_float;
-		bool need_release = true;
 
 		/* find image based on name, pointer becomes invalid with global undo */
 		if (ima && strcmp(tile->idname, ima->id.name) == 0) {
@@ -269,7 +268,6 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 			 * matched file name in list of already loaded images */
 
 			BKE_image_release_ibuf(ima, ibuf, NULL);
-			need_release = false;
 
 			ibuf = BKE_image_get_ibuf_with_name(ima, tile->ibufname);
 		}
@@ -300,12 +298,7 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 			ibuf->userflags |= IB_MIPMAP_INVALID;  /* force mipmap recreatiom */
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
-		if (need_release) {
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-		}
-		else {
-			IMB_freeImBuf(ibuf);
-		}
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 
 	IMB_freeImBuf(tmpibuf);
