@@ -1664,12 +1664,8 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			if (cu->adt) write_animdata(wd, cu->adt);
 			
 			if (cu->vfont) {
-				/* TODO, sort out 'cu->len', in editmode its character, object mode its bytes */
-				size_t len_bytes;
-				size_t len_chars = BLI_strlen_utf8_ex(cu->str, &len_bytes);
-
-				writedata(wd, DATA, len_bytes + 1, cu->str);
-				writestruct(wd, DATA, "CharInfo", len_chars + 1, cu->strinfo);
+				writedata(wd, DATA, cu->len + 1, cu->str);
+				writestruct(wd, DATA, "CharInfo", cu->len_wchar + 1, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);
 			}
 			else {

@@ -457,25 +457,26 @@ static void buildchar(Main *bmain, Curve *cu, unsigned int character, CharInfo *
 	}
 }
 
-int BKE_vfont_select_get(Object *ob, int *start, int *end)
+int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
 {
 	Curve *cu = ob->data;
+	EditFont *ef = cu->editfont;
 	
-	if (cu->editfont == NULL || ob->type != OB_FONT) return 0;
+	if ((ob->type != OB_FONT) || (ef == NULL)) return 0;
 
-	BLI_assert(cu->selstart >= 0 && cu->selstart <= cu->len + 1);
-	BLI_assert(cu->selend   >= 0 && cu->selend   <= cu->len + 1);
-	BLI_assert(cu->pos      >= 0 && cu->pos      <= cu->len);
+	BLI_assert(ef->selstart >= 0 && ef->selstart <= ef->len + 1);
+	BLI_assert(ef->selend   >= 0 && ef->selend   <= ef->len + 1);
+	BLI_assert(ef->pos      >= 0 && ef->pos      <= ef->len);
 
-	if (cu->selstart == 0) return 0;
-	if (cu->selstart <= cu->selend) {
-		*start = cu->selstart - 1;
-		*end = cu->selend - 1;
+	if (ef->selstart == 0) return 0;
+	if (ef->selstart <= ef->selend) {
+		*r_start = ef->selstart - 1;
+		*r_end = ef->selend - 1;
 		return 1;
 	}
 	else {
-		*start = cu->selend;
-		*end = cu->selstart - 2;
+		*r_start = ef->selend;
+		*r_end = ef->selstart - 2;
 		return -1;
 	}
 }
@@ -497,9 +498,10 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
                         struct CharTrans **r_chartransdata)
 {
+	Curve *cu = ob->data;
+	EditFont *ef = cu->editfont;
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
-	Curve *cu;
 	CharInfo *info = NULL, *custrinfo;
 	TextBox *tb;
 	VChar *che;
@@ -519,7 +521,6 @@ bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
 	BLI_assert(ob->type == OB_FONT);
 
 	/* Set font data */
-	cu = (Curve *) ob->data;
 	vfont = cu->vfont;
 
 	if (cu->str == NULL) return ok;
@@ -533,20 +534,18 @@ bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
 	if (cu->ulheight == 0.0f)
 		cu->ulheight = 0.05f;
 	
-	if (cu->editfont) {
-		slen = cu->len;
-		mem = cu->editfont->textbuf;
-		custrinfo = cu->editfont->textbufinfo;
+	if (ef) {
+		slen = ef->len;
+		mem = ef->textbuf;
+		custrinfo = ef->textbufinfo;
 	}
 	else {
-		size_t utf8len;
-
-		utf8len = BLI_strlen_utf8(cu->str);
+		slen = cu->len_wchar;
 
 		/* Create unicode string */
-		mem = MEM_mallocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
+		mem = MEM_mallocN(((slen + 1) * sizeof(wchar_t)), "convertedmem");
 
-		slen = BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
+		BLI_strncpy_wchar_from_utf8(mem, cu->str, slen + 1);
 
 		if (cu->strinfo == NULL) {  /* old file */
 			cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
@@ -945,10 +944,8 @@ makebreak:
 	}
 
 	if (mode == FO_CURSUP || mode == FO_CURSDOWN || mode == FO_PAGEUP || mode == FO_PAGEDOWN) {
-		/* 2: curs up
-		 * 3: curs down */
-		ct = chartransdata + cu->pos;
-		
+		ct = &chartransdata[ef->pos];
+
 		if ((mode == FO_CURSUP || mode == FO_PAGEUP) && ct->linenr == 0) {
 			/* pass */
 		}
@@ -964,7 +961,7 @@ makebreak:
 			}
 			cnr = ct->charnr;
 			/* seek for char with lnr en cnr */
-			cu->pos = 0;
+			ef->pos = 0;
 			ct = chartransdata;
 			for (i = 0; i < slen; i++) {
 				if (ct->linenr == lnr) {
@@ -975,21 +972,21 @@ makebreak:
 				else if (ct->linenr > lnr) {
 					break;
 				}
-				cu->pos++;
+				ef->pos++;
 				ct++;
 			}
 		}
 	}
 	
 	/* cursor first */
-	if (cu->editfont) {
+	if (ef) {
 		float si, co;
 		
-		ct = chartransdata + cu->pos;
+		ct = &chartransdata[ef->pos];
 		si = sinf(ct->rot);
 		co = cosf(ct->rot);
 
-		f = cu->editfont->textcurs[0];
+		f = ef->textcurs[0];
 		
 		f[0] = cu->fsize * (-0.1f * co + ct->xof);
 		f[1] = cu->fsize * ( 0.1f * si + ct->yof);
@@ -1071,8 +1068,7 @@ makebreak:
 					mem[0] = ascii;
 					mem[1] = 0;
 					custrinfo[0] = *info;
-					cu->pos = 1;
-					cu->len = 1;
+					cu->len = cu->len_wchar = cu->pos = 1;
 					mul_v3_m4v3(ob->loc, ob->obmat, vecyo);
 					outta = 1;
 					cu->sepchar = 0;
@@ -1086,14 +1082,16 @@ makebreak:
 
 finally:
 
-	if (cu->editfont == NULL)
+	if (ef == NULL)
 		MEM_freeN(mem);
 
-	if (r_chartransdata) {
-		*r_chartransdata = chartransdata;
-	}
-	else {
-		MEM_freeN(chartransdata);
+	if (chartransdata) {
+		if (ok && r_chartransdata) {
+			*r_chartransdata = chartransdata;
+		}
+		else {
+			MEM_freeN(chartransdata);
+		}
 	}
 
 	return ok;

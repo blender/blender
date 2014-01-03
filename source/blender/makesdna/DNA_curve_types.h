@@ -216,15 +216,25 @@ typedef struct Curve {
 	 * - strlen(cu->str) object-mode (bytes).
 	 * - BLI_strlen_utf8(cu->str) in edit-mode.
 	 * This should be cleaned up and some point, see 'write_curves' - campbell */
-	short len, lines, pos, spacemode;
+	short lines;
+	char spacemode, pad1;
 	float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
 	float xof, yof;
 	float linewidth;
 
+	int pad3;
+	int len_wchar;  /* number of characters (strinfo) */
+	int len;        /* number of bytes (str - utf8) */
 	char *str;
 	struct SelBox *selboxes;  /* runtime variable for drawing selections (editmode data) */
 	struct EditFont *editfont;
 	
+	/* copy of EditFont vars (wchar_t aligned),
+	 * warning! don't use in editmode (storage only) */
+	int pos;
+	int selstart, selend;
+	int pad2;
+
 	char family[24];
 	struct VFont *vfont;
 	struct VFont *vfontb;
@@ -236,8 +246,6 @@ typedef struct Curve {
 	float ctime;			/* current evaltime - for use by Objects parented to curves */
 	int totbox, actbox;
 	struct TextBox *tb;
-	
-	int selstart, selend;
 	
 	struct CharInfo *strinfo;
 	struct CharInfo curinfo;

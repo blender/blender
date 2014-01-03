@@ -65,6 +65,11 @@ typedef struct EditFont {
 	struct CharInfo *textbufinfo;
 	
 	float textcurs[4][2];
+
+	/* positional vars relative to the textbuf, textbufinfo (not utf8 bytes)
+	 * a copy of these is kept in Curve, but use these in editmode */
+	int len, pos;
+	int selstart, selend;
 	
 } EditFont;
 
@@ -80,7 +85,7 @@ struct VFont *BKE_vfont_load(struct Main *bmain, const char *name);
 bool BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
                         struct CharTrans **r_chartransdata);
 
-int BKE_vfont_select_get(struct Object *ob, int *start, int *end);
+int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 
 #ifdef __cplusplus
 }

@@ -2645,4 +2645,14 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 269, 8)) {
+		Curve *cu;
+
+		for (cu = main->curve.first; cu; cu = cu->id.next) {
+			if (cu->str) {
+				cu->len_wchar = BLI_strlen_utf8(cu->str);
+			}
+		}
+	}
 }

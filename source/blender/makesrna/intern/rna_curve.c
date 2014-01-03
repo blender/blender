@@ -448,28 +448,29 @@ static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 static int rna_Curve_body_length(PointerRNA *ptr)
 {
 	Curve *cu = (Curve *)ptr->id.data;
-	return cu->editfont ? strlen(cu->str) : cu->len;
+	return cu->len;
 }
 
-/* TODO - check UTF & python play nice */
+/* TODO, how to handle editmode? */
 static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 {
-	int len = strlen(value);
+	size_t len_bytes;
+	size_t len_chars = BLI_strlen_utf8_ex(value, &len_bytes);
+
 	Curve *cu = (Curve *)ptr->id.data;
 
-	cu->len = cu->pos = len;
+	cu->len = len_bytes;
+	cu->pos = len_chars;
 
 	if (cu->str)
 		MEM_freeN(cu->str);
 	if (cu->strinfo)
 		MEM_freeN(cu->strinfo);
 
-	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
-	/* don't know why this is +4, just duplicating load_editText() */
-	cu->strinfo = MEM_callocN((len + 4) * sizeof(CharInfo), "strinfo");
+	cu->str = MEM_mallocN(len_bytes + sizeof(wchar_t), "str");
+	cu->strinfo = MEM_callocN((len_chars + 4) * sizeof(CharInfo), "strinfo");
 
-	/*BLI_strncpy_wchar_as_utf8(cu->str, value, len + 1);  *//* value is not wchar_t */
-	BLI_strncpy(cu->str, value, len + 1);
+	BLI_strncpy(cu->str, value, len_bytes + 1);
 }
 
 static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1021,7 +1022,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "body_format", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len");
+	RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len_wchar");
 	RNA_def_property_struct_type(prop, "TextCharacterFormat");
 	RNA_def_property_ui_text(prop, "Character Info", "Stores the style of each character");
 	

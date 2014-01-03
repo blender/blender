@@ -190,7 +190,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 		cu->vfont->id.us += 4;
 		cu->str = MEM_mallocN(12, "str");
 		BLI_strncpy(cu->str, "Text", 12);
-		cu->len = cu->pos = 4;
+		cu->len = cu->len_wchar = cu->pos = 4;
 		cu->strinfo = MEM_callocN(12 * sizeof(CharInfo), "strinfo new");
 		cu->totbox = cu->actbox = 1;
 		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "textbox");
@@ -4041,7 +4041,7 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
 	if (curvetype == OB_FONT) {
 		struct CharInfo *info = cu->strinfo;
 		int i;
-		for (i = cu->len - 1; i >= 0; i--, info++) {
+		for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
 			if (info->mat_nr && info->mat_nr >= index) {
 				info->mat_nr--;
 			}
@@ -4068,7 +4068,7 @@ void BKE_curve_material_index_clear(Curve *cu)
 	if (curvetype == OB_FONT) {
 		struct CharInfo *info = cu->strinfo;
 		int i;
-		for (i = cu->len - 1; i >= 0; i--, info++) {
+		for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
 			info->mat_nr = 0;
 		}
 	}
