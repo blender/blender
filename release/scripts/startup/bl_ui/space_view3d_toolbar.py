@@ -289,6 +289,7 @@ class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
         col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
+    bl_category = "Basic"
     bl_context = "mesh_edit"
     bl_label = "Mesh Tools"
 
@@ -363,6 +364,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
+    bl_category = "Options"
     bl_context = "mesh_edit"
     bl_label = "Mesh Options"
 
