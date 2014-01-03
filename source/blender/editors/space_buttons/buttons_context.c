@@ -1027,7 +1027,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
 				else
 					uiItemLDrag(row, ptr, name, icon);
-								 
+
 				if (name != namebuf)
 					MEM_freeN(name);
 			}

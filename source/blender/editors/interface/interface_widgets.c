@@ -812,7 +812,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
-#define UI_TEXT_CLIP_MARGIN (0.25f * U.widget_unit / but->block->aspect)
+#define UI_TEXT_CLIP_MARGIN (0.22f * U.widget_unit / but->block->aspect)
 
 #define PREVIEW_PAD 4
 
@@ -994,7 +994,7 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
 		const float parts_strwidth = ((float)okwidth - sep_strwidth) / 2.0f;
 
-		if (parts_strwidth < (float)UI_DPI_ICON_SIZE) {
+		if (parts_strwidth < (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 1.5) {
 			/* If we really have no place, only show start of string. */
 			l_end = BLF_width_to_strlen(fstyle->uifont_id, but->drawstr, max_len, okwidth, &strwidth);
 			but->drawstr[l_end] = '\0';
