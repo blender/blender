@@ -33,8 +33,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
@@ -987,13 +985,13 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
 
 	if (strwidth > okwidth) {
-		const char *sep = "...";
-		const int sep_len = strlen(sep);
+		const char sep[] = "...";
+		const int sep_len = sizeof(sep) - 1;
 
 		const size_t max_len = sizeof(but->drawstr);
 		size_t l_end;
 
-		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sizeof(sep));
+		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
 		const float parts_strwidth = ((float)okwidth - sep_strwidth) / 2.0f;
 
 		if (parts_strwidth < (float)UI_DPI_ICON_SIZE) {
