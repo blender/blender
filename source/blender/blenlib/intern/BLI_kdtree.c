@@ -44,6 +44,9 @@ struct KDTree {
 	KDTreeNode *nodes;
 	unsigned int totnode;
 	KDTreeNode *root;
+#ifdef DEBUG
+	bool is_balanced;  /* ensure we call balance first */
+#endif
 };
 
 #define KD_STACK_INIT 100      /* initial size for array (on the stack) */
@@ -61,6 +64,10 @@ KDTree *BLI_kdtree_new(unsigned int maxsize)
 	tree->nodes = MEM_mallocN(sizeof(KDTreeNode) * maxsize, "KDTreeNode");
 	tree->totnode = 0;
 	tree->root = NULL;
+
+#ifdef DEBUG
+	tree->is_balanced = false;
+#endif
 
 	return tree;
 }
@@ -92,6 +99,10 @@ void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float n
 
 	node->index = index;
 	node->d = 0;
+
+#ifdef DEBUG
+	tree->is_balanced = false;
+#endif
 }
 
 static KDTreeNode *kdtree_balance(KDTreeNode *nodes, unsigned int totnode, unsigned int axis)
@@ -144,6 +155,10 @@ static KDTreeNode *kdtree_balance(KDTreeNode *nodes, unsigned int totnode, unsig
 void BLI_kdtree_balance(KDTree *tree)
 {
 	tree->root = kdtree_balance(tree->nodes, tree->totnode, 0);
+
+#ifdef DEBUG
+	tree->is_balanced = true;
+#endif
 }
 
 static float squared_distance(const float v2[3], const float v1[3], const float UNUSED(n1[3]), const float n2[3])
@@ -187,6 +202,10 @@ int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3],
 	KDTreeNode **stack, *defaultstack[KD_STACK_INIT];
 	float min_dist, cur_dist;
 	unsigned int totstack, cur = 0;
+
+#ifdef DEBUG
+	BLI_assert(tree->is_balanced == true);
+#endif
 
 	if (!tree->root)
 		return -1;
@@ -297,6 +316,10 @@ int BLI_kdtree_find_nearest_n(KDTree *tree, const float co[3], const float nor[3
 	float cur_dist;
 	unsigned int totstack, cur = 0;
 	unsigned int i, found = 0;
+
+#ifdef DEBUG
+	BLI_assert(tree->is_balanced == true);
+#endif
 
 	if (!tree->root || n == 0)
 		return 0;
@@ -416,7 +439,11 @@ int BLI_kdtree_range_search(KDTree *tree, const float co[3], const float nor[3],
 	float range2 = range * range, dist2;
 	unsigned int totstack, cur = 0, found = 0, totfoundstack = 0;
 
-	if (!tree || !tree->root)
+#ifdef DEBUG
+	BLI_assert(tree->is_balanced == true);
+#endif
+
+	if (!tree->root)
 		return 0;
 
 	stack = defaultstack;
