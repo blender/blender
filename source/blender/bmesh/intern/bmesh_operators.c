@@ -1466,7 +1466,7 @@ int BMO_iter_map_value_int(BMOIter *iter)
 bool BMO_iter_map_value_bool(BMOIter *iter)
 {
 	BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
-	return **((int **)iter->val);
+	return **((bool **)iter->val);
 }
 
 /* error system */

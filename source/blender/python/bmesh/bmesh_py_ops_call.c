@@ -639,7 +639,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 							void     *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
 							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
-							PyObject *py_val =  PyBool_FromLong(*(int *)&ele_val);
+							PyObject *py_val =  PyBool_FromLong(*(bool *)&ele_val);
 
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);
