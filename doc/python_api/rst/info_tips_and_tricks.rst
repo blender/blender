@@ -115,7 +115,7 @@ While this is not best practice - for testing you can extend the search path, th
    import os
    import bpy
 
-   blend_dir = os.path.basename(bpy.data.filepath)
+   blend_dir = os.path.dirname(bpy.data.filepath)
    if blend_dir not in sys.path:
       sys.path.append(blend_dir)
 
