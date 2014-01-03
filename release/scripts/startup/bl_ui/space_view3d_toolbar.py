@@ -270,6 +270,11 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
         row.operator("object.paths_calculate", text="Calculate")
         row.operator("object.paths_clear", text="Clear")
 
+        col.separator()
+        
+        col.label(text="Action:")
+        col.operator("nla.bake", text="Bake Action")
+
 class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
     bl_category = "Physics"
     bl_context = "objectmode"
