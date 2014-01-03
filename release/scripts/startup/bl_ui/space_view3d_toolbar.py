@@ -271,7 +271,7 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
         row.operator("object.paths_clear", text="Clear")
 
         col.separator()
-        
+
         col.label(text="Action:")
         col.operator("nla.bake", text="Bake Action")
 
@@ -318,7 +318,14 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout     
 
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("ed.undo")
+        row.operator("ed.redo")
+        col.operator("ed.undo_history")
+        
         draw_repeat_tools(context, layout)
+        
 
 # ********** default tools for editmode_mesh ****************
 
