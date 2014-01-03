@@ -78,11 +78,11 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 
-#if (!defined(FREE_WINDOWS)) && (_MSC_VER < 1800)
-#define copysignf(x, y) ((float)_copysign(x, y))
-#define hypotf(x, y) _hypotf(x, y)
-#define isnan(x) _isnan(x)
-#define isfinite(x) _finite(x)
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
+#  define copysignf(x, y) ((float)_copysign(x, y))
+#  define hypotf(x, y) _hypotf(x, y)
+#  define isnan(x) _isnan(x)
+#  define isfinite(x) _finite(x)
 #endif
 
 #endif
