@@ -197,7 +197,7 @@ public:
 
 	CVolumeClosure(int scattering) : CClosurePrimitive(Volume),
 	  m_scattering_label(scattering), m_shaderdata_flag(0)
-	{ memset(&sc, 0, sizeof(sc)); }
+	{}
 	~CVolumeClosure() { }
 
 	int scattering() const { return m_scattering_label; }
