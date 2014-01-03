@@ -137,7 +137,7 @@ class VIEW3D_PT_tools_basic(View3DPanel, Panel):
             col.operator("object.origin_set", text="Set Origin")
 
             col = layout.column(align=True)
-            col.label(text="Object:")
+            col.label(text="Operations:")
             col.operator("object.duplicate_move", text="Duplicate")
             col.operator("object.duplicate_move_linked", text="Duplicate Linked")
             
