@@ -221,6 +221,37 @@ class VIEW3D_PT_tools_basic(View3DPanel, Panel):
             row.operator("object.shade_flat", text="Flat")
 
 
+class VIEW3D_PT_tools_relations(View3DPanel, Panel):
+    bl_category = "Relations"
+    bl_context = "objectmode"
+    bl_label = "Relations"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        col.label(text="Objects")
+        col.operator("group.create")
+        col.operator("group.objects_add_active")
+        col.operator("group.objects_remove")
+        row = col.row(align=True)
+        row.operator("object.parent_set", text="Set Parent")
+        row.operator("object.parent_clear", text="Clear Parent")
+
+        col.separator()
+        
+        col.label(text="Object Data")
+        col.operator("object.make_links_data")
+        col.operator("object.make_single_user")
+        
+        col.separator()
+
+        col.label(text="Linked Objects:")
+        col.operator("object.make_local")
+        col.operator("object.proxy_make")
+
+
 class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     bl_category = "Animation"
     bl_context = "objectmode"
