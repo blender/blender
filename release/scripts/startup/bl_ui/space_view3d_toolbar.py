@@ -167,6 +167,8 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
         col.operator("group.objects_add_active", text="Add to Active")
         col.operator("group.objects_remove", text="Remove from Group")
         
+        col.separator()
+        
         col.label(text="Parent:")
         row = col.row(align=True)
         row.operator("object.parent_set", text="Set")
