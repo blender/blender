@@ -1613,7 +1613,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 {
 	Object *ob, *obar[256] = {NULL};
 	Curve *cu;
-	struct CharTrans *ct, *chartransdata;
+	struct CharTrans *ct, *chartransdata = NULL;
 	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
 	int slen, a;
 	
@@ -1624,7 +1624,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 	
 	/* in par the family name is stored, use this to find the other objects */
 	
-	chartransdata = BKE_vfont_to_curve(G.main, scene, par, FO_DUPLI);
+	BKE_vfont_to_curve(G.main, scene, par, FO_DUPLI, &chartransdata);
 	if (chartransdata == NULL) return;
 
 	cu = par->data;

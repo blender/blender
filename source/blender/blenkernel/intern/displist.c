@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_memarena.h"
@@ -1374,7 +1375,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		ob->curve_cache->path = NULL;
 
 		if (ob->type == OB_FONT)
-			BKE_vfont_to_curve(G.main, scene, ob, 0);
+			BKE_vfont_to_curve(G.main, scene, ob, FO_EDIT, NULL);
 
 		BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
 

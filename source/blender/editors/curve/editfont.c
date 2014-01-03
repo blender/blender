@@ -288,7 +288,7 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	if (mode == FO_EDIT)
 		update_string(cu);
 
-	BKE_vfont_to_curve(bmain, scene, obedit, mode);
+	BKE_vfont_to_curve(bmain, scene, obedit, mode, NULL);
 
 	if (recalc)
 		DAG_id_tag_update(obedit->data, 0);
@@ -955,7 +955,7 @@ static int move_cursor(bContext *C, int type, int select)
 			struct Main *bmain = CTX_data_main(C);
 			cu->selstart = cu->selend = 0;
 			update_string(cu);
-			BKE_vfont_to_curve(bmain, scene, obedit, FO_SELCHANGE);
+			BKE_vfont_to_curve(bmain, scene, obedit, FO_SELCHANGE, NULL);
 		}
 	}
 

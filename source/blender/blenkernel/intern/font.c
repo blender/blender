@@ -494,7 +494,8 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
+bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
+                        struct CharTrans **r_chartransdata)
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
@@ -508,53 +509,56 @@ struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	int i, slen, j;
 	int curbox;
 	int selstart, selend;
-	int utf8len;
 	short cnr = 0, lnr = 0, wsnr = 0;
 	wchar_t *mem, *tmp, ascii;
+	bool ok = false;
 
 	/* remark: do calculations including the trailing '\0' of a string
 	 * because the cursor can be at that location */
 
-	if (ob->type != OB_FONT) return NULL;
+	BLI_assert(ob->type == OB_FONT);
 
 	/* Set font data */
 	cu = (Curve *) ob->data;
 	vfont = cu->vfont;
 
-	if (cu->str == NULL) return NULL;
-	if (vfont == NULL) return NULL;
-
-	/* Create unicode string */
-	utf8len = BLI_strlen_utf8(cu->str);
-	mem = MEM_mallocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
-
-	slen = BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
-
-	if (cu->ulheight == 0.0f)
-		cu->ulheight = 0.05f;
-	
-	if (cu->strinfo == NULL) /* old file */
-		cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
-	
-	custrinfo = cu->strinfo;
-	if (cu->editfont)
-		custrinfo = cu->editfont->textbufinfo;
-	
-	if (cu->tb == NULL)
-		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
+	if (cu->str == NULL) return ok;
+	if (vfont == NULL) return ok;
 
 	vfd = vfont_get_data(bmain, vfont);
 
 	/* The VFont Data can not be found */
-	if (!vfd) {
-		if (mem)
-			MEM_freeN(mem);
-		return NULL;
+	if (!vfd) return ok;
+
+	if (cu->ulheight == 0.0f)
+		cu->ulheight = 0.05f;
+	
+	if (cu->editfont) {
+		slen = cu->len;
+		mem = cu->editfont->textbuf;
+		custrinfo = cu->editfont->textbufinfo;
+	}
+	else {
+		size_t utf8len;
+
+		utf8len = BLI_strlen_utf8(cu->str);
+
+		/* Create unicode string */
+		mem = MEM_mallocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
+
+		slen = BLI_strncpy_wchar_from_utf8(mem, cu->str, utf8len + 1);
+
+		if (cu->strinfo == NULL) {  /* old file */
+			cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
+		}
+		custrinfo = cu->strinfo;
 	}
 
+	if (cu->tb == NULL)
+		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
+
 	/* calc offset and rotation of each char */
-	ct = chartransdata =
-	         (struct CharTrans *)MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
+	ct = chartransdata = MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
 
@@ -628,10 +632,9 @@ makebreak:
 
 		/* No VFont found */
 		if (vfont == NULL) {
-			if (mem)
-				MEM_freeN(mem);
 			MEM_freeN(chartransdata);
-			return NULL;
+			chartransdata = NULL;
+			goto finally;
 		}
 
 		if (vfont != oldvfont) {
@@ -641,10 +644,9 @@ makebreak:
 
 		/* VFont Data for VFont couldn't be found */
 		if (!vfd) {
-			if (mem)
-				MEM_freeN(mem);
 			MEM_freeN(chartransdata);
-			return NULL;
+			chartransdata = NULL;
+			goto finally;
 		}
 
 		twidth = char_width(cu, che, info);
@@ -1010,8 +1012,8 @@ makebreak:
 
 	if (mode == FO_SELCHANGE) {
 		MEM_freeN(chartransdata);
-		MEM_freeN(mem);
-		return NULL;
+		chartransdata = NULL;
+		goto finally;
 	}
 
 	if (mode == FO_EDIT) {
@@ -1080,14 +1082,19 @@ makebreak:
 		}
 	}
 
-	if (mode == FO_DUPLI) {
+	ok = true;
+
+finally:
+
+	if (cu->editfont == NULL)
 		MEM_freeN(mem);
-		return chartransdata;
+
+	if (r_chartransdata) {
+		*r_chartransdata = chartransdata;
+	}
+	else {
+		MEM_freeN(chartransdata);
 	}
 
-	if (mem)
-		MEM_freeN(mem);
-
-	MEM_freeN(chartransdata);
-	return NULL;
+	return ok;
 }

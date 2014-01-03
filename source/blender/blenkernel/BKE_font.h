@@ -77,7 +77,8 @@ void BKE_vfont_free(struct VFont *sc);
 struct VFont *BKE_vfont_builtin_get(void);
 struct VFont *BKE_vfont_load(struct Main *bmain, const char *name);
 
-struct CharTrans *BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode);
+bool BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
+                        struct CharTrans **r_chartransdata);
 
 int BKE_vfont_select_get(struct Object *ob, int *start, int *end);
 

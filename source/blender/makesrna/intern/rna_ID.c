@@ -280,7 +280,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 	if (ob->type == OB_FONT) {
 		Curve *cu = ob->data;
 		freedisplist(&cu->disp);
-		BKE_vfont_to_curve(sce, ob, CU_LEFT);
+		BKE_vfont_to_curve(bmain, sce, ob, FO_EDIT, NULL);
 	}
 #endif
 
