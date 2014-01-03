@@ -544,7 +544,7 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA 
 	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
 	const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
-	if (name) {
+	if (name && name[0]) {
 		BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
 	}
 }
