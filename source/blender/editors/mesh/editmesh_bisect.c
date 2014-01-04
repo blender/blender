@@ -32,6 +32,9 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_global.h"
 #include "BKE_context.h"
@@ -147,6 +150,9 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		G.moving = G_TRANSFORM_EDIT;
 		opdata->twtype = v3d->twtype;
 		v3d->twtype = 0;
+
+		/* initialize modal callout */
+		ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Click and drag to draw cut line"));
 	}
 	return ret;
 }
@@ -167,6 +173,16 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int ret;
 
 	ret = WM_gesture_straightline_modal(C, op, event);
+
+	/* update or clear modal callout */
+	if (event->type == EVT_MODAL_MAP) {
+		if(event->val == GESTURE_MODAL_BEGIN) {
+			ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Release to confirm cut line"));
+		}
+		else {
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+		}
+	}
 
 	if (ret & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
 		edbm_bisect_exit(C, &opdata_back);
