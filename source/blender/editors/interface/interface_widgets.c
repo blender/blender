@@ -973,7 +973,7 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	/* No margin for labels! */
-	const int border = (but->type == LABEL) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
+	const int border = ELEM(but->type, LABEL, MENU) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 	float strwidth;
 
@@ -996,8 +996,10 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
 		const float parts_strwidth = ((float)okwidth - sep_strwidth) / 2.0f;
 
-		if (parts_strwidth < (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 1.5) {
-			/* If we really have no place, only show start of string. */
+		if (min_ff(parts_strwidth, strwidth - okwidth) < (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 1.5) {
+			/* If we really have no place, or we would clip a very small piece of string in the middle,
+			 * only show start of string.
+			 */
 			l_end = BLF_width_to_strlen(fstyle->uifont_id, but->drawstr, max_len, okwidth, &strwidth);
 			but->drawstr[l_end] = '\0';
 		}
