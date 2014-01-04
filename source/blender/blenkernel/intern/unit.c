@@ -69,6 +69,7 @@
 #define UN_SC_HG	0.1f
 #define UN_SC_DAG	0.01f
 #define UN_SC_G		0.001f
+#define UN_SC_MG	0.000001f
 
 #define UN_SC_ITON	907.18474f /* imperial ton */
 #define UN_SC_CWT	45.359237f
@@ -200,6 +201,7 @@ static struct bUnitDef buMetricMassDef[] = {
 	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_SUPPRESS},
 	{"dekagram", "dekagrams",   "dag", NULL, "10 Grams", UN_SC_DAG, 0.0,         B_UNIT_DEF_SUPPRESS},
 	{"gram", "grams",           "g",   NULL, "Grams", UN_SC_G, 0.0,              B_UNIT_DEF_NONE},
+	{"milligram", "milligrams", "mg",  NULL, "Milligrams", UN_SC_MG, 0.0,        B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buMetricMassCollection = {buMetricMassDef, 2, 0, sizeof(buMetricMassDef) / sizeof(bUnitDef)};
