@@ -195,8 +195,6 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        col = layout.column(align=True)
-
         draw_keyframing_tools(context, layout)
 
         col = layout.column(align=True)
