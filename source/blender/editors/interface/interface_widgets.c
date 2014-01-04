@@ -1317,7 +1317,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (but == NULL)
 		return;
 
-	ui_button_text_password_hide(password_str, but, FALSE);
+	ui_button_text_password_hide(password_str, but, false);
 
 	/* check for button text label */
 	if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
@@ -1373,7 +1373,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	/* always draw text for textbutton cursor */
 	widget_draw_text(fstyle, wcol, but, rect);
 
-	ui_button_text_password_hide(password_str, but, TRUE);
+	ui_button_text_password_hide(password_str, but, true);
 }
 
 #undef UI_TEXT_CLIP_MARGIN
@@ -1981,10 +1981,10 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	float xpos, ypos, ang = 0.0f;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a;
-	int color_profile = but->block->color_profile;
+	bool color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = FALSE;
+		color_profile = false;
 	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
@@ -2197,7 +2197,7 @@ bool ui_hsvcube_use_display_colorspace(uiBut *but)
 
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = FALSE;
+			color_profile = false;
 	}
 
 	/* SV+H gradient does not use display colorspace */
@@ -2271,10 +2271,10 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	const float rad = 0.5f * BLI_rcti_size_x(rect);
 	float x, y;
 	float rgb[3], hsv[3], v, range;
-	int color_profile = but->block->color_profile;
+	bool color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = FALSE;
+		color_profile = false;
 
 	ui_get_but_vectorf(but, rgb);
 
@@ -2679,7 +2679,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 {
 	uiWidgetBase wtb;
 	float rad, col[4];
-	int color_profile = but->block->color_profile;
+	bool color_profile = but->block->color_profile;
 	
 	col[3] = 1.0f;
 
@@ -2687,7 +2687,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		BLI_assert(but->rnaindex == -1);
 
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = FALSE;
+			color_profile = false;
 
 		if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4) {
 			col[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);

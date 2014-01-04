@@ -739,11 +739,12 @@ static int compare_panel(const void *a1, const void *a2)
 
 /* this doesnt draw */
 /* returns 1 when it did something */
-static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
+static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bool drag)
 {
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
-	int a, tot = 0, done;
+	int a, tot = 0;
+	bool done;
 	int align = panel_aligned(sa, ar);
 	bool has_category_tabs = UI_panel_category_is_visible(ar);
 	
@@ -815,14 +816,14 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	}
 	
 	/* we interpolate */
-	done = FALSE;
+	done = false;
 	ps = panelsort;
 	for (a = 0; a < tot; a++, ps++) {
 		if ((ps->pa->flag & PNL_SELECT) == 0) {
 			if ((ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
 				ps->orig->ofsx = floorf(0.5f + fac * (float)ps->pa->ofsx + (1.0f - fac) * (float)ps->orig->ofsx);
 				ps->orig->ofsy = floorf(0.5f + fac * (float)ps->pa->ofsy + (1.0f - fac) * (float)ps->orig->ofsy);
-				done = TRUE;
+				done = true;
 			}
 		}
 	}
@@ -887,7 +888,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	fac = min_ff(sqrt(fac), 1.0f);
 
 	/* for max 1 second, interpolate positions */
-	if (uiAlignPanelStep(sa, ar, fac, 0)) {
+	if (uiAlignPanelStep(sa, ar, fac, false)) {
 		ED_region_tag_redraw(ar);
 	}
 	else {
@@ -957,7 +958,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 		if (pa)
 			panel_activate_state(C, pa, PANEL_STATE_ANIMATION);
 		else
-			uiAlignPanelStep(sa, ar, 1.0, 0);
+			uiAlignPanelStep(sa, ar, 1.0, false);
 	}
 
 	/* tag first panel */
@@ -1078,7 +1079,7 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 		panel->ofsy = data->startofsy + dy;
 		check_panel_overlap(ar, panel);
 		
-		if (align) uiAlignPanelStep(sa, ar, 0.2, 1);
+		if (align) uiAlignPanelStep(sa, ar, 0.2, true);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -1834,7 +1835,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		MEM_freeN(data);
 		pa->activedata = NULL;
 
-		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, FALSE);
+		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, false);
 	}
 	else {
 		if (!data) {

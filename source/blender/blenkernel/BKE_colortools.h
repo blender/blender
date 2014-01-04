@@ -59,7 +59,7 @@ int                     curvemap_remove_point(struct CurveMap *cuma, struct Curv
 struct CurveMapPoint   *curvemap_insert(struct CurveMap *cuma, float x, float y);
 void                    curvemap_sethandle(struct CurveMap *cuma, int type);
 
-void                curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
+void                curvemapping_changed(struct CurveMapping *cumap, const bool rem_doubles);
 void                curvemapping_changed_all(struct CurveMapping *cumap);
 
 /* call before _all_ evaluation functions */

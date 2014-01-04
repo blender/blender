@@ -681,7 +681,7 @@ static int sort_curvepoints(const void *a1, const void *a2)
 /* ************************ more CurveMapping calls *************** */
 
 /* note; only does current curvemap! */
-void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
+void curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 {
 	CurveMap *cuma = cumap->cm + cumap->cur;
 	CurveMapPoint *cmp = cuma->curve;

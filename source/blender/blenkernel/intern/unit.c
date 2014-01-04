@@ -29,11 +29,13 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-#include "BKE_unit.h"
 
+#include "BLI_sys_types.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+
+#include "BKE_unit.h"  /* own include */
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -421,7 +423,7 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, bUn
 /* Used for drawing number buttons, try keep fast.
  * Return the length of the generated string.
  */
-size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad)
+size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, bool pad)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 

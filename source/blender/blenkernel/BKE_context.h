@@ -85,7 +85,7 @@ typedef struct bContextStore {
 	struct bContextStore *next, *prev;
 
 	ListBase entries;
-	int used;
+	bool used;
 } bContextStore;
 
 /* for the context's rna mode enum

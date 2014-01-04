@@ -673,8 +673,8 @@ static void view_zoomstep_exit(wmOperator *op)
 static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	short do_zoom_x = TRUE;
-	short do_zoom_y = TRUE;
+	bool do_zoom_x = true;
+	bool do_zoom_y = true;
 
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
@@ -685,7 +685,7 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 		ARegion *ar = CTX_wm_region(C);
 
 		if (ar && ar->regiontype != RGN_TYPE_PREVIEW)
-			do_zoom_y = FALSE;
+			do_zoom_y = false;
 	}
 
 	/* set RNA-Props - zooming in by uniform factor */
@@ -742,8 +742,8 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	short do_zoom_x = TRUE;
-	short do_zoom_y = TRUE;
+	short do_zoom_x = true;
+	short do_zoom_y = true;
 
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
@@ -754,7 +754,7 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 		ARegion *ar = CTX_wm_region(C);
 
 		if (ar && ar->regiontype != RGN_TYPE_PREVIEW)
-			do_zoom_y = FALSE;
+			do_zoom_y = false;
 	}
 
 	/* set RNA-Props - zooming in by uniform factor */
@@ -1214,7 +1214,7 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->poll = view_zoom_poll;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, false);
 }
 
 /* ********************************************************* */
@@ -1274,7 +1274,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 
 	View2D *v2d = &ar->v2d;
 	struct SmoothView2DStore sms = {{0}};
-	short ok = FALSE;
+	bool ok = false;
 	float fac = 1.0f;
 
 	/* initialize sms */
@@ -1290,7 +1290,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	if (smooth_viewtx && fac > FLT_EPSILON) {
 		bool changed = false;
 
-		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == FALSE)
+		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == false)
 			changed = true;
 
 		/* The new view is different from the old one
@@ -1312,12 +1312,12 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 			/* TIMER1 is hardcoded in keymap */
 			v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0); /* max 30 frs/sec */
 
-			ok = TRUE;
+			ok = true;
 		}
 	}
 
 	/* if we get here nothing happens */
-	if (ok == FALSE) {
+	if (ok == false) {
 		v2d->cur = sms.new_cur;
 
 		UI_view2d_curRect_validate(v2d);
@@ -1382,7 +1382,7 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 	ot->flag = OPTYPE_INTERNAL;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, false);
 }
 
 /* ********************************************************* */
@@ -1965,9 +1965,9 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "page", TRUE);
+	RNA_boolean_set(kmi->ptr, "page", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "page", TRUE);
+	RNA_boolean_set(kmi->ptr, "page", true);
 	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);

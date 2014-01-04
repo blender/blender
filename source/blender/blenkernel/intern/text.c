@@ -847,7 +847,7 @@ int txt_utf8_column_to_offset(const char *str, int column)
 	return offset;
 }
 
-void txt_move_up(Text *text, short sel)
+void txt_move_up(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -870,7 +870,7 @@ void txt_move_up(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_down(Text *text, short sel) 
+void txt_move_down(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -892,7 +892,7 @@ void txt_move_down(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_left(Text *text, short sel) 
+void txt_move_left(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -937,7 +937,7 @@ void txt_move_left(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_right(Text *text, short sel) 
+void txt_move_right(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp, do_tab = FALSE, i;
@@ -979,7 +979,7 @@ void txt_move_right(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_jump_left(Text *text, bool sel, bool use_init_step)
+void txt_jump_left(Text *text, const bool sel, const bool use_init_step)
 {
 	TextLine **linep;
 	int *charp;
@@ -996,7 +996,7 @@ void txt_jump_left(Text *text, bool sel, bool use_init_step)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_jump_right(Text *text, bool sel, bool use_init_step)
+void txt_jump_right(Text *text, const bool sel, const bool use_init_step)
 {
 	TextLine **linep;
 	int *charp;
@@ -1013,7 +1013,7 @@ void txt_jump_right(Text *text, bool sel, bool use_init_step)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_bol(Text *text, short sel)
+void txt_move_bol(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -1028,7 +1028,7 @@ void txt_move_bol(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_eol(Text *text, short sel)
+void txt_move_eol(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -1043,7 +1043,7 @@ void txt_move_eol(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_bof(Text *text, short sel)
+void txt_move_bof(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -1059,7 +1059,7 @@ void txt_move_bof(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_eof(Text *text, short sel)
+void txt_move_eof(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -1075,13 +1075,13 @@ void txt_move_eof(Text *text, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-void txt_move_toline(Text *text, unsigned int line, short sel)
+void txt_move_toline(Text *text, unsigned int line, const bool sel)
 {
 	txt_move_to(text, line, 0, sel);
 }
 
 /* Moves to a certain byte in a line, not a certain utf8-character! */
-void txt_move_to(Text *text, unsigned int line, unsigned int ch, short sel)
+void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
 {
 	TextLine **linep;
 	int *charp;

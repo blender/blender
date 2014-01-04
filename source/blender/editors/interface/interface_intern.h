@@ -223,7 +223,7 @@ struct uiBut {
 	const char *tip, *lockstr;
 
 	BIFIconID icon;
-	char lock;
+	bool lock;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied from the block */
 	char changed; /* could be made into a single flag */
 	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
@@ -319,7 +319,7 @@ struct uiBlock {
 
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
-	char auto_open;
+	bool auto_open;
 	char _pad[7];
 	double auto_open_last;
 
@@ -347,7 +347,7 @@ struct uiBlock {
 	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
 	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
 
-	char color_profile;         /* color profile for correcting linear colors for display */
+	bool color_profile;         /* color profile for correcting linear colors for display */
 
 	const char *display_device; /* display device name used to display this block,
 	                             * used by color widgets to transform colors from/to scene linear
@@ -522,7 +522,7 @@ extern void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern bool ui_button_is_active(struct ARegion *ar);
 extern int ui_button_open_menu_direction(uiBut *but);
-extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore);
+extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 void ui_button_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
 

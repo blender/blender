@@ -150,7 +150,7 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		flag = RNA_property_flag(prop);
-		if (flag & PROP_HIDDEN || (check_prop && check_prop(ptr, prop) == FALSE))
+		if (flag & PROP_HIDDEN || (check_prop && check_prop(ptr, prop) == 0))
 			continue;
 
 		if (label_align != '\0') {
@@ -160,17 +160,17 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 			name = RNA_property_ui_name(prop);
 
 			if (label_align == 'V') {
-				col = uiLayoutColumn(layout, TRUE);
+				col = uiLayoutColumn(layout, true);
 
 				if (!is_boolean)
 					uiItemL(col, name, ICON_NONE);
 			}
 			else if (label_align == 'H') {
-				split = uiLayoutSplit(layout, 0.5f, FALSE);
+				split = uiLayoutSplit(layout, 0.5f, false);
 
-				col = uiLayoutColumn(split, FALSE);
+				col = uiLayoutColumn(split, false);
 				uiItemL(col, (is_boolean) ? "" : name, ICON_NONE);
-				col = uiLayoutColumn(split, FALSE);
+				col = uiLayoutColumn(split, false);
 			}
 			else {
 				col = NULL;

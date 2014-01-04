@@ -1308,7 +1308,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	glBegin(GL_LINE_STRIP);
 	
 	if (cuma->table == NULL)
-		curvemapping_changed(cumap, FALSE);
+		curvemapping_changed(cumap, false);
 	cmp = cuma->table;
 	
 	/* first point */
@@ -1405,7 +1405,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
 		                                            scopes->track_search, scopes->track,
-		                                            &scopes->undist_marker, TRUE, scopes->use_track_mask,
+		                                            &scopes->undist_marker, true, scopes->use_track_mask,
 		                                            width, height, scopes->track_pos);
 
 		if (tmpibuf) {

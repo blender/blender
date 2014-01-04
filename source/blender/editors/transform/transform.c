@@ -4086,7 +4086,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char str[MAX_INFO_LEN]
 
 			for (i = 0; i < 3; i++) {
 				bUnit_AsString(&tvec[NUM_STR_REP_LEN * i], NUM_STR_REP_LEN, dvec[i] * t->scene->unit.scale_length,
-				               4, t->scene->unit.system, B_UNIT_LENGTH, do_split, 1);
+				               4, t->scene->unit.system, B_UNIT_LENGTH, do_split, true);
 			}
 		}
 		else {
@@ -4098,7 +4098,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char str[MAX_INFO_LEN]
 
 	if (!(t->flag & T_2D_EDIT) && t->scene->unit.system)
 		bUnit_AsString(distvec, sizeof(distvec), dist * t->scene->unit.scale_length, 4, t->scene->unit.system,
-		               B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
+		               B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, false);
 	else if (dist > 1e10f || dist < -1e10f)     /* prevent string buffer overflow */
 		BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4e", dist);
 	else

@@ -166,9 +166,8 @@ void applyNumInput(NumInput *n, float *vec)
 static void value_to_editstr(NumInput *n, int idx)
 {
 	const int prec = 6; /* editing, higher precision needed. */
-	bUnit_AsString(n->str, NUM_STR_REP_LEN, (double)n->val[idx], prec,
-	               n->unit_sys, n->unit_type[idx], true, false);
-	n->str_cur = strlen(n->str);
+	n->str_cur = bUnit_AsString(n->str, NUM_STR_REP_LEN, (double)n->val[idx], prec,
+	                            n->unit_sys, n->unit_type[idx], true, false);
 }
 
 static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf_len)

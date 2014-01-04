@@ -580,7 +580,7 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 
 
 /* return -1 on error, else 0 */
-int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
+int BPY_button_exec(bContext *C, const char *expr, double *value, const bool verbose)
 {
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;

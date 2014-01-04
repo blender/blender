@@ -1086,7 +1086,7 @@ static int get_draw_size(enum eIconSizes size)
 
 
 static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
-                           enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
+                           enum eIconSizes size, int draw_size, const bool UNUSED(nocreate), const bool is_preview)
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
@@ -1313,10 +1313,11 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 	return rnaicon;
 }
 
-static void icon_draw_at_size(float x, float y, int icon_id, float aspect, float alpha, enum eIconSizes size, int nocreate)
+static void icon_draw_at_size(float x, float y, int icon_id, float aspect, float alpha,
+                              enum eIconSizes size, const bool nocreate)
 {
 	int draw_size = get_draw_size(size);
-	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, nocreate, FALSE);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, nocreate, false);
 }
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
@@ -1327,7 +1328,7 @@ void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alph
 void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, const float rgb[3])
 {
 	int draw_size = get_draw_size(ICON_SIZE_ICON);
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, FALSE, FALSE);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, false, false);
 }
 
 /* draws icon with dpi scale factor */
@@ -1338,7 +1339,7 @@ void UI_icon_draw(float x, float y, int icon_id)
 
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
-	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, TRUE, FALSE);
+	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, true, false);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id)
@@ -1353,6 +1354,6 @@ void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
 
 void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, int size)
 {
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, ICON_SIZE_PREVIEW, size, FALSE, TRUE);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, ICON_SIZE_PREVIEW, size, false, true);
 }
 
