@@ -177,7 +177,7 @@ enum {
 #define UI_PANEL_WIDTH          340
 #define UI_COMPACT_PANEL_WIDTH  160
 
-#define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 0.9f)
+#define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 1.0f)
 
 /* but->drawflag - these flags should only affect how the button is drawn. */
 /* Note: currently, these flags _are not passed_ to the widget's state() or draw() functions
