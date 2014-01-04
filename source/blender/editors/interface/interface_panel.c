@@ -1386,16 +1386,19 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 #define USE_FLAT_INACTIVE
 	View2D *v2d = &ar->v2d;
 	uiStyle *style = UI_GetStyle();
-	const int fontid = style->widget.uifont_id;
+	const uiFontStyle *fstyle = &style->widget;
+	const int fontid = fstyle->uifont_id;
+	short fstyle_points = fstyle->points;
 
 	PanelCategoryDyn *pc_dyn;
-	const float zoom = 1.0f / ((uiBlock *)ar->uiblocks.first)->aspect;
+	const float aspect = ((uiBlock *)ar->uiblocks.first)->aspect;
+	const float zoom = 1.0f / aspect;
 	const int px = max_ii(1.0, (int)U.pixelsize + 0.5f);
 	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom;
 	const float dpi_fac = UI_DPI_FAC;
-	const int tab_v_pad_text = ((px * 3) * dpi_fac) * zoom;  /* pading of tabs around text */
-	const int tab_v_pad = (2 + (2 * px * dpi_fac)) * zoom;  /* padding between tabs */
-	const float tab_curve_radius = (px * 2) * dpi_fac;
+	const int tab_v_pad_text = (2 + ((px * 3) * dpi_fac)) * zoom;  /* pading of tabs around text */
+	const int tab_v_pad = (4 + (2 * px * dpi_fac)) * zoom;  /* padding between tabs */
+	const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
 	const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
 	bool do_scaletabs = false;
 #ifdef USE_FLAT_INACTIVE
@@ -1436,11 +1439,15 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	blend_color_interpolate_byte(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
 	blend_color_interpolate_byte(theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
 
+	if (fstyle->kerning == 1) {
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 	BLF_enable(fontid, BLF_ROTATION);
 	BLF_rotation(fontid, M_PI / 2);
 	//uiStyleFontSet(&style->widget);
-	BLF_size(fontid, (style->widget.points * U.pixelsize) * zoom, U.dpi);
+	ui_fontscale(&fstyle_points, aspect);
+	BLF_size(fontid, (fstyle_points * U.pixelsize), U.dpi);
 
 	BLI_assert(UI_panel_category_is_visible(ar));
 
@@ -1571,6 +1578,10 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	glDisable(GL_LINE_SMOOTH);
 
 	BLF_disable(fontid, BLF_ROTATION);
+
+	if (fstyle->kerning == 1) {
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	}
 
 #undef USE_FLAT_INACTIVE
 }
