@@ -812,7 +812,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
-#define UI_TEXT_CLIP_MARGIN (0.22f * U.widget_unit / but->block->aspect)
+#define UI_TEXT_CLIP_MARGIN (0.25f * U.widget_unit / but->block->aspect)
 
 #define PREVIEW_PAD 4
 
@@ -942,7 +942,8 @@ static void ui_text_clip_give_next_off(uiBut *but)
  */
 static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
-	const int border = UI_TEXT_CLIP_MARGIN + 1;
+	/* We are not supposed to use labels with that clipping, so we can always apply margins. */
+	const int border = (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 
 	/* need to set this first */
@@ -971,7 +972,8 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
  */
 static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
-	const int border = UI_TEXT_CLIP_MARGIN + 1;
+	/* No margin for labels! */
+	const int border = (but->type == LABEL) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 	float strwidth;
 
@@ -1034,7 +1036,7 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
  */
 static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
-	const int border = UI_TEXT_CLIP_MARGIN + 1;
+	const int border = (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 
 	BLI_assert(but->editstr && but->pos >= 0);
