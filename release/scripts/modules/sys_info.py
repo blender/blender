@@ -163,7 +163,4 @@ def write_sysinfo(op):
         for l in glext:
             output.write("\t\t%r\n" % (l))
 
-    # Back to first line, so everything is still in sight
-    output.jump(1)
-
     op.report({'INFO'}, "System information generated in 'system-info.txt'")

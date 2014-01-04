@@ -50,20 +50,6 @@ static void rna_Text_write(Text *text, const char *str)
 	WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
-static void rna_Text_jump(Text *text, int line)
-{
-	short nlines = txt_get_span(text->lines.first, text->lines.last) + 1;
-	
-	if (line < 1)
-		txt_move_toline(text, 1, 0);
-	else if (line > nlines)
-		txt_move_toline(text, nlines - 1, 0);
-	else
-		txt_move_toline(text, line - 1, 0);
-		
-	WM_main_add_notifier(NC_TEXT | ND_CURSOR, text);
-}
-
 #else
 
 void RNA_api_text(StructRNA *srna)
@@ -75,15 +61,9 @@ void RNA_api_text(StructRNA *srna)
 	RNA_def_function_ui_description(func, "clear the text block");
 
 	func = RNA_def_function(srna, "write", "rna_Text_write");
-	RNA_def_function_ui_description(func, "Write text at the cursor location and advance to the end of the text block");
+	RNA_def_function_ui_description(func, "write text at the cursor location and advance to the end of the text block");
 	prop = RNA_def_string(func, "text", "Text", 0, "", "New text for this datablock");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	
-	func = RNA_def_function(srna, "jump", "rna_Text_jump");
-	RNA_def_function_ui_description(func, "Move cursor location to the start of the specified line");
-	prop = RNA_def_int(func, "line_number", 1, 1, INT_MAX, "Line", "Line number to jump to", 1, 10000);
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	/* TODO: include optional parameter for character on line to jump to? */
 }
 
 #endif
