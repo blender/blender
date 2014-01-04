@@ -429,9 +429,8 @@ static EnumPropertyItem prop_gpencil_convert_timingmodes[] = {
 };
 
 static EnumPropertyItem *rna_GPConvert_mode_items(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
-                                                  int *free)
+                                                  bool *UNUSED(r_free))
 {
-	*free = FALSE;
 	if (RNA_boolean_get(ptr, "use_timing_data")) {
 		return prop_gpencil_convert_timingmodes;
 	}

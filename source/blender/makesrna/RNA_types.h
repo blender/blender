@@ -301,7 +301,7 @@ typedef void (*StringPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA
 typedef int (*EnumPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*EnumPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 /* same as PropEnumItemFunc */
-typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, struct PropertyRNA *prop, int *free);
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 
 typedef struct PropertyRNA PropertyRNA;
 

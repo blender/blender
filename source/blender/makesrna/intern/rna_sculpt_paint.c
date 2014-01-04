@@ -145,7 +145,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	pset->brushtype = value;
 }
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                     PropertyRNA *UNUSED(prop), int *UNUSED(free))
+                                                     PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;

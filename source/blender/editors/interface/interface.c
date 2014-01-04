@@ -2956,7 +2956,8 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		if (type == MENU && proptype == PROP_ENUM) {
 			EnumPropertyItem *item;
 			DynStr *dynstr;
-			int i, totitem, value, free;
+			int i, totitem, value;
+			bool free;
 
 			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 			value = RNA_property_enum_get(ptr, prop);
@@ -2989,7 +2990,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		}
 		else if (ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
 			EnumPropertyItem *item, *item_array = NULL;
-			int free;
+			bool free;
 
 			/* get untranslated, then translate the single string we need */
 			RNA_property_enum_items(block->evil_C, ptr, prop, &item_array, NULL, &free);
@@ -3904,7 +3905,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *but, const c
 	else {
 		PointerRNA *ptr = uiButGetOperatorPtrRNA(but);  /* Will create it if needed! */
 		EnumPropertyItem *item, *item_array;
-		int do_free;
+		bool do_free;
 
 		RNA_property_enum_items((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
 
@@ -3986,7 +3987,8 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 	uiStringInfo *si;
 
 	EnumPropertyItem *items = NULL, *item = NULL;
-	int totitems, free_items = FALSE;
+	int totitems;
+	bool free_items = false;
 
 	va_start(args, but);
 	while ((si = (uiStringInfo *) va_arg(args, void *))) {

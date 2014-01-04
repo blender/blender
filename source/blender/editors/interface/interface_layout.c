@@ -547,7 +547,8 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 	uiBut *but;
 	EnumPropertyItem *item, *item_array;
 	const char *name;
-	int itemw, icon, value, free;
+	int itemw, icon, value;
+	bool free;
 
 	RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item_array, NULL, &free);
 
@@ -798,7 +799,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 static const char *ui_menu_enumpropname(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int retval)
 {
 	EnumPropertyItem *item;
-	int free;
+	bool free;
 	const char *name;
 
 	RNA_property_enum_items(layout->root->block->evil_C, ptr, prop, &item, NULL, &free);
@@ -877,7 +878,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 
 	if (prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item, *item_array = NULL;
-		int free;
+		bool free;
 		uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
 		uiLayout *column = uiLayoutColumn(split, false);
 
@@ -979,7 +980,8 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	PropertyRNA *prop;
 
 	EnumPropertyItem *item;
-	int value, free;
+	int value;
+	bool free;
 
 	UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -1096,7 +1098,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 		else if (type == PROP_ENUM) {
 			/* Find the longest enum item name, instead of using a dummy text! */
 			EnumPropertyItem *item, *item_array;
-			int free;
+			bool free;
 
 			RNA_property_enum_items_gettexted(layout->root->block->evil_C, ptr, prop, &item_array, NULL, &free);
 			for (item = item_array; item->identifier; item++) {
@@ -1272,7 +1274,8 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	EnumPropertyItem *item;
-	int ivalue, a, free;
+	int ivalue, a;
+	bool free;
 
 	if (!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
@@ -1325,7 +1328,8 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 	}
 	else {
 		EnumPropertyItem *item;
-		int totitem, i, free;
+		int totitem, i;
+		bool free;
 		uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
 		uiLayout *column = uiLayoutColumn(split, false);
 

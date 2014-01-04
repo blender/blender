@@ -367,7 +367,7 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 
 
 static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), int *free)
+                                                           PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	MTex *mtex = ptr->data;
 	Tex *tex = mtex->tex;
@@ -397,7 +397,7 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *UNUSED(C), 
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 
 	return item;
 }

@@ -388,7 +388,7 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 }
 
 static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop), int *UNUSED(free))
+                                                   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	static EnumPropertyItem prop_default_items[] = {
 		{0, NULL, 0, NULL, NULL}

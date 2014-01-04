@@ -294,7 +294,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 }
 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                PropertyRNA *UNUSED(prop), int *free)
+                                                                PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Material *ma = (Material *)ptr->id.data;
 	EnumPropertyItem *item = NULL;
@@ -318,7 +318,7 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 	
 	return item;
 }

@@ -105,7 +105,7 @@ static bool check_group_contains_object_recursive(Group *group, Object *object)
 }
 
 /* can be called with C == NULL */
-static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Object *ob;
 	EnumPropertyItem *item = NULL, item_tmp = {0};
@@ -146,7 +146,7 @@ static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUS
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 
 	return item;
 }

@@ -861,7 +861,7 @@ static int edbm_select_similar_exec(bContext *C, wmOperator *op)
 }
 
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
-                                                   int *free)
+                                                   bool *r_free)
 {
 	Object *obedit;
 
@@ -897,7 +897,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 		}
 		RNA_enum_item_end(&item, &totitem);
 
-		*free = 1;
+		*r_free = true;
 
 		return item;
 	}

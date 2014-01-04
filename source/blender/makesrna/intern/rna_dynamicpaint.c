@@ -246,7 +246,7 @@ static int rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Objec
 
 
 static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(
-        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
@@ -291,7 +291,7 @@ static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 
 	return item;
 }

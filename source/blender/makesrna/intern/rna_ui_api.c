@@ -280,7 +280,7 @@ static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char
 {
 	PropertyRNA *prop = NULL;
 	EnumPropertyItem *items = NULL, *item;
-	int free;
+	bool free;
 	const char *name = "";
 
 	prop = RNA_struct_find_property(ptr, propname);
@@ -311,7 +311,7 @@ static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, con
 {
 	PropertyRNA *prop = NULL;
 	EnumPropertyItem *items = NULL, *item;
-	int free;
+	bool free;
 	const char *desc = "";
 
 	prop = RNA_struct_find_property(ptr, propname);
@@ -341,7 +341,7 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 {
 	PropertyRNA *prop = NULL;
 	EnumPropertyItem *items = NULL, *item;
-	int free;
+	bool free;
 	int icon = ICON_NONE;
 
 	prop = RNA_struct_find_property(ptr, propname);

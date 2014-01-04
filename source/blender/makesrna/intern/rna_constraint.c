@@ -308,7 +308,7 @@ static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)
 }
 
 static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                          PropertyRNA *UNUSED(prop), int *UNUSED(free))
+                                                          PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Object *ob = (Object *)ptr->id.data;
 	bConstraint *con = (bConstraint *)ptr->data;
@@ -320,7 +320,7 @@ static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED(C), P
 }
 
 static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), int *UNUSED(free))
+                                                           PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
 	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);

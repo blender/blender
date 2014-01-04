@@ -803,7 +803,7 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 }
 
 static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr,
-                                                        PropertyRNA *prop_parent, int *free)
+                                                        PropertyRNA *prop_parent, bool *r_free)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	EnumPropertyRNA *eprop;
@@ -824,7 +824,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 		return eprop->item;
 	}
 
-	return eprop->itemf(C, ptr, prop, free);
+	return eprop->itemf(C, ptr, prop, r_free);
 }
 
 /* XXX - not sure this is needed? */
@@ -847,7 +847,8 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	/* EnumPropertyRNA *eprop;  *//* UNUSED */
 	EnumPropertyItem *item = NULL;
-	int totitem, free = 0;
+	int totitem;
+	bool free;
 	
 	rna_idproperty_check(&prop, ptr);
 	/* eprop = (EnumPropertyRNA *)prop; */

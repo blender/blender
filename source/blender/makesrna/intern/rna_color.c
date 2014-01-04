@@ -412,7 +412,7 @@ static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA
 }
 
 static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
@@ -420,7 +420,7 @@ static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(
 	IMB_colormanagement_display_items_add(&items, &totitem);
 	RNA_enum_item_end(&items, &totitem);
 
-	*free = TRUE;
+	*r_free = true;
 
 	return items;
 }
@@ -465,7 +465,7 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
 }
 
 static EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(
-        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Scene *scene = CTX_data_scene(C);
 	EnumPropertyItem *items = NULL;
@@ -475,7 +475,7 @@ static EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(
 	IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
 	RNA_enum_item_end(&items, &totitem);
 
-	*free = TRUE;
+	*r_free = true;
 	return items;
 }
 
@@ -498,7 +498,7 @@ static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
 }
 
 static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
@@ -506,7 +506,7 @@ static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(
 	IMB_colormanagement_look_items_add(&items, &totitem);
 	RNA_enum_item_end(&items, &totitem);
 
-	*free = TRUE;
+	*r_free = true;
 	return items;
 }
 
@@ -550,7 +550,7 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA 
 }
 
 static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
@@ -558,7 +558,7 @@ static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(
 	IMB_colormanagement_colorspace_items_add(&items, &totitem);
 	RNA_enum_item_end(&items, &totitem);
 
-	*free = TRUE;
+	*r_free = true;
 
 	return items;
 }

@@ -1165,7 +1165,7 @@ static int weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, cons
 	}
 	return found;
 }
-static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	if (C) {
 		wmWindow *win = CTX_wm_window(C);
@@ -1224,7 +1224,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 					}
 
 					RNA_enum_item_end(&item, &totitem);
-					*free = 1;
+					*r_free = true;
 
 					MEM_freeN(groups);
 					return item;

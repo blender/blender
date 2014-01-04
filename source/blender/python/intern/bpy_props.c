@@ -1430,7 +1430,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	return items;
 }
 
-static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int *free)
+static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
 {
 	PyGILState_STATE gilstate;
 
@@ -1483,7 +1483,7 @@ static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *
 	}
 
 	if (err != -1) { /* worked */
-		*free = 1;
+		*r_free = true;
 	}
 	else {
 		printf_func_error(py_func);

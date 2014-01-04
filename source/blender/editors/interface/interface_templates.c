@@ -1584,7 +1584,8 @@ static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
 	uiBut *but;
 	int icon;
 	EnumPropertyItem *item;
-	int a, free;
+	int a;
+	bool free;
 
 	/* arg_litem is malloced, can be freed by parent button */
 	cb = *((RNAUpdateCb *)arg_litem);

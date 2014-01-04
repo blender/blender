@@ -638,7 +638,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {	
 	Object *ob = CTX_data_edit_object(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -660,7 +660,7 @@ static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), Pr
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 	
 	return item;
 }

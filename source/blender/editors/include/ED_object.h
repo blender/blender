@@ -216,7 +216,7 @@ struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         const struct bContext *C,
         struct PointerRNA *ptr,
         struct PropertyRNA *prop,
-        int *free,
+        bool *r_free,
         const unsigned int selection_mask);
 
 void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object);

@@ -1126,7 +1126,7 @@ static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	EnumPropertyItem *item;
 	const char *result;
-	int free = false;
+	bool free = false;
 
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 	if (item) {
@@ -1205,7 +1205,7 @@ static int pyrna_prop_to_enum_bitfield(PointerRNA *ptr, PropertyRNA *prop, PyObj
 {
 	EnumPropertyItem *item;
 	int ret;
-	int free = false;
+	bool free = false;
 
 	*r_value = 0;
 
@@ -1285,7 +1285,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 		}
 		else {
 			EnumPropertyItem *enum_item;
-			int free = false;
+			bool free = false;
 
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */

@@ -383,7 +383,7 @@ typedef struct ArrayIterator {
 } ArrayIterator;
 
 void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length,
-                              int free_ptr, IteratorSkipFunc skip);
+                              bool free_ptr, IteratorSkipFunc skip);
 void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);

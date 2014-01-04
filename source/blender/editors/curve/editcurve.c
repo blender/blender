@@ -6469,7 +6469,7 @@ static EnumPropertyItem curve_delete_type_items[] = {
 };
 
 static EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                            PropertyRNA *UNUSED(prop), int *free)
+                                                            PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -6480,7 +6480,7 @@ static EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UN
 	RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_VERTEX);
 	RNA_enum_items_add_value(&item, &totitem, curve_delete_type_items, CURVE_SEGMENT);
 	RNA_enum_item_end(&item, &totitem);
-	*free = true;
+	*r_free = true;
 
 	return item;
 }

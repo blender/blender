@@ -1215,40 +1215,40 @@ EnumPropertyItem DummyRNA_DEFAULT_items[] = {
 };
 
 void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item,
-                             int *totitem, int *free)
+                             int *r_totitem, bool *r_free)
 {
 	EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
-	*free = 0;
+	*r_free = false;
 
 	if (eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
 		int tot = 0;
 
 		if (prop->flag & PROP_ENUM_NO_CONTEXT)
-			*item = eprop->itemf(NULL, ptr, prop, free);
+			*item = eprop->itemf(NULL, ptr, prop, r_free);
 		else
-			*item = eprop->itemf(C, ptr, prop, free);
+			*item = eprop->itemf(C, ptr, prop, r_free);
 
-		if (totitem) {
+		if (r_totitem) {
 			if (*item) {
 				for (; (*item)[tot].identifier; tot++) ;
 			}
 
-			*totitem = tot;
+			*r_totitem = tot;
 		}
 
 	}
 	else {
 		*item = eprop->item;
-		if (totitem)
-			*totitem = eprop->totitem;
+		if (r_totitem)
+			*r_totitem = eprop->totitem;
 	}
 }
 
-void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop,
-                                       EnumPropertyItem **item, int *totitem, int *free)
+void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item,
+                                       int *r_totitem, bool *r_free)
 {
-	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
+	RNA_property_enum_items(C, ptr, prop, item, r_totitem, r_free);
 
 #ifdef WITH_INTERNATIONAL
 	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
@@ -1261,7 +1261,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 		if (!(do_iface || do_tooltip))
 			return;
 
-		if (*free) {
+		if (*r_free) {
 			nitem = *item;
 		}
 		else {
@@ -1276,7 +1276,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 			for (i = 0; (*item)[i].identifier; i++)
 				nitem[i] = (*item)[i];
 
-			*free = TRUE;
+			*r_free = true;
 		}
 
 		for (i = 0; nitem[i].identifier; i++) {
@@ -1297,7 +1297,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 bool RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *r_value)
 {
 	EnumPropertyItem *item, *item_array;
-	int free;
+	bool free;
 	bool found;
 
 	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
@@ -1371,7 +1371,7 @@ bool RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *pro
                                   const char **identifier)
 {
 	EnumPropertyItem *item = NULL;
-	int free;
+	bool free;
 	
 	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 	if (item) {
@@ -1388,7 +1388,7 @@ bool RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 bool RNA_property_enum_name(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
 {
 	EnumPropertyItem *item = NULL;
-	int free;
+	bool free;
 	
 	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 	if (item) {
@@ -1406,7 +1406,7 @@ int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, Property
                                           const char **identifier)
 {
 	EnumPropertyItem *item = NULL;
-	int free;
+	bool free;
 
 	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 	if (item) {
@@ -3641,7 +3641,7 @@ PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, struct List
 }
 
 void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length,
-                              int free_ptr, IteratorSkipFunc skip)
+                              bool free_ptr, IteratorSkipFunc skip)
 {
 	ArrayIterator *internal;
 
@@ -4698,7 +4698,7 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 	EnumPropertyItem *item;
-	int free;
+	bool free;
 
 	if (prop) {
 		RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
@@ -5250,7 +5250,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 				/* represent as a python set */
 				if (val) {
 					EnumPropertyItem *item = NULL;
-					int free;
+					bool free;
 
 					BLI_dynstr_append(dynstr, "{");
 

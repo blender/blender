@@ -410,7 +410,7 @@ static PointerRNA rna_Theme_space_list_generic_get(PointerRNA *ptr)
 
 #ifdef WITH_CYCLES
 static EnumPropertyItem *rna_userdef_compute_device_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                               PropertyRNA *UNUSED(prop), int *free)
+                                                               PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -423,7 +423,7 @@ static EnumPropertyItem *rna_userdef_compute_device_type_itemf(bContext *UNUSED(
 		RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_OPENCL);
 
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 
 	return item;
 }
@@ -437,7 +437,7 @@ static int rna_userdef_compute_device_get(PointerRNA *UNUSED(ptr))
 }
 
 static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                          PropertyRNA *UNUSED(prop), int *free)
+                                                          PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item = NULL;
@@ -474,14 +474,14 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*free = 1;
+	*r_free = true;
 
 	return item;
 }
 #endif
 
 static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop), int *free)
+                                                        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 #ifdef WITH_JACK
 	int jack_supported = sound_is_jack_supported();
@@ -506,21 +506,20 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 #endif
 
 		RNA_enum_item_end(&item, &totitem);
-		*free = 1;
+		*r_free = true;
 
 		return item;
 	}
 #else
-	(void)free;
+	(void)r_free;
 	return audio_device_items;
 #endif
 }
 
 #ifdef WITH_INTERNATIONAL
 static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop), int *free)
+                                                        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	*free = 0; /* These items are handled by BLF code! */
 	return BLF_RNA_lang_enum_properties();
 }
 #endif
