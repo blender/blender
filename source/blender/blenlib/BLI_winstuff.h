@@ -94,7 +94,7 @@ extern "C" {
 /* defines for using ISO C++ conformant names */
 #define snprintf _snprintf
 
-#if defined(MSC_VER) || (defined(FREE_WINDOWS) && !defined(FREE_WINDOWS64))
+#if defined(_MSC_VER) || (defined(FREE_WINDOWS) && !defined(FREE_WINDOWS64))
 #  define	R_OK	4
 #  define	W_OK	2
 // not accepted by access() on windows
