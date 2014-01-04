@@ -262,6 +262,7 @@ set(SRC
 
 	depsgraph_private.h
 	nla_private.h
+	tracking_private.h
 	intern/CCGSubSurf.h
 	intern/pbvh_intern.h
 )
