@@ -87,6 +87,12 @@ static int rna_Text_current_line_index_get(PointerRNA *ptr)
 	return BLI_findindex(&text->lines, text->curl);
 }
 
+static void rna_Text_current_line_index_set(PointerRNA *ptr, int value)
+{
+	Text *text = (Text *)ptr->data;
+	txt_move_toline(text, value, 0);
+}
+
 static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
 	TextLine *line = (TextLine *)ptr->data;
@@ -147,11 +153,6 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Text", "Text datablock referencing an external or packed text file");
 	RNA_def_struct_ui_icon(srna, ICON_TEXT);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
-
-	prop = RNA_def_property(srna, "current_line_index", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Text_current_line_index_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Current Line Index", "Index of current TextLine in TextLine collection");
 	
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Text_filename_get", "rna_Text_filename_length", "rna_Text_filename_set");
@@ -199,6 +200,11 @@ static void rna_def_text(BlenderRNA *brna)
 	                         "Index of current character in current line, and also start index of "
 	                         "character in selection if one exists");
 	
+	prop = RNA_def_property(srna, "current_line_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_Text_current_line_index_get", "rna_Text_current_line_index_set", NULL);
+	RNA_def_property_ui_text(prop, "Current Line Index", "Index of current TextLine in TextLine collection");
+	RNA_def_property_update(prop, NC_TEXT | ND_CURSOR, NULL);
+
 	prop = RNA_def_property(srna, "select_end_line", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sell");
