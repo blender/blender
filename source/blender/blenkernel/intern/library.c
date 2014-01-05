@@ -1015,7 +1015,7 @@ void BKE_libblock_free_us(ListBase *lb, void *idv)      /* test users */
 Main *BKE_main_new(void)
 {
 	Main *bmain = MEM_callocN(sizeof(Main), "new main");
-	bmain->eval_ctx = MEM_callocN(sizeof(EvaluationContext), "EvaluationCintext");
+	bmain->eval_ctx = MEM_callocN(sizeof(EvaluationContext), "EvaluationContext");
 	return bmain;
 }
 
