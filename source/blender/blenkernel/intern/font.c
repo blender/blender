@@ -926,6 +926,12 @@ makebreak:
 				
 				ct->xof = vec[0] + si * yof;
 				ct->yof = vec[1] + co * yof;
+
+				if (cu->selboxes && (i >= selstart) && (i <= selend)) {
+					SelBox *sb;
+					sb = &(cu->selboxes[i - selstart]);
+					sb->rot = -ct->rot;
+				}
 				
 			}
 			cucu->flag = oldflag;

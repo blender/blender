@@ -398,6 +398,11 @@ void mul_v2_m2v2(float r[2], float mat[2][2], const float vec[2])
 	r[1] = mat[0][1] * x + mat[1][1] * vec[1];
 }
 
+void mul_m2v2(float mat[2][2], float vec[2])
+{
+	mul_v2_m2v2(vec, mat, vec);
+}
+
 /* same as mul_m4_v3() but doesnt apply translation component */
 void mul_mat3_m4_v3(float mat[4][4], float vec[3])
 {

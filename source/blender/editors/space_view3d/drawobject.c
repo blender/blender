@@ -6873,6 +6873,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						set_inverted_drawing(1);
 						for (i = 0; i <= (selend - selstart); i++) {
 							SelBox *sb = &(cu->selboxes[i]);
+							float tvec[3];
 
 							if (i < (selend - selstart)) {
 								if (cu->selboxes[i + 1].y == sb->y)
@@ -6883,11 +6884,49 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 							else {
 								selboxw = sb->w;
 							}
+
+							/* fill in xy below */
+							tvec[2] = 0.001;
+
 							glBegin(GL_QUADS);
-							glVertex3f(sb->x, sb->y, 0.001);
-							glVertex3f(sb->x + selboxw, sb->y, 0.001);
-							glVertex3f(sb->x + selboxw, sb->y + sb->h, 0.001);
-							glVertex3f(sb->x, sb->y + sb->h, 0.001);
+
+							if (sb->rot == 0.0f) {
+								copy_v2_fl2(tvec, sb->x, sb->y);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, sb->x + selboxw, sb->y);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, sb->x + selboxw, sb->y + sb->h);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, sb->x, sb->y + sb->h);
+								glVertex3fv(tvec);
+							}
+							else {
+								float mat[2][2];
+
+								angle_to_mat2(mat, sb->rot);
+
+								copy_v2_fl2(tvec, sb->x, sb->y);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, selboxw, 0.0f);
+								mul_m2v2(mat, tvec);
+								add_v2_v2(tvec, &sb->x);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, selboxw, sb->h);
+								mul_m2v2(mat, tvec);
+								add_v2_v2(tvec, &sb->x);
+								glVertex3fv(tvec);
+
+								copy_v2_fl2(tvec, 0.0f, sb->h);
+								mul_m2v2(mat, tvec);
+								add_v2_v2(tvec, &sb->x);
+								glVertex3fv(tvec);
+							}
+
 							glEnd();
 						}
 						set_inverted_drawing(0);

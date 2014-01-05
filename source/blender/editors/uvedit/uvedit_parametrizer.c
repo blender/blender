@@ -493,7 +493,7 @@ static void p_chart_uv_transform(PChart *chart, float mat[2][2])
 	PVert *v;
 
 	for (v = chart->verts; v; v = v->nextlink) {
-		mul_v2_m2v2(v->uv, mat, v->uv);
+		mul_m2v2(mat, v->uv);
 	}
 }
 

@@ -55,6 +55,7 @@ struct CharTrans {
 
 typedef struct SelBox {
 	float x, y, w, h;
+	float rot;
 } SelBox;
 
 typedef struct EditFont {	
