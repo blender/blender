@@ -587,7 +587,7 @@ bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
 	for (i = 0; i <= slen; i++) {
 makebreak:
 		/* Characters in the list */
-		info = &(custrinfo[i]);
+		info = &custrinfo[i];
 		ascii = mem[i];
 		if (info->flag & CU_CHINFO_SMALLCAPS) {
 			ascii = towupper(ascii);
@@ -893,6 +893,7 @@ makebreak:
 				float si, co;
 				
 				/* rotate around center character */
+				info = &custrinfo[i];
 				ascii = mem[i];
 
 				che = find_vfont_char(vfd, ascii);
