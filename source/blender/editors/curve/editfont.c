@@ -1033,6 +1033,10 @@ static int move_cursor(bContext *C, int type, int select)
 	if (cursmove == -1)
 		return OPERATOR_CANCELLED;
 
+	if      (ef->pos > ef->len)  ef->pos = ef->len;
+	else if (ef->pos >= MAXTEXT) ef->pos = MAXTEXT;
+	else if (ef->pos < 0)        ef->pos = 0;
+
 	if (select == 0) {
 		if (ef->selstart) {
 			struct Main *bmain = CTX_data_main(C);
@@ -1040,10 +1044,6 @@ static int move_cursor(bContext *C, int type, int select)
 			BKE_vfont_to_curve(bmain, scene, obedit, FO_SELCHANGE);
 		}
 	}
-
-	if (ef->pos > ef->len) ef->pos = ef->len;
-	else if (ef->pos >= MAXTEXT) ef->pos = MAXTEXT;
-	else if (ef->pos < 0) ef->pos = 0;
 
 	text_update_edited(C, scene, obedit, select, cursmove);
 
