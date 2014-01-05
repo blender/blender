@@ -212,10 +212,6 @@ typedef struct Curve {
 	void *lastsel;
 	
 	/* font part */
-	/* WARNING: cu->len is...
-	 * - strlen(cu->str) object-mode (bytes).
-	 * - BLI_strlen_utf8(cu->str) in edit-mode.
-	 * This should be cleaned up and some point, see 'write_curves' - campbell */
 	short lines;
 	char spacemode, pad1;
 	float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
@@ -235,7 +231,7 @@ typedef struct Curve {
 	int selstart, selend;
 	int pad2;
 
-	char family[24];
+	char family[64];
 	struct VFont *vfont;
 	struct VFont *vfontb;
 	struct VFont *vfonti;

@@ -930,9 +930,6 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						if (cu1->vfontbi) cu1->vfontbi->id.us--;
 						cu1->vfontbi = cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);
-
-						BKE_vfont_to_curve(bmain, scene, base->object, FO_EDIT, NULL); /* needed? */
-
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
 						

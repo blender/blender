@@ -83,11 +83,17 @@ void BKE_vfont_free(struct VFont *sc);
 struct VFont *BKE_vfont_builtin_get(void);
 struct VFont *BKE_vfont_load(struct Main *bmain, const char *name);
 
-bool BKE_vfont_to_curve_nubase(struct Main *bmain, struct Scene *scene, struct Object *ob,
-                               struct ListBase *nubase, int mode, struct CharTrans **r_chartransdata);
+bool BKE_vfont_to_curve_nubase_ex(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
+                                  struct ListBase *r_nubase,
+                                  const wchar_t **r_text, int *r_text_len, bool *r_text_free,
+	                              struct CharTrans **r_chartransdata);
+bool BKE_vfont_to_curve_nubase(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
+                                  struct ListBase *r_nubase);
 
-bool BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
-                        struct CharTrans **r_chartransdata);
+bool BKE_vfont_to_curve_ex(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode,
+                           const wchar_t **r_text, int *r_text_len, bool *r_text_free,
+                           struct CharTrans **r_chartransdata);
+bool BKE_vfont_to_curve(struct Main *bmain, struct Scene *scene, struct Object *ob, int mode);
 
 int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 
