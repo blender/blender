@@ -34,10 +34,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef WIN32 
-#include <unistd.h>
+#ifndef WIN32
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -97,7 +97,7 @@
 
 #ifdef WIN32
 #else
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
 
 void free_avicodecdata(AviCodecData *acd)
