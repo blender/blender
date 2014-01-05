@@ -1638,7 +1638,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 	
 	/* in par the family name is stored, use this to find the other objects */
 	
-	BKE_vfont_to_curve_ex(G.main, scene, par, FO_DUPLI,
+	BKE_vfont_to_curve_ex(G.main, scene, par, FO_DUPLI, NULL,
 	                      &text, &text_len, &text_free, &chartransdata);
 
 	if (text == NULL || chartransdata == NULL) {
