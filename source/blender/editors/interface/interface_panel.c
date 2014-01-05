@@ -1090,7 +1090,7 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 
 /* this function is supposed to call general window drawing too */
 /* also it supposes a block has panel, and isn't a menu */
-static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event, short ctrl, short alt)
+static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event, short ctrl, short shift)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1125,7 +1125,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		button = 1;
 	else if (event == AKEY)
 		button = 1;
-	else if (ELEM3(event, 0, RETKEY, LEFTMOUSE) && alt) {
+	else if (ELEM3(event, 0, RETKEY, LEFTMOUSE) && shift) {
 		block->panel->flag ^= PNL_PIN;
 		button = 2;
 	}
@@ -1660,10 +1660,10 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 				
 				if (pa->flag & PNL_CLOSEDY) {
 					if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my))
-						ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl, event->alt);
+						ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl, event->shift);
 				}
 				else
-					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl, event->alt);
+					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl, event->shift);
 				
 				retval = WM_UI_HANDLER_BREAK;
 				continue;
@@ -1681,7 +1681,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
-						ui_handle_panel_header(C, block, mx, my, RETKEY, event->ctrl, event->alt);
+						ui_handle_panel_header(C, block, mx, my, RETKEY, event->ctrl, event->shift);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
@@ -1691,7 +1691,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 					retval = WM_UI_HANDLER_BREAK;
 					
 					if (inside_header) {
-						ui_handle_panel_header(C, block, mx, my, 0, event->ctrl, event->alt);
+						ui_handle_panel_header(C, block, mx, my, 0, event->ctrl, event->shift);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
