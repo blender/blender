@@ -1011,63 +1011,38 @@ makebreak:
 		BKE_nurbList_free(&cu->nurb);
 		
 		ct = chartransdata;
-		if (cu->sepchar == 0) {
-			for (i = 0; i < slen; i++) {
-				unsigned int cha = (unsigned int) mem[i];
-				info = &(custrinfo[i]);
-				if (info->mat_nr > (ob->totcol)) {
-					/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
-					info->mat_nr = 0;
-				}
-				/* We do not want to see any character for \n or \r */
-				if (cha != '\n' && cha != '\r')
-					buildchar(bmain, cu, cha, info, ct->xof, ct->yof, ct->rot, i);
-				
-				if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
-					float ulwidth, uloverlap = 0.0f;
-					
-					if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
-					    ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
-					    ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
-					{
-						uloverlap = xtrax + 0.1f;
-					}
-					/* Find the character, the characters has to be in the memory already
-					 * since character checking has been done earlier already. */
-					che = find_vfont_char(vfd, cha);
-
-					twidth = char_width(cu, che, info);
-					ulwidth = cu->fsize * ((twidth * (1.0f + (info->kern / 40.0f))) + uloverlap);
-					build_underline(cu, ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
-					                ct->xof * cu->fsize + ulwidth,
-					                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
-					                i, info->mat_nr);
-				}
-				ct++;
+		for (i = 0; i < slen; i++) {
+			unsigned int cha = (unsigned int) mem[i];
+			info = &(custrinfo[i]);
+			if (info->mat_nr > (ob->totcol)) {
+				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
+				info->mat_nr = 0;
 			}
-		}
-		else {
-			int outta = 0;
-			for (i = 0; (i < slen) && (outta == 0); i++) {
-				ascii = mem[i];
-				info = &(custrinfo[i]);
-				if (cu->sepchar == (i + 1)) {
-					float vecyo[3];
+			/* We do not want to see any character for \n or \r */
+			if (cha != '\n' && cha != '\r')
+				buildchar(bmain, cu, cha, info, ct->xof, ct->yof, ct->rot, i);
 
-					vecyo[0] = ct->xof;
-					vecyo[1] = ct->yof;
-					vecyo[2] = 0.0f;
+			if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
+				float ulwidth, uloverlap = 0.0f;
 
-					mem[0] = ascii;
-					mem[1] = 0;
-					custrinfo[0] = *info;
-					cu->len = cu->len_wchar = cu->pos = 1;
-					mul_v3_m4v3(ob->loc, ob->obmat, vecyo);
-					outta = 1;
-					cu->sepchar = 0;
+				if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
+				    ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
+				    ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
+				{
+					uloverlap = xtrax + 0.1f;
 				}
-				ct++;
+				/* Find the character, the characters has to be in the memory already
+				 * since character checking has been done earlier already. */
+				che = find_vfont_char(vfd, cha);
+
+				twidth = char_width(cu, che, info);
+				ulwidth = cu->fsize * ((twidth * (1.0f + (info->kern / 40.0f))) + uloverlap);
+				build_underline(cu, ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
+				                ct->xof * cu->fsize + ulwidth,
+				                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
+				                i, info->mat_nr);
 			}
+			ct++;
 		}
 	}
 

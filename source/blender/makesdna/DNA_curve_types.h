@@ -241,7 +241,7 @@ typedef struct Curve {
 	struct VFont *vfonti;
 	struct VFont *vfontbi;
 
-	int sepchar;
+	int pad4;
 	
 	float ctime;			/* current evaltime - for use by Objects parented to curves */
 	int totbox, actbox;
