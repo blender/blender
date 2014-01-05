@@ -512,7 +512,8 @@ bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
 	int curbox;
 	int selstart, selend;
 	short cnr = 0, lnr = 0, wsnr = 0;
-	wchar_t *mem, *tmp, ascii;
+	const wchar_t *mem;
+	wchar_t ascii;
 	bool ok = false;
 
 	/* remark: do calculations including the trailing '\0' of a string
@@ -540,17 +541,20 @@ bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
 		custrinfo = ef->textbufinfo;
 	}
 	else {
+		wchar_t *mem_tmp;
 		slen = cu->len_wchar;
 
 		/* Create unicode string */
-		mem = MEM_mallocN(((slen + 1) * sizeof(wchar_t)), "convertedmem");
+		mem_tmp = MEM_mallocN(((slen + 1) * sizeof(wchar_t)), "convertedmem");
 
-		BLI_strncpy_wchar_from_utf8(mem, cu->str, slen + 1);
+		BLI_strncpy_wchar_from_utf8(mem_tmp, cu->str, slen + 1);
 
 		if (cu->strinfo == NULL) {  /* old file */
 			cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
 		}
 		custrinfo = cu->strinfo;
+
+		mem = mem_tmp;
 	}
 
 	if (cu->tb == NULL)
@@ -592,7 +596,6 @@ makebreak:
 		if (info->flag & CU_CHINFO_SMALLCAPS) {
 			ascii = towupper(ascii);
 			if (mem[i] != ascii) {
-				mem[i] = ascii;
 				info->flag |= CU_CHINFO_SMALLCAPS_CHECK;
 			}
 		}
@@ -760,10 +763,9 @@ makebreak:
 	}
 	
 	cu->lines = 1;
-	ct = chartransdata;
-	tmp = mem;
-	for (i = 0; i <= slen; i++, tmp++, ct++) {
-		ascii = *tmp;
+	for (i = 0; i <= slen; i++) {
+		ascii = mem[i];
+		ct = &chartransdata[i];
 		if (ascii == '\n' || ascii == '\r' || ct->dobreak) cu->lines++;
 	}
 
@@ -895,6 +897,9 @@ makebreak:
 				/* rotate around center character */
 				info = &custrinfo[i];
 				ascii = mem[i];
+				if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+					ascii = towupper(ascii);
+				}
 
 				che = find_vfont_char(vfd, ascii);
 	
@@ -1015,6 +1020,11 @@ makebreak:
 		for (i = 0; i < slen; i++) {
 			unsigned int cha = (unsigned int) mem[i];
 			info = &(custrinfo[i]);
+
+			if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+				cha = towupper(cha);
+			}
+
 			if (info->mat_nr > (ob->totcol)) {
 				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
 				info->mat_nr = 0;
@@ -1052,7 +1062,7 @@ makebreak:
 finally:
 
 	if (ef == NULL)
-		MEM_freeN(mem);
+		MEM_freeN((void *)mem);
 
 	if (chartransdata) {
 		if (ok && r_chartransdata) {
