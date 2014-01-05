@@ -459,6 +459,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 
 	Curve *cu = (Curve *)ptr->id.data;
 
+	cu->len_wchar = len_chars;
 	cu->len = len_bytes;
 	cu->pos = len_chars;
 
