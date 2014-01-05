@@ -293,7 +293,7 @@ static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
 	return BLI_ghash_lookup(vfd->characters, SET_UINT_IN_POINTER(character));
 }
 		
-static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
+static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
 {
 	Nurb *nu2;
 	BPoint *bp;
@@ -324,11 +324,11 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	copy_v4_fl4(bp[3].vec, x1, y2, 0.0f, 1.0f);
 
 	nu2->bp = bp;
-	BLI_addtail(&(cu->nurb), nu2);
+	BLI_addtail(nubase, nu2);
 
 }
 
-static void buildchar(Main *bmain, Curve *cu, unsigned int character, CharInfo *info,
+static void buildchar(Main *bmain, Curve *cu, ListBase *nubase, unsigned int character, CharInfo *info,
                       float ofsx, float ofsy, float rot, int charidx)
 {
 	BezTriple *bezt1, *bezt2;
@@ -450,7 +450,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned int character, CharInfo *
 				bezt2++;
 			}
 			
-			BLI_addtail(&(cu->nurb), nu2);
+			BLI_addtail(nubase, nu2);
 		}
 		
 		nu1 = nu1->next;
@@ -495,8 +495,8 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
-                        struct CharTrans **r_chartransdata)
+bool BKE_vfont_to_curve_nubase(Main *bmain, Scene *scene, Object *ob, ListBase *nubase,
+                               int mode, struct CharTrans **r_chartransdata)
 {
 	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
@@ -1020,7 +1020,7 @@ makebreak:
 
 	if (mode == FO_EDIT) {
 		/* make nurbdata */
-		BKE_nurbList_free(&cu->nurb);
+		BKE_nurbList_free(nubase);
 		
 		ct = chartransdata;
 		for (i = 0; i < slen; i++) {
@@ -1037,7 +1037,7 @@ makebreak:
 			}
 			/* We do not want to see any character for \n or \r */
 			if (cha != '\n' && cha != '\r')
-				buildchar(bmain, cu, cha, info, ct->xof, ct->yof, ct->rot, i);
+				buildchar(bmain, cu, nubase, cha, info, ct->xof, ct->yof, ct->rot, i);
 
 			if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
 				float ulwidth, uloverlap = 0.0f;
@@ -1054,7 +1054,8 @@ makebreak:
 
 				twidth = char_width(cu, che, info);
 				ulwidth = cu->fsize * ((twidth * (1.0f + (info->kern / 40.0f))) + uloverlap);
-				build_underline(cu, ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
+				build_underline(cu, nubase,
+				                ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
 				                ct->xof * cu->fsize + ulwidth,
 				                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
 				                i, info->mat_nr);
@@ -1080,4 +1081,14 @@ finally:
 	}
 
 	return ok;
+}
+
+bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode,
+                        struct CharTrans **r_chartransdata)
+{
+	Curve *cu = (Curve *) ob->data;
+
+	BLI_assert(ob->type == OB_FONT);
+
+	return BKE_vfont_to_curve_nubase(bmain, scene, ob, &cu->nurb, mode, r_chartransdata);
 }

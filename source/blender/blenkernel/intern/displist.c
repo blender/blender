@@ -1374,10 +1374,12 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (ob->curve_cache->path) free_path(ob->curve_cache->path);
 		ob->curve_cache->path = NULL;
 
-		if (ob->type == OB_FONT)
-			BKE_vfont_to_curve(G.main, scene, ob, FO_EDIT, NULL);
-
-		BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
+		if (ob->type == OB_FONT) {
+			BKE_vfont_to_curve_nubase(G.main, scene, ob, &nubase, FO_EDIT, NULL);
+		}
+		else {
+			BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
+		}
 
 		if (!forOrco)
 			curve_calc_modifiers_pre(scene, ob, &nubase, forRender, renderResolution);
