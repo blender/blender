@@ -598,8 +598,20 @@ makebreak:
 		}
 
 		vfont = which_vfont(cu, info);
-		
+
 		if (vfont == NULL) break;
+
+		if (vfont != oldvfont) {
+			vfd = vfont_get_data(bmain, vfont);
+			oldvfont = vfont;
+		}
+
+		/* VFont Data for VFont couldn't be found */
+		if (!vfd) {
+			MEM_freeN(chartransdata);
+			chartransdata = NULL;
+			goto finally;
+		}
 
 		if (!ELEM(ascii, '\n', '\0')) {
 			BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
@@ -627,25 +639,6 @@ makebreak:
 		}
 		else {
 			che = NULL;
-		}
-
-		/* No VFont found */
-		if (vfont == NULL) {
-			MEM_freeN(chartransdata);
-			chartransdata = NULL;
-			goto finally;
-		}
-
-		if (vfont != oldvfont) {
-			vfd = vfont_get_data(bmain, vfont);
-			oldvfont = vfont;
-		}
-
-		/* VFont Data for VFont couldn't be found */
-		if (!vfd) {
-			MEM_freeN(chartransdata);
-			chartransdata = NULL;
-			goto finally;
 		}
 
 		twidth = char_width(cu, che, info);
