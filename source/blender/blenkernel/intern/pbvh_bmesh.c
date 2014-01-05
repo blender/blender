@@ -91,12 +91,9 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 
 	n->orig_vb = n->vb;
 
-	/* Build GPU buffers */
-	if (!G.background) {
-		int smooth = bvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING;
-		n->draw_buffers = GPU_build_bmesh_pbvh_buffers(smooth);
-		n->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
-	}
+	/* Build GPU buffers for new node and update vertex normals */
+	BKE_pbvh_node_mark_rebuild_draw(n);
+	n->flag |= PBVH_UpdateNormals;
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */

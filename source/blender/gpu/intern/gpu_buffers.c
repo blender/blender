@@ -93,11 +93,15 @@ static ThreadMutex buffer_mutex = BLI_MUTEX_INITIALIZER;
 typedef struct GPUBufferPool {
 	/* number of allocated buffers stored */
 	int totbuf;
-	/* actual allocated length of the array */
+	int totpbvhbufids;
+	/* actual allocated length of the arrays */
 	int maxsize;
+	int maxpbvhsize;
 	GPUBuffer **buffers;
+	GLuint *pbvhbufids;
 } GPUBufferPool;
 #define MAX_FREE_GPU_BUFFERS 8
+#define MAX_FREE_GPU_BUFF_IDS 100
 
 /* create a new GPUBufferPool */
 static GPUBufferPool *gpu_buffer_pool_new(void)
@@ -111,9 +115,11 @@ static GPUBufferPool *gpu_buffer_pool_new(void)
 	pool = MEM_callocN(sizeof(GPUBufferPool), "GPUBuffer_Pool");
 
 	pool->maxsize = MAX_FREE_GPU_BUFFERS;
-	pool->buffers = MEM_callocN(sizeof(GPUBuffer *) * pool->maxsize,
-	                            "GPUBuffer.buffers");
-
+	pool->maxpbvhsize = MAX_FREE_GPU_BUFF_IDS;
+	pool->buffers = MEM_callocN(sizeof(*pool->buffers) * pool->maxsize,
+								"GPUBufferPool.buffers");
+	pool->pbvhbufids = MEM_callocN(sizeof(*pool->pbvhbufids) * pool->maxpbvhsize,
+								"GPUBufferPool.pbvhbuffers");
 	return pool;
 }
 
@@ -171,6 +177,7 @@ static void gpu_buffer_pool_free(GPUBufferPool *pool)
 		gpu_buffer_pool_delete_last(pool);
 
 	MEM_freeN(pool->buffers);
+	MEM_freeN(pool->pbvhbufids);
 	MEM_freeN(pool);
 }
 
@@ -181,6 +188,9 @@ static void gpu_buffer_pool_free_unused(GPUBufferPool *pool)
 	
 	while (pool->totbuf)
 		gpu_buffer_pool_delete_last(pool);
+
+	glDeleteBuffersARB(pool->totpbvhbufids, pool->pbvhbufids);
+	pool->totpbvhbufids = 0;
 }
 
 static GPUBufferPool *gpu_buffer_pool = NULL;
@@ -2492,13 +2502,50 @@ int GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, int show_diffuse
 	       diffuse_color[2] != buffers->diffuse_color[2];
 }
 
+/* release a GPU_PBVH_Buffers id;
+ *
+ * Thread-unsafe version for internal usage only.
+ */
+static void gpu_pbvh_buffer_free_intern(GLuint id)
+{
+	GPUBufferPool *pool;
+
+	/* zero id is vertex buffers off */
+	if (!id)
+		return;
+
+	pool = gpu_get_global_buffer_pool();
+
+	/* free the buffers immediately if we are on main thread */
+	if (BLI_thread_is_main()) {
+		glDeleteBuffersARB(1, &id);
+
+		if (pool->totpbvhbufids > 0) {
+			glDeleteBuffersARB(pool->totpbvhbufids, pool->pbvhbufids);
+			pool->totpbvhbufids = 0;
+		}
+		return;
+	}
+	/* outside of main thread, can't safely delete the
+	 * buffer, so increase pool size */
+	if (pool->maxpbvhsize == pool->totpbvhbufids) {
+		pool->maxpbvhsize += MAX_FREE_GPU_BUFF_IDS;
+		pool->pbvhbufids = MEM_reallocN(pool->pbvhbufids,
+										sizeof(*pool->pbvhbufids) * pool->maxpbvhsize);
+	}
+
+	/* insert the buffer into the beginning of the pool */
+	pool->pbvhbufids[pool->totpbvhbufids++] = id;
+}
+
+
 void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 {
 	if (buffers) {
 		if (buffers->vert_buf)
-			glDeleteBuffersARB(1, &buffers->vert_buf);
+			gpu_pbvh_buffer_free_intern(buffers->vert_buf);
 		if (buffers->index_buf && (buffers->tot_tri || buffers->has_hidden))
-			glDeleteBuffersARB(1, &buffers->index_buf);
+			gpu_pbvh_buffer_free_intern(buffers->index_buf);
 
 		MEM_freeN(buffers);
 	}

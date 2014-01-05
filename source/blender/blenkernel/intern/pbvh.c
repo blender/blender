@@ -330,15 +330,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 		}
 	}
 
-	if (!G.background) {
-		node->draw_buffers =
-				GPU_build_pbvh_mesh_buffers(node->face_vert_indices,
-		                               bvh->faces, bvh->verts,
-		                               node->prim_indices,
-		                               node->totprim);
-	}
-
-	node->flag |= PBVH_UpdateDrawBuffers;
+	BKE_pbvh_node_mark_rebuild_draw(node);
 
 	BLI_ghash_free(map, NULL, NULL);
 }
