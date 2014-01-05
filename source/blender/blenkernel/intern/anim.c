@@ -1668,6 +1668,16 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 			mul_m4_v3(pmat, vec);
 			
 			copy_m4_m4(obmat, par->obmat);
+
+			if (UNLIKELY(ct->rot != 0.0f)) {
+				float rmat[4][4];
+
+				zero_v3(obmat[3]);
+				unit_m4(rmat);
+				rotate_m4(rmat, 'Z', -ct->rot);
+				mul_m4_m4m4(obmat, obmat, rmat);
+			}
+
 			copy_v3_v3(obmat[3], vec);
 			
 			new_dupli_object(lb, ob, obmat, par->lay, persistent_id, level, a, OB_DUPLIVERTS, flag);
