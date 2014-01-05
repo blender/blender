@@ -60,7 +60,7 @@ typedef struct SelBox {
 
 typedef struct EditFont {	
 	wchar_t *copybuf;
-	wchar_t *copybufinfo;
+	struct CharInfo *copybufinfo;
 	
 	wchar_t *textbuf;
 	struct CharInfo *textbufinfo;

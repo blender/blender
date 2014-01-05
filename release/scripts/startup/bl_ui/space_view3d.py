@@ -728,6 +728,11 @@ class VIEW3D_MT_select_edit_text(Menu):
 
         layout.separator()
 
+        layout.operator("font.text_paste_from_file")
+        layout.operator("font.text_paste_from_clipboard")
+
+        layout.separator()
+
         layout.operator("font.select_all")
 
 
@@ -2434,10 +2439,6 @@ class VIEW3D_MT_edit_font(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        layout.operator("font.file_paste")
-
-        layout.separator()
 
         layout.menu("VIEW3D_MT_edit_text_chars")
 

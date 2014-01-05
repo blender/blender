@@ -78,6 +78,8 @@
 
 #define MAXTEXT 32766
 
+static int kill_selection(Object *obedit, int ins);
+
 /************************* utilities ******************************/
 
 static char findaccent(char char1, unsigned int code)
@@ -245,7 +247,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 		return 0;
 }
 
-static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int recalc, int mode)
+static void text_update_edited(bContext *C, Scene *scene, Object *obedit, const bool recalc, int mode)
 {
 	struct Main *bmain = CTX_data_main(C);
 	Curve *cu = obedit->data;
@@ -321,20 +323,80 @@ void FONT_OT_insert_lorem(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************* paste file operator ********************/
+/* -------------------------------------------------------------------- */
+/* Generic Paste Functions */
 
-/* note this handles both ascii and utf8 unicode, previously
- * there were 3 functions that did effectively the same thing. */
+/* text_update_edited(C, scene, obedit, 1, FO_EDIT); */
+static bool font_paste_wchar(Object *obedit, const wchar_t *str, const size_t str_len,
+                             /* optional */
+                             struct CharInfo *str_info)
+{
+	Curve *cu = obedit->data;
+	EditFont *ef = cu->editfont;
+	int selend, selstart;
 
-static int paste_file(bContext *C, ReportList *reports, const char *filename)
+	if (BKE_vfont_select_get(obedit, &selstart, &selend) == 0) {
+		selstart = selend = 0;
+	}
+
+	/* Verify that the copy buffer => [copy buffer len] + ef->len < MAXTEXT */
+	if ((ef->len + str_len) - (selend - selstart) <= MAXTEXT) {
+
+		kill_selection(obedit, 0);
+
+		if (str_len) {
+			int size = (ef->len * sizeof(wchar_t)) - (ef->pos * sizeof(wchar_t)) + sizeof(wchar_t);
+			memmove(ef->textbuf + ef->pos + str_len, ef->textbuf + ef->pos, size);
+			memcpy(ef->textbuf + ef->pos, str, str_len * sizeof(wchar_t));
+
+			memmove(ef->textbufinfo + ef->pos + str_len, ef->textbufinfo + ef->pos, (ef->len - ef->pos + 1) * sizeof(CharInfo));
+			if (str_info) {
+				memcpy(ef->textbufinfo + ef->pos, str_info, str_len * sizeof(CharInfo));
+			}
+			else {
+				memset(ef->textbufinfo + ef->pos, '\0', str_len * sizeof(CharInfo));
+			}
+
+			ef->len += str_len;
+			ef->pos += str_len;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bool retval;
+
+	int tmplen;
+
+	wchar_t *mem = MEM_mallocN((sizeof(wchar_t) * (str_len + 1)), __func__);
+
+	tmplen = BLI_strncpy_wchar_from_utf8(mem, str, str_len + 1);
+
+	retval = font_paste_wchar(obedit, mem, tmplen, NULL);
+
+	MEM_freeN(mem);
+
+	return retval;
+}
+
+
+/* -------------------------------------------------------------------- */
+/* Paste From File*/
+
+static int paste_from_file(bContext *C, ReportList *reports, const char *filename)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
-	EditFont *ef = cu->editfont;
 	FILE *fp;
-	int filelen;
 	char *strp;
+	int filelen;
+	int retval;
 
 	fp = BLI_fopen(filename, "r");
 
@@ -356,57 +418,115 @@ static int paste_file(bContext *C, ReportList *reports, const char *filename)
 	fclose(fp);
 	strp[filelen] = 0;
 
-	if (ef->len + filelen < MAXTEXT) {
-		int tmplen;
-		wchar_t *mem = MEM_mallocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
-		tmplen = BLI_strncpy_wchar_from_utf8(mem, strp, filelen + 1);
-		wcscat(ef->textbuf, mem);
-		MEM_freeN(mem);
-		ef->len += tmplen;
+	if (font_paste_utf8(C, strp, filelen)) {
+		text_update_edited(C, scene, obedit, 1, FO_EDIT);
+		retval = OPERATOR_FINISHED;
+
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "File too long %s", filename);
+		retval = OPERATOR_CANCELLED;
 	}
 	MEM_freeN(strp);
 
-	ef->pos = ef->len;
-
-	text_update_edited(C, scene, obedit, 1, FO_EDIT);
-
-	return OPERATOR_FINISHED;
+	return retval;
 }
 
-static int paste_file_exec(bContext *C, wmOperator *op)
+static int paste_from_file_exec(bContext *C, wmOperator *op)
 {
 	char *path;
 	int retval;
 	
 	path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	retval = paste_file(C, op->reports, path);
+	retval = paste_from_file(C, op->reports, path);
 	MEM_freeN(path);
 
 	return retval;
 }
 
-static int paste_file_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int paste_from_file_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
-		return paste_file_exec(C, op);
+		return paste_from_file_exec(C, op);
 
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void FONT_OT_file_paste(wmOperatorType *ot)
+void FONT_OT_text_paste_from_file(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste File";
 	ot->description = "Paste contents from file";
-	ot->idname = "FONT_OT_file_paste";
+	ot->idname = "FONT_OT_text_paste_from_file";
 	
 	/* api callbacks */
-	ot->exec = paste_file_exec;
-	ot->invoke = paste_file_invoke;
+	ot->exec = paste_from_file_exec;
+	ot->invoke = paste_from_file_invoke;
 	ot->poll = ED_operator_editfont;
 	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_filesel(ot, FOLDERFILE | TEXTFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+}
+
+
+/* -------------------------------------------------------------------- */
+/* Paste From Clipboard */
+
+static int paste_from_clipboard(bContext *C, ReportList *reports)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	char *strp;
+	int filelen;
+	int retval;
+
+	strp = WM_clipboard_text_get(false);
+	if (strp == NULL) {
+		BKE_report(reports, RPT_ERROR, "Clipboard empty");
+		return OPERATOR_CANCELLED;
+	}
+
+	filelen = strlen(strp);
+
+	if (font_paste_utf8(C, strp, filelen)) {
+		text_update_edited(C, scene, obedit, 1, FO_EDIT);
+		retval = OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Clipboard too long");
+		retval = OPERATOR_CANCELLED;
+	}
+	MEM_freeN(strp);
+
+	return retval;
+}
+
+static int paste_from_clipboard_exec(bContext *C, wmOperator *op)
+{
+	int retval;
+
+	retval = paste_from_clipboard(C, op->reports);
+
+	return retval;
+}
+
+void FONT_OT_text_paste_from_clipboard(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste Clipboard";
+	ot->description = "Paste contents from system clipboard";
+	ot->idname = "FONT_OT_text_paste_from_clipboard";
+
+	/* api callbacks */
+	ot->exec = paste_from_clipboard_exec;
+	ot->poll = ED_operator_editfont;
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -768,35 +888,19 @@ void FONT_OT_text_cut(wmOperatorType *ot)
 
 /******************* paste text operator ********************/
 
-static int paste_selection(Object *obedit, ReportList *reports)
+static bool paste_selection(Object *obedit, ReportList *reports)
 {
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
 	int len = wcslen(ef->copybuf);
 
-	/* Verify that the copy buffer => [copy buffer len] + ef->len < MAXTEXT */
-	if (ef->len + len <= MAXTEXT) {
-
-		kill_selection(obedit, 0);
-
-		if (len) {
-			int size = (ef->len * sizeof(wchar_t)) - (ef->pos * sizeof(wchar_t)) + sizeof(wchar_t);
-			memmove(ef->textbuf + ef->pos + len, ef->textbuf + ef->pos, size);
-			memcpy(ef->textbuf + ef->pos, ef->copybuf, len * sizeof(wchar_t));
-		
-			memmove(ef->textbufinfo + ef->pos + len, ef->textbufinfo + ef->pos, (ef->len - ef->pos + 1) * sizeof(CharInfo));
-			memcpy(ef->textbufinfo + ef->pos, ef->copybufinfo, len * sizeof(CharInfo));
-		
-			ef->len += len;
-			ef->pos += len;
-
-			return 1;
-		}
+	if (font_paste_wchar(obedit, ef->copybuf, len, ef->copybufinfo)) {
+		return true;
 	}
-	else
+	else {
 		BKE_report(reports, RPT_WARNING, "Text too long");
-	
-	return 0;
+		return false;
+	}
 }
 
 static int paste_text_exec(bContext *C, wmOperator *op)

@@ -70,7 +70,8 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_text_copy);
 	WM_operatortype_append(FONT_OT_text_cut);
 	WM_operatortype_append(FONT_OT_text_paste);
-	WM_operatortype_append(FONT_OT_file_paste);
+	WM_operatortype_append(FONT_OT_text_paste_from_file);
+	WM_operatortype_append(FONT_OT_text_paste_from_clipboard);
 
 	WM_operatortype_append(FONT_OT_move);
 	WM_operatortype_append(FONT_OT_move_select);
