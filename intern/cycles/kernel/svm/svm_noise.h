@@ -174,42 +174,35 @@ ccl_device float grad(int hash, float x, float y, float z)
 #if defined(__KERNEL_SSE2__)
 ccl_device_inline __m128 grad_sse(const __m128i *hash, const __m128 *x, const __m128 *y, const __m128 *z)
 {
-    __m128i c1 = _mm_set1_epi32(1);
-    __m128i c2 = _mm_set1_epi32(2);
+	__m128i c1 = _mm_set1_epi32(1);
+	__m128i c2 = _mm_set1_epi32(2);
 
-    __m128i h = _mm_and_si128(*hash, _mm_set1_epi32(15));          // h = hash & 15
+	__m128i h = _mm_and_si128(*hash, _mm_set1_epi32(15));          // h = hash & 15
 
-    __m128i case_ux = _mm_cmplt_epi32(h, _mm_set1_epi32(8));       // 0xffffffff if h < 8 else 0
+	__m128i case_ux = _mm_cmplt_epi32(h, _mm_set1_epi32(8));       // 0xffffffff if h < 8 else 0
 
-    __m128 ux = _mm_and_ps(_mm_castsi128_ps(case_ux), *x);         // u = case_ux & x
-    __m128 uy = _mm_andnot_ps(_mm_castsi128_ps(case_ux), *y);      //   + !case_ux & y
-    __m128 u = _mm_add_ps(ux, uy);                                 //  ...
+	__m128 u = blend(_mm_castsi128_ps(case_ux), *x, *y);           // u = h<8 ? x : y
 
-    __m128i case_vy = _mm_cmplt_epi32(h, _mm_set1_epi32(4));       // 0xffffffff if h < 4 else 0
+	__m128i case_vy = _mm_cmplt_epi32(h, _mm_set1_epi32(4));       // 0xffffffff if h < 4 else 0
 
-    __m128i case_h12_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(12)); // 0xffffffff if h == 12 else 0
-    __m128i case_h14_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(14)); // 0xffffffff if h == 14 else 0
+	__m128i case_h12_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(12)); // 0xffffffff if h == 12 else 0
+	__m128i case_h14_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(14)); // 0xffffffff if h == 14 else 0
 
-    __m128i case_vxtmp = _mm_or_si128(case_h12_raw, case_h14_raw); // 0xffffffff if h == 12 or h == 14 else 0
-    __m128i case_vx = _mm_andnot_si128(case_vy, case_vxtmp);       // 0xffffffff if (h == 12 or h == 14) and not(h<4)
+	__m128i case_vxtmp = _mm_or_si128(case_h12_raw, case_h14_raw); // 0xffffffff if h == 12 or h == 14 else 0
+	__m128i case_vx = _mm_andnot_si128(case_vy, case_vxtmp);       // 0xffffffff if (h == 12 or h == 14) and not(h<4)
 
-    __m128i case_vz = _mm_or_si128(case_vy, case_vx);              // 0xffffffff if case_vy or case_vx else 0
+	__m128 v = blend(_mm_castsi128_ps(case_vy), *y, blend(_mm_castsi128_ps(case_vx), *x, *z)); // v = h<4 ? y : h == 12 || h == 14 ? x : z
 
-    __m128 vtx = _mm_and_ps(_mm_castsi128_ps(case_vx), *x);        // v = case_vx & x
-    __m128 vty = _mm_and_ps(_mm_castsi128_ps(case_vy), *y);        //   + case_vy & y
-    __m128 vtz = _mm_andnot_ps(_mm_castsi128_ps(case_vz), *z);     //   + !case_vz_inv & z
-    __m128 v = _mm_add_ps(vtz, _mm_add_ps(vtx, vty));              // ...
+	__m128i case_uneg = _mm_slli_epi32(_mm_and_si128(h, c1), 31);  // 1<<31 if h&1 else 0
+	__m128 case_uneg_mask = _mm_castsi128_ps(case_uneg);           // -0.0 if h&1 else +0.0
+	__m128 ru = _mm_xor_ps(u, case_uneg_mask);                     // -u if h&1 else u (copy float sign)
 
-    __m128i case_uneg = _mm_slli_epi32(_mm_and_si128(h, c1), 31);  // 1<<31 if h&1 else 0
-    __m128 case_uneg_mask = _mm_castsi128_ps(case_uneg);           // -0.0 if h&1 else +0.0
-    __m128 ru = _mm_xor_ps(u, case_uneg_mask);                     // -u if h&1 else u (copy float sign)
+	__m128i case_vneg = _mm_slli_epi32(_mm_and_si128(h, c2), 30);  // 2<<30 if h&2 else 0
+	__m128 case_vneg_mask = _mm_castsi128_ps(case_vneg);           // -0.0 if h&2 else +0.0
+	__m128 rv = _mm_xor_ps(v, case_vneg_mask);                     // -v if h&2 else v (copy float sign)
 
-    __m128i case_vneg = _mm_slli_epi32(_mm_and_si128(h, c2), 30);  // 2<<30 if h&2 else 0
-    __m128 case_vneg_mask = _mm_castsi128_ps(case_vneg);           // -0.0 if h&2 else +0.0
-    __m128 rv = _mm_xor_ps(v, case_vneg_mask);                     // -v if h&2 else v (copy float sign)
-
-    __m128 r = _mm_add_ps(ru, rv);                                 // ((h&1) ? -u : u) + ((h&2) ? -v : v)
-    return r;
+	__m128 r = _mm_add_ps(ru, rv);                                 // ((h&1) ? -u : u) + ((h&2) ? -v : v)
+	return r;
 }
 #endif
 
