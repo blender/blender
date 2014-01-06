@@ -116,6 +116,9 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 
 #ifdef __KERNEL_CPU__
 	r = kernel_tex_image_interp(id, x, y);
+#ifdef __KERNEL_SSE2__
+	__m128 *rv = (__m128 *)&r;
+#endif
 #else
 	/* not particularly proud of this massive switch, what are the
 	 * alternatives?
@@ -234,6 +237,13 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #endif
 
 	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
+#ifdef __KERNEL_SSE2__
+		float alpha = r.w;
+		*rv = _mm_div_ps(*rv, _mm_set1_ps(alpha));
+		if(id >= TEX_NUM_FLOAT_IMAGES)
+			*rv = _mm_min_ps(*rv, _mm_set1_ps(1.0f));
+		r.w = alpha;
+#else
 		float invw = 1.0f/r.w;
 		r.x *= invw;
 		r.y *= invw;
@@ -244,12 +254,12 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 			r.y = min(r.y, 1.0f);
 			r.z = min(r.z, 1.0f);
 		}
+#endif
 	}
 
 	if(srgb) {
 #ifdef __KERNEL_SSE2__
 		float alpha = r.w;
-		__m128 *rv = (__m128 *)&r;
 		*rv = color_srgb_to_scene_linear(*rv);
 		r.w = alpha;
 #else
