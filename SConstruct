@@ -324,6 +324,9 @@ if env['OURPLATFORM']=='darwin':
         XCODE_BUNDLE=XCODE_SELECT_PATH[:-19]
     else:
         XCODE_BUNDLE=XCODE_SELECT_PATH
+    # Checking for sse4.1 capability
+    cmd = 'sysctl hw.optional.sse4_1' # throws 1 if available, else 0
+    env['WITH_CYCLES_OPTIMIZED_KERNEL_SSE41'] = commands.getoutput(cmd)
 
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
     print B.bc.OKGREEN + "Available SDK's: \n" + B.bc.ENDC + MACOSX_SDK_CHECK.replace('\t', '')
@@ -430,6 +433,9 @@ if env['OURPLATFORM']=='darwin':
         else:
             env['WITH_BF_OPENMP'] = 0
             print B.bc.OKGREEN + "Disabled OpenMP, not supported by compiler"
+            
+    if env['WITH_BF_CYCLES'] and env['WITH_CYCLES_OPTIMIZED_KERNEL_SSE41']:
+        print B.bc.OKGREEN + 'Using Cycles SSE 4.1 option'
 
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
