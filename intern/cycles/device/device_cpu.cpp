@@ -307,6 +307,7 @@ public:
 						kernel_cpu_sse41_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
 							sample_scale, x, y, task.offset, task.stride);
 			}
+			else
 #endif			
 			if(system_cpu_support_sse3()) {
 				for(int y = task.y; y < task.y + task.h; y++)
@@ -349,6 +350,7 @@ public:
 					break;
 			}
 		}
+		else
 #endif
 		if(system_cpu_support_sse3()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
