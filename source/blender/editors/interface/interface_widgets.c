@@ -2232,8 +2232,8 @@ bool ui_hsvcube_use_display_colorspace(uiBut *but)
 
 void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
 {
-	float x, y;
-	
+	float x = 0.0f, y = 0.0f;
+
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
 			x = hsv[2]; y = hsv[1]; break;
