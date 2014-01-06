@@ -1545,6 +1545,7 @@ void make_editText(Object *obedit)
 {
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
+	int len_wchar;
 	
 	if (ef == NULL) {
 		ef = cu->editfont = MEM_callocN(sizeof(EditFont), "editfont");
@@ -1556,8 +1557,9 @@ void make_editText(Object *obedit)
 	}
 	
 	/* Convert the original text to wchar_t */
-	BLI_assert(BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4) == cu->len_wchar);  /* length is bogus */
-	ef->len = cu->len_wchar;
+	len_wchar = BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4);
+	BLI_assert(len_wchar == cu->len_wchar);
+	ef->len = len_wchar;
 
 	memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
 
