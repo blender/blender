@@ -89,11 +89,12 @@ typedef struct EdgeHalf {
 } EdgeHalf;
 
 /* Profile specification.
- * For now, only have round profiles so only need midpoint.
+ * For now, only have round profiles and straight profiles, so only need midpoint.
  * The start and end points of the profile are stored separately.
  * TODO: generalize to superellipse profiles.
  */
 typedef struct Profile {
+	bool flat;
 	float midco[3];      /* mid control point for profile */
 } Profile;
 
@@ -181,6 +182,7 @@ static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float
 		tail->next = ans;
 		vm->boundstart->prev = ans;
 	}
+	ans->profile.flat = true;
 	vm->count++;
 	return ans;
 }
@@ -829,6 +831,7 @@ static void set_profile_params(BoundVert *bndv)
 
 	e = bndv->ebev;
 	if (e) {
+		bndv->profile.flat = false;
 		project_to_edge(e->e, bndv->nv.co, bndv->next->nv.co,
 		                bndv->profile.midco);
 	}
@@ -1006,7 +1009,7 @@ static void get_profile_point(const Profile *pro, const float va[3], const float
 		copy_v3_v3(r_co, va);
 	else if (u >= 2.0f)
 		copy_v3_v3(r_co, vb);
-	else if (!make_unit_square_map(va, pro->midco, vb, m)) {
+	else if (pro->flat || !make_unit_square_map(va, pro->midco, vb, m)) {
 		interp_v3_v3v3(r_co, va, vb, u / 2.0f);
 	}
 	else {
