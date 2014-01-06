@@ -79,6 +79,19 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
 
+/* Blend 2 vectors based on mask: (a[i] & mask[i]) | (b[i] & ~mask[i]) */
+#ifdef __KERNEL_SSE41__
+ccl_device_inline const __m128 blend(const __m128& mask, const __m128& a, const __m128& b)
+{
+	return _mm_blendv_ps(b, a, mask);
+}
+#else
+ccl_device_inline const __m128 blend(const __m128& mask, const __m128& a, const __m128& b)
+{
+	return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
+}
+#endif
+
 #endif /* __KERNEL_SSE2__ */
 
 CCL_NAMESPACE_END

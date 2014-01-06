@@ -247,9 +247,16 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 
 	if(srgb) {
+#ifdef __KERNEL_SSE2__
+		float alpha = r.w;
+		__m128 *rv = (__m128 *)&r;
+		*rv = color_srgb_to_scene_linear(*rv);
+		r.w = alpha;
+#else
 		r.x = color_srgb_to_scene_linear(r.x);
 		r.y = color_srgb_to_scene_linear(r.y);
 		r.z = color_srgb_to_scene_linear(r.z);
+#endif
 	}
 
 	return r;
