@@ -55,10 +55,10 @@ typedef struct {
 #include "mathutils_Euler.h"
 #include "mathutils_Color.h"
 
-/* utility submodules */
-#include "mathutils_geometry.h"
-#include "mathutils_noise.h"
-#include "mathutils_kdtree.h"
+// /* utility submodules */
+//
+//
+//#include "mathutils_kdtree.h"
 
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);

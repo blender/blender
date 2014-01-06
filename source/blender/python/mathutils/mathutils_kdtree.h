@@ -26,7 +26,7 @@
 #ifndef __MATHUTILS_KDTREE_H__
 #define __MATHUTILS_KDTREE_H__
 
-PyObject *PyInit_mathutils_kdtree(void);
+PyMODINIT_FUNC PyInit_mathutils_kdtree(void);
 
 extern PyTypeObject PyKDTree_Type;
 

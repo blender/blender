@@ -35,7 +35,9 @@
 #include "BLI_kdtree.h"
 
 #include "../generic/py_capi_utils.h"
+
 #include "mathutils.h"
+#include "mathutils_kdtree.h"  /* own include */
 
 #include "BLI_strict_flags.h"
 

@@ -27,6 +27,7 @@
 
 #include <Python.h>
 
+#include "mathutils.h"
 #include "mathutils_geometry.h"
 
 /* Used for PolyFill */

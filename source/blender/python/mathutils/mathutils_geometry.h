@@ -27,8 +27,6 @@
  *  \ingroup pymathutils
  */
 
-#include "mathutils.h"
-
 PyMODINIT_FUNC PyInit_mathutils_geometry(void);
 
 #endif /* __MATHUTILS_GEOMETRY_H__ */
