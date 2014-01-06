@@ -19,7 +19,10 @@
 
 #include "util_math.h"
 #include "util_types.h"
+
+#ifdef __KERNEL_SSE2__
 #include "util_simd.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
