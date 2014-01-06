@@ -2023,9 +2023,10 @@ static VMesh *interp_vmesh(MemArena *mem_arena, VMesh *vm0, int nseg)
 	nseg2 = nseg / 2;
 	odd = nseg % 2;
 	vm1 = new_adj_subdiv_vmesh(mem_arena, n, nseg, vm0->boundstart);
-	prev_frac = (float *)BLI_memarena_alloc(mem_arena, (ns0 + 1) * sizeof(float));
-	frac = (float *)BLI_memarena_alloc(mem_arena, (ns0 + 1) * sizeof(float));
-	new_frac = (float *)BLI_memarena_alloc(mem_arena, (nseg + 1) * sizeof(float));
+
+	prev_frac = BLI_array_alloca(prev_frac, (ns0 + 1));
+	frac = BLI_array_alloca(frac, (ns0 + 1));
+	new_frac = BLI_array_alloca(frac, (nseg + 1));
 
 	fill_vmesh_fracs(vm0, prev_frac, n - 1);
 	bndv = vm0->boundstart;
