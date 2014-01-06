@@ -119,6 +119,7 @@ set(SRC_SVM_HEADERS
 set(SRC_UTIL_HEADERS
 	../util/util_color.h
 	../util/util_math.h
+    ../util/util_simd.h
 	../util/util_transform.h
 	../util/util_types.h
 )
