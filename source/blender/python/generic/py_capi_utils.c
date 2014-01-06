@@ -162,6 +162,20 @@ PyObject *PyC_FromArray(const void *array, int length, const PyTypeObject *type,
 	return tuple;
 }
 
+/**
+ * Caller needs to ensure tuple is uninitialized.
+ * Handy for filling a typle with None for eg.
+ */
+void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
+{
+	unsigned int tot = PyTuple_GET_SIZE(tuple);
+	unsigned int i;
+
+	for (i = 0; i < tot; i++) {
+		PyTuple_SET_ITEM(tuple, i, value);
+		Py_INCREF(value);
+	}
+}
 
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var)
