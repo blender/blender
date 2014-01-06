@@ -46,11 +46,11 @@ shader node_texture_coordinate(
 			getattribute("geom:dupli_generated", Generated); 
 			getattribute("geom:dupli_uv", UV);
 		}
-		else if(is_volume) {
+		else if (is_volume) {
 			Generated = transform("object", P);
 
 			matrix tfm;
-			if(getattribute("geom:generated_transform", tfm))
+			if (getattribute("geom:generated_transform", tfm))
 				Generated = transform(tfm, Generated);
 
 			getattribute("geom:uv", UV);

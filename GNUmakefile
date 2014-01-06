@@ -243,13 +243,13 @@ test_style_c_qtc:
 
 test_style_osl:
 	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 python3 "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
+	PYTHONIOENCODING=utf_8 python3 "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" "$(BLENDER_DIR)/intern/cycles/kernel/shaders" "$(BLENDER_DIR)/release/scripts/templates_osl"
 
 
 test_style_osl_qtc:
 	# run our own checks on C/C++ style
 	USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 python3 "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" "$(BLENDER_DIR)/intern/cycles/kernel/shaders" > \
+	PYTHONIOENCODING=utf_8 python3 "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" "$(BLENDER_DIR)/intern/cycles/kernel/shaders" "$(BLENDER_DIR)/release/scripts/templates_osl" > \
 	test_style.tasks
 	@echo "written: test_style.tasks"
 
