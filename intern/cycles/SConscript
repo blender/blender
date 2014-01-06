@@ -97,10 +97,11 @@ if env['WITH_BF_RAYOPTIMIZATION']:
     defs.append('WITH_OPTIMIZED_KERNEL')
     optim_defs = defs[:]
 
-	# Disabled sse4+ patchs for now
-	#cycles_sse41 = cycles.Clone()
-	#sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
-	#cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
+    if env['WITH_CYCLES_OPTIMIZED_KERNEL_SSE41']:
+        cycles_sse41 = cycles.Clone()
+        sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
+        cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
+        defs.append('WITH_CYCLES_OPTIMIZED_KERNEL_SSE41')
 
     cycles_sse3 = cycles.Clone()
     sse3_sources = [path.join('kernel', 'kernel_sse3.cpp')]
