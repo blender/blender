@@ -42,27 +42,25 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
-#  include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
-#elif !defined(__FreeBSD__) && !defined(__linux__) && (defined(__sparc) || defined(__sparc__))
+#if defined(__NetBSD__) || defined(__DragonFly__) || defined(__sun__) || defined(__sun)
+   /* Other modern unix os's should probably use this also */
+#  include <sys/statvfs.h>
+#  define USE_STATFS_STATVFS
+#elif (defined(__sparc) || defined(__sparc__)) && !defined(__FreeBSD__) && !defined(__linux__)
 #  include <sys/statfs.h>
+   /* 4 argument version (not common) */
+#  define USE_STATFS_4ARGS
 #endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#  include <sys/param.h>
-#  include <sys/mount.h>
-#endif
-
-#if defined(__linux__) || defined(__CYGWIN32__) || defined(__hpux) || defined(__GNU__) || defined(__GLIBC__)
-#include <sys/vfs.h>
-#endif
-
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
    /* For statfs */
 #  include <sys/param.h>
 #  include <sys/mount.h>
-#endif /* __APPLE__ */
+#endif
 
+#if defined(__linux__) || defined(__hpux) || defined(__GNU__) || defined(__GLIBC__)
+#  include <sys/vfs.h>
+#endif
 
 #include <fcntl.h>
 #include <string.h>  /* strcpy etc.. */
@@ -172,11 +170,12 @@ double BLI_dir_free_space(const char *dir)
 	return (double) (freec * bytesps * sectorspc);
 #else
 
-#if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
+#ifdef USE_STATFS_STATVFS
 	struct statvfs disk;
 #else
 	struct statfs disk;
 #endif
+
 	char name[FILE_MAXDIR], *slash;
 	int len = strlen(dir);
 	
@@ -193,15 +192,12 @@ double BLI_dir_free_space(const char *dir)
 		strcpy(name, "/");
 	}
 
-#if defined(__FreeBSD__) || defined(__linux__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
-	if (statfs(name, &disk)) return(-1);
-#endif
-
-#if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
-	if (statvfs(name, &disk)) return(-1);
-#elif !defined(__FreeBSD__) && !defined(__linux__) && (defined(__sparc) || defined(__sparc__))
-	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
-	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
+#if  defined(USE_STATFS_STATVFS)
+	if (statvfs(name, &disk)) return -1;
+#elif defined(USE_STATFS_4ARGS)
+	if (statfs(name, &disk, sizeof(struct statfs), 0)) return -1;
+#else
+	if (statfs(name, &disk)) return -1;
 #endif
 
 	return ( ((double) disk.f_bsize) * ((double) disk.f_bfree));

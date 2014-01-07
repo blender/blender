@@ -44,10 +44,6 @@
 
 #include "GHOST_System.h"
 
-#if defined(__CYGWIN32__)
-#   define __int64 long long
-#endif
-
 class GHOST_EventButton;
 class GHOST_EventCursor;
 class GHOST_EventKey;
