@@ -132,7 +132,7 @@ class SelectCamera(Operator):
         else:
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
-            context.scene.objects.active = camera
+            scene.objects.active = camera
             camera.hide = False
             camera.select = True
             return {'FINISHED'}
@@ -166,6 +166,7 @@ class SelectHierarchy(Operator):
         return context.object
 
     def execute(self, context):
+        scene = context.scene
         select_new = []
         act_new = None
 
@@ -201,7 +202,7 @@ class SelectHierarchy(Operator):
             for obj in select_new:
                 obj.select = True
 
-            context.scene.objects.active = act_new
+            scene.objects.active = act_new
             return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -479,6 +480,7 @@ class JoinUVs(Operator):
     """(needs matching geometry)"""
     bl_idname = "object.join_uvs"
     bl_label = "Transfer UV Maps"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -555,9 +557,10 @@ class JoinUVs(Operator):
 
 
 class MakeDupliFace(Operator):
-    """Make linked objects into dupli-faces"""
+    """Converts objects into dupli-face instanced"""
     bl_idname = "object.make_dupli_face"
     bl_label = "Make Dupli-Face"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def _main(self, context):
         from mathutils import Vector
