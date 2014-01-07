@@ -139,7 +139,7 @@ static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *p
 	PointerRNA sockptr;
 	RNA_pointer_create(ptr->id.data, &RNA_NodeSocket, output, &sockptr);
 	
-	uiItemR(layout, &sockptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
