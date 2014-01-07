@@ -293,8 +293,8 @@ static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
 	return BLI_ghash_lookup(vfd->characters, SET_UINT_IN_POINTER(character));
 }
 
-static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, float x2, float y2,
-                            float rot, int charidx, short mat_nr)
+static void build_underline(Curve *cu, ListBase *nubase, const rctf *rect,
+                            float yofs, float rot, int charidx, short mat_nr)
 {
 	Nurb *nu2;
 	BPoint *bp;
@@ -314,10 +314,10 @@ static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, flo
 
 	bp = (BPoint *)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
 
-	copy_v4_fl4(bp[0].vec, x1, y1, 0.0f, 1.0f);
-	copy_v4_fl4(bp[1].vec, x2, y1, 0.0f, 1.0f);
-	copy_v4_fl4(bp[2].vec, x2, y2, 0.0f, 1.0f);
-	copy_v4_fl4(bp[3].vec, x1, y2, 0.0f, 1.0f);
+	copy_v4_fl4(bp[0].vec, rect->xmin, (rect->ymin + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[1].vec, rect->xmax, (rect->ymin + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[2].vec, rect->xmax, (rect->ymax + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[3].vec, rect->xmin, (rect->ymax + yofs), 0.0f, 1.0f);
 
 	nu2->bp = bp;
 	BLI_addtail(nubase, nu2);
@@ -335,16 +335,20 @@ static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, flo
 
 			fp = bp->vec;
 
-			x = fp[0] - x1;
-			y = fp[1] - y1;
+			x = fp[0] - rect->xmin;
+			y = fp[1] - rect->ymin;
 
-			fp[0] = (+co * x + si * y) + x1;
-			fp[1] = (-si * x + co * y) + y1;
+			fp[0] = (+co * x + si * y) + rect->xmin;
+			fp[1] = (-si * x + co * y) + rect->ymin;
 
 			bp++;
 		}
 	}
 
+	mul_v2_fl(bp[0].vec, cu->fsize);
+	mul_v2_fl(bp[1].vec, cu->fsize);
+	mul_v2_fl(bp[2].vec, cu->fsize);
+	mul_v2_fl(bp[3].vec, cu->fsize);
 }
 
 static void buildchar(Main *bmain, Curve *cu, ListBase *nubase, unsigned int character, CharInfo *info,
@@ -1070,6 +1074,7 @@ makebreak:
 
 			if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n') && (cha != '\r')) {
 				float ulwidth, uloverlap = 0.0f;
+				rctf rect;
 
 				if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
 				    ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
@@ -1082,11 +1087,16 @@ makebreak:
 				che = find_vfont_char(vfd, cha);
 
 				twidth = char_width(cu, che, info);
-				ulwidth = cu->fsize * ((twidth * (1.0f + (info->kern / 40.0f))) + uloverlap);
+				ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
+
+				rect.xmin = ct->xof;
+				rect.xmax = rect.xmin + ulwidth;
+
+				rect.ymin = ct->yof;
+				rect.ymax = rect.ymin - cu->ulheight;
+
 				build_underline(cu, r_nubase,
-				                ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
-				                ct->xof * cu->fsize + ulwidth,
-				                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
+				                &rect, cu->ulpos - 0.05f,
 				                ct->rot, i, info->mat_nr);
 			}
 			ct++;
