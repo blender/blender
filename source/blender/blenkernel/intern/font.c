@@ -343,6 +343,8 @@ static void build_underline(Curve *cu, ListBase *nubase, const rctf *rect,
 
 			bp++;
 		}
+
+		bp = nu2->bp;
 	}
 
 	mul_v2_fl(bp[0].vec, cu->fsize);
