@@ -273,7 +273,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 void node_socket_copy_default_value(bNodeSocket *to, bNodeSocket *from)
 {
 	/* sanity check */
-	if (!STREQ(to->idname, from->idname))
+	if (to->type != from->type)
 		return;
 	
 	/* make sure both exist */

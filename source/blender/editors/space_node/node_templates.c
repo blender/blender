@@ -246,10 +246,6 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 						nodeRemLink(ntree, link);
 					}
 
-					if (sock_from->default_value) {
-						MEM_freeN(sock_from->default_value);
-						sock_from->default_value = NULL;
-					}
 					node_socket_copy_default_value(sock_from, sock_prev);
 				}
 			}
