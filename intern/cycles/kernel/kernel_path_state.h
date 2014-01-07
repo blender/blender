@@ -153,8 +153,10 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, Path
 		if((state->bounce >= kernel_data.integrator.max_bounce) ||
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
-		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce) ||
-		   (state->volume_bounce >= kernel_data.integrator.max_volume_bounce))
+#ifdef __VOLUME__
+		   (state->volume_bounce >= kernel_data.integrator.max_volume_bounce) ||
+#endif
+		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
 		{
 			return 0.0f;
 		}

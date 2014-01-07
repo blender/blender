@@ -127,9 +127,11 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
+#ifdef __VOLUME__
 		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
 			label = volume_henyey_greenstein_sample(sc, sd->I, sd->dI.dx, sd->dI.dy, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
+#endif
 		default:
 			label = LABEL_NONE;
 			break;

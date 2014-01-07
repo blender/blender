@@ -1060,8 +1060,6 @@ ccl_device int shader_phase_sample_closure(KernelGlobals *kg, const ShaderData *
 	return label;
 }
 
-#endif
-
 /* Volume Evaluation */
 
 ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
@@ -1113,6 +1111,8 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 			shader_merge_closures(sd);
 	}
 }
+
+#endif
 
 /* Displacement Evaluation */
 

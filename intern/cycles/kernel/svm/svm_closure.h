@@ -481,6 +481,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag)
 {
+#ifdef __VOLUME__
 	uint type, param1_offset, param2_offset;
 
 #ifdef __MULTI_CLOSURE__
@@ -521,6 +522,7 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 		default:
 			break;
 	}
+#endif
 }
 
 ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
