@@ -112,12 +112,12 @@ void BKE_curve_editfont_free(Curve *cu)
 			MEM_freeN(ef->copybuf);
 		if (ef->copybufinfo)
 			MEM_freeN(ef->copybufinfo);
+		if (ef->selboxes)
+			MEM_freeN(ef->selboxes);
 
 		MEM_freeN(ef);
 		cu->editfont = NULL;
 	}
-
-	MEM_SAFE_FREE(cu->selboxes);
 }
 
 void BKE_curve_editNurb_keyIndex_free(EditNurb *editnurb)
@@ -224,7 +224,6 @@ Curve *BKE_curve_copy(Curve *cu)
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
-	cun->selboxes = NULL;
 	cun->lastsel = NULL;
 
 #if 0   // XXX old animation system

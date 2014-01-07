@@ -210,7 +210,8 @@ typedef struct Curve {
 	int actnu;
 	/* edit, last selected point */
 	void *lastsel;
-	
+
+
 	/* font part */
 	short lines;
 	char spacemode, pad1;
@@ -218,35 +219,35 @@ typedef struct Curve {
 	float xof, yof;
 	float linewidth;
 
-	int pad3;
-	int len_wchar;  /* number of characters (strinfo) */
-	int len;        /* number of bytes (str - utf8) */
-	char *str;
-	struct SelBox *selboxes;  /* runtime variable for drawing selections (editmode data) */
-	struct EditFont *editfont;
-	
 	/* copy of EditFont vars (wchar_t aligned),
 	 * warning! don't use in editmode (storage only) */
 	int pos;
 	int selstart, selend;
-	int pad2;
+
+	/* text data */
+	int len_wchar;  /* number of characters (strinfo) */
+	int len;        /* number of bytes (str - utf8) */
+	char *str;
+	struct EditFont *editfont;
 
 	char family[64];
 	struct VFont *vfont;
 	struct VFont *vfontb;
 	struct VFont *vfonti;
 	struct VFont *vfontbi;
-
-	int pad4;
 	
-	float ctime;			/* current evaltime - for use by Objects parented to curves */
-	int totbox, actbox;
 	struct TextBox *tb;
+	int totbox, actbox;
 	
 	struct CharInfo *strinfo;
 	struct CharInfo curinfo;
+	/* font part end */
 
+
+	float ctime;			/* current evaltime - for use by Objects parented to curves */
 	float bevfac1, bevfac2;
+
+	char pad[4];
 } Curve;
 
 /* **************** CURVE ********************* */

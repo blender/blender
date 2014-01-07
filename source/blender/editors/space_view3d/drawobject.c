@@ -6815,7 +6815,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			case OB_FONT:
 				cu = ob->data;
 				if (cu->editfont) {
-					draw_textcurs(rv3d, cu->editfont->textcurs);
+					EditFont *ef = cu->editfont;
+
+					draw_textcurs(rv3d, ef->textcurs);
 
 					if (cu->flag & CU_FAST) {
 						cpack(0xFFFFFF);
@@ -6866,18 +6868,19 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					setlinestyle(0);
 
 
-					if (BKE_vfont_select_get(ob, &selstart, &selend) && cu->selboxes) {
+					if (BKE_vfont_select_get(ob, &selstart, &selend) && ef->selboxes) {
+						const int seltot = selend - selstart;
 						float selboxw;
 
 						cpack(0xffffff);
 						set_inverted_drawing(1);
-						for (i = 0; i <= (selend - selstart); i++) {
-							SelBox *sb = &(cu->selboxes[i]);
+						for (i = 0; i <= seltot; i++) {
+							EditFontSelBox *sb = &ef->selboxes[i];
 							float tvec[3];
 
-							if (i < (selend - selstart)) {
-								if (cu->selboxes[i + 1].y == sb->y)
-									selboxw = cu->selboxes[i + 1].x - sb->x;
+							if (i != seltot) {
+								if (ef->selboxes[i + 1].y == sb->y)
+									selboxw = ef->selboxes[i + 1].x - sb->x;
 								else
 									selboxw = sb->w;
 							}

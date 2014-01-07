@@ -53,18 +53,20 @@ struct CharTrans {
 	char dobreak;
 };
 
-typedef struct SelBox {
+typedef struct EditFontSelBox {
 	float x, y, w, h;
 	float rot;
-} SelBox;
+} EditFontSelBox;
 
-typedef struct EditFont {	
+typedef struct EditFont {
 	wchar_t *copybuf;
 	struct CharInfo *copybufinfo;
 	
 	wchar_t *textbuf;
 	struct CharInfo *textbufinfo;
 	
+	/* array of rectangles & rotation */
+	EditFontSelBox *selboxes;
 	float textcurs[4][2];
 
 	/* positional vars relative to the textbuf, textbufinfo (not utf8 bytes)

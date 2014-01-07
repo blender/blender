@@ -502,6 +502,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Scene *scene, Object *ob, int mode,
 {
 	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
+	EditFontSelBox *selboxes = NULL;
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
 	CharInfo *info = NULL, *custrinfo;
@@ -562,6 +563,18 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Scene *scene, Object *ob, int mode,
 	if (cu->tb == NULL)
 		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
 
+	if (ef) {
+		if (ef->selboxes)
+			MEM_freeN(ef->selboxes);
+
+		if (BKE_vfont_select_get(ob, &selstart, &selend))
+			ef->selboxes = MEM_callocN((selend - selstart + 1) * sizeof(EditFontSelBox), "font selboxes");
+		else
+			ef->selboxes = NULL;
+
+		selboxes = ef->selboxes;
+	}
+
 	/* calc offset and rotation of each char */
 	ct = chartransdata = MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
 
@@ -582,11 +595,6 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Scene *scene, Object *ob, int mode,
 	oldvfont = NULL;
 
 	for (i = 0; i < slen; i++) custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK);
-
-	if (cu->selboxes) MEM_freeN(cu->selboxes);
-	cu->selboxes = NULL;
-	if (BKE_vfont_select_get(ob, &selstart, &selend))
-		cu->selboxes = MEM_callocN((selend - selstart + 1) * sizeof(SelBox), "font selboxes");
 
 	tb = &(cu->tb[0]);
 	curbox = 0;
@@ -729,7 +737,7 @@ makebreak:
 			xof = cu->xof + tabfac;
 		}
 		else {
-			SelBox *sb = NULL;
+			EditFontSelBox *sb = NULL;
 			float wsfac;
 
 			ct->xof = xof;
@@ -737,8 +745,8 @@ makebreak:
 			ct->linenr = lnr;
 			ct->charnr = cnr++;
 
-			if (cu->selboxes && (i >= selstart) && (i <= selend)) {
-				sb = &(cu->selboxes[i - selstart]);
+			if (selboxes && (i >= selstart) && (i <= selend)) {
+				sb = &selboxes[i - selstart];
 				sb->y = yof * cu->fsize - linedist * cu->fsize * 0.1f;
 				sb->h = linedist * cu->fsize;
 				sb->w = xof * cu->fsize;
@@ -929,9 +937,9 @@ makebreak:
 				ct->xof = vec[0] + si * yof;
 				ct->yof = vec[1] + co * yof;
 
-				if (cu->selboxes && (i >= selstart) && (i <= selend)) {
-					SelBox *sb;
-					sb = &(cu->selboxes[i - selstart]);
+				if (selboxes && (i >= selstart) && (i <= selend)) {
+					EditFontSelBox *sb;
+					sb = &selboxes[i - selstart];
 					sb->rot = -ct->rot;
 				}
 				
@@ -940,12 +948,12 @@ makebreak:
 		}
 	}
 
-	if (cu->selboxes) {
+	if (selboxes) {
 		ct = chartransdata;
 		for (i = 0; i <= selend; i++, ct++) {
 			if (i >= selstart) {
-				cu->selboxes[i - selstart].x = ct->xof * cu->fsize;
-				cu->selboxes[i - selstart].y = ct->yof * cu->fsize;
+				selboxes[i - selstart].x = ct->xof * cu->fsize;
+				selboxes[i - selstart].y = ct->yof * cu->fsize;
 			}
 		}
 	}
