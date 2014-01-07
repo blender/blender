@@ -241,15 +241,22 @@ typedef enum eCalcRollTypes {
 	CALC_ROLL_Y          = 1,
 	CALC_ROLL_Z          = 2,
 	
+	CALC_ROLL_TAN_X      = 3,
+	CALC_ROLL_TAN_Z      = 4,
+
 	CALC_ROLL_ACTIVE     = 5,
 	CALC_ROLL_VIEW       = 6,
-	CALC_ROLL_CURSOR     = 7
+	CALC_ROLL_CURSOR     = 7,
 } eCalcRollTypes;
 
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{CALC_ROLL_X, "X", 0, "X Axis", ""},
-	{CALC_ROLL_Y, "Y", 0, "Y Axis", ""},
-	{CALC_ROLL_Z, "Z", 0, "Z Axis", ""},
+	{CALC_ROLL_TAN_X, "X", 0, "Local X Tangent", ""},
+	{CALC_ROLL_TAN_Z, "Z", 0, "Local Z Tangent", ""},
+
+	{CALC_ROLL_X, "X", 0, "Global X Axis", ""},
+	{CALC_ROLL_Y, "Y", 0, "Global Y Axis", ""},
+	{CALC_ROLL_Z, "Z", 0, "Global Z Axis", ""},
+
 	{CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
 	{CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
 	{CALC_ROLL_CURSOR, "CURSOR", 0, "Cursor", ""},
@@ -289,6 +296,54 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
 				if (axis_flip) negate_v3(cursor_rel);
 				ebone->roll = ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+			}
+		}
+	}
+	else if (ELEM(type, CALC_ROLL_TAN_X, CALC_ROLL_TAN_Z)) {
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (ebone->parent) {
+				bool is_edit        = (EBONE_VISIBLE(arm, ebone)         && EBONE_EDITABLE(ebone));
+				bool is_edit_parent = (EBONE_VISIBLE(arm, ebone->parent) && EBONE_EDITABLE(ebone->parent));
+
+				if (is_edit || is_edit_parent) {
+					EditBone *ebone_other = ebone->parent;
+					float dir_a[3];
+					float dir_b[3];
+					float vec[3];
+					bool is_vec_zero;
+
+					sub_v3_v3v3(dir_a, ebone->tail, ebone->head);
+					normalize_v3(dir_a);
+
+					/* find the first bone in the chane with a different direction */
+					do {
+						sub_v3_v3v3(dir_b, ebone_other->head, ebone_other->tail);
+						normalize_v3(dir_b);
+
+						if (type == CALC_ROLL_TAN_Z) {
+							cross_v3_v3v3(vec, dir_a, dir_b);
+						}
+						else {
+							add_v3_v3v3(vec, dir_a, dir_b);
+						}
+					} while ((is_vec_zero = (normalize_v3(vec) < 0.00001f)) &&
+					         (ebone_other = ebone_other->parent));
+
+					if (!is_vec_zero) {
+						if (axis_flip) negate_v3(vec);
+
+						if (is_edit) {
+							ebone->roll = ED_rollBoneToVector(ebone, vec, axis_only);
+						}
+
+						/* parentless bones use cross product with child */
+						if (is_edit_parent) {
+							if (ebone->parent->parent == NULL) {
+								ebone->parent->roll = ED_rollBoneToVector(ebone->parent, vec, axis_only);
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -365,7 +420,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, CALC_ROLL_TAN_X, "Type", "");
 	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
 	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
