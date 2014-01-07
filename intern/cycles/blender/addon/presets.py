@@ -65,6 +65,7 @@ class AddPresetSampling(AddPresetBase, Operator):
         "cycles.ao_samples",
         "cycles.mesh_light_samples",
         "cycles.subsurface_samples",
+        "cycles.volume_samples",
         "cycles.no_caustics",
         "cycles.blur_glossy",
         "cycles.use_square_samples",
