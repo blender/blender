@@ -115,6 +115,8 @@ void outputNumInput(NumInput *n, char *str)
 			const char *cur = (i == n->idx) ? "|" : "";
 			BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
 		}
+		/* We might have cut some multi-bytes utf8 chars (e.g. trailing '°' of degrees values can become only 'A')... */
+		BLI_utf8_invalid_strip(&str[j * ln], ln);
 	}
 }
 
