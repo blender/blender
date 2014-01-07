@@ -52,6 +52,8 @@ enum {
 	/* (1 << 8) and below are reserved for public flags! */
 	NUM_EDITED          = (1 << 9),    /* User has edited this value somehow. */
 	NUM_INVALID         = (1 << 10),   /* Current expression for this value is invalid. */
+	NUM_NEGATE          = (1 << 11),   /* Current expression's result has to be negated. */
+	NUM_INVERSE         = (1 << 12),   /* Current expression's result has to be inverted. */
 };
 
 /* ************************** Functions *************************** */
@@ -85,9 +87,20 @@ void outputNumInput(NumInput *n, char *str)
 		i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 
 		if (n->val_flag[i] & NUM_EDITED) {
-			if (i == n->idx && n->str[0]) {
+			if (i == n->idx) {
+				const char *heading_exp = "", *trailing_exp = "";
 				char before_cursor[NUM_STR_REP_LEN];
 				char val[16];
+
+				if (n->val_flag[i] & NUM_NEGATE) {
+					heading_exp = (n->val_flag[i] & NUM_INVERSE) ? "-1/(" : "-(";
+					trailing_exp = ")";
+				}
+				else if (n->val_flag[i] & NUM_INVERSE) {
+					heading_exp = "1/(";
+					trailing_exp = ")";
+				}
+
 				if (n->val_flag[i] & NUM_INVALID) {
 					BLI_strncpy(val, "Invalid", sizeof(val));
 				}
@@ -95,8 +108,10 @@ void outputNumInput(NumInput *n, char *str)
 					bUnit_AsString(val, sizeof(val), (double)n->val[i], prec,
 					               n->unit_sys, n->unit_type[i], true, false);
 				}
+
 				BLI_strncpy(before_cursor, n->str, n->str_cur + 1);  /* +1 because of trailing '\0' */
-				BLI_snprintf(&str[j * ln], ln, "[%s|%s] = %s", before_cursor, &n->str[n->str_cur], val);
+				BLI_snprintf(&str[j * ln], ln, "[%s%s|%s%s] = %s",
+				             heading_exp, before_cursor, &n->str[n->str_cur], trailing_exp, val);
 			}
 			else {
 				const char *cur = (i == n->idx) ? "|" : "";
@@ -188,100 +203,6 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 	n->str_cur = n_cur;
 	return true;
 }
-
-#define NUM_REVERSE_START "-("
-#define NUM_REVERSE_END ")"
-#define NUM_INVERSE_START "1/("
-#define NUM_INVERSE_END ")"
-
-static bool editstr_reverse_inverse_toggle(NumInput *n, const bool reverse, const bool inverse)
-{
-	/* This function just add or remove -(...) or 1/(...) around current expression. */
-	size_t len = strlen(n->str);
-	const size_t len_rev_start = strlen(NUM_REVERSE_START);
-	const size_t len_rev_end = strlen(NUM_REVERSE_END);
-	const size_t len_inv_start = strlen(NUM_INVERSE_START);
-	const size_t len_inv_end = strlen(NUM_INVERSE_END);
-	int len_start = 0, len_end = 0;
-	size_t off_start, off_end;
-
-	bool is_reversed = ((strncmp(n->str, NUM_REVERSE_START, len_rev_start) == 0) &&
-	                    (strncmp(n->str + len - len_rev_end, NUM_REVERSE_END, len_rev_end) == 0)) ||
-	                   ((strncmp(n->str + len_inv_start, NUM_REVERSE_START, len_rev_start) == 0) &&
-	                    (strncmp(n->str + len - len_rev_end - len_inv_end, NUM_REVERSE_END, len_rev_end) == 0));
-	bool is_inversed = ((strncmp(n->str, NUM_INVERSE_START, len_inv_start) == 0) &&
-	                    (strncmp(n->str + len - len_inv_end, NUM_INVERSE_END, len_inv_end) == 0)) ||
-	                   ((strncmp(n->str + len_rev_start, NUM_INVERSE_START, len_inv_start) == 0) &&
-	                    (strncmp(n->str + len - len_inv_end - len_rev_end, NUM_INVERSE_END, len_inv_end) == 0));
-
-	if ((!reverse && !inverse) || n->str[0] == '\0') {
-		return false;
-	}
-
-	if (reverse) {
-		if (is_reversed) {
-			len_start -= len_rev_start;
-			len_end -= len_rev_end;
-		}
-		else {
-			len_start += len_rev_start;
-			len_end += len_rev_end;
-		}
-	}
-	if (inverse) {
-		if (is_inversed) {
-			len_start -= len_inv_start;
-			len_end -= len_inv_end;
-		}
-		else {
-			len_start += len_inv_start;
-			len_end += len_inv_end;
-		}
-	}
-
-	if (len_start < 0) {
-		len -= (size_t)(-(len_start + len_end));
-		memmove(n->str, n->str + (size_t)(-len_start), len);
-	}
-	else if (len_start > 0) {
-		if (len + len_start + len_end > sizeof(n->str)) {
-			return false;  /* Not enough room in buffer... */
-		}
-		memmove(n->str + (size_t)len_start, n->str, len);
-		len += (size_t)(len_start + len_end);
-	}
-
-	if (reverse) {
-		is_reversed = !is_reversed;
-	}
-	if (inverse) {
-		is_inversed = !is_inversed;
-	}
-
-	off_start = 0;
-	off_end = len;
-	if (is_reversed) {
-		off_end -= len_rev_end;
-		memcpy(n->str + off_start, NUM_REVERSE_START, len_rev_start);
-		memcpy(n->str + off_end, NUM_REVERSE_END, len_rev_end);
-		off_start += len_rev_start;
-	}
-	if (is_inversed) {
-		off_end -= len_inv_end;
-		memcpy(n->str + off_start, NUM_INVERSE_START, len_inv_start);
-		memcpy(n->str + off_end, NUM_INVERSE_END, len_inv_end);
-		off_start += len_inv_start;
-	}
-
-	n->str[len] = '\0';
-	n->str_cur += len_start;
-	return true;
-}
-
-#undef NUM_REVERSE_START
-#undef NUM_REVERSE_END
-#undef NUM_INVERSE_START
-#undef NUM_INVERSE_END
 
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 {
@@ -376,6 +297,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			return false;
 		case TABKEY:
 			n->val_org[idx] = n->val[idx];
+			n->val_flag[idx] &= ~(NUM_NEGATE | NUM_INVERSE);
 
 			idx += event->ctrl ? -1 : 1;
 			idx %= idx_max + 1;
@@ -395,13 +317,15 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			utf8_buf = ascii;
 			break;
 		case PADMINUS:
-			if (event->ctrl && editstr_reverse_inverse_toggle(n, true, false)) {
+			if (event->ctrl) {
+				n->val_flag[idx] ^= NUM_NEGATE;
 				updated = true;
 				break;
 			}
 			/* fall-through */
 		case PADSLASHKEY:
-			if (event->ctrl && editstr_reverse_inverse_toggle(n, false, true)) {
+			if (event->ctrl) {
+				n->val_flag[idx] ^= NUM_INVERSE;
 				updated = true;
 				break;
 			}
@@ -488,6 +412,13 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 #else  /* Very unlikely, but does not harm... */
 		n->val[idx] = (float)atof(n->str);
 #endif  /* WITH_PYTHON */
+
+		if (n->val_flag[idx] & NUM_NEGATE) {
+			n->val[idx] = -n->val[idx];
+		}
+		if (n->val_flag[idx] & NUM_INVERSE) {
+			n->val[idx] = 1.0f / n->val[idx];
+		}
 	}
 
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */
