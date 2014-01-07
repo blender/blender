@@ -331,6 +331,26 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->strip; break;
 				case TH_STRIP_SELECT:
 					cp = ts->strip_select; break;
+				case TH_KEYTYPE_KEYFRAME:
+					cp = ts->keytype_keyframe; break;
+				case TH_KEYTYPE_KEYFRAME_SELECT:
+					cp = ts->keytype_keyframe_select; break;
+				case TH_KEYTYPE_EXTREME:
+					cp = ts->keytype_extreme; break;
+				case TH_KEYTYPE_EXTREME_SELECT:
+					cp = ts->keytype_extreme_select; break;
+				case TH_KEYTYPE_BREAKDOWN:
+					cp = ts->keytype_breakdown; break;
+				case TH_KEYTYPE_BREAKDOWN_SELECT:
+					cp = ts->keytype_breakdown_select; break;
+				case TH_KEYTYPE_JITTER:
+					cp = ts->keytype_jitter; break;
+				case TH_KEYTYPE_JITTER_SELECT:
+					cp = ts->keytype_jitter_select; break;
+				case TH_KEYBORDER:
+					cp = ts->keyborder; break;
+				case TH_KEYBORDER_SELECT:
+					cp = ts->keyborder_select; break;
 				case TH_CFRAME:
 					cp = ts->cframe; break;
 				case TH_NURB_ULINE:
@@ -892,6 +912,18 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tact.strip_select,   255, 140, 0, 255);
 	
 	rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102);
+	
+	rgba_char_args_set(btheme->tact.keytype_keyframe,           232, 232, 232, 255);
+	rgba_char_args_set(btheme->tact.keytype_keyframe_select,    255, 190,  50, 255);
+	rgba_char_args_set(btheme->tact.keytype_extreme,            237, 178, 204, 255);
+	rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 127, 127, 255);
+	rgba_char_args_set(btheme->tact.keytype_breakdown,          178, 219, 232, 255);
+	rgba_char_args_set(btheme->tact.keytype_breakdown_select,    84, 191, 237, 255);
+	rgba_char_args_set(btheme->tact.keytype_jitter,             148, 229, 117, 255);
+	rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 191, 066, 255);
+	
+	rgba_char_args_set(btheme->tact.keyborder,	             0,   0,   0, 255);
+	rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
 	
 	/* space nla */
 	btheme->tnla = btheme->tact;
