@@ -292,14 +292,14 @@ static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
 {
 	return BLI_ghash_lookup(vfd->characters, SET_UINT_IN_POINTER(character));
 }
-		
-static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
+
+static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, float x2, float y2,
+                            float rot, int charidx, short mat_nr)
 {
 	Nurb *nu2;
 	BPoint *bp;
 	
 	nu2 = (Nurb *) MEM_callocN(sizeof(Nurb), "underline_nurb");
-	if (nu2 == NULL) return;
 	nu2->resolu = cu->resolu;
 	nu2->bezt = NULL;
 	nu2->knotsu = nu2->knotsv = NULL;
@@ -313,10 +313,6 @@ static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, flo
 	nu2->flagu = CU_NURB_CYCLIC;
 
 	bp = (BPoint *)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
-	if (bp == NULL) {
-		MEM_freeN(nu2);
-		return;
-	}
 
 	copy_v4_fl4(bp[0].vec, x1, y1, 0.0f, 1.0f);
 	copy_v4_fl4(bp[1].vec, x2, y1, 0.0f, 1.0f);
@@ -325,6 +321,29 @@ static void build_underline(Curve *cu, ListBase *nubase, float x1, float y1, flo
 
 	nu2->bp = bp;
 	BLI_addtail(nubase, nu2);
+
+	if (rot != 0.0f) {
+		float si, co;
+		int i;
+
+		si = sinf(rot);
+		co = cosf(rot);
+
+		for (i = nu2->pntsu; i > 0; i--) {
+			float *fp;
+			float x, y;
+
+			fp = bp->vec;
+
+			x = fp[0] - x1;
+			y = fp[1] - y1;
+
+			fp[0] = (+co * x + si * y) + x1;
+			fp[1] = (-si * x + co * y) + y1;
+
+			bp++;
+		}
+	}
 
 }
 
@@ -1049,7 +1068,7 @@ makebreak:
 			if (cha != '\n' && cha != '\r')
 				buildchar(bmain, cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i);
 
-			if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
+			if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n') && (cha != '\r')) {
 				float ulwidth, uloverlap = 0.0f;
 
 				if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
@@ -1068,7 +1087,7 @@ makebreak:
 				                ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
 				                ct->xof * cu->fsize + ulwidth,
 				                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
-				                i, info->mat_nr);
+				                ct->rot, i, info->mat_nr);
 			}
 			ct++;
 		}
