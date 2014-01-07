@@ -251,51 +251,49 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             "any": "any",
             }
         # KeyMapItem like dict, use for comparing against
-        # attr: state
+        # attr: {states, ...}
         kmi_test_dict = {}
 
         # initialize? - so if a if a kmi has a MOD assigned it wont show up.
         #~ for kv in key_mod.values():
-        #~    kmi_test_dict[kv] = False
+        #~    kmi_test_dict[kv] = {False}
 
         # altname: attr
         for kk, kv in key_mod.items():
             if kk in filter_text_split:
                 filter_text_split.remove(kk)
-                kmi_test_dict[kv] = True
+                kmi_test_dict[kv] = {True}
         # whats left should be the event type
         if len(filter_text_split) > 1:
             return False
         elif filter_text_split:
             kmi_type = filter_text_split[0].upper()
+            kmi_type_set = set()
 
-            if kmi_type not in _EVENT_TYPES:
+            if kmi_type in _EVENT_TYPES:
+                kmi_type_set.add(kmi_type)
+            else:
                 # replacement table
                 kmi_type_test = _EVENT_TYPE_MAP.get(kmi_type)
-                if kmi_type_test is None:
+                if kmi_type_test is not None:
+                    kmi_type_set.add(kmi_type_test)
+                else:
                     # print("Unknown Type:", kmi_type)
 
                     # Partial match
                     for k, v in _EVENT_TYPE_MAP.items():
-                        if kmi_type in k:
-                            kmi_type_test = v
-                            break
-                        if kmi_type in v:
-                            kmi_type_test = v
-                            break
+                        if (kmi_type in k) or (kmi_type in v):
+                            kmi_type_set.add(v)
 
-                    if kmi_type_test is None:
+                    if not kmi_type_set:
                         return False
 
-                kmi_type = kmi_type_test
-                del kmi_type_test
-
-            kmi_test_dict["type"] = kmi_type
+            kmi_test_dict["type"] = kmi_type_set
 
         # main filter func, runs many times
         def filter_func(kmi):
             for kk, ki in kmi_test_dict.items():
-                if getattr(kmi, kk) != ki:
+                if getattr(kmi, kk) not in ki:
                     return False
             return True
 
