@@ -32,11 +32,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <wchar.h>
+#include <errno.h>
 
 #ifndef WIN32 
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -401,24 +402,42 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 	fp = BLI_fopen(filename, "r");
 
 	if (!fp) {
-		if (reports)
-			BKE_reportf(reports, RPT_ERROR, "Failed to open file %s", filename);
+		BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filename);
 		return OPERATOR_CANCELLED;
 	}
 
 	fseek(fp, 0L, SEEK_END);
+
+	errno = 0;
 	filelen = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
+	if (filelen == -1) {
+		goto fail;
+	}
 
-	strp = MEM_callocN(filelen + 4, "tempstr");
+	if (filelen <= MAXTEXT) {
+		strp = MEM_mallocN(filelen + 4, "tempstr");
 
-	/* fread() instead of read(), because windows read() converts text
-	 * to DOS \r\n linebreaks, causing double linebreaks in the 3d text */
-	filelen = fread(strp, 1, filelen, fp);
+		fseek(fp, 0L, SEEK_SET);
+
+		/* fread() instead of read(), because windows read() converts text
+		 * to DOS \r\n linebreaks, causing double linebreaks in the 3d text */
+		errno = 0;
+		filelen = fread(strp, 1, filelen, fp);
+		if (filelen == -1) {
+			MEM_freeN(strp);
+			goto fail;
+		}
+
+		strp[filelen] = 0;
+	}
+	else {
+		strp = NULL;
+	}
+
 	fclose(fp);
-	strp[filelen] = 0;
 
-	if (font_paste_utf8(C, strp, filelen)) {
+
+	if (strp && font_paste_utf8(C, strp, filelen)) {
 		text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		retval = OPERATOR_FINISHED;
 
@@ -427,9 +446,19 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 		BKE_reportf(reports, RPT_ERROR, "File too long %s", filename);
 		retval = OPERATOR_CANCELLED;
 	}
-	MEM_freeN(strp);
+
+	if (strp) {
+		MEM_freeN(strp);
+	}
 
 	return retval;
+
+
+	/* failed to seek or read */
+fail:
+	BKE_reportf(reports, RPT_ERROR, "Failed to read file '%s', %s", filename, strerror(errno));
+	fclose(fp);
+	return OPERATOR_CANCELLED;
 }
 
 static int paste_from_file_exec(bContext *C, wmOperator *op)
@@ -494,7 +523,7 @@ static int paste_from_clipboard(bContext *C, ReportList *reports)
 
 	filelen = strlen(strp);
 
-	if (font_paste_utf8(C, strp, filelen)) {
+	if ((filelen <= MAXTEXT) && font_paste_utf8(C, strp, filelen)) {
 		text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		retval = OPERATOR_FINISHED;
 	}
