@@ -23,7 +23,7 @@ import bpy
 from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
-SMALL_NUM = 0.0000001  # see bug [#31598] why we dont have smaller values
+SMALL_NUM = 0.000001  # see bug [#31598] why we dont have smaller values
 
 global USER_FILL_HOLES
 global USER_FILL_HOLES_QUALITY
