@@ -137,6 +137,8 @@ int BLI_utf8_invalid_strip(char *str, int length)
 {
 	int bad_char, tot = 0;
 
+	BLI_assert(str[length] == '\0');
+
 	while ((bad_char = BLI_utf8_invalid_byte(str, length)) != -1) {
 		str += bad_char;
 		length -= bad_char;

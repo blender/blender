@@ -4110,7 +4110,7 @@ static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if (seq) {
 		BLI_strncpy_utf8(seq->name + 2, seq_load->name, sizeof(seq->name) - 2);
-		BLI_utf8_invalid_strip(seq->name + 2, sizeof(seq->name) - 2);
+		BLI_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
 		BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 		if (seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
