@@ -298,7 +298,7 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
 	if (/* out of range */
 	    (dist > rad_a + rad_b) ||
 	    /* fully-contained in the other */
-	    (dist < abs(rad_a - rad_b)) ||
+	    (dist < fabsf(rad_a - rad_b)) ||
 	    /* co-incident */
 	    (dist < FLT_EPSILON))
 	{
