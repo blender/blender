@@ -143,6 +143,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const float offset = RNA_float_get(op->ptr, "offset");
 	const int offset_type = RNA_enum_get(op->ptr, "offset_type");
 	const int segments = RNA_int_get(op->ptr, "segments");
+	const float profile = RNA_float_get(op->ptr, "profile");
 	const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
 
 	/* revert to original mesh */
@@ -151,8 +152,8 @@ static bool edbm_bevel_calc(wmOperator *op)
 	}
 
 	EDBM_op_init(em, &bmop, op,
-	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i",
-	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type);
+	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f",
+	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -427,5 +428,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "offset_type", offset_type_items, 0, "Amount Type", "What distance Amount measures");
 	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Amount", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
+	RNA_def_float(ot->srna, "profile", 0.5f, 0.15f, 1.0f, "Profile", "Controls profile shape (0.5 = round)", 0.15f, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex only", "Bevel only vertices");
 }

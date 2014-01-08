@@ -1559,6 +1559,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {"offset", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
 	 {"offset_type", BMO_OP_SLOT_INT},      /* how to measure offset (enum) */
 	 {"segments", BMO_OP_SLOT_INT},         /* number of segments in bevel */
+	 {"profile", BMO_OP_SLOT_FLT},          /* profile shape, 0->1 (.5=>round) */
 	 {"vertex_only", BMO_OP_SLOT_BOOL},	/* only bevel vertices, not edges */
 	 {{'\0'}},
 	},
