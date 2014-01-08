@@ -2414,47 +2414,6 @@ void BKE_object_where_is_calc(Scene *scene, Object *ob)
 	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
 }
 
-/* was written for the old game engine (until 2.04) */
-/* It seems that this function is only called
- * for a lamp that is the child of another object */
-void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
-{
-	Object *par;
-	float *fp1, *fp2;
-	float slowmat[4][4];
-	float fac1, fac2;
-	int a;
-	
-	/* NO TIMEOFFS */
-	if (ob->parent) {
-		par = ob->parent;
-		
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, NULL, true);
-		
-		if (ob->partype & PARSLOW) {
-			fac1 = (float)(1.0 / (1.0 + fabs(ob->sf)));
-			fac2 = 1.0f - fac1;
-			fp1 = ob->obmat[0];
-			fp2 = slowmat[0];
-			for (a = 0; a < 16; a++, fp1++, fp2++) {
-				fp1[0] = fac1 * fp1[0] + fac2 * fp2[0];
-			}
-		}
-	}
-	else {
-		BKE_object_to_mat4(ob, ob->obmat);
-	}
-	
-	/* solve constraints */
-	if (ob->constraints.first) {
-		bConstraintOb *cob;
-		
-		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		BKE_solve_constraints(&ob->constraints, cob, BKE_scene_frame_get(scene));
-		BKE_constraints_clear_evalob(cob);
-	}
-}
-
 /* for calculation of the inverse parent transform, only used for editor */
 void BKE_object_workob_calc_parent(Scene *scene, Object *ob, Object *workob)
 {
