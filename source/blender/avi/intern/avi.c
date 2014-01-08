@@ -1091,8 +1091,9 @@ AviError AVI_close_compress(AviMovie *movie)
 	}
 
 	MEM_freeN(movie->header);
-	MEM_freeN(movie->entries);
 
+	if (movie->entries != NULL)
+		MEM_freeN(movie->entries);
 	if (movie->streams != NULL)
 		MEM_freeN(movie->streams);
 	if (movie->offset_table != NULL)
