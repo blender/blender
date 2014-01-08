@@ -207,16 +207,16 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 
 	result = render_result_new(re, &disprect, 0, RR_USE_MEM, layername);
 
-	/* Copy EXR tile settings, so pipeline knows whether this is a result
-	 * for Save Buffers enabled rendering.
-	 */
-	result->do_exr_tile = re->result->do_exr_tile;
-
 	/* todo: make this thread safe */
 
 	/* can be NULL if we CLAMP the width or height to 0 */
 	if (result) {
 		RenderPart *pa;
+
+		/* Copy EXR tile settings, so pipeline knows whether this is a result
+		 * for Save Buffers enabled rendering.
+		 */
+		result->do_exr_tile = re->result->do_exr_tile;
 
 		BLI_addtail(&engine->fullresult, result);
 
