@@ -987,6 +987,7 @@ void BlenderSync::sync_world(bool update_all)
 
 		shader->set_graph(graph);
 		shader->tag_update(scene);
+		background->tag_update(scene);
 	}
 
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
