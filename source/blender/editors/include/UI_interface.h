@@ -941,4 +941,9 @@ void UI_template_fix_linking(void);
 bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 
+/* Float precision helpers */
+#define UI_PRECISION_FLOAT_MAX 7
+
+int uiFloatPrecisionCalc(int prec, double value);
+
 #endif  /* __UI_INTERFACE_H__ */

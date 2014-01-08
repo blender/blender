@@ -36,6 +36,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "BLF_translation.h"
@@ -223,4 +224,59 @@ int uiIconFromID(ID *id)
 	RNA_id_pointer_create(id, &ptr);
 
 	return (ptr.type) ? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
+}
+
+/********************************** Misc **************************************/
+
+/**
+ * Returns the best "UI" precision for given floating value, so that e.g. 10.000001 rather gets drawn as '10'...
+ */
+int uiFloatPrecisionCalc(int prec, double value)
+{
+	static const double pow10_neg[UI_PRECISION_FLOAT_MAX + 1] = {1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7};
+	static const double max_pow = 10000000.0;  /* pow(10, UI_PRECISION_FLOAT_MAX) */
+
+	BLI_assert(prec <= UI_PRECISION_FLOAT_MAX);
+	BLI_assert(pow10_neg[prec] == pow(10, -prec));
+
+	/* check on the number of decimal places need to display the number, this is so 0.00001 is not displayed as 0.00,
+	 * _but_, this is only for small values si 10.0001 will not get the same treatment.
+	 */
+	value = ABS(value);
+	if ((value < pow10_neg[prec]) && (value > (1.0 / max_pow))) {
+		int value_i = (int)((value * max_pow) + 0.5);
+		if (value_i != 0) {
+			const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
+			int test_prec;
+			int prec_min = -1;
+			int dec_flag = 0;
+			int i = UI_PRECISION_FLOAT_MAX;
+			while (i && value_i) {
+				if (value_i % 10) {
+					dec_flag |= 1 << i;
+					prec_min = i;
+				}
+				value_i /= 10;
+				i--;
+			}
+
+			/* even though its a small value, if the second last digit is not 0, use it */
+			test_prec = prec_min;
+
+			dec_flag = (dec_flag >> (prec_min + 1)) & ((1 << prec_span) - 1);
+
+			while (dec_flag) {
+				test_prec++;
+				dec_flag = dec_flag >> 1;
+			}
+
+			if (test_prec > prec) {
+				prec = test_prec;
+			}
+		}
+	}
+
+	CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
+
+	return prec;
 }

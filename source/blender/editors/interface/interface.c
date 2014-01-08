@@ -78,9 +78,6 @@
 
 #include "interface_intern.h"
 
-#define PRECISION_FLOAT_MAX 7
-#define PRECISION_FLOAT_MAX_POW 10000000 /* pow(10, PRECISION_FLOAT_MAX)  */
-
 /* avoid unneeded calls to ui_get_but_val */
 #define UI_BUT_VALUE_UNSET DBL_MAX
 #define UI_GET_BUT_VALUE_INIT(_but, _value) if (_value == DBL_MAX) {  (_value) = ui_get_but_val(_but); } (void)0
@@ -432,67 +429,21 @@ void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int max
 	block->bounds_type = UI_BLOCK_BOUNDS_NONE;
 }
 
-/* ************** LINK LINE DRAWING  ************* */
-
-/* link line drawing is not part of buttons or theme.. so we stick with it here */
-
 static int ui_but_float_precision(uiBut *but, double value)
 {
 	int prec;
-	const double pow10_neg[PRECISION_FLOAT_MAX + 1] = {1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001};
 
 	/* first check if prec is 0 and fallback to a simple default */
 	if ((prec = (int)but->a2) == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
-	BLI_assert(prec <= PRECISION_FLOAT_MAX);
-	BLI_assert(pow10_neg[prec] == pow(10, -prec));
-
-	/* check on the number of decimal places need to display
-	 * the number, this is so 0.00001 is not displayed as 0.00,
-	 * _but_, this is only for small values si 10.0001 will not get
-	 * the same treatment */
-	value = ABS(value);
-	if ((value < pow10_neg[prec]) &&
-	    (value > (1.0 / PRECISION_FLOAT_MAX_POW)))
-	{
-		int value_i = (int)((value * PRECISION_FLOAT_MAX_POW) + 0.5);
-		if (value_i != 0) {
-			const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
-			int test_prec;
-			int prec_min = -1;
-			int dec_flag = 0;
-			int i = PRECISION_FLOAT_MAX;
-			while (i && value_i) {
-				if (value_i % 10) {
-					dec_flag |= 1 << i;
-					prec_min = i;
-				}
-				value_i /= 10;
-				i--;
-			}
-
-			/* even though its a small value, if the second last digit is not 0, use it */
-			test_prec = prec_min;
-
-			dec_flag = (dec_flag >> (prec_min + 1)) & ((1 << prec_span) - 1);
-
-			while (dec_flag) {
-				test_prec++;
-				dec_flag = dec_flag >> 1;
-			}
-
-			if (test_prec > prec) {
-				prec = test_prec;
-			}
-		}
-	}
-
-	CLAMP(prec, 0, PRECISION_FLOAT_MAX);
-
-	return prec;
+	return uiFloatPrecisionCalc(prec, value);
 }
+
+/* ************** LINK LINE DRAWING  ************* */
+
+/* link line drawing is not part of buttons or theme.. so we stick with it here */
 
 static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
 {
@@ -1803,7 +1754,7 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	if (float_precision == -1) {
 		/* Sanity checks */
 		precision = (int)but->a2;
-		if      (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
+		if      (precision > UI_PRECISION_FLOAT_MAX) precision = UI_PRECISION_FLOAT_MAX;
 		else if (precision == -1)                 precision = 2;
 	}
 	else {

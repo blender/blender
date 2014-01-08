@@ -45,6 +45,7 @@
 #endif
 
 #include "ED_numinput.h"
+#include "UI_interface.h"
 
 
 /* NumInput.val_flag[] */
@@ -80,13 +81,15 @@ void outputNumInput(NumInput *n, char *str)
 {
 	short i, j;
 	const int ln = NUM_STR_REP_LEN;
-	const int prec = 4; /* draw-only, and avoids too much issues with radian->degrees conversion. */
+	int prec = 2; /* draw-only, and avoids too much issues with radian->degrees conversion. */
 
 	for (j = 0; j <= n->idx_max; j++) {
 		/* if AFFECTALL and no number typed and cursor not on number, use first number */
 		i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 
 		if (n->val_flag[i] & NUM_EDITED) {
+			/* Get the best precision, allows us to draw '10.0001' as '10' instead! */
+			prec = uiFloatPrecisionCalc(prec, (double)n->val[i]);
 			if (i == n->idx) {
 				const char *heading_exp = "", *trailing_exp = "";
 				char before_cursor[NUM_STR_REP_LEN];
