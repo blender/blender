@@ -2847,12 +2847,12 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	rad = 0.2f * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
-	wcol->inner[0] += 15;
-	wcol->inner[1] += 15;
-	wcol->inner[2] += 15;
-	wcol->outline[0] += 15;
-	wcol->outline[1] += 15;
-	wcol->outline[2] += 15;
+	wcol->inner[0] = min_ii(wcol->inner[0] + 15, 255);
+	wcol->inner[1] = min_ii(wcol->inner[1] + 15, 255);
+	wcol->inner[2] = min_ii(wcol->inner[2] + 15, 255);
+	wcol->outline[0] = min_ii(wcol->outline[0] + 15, 255);
+	wcol->outline[1] = min_ii(wcol->outline[1] + 15, 255);
+	wcol->outline[2] = min_ii(wcol->outline[2] + 15, 255);
 	
 	/* decoration */
 	widgetbase_draw(&wtb, wcol);
