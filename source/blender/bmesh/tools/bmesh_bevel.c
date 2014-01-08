@@ -813,7 +813,7 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, floa
 		cross_v3_v3v3(fdir, no, dir);
 	normalize_v3(fdir);
 	copy_v3_v3(r, v->co);
-	madd_v3_v3fl(r, fdir, left? e->offset_l : e->offset_r);
+	madd_v3_v3fl(r, fdir, left ? e->offset_l : e->offset_r);
 }
 
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */
@@ -946,7 +946,7 @@ static int make_unit_square_map(const float va[3], const float vmid[3], const fl
  * and Blender matrices have cols at m[i][*].
  */
 static void make_unit_cube_map(const float va[3], const float vb[3], const float vc[3],
-                              const float vd[3], float r_mat[4][4])
+                               const float vd[3], float r_mat[4][4])
 {
 	copy_v3_v3(r_mat[0], va);
 	sub_v3_v3(r_mat[0], vb);
@@ -1036,7 +1036,7 @@ static void get_profile_point(const Profile *pro, const float va[3], const float
 				interp_v3_v3v3(r_co, va, pro->midco, u);
 			else
 				interp_v3_v3v3(r_co, pro->midco, vb, u - 1.0f);
-        }
+		}
 		else {
 			angle = u * (float)M_PI / 4.0f;  /* angle from y axis */
 			p[0] = sinf(angle);
@@ -1785,7 +1785,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 		do {
 			i = v->index;
 			f = boundvert_rep_face(v);
-			f2 = boundvert_rep_face(v->next);
+			// f2 = boundvert_rep_face(v->next);  // UNUSED
 			if (!v->any_seam) {
 				for (ring = 1; ring < ns2; ring++) {
 					BMVert *v_uv = mesh_vert(vm, i, ring, ns2)->v;
@@ -1811,7 +1811,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			i = v->index;
 			BLI_assert(v->ebev);
 			BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
-			BLI_array_append(vf, bv->any_seam ? f: boundvert_rep_face(v));
+			BLI_array_append(vf, bv->any_seam ? f : boundvert_rep_face(v));
 		} while ((v = v->next) != vm->boundstart);
 		f = boundvert_rep_face(vm->boundstart);
 		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, f, true);
@@ -1973,8 +1973,9 @@ static void vmesh_center(VMesh *vm, float r_cent[3])
 	}
 }
 
-static void avg4(float co[3], const NewVert *v0, const NewVert *v1,
-		              const NewVert *v2, const NewVert *v3)
+static void avg4(float co[3],
+                 const NewVert *v0, const NewVert *v1,
+                 const NewVert *v2, const NewVert *v3)
 {
 	add_v3_v3v3(co, v0->co, v1->co);
 	add_v3_v3(co, v2->co);
@@ -2006,7 +2007,7 @@ static float sabin_gamma(int n)
 		k4 = k2 * k2;
 		k6 = k4 * k2;
 		y = pow(1.73205080756888 * sqrt(64.0 * k6 - 144.0 * k4 + 135.0 * k2 - 27.0) + 9.0 * k,
-		 1.0/3.0);
+		        1.0 / 3.0);
 		x = 0.480749856769136 * y - (0.231120424783545 * (12.0 * k2 - 9.0)) / y;
 		ans = (k * x + 2.0 * k2 - 1.0) / (x * x * (k * x + 1.0));
 	}
@@ -2047,8 +2048,9 @@ static void fill_profile_fracs(BoundVert *bndv, float *frac, int ns)
 		copy_v3_v3(co, nextco);
 	}
 	if (total > BEVEL_EPSILON) {
-		for (k = 1; k <= ns; k++)
-		frac[k] /= total;
+		for (k = 1; k <= ns; k++) {
+			frac[k] /= total;
+		}
 	}
 }
 
@@ -2091,14 +2093,14 @@ static VMesh *interp_vmesh(MemArena *mem_arena, VMesh *vm0, int nseg)
 
 	prev_frac = BLI_array_alloca(prev_frac, (ns0 + 1));
 	frac = BLI_array_alloca(frac, (ns0 + 1));
-	new_frac = BLI_array_alloca(frac, (nseg + 1));
+	new_frac = BLI_array_alloca(new_frac, (nseg + 1));
 
 	fill_vmesh_fracs(vm0, prev_frac, n - 1);
 	bndv = vm0->boundstart;
 	for (i = 0; i < n; i++) {
 		fill_vmesh_fracs(vm0, frac, i);
 		fill_profile_fracs(bndv, new_frac, nseg);
-		for (j = 0; j <= nseg2 -1 + odd; j++) {
+		for (j = 0; j <= nseg2 - 1 + odd; j++) {
 			for (k = 0; k <= nseg2; k++) {
 				f = new_frac[k];
 				k0 = interp_range(frac, ns0, f, &restk);
@@ -2168,7 +2170,7 @@ static VMesh *cubic_subdiv(MemArena *mem_arena, VMesh *vm0)
 
 			add_v3_v3v3(acc, co1, co2);
 			madd_v3_v3fl(acc, co, -2.0f);
-			madd_v3_v3fl(co, acc, -1.0f/6.0f);
+			madd_v3_v3fl(co, acc, -1.0f / 6.0f);
 			
 			copy_v3_v3(mesh_vert_canon(vm1, i, 0, 2 * k)->co, co);
 		}
@@ -2183,7 +2185,7 @@ static VMesh *cubic_subdiv(MemArena *mem_arena, VMesh *vm0)
 
 			add_v3_v3v3(acc, co1, co2);
 			madd_v3_v3fl(acc, co, -2.0f);
-			madd_v3_v3fl(co, acc, -1.0f/6.0f);
+			madd_v3_v3fl(co, acc, -1.0f / 6.0f);
 			
 			copy_v3_v3(mesh_vert_canon(vm1, i, 0, k)->co, co);
 		}
@@ -2195,7 +2197,7 @@ static VMesh *cubic_subdiv(MemArena *mem_arena, VMesh *vm0)
 	for (i = 0; i < n; i++) {
 		for (k = 0; k < ns0; k++) {
 			copy_v3_v3(mesh_vert(vm0, i, 0, k)->co,
-				   mesh_vert(vm1, i, 0, 2 * k)->co);
+			           mesh_vert(vm1, i, 0, 2 * k)->co);
 		}
 	}
 
@@ -2209,10 +2211,11 @@ static VMesh *cubic_subdiv(MemArena *mem_arena, VMesh *vm0)
 		for (j = 0; j < ns20; j++) {
 			for (k = 0; k < ns20; k++) {
 				/* face up and right from (j, k) */
-				avg4(co, mesh_vert(vm0, i, j, k),
-					 mesh_vert(vm0, i, j, k + 1),
-					 mesh_vert(vm0, i, j + 1, k),
-					 mesh_vert(vm0, i, j + 1, k + 1));
+				avg4(co,
+				     mesh_vert(vm0, i, j, k),
+				     mesh_vert(vm0, i, j, k + 1),
+				     mesh_vert(vm0, i, j + 1, k),
+				     mesh_vert(vm0, i, j + 1, k + 1));
 				copy_v3_v3(mesh_vert(vm1, i, 2 * j + 1, 2 * k + 1)->co, co);
 			}
 		}
@@ -2286,7 +2289,7 @@ static VMesh *cubic_subdiv(MemArena *mem_arena, VMesh *vm0)
 	}
 	copy_v3_v3(co, co1);
 	mul_v3_fl(co, 1.0f / (float)n);
-	madd_v3_v3fl(co, co2, beta / (2.0f *(float)n));
+	madd_v3_v3fl(co, co2, beta / (2.0f * (float)n));
 	madd_v3_v3fl(co, mesh_vert(vm0, 0, ns20, ns20)->co, gamma);
 	for (i = 0; i < n; i++)
 		copy_v3_v3(mesh_vert(vm1, i, ns0, ns0)->co, co);
@@ -2597,7 +2600,7 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 
 	/* copy final vmesh into bv->vmesh, make BMVerts and BMFaces */
 	vm = bv->vmesh;
-	for (i = 0; i < n; i ++) {
+	for (i = 0; i < n; i++) {
 		for (j = 0; j <= ns2; j++) {
 			for (k = 0; k <= ns; k++) {
 				if (j == 0 && (k == 0 || k == ns))
@@ -2918,7 +2921,7 @@ static float edge_face_angle(EdgeHalf *e)
 /*
  * Construction around the vertex
  */
-static BevVert * bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
+static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 {
 	BMEdge *bme;
 	BevVert *bv;
