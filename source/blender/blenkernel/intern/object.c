@@ -1921,36 +1921,6 @@ void BKE_object_tfm_protected_restore(Object *ob,
 	}
 }
 
-/* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
-void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, const bool use_parent)
-{
-	float rot[3][3];
-
-	if (use_parent && ob->parent) {
-		float rmat[4][4], diff_mat[4][4], imat[4][4];
-		mul_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
-		invert_m4_m4(imat, diff_mat);
-		mul_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
-		BKE_object_apply_mat4(ob, rmat, use_compat, FALSE);
-		
-		/* same as below, use rmat rather than mat */
-		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
-		BKE_object_mat3_to_rot(ob, rot, use_compat);
-	}
-	else {
-		mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
-		BKE_object_mat3_to_rot(ob, rot, use_compat);
-	}
-	
-	sub_v3_v3(ob->loc, ob->dloc);
-
-	if (ob->dscale[0] != 0.0f) ob->size[0] /= ob->dscale[0];
-	if (ob->dscale[1] != 0.0f) ob->size[1] /= ob->dscale[1];
-	if (ob->dscale[2] != 0.0f) ob->size[2] /= ob->dscale[2];
-
-	/* BKE_object_mat3_to_rot handles delta rotations */
-}
-
 void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
 {
 	float smat[3][3];
@@ -2234,76 +2204,76 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 	}
 }
 
-/**
- * \param r_originmat  Optional matrix that stores the space the object is in (without its own matrix applied)
- */
-static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4][4], float slowmat[4][4],
-                            float r_originmat[3][3], const bool simul)
+static void ob_get_parent_matrix(Scene *scene, Object *ob, Object *par, float parentmat[4][4])
 {
-	float totmat[4][4];
 	float tmat[4][4];
-	float locmat[4][4];
 	float vec[3];
 	int ok;
-	
-	BKE_object_to_mat4(ob, locmat);
-	
-	if (ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
 
 	switch (ob->partype & PARTYPE) {
 		case PAROBJECT:
 			ok = 0;
 			if (par->type == OB_CURVE) {
-				if (((Curve *)par->data)->flag & CU_PATH) {
+				if (scene && ((Curve *)par->data)->flag & CU_PATH) {
 					ob_parcurve(scene, ob, par, tmat);
 					ok = 1;
 				}
 			}
 			
-			if (ok) mul_m4_m4m4(totmat, par->obmat, tmat);
-			else copy_m4_m4(totmat, par->obmat);
+			if (ok) mul_m4_m4m4(parentmat, par->obmat, tmat);
+			else copy_m4_m4(parentmat, par->obmat);
 			
 			break;
 		case PARBONE:
 			ob_parbone(ob, par, tmat);
-			mul_m4_m4m4(totmat, par->obmat, tmat);
+			mul_m4_m4m4(parentmat, par->obmat, tmat);
 			break;
 		
 		case PARVERT1:
-			unit_m4(totmat);
-			if (simul) {
-				copy_v3_v3(totmat[3], par->obmat[3]);
-			}
-			else {
-				give_parvert(par, ob->par1, vec);
-				mul_v3_m4v3(totmat[3], par->obmat, vec);
-			}
+			unit_m4(parentmat);
+			give_parvert(par, ob->par1, vec);
+			mul_v3_m4v3(parentmat[3], par->obmat, vec);
 			break;
 		case PARVERT3:
 			ob_parvert3(ob, par, tmat);
 			
-			mul_m4_m4m4(totmat, par->obmat, tmat);
+			mul_m4_m4m4(parentmat, par->obmat, tmat);
 			break;
 		
 		case PARSKEL:
-			copy_m4_m4(totmat, par->obmat);
+			copy_m4_m4(parentmat, par->obmat);
 			break;
 	}
+
+}
+
+/**
+ * \param r_originmat  Optional matrix that stores the space the object is in (without its own matrix applied)
+ */
+static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4][4], float slowmat[4][4],
+                            float r_originmat[3][3], const bool set_origin)
+{
+	float totmat[4][4];
+	float tmat[4][4];
+	float locmat[4][4];
+	
+	BKE_object_to_mat4(ob, locmat);
+	
+	if (ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
+
+	ob_get_parent_matrix(scene, ob, par, totmat);
 	
 	/* total */
 	mul_m4_m4m4(tmat, totmat, ob->parentinv);
 	mul_m4_m4m4(obmat, tmat, locmat);
 	
-	if (simul) {
-
+	if (r_originmat) {
+		/* usable originmat */
+		copy_m3_m4(r_originmat, tmat);
 	}
-	else {
-		if (r_originmat) {
-			/* usable originmat */
-			copy_m3_m4(r_originmat, tmat);
-		}
-		
-		/* origin, for help line */
+	
+	/* origin, for help line */
+	if (set_origin) {
 		if ((ob->partype & PARTYPE) == PARSKEL) {
 			copy_v3_v3(ob->orig, par->obmat[3]);
 		}
@@ -2347,7 +2317,7 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 		float slowmat[4][4] = MAT4_UNITY;
 		
 		/* calculate parent matrix */
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, r_originmat, false);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, r_originmat, true);
 		
 		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
 		 * An old-fashioned hack which probably doesn't really cut it anymore
@@ -2395,7 +2365,7 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	if (ob->parent) {
 		Object *par = ob->parent;
 		
-		solve_parenting(scene, ob, par, obmat, slowmat, NULL, true);
+		solve_parenting(scene, ob, par, obmat, slowmat, NULL, false);
 		
 		if (ob->partype & PARSLOW)
 			where_is_object_parslow(ob, obmat, slowmat);
@@ -2438,6 +2408,39 @@ void BKE_object_workob_calc_parent(Scene *scene, Object *ob, Object *workob)
 	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
 	BKE_object_where_is_calc(scene, workob);
+}
+
+/* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
+void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, const bool use_parent)
+{
+	float rot[3][3];
+
+	if (use_parent && ob->parent) {
+		float rmat[4][4], diff_mat[4][4], imat[4][4], parent_mat[4][4];
+
+		ob_get_parent_matrix(NULL, ob, ob->parent, parent_mat);
+
+		mul_m4_m4m4(diff_mat, parent_mat, ob->parentinv);
+		invert_m4_m4(imat, diff_mat);
+		mul_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
+		BKE_object_apply_mat4(ob, rmat, use_compat, FALSE);
+
+		/* same as below, use rmat rather than mat */
+		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
+		BKE_object_mat3_to_rot(ob, rot, use_compat);
+	}
+	else {
+		mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
+		BKE_object_mat3_to_rot(ob, rot, use_compat);
+	}
+
+	sub_v3_v3(ob->loc, ob->dloc);
+
+	if (ob->dscale[0] != 0.0f) ob->size[0] /= ob->dscale[0];
+	if (ob->dscale[1] != 0.0f) ob->size[1] /= ob->dscale[1];
+	if (ob->dscale[2] != 0.0f) ob->size[2] /= ob->dscale[2];
+
+	/* BKE_object_mat3_to_rot handles delta rotations */
 }
 
 BoundBox *BKE_boundbox_alloc_unit(void)
