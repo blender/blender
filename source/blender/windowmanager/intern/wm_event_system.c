@@ -893,6 +893,8 @@ bool WM_operator_last_properties_init(wmOperator *op)
 	bool changed = false;
 
 	if (op->type->last_properties) {
+		IDPropertyTemplate val = {0};
+		IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 		PropertyRNA *iterprop;
 
 		if (G.debug & G_DEBUG_WM) {
@@ -915,13 +917,19 @@ bool WM_operator_last_properties_init(wmOperator *op)
 						 * but for now RNA doesn't access nested operators */
 						idp_dst->flag |= IDP_FLAG_GHOST;
 
-						IDP_ReplaceInGroup(op->properties, idp_dst);
+						/* add to temporary group instead of immediate replace,
+						 * because we are iterating over this group */
+						IDP_AddToGroup(replaceprops, idp_dst);
 						changed = true;
 					}
 				}
 			}
 		}
 		RNA_PROP_END;
+
+		IDP_MergeGroup(op->properties, replaceprops, true);
+		IDP_FreeProperty(replaceprops);
+		MEM_freeN(replaceprops);
 	}
 
 	return changed;
