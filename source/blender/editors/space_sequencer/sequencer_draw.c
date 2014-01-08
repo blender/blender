@@ -1020,9 +1020,15 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 				break;
 		}
 
-		scopes->reference_ibuf = ibuf;
-		viewrectx = scope->x;
-		viewrecty = scope->y;
+		/* future files may have new scopes we don't catch above */
+		if (scope) {
+			scopes->reference_ibuf = ibuf;
+			viewrectx = scope->x;
+			viewrecty = scope->y;
+		}
+		else {
+			scopes->reference_ibuf = NULL;
+		}
 	}
 
 	/* without this colors can flicker from previous opengl state */
