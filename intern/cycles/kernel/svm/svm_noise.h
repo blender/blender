@@ -167,7 +167,8 @@ ccl_device float grad(int hash, float x, float y, float z)
 	// use vectors pointing to the edges of the cube
 	int h = hash & 15;
 	float u = h<8 ? x : y;
-	float v = h<4 ? y : h == 12 || h == 14 ? x : z;
+	float vt = ((h == 12) | (h == 14)) ? x : z;
+	float v = h < 4 ? y : vt;
 	return ((h&1) ? -u : u) + ((h&2) ? -v : v);
 }
 
@@ -185,11 +186,10 @@ ccl_device_inline __m128 grad_sse(const __m128i *hash, const __m128 *x, const __
 
 	__m128i case_vy = _mm_cmplt_epi32(h, _mm_set1_epi32(4));       // 0xffffffff if h < 4 else 0
 
-	__m128i case_h12_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(12)); // 0xffffffff if h == 12 else 0
-	__m128i case_h14_raw = _mm_cmpeq_epi32(h, _mm_set1_epi32(14)); // 0xffffffff if h == 14 else 0
+	__m128i case_h12 = _mm_cmpeq_epi32(h, _mm_set1_epi32(12));     // 0xffffffff if h == 12 else 0
+	__m128i case_h14 = _mm_cmpeq_epi32(h, _mm_set1_epi32(14));     // 0xffffffff if h == 14 else 0
 
-	__m128i case_vxtmp = _mm_or_si128(case_h12_raw, case_h14_raw); // 0xffffffff if h == 12 or h == 14 else 0
-	__m128i case_vx = _mm_andnot_si128(case_vy, case_vxtmp);       // 0xffffffff if (h == 12 or h == 14) and not(h<4)
+	__m128i case_vx = _mm_or_si128(case_h12, case_h14);            // 0xffffffff if h == 12 or h == 14 else 0
 
 	__m128 v = blend(_mm_castsi128_ps(case_vy), *y, blend(_mm_castsi128_ps(case_vx), *x, *z)); // v = h<4 ? y : h == 12 || h == 14 ? x : z
 
