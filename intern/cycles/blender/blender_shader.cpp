@@ -947,6 +947,10 @@ void BlenderSync::sync_world(bool update_all)
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
 			add_nodes(scene, b_data, b_scene, graph, b_ntree);
+			
+			/* volume */
+			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
+			shader->heterogeneous_volume = !get_boolean(cworld, "homogeneous_volume");
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
@@ -956,9 +960,6 @@ void BlenderSync::sync_world(bool update_all)
 			out = graph->output();
 
 			graph->connect(closure->output("Background"), out->input("Surface"));
-
-			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
-			shader->heterogeneous_volume = !get_boolean(cworld, "homogeneous_volume");
 		}
 
 		if(b_world) {
