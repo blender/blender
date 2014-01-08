@@ -2305,10 +2305,33 @@ static void do_render_all_options(Render *re)
 	}
 }
 
-static int check_valid_camera(Scene *scene, Object *camera_override)
+static bool check_valid_compositing_camera(Scene *scene, Object *camera_override)
 {
-	int check_comp = 1;
+	if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
+		bNode *node = scene->nodetree->nodes.first;
 
+		while (node) {
+			if (node->type == CMP_NODE_R_LAYERS) {
+				Scene *sce = node->id ? (Scene *)node->id : scene;
+
+				if (!sce->camera && !BKE_scene_camera_find(sce)) {
+					/* all render layers nodes need camera */
+					return false;
+				}
+			}
+
+			node = node->next;
+		}
+
+		return true;
+	}
+	else {
+		return (camera_override != NULL || scene->camera != NULL);
+	}
+}
+
+static int check_valid_camera(Scene *scene, Object *camera_override, ReportList *reports)
+{
 	if (camera_override == NULL && scene->camera == NULL)
 		scene->camera = BKE_scene_camera_find(scene);
 
@@ -2316,19 +2339,16 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 		if (scene->ed) {
 			Sequence *seq = scene->ed->seqbase.first;
 
-			check_comp = 0;
-
 			while (seq) {
 				if (seq->type == SEQ_TYPE_SCENE && seq->scene) {
 					if (!seq->scene_camera) {
 						if (!seq->scene->camera && !BKE_scene_camera_find(seq->scene)) {
-							if (seq->scene == scene) {
-								/* for current scene camera could be unneeded due to compisite nodes */
-								check_comp = 1;
-							}
-							else {
-								/* for other scenes camera is necessary */
-								return 0;
+							/* camera could be unneeded due to composite nodes */
+							Object *override = (seq->scene == scene) ? camera_override : NULL;
+
+							if (!check_valid_compositing_camera(seq->scene, override)) {
+								BKE_reportf(reports, RPT_ERROR, "No camera found in scene \"%s\"", seq->scene->id.name+2);
+								return false;
 							}
 						}
 					}
@@ -2338,30 +2358,12 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 			}
 		}
 	}
-
-	if (check_comp) { /* no sequencer or sequencer depends on compositor */
-		if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
-			bNode *node = scene->nodetree->nodes.first;
-
-			while (node) {
-				if (node->type == CMP_NODE_R_LAYERS) {
-					Scene *sce = node->id ? (Scene *)node->id : scene;
-
-					if (!sce->camera && !BKE_scene_camera_find(sce)) {
-						/* all render layers nodes need camera */
-						return 0;
-					}
-				}
-
-				node = node->next;
-			}
-		}
-		else {
-			return (camera_override != NULL || scene->camera != NULL);
-		}
+	else if (!check_valid_compositing_camera(scene, camera_override)) {
+		BKE_report(reports, RPT_ERROR, "No camera found in scene");
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 static int node_tree_has_composite_output(bNodeTree *ntree)
@@ -2436,8 +2438,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	}
 	
 	/* check valid camera, without camera render is OK (compo, seq) */
-	if (!check_valid_camera(scene, camera_override)) {
-		BKE_report(reports, RPT_ERROR, "No camera");
+	if (!check_valid_camera(scene, camera_override, reports)) {
 		return 0;
 	}
 	
