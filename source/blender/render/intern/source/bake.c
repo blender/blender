@@ -223,10 +223,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			 * It needs to be done because in Blender
 			 * the normal used in the renderer points inward. It is generated
 			 * this way in calc_vertexnormals(). Should this ever change
-			 * this negate must be removed. */
-			shr.combined[0] = (-nor[0]) / 2.0f + 0.5f;
-			shr.combined[1] = nor[1]    / 2.0f + 0.5f;
-			shr.combined[2] = nor[2]    / 2.0f + 0.5f;
+			 * this negate must be removed.
+			 *
+			 * there is also a small 1e-5f bias for precision issues. otherwise
+			 * we randomly get 127 or 128 for neutral colors. we choose 128
+			 * because it is the convention flat color. * */
+			shr.combined[0] = (-nor[0]) / 2.0f + 0.5f + 1e-5f;
+			shr.combined[1] = nor[1]    / 2.0f + 0.5f + 1e-5f;
+			shr.combined[2] = nor[2]    / 2.0f + 0.5f + 1e-5f;
 		}
 		else if (bs->type == RE_BAKE_TEXTURE) {
 			copy_v3_v3(shr.combined, &shi->r);
