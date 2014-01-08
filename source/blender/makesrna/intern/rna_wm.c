@@ -831,10 +831,11 @@ static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
 static void rna_wmClipboard_get(PointerRNA *UNUSED(ptr), char *value)
 {
 	char *pbuf;
+	int pbuf_len;
 
-	pbuf = WM_clipboard_text_get(FALSE);
+	pbuf = WM_clipboard_text_get(false, &pbuf_len);
 	if (pbuf) {
-		strcpy(value, pbuf);
+		memcpy(value, pbuf, pbuf_len + 1);
 		MEM_freeN(pbuf);
 	}
 	else {
@@ -845,19 +846,14 @@ static void rna_wmClipboard_get(PointerRNA *UNUSED(ptr), char *value)
 static int rna_wmClipboard_length(PointerRNA *UNUSED(ptr))
 {
 	char *pbuf;
-	int length;
+	int pbuf_len;
 
-	pbuf = WM_clipboard_text_get(FALSE);
+	pbuf = WM_clipboard_text_get(false, &pbuf_len);
 	if (pbuf) {
-		length = strlen(pbuf);
 		MEM_freeN(pbuf);
 	}
-	else {
-		length = 0;
-	}
-	
 
-	return length;
+	return pbuf_len;
 }
 
 static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)

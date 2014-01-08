@@ -1199,29 +1199,69 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 
 /* ******************* clipboard **************** */
 
-char *WM_clipboard_text_get(bool selection)
+static char *wm_clipboard_text_get_ex(bool selection, int *r_len,
+                                      bool firstline)
 {
 	char *p, *p2, *buf, *newbuf;
 
-	if (G.background)
+	if (G.background) {
+		*r_len = 0;
 		return NULL;
+	}
 
 	buf = (char *)GHOST_getClipboard(selection);
-	if (!buf)
+	if (!buf) {
+		*r_len = 0;
 		return NULL;
+	}
 	
 	/* always convert from \r\n to \n */
-	newbuf = MEM_callocN(strlen(buf) + 1, __func__);
+	p2 = newbuf = MEM_mallocN(strlen(buf) + 1, __func__);
 
-	for (p = buf, p2 = newbuf; *p; p++) {
-		if (*p != '\r')
-			*(p2++) = *p;
+	if (firstline) {
+		/* will return an over-alloc'ed value in the case there are newlines */
+		for (p = buf; *p; p++) {
+			if ((*p != '\n') && (*p != '\r')) {
+				*(p2++) = *p;
+			}
+			else {
+				break;
+			}
+		}
 	}
+	else {
+		for (p = buf; *p; p++) {
+			if (*p != '\r') {
+				*(p2++) = *p;
+			}
+		}
+	}
+
 	*p2 = '\0';
 
 	free(buf); /* ghost uses regular malloc */
 	
+	*r_len = (p2 - newbuf);
+
 	return newbuf;
+}
+
+/**
+ * Return text from the clipboard.
+ *
+ * \note Caller needs to check for valid utf8 if this is a requirement.
+ */
+char *WM_clipboard_text_get(bool selection, int *r_len)
+{
+	return wm_clipboard_text_get_ex(selection, r_len, false);
+}
+
+/**
+ * Convenience function for pasting to areas of Blender which don't support newlines.
+ */
+char *WM_clipboard_text_get_firstline(bool selection, int *r_len)
+{
+	return wm_clipboard_text_get_ex(selection, r_len, true);
 }
 
 void WM_clipboard_text_set(const char *buf, bool selection)

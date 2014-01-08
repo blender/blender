@@ -1402,15 +1402,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if (mode == 'v') {
 		/* extract first line from clipboard in case of multi-line copies */
-		char *p, *pbuf = WM_clipboard_text_get(0);
-		p = pbuf;
-		if (p) {
-			int i = 0;
-			while (*p && *p != '\r' && *p != '\n' && i < UI_MAX_DRAW_STR) {
-				buf[i++] = *p;
-				p++;
-			}
-			buf[i] = 0;
+		int pbuf_len;
+		char *pbuf = WM_clipboard_text_get_firstline(false, &pbuf_len);
+		if (pbuf) {
+			BLI_strncpy(buf, pbuf, sizeof(buf));
 			MEM_freeN(pbuf);
 		}
 	}
@@ -1997,7 +1992,7 @@ enum {
 
 static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const int mode)
 {
-	char *str, *p, *pbuf;
+	char *str, *pbuf;
 	int x;
 	bool changed = false;
 	int str_len, buf_len;
@@ -2009,17 +2004,13 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 	if (mode == UI_TEXTEDIT_PASTE) {
 		/* TODO, ensure UTF8 ui_is_but_utf8() - campbell */
 		/* extract the first line from the clipboard */
-		p = pbuf = WM_clipboard_text_get(0);
+		pbuf = WM_clipboard_text_get_firstline(false, &buf_len);
 
-		if (p && p[0]) {
+		if (pbuf) {
 			char buf[UI_MAX_DRAW_STR] = {0};
 			unsigned int y;
-			buf_len = 0;
-			while (*p && *p != '\r' && *p != '\n' && buf_len < UI_MAX_DRAW_STR - 1) {
-				buf[buf_len++] = *p;
-				p++;
-			}
-			buf[buf_len] = 0;
+
+			buf_len = BLI_strncpy_rlen(buf, pbuf, sizeof(buf));
 
 			/* paste over the current selection */
 			if ((but->selend - but->selsta) > 0) {

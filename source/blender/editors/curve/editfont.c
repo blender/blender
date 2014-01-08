@@ -515,13 +515,11 @@ static int paste_from_clipboard(bContext *C, ReportList *reports)
 	int filelen;
 	int retval;
 
-	strp = WM_clipboard_text_get(false);
+	strp = WM_clipboard_text_get(false, &filelen);
 	if (strp == NULL) {
 		BKE_report(reports, RPT_ERROR, "Clipboard empty");
 		return OPERATOR_CANCELLED;
 	}
-
-	filelen = strlen(strp);
 
 	if ((filelen <= MAXTEXT) && font_paste_utf8(C, strp, filelen)) {
 		text_update_edited(C, scene, obedit, 1, FO_EDIT);

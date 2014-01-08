@@ -797,11 +797,12 @@ static char *txt_copy_selected(Text *text)
 
 static int text_paste_exec(bContext *C, wmOperator *op)
 {
+	const bool selection = RNA_boolean_get(op->ptr, "selection");
 	Text *text = CTX_data_edit_text(C);
 	char *buf;
-	int selection = RNA_boolean_get(op->ptr, "selection");
+	int buf_len;
 
-	buf = WM_clipboard_text_get(selection);
+	buf = WM_clipboard_text_get(selection, &buf_len);
 
 	if (!buf)
 		return OPERATOR_CANCELLED;

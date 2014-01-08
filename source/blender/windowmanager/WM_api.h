@@ -409,7 +409,8 @@ void		WM_job_main_thread_lock_acquire(struct wmJob *job);
 void		WM_job_main_thread_lock_release(struct wmJob *job);
 
 			/* clipboard */
-char       *WM_clipboard_text_get(bool selection);
+char       *WM_clipboard_text_get(bool selection, int *r_len);
+char       *WM_clipboard_text_get_firstline(bool selection, int *r_len);
 void        WM_clipboard_text_set(const char *buf, bool selection);
 
 			/* progress */

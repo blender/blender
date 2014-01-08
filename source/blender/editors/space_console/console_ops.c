@@ -970,8 +970,9 @@ static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
 	ConsoleLine *ci = console_history_verify(C);
+	int buf_len;
 
-	char *buf_str = WM_clipboard_text_get(0);
+	char *buf_str = WM_clipboard_text_get(false, &buf_len);
 	char *buf_step, *buf_next;
 
 	if (buf_str == NULL)

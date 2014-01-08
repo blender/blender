@@ -341,17 +341,13 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		case VKEY:
 			if (event->ctrl) {
 				/* extract the first line from the clipboard */
-				char *pbuf = WM_clipboard_text_get(0);
+				int pbuf_len;
+				char *pbuf = WM_clipboard_text_get_firstline(false, &pbuf_len);
 
 				if (pbuf) {
 					bool success;
-					/* Only copy string until first of this char. */
-					char *cr = strchr(pbuf, '\r');
-					char *cn = strchr(pbuf, '\n');
-					if (cn && cn < cr) cr = cn;
-					if (cr) *cr = '\0';
 
-					success = editstr_insert_at_cursor(n, pbuf, strlen(pbuf));
+					success = editstr_insert_at_cursor(n, pbuf, pbuf_len);
 
 					MEM_freeN(pbuf);
 					if (!success) {

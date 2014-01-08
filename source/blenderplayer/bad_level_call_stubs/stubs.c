@@ -209,7 +209,8 @@ void WM_operator_handlers_clear(struct bContext *C, struct wmOperatorType *ot) {
 void WM_autosave_init(struct bContext *C) {STUB_ASSERT(0);}
 void WM_jobs_kill_all_except(struct wmWindowManager *wm) {STUB_ASSERT(0);}
 
-char *WM_clipboard_text_get(int selection) {STUB_ASSERT(0); return (char *)0;}
+char *WM_clipboard_text_get(bool selection, int *r_len) {STUB_ASSERT(0); return (char *)0;}
+char *WM_clipboard_text_get_firstline(bool selection, int *r_len) {STUB_ASSERT(0); return (char *)0;}
 void WM_clipboard_text_set(char *buf, int selection) {STUB_ASSERT(0);}
 
 void WM_cursor_set(struct wmWindow *win, int curor) {STUB_ASSERT(0);}
