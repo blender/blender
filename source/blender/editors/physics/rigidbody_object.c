@@ -80,6 +80,16 @@ static int ED_operator_rigidbody_active_poll(bContext *C)
 		return 0;
 }
 
+static int ED_operator_rigidbody_add_poll(bContext *C)
+{
+	if (ED_operator_object_active_editable(C)) {
+		Object *ob = ED_object_active_context(C);
+		return (ob && ob->type == OB_MESH);
+	}
+	else
+		return 0;
+}
+
 /* ----------------- */
 
 bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *reports)
@@ -172,7 +182,7 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = rigidbody_object_add_exec;
-	ot->poll = ED_operator_object_active_editable_mesh;
+	ot->poll = ED_operator_rigidbody_add_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -263,7 +273,7 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = rigidbody_objects_add_exec;
-	ot->poll = ED_operator_object_active_editable_mesh;
+	ot->poll = ED_operator_rigidbody_add_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
