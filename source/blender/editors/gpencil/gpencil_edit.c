@@ -538,7 +538,7 @@ static void gp_timing_data_add_point(tGpTimingData *gtd, const double stroke_ini
 		/* This is a gap, negative value! */
 		gtd->times[gtd->cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time);
 		gtd->tot_time = -gtd->times[gtd->cur_point];
-		
+
 		gtd->gap_tot_time += gtd->times[gtd->cur_point] - gtd->times[gtd->cur_point - 1];
 	}
 	else {
@@ -827,6 +827,33 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 #define BEZT_HANDLE_FAC 0.3f
 
 /* convert stroke to 3d path */
+
+/* helper */
+static void gp_stroke_to_path_add_point(tGpTimingData *gtd, BPoint *bp, const float p[3], const float prev_p[3],
+                                        const double inittime, const float time, const bool do_gtd,
+                                        const float width, const float rad_fac, float minmax_weights[2])
+{
+	copy_v3_v3(bp->vec, p);
+	bp->vec[3] = 1.0f;
+
+	/* set settings */
+	bp->f1 = SELECT;
+	bp->radius = width * rad_fac;
+	bp->weight = width;
+	CLAMP(bp->weight, 0.0f, 1.0f);
+	if (bp->weight < minmax_weights[0]) {
+		minmax_weights[0] = bp->weight;
+	}
+	else if (bp->weight > minmax_weights[1]) {
+		minmax_weights[1] = bp->weight;
+	}
+
+	/* Update timing data */
+	if (do_gtd) {
+		gp_timing_data_add_point(gtd, inittime, time, len_v3v3(prev_p, p));
+	}
+}
+
 static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect, Nurb **curnu,
                               float minmax_weights[2], const float rad_fac, bool stitch, tGpTimingData *gtd)
 {
@@ -836,12 +863,15 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 	const bool do_gtd = (gtd->mode != GP_STROKECONVERT_TIMING_NONE);
 	int i, old_nbp = 0;
 
+	/* Some validity checks. */
+	BLI_assert((curnu || stitch) ? gps->prev : true);  /* If curve-linking or stitching, we need a previous stroke. */
+
 	/* create new 'nurb' or extend current one within the curve */
 	if (nu) {
 		old_nbp = nu->pntsu;
 
 		/* If stitch, the first point of this stroke is already present in current nu.
-		 * Else, we have to add to additional points to make the zero-radius link between strokes.
+		 * Else, we have to add two additional points to make the zero-radius link between strokes.
 		 */
 		BKE_nurb_points_add(nu, gps->totpoints + (stitch ? -1 : 2));
 	}
@@ -877,69 +907,55 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 	 */
 	if (curnu && !stitch && old_nbp) {
 		float p1[3], p2[3], p[3], next_p[3];
-		float delta_time;
+		float dt1 = 0.0f, dt2 = 0.0f;
 
 		prev_bp = NULL;
-		if ((old_nbp > 1) && gps->prev && (gps->prev->totpoints > 1)) {
+		if ((old_nbp > 1) && (gps->prev->totpoints > 1)) {
 			/* Only use last curve segment if previous stroke was not a single-point one! */
 			prev_bp = nu->bp + old_nbp - 2;
 		}
 		bp = nu->bp + old_nbp - 1;
 
-		/* XXX We do this twice... Not sure it's worth to bother about this! */
+		/* First point */
 		gp_strokepoint_convertcoords(C, gps, gps->points, p, subrect);
 		if (prev_bp) {
-			interp_v3_v3v3(p1, prev_bp->vec, bp->vec, 1.0f + GAP_DFAC);
+			interp_v3_v3v3(p1, bp->vec, prev_bp->vec, -GAP_DFAC);
+			if (do_gtd) {
+				const int idx = gps->prev->totpoints - 1;
+				dt1 = interpf(gps->prev->points[idx - 1].time, gps->prev->points[idx].time, -GAP_DFAC);
+			}
 		}
 		else {
 			interp_v3_v3v3(p1, bp->vec, p, GAP_DFAC);
+			if (do_gtd) {
+				dt1 = interpf(gps->inittime - gps->prev->inittime, 0.0f, GAP_DFAC);
+			}
 		}
+		bp++;
+		gp_stroke_to_path_add_point(gtd, bp, p1, (bp - 1)->vec, gps->prev->inittime, dt1, do_gtd,
+		                            0.0f, rad_fac, minmax_weights);
 
+		/* Second point */
+		/* Note dt2 is always negative, which marks the gap. */
 		if (gps->totpoints > 1) {
-			/* XXX We do this twice... Not sure it's worth to bother about this! */
 			gp_strokepoint_convertcoords(C, gps, gps->points + 1, next_p, subrect);
 			interp_v3_v3v3(p2, p, next_p, -GAP_DFAC);
+			if (do_gtd) {
+				dt2 = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
+			}
 		}
 		else {
 			interp_v3_v3v3(p2, p, bp->vec, GAP_DFAC);
+			if (do_gtd) {
+				dt2 = interpf(gps->prev->inittime - gps->inittime, 0.0f, GAP_DFAC);
+			}
 		}
-
-		/* First point */
 		bp++;
-		copy_v3_v3(bp->vec, p1);
-		bp->vec[3] = 1.0f;
-		bp->f1 = SELECT;
-		minmax_weights[0] = bp->radius = bp->weight = 0.0f;
-		if (do_gtd) {
-			if (prev_bp) {
-				delta_time = gtd->tot_time + (gtd->tot_time - gtd->times[gtd->cur_point - 1]) * GAP_DFAC;
-			}
-			else {
-				delta_time = gtd->tot_time + (((float)(gps->inittime - gtd->inittime)) - gtd->tot_time) * GAP_DFAC;
-			}
-			gp_timing_data_add_point(gtd, gtd->inittime, delta_time, len_v3v3((bp - 1)->vec, p1));
-		}
-
-		/* Second point */
-		bp++;
-		copy_v3_v3(bp->vec, p2);
-		bp->vec[3] = 1.0f;
-		bp->f1 = SELECT;
-		minmax_weights[0] = bp->radius = bp->weight = 0.0f;
-		if (do_gtd) {
-			/* This negative delta_time marks the gap! */
-			if (gps->totpoints > 1) {
-				delta_time = ((gps->points + 1)->time - gps->points->time) * -GAP_DFAC;
-			}
-			else {
-				delta_time = -(((float)(gps->inittime - gtd->inittime)) - gtd->tot_time) * GAP_DFAC;
-			}
-			gp_timing_data_add_point(gtd, gps->inittime, delta_time, len_v3v3(p1, p2));
-		}
+		gp_stroke_to_path_add_point(gtd, bp, p2, p1, gps->inittime, dt2, do_gtd, 0.0f, rad_fac, minmax_weights);
 
 		old_nbp += 2;
 	}
-	if (old_nbp && do_gtd) {
+	if (old_nbp) {
 		prev_bp = nu->bp + old_nbp - 1;
 	}
 
@@ -953,25 +969,10 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 
 		/* get coordinates to add at */
 		gp_strokepoint_convertcoords(C, gps, pt, p3d, subrect);
-		copy_v3_v3(bp->vec, p3d);
-		bp->vec[3] = 1.0f;
 
-		/* set settings */
-		bp->f1 = SELECT;
-		bp->radius = width * rad_fac;
-		bp->weight = width;
-		CLAMP(bp->weight, 0.0f, 1.0f);
-		if (bp->weight < minmax_weights[0]) {
-			minmax_weights[0] = bp->weight;
-		}
-		else if (bp->weight > minmax_weights[1]) {
-			minmax_weights[1] = bp->weight;
-		}
+		gp_stroke_to_path_add_point(gtd, bp, p3d, (prev_bp) ? prev_bp->vec : p3d, gps->inittime, pt->time, do_gtd,
+		                            width, rad_fac, minmax_weights);
 
-		/* Update timing data */
-		if (do_gtd) {
-			gp_timing_data_add_point(gtd, gps->inittime, pt->time, (prev_bp) ? len_v3v3(prev_bp->vec, p3d) : 0.0f);
-		}
 		prev_bp = bp;
 	}
 
@@ -986,26 +987,37 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 	BKE_nurb_knot_calc_u(nu);
 }
 
-static int gp_camera_view_subrect(bContext *C, rctf *subrect)
+/* convert stroke to 3d bezier */
+
+/* helper */
+static void gp_stroke_to_bezier_add_point(tGpTimingData *gtd, BezTriple *bezt,
+                                          const float p[3], const float h1[3], const float h2[3], const float prev_p[3],
+                                          const double inittime, const float time, const bool do_gtd,
+                                          const float width, const float rad_fac, float minmax_weights[2])
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar = CTX_wm_region(C);
+	copy_v3_v3(bezt->vec[0], h1);
+	copy_v3_v3(bezt->vec[1], p);
+	copy_v3_v3(bezt->vec[2], h2);
 
-	if (v3d) {
-		RegionView3D *rv3d = ar->regiondata;
-
-		/* for camera view set the subrect */
-		if (rv3d->persp == RV3D_CAMOB) {
-			Scene *scene = CTX_data_scene(C);
-			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, TRUE); /* no shift */
-			return 1;
-		}
+	/* set settings */
+	bezt->h1 = bezt->h2 = HD_FREE;
+	bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
+	bezt->radius = width * rad_fac;
+	bezt->weight = width;
+	CLAMP(bezt->weight, 0.0f, 1.0f);
+	if (bezt->weight < minmax_weights[0]) {
+		minmax_weights[0] = bezt->weight;
+	}
+	else if (bezt->weight > minmax_weights[1]) {
+		minmax_weights[1] = bezt->weight;
 	}
 
-	return 0;
+	/* Update timing data */
+	if (do_gtd) {
+		gp_timing_data_add_point(gtd, inittime, time, len_v3v3(prev_p, p));
+	}
 }
 
-/* convert stroke to 3d bezier */
 static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect, Nurb **curnu,
                                 float minmax_weights[2], const float rad_fac, bool stitch, tGpTimingData *gtd)
 {
@@ -1077,7 +1089,7 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 		 */
 		else {
 			float h1[3], h2[3], p1[3], p2[3];
-			float delta_time;
+			float dt1 = 0.0f, dt2 = 0.0f;
 
 			prev_bezt = NULL;
 			if (old_nbezt > 1 && gps->prev && gps->prev->totpoints > 1) {
@@ -1085,73 +1097,60 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 				prev_bezt = nu->bezt + old_nbezt - 2;
 			}
 			bezt = nu->bezt + old_nbezt - 1;
+
+			/* First point */
 			if (prev_bezt) {
 				interp_v3_v3v3(p1, prev_bezt->vec[1], bezt->vec[1], 1.0f + GAP_DFAC);
+				if (do_gtd) {
+					const int idx = gps->prev->totpoints - 1;
+					dt1 = interpf(gps->prev->points[idx - 1].time, gps->prev->points[idx].time, -GAP_DFAC);
+				}
 			}
 			else {
 				interp_v3_v3v3(p1, bezt->vec[1], p3d_cur, GAP_DFAC);
+				if (do_gtd) {
+					dt1 = interpf(gps->inittime - gps->prev->inittime, 0.0f, GAP_DFAC);
+				}
 			}
+
+			/* Second point */
+			/* Note dt2 is always negative, which marks the gap. */
 			if (tot > 1) {
 				interp_v3_v3v3(p2, p3d_cur, p3d_next, -GAP_DFAC);
+				if (do_gtd) {
+					dt2 = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
+				}
 			}
 			else {
 				interp_v3_v3v3(p2, p3d_cur, bezt->vec[1], GAP_DFAC);
+				if (do_gtd) {
+					dt2 = interpf(gps->prev->inittime - gps->inittime, 0.0f, GAP_DFAC);
+				}
 			}
 
-			/* Second handle of last point */
+			/* Second handle of last point of previous stroke. */
 			interp_v3_v3v3(h2, bezt->vec[1], p1, BEZT_HANDLE_FAC);
 			copy_v3_v3(bezt->vec[2], h2);
 
 			/* First point */
 			interp_v3_v3v3(h1, p1, bezt->vec[1], BEZT_HANDLE_FAC);
 			interp_v3_v3v3(h2, p1, p2, BEZT_HANDLE_FAC);
-
 			bezt++;
-			copy_v3_v3(bezt->vec[0], h1);
-			copy_v3_v3(bezt->vec[1], p1);
-			copy_v3_v3(bezt->vec[2], h2);
-			bezt->h1 = bezt->h2 = HD_FREE;
-			bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-			minmax_weights[0] = bezt->radius = bezt->weight = 0.0f;
-
-			if (do_gtd) {
-				if (prev_bezt) {
-					delta_time = gtd->tot_time + (gtd->tot_time - gtd->times[gtd->cur_point - 1]) * GAP_DFAC;
-				}
-				else {
-					delta_time = gtd->tot_time + (((float)(gps->inittime - gtd->inittime)) - gtd->tot_time) * GAP_DFAC;
-				}
-				gp_timing_data_add_point(gtd, gtd->inittime, delta_time, len_v3v3((bezt - 1)->vec[1], p1));
-			}
+			gp_stroke_to_bezier_add_point(gtd, bezt, p1, h1, h2, (bezt - 1)->vec[1], gps->prev->inittime, dt1, do_gtd,
+                                          0.0f, rad_fac, minmax_weights);
 
 			/* Second point */
 			interp_v3_v3v3(h1, p2, p1, BEZT_HANDLE_FAC);
 			interp_v3_v3v3(h2, p2, p3d_cur, BEZT_HANDLE_FAC);
-
 			bezt++;
-			copy_v3_v3(bezt->vec[0], h1);
-			copy_v3_v3(bezt->vec[1], p2);
-			copy_v3_v3(bezt->vec[2], h2);
-			bezt->h1 = bezt->h2 = HD_FREE;
-			bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-			minmax_weights[0] = bezt->radius = bezt->weight = 0.0f;
-
-			if (do_gtd) {
-				/* This negative delta_time marks the gap! */
-				if (tot > 1) {
-					delta_time = ((gps->points + 1)->time - gps->points->time) * -GAP_DFAC;
-				}
-				else {
-					delta_time = -(((float)(gps->inittime - gtd->inittime)) - gtd->tot_time) * GAP_DFAC;
-				}
-				gp_timing_data_add_point(gtd, gps->inittime, delta_time, len_v3v3(p1, p2));
-			}
+			gp_stroke_to_bezier_add_point(gtd, bezt, p2, h1, h2, p1, gps->inittime, dt2, do_gtd,
+                                          0.0f, rad_fac, minmax_weights);
 
 			old_nbezt += 2;
 			copy_v3_v3(p3d_prev, p2);
 		}
 	}
-	if (old_nbezt && do_gtd) {
+	if (old_nbezt) {
 		prev_bezt = nu->bezt + old_nbezt - 1;
 	}
 
@@ -1174,27 +1173,8 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 			interp_v3_v3v3(h2, p3d_cur, p3d_prev, -BEZT_HANDLE_FAC);
 		}
 
-		copy_v3_v3(bezt->vec[0], h1);
-		copy_v3_v3(bezt->vec[1], p3d_cur);
-		copy_v3_v3(bezt->vec[2], h2);
-
-		/* set settings */
-		bezt->h1 = bezt->h2 = HD_FREE;
-		bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-		bezt->radius = width * rad_fac;
-		bezt->weight = width;
-		CLAMP(bezt->weight, 0.0f, 1.0f);
-		if (bezt->weight < minmax_weights[0]) {
-			minmax_weights[0] = bezt->weight;
-		}
-		else if (bezt->weight > minmax_weights[1]) {
-			minmax_weights[1] = bezt->weight;
-		}
-
-		/* Update timing data */
-		if (do_gtd) {
-			gp_timing_data_add_point(gtd, gps->inittime, pt->time, prev_bezt ? len_v3v3(prev_bezt->vec[1], p3d_cur) : 0.0f);
-		}
+		gp_stroke_to_bezier_add_point(gtd, bezt, p3d_cur, h1, h2, prev_bezt ? prev_bezt->vec[1] : p3d_cur,
+		                              gps->inittime, pt->time, do_gtd, width, rad_fac, minmax_weights);
 
 		/* shift coord vects */
 		copy_v3_v3(p3d_prev, p3d_cur);
@@ -1284,6 +1264,25 @@ static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2
 			}
 		}
 	}
+}
+
+static int gp_camera_view_subrect(bContext *C, rctf *subrect)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	if (v3d) {
+		RegionView3D *rv3d = ar->regiondata;
+
+		/* for camera view set the subrect */
+		if (rv3d->persp == RV3D_CAMOB) {
+			Scene *scene = CTX_data_scene(C);
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, TRUE); /* no shift */
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 /* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
