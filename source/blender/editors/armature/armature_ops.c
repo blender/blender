@@ -294,7 +294,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	/*  1) envelope/b-bone size */
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
-	/*  2) set roll */
+	/*  2) envelope radius */
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ENVELOPE);
+	/*  3) set roll */
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
 		

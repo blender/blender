@@ -1072,14 +1072,6 @@ static void createTransArmatureVerts(TransInfo *t)
 	TransData *td;
 	float mtx[3][3], smtx[3][3], bonemat[3][3];
 	
-	/* special hack for envelope drawmode and scaling:
-	 *  to allow scaling the size of the envelope around single points,
-	 *	mode should become TFM_BONE_ENVELOPE in this case
-	 */
-	// TODO: maybe we need a separate hotkey for it, but this is consistent with 2.4x for now
-	if ((t->mode == TFM_RESIZE) && (arm->drawtype == ARM_ENVELOPE))
-		t->mode = TFM_BONE_ENVELOPE;
-	
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next) {
 		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
