@@ -1566,8 +1566,13 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			curve_to_filledpoly(cu, &nubase, dispbase);
 		}
 
-		if ((cu->flag & CU_PATH) && !forOrco)
-			calc_curvepath(ob, &nubase);
+		if (!forOrco) {
+			if ((cu->flag & CU_PATH) ||
+			    DAG_get_eval_flags_for_object(scene, ob) & DAG_EVAL_NEED_CURVE_PATH)
+			{
+				calc_curvepath(ob, &nubase);
+			}
+		}
 
 		if (!forOrco)
 			curve_calc_modifiers_post(scene, ob, &nubase, dispbase, derivedFinal, forRender, renderResolution);

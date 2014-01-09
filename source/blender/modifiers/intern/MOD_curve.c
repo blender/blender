@@ -103,6 +103,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 
 	if (cmd->object) {
 		DagNode *curNode = dag_get_node(forest, cmd->object);
+		curNode->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
 
 		dag_add_relation(forest, curNode, obNode,
 		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Curve Modifier");
@@ -119,7 +120,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
+	curve_deform_verts(cmd->object, ob, derivedData, vertexCos, numVerts,
 	                   cmd->name, cmd->defaxis - 1);
 }
 

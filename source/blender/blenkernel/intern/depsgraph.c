@@ -2844,3 +2844,10 @@ const char *DAG_get_node_name(void *node_v)
 
 	return dag_node_name(node);
 }
+
+short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
+{
+	DagNode *node = dag_get_node(scene->theDag, object);
+	return node->eval_flags;
+}
+

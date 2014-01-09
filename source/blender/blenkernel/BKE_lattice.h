@@ -61,10 +61,10 @@ void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
 int object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
-void curve_deform_verts(struct Scene *scene, struct Object *cuOb, struct Object *target,
+void curve_deform_verts(struct Object *cuOb, struct Object *target,
                         struct DerivedMesh *dm, float (*vertexCos)[3],
                         int numVerts, const char *vgroup, short defaxis);
-void curve_deform_vector(struct Scene *scene, struct Object *cuOb, struct Object *target,
+void curve_deform_vector(struct Object *cuOb, struct Object *target,
                          float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
 
 void lattice_deform_verts(struct Object *laOb, struct Object *target,

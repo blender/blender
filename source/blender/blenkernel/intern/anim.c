@@ -654,7 +654,12 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	p2 = pp + s2;
 	p3 = pp + s3;
 
-	/* note, commented out for follow constraint */
+	/* NOTE: commented out for follow constraint
+	 *
+	 *       If it's ever be uncommented watch out for curve_deform_verts()
+	 *       which used to temporary set CU_FOLLOW flag for the curve and no
+	 *       longer does it (because of threading issues of such a thing.
+	 */
 	//if (cu->flag & CU_FOLLOW) {
 
 	key_curve_tangent_weights(1.0f - fac, data, KEY_BSPLINE);
