@@ -683,7 +683,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 					
 					switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							if ( modifiers_isDeformedByCurve(ob) != par) {
+							if (modifiers_isDeformedByCurve(ob) != par) {
 								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
 								if (md) {
 									((CurveModifierData *)md)->object = par;
@@ -747,7 +747,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				
 				copy_v3_v3(ob->loc, vec);
 			}
-			else if (pararm && ob->type == OB_MESH && par->type == OB_ARMATURE) {
+			else if (pararm && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
 				if (partype == PAR_ARMATURE_NAME)
 					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, FALSE);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
