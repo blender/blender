@@ -145,14 +145,10 @@ void DAG_threaded_update_handle_node_updated(void *node_v,
 
 void DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
-/* Tagging and querying */
-void DAG_tag_clear_nodes(struct Scene *scene);
-void DAG_tag_node_for_object(struct Scene *scene, void *object);
-void DAG_tag_flush_nodes(struct Scene *scene);
+/* ************************ DAG querying ********************* */
 
 struct Object *DAG_get_node_object(void *node_v);
 const char *DAG_get_node_name(void *node_v);
-bool DAG_get_node_tag(void *node_v);
 
 #ifdef __cplusplus
 }

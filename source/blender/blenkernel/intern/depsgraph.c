@@ -2819,74 +2819,7 @@ void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
 	dag_print_dependencies = 0;
 }
 
-/* ************************ DAG tagging and querying ********************* */
-
-void DAG_tag_clear_nodes(Scene *scene)
-{
-	DagNode *node;
-
-	for (node = scene->theDag->DagNode.first; node; node = node->next) {
-		node->tag = false;
-	}
-}
-
-void DAG_tag_node_for_object(Scene *scene, void *object)
-{
-	DagNode *node = dag_get_node(scene->theDag, object);
-
-	node->tag = true;
-}
-
-void DAG_tag_flush_nodes(Scene *scene)
-{
-	DagNodeQueue *node_queue;
-	DagNode *node, *root_node;
-
-	node_queue = queue_create(DAGQUEUEALLOC);
-
-	for (node = scene->theDag->DagNode.first; node; node = node->next) {
-		node->color = DAG_WHITE;
-	}
-
-	root_node = scene->theDag->DagNode.first;
-	root_node->color = DAG_GRAY;
-	push_stack(node_queue, root_node);
-
-	while (node_queue->count) {
-		DagAdjList *itA;
-		bool has_new_nodes = false;
-
-		node = get_top_node_queue(node_queue);
-
-		/* Schedule all child nodes. */
-		for (itA = node->child; itA; itA = itA->next) {
-			if (itA->node->color == DAG_WHITE) {
-				itA->node->color = DAG_GRAY;
-				push_stack(node_queue, itA->node);
-				has_new_nodes = true;
-			}
-		}
-
-		if (!has_new_nodes) {
-			node = pop_queue(node_queue);
-			if (node->ob == scene) {
-				break;
-			}
-
-			/* Flush tag from child to current node. */
-			for (itA = node->child; itA; itA = itA->next) {
-				if (itA->node->tag) {
-					node->tag = true;
-					break;
-				}
-			}
-
-			node->color = DAG_BLACK;
-		}
-	}
-
-	queue_delete(node_queue);
-}
+/* ************************ DAG querying ********************* */
 
 /* Will return Object ID if node represents Object,
  * and will return NULL otherwise.
@@ -2908,11 +2841,4 @@ const char *DAG_get_node_name(void *node_v)
 	DagNode *node = node_v;
 
 	return dag_node_name(node);
-}
-
-bool DAG_get_node_tag(void *node_v)
-{
-	DagNode *node = node_v;
-
-	return node->tag;
 }
