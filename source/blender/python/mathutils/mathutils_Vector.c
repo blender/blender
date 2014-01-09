@@ -1121,7 +1121,7 @@ PyDoc_STRVAR(Vector_lerp_doc,
 "   :type other: :class:`Vector`\n"
 "   :arg factor: The interpolation value in [0.0, 1.0].\n"
 "   :type factor: float\n"
-"   :return: The interpolated rotation.\n"
+"   :return: The interpolated vector.\n"
 "   :rtype: :class:`Vector`\n"
 );
 static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
