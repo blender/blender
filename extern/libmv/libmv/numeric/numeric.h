@@ -33,23 +33,26 @@
 #include <Eigen/QR>
 #include <Eigen/SVD>
 
-#if (defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__)) && !defined(__MINGW64__)
-  static void sincos(double x, double *sinx, double *cosx) {
-    *sinx = sin(x);
-    *cosx = cos(x);
-  }
-#endif  // _WIN32 || __APPLE__
+#if !defined(__MINGW64__)
+#  if defined(_WIN32) || defined(__APPLE__) || \
+      defined(__FreeBSD__) || defined(__NetBSD__)
+static void sincos(double x, double *sinx, double *cosx) {
+  *sinx = sin(x);
+  *cosx = cos(x);
+}
+#  endif
+#endif  // !__MINGW64__
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(__MINGW32__)
-  inline long lround(double d) {
-    return (long)(d>0 ? d+0.5 : ceil(d-0.5));
-  }
-#if _MSC_VER < 1800
-  inline int round(double d) {
-    return (d>0) ? int(d+0.5) : int(d-0.5);
-  }
-#endif
-  typedef unsigned int uint;
+inline long lround(double d) {
+  return (long)(d>0 ? d+0.5 : ceil(d-0.5));
+}
+#  if _MSC_VER < 1800
+inline int round(double d) {
+  return (d>0) ? int(d+0.5) : int(d-0.5);
+}
+#  endif  // _MSC_VER < 1800
+typedef unsigned int uint;
 #endif  // _WIN32
 
 namespace libmv {

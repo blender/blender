@@ -1,3 +1,14 @@
+commit 0a69fadadc5aacbd339f839ac5bd12c3571278b1
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Jan 9 15:50:11 2014 +0600
+
+    Fix compilation error on NetBSD
+    
+    - NetBSD doesn't provide sincos(3) in libm, so don't try to use it
+    - Use posix_memalign on NetBSD
+    
+    Original patch is by Jeorg Sonnenberger to Blender patch tracker, thanks!
+
 commit b0df3e291e6c85f791658be04334efafc41989f5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Jan 2 15:12:18 2014 +0600
@@ -674,13 +685,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 4 02:59:58 2013 +0600
 
     Suppress strict compiler warnings in glags/glog libraries
-
-commit 307f3449c3dc47ed0082a22c88f9ab42114c2a0f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 4 01:20:18 2013 +0600
-
-    Lint cleanup, mostly white space and line width.
-    
-    Also moved own includes to the top of files.
-    
-    Should be no functional changes :)
