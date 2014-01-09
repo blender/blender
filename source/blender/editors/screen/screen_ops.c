@@ -2163,20 +2163,20 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	TimeMarker *marker;
-	int closest;
+	int closest = CFRA;
 	short next = RNA_boolean_get(op->ptr, "next");
 	bool found = false;
 
 	/* find matching marker in the right direction */
 	for (marker = scene->markers.first; marker; marker = marker->next) {
 		if (next) {
-			if (marker->frame > CFRA && (!found || closest > marker->frame)) {
+			if ((marker->frame > CFRA) && (!found || closest > marker->frame)) {
 				closest = marker->frame;
 				found = true;
 			}
 		}
 		else {
-			if (marker->frame < CFRA && (!found || closest < marker->frame)) {
+			if ((marker->frame < CFRA) && (!found || closest < marker->frame)) {
 				closest = marker->frame;
 				found = true;
 			}
