@@ -502,6 +502,9 @@ typedef struct tGpTimingData {
 	float *times; /* Note: Gap times will be negative! */
 	float tot_time, gap_tot_time;
 	double inittime;
+
+	/* Only used during creation of dists & times lists. */
+	float offset_time;
 } tGpTimingData;
 
 /* init point buffers for timing data */
@@ -534,20 +537,29 @@ static void _gp_timing_data_set_nbr(tGpTimingData *gtd, const int nbr)
 static void gp_timing_data_add_point(tGpTimingData *gtd, const double stroke_inittime, const float time,
                                      const float delta_dist)
 {
-	if (time < 0.0f) {
-		/* This is a gap, negative value! */
-		gtd->times[gtd->cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time);
-		gtd->tot_time = -gtd->times[gtd->cur_point];
+	float delta_time = 0.0f;
+	const int cur_point = gtd->cur_point;
 
-		gtd->gap_tot_time += gtd->times[gtd->cur_point] - gtd->times[gtd->cur_point - 1];
+	if (!cur_point) {
+		/* Special case, first point, if time is not 0.0f we have to compensate! */
+		gtd->offset_time = -time;
+		gtd->times[cur_point] = 0.0f;
+	}
+	else if (time < 0.0f) {
+		/* This is a gap, negative value! */
+		gtd->times[cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time + gtd->offset_time);
+		delta_time = -gtd->times[cur_point] - gtd->times[cur_point - 1];
+
+		gtd->gap_tot_time += delta_time;
 	}
 	else {
-		gtd->times[gtd->cur_point] = (((float)(stroke_inittime - gtd->inittime)) + time);
-		gtd->tot_time = (gtd->times[gtd->cur_point]);
+		gtd->times[cur_point] = (((float)(stroke_inittime - gtd->inittime)) + time + gtd->offset_time);
+		delta_time = gtd->times[cur_point] - fabsf(gtd->times[cur_point - 1]);
 	}
 
+	gtd->tot_time += delta_time;
 	gtd->tot_dist += delta_dist;
-	gtd->dists[gtd->cur_point] = gtd->tot_dist;
+	gtd->dists[cur_point] = gtd->tot_dist;
 
 	gtd->cur_point++;
 }
@@ -855,16 +867,15 @@ static void gp_stroke_to_path_add_point(tGpTimingData *gtd, BPoint *bp, const fl
 }
 
 static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect, Nurb **curnu,
-                              float minmax_weights[2], const float rad_fac, bool stitch, tGpTimingData *gtd)
+                              float minmax_weights[2], const float rad_fac, bool stitch, const bool add_start_point,
+                              const bool add_end_point, tGpTimingData *gtd)
 {
 	bGPDspoint *pt;
 	Nurb *nu = (curnu) ? *curnu : NULL;
 	BPoint *bp, *prev_bp = NULL;
 	const bool do_gtd = (gtd->mode != GP_STROKECONVERT_TIMING_NONE);
+	const int add_start_end_points = (add_start_point ? 1 : 0) + (add_end_point ? 1 : 0);
 	int i, old_nbp = 0;
-
-	/* Some validity checks. */
-	BLI_assert((curnu || stitch) ? gps->prev : true);  /* If curve-linking or stitching, we need a previous stroke. */
 
 	/* create new 'nurb' or extend current one within the curve */
 	if (nu) {
@@ -873,12 +884,12 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 		/* If stitch, the first point of this stroke is already present in current nu.
 		 * Else, we have to add two additional points to make the zero-radius link between strokes.
 		 */
-		BKE_nurb_points_add(nu, gps->totpoints + (stitch ? -1 : 2));
+		BKE_nurb_points_add(nu, gps->totpoints + (stitch ? -1 : 2) + add_start_end_points);
 	}
 	else {
 		nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_path(nurb)");
 
-		nu->pntsu = gps->totpoints;
+		nu->pntsu = gps->totpoints + add_start_end_points;
 		nu->pntsv = 1;
 		nu->orderu = 2; /* point-to-point! */
 		nu->type = CU_NURBS;
@@ -955,6 +966,31 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 
 		old_nbp += 2;
 	}
+	else if (add_start_point) {
+		float p[3], next_p[3];
+		float dt;
+
+		gp_strokepoint_convertcoords(C, gps, gps->points, p, subrect);
+		if (gps->totpoints > 1) {
+			gp_strokepoint_convertcoords(C, gps, gps->points + 1, next_p, subrect);
+			interp_v3_v3v3(p, p, next_p, -GAP_DFAC);
+			if (do_gtd) {
+				dt = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
+			}
+		}
+		else {
+			p[0] -= GAP_DFAC;  /* Rather arbitrary... */
+			dt = -GAP_DFAC;  /* Rather arbitrary too! */
+		}
+		bp = nu->bp + old_nbp;
+		/* Note we can't give anything else than 0.0 as time here, since a negative one (which would be expected value)
+		 * would not work (it would be *before* gtd->inittime, which is not supported currently).
+		 */
+		gp_stroke_to_path_add_point(gtd, bp, p, p, gps->inittime, dt, do_gtd, 0.0f, rad_fac, minmax_weights);
+
+		old_nbp++;
+	}
+
 	if (old_nbp) {
 		prev_bp = nu->bp + old_nbp - 1;
 	}
@@ -964,16 +1000,36 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 	     i < gps->totpoints;
 	     i++, pt++, bp++)
 	{
-		float p3d[3];
+		float p[3];
 		float width = pt->pressure * gpl->thickness * WIDTH_CORR_FAC;
 
 		/* get coordinates to add at */
-		gp_strokepoint_convertcoords(C, gps, pt, p3d, subrect);
+		gp_strokepoint_convertcoords(C, gps, pt, p, subrect);
 
-		gp_stroke_to_path_add_point(gtd, bp, p3d, (prev_bp) ? prev_bp->vec : p3d, gps->inittime, pt->time, do_gtd,
+		gp_stroke_to_path_add_point(gtd, bp, p, (prev_bp) ? prev_bp->vec : p, gps->inittime, pt->time, do_gtd,
 		                            width, rad_fac, minmax_weights);
 
 		prev_bp = bp;
+	}
+
+	if (add_end_point) {
+		float p[3];
+		float dt;
+
+		if (gps->totpoints > 1) {
+			interp_v3_v3v3(p, prev_bp->vec, (prev_bp - 1)->vec, -GAP_DFAC);
+			if (do_gtd) {
+				const int idx = gps->totpoints - 1;
+				dt = interpf(gps->points[idx - 1].time, gps->points[idx].time, -GAP_DFAC);
+			}
+		}
+		else {
+			copy_v3_v3(p, prev_bp->vec);
+			p[0] += GAP_DFAC;  /* Rather arbitrary... */
+			dt = GAP_DFAC;  /* Rather arbitrary too! */
+		}
+		/* Note bp has alredy been incremented in main loop above, so it points to the right place. */
+		gp_stroke_to_path_add_point(gtd, bp, p, prev_bp->vec, gps->inittime, dt, do_gtd, 0.0f, rad_fac, minmax_weights);
 	}
 
 	/* add nurb to curve */
@@ -1019,13 +1075,15 @@ static void gp_stroke_to_bezier_add_point(tGpTimingData *gtd, BezTriple *bezt,
 }
 
 static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect, Nurb **curnu,
-                                float minmax_weights[2], const float rad_fac, bool stitch, tGpTimingData *gtd)
+                              float minmax_weights[2], const float rad_fac, bool stitch, const bool add_start_point,
+                              const bool add_end_point, tGpTimingData *gtd)
 {
 	bGPDspoint *pt;
 	Nurb *nu = (curnu) ? *curnu : NULL;
 	BezTriple *bezt, *prev_bezt = NULL;
 	int i, tot, old_nbezt = 0;
-	float p3d_cur[3], p3d_prev[3], p3d_next[3];
+	const int add_start_end_points = (add_start_point ? 1 : 0) + (add_end_point ? 1 : 0);
+	float p3d_cur[3], p3d_prev[3], p3d_next[3], h1[3], h2[3];
 	const bool do_gtd = (gtd->mode != GP_STROKECONVERT_TIMING_NONE);
 
 	/* create new 'nurb' or extend current one within the curve */
@@ -1035,16 +1093,16 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 		 * so no need to add it.
 		 * If no stitch, we want to add two additional points to make a "zero-radius" link between both strokes.
 		 */
-		BKE_nurb_bezierPoints_add(nu, gps->totpoints + ((stitch) ? -1 : 2));
+		BKE_nurb_bezierPoints_add(nu, gps->totpoints + ((stitch) ? -1 : 2) + add_start_end_points);
 	}
 	else {
 		nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_bezier(nurb)");
 
-		nu->pntsu = gps->totpoints;
+		nu->pntsu = gps->totpoints + add_start_end_points;
 		nu->resolu = 12;
 		nu->resolv = 12;
 		nu->type = CU_BEZIER;
-		nu->bezt = (BezTriple *)MEM_callocN(gps->totpoints * sizeof(BezTriple), "bezts");
+		nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * nu->pntsu, "bezts");
 
 		stitch = false; /* Security! */
 	}
@@ -1071,7 +1129,6 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 	if (curnu && old_nbezt) {
 		/* Update last point's second handle */
 		if (stitch) {
-			float h2[3];
 			bezt = nu->bezt + old_nbezt - 1;
 			interp_v3_v3v3(h2, bezt->vec[1], p3d_cur, BEZT_HANDLE_FAC);
 			copy_v3_v3(bezt->vec[2], h2);
@@ -1088,7 +1145,7 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 		 * if it exists, else (if the stroke is a single point), linear interpolation with last curve point...
 		 */
 		else {
-			float h1[3], h2[3], p1[3], p2[3];
+			float p1[3], p2[3];
 			float dt1 = 0.0f, dt2 = 0.0f;
 
 			prev_bezt = NULL;
@@ -1150,13 +1207,37 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 			copy_v3_v3(p3d_prev, p2);
 		}
 	}
+	else if (add_start_point) {
+		float p[3];
+		float dt;
+
+		if (gps->totpoints > 1) {
+			interp_v3_v3v3(p, p3d_cur, p3d_next, -GAP_DFAC);
+			if (do_gtd) {
+				dt = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
+			}
+		}
+		else {
+			copy_v3_v3(p, p3d_cur);
+			p[0] -= GAP_DFAC;  /* Rather arbitrary... */
+			dt = -GAP_DFAC;  /* Rather arbitrary too! */
+		}
+		interp_v3_v3v3(h1, p, p3d_cur, -BEZT_HANDLE_FAC);
+		interp_v3_v3v3(h2, p, p3d_cur, BEZT_HANDLE_FAC);
+		bezt = nu->bezt + old_nbezt;
+		gp_stroke_to_bezier_add_point(gtd, bezt, p, h1, h2, p, gps->inittime, dt, do_gtd,
+		                              0.0f, rad_fac, minmax_weights);
+
+		old_nbezt++;
+		copy_v3_v3(p3d_prev, p);
+	}
+
 	if (old_nbezt) {
 		prev_bezt = nu->bezt + old_nbezt - 1;
 	}
 
 	/* add points */
 	for (i = stitch ? 1 : 0, bezt = nu->bezt + old_nbezt; i < tot; i++, pt++, bezt++) {
-		float h1[3], h2[3];
 		float width = pt->pressure * gpl->thickness * WIDTH_CORR_FAC;
 
 		if (i || old_nbezt) {
@@ -1185,6 +1266,35 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 		}
 
 		prev_bezt = bezt;
+	}
+
+	if (add_end_point) {
+		float p[3];
+		float dt;
+
+		if (gps->totpoints > 1) {
+			interp_v3_v3v3(p, prev_bezt->vec[1], (prev_bezt - 1)->vec[1], -GAP_DFAC);
+			if (do_gtd) {
+				const int idx = gps->totpoints - 1;
+				dt = interpf(gps->points[idx - 1].time, gps->points[idx].time, -GAP_DFAC);
+			}
+		}
+		else {
+			copy_v3_v3(p, prev_bezt->vec[1]);
+			p[0] += GAP_DFAC;  /* Rather arbitrary... */
+			dt = GAP_DFAC;  /* Rather arbitrary too! */
+		}
+
+		/* Second handle of last point of this stroke. */
+		interp_v3_v3v3(h2, prev_bezt->vec[1], p, BEZT_HANDLE_FAC);
+		copy_v3_v3(prev_bezt->vec[2], h2);
+
+		/* The end point */
+		interp_v3_v3v3(h1, p, prev_bezt->vec[1], BEZT_HANDLE_FAC);
+		interp_v3_v3v3(h2, p, prev_bezt->vec[1], -BEZT_HANDLE_FAC);
+		/* Note bezt has alredy been incremented in main loop above, so it points to the right place. */
+		gp_stroke_to_bezier_add_point(gtd, bezt, p, h1, h2, prev_bezt->vec[1], gps->inittime, dt, do_gtd,
+		                              0.0f, rad_fac, minmax_weights);
 	}
 
 	/* must calculate handles or else we crash */
@@ -1331,14 +1441,16 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 		/* Detect new strokes created because of GP_STROKE_BUFFER_MAX reached,
 		 * and stitch them to previous one.
 		 */
-		int stitch = FALSE;
+		bool stitch = false;
+		const bool add_start_point = (link_strokes && !(prev_gps));
+		const bool add_end_point = (link_strokes && !(gps->next));
 
 		if (prev_gps) {
 			bGPDspoint *pt1 = prev_gps->points + prev_gps->totpoints - 1;
 			bGPDspoint *pt2 = gps->points;
 
 			if ((pt1->x == pt2->x) && (pt1->y == pt2->y)) {
-				stitch = TRUE;
+				stitch = true;
 			}
 		}
 
@@ -1349,11 +1461,13 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 
 		switch (mode) {
 			case GP_STROKECONVERT_PATH: 
-				gp_stroke_to_path(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch, gtd);
+				gp_stroke_to_path(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch,
+				                  add_start_point, add_end_point, gtd);
 				break;
 			case GP_STROKECONVERT_CURVE:
 			case GP_STROKECONVERT_POLY:  /* convert after */
-				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch, gtd);
+				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr, &nu, minmax_weights, rad_fac, stitch,
+				                    add_start_point, add_end_point, gtd);
 				break;
 			default:
 				BLI_assert(!"invalid mode");
@@ -1512,6 +1626,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	gtd.dists = gtd.times = NULL;
 	gtd.tot_dist = gtd.tot_time = gtd.gap_tot_time = 0.0f;
 	gtd.inittime = 0.0;
+	gtd.offset_time = 0.0f;
 
 	/* perform conversion */
 	gp_layer_to_curve(C, op->reports, gpd, gpl, mode, norm_weights, rad_fac, link_strokes, &gtd);
