@@ -113,7 +113,10 @@ void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
 	if ((((ID *)em->ob->data)->flag & LIB_ID_RECALC) ||
 	    (em->ob->recalc & OB_RECALC_DATA))
 	{
-		em->ob->recalc |= OB_RECALC_DATA;  /* since we may not have done selection flushing */
+		/* since we may not have done selection flushing */
+		if ((em->ob->recalc & OB_RECALC_DATA) == 0) {
+			DAG_id_tag_update(&em->ob->id, OB_RECALC_DATA);
+		}
 		BKE_object_handle_update(G.main->eval_ctx, scene, em->ob);
 	}
 }

@@ -42,6 +42,7 @@ extern "C" {
 #include "DNA_screen_types.h"
 
 #include "BKE_customdata.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h" /* free_libblock */
 #include "BKE_main.h" /* struct Main */
@@ -471,7 +472,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 #else
 	(void)base;
 #endif
-	ob->recalc = OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	return ob;
 }

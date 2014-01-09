@@ -2031,7 +2031,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		/* test: set time flag, to disable baked systems to update */
 		for (SETLOOPER(scene, sce_iter, base)) {
 			ob = base->object;
-			if (ob->recalc)
+			if (ob->recalc & OB_RECALC_ALL)
 				ob->recalc |= OB_RECALC_TIME;
 		}
 
@@ -2115,10 +2115,14 @@ static void dag_group_on_visible_update(Group *group)
 	group->id.flag |= LIB_DOIT;
 
 	for (go = group->gobject.first; go; go = go->next) {
-		if (ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
+		if (ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 			go->ob->recalc |= OB_RECALC_DATA;
-		if (go->ob->proxy_from)
+			lib_id_recalc_tag(G.main, &go->ob->id);
+		}
+		if (go->ob->proxy_from) {
 			go->ob->recalc |= OB_RECALC_OB;
+			lib_id_recalc_tag(G.main, &go->ob->id);
+		}
 
 		if (go->ob->dup_group)
 			dag_group_on_visible_update(go->ob->dup_group);
@@ -2156,10 +2160,14 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 			oblay = (node) ? node->lay : ob->lay;
 
 			if ((oblay & lay) & ~scene->lay_updated) {
-				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
+				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 					ob->recalc |= OB_RECALC_DATA;
-				if (ob->proxy && (ob->proxy_group == NULL))
+					lib_id_recalc_tag(bmain, &ob->id);
+				}
+				if (ob->proxy && (ob->proxy_group == NULL)) {
 					ob->proxy->recalc |= OB_RECALC_DATA;
+					lib_id_recalc_tag(bmain, &ob->id);
+				}
 				if (ob->dup_group) 
 					dag_group_on_visible_update(ob->dup_group);
 			}
@@ -2209,6 +2217,13 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 	if (GS(id->name) == ID_OB) {
 		ob = (Object *)id;
 		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
+
+		/* So if someone tagged object recalc directly,
+		 * id_tag_update biffield stays relevant
+		 */
+		if (ob->recalc & OB_RECALC_ALL) {
+			DAG_id_type_tag(bmain, GS(id->name));
+		}
 
 		if (ob->recalc & OB_RECALC_DATA) {
 			/* all users of this ob->data should be checked */
@@ -2311,6 +2326,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 					          CONSTRAINT_TYPE_OBJECTSOLVER))
 					{
 						obt->recalc |= OB_RECALC_OB;
+						lib_id_recalc_tag(bmain, &obt->id);
 						break;
 					}
 				}
@@ -2427,11 +2443,33 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 	dag_editors_scene_update(bmain, scene, (updated || time));
 }
 
+/* It is possible that scene_update_post and frame_update_post handlers
+ * will modify objects. The issue is that DAG_ids_clear_recalc is called
+ * just after callbacks, which leaves objects with recalc flags but no
+ * corresponding bit in ID recalc bitfield. This leads to some kind of
+ * regression when using ID type tag fields to check whether there objects
+ * to be updated internally comparing threaded DAG with legacy one.
+ *
+ * For now let's have a workaround which will preserve tag for ID_OB
+ * if there're objects with OB_RECALC_ALL bits. This keeps behavior
+ * unchanged comparing with 2.69 release.
+ *
+ * TODO(sergey): Need to get rid of such a workaround.
+ *
+ *                                                 - sergey -
+ */
+
+#define POST_UPDATE_HANDLER_WORKAROUND
+
 void DAG_ids_clear_recalc(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	bNodeTree *ntree;
 	int a;
+
+#ifdef POST_UPDATE_HANDLER_WORKAROUND
+	bool have_updated_objects = false;
+#endif
 
 	/* loop over all ID types */
 	a  = set_listbasepointers(bmain, lbarray);
@@ -2447,6 +2485,15 @@ void DAG_ids_clear_recalc(Main *bmain)
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA))
 					id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
 
+#ifdef POST_UPDATE_HANDLER_WORKAROUND
+				if (GS(id->name) == ID_OB) {
+					Object *object = (Object *) id;
+					if (object->recalc & OB_RECALC_ALL) {
+						have_updated_objects = true;
+					}
+				}
+#endif
+
 				/* some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
 				if (ntree && (ntree->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
@@ -2456,6 +2503,12 @@ void DAG_ids_clear_recalc(Main *bmain)
 	}
 
 	memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
+
+#ifdef POST_UPDATE_HANDLER_WORKAROUND
+	if (have_updated_objects) {
+		DAG_id_type_tag(bmain, ID_OB);
+	}
+#endif
 }
 
 void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)

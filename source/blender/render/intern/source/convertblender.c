@@ -5146,7 +5146,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		normalize_m4_m4(mat, camera->obmat);
 		invert_m4(mat);
 		RE_SetView(re, mat);
-		camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
+
+		/* force correct matrix for scaled cameras */
+		DAG_id_tag_update(&camera->id, OB_RECALC_OB);
 	}
 	
 	/* store for incremental render, viewmat rotates dbase */

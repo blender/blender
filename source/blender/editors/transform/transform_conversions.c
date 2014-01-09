@@ -4943,8 +4943,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 					base->flag |= BA_WAS_SEL;
 				}
 			}
-			/* used for flush, depgraph will change recalcs if needed :) */
-			ob->recalc |= OB_RECALC_OB;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		}
 	}
 
@@ -5018,8 +5017,7 @@ static int count_proportional_objects(TransInfo *t)
 		    (BASE_EDITABLE_BGMODE(v3d, scene, base)))
 		{
 
-			/* used for flush, depgraph will change recalcs if needed :) */
-			ob->recalc |= OB_RECALC_OB;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 			total += 1;
 		}
@@ -5833,7 +5831,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* pointcache refresh */
 			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
-				ob->recalc |= OB_RECALC_DATA;
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 			/* Needed for proper updating of "quick cached" dynamics. */
 			/* Creates troubles for moving animated objects without */

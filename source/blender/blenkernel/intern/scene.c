@@ -1365,18 +1365,80 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 #endif
 }
 
-static void scene_update_objects(EvaluationContext *eval_ctx, Scene *scene, Scene *scene_parent)
+static bool scene_need_update_objects(Main *bmain)
+{
+	return
+		/* Object datablocks themselves (for OB_RECALC_OB) */
+		DAG_id_type_tagged(bmain, ID_OB) ||
+
+		/* Objects data datablocks (for OB_RECALC_DATA) */
+		DAG_id_type_tagged(bmain, ID_ME)  ||  /* Mesh */
+		DAG_id_type_tagged(bmain, ID_CU)  ||  /* Curve */
+		DAG_id_type_tagged(bmain, ID_MB)  ||  /* MetaBall */
+		DAG_id_type_tagged(bmain, ID_LA)  ||  /* Lamp */
+		DAG_id_type_tagged(bmain, ID_LT)  ||  /* Lattice */
+		DAG_id_type_tagged(bmain, ID_CA)  ||  /* Camera */
+		DAG_id_type_tagged(bmain, ID_KE)  ||  /* KE */
+		DAG_id_type_tagged(bmain, ID_SPK) ||  /* Speaker */
+		DAG_id_type_tagged(bmain, ID_AR);     /* Armature */
+}
+
+static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool;
 	ThreadedObjectUpdateState state;
 
+	/* Early check for whether we need to invoke all the task-based
+	 * tihngs (spawn new ppol, traverse dependency graph and so on).
+	 *
+	 * Basically if there's no ID datablocks tagged for update which
+	 * corresponds to object->recalc flags (which are checked in
+	 * BKE_object_handle_update() then we do nothing here.
+	 */
+	if (!scene_need_update_objects(bmain)) {
+		/* For debug builds we check whether early return didn't give
+		 * us any regressions in terms of missing updates.
+		 *
+		 * TODO(sergey): Remove once we're sure the check above is correct.
+		 */
+#ifndef NDEBUG
+		Base *base;
+
+		for (base = scene->base.first; base; base = base->next) {
+			Object *object = base->object;
+
+			BLI_assert((object->recalc & OB_RECALC_ALL) == 0);
+
+			if (object->proxy) {
+				BLI_assert((object->proxy->recalc & OB_RECALC_ALL) == 0);
+			}
+
+			if (object->dup_group && (object->transflag & OB_DUPLIGROUP)) {
+				GroupObject *go;
+				for (go = object->dup_group->gobject.first; go; go = go->next) {
+					if (go->ob) {
+						BLI_assert((go->ob->recalc & OB_RECALC_ALL) == 0);
+					}
+				}
+			}
+		}
+#endif
+
+		return;
+	}
+
 	state.eval_ctx = eval_ctx;
 	state.scene = scene;
 	state.scene_parent = scene_parent;
-	memset(state.statistics, 0, sizeof(state.statistics));
-	state.has_updated_objects = false;
-	state.base_time = PIL_check_seconds_timer();
+
+	/* Those are only needed when blender is run with --debug argument. */
+	if (G.debug & G_DEBUG) {
+		memset(state.statistics, 0, sizeof(state.statistics));
+		state.has_updated_objects = false;
+		state.base_time = PIL_check_seconds_timer();
+	}
+
 #ifdef MBALL_SINGLETHREAD_HACK
 	state.has_mballs = false;
 #endif
@@ -1408,7 +1470,7 @@ static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bma
 		scene_update_tagged_recursive(eval_ctx, bmain, scene->set, scene_parent);
 
 	/* scene objects */
-	scene_update_objects(eval_ctx, scene, scene_parent);
+	scene_update_objects(eval_ctx, bmain, scene, scene_parent);
 
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);

@@ -553,6 +553,8 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->id.lib)
 			ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 /**

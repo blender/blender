@@ -1270,6 +1270,7 @@ static void object_simplify_update(Object *ob)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+			/* TODO(sergey): Figure out what da heck we're using PSYS flag on object.  */
 			ob->recalc |= PSYS_RECALC_CHILD;
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
