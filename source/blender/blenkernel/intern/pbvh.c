@@ -335,16 +335,6 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	BLI_ghash_free(map, NULL, NULL);
 }
 
-static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
-{
-	if (!G.background) {
-		node->draw_buffers =
-			GPU_build_grid_pbvh_buffers(node->prim_indices,
-		                           node->totprim, bvh->grid_hidden, bvh->gridkey.grid_size);
-	}
-	node->flag |= PBVH_UpdateDrawBuffers;
-}
-
 static void update_vb(PBVH *bvh, PBVHNode *node, BBC *prim_bbc,
                       int offset, int count)
 {
@@ -371,7 +361,7 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 	if (bvh->faces)
 		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
 	else
-		build_grids_leaf_node(bvh, bvh->nodes + node_index);
+		BKE_pbvh_node_mark_rebuild_draw(bvh->nodes + node_index);
 }
 
 /* Return zero if all primitives in the node can be drawn with the
