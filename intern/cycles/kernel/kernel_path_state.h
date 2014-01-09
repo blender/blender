@@ -41,9 +41,9 @@ ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state, RNG 
 #endif
 
 #ifdef __VOLUME__
-	if(kernel_data.integrator.use_volumes) {
-		state->volume_bounce = 0;
+	state->volume_bounce = 0;
 
+	if(kernel_data.integrator.use_volumes) {
 		/* initialize volume stack with volume we are inside of */
 		kernel_volume_stack_init(kg, state->volume_stack);
 		/* seed RNG for cases where we can't use stratified samples */
