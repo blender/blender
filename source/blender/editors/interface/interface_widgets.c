@@ -844,7 +844,8 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
-static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, const rcti *rect)
+static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, const rcti *rect,
+                             const bool show_menu_icon)
 {
 	float xs = 0.0f, ys = 0.0f;
 	float aspect, height;
@@ -908,7 +909,7 @@ static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, cons
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 
-	if (ui_but_draw_menu_icon(but)) {
+	if (show_menu_icon) {
 		xs = rect->xmax - UI_DPI_ICON_SIZE - aspect;
 		ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		
@@ -1349,15 +1350,23 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
 		rcti temp = *rect;
 		temp.xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
-		widget_draw_icon(but, ICON_LAYER_USED, alpha, &temp);
+		widget_draw_icon(but, ICON_LAYER_USED, alpha, &temp, false);
 	}
 
 	/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 	 * and offset the text label to accommodate it */
 
 	if (but->flag & UI_HAS_ICON) {
-		widget_draw_icon(but, but->icon + but->iconadd, alpha, rect);
-		rect->xmin += ICON_SIZE_FROM_BUTRECT(rect);
+		const bool show_menu_icon = ui_but_draw_menu_icon(but);
+		const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
+
+		widget_draw_icon(but, but->icon + but->iconadd, alpha, rect, show_menu_icon);
+
+		rect->xmin += icon_size;
+		/* without this menu keybindings will overlap the arrow icon [#38083] */
+		if (show_menu_icon) {
+			rect->xmax -= icon_size / 2.0f;
+		}
 	}
 
 	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
@@ -1372,7 +1381,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		rcti temp = *rect;
 
 		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
-		widget_draw_icon(but, ICON_X, alpha, &temp);
+		widget_draw_icon(but, ICON_X, alpha, &temp, false);
 		rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
 	}
 
