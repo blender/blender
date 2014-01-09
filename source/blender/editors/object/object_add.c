@@ -68,6 +68,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_font.h"
 #include "BKE_group.h"
 #include "BKE_image.h"
 #include "BKE_lamp.h"
@@ -1584,8 +1585,11 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			cu = newob->data;
 
-			if ( !newob->curve_cache || !newob->curve_cache->disp.first)
-				BKE_displist_make_curveTypes(scene, newob, 0);
+			/* TODO(sergey): Ideally DAG will create nurbs list for a curve data
+			 *               datablock, but for until we've got granular update
+			 *               lets take care by selves.
+			 */
+			BKE_vfont_to_curve(bmain, scene, newob, FO_EDIT);
 
 			newob->type = OB_CURVE;
 			cu->type = OB_CURVE;
