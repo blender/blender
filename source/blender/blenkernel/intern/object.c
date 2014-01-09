@@ -62,6 +62,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_kdtree.h"
@@ -121,6 +122,18 @@
 #endif
 
 #include "GPU_material.h"
+
+/* Vertex parent modifies original BMesh which is not safe for threading.
+ * Ideally such a modification should be handled as a separate DAG update
+ * callback for mesh datablock, but for until it is actually supported use
+ * simpler solution with a mutex lock.
+ *                                               - sergey -
+ */
+#define VPARENT_THREADING_HACK
+
+#ifdef VPARENT_THREADING_HACK
+static ThreadMutex vparent_lock = BLI_MUTEX_INITIALIZER;
+#endif
 
 void BKE_object_workob_clear(Object *workob)
 {
@@ -2081,31 +2094,12 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
 
 static void give_parvert(Object *par, int nr, float vec[3])
 {
-	BMEditMesh *em;
-
 	zero_v3(vec);
 	
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
+		BMEditMesh *em = me->edit_btmesh;
 		DerivedMesh *dm;
-
-		em = me->edit_btmesh;
-
-#if 0   /* this was bmesh only, better, evaluate why this was needed - campbell*/
-		if (em) {
-			BMVert *eve;
-			BMIter iter;
-
-			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				int *keyindex = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-				
-				if (keyindex && *keyindex == nr) {
-					copy_v3_v3(vec, eve->co);
-					break;
-				}
-			}
-		}
-#endif
 
 		dm = (em) ? em->derivedFinal : par->derivedFinal;
 			
@@ -2114,22 +2108,41 @@ static void give_parvert(Object *par, int nr, float vec[3])
 			int numVerts = dm->getNumVerts(dm);
 
 			if (nr < numVerts) {
-				MVert *mvert = dm->getVertArray(dm);
-				int   *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+				/* avoid dm->getVertDataArray() since it allocates arrays in the dm (not thread safe) */
 				int i;
 
+				if (em && dm->type == DM_TYPE_EDITBMESH) {
+					if (em->bm->elem_table_dirty & BM_VERT) {
+#ifdef VPARENT_THREADING_HACK
+						BLI_mutex_lock(&vparent_lock);
+						if (em->bm->elem_table_dirty & BM_VERT) {
+							BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+						}
+						BLI_mutex_unlock(&vparent_lock);
+#else
+						BLI_assert(!"Not safe for threading");
+						BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+#endif
+					}
+				}
+
 				/* get the average of all verts with (original index == nr) */
-				if (index) {
+				if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX)) {
 					for (i = 0; i < numVerts; i++) {
-						if (index[i] == nr) {
-							add_v3_v3(vec, mvert[i].co);
+						const int *index = dm->getVertData(dm, i, CD_ORIGINDEX);
+						if (*index == nr) {
+							float co[3];
+							dm->getVertCo(dm, i, co);
+							add_v3_v3(vec, co);
 							count++;
 						}
 					}
 				}
 				else {
 					if (nr < numVerts) {
-						add_v3_v3(vec, mvert[nr].co);
+						float co[3];
+						dm->getVertCo(dm, nr, co);
+						add_v3_v3(vec, co);
 						count++;
 					}
 				}
