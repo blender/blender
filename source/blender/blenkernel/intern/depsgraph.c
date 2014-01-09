@@ -2146,6 +2146,9 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 		 * note armature poses or object matrices are preserved and do not
 		 * require updates, so we skip those */
 		dag_scene_flush_layers(scene, lay);
+		if (scene->set) {
+			dag_scene_flush_layers(scene->set, lay);
+		}
 		BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 		for (SETLOOPER(scene, sce_iter, base)) {

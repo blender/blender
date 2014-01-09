@@ -6789,14 +6789,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	if (!particle_skip_object) {
-		/* bad exception, solve this! otherwise outline shows too late */
-		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-			if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first)) {
-				BKE_displist_make_curveTypes(scene, ob, 0);
-			}
-		}
-		
 		/* draw outline for selected objects, mesh does itself */
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
