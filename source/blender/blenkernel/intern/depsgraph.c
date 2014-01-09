@@ -2145,10 +2145,9 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 		 * remade, tag them so they get remade in the scene update loop,
 		 * note armature poses or object matrices are preserved and do not
 		 * require updates, so we skip those */
-		dag_scene_flush_layers(scene, lay);
-		if (scene->set) {
-			dag_scene_flush_layers(scene->set, lay);
-		}
+		for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set)
+			dag_scene_flush_layers(sce_iter, lay);
+
 		BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 		for (SETLOOPER(scene, sce_iter, base)) {

@@ -1588,7 +1588,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 *               datablock, but for until we've got granular update
 			 *               lets take care by selves.
 			 */
-			BKE_vfont_to_curve(bmain, scene, newob, FO_EDIT);
+			BKE_vfont_to_curve(bmain, newob, FO_EDIT);
 
 			newob->type = OB_CURVE;
 			cu->type = OB_CURVE;

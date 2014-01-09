@@ -1619,7 +1619,7 @@ static Object *find_family_object(const char *family, size_t family_len, unsigne
 }
 
 
-static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persistent_id[MAX_DUPLI_RECUR], int level, short flag)
+static void font_duplilist(ListBase *lb, Object *par, int persistent_id[MAX_DUPLI_RECUR], int level, short flag)
 {
 	GHash *family_gh;
 	Object *ob;
@@ -1638,7 +1638,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 	
 	/* in par the family name is stored, use this to find the other objects */
 	
-	BKE_vfont_to_curve_ex(G.main, scene, par, FO_DUPLI, NULL,
+	BKE_vfont_to_curve_ex(G.main, par, FO_DUPLI, NULL,
 	                      &text, &text_len, &text_free, &chartransdata);
 
 	if (text == NULL || chartransdata == NULL) {
@@ -1736,7 +1736,7 @@ static void object_duplilist_recursive(EvaluationContext *eval_ctx,
 		}
 		else if (ob->type == OB_FONT) {
 			if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
-				font_duplilist(duplilist, scene, ob, persistent_id, level + 1, flag);
+				font_duplilist(duplilist, ob, persistent_id, level + 1, flag);
 			}
 		}
 	}

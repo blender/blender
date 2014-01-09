@@ -520,8 +520,7 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-bool BKE_vfont_to_curve_ex(Main *bmain, Scene *scene, Object *ob, int mode,
-                           ListBase *r_nubase,
+bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase,
                            const wchar_t **r_text, int *r_text_len, bool *r_text_free,
                            struct CharTrans **r_chartransdata)
 {
@@ -870,10 +869,8 @@ makebreak:
 		int oldflag = cucu->flag;
 		
 		cucu->flag |= (CU_PATH + CU_FOLLOW);
-		
-		if (cu->textoncurve->curve_cache == NULL || cu->textoncurve->curve_cache->path == NULL) {
-			BKE_displist_make_curveTypes(scene, cu->textoncurve, 0);
-		}
+
+		BLI_assert(cu->textoncurve->curve_cache != NULL);
 		if (cu->textoncurve->curve_cache->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;
@@ -1135,21 +1132,17 @@ finally:
 }
 
 
-bool BKE_vfont_to_curve_nubase(Main *bmain, Scene *scene, Object *ob, int mode,
-                               ListBase *r_nubase)
+bool BKE_vfont_to_curve_nubase(Main *bmain, Object *ob, int mode, ListBase *r_nubase)
 {
 	BLI_assert(ob->type == OB_FONT);
 
-	return BKE_vfont_to_curve_ex(bmain, scene, ob, mode,
-	                             r_nubase,
+	return BKE_vfont_to_curve_ex(bmain, ob, mode, r_nubase,
 	                             NULL, NULL, NULL, NULL);
 }
 
-bool BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
+bool BKE_vfont_to_curve(Main *bmain, Object *ob, int mode)
 {
 	Curve *cu = ob->data;
 
-	return BKE_vfont_to_curve_ex(bmain, scene, ob, mode,
-	                             &cu->nurb,
-	                             NULL, NULL, NULL, NULL);
+	return BKE_vfont_to_curve_ex(bmain, ob, mode, &cu->nurb, NULL, NULL, NULL, NULL);
 }
