@@ -2437,8 +2437,10 @@ static bool tri_corner_test(BevelParams *bp, BevVert *bv)
 	}
 	angdiff = fabsf(totang - 3.0f * (float)M_PI_2);
 	if ((bp->pro_super_r == PRO_SQUARE_R && angdiff > (float)M_PI/16.0f) ||
-			angdiff > (float)M_PI_4)
+	    (angdiff > (float)M_PI_4))
+	{
 		return false;
+	}
 	return true;
 }
 

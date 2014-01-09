@@ -647,7 +647,7 @@ void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float y
 	NodeOperation *operation = this->getOutputNodeOperation();
 
 	if (operation->isOutputOperation(true)) {
-		/* Basically, setting border need to happen for only operatoins
+		/* Basically, setting border need to happen for only operations
 		 * which operates in render resolution buffers (like compositor
 		 * output nodes).
 		 *

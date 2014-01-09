@@ -76,13 +76,14 @@ EnumPropertyItem rigidbody_constraint_type_items[] = {
 	{RBC_TYPE_MOTOR, "MOTOR", ICON_NONE, "Motor", "Drive rigid body around or along an axis"},
 	{0, NULL, 0, NULL, NULL}};
 
+#ifndef RNA_RUNTIME
 /* mesh source for collision shape creation */
-EnumPropertyItem rigidbody_mesh_source_items[] = {
+static EnumPropertyItem rigidbody_mesh_source_items[] = {
 	{RBO_MESH_BASE, "BASE", 0, "Base", "Base mesh"},
 	{RBO_MESH_DEFORM, "DEFORM", 0, "Deform", "Deformations (shaps keys, deform modifiers"},
 	{RBO_MESH_FINAL, "FINAL", 0, "Final", "All modifiers"},
 	{0, NULL, 0, NULL, NULL}};
-
+#endif
 
 #ifdef RNA_RUNTIME
 

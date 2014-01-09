@@ -176,7 +176,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* update or clear modal callout */
 	if (event->type == EVT_MODAL_MAP) {
-		if(event->val == GESTURE_MODAL_BEGIN) {
+		if (event->val == GESTURE_MODAL_BEGIN) {
 			ED_area_headerprint(CTX_wm_area(C), IFACE_("LMB: Release to confirm cut line"));
 		}
 		else {

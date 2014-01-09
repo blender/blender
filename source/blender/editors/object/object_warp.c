@@ -192,7 +192,7 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
 
 
 	ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
-	if (tvs.transverts == 0) {
+	if (tvs.transverts == NULL) {
 		return OPERATOR_CANCELLED;
 	}
 
