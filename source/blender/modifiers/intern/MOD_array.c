@@ -125,6 +125,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 	if (amd->curve_ob) {
 		DagNode *curNode = dag_get_node(forest, amd->curve_ob);
+		curNode->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
 
 		dag_add_relation(forest, curNode, obNode,
 		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
@@ -321,7 +322,7 @@ static void merge_first_last(BMesh *bm,
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-                                          Scene *scene, Object *ob, DerivedMesh *dm,
+                                          Object *ob, DerivedMesh *dm,
                                           ModifierApplyFlag flag)
 {
 	DerivedMesh *result;
@@ -376,10 +377,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
-			if (!amd->curve_ob->curve_cache || !amd->curve_ob->curve_cache->path) {
-				cu->flag |= CU_PATH; // needed for path & bevlist
-				BKE_displist_make_curveTypes(scene, amd->curve_ob, 0);
-			}
 			if (amd->curve_ob->curve_cache->path) {
 				float scale = mat4_to_scale(amd->curve_ob->obmat);
 				length = scale * amd->curve_ob->curve_cache->path->totdist;
@@ -578,7 +575,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
-	result = arrayModifier_doArray(amd, md->scene, ob, dm, flag);
+	result = arrayModifier_doArray(amd, ob, dm, flag);
 
 	return result;
 }
