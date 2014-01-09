@@ -1147,7 +1147,7 @@ static void followpath_flush_tars(bConstraint *con, ListBase *list, short nocopy
 	}
 }
 
-static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void followpath_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bFollowPathConstraint *data = con->data;
 	
@@ -1162,11 +1162,7 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
 		 */
-		
-		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
-		
+
 		if (ct->tar->curve_cache->path && ct->tar->curve_cache->path->data) {
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
@@ -1925,20 +1921,13 @@ static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userd
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
-static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void pycon_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
 #ifdef WITH_PYTHON
 	bPythonConstraint *data = con->data;
 #endif
 
 	if (VALID_CONS_TARGET(ct)) {
-		/* special exception for curves - depsgraph issues */
-		if (ct->tar->type == OB_CURVE) {
-			/* this check is to make sure curve objects get updated on file load correctly.*/
-			if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
-		}
-		
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
 		 */
@@ -3005,18 +2994,8 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
-	if (VALID_CONS_TARGET(ct)) {
-		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
-		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
-		 */
-		
-		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
-	}
-	
 	/* technically, this isn't really needed for evaluation, but we don't know what else
 	 * might end up calling this...
 	 */
@@ -3670,18 +3649,8 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
-	if (VALID_CONS_TARGET(ct)) {
-		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
-		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
-		 */
-		
-		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (ct->tar->curve_cache == NULL || ct->tar->curve_cache->path == NULL || ct->tar->curve_cache->path->data == NULL)
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
-	}
-	
 	/* technically, this isn't really needed for evaluation, but we don't know what else
 	 * might end up calling this...
 	 */
