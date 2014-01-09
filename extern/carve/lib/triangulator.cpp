@@ -31,9 +31,19 @@
 //
 // TODO(sergey): Move it some some more generic header with platform-specific
 //               declarations.
-#ifdef _LIBCPP_VERSION
-#  define __is_heap is_heap
-#endif
+
+// Indicates whether __is_heap is available
+#undef HAVE_IS_HEAP
+
+#ifdef __GNUC__
+// NeyBSD doesn't have __is_heap
+#  ifndef __NetBSD__
+#    define HAVE_IS_HEAP
+#    ifdef _LIBCPP_VERSION
+#      define __is_heap is_heap
+#    endif  // _LIBCPP_VERSION
+#  endif  // !__NetBSD__
+#endif  // __GNUC__
 
 namespace {
   // private code related to hole patching.
@@ -129,7 +139,7 @@ namespace {
     std::vector<vertex_info *> queue;
 
     void checkheap() {
-#ifdef __GNUC__
+#if defined(HAVE_IS_HEAP)
       CARVE_ASSERT(std::__is_heap(queue.begin(), queue.end(), vertex_info_ordering()));
 #endif
     }
