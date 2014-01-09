@@ -6910,7 +6910,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 	float min[3], max[3], size[3], loc[3];
 	int a;
 
-	if (ELEM(NULL, object->curve_cache, object->curve_cache->disp.first)) {
+	if (object->curve_cache == NULL) {
 		BKE_displist_make_curveTypes(scene, object, FALSE);
 	}
 
