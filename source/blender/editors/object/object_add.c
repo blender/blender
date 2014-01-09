@@ -1415,10 +1415,9 @@ static EnumPropertyItem convert_target_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static void curvetomesh(Scene *scene, Object *ob) 
+static void curvetomesh(Object *ob) 
 {
-	if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first))
-		BKE_displist_make_curveTypes(scene, ob, 0);  /* force creation */
+	BLI_assert(ob->curve_cache != NULL);
 
 	BKE_mesh_from_nurbs(ob); /* also does users */
 
@@ -1630,7 +1629,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			BKE_curve_curve_dimension_update(cu);
 
 			if (target == OB_MESH) {
-				curvetomesh(scene, newob);
+				curvetomesh(newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1652,12 +1651,12 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					newob = ob;
-
-					/* meshes doesn't use displist */
-					BKE_object_free_curve_cache(newob);
 				}
 
-				curvetomesh(scene, newob);
+				curvetomesh(newob);
+
+				/* meshes doesn't use displist */
+				BKE_object_free_curve_cache(newob);
 			}
 		}
 		else if (ob->type == OB_MBALL && target == OB_MESH) {
