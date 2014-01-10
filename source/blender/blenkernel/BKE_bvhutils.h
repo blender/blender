@@ -55,6 +55,9 @@ typedef struct BVHTreeFromMesh {
 	struct MVert *vert;
 	struct MEdge *edge;     /* only used for BVHTreeFromMeshEdges */
 	struct MFace *face;
+	bool vert_allocated;
+	bool face_allocated;
+	bool edge_allocated;
 
 	/* radius for raycast */
 	float sphere_radius;
