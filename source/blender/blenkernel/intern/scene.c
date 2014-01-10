@@ -1388,6 +1388,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool;
 	ThreadedObjectUpdateState state;
+	bool need_singlethread_pass;
 
 	/* Early check for whether we need to invoke all the task-based
 	 * tihngs (spawn new ppol, traverse dependency graph and so on).
@@ -1453,11 +1454,28 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 		print_threads_statistics(&state);
 	}
 
+	/* We do single thread pass to update all the objects which are in cyclic dependency.
+	 * Such objects can not be handled by a generic DAG traverse and it's really tricky
+	 * to detect whether cycle could be solved or not.
+	 *
+	 * In this situation we simply update all remaining objects in a single thread and
+	 * it'll happen in the same exact order as it was in single-threaded DAG.
+	 *
+	 * We couldn't use threaded update for objects which are in cycle because they might
+	 * access data of each other which is being re-evaluated.
+	 *
+	 * Also, as was explained above, for now we also update all the mballs in single thread.
+	 *
+	 *                                                                   - sergey -
+	 */
+	need_singlethread_pass = DAG_is_acyclic(scene) == false;
 #ifdef MBALL_SINGLETHREAD_HACK
-	if (state.has_mballs) {
+	need_singlethread_pass |= state.has_mballs;
+#endif
+
+	if (need_singlethread_pass) {
 		scene_update_all_bases(eval_ctx, scene, scene_parent);
 	}
-#endif
 }
 
 static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Scene *scene_parent)

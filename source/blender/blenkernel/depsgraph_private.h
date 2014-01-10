@@ -127,7 +127,7 @@ typedef struct DagForest {
 	ListBase DagNode;
 	struct GHash *nodeHash;
 	int numNodes;
-	int is_acyclic;
+	bool is_acyclic;
 	int time;  /* for flushing/tagging, compare with node->lasttime */
 } DagForest;
 

@@ -159,6 +159,7 @@ void DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Obje
 struct Object *DAG_get_node_object(void *node_v);
 const char *DAG_get_node_name(void *node_v);
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object);
+bool DAG_is_acyclic(struct Scene *scene);
 
 #ifdef __cplusplus
 }

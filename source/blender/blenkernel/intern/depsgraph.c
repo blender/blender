@@ -1193,6 +1193,8 @@ static void dag_check_cycle(DagForest *dag)
 	DagNode *node;
 	DagAdjList *itA;
 
+	dag->is_acyclic = true;
+
 	/* debugging print */
 	if (dag_print_dependencies)
 		for (node = dag->DagNode.first; node; node = node->next)
@@ -1213,6 +1215,7 @@ static void dag_check_cycle(DagForest *dag)
 		for (itA = node->parent; itA; itA = itA->next) {
 			if (itA->node->ancestor_count > node->ancestor_count) {
 				if (node->ob && itA->node->ob) {
+					dag->is_acyclic = false;
 					printf("Dependency cycle detected:\n");
 					dag_node_print_dependency_cycle(dag, itA->node, node, itA->name);
 				}
@@ -2904,3 +2907,7 @@ short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
 	return node->eval_flags;
 }
 
+bool DAG_is_acyclic(Scene *scene)
+{
+	return scene->theDag->is_acyclic;
+}
