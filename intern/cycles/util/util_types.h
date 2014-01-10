@@ -61,6 +61,8 @@
 
 #ifndef __KERNEL_GPU__
 
+#define __KERNEL_SSE2__
+
 /* not enabled, globally applying it gives slowdown, only for testing. */
 #if 0
 #define __KERNEL_SSE__
@@ -516,14 +518,16 @@ ccl_device_inline void float4_store_half(half *h, const float4 *f, float scale)
 		/* optimized float to half for pixels:
 		 * assumes no negative, no nan, no inf, and sets denormal to 0 */
 		union { uint i; float f; } in;
-		in.f = ((*f)[i] > 0.0f)? (*f)[i] * scale: 0.0f;
+		float fscale = (*f)[i] * scale;
+		in.f = (fscale > 0.0f)? ((fscale < 65500.0f)? fscale: 65500.0f): 0.0f;
 		int x = in.i;
 
 		int absolute = x & 0x7FFFFFFF;
 		int Z = absolute + 0xC8000000;
 		int result = (absolute < 0x38800000)? 0: Z;
+		int rshift = (result >> 13);
 
-		h[i] = ((result >> 13) & 0x7FFF);
+		h[i] = (rshift & 0x7FFF);
 	}
 #else
 	/* same as above with SSE */
@@ -533,7 +537,8 @@ ccl_device_inline void float4_store_half(half *h, const float4 *f, float scale)
 	const __m128i mm_7FFFFFFF = _mm_set1_epi32(0x7FFFFFFF);
 	const __m128i mm_C8000000 = _mm_set1_epi32(0xC8000000);
 
-	__m128i x = _mm_castps_si128(_mm_max_ps(_mm_mul_ps(*(__m128*)f, mm_scale), _mm_set_ps1(0.0f)));
+	__m128 mm_fscale = _mm_mul_ps(*(__m128*)f, mm_scale);
+	__m128i x = _mm_castps_si128(_mm_min_ps(_mm_max_ps(mm_fscale, _mm_set_ps1(0.0f)), _mm_set_ps1(65500.0f)));
 	__m128i absolute = _mm_and_si128(x, mm_7FFFFFFF);
 	__m128i Z = _mm_add_epi32(absolute, mm_C8000000);
 	__m128i result = _mm_andnot_si128(_mm_cmplt_epi32(absolute, mm_38800000), Z); 
