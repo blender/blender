@@ -347,11 +347,16 @@ class WM_OT_context_toggle_enum(Operator):
         if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("context.%s = ('%s', '%s')[context.%s != '%s']" %
-             (data_path, self.value_1,
-              self.value_2, data_path,
-              self.value_2,
-              ))
+        # failing silently is not ideal, but we don't want errors for shortcut
+        # keys that some values that are only available in a particular context
+        try:
+            exec("context.%s = ('%s', '%s')[context.%s != '%s']" %
+                 (data_path, self.value_1,
+                  self.value_2, data_path,
+                  self.value_2,
+                  ))
+        except:
+            return {'PASS_THROUGH'}
 
         return operator_path_undo_return(context, data_path)
 
