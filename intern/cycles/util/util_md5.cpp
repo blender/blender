@@ -24,6 +24,7 @@
 /* Minor modifications done to remove some code and change style. */
 
 #include "util_md5.h"
+#include "util_path.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -311,7 +312,7 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 
 bool MD5Hash::append_file(const string& filepath)
 {
-	FILE *f = fopen(filepath.c_str(), "rb");
+	FILE *f = path_fopen(filepath, "rb");
 
 	if(!f) {
 		fprintf(stderr, "MD5: failed to open file %s\n", filepath.c_str());

@@ -19,6 +19,7 @@
 #include "util_path.h"
 #include "util_string.h"
 
+#include <OpenImageIO/strutil.h>
 #include <OpenImageIO/sysutil.h>
 OIIO_NAMESPACE_USING
 
@@ -38,6 +39,25 @@ CCL_NAMESPACE_BEGIN
 static string cached_path = "";
 static string cached_user_path = "";
 
+static boost::filesystem::path to_boost(const string& path)
+{
+#ifdef _MSC_VER
+	std::wstring path_utf16 = Strutil::utf8_to_utf16(path);
+	return boost::filesystem::path(path_utf16);
+#else
+	return boost::filesystem::path(path);
+#endif
+}
+
+static string from_boost(const boost::filesystem::path& path)
+{
+#ifdef _MSC_VER
+	return Strutil::utf16_to_utf8(path.wstring());
+#else
+	return path.string();
+#endif
+}
+
 void path_init(const string& path, const string& user_path)
 {
 	cached_path = path;
@@ -45,7 +65,7 @@ void path_init(const string& path, const string& user_path)
 
 #ifdef _MSC_VER
 	// fix for https://svn.boost.org/trac/boost/ticket/6320
-    boost::filesystem::path::imbue( std::locale( "" ) );
+	boost::filesystem::path::imbue( std::locale( "" ) );
 #endif
 }
 
@@ -68,20 +88,20 @@ string path_user_get(const string& sub)
 string path_filename(const string& path)
 {
 #if (BOOST_FILESYSTEM_VERSION == 2)
-	return boost::filesystem::path(path).filename();
+	return to_boost(path).filename();
 #else
-	return boost::filesystem::path(path).filename().string();
+	return from_boost(to_boost(path).filename());
 #endif
 }
 
 string path_dirname(const string& path)
 {
-	return boost::filesystem::path(path).parent_path().string();
+	return from_boost(to_boost(path).parent_path());
 }
 
 string path_join(const string& dir, const string& file)
 {
-	return (boost::filesystem::path(dir) / boost::filesystem::path(file)).string();
+	return from_boost((to_boost(dir) / to_boost(file)));
 }
 
 string path_escape(const string& path)
@@ -93,20 +113,22 @@ string path_escape(const string& path)
 
 bool path_exists(const string& path)
 {
-	return boost::filesystem::exists(path);
+	return boost::filesystem::exists(to_boost(path));
 }
 
 static void path_files_md5_hash_recursive(MD5Hash& hash, const string& dir)
 {
-	if(boost::filesystem::exists(dir)) {
-		boost::filesystem::directory_iterator it(dir), it_end;
+	boost::filesystem::path dirpath = to_boost(dir);
+
+	if(boost::filesystem::exists(dirpath)) {
+		boost::filesystem::directory_iterator it(dirpath), it_end;
 
 		for(; it != it_end; it++) {
 			if(boost::filesystem::is_directory(it->status())) {
-				path_files_md5_hash_recursive(hash, it->path().string());
+				path_files_md5_hash_recursive(hash, from_boost(it->path()));
 			}
 			else {
-				string filepath = it->path().string();
+				string filepath = from_boost(it->path());
 
 				hash.append((const uint8_t*)filepath.c_str(), filepath.size());
 				hash.append_file(filepath);
@@ -127,7 +149,7 @@ string path_files_md5_hash(const string& dir)
 
 void path_create_directories(const string& path)
 {
-	boost::filesystem::create_directories(path_dirname(path));
+	boost::filesystem::create_directories(to_boost(path_dirname(path)));
 }
 
 bool path_write_binary(const string& path, const vector<uint8_t>& binary)
@@ -135,7 +157,7 @@ bool path_write_binary(const string& path, const vector<uint8_t>& binary)
 	path_create_directories(path);
 
 	/* write binary file from memory */
-	FILE *f = fopen(path.c_str(), "wb");
+	FILE *f = path_fopen(path, "wb");
 
 	if(!f)
 		return false;
@@ -158,10 +180,10 @@ bool path_write_text(const string& path, string& text)
 
 bool path_read_binary(const string& path, vector<uint8_t>& binary)
 {
-	binary.resize(boost::filesystem::file_size(path));
+	binary.resize(boost::filesystem::file_size(to_boost(path)));
 
 	/* read binary file into memory */
-	FILE *f = fopen(path.c_str(), "rb");
+	FILE *f = path_fopen(path, "rb");
 
 	if(!f)
 		return false;
@@ -197,8 +219,8 @@ bool path_read_text(const string& path, string& text)
 
 uint64_t path_modified_time(const string& path)
 {
-	if(boost::filesystem::exists(path))
-		return (uint64_t)boost::filesystem::last_write_time(path);
+	if(boost::filesystem::exists(to_boost(path)))
+		return (uint64_t)boost::filesystem::last_write_time(to_boost(path));
 	
 	return 0;
 }
@@ -228,6 +250,18 @@ string path_source_replace_includes(const string& source_, const string& path)
 	}
 
 	return source;
+}
+
+FILE *path_fopen(const string& path, const string& mode)
+{
+#ifdef _WIN32
+	std::wstring path_utf16 = Strutil::utf8_to_utf16(path);
+	std::wstring mode_utf16 = Strutil::utf8_to_utf16(mode);
+
+	return _wfopen(path_utf16.c_str(), mode_utf16.c_str());
+#else
+	return fopen(path.c_str(), mode.c_str());
+#endif
 }
 
 CCL_NAMESPACE_END

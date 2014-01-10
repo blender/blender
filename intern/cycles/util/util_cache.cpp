@@ -79,7 +79,7 @@ void Cache::insert(CacheData& key, CacheData& value)
 {
 	string filename = data_filename(key);
 	path_create_directories(filename);
-	FILE *f = fopen(filename.c_str(), "wb");
+	FILE *f = path_fopen(filename, "wb");
 
 	if(!f) {
 		fprintf(stderr, "Failed to open file %s for writing.\n", filename.c_str());
@@ -100,7 +100,7 @@ void Cache::insert(CacheData& key, CacheData& value)
 bool Cache::lookup(CacheData& key, CacheData& value)
 {
 	string filename = data_filename(key);
-	FILE *f = fopen(filename.c_str(), "rb");
+	FILE *f = path_fopen(filename, "rb");
 
 	if(!f)
 		return false;

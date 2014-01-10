@@ -22,6 +22,8 @@
  * linked libraries, the path to the library may be set with path_init, which
  * then makes all paths relative to that. */
 
+#include <stdio.h>
+
 #include "util_string.h"
 #include "util_types.h"
 #include "util_vector.h"
@@ -49,6 +51,8 @@ bool path_read_text(const string& path, string& text);
 uint64_t path_modified_time(const string& path);
 
 string path_source_replace_includes(const string& source, const string& path);
+
+FILE *path_fopen(const string& path, const string& mode);
 
 CCL_NAMESPACE_END
 

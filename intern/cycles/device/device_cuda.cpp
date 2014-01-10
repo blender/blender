@@ -355,7 +355,14 @@ public:
 		/* open module */
 		cuda_push_context();
 
-		CUresult result = cuModuleLoad(&cuModule, cubin.c_str());
+		string cubin_data;
+		CUresult result;
+
+		if (path_read_text(cubin, cubin_data))
+			result = cuModuleLoadData(&cuModule, cubin_data.c_str());
+		else
+			result = CUDA_ERROR_FILE_NOT_FOUND;
+
 		if(cuda_error_(result, "cuModuleLoad"))
 			cuda_error_message(string_printf("Failed loading CUDA kernel %s.", cubin.c_str()));
 
