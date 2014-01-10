@@ -460,13 +460,13 @@ static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 }
 
 PyDoc_STRVAR(bpy_bmlayercollection_values_doc,
-".. method:: items()\n"
+".. method:: values()\n"
 "\n"
-"   Return the identifiers of collection members\n"
-"   (matching pythons dict.items() functionality).\n"
+"   Return the values of collection\n"
+"   (matching pythons dict.values() functionality).\n"
 "\n"
-"   :return: (key, value) pairs for each member of this collection.\n"
-"   :rtype: list of tuples\n"
+"   :return: the members of this collection.\n"
+"   :rtype: list\n"
 );
 static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
 {
@@ -497,13 +497,13 @@ static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
 }
 
 PyDoc_STRVAR(bpy_bmlayercollection_items_doc,
-".. method:: values()\n"
+".. method:: items()\n"
 "\n"
-"   Return the values of collection\n"
-"   (matching pythons dict.values() functionality).\n"
+"   Return the identifiers of collection members\n"
+"   (matching pythons dict.items() functionality).\n"
 "\n"
-"   :return: the members of this collection.\n"
-"   :rtype: list\n"
+"   :return: (key, value) pairs for each member of this collection.\n"
+"   :rtype: list of tuples\n"
 );
 static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 {
