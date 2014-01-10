@@ -1555,9 +1555,9 @@ static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 					workp_v = in_v;
 					max_len = len_v3v3(out, in);
 
-					nx = abs((out[0] - in[0]) / process->size);
-					ny = abs((out[1] - in[1]) / process->size);
-					nz = abs((out[2] - in[2]) / process->size);
+					nx = fabsf((out[0] - in[0]) / process->size);
+					ny = fabsf((out[1] - in[1]) / process->size);
+					nz = fabsf((out[2] - in[2]) / process->size);
 					
 					max_dim = max_fff(nx, ny, nz);
 					if (max_dim != 0.0f) {
