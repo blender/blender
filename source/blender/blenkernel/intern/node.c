@@ -1204,7 +1204,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	}
 	
 	/* node tree will generate its own interface type */
-	ntree->interface_type = NULL;
+	newtree->interface_type = NULL;
 	
 	return newtree;
 }
