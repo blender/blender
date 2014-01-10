@@ -969,7 +969,7 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 	}
 	else if (add_start_point) {
 		float p[3], next_p[3];
-		float dt;
+		float dt = 0.0f;
 
 		gp_strokepoint_convertcoords(C, gps, gps->points, p, subrect);
 		if (gps->totpoints > 1) {
@@ -1210,7 +1210,7 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 	}
 	else if (add_start_point) {
 		float p[3];
-		float dt;
+		float dt = 0.0f;
 
 		if (gps->totpoints > 1) {
 			interp_v3_v3v3(p, p3d_cur, p3d_next, -GAP_DFAC);
