@@ -148,6 +148,9 @@ typedef enum {
 	GHOST_kButtonMaskRight,
 	GHOST_kButtonMaskButton4,
 	GHOST_kButtonMaskButton5,
+	/* Trackballs and programmable buttons */
+	GHOST_kButtonMaskButton6,
+	GHOST_kButtonMaskButton7,
 	GHOST_kButtonNumMasks
 } GHOST_TButtonMask;
 

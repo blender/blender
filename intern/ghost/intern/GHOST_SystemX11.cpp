@@ -902,6 +902,10 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 * you can re-order button mapping like this... (swaps 6,7 with 8,9)
 			 *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7"
 			 */
+			else if (xbe.button == 6)
+				gbmask = GHOST_kButtonMaskButton6;
+			else if (xbe.button == 7)
+				gbmask = GHOST_kButtonMaskButton7;
 			else if (xbe.button == 8)
 				gbmask = GHOST_kButtonMaskButton4;
 			else if (xbe.button == 9)

@@ -3011,6 +3011,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type = BUTTON4MOUSE;
 			else if (bd->button == GHOST_kButtonMaskButton5)
 				event.type = BUTTON5MOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton6)
+				event.type = BUTTON6MOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton7)
+				event.type = BUTTON7MOUSE;
 			else
 				event.type = MIDDLEMOUSE;
 			

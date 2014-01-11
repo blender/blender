@@ -65,6 +65,9 @@
 		/* Extra mouse buttons */
 #define BUTTON4MOUSE	7
 #define BUTTON5MOUSE	8
+		/* More mouse buttons - can't use 9 and 10 here (wheel) */
+#define BUTTON6MOUSE	18
+#define BUTTON7MOUSE	19
 		/* Extra trackpad gestures */
 #define MOUSEPAN		14
 #define MOUSEZOOM		15
@@ -297,7 +300,7 @@ enum {
 #define ISKEYMODIFIER(event_type)  ((event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) || event_type == OSKEY)
 
 	/* test whether the event is a mouse button */
-#define ISMOUSE(event_type)  (event_type >= LEFTMOUSE && event_type <= MOUSEROTATE)
+#define ISMOUSE(event_type)  (event_type >= LEFTMOUSE && event_type <= BUTTON7MOUSE)
 
 	/* test whether the event is tweak event */
 #define ISTWEAK(event_type)  (event_type >= EVT_TWEAK_L && event_type <= EVT_GESTURE)
