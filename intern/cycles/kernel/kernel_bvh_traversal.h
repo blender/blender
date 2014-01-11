@@ -73,16 +73,16 @@ ccl_device bool BVH_FUNCTION_NAME
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
 	const shuffle_swap_t shuf_swap = shuffle_swap_swap();
 	
-	const __m128i pn = _mm_set_epi32(0x80000000, 0x80000000, 0x00000000, 0x00000000);
+	const __m128 pn = _mm_castsi128_ps(_mm_set_epi32(0x80000000, 0x80000000, 0, 0));
 	__m128 Psplat[3], idirsplat[3];
 
 	Psplat[0] = _mm_set_ps1(P.x);
 	Psplat[1] = _mm_set_ps1(P.y);
 	Psplat[2] = _mm_set_ps1(P.z);
 
-	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
-	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
-	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
+	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
+	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
+	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
 
 	__m128 tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
@@ -169,7 +169,7 @@ ccl_device bool BVH_FUNCTION_NAME
 
 				/* calculate { c0min, c1min, -c0max, -c1max} */
 				__m128 minmax = _mm_max_ps(_mm_max_ps(tminmaxx, tminmaxy), _mm_max_ps(tminmaxz, tsplat));
-				const __m128 tminmax = _mm_xor_ps(minmax, _mm_castsi128_ps(pn));
+				const __m128 tminmax = _mm_xor_ps(minmax, pn);
 
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				if(difl != 0.0f) {
@@ -189,7 +189,7 @@ ccl_device bool BVH_FUNCTION_NAME
 					}
 				}
 #endif
-				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle_swap(tminmax, shuf_swap));
+				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle<2, 3, 0, 1>(tminmax));
 
 				/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
@@ -307,9 +307,9 @@ ccl_device bool BVH_FUNCTION_NAME
 					Psplat[1] = _mm_set_ps1(P.y);
 					Psplat[2] = _mm_set_ps1(P.z);
 
-					idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
-					idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
-					idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
+					idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
+					idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
+					idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
 
 					tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
@@ -343,9 +343,9 @@ ccl_device bool BVH_FUNCTION_NAME
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
 
-			idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), _mm_castsi128_ps(pn));
-			idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), _mm_castsi128_ps(pn));
-			idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), _mm_castsi128_ps(pn));
+			idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
+			idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
+			idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
 
 			tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 

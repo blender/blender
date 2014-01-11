@@ -92,6 +92,22 @@ ccl_device_inline const __m128 blend(const __m128& mask, const __m128& a, const 
 }
 #endif
 
+/* calculate a*b+c (replacement for fused multiply-add on SSE CPUs) */
+ccl_device_inline const __m128 fma(const __m128& a, const __m128& b, const __m128& c)
+{
+	return _mm_add_ps(_mm_mul_ps(a, b), c);
+}
+
+template<size_t N> ccl_device_inline const __m128 broadcast(const __m128& a)
+{
+	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(N, N, N, N)));
+}
+
+template<size_t N> ccl_device_inline const __m128i broadcast(const __m128i& a)
+{
+	return _mm_shuffle_epi32(a, _MM_SHUFFLE(N, N, N, N));
+}
+
 #endif /* __KERNEL_SSE2__ */
 
 CCL_NAMESPACE_END
