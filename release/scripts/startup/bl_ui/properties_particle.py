@@ -107,6 +107,8 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
         if psys is None:
             part = particle_get_settings(context)
 
+            layout.operator("object.particle_system_add", icon='ZOOMIN', text="New")
+
             if part is None:
                 return
 
