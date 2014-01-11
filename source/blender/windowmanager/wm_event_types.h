@@ -46,9 +46,6 @@
 #define EVT_TABLET_STYLUS	1
 #define EVT_TABLET_ERASER	2
 
-#define MOUSEX		4
-#define MOUSEY		5
-
 
 /* *** wmEvent.type *** */
 
@@ -78,6 +75,9 @@
 		/* mapped with userdef */
 #define WHEELINMOUSE	12
 #define WHEELOUTMOUSE	13
+		/* Successive MOUSEMOVE's are converted to this, so we can easily
+		 * ignore all but the most recent MOUSEMOVE (for better performance),
+		 * paint and drawing tools however will want to handle these. */
 #define INBETWEEN_MOUSEMOVE	17
 
 

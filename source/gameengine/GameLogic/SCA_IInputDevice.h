@@ -62,6 +62,10 @@ public:
 	int		m_eventval;
 };
 
+/* Originally from wm_event_types.h, now only used by GameEngine */
+#define MOUSEX		MOUSEMOVE
+#define MOUSEY		ACTIONMOUSE
+
 class SCA_IInputDevice 
 {
 
