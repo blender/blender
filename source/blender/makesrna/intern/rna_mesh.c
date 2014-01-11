@@ -338,6 +338,29 @@ static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
 	}
 }
 
+static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me = rna_mesh(ptr);
+	MLoop *ml = (MLoop *)ptr->data;
+	const float (*vec)[4] = CustomData_get(&me->ldata, (int)(ml - me->mloop), CD_MLOOPTANGENT);
+
+	if (!vec) {
+		zero_v3(values);
+	}
+	else {
+		copy_v3_v3(values, (const float *)vec);
+	}
+}
+
+static float rna_MeshLoop_bitangent_sign_get(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	MLoop *ml = (MLoop *)ptr->data;
+	const float (*vec)[4] = CustomData_get(&me->ldata, (int)(ml - me->mloop), CD_MLOOPTANGENT);
+
+	return (vec) ? (*vec)[3] : 0.0f;
+}
+
 static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 {
 	Mesh *me = rna_mesh(ptr);
@@ -1870,10 +1893,26 @@ static void rna_def_mloop(BlenderRNA *brna)
 	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_MeshLoop_normal_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Loop Normal",
+	RNA_def_property_ui_text(prop, "Normal",
 	                         "Local space unit length split normal vector of this vertex for this polygon "
-	                         "(only computed on demand!)");
+	                         "(must be computed beforehand using calc_normals_split or calc_tangents)");
 
+	prop = RNA_def_property(srna, "tangent", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshLoop_tangent_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Tangent",
+	                         "Local space unit length tangent vector of this vertex for this polygon "
+	                         "(must be computed beforehand using calc_tangents)");
+
+	prop = RNA_def_property(srna, "bitangent_sign", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshLoop_bitangent_sign_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Bitangent Sign",
+	                         "Sign of the bitangent vector of this vertex for this polygon (must be computed "
+	                         "beforehand using calc_tangents, bitangent = bitangent_sign * cross(normal, tangent))");
 }
 
 static void rna_def_mpolygon(BlenderRNA *brna)

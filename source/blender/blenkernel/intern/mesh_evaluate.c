@@ -50,9 +50,11 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+#include "BKE_report.h"
 
 #include "BLI_strict_flags.h"
 
+#include "mikktspace.h"
 
 // #define DEBUG_TIME
 
@@ -570,6 +572,149 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 #undef INDEX_UNSET
 #undef INDEX_INVALID
 #undef IS_EDGE_SHARP
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Mesh Tangent Calculations
+ * \{ */
+
+/* Tangent space utils. */
+
+/* User data. */
+typedef struct {
+	MPoly *mpolys;         /* faces */
+	MLoop *mloops;         /* faces's vertices */
+	MVert *mverts;         /* vertices */
+	MLoopUV *luvs;         /* texture coordinates */
+	float (*lnors)[3];     /* loops' normals */
+	float (*tangents)[4];  /* output tangents */
+	int num_polys;         /* number of polygons */
+} BKEMeshToTangent;
+
+/* Mikktspace's API */
+static int get_num_faces(const SMikkTSpaceContext *pContext)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	return p_mesh->num_polys;
+}
+
+static int get_num_verts_of_face(const SMikkTSpaceContext *pContext, const int face_idx)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	return p_mesh->mpolys[face_idx].totloop;
+}
+
+static void get_position(const SMikkTSpaceContext *pContext, float r_co[3], const int face_idx, const int vert_idx)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	const int loop_idx = p_mesh->mpolys[face_idx].loopstart + vert_idx;
+	copy_v3_v3(r_co, p_mesh->mverts[p_mesh->mloops[loop_idx].v].co);
+}
+
+static void get_texture_coordinate(const SMikkTSpaceContext *pContext, float r_uv[2], const int face_idx,
+                                   const int vert_idx)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	copy_v2_v2(r_uv, p_mesh->luvs[p_mesh->mpolys[face_idx].loopstart + vert_idx].uv);
+}
+
+static void get_normal(const SMikkTSpaceContext *pContext, float r_no[3], const int face_idx, const int vert_idx)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	copy_v3_v3(r_no, p_mesh->lnors[p_mesh->mpolys[face_idx].loopstart + vert_idx]);
+}
+
+static void set_tspace(const SMikkTSpaceContext *pContext, const float fv_tangent[3], const float face_sign,
+                       const int face_idx, const int vert_idx)
+{
+	BKEMeshToTangent *p_mesh = (BKEMeshToTangent *)pContext->m_pUserData;
+	float *p_res = p_mesh->tangents[p_mesh->mpolys[face_idx].loopstart + vert_idx];
+	copy_v3_v3(p_res, fv_tangent);
+	p_res[3] = face_sign;
+}
+
+/**
+ * Compute simplified tangent space normals, i.e. tangent vector + sign of bi-tangent one, which combined with
+ * split normals can be used to recreate the full tangent space.
+ * Note: * The mesh should be made of only tris and quads!
+ */
+void BKE_mesh_loop_tangents_ex(MVert *mverts, const int UNUSED(numVerts), MLoop *mloops,
+                               float (*r_looptangent)[4], float (*loopnors)[3], MLoopUV *loopuvs,
+                               const int UNUSED(numLoops), MPoly *mpolys, const int numPolys, ReportList *reports)
+{
+	BKEMeshToTangent mesh_to_tangent = {NULL};
+	SMikkTSpaceContext s_context = {NULL};
+	SMikkTSpaceInterface s_interface = {NULL};
+
+	MPoly *mp;
+	int mp_index;
+
+	/* First check we do have a tris/quads only mesh. */
+	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
+		if (mp->totloop > 4) {
+			BKE_report(reports, RPT_ERROR, "Tangent space can only be computed for tris/quads, aborting...\n");
+			return;
+		}
+	}
+
+	/* Compute Mikktspace's tangent normals. */
+	mesh_to_tangent.mpolys = mpolys;
+	mesh_to_tangent.mloops = mloops;
+	mesh_to_tangent.mverts = mverts;
+	mesh_to_tangent.luvs = loopuvs;
+	mesh_to_tangent.lnors = loopnors;
+	mesh_to_tangent.tangents = r_looptangent;
+	mesh_to_tangent.num_polys = numPolys;
+
+	s_context.m_pUserData = &mesh_to_tangent;
+	s_context.m_pInterface = &s_interface;
+	s_interface.m_getNumFaces = get_num_faces;
+	s_interface.m_getNumVerticesOfFace = get_num_verts_of_face;
+	s_interface.m_getPosition = get_position;
+	s_interface.m_getTexCoord = get_texture_coordinate;
+	s_interface.m_getNormal = get_normal;
+	s_interface.m_setTSpaceBasic = set_tspace;
+
+	/* 0 if failed */
+	if (genTangSpaceDefault(&s_context) == false) {
+		BKE_report(reports, RPT_ERROR, "Mikktspace failed to generate tangents for this mesh!\n");
+	}
+}
+
+/**
+ * Wrapper around BKE_mesh_loop_tangents_ex, which takes care of most boiling code.
+ * Note: * There must be a valid loop's CD_NORMALS available.
+ *       * The mesh should be made of only tris and quads!
+ */
+void BKE_mesh_loop_tangents(Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], ReportList *reports)
+{
+	MLoopUV *loopuvs;
+	float (*loopnors)[3];
+
+	/* Check we have valid texture coordinates first! */
+	if (uvmap) {
+		loopuvs = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvmap);
+	}
+	else {
+		loopuvs = CustomData_get_layer(&mesh->ldata, CD_MLOOPUV);
+	}
+	if (!loopuvs) {
+		BKE_reportf(reports, RPT_ERROR, "Tangent space computation needs an UVMap, \"%s\" not found, aborting.\n", uvmap);
+		return;
+	}
+
+	loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+	if (!loopnors) {
+		BKE_report(reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting.\n");
+		return;
+	}
+
+	BKE_mesh_loop_tangents_ex(mesh->mvert, mesh->totvert, mesh->mloop, r_looptangents,
+                              loopnors, loopuvs, mesh->totloop, mesh->mpoly, mesh->totpoly, reports);
 }
 
 /** \} */

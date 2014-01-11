@@ -2612,6 +2612,7 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const i
 		normal_short_to_float_v3(r_no, no);
 	}
 }
+
 static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[3], const float fSign, const int face_num, const int iVert)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
@@ -2620,7 +2621,6 @@ static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[
 	copy_v3_v3(pRes, fvTangent);
 	pRes[3] = fSign;
 }
-
 
 void DM_add_tangent_layer(DerivedMesh *dm)
 {

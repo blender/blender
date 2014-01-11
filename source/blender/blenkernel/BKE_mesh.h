@@ -58,6 +58,7 @@ struct UvVertMap;
 struct UvMapVert;
 struct UvElementMap;
 struct UvElement;
+struct ReportList;
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,6 +173,12 @@ void BKE_mesh_normals_loop_split(
         struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
         struct MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
         struct MPoly *mpolys, float (*polynors)[3], const int numPolys, float split_angle);
+void BKE_mesh_loop_tangents_ex(
+        struct MVert *mverts, const int numVerts, struct MLoop *mloops, float (*r_looptangent)[4], float (*loopnors)[3],
+        struct MLoopUV *loopuv, const int numLoops, struct MPoly *mpolys, const int numPolys,
+        struct ReportList *reports);
+void BKE_mesh_loop_tangents(
+        struct Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], struct ReportList *reports);
 
 void BKE_mesh_calc_poly_normal(
         struct MPoly *mpoly, struct MLoop *loopstart,
