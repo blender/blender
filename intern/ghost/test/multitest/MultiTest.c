@@ -602,7 +602,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app) {
 #else
 		lw->font = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		BLF_size(lw->font, 11, 72);
-		lw->fontheight = BLF_height(lw->font, "A_");
+		lw->fontheight = BLF_height(lw->font, "A_", 2);
 #endif
 		
 		lw->nloglines = lw->logsize = 0;
