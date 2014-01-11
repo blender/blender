@@ -2913,6 +2913,19 @@ static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
 	return false;
 }
 
+static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
+{
+	wmEvent *event_last = win->queue.last;
+
+	/* some painting operators want accurate mouse events, they can
+	 * handle in between mouse move moves, others can happily ignore
+	 * them for better performance */
+	if (event_last && event_last->type == MOUSEMOVE)
+		event_last->type = INBETWEEN_MOUSEMOVE;
+
+	wm_event_add(win, event);
+}
+
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
@@ -2928,7 +2941,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventCursorMove:
 		{
 			GHOST_TEventCursorData *cd = customdata;
-			wmEvent *lastevent = win->queue.last;
 			
 			evt->x = cd->x;
 			evt->y = cd->y;
@@ -2937,14 +2949,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.y = evt->y;
 
 			event.type = MOUSEMOVE;
-
-			/* some painting operators want accurate mouse events, they can
-			 * handle in between mouse move moves, others can happily ignore
-			 * them for better performance */
-			if (lastevent && lastevent->type == MOUSEMOVE)
-				lastevent->type = INBETWEEN_MOUSEMOVE;
-
-			wm_event_add(win, &event);
+			wm_event_add_mousemove(win, &event);
 			
 			/* also add to other window if event is there, this makes overdraws disappear nicely */
 			/* it remaps mousecoord to other window in event */
@@ -2955,8 +2960,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				oevent.x = owin->eventstate->x = event.x;
 				oevent.y = owin->eventstate->y = event.y;
 				oevent.type = MOUSEMOVE;
-				
-				wm_event_add(owin, &oevent);
+				wm_event_add_mousemove(owin, &oevent);
 			}
 				
 			break;
