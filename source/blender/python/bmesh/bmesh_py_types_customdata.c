@@ -439,58 +439,19 @@ static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
 	PyObject *item;
 	int index;
 	CustomData *data;
+	int tot, i;
 
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
 	index = CustomData_get_layer_index(data, self->type); /* absolute, but no need to make relative */
+	tot = (index != -1) ? CustomData_number_of_layers(data, self->type) : 0;
 
-	ret = PyList_New(0);
+	ret = PyList_New(tot);
 
-	if (index != -1) {
-		int tot = CustomData_number_of_layers(data, self->type);
-		for ( ; tot-- > 0; index++) {
-			item = PyUnicode_FromString(data->layers[index].name);
-			PyList_Append(ret, item);
-			Py_DECREF(item);
-		}
-	}
-
-	return ret;
-}
-
-PyDoc_STRVAR(bpy_bmlayercollection_values_doc,
-".. method:: values()\n"
-"\n"
-"   Return the values of collection\n"
-"   (matching pythons dict.values() functionality).\n"
-"\n"
-"   :return: the members of this collection.\n"
-"   :rtype: list\n"
-);
-static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
-{
-	PyObject *ret;
-	PyObject *item;
-	int index;
-	CustomData *data;
-
-	BPY_BM_CHECK_OBJ(self);
-
-	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_layer_index(data, self->type);
-
-	ret = PyList_New(0);
-
-	if (index != -1) {
-		int tot = CustomData_number_of_layers(data, self->type);
-		for ( ; tot-- > 0; index++) {
-			item = PyTuple_New(2);
-			PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(data->layers[index].name));
-			PyTuple_SET_ITEM(item, 1, BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
-			PyList_Append(ret, item);
-			Py_DECREF(item);
-		}
+	for (i = 0; tot-- > 0; index++) {
+		item = PyUnicode_FromString(data->layers[index].name);
+		PyList_SET_ITEM(ret, i++, item);
 	}
 
 	return ret;
@@ -511,21 +472,54 @@ static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 	PyObject *item;
 	int index;
 	CustomData *data;
+	int tot, i;
 
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
 	index = CustomData_get_layer_index(data, self->type);
+	tot = (index != -1) ? CustomData_number_of_layers(data, self->type) : 0;
 
-	ret = PyList_New(0);
+	ret = PyList_New(tot);
 
-	if (index != -1) {
-		int tot = CustomData_number_of_layers(data, self->type);
-		for ( ; tot-- > 0; index++) {
-			item = BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
-			PyList_Append(ret, item);
-			Py_DECREF(item);
-		}
+	for (i = 0; tot-- > 0; index++) {
+		item = PyTuple_New(2);
+		PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(data->layers[index].name));
+		PyTuple_SET_ITEM(item, 1, BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
+		PyList_SET_ITEM(ret, i++, item);
+	}
+
+	return ret;
+}
+
+PyDoc_STRVAR(bpy_bmlayercollection_values_doc,
+".. method:: values()\n"
+"\n"
+"   Return the values of collection\n"
+"   (matching pythons dict.values() functionality).\n"
+"\n"
+"   :return: the members of this collection.\n"
+"   :rtype: list\n"
+);
+static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
+{
+	PyObject *ret;
+	PyObject *item;
+	int index;
+	CustomData *data;
+	int tot, i;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	data = bpy_bm_customdata_get(self->bm, self->htype);
+	index = CustomData_get_layer_index(data, self->type);
+	tot = (index != -1) ? CustomData_number_of_layers(data, self->type) : 0;
+
+	ret = PyList_New(tot);
+
+	for (i = 0; tot-- > 0; index++) {
+		item = BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+		PyList_SET_ITEM(ret, i++, item);
 	}
 
 	return ret;
