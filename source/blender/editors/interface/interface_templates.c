@@ -2816,6 +2816,12 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	}
 	dyn_data->items_len = dyn_data->items_shown = -1;
 
+	/* When active item changed since last draw, scroll to it. */
+	if (activei != ui_list->list_last_activei) {
+		ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+		ui_list->list_last_activei = activei;
+	}
+
 	/* Filter list items! (not for compact layout, though) */
 	if (dataptr->data && prop) {
 		int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;

@@ -172,10 +172,10 @@ typedef struct uiList {           /* some list UI data need to be saved in file 
 	int list_scroll;
 	int list_grip;
 	int list_last_len;
-	int padi1;
+	int list_last_activei;
 
 	/* Filtering data. */
-	char filter_byname[64];	      /* defined as UI_MAX_NAME_STR */
+	char filter_byname[64];       /* defined as UI_MAX_NAME_STR */
 	int filter_flag;
 	int filter_sort_flag;
 
