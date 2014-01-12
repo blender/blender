@@ -38,7 +38,7 @@ ccl_device int quick_floor(float x)
 	return float_to_int(x) - ((x < 0) ? 1 : 0);
 }
 #else
-ccl_device_inline __m128i quick_floor_sse(const __m128 &x)
+ccl_device_inline __m128i quick_floor_sse(const __m128& x)
 {
 	__m128i b = _mm_cvttps_epi32(x);
 	__m128i isneg = _mm_castps_si128(_mm_cmplt_ps(x, _mm_set1_ps(0.0f)));
@@ -52,7 +52,7 @@ ccl_device float bits_to_01(uint bits)
 	return bits * (1.0f/(float)0xFFFFFFFF);
 }
 #else
-ccl_device_inline __m128 bits_to_01_sse(const __m128i &bits)
+ccl_device_inline __m128 bits_to_01_sse(const __m128i& bits)
 {
 	return _mm_mul_ps(uint32_to_float(bits), _mm_set1_ps(1.0f/(float)0xFFFFFFFF));
 }
@@ -88,7 +88,7 @@ ccl_device uint hash(uint kx, uint ky, uint kz)
 }
 
 #ifdef __KERNEL_SSE2__
-ccl_device_inline __m128i hash_sse(const __m128i &kx, const __m128i &ky, const __m128i &kz)
+ccl_device_inline __m128i hash_sse(const __m128i& kx, const __m128i& ky, const __m128i& kz)
 {
 #define rot(x,k) _mm_or_si128(_mm_slli_epi32((x), (k)), _mm_srli_epi32((x), 32-(k)))
 #define xor_rot(a, b, c) do {a = _mm_xor_si128(a, b); a = _mm_sub_epi32(a, rot(b, c));} while(0)
@@ -133,7 +133,7 @@ ccl_device float floorfrac(float x, int* i)
 	return x - *i;
 }
 #else
-ccl_device_inline __m128 floorfrac_sse(const __m128 &x, __m128i *i)
+ccl_device_inline __m128 floorfrac_sse(const __m128& x, __m128i *i)
 {
 	*i = quick_floor_sse(x);
 	return _mm_sub_ps(x, _mm_cvtepi32_ps(*i));
@@ -160,7 +160,7 @@ ccl_device float nerp(float t, float a, float b)
 	return (1.0f - t) * a + t * b;
 }
 #else
-ccl_device_inline __m128 nerp_sse(const __m128 &t, const __m128 &a, const __m128 &b)
+ccl_device_inline __m128 nerp_sse(const __m128& t, const __m128& a, const __m128& b)
 {
 	__m128 x1 = _mm_mul_ps(_mm_sub_ps(_mm_set1_ps(1.0f), t), a);
 	return fma(t, b, x1);
@@ -178,7 +178,7 @@ ccl_device float grad(int hash, float x, float y, float z)
 	return ((h&1) ? -u : u) + ((h&2) ? -v : v);
 }
 #else
-ccl_device_inline __m128 grad_sse(const __m128i &hash, const __m128 &x, const __m128 &y, const __m128 &z)
+ccl_device_inline __m128 grad_sse(const __m128i& hash, const __m128& x, const __m128& y, const __m128& z)
 {
 	__m128i c1 = _mm_set1_epi32(1);
 	__m128i c2 = _mm_set1_epi32(2);
@@ -217,7 +217,7 @@ ccl_device float scale3(float result)
 	return 0.9820f * result;
 }
 #else
-ccl_device_inline __m128 scale3_sse(const __m128 &result)
+ccl_device_inline __m128 scale3_sse(const __m128& result)
 {
 	return _mm_mul_ps(_mm_set1_ps(0.9820f), result);
 }
@@ -325,21 +325,21 @@ ccl_device_noinline float perlin_periodic(float x, float y, float z, float3 pper
 #endif
 
 /* perlin noise in range 0..1 */
-ccl_device float noise(const float3 &p)
+ccl_device float noise(float3 p)
 {
 	float r = perlin(p.x, p.y, p.z);
 	return 0.5f*r + 0.5f;
 }
 
 /* perlin noise in range -1..1 */
-ccl_device float snoise(const float3 &p)
+ccl_device float snoise(float3 p)
 {
 	return perlin(p.x, p.y, p.z);
 }
 
 /* cell noise */
 #ifndef __KERNEL_SSE2__
-ccl_device_noinline float cellnoise(const float3 &p)
+ccl_device_noinline float cellnoise(float3 p)
 {
 	uint ix = quick_floor(p.x);
 	uint iy = quick_floor(p.y);
@@ -348,7 +348,7 @@ ccl_device_noinline float cellnoise(const float3 &p)
 	return bits_to_01(hash(ix, iy, iz));
 }
 
-ccl_device float3 cellnoise_color(const float3 &p)
+ccl_device float3 cellnoise_color(float3 p)
 {
 	float r = cellnoise(p);
 	float g = cellnoise(make_float3(p.y, p.x, p.z));
@@ -357,7 +357,7 @@ ccl_device float3 cellnoise_color(const float3 &p)
 	return make_float3(r, g, b);
 }
 #else
-ccl_device float3 cellnoise_color(const float3 &p)
+ccl_device float3 cellnoise_color(const float3& p)
 {
 	__m128i v_yxz = quick_floor_sse(_mm_setr_ps(p.y, p.x, p.z, 0.0f));
 	__m128i v_xyy = shuffle<1, 0, 0, 3>(v_yxz);
@@ -371,14 +371,14 @@ ccl_device float3 cellnoise_color(const float3 &p)
 
 #if 0 // unused
 /* periodic perlin noise in range 0..1 */
-ccl_device float pnoise(const float3 &p, const float3 &pperiod)
+ccl_device float pnoise(float3 p, float3 pperiod)
 {
 	float r = perlin_periodic(p.x, p.y, p.z, pperiod);
 	return 0.5f*r + 0.5f;
 }
 
 /* periodic perlin noise in range -1..1 */
-ccl_device float psnoise(const float3 &p, const float3 &pperiod)
+ccl_device float psnoise(float3 p, float3 pperiod)
 {
 	return perlin_periodic(p.x, p.y, p.z, pperiod);
 }
