@@ -321,7 +321,7 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 				drf = drectf;
 				srf = srectf;
 				for (x = width; x > 0; x--, drf += 4, srf += 4) {
-					float map_alpha = (srf[3] == 0.0f)? drf[3] : drf[3] / srf[3];
+					float map_alpha = (srf[3] == 0.0f) ? drf[3] : drf[3] / srf[3];
 
 					drf[0] = srf[0] * map_alpha;
 					drf[1] = srf[1] * map_alpha;

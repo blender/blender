@@ -250,7 +250,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		char err_out[256] = "unknown";
 		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey,
 		                                                         IB_rect, OB_SOLID, FALSE, TRUE,
-		                                                         (draw_sky) ? R_ADDSKY: R_ALPHAPREMUL, err_out);
+		                                                         (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, err_out);
 		camera = scene->camera;
 
 		if (ibuf_view) {

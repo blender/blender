@@ -776,7 +776,7 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 	CustomData olddata;
 
 	olddata = *data;
-	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
+	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
 
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;
@@ -792,7 +792,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
 	CustomData olddata;
 
 	olddata = *data;
-	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
+	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
 
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;
@@ -809,7 +809,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 	bool has_layer;
 
 	olddata = *data;
-	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
+	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
 
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;
@@ -828,7 +828,7 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 	bool has_layer;
 
 	olddata = *data;
-	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers): NULL;
+	olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
 
 	/* the pool is now owned by olddata and must not be shared */
 	data->pool = NULL;

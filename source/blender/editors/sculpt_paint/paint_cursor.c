@@ -729,7 +729,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
                                      ViewContext *vc, int x, int y, float zoom, PaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
-	bool col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true: false;
+	bool col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true : false;
 	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */

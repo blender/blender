@@ -1474,7 +1474,7 @@ int CustomData_get_active_layer_index(const CustomData *data, int type)
 {
 	const int layer_index = data->typemap[type];
 	BLI_assert(customdata_typemap_is_valid(data));
-	return (layer_index != -1) ? layer_index + data->layers[layer_index].active: -1;
+	return (layer_index != -1) ? layer_index + data->layers[layer_index].active : -1;
 }
 
 int CustomData_get_render_layer_index(const CustomData *data, int type)

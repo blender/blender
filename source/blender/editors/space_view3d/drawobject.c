@@ -611,7 +611,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 	if (ibuf && ibuf->rect) {
 		const bool use_clip = (U.glalphaclip != 1.0f);
-		int zoomfilter = (U.gameflags & USER_DISABLE_MIPMAP )? GL_NEAREST : GL_LINEAR;
+		int zoomfilter = (U.gameflags & USER_DISABLE_MIPMAP ) ? GL_NEAREST : GL_LINEAR;
 		/* Setup GL params */
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);

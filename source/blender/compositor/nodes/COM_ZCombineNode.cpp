@@ -89,7 +89,7 @@ void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContex
 		addLink(system, maskoperation->getOutputSocket(), antialiasoperation->getInputSocket(0));
 
 		// use mask to blend between the input colors.
-		ZCombineMaskOperation *zcombineoperation = this->getbNode()->custom1?new ZCombineMaskAlphaOperation():new ZCombineMaskOperation();
+		ZCombineMaskOperation *zcombineoperation = this->getbNode()->custom1 ? new ZCombineMaskAlphaOperation() : new ZCombineMaskOperation();
 		addLink(system, antialiasoperation->getOutputSocket(), zcombineoperation->getInputSocket(0));
 		this->getInputSocket(0)->relinkConnections(zcombineoperation->getInputSocket(1), 0, system);
 		this->getInputSocket(2)->relinkConnections(zcombineoperation->getInputSocket(2), 2, system);

@@ -201,7 +201,7 @@ static unsigned short *brush_painter_mask_new(BrushPainter *painter, int size)
 	Brush *brush = painter->brush;
 	bool use_masking = painter->cache.use_masking;
 
-	float alpha = (use_masking)? 1.0f: BKE_brush_alpha_get(scene, brush);
+	float alpha = (use_masking) ? 1.0f : BKE_brush_alpha_get(scene, brush);
 	int radius = BKE_brush_size_get(scene, brush);
 	int xoff = -size * 0.5f + 0.5f;
 	int yoff = -size * 0.5f + 0.5f;
@@ -243,7 +243,7 @@ static ImBuf *brush_painter_imbuf_new(BrushPainter *painter, int size)
 	bool is_texbrush = painter->cache.is_texbrush;
 	bool is_maskbrush = painter->cache.is_maskbrush;
 
-	float alpha = (use_masking)? 1.0f: BKE_brush_alpha_get(scene, brush);
+	float alpha = (use_masking) ? 1.0f : BKE_brush_alpha_get(scene, brush);
 	int radius = BKE_brush_size_get(scene, brush);
 	int xoff = -size * 0.5f + 0.5f;
 	int yoff = -size * 0.5f + 0.5f;
@@ -682,7 +682,7 @@ static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_toru
 
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
-		float map_alpha = (rgb[3] == 0.0f)? rrgbf[3] : rrgbf[3] / rgb[3];
+		float map_alpha = (rgb[3] == 0.0f) ? rrgbf[3] : rrgbf[3] / rgb[3];
 
 		mul_v3_v3fl(rrgbf, rgb, map_alpha);
 	}

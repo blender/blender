@@ -884,7 +884,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					ot = ot_weight_paste;
 					WM_operator_properties_create_ptr(&op_ptr, ot);
 					RNA_int_set(&op_ptr, "weight_group", i);
-					icon = (locked) ? ICON_BLANK1:ICON_PASTEDOWN;
+					icon = (locked) ? ICON_BLANK1 : ICON_PASTEDOWN;
 					uiItemFullO_ptr(row, ot, "", icon, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 					/* The weight entry delete function */
@@ -892,7 +892,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 					ot = ot_weight_delete;
 					WM_operator_properties_create_ptr(&op_ptr, ot);
 					RNA_int_set(&op_ptr, "weight_group", i);
-					icon = (locked) ? ICON_LOCKED:ICON_X;
+					icon = (locked) ? ICON_LOCKED : ICON_X;
 					uiItemFullO_ptr(row, ot, "", icon, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 					yco -= UI_UNIT_Y;

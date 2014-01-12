@@ -141,7 +141,7 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *ar,
 
 	if (((flag & V3D_PROJ_TEST_CLIP_ZERO) == 0) || (fabsf(vec4[3]) > (float)BL_ZERO_CLIP)) {
 		if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0)  || (vec4[3] > (float)BL_NEAR_CLIP)) {
-			const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]): 0.0f;
+			const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]) : 0.0f;
 			const float fx = ((float)ar->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
 			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
 				const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
