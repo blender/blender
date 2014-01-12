@@ -74,9 +74,14 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m
 	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& b)
+template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a)
 {
-	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
+	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(i3, i2, i1, i0)));
+}
+
+template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128i shuffle(const __m128i& a)
+{
+	return _mm_shuffle_epi32(a, _MM_SHUFFLE(i3, i2, i1, i0));
 }
 
 /* Blend 2 vectors based on mask: (a[i] & mask[i]) | (b[i] & ~mask[i]) */
@@ -106,6 +111,16 @@ template<size_t N> ccl_device_inline const __m128 broadcast(const __m128& a)
 template<size_t N> ccl_device_inline const __m128i broadcast(const __m128i& a)
 {
 	return _mm_shuffle_epi32(a, _MM_SHUFFLE(N, N, N, N));
+}
+
+ccl_device_inline const __m128 uint32_to_float(const __m128i &in)
+{
+	__m128i a = _mm_srli_epi32(in, 16);
+	__m128i b = _mm_and_si128(in, _mm_set1_epi32(0x0000ffff));
+	__m128i c = _mm_or_si128(a, _mm_set1_epi32(0x53000000));
+	__m128 d = _mm_cvtepi32_ps(b);
+	__m128 e = _mm_sub_ps(_mm_castsi128_ps(c), _mm_castsi128_ps(_mm_set1_epi32(0x53000000)));
+	return _mm_add_ps(e, d);
 }
 
 #endif /* __KERNEL_SSE2__ */
