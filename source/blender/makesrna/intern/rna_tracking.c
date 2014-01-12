@@ -242,8 +242,8 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
 		ListBase *tracksbase = BKE_tracking_object_get_plane_tracks(tracking, tracking_object);
 
 		for (plane_track = tracksbase->first;
-			 plane_track;
-			 plane_track = plane_track->next)
+		     plane_track;
+		     plane_track = plane_track->next)
 		{
 			if (plane_marker >= plane_track->markers && plane_marker < plane_track->markers + plane_track->markersnr) {
 				found = true;
@@ -479,8 +479,8 @@ static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)
 		ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
 
 		for (track = tracksbase->first;
-			 track;
-			 track = track->next)
+		     track;
+		     track = track->next)
 		{
 			if (marker >= track->markers && marker < track->markers + track->markersnr) {
 				found = true;

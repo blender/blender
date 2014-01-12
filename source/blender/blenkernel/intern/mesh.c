@@ -1997,7 +1997,7 @@ int BKE_mesh_mselect_find(Mesh *me, int index, int type)
 
 	for (i = 0; i < me->totselect; i++) {
 		if ((me->mselect[i].index == index) &&
-			(me->mselect[i].type == type))
+		    (me->mselect[i].type == type))
 		{
 			return i;
 		}

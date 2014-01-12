@@ -429,7 +429,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	int i;
 
 	if (cddm->pbvh && cddm->pbvh_draw &&
-		BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
+	    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
 	{
 		BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, TRUE);
 

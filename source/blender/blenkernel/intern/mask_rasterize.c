@@ -350,8 +350,8 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 		}
 		else {
 			if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
-				(dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
-				(dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared))
+			    (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
+			    (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared))
 			{
 				return TRUE;
 			}

@@ -88,7 +88,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
-				vtouch[BM_elem_index_get(e->v2)] == 1)
+			    vtouch[BM_elem_index_get(e->v2)] == 1)
 			{
 				BM_elem_flag_disable(e, BM_ELEM_TAG);
 			}

@@ -6085,8 +6085,8 @@ static int curve_delete_segments(Object *obedit, const bool split)
 						bezt2 = &nu->bezt[nu->pntsu - 2];
 
 						if ((nu->flagu & CU_NURB_CYCLIC) &&
-							BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-							BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+						    BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+						    BEZSELECTED_HIDDENHANDLES(cu, bezt2))
 						{
 							/* check if need to join start of spline to end */
 							nu1 = BKE_nurb_copy(nu, cut + 1, 1);
@@ -6107,8 +6107,8 @@ static int curve_delete_segments(Object *obedit, const bool split)
 						bezt2 = &nu->bezt[1];
 
 						if ((nu->flagu & CU_NURB_CYCLIC) &&
-							BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
-							BEZSELECTED_HIDDENHANDLES(cu, bezt2))
+						    BEZSELECTED_HIDDENHANDLES(cu, bezt1) &&
+						    BEZSELECTED_HIDDENHANDLES(cu, bezt2))
 						{
 							/* check if need to join start of spline to end */
 							nu1 = BKE_nurb_copy(nu, cut + 1, 1);

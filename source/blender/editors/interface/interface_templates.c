@@ -2842,7 +2842,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			RNA_PROP_BEGIN (dataptr, itemptr, prop)
 			{
 				if (!dyn_data->items_filter_flags ||
-					((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+				    ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
 				{
 					int ii;
 					if (dyn_data->items_filter_neworder) {

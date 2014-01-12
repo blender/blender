@@ -605,7 +605,7 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 		/* Check leaf nodes marked for topology update */
 		if ((node->flag & PBVH_Leaf) &&
-			(node->flag & PBVH_UpdateTopology))
+		    (node->flag & PBVH_UpdateTopology))
 		{
 			GHashIterator gh_iter;
 
@@ -644,7 +644,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 		/* Check leaf nodes marked for topology update */
 		if ((node->flag & PBVH_Leaf) &&
-			(node->flag & PBVH_UpdateTopology))
+		    (node->flag & PBVH_UpdateTopology))
 		{
 			GHashIterator gh_iter;
 
@@ -747,7 +747,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 
 		/* Ensure new vertex is in the node */
 		if (!BLI_gset_haskey(bvh->nodes[ni].bm_unique_verts, v_new) &&
-			!BLI_gset_haskey(bvh->nodes[ni].bm_other_verts, v_new))
+		    !BLI_gset_haskey(bvh->nodes[ni].bm_other_verts, v_new))
 		{
 			BLI_gset_insert(bvh->nodes[ni].bm_other_verts, v_new);
 		}
@@ -788,7 +788,7 @@ static int pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		 * and the node has been split, thus leaving wire edges and
 		 * associated vertices. */
 		if (!BLI_ghash_haskey(bvh->bm_vert_to_node, e->v1) ||
-			!BLI_ghash_haskey(bvh->bm_vert_to_node, e->v2))
+		    !BLI_ghash_haskey(bvh->bm_vert_to_node, e->v2))
 		{
 			continue;
 		}
@@ -974,7 +974,7 @@ static int pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 		 * and the node has been split, thus leaving wire edges and
 		 * associated vertices. */
 		if (!BLI_ghash_haskey(bvh->bm_vert_to_node, e->v1) ||
-			!BLI_ghash_haskey(bvh->bm_vert_to_node, e->v2))
+		    !BLI_ghash_haskey(bvh->bm_vert_to_node, e->v2))
 		{
 			continue;
 		}
@@ -1145,7 +1145,7 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 		PBVHNode *node = &bvh->nodes[n];
 
 		if (node->flag & PBVH_Leaf &&
-			node->flag & PBVH_UpdateTopology)
+		    node->flag & PBVH_UpdateTopology)
 		{
 			node->flag &= ~PBVH_UpdateTopology;
 		}

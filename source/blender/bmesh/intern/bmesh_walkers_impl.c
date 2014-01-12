@@ -641,12 +641,12 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 		/* check if we should step, this is fairly involved */
 		if (
-			/* walk over boundary of faces but stop at corners */
-			(owalk.is_single == false && vert_edge_tot > 2) ||
+		    /* walk over boundary of faces but stop at corners */
+		    (owalk.is_single == false && vert_edge_tot > 2) ||
 
-			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
-			 * this lets us walk over the the boundary of an ngon which is handy */
-			(owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+		    /* initial edge was a boundary, so is this edge and vertex is only apart of this face
+		    * this lets us walk over the the boundary of an ngon which is handy */
+		    (owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
 		{
 			/* find next boundary edge in the fan */
 			do {
@@ -932,7 +932,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	}
 
 	if ((len <= 0) || (len % 2 != 0) || !EDGE_CHECK(l->e) ||
-		!bmw_mask_check_face(walker, l->f))
+	    !bmw_mask_check_face(walker, l->f))
 	{
 		l = owalk.l;
 		i = len;

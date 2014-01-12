@@ -1195,14 +1195,14 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 			interp_v3_v3v3(h2, p1, p2, BEZT_HANDLE_FAC);
 			bezt++;
 			gp_stroke_to_bezier_add_point(gtd, bezt, p1, h1, h2, (bezt - 1)->vec[1], do_gtd, gps->prev->inittime, dt1,
-                                          0.0f, rad_fac, minmax_weights);
+			                              0.0f, rad_fac, minmax_weights);
 
 			/* Second point */
 			interp_v3_v3v3(h1, p2, p1, BEZT_HANDLE_FAC);
 			interp_v3_v3v3(h2, p2, p3d_cur, BEZT_HANDLE_FAC);
 			bezt++;
 			gp_stroke_to_bezier_add_point(gtd, bezt, p2, h1, h2, p1, do_gtd, gps->inittime, dt2,
-                                          0.0f, rad_fac, minmax_weights);
+			                              0.0f, rad_fac, minmax_weights);
 
 			old_nbezt += 2;
 			copy_v3_v3(p3d_prev, p2);

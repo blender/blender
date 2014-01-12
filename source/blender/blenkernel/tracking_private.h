@@ -32,8 +32,8 @@
  * by multiple tracking files but which should not be public.
  */
 
-#ifndef __TRACKING_PRIVATE__
-#define __TRACKING_PRIVATE__
+#ifndef __TRACKING_PRIVATE_H__
+#define __TRACKING_PRIVATE_H__
 
 struct GHash;
 struct MovieTracking;
@@ -81,4 +81,4 @@ void tracking_set_marker_coords_from_tracking(int frame_width, int frame_height,
 void tracking_marker_insert_disabled(struct MovieTrackingTrack *track, const struct MovieTrackingMarker *ref_marker,
                                      bool before, bool overwrite);
 
-#endif  /* __TRACKING_PRIVATE__ */
+#endif  /* __TRACKING_PRIVATE_H__ */

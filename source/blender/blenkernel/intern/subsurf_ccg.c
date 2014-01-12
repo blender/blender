@@ -142,8 +142,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 		ccgSubSurf_getUseAgeCounts(prevSS, &oldUseAging, NULL, NULL, NULL);
 
 		if ((oldUseAging != useAging) ||
-			(ccgSubSurf_getSimpleSubdiv(prevSS) !=
-			 !!(flags & CCG_SIMPLE_SUBDIV)))
+		    (ccgSubSurf_getSimpleSubdiv(prevSS) != !!(flags & CCG_SIMPLE_SUBDIV)))
 		{
 			ccgSubSurf_free(prevSS);
 		}

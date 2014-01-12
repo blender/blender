@@ -1571,7 +1571,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			continue;
 		}
 		if (sculpt_mode &&
-			(!has_multires || multires_applied || ob->sculpt->bm))
+		    (!has_multires || multires_applied || ob->sculpt->bm))
 		{
 			int unsupported = 0;
 

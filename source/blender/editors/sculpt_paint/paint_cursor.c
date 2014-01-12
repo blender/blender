@@ -545,7 +545,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 	if (!(mtex->tex) || !((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) ||
 	    (valid &&
-		ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
+	    ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
 	{
 		return;
 	}

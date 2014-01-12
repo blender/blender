@@ -1656,8 +1656,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		 *		and only the time-grids with their zoomability can do so)
 		 */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 &&
-			(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
-			(BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+		    (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
+		    (BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 		{
 			state |= UI_SCROLL_ARROWS;
 		}
@@ -1768,8 +1768,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		 *		and only the time-grids with their zoomability can do so)
 		 */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
-			(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
-			(BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+		    (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
+		    (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 		{
 			state |= UI_SCROLL_ARROWS;
 		}

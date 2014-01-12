@@ -1891,7 +1891,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		/* skip saving proportional edit if it was not actually used */
 		if (!(t->options & CTX_NO_PET)) {
 			if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
-				!RNA_property_is_set(op->ptr, prop))
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				if (t->obedit)
 					ts->proportional = proportional;
@@ -1902,13 +1902,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			}
 
 			if ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
-				!RNA_property_is_set(op->ptr, prop))
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				ts->proportional_size = t->prop_size;
 			}
 
 			if ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
-				!RNA_property_is_set(op->ptr, prop))
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				ts->prop_mode = t->prop_mode;
 			}
@@ -5323,7 +5323,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 
 	if ((t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) &&
 	    /* don't do this at all for non-basis shape keys, too easy to
-		 * accidentally break uv maps or vertex colors then */
+	     * accidentally break uv maps or vertex colors then */
 	    (bm->shapenr <= 1))
 	{
 		sld->use_origfaces = true;

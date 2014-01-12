@@ -927,8 +927,8 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 	if (data->tar) {
 		Curve *cu = (Curve *)data->tar->data;
 		
-		if ( ELEM(NULL, cu->adt, cu->adt->action) ||
-			(list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL))
+		if (ELEM(NULL, cu->adt, cu->adt->action) ||
+		    (list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL))
 		{
 			/* create F-Curve for path animation */
 			act = verify_adt_action(&cu->id, 1);

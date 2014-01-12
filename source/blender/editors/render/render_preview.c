@@ -614,7 +614,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		 * or if the job is running and the size of preview changed */
 		if ((sbuts->spacetype == SPACE_BUTS && sbuts->preview) ||
 		    (!ok && !WM_jobs_test(wm, sa, WM_JOB_TYPE_RENDER_PREVIEW)) ||
-			(sp && (ABS(sp->sizex - newx) >= 2 || ABS(sp->sizey - newy) > 2)))
+		    (sp && (ABS(sp->sizex - newx) >= 2 || ABS(sp->sizey - newy) > 2)))
 		{
 			sbuts->preview = 0;
 			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);

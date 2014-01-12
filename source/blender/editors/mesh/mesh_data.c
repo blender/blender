@@ -756,7 +756,7 @@ static int mesh_customdata_clear_mask_exec(bContext *C, wmOperator *UNUSED(op))
 	int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
 
 	if (ret_a == OPERATOR_FINISHED ||
-		ret_b == OPERATOR_FINISHED)
+	    ret_b == OPERATOR_FINISHED)
 	{
 		return OPERATOR_FINISHED;
 	}

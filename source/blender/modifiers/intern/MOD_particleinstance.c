@@ -300,7 +300,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			/* get particle state */
 			if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
-				(pimd->flag & eParticleInstanceFlag_Path))
+			    (pimd->flag & eParticleInstanceFlag_Path))
 			{
 				float ran = 0.0f;
 				if (pimd->random_position != 0.0f) {

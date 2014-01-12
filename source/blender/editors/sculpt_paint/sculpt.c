@@ -3110,7 +3110,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 			mode |= PBVH_Subdivide;
 
 		if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) ||
-			(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
+		    (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY))
 		{
 			mode |= PBVH_Collapse;
 		}
