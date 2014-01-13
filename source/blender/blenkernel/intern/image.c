@@ -3102,7 +3102,9 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* always verify entirely, and potentially
 				 * returns pointer to release later */
 				ibuf = image_get_render_result(ima, iuser, lock_r);
-				ibuf->userflags |= IB_PERSISTENT;
+				if (ibuf) {
+					ibuf->userflags |= IB_PERSISTENT;
+				}
 			}
 			else if (ima->type == IMA_TYPE_COMPOSITE) {
 				/* requires lock/unlock, otherwise don't return image */
