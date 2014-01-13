@@ -30,10 +30,6 @@ set(LIBRARIES
 	${TIFF_LIBRARY}
 )
 
-if(UNIX)
-       list(APPEND LIBRARIES dl)
-endif()
-
 if(WIN32)
 	list(APPEND LIBRARIES ${PTHREADS_LIBRARIES})
 endif()
