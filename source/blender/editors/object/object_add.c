@@ -1672,10 +1672,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 				ob->flag |= OB_DONE;
 			}
 
-			if (!baseob->curve_cache || !baseob->curve_cache->disp.first) {
-				BKE_displist_make_mball(bmain->eval_ctx, scene, baseob);
-			}
-
 			if (!(baseob->flag & OB_DONE)) {
 				baseob->flag |= OB_DONE;
 
