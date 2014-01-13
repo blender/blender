@@ -292,41 +292,40 @@ float angle_signed_v2v2(const float v1[2], const float v2[2])
 
 float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
+	const float len_sq = dot_v3v3(v1, v2);
+
 	/* double check they are normalized */
 	BLI_ASSERT_UNIT_V3(v1);
 	BLI_ASSERT_UNIT_V3(v2);
 
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
-	if (dot_v3v3(v1, v2) < 0.0f) {
-		float vec[3];
-
-		vec[0] = -v2[0];
-		vec[1] = -v2[1];
-		vec[2] = -v2[2];
-
-		return (float)M_PI - 2.0f * (float)saasin(len_v3v3(vec, v1) / 2.0f);
+	if (len_sq >= 0.0f) {
+		return 2.0f * saasin(sqrtf(len_sq) / 2.0f);
 	}
-	else
-		return 2.0f * (float)saasin(len_v3v3(v2, v1) / 2.0f);
+	else {
+		float vec[3];
+		negate_v3_v3(vec, v2);
+		return (float)M_PI - 2.0f * saasin(len_v3v3(vec, v1) / 2.0f);
+	}
 }
 
 float angle_normalized_v2v2(const float v1[2], const float v2[2])
 {
+	const float len_sq = dot_v2v2(v1, v2);
+
 	/* double check they are normalized */
 	BLI_ASSERT_UNIT_V2(v1);
 	BLI_ASSERT_UNIT_V2(v2);
 
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
-	if (dot_v2v2(v1, v2) < 0.0f) {
+	if (len_sq >= 0.0f) {
+		return 2.0f * saasin(sqrtf(len_sq) / 2.0f);
+	}
+	else {
 		float vec[2];
-
-		vec[0] = -v2[0];
-		vec[1] = -v2[1];
-
+		negate_v2_v2(vec, v2);
 		return (float)M_PI - 2.0f * saasin(len_v2v2(vec, v1) / 2.0f);
 	}
-	else
-		return 2.0f * (float)saasin(len_v2v2(v2, v1) / 2.0f);
 }
 
 /**
