@@ -608,15 +608,15 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 							BMFace *f_a = e_info_a->l->f;
 							BMFace *f_b = e_info_b->l->f;
 
+							/* set to true when we're not in-between (e_info_a->no, e_info_b->no) exactly
+							 * in this case use a check the angle of the tvec when calculating shell thickness */
+							bool is_mid = true;
+
 							/* we use this as either the normal OR to find the right direction for the
 							 * cross product between both face normals */
 							add_v3_v3v3(tvec, e_info_a->no, e_info_b->no);
 
-							/* epsilon increased to fix [#32329] */
-							if ((f_a == f_b) || compare_v3v3(f_a->no, f_b->no, 0.001f)) {
-								normalize_v3(tvec);
-							}
-							else {
+							if (f_a != f_b) {
 								/* these lookups are very quick */
 								BMLoop *l_other_a = BM_loop_other_vert_loop(e_info_a->l, v_split);
 								BMLoop *l_other_b = BM_loop_other_vert_loop(e_info_b->l, v_split);
@@ -625,8 +625,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 									/* both edges faces are adjacent, but we don't need to know the shared edge
 									 * having both verts is enough. */
 									sub_v3_v3v3(tvec, l_other_a->v->co, v_split->co);
+									is_mid = false;
 								}
-								else {
+								else if (compare_v3v3(f_a->no, f_b->no, 0.001f) == false) {
+									/* epsilon increased to fix [#32329] */
+
 									/* faces don't touch,
 									 * just get cross product of their normals, its *good enough*
 									 */
@@ -636,15 +639,23 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 										negate_v3(tno);
 									}
 									copy_v3_v3(tvec, tno);
+									is_mid = false;
 								}
-
-								normalize_v3(tvec);
 							}
+							normalize_v3(tvec);
 
 							/* scale by edge angle */
 							if (use_even_offset) {
-								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no,
-								                                                          e_info_b->no) / 2.0f));
+								if (is_mid) {
+									mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no,
+									                                                          e_info_b->no) / 2.0f));
+								}
+								else {
+									mul_v3_fl(tvec, shell_angle_to_dist(max_ff(angle_normalized_v3v3(tvec,
+									                                                                 e_info_a->no),
+									                                           angle_normalized_v3v3(tvec,
+									                                                                 e_info_b->no))));
+								}
 							}
 
 							/* scale relative to edge lengths */
