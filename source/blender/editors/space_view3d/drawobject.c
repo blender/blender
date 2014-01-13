@@ -4055,11 +4055,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 		case OB_MBALL:
 
 			if (BKE_mball_is_basis(ob)) {
-				lb = ob->curve_cache ? &ob->curve_cache->disp : NULL;
-				if (ELEM(NULL, lb, lb->first)) {
-					BKE_displist_make_mball(G.main->eval_ctx, scene, ob);
-					lb = &ob->curve_cache->disp;
-				}
+				lb = &ob->curve_cache->disp;
 				if (lb->first == NULL) {
 					return true;
 				}
@@ -6268,10 +6264,6 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 	else if (ob->type == OB_MBALL) {
 		if (BKE_mball_is_basis(ob)) {
 			bb = ob->bb;
-			if (bb == NULL) {
-				BKE_displist_make_mball(G.main->eval_ctx, scene, ob);
-				bb = ob->bb;
-			}
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
