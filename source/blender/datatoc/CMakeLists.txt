@@ -20,10 +20,28 @@
 
 
 # -----------------------------------------------------------------------------
-# Build makesdna executable
+# Build datatoc executable
 set(SRC
 	datatoc.c
 )
 
 # SRC_DNA_INC is defined in the parent dir
 add_executable(datatoc ${SRC})
+
+
+# -----------------------------------------------------------------------------
+# Build datatoc_icon executable
+
+if(NOT WITH_HEADLESS)
+
+	set(SRC
+		datatoc_icon.c
+	)
+
+	include_directories(${PNG_INCLUDE_DIR})
+
+	add_executable(datatoc_icon ${SRC})
+
+	link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
+	target_link_libraries(datatoc_icon ${PNG_LIBRARIES})
+endif()

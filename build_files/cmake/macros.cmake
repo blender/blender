@@ -831,6 +831,46 @@ macro(data_to_c_simple
 	unset(_file_to_path)
 endmacro()
 
+# macro for converting pixmap directory to a png and then a c file
+macro(data_to_c_simple_icons
+      path_from
+      list_to_add
+      )
+
+	# Conversion steps
+	#  path_from  ->  _file_from  ->  _file_to
+	#  foo/*.dat  ->  foo.png     ->  foo.png.c
+
+	get_filename_component(_path_from_abs ${path_from} ABSOLUTE)
+	# remove ../'s
+	get_filename_component(_file_from ${CMAKE_CURRENT_BINARY_DIR}/${path_from}.png   REALPATH)
+	get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${path_from}.png.c REALPATH)
+
+	list(APPEND ${list_to_add} ${_file_to})
+
+	get_filename_component(_file_to_path ${_file_to} PATH)
+
+	# ideally we wouldn't glob, but storing all names for all pixmaps is a bit heavy
+	file(GLOB _icon_files "${path_from}/*.dat")
+
+	add_custom_command(
+		OUTPUT  ${_file_from} ${_file_to}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		#COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc_icon ${_path_from_abs} ${_file_from}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${_file_from} ${_file_to}
+		DEPENDS ${_icon_files} datatoc)
+
+	set_source_files_properties(${_file_from} ${_file_to} PROPERTIES GENERATED TRUE)
+
+	unset(_path_from_abs)
+	unset(_file_from)
+	unset(_file_to)
+	unset(_file_to_path)
+	unset(_icon_files)
+
+endmacro()
+
 # XXX Not used for now...
 macro(svg_to_png
       file_from

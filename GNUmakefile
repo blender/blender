@@ -328,8 +328,8 @@ tbz:
 	@echo "blender_archive.tar.bz2 written"
 
 icons:
-	"$(BLENDER_DIR)/release/datafiles/blender_icons.sh"
-	"$(BLENDER_DIR)/release/datafiles/prvicons.sh"
+	"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
+	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
 
 
 # -----------------------------------------------------------------------------
