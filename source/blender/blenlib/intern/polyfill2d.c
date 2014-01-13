@@ -433,7 +433,7 @@ void BLI_polyfill_calc_arena(
 
         struct MemArena *arena)
 {
-	unsigned int *indicies = BLI_memarena_alloc(arena, sizeof(*indicies) * coords_tot);
+	unsigned int *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_tot);
 	eSign *coords_sign = BLI_memarena_alloc(arena, sizeof(*coords_sign) * coords_tot);
 
 	BLI_polyfill_calc_ex(
@@ -441,9 +441,9 @@ void BLI_polyfill_calc_arena(
 	        r_tris,
 	        /* cache */
 
-	        indicies, coords_sign);
+	        indices, coords_sign);
 
-	/* indicies & coords_sign are no longer needed,
+	/* indices & coords_sign are no longer needed,
 	 * caller can clear arena */
 }
 
@@ -452,7 +452,7 @@ void BLI_polyfill_calc(
         const unsigned int coords_tot,
         unsigned int (*r_tris)[3])
 {
-	unsigned int *indicies = BLI_array_alloca(indicies, coords_tot);
+	unsigned int *indices = BLI_array_alloca(indices, coords_tot);
 	eSign *coords_sign = BLI_array_alloca(coords_sign, coords_tot);
 
 	BLI_polyfill_calc_ex(
@@ -460,5 +460,5 @@ void BLI_polyfill_calc(
 	        r_tris,
 	        /* cache */
 
-	        indicies, coords_sign);
+	        indices, coords_sign);
 }

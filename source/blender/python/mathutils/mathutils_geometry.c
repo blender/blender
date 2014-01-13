@@ -1103,7 +1103,7 @@ PyDoc_STRVAR(M_Geometry_points_in_planes_doc,
 "\n"
 "   :arg planes: List of planes (4D vectors).\n"
 "   :type planes: list of :class:`mathutils.Vector`\n"
-"   :return: two lists, once containing the vertices inside the planes, another containing the plane indicies used\n"
+"   :return: two lists, once containing the vertices inside the planes, another containing the plane indices used\n"
 "   :rtype: pair of lists\n"
 );
 /* note: this function could be optimized by some spatial structure */

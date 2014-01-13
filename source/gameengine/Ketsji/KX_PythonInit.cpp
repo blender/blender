@@ -530,7 +530,7 @@ static PyObject *gPyGetBlendFileList(PyObject *, PyObject *args)
 
 	if ((dp  = opendir(cpath)) == NULL) {
 		/* todo, show the errno, this shouldnt happen anyway if the blendfile is readable */
-		fprintf(stderr, "Could not read directoty (%s) failed, code %d (%s)\n", cpath, errno, strerror(errno));
+		fprintf(stderr, "Could not read directory (%s) failed, code %d (%s)\n", cpath, errno, strerror(errno));
 		return list;
 	}
 	

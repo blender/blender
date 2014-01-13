@@ -377,7 +377,7 @@ static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_
 /* Beautify Fill */
 
 /**
- * \note This function sets the edge indicies to invalid values.
+ * \note This function sets the edge indices to invalid values.
  */
 void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
                                   const short flag, const short method,

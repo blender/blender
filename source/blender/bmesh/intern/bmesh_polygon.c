@@ -174,7 +174,7 @@ static void bm_face_calc_poly_center_mean_vertex_cos(BMFace *f, float r_cent[3],
  * For tools that insist on using triangles, ideally we would cache this data.
  *
  * \param r_loops  Store face loop pointers, (f->len)
- * \param r_index  Store triangle triples, indicies into \a r_loops,  ((f->len - 2) * 3)
+ * \param r_index  Store triangle triples, indices into \a r_loops,  ((f->len - 2) * 3)
  */
 void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (*r_index)[3])
 {
