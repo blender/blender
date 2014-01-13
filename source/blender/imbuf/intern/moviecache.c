@@ -262,7 +262,9 @@ static bool get_item_destroyable(void *item_v)
 	 *
 	 * Such buffers are never to be freed.
 	 */
-	if (item->ibuf->userflags & IB_BITMAPDIRTY) {
+	if ((item->ibuf->userflags & IB_BITMAPDIRTY) ||
+	    (item->ibuf->userflags & IB_PERSISTENT))
+	{
 		return false;
 	}
 	return true;

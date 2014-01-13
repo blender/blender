@@ -137,6 +137,9 @@ static void imagecache_put(Image *image, int index, ImBuf *ibuf)
 	ImageCacheKey key;
 
 	if (image->cache == NULL) {
+		// char cache_name[64];
+		// BLI_snprintf(cache_name, sizeof(cache_name), "Image Datablock %s", image->id.name);
+
 		image->cache = IMB_moviecache_create("Image Datablock Cache", sizeof(ImageCacheKey),
 		                                     imagecache_hashhash, imagecache_hashcmp);
 	}
@@ -3099,6 +3102,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* always verify entirely, and potentially
 				 * returns pointer to release later */
 				ibuf = image_get_render_result(ima, iuser, lock_r);
+				ibuf->userflags |= IB_PERSISTENT;
 			}
 			else if (ima->type == IMA_TYPE_COMPOSITE) {
 				/* requires lock/unlock, otherwise don't return image */
@@ -3117,6 +3121,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						ibuf = IMB_allocImBuf(256, 256, 32, IB_rect);
 						image_assign_ibuf(ima, ibuf, 0, frame);
 					}
+					ibuf->userflags |= IB_PERSISTENT;
 				}
 			}
 		}

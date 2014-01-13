@@ -150,6 +150,7 @@ typedef struct ImBuf {
 #define IB_MIPMAP_INVALID		(1 << 2)	/* image mipmaps are invalid, need recreate */
 #define IB_RECT_INVALID			(1 << 3)	/* float buffer changed, needs recreation of byte rect */
 #define IB_DISPLAY_BUFFER_INVALID	(1 << 4)	/* either float or byte buffer changed, need to re-calculate display buffers */
+#define IB_PERSISTENT				(1 << 5)	/* image buffer is persistent in the memory and should never be removed from the cache */
 
 /**
  * \name Imbuf Component flags
