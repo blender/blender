@@ -1574,6 +1574,9 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 		is_active_prev = is_active;
 #endif
+
+		/* not essential, but allows events to be handled right up until the region edge [#38171] */
+		pc_dyn->rect.xmin = v2d->mask.xmin;
 	}
 
 	glDisable(GL_LINE_SMOOTH);
