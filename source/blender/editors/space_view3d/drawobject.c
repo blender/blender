@@ -1901,9 +1901,6 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	int actdef_wcol = 0;
 	const bool is_edit = (lt->editlatt != NULL);
 
-	/* now we default make displist, this will modifiers work for non animated case */
-	if (ELEM(NULL, ob->curve_cache, ob->curve_cache->disp.first))
-		BKE_lattice_modifiers_calc(scene, ob);
 	dl = BKE_displist_find(&ob->curve_cache->disp, DL_VERTS);
 	
 	if (is_edit) {
