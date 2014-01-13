@@ -1216,6 +1216,12 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+static void wm_operator_properties_select_action_ex(wmOperatorType *ot, int default_action,
+                                                    const EnumPropertyItem *select_actions)
+{
+	RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
+}
+
 void WM_operator_properties_select_action(wmOperatorType *ot, int default_action)
 {
 	static EnumPropertyItem select_actions[] = {
@@ -1226,7 +1232,21 @@ void WM_operator_properties_select_action(wmOperatorType *ot, int default_action
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(ot->srna, "action", select_actions, default_action, "Action", "Selection action to execute");
+	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
+}
+
+/**
+ * only SELECT/DESELECT
+ */
+void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default_action)
+{
+	static EnumPropertyItem select_actions[] = {
+		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
+		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
 }
 
 void WM_operator_properties_select_all(wmOperatorType *ot)

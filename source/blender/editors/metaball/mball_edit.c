@@ -373,20 +373,16 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
-	float percent = RNA_float_get(op->ptr, "percent");
+	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
+	float percent = RNA_float_get(op->ptr, "percent") / 100.0f;
 	
-	if (percent == 0.0f)
-		return OPERATOR_CANCELLED;
-	
-	ml = mb->editelems->first;
-	
-	/* Stupid version of random selection. Should be improved. */
-	while (ml) {
-		if (BLI_frand() < percent)
-			ml->flag |= SELECT;
-		else
-			ml->flag &= ~SELECT;
-		ml = ml->next;
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (BLI_frand() < percent) {
+			if (select)
+				ml->flag |= SELECT;
+			else
+				ml->flag &= ~SELECT;
+		}
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
@@ -398,21 +394,20 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Random...";
+	ot->name = "Select Random";
 	ot->description = "Randomly select metaelements";
 	ot->idname = "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
 	ot->exec = select_random_metaelems_exec;
-	ot->invoke = WM_operator_props_popup;
 	ot->poll = ED_operator_editmball;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent",
-	                         "Percentage of metaelements to select randomly", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
 }
 
 /***************************** Duplicate operator *****************************/

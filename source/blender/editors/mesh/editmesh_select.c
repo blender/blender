@@ -2702,38 +2702,41 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMVert *eve;
-	BMEdge *eed;
-	BMFace *efa;
-	BMIter iter;
+	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
 
-	if (!RNA_boolean_get(op->ptr, "extend"))
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BMIter iter;
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
+		BMVert *eve;
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
-				BM_vert_select_set(em->bm, eve, true);
+				BM_vert_select_set(em->bm, eve, select);
 			}
 		}
-		EDBM_selectmode_flush(em);
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
+		BMEdge *eed;
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
-				BM_edge_select_set(em->bm, eed, true);
+				BM_edge_select_set(em->bm, eed, select);
 			}
 		}
-		EDBM_selectmode_flush(em);
 	}
 	else {
+		BMFace *efa;
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
-				BM_face_select_set(em->bm, efa, true);
+				BM_face_select_set(em->bm, efa, select);
 			}
 		}
-		EDBM_selectmode_flush(em);
+	}
+
+	if (select) {
+		EDBM_select_flush(em);
+	}
+	else {
+		EDBM_deselect_flush(em);
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -2758,7 +2761,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
 }
 
 static int edbm_select_ungrouped_poll(bContext *C)

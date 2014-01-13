@@ -5654,7 +5654,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 
 /********************** select random *********************/
 
-static void selectrandom_curve(ListBase *editnurb, float randfac)
+static void curve_select_random(ListBase *editnurb, float randfac, bool select)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -5666,8 +5666,11 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 			bezt = nu->bezt;
 			a = nu->pntsu;
 			while (a--) {
-				if (BLI_frand() < randfac)
-					select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+				if (!bezt->hide) {
+					if (BLI_frand() < randfac) {
+						select_beztriple(bezt, select, SELECT, VISIBLE);
+					}
+				}
 				bezt++;
 			}
 		}
@@ -5676,24 +5679,26 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 			a = nu->pntsu * nu->pntsv;
 			
 			while (a--) {
-				if (BLI_frand() < randfac)
-					select_bpoint(bp, SELECT, SELECT, VISIBLE);
+				if (!bp->hide) {
+					if (BLI_frand() < randfac) {
+						select_bpoint(bp, select, SELECT, VISIBLE);
+					}
+				}
 				bp++;
 			}
 		}
 	}
 }
 
-static int select_random_exec(bContext *C, wmOperator *op)
+static int curve_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
+	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
+	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
 
-	if (!RNA_boolean_get(op->ptr, "extend"))
-		CU_deselect_all(obedit);
-	
-	selectrandom_curve(editnurb, RNA_float_get(op->ptr, "percent") / 100.0f);
-	
+	curve_select_random(editnurb, randfac, select);
+
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	
 	return OPERATOR_FINISHED;
@@ -5707,7 +5712,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->description = "Randomly select some control points";
 	
 	/* api callbacks */
-	ot->exec = select_random_exec;
+	ot->exec = curve_select_random_exec;
 	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
@@ -5715,7 +5720,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
 }
 
 /********************* every nth number of point *******************/

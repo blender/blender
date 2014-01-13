@@ -189,6 +189,18 @@ void ED_lattice_transform(Lattice *lt, float mat[4][4])
 	DAG_id_tag_update(&lt->id, 0);
 }
 
+static void bpoint_select_set(BPoint *bp, bool select)
+{
+	if (select) {
+		if (!bp->hide) {
+			bp->f1 |= SELECT;
+		}
+	}
+	else {
+		bp->f1 &= ~SELECT;
+	}
+}
+
 /************************** Select Random Operator **********************/
 
 static int lattice_select_random_exec(bContext *C, wmOperator *op)
@@ -196,25 +208,24 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
+
 	int tot;
 	BPoint *bp;
-
-	if (!RNA_boolean_get(op->ptr, "extend")) {
-		ED_setflagsLatt(obedit, !SELECT);
-	}
-	else {
-		lt->actbp = LT_ACTBP_NONE;
-	}
 
 	tot = lt->pntsu * lt->pntsv * lt->pntsw;
 	bp = lt->def;
 	while (tot--) {
 		if (!bp->hide) {
 			if (BLI_frand() < randfac) {
-				bp->f1 |= SELECT;
+				bpoint_select_set(bp, select);
 			}
 		}
 		bp++;
+	}
+
+	if (select == false) {
+		lt->actbp = LT_ACTBP_NONE;
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -239,7 +250,7 @@ void LATTICE_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
 }
 
 

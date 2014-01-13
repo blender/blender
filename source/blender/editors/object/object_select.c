@@ -1128,23 +1128,14 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
-	bool extend;
-	
-	extend = RNA_boolean_get(op->ptr, "extend");
-	
-	if (extend == false) {
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			ED_base_object_select(base, BA_DESELECT);
-		}
-		CTX_DATA_END;
-	}
+	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
+
 	percent = RNA_float_get(op->ptr, "percent") / 100.0f;
 		
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		if (BLI_frand() < percent) {
-			ED_base_object_select(base, BA_SELECT);
+			ED_base_object_select(base, select);
 		}
 	}
 	CTX_DATA_END;
@@ -1171,5 +1162,5 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
+	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
 }
