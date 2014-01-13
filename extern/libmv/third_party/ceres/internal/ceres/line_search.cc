@@ -67,14 +67,14 @@ FunctionSample ValueAndGradientSample(const double x,
   return sample;
 };
 
-}  // namespace
-
 // Convenience stream operator for pushing FunctionSamples into log messages.
 std::ostream& operator<<(std::ostream &os,
                          const FunctionSample& sample) {
   os << sample.ToDebugString();
   return os;
 }
+
+}  // namespace
 
 LineSearch::LineSearch(const LineSearch::Options& options)
     : options_(options) {}

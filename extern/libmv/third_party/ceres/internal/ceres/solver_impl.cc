@@ -224,6 +224,83 @@ void SummarizeReducedProgram(const Program& program, Solver::Summary* summary) {
   summary->num_residuals_reduced = program.NumResiduals();
 }
 
+bool LineSearchOptionsAreValid(const Solver::Options& options,
+                               string* message) {
+  // Validate values for configuration parameters supplied by user.
+  if ((options.line_search_direction_type == ceres::BFGS ||
+       options.line_search_direction_type == ceres::LBFGS) &&
+      options.line_search_type != ceres::WOLFE) {
+    *message =
+        string("Invalid configuration: require line_search_type == "
+               "ceres::WOLFE when using (L)BFGS to ensure that underlying "
+               "assumptions are guaranteed to be satisfied.");
+    return false;
+  }
+  if (options.max_lbfgs_rank <= 0) {
+    *message =
+        string("Invalid configuration: require max_lbfgs_rank > 0");
+    return false;
+  }
+  if (options.min_line_search_step_size <= 0.0) {
+    *message =
+        "Invalid configuration: require min_line_search_step_size > 0.0.";
+    return false;
+  }
+  if (options.line_search_sufficient_function_decrease <= 0.0) {
+    *message =
+        string("Invalid configuration: require ") +
+        string("line_search_sufficient_function_decrease > 0.0.");
+    return false;
+  }
+  if (options.max_line_search_step_contraction <= 0.0 ||
+      options.max_line_search_step_contraction >= 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("0.0 < max_line_search_step_contraction < 1.0.");
+    return false;
+  }
+  if (options.min_line_search_step_contraction <=
+      options.max_line_search_step_contraction ||
+      options.min_line_search_step_contraction > 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_line_search_step_contraction < ") +
+        string("min_line_search_step_contraction <= 1.0.");
+    return false;
+  }
+  // Warn user if they have requested BISECTION interpolation, but constraints
+  // on max/min step size change during line search prevent bisection scaling
+  // from occurring. Warn only, as this is likely a user mistake, but one which
+  // does not prevent us from continuing.
+  LOG_IF(WARNING,
+         (options.line_search_interpolation_type == ceres::BISECTION &&
+          (options.max_line_search_step_contraction > 0.5 ||
+           options.min_line_search_step_contraction < 0.5)))
+      << "Line search interpolation type is BISECTION, but specified "
+      << "max_line_search_step_contraction: "
+      << options.max_line_search_step_contraction << ", and "
+      << "min_line_search_step_contraction: "
+      << options.min_line_search_step_contraction
+      << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
+  if (options.max_num_line_search_step_size_iterations <= 0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_num_line_search_step_size_iterations > 0.");
+    return false;
+  }
+  if (options.line_search_sufficient_curvature_decrease <=
+      options.line_search_sufficient_function_decrease ||
+      options.line_search_sufficient_curvature_decrease > 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("line_search_sufficient_function_decrease < ") +
+        string("line_search_sufficient_curvature_decrease < 1.0.");
+    return false;
+  }
+  if (options.max_line_search_step_expansion <= 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_line_search_step_expansion > 1.0.");
+    return false;
+  }
+  return true;
+}
+
 }  // namespace
 
 void SolverImpl::TrustRegionMinimize(
@@ -618,85 +695,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   event_logger.AddEvent("PostProcess");
 }
 
-
 #ifndef CERES_NO_LINE_SEARCH_MINIMIZER
-bool LineSearchOptionsAreValid(const Solver::Options& options,
-                               string* message) {
-  // Validate values for configuration parameters supplied by user.
-  if ((options.line_search_direction_type == ceres::BFGS ||
-       options.line_search_direction_type == ceres::LBFGS) &&
-      options.line_search_type != ceres::WOLFE) {
-    *message =
-        string("Invalid configuration: require line_search_type == "
-               "ceres::WOLFE when using (L)BFGS to ensure that underlying "
-               "assumptions are guaranteed to be satisfied.");
-    return false;
-  }
-  if (options.max_lbfgs_rank <= 0) {
-    *message =
-        string("Invalid configuration: require max_lbfgs_rank > 0");
-    return false;
-  }
-  if (options.min_line_search_step_size <= 0.0) {
-    *message =
-        "Invalid configuration: require min_line_search_step_size > 0.0.";
-    return false;
-  }
-  if (options.line_search_sufficient_function_decrease <= 0.0) {
-    *message =
-        string("Invalid configuration: require ") +
-        string("line_search_sufficient_function_decrease > 0.0.");
-    return false;
-  }
-  if (options.max_line_search_step_contraction <= 0.0 ||
-      options.max_line_search_step_contraction >= 1.0) {
-    *message = string("Invalid configuration: require ") +
-        string("0.0 < max_line_search_step_contraction < 1.0.");
-    return false;
-  }
-  if (options.min_line_search_step_contraction <=
-      options.max_line_search_step_contraction ||
-      options.min_line_search_step_contraction > 1.0) {
-    *message = string("Invalid configuration: require ") +
-        string("max_line_search_step_contraction < ") +
-        string("min_line_search_step_contraction <= 1.0.");
-    return false;
-  }
-  // Warn user if they have requested BISECTION interpolation, but constraints
-  // on max/min step size change during line search prevent bisection scaling
-  // from occurring. Warn only, as this is likely a user mistake, but one which
-  // does not prevent us from continuing.
-  LOG_IF(WARNING,
-         (options.line_search_interpolation_type == ceres::BISECTION &&
-          (options.max_line_search_step_contraction > 0.5 ||
-           options.min_line_search_step_contraction < 0.5)))
-      << "Line search interpolation type is BISECTION, but specified "
-      << "max_line_search_step_contraction: "
-      << options.max_line_search_step_contraction << ", and "
-      << "min_line_search_step_contraction: "
-      << options.min_line_search_step_contraction
-      << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
-  if (options.max_num_line_search_step_size_iterations <= 0) {
-    *message = string("Invalid configuration: require ") +
-        string("max_num_line_search_step_size_iterations > 0.");
-    return false;
-  }
-  if (options.line_search_sufficient_curvature_decrease <=
-      options.line_search_sufficient_function_decrease ||
-      options.line_search_sufficient_curvature_decrease > 1.0) {
-    *message = string("Invalid configuration: require ") +
-        string("line_search_sufficient_function_decrease < ") +
-        string("line_search_sufficient_curvature_decrease < 1.0.");
-    return false;
-  }
-  if (options.max_line_search_step_expansion <= 1.0) {
-    *message = string("Invalid configuration: require ") +
-        string("max_line_search_step_expansion > 1.0.");
-    return false;
-  }
-  return true;
-}
-
 void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
                                  ProblemImpl* original_problem_impl,
                                  Solver::Summary* summary) {

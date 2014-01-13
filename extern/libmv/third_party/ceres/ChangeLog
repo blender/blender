@@ -1,3 +1,13 @@
+commit 15bf0d5018dfe432ef67e726b248efcf3b58bc4f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Jan 13 20:38:28 2014 +0600
+
+    Code cleanup: fix no previous declaration warnings
+    
+    Move internally used functions to an anonymous namespace,
+    
+    Change-Id: I84c98facf901e64771d131b088e20e2c033cab70
+
 commit 80a53eebfd28bfc032cedbf7852d5c56eb1d5af5
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Thu Jan 9 12:40:54 2014 -0800
@@ -675,14 +685,3 @@ Date:   Tue Nov 5 13:47:30 2013 -0800
     with miniglog.
     
     Change-Id: Ia1d1d1483e03469c71fde029b62ca6d84e9b27e0
-
-commit b5be6b9c065a02158337ee7eacfdb8be811dec7f
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Tue Nov 5 13:10:27 2013 +0000
-
-    Cleaning up messages output when SuiteSparse is not found.
-    
-    - Automatically generated failure message now provides more
-      information as to which sub-modules are missing.
-    
-    Change-Id: I6eed94af49263540b8f87917b75c41b8f49658a0
