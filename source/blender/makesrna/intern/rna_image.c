@@ -151,6 +151,7 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
 		/* ImageUser *iuser = ptr->data; */
 		
 		switch (GS(((ID *)ptr->id.data)->name)) {
+			case ID_OB:
 			case ID_TE:
 			{
 				return BLI_strdup("image_user");

@@ -1535,6 +1535,10 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "RigidBodyCon", 1, ob->rigidbody_constraint);
 			}
 
+			if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				writestruct(wd, DATA, "ImageUser", 1, ob->iuser);
+			}
+
 			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 

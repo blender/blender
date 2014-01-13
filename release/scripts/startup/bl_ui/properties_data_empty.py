@@ -42,7 +42,11 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
         layout.prop(ob, "empty_draw_type", text="Display")
 
         if ob.empty_draw_type == 'IMAGE':
-            layout.template_ID(ob, "data", open="image.open", unlink="image.unlink")
+            layout.template_ID(ob, "data", open="image.open")
+            layout.template_image(ob, "data", ob.image_user, compact=True)
+
+            row = layout.row(align=True)
+            row = layout.row(align=True)
 
             layout.prop(ob, "color", text="Transparency", index=3, slider=True)
             row = layout.row(align=True)

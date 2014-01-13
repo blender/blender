@@ -5024,6 +5024,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 		MEM_freeN(hook);
 	}
 	
+	ob->iuser = newdataadr(fd, ob->iuser);
+	if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE && !ob->iuser) {
+		BKE_object_empty_draw_type_set(ob, ob->empty_drawtype);
+	}
+
 	ob->customdata_mask = 0;
 	ob->bb = NULL;
 	ob->derivedDeform = NULL;

@@ -285,6 +285,7 @@ typedef struct Object {
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
+	ImageUser *iuser;		/* must be non-null when oject is an empty image */
 
 	ListBase lodlevels;		/* contains data for levels of detail */
 	LodLevel *currentlod;

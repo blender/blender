@@ -486,6 +486,13 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), Point
 	return item;
 }
 
+static void rna_Object_empty_draw_type_set(PointerRNA *ptr, int value)
+{
+    Object *ob = (Object *)ptr->data;
+
+    BKE_object_empty_draw_type_set(ob, value);
+}
+
 static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                            PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -2441,6 +2448,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
 	RNA_def_property_enum_items(prop, object_empty_drawtype_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Object_empty_draw_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Empty Display Type", "Viewport display style for empties");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
@@ -2455,6 +2463,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ima_ofs");
 	RNA_def_property_ui_text(prop, "Origin Offset", "Origin offset distance");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 0.1f, 2);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User",
+							 "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* render */

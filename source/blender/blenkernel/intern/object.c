@@ -112,6 +112,7 @@
 #include "BKE_softbody.h"
 #include "BKE_material.h"
 #include "BKE_camera.h"
+#include "BKE_image.h"
 
 #ifdef WITH_MOD_FLUID
 #include "LBM_fluidsim.h"
@@ -369,6 +370,8 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 	if (ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
 	ob->matbits = NULL;
+	if (ob->iuser) MEM_freeN(ob->iuser);
+	ob->iuser = NULL;
 	if (ob->bb) MEM_freeN(ob->bb); 
 	ob->bb = NULL;
 	if (ob->adt) BKE_free_animdata((ID *)ob);
@@ -1449,6 +1452,8 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 		obn->matbits = MEM_dupallocN(ob->matbits);
 		obn->totcol = ob->totcol;
 	}
+
+	if (ob->iuser) obn->iuser = MEM_dupallocN(ob->iuser);
 	
 	if (ob->bb) obn->bb = MEM_dupallocN(ob->bb);
 	obn->flag &= ~OB_FROMGROUP;
@@ -2651,6 +2656,27 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 	}
 }
 
+void BKE_object_empty_draw_type_set(Object *ob, const int value)
+{
+    ob->empty_drawtype = value;
+
+    if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+        if (!ob->iuser) {
+            ob->iuser = MEM_callocN(sizeof(ImageUser), "image user");
+            ob->iuser->ok = 1;
+            ob->iuser->frames = 100;
+            ob->iuser->sfra = 1;
+            ob->iuser->fie_ima = 2;
+        }
+    }
+    else {
+        if (ob->iuser) {
+            MEM_freeN(ob->iuser);
+            ob->iuser = NULL;
+        }
+    }
+}
+
 bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
 	bool ok = false;
@@ -2930,6 +2956,12 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 				
 				case OB_LATTICE:
 					BKE_lattice_modifiers_calc(scene, ob);
+					break;
+
+				case OB_EMPTY:
+					if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data)
+						if (BKE_image_is_animated(ob->data))
+							BKE_image_user_check_frame_calc(ob->iuser, (int)ctime, 0);
 					break;
 			}
 			

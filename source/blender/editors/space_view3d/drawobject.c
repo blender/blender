@@ -554,7 +554,7 @@ void drawaxes(float size, char drawtype)
 static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Image *ima = (Image *)ob->data;
-	ImBuf *ibuf = ima ? BKE_image_acquire_ibuf(ima, NULL, NULL) : NULL;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, ob->iuser, NULL);
 
 	float scale, ofs_x, ofs_y, sca_x, sca_y;
 	int ima_x, ima_y;
