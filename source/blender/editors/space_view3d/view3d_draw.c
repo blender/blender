@@ -105,6 +105,7 @@ static void bl_debug_draw(void);
 extern void bl_debug_draw_quad_clear(void);
 extern void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3]);
 extern void bl_debug_draw_edge_add(const float v0[3], const float v1[3]);
+extern void bl_debug_color_set(const unsigned int col);
 #endif
 
 void circf(float x, float y, float rad)
@@ -3488,11 +3489,19 @@ static float _bl_debug_draw_quads[_DEBUG_DRAW_QUAD_TOT][4][3];
 static int   _bl_debug_draw_quads_tot = 0;
 static float _bl_debug_draw_edges[_DEBUG_DRAW_QUAD_TOT][2][3];
 static int   _bl_debug_draw_edges_tot = 0;
+static unsigned int _bl_debug_draw_quads_color[_DEBUG_DRAW_QUAD_TOT];
+static unsigned int _bl_debug_draw_edges_color[_DEBUG_DRAW_EDGE_TOT];
+static unsigned int _bl_debug_draw_color;
 
 void bl_debug_draw_quad_clear(void)
 {
 	_bl_debug_draw_quads_tot = 0;
 	_bl_debug_draw_edges_tot = 0;
+	_bl_debug_draw_color = 0x00FF0000;
+}
+void bl_debug_color_set(const unsigned int color)
+{
+	_bl_debug_draw_color = color;
 }
 void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3])
 {
@@ -3505,6 +3514,7 @@ void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2
 		copy_v3_v3(pt, v1); pt += 3;
 		copy_v3_v3(pt, v2); pt += 3;
 		copy_v3_v3(pt, v3); pt += 3;
+		_bl_debug_draw_quads_color[_bl_debug_draw_quads_tot] = _bl_debug_draw_color;
 		_bl_debug_draw_quads_tot++;
 	}
 }
@@ -3517,15 +3527,22 @@ void bl_debug_draw_edge_add(const float v0[3], const float v1[3])
 		float *pt = &_bl_debug_draw_edges[_bl_debug_draw_edges_tot][0][0];
 		copy_v3_v3(pt, v0); pt += 3;
 		copy_v3_v3(pt, v1); pt += 3;
+		_bl_debug_draw_edges_color[_bl_debug_draw_edges_tot] = _bl_debug_draw_color;
 		_bl_debug_draw_edges_tot++;
 	}
 }
 static void bl_debug_draw(void)
 {
+	unsigned int color;
 	if (_bl_debug_draw_quads_tot) {
 		int i;
-		cpack(0x00FF0000);
+		color = _bl_debug_draw_quads_color[0];
+		cpack(color);
 		for (i = 0; i < _bl_debug_draw_quads_tot; i ++) {
+			if (_bl_debug_draw_quads_color[i] != color) {
+				color = _bl_debug_draw_quads_color[i];
+				cpack(color);
+			}
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(_bl_debug_draw_quads[i][0]);
 			glVertex3fv(_bl_debug_draw_quads[i][1]);
@@ -3536,16 +3553,27 @@ static void bl_debug_draw(void)
 	}
 	if (_bl_debug_draw_edges_tot) {
 		int i;
-		cpack(0x00FFFF00);
+		color = _bl_debug_draw_edges_color[0];
+		cpack(color);
 		glBegin(GL_LINES);
 		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			if (_bl_debug_draw_edges_color[i] != color) {
+				color = _bl_debug_draw_edges_color[i];
+				cpack(color);
+			}
 			glVertex3fv(_bl_debug_draw_edges[i][0]);
 			glVertex3fv(_bl_debug_draw_edges[i][1]);
 		}
 		glEnd();
+		color = _bl_debug_draw_edges_color[0];
+		cpack(color);
 		glPointSize(4.0);
 		glBegin(GL_POINTS);
 		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			if (_bl_debug_draw_edges_color[i] != color) {
+				color = _bl_debug_draw_edges_color[i];
+				cpack(color);
+			}
 			glVertex3fv(_bl_debug_draw_edges[i][0]);
 			glVertex3fv(_bl_debug_draw_edges[i][1]);
 		}
