@@ -4136,7 +4136,6 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float zfac;
 	bool flip;
 	bool depth_used = false;
 	
@@ -4145,13 +4144,13 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	if (rv3d == NULL)
 		return;
 
-	zfac = ED_view3d_calc_zfac(rv3d, fp, &flip);
+	ED_view3d_calc_zfac(rv3d, fp, &flip);
 	
 	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
 	if (flip) {
 		negate_v3_v3(fp, rv3d->ofs);
 		/* re initialize, no need to check flip again */
-		zfac = ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
+		ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
 	}
 
 	if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */

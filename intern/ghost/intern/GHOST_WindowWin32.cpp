@@ -128,6 +128,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	:
 	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone,
 	             stereoVisual, false, numOfAASamples),
+	m_inLiveResize(false),
 	m_system(system),
 	m_hDC(0),
 	m_hGlRc(0),
@@ -151,8 +152,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_normal_state(GHOST_kWindowStateNormal),
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL),
-	m_parentWindowHwnd(parentwindowhwnd),
-	m_inLiveResize(false)
+	m_parentWindowHwnd(parentwindowhwnd)
 {
 	OSVERSIONINFOEX versionInfo;
 	bool hasMinVersionForTaskbar = false;

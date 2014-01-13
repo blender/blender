@@ -92,7 +92,9 @@ void RegisterBlendExtension(void)
 	const char *ThumbHandlerDLL;
 	char RegCmd[MAX_PATH * 2];
 	char MBox[256];
+#ifndef WIN64
 	BOOL IsWOW64;
+#endif
 
 	printf("Registering file extension...");
 	GetModuleFileName(0, BlPath, MAX_PATH);

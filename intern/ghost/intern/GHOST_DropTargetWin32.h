@@ -89,7 +89,7 @@ public:
 	 * Destructor
 	 * Do NOT destroy directly. Use Release() instead to make COM happy.
 	 */
-	~GHOST_DropTargetWin32();
+	virtual ~GHOST_DropTargetWin32();
 
 private:
 

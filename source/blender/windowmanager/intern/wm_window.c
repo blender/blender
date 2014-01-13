@@ -1269,7 +1269,8 @@ void WM_clipboard_text_set(const char *buf, bool selection)
 	if (!G.background) {
 #ifdef _WIN32
 		/* do conversion from \n to \r\n on Windows */
-		char *p, *p2, *newbuf;
+		const char *p;
+		char *p2, *newbuf;
 		int newlen = 0;
 		
 		for (p = buf; *p; p++) {
