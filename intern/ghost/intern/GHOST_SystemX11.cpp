@@ -1148,21 +1148,44 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 #ifdef WITH_X11_XINPUT
 			if (xe->type == m_xtablet.MotionEvent) {
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
+				const unsigned char axis_first = data->first_axis;
+				const unsigned char axes_end = axis_first + data->axes_count;  /* after the last */
+				int axis_value;
 
 				/* stroke might begin without leading ProxyIn event,
 				 * this happens when window is opened when stylus is already hovering
 				 * around tablet surface */
 				setTabletMode(this, window, data->deviceid);
 
-				window->GetTabletData()->Pressure =
-				        data->axis_data[2] / ((float)m_xtablet.PressureLevels);
+				/* Note: This event might be generated with incomplete dataset (don't exactly know why, looks like in
+				 *       some cases, if the value does not change, it is not included in subsequent XDeviceMotionEvent
+				 *       events). So we have to check which values this event actually contains!
+				 */
 
-				/* the (short) cast and the &0xffff is bizarre and unexplained anywhere,
-				 * but I got garbage data without it. Found it in the xidump.c source --matt */
-				window->GetTabletData()->Xtilt =
-				        (short)(data->axis_data[3] & 0xffff) / ((float)m_xtablet.XtiltLevels);
-				window->GetTabletData()->Ytilt =
-				        (short)(data->axis_data[4] & 0xffff) / ((float)m_xtablet.YtiltLevels);
+#define AXIS_VALUE_GET(axis, val)  ((axis_first <= axis && axes_end > axis) && ((void)(val = data->axis_data[axis]), true))
+
+				if (AXIS_VALUE_GET(2, axis_value)) {
+					window->GetTabletData()->Pressure = axis_value / ((float)m_xtablet.PressureLevels);
+				}
+
+				/* the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
+				 * but I got garbage data without it. Found it in the xidump.c source --matt
+				 *
+				 * The '& 0xffff' just truncates the value to its two lowest bytes, this probably means
+				 * some drivers do not properly set the whole int value? Since we convert to float afterward,
+				 * I don't think we need to cast to short here, but do not have a device to check this. --mont29
+				 */
+				if (AXIS_VALUE_GET(3, axis_value)) {
+					window->GetTabletData()->Xtilt = (short)(axis_value & 0xffff) /
+					                                 ((float)m_xtablet.XtiltLevels);
+				}
+				if (AXIS_VALUE_GET(4, axis_value)) {
+					window->GetTabletData()->Ytilt = (short)(axis_value & 0xffff) /
+					                                 ((float)m_xtablet.YtiltLevels);
+				}
+
+#undef AXIS_VALUE_GET
+
 			}
 			else if (xe->type == m_xtablet.ProxInEvent) {
 				XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
