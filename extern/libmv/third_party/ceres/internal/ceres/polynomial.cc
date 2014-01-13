@@ -120,7 +120,6 @@ Vector RemoveLeadingZeros(const Vector& polynomial_in) {
   }
   return polynomial_in.tail(polynomial_in.size() - i);
 }
-}  // namespace
 
 void FindLinearPolynomialRoots(const Vector& polynomial,
                                Vector* real,
@@ -178,6 +177,7 @@ void FindQuadraticPolynomialRoots(const Vector& polynomial,
     (*imaginary)(1) = -sqrt_D / (2.0 * a);
   }
 }
+}  // namespace
 
 bool FindPolynomialRoots(const Vector& polynomial_in,
                          Vector* real,

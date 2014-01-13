@@ -484,7 +484,7 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
         "Terminating: Function tolerance reached. "
         "No non-constant parameter blocks found.";
     summary->termination_type = CONVERGENCE;
-    VLOG(1) << summary->message;
+    VLOG_IF(1, options.logging_type != SILENT) << summary->message;
 
     summary->initial_cost = summary->fixed_cost;
     summary->final_cost = summary->fixed_cost;
@@ -620,6 +620,83 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
 
 
 #ifndef CERES_NO_LINE_SEARCH_MINIMIZER
+bool LineSearchOptionsAreValid(const Solver::Options& options,
+                               string* message) {
+  // Validate values for configuration parameters supplied by user.
+  if ((options.line_search_direction_type == ceres::BFGS ||
+       options.line_search_direction_type == ceres::LBFGS) &&
+      options.line_search_type != ceres::WOLFE) {
+    *message =
+        string("Invalid configuration: require line_search_type == "
+               "ceres::WOLFE when using (L)BFGS to ensure that underlying "
+               "assumptions are guaranteed to be satisfied.");
+    return false;
+  }
+  if (options.max_lbfgs_rank <= 0) {
+    *message =
+        string("Invalid configuration: require max_lbfgs_rank > 0");
+    return false;
+  }
+  if (options.min_line_search_step_size <= 0.0) {
+    *message =
+        "Invalid configuration: require min_line_search_step_size > 0.0.";
+    return false;
+  }
+  if (options.line_search_sufficient_function_decrease <= 0.0) {
+    *message =
+        string("Invalid configuration: require ") +
+        string("line_search_sufficient_function_decrease > 0.0.");
+    return false;
+  }
+  if (options.max_line_search_step_contraction <= 0.0 ||
+      options.max_line_search_step_contraction >= 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("0.0 < max_line_search_step_contraction < 1.0.");
+    return false;
+  }
+  if (options.min_line_search_step_contraction <=
+      options.max_line_search_step_contraction ||
+      options.min_line_search_step_contraction > 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_line_search_step_contraction < ") +
+        string("min_line_search_step_contraction <= 1.0.");
+    return false;
+  }
+  // Warn user if they have requested BISECTION interpolation, but constraints
+  // on max/min step size change during line search prevent bisection scaling
+  // from occurring. Warn only, as this is likely a user mistake, but one which
+  // does not prevent us from continuing.
+  LOG_IF(WARNING,
+         (options.line_search_interpolation_type == ceres::BISECTION &&
+          (options.max_line_search_step_contraction > 0.5 ||
+           options.min_line_search_step_contraction < 0.5)))
+      << "Line search interpolation type is BISECTION, but specified "
+      << "max_line_search_step_contraction: "
+      << options.max_line_search_step_contraction << ", and "
+      << "min_line_search_step_contraction: "
+      << options.min_line_search_step_contraction
+      << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
+  if (options.max_num_line_search_step_size_iterations <= 0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_num_line_search_step_size_iterations > 0.");
+    return false;
+  }
+  if (options.line_search_sufficient_curvature_decrease <=
+      options.line_search_sufficient_function_decrease ||
+      options.line_search_sufficient_curvature_decrease > 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("line_search_sufficient_function_decrease < ") +
+        string("line_search_sufficient_curvature_decrease < 1.0.");
+    return false;
+  }
+  if (options.max_line_search_step_expansion <= 1.0) {
+    *message = string("Invalid configuration: require ") +
+        string("max_line_search_step_expansion > 1.0.");
+    return false;
+  }
+  return true;
+}
+
 void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
                                  ProblemImpl* original_problem_impl,
                                  Solver::Summary* summary) {
@@ -631,9 +708,8 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   // Reset the summary object to its default values.
   *CHECK_NOTNULL(summary) = Solver::Summary();
 
-  summary->minimizer_type = LINE_SEARCH;
   SummarizeGivenProgram(*original_program, summary);
-
+  summary->minimizer_type = LINE_SEARCH;
   summary->line_search_direction_type =
       original_options.line_search_direction_type;
   summary->max_lbfgs_rank = original_options.max_lbfgs_rank;
@@ -643,84 +719,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
   summary->nonlinear_conjugate_gradient_type =
       original_options.nonlinear_conjugate_gradient_type;
 
-  // Validate values for configuration parameters supplied by user.
-  if ((original_options.line_search_direction_type == ceres::BFGS ||
-       original_options.line_search_direction_type == ceres::LBFGS) &&
-      original_options.line_search_type != ceres::WOLFE) {
-    summary->message =
-        string("Invalid configuration: require line_search_type == "
-               "ceres::WOLFE when using (L)BFGS to ensure that underlying "
-               "assumptions are guaranteed to be satisfied.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.max_lbfgs_rank <= 0) {
-    summary->message =
-        string("Invalid configuration: require max_lbfgs_rank > 0");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.min_line_search_step_size <= 0.0) {
-    summary->message =
-        "Invalid configuration: min_line_search_step_size <= 0.0.";
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.line_search_sufficient_function_decrease <= 0.0) {
-    summary->message =
-        string("Invalid configuration: require ") +
-        string("line_search_sufficient_function_decrease <= 0.0.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.max_line_search_step_contraction <= 0.0 ||
-      original_options.max_line_search_step_contraction >= 1.0) {
-    summary->message = string("Invalid configuration: require ") +
-        string("0.0 < max_line_search_step_contraction < 1.0.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.min_line_search_step_contraction <=
-      original_options.max_line_search_step_contraction ||
-      original_options.min_line_search_step_contraction > 1.0) {
-    summary->message = string("Invalid configuration: require ") +
-        string("max_line_search_step_contraction < ") +
-        string("min_line_search_step_contraction <= 1.0.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  // Warn user if they have requested BISECTION interpolation, but constraints
-  // on max/min step size change during line search prevent bisection scaling
-  // from occurring. Warn only, as this is likely a user mistake, but one which
-  // does not prevent us from continuing.
-  LOG_IF(WARNING,
-         (original_options.line_search_interpolation_type == ceres::BISECTION &&
-          (original_options.max_line_search_step_contraction > 0.5 ||
-           original_options.min_line_search_step_contraction < 0.5)))
-      << "Line search interpolation type is BISECTION, but specified "
-      << "max_line_search_step_contraction: "
-      << original_options.max_line_search_step_contraction << ", and "
-      << "min_line_search_step_contraction: "
-      << original_options.min_line_search_step_contraction
-      << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
-  if (original_options.max_num_line_search_step_size_iterations <= 0) {
-    summary->message = string("Invalid configuration: require ") +
-        string("max_num_line_search_step_size_iterations > 0.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.line_search_sufficient_curvature_decrease <=
-      original_options.line_search_sufficient_function_decrease ||
-      original_options.line_search_sufficient_curvature_decrease > 1.0) {
-    summary->message = string("Invalid configuration: require ") +
-        string("line_search_sufficient_function_decrease < ") +
-        string("line_search_sufficient_curvature_decrease < 1.0.");
-    LOG(ERROR) << summary->message;
-    return;
-  }
-  if (original_options.max_line_search_step_expansion <= 1.0) {
-    summary->message = string("Invalid configuration: require ") +
-        string("max_line_search_step_expansion > 1.0.");
+  if (!LineSearchOptionsAreValid(original_options, &summary->message)) {
     LOG(ERROR) << summary->message;
     return;
   }
@@ -805,7 +804,7 @@ void SolverImpl::LineSearchSolve(const Solver::Options& original_options,
         "Terminating: Function tolerance reached. "
         "No non-constant parameter blocks found.";
     summary->termination_type = CONVERGENCE;
-    VLOG(1) << summary->message;
+    VLOG_IF(1, options.logging_type != SILENT) << summary->message;
 
     const double post_process_start_time = WallTimeInSeconds();
     SetSummaryFinalCost(summary);

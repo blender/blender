@@ -112,7 +112,9 @@
 // To avoid macro definition of ERROR.
 # define NOGDI
 // To avoid macro definition of min/max.
-# define NOMINMAX
+# ifndef NOMINMAX
+#   define NOMINMAX
+# endif
 # include <windows.h>
   typedef CRITICAL_SECTION MutexType;
 #elif defined(CERES_HAVE_PTHREAD) && defined(CERES_HAVE_RWLOCK)

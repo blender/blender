@@ -1,3 +1,136 @@
+commit 80a53eebfd28bfc032cedbf7852d5c56eb1d5af5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Jan 9 12:40:54 2014 -0800
+
+    Faster LBFGS.
+    
+    1. Use column major storage for the various matrices used by
+    LowRankInverseHessian. Since all the operations are on columns.
+    
+    2. Use a circular buffer to keep track of history of the LBFGS updates
+    so that an update does not require copying the entire history. This
+    makes the updates O(1) rather than O(rank).
+    
+    The implementation has been checked against the denoising code
+    where it gives numerically identical results. The overhead of the
+    LBFGS code is now near negligible as compared to the gradient evaluation.
+    
+    On a sample problem
+    
+    before 1050ms after: 630ms
+    
+    Change-Id: I537ba506ac35fc4960b304c10d923a8dea2ae031
+
+commit f55780063620e7a3dcfe7e018d6488bf6a5b29da
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Jan 8 10:43:31 2014 -0800
+
+    Reduce logging verbosity.
+    
+    When user specifies Solver::Options::logging_type = SILENT,
+    ensure that the minimizer does not log anything.
+    
+    Change-Id: I94e34dae504881ab36d4a66e6adb7a19a227363e
+
+commit 85561eee951c91e578984c6d3eecf0073acabb64
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Jan 7 22:22:14 2014 -0800
+
+    Use int32 for parameter block sizes.
+    
+    CostFunction now uses int32 instead of int16
+    to store the size of its parameter blocks.
+    
+    This is an API breaking change.
+    
+    Change-Id: I032ea583bc7ea4b3009be25d23a3be143749c73e
+
+commit a7fda3317b1a97702750bea96ac3ef3d1a2afb49
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Jan 6 10:25:42 2014 +0000
+
+    Fix typos in error messages in line search config checks.
+    
+    Change-Id: I3ae2ae58328e996598e3e32c12869d2b10109ef7
+
+commit f695322eb8c5ff118f0d27f68d46d557338e5db1
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Jan 4 14:28:23 2014 -0800
+
+    Remove a compilation warning on windows.
+    
+    Only define NOMINMAX if it is not already defined.
+    
+    Thanks to Pierre Moulon for this fix.
+    
+    Change-Id: Ia5dc0f5ff2afe10e4c7e97a57f54297d82052b21
+
+commit b811041d78d80518db153ef3030bcbdbaf80df8d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Jan 2 15:19:17 2014 +0600
+
+    Code cleanup: fix no previous declaration warnings
+    
+    Moved some internally used functions into an anonymous namespace.
+    
+    Change-Id: Ie82df61b0608abac79ccc9f7b14e7f7e04ab733d
+
+commit f14f6bf9b7d3fbd2cab939cf4ad615b317e93c83
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Dec 26 09:50:45 2013 -0800
+
+    Speed up SPARSE_NORMAL_CHOLESKY when using CX_SPARSE.
+    
+    When using sparse cholesky factorization to solve the linear
+    least squares problem:
+    
+      Ax = b
+    
+    There are two sources of computational complexity.
+    
+    1. Computing H = A'A
+    2. Computing the sparse Cholesky factorization of H.
+    
+    Doing 1. using CX_SPARSE is particularly expensive, as it uses
+    a generic cs_multiply function which computes the structure of
+    the matrix H everytime, reallocates memory and does not take
+    advantage of the fact that the matrix being computed is a symmetric
+    outer product.
+    
+    This change adds a custom symmetric outer product algorithm for
+    CompressedRowSparseMatrix.
+    
+    It has a symbolic phase, where it computes the sparsity structure
+    of the output matrix and a "program" which allows the actual
+    multiplication routine to determine exactly which entry in the
+    values array each term in the product contributes to.
+    
+    With these two bits of information, the outer product H = A'A
+    can be computed extremely fast without any reasoning about
+    the structure of H.
+    
+    Further gains in efficiency are made by exploiting the block
+    structure of A.
+    
+    With this change, SPARSE_NORMAL_CHOLESKY with CX_SPARSE as the
+    backend results in > 300% speedup for some problems.
+    
+    The symbolic analysis phase of the solver is a bit more expensive
+    now but the increased cost is made up in 3-4 iterations.
+    
+    Change-Id: I5e4a72b4d03ba41b378a2634330bc22b299c0f12
+
+commit d79f886eb87cb064e19eb12c1ad3d45bbed92198
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Dec 30 07:39:10 2013 -0800
+
+    Refactor line search error checking code.
+    
+    Move the error checking code into its own function
+    so that it can be used in upcoming changes.
+    
+    Change-Id: Icf348e5a8bbe8f8b663f04fb8cfc9a2149b12f22
+
 commit 2b16b0080b6e673eaaf9ed478c9e971d9fcd65de
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Fri Dec 20 15:22:26 2013 -0800
@@ -553,131 +686,3 @@ Date:   Tue Nov 5 13:10:27 2013 +0000
       information as to which sub-modules are missing.
     
     Change-Id: I6eed94af49263540b8f87917b75c41b8f49658a0
-
-commit 9ba0b352a282f08b1b6368a5690434407d7c81af
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Nov 5 13:04:56 2013 -0800
-
-    Lint and other cleanups from William Rucklidge
-    
-    Change-Id: I7fb23c2db85f0f121204560b79f1966f3d584431
-
-commit 69bd65ff4368ce2841519f00ff48c5284c1743a3
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 4 23:01:14 2013 +0000
-
-    Downgrading warning messages when optional deps are not found.
-    
-    - Now when find_package() is called for a dependency without the
-      REQUIRED or QUIET qualifiers, we emit no priority (above STATUS, but
-      below WARNING) messages and continue.
-    
-    Change-Id: I8cdeda7a8f6c91d45fb7f24fb366244c6c9b66e1
-
-commit b0a8731fcdde31e6c37a54e8c1e1c00f853c0d5c
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 4 20:32:40 2013 +0000
-
-    Removing duplicate SuiteSparse found message.
-    
-    - Also flipping ordering of variables in
-      find_package_handle_standard_args() so that the automatically
-      generated message prints the include directories, not TRUE.
-    
-    Change-Id: I2bf62eacd5c96f27152e9542b9a74651243a584e
-
-commit 6fed9fe0de9d1737095c24e19ad8df9735b7e572
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 4 18:33:05 2013 +0000
-
-    Fix FindPackage scripts to emit warnings, not errors if not found.
-    
-    - Previously we used message priority: SEND_ERROR when a package was
-      not found and find_package() was called without QUIET or REQUIRED,
-      which emits an error message, and prevents generation, but continues
-      configuration.
-    - The fact SEND_ERROR induces an error message was confusing for users
-      as it implies that something bad has happened and they cannot
-      continue, when in fact we were disabling the option in question
-      and were thus able to continue, all they had to do was re-configure.
-    
-    - This commit also reorders the search lists for includes/libraries
-      so that we always search user installed locations (e.g. /usr/local)
-      before system installed locations.  Thus we will now always prefer
-      a user install to a system install if both are available, which is
-      likely to be the users desired intention.
-    
-    Change-Id: Ide84919f27d3373f31282f70c685720cd77a6723
-
-commit cada337149cbc4b9e6f2bae14593b87ecf8f1a5c
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 4 18:08:24 2013 +0000
-
-    Fixing CXSparse include directories statement.
-    
-    - Reported as issue #135:
-      https://code.google.com/p/ceres-solver/issues/detail?id=135.
-    - CXSPARSE_INCLUDE was the legacy include directory variable, since
-      the buildsystem updates we now use the CMake standard:
-      CXSPARSE_INCLUDE_DIRS.
-    
-    Change-Id: Iab0c2de14d524bb9e9da230bc574b5e6f09e1f31
-
-commit c71085ed326239dc2d318d848ded9a99e4e3c107
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Oct 31 13:56:38 2013 -0700
-
-    Update to 1.8.0rc1.
-    
-    Change-Id: Iaa10fd5a20be2ef84aca0119306c44669d87cc5d
-
-commit 88a703f44ff0d6d5d4601584fa77f5ce853025f4
-Author: Petter Strandmark <petter.strandmark@gmail.com>
-Date:   Thu Oct 31 21:13:48 2013 +0100
-
-    Fix compilation in Visual C++ 2013.
-    
-    I had to fix the following things to make Ceres compile in 2013:
-     * Not link to 'm' (GNU math library).
-     * Excplicitly convert an std::ostream to bool.
-     * Include <algorithm> for std::max.
-    
-    Change-Id: I3ff65413baf8711364360d46dd71fd553fa63e72
-
-commit f06b9face5bfbbc2b338aa2460bee2298a3865c5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Oct 27 21:38:13 2013 -0700
-
-    Add support for multiple visibility clustering algorithms.
-    
-    The original visibility based preconditioning paper and
-    implementation only used the canonical views algorithm.
-    
-    This algorithm for large dense graphs can be particularly
-    expensive. As its worst case complexity is cubic in size
-    of the graph.
-    
-    Further, for many uses the SCHUR_JACOBI preconditioner
-    was both effective enough while being cheap. It however
-    suffers from a fatal flaw. If the camera parameter blocks
-    are split between two or more parameter blocks, e.g,
-    extrinsics and intrinsics. The preconditioner because
-    it is block diagonal will not capture the interactions
-    between them.
-    
-    Using CLUSTER_JACOBI or CLUSTER_TRIDIAGONAL will fix
-    this problem but as mentioned above this can be quite
-    expensive depending on the problem.
-    
-    This change extends the visibility based preconditioner
-    to allow for multiple clustering algorithms. And adds
-    a simple thresholded single linkage clustering algorithm
-    which allows you to construct versions of CLUSTER_JACOBI
-    and CLUSTER_TRIDIAGONAL preconditioners that are cheap
-    to construct and are more effective than SCHUR_JACOBI.
-    
-    Currently the constants controlling the threshold above
-    which edges are considered in the single linkage algorithm
-    are not exposed. This would be done in a future change.
-    
-    Change-Id: I7ddc36790943f24b19c7f08b10694ae9a822f5c9

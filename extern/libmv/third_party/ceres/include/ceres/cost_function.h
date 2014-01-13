@@ -115,7 +115,7 @@ class CostFunction {
                         double* residuals,
                         double** jacobians) const = 0;
 
-  const vector<int16>& parameter_block_sizes() const {
+  const vector<int32>& parameter_block_sizes() const {
     return parameter_block_sizes_;
   }
 
@@ -124,7 +124,7 @@ class CostFunction {
   }
 
  protected:
-  vector<int16>* mutable_parameter_block_sizes() {
+  vector<int32>* mutable_parameter_block_sizes() {
     return &parameter_block_sizes_;
   }
 
@@ -135,7 +135,7 @@ class CostFunction {
  private:
   // Cost function signature metadata: number of inputs & their sizes,
   // number of outputs (residuals).
-  vector<int16> parameter_block_sizes_;
+  vector<int32> parameter_block_sizes_;
   int num_residuals_;
   CERES_DISALLOW_COPY_AND_ASSIGN(CostFunction);
 };

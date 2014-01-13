@@ -93,7 +93,7 @@ class GradientCheckingCostFunction : public CostFunction {
             DO_NOT_TAKE_OWNERSHIP,
             relative_step_size);
 
-    const vector<int16>& parameter_block_sizes =
+    const vector<int32>& parameter_block_sizes =
         function->parameter_block_sizes();
     for (int i = 0; i < parameter_block_sizes.size(); ++i) {
       finite_diff_cost_function->AddParameterBlock(parameter_block_sizes[i]);
@@ -117,7 +117,7 @@ class GradientCheckingCostFunction : public CostFunction {
     int num_residuals = function_->num_residuals();
 
     // Make space for the jacobians of the two methods.
-    const vector<int16>& block_sizes = function_->parameter_block_sizes();
+    const vector<int32>& block_sizes = function_->parameter_block_sizes();
     vector<Matrix> term_jacobians(block_sizes.size());
     vector<Matrix> finite_difference_jacobians(block_sizes.size());
     vector<double*> term_jacobian_pointers(block_sizes.size());

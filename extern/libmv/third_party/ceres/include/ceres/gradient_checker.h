@@ -119,7 +119,7 @@ class GradientChecker {
     // Do a consistency check between the term and the template parameters.
     CHECK_EQ(M, term->num_residuals());
     const int num_residuals = M;
-    const vector<int16>& block_sizes = term->parameter_block_sizes();
+    const vector<int32>& block_sizes = term->parameter_block_sizes();
     const int num_blocks = block_sizes.size();
 
     CHECK_LE(num_blocks, 5) << "Unable to test functions that take more "

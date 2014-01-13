@@ -224,7 +224,7 @@ ResidualBlock* ProblemImpl::AddResidualBlock(
            cost_function->parameter_block_sizes().size());
 
   // Check the sizes match.
-  const vector<int16>& parameter_block_sizes =
+  const vector<int32>& parameter_block_sizes =
       cost_function->parameter_block_sizes();
 
   if (!options_.disable_all_safety_checks) {

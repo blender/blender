@@ -104,7 +104,7 @@ class DynamicNumericDiffCostFunction : public CostFunction {
         << "You must call DynamicNumericDiffCostFunction::SetNumResiduals() "
         << "before DynamicNumericDiffCostFunction::Evaluate().";
 
-    const vector<int16>& block_sizes = parameter_block_sizes();
+    const vector<int32>& block_sizes = parameter_block_sizes();
     CHECK(!block_sizes.empty())
         << "You must call DynamicNumericDiffCostFunction::AddParameterBlock() "
         << "before DynamicNumericDiffCostFunction::Evaluate().";

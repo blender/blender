@@ -125,7 +125,7 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(
 
   // Find the cumulative sum of the row counts.
   for (int i = 1; i < num_rows_ + 1; ++i) {
-    rows_[i] += rows_[i-1];
+    rows_[i] += rows_[i - 1];
   }
 
   CHECK_EQ(num_nonzeros(), m.num_nonzeros());
@@ -217,8 +217,8 @@ void CompressedRowSparseMatrix::DeleteRows(int delta_rows) {
   num_rows_ -= delta_rows;
   rows_.resize(num_rows_ + 1);
 
-  // Walk the list of row blocks untill we reach the new number of
-  // rows and then drop the rest of the row blocks.
+  // Walk the list of row blocks until we reach the new number of rows
+  // and the drop the rest of the row blocks.
   int num_row_blocks = 0;
   int num_rows = 0;
   while (num_row_blocks < row_blocks_.size() && num_rows < num_rows_) {
@@ -380,6 +380,155 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::Transpose() const {
   return transpose;
 }
 
+namespace {
+// A ProductTerm is a term in the outer product of a matrix with
+// itself.
+struct ProductTerm {
+  ProductTerm(const int row, const int col, const int index)
+      : row(row), col(col), index(index) {
+  }
+
+  bool operator<(const ProductTerm& right) const {
+    if (row == right.row) {
+      if (col == right.col) {
+        return index < right.index;
+      }
+      return col < right.col;
+    }
+    return row < right.row;
+  }
+
+  int row;
+  int col;
+  int index;
+};
+
+CompressedRowSparseMatrix*
+CompressAndFillProgram(const int num_rows,
+                       const int num_cols,
+                       const vector<ProductTerm>& product,
+                       vector<int>* program) {
+  CHECK_GT(product.size(), 0);
+
+  // Count the number of unique product term, which in turn is the
+  // number of non-zeros in the outer product.
+  int num_nonzeros = 1;
+  for (int i = 1; i < product.size(); ++i) {
+    if (product[i].row != product[i - 1].row ||
+        product[i].col != product[i - 1].col) {
+      ++num_nonzeros;
+    }
+  }
+
+  CompressedRowSparseMatrix* matrix =
+      new CompressedRowSparseMatrix(num_rows, num_cols, num_nonzeros);
+
+  int* crsm_rows = matrix->mutable_rows();
+  std::fill(crsm_rows, crsm_rows + num_rows + 1, 0);
+  int* crsm_cols = matrix->mutable_cols();
+  std::fill(crsm_cols, crsm_cols + num_nonzeros, 0);
+
+  CHECK_NOTNULL(program)->clear();
+  program->resize(product.size());
+
+  // Iterate over the sorted product terms. This means each row is
+  // filled one at a time, and we are able to assign a position in the
+  // values array to each term.
+  //
+  // If terms repeat, i.e., they contribute to the same entry in the
+  // result matrix), then they do not affect the sparsity structure of
+  // the result matrix.
+  int nnz = 0;
+  crsm_cols[0] = product[0].col;
+  crsm_rows[product[0].row + 1]++;
+  (*program)[product[0].index] = nnz;
+  for (int i = 1; i < product.size(); ++i) {
+    const ProductTerm& previous = product[i - 1];
+    const ProductTerm& current = product[i];
+
+    // Sparsity structure is updated only if the term is not a repeat.
+    if (previous.row != current.row || previous.col != current.col) {
+      crsm_cols[++nnz] = current.col;
+      crsm_rows[current.row + 1]++;
+    }
+
+    // All terms get assigned the position in the values array where
+    // their value is accumulated.
+    (*program)[current.index] = nnz;
+  }
+
+  for (int i = 1; i < num_rows + 1; ++i) {
+    crsm_rows[i] += crsm_rows[i - 1];
+  }
+
+  return matrix;
+}
+
+}  // namespace
+
+CompressedRowSparseMatrix*
+CompressedRowSparseMatrix::CreateOuterProductMatrixAndProgram(
+      const CompressedRowSparseMatrix& m,
+      vector<int>* program) {
+  CHECK_NOTNULL(program)->clear();
+  CHECK_GT(m.num_nonzeros(), 0) << "Congratulations, "
+                                << "you found a bug in Ceres. Please report it.";
+
+  vector<ProductTerm> product;
+  const vector<int>& row_blocks = m.row_blocks();
+  int row_block_begin = 0;
+  // Iterate over row blocks
+  for (int row_block = 0; row_block < row_blocks.size(); ++row_block) {
+    const int row_block_end = row_block_begin + row_blocks[row_block];
+    // Compute the outer product terms for just one row per row block.
+    const int r = row_block_begin;
+    // Compute the lower triangular part of the product.
+    for (int idx1 = m.rows()[r]; idx1 < m.rows()[r + 1]; ++idx1) {
+      for (int idx2 = m.rows()[r]; idx2 <= idx1; ++idx2) {
+        product.push_back(ProductTerm(m.cols()[idx1], m.cols()[idx2], product.size()));
+      }
+    }
+    row_block_begin = row_block_end;
+  }
+  CHECK_EQ(row_block_begin, m.num_rows());
+  sort(product.begin(), product.end());
+  return CompressAndFillProgram(m.num_cols(), m.num_cols(), product, program);
+}
+
+void CompressedRowSparseMatrix::ComputeOuterProduct(
+    const CompressedRowSparseMatrix& m,
+    const vector<int>& program,
+    CompressedRowSparseMatrix* result) {
+  result->SetZero();
+  double* values = result->mutable_values();
+  const vector<int>& row_blocks = m.row_blocks();
+
+  int cursor = 0;
+  int row_block_begin = 0;
+  const double* m_values = m.values();
+  const int* m_rows = m.rows();
+  // Iterate over row blocks.
+  for (int row_block = 0; row_block < row_blocks.size(); ++row_block) {
+    const int row_block_end = row_block_begin + row_blocks[row_block];
+    const int saved_cursor = cursor;
+    for (int r = row_block_begin; r < row_block_end; ++r) {
+      // Reuse the program segment for each row in this row block.
+      cursor = saved_cursor;
+      const int row_begin = m_rows[r];
+      const int row_end = m_rows[r + 1];
+      for (int idx1 = row_begin; idx1 < row_end; ++idx1) {
+        const double v1 =  m_values[idx1];
+        for (int idx2 = row_begin; idx2 <= idx1; ++idx2, ++cursor) {
+          values[program[cursor]] += v1 * m_values[idx2];
+        }
+      }
+    }
+    row_block_begin = row_block_end;
+  }
+
+  CHECK_EQ(row_block_begin, m.num_rows());
+  CHECK_EQ(cursor, program.size());
+}
 
 }  // namespace internal
 }  // namespace ceres

@@ -107,7 +107,7 @@ class Minimizer {
           options.line_search_sufficient_curvature_decrease;
       max_line_search_step_expansion =
           options.max_line_search_step_expansion;
-      is_silent = false;
+      is_silent = (options.logging_type == SILENT);
       evaluator = NULL;
       trust_region_strategy = NULL;
       jacobian = NULL;

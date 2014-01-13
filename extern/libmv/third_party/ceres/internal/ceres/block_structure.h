@@ -47,7 +47,7 @@ namespace internal {
 
 class BlockStructureProto;
 
-typedef int16 BlockSize;
+typedef int32 BlockSize;
 
 struct Block {
   Block() : size(-1), position(-1) {}

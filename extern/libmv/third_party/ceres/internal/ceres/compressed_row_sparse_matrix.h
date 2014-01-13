@@ -128,6 +128,32 @@ class CompressedRowSparseMatrix : public SparseMatrix {
       const double* diagonal,
       const vector<int>& blocks);
 
+  // Compute the sparsity structure of the product m.transpose() * m
+  // and create a CompressedRowSparseMatrix corresponding to it.
+  //
+  // Also compute a "program" vector, which for every term in the
+  // outer product points to the entry in the values array of the
+  // result matrix where it should be accumulated.
+  //
+  // This program is used by the ComputeOuterProduct function below to
+  // compute the outer product.
+  //
+  // Since the entries of the program are the same for rows with the
+  // same sparsity structure, the program only stores the result for
+  // one row per row block. The ComputeOuterProduct function reuses
+  // this information for each row in the row block.
+  static CompressedRowSparseMatrix* CreateOuterProductMatrixAndProgram(
+      const CompressedRowSparseMatrix& m,
+      vector<int>* program);
+
+  // Compute the values array for the expression m.transpose() * m,
+  // where the matrix used to store the result and a program have been
+  // created using the CreateOuterProductMatrixAndProgram function
+  // above.
+  static void ComputeOuterProduct(const CompressedRowSparseMatrix& m,
+                                  const vector<int>& program,
+                                  CompressedRowSparseMatrix* result);
+
  private:
   int num_rows_;
   int num_cols_;

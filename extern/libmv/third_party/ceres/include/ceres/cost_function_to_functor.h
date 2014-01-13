@@ -127,7 +127,7 @@ class CostFunctionToFunctor {
         << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
         << N8 << ", " << N9;
 
-    const vector<int16>& parameter_block_sizes =
+    const vector<int32>& parameter_block_sizes =
         cost_function->parameter_block_sizes();
     const int num_parameter_blocks =
         (N0 > 0) + (N1 > 0) + (N2 > 0) + (N3 > 0) + (N4 > 0) +
@@ -679,7 +679,7 @@ class CostFunctionToFunctor {
   template <typename JetT>
   bool EvaluateWithJets(const JetT** inputs, JetT* output) const {
     const int kNumParameters =  N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9;
-    const vector<int16>& parameter_block_sizes =
+    const vector<int32>& parameter_block_sizes =
         cost_function_->parameter_block_sizes();
     const int num_parameter_blocks = parameter_block_sizes.size();
     const int num_residuals = cost_function_->num_residuals();
@@ -732,7 +732,7 @@ class CostFunctionToFunctor {
       output[i].v.setZero();
 
       for (int j = 0; j < num_parameter_blocks; ++j) {
-        const int16 block_size = parameter_block_sizes[j];
+        const int32 block_size = parameter_block_sizes[j];
         for (int k = 0; k < parameter_block_sizes[j]; ++k) {
           output[i].v +=
               jacobian_blocks[j][i * block_size + k] * inputs[j][k].v;
