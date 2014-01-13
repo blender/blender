@@ -26,12 +26,10 @@ ccl_device_noinline float brick_noise(int n) /* fast integer noise */
 	return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-ccl_device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, float bias,
+ccl_device_noinline float2 svm_brick(float3 p, float mortar_size, float bias,
 	float brick_width, float row_height, float offset_amount, int offset_frequency,
 	float squash_amount, int squash_frequency)
-{	
-	p *= scale;
-
+{
 	int bricknum, rownum;
 	float offset = 0.0f;
 	float x, y;
@@ -89,7 +87,7 @@ ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *sta
 	float offset_amount = __int_as_float(node3.z);
 	float squash_amount = __int_as_float(node3.w);
 	
-	float2 f2 = svm_brick(co, scale, mortar_size, bias, brick_width, row_height,
+	float2 f2 = svm_brick(co*scale, mortar_size, bias, brick_width, row_height,
 		offset_amount, offset_frequency, squash_amount, squash_frequency);
 
 	float tint = f2.x;

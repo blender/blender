@@ -181,10 +181,9 @@ ccl_device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNois
 
 /* Shader */
 
-ccl_device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float scale, float3 p)
+ccl_device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float3 p)
 {
 	NodeNoiseBasis basis = NODE_NOISE_PERLIN;
-	p *= scale;
 
 	if(type == NODE_MUSGRAVE_MULTIFRACTAL)
 		return intensity*noise_musgrave_multi_fractal(p, basis, dimension, lacunarity, octaves);
@@ -226,7 +225,7 @@ ccl_device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *
 	lacunarity = fmaxf(lacunarity, 1e-5f);
 
 	float f = svm_musgrave((NodeMusgraveType)type,
-		dimension, lacunarity, detail, foffset, 1.0f, gain, scale, co);
+		dimension, lacunarity, detail, foffset, 1.0f, gain, co*scale);
 
 	if(stack_valid(fac_offset))
 		stack_store_float(stack, fac_offset, f);
