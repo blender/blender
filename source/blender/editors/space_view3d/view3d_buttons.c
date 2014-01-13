@@ -477,7 +477,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BMesh *bm = em->bm;
 			BMIter iter;
 
-			if (len_v3(&median[LOC_X]) > 0.000001f) {
+			if (tot == 1 || len_v3(&median[LOC_X]) != 0.0f) {
 				BMVert *eve;
 
 				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
