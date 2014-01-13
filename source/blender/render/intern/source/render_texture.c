@@ -98,7 +98,7 @@ extern struct Render R;
 static void init_render_texture(Render *re, Tex *tex)
 {
 	/* imap test */
-	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+	if (tex->ima && BKE_image_is_animated(tex->ima)) {
 		BKE_image_user_frame_calc(&tex->iuser, re ? re->r.cfra : 0, re ? re->flag & R_SEC_FIELD:0);
 	}
 	
@@ -3622,7 +3622,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			}
 
 			/* update image sequences and movies */
-			if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			if (tex->ima && BKE_image_is_animated(tex->ima)) {
 				BKE_image_user_check_frame_calc(&tex->iuser, (int)scene->r.cfra, 0);
 			}
 		}

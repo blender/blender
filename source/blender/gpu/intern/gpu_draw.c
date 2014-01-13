@@ -1298,7 +1298,7 @@ void GPU_free_images_anim(void)
 
 	if (G.main)
 		for (ima=G.main->image.first; ima; ima=ima->id.next)
-			if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+			if (BKE_image_is_animated(ima))
 				GPU_free_image(ima);
 }
 

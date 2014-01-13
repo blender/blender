@@ -245,7 +245,7 @@ void packAll(Main *bmain, ReportList *reports)
 				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 				tot ++;
 			}
-			else if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+			else if (BKE_image_is_animated(ima)) {
 				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported",
 				            ima->id.name + 2);
 			}

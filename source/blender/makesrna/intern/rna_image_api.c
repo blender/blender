@@ -166,7 +166,7 @@ static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 	if (!image->packedfile) {
 		BKE_report(reports, RPT_ERROR, "Image not packed");
 	}
-	else if (image->source == IMA_SRC_SEQUENCE || image->source == IMA_SRC_MOVIE) {
+	else if (BKE_image_is_animated(image)) {
 		BKE_report(reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
 		return;
 	}

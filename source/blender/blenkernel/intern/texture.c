@@ -1422,9 +1422,7 @@ void BKE_free_oceantex(struct OceanTex *ot)
 /* ------------------------------------------------------------------------- */
 bool BKE_texture_dependsOnTime(const struct Tex *texture)
 {
-	if (texture->ima &&
-	    ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
-	{
+	if (texture->ima && BKE_image_is_animated(texture->ima)) {
 		return 1;
 	}
 	else if (texture->adt) {

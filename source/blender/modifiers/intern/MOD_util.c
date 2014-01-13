@@ -66,8 +66,9 @@ void modifier_init_texture(Scene *scene, Tex *tex)
 	if (!tex)
 		return;
 
-	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+	if (tex->ima && BKE_image_is_animated(tex->ima)) {
 		BKE_image_user_frame_calc(&tex->iuser, scene->r.cfra, 0);
+	}
 }
 
 void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,

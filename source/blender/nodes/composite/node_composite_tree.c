@@ -366,7 +366,7 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 		/* otherwise always tag these node types */
 		if (node->type == CMP_NODE_IMAGE) {
 			Image *ima = (Image *)node->id;
-			if (ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			if (ima && BKE_image_is_animated(ima)) {
 				nodeUpdate(ntree, node);
 				tagged = 1;
 			}

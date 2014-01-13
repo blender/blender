@@ -701,7 +701,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					col = uiLayoutColumn(split, FALSE);
 					/* XXX Why only display fields_per_frame only for video image types?
 					 *     And why allow fields for non-video image types at all??? */
-					if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+					if (BKE_image_is_animated(ima)) {
 						uiLayout *subsplit = uiLayoutSplit(col, 0.0f, FALSE);
 						uiLayout *subcol = uiLayoutColumn(subsplit, FALSE);
 						uiItemR(subcol, &imaptr, "use_fields", 0, NULL, ICON_NONE);
@@ -717,7 +717,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				}
 			}
 
-			if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			if (BKE_image_is_animated(ima)) {
 				uiItemS(layout);
 
 				split = uiLayoutSplit(layout, 0.0f, FALSE);
