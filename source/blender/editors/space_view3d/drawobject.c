@@ -161,7 +161,7 @@ typedef struct drawDMLayer_userData {
 	int cd_layer_offset;
 } drawDMLayer_userData;
 
-static void draw_bounding_volume(Scene *scene, Object *ob, char type);
+static void draw_bounding_volume(Object *ob, char type);
 
 static void drawcube_size(float size);
 static void drawcircle_size(float size);
@@ -1893,7 +1893,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 }
 
 /* lattice color is hardcoded, now also shows weightgroup values in edit mode */
-static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
+static void drawlattice(View3D *v3d, Object *ob)
 {
 	Lattice *lt = ob->data;
 	DispList *dl;
@@ -3392,7 +3392,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 	if (dt == OB_BOUNDBOX) {
 		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_WIRE) == 0)
-			draw_bounding_volume(scene, ob, ob->boundtype);
+			draw_bounding_volume(ob, ob->boundtype);
 	}
 	else if (hasHaloMat || (totface == 0 && totedge == 0)) {
 		glPointSize(1.5);
@@ -6247,7 +6247,7 @@ static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 	gluDeleteQuadric(qobj);
 }
 
-static void draw_bounding_volume(Scene *scene, Object *ob, char type)
+static void draw_bounding_volume(Object *ob, char type)
 {
 	BoundBox  bb_local;
 	BoundBox *bb = NULL;
@@ -6918,7 +6918,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
-						draw_bounding_volume(scene, ob, ob->boundtype);
+						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
@@ -6936,7 +6936,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
-						draw_bounding_volume(scene, ob, ob->boundtype);
+						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
@@ -6954,7 +6954,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
-						draw_bounding_volume(scene, ob, ob->boundtype);
+						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
 				else
@@ -6993,10 +6993,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
 						dt = OB_WIRE;
 					if (dt == OB_BOUNDBOX) {
-						draw_bounding_volume(scene, ob, ob->boundtype);
+						draw_bounding_volume(ob, ob->boundtype);
 					}
 					else {
-						drawlattice(scene, v3d, ob);
+						drawlattice(v3d, ob);
 					}
 				}
 				break;
@@ -7006,7 +7006,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					if ((dt == OB_BOUNDBOX) && (ob->mode & (OB_MODE_EDIT | OB_MODE_POSE)))
 						dt = OB_WIRE;
 					if (dt == OB_BOUNDBOX) {
-						draw_bounding_volume(scene, ob, ob->boundtype);
+						draw_bounding_volume(ob, ob->boundtype);
 					}
 					else {
 						if (dt > OB_WIRE)
@@ -7221,7 +7221,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if ((ob->gameflag & OB_BOUNDS) && (ob->mode == OB_MODE_OBJECT)) {
 			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_DRAWBOUNDOX) == 0) {
 				setlinestyle(2);
-				draw_bounding_volume(scene, ob, ob->collision_boundtype);
+				draw_bounding_volume(ob, ob->collision_boundtype);
 				setlinestyle(0);
 			}
 		}
@@ -7236,7 +7236,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				drawaxes(1.0f, OB_ARROWS);
 			}
 			if (dtx & OB_DRAWBOUNDOX) {
-				draw_bounding_volume(scene, ob, ob->boundtype);
+				draw_bounding_volume(ob, ob->boundtype);
 			}
 			if (dtx & OB_TEXSPACE) {
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {

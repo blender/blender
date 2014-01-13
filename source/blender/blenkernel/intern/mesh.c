@@ -647,7 +647,7 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 	cdlu = &ldata->layers[loop_index];
 	cdlf = fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
-	if (cdlp->name != name) {
+	if (cdlp->name != new_name) {
 		/* Mesh validate passes a name from the CD layer as the new name,
 		 * Avoid memcpy from self to self in this case.
 		 */
