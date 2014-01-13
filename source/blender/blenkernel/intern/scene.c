@@ -1538,6 +1538,25 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 		if (adt && (adt->recalc & ADT_RECALC_ANIM))
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
+
+	/* Extra call here to recalc aterial animation.
+	 *
+	 * Need to do this so changing material settings from the graph/dopesheet
+	 * will update suff in the viewport.
+	 */
+	if (DAG_id_type_tagged(bmain, ID_MA)) {
+		Material *material;
+		float ctime = BKE_scene_frame_get(scene);
+
+		for (material = bmain->mat.first;
+		     material;
+		     material = material->id.next)
+		{
+			AnimData *adt = BKE_animdata_from_id(&material->id);
+			if (adt && (adt->recalc & ADT_RECALC_ANIM))
+				BKE_animsys_evaluate_animdata(scene, &material->id, adt, ctime, 0);
+		}
+	}
 	
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
