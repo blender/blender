@@ -39,9 +39,9 @@ if(NOT WITH_HEADLESS)
 	)
 
 	include_directories(${PNG_INCLUDE_DIR})
+	link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
 
 	add_executable(datatoc_icon ${SRC})
 
-	link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
-	target_link_libraries(datatoc_icon ${PNG_LIBRARIES})
+	target_link_libraries(datatoc_icon ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
 endif()
