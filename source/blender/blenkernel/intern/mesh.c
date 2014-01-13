@@ -647,8 +647,13 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 	cdlu = &ldata->layers[loop_index];
 	cdlf = fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
-	BLI_strncpy(cdlp->name, new_name, sizeof(cdlp->name));
-	CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
+	if (cdlp->name != name) {
+		/* Mesh validate passes a name from the CD layer as the new name,
+		 * Avoid memcpy from self to self in this case.
+		 */
+		BLI_strncpy(cdlp->name, new_name, sizeof(cdlp->name));
+		CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
+	}
 
 	/* Loop until we do have exactly the same name for all layers! */
 	for (i = 1; (strcmp(cdlp->name, cdlu->name) != 0 || (cdlf && strcmp(cdlp->name, cdlf->name) != 0)); i++) {
