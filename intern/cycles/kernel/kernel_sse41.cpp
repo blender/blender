@@ -73,5 +73,9 @@ void kernel_cpu_sse41_shader(KernelGlobals *kg, uint4 *input, float4 *output, in
 }
 
 CCL_NAMESPACE_END
+#else
+
+/* needed for some linkers in combination with scons making empty compilation unit in a library */
+void __dummy_function_cycles_sse41(){}
 
 #endif

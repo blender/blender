@@ -71,4 +71,9 @@ void kernel_cpu_sse2_shader(KernelGlobals *kg, uint4 *input, float4 *output, int
 
 CCL_NAMESPACE_END
 
+#else
+
+/* needed for some linkers in combination with scons making empty compilation unit in a library */
+void __dummy_function_cycles_sse2(){}
+
 #endif
