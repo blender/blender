@@ -25,7 +25,7 @@
  *  \ingroup bli
  */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 
 #  ifdef USE_STANDALONE
 #    define MEM_mallocN(size, str) ((void)str, malloc(size))

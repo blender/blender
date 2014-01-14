@@ -32,7 +32,7 @@
 #include "../blenlib/BLI_sys_types.h"
 
 /* for DIR */
-#if !defined(WIN32) || defined(__MINGW64__)
+#if !defined(WIN32) || defined(FREEWINDOWS)
 #  include <dirent.h>
 #endif
 
