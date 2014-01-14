@@ -103,7 +103,7 @@ FOREACH(COMPONENT ${_openexr_FIND_COMPONENTS})
 
   FIND_LIBRARY(OPENEXR_${UPPERCOMPONENT}_LIBRARY
     NAMES
-      ${COMPONENT} ${COMPONENT}-${_openexr_libs_ver}
+      ${COMPONENT}-${_openexr_libs_ver} ${COMPONENT} 
     HINTS
       ${_openexr_SEARCH_DIRS}
     PATH_SUFFIXES
