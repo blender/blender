@@ -3459,6 +3459,11 @@ static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
 	bool vbeveled;
 
 	limited_offset = bp->offset;
+	if (bp->offset_type == BEVEL_AMT_PERCENT) {
+		if (limited_offset > 50.0f)
+			limited_offset = 50.0f;
+		return limited_offset;
+	}
 	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			if (bp->vertex_only) {
