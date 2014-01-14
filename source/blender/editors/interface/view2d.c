@@ -404,23 +404,26 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
 	 */
 	else if (v2d->keepzoom & V2D_LIMITZOOM) {
-		float zoom, fac;
 		
 		/* check if excessive zoom on x-axis */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-			zoom = winx / width;
-			if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-				fac = (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
-				width *= fac;
+			const float zoom = winx / width;
+			if (zoom < v2d->minzoom) {
+				width = winx / v2d->minzoom;
+			}
+			else if (zoom > v2d->maxzoom) {
+				width = winx / v2d->maxzoom;
 			}
 		}
 		
 		/* check if excessive zoom on y-axis */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-			zoom = winy / height;
-			if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-				fac = (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
-				height *= fac;
+			const float zoom = winy / height;
+			if (zoom < v2d->minzoom) {
+				height = winy / v2d->minzoom;
+			}
+			else if (zoom > v2d->maxzoom) {
+				height = winy / v2d->maxzoom;
 			}
 		}
 	}
