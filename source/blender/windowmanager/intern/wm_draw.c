@@ -502,6 +502,9 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 
 static void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	float halfx, halfy, ratiox, ratioy;
 	int x, y, sizex, sizey, offx, offy;
 
@@ -509,8 +512,8 @@ static void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float a
 
 	for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
 		for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-			sizex = (x == triple->nx - 1) ? WM_window_pixels_x(win) - offx : triple->x[x];
-			sizey = (y == triple->ny - 1) ? WM_window_pixels_y(win) - offy : triple->y[y];
+			sizex = (x == triple->nx - 1) ? winsize_x - offx : triple->x[x];
+			sizey = (y == triple->ny - 1) ? winsize_y - offy : triple->y[y];
 
 			/* wmOrtho for the screen has this same offset */
 			ratiox = sizex;
@@ -551,12 +554,15 @@ static void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float a
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
 {
+	const int winsize_x = WM_window_pixels_x(win);
+	const int winsize_y = WM_window_pixels_y(win);
+
 	int x, y, sizex, sizey, offx, offy;
 
 	for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
 		for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-			sizex = (x == triple->nx - 1) ? WM_window_pixels_x(win) - offx : triple->x[x];
-			sizey = (y == triple->ny - 1) ? WM_window_pixels_y(win) - offy : triple->y[y];
+			sizex = (x == triple->nx - 1) ? winsize_x - offx : triple->x[x];
+			sizey = (y == triple->ny - 1) ? winsize_y - offy : triple->y[y];
 
 			glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
 			glCopyTexSubImage2D(triple->target, 0, 0, 0, offx, offy, sizex, sizey);
