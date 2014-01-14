@@ -1250,7 +1250,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 
 		/* setup particle radius emission if enabled */
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-			tree = BLI_kdtree_new(psys->totpart);
+			tree = BLI_kdtree_new(psys->totpart + psys->totchild);
 
 			/* check need for high resolution map */
 			if ((sds->flags & MOD_SMOKE_HIGHRES) && (sds->highres_sampling == SM_HRES_FULLSAMPLE)) {
