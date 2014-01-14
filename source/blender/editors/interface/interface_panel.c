@@ -1407,7 +1407,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 #endif
 	float scaletabs = 1.0f;
 	/* same for all tabs */
-	const int rct_xmin = v2d->mask.xmin + 3;
+	const int rct_xmin = v2d->mask.xmin + 3;  /* intentionally dont scale by 'px' */
 	const int rct_xmax = v2d->mask.xmin + category_tabs_width;
 	const int text_v_ofs = (rct_xmax - rct_xmin) * 0.3f;
 
