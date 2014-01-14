@@ -192,10 +192,8 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-if(WITH_CYCLES_OPTIMIZED_KERNEL)
-	set_source_files_properties(kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-	set_source_files_properties(kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-endif()
+set_source_files_properties(kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+set_source_files_properties(kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 
 if(WITH_CYCLES_OPTIMIZED_KERNEL_SSE41)
 	set_source_files_properties(kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")

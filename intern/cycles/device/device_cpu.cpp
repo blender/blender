@@ -166,7 +166,6 @@ public:
 			int start_sample = tile.start_sample;
 			int end_sample = tile.start_sample + tile.num_samples;
 
-#ifdef WITH_OPTIMIZED_KERNEL
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
 			if(system_cpu_support_sse41()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
@@ -189,6 +188,7 @@ public:
 			}
 			else
 #endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 			if(system_cpu_support_sse3()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
 					if (task.get_cancel() || task_pool.canceled()) {
@@ -208,7 +208,10 @@ public:
 					task.update_progress(tile);
 				}
 			}
-			else if(system_cpu_support_sse2()) {
+			else
+#endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+			if(system_cpu_support_sse2()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
 					if (task.get_cancel() || task_pool.canceled()) {
 						if(task.need_finish_queue == false)
@@ -267,7 +270,6 @@ public:
 		float sample_scale = 1.0f/(task.sample + 1);
 
 		if(task.rgba_half) {
-#ifdef WITH_OPTIMIZED_KERNEL
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
 			if(system_cpu_support_sse41()) {
 				for(int y = task.y; y < task.y + task.h; y++)
@@ -276,14 +278,18 @@ public:
 							sample_scale, x, y, task.offset, task.stride);
 			}
 			else
-#endif				
+#endif		
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3		
 			if(system_cpu_support_sse3()) {
 				for(int y = task.y; y < task.y + task.h; y++)
 					for(int x = task.x; x < task.x + task.w; x++)
 						kernel_cpu_sse3_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
 							sample_scale, x, y, task.offset, task.stride);
 			}
-			else if(system_cpu_support_sse2()) {
+			else
+#endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+			if(system_cpu_support_sse2()) {
 				for(int y = task.y; y < task.y + task.h; y++)
 					for(int x = task.x; x < task.x + task.w; x++)
 						kernel_cpu_sse2_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
@@ -299,7 +305,6 @@ public:
 			}
 		}
 		else {
-#ifdef WITH_OPTIMIZED_KERNEL
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
 			if(system_cpu_support_sse41()) {
 				for(int y = task.y; y < task.y + task.h; y++)
@@ -309,13 +314,17 @@ public:
 			}
 			else
 #endif			
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 			if(system_cpu_support_sse3()) {
 				for(int y = task.y; y < task.y + task.h; y++)
 					for(int x = task.x; x < task.x + task.w; x++)
 						kernel_cpu_sse3_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
 							sample_scale, x, y, task.offset, task.stride);
 			}
-			else if(system_cpu_support_sse2()) {
+			else
+#endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+			if(system_cpu_support_sse2()) {
 				for(int y = task.y; y < task.y + task.h; y++)
 					for(int x = task.x; x < task.x + task.w; x++)
 						kernel_cpu_sse2_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
@@ -340,7 +349,6 @@ public:
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
 
-#ifdef WITH_OPTIMIZED_KERNEL
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
 		if(system_cpu_support_sse41()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
@@ -352,6 +360,7 @@ public:
 		}
 		else
 #endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 		if(system_cpu_support_sse3()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
@@ -360,7 +369,10 @@ public:
 					break;
 			}
 		}
-		else if(system_cpu_support_sse2()) {
+		else
+#endif
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+		if(system_cpu_support_sse2()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 

@@ -8,10 +8,6 @@ include(cmake/external_libs.cmake)
 
 # Build Flags
 
-if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-	set(WITH_CYCLES_OPTIMIZED_KERNEL ON)
-endif()
-
 if(WIN32 AND MSVC)
 	# there is no /arch:SSE3, but intrinsics are available anyway
 	if(CMAKE_CL_64)
@@ -53,10 +49,6 @@ add_definitions(${BOOST_DEFINITIONS} ${OPENIMAGEIO_DEFINITIONS})
 
 add_definitions(-DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {)
 add_definitions(-DCCL_NAMESPACE_END=})
-
-if(WITH_CYCLES_OPTIMIZED_KERNEL)
-	add_definitions(-DWITH_OPTIMIZED_KERNEL)
-endif()
 
 if(WITH_CYCLES_NETWORK)
 	add_definitions(-DWITH_NETWORK)

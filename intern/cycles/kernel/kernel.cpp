@@ -84,6 +84,11 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 		assert(0);
 }
 
+/* On x86-64, we can assume SSE2, so avoid the extra kernel and compile this one with SSE2 intrinsics */
+#if defined(__x86_64__) || defined(_M_X64)
+#define __KERNEL_SSE2__
+#endif
+
 /* Path Tracing */
 
 void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)

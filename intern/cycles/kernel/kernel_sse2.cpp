@@ -17,8 +17,10 @@
 /* Optimized CPU kernel entry points. This file is compiled with SSE2
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
-
-#ifdef WITH_OPTIMIZED_KERNEL
+ 
+#include "util_optimization.h"
+ 
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
 
 /* SSE optimization disabled for now on 32 bit, see bug #36316 */
 #if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
@@ -70,4 +72,3 @@ void kernel_cpu_sse2_shader(KernelGlobals *kg, uint4 *input, float4 *output, int
 CCL_NAMESPACE_END
 
 #endif
-
