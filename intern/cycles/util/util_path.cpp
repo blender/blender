@@ -42,19 +42,19 @@ static string cached_user_path = "";
 static boost::filesystem::path to_boost(const string& path)
 {
 #ifdef _MSC_VER
-	std::wstring path_utf16 = Strutil::utf8_to_utf16(path);
-	return boost::filesystem::path(path_utf16);
+	std::wstring path_utf16 = Strutil::utf8_to_utf16(path.c_str());
+	return boost::filesystem::path(path_utf16.c_str());
 #else
-	return boost::filesystem::path(path);
+	return boost::filesystem::path(path.c_str());
 #endif
 }
 
 static string from_boost(const boost::filesystem::path& path)
 {
 #ifdef _MSC_VER
-	return Strutil::utf16_to_utf8(path.wstring());
+	return Strutil::utf16_to_utf8(path.wstring().c_str());
 #else
-	return path.string();
+	return path.string().c_str();
 #endif
 }
 
