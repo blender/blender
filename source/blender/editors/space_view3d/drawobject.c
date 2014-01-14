@@ -3801,16 +3801,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 
 	glEnable(GL_LIGHTING);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	
-	
+
 	if (ob->type == OB_MBALL) {  /* mball always smooth shaded */
-		if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
-		else glFrontFace(GL_CCW);
 		glShadeModel(GL_SMOOTH);
-	}
-	else {
-		if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CCW);
-		else glFrontFace(GL_CW);
 	}
 	
 	dl = lb->first;
@@ -3929,6 +3922,8 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 		return true;
 	}
 
+	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
+
 	if (dt > OB_WIRE && dm->getNumTessFaces(dm)) {
 		int glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
@@ -3967,6 +3962,13 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 
 	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == false) {
 		return false;
+	}
+
+	if (ob->type == OB_MBALL) {
+		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
+	}
+	else {
+		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CCW : GL_CW);
 	}
 
 	switch (ob->type) {
