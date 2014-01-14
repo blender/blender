@@ -1541,17 +1541,16 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
 
 		/* tab titles */
-		{
-			glColor3ubv(theme_col_text);
-			/* draw white shadow to give text more depth */
-			BLF_enable(fontid, BLF_SHADOW);
-			BLF_shadow(fontid, 3, 1.0f, 1.0f, 1.0f, 0.25f);
-			BLF_shadow_offset(fontid, -1, -1);
-		}
-		
 
+		/* first draw shadow, in this case white */
+		glColor3ubv(theme_col_text);
+		/* draw white shadow to give text more depth */
+		BLF_enable(fontid, BLF_SHADOW);
+		BLF_shadow(fontid, 3, 1.0f, 1.0f, 1.0f, 0.25f);
+		BLF_shadow_offset(fontid, -1, -1);
+
+		/* main tab title */
 		BLF_draw(fontid, category_id_draw, category_draw_len);
-
 
 		glDisable(GL_BLEND);
 
