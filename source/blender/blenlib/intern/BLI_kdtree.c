@@ -46,6 +46,7 @@ struct KDTree {
 	KDTreeNode *root;
 #ifdef DEBUG
 	bool is_balanced;  /* ensure we call balance first */
+	unsigned int maxsize;   /* max size of the tree */
 #endif
 };
 
@@ -67,6 +68,7 @@ KDTree *BLI_kdtree_new(unsigned int maxsize)
 
 #ifdef DEBUG
 	tree->is_balanced = false;
+	tree->maxsize = maxsize;
 #endif
 
 	return tree;
@@ -86,6 +88,10 @@ void BLI_kdtree_free(KDTree *tree)
 void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3])
 {
 	KDTreeNode *node = &tree->nodes[tree->totnode++];
+
+#ifdef DEBUG
+	BLI_assert(tree->totnode < tree->maxsize);
+#endif
 
 	/* note, array isn't calloc'd,
 	 * need to initialize all struct members */
