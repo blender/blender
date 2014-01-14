@@ -58,9 +58,10 @@ static void initData(ModifierData *md)
 	bmd->value = 0.1f;
 	bmd->res = 1;
 	bmd->flags = 0;
-	bmd->val_flags = 0;
+	bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
 	bmd->lim_flags = 0;
 	bmd->e_flags = 0;
+	bmd->profile = 0.5f;
 	bmd->bevel_angle = DEG2RADF(30.0f);
 	bmd->defgrp_name[0] = '\0';
 }
@@ -76,6 +77,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->val_flags = bmd->val_flags;
 	tbmd->lim_flags = bmd->lim_flags;
 	tbmd->e_flags = bmd->e_flags;
+	tbmd->profile = bmd->profile;
 	tbmd->bevel_angle = bmd->bevel_angle;
 	BLI_strncpy(tbmd->defgrp_name, bmd->defgrp_name, sizeof(tbmd->defgrp_name));
 }
@@ -110,6 +112,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	const float threshold = cosf(bmd->bevel_angle + 0.000000175f);
 	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
 	const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
+	const int offset_type = bmd->val_flags;
 
 	bm = DM_to_bmesh(dm, true);
 
@@ -158,8 +161,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		}
 	}
 
-	/* TODO: add offset_kind to modifier properties to, and pass in as 3rd arg here */
-	BM_mesh_bevel(bm, bmd->value, 0, bmd->res, 0.5f,
+	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup);
 

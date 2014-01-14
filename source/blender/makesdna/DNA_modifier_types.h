@@ -295,17 +295,18 @@ typedef struct BevelModifierData {
 
 	float value;          /* the "raw" bevel value (distance/amount to bevel) */
 	int res;              /* the resolution (as originally coded, it is the number of recursive bevels) */
-	int pad;
 	short flags;          /* general option flags */
-	short val_flags;      /* flags used to interpret the bevel value */
+	short val_flags;      /* used to interpret the bevel value */
 	short lim_flags;      /* flags to tell the tool how to limit the bevel */
 	short e_flags;        /* flags to direct how edge weights are applied to verts */
+	float profile;        /* controls profile shape (0->1, .5 is round) */
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;
 	/* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
 	char defgrp_name[64];
 } BevelModifierData;
 
+/* BevelModifierData->flags and BevelModifierData->lim_flags */
 enum {
 	MOD_BEVEL_VERT          = (1 << 1),
 /*	MOD_BEVEL_RADIUS        = (1 << 2), */
@@ -322,6 +323,14 @@ enum {
 /*	MOD_BEVEL_EVEN          = (1 << 11), */
 /*	MOD_BEVEL_DIST          = (1 << 12), */  /* same as above */
 	MOD_BEVEL_OVERLAP_OK    = (1 << 13),
+};
+
+/* BevelModifierData->val_flags (not used as flags any more) */
+enum {
+	MOD_BEVEL_AMT_OFFSET = 0,
+	MOD_BEVEL_AMT_WIDTH = 1,
+	MOD_BEVEL_AMT_DEPTH = 2,
+	MOD_BEVEL_AMT_PERCENT = 3,
 };
 
 typedef struct SmokeModifierData {
