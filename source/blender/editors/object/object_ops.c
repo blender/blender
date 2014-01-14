@@ -414,12 +414,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 	
-	kmi = WM_keymap_add_item(keymap, "RIGIDBODY_OT_objects_add", RKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "type", 0); /* active */
-	kmi = WM_keymap_add_item(keymap, "RIGIDBODY_OT_objects_add", RKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", 1); /* passive */
-	WM_keymap_add_item(keymap, "RIGIDBODY_OT_objects_remove", RKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_object_specials", WKEY, KM_PRESS, 0, 0);
 
 	for (i = 0; i <= 5; i++) {
