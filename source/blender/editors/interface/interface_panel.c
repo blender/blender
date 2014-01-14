@@ -573,7 +573,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
 		                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		                    (block->aspect / UI_DPI_FAC) / U.pixelsize, 1.0f);
+		                    (block->aspect / UI_DPI_FAC), 1.0f);
 		glDisable(GL_BLEND);
 	}
 
