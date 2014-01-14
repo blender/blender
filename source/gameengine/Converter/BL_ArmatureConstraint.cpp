@@ -322,7 +322,7 @@ PyObject *BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 		else
 			return self->m_subtarget->GetProxy();
 	case BCA_ACTIVE:
-		return PyBool_FromLong(constraint->flag & CONSTRAINT_OFF);
+		return PyBool_FromLong((constraint->flag & CONSTRAINT_OFF) == 0);
 	case BCA_IKWEIGHT:
 	case BCA_IKTYPE:
 	case BCA_IKFLAG:
