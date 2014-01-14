@@ -381,7 +381,7 @@ static bool constraint_valid(bConstraint *con)
 
 	if (data->flag & CONSTRAINT_IK_AUTO)
 		return true;
-	if (con->flag & CONSTRAINT_DISABLE)
+	if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))
 		return false;
 	if (is_cartesian_constraint(con)) {
 		/* cartesian space constraint */
