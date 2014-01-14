@@ -168,7 +168,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         col.prop(self, 'minor_segments', text="")
 
         col = layout.column(align=True)
-        col.label(text="Torus Dimentions")
+        col.label(text="Torus Dimensions")
         col.row().prop(self, 'mode', expand=True)
 
         if self.mode == 'MAJOR_MINOR':
