@@ -20,12 +20,16 @@
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
 
+/* VC2008 is not ready for sse41, probably broken blendv intrinsic... */
+#if defined(_MSC_VER) && (_MSC_VER < 1700)
+#undef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#endif
+
 #endif
 
 #if defined(i386) || defined(_M_IX86)
 
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-#define WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
 
 #endif
