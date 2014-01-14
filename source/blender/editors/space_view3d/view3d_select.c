@@ -2222,7 +2222,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 	bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	bool center = RNA_boolean_get(op->ptr, "center");
 	bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
-	bool object = RNA_boolean_get(op->ptr, "object");
+	bool object = (RNA_boolean_get(op->ptr, "object") && obedit);  /* only force object select for editmode */
 	bool retval = false;
 	int location[2];
 
