@@ -2662,7 +2662,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for (md = ob->modifiers.first; md; md = md->next) {
-				if (md->type = eModifierType_Bevel) {
+				if (md->type == eModifierType_Bevel) {
 					BevelModifierData *bmd = (BevelModifierData *)md;
 					bmd->profile = 0.5f;
 					bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
