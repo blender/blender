@@ -430,9 +430,6 @@ if env['OURPLATFORM']=='darwin':
         else:
             env['WITH_BF_OPENMP'] = 0
             print B.bc.OKGREEN + "Disabled OpenMP, not supported by compiler"
-            
-    if env['WITH_BF_CYCLES'] and env['WITH_CYCLES_OPTIMIZED_KERNEL_SSE41']:
-        print B.bc.OKGREEN + 'Using Cycles SSE 4.1 option'
 
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath

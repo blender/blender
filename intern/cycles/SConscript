@@ -93,14 +93,11 @@ else:
     sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse'.split())
     sse41_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse'.split())
 
-defs.append('WITH_OPTIMIZED_KERNEL')
 optim_defs = defs[:]
 
-if env['WITH_CYCLES_OPTIMIZED_KERNEL_SSE41']:
-    cycles_sse41 = cycles.Clone()
-    sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
-    cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
-    defs.append('WITH_CYCLES_OPTIMIZED_KERNEL_SSE41')
+cycles_sse41 = cycles.Clone()
+sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
+cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
 
 cycles_sse3 = cycles.Clone()
 sse3_sources = [path.join('kernel', 'kernel_sse3.cpp')]
