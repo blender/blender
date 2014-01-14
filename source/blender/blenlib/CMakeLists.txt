@@ -102,6 +102,7 @@ set(SRC
 	intern/voronoi.c
 	intern/voxel.c
 	intern/winstuff.c
+	intern/winstuff_dir.c
 
 	BLI_alloca.h
 	BLI_args.h

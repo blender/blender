@@ -38,6 +38,12 @@
 
 #include "png.h"
 
+
+/* for Win32 DIR functions */
+#ifdef WIN32
+#  include "../blenlib/BLI_winstuff.h"
+#endif
+
 #ifdef WIN32
 #  define SEP '\\'
 #else

@@ -38,6 +38,21 @@ if(NOT WITH_HEADLESS)
 		datatoc_icon.c
 	)
 
+	if(WIN32)
+		include_directories(
+			../blenlib
+			../../../intern/utfconv
+		)
+
+		# for winstuff_dir.c
+		add_definitions(-DUSE_STANDALONE)
+
+		list(APPEND SRC
+			../blenlib/intern/winstuff_dir.c
+			../../../intern/utfconv/utfconv.c
+		)
+	endif()
+
 	include_directories(${PNG_INCLUDE_DIR})
 	link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
 

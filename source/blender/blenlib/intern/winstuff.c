@@ -172,90 +172,6 @@ void RegisterBlendExtension(void)
 	TerminateProcess(GetCurrentProcess(), 0);
 }
 
-DIR *opendir(const char *path)
-{
-	wchar_t *path_16 = alloc_utf16_from_8(path, 0);
-
-	if (GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) {
-		DIR *newd = MEM_mallocN(sizeof(DIR), "opendir");
-
-		newd->handle = INVALID_HANDLE_VALUE;
-		sprintf(newd->path, "%s\\*", path);
-		
-		newd->direntry.d_ino = 0;
-		newd->direntry.d_off = 0;
-		newd->direntry.d_reclen = 0;
-		newd->direntry.d_name = NULL;
-		
-		free(path_16);
-		return newd;
-	}
-	else {
-		free(path_16);
-		return NULL;
-	}
-}
-
-static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
-{
-	size_t bsize = count_utf_8_from_16(in16);
-	char *out8 = NULL;
-	if (!bsize) return NULL;
-	out8 = (char *)MEM_mallocN(sizeof(char) * (bsize + add), "UTF-8 String");
-	conv_utf_16_to_8(in16, out8, bsize);
-	return out8;
-}
-
-static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8) (char *in8, size_t add)
-{
-	size_t bsize = count_utf_16_from_8(in8);
-	wchar_t *out16 = NULL;
-	if (!bsize) return NULL;
-	out16 = (wchar_t *) MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
-	conv_utf_8_to_16(in8, out16, bsize);
-	return out16;
-}
-
-
-
-struct dirent *readdir(DIR *dp)
-{
-	if (dp->direntry.d_name) {
-		MEM_freeN(dp->direntry.d_name);
-		dp->direntry.d_name = NULL;
-	}
-		
-	if (dp->handle == INVALID_HANDLE_VALUE) {
-		wchar_t *path_16 = alloc_utf16_from_8(dp->path, 0);
-		dp->handle = FindFirstFileW(path_16, &(dp->data));
-		free(path_16);
-		if (dp->handle == INVALID_HANDLE_VALUE)
-			return NULL;
-			
-		dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
-		
-		return &dp->direntry;
-	}
-	else if (FindNextFileW(dp->handle, &(dp->data))) {
-		dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
-
-		return &dp->direntry;
-	}
-	else {
-		return NULL;
-	}
-}
-
-int closedir(DIR *dp)
-{
-	if (dp->direntry.d_name) MEM_freeN(dp->direntry.d_name);
-	if (dp->handle != INVALID_HANDLE_VALUE) FindClose(dp->handle);
-
-	MEM_freeN(dp);
-	
-	return 0;
-}
-
 void get_default_root(char *root)
 {
 	char str[MAX_PATH + 1];
@@ -329,32 +245,6 @@ int check_file_chars(char *filename)
 	}
 	return 1;
 }
-
-/* Copied from http://sourceware.org/ml/newlib/2005/msg00248.html */
-/* Copyright 2005 Shaun Jackman
- * Permission to use, copy, modify, and distribute this software
- * is freely granted, provided that this notice is preserved.
- */
-#include <string.h>
-const char *dirname(char *path)
-{
-	char *p;
-	if (path == NULL || *path == '\0')
-		return ".";
-	p = path + strlen(path) - 1;
-	while (*p == '/') {
-		if (p == path)
-			return path;
-		*p-- = '\0';
-	}
-	while (p >= path && *p != '/')
-		p--;
-	return
-	    p < path ? "." :
-	    p == path ? "/" :
-	    (*p = '\0', path);
-}
-/* End of copied part */
 
 #else
 
