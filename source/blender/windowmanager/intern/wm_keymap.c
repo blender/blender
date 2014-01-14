@@ -1086,12 +1086,12 @@ int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
  * the preset, addon and user preferences keymaps. We also test if the final
  * configuration changed and write the changes to the user preferences. */
 
-static int WM_KEYMAP_UPDATE = 0;
+static bool WM_KEYMAP_UPDATE = false;
 
 void WM_keyconfig_update_tag(wmKeyMap *km, wmKeyMapItem *kmi)
 {
 	/* quick tag to do delayed keymap updates */
-	WM_KEYMAP_UPDATE = 1;
+	WM_KEYMAP_UPDATE = true;
 
 	if (km)
 		km->flag |= KEYMAP_UPDATE;
@@ -1132,7 +1132,7 @@ void WM_keyconfig_update(wmWindowManager *wm)
 	wmKeyMap *km, *defaultmap, *addonmap, *usermap, *kmn;
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
-	int compat_update = 0;
+	bool compat_update = false;
 
 	if (G.background)
 		return;
@@ -1189,7 +1189,7 @@ void WM_keyconfig_update(wmWindowManager *wm)
 		compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
 	}
 
-	WM_KEYMAP_UPDATE = 0;
+	WM_KEYMAP_UPDATE = false;
 
 	if (compat_update) {
 		WM_keyconfig_update_tag(NULL, NULL);
