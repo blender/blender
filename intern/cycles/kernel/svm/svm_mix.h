@@ -247,24 +247,7 @@ ccl_device float3 svm_mix_soft(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_linear(float t, float3 col1, float3 col2)
 {
-	float3 outcol = col1;
-
-	if(col2.x > 0.5f)
-		outcol.x = col1.x + t*(2.0f*(col2.x - 0.5f));
-	else
-		outcol.x = col1.x + t*(2.0f*(col2.x) - 1.0f);
-
-	if(col2.y > 0.5f)
-		outcol.y = col1.y + t*(2.0f*(col2.y - 0.5f));
-	else
-		outcol.y = col1.y + t*(2.0f*(col2.y) - 1.0f);
-
-	if(col2.z > 0.5f)
-		outcol.z = col1.z + t*(2.0f*(col2.z - 0.5f));
-	else
-		outcol.z = col1.z + t*(2.0f*(col2.z) - 1.0f);
-	
-	return outcol;
+	return col1 + t*(2.0f*col2 + make_float3(-1.0f, -1.0f, -1.0f));
 }
 
 ccl_device float3 svm_mix_clamp(float3 col)
