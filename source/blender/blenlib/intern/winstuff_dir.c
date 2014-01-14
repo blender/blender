@@ -37,6 +37,7 @@
 
 #define WIN32_SKIP_HKEY_PROTECTION      // need to use HKEY
 #include "BLI_winstuff.h"
+#include "BLI_utildefines.h"
 #include "utfconv.h"
 
 DIR *opendir(const char *path)
