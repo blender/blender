@@ -90,7 +90,7 @@ void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float n
 	KDTreeNode *node = &tree->nodes[tree->totnode++];
 
 #ifdef DEBUG
-	BLI_assert(tree->totnode < tree->maxsize);
+	BLI_assert(tree->totnode <= tree->maxsize);
 #endif
 
 	/* note, array isn't calloc'd,
