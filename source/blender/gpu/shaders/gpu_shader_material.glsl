@@ -6,6 +6,9 @@ float exp_blender(float f)
 
 float compatible_pow(float x, float y)
 {
+	if(y == 0.0) /* x^0 -> 1, including 0^0 */
+		return 1.0;
+
 	/* glsl pow doesn't accept negative x */
 	if(x < 0.0) {
 		if(mod(-y, 2.0) == 0.0)
