@@ -20,6 +20,7 @@
 #define __KERNEL_CPU__
 
 #include "util_debug.h"
+#include "util_half.h"
 #include "util_math.h"
 #include "util_simd.h"
 #include "util_types.h"

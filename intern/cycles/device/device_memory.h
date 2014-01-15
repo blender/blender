@@ -29,6 +29,7 @@
  * to and from. */
 
 #include "util_debug.h"
+#include "util_half.h"
 #include "util_types.h"
 #include "util_vector.h"
 

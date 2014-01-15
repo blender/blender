@@ -23,6 +23,7 @@
 #include "util_cuda.h"
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_half.h"
 #include "util_math.h"
 #include "util_opencl.h"
 #include "util_opengl.h"

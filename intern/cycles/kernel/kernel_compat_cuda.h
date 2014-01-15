@@ -40,6 +40,7 @@
 
 /* Types */
 
+#include "util_half.h"
 #include "util_types.h"
 
 /* Textures */
