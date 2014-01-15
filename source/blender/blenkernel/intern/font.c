@@ -232,7 +232,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 
 		vfd = BLI_vfontdata_from_freetypefont(pf);
 		if (vfd) {
-			vfont = BKE_libblock_alloc(&bmain->vfont, ID_VF, filename);
+			vfont = BKE_libblock_alloc(bmain, ID_VF, filename);
 			vfont->data = vfd;
 
 			/* if there's a font name, use it for the ID name */

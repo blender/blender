@@ -3664,7 +3664,7 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 	if (main == NULL)
 		main = G.main;
 
-	part = BKE_libblock_alloc(&main->particle, ID_PA, name);
+	part = BKE_libblock_alloc(main, ID_PA, name);
 	
 	default_particle_settings(part);
 

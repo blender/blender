@@ -114,7 +114,7 @@ static void rna_Main_cameras_remove(Main *bmain, ReportList *reports, PointerRNA
 {
 	Camera *camera = camera_ptr->data;
 	if (ID_REAL_USERS(camera) <= 0) {
-		BKE_libblock_free(&bmain->camera, camera);
+		BKE_libblock_free(bmain, camera);
 		RNA_POINTER_INVALIDATE(camera_ptr);
 	}
 	else {
@@ -208,7 +208,7 @@ static void rna_Main_objects_remove(Main *bmain, ReportList *reports, PointerRNA
 	Object *object = object_ptr->data;
 	if (ID_REAL_USERS(object) <= 0) {
 		BKE_object_unlink(object); /* needed or ID pointers to this are not cleared */
-		BKE_libblock_free(&bmain->object, object);
+		BKE_libblock_free(bmain, object);
 		RNA_POINTER_INVALIDATE(object_ptr);
 	}
 	else {
@@ -227,7 +227,7 @@ static void rna_Main_materials_remove(Main *bmain, ReportList *reports, PointerR
 {
 	Material *material = material_ptr->data;
 	if (ID_REAL_USERS(material) <= 0) {
-		BKE_libblock_free(&bmain->mat, material);
+		BKE_libblock_free(bmain, material);
 		RNA_POINTER_INVALIDATE(material_ptr);
 	}
 	else {
@@ -256,7 +256,7 @@ static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, PointerRN
 {
 	bNodeTree *ntree = ntree_ptr->data;
 	if (ID_REAL_USERS(ntree) <= 0) {
-		BKE_libblock_free(&bmain->nodetree, ntree);
+		BKE_libblock_free(bmain, ntree);
 		RNA_POINTER_INVALIDATE(ntree_ptr);
 	}
 	else {
@@ -332,13 +332,13 @@ Mesh *rna_Main_meshes_new_from_object(
 			 * if it didn't the curve did not have any segments or otherwise 
 			 * would have generated an empty mesh */
 			if (tmpobj->type != OB_MESH) {
-				BKE_libblock_free_us(&(G.main->object), tmpobj);
+				BKE_libblock_free_us(G.main, tmpobj);
 				return NULL;
 			}
 
 			BKE_mesh_texspace_copy_from_object(tmpmesh, ob);
 
-			BKE_libblock_free_us(&bmain->object, tmpobj);
+			BKE_libblock_free_us(bmain, tmpobj);
 			break;
 		}
 
@@ -493,7 +493,7 @@ static void rna_Main_meshes_remove(Main *bmain, ReportList *reports, PointerRNA 
 {
 	Mesh *mesh = mesh_ptr->data;
 	if (ID_REAL_USERS(mesh) <= 0) {
-		BKE_libblock_free(&bmain->mesh, mesh);
+		BKE_libblock_free(bmain, mesh);
 		RNA_POINTER_INVALIDATE(mesh_ptr);
 	}
 	else {
@@ -513,7 +513,7 @@ static void rna_Main_lamps_remove(Main *bmain, ReportList *reports, PointerRNA *
 {
 	Lamp *lamp = lamp_ptr->data;
 	if (ID_REAL_USERS(lamp) <= 0) {
-		BKE_libblock_free(&bmain->lamp, lamp);
+		BKE_libblock_free(bmain, lamp);
 		RNA_POINTER_INVALIDATE(lamp_ptr);
 	}
 	else {
@@ -547,7 +547,7 @@ static void rna_Main_images_remove(Main *bmain, ReportList *reports, PointerRNA 
 {
 	Image *image = image_ptr->data;
 	if (ID_REAL_USERS(image) <= 0) {
-		BKE_libblock_free(&bmain->image, image);
+		BKE_libblock_free(bmain, image);
 		RNA_POINTER_INVALIDATE(image_ptr);
 	}
 	else {
@@ -566,7 +566,7 @@ static void rna_Main_lattices_remove(Main *bmain, ReportList *reports, PointerRN
 {
 	Lattice *lt = lt_ptr->data;
 	if (ID_REAL_USERS(lt) <= 0) {
-		BKE_libblock_free(&bmain->latt, lt);
+		BKE_libblock_free(bmain, lt);
 		RNA_POINTER_INVALIDATE(lt_ptr);
 	}
 	else {
@@ -585,7 +585,7 @@ static void rna_Main_curves_remove(Main *bmain, ReportList *reports, PointerRNA 
 {
 	Curve *cu = cu_ptr->data;
 	if (ID_REAL_USERS(cu) <= 0) {
-		BKE_libblock_free(&bmain->curve, cu);
+		BKE_libblock_free(bmain, cu);
 		RNA_POINTER_INVALIDATE(cu_ptr);
 	}
 	else {
@@ -604,7 +604,7 @@ static void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, PointerR
 {
 	MetaBall *mb = mb_ptr->data;
 	if (ID_REAL_USERS(mb) <= 0) {
-		BKE_libblock_free(&bmain->mball, mb);
+		BKE_libblock_free(bmain, mb);
 		RNA_POINTER_INVALIDATE(mb_ptr);
 	}
 	else {
@@ -631,7 +631,7 @@ static void rna_Main_fonts_remove(Main *bmain, ReportList *reports, PointerRNA *
 {
 	VFont *vfont = vfont_ptr->data;
 	if (ID_REAL_USERS(vfont) <= 0) {
-		BKE_libblock_free(&bmain->vfont, vfont);
+		BKE_libblock_free(bmain, vfont);
 		RNA_POINTER_INVALIDATE(vfont_ptr);
 	}
 	else {
@@ -651,7 +651,7 @@ static void rna_Main_textures_remove(Main *bmain, ReportList *reports, PointerRN
 {
 	Tex *tex = tex_ptr->data;
 	if (ID_REAL_USERS(tex) <= 0) {
-		BKE_libblock_free(&bmain->tex, tex);
+		BKE_libblock_free(bmain, tex);
 		RNA_POINTER_INVALIDATE(tex_ptr);
 	}
 	else {
@@ -670,7 +670,7 @@ static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, PointerRNA
 {
 	Brush *brush = brush_ptr->data;
 	if (ID_REAL_USERS(brush) <= 0) {
-		BKE_libblock_free(&bmain->brush, brush);
+		BKE_libblock_free(bmain, brush);
 		RNA_POINTER_INVALIDATE(brush_ptr);
 	}
 	else {
@@ -689,7 +689,7 @@ static void rna_Main_worlds_remove(Main *bmain, ReportList *reports, PointerRNA 
 {
 	Group *world = world_ptr->data;
 	if (ID_REAL_USERS(world) <= 0) {
-		BKE_libblock_free(&bmain->world, world);
+		BKE_libblock_free(bmain, world);
 		RNA_POINTER_INVALIDATE(world_ptr);
 	}
 	else {
@@ -706,7 +706,7 @@ static void rna_Main_groups_remove(Main *bmain, PointerRNA *group_ptr)
 {
 	Group *group = group_ptr->data;
 	BKE_group_unlink(group);
-	BKE_libblock_free(&bmain->group, group);
+	BKE_libblock_free(bmain, group);
 	RNA_POINTER_INVALIDATE(group_ptr);
 }
 
@@ -720,7 +720,7 @@ static void rna_Main_speakers_remove(Main *bmain, ReportList *reports, PointerRN
 {
 	Speaker *speaker = speaker_ptr->data;
 	if (ID_REAL_USERS(speaker) <= 0) {
-		BKE_libblock_free(&bmain->speaker, speaker);
+		BKE_libblock_free(bmain, speaker);
 		RNA_POINTER_INVALIDATE(speaker_ptr);
 	}
 	else {
@@ -737,7 +737,7 @@ static void rna_Main_texts_remove(Main *bmain, PointerRNA *text_ptr)
 {
 	Text *text = text_ptr->data;
 	BKE_text_unlink(bmain, text);
-	BKE_libblock_free(&bmain->text, text);
+	BKE_libblock_free(bmain, text);
 	RNA_POINTER_INVALIDATE(text_ptr);
 }
 
@@ -765,7 +765,7 @@ static void rna_Main_armatures_remove(Main *bmain, ReportList *reports, PointerR
 {
 	bArmature *arm = arm_ptr->data;
 	if (ID_REAL_USERS(arm) <= 0) {
-		BKE_libblock_free(&bmain->armature, arm);
+		BKE_libblock_free(bmain, arm);
 		RNA_POINTER_INVALIDATE(arm_ptr);
 	}
 	else {
@@ -785,7 +785,7 @@ static void rna_Main_actions_remove(Main *bmain, ReportList *reports, PointerRNA
 {
 	bAction *act = act_ptr->data;
 	if (ID_REAL_USERS(act) <= 0) {
-		BKE_libblock_free(&bmain->action, act);
+		BKE_libblock_free(bmain, act);
 		RNA_POINTER_INVALIDATE(act_ptr);
 	}
 	else {
@@ -804,7 +804,7 @@ static void rna_Main_particles_remove(Main *bmain, ReportList *reports, PointerR
 {
 	ParticleSettings *part = part_ptr->data;
 	if (ID_REAL_USERS(part) <= 0) {
-		BKE_libblock_free(&bmain->particle, part);
+		BKE_libblock_free(bmain, part);
 		RNA_POINTER_INVALIDATE(part_ptr);
 	}
 	else {
@@ -831,7 +831,7 @@ static void rna_Main_movieclips_remove(Main *bmain, PointerRNA *clip_ptr)
 {
 	MovieClip *clip = clip_ptr->data;
 	BKE_movieclip_unlink(bmain, clip);
-	BKE_libblock_free(&bmain->movieclip, clip);
+	BKE_libblock_free(bmain, clip);
 	RNA_POINTER_INVALIDATE(clip_ptr);
 }
 
@@ -848,7 +848,7 @@ static void rna_Main_masks_remove(Main *bmain, PointerRNA *mask_ptr)
 {
 	Mask *mask = mask_ptr->data;
 	BKE_mask_free(bmain, mask);
-	BKE_libblock_free(&bmain->mask, mask);
+	BKE_libblock_free(bmain, mask);
 	RNA_POINTER_INVALIDATE(mask_ptr);
 }
 
@@ -857,7 +857,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 	bGPdata *gpd = gpd_ptr->data;
 	if (ID_REAL_USERS(gpd) <= 0) {
 		BKE_gpencil_free(gpd);
-		BKE_libblock_free(&bmain->gpencil, gpd);
+		BKE_libblock_free(bmain, gpd);
 		RNA_POINTER_INVALIDATE(gpd_ptr);
 	}
 	else
@@ -875,7 +875,7 @@ FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
 void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
 {
 	if (ID_REAL_USERS(linestyle) <= 0)
-		BKE_libblock_free(&bmain->linestyle, linestyle);
+		BKE_libblock_free(bmain, linestyle);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Line style '%s' must have zero users to be removed, found %d",
 		            linestyle->id.name + 2, ID_REAL_USERS(linestyle));

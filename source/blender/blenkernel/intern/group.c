@@ -138,7 +138,7 @@ Group *BKE_group_add(Main *bmain, const char *name)
 {
 	Group *group;
 	
-	group = BKE_libblock_alloc(&bmain->group, ID_GR, name);
+	group = BKE_libblock_alloc(bmain, ID_GR, name);
 	group->layer = (1 << 20) - 1;
 	return group;
 }

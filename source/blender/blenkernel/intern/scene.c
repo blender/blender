@@ -419,7 +419,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	int a;
 	const char *colorspace_name;
 
-	sce = BKE_libblock_alloc(&bmain->scene, ID_SCE, name);
+	sce = BKE_libblock_alloc(bmain, ID_SCE, name);
 	sce->lay = sce->layact = 1;
 	
 	sce->r.mode = R_GAMMA | R_OSA | R_SHADOW | R_SSS | R_ENVMAP | R_RAYTRACE;
@@ -733,7 +733,7 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		if (sc->scene == sce)
 			sc->scene = newsce;
 
-	BKE_libblock_free(&bmain->scene, sce);
+	BKE_libblock_free(bmain, sce);
 }
 
 /* used by metaballs

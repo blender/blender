@@ -1078,7 +1078,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 	 * node groups and other tree types are created as library data.
 	 */
 	if (bmain) {
-		ntree = BKE_libblock_alloc(&bmain->nodetree, ID_NT, name);
+		ntree = BKE_libblock_alloc(bmain, ID_NT, name);
 	}
 	else {
 		ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");

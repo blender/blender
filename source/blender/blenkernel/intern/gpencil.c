@@ -204,7 +204,7 @@ bGPdata *gpencil_data_addnew(const char name[])
 	bGPdata *gpd;
 	
 	/* allocate memory for a new block */
-	gpd = BKE_libblock_alloc(&G.main->gpencil, ID_GD, name);
+	gpd = BKE_libblock_alloc(G.main, ID_GD, name);
 	
 	/* initial settings */
 	gpd->flag = (GP_DATA_DISPINFO | GP_DATA_EXPAND);

@@ -701,7 +701,7 @@ static Mask *mask_alloc(Main *bmain, const char *name)
 {
 	Mask *mask;
 
-	mask = BKE_libblock_alloc(&bmain->mask, ID_MSK, name);
+	mask = BKE_libblock_alloc(bmain, ID_MSK, name);
 
 	mask->id.flag |= LIB_FAKEUSER;
 

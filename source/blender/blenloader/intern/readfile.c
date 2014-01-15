@@ -549,7 +549,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 	m = BKE_main_new();
 	BLI_addtail(mainlist, m);
 	
-	lib = BKE_libblock_alloc(&m->library, ID_LI, "lib");
+	lib = BKE_libblock_alloc(m, ID_LI, "lib");
 	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
@@ -7302,7 +7302,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	oldnewmap_clear(fd->datamap);
 	
 	if (wrong_id) {
-		BKE_libblock_free(lb, id);
+		BKE_libblock_free(main, id);
 	}
 	
 	return (bhead);

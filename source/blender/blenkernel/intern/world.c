@@ -83,7 +83,7 @@ World *add_world(Main *bmain, const char *name)
 {
 	World *wrld;
 
-	wrld = BKE_libblock_alloc(&bmain->world, ID_WO, name);
+	wrld = BKE_libblock_alloc(bmain, ID_WO, name);
 	
 	wrld->horr = 0.05f;
 	wrld->horg = 0.05f;

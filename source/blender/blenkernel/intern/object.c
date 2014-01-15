@@ -945,7 +945,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	if (!name)
 		name = get_obdata_defname(type);
 
-	ob = BKE_libblock_alloc(&bmain->object, ID_OB, name);
+	ob = BKE_libblock_alloc(bmain, ID_OB, name);
 
 	/* default object vars */
 	ob->type = type;

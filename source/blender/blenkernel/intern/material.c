@@ -211,7 +211,7 @@ Material *BKE_material_add(Main *bmain, const char *name)
 {
 	Material *ma;
 
-	ma = BKE_libblock_alloc(&bmain->mat, ID_MA, name);
+	ma = BKE_libblock_alloc(bmain, ID_MA, name);
 	
 	init_material(ma);
 	

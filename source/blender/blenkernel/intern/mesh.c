@@ -444,7 +444,7 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
 	Mesh *me;
 	
-	me = BKE_libblock_alloc(&bmain->mesh, ID_ME, name);
+	me = BKE_libblock_alloc(bmain, ID_ME, name);
 	
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = 30;
@@ -1456,7 +1456,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	cu->totcol = 0;
 
 	if (ob->data) {
-		BKE_libblock_free(&bmain->curve, ob->data);
+		BKE_libblock_free(bmain, ob->data);
 	}
 	ob->data = me;
 	ob->type = OB_MESH;

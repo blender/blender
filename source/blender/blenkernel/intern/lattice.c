@@ -249,7 +249,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
 	Lattice *lt;
 	
-	lt = BKE_libblock_alloc(&bmain->latt, ID_LT, name);
+	lt = BKE_libblock_alloc(bmain, ID_LT, name);
 	
 	lt->flag = LT_GRID;
 	

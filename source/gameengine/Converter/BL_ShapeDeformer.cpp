@@ -97,7 +97,7 @@ BL_ShapeDeformer::~BL_ShapeDeformer()
 {
 	if (m_key)
 	{
-		BKE_libblock_free(&G.main->key, m_key);
+		BKE_libblock_free(G.main, m_key);
 		m_key = NULL;
 	}
 };

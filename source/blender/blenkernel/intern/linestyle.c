@@ -107,7 +107,7 @@ FreestyleLineStyle *BKE_new_linestyle(const char *name, struct Main *main)
 	if (!main)
 		main = G.main;
 
-	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(&main->linestyle, ID_LS, name);
+	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(main, ID_LS, name);
 
 	default_linestyle_settings(linestyle);
 

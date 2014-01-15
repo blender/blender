@@ -84,14 +84,14 @@ bSound *sound_new_file(struct Main *bmain, const char *filename)
 	while (len > 0 && filename[len - 1] != '/' && filename[len - 1] != '\\')
 		len--;
 
-	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, filename + len);
+	sound = BKE_libblock_alloc(bmain, ID_SO, filename + len);
 	BLI_strncpy(sound->name, filename, FILE_MAX);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
 	sound_load(bmain, sound);
 
 	if (!sound->playback_handle) {
-		BKE_libblock_free(&bmain->sound, sound);
+		BKE_libblock_free(bmain, sound);
 		sound = NULL;
 	}
 
@@ -233,7 +233,7 @@ bSound *sound_new_buffer(struct Main *bmain, bSound *source)
 	strcpy(name, "buf_");
 	strcpy(name + 4, source->id.name);
 
-	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, name);
+	sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
@@ -242,7 +242,7 @@ bSound *sound_new_buffer(struct Main *bmain, bSound *source)
 
 	if (!sound->playback_handle)
 	{
-		BKE_libblock_free(&bmain->sound, sound);
+		BKE_libblock_free(bmain, sound);
 		sound = NULL;
 	}
 
@@ -257,7 +257,7 @@ bSound *sound_new_limiter(struct Main *bmain, bSound *source, float start, float
 	strcpy(name, "lim_");
 	strcpy(name + 4, source->id.name);
 
-	sound = BKE_libblock_alloc(&bmain->sound, ID_SO, name);
+	sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->start = start;
@@ -268,7 +268,7 @@ bSound *sound_new_limiter(struct Main *bmain, bSound *source, float start, float
 
 	if (!sound->playback_handle)
 	{
-		BKE_libblock_free(&bmain->sound, sound);
+		BKE_libblock_free(bmain, sound);
 		sound = NULL;
 	}
 
@@ -281,7 +281,7 @@ void sound_delete(struct Main *bmain, bSound *sound)
 	if (sound) {
 		BKE_sound_free(sound);
 
-		BKE_libblock_free(&bmain->sound, sound);
+		BKE_libblock_free(bmain, sound);
 	}
 }
 

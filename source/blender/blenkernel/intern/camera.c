@@ -54,7 +54,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
 {
 	Camera *cam;
 	
-	cam =  BKE_libblock_alloc(&bmain->camera, ID_CA, name);
+	cam =  BKE_libblock_alloc(bmain, ID_CA, name);
 
 	cam->lens = 35.0f;
 	cam->sensor_x = DEFAULT_SENSOR_WIDTH;

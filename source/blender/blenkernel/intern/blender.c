@@ -488,9 +488,9 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 	if (bfd) {
 		/* remove the unused screens and wm */
 		while (bfd->main->wm.first)
-			BKE_libblock_free(&bfd->main->wm, bfd->main->wm.first);
+			BKE_libblock_free_ex(bfd->main, bfd->main->wm.first, true);
 		while (bfd->main->screen.first)
-			BKE_libblock_free(&bfd->main->screen, bfd->main->screen.first);
+			BKE_libblock_free_ex(bfd->main, bfd->main->screen.first, true);
 		
 		setup_app_data(C, bfd, "<memory1>");
 	}

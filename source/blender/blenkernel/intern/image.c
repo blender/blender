@@ -295,7 +295,7 @@ static Image *image_alloc(Main *bmain, const char *name, short source, short typ
 {
 	Image *ima;
 
-	ima = BKE_libblock_alloc(&bmain->image, ID_IM, name);
+	ima = BKE_libblock_alloc(bmain, ID_IM, name);
 	if (ima) {
 		ima->ok = IMA_OK;
 
@@ -555,7 +555,7 @@ void BKE_image_merge(Image *dest, Image *source)
 		}
 		BLI_spin_unlock(&image_spin);
 
-		BKE_libblock_free(&G.main->image, source);
+		BKE_libblock_free(G.main, source);
 	}
 }
 

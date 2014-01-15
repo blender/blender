@@ -103,7 +103,7 @@ static bool ED_object_shape_key_remove_all(Main *bmain, Object *ob)
 		case ID_LT: ((Lattice *)key->from)->key = NULL; break;
 	}
 
-	BKE_libblock_free_us(&(bmain->key), key);
+	BKE_libblock_free_us(bmain, key);
 
 	return true;
 }
@@ -161,7 +161,7 @@ static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
 			case ID_LT: ((Lattice *)key->from)->key = NULL; break;
 		}
 
-		BKE_libblock_free_us(&(bmain->key), key);
+		BKE_libblock_free_us(bmain, key);
 	}
 
 	return true;

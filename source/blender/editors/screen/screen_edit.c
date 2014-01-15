@@ -466,7 +466,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
-	sc = BKE_libblock_alloc(&G.main->screen, ID_SCR, name);
+	sc = BKE_libblock_alloc(G.main, ID_SCR, name);
 	sc->scene = scene;
 	sc->do_refresh = TRUE;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
@@ -1596,7 +1596,7 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	ED_screen_set(C, newsc);
 
 	if (delete && win->screen != sc)
-		BKE_libblock_free(&bmain->screen, sc);
+		BKE_libblock_free(bmain, sc);
 }
 
 static void ed_screen_set_3dview_camera(Scene *scene, bScreen *sc, ScrArea *sa, View3D *v3d)
@@ -1834,7 +1834,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		ED_screen_set(C, sc);
 
 		BKE_screen_free(oldscreen);
-		BKE_libblock_free(&CTX_data_main(C)->screen, oldscreen);
+		BKE_libblock_free(CTX_data_main(C), oldscreen);
 
 	}
 	else {

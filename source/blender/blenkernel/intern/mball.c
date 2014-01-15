@@ -209,7 +209,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
 	MetaBall *mb;
 	
-	mb = BKE_libblock_alloc(&bmain->mball, ID_MB, name);
+	mb = BKE_libblock_alloc(bmain, ID_MB, name);
 	
 	mb->size[0] = mb->size[1] = mb->size[2] = 1.0;
 	mb->texflag = MB_AUTOSPACE;

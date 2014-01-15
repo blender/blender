@@ -176,7 +176,7 @@ Text *BKE_text_add(Main *bmain, const char *name)
 	Text *ta;
 	TextLine *tmp;
 	
-	ta = BKE_libblock_alloc(&bmain->text, ID_TXT, name);
+	ta = BKE_libblock_alloc(bmain, ID_TXT, name);
 	ta->id.us = 1;
 	
 	ta->name = NULL;
@@ -379,7 +379,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	fp = BLI_fopen(str, "r");
 	if (fp == NULL) return NULL;
 	
-	ta = BKE_libblock_alloc(&bmain->text, ID_TXT, BLI_path_basename(str));
+	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(str));
 	ta->id.us = 1;
 
 	ta->lines.first = ta->lines.last = NULL;
