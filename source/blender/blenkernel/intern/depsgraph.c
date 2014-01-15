@@ -2910,17 +2910,7 @@ const char *DAG_get_node_name(void *node_v)
 
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
 {
-	DagNode *node = NULL;
-
-	if (scene->theDag) {
-		/* DAG happens to be NULL when doing direct object update
-		 * during transform after duplication, see T38224.
-		 *
-		 * Not sure whether such a NULL check will always work,
-		 * but for now it's better than crash anyway.
-		 */
-		dag_find_node(scene->theDag, object);
-	}
+	DagNode *node = dag_find_node(scene->theDag, object);;
 
 	if (node) {
 		return node->eval_flags;
