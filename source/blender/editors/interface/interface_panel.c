@@ -1394,11 +1394,11 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	PanelCategoryDyn *pc_dyn;
 	const float aspect = ((uiBlock *)ar->uiblocks.first)->aspect;
 	const float zoom = 1.0f / aspect;
-	const int px = max_ii(1.0, (int)U.pixelsize + 0.5f);
-	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom;
+	const int px = max_ii(1, iroundf(U.pixelsize));
+	const int category_tabs_width = iroundf(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
 	const float dpi_fac = UI_DPI_FAC;
-	const int tab_v_pad_text = (2 + ((px * 3) * dpi_fac)) * zoom;  /* pading of tabs around text */
-	const int tab_v_pad = (4 + (2 * px * dpi_fac)) * zoom;  /* padding between tabs */
+	const int tab_v_pad_text = iroundf((2 + ((px * 3) * dpi_fac)) * zoom);  /* pading of tabs around text */
+	const int tab_v_pad = iroundf((4 + (2 * px * dpi_fac)) * zoom);  /* padding between tabs */
 	const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
 	const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
 	bool do_scaletabs = false;
@@ -1427,6 +1427,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	unsigned char theme_col_tab_highlight_inactive[4];
 
 
+
 	UI_GetThemeColor4ubv(TH_BACK, theme_col_back);
 	UI_GetThemeColor4ubv(TH_TEXT, theme_col_text);
 	UI_GetThemeColor4ubv(TH_TEXT_HI, theme_col_text_hi);
@@ -1446,8 +1447,8 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	BLF_enable(fontid, BLF_ROTATION);
 	BLF_rotation(fontid, M_PI / 2);
 	//uiStyleFontSet(&style->widget);
-	ui_fontscale(&fstyle_points, aspect);
-	BLF_size(fontid, (fstyle_points * U.pixelsize * 1.1), U.dpi);
+	ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
+	BLF_size(fontid, fstyle_points, U.dpi);
 
 	BLI_assert(UI_panel_category_is_visible(ar));
 
