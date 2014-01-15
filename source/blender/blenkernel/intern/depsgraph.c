@@ -2471,7 +2471,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 
 #define POST_UPDATE_HANDLER_WORKAROUND
 
-void DAG_ids_clear_recalc(Main *bmain)
+void DAG_ids_clear_recalc(Main *bmain, Scene *scene)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	bNodeTree *ntree;
@@ -2479,6 +2479,21 @@ void DAG_ids_clear_recalc(Main *bmain)
 
 #ifdef POST_UPDATE_HANDLER_WORKAROUND
 	bool have_updated_objects = false;
+
+	if (DAG_id_type_tagged(bmain, ID_OB)) {
+		DagNode *node;
+		for (node = scene->theDag->DagNode.first; node; node = node->next) {
+			if (node->type == ID_OB) {
+				Object *object = (Object *) node->ob;
+				if (object->recalc & OB_RECALC_ALL) {
+					have_updated_objects = true;
+					break;
+				}
+			}
+		}
+	}
+#else
+	(void) scene;  /* Unused. */
 #endif
 
 	/* loop over all ID types */
@@ -2494,15 +2509,6 @@ void DAG_ids_clear_recalc(Main *bmain)
 			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA))
 					id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
-
-#ifdef POST_UPDATE_HANDLER_WORKAROUND
-				if (GS(id->name) == ID_OB) {
-					Object *object = (Object *) id;
-					if (object->recalc & OB_RECALC_ALL) {
-						have_updated_objects = true;
-					}
-				}
-#endif
 
 				/* some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
