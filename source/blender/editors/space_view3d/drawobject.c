@@ -2705,6 +2705,9 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
 	const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
 	const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
+	/* when 2 edge-info options are enabled, space apart */
+	const bool do_edge_textpair = (me->drawflag & ME_DRAWEXTRA_EDGELEN) && (me->drawflag & ME_DRAWEXTRA_EDGEANG);
+	const float edge_texpair_sep = 0.4f;
 	float clip_planes[4][4];
 	/* allow for displaying shape keys and deform mods */
 	DerivedMesh *dm = EDBM_mesh_deform_dm_get(em);
@@ -2759,7 +2762,12 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 
 				if (clip_segment_v3_plane_n(v1_clip, v2_clip, clip_planes, 4)) {
 
-					mid_v3_v3v3(vmid, v1_clip, v2_clip);
+					if (do_edge_textpair) {
+						interp_v3_v3v3(vmid, v1, v2, edge_texpair_sep);
+					}
+					else {
+						mid_v3_v3v3(vmid, v1_clip, v2_clip);
+					}
 
 					if (do_global) {
 						mul_mat3_m4_v3(ob->obmat, v1);
@@ -2825,7 +2833,12 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 						float no_a[3], no_b[3];
 						float angle;
 
-						mid_v3_v3v3(vmid, v1_clip, v2_clip);
+						if (do_edge_textpair) {
+							interp_v3_v3v3(vmid, v2_clip, v1_clip, edge_texpair_sep);
+						}
+						else {
+							mid_v3_v3v3(vmid, v1_clip, v2_clip);
+						}
 
 						if (dm) {
 							dm->getPolyNo(dm, BM_elem_index_get(l_a->f), no_a);
