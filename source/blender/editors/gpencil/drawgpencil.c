@@ -784,10 +784,10 @@ void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, TRUE); /* no shift */
 
-		offsx = floorf(rectf.xmin + 0.5f);
-		offsy = floorf(rectf.ymin + 0.5f);
-		winx  = floorf((rectf.xmax - rectf.xmin) + 0.5f);
-		winy  = floorf((rectf.ymax - rectf.ymin) + 0.5f);
+		offsx = iroundf(rectf.xmin);
+		offsy = iroundf(rectf.ymin);
+		winx  = iroundf(rectf.xmax - rectf.xmin);
+		winy  = iroundf(rectf.ymax - rectf.ymin);
 	}
 	else {
 		offsx = 0;

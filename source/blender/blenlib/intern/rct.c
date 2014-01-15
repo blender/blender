@@ -552,7 +552,7 @@ void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
 
 void print_rctf(const char *str, const rctf *rect)
 {
-	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f (%.3fx%.3f)\n", str,
+	printf("%s: xmin %.8f, xmax %.8f, ymin %.8f, ymax %.8f (%.12fx%.12f)\n", str,
 	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rctf_size_x(rect), BLI_rctf_size_y(rect));
 }
 

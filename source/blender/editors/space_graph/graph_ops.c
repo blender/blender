@@ -37,6 +37,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -123,7 +124,7 @@ static void graphview_cursor_setprops(bContext *C, wmOperator *op, const wmEvent
 	
 	/* store the values in the operator properties */
 	/* frame is rounded to the nearest int, since frames are ints */
-	RNA_int_set(op->ptr, "frame", (int)floor(viewx + 0.5f));
+	RNA_int_set(op->ptr, "frame", iroundf(viewx));
 	RNA_float_set(op->ptr, "value", viewy);
 }
 

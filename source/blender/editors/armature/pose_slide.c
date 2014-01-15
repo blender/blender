@@ -1129,7 +1129,7 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 			
 			/* stop on matching marker if there is one */
 			for (ce = modeData.sel_markers.first; ce; ce = ce->next) {
-				if (ce->cfra == (int)(floor(bezt->vec[1][0] + 0.5f)))
+				if (ce->cfra == iroundf(bezt->vec[1][0]))
 					break;
 			}
 			

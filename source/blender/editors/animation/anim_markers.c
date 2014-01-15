@@ -144,7 +144,7 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 					    (side == 'L' && marker->frame < cfra) ||
 					    (side == 'R' && marker->frame >= cfra))
 					{
-						marker->frame += (int)floorf(value + 0.5f);
+						marker->frame += iroundf(value);
 						changed_tot++;
 					}
 					break;
@@ -152,7 +152,7 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 				case TFM_TIME_SCALE:
 				{
 					/* rescale the distance between the marker and the current frame */
-					marker->frame = cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
+					marker->frame = cfra + iroundf((float)(marker->frame - cfra) * value);
 					changed_tot++;
 					break;
 				}
@@ -190,7 +190,7 @@ TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x)
 int ED_markers_find_nearest_marker_time(ListBase *markers, float x)
 {
 	TimeMarker *nearest = ED_markers_find_nearest_marker(markers, x);
-	return (nearest) ? (nearest->frame) : (int)floor(x + 0.5f);
+	return (nearest) ? (nearest->frame) : iroundf(x);
 }
 
 

@@ -337,8 +337,8 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the range directly */
 	get_keyframe_extents(&ac, &min, &max, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
-	scene->r.psfra = (int)floor(min + 0.5f);
-	scene->r.pefra = (int)floor(max + 0.5f);
+	scene->r.psfra = iroundf(min);
+	scene->r.pefra = iroundf(max);
 	
 	/* set notifier that things have changed */
 	// XXX err... there's nothing for frame ranges yet, but this should do fine too
@@ -1372,7 +1372,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the new current frame value, based on the average time */
 	if (ked.i1) {
 		Scene *scene = ac.scene;
-		CFRA = (int)floor((ked.f1 / ked.i1) + 0.5f);
+		CFRA = iroundf(ked.f1 / ked.i1);
 		SUBFRA = 0.f;
 	}
 	

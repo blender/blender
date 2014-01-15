@@ -2429,7 +2429,7 @@ void flushTransSeq(TransInfo *t)
 		tdsq = (TransDataSeq *)td->extra;
 		seq = tdsq->seq;
 		old_start = seq->start;
-		new_frame = (int)floor(td2d->loc[0] + 0.5f);
+		new_frame = iroundf(td2d->loc[0]);
 
 		switch (tdsq->sel_flag) {
 			case SELECT:
@@ -2441,7 +2441,7 @@ void flushTransSeq(TransInfo *t)
 					seq->start = new_frame - tdsq->start_offset;
 #endif
 				if (seq->depth == 0) {
-					seq->machine = (int)floor(td2d->loc[1] + 0.5f);
+					seq->machine = iroundf(td2d->loc[1]);
 					CLAMP(seq->machine, 1, MAXSEQ);
 				}
 				break;
@@ -3390,7 +3390,7 @@ void flushTransIntFrameActionData(TransInfo *t)
 
 	/* flush data! */
 	for (i = 0; i < t->total; i++, tfd++) {
-		*(tfd->sdata) = (int)floor(tfd->val + 0.5f);
+		*(tfd->sdata) = iroundf(tfd->val);
 	}
 }
 

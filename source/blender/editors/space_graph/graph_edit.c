@@ -189,8 +189,8 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the range directly */
 	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, FALSE, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
-	scene->r.psfra = (int)floor(min + 0.5f);
-	scene->r.pefra = (int)floor(max + 0.5f);
+	scene->r.psfra = iroundf(min);
+	scene->r.pefra = iroundf(max);
 	
 	/* set notifier that things have changed */
 	// XXX err... there's nothing for frame ranges yet, but this should do fine too
@@ -1825,7 +1825,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 		Scene *scene = ac.scene;
 		
 		/* take the average values, rounding to the nearest int for the current frame */
-		CFRA = (int)floor((ked.f1 / ked.i1) + 0.5f);
+		CFRA = iroundf(ked.f1 / ked.i1);
 		SUBFRA = 0.f;
 		sipo->cursorVal = ked.f2 / (float)ked.i1;
 	}

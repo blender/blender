@@ -40,7 +40,7 @@ void MOD_meshcache_calc_range(const float frame, const char interp,
                               int r_index_range[2], float *r_factor)
 {
 	if (interp == MOD_MESHCACHE_INTERP_NONE) {
-		r_index_range[0] = r_index_range[1] = max_ii(0, min_ii(frame_tot - 1, (int)(floorf(frame) + 0.5f)));
+		r_index_range[0] = r_index_range[1] = max_ii(0, min_ii(frame_tot - 1, iroundf(frame)));
 		*r_factor = 1.0f; /* dummy */
 	}
 	else {

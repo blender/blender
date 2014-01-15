@@ -3660,7 +3660,7 @@ static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 				int newsize = *size;
 				int diff = dragy - my;
 
-				diff = (int)floorf(((float)diff / (float)UI_UNIT_Y) + 0.5f);
+				diff = iroundf((float)diff / (float)UI_UNIT_Y);
 
 				/* If we are not in autosize mode, default behavior... */
 				if (*size > 0) {
