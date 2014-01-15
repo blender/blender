@@ -1341,13 +1341,20 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
+	ID *data;
 	Curve *cu;
 	Nurb *nu;
 	int clear = (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
-	int done = FALSE;
+	bool done = false, linked_data = false;
 
 	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
+		data = ob->data;
+
+		if (data && data->lib) {
+			linked_data = true;
+			continue;
+		}
 
 		if (ob->type == OB_MESH) {
 			BKE_mesh_smooth_flag_set(ob, !clear);
@@ -1355,7 +1362,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-			done = TRUE;
+			done = true;
 		}
 		else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
 			cu = ob->data;
@@ -1368,10 +1375,13 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-			done = TRUE;
+			done = true;
 		}
 	}
 	CTX_DATA_END;
+
+	if (linked_data)
+		BKE_report(op->reports, RPT_WARNING, "Can't edit linked mesh or curve data.");
 
 	return (done) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
