@@ -1450,6 +1450,10 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
 	BLF_size(fontid, fstyle_points, U.dpi);
 
+	BLF_enable(fontid, BLF_SHADOW);
+	BLF_shadow(fontid, 3, 1.0f, 1.0f, 1.0f, 0.25f);
+	BLF_shadow_offset(fontid, -1, -1);
+
 	BLI_assert(UI_panel_category_is_visible(ar));
 
 
@@ -1543,12 +1547,8 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 		/* tab titles */
 
-		/* first draw shadow, in this case white */
-		glColor3ubv(theme_col_text);
 		/* draw white shadow to give text more depth */
-		BLF_enable(fontid, BLF_SHADOW);
-		BLF_shadow(fontid, 3, 1.0f, 1.0f, 1.0f, 0.25f);
-		BLF_shadow_offset(fontid, -1, -1);
+		glColor3ubv(theme_col_text);
 
 		/* main tab title */
 		BLF_draw(fontid, category_id_draw, category_draw_len);
@@ -1591,6 +1591,8 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	glDisable(GL_LINE_SMOOTH);
 
 	BLF_disable(fontid, BLF_ROTATION);
+
+	BLF_disable(fontid, BLF_SHADOW);
 
 	if (fstyle->kerning == 1) {
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
