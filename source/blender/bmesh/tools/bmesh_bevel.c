@@ -1117,7 +1117,7 @@ static void get_profile_point(const Profile *pro, float u, float r_co[3])
 			p[1] = cosf(angle);
 			p[2] = 0.0f;
 			if (r != PRO_CIRCLE_R) {
-				w = powf(powf(p[0], r) + pow(p[1], r), -1.0f / r);
+				w = powf(powf(p[0], r) + powf(p[1], r), -1.0f / r);
 				mul_v2_fl(p, w);
 			}
 			mul_v3_m4v3(co, m, p);
@@ -2418,8 +2418,8 @@ static VMesh *make_cube_corner_straight(MemArena *mem_arena, int nseg)
 				if (!is_canon(vm, i, j, k))
 					continue;
 				co[i] = 1.0f;
-				co[(i + 1) % 3] = (float) k * 2.0 / (float) nseg;
-				co[(i + 2) % 3] = (float) j * 2.0 / (float) nseg;
+				co[(i + 1) % 3] = (float)k * 2.0f / (float)nseg;
+				co[(i + 2) % 3] = (float)j * 2.0f / (float)nseg;
 				copy_v3_v3(mesh_vert(vm, i, j, k)->co, co);
 			}
 		}
@@ -2598,9 +2598,9 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	sub_v3_v3v3(cob, co, coa);
 	add_v3_v3(cob, co);
 	r = bp->pro_super_r;
-	if (r == 1.0)
+	if (r == 1.0f)
 		fullness = 0.0f;
-	else if (r > 1.0) {
+	else if (r > 1.0f) {
 		if (bp->vertex_only)
 			fac = 0.25f;
 		else if (r == PRO_SQUARE_R)
