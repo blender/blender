@@ -2925,8 +2925,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					sub = uiLayoutRow(overlap, false);
 
 					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, NULL);
-					uiButSetDrawFlag(but, UI_BUT_NO_TOOLTIP);
+					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, "Double click to rename");
 
 					sub = uiLayoutRow(overlap, false);
 
