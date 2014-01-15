@@ -471,8 +471,10 @@ void paste_gpdata(Scene *scene)
 
 static short snap_gpf_nearest(bGPDframe *gpf, Scene *UNUSED(scene))
 {
+#if 0 /* XXX: gpf->framenum is already an int! */
 	if (gpf->flag & GP_FRAME_SELECT)
 		gpf->framenum = (int)(floor(gpf->framenum + 0.5));
+#endif
 	return 0;
 }
 
