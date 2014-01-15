@@ -291,7 +291,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
 	add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
-	BKE_libblock_free_us(&(G.main->mesh), me);
+	BKE_libblock_free_us(G.main, me);
 
 	closeSkin();
 	closeController();
@@ -327,7 +327,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, morph_weights_id)));
 	targets.add();
 
-	BKE_libblock_free_us(&(G.main->mesh), me);
+	BKE_libblock_free_us(G.main, me);
 
 
 	//support for animations

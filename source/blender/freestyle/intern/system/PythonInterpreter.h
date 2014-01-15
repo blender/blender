@@ -88,7 +88,7 @@ public:
 		if (text) {
 			status = BPY_text_exec(_context, text, reports, false);
 			BKE_text_unlink(&_freestyle_bmain, text);
-			BKE_libblock_free(&_freestyle_bmain.text, text);
+			BKE_libblock_free(&_freestyle_bmain, text);
 		}
 		else {
 			BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
@@ -181,7 +181,7 @@ private:
 
 		// cleaning up
 		BKE_text_unlink(&_freestyle_bmain, text);
-		BKE_libblock_free(&_freestyle_bmain.text, text);
+		BKE_libblock_free(&_freestyle_bmain, text);
 
 		_initialized = true;
 	}

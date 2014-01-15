@@ -165,7 +165,7 @@ void GeometryExporter::operator()(Object *ob)
 		}
 	}
 
-	BKE_libblock_free_us(&(G.main->mesh), me);
+	BKE_libblock_free_us(G.main, me);
 
 }
 

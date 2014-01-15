@@ -170,12 +170,12 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 #endif
 		switch (ob->type) {
 		case OB_MESH:
-			BKE_libblock_free(&freestyle_bmain->object, ob);
-			BKE_libblock_free(&freestyle_bmain->mesh, data);
+			BKE_libblock_free(freestyle_bmain, ob);
+			BKE_libblock_free(freestyle_bmain, data);
 			break;
 		case OB_CAMERA:
-			BKE_libblock_free(&freestyle_bmain->object, ob);
-			BKE_libblock_free(&freestyle_bmain->camera, data);
+			BKE_libblock_free(freestyle_bmain, ob);
+			BKE_libblock_free(freestyle_bmain, data);
 			freestyle_scene->camera = NULL;
 			break;
 		default:
@@ -185,7 +185,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	BLI_freelistN(&freestyle_scene->base);
 
 	// release material
-	BKE_libblock_free(&freestyle_bmain->mat, material);
+	BKE_libblock_free(freestyle_bmain, material);
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
