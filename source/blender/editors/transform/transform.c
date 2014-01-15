@@ -1358,23 +1358,29 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case CKEY:
 				if (event->alt) {
-					t->flag ^= T_PROP_CONNECTED;
-					sort_trans_data_dist(t);
-					calculatePropRatio(t);
-					t->redraw = TREDRAW_HARD;
-					handled = true;
+					if (!(t->options & CTX_NO_PET)) {
+						t->flag ^= T_PROP_CONNECTED;
+						sort_trans_data_dist(t);
+						calculatePropRatio(t);
+						t->redraw = TREDRAW_HARD;
+						handled = true;
+					}
 				}
 				else {
-					stopConstraint(t);
-					t->redraw |= TREDRAW_HARD;
-					handled = true;
+					if (!(t->flag & T_NO_CONSTRAINT)) {
+						stopConstraint(t);
+						t->redraw |= TREDRAW_HARD;
+						handled = true;
+					}
 				}
 				break;
 			case XKEY:
 			case YKEY:
 			case ZKEY:
-				transform_event_xyz_constraint(t, event->type, cmode);
-				handled = true;
+				if (!(t->flag & T_NO_CONSTRAINT)) {
+					transform_event_xyz_constraint(t, event->type, cmode);
+					handled = true;
+				}
 				break;
 			case OKEY:
 				if (t->flag & T_PROP_EDIT && event->shift) {
