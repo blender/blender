@@ -2910,8 +2910,18 @@ const char *DAG_get_node_name(void *node_v)
 
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
 {
-	DagNode *node = dag_get_node(scene->theDag, object);
-	return node->eval_flags;
+	DagNode *node = dag_find_node(scene->theDag, object);
+
+	if (node) {
+		return node->eval_flags;
+	}
+	else {
+		/* Happens when external render engine exports temporary objects
+		 * which are not in the DAG.
+		 */
+		/* TODO(sergey): Doublecheck objects with Curve Deform exports all fine. */
+		return 0;
+	}
 }
 
 bool DAG_is_acyclic(Scene *scene)
