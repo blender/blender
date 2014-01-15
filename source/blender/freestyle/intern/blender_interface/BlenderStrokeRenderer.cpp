@@ -472,7 +472,8 @@ Object *BlenderStrokeRenderer::NewMesh() const
 #else
 	(void)base;
 #endif
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+
+	DAG_id_tag_update_ex(freestyle_bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	return ob;
 }

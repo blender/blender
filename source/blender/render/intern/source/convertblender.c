@@ -5148,7 +5148,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		RE_SetView(re, mat);
 
 		/* force correct matrix for scaled cameras */
-		DAG_id_tag_update(&camera->id, OB_RECALC_OB);
+		DAG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
 	}
 	
 	/* store for incremental render, viewmat rotates dbase */
