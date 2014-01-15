@@ -4910,7 +4910,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 	/* handle pending update events, otherwise they got copied below */
 	for (base = scene->base.first; base; base = base->next) {
-		if (base->object->recalc) {
+		if (base->object->recalc & OB_RECALC_ALL) {
 			/* TODO(sergey): Ideally, it's not needed. */
 			BKE_object_handle_update(G.main->eval_ctx, t->scene, base->object);
 		}
