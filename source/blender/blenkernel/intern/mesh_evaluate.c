@@ -656,7 +656,7 @@ void BKE_mesh_loop_tangents_ex(MVert *mverts, const int UNUSED(numVerts), MLoop 
 	/* First check we do have a tris/quads only mesh. */
 	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
 		if (mp->totloop > 4) {
-			BKE_report(reports, RPT_ERROR, "Tangent space can only be computed for tris/quads, aborting...\n");
+			BKE_report(reports, RPT_ERROR, "Tangent space can only be computed for tris/quads, aborting");
 			return;
 		}
 	}
@@ -681,7 +681,7 @@ void BKE_mesh_loop_tangents_ex(MVert *mverts, const int UNUSED(numVerts), MLoop 
 
 	/* 0 if failed */
 	if (genTangSpaceDefault(&s_context) == false) {
-		BKE_report(reports, RPT_ERROR, "Mikktspace failed to generate tangents for this mesh!\n");
+		BKE_report(reports, RPT_ERROR, "Mikktspace failed to generate tangents for this mesh!");
 	}
 }
 
@@ -703,13 +703,13 @@ void BKE_mesh_loop_tangents(Mesh *mesh, const char *uvmap, float (*r_looptangent
 		loopuvs = CustomData_get_layer(&mesh->ldata, CD_MLOOPUV);
 	}
 	if (!loopuvs) {
-		BKE_reportf(reports, RPT_ERROR, "Tangent space computation needs an UVMap, \"%s\" not found, aborting.\n", uvmap);
+		BKE_reportf(reports, RPT_ERROR, "Tangent space computation needs an UVMap, \"%s\" not found, aborting", uvmap);
 		return;
 	}
 
 	loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
 	if (!loopnors) {
-		BKE_report(reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting.\n");
+		BKE_report(reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting");
 		return;
 	}
 

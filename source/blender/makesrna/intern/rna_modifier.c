@@ -2401,7 +2401,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "profile", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.15f, 1.0f, 0.05, 2);
-	RNA_def_property_ui_text(prop, "Profile", "Controls profile shape (0.5 = round)");
+	RNA_def_property_ui_text(prop, "Profile", "The profile shape (0.5 = round)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

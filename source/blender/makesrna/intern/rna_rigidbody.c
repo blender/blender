@@ -80,7 +80,7 @@ EnumPropertyItem rigidbody_constraint_type_items[] = {
 /* mesh source for collision shape creation */
 static EnumPropertyItem rigidbody_mesh_source_items[] = {
 	{RBO_MESH_BASE, "BASE", 0, "Base", "Base mesh"},
-	{RBO_MESH_DEFORM, "DEFORM", 0, "Deform", "Deformations (shaps keys, deform modifiers"},
+	{RBO_MESH_DEFORM, "DEFORM", 0, "Deform", "Deformations (shape keys, deform modifiers)"},
 	{RBO_MESH_FINAL, "FINAL", 0, "Final", "All modifiers"},
 	{0, NULL, 0, NULL, NULL}};
 #endif

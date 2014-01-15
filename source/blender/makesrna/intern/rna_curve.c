@@ -1012,7 +1012,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Object Font",
 	                         "Use Objects as font characters (give font objects a common name "
 	                         "followed by the character they represent, eg. 'family_a', 'family_b', etc, "
-	                         "and set this to 'family_', turn on Vertex Duplication)");
+	                         "set this setting to 'family_', and turn on Vertex Duplication)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop = RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);

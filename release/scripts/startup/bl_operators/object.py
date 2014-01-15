@@ -557,7 +557,7 @@ class JoinUVs(Operator):
 
 
 class MakeDupliFace(Operator):
-    """Converts objects into dupli-face instanced"""
+    """Convert objects into dupli-face instanced"""
     bl_idname = "object.make_dupli_face"
     bl_label = "Make Dupli-Face"
     bl_options = {'REGISTER', 'UNDO'}
