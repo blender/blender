@@ -4905,6 +4905,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* makes sure base flags and object flags are identical */
 	BKE_scene_base_flag_to_objects(t->scene);
 
+	/* Make sure depsgraph is here. */
+	DAG_scene_relations_update(G.main, t->scene);
+
 	/* handle pending update events, otherwise they got copied below */
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object->recalc) {
@@ -4948,7 +4951,6 @@ static void set_trans_object_base_flags(TransInfo *t)
 	}
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_relations_update(G.main, t->scene);
 	DAG_scene_flush_update(G.main, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
