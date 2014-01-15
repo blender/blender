@@ -17,10 +17,6 @@
 /* Optimized CPU kernel entry points. This file is compiled with SSE3/SSSE3
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
- 
-#include "util_optimization.h"
- 
-#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 
 /* SSE optimization disabled for now on 32 bit, see bug #36316 */
 #if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
@@ -28,6 +24,10 @@
 #define __KERNEL_SSE3__
 #define __KERNEL_SSSE3__
 #endif
+
+#include "util_optimization.h"
+
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 
 #include "kernel.h"
 #include "kernel_compat_cpu.h"

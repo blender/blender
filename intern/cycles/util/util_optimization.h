@@ -14,7 +14,30 @@
  * limitations under the License
  */
 
+#ifndef __UTIL_OPTIMIZATION_H__
+#define __UTIL_OPTIMIZATION_H__
+
+#ifndef __KERNEL_GPU__
+
+/* x86
+ *
+ * Compile a regular, SSE2 and SSE3 kernel. */
+
+#if defined(i386) || defined(_M_IX86)
+
+#define WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+#define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
+
+#endif
+
+/* x86-64
+ *
+ * Compile a regular (includes SSE2), SSE3 and SSE 4.1 kernel. */
+
 #if defined(__x86_64__) || defined(_M_X64)
+
+/* SSE2 is always available on x86-64 CPUs, so auto enable */
+#define __KERNEL_SSE2__
 
 /* no SSE2 kernel on x86-64, part of regular kernel */
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
@@ -27,9 +50,60 @@
 
 #endif
 
-#if defined(i386) || defined(_M_IX86)
+/* SSE Experiment
+ *
+ * This is disabled code for an experiment to use SSE types globally for types
+ * such as float3 and float4. Currently this gives an overall slowdown. */
 
-#define WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-#define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
+#if 0
+#define __KERNEL_SSE__
+#ifndef __KERNEL_SSE2__
+#define __KERNEL_SSE2__
+#endif
+#ifndef __KERNEL_SSE3__
+#define __KERNEL_SSE3__
+#endif
+#ifndef __KERNEL_SSSE3__
+#define __KERNEL_SSSE3__
+#endif
+#ifndef __KERNEL_SSE4__
+#define __KERNEL_SSE4__
+#endif
+#endif
+
+/* SSE Intrinsics includes
+ *
+ * We assume __KERNEL_SSEX__ flags to have been defined at this point */
+
+/* SSE intrinsics headers */
+#ifndef FREE_WINDOWS64
+
+#ifdef __KERNEL_SSE2__
+#include <xmmintrin.h> /* SSE 1 */
+#include <emmintrin.h> /* SSE 2 */
+#endif
+
+#ifdef __KERNEL_SSE3__
+#include <pmmintrin.h> /* SSE 3 */
+#endif
+
+#ifdef __KERNEL_SSSE3__
+#include <tmmintrin.h> /* SSSE 3 */
+#endif
+
+#ifdef __KERNEL_SSE41__
+#include <smmintrin.h> /* SSE 4.1 */
+#endif
+
+#else
+
+/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
+ * Since we can't avoid including <windows.h>, better only include that */
+#include <windows.h>
 
 #endif
+
+#endif
+
+#endif /* __UTIL_OPTIMIZATION_H__ */
+

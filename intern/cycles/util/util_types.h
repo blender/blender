@@ -57,66 +57,18 @@
 
 #endif
 
-/* SIMD Types */
+/* Standard Integer Types */
 
 #ifndef __KERNEL_GPU__
-
-#define __KERNEL_SSE2__
-
-/* not enabled, globally applying it gives slowdown, only for testing. */
-#if 0
-#define __KERNEL_SSE__
-#ifndef __KERNEL_SSE2__
-#define __KERNEL_SSE2__
-#endif
-#ifndef __KERNEL_SSE3__
-#define __KERNEL_SSE3__
-#endif
-#ifndef __KERNEL_SSSE3__
-#define __KERNEL_SSSE3__
-#endif
-#ifndef __KERNEL_SSE4__
-#define __KERNEL_SSE4__
-#endif
-#endif
-
-/* SSE2 is always available on x86_64 CPUs, so auto enable */
-#if defined(__x86_64__) && !defined(__KERNEL_SSE2__)
-#define __KERNEL_SSE2__
-#endif
-
-/* SSE intrinsics headers */
-#ifndef FREE_WINDOWS64
-
-#ifdef __KERNEL_SSE2__
-#include <xmmintrin.h> /* SSE 1 */
-#include <emmintrin.h> /* SSE 2 */
-#endif
-
-#ifdef __KERNEL_SSE3__
-#include <pmmintrin.h> /* SSE 3 */
-#endif
-
-#ifdef __KERNEL_SSSE3__
-#include <tmmintrin.h> /* SSSE 3 */
-#endif
-
-#ifdef __KERNEL_SSE41__
-#include <smmintrin.h> /* SSE 4.1 */
-#endif
-
-#else
-
-/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
- * Since we can't avoid including <windows.h>, better only include that */
-#include <windows.h>
-
-#endif
 
 /* int8_t, uint16_t, and friends */
 #ifndef _WIN32
 #include <stdint.h>
 #endif
+
+/* SIMD Types */
+
+#include "util_optimization.h"
 
 #endif
 
