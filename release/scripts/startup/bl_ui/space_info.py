@@ -131,7 +131,7 @@ class INFO_MT_file(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        if bpy.data.is_dirty and bpy.context.user_preferences.view.use_quit_dialog:
+        if bpy.data.is_dirty and context.user_preferences.view.use_quit_dialog:
             layout.operator_context = 'INVOKE_SCREEN' # quit dialog
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 

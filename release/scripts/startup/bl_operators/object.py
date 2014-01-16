@@ -878,7 +878,7 @@ class LodGenerate(Operator):
         return (context.active_object is not None)
 
     def execute(self, context):
-        scene = bpy.context.scene
+        scene = context.scene
         ob = scene.objects.active
 
         lod_name = ob.name
@@ -903,7 +903,7 @@ class LodGenerate(Operator):
         for i in range(1, self.count):
             scene.objects.active = ob
             bpy.ops.object.duplicate()
-            lod = bpy.context.selected_objects[0]
+            lod = context.selected_objects[0]
 
             scene.objects.active = ob
             bpy.ops.object.lod_add()
