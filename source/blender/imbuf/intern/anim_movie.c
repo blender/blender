@@ -528,11 +528,11 @@ static int startffmpeg(struct anim *anim)
 	}
 
 	anim->duration = ceil(pFormatCtx->duration *
-	                      av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) /
+	                      av_q2d(pFormatCtx->streams[videoStream]->avg_frame_rate) /
 	                      AV_TIME_BASE);
 
-	frs_num = pFormatCtx->streams[videoStream]->r_frame_rate.num;
-	frs_den = pFormatCtx->streams[videoStream]->r_frame_rate.den;
+	frs_num = pFormatCtx->streams[videoStream]->avg_frame_rate.num;
+	frs_den = pFormatCtx->streams[videoStream]->avg_frame_rate.den;
 
 	frs_den *= AV_TIME_BASE;
 
@@ -970,7 +970,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 
 	v_st = anim->pFormatCtx->streams[anim->videoStream];
 
-	frame_rate = av_q2d(v_st->r_frame_rate);
+	frame_rate = av_q2d(v_st->avg_frame_rate);
 
 	st_time = anim->pFormatCtx->start_time;
 	pts_time_base = av_q2d(v_st->time_base);
