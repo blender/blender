@@ -139,7 +139,7 @@ static void file_panel_system_bookmarks(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
-	if (sfile && !(U.uiflag & USER_HIDE_SYSTEM_BOOKMARKS) ) {
+	if (sfile && !(U.uiflag & USER_HIDE_SYSTEM_BOOKMARKS)) {
 		file_panel_category(C, pa, FS_CATEGORY_SYSTEM_BOOKMARKS, &sfile->systemnr, ICON_BOOKMARKS, 0);
 	}
 
@@ -165,7 +165,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 	uiLayout *row;
 
 	if (sfile) {
-		if (!(U.uiflag & USER_HIDE_RECENT) ) {
+		if (!(U.uiflag & USER_HIDE_RECENT)) {
 			row = uiLayoutRow(pa->layout, FALSE);
 			uiItemO(row, IFACE_("Reset"), ICON_X, "file.reset_recent");
 			uiItemL(row, NULL, ICON_NONE);

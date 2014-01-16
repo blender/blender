@@ -39,7 +39,7 @@
 //#include <stdio.h>
 #include "COM_defines.h"
 
-Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
+Node::Node(bNode *editorNode, bool create_sockets) : NodeBase()
 {
 	setbNode(editorNode);
 	

@@ -3040,7 +3040,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			/* double click test */
 			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
 					printf("%s Send double click\n", __func__);
 				event.val = KM_DBL_CLICK;
 			}
@@ -3147,7 +3147,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* double click test */
 			/* if previous event was same type, and previous was release, and now it presses... */
 			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
 					printf("%s Send double click\n", __func__);
 				evt->val = event.val = KM_DBL_CLICK;
 			}
@@ -3216,7 +3216,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
 
-			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
 				printf("%s sending NDOF_MOTION, prev = %d %d\n", __func__, event.x, event.y);
 
 			break;

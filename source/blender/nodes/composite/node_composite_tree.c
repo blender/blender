@@ -377,7 +377,7 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 		}
 		/* here was tag render layer, but this is called after a render, so re-composites fail */
 		else if (node->type == NODE_GROUP) {
-			if (ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+			if (ntreeCompositTagAnimated((bNodeTree *)node->id)) {
 				nodeUpdate(ntree, node);
 			}
 		}

@@ -2897,8 +2897,9 @@ static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
 		return 0;
 	
 	/* XXX weak; border should be configured for this without reading event types */
-	if (RNA_struct_find_property(op->ptr, "gesture_mode") )
+	if (RNA_struct_find_property(op->ptr, "gesture_mode")) {
 		RNA_int_set(op->ptr, "gesture_mode", gesture_mode);
+	}
 
 	retval = op->type->exec(C, op);
 	OPERATOR_RETVAL_CHECK(retval);
@@ -2915,8 +2916,9 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
-	if (RNA_struct_find_property(op->ptr, "cursor") )
+	if (RNA_struct_find_property(op->ptr, "cursor")) {
 		WM_cursor_modal_restore(CTX_wm_window(C));
+	}
 }
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3194,8 +3196,9 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 	if (win->tweak == NULL) {
 		if (CTX_wm_region(C)) {
 			if (event->val == KM_PRESS) {
-				if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
+				if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
 					win->tweak = WM_gesture_new(C, event, WM_GESTURE_TWEAK);
+				}
 			}
 		}
 	}
@@ -3220,8 +3223,9 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	
 	wm_gesture_tag_redraw(C);
 	
-	if (RNA_struct_find_property(op->ptr, "cursor") )
+	if (RNA_struct_find_property(op->ptr, "cursor")) {
 		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	}
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -3235,8 +3239,9 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	
 	wm_gesture_tag_redraw(C);
 	
-	if (RNA_struct_find_property(op->ptr, "cursor") )
+	if (RNA_struct_find_property(op->ptr, "cursor")) {
 		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	}
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -3448,8 +3453,9 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	
 	wm_gesture_tag_redraw(C);
 	
-	if (RNA_struct_find_property(op->ptr, "cursor") )
+	if (RNA_struct_find_property(op->ptr, "cursor")) {
 		WM_cursor_modal_set(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	}
 		
 	return OPERATOR_RUNNING_MODAL;
 }

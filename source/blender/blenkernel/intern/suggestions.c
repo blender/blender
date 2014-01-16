@@ -52,7 +52,7 @@ static int txttl_cmp(const char *first, const char *second, int len)
 {
 	int cmp, i;
 	for (cmp = 0, i = 0; i < len; i++) {
-		if ( (cmp = toupper(first[i]) - toupper(second[i])) ) {
+		if ((cmp = toupper(first[i]) - toupper(second[i]))) {
 			break;
 		}
 	}

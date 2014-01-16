@@ -304,18 +304,18 @@ static int is_hidden_file(const char *filename, short hide_dot)
 		if (filename[0] == '.' && filename[1] != '.' && filename[1] != 0) {
 			is_hidden = 1; /* ignore .file */
 		}
-		else if (((filename[0] == '.') && (filename[1] == 0) )) {
+		else if (((filename[0] == '.') && (filename[1] == 0))) {
 			is_hidden = 1; /* ignore . */
 		}
 		else {
 			int len = strlen(filename);
-			if ( (len > 0) && (filename[len - 1] == '~') ) {
+			if ((len > 0) && (filename[len - 1] == '~')) {
 				is_hidden = 1;  /* ignore file~ */
 			}
 		}
 	}
 	else {
-		if (((filename[0] == '.') && (filename[1] == 0) )) {
+		if (((filename[0] == '.') && (filename[1] == 0))) {
 			is_hidden = 1; /* ignore . */
 		}
 	}
@@ -370,7 +370,7 @@ void filelist_filter(FileList *filelist)
 	/* How many files are left after filter ? */
 	for (i = 0; i < filelist->numfiles; ++i) {
 		struct direntry *file = &filelist->filelist[i];
-		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
+		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot)) {
 			num_filtered++;
 		}
 	}
@@ -384,7 +384,7 @@ void filelist_filter(FileList *filelist)
 
 	for (i = 0, j = 0; i < filelist->numfiles; ++i) {
 		struct direntry *file = &filelist->filelist[i];
-		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
+		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot)) {
 			filelist->fidx[j++] = i;
 		}
 	}
@@ -629,7 +629,7 @@ ImBuf *filelist_getimage(struct FileList *filelist, int index)
 
 	BLI_assert(G.background == FALSE);
 
-	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+	if ((index < 0) || (index >= filelist->numfiltered)) {
 		return NULL;
 	}
 	fidx = filelist->fidx[index];
@@ -646,7 +646,7 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 
 	BLI_assert(G.background == FALSE);
 
-	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+	if ((index < 0) || (index >= filelist->numfiltered)) {
 		return NULL;
 	}
 	fidx = filelist->fidx[index];
@@ -669,7 +669,7 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 	if (file->flags & BLENDERFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_BLENDFILE];
 	}
-	else if ( (file->flags & MOVIEFILE) || (file->flags & MOVIEFILE_ICON) ) {
+	else if ((file->flags & MOVIEFILE) || (file->flags & MOVIEFILE_ICON)) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_MOVIEFILE];
 	}
 	else if (file->flags & SOUNDFILE) {
@@ -698,7 +698,7 @@ struct direntry *filelist_file(struct FileList *filelist, int index)
 {
 	int fidx = 0;
 	
-	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+	if ((index < 0) || (index >= filelist->numfiltered)) {
 		return NULL;
 	}
 	fidx = filelist->fidx[index];
@@ -994,7 +994,7 @@ void filelist_select_file(struct FileList *filelist, int index, FileSelType sele
 void filelist_select(struct FileList *filelist, FileSelection *sel, FileSelType select, unsigned int flag, FileCheckType check)
 {
 	/* select all valid files between first and last indicated */
-	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
+	if ((sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered)) {
 		int current_file;
 		for (current_file = sel->first; current_file <= sel->last; current_file++) {
 			filelist_select_file(filelist, current_file, select, flag, check);
@@ -1332,7 +1332,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 	tj->stop = stop;
 	tj->do_update = do_update;
 
-	while ( (*stop == 0) && (limg) ) {
+	while ((*stop == 0) && (limg)) {
 		if (limg->flags & IMAGEFILE) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
 		}
@@ -1393,7 +1393,7 @@ void thumbnails_start(FileList *filelist, const bContext *C)
 	tj->filelist = filelist;
 	for (idx = 0; idx < filelist->numfiles; idx++) {
 		if (!filelist->filelist[idx].image) {
-			if ( (filelist->filelist[idx].flags & (IMAGEFILE | MOVIEFILE | BLENDERFILE | BLENDERFILE_BACKUP)) ) {
+			if ((filelist->filelist[idx].flags & (IMAGEFILE | MOVIEFILE | BLENDERFILE | BLENDERFILE_BACKUP))) {
 				FileImage *limg = MEM_callocN(sizeof(FileImage), "loadimage");
 				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index = idx;

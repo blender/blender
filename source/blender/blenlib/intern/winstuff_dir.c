@@ -21,12 +21,16 @@
  * Windows-posix compatibility layer for opendir/readdir/closedir
  */
 
-/** \file blender/blenlib/intern/winstuff.c
+/** \file blender/blenlib/intern/winstuff_dir.c
  *  \ingroup bli
+ *
+ * Posix compatibility functions for windows dealing with DIR
+ * (opendir, readdir, closedir)
  */
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 
+/* standalone for inclusion in binaries other then blender */
 #  ifdef USE_STANDALONE
 #    define MEM_mallocN(size, str) ((void)str, malloc(size))
 #    define MEM_callocN(size, str) ((void)str, calloc(size, 1))

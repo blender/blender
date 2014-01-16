@@ -455,7 +455,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	ob = base->object;
 
 	/* this checks actual object->data, for cases when other scenes have it in editmode context */
-	if ( BKE_object_is_in_editmode(ob) )
+	if (BKE_object_is_in_editmode(ob))
 		return;
 	
 	if (BKE_object_obdata_is_libdata(ob)) {

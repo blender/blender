@@ -295,19 +295,19 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 			if (rv3dtest->viewlock) {
 				rv3dtest->dist = rv3d->dist;
 
-				if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM) ) {
+				if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
 					if (ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
 						rv3dtest->ofs[0] = rv3d->ofs[0];
 					else if (ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 						rv3dtest->ofs[1] = rv3d->ofs[1];
 				}
-				else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK) ) {
+				else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
 					if (ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 						rv3dtest->ofs[0] = rv3d->ofs[0];
 					else if (ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 						rv3dtest->ofs[2] = rv3d->ofs[2];
 				}
-				else if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT) ) {
+				else if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
 					if (ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
 						rv3dtest->ofs[1] = rv3d->ofs[1];
 					if (ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))

@@ -823,17 +823,17 @@ void UI_view2d_curRect_reset(View2D *v2d)
 	/* handle width - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
 		/* width is in negative-x half */
-		v2d->cur.xmin = (float)-width;
+		v2d->cur.xmin = -width;
 		v2d->cur.xmax = 0.0f;
 	}
 	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
 		/* width is in positive-x half */
 		v2d->cur.xmin = 0.0f;
-		v2d->cur.xmax = (float)width;
+		v2d->cur.xmax = width;
 	}
 	else {
 		/* width is centered around (x == 0) */
-		const float dx = (float)width / 2.0f;
+		const float dx = width / 2.0f;
 		
 		v2d->cur.xmin = -dx;
 		v2d->cur.xmax = dx;
@@ -842,17 +842,17 @@ void UI_view2d_curRect_reset(View2D *v2d)
 	/* handle height - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
 		/* height is in negative-y half */
-		v2d->cur.ymin = (float)-height;
+		v2d->cur.ymin = -height;
 		v2d->cur.ymax = 0.0f;
 	}
 	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
 		/* height is in positive-y half */
 		v2d->cur.ymin = 0.0f;
-		v2d->cur.ymax = (float)height;
+		v2d->cur.ymax = height;
 	}
 	else {
 		/* height is centered around (y == 0) */
-		const float dy = (float)height / 2.0f;
+		const float dy = height / 2.0f;
 		
 		v2d->cur.ymin = -dy;
 		v2d->cur.ymax = dy;

@@ -291,7 +291,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 
 	seq->machine = value;
 	
-	if (BKE_sequence_test_overlap(seqbase, seq) ) {
+	if (BKE_sequence_test_overlap(seqbase, seq)) {
 		BKE_sequence_base_shuffle(seqbase, seq, scene);  /* XXX - BROKEN!, uses context seqbasep */
 	}
 	BKE_sequencer_sort(scene);

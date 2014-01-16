@@ -486,7 +486,7 @@ int BLI_exists(const char *name)
 	unsigned int old_error_mode;
 
 	len = wcslen(tmp_16);
-	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/') )
+	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/'))
 		tmp_16[len - 1] = '\0';
 
 	/* change error mode so user does not get a "no disk in drive" popup

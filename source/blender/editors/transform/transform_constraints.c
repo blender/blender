@@ -925,7 +925,7 @@ void postSelectConstraint(TransInfo *t)
 static void setNearestAxis2d(TransInfo *t)
 {
 	/* no correction needed... just use whichever one is lower */
-	if (abs(t->mval[0] - t->con.imval[0]) < abs(t->mval[1] - t->con.imval[1]) ) {
+	if (abs(t->mval[0] - t->con.imval[0]) < abs(t->mval[1] - t->con.imval[1])) {
 		t->con.mode |= CON_AXIS1;
 		BLI_strncpy(t->con.text, IFACE_(" along Y axis"), sizeof(t->con.text));
 	}

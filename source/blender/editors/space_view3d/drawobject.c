@@ -1271,7 +1271,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 		/* draw clip start, useful for wide cones where its not obvious where the start is */
 		glTranslatef(0.0, 0.0, -x);  /* reverse translation above */
-		if (la->type == LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
+		if (la->type == LA_SPOT && (la->mode & LA_SHAD_BUF)) {
 			float lvec_clip[3];
 			float vvec_clip[3];
 			float clipsta_fac = la->clipsta / -x;

@@ -237,7 +237,7 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 		 * Also, need to take into account whether the keyframe was selected
 		 * if a Graph Editor option to only show handles of selected keys is on.
 		 */
-		if (!sel_handle_only || BEZSELECTED(bezt) ) {
+		if (!sel_handle_only || BEZSELECTED(bezt)) {
 			if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
 				if ((bezt->f1 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
 					draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);

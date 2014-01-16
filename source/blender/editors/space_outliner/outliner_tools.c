@@ -1278,7 +1278,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		/* select object that's clicked on and popup context menu */
 		if (!(tselem->flag & TSE_SELECTED)) {
 			
-			if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1) )
+			if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
 				outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
 			
 			tselem->flag |= TSE_SELECTED;

@@ -920,7 +920,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 		pchan = BKE_pose_channel_find_name(pose, agrp->name);
 		
 		if (pchan) {
-			if ( (pld->selcount == 0) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) ) {
+			if ((pld->selcount == 0) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))) {
 				if (autokey) {
 					/* add datasource override for the PoseChannel, to be used later */
 					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 

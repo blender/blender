@@ -307,7 +307,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 
 /* Apply Settings ------------------------------- */
 
-static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
+static int outliner_count_levels(SpaceOops *soops, ListBase *lb, const int curlevel)
 {
 	TreeElement *te;
 	int level = curlevel, lev;
@@ -320,7 +320,7 @@ static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
 	return level;
 }
 
-int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, short curlevel)
+int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, const int curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;

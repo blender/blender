@@ -146,7 +146,7 @@ void WM_cursor_set(wmWindow *win, int curs)
 		if (curs == SYSCURSOR) {  /* System default Cursor */
 			GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
 		}
-		else if ( (U.curssize == 0) || (BlenderCursor[curs]->big_bm == NULL) ) {
+		else if ((U.curssize == 0) || (BlenderCursor[curs]->big_bm == NULL)) {
 			window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
 		}
 		else {

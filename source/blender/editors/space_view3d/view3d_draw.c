@@ -1295,7 +1295,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		return;
 	}
 
-	if (!(v3d->flag & V3D_INVALID_BACKBUF) ) return;
+	if (!(v3d->flag & V3D_INVALID_BACKBUF))
+		return;
 
 #if 0
 	if (test) {
@@ -3326,8 +3327,9 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	/* draw selected and editmode */
 	for (base = scene->base.first; base; base = base->next) {
 		if (v3d->lay & base->lay) {
-			if (base->object == scene->obedit || (base->flag & SELECT) )
+			if (base->object == scene->obedit || (base->flag & SELECT)) {
 				draw_object(scene, ar, v3d, base, 0);
+			}
 		}
 	}
 

@@ -2856,7 +2856,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION) ) {
+				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
 
 					/* UV_SYNC_SELECTION - can't do pinned selection */
 					if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {

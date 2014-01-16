@@ -2469,7 +2469,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User",
-							 "Parameters defining which layer, pass and frame of the image is displayed");
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* render */

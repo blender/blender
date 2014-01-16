@@ -165,7 +165,7 @@ int ED_operator_objectmode(bContext *C)
 
 	if (scene == NULL || scene->id.lib)
 		return 0;
-	if (CTX_data_edit_object(C) )
+	if (CTX_data_edit_object(C))
 		return 0;
 	
 	/* add a check for ob->mode too? */

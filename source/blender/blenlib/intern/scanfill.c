@@ -699,7 +699,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
 						ed3 = sc1->edge_first;
 						while (ed3) {
-							if ( (ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1) ) {
+							if ((ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1)) {
 								if (twoconnected || ed3->f == SF_EDGE_BOUNDARY) {
 									BLI_remlink((ListBase *)&(sc1->edge_first), ed3);
 									BLI_addtail(&sf_ctx->filledgebase, ed3);

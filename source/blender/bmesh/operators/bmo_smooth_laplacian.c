@@ -362,7 +362,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 		}
 	}
 	BM_ITER_MESH (e, &eiter, sys->bm, BM_EDGES_OF_MESH) {
-		if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e) ) {
+		if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e)) {
 			v1 = e->v1->co;
 			v2 =  e->v2->co;
 			idv1 = BM_elem_index_get(e->v1);

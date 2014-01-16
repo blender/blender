@@ -140,7 +140,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
 	 */
 	if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
-	    (maxVerts == 0) || (ob->defbase.first == NULL) )
+	    (maxVerts == 0) || (ob->defbase.first == NULL))
 	{
 		return dm;
 	}
@@ -297,7 +297,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* vertices */
 	for (hashIter = BLI_ghashIterator_new(vertHash);
 	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter) )
+	     BLI_ghashIterator_step(hashIter))
 	{
 		MVert source;
 		MVert *dest;
@@ -336,7 +336,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* faces */
 	for (hashIter = BLI_ghashIterator_new(polyHash);
 	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter) )
+	     BLI_ghashIterator_step(hashIter))
 	{
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));

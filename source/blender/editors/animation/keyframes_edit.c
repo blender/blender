@@ -121,7 +121,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 				}
 				
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
-				if ( (ok = key_ok(ked, bezt)) ) {
+				if ((ok = key_ok(ked, bezt))) {
 					if (ked) ked->curflags = ok;
 					
 					/* Exit with return-code '1' if function returns positive

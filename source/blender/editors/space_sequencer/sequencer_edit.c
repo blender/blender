@@ -293,7 +293,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq != test) &&
 		    (test->machine == seq->machine) &&
-		    ((sel == -1) || (sel && (seq->flag & SELECT)) || (sel == 0 && (seq->flag & SELECT) == 0)  ))
+		    ((sel == -1) || (sel && (seq->flag & SELECT)) || (sel == 0 && (seq->flag & SELECT) == 0)))
 		{
 			switch (lr) {
 				case SEQ_SIDE_LEFT:

@@ -497,7 +497,7 @@ static void recalcData_nla(TransInfo *t)
 			pExceeded = ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h1[0] < strip->prev->end));
 			nExceeded = ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h2[0] > strip->next->start));
 			
-			if ((pExceeded && nExceeded) || (iter == 4) ) {
+			if ((pExceeded && nExceeded) || (iter == 4)) {
 				/* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
 				 *	- simply crop strip to fit within the bounds of the strips bounding it
 				 *	- if there were no neighbors, clear the transforms (make it default to the strip's current values)
