@@ -660,6 +660,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 {
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
+	float alpha;
 	float xscale;
 	float iconsize = U.widget_unit / 4.0f;
 	glEnable(GL_BLEND);
@@ -667,15 +668,24 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	/* get View2D scaling factor */
 	UI_view2d_getscale(v2d, &xscale, NULL);
 	
+	/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
+	/* TODO: allow this opacity factor to be themed? */
+	alpha = (channelLocked) ? 0.25f : 1.0f;
+	
 	/* draw keyblocks */
 	if (blocks) {
 		for (ab = blocks->first; ab; ab = ab->next) {
 			if (actkeyblock_is_valid(ab, keys)) {
+				float color[4];
+				
 				/* draw block */
 				if (ab->sel)
-					UI_ThemeColor4(TH_STRIP_SELECT);
+					UI_GetThemeColor4fv(TH_STRIP_SELECT, color);
 				else
-					UI_ThemeColor4(TH_STRIP);
+					UI_GetThemeColor4fv(TH_STRIP, color);
+					
+				color[3] *= alpha;
+				glColor4fv(color);
 				
 				glRectf(ab->start, ypos - iconsize, ab->end, ypos + iconsize);
 			}
@@ -684,10 +694,6 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	
 	/* draw keys */
 	if (keys) {
-		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
-		/* TODO: allow this opacity factor to be themed? */
-		float kalpha = (channelLocked) ? 0.25f : 1.0f;
-		
 		for (ak = keys->first; ak; ak = ak->next) {
 			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
@@ -698,7 +704,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			/* draw using OpenGL - uglier but faster */
 			/* NOTE1: a previous version of this didn't work nice for some intel cards
 			 * NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3; */
-			draw_keyframe_shape(ak->cfra, ypos, xscale, iconsize, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
+			draw_keyframe_shape(ak->cfra, ypos, xscale, iconsize, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, alpha);
 		}
 	}
 
