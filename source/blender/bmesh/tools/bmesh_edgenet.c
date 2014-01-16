@@ -42,7 +42,7 @@
 #include "BLI_strict_flags.h"  /* keep last */
 
 
-/* Data for one end of an edge involved in a bevel */
+/* Struct for storing a path of verts walked over */
 typedef struct VertNetInfo {
 	BMVert *prev;               /* previous vertex */
 	int pass;                   /* path scanning pass value, for internal calculation */

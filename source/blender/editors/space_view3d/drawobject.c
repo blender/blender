@@ -6572,32 +6572,28 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	r_ob_wire_col[3] = 255;
 }
 
-static void draw_object_matcap_check(Scene *scene, View3D *v3d, Object *ob)
+static void draw_object_matcap_check(View3D *v3d, Object *ob)
 {
 	/* fixed rule, active object draws as matcap */
-	if (ob == OBACT) {
-		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
-			return;
-			
-		if (v3d->defmaterial == NULL) {
-			extern Material defmaterial;
-			
-			v3d->defmaterial = MEM_mallocN(sizeof(Material), "matcap material");
-			*(v3d->defmaterial) = defmaterial;
-			v3d->defmaterial->gpumaterial.first = v3d->defmaterial->gpumaterial.last = NULL;
-			v3d->defmaterial->preview = NULL;
-		}
-		/* first time users */
-		if (v3d->matcap_icon == 0)
-			v3d->matcap_icon = ICON_MATCAP_01;
-		
-		if (v3d->defmaterial->preview == NULL)
-			v3d->defmaterial->preview = UI_icon_to_preview(v3d->matcap_icon);
-		
-		/* signal to all material checks, gets cleared below */
-		v3d->flag2 |= V3D_SHOW_SOLID_MATCAP;
-	}
+	BLI_assert((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) == 0);
 
+	if (v3d->defmaterial == NULL) {
+		extern Material defmaterial;
+
+		v3d->defmaterial = MEM_mallocN(sizeof(Material), "matcap material");
+		*(v3d->defmaterial) = defmaterial;
+		v3d->defmaterial->gpumaterial.first = v3d->defmaterial->gpumaterial.last = NULL;
+		v3d->defmaterial->preview = NULL;
+	}
+	/* first time users */
+	if (v3d->matcap_icon == 0)
+		v3d->matcap_icon = ICON_MATCAP_01;
+
+	if (v3d->defmaterial->preview == NULL)
+		v3d->defmaterial->preview = UI_icon_to_preview(v3d->matcap_icon);
+
+	/* signal to all material checks, gets cleared below */
+	v3d->flag2 |= V3D_SHOW_SOLID_MATCAP;
 }
 
 static void draw_rigidbody_shape(Object *ob)
@@ -6754,34 +6750,39 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	dt = MIN2(dt, ob->dt);
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	dtx = 0;
-	
-	/* matcap check */
-	if (dt == OB_SOLID && (v3d->flag2 & V3D_SOLID_MATCAP))
-		draw_object_matcap_check(scene, v3d, ob);
+
 
 	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
-	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
-		if (ob->type == OB_MESH) {
-			if (dt < OB_SOLID) {
-				zbufoff = 1;
-				dt = OB_SOLID;
-			}
+	if (is_obact) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			if (ob->type == OB_MESH) {
+				if (dt < OB_SOLID) {
+					zbufoff = 1;
+					dt = OB_SOLID;
+				}
 
-			if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-				dt = OB_PAINT;
-			}
+				if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+					dt = OB_PAINT;
+				}
 
-			glEnable(GL_DEPTH_TEST);
+				glEnable(GL_DEPTH_TEST);
+			}
+			else {
+				if (dt < OB_SOLID) {
+					dt = OB_SOLID;
+					glEnable(GL_DEPTH_TEST);
+					zbufoff = 1;
+				}
+			}
 		}
 		else {
-			if (dt < OB_SOLID) {
-				dt = OB_SOLID;
-				glEnable(GL_DEPTH_TEST);
-				zbufoff = 1;
+			/* matcap check - only when not painting color */
+			if ((v3d->flag2 & V3D_SOLID_MATCAP) && (dt == OB_SOLID)) {
+				draw_object_matcap_check(v3d, ob);
 			}
 		}
 	}
-	
+
 	/* draw-extra supported for boundbox drawmode too */
 	if (dt >= OB_BOUNDBOX) {
 		dtx = ob->dtx;

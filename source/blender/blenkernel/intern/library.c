@@ -786,10 +786,8 @@ void BKE_libblock_copy_data(ID *id, const ID *id_from, const bool do_action)
 void *BKE_libblock_copy_ex(Main *bmain, ID *id)
 {
 	ID *idn;
-	ListBase *lb;
 	size_t idn_len;
 
-	lb = which_libbase(bmain, GS(id->name));
 	idn = BKE_libblock_alloc(bmain, GS(id->name), id->name + 2);
 
 	assert(idn != NULL);
