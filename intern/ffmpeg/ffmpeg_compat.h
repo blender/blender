@@ -104,6 +104,37 @@ int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 
 #endif
 
+/* FFmpeg upstream 1.0 is the first who added AV_ prefix. */
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 59, 100)
+#  define AV_CODEC_ID_NONE CODEC_ID_NONE
+#  define AV_CODEC_ID_MPEG4 CODEC_ID_MPEG4
+#  define AV_CODEC_ID_MJPEG CODEC_ID_MJPEG
+#  define AV_CODEC_ID_DNXHD CODEC_ID_DNXHD
+#  define AV_CODEC_ID_MPEG2VIDEO CODEC_ID_MPEG2VIDEO
+#  define AV_CODEC_ID_MPEG1VIDEO CODEC_ID_MPEG1VIDEO
+#  define AV_CODEC_ID_DVVIDEO CODEC_ID_DVVIDEO
+#  define AV_CODEC_ID_THEORA CODEC_ID_THEORA
+#  define AV_CODEC_ID_PNG CODEC_ID_PNG
+#  define AV_CODEC_ID_QTRLE CODEC_ID_QTRLE
+#  define AV_CODEC_ID_FFV1 CODEC_ID_FFV1
+#  define AV_CODEC_ID_HUFFYUV CODEC_ID_HUFFYUV
+#  define AV_CODEC_ID_H264 CODEC_ID_H264
+#  define AV_CODEC_ID_FLV1 CODEC_ID_FLV1
+
+#  define AV_CODEC_ID_AAC CODEC_ID_AAC
+#  define AV_CODEC_ID_AC3 CODEC_ID_AC3
+#  define AV_CODEC_ID_MP3 CODEC_ID_MP3
+#  define AV_CODEC_ID_MP2 CODEC_ID_MP2
+#  define AV_CODEC_ID_FLAC CODEC_ID_FLAC
+#  define AV_CODEC_ID_PCM_U8 CODEC_ID_PCM_U8
+#  define AV_CODEC_ID_PCM_S16LE CODEC_ID_PCM_S16LE
+#  define AV_CODEC_ID_PCM_S24LE CODEC_ID_PCM_S24LE
+#  define AV_CODEC_ID_PCM_S32LE CODEC_ID_PCM_S32LE
+#  define AV_CODEC_ID_PCM_F32LE CODEC_ID_PCM_F32LE
+#  define AV_CODEC_ID_PCM_F64LE CODEC_ID_PCM_F64LE
+#  define AV_CODEC_ID_VORBIS CODEC_ID_VORBIS
+#endif
+
 FFMPEG_INLINE
 int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
 {
@@ -124,7 +155,7 @@ int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
 	if (pCodecCtx->width == 1920 && 
 	    pCodecCtx->height == 1088 &&
 	    pCodecCtx->pix_fmt == PIX_FMT_YUVJ420P &&
-	    pCodecCtx->codec_id == CODEC_ID_H264 ) {
+	    pCodecCtx->codec_id == AV_CODEC_ID_H264 ) {
 		y = 1080;
 	}
 #endif

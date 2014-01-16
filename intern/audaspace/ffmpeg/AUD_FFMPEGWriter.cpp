@@ -68,57 +68,57 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 	switch(codec)
 	{
 	case AUD_CODEC_AAC:
-		m_outputFmt->audio_codec = CODEC_ID_AAC;
+		m_outputFmt->audio_codec = AV_CODEC_ID_AAC;
 		break;
 	case AUD_CODEC_AC3:
-		m_outputFmt->audio_codec = CODEC_ID_AC3;
+		m_outputFmt->audio_codec = AV_CODEC_ID_AC3;
 		break;
 	case AUD_CODEC_FLAC:
-		m_outputFmt->audio_codec = CODEC_ID_FLAC;
+		m_outputFmt->audio_codec = AV_CODEC_ID_FLAC;
 		break;
 	case AUD_CODEC_MP2:
-		m_outputFmt->audio_codec = CODEC_ID_MP2;
+		m_outputFmt->audio_codec = AV_CODEC_ID_MP2;
 		break;
 	case AUD_CODEC_MP3:
-		m_outputFmt->audio_codec = CODEC_ID_MP3;
+		m_outputFmt->audio_codec = AV_CODEC_ID_MP3;
 		break;
 	case AUD_CODEC_PCM:
 		switch(specs.format)
 		{
 		case AUD_FORMAT_U8:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_U8;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_U8;
 			break;
 		case AUD_FORMAT_S16:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_S16LE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S16LE;
 			break;
 		case AUD_FORMAT_S24:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_S24LE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S24LE;
 			break;
 		case AUD_FORMAT_S32:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_S32LE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_S32LE;
 			break;
 		case AUD_FORMAT_FLOAT32:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_F32LE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_F32LE;
 			break;
 		case AUD_FORMAT_FLOAT64:
-			m_outputFmt->audio_codec = CODEC_ID_PCM_F64LE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_PCM_F64LE;
 			break;
 		default:
-			m_outputFmt->audio_codec = CODEC_ID_NONE;
+			m_outputFmt->audio_codec = AV_CODEC_ID_NONE;
 			break;
 		}
 		break;
 	case AUD_CODEC_VORBIS:
-		m_outputFmt->audio_codec = CODEC_ID_VORBIS;
+		m_outputFmt->audio_codec = AV_CODEC_ID_VORBIS;
 		break;
 	default:
-		m_outputFmt->audio_codec = CODEC_ID_NONE;
+		m_outputFmt->audio_codec = AV_CODEC_ID_NONE;
 		break;
 	}
 
 	try
 	{
-		if(m_outputFmt->audio_codec == CODEC_ID_NONE)
+		if(m_outputFmt->audio_codec == AV_CODEC_ID_NONE)
 			AUD_THROW(AUD_ERROR_SPECS, codec_error);
 
 		m_stream = avformat_new_stream(m_formatCtx, NULL);

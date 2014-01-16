@@ -64,6 +64,7 @@
 #include "BKE_writeffmpeg.h"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include "ffmpeg_compat.h"
 #endif
 
 #include "ED_render.h"
@@ -3756,31 +3757,31 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem ffmpeg_codec_items[] = {
-		{CODEC_ID_NONE, "NONE", 0, "None", ""},
-		{CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
-		{CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
-		{CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
-		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
-		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
-		{CODEC_ID_H264, "H264", 0, "H.264", ""},
-		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
-		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
-		{CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
-		{CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
-		{CODEC_ID_PNG, "PNG", 0, "PNG", ""},
+		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{AV_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
+		{AV_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
+		{AV_CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
+		{AV_CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
+		{AV_CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
+		{AV_CODEC_ID_H264, "H264", 0, "H.264", ""},
+		{AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
+		{AV_CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
+		{AV_CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
+		{AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
+		{AV_CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
+		{AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
-		{CODEC_ID_NONE, "NONE", 0, "None", ""},
-		{CODEC_ID_MP2, "MP2", 0, "MP2", ""},
-		{CODEC_ID_MP3, "MP3", 0, "MP3", ""},
-		{CODEC_ID_AC3, "AC3", 0, "AC3", ""},
-		{CODEC_ID_AAC, "AAC", 0, "AAC", ""},
-		{CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
-		{CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
-		{CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
+		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{AV_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
+		{AV_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
+		{AV_CODEC_ID_AC3, "AC3", 0, "AC3", ""},
+		{AV_CODEC_ID_AAC, "AAC", 0, "AAC", ""},
+		{AV_CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
+		{AV_CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
+		{AV_CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 #endif

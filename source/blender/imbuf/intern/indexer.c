@@ -504,7 +504,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 
 	rv->c = rv->st->codec;
 	rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
-	rv->c->codec_id = CODEC_ID_MJPEG;
+	rv->c->codec_id = AV_CODEC_ID_MJPEG;
 	rv->c->width = width;
 	rv->c->height = height;
 

@@ -211,6 +211,9 @@ if(WITH_CODEC_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+	list(APPEND INC
+		../../../../intern/ffmpeg
+	)
 	list(APPEND INC_SYS
 		${FFMPEG_INCLUDE_DIRS}
 	)
