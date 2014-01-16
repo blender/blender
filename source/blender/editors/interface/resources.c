@@ -2312,7 +2312,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 269, 9)) {
+	if (U.versionfile < 269 || (U.versionfile == 269 && U.subversionfile < 9)) {
 		U.tw_size = U.tw_size * 5.0f;
 	}
 
