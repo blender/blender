@@ -1092,8 +1092,13 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Length", "Total time the build effect requires");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "use_reverse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_BUILD_FLAG_REVERSE);
+	RNA_def_property_ui_text(prop, "Reversed", "Deconstruct the mesh instead of building it");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
 	prop = RNA_def_property(srna, "use_random_order", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "randomize", 1);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_BUILD_FLAG_RANDOMIZE);
 	RNA_def_property_ui_text(prop, "Randomize", "Randomize the faces or edges during build");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

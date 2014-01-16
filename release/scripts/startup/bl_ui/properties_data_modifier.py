@@ -160,6 +160,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "frame_start")
         col.prop(md, "frame_duration")
+        col.prop(md, "use_reverse")
 
         col = split.column()
         col.prop(md, "use_random_order")

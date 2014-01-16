@@ -167,8 +167,17 @@ typedef struct BuildModifierData {
 	ModifierData modifier;
 
 	float start, length;
-	int randomize, seed;
+	short flag;
+	
+	short randomize;      /* (bool) whether order of vertices is randomized - legacy files (for readfile conversion) */
+	int seed;             /* (int) random seed */
 } BuildModifierData;
+
+/* Build Modifier -> flag */
+enum {
+	MOD_BUILD_FLAG_RANDOMIZE = (1 << 0),  /* order of vertices is randomized */
+	MOD_BUILD_FLAG_REVERSE   = (1 << 1),  /* frame range is reversed, resulting in a deconstruction effect */
+};
 
 /* Mask Modifier */
 typedef struct MaskModifierData {

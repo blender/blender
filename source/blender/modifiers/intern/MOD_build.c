@@ -119,7 +119,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	frac = (BKE_scene_frame_get(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
-
+	
+	if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
+		frac = 1.0 - frac;
+	}
+	
 	numFaces_dst = numPoly_src * frac;
 	numEdges_dst = numEdge_src * frac;
 
@@ -129,7 +133,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		MLoop *ml, *mloop;
 		MEdge *medge;
 		
-		if (bmd->randomize) {
+		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
 			BLI_array_randomize(faceMap, sizeof(*faceMap),
 			                    numPoly_src, bmd->seed);
 		}
@@ -174,7 +178,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	else if (numEdges_dst) {
 		MEdge *medge, *me;
 
-		if (bmd->randomize)
+		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE)
 			BLI_array_randomize(edgeMap, sizeof(*edgeMap),
 			                    numEdge_src, bmd->seed);
 
@@ -207,7 +211,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	else {
 		int numVerts = numVert_src * frac;
 
-		if (bmd->randomize) {
+		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
 			BLI_array_randomize(vertMap, sizeof(*vertMap),
 			                    numVert_src, bmd->seed);
 		}
