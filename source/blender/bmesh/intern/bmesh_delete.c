@@ -203,21 +203,27 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 			/* go through and mark all edges and all verts of all faces for delete */
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (BMO_elem_flag_test(bm, f, oflag)) {
-					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter))
-						BMO_elem_flag_enable(bm, e, oflag);
-					for (v = BM_iter_new(&viter, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&viter))
-						BMO_elem_flag_enable(bm, v, oflag);
+					BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+					BMLoop *l_iter;
+
+					l_iter = l_first;
+					do {
+						BMO_elem_flag_enable(bm, l_iter->v, oflag);
+						BMO_elem_flag_enable(bm, l_iter->e, oflag);
+					} while ((l_iter = l_iter->next) != l_first);
 				}
 			}
 			/* now go through and mark all remaining faces all edges for keeping */
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (!BMO_elem_flag_test(bm, f, oflag)) {
-					for (e = BM_iter_new(&eiter, bm, BM_EDGES_OF_FACE, f); e; e = BM_iter_step(&eiter)) {
-						BMO_elem_flag_disable(bm, e, oflag);
-					}
-					for (v = BM_iter_new(&viter, bm, BM_VERTS_OF_FACE, f); v; v = BM_iter_step(&viter)) {
-						BMO_elem_flag_disable(bm, v, oflag);
-					}
+					BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+					BMLoop *l_iter;
+
+					l_iter = l_first;
+					do {
+						BMO_elem_flag_disable(bm, l_iter->v, oflag);
+						BMO_elem_flag_disable(bm, l_iter->e, oflag);
+					} while ((l_iter = l_iter->next) != l_first);
 				}
 			}
 			/* also mark all the vertices of remaining edges for keeping */
@@ -232,25 +238,6 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 			/* delete marked edge */
 			BMO_remove_tagged_edges(bm, oflag);
 			/* remove loose vertice */
-			BMO_remove_tagged_verts(bm, oflag);
-
-			break;
-		}
-		case DEL_ALL:
-		{
-			/* does this option even belong in here? */
-			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				BMO_elem_flag_enable(bm, f, oflag);
-			}
-			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-				BMO_elem_flag_enable(bm, e, oflag);
-			}
-			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-				BMO_elem_flag_enable(bm, v, oflag);
-			}
-
-			BMO_remove_tagged_faces(bm, oflag);
-			BMO_remove_tagged_edges(bm, oflag);
 			BMO_remove_tagged_verts(bm, oflag);
 
 			break;
