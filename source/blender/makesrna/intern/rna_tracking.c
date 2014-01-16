@@ -1662,7 +1662,7 @@ static void rna_def_trackingTracks(BlenderRNA *brna)
 	func = RNA_def_function(srna, "new", "rna_trackingTracks_new");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Create new motion track in this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new track");
+	RNA_def_string(func, "name", NULL, 0, "", "Name of new track");
 	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add track on", MINFRAME, MAXFRAME);
 	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
 	RNA_def_function_return(func, parm);
@@ -1709,7 +1709,7 @@ static void rna_def_trackingObjectTracks(BlenderRNA *brna)
 	func = RNA_def_function(srna, "new", "rna_trackingObject_tracks_new");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "create new motion track in this movie clip");
-	RNA_def_string(func, "name", "", 0, "", "Name of new track");
+	RNA_def_string(func, "name", NULL, 0, "", "Name of new track");
 	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
 	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
 	RNA_def_function_return(func, parm);
@@ -1824,7 +1824,7 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_trackingObject_new");
 	RNA_def_function_ui_description(func, "Add tracking object to this movie clip");
-	parm = RNA_def_string(func, "name", "", 0, "", "Name of new object");
+	parm = RNA_def_string(func, "name", NULL, 0, "", "Name of new object");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "MovieTrackingObject", "", "New motion tracking object");
 	RNA_def_function_return(func, parm);

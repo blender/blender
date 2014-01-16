@@ -1731,7 +1731,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", gameproperty_type_items, GPROP_FLOAT, "Type", "Type of game property to add");
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the game property to add");
+	RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the game property to add");
 }
 
 static int game_property_remove_exec(bContext *C, wmOperator *op)

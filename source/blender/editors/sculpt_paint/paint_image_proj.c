@@ -4544,5 +4544,5 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
 
-	RNA_def_string_file_name(ot->srna, "filepath", "", FILE_MAX, "File Path", "Name of the file");
+	RNA_def_string_file_name(ot->srna, "filepath", NULL, FILE_MAX, "File Path", "Name of the file");
 }

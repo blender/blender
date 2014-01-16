@@ -901,7 +901,7 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Mask_layers_new");
 	RNA_def_function_ui_description(func, "Add layer to this mask");
-	RNA_def_string(func, "name", "", 0, "Name", "Name of new layer");
+	RNA_def_string(func, "name", NULL, 0, "Name", "Name of new layer");
 	parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "New mask layer");
 	RNA_def_function_return(func, parm);
 

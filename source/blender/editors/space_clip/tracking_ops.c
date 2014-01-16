@@ -1522,7 +1522,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tracking");
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
-	prop = RNA_def_string(ot->srna, "clip", "", MAX_NAME, "Movie Clip", "Movie Clip to be tracked");
+	prop = RNA_def_string(ot->srna, "clip", NULL, MAX_NAME, "Movie Clip", "Movie Clip to be tracked");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -3822,7 +3822,7 @@ static void def_sh_script(StructRNA *srna)
 #if 0	/* XXX TODO use general node api for this */
 	func = RNA_def_function(srna, "find_socket", "rna_ShaderNodeScript_find_socket");
 	RNA_def_function_ui_description(func, "Find a socket by name");
-	parm = RNA_def_string(func, "name", "", 0, "Socket name", "");
+	parm = RNA_def_string(func, "name", NULL, 0, "Socket name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/*parm =*/ RNA_def_boolean(func, "is_output", FALSE, "Output", "Whether the socket is an output");
 	parm = RNA_def_pointer(func, "result", "NodeSocket", "", "");
@@ -3831,7 +3831,7 @@ static void def_sh_script(StructRNA *srna)
 	func = RNA_def_function(srna, "add_socket", "rna_ShaderNodeScript_add_socket");
 	RNA_def_function_ui_description(func, "Add a socket socket");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	parm = RNA_def_string(func, "name", "", 0, "Name", "");
+	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", node_socket_type_items, SOCK_FLOAT, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -4261,7 +4261,7 @@ static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna, PropertyRNA *cpr
 	func = RNA_def_function(srna, "new", "rna_NodeOutputFile_slots_new");
 	RNA_def_function_ui_description(func, "Add a file slot to this node");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-	parm = RNA_def_string(func, "name", "", MAX_NAME, "Name", "");
+	parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
 	parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
@@ -6321,7 +6321,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
 	parm = RNA_def_property(func, "text", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(parm, "Text", "Text label to draw alongside properties");
-	RNA_def_property_string_default(parm, "");
+	// RNA_def_property_string_default(parm, "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "draw_color", NULL);
@@ -6410,7 +6410,7 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
 	parm = RNA_def_pointer(func, "socket", "NodeSocket", "Socket", "Socket to initialize");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	parm = RNA_def_string(func, "data_path", "", 0, "Data Path", "Path to specialized socket data");
+	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "Path to specialized socket data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "from_socket", NULL);
@@ -6719,7 +6719,7 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
 	parm = RNA_def_property(func, "text", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(parm, "Text", "Text label to draw alongside properties");
-	RNA_def_property_string_default(parm, "");
+	// RNA_def_property_string_default(parm, "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "draw_color", "rna_NodeSocketStandard_draw_color");
@@ -6897,11 +6897,11 @@ static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int i
 	func = RNA_def_function(srna, "new", newfunc);
 	RNA_def_function_ui_description(func, "Add a socket to this node");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "type", "", MAX_NAME, "Type", "Data type");
+	parm = RNA_def_string(func, "type", NULL, MAX_NAME, "Type", "Data type");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_string(func, "name", "", MAX_NAME, "Name", "");
+	parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_string(func, "identifier", "", MAX_NAME, "Identifier", "Unique socket identifier");
+	RNA_def_string(func, "identifier", NULL, MAX_NAME, "Identifier", "Unique socket identifier");
 	/* return value */
 	parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
 	RNA_def_function_return(func, parm);
@@ -7195,7 +7195,7 @@ static void rna_def_node(BlenderRNA *brna)
 	func = RNA_def_function(srna, "draw_label", NULL);
 	RNA_def_function_ui_description(func, "Returns a dynamic label string");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	parm = RNA_def_string(func, "label", "", MAX_NAME, "Label", "");
+	parm = RNA_def_string(func, "label", NULL, MAX_NAME, "Label", "");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 }
@@ -7262,7 +7262,7 @@ static void rna_def_nodetree_nodes_api(BlenderRNA *brna, PropertyRNA *cprop)
 	/* XXX warning note should eventually be removed,
 	 * added this here to avoid frequent confusion with API changes from "type" to "bl_idname"
 	 */
-	parm = RNA_def_string(func, "type", "", MAX_NAME, "Type", "Type of node to add (Warning: should be same as node.bl_idname, not node.type!)");
+	parm = RNA_def_string(func, "type", NULL, MAX_NAME, "Type", "Type of node to add (Warning: should be same as node.bl_idname, not node.type!)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
 	parm = RNA_def_pointer(func, "node", "Node", "", "New node");
@@ -7341,9 +7341,9 @@ static void rna_def_node_tree_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, 
 	func = RNA_def_function(srna, "new", newfunc);
 	RNA_def_function_ui_description(func, "Add a socket to this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "type", "", MAX_NAME, "Type", "Data type");
+	parm = RNA_def_string(func, "type", NULL, MAX_NAME, "Type", "Data type");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_string(func, "name", "", MAX_NAME, "Name", "");
+	parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
 	parm = RNA_def_pointer(func, "socket", "NodeSocketInterface", "", "New socket");

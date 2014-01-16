@@ -1086,7 +1086,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "active_data", "AnyType", "",
 	                       "Data from which to take property for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
-	parm = RNA_def_string(func, "active_property", "", 0, "",
+	parm = RNA_def_string(func, "active_property", NULL, 0, "",
 	                      "Identifier of property in active_data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of the item in the collection", 0, INT_MAX);
@@ -1113,7 +1113,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take Collection property");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
-	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data, for the collection");
+	parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in data, for the collection");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	prop = RNA_def_property(func, "filter_flags", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_DYNAMIC);

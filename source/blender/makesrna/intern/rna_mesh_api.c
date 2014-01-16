@@ -175,7 +175,7 @@ void RNA_api_mesh(StructRNA *srna)
 	                                "Compute tangents and bitangent signs, to be used together with the split normals "
 	                                "to get a complete tangent space for normal mapping "
 	                                "(split normals are also computed if not yet present)");
-	parm = RNA_def_string(func, "uvmap", "", MAX_CUSTOMDATA_LAYER_NAME, "",
+	parm = RNA_def_string(func, "uvmap", NULL, MAX_CUSTOMDATA_LAYER_NAME, "",
 	                      "Name of the UV map to use for tangent space computation");
 
 	func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");

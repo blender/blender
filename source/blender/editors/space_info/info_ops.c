@@ -350,7 +350,7 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
-	RNA_def_string(ot->srna, "id_name", "", BKE_ST_MAXNAME, "ID name", "Name of ID block to unpack");
+	RNA_def_string(ot->srna, "id_name", NULL, BKE_ST_MAXNAME, "ID name", "Name of ID block to unpack");
 	RNA_def_int(ot->srna, "id_type", ID_IM, 0, INT_MAX, "ID Type", "Identifier type of ID block", 0, INT_MAX);
 }
 

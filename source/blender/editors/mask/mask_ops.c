@@ -338,7 +338,7 @@ void MASK_OT_new(wmOperatorType *ot)
 	ot->poll = ED_operator_mask;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask");
+	RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Name of new mask");
 }
 
 /******************** create new masklay *********************/
@@ -373,7 +373,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask layer");
+	RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Name of new mask layer");
 }
 
 /******************** remove mask layer *********************/

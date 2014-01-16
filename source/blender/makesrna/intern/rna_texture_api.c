@@ -118,7 +118,7 @@ void RNA_api_environment_map(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
-	parm = RNA_def_string_file_name(func, "filepath", "", FILE_MAX, "File path", "Location of the output file");
+	parm = RNA_def_string_file_name(func, "filepath", NULL, FILE_MAX, "File path", "Location of the output file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");

@@ -954,7 +954,7 @@ void RNA_api_main(StructRNA *srna)
 	 * for now they are all in collections bpy.data.images.new(...) */
 	func = RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image");
-	parm = RNA_def_string_file_path(func, "filepath", "", 0, "", "File path to load image from");
+	parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "File path to load image from");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "image", "Image", "", "New image");
 	RNA_def_function_return(func, parm);
@@ -1946,7 +1946,7 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	/* new func */
 	func = RNA_def_function(srna, "new", "rna_Main_mask_new");
 	RNA_def_function_ui_description(func, "Add a new mask with a given name to the main database");
-	RNA_def_string_file_path(func, "name", "", MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
+	RNA_def_string_file_path(func, "name", NULL, MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
 	/* return type */
 	parm = RNA_def_pointer(func, "mask", "Mask", "", "New mask datablock");
 	RNA_def_function_return(func, parm);

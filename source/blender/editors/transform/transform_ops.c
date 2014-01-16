@@ -281,7 +281,7 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	ot->exec   = create_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the new custom orientation");
+	RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the new custom orientation");
 	RNA_def_boolean(ot->srna, "use_view", FALSE, "Use View",
 	                "Use the current view instead of the active object to create the new orientation");
 	RNA_def_boolean(ot->srna, "use", FALSE, "Use after creation", "Select orientation after its creation");

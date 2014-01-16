@@ -738,7 +738,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* rna-path */
 	/* XXX hopefully this is long enough */
-	parm = RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property");
+	parm = RNA_def_string(func, "data_path", NULL, 256, "Data-Path", "RNA-Path to destination property");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* index (defaults to -1 for entire array) */
 	RNA_def_int(func, "index", -1, -1, INT_MAX, "Index",
@@ -747,7 +747,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	/* grouping */
 	RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME,
 	             "Grouping Method", "Method used to define which Group-name to use");
-	RNA_def_string(func, "group_name", "", 64, "Group Name",
+	RNA_def_string(func, "group_name", NULL, 64, "Group Name",
 	               "Name of Action Group to assign destination to (only if grouping mode is to use this name)");
 
 

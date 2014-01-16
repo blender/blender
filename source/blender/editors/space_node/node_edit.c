@@ -757,7 +757,7 @@ static int edit_node_poll(bContext *C)
 static void edit_node_properties(wmOperatorType *ot)
 {
 	/* XXX could node be a context pointer? */
-	RNA_def_string(ot->srna, "node", "", MAX_NAME, "Node", "");
+	RNA_def_string(ot->srna, "node", NULL, MAX_NAME, "Node", "");
 	RNA_def_int(ot->srna, "socket", 0, 0, MAX_SOCKET, "Socket", "", 0, MAX_SOCKET);
 	RNA_def_enum(ot->srna, "in_out", node_socket_in_out_items, SOCK_IN, "Socket Side", "");
 }
