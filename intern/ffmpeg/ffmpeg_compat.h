@@ -388,4 +388,13 @@ int avcodec_encode_video2(AVCodecContext *avctx, AVPacket *pkt,
 
 #endif
 
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(53, 17, 0)
+FFMPEG_INLINE
+void avformat_close_input(AVFormatContext **ctx)
+{
+    av_close_input_file(*ctx);
+    *ctx = NULL;
+}
+#endif
+
 #endif

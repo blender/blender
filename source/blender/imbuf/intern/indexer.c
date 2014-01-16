@@ -747,7 +747,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	}
 
 	if (avformat_find_stream_info(context->iFormatCtx, NULL) < 0) {
-		av_close_input_file(context->iFormatCtx);
+		avformat_close_input(&context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;
 	}
@@ -767,7 +767,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 		}
 
 	if (context->videoStream == -1) {
-		av_close_input_file(context->iFormatCtx);
+		avformat_close_input(&context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;
 	}
@@ -778,7 +778,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	context->iCodec = avcodec_find_decoder(context->iCodecCtx->codec_id);
 
 	if (context->iCodec == NULL) {
-		av_close_input_file(context->iFormatCtx);
+		avformat_close_input(&context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;
 	}
@@ -786,7 +786,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	context->iCodecCtx->workaround_bugs = 1;
 
 	if (avcodec_open2(context->iCodecCtx, context->iCodec, NULL) < 0) {
-		av_close_input_file(context->iFormatCtx);
+		avformat_close_input(&context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;
 	}
