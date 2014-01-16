@@ -320,7 +320,7 @@ static int outliner_count_levels(SpaceOops *soops, ListBase *lb, const int curle
 	return level;
 }
 
-bool outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, const int curlevel)
+int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, const int curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
