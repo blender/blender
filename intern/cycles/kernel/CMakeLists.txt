@@ -14,7 +14,7 @@ set(SRC
 	kernel.cpp
 	kernel_sse2.cpp
 	kernel_sse3.cpp
-    kernel_sse41.cpp
+	kernel_sse41.cpp
 	kernel_avx.cpp
 	kernel.cl
 	kernel.cu
