@@ -714,24 +714,11 @@ static void ui_theme_init_new_do(ThemeSpace *ts)
 
 static void ui_theme_init_new(bTheme *btheme)
 {
-	ui_theme_init_new_do(&btheme->tbuts);
-	ui_theme_init_new_do(&btheme->tv3d);
-	ui_theme_init_new_do(&btheme->tfile);
-	ui_theme_init_new_do(&btheme->tipo);
-	ui_theme_init_new_do(&btheme->tinfo);
-	ui_theme_init_new_do(&btheme->tact);
-	ui_theme_init_new_do(&btheme->tnla);
-	ui_theme_init_new_do(&btheme->tseq);
-	ui_theme_init_new_do(&btheme->tima);
-	ui_theme_init_new_do(&btheme->text);
-	ui_theme_init_new_do(&btheme->toops);
-	ui_theme_init_new_do(&btheme->ttime);
-	ui_theme_init_new_do(&btheme->tnode);
-	ui_theme_init_new_do(&btheme->tlogic);
-	ui_theme_init_new_do(&btheme->tuserpref);
-	ui_theme_init_new_do(&btheme->tconsole);
-	ui_theme_init_new_do(&btheme->tclip);
-	
+	ThemeSpace *ts;
+
+	for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
+		ui_theme_init_new_do(ts);
+	}
 }
 
 
@@ -2207,28 +2194,15 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			ThemeSpace *ts;
 			
 			/* new color, panel backdrop. Not used anywhere yet, until you enable it */
 			copy_v3_v3_char(btheme->tui.panel.back, btheme->tbuts.button);
 			btheme->tui.panel.back[3] = 128;
 			
-			btheme->tbuts.panelcolors = btheme->tui.panel;
-			btheme->tv3d.panelcolors = btheme->tui.panel;
-			btheme->tfile.panelcolors = btheme->tui.panel;
-			btheme->tipo.panelcolors = btheme->tui.panel;
-			btheme->tinfo.panelcolors = btheme->tui.panel;
-			btheme->tact.panelcolors = btheme->tui.panel;
-			btheme->tnla.panelcolors = btheme->tui.panel;
-			btheme->tseq.panelcolors = btheme->tui.panel;
-			btheme->tima.panelcolors = btheme->tui.panel;
-			btheme->text.panelcolors = btheme->tui.panel;
-			btheme->toops.panelcolors = btheme->tui.panel;
-			btheme->ttime.panelcolors = btheme->tui.panel;
-			btheme->tnode.panelcolors = btheme->tui.panel;
-			btheme->tlogic.panelcolors = btheme->tui.panel;
-			btheme->tuserpref.panelcolors = btheme->tui.panel;
-			btheme->tconsole.panelcolors = btheme->tui.panel;
-			btheme->tclip.panelcolors = btheme->tui.panel;
+			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
+				ts->panelcolors = btheme->tui.panel;
+			}
 		}
 	}
 

@@ -343,6 +343,7 @@ typedef struct bTheme {
 	ThemeUI tui;
 	
 	/* Individual Spacetypes */
+	/* note: ensure UI_THEMESPACE_END is updated when adding */
 	ThemeSpace tbuts;
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
@@ -367,6 +368,9 @@ typedef struct bTheme {
 	
 	int active_theme_area, pad;
 } bTheme;
+
+#define UI_THEMESPACE_START(btheme)  (CHECK_TYPE_INLINE(btheme, bTheme *),  &((btheme)->tbuts))
+#define UI_THEMESPACE_END(btheme)    (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->tclip) + 1))
 
 /* for the moment only the name. may want to store options with this later */
 typedef struct bAddon {
