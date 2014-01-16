@@ -257,8 +257,6 @@ static DerivedMesh *applyModifier(
 	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
 	int defgrp_index;
 
-	BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, "solidify origvert tag bitmap");
-
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	orig_mvert = dm->getVertArray(dm);
@@ -280,6 +278,7 @@ static DerivedMesh *applyModifier(
 	STACK_INIT(new_edge_arr);
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
+		BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, __func__);
 		unsigned int eidx;
 
 #define INVALID_UNUSED ((unsigned int)-1)
@@ -290,6 +289,7 @@ static DerivedMesh *applyModifier(
 
 		edge_users = MEM_mallocN(sizeof(*edge_users) * (size_t)numEdges, "solid_mod edges");
 		edge_order = MEM_mallocN(sizeof(*edge_order) * (size_t)numEdges, "solid_mod eorder");
+
 
 		/* save doing 2 loops here... */
 #if 0
@@ -344,6 +344,8 @@ static DerivedMesh *applyModifier(
 				newEdges++;
 			}
 		}
+
+		MEM_freeN(orig_mvert_tag);
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
@@ -820,8 +822,6 @@ static DerivedMesh *applyModifier(
 
 	if (face_nors)
 		MEM_freeN(face_nors);
-
-	MEM_freeN(orig_mvert_tag);
 
 	if (numFaces == 0 && numEdges != 0) {
 		modifier_setError(md, "Faces needed for useful output");
