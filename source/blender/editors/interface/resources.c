@@ -1468,7 +1468,7 @@ void init_userdef_do_versions(void)
 	/* transform widget settings */
 	if (U.tw_hotspot == 0) {
 		U.tw_hotspot = 14;
-		U.tw_size = 20;          /* percentage of window size */
+		U.tw_size = 25;          /* percentage of window size */
 		U.tw_handlesize = 16;    /* percentage of widget radius */
 	}
 	if (U.pad_rot_angle == 0)
@@ -2337,7 +2337,11 @@ void init_userdef_do_versions(void)
 			rgba_char_args_test_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
 		}
 	}
-	
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 269, 9)) {
+		U.tw_size = U.tw_size * 5.0f;
+	}
+
 	if (U.versionfile < 270) {
 		/* grease pencil - new layer color */
 		if (U.gpencil_new_layer_col[3] < 0.1f) {
