@@ -27,10 +27,6 @@
  *  \ingroup bmesh
  */
 
-void BMO_remove_tagged_faces(BMesh *bm, const short oflag);
-void BMO_remove_tagged_edges(BMesh *bm, const short oflag);
-void BMO_remove_tagged_verts(BMesh *bm, const short oflag);
-
 void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
 
 #endif /* __BMESH_DELETE_H__ */
