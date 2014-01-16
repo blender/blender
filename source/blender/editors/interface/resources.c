@@ -915,12 +915,12 @@ void ui_theme_init_default(void)
 	
 	rgba_char_args_set(btheme->tact.keytype_keyframe,           232, 232, 232, 255);
 	rgba_char_args_set(btheme->tact.keytype_keyframe_select,    255, 190,  50, 255);
-	rgba_char_args_set(btheme->tact.keytype_extreme,            237, 178, 204, 255);
-	rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 127, 127, 255);
-	rgba_char_args_set(btheme->tact.keytype_breakdown,          178, 219, 232, 255);
+	rgba_char_args_set(btheme->tact.keytype_extreme,            232, 179, 204, 255);
+	rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 128, 128, 255);
+	rgba_char_args_set(btheme->tact.keytype_breakdown,          179, 219, 232, 255);
 	rgba_char_args_set(btheme->tact.keytype_breakdown_select,    84, 191, 237, 255);
 	rgba_char_args_set(btheme->tact.keytype_jitter,             148, 229, 117, 255);
-	rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 191, 066, 255);
+	rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 192,  66, 255);
 	
 	rgba_char_args_set(btheme->tact.keyborder,	             0,   0,   0, 255);
 	rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
@@ -940,6 +940,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
 	rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
 	rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
+	
+	rgba_char_args_set(btheme->tnla.keyborder,	             0,   0,   0, 255);
+	rgba_char_args_set(btheme->tnla.keyborder_select,        0,   0,   0, 255);
 	
 	/* space file */
 	/* to have something initialized */
@@ -2343,12 +2346,35 @@ void init_userdef_do_versions(void)
 			rgba_char_args_test_set(btheme->tinfo.info_debug_text, 0, 0, 0, 255);
 		}
 	}
-
+	
 	if (U.versionfile < 269 || (U.versionfile == 269 && U.subversionfile < 9)) {
+		bTheme *btheme;
+		
 		U.tw_size = U.tw_size * 5.0f;
-	}
-
-	if (U.versionfile < 270) {
+		
+		/* Action Editor (and NLA Editor) - Keyframe Colors */
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* Action Editor ................. */
+			/* key types */
+			rgba_char_args_set(btheme->tact.keytype_keyframe,           232, 232, 232, 255);
+			rgba_char_args_set(btheme->tact.keytype_keyframe_select,    255, 190,  50, 255);
+			rgba_char_args_set(btheme->tact.keytype_extreme,            232, 179, 204, 255);
+			rgba_char_args_set(btheme->tact.keytype_extreme_select,     242, 128, 128, 255);
+			rgba_char_args_set(btheme->tact.keytype_breakdown,          179, 219, 232, 255);
+			rgba_char_args_set(btheme->tact.keytype_breakdown_select,    84, 191, 237, 255);
+			rgba_char_args_set(btheme->tact.keytype_jitter,             148, 229, 117, 255);
+			rgba_char_args_set(btheme->tact.keytype_jitter_select,       97, 192,  66, 255);
+			
+			/* key border */
+			rgba_char_args_set(btheme->tact.keyborder,	             0,   0,   0, 255);
+			rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
+			
+			/* NLA ............................ */
+			/* key border */
+			rgba_char_args_set(btheme->tnla.keyborder,	             0,   0,   0, 255);
+			rgba_char_args_set(btheme->tnla.keyborder_select,        0,   0,   0, 255);
+		}
+		
 		/* grease pencil - new layer color */
 		if (U.gpencil_new_layer_col[3] < 0.1f) {
 			/* defaults to black, but must at least be visible! */

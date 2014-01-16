@@ -595,42 +595,56 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 	
 	/* draw! */
 	if (ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH)) {
-		/* interior - hardcoded colors (for selected and unselected only) */
+		float inner_col[4];
+		
+		/* get interior colors from theme (for selected and unselected only) */
 		switch (key_type) {
-			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames for now */
+			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames (default theme) */
 			{
-				if (sel)  UI_ThemeColor(TH_KEYTYPE_BREAKDOWN_SELECT);
-				else UI_ThemeColor(TH_KEYTYPE_BREAKDOWN);
+				if (sel)  UI_GetThemeColor4fv(TH_KEYTYPE_BREAKDOWN_SELECT, inner_col);
+				else UI_GetThemeColor4fv(TH_KEYTYPE_BREAKDOWN, inner_col);
 				break;
 			}
-			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
+			case BEZT_KEYTYPE_EXTREME: /* reddish frames (default theme) */
 			{
-				if (sel) UI_ThemeColor(TH_KEYTYPE_EXTREME_SELECT);
-				else UI_ThemeColor(TH_KEYTYPE_EXTREME);
+				if (sel) UI_GetThemeColor4fv(TH_KEYTYPE_EXTREME_SELECT, inner_col);
+				else UI_GetThemeColor4fv(TH_KEYTYPE_EXTREME, inner_col);
 				break;
 			}
-			case BEZT_KEYTYPE_JITTER: /* greenish frames for now? */
+			case BEZT_KEYTYPE_JITTER: /* greenish frames (default theme) */
 			{
-				if (sel) UI_ThemeColor(TH_KEYTYPE_JITTER_SELECT);
-				else UI_ThemeColor(TH_KEYTYPE_JITTER);
+				if (sel) UI_GetThemeColor4fv(TH_KEYTYPE_JITTER_SELECT, inner_col);
+				else UI_GetThemeColor4fv(TH_KEYTYPE_JITTER, inner_col);
 				break;
 			}
-			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames for now */
+			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames (default theme) */
 			default:
 			{
-				if (sel) UI_ThemeColor(TH_KEYTYPE_KEYFRAME_SELECT);
-				else UI_ThemeColor(TH_KEYTYPE_KEYFRAME);
+				if (sel) UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME_SELECT, inner_col);
+				else UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, inner_col);
 				break;
 			}
 		}
 		
+		/* NOTE: we don't use the straight alpha from the theme, or else effects such as 
+		 * greying out protected/muted channels doesn't work correctly! 
+		 */
+		inner_col[3] *= alpha;
+		glColor4fv(inner_col);
+		
+		/* draw the "filled in" interior poly now */
 		glCallList(displist2);
 	}
 	
 	if (ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH)) {
+		float border_col[4];
+		
 		/* exterior - black frame */
-		if (sel)  UI_ThemeColor4(TH_KEYBORDER_SELECT);
-		else  UI_ThemeColor4(TH_KEYBORDER);
+		if (sel)  UI_GetThemeColor4fv(TH_KEYBORDER_SELECT, border_col);
+		else  UI_GetThemeColor4fv(TH_KEYBORDER, border_col);
+		
+		border_col[3] *= alpha;
+		glColor4fv(border_col);
 		
 		glCallList(displist1);
 	}
