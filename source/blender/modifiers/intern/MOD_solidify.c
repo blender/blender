@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 
@@ -256,6 +257,8 @@ static DerivedMesh *applyModifier(
 	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
 	int defgrp_index;
 
+	BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, "solidify origvert tag bitmap");
+
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	orig_mvert = dm->getVertArray(dm);
@@ -287,10 +290,6 @@ static DerivedMesh *applyModifier(
 
 		edge_users = MEM_mallocN(sizeof(*edge_users) * (size_t)numEdges, "solid_mod edges");
 		edge_order = MEM_mallocN(sizeof(*edge_order) * (size_t)numEdges, "solid_mod eorder");
-
-		for (i = 0, mv = orig_mvert; i < numVerts; i++, mv++) {
-			mv->flag &= ~ME_VERT_TMP_TAG;
-		}
 
 		/* save doing 2 loops here... */
 #if 0
@@ -327,8 +326,8 @@ static DerivedMesh *applyModifier(
 
 		for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
 			if (!ELEM(edge_users[eidx], INVALID_UNUSED, INVALID_PAIR)) {
-				orig_mvert[ed->v1].flag |= ME_VERT_TMP_TAG;
-				orig_mvert[ed->v2].flag |= ME_VERT_TMP_TAG;
+				BLI_BITMAP_SET(orig_mvert_tag, ed->v1);
+				BLI_BITMAP_SET(orig_mvert_tag, ed->v2);
 				STACK_PUSH(new_edge_arr, eidx);
 				newFaces++;
 				newLoops += 4;
@@ -338,13 +337,11 @@ static DerivedMesh *applyModifier(
 #undef INVALID_UNUSED
 #undef INVALID_PAIR
 
-		for (i = 0, mv = orig_mvert; i < numVerts; i++, mv++) {
-			if (mv->flag & ME_VERT_TMP_TAG) {
+		for (i = 0; i < numVerts; i++) {
+			if (BLI_BITMAP_GET(orig_mvert_tag, i)) {
 				old_vert_arr[i] = STACK_SIZE(new_vert_arr);
 				STACK_PUSH(new_vert_arr, i);
 				newEdges++;
-
-				mv->flag &= ~ME_VERT_TMP_TAG;
 			}
 		}
 	}
@@ -823,6 +820,8 @@ static DerivedMesh *applyModifier(
 
 	if (face_nors)
 		MEM_freeN(face_nors);
+
+	MEM_freeN(orig_mvert_tag);
 
 	if (numFaces == 0 && numEdges != 0) {
 		modifier_setError(md, "Faces needed for useful output");
