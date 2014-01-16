@@ -157,7 +157,7 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
 
-static void rna_DynamicPaint_resetDependancy(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DynamicPaint_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 	DAG_relations_tag_update(bmain);
@@ -427,7 +427,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush Group", "Only use brush objects from this group");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_resetDependancy");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
 
 
 	/*
@@ -965,7 +965,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Particle Systems", "The particle system to paint with");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_resetDependancy");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
 
 	
 	prop = RNA_def_property(srna, "use_particle_radius", PROP_BOOLEAN, PROP_NONE);
