@@ -83,7 +83,6 @@ class INFO_MT_file(Menu):
     bl_label = "File"
 
     def draw(self, context):
-        import sys
         layout = self.layout
 
         layout.operator_context = 'INVOKE_AREA'
@@ -132,7 +131,7 @@ class INFO_MT_file(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        if sys.platform == "darwin":
+        if bpy.data.is_dirty:
             layout.operator_context = 'INVOKE_SCREEN' # quit dialog
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
