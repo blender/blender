@@ -44,12 +44,6 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len,
 BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
                                    const BMFace *f_example, const eBMCreateFlag create_flag);
 
-void BMO_remove_tagged_faces(BMesh *bm, const short oflag);
-void BMO_remove_tagged_edges(BMesh *bm, const short oflag);
-void BMO_remove_tagged_verts(BMesh *bm, const short oflag);
-
-void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type);
-
 void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
                            const char hflag_mask);
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
