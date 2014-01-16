@@ -456,8 +456,6 @@ struct proxy_output_ctx {
 	AVCodec *codec;
 	struct SwsContext *sws_ctx;
 	AVFrame *frame;
-	uint8_t *video_buffer;
-	int video_buffersize;
 	int cfra;
 	int proxy_size;
 	int orig_height;
@@ -552,10 +550,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 
 	avcodec_open2(rv->c, rv->codec, NULL);
 
-	rv->video_buffersize = 2000000;
-	rv->video_buffer = (uint8_t *)MEM_mallocN(
-	        rv->video_buffersize, "FFMPEG video buffer");
-
 	rv->orig_height = av_get_cropped_height_from_codec(st->codec);
 
 	if (st->codec->width != width || st->codec->height != height ||
@@ -592,7 +586,10 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 static int add_to_proxy_output_ffmpeg(
         struct proxy_output_ctx *ctx, AVFrame *frame)
 {
-	int outsize = 0;
+	AVPacket packet = { 0 };
+	int ret, got_output;
+
+	av_init_packet(&packet);
 
 	if (!ctx) {
 		return 0;
@@ -613,31 +610,26 @@ static int add_to_proxy_output_ffmpeg(
 		frame->pts = ctx->cfra++;
 	}
 
-	outsize = avcodec_encode_video(
-	        ctx->c, ctx->video_buffer, ctx->video_buffersize,
-	        frame);
-
-	if (outsize < 0) {
+	ret = avcodec_encode_video2(ctx->c, &packet, frame, &got_output);
+	if (ret < 0) {
 		fprintf(stderr, "Error encoding proxy frame %d for '%s'\n", 
 		        ctx->cfra - 1, ctx->of->filename);
 		return 0;
 	}
 
-	if (outsize != 0) {
-		AVPacket packet;
-		av_init_packet(&packet);
-
-		if (ctx->c->coded_frame->pts != AV_NOPTS_VALUE) {
-			packet.pts = av_rescale_q(ctx->c->coded_frame->pts,
+	if (got_output) {
+		if (packet.pts != AV_NOPTS_VALUE) {
+			packet.pts = av_rescale_q(packet.pts,
 			                          ctx->c->time_base,
 			                          ctx->st->time_base);
 		}
-		if (ctx->c->coded_frame->key_frame)
-			packet.flags |= AV_PKT_FLAG_KEY;
+		if (packet.dts != AV_NOPTS_VALUE) {
+			packet.dts = av_rescale_q(packet.dts,
+			                          ctx->c->time_base,
+			                          ctx->st->time_base);
+		}
 
 		packet.stream_index = ctx->st->index;
-		packet.data = ctx->video_buffer;
-		packet.size = outsize;
 
 		if (av_interleaved_write_frame(ctx->of, &packet) != 0) {
 			fprintf(stderr, "Error writing proxy frame %d "
@@ -679,8 +671,6 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx,
 		}
 	}
 	avformat_free_context(ctx->of);
-
-	MEM_freeN(ctx->video_buffer);
 
 	if (ctx->sws_ctx) {
 		sws_freeContext(ctx->sws_ctx);

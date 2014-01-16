@@ -357,4 +357,35 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 # define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
 #endif
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 1, 0)
+FFMPEG_INLINE
+int avcodec_encode_video2(AVCodecContext *avctx, AVPacket *pkt,
+                          const AVFrame *frame, int *got_output)
+{
+	int outsize, ret;
+
+	ret = av_new_packet(pkt, avctx->width * avctx->height * 7 + 10000);
+	if (ret < 0)
+		return ret;
+
+	outsize = avcodec_encode_video(avctx, pkt->data, pkt->size, frame);
+	if (outsize <= 0) {
+		*got_output = 0;
+		av_free_packet(pkt);
+	}
+	else {
+		*got_output = 1;
+		av_shrink_packet(pkt, outsize);
+		if (avctx->coded_frame) {
+			pkt->pts = avctx->coded_frame->pts;
+			if (avctx->coded_frame->key_frame)
+				pkt->flags |= AV_PKT_FLAG_KEY;
+		}
+	}
+
+	return outsize >= 0 ? 0 : outsize;
+}
+
+#endif
+
 #endif

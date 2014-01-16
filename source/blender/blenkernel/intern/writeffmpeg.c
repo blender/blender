@@ -84,9 +84,6 @@ static AVStream *audio_stream = 0;
 static AVFrame *current_frame = 0;
 static struct SwsContext *img_convert_ctx = 0;
 
-static uint8_t *video_buffer = 0;
-static int video_buffersize = 0;
-
 static uint8_t *audio_input_buffer = 0;
 static uint8_t *audio_deinterleave_buffer = 0;
 static int audio_input_samples = 0;
@@ -309,9 +306,12 @@ static const char **get_file_extensions(int format)
 /* Write a frame to the output file */
 static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportList *reports)
 {
-	int outsize = 0;
+	int got_output;
 	int ret, success = 1;
 	AVCodecContext *c = video_stream->codec;
+	AVPacket packet = { 0 };
+
+	av_init_packet(&packet);
 
 	frame->pts = cfra;
 
@@ -319,28 +319,28 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportLis
 		frame->top_field_first = ((rd->mode & R_ODDFIELD) != 0);
 	}
 
-	outsize = avcodec_encode_video(c, video_buffer, video_buffersize,  frame);
+	ret = avcodec_encode_video2(c, &packet, frame, &got_output);
 
-	if (outsize > 0) {
-		AVPacket packet;
-		av_init_packet(&packet);
-
-		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
-			packet.pts = av_rescale_q(c->coded_frame->pts, c->time_base, video_stream->time_base);
+	if (ret >= 0 && got_output) {
+		if (packet.pts != AV_NOPTS_VALUE) {
+			packet.pts = av_rescale_q(packet.pts, c->time_base, video_stream->time_base);
 			PRINT("Video Frame PTS: %d\n", (int)packet.pts);
 		}
 		else {
 			PRINT("Video Frame PTS: not set\n");
 		}
-		if (c->coded_frame->key_frame)
-			packet.flags |= AV_PKT_FLAG_KEY;
+		if (packet.dts != AV_NOPTS_VALUE) {
+			packet.dts = av_rescale_q(packet.dts, c->time_base, video_stream->time_base);
+			PRINT("Video Frame DTS: %d\n", (int)packet.dts);
+		} else {
+			PRINT("Video Frame DTS: not set\n");
+		}
+
 		packet.stream_index = video_stream->index;
-		packet.data = video_buffer;
-		packet.size = outsize;
 		ret = av_interleaved_write_frame(outfile, &packet);
 		success = (ret == 0);
 	}
-	else if (outsize < 0) {
+	else if (ret < 0) {
 		success = 0;
 	}
 
@@ -638,21 +638,6 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
-	if (codec_id == AV_CODEC_ID_QTRLE) {
-		/* normally it should be enough to have buffer with actual image size,
-		 * but some codecs like QTRLE might store extra information in this buffer,
-		 * so it should be a way larger */
-
-		/* maximum video buffer size is 6-bytes per pixel, plus DPX header size (1664)
-		 * (from FFmpeg sources) */
-		int size = c->width * c->height;
-		video_buffersize = 7 * size + 10000;
-	}
-	else
-		video_buffersize = avpicture_get_size(c->pix_fmt, c->width, c->height);
-
-	video_buffer = (uint8_t *)MEM_mallocN(video_buffersize * sizeof(uint8_t), "FFMPEG video buffer");
-	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
 	img_convert_ctx = sws_getContext(c->width, c->height, PIX_FMT_BGR32, c->width, c->height, c->pix_fmt, SWS_BICUBIC,
@@ -964,36 +949,38 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
  */
 static void flush_ffmpeg(void)
 {
-	int outsize = 0;
 	int ret = 0;
 	
 	AVCodecContext *c = video_stream->codec;
 	/* get the delayed frames */
 	while (1) {
-		AVPacket packet;
+		int got_output;
+		AVPacket packet = { 0 };
 		av_init_packet(&packet);
 		
-		outsize = avcodec_encode_video(c, video_buffer, video_buffersize, NULL);
-		if (outsize < 0) {
-			fprintf(stderr, "Error encoding delayed frame %d\n", outsize);
+		ret = avcodec_encode_video2(c, &packet, NULL, &got_output);
+		if (ret < 0) {
+			fprintf(stderr, "Error encoding delayed frame %d\n", ret);
 			break;
 		}
-		if (outsize == 0) {
+		if (!got_output) {
 			break;
 		}
-		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
-			packet.pts = av_rescale_q(c->coded_frame->pts, c->time_base, video_stream->time_base);
+		if (packet.pts != AV_NOPTS_VALUE) {
+			packet.pts = av_rescale_q(packet.pts, c->time_base, video_stream->time_base);
 			PRINT("Video Frame PTS: %d\n", (int) packet.pts);
 		}
 		else {
 			PRINT("Video Frame PTS: not set\n");
 		}
-		if (c->coded_frame->key_frame) {
-			packet.flags |= AV_PKT_FLAG_KEY;
+		if (packet.dts != AV_NOPTS_VALUE) {
+			packet.dts = av_rescale_q(packet.dts, c->time_base, video_stream->time_base);
+			PRINT("Video Frame DTS: %d\n", (int) packet.dts);
+		} else {
+			PRINT("Video Frame DTS: not set\n");
 		}
+
 		packet.stream_index = video_stream->index;
-		packet.data = video_buffer;
-		packet.size = outsize;
 		ret = av_interleaved_write_frame(outfile, &packet);
 		if (ret != 0) {
 			fprintf(stderr, "Error writing delayed frame %d\n", ret);
@@ -1207,10 +1194,6 @@ static void end_ffmpeg_impl(int is_autosplit)
 	if (outfile) {
 		av_free(outfile);
 		outfile = 0;
-	}
-	if (video_buffer) {
-		MEM_freeN(video_buffer);
-		video_buffer = 0;
 	}
 	if (audio_input_buffer) {
 		av_free(audio_input_buffer);
