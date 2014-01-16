@@ -228,6 +228,9 @@ static void occ_build_shade(Render *re, OcclusionTree *tree)
 		vlr = RE_findOrAddVlak(obi->obr, tree->face[a].facenr);
 
 		occ_shade(&ssamp, obi, vlr, tree->rad[a]);
+
+		if (re->test_break(re->tbh))
+			break;
 	}
 }
 
@@ -714,14 +717,18 @@ static OcclusionTree *occ_tree_build(Render *re)
 	occ_build_recursive(tree, tree->root, 0, totface, 1);
 
 	if (tree->doindirect) {
-		occ_build_shade(re, tree);
-		occ_sum_occlusion(tree, tree->root);
+		if (!(re->test_break(re->tbh)))
+			occ_build_shade(re, tree);
+
+		if (!(re->test_break(re->tbh)))
+			occ_sum_occlusion(tree, tree->root);
 	}
 	
 	MEM_freeN(tree->co);
 	tree->co = NULL;
 
-	occ_build_sh_normalize(tree->root);
+	if (!(re->test_break(re->tbh)))
+		occ_build_sh_normalize(tree->root);
 
 	for (a = 0; a < BLENDER_MAX_THREADS; a++)
 		tree->stack[a] = MEM_callocN(sizeof(OccNode) * TOTCHILD * (tree->maxdepth + 1), "OccStack");
@@ -1264,7 +1271,7 @@ void make_occ_tree(Render *re)
 	
 	re->occlusiontree = tree = occ_tree_build(re);
 	
-	if (tree) {
+	if (tree && !re->test_break(re->tbh)) {
 		if (re->wrld.ao_approx_passes > 0)
 			occ_compute_passes(re, tree, re->wrld.ao_approx_passes);
 		if (tree->doindirect && (re->wrld.mode & WO_INDIRECT_LIGHT))
