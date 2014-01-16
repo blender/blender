@@ -293,6 +293,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	int fontid = style->widget.uifont_id;
 	int height;
 	float y;
+	PropertyRNA *chan_prop_lock;
 
 	if (!clip)
 		return;
@@ -355,6 +356,10 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	y = (float) CHANNEL_FIRST;
 
+	/* get RNA properties (once) */
+	chan_prop_lock = RNA_struct_type_find_property(&RNA_MovieTrackingTrack, "lock");
+	BLI_assert(chan_prop_lock);
+
 	glEnable(GL_BLEND);
 	for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 		float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
@@ -371,9 +376,9 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, &ptr);
 
 			uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiDefIconButR(block, ICONTOG, 1, icon,
-			              v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
-			              UI_UNIT_X, UI_UNIT_Y, &ptr, "lock", 0, 0, 0, 0, 0, NULL);
+			uiDefIconButR_prop(block, ICONTOG, 1, icon,
+			                   v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
+			                   UI_UNIT_X, UI_UNIT_Y, &ptr, chan_prop_lock, 0, 0, 0, 0, 0, NULL);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 		}
 

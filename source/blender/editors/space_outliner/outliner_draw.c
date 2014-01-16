@@ -534,35 +534,44 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	Object *ob = NULL;
 	Group  *gr = NULL;
 
+	PropertyRNA *object_prop_hide, *object_prop_hide_select, *object_prop_hide_render;
+
+	/* get RNA properties (once) */
+	object_prop_hide = RNA_struct_type_find_property(&RNA_Object, "hide");
+	object_prop_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
+	object_prop_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
+	BLI_assert(object_prop_hide && object_prop_hide_select  && object_prop_hide_render);
+
+
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		if (te->ys + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			/* objects have toggle-able restriction flags */
 			if (tselem->type == 0 && te->idcode == ID_OB) {
 				PointerRNA ptr;
-				
+
 				ob = (Object *)tselem->id;
 				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
-				
+
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
-				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide", -1, 0, 0, -1, -1,
-				                   TIP_("Restrict viewport visibility (Ctrl - Recursive)"));
+				bt = uiDefIconButR_prop(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict viewport visibility (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
 				
-				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
-				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_select", -1, 0, 0, -1, -1,
-				                   TIP_("Restrict viewport selection (Ctrl - Recursive)"));
+				bt = uiDefIconButR_prop(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide_select, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict viewport selection (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
 				
-				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
-				                   (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                   &ptr, "hide_render", -1, 0, 0, -1, -1,
-				                   TIP_("Restrict rendering (Ctrl - Recursive)"));
+				bt = uiDefIconButR_prop(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
+				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                        &ptr, object_prop_hide_render, -1, 0, 0, -1, -1,
+				                        TIP_("Restrict rendering (Ctrl - Recursive)"));
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
 				
