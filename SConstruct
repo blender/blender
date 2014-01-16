@@ -903,6 +903,7 @@ if env['OURPLATFORM']!='darwin':
             source.remove('osl')
             source=['intern/cycles/kernel/'+s for s in source]
             source.append('intern/cycles/util/util_color.h')
+            source.append('intern/cycles/util/util_half.h')
             source.append('intern/cycles/util/util_math.h')
             source.append('intern/cycles/util/util_transform.h')
             source.append('intern/cycles/util/util_types.h')
