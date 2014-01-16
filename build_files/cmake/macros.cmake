@@ -859,7 +859,7 @@ macro(data_to_c_simple_icons
 		#COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc_icon ${_path_from_abs} ${_file_from}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${_file_from} ${_file_to}
-		DEPENDS ${_icon_files} datatoc)
+		DEPENDS ${_icon_files} datatoc_icon datatoc)
 
 	set_source_files_properties(${_file_from} ${_file_to} PROPERTIES GENERATED TRUE)
 
