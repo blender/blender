@@ -74,6 +74,7 @@
 
 #define B_NOP               -1
 #define MENU_TOP            8
+#define MENU_PADDING		(int)(0.2f * UI_UNIT_Y)
 
 /*********************** Menu Data Parsing ********************* */
 
@@ -1482,13 +1483,13 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 		if (dir1 == UI_LEFT) {
 			xof = butrct.xmin - block->rect.xmax;
-			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center;
-			else yof = butrct.ymax - block->rect.ymax + center;
+			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center - MENU_PADDING;
+			else yof = butrct.ymax - block->rect.ymax + center + MENU_PADDING;
 		}
 		else if (dir1 == UI_RIGHT) {
 			xof = butrct.xmax - block->rect.xmin;
-			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center;
-			else yof = butrct.ymax - block->rect.ymax + center;
+			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center - MENU_PADDING;
+			else yof = butrct.ymax - block->rect.ymax + center + MENU_PADDING;
 		}
 		else if (dir1 == UI_TOP) {
 			yof = butrct.ymax - block->rect.ymin;
@@ -1846,6 +1847,8 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
 			uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
+
+		uiItemS(layout);
 	}
 
 	/* create items */
@@ -2442,7 +2445,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			for (bt = block->buttons.first; bt; bt = bt->next)
 				offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
 
-			offset[1] = 1.5 * UI_UNIT_Y;
+			offset[1] = 2.1 * UI_UNIT_Y;
 		}
 
 		block->minbounds = minwidth;
@@ -2462,7 +2465,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		}
 
 		block->minbounds = minwidth;
-		uiTextBoundsBlock(block, 2.5 * UI_UNIT_X);
+		uiTextBoundsBlock(block, 3.0f * UI_UNIT_X);
 	}
 
 	/* if menu slides out of other menu, override direction */
@@ -2481,10 +2484,11 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiStyle *style = UI_GetStyleDraw();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
+
 	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
-	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, MENU_PADDING, style);
 	pup->slideout = but ? ui_block_is_menu(but->block) : false;
 	pup->but = but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
@@ -2549,7 +2553,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash = ui_popup_menu_hash(title);
-	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, MENU_PADDING, style);
 
 	/* note, this intentionally differs from the menu & submenu default because many operators
 	 * use popups like this to select one of their options - where having invoke doesn't make sense */
@@ -2570,6 +2574,8 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 			but = uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 			but->drawflag = UI_BUT_TEXT_LEFT;
 		}
+
+		uiItemS(pup->layout);
 	}
 
 	return pup;

@@ -1360,6 +1360,11 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		const bool show_menu_icon = ui_but_draw_menu_icon(but);
 		const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
 
+		/* menu item - add some more padding so menus don't feel cramped. it must
+		 * be part of the button so that this area is still clickable */
+		if (but->block && ui_block_is_menu(but->block))
+			rect->xmin += 0.3f * U.widget_unit;
+
 		widget_draw_icon(but, but->icon + but->iconadd, alpha, rect, show_menu_icon);
 
 		rect->xmin += icon_size;
@@ -2356,7 +2361,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 	col[0] = wcol->text[0];
 	col[1] = wcol->text[1];
 	col[2] = wcol->text[2];
-	col[3] = 7;
+	col[3] = 30;
 	
 	glEnable(GL_BLEND);
 	glColor4ubv(col);
@@ -3308,7 +3313,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case LABEL:
 				widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
 				break;
-			case SEPR:
+			case SEPRLINE:
 				ui_draw_separator(rect, &tui->wcol_menu_item);
 				break;
 			default:
@@ -3333,6 +3338,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 
 			case SEPR:
+			case SEPRLINE:
 				break;
 				
 			case BUT:

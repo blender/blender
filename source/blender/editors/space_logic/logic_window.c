@@ -772,7 +772,7 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	
 	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, SEPR, 0, "",	0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPRLINE, 0, "",	0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Show Sensors"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Sensors"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
 
@@ -821,7 +821,7 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	
 	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, SEPR, 0, "",					0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPRLINE, 0, "",					0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Show Controllers"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 2, 2, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Controllers"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 3, 3, "");
 
@@ -870,7 +870,7 @@ static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	
 	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, SEPR, 0, "",	0, (short)(xco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPRLINE, 0, "",	0, (short)(xco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Show Actuators"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefBut(block, BUTM, 1, IFACE_("Hide Actuators"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
 
@@ -2285,7 +2285,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ****************** Controllers ****************** */
 	
 	xco= 21 * U.widget_unit; yco= - U.widget_unit / 2; width= 15 * U.widget_unit;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, 0, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
 	uiDefBlockBut(block, controller_menu, NULL, IFACE_("Controllers"), xco - U.widget_unit / 2, yco, width, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
@@ -2392,7 +2392,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ****************** Sensors ****************** */
 	
 	xco= U.widget_unit / 2; yco= -U.widget_unit / 2; width= 17 * U.widget_unit;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, 0, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
 	uiDefBlockBut(block, sensor_menu, NULL, IFACE_("Sensors"), xco - U.widget_unit / 2, yco, 15 * U.widget_unit, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
@@ -2461,7 +2461,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ****************** Actuators ****************** */
 	
 	xco= 40 * U.widget_unit; yco= -U.widget_unit / 2; width= 17 * U.widget_unit;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, 0, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
 	uiDefBlockBut(block, actuator_menu, NULL, IFACE_("Actuators"), xco - U.widget_unit / 2, yco, 15 * U.widget_unit, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */

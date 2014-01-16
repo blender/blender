@@ -83,6 +83,7 @@ typedef struct uiLayoutRoot {
 	int opcontext;
 
 	int emw, emh;
+	int padding;
 
 	uiMenuHandleFunc handlefunc;
 	void *argv;
@@ -1751,9 +1752,11 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 void uiItemS(uiLayout *layout)
 {
 	uiBlock *block = layout->root->block;
+	bool is_menu = ui_block_is_menu(block);
+	int space = (is_menu) ? 0.45f * UI_UNIT_X : 0.3f * UI_UNIT_X;
 
 	uiBlockSetCurLayout(block, layout);
-	uiDefBut(block, SEPR, 0, "", 0, 0, 0.3f * UI_UNIT_X, 0.3f * UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, (is_menu) ? SEPRLINE : SEPR, 0, "", 0, 0, space, space, NULL, 0.0, 0.0, 0, 0, "");
 }
 
 /* level items */
@@ -2851,7 +2854,20 @@ static void ui_layout_free(uiLayout *layout)
 	MEM_freeN(layout);
 }
 
-uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, uiStyle *style)
+static void ui_layout_add_padding_button(uiLayoutRoot *root)
+{
+	if (root->padding) {
+		/* add an invisible button for padding */
+		uiBlock *block = root->block;
+		uiLayout *prev_layout = block->curlayout;
+
+		block->curlayout = root->layout;
+		uiDefBut(block, SEPR, 0, "", 0, 0, root->padding, root->padding, NULL, 0.0, 0.0, 0, 0, "");
+		block->curlayout = prev_layout;
+	}
+}
+
+uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, int padding, uiStyle *style)
 {
 	uiLayout *layout;
 	uiLayoutRoot *root;
@@ -2860,6 +2876,7 @@ uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int siz
 	root->type = type;
 	root->style = style;
 	root->block = block;
+	root->padding = padding;
 	root->opcontext = WM_OP_INVOKE_REGION_WIN;
 
 	layout = MEM_callocN(sizeof(uiLayout), "uiLayout");
@@ -2888,6 +2905,8 @@ uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int siz
 	block->curlayout = layout;
 	root->layout = layout;
 	BLI_addtail(&block->layouts, root);
+
+	ui_layout_add_padding_button(root);
 	
 	return layout;
 }
@@ -2944,6 +2963,8 @@ void uiBlockLayoutResolve(uiBlock *block, int *x, int *y)
 	block->curlayout = NULL;
 
 	for (root = block->layouts.first; root; root = root->next) {
+		ui_layout_add_padding_button(root);
+
 		/* NULL in advance so we don't interfere when adding button */
 		ui_layout_end(block, root->layout, x, y);
 		ui_layout_free(root->layout);

@@ -214,7 +214,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 	uiStyleFontSet(&style->widget);
 	
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		if (bt->type != SEPR) {
+		if (!ELEM(bt->type, SEPR, SEPRLINE)) {
 			j = BLF_width(style->widget.uifont_id, bt->drawstr, sizeof(bt->drawstr));
 
 			if (j > i) i = j;
@@ -2553,7 +2553,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return !ELEM4(but->type, LABEL, OPTION, OPTIONN, SEPR);
+	return !ELEM5(but->type, LABEL, OPTION, OPTIONN, SEPR, SEPRLINE);
 }
 
 static void ui_block_do_align_but(uiBut *first, short nr)
@@ -2855,7 +2855,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if      (ELEM9(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR)) {}
+	if      (ELEM10(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR, SEPRLINE)) {}
 	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 
