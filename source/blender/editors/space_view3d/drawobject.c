@@ -6576,6 +6576,7 @@ static void draw_object_matcap_check(View3D *v3d, Object *ob)
 {
 	/* fixed rule, active object draws as matcap */
 	BLI_assert((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) == 0);
+	(void)ob;
 
 	if (v3d->defmaterial == NULL) {
 		extern Material defmaterial;
