@@ -76,6 +76,17 @@ void kernel_cpu_sse41_shader(KernelGlobals *kg, uint4 *input, float4 *output,
 	int type, int i);
 #endif
 
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
+void kernel_cpu_avx_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state,
+	int sample, int x, int y, int offset, int stride);
+void kernel_cpu_avx_convert_to_byte(KernelGlobals *kg, uchar4 *rgba, float *buffer,
+	float sample_scale, int x, int y, int offset, int stride);
+void kernel_cpu_avx_convert_to_half_float(KernelGlobals *kg, uchar4 *rgba, float *buffer,
+	float sample_scale, int x, int y, int offset, int stride);
+void kernel_cpu_avx_shader(KernelGlobals *kg, uint4 *input, float4 *output,
+	int type, int i);
+#endif
+
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_H__ */

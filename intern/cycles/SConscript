@@ -38,6 +38,7 @@ sources.remove(path.join('util', 'util_view.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse2.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse3.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse41.cpp'))
+sources.remove(path.join('kernel', 'kernel_avx.cpp'))
 
 incs = [] 
 defs = []
@@ -78,22 +79,30 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 sse2_cxxflags = Split(env['CXXFLAGS'])
 sse3_cxxflags = Split(env['CXXFLAGS'])
 sse41_cxxflags = Split(env['CXXFLAGS'])
+avx_cxxflags = Split(env['CXXFLAGS'])
 
 if env['OURPLATFORM'] == 'win32-vc':
     # there is no /arch:SSE3, but intrinsics are available anyway
     sse2_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     sse3_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     sse41_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
+    avx_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split()) #/arch:AVX for VC2012 and above
 elif env['OURPLATFORM'] == 'win64-vc':
     sse2_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     sse3_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
     sse41_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
+    avx_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split()) #/arch:AVX for VC2012 and above
 else:
     sse2_cxxflags.append('-ffast-math -msse -msse2 -mfpmath=sse'.split())
     sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse'.split())
     sse41_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse'.split())
+    avx_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mfpmath=sse'.split())
 
 optim_defs = defs[:]
+
+cycles_avx = cycles.Clone()
+avx_sources = [path.join('kernel', 'kernel_avx.cpp')]
+cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags)
 
 cycles_sse41 = cycles.Clone()
 sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]

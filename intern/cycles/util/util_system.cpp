@@ -198,6 +198,12 @@ bool system_cpu_support_sse41()
 	CPUCapabilities& caps = system_cpu_capabilities();
 	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
 }
+
+bool system_cpu_support_avx()
+{
+	CPUCapabilities& caps = system_cpu_capabilities();
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
+}
 #else
 
 bool system_cpu_support_sse2()
@@ -206,6 +212,16 @@ bool system_cpu_support_sse2()
 }
 
 bool system_cpu_support_sse3()
+{
+	return false;
+}
+
+bool system_cpu_support_sse41()
+{
+	return false;
+}
+
+bool system_cpu_support_avx()
 {
 	return false;
 }

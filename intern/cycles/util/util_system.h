@@ -27,6 +27,7 @@ int system_cpu_bits();
 bool system_cpu_support_sse2();
 bool system_cpu_support_sse3();
 bool system_cpu_support_sse41();
+bool system_cpu_support_avx();
 
 CCL_NAMESPACE_END
 

@@ -42,10 +42,12 @@
 /* no SSE2 kernel on x86-64, part of regular kernel */
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#define WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 
-/* VC2008 is not ready for sse41, probably broken blendv intrinsic... */
+/* MSVC 2008, no SSE41 (broken blendv intrinsic) and no AVX support */
 #if defined(_MSC_VER) && (_MSC_VER < 1700)
 #undef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#undef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 #endif
 
 #endif
