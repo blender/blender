@@ -138,7 +138,7 @@ void ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Object *obedit);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
-void ED_object_rotation_from_view(struct bContext *C, float rot[3]);
+void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
 float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
                                      const float loc[3], const float rot[3], float primmat[4][4],
@@ -146,7 +146,8 @@ float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
 
 void ED_object_add_unit_props(struct wmOperatorType *ot);
 void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
-bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op,  float loc[3], float rot[3],
+bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, const char view_align_axis,
+                                    float loc[3], float rot[3],
                                     bool *enter_editmode, unsigned int *layer, bool *is_view_aligned);
 
 struct Object *ED_object_add_type(struct bContext *C, int type, const float loc[3], const float rot[3],

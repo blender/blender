@@ -473,7 +473,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	ListBase *editnurb;
 	Nurb *nu;
 	bool newob = false;
-	bool enter_editmode, is_view_aligned;
+	bool enter_editmode;
 	unsigned int layer;
 	float dia;
 	float loc[3], rot[3];
@@ -481,7 +481,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
 	WM_operator_view3d_unit_defaults(C, op);
 
-	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_view_aligned))
+	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	if (!isSurf) { /* adding curve */

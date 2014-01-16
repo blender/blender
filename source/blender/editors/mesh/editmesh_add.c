@@ -106,7 +106,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Plane"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -151,7 +151,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cube"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -207,7 +207,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	cap_tri = (cap_end == 2);
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Circle"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -260,7 +260,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	const bool cap_tri = (end_fill_type == 2);
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cylinder"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -320,7 +320,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	const bool cap_tri = (end_fill_type == 2);
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Cone"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -377,7 +377,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Grid"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -424,14 +424,11 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	bool enter_editmode;
-	bool is_view_aligned;
 	unsigned int layer;
 	bool was_editmode;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_view_aligned);
-	if (!is_view_aligned)
-		rot[0] += (float)M_PI / 2.0f;
+	ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, &enter_editmode, &layer, NULL);
 
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Suzanne"), &dia, mat, &was_editmode, loc, rot, layer);
 	dia = RNA_float_get(op->ptr, "radius");
@@ -481,7 +478,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Sphere"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
@@ -534,7 +531,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL);
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Icosphere"), &dia, mat, &was_editmode, loc, rot, layer);
 	em = BKE_editmesh_from_object(obedit);
 
