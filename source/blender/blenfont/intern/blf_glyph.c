@@ -121,17 +121,9 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 void blf_glyph_cache_clear(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
-	GlyphBLF *g;
-	int i;
 
-	for (gc = font->cache.first; gc; gc = gc->next) {
-		for (i = 0; i < 257; i++) {
-			while ((g = BLI_pophead(&gc->bucket[i]))) {
-				blf_glyph_free(g);
-			}
-		}
-
-		memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
+	while ((gc = BLI_pophead(&font->cache))) {
+		blf_glyph_cache_free(gc);
 	}
 }
 
