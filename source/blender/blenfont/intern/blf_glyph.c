@@ -162,7 +162,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 
 	if (gc->cur_tex >= gc->ntex) {
 		gc->ntex *= 2;
-		gc->textures = (GLuint *)realloc((void *)gc->textures, sizeof(GLuint) * gc->ntex);
+		gc->textures = (GLuint *)MEM_reallocN((void *)gc->textures, sizeof(GLuint) * gc->ntex);
 	}
 
 	gc->p2_width = (int)blf_next_p2((unsigned int)((gc->rem_glyphs * gc->max_glyph_width) + (gc->pad * 2)));
