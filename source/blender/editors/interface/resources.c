@@ -893,13 +893,13 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tipo.vertex,     0, 0, 0, 255);
 	rgba_char_args_set(btheme->tipo.vertex_select, 255, 133, 0, 255);
 	rgba_char_args_set(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255);
-	btheme->tipo.vertex_size = 3;
+	btheme->tipo.vertex_size = 6;
 
 	rgba_char_args_set(btheme->tipo.handle_vertex,      0, 0, 0, 255);
 	rgba_char_args_set(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
 	rgba_char_args_set(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
 	rgba_char_args_set(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
-	btheme->tipo.handle_vertex_size = 4;
+	btheme->tipo.handle_vertex_size = 5;
 	
 	rgba_char_args_set(btheme->tipo.ds_channel,      82, 96, 110, 255);
 	rgba_char_args_set(btheme->tipo.ds_subchannel,  124, 137, 150, 255);
@@ -2353,6 +2353,7 @@ void init_userdef_do_versions(void)
 		U.tw_size = U.tw_size * 5.0f;
 		
 		/* Action Editor (and NLA Editor) - Keyframe Colors */
+		/* Graph Editor - larger vertex size defaults */
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			/* Action Editor ................. */
 			/* key types */
@@ -2373,6 +2374,10 @@ void init_userdef_do_versions(void)
 			/* key border */
 			rgba_char_args_set(btheme->tnla.keyborder,	             0,   0,   0, 255);
 			rgba_char_args_set(btheme->tnla.keyborder_select,        0,   0,   0, 255);
+			
+			/* Graph Editor ................... */
+			btheme->tipo.vertex_size = 6;
+			btheme->tipo.handle_vertex_size = 5;
 		}
 		
 		/* grease pencil - new layer color */
