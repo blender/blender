@@ -1598,7 +1598,6 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	/* space_graph */
-
 	srna = RNA_def_struct(brna, "ThemeGraphEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
@@ -1624,28 +1623,22 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Channels Region", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
-	rna_def_userdef_theme_spaces_vertex(srna);
-	rna_def_userdef_theme_spaces_curves(srna, 0);
-
 	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "handle_vertex", PROP_FLOAT, PROP_COLOR_GAMMA);
+	
+	prop = RNA_def_property(srna, "dopesheet_channel", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "ds_channel");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Handle Vertex", "");
+	RNA_def_property_ui_text(prop, "Dope Sheet Channel", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "handle_vertex_select", PROP_FLOAT, PROP_COLOR_GAMMA);
+	
+	prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Handle Vertex Select", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 255);
-	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
+	RNA_def_property_ui_text(prop, "Dope Sheet Sub-Channel", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "channel_group", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1660,16 +1653,22 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Channel Group", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
-	prop = RNA_def_property(srna, "dopesheet_channel", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "ds_channel");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Dope Sheet Channel", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	rna_def_userdef_theme_spaces_vertex(srna);
+	rna_def_userdef_theme_spaces_curves(srna, 0);
 	
-	prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
+	prop = RNA_def_property(srna, "handle_vertex", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Dope Sheet Sub-Channel", "");
+	RNA_def_property_ui_text(prop, "Handle Vertex", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "handle_vertex_select", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Handle Vertex Select", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 255);
+	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
