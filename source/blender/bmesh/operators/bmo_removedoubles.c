@@ -30,6 +30,7 @@
 
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_alloca.h"
 
 #include "BKE_customdata.h"
 
@@ -74,6 +75,88 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 #define FACE_MARK	2
 
 /**
+ * helper function for bmo_weld_verts_exec so we can use stack memory
+ */
+static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap)
+{
+	BMIter liter;
+	BMFace *f_new;
+	BMEdge *e_new;
+
+	BMLoop *l;
+
+	BMEdge **edges = BLI_array_alloca(edges, f->len);
+	BMLoop **loops = BLI_array_alloca(loops, f->len);
+
+	STACK_DECLARE(edges);
+	STACK_DECLARE(loops);
+
+	STACK_INIT(edges);
+	STACK_INIT(loops);
+
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+		BMVert *v1 = l->v;
+		BMVert *v2 = l->next->v;
+
+		const bool is_del_v1 = BMO_elem_flag_test_bool(bm, v1, ELE_DEL);
+		const bool is_del_v2 = BMO_elem_flag_test_bool(bm, v2, ELE_DEL);
+
+		/* only search for a new edge if one of the verts is mapped */
+		if (is_del_v1 || is_del_v2) {
+			if (is_del_v1)
+				v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
+			if (is_del_v2)
+				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
+
+			e_new = (v1 != v2) ? BM_edge_exists(v1, v2) : NULL;
+		}
+		else {
+			e_new = l->e;
+		}
+
+		if (e_new) {
+			unsigned int i;
+			for (i = 0; i < STACK_SIZE(edges); i++) {
+				if (edges[i] == e_new) {
+					break;
+				}
+			}
+			if (UNLIKELY(i != STACK_SIZE(edges))) {
+				continue;
+			}
+
+			STACK_PUSH(edges, e_new);
+			STACK_PUSH(loops, l);
+		}
+	}
+
+	if (STACK_SIZE(edges) >= 3) {
+		BMVert *v1 = loops[0]->v;
+		BMVert *v2 = loops[1]->v;
+
+		if (BMO_elem_flag_test(bm, v1, ELE_DEL)) {
+			v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
+		}
+		if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
+			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
+		}
+
+		f_new = BM_face_create_ngon(bm, v1, v2, edges, STACK_SIZE(edges), f, BM_CREATE_NO_DOUBLE);
+		BLI_assert(f_new != f);
+
+		if (f_new) {
+			unsigned int i;
+			BM_ITER_ELEM_INDEX (l, &liter, f_new, BM_LOOPS_OF_FACE, i) {
+				BM_elem_attrs_copy(bm, bm, loops[i], l);
+			}
+		}
+	}
+
+	STACK_FREE(edges);
+	STACK_FREE(loops);
+}
+
+/**
  * \note with 'targetmap', multiple 'keys' are currently supported, though no callers should be using.
  * (because slot maps currently use GHash without the GHASH_FLAG_ALLOW_DUPES flag set)
  *
@@ -81,22 +164,19 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
-	BMVert *v, *v2;
-	BMEdge *e, *e_new, **edges = NULL;
-	BLI_array_declare(edges);
-	BMLoop *l, *l_new, **loops = NULL;
-	BLI_array_declare(loops);
-	BMFace *f, *f_new;
-	int a, b;
+	BMVert *v1, *v2;
+	BMEdge *e;
+	BMLoop *l;
+	BMFace *f;
 	BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
 
 	/* mark merge verts for deletion */
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if ((v2 = BMO_slot_map_elem_get(slot_targetmap, v))) {
-			BMO_elem_flag_enable(bm, v, ELE_DEL);
+	BM_ITER_MESH (v1, &iter, bm, BM_VERTS_OF_MESH) {
+		if ((v2 = BMO_slot_map_elem_get(slot_targetmap, v1))) {
+			BMO_elem_flag_enable(bm, v1, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
-			BM_elem_flag_merge(v, v2);
+			BM_elem_flag_merge(v1, v2);
 		}
 	}
 
@@ -107,18 +187,20 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BMO_elem_flag_test(bm, e->v1, ELE_DEL) || BMO_elem_flag_test(bm, e->v2, ELE_DEL)) {
-			v  = BMO_slot_map_elem_get(slot_targetmap, e->v1);
-			v2 = BMO_slot_map_elem_get(slot_targetmap, e->v2);
-			
-			if (!v) v = e->v1;
-			if (!v2) v2 = e->v2;
+		const bool is_del_v1 = BMO_elem_flag_test_bool(bm, (v1 = e->v1), ELE_DEL);
+		const bool is_del_v2 = BMO_elem_flag_test_bool(bm, (v2 = e->v2), ELE_DEL);
 
-			if (v == v2) {
+		if (is_del_v1 || is_del_v2) {
+			if (is_del_v1)
+				v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
+			if (is_del_v2)
+				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
+
+			if (v1 == v2) {
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			}
-			else if (!BM_edge_exists(v, v2)) {
-				BM_edge_create(bm, v, v2, e, BM_CREATE_NO_DOUBLE);
+			else if (!BM_edge_exists(v1, v2)) {
+				BM_edge_create(bm, v1, v2, e, BM_CREATE_NO_DOUBLE);
 			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
@@ -150,68 +232,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		BLI_array_empty(edges);
-		BLI_array_empty(loops);
-		a = 0;
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			v = l->v;
-			v2 = l->next->v;
-			if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-				v = BMO_slot_map_elem_get(slot_targetmap, v);
-			}
-			if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
-			}
-			
-			e_new = v != v2 ? BM_edge_exists(v, v2) : NULL;
-			if (e_new) {
-				for (b = 0; b < a; b++) {
-					if (edges[b] == e_new) {
-						break;
-					}
-				}
-				if (b != a) {
-					continue;
-				}
-
-				BLI_array_grow_one(edges);
-				BLI_array_grow_one(loops);
-
-				edges[a] = e_new;
-				loops[a] = l;
-
-				a++;
-			}
-		}
-		
-		if (BLI_array_count(loops) < 3)
-			continue;
-		v = loops[0]->v;
-		v2 = loops[1]->v;
-
-		if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-			v = BMO_slot_map_elem_get(slot_targetmap, v);
-		}
-		if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
-		}
-		
-		f_new = BM_face_create_ngon(bm, v, v2, edges, a, f, BM_CREATE_NO_DOUBLE);
-		if (f_new && (f_new != f)) {
-			a = 0;
-			BM_ITER_ELEM (l, &liter, f_new, BM_LOOPS_OF_FACE) {
-				l_new = loops[a];
-				BM_elem_attrs_copy(bm, bm, l_new, l);
-
-				a++;
-			}
-		}
+		remdoubles_createface(bm, f, slot_targetmap);
 	}
 
 	BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
-
-	BLI_array_free(edges);
-	BLI_array_free(loops);
 }
 
 static int vergaverco(const void *e1, const void *e2)
