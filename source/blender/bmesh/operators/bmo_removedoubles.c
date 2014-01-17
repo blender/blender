@@ -208,7 +208,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_op_callf(bm, op->flag, "delete geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
+	BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
 
 	BLI_array_free(edges);
 	BLI_array_free(loops);

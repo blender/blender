@@ -38,6 +38,13 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+
+/* -------------------------------------------------------------------- */
+/* BMO functions */
+
+/** \name BMesh Operator Delete Functions
+ * \{ */
+
 /**
  * Called by operators to remove elements that they have marked for
  * removal.
@@ -78,21 +85,40 @@ static void bmo_remove_tagged_verts(BMesh *bm, const short oflag)
 	}
 }
 
-#define DEL_WIREVERT	(1 << 10)
+static void bmo_remove_tagged_verts_loose(BMesh *bm, const short oflag)
+{
+	BMVert *v, *v_next;
+	BMIter iter;
+
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BMO_elem_flag_test(bm, v, oflag) && (v->e == NULL)) {
+			BM_vert_kill(bm, v);
+		}
+	}
+}
+
+void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype)
+{
+	if (htype & BM_FACE) {
+		bmo_remove_tagged_faces(bm, oflag);
+	}
+	if (htype & BM_EDGE) {
+		bmo_remove_tagged_edges(bm, oflag);
+	}
+	if (htype & BM_VERT) {
+		bmo_remove_tagged_verts(bm, oflag);	
+	}
+}
 
 /**
  * \warning oflag applies to different types in some contexts,
  * not just the type being removed.
- *
- * \warning take care, uses operator flag DEL_WIREVERT
  */
-void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
+void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 {
-	BMVert *v;
 	BMEdge *e;
 	BMFace *f;
 
-	BMIter viter;
 	BMIter eiter;
 	BMIter fiter;
 
@@ -113,12 +139,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 				}
 			}
 			bmo_remove_tagged_edges(bm, oflag);
-			/* remove loose vertice */
-			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-				if (BMO_elem_flag_test(bm, v, oflag) && (!(v->e)))
-					BMO_elem_flag_enable(bm, v, DEL_WIREVERT);
-			}
-			bmo_remove_tagged_verts(bm, DEL_WIREVERT);
+			bmo_remove_tagged_verts_loose(bm, oflag);
 
 			break;
 		}
@@ -136,9 +157,7 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		}
 		case DEL_ONLYTAGGED:
 		{
-			bmo_remove_tagged_faces(bm, oflag);
-			bmo_remove_tagged_edges(bm, oflag);
-			bmo_remove_tagged_verts(bm, oflag);
+			BMO_mesh_delete_oflag_tagged(bm, oflag, BM_ALL_NOLOOP);
 
 			break;
 		}
@@ -188,3 +207,178 @@ void BMO_remove_tagged_context(BMesh *bm, const short oflag, const int type)
 		}
 	}
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* BM functions
+ *
+ * note! this is just a duplicate of the code above (bad!)
+ * but for now keep in sync, its less hassle then having to create bmesh operator flags,
+ * each time we need to remove some geometry.
+ */
+
+/** \name BMesh Delete Functions (no oflags)
+ * \{ */
+
+static void bm_remove_tagged_faces(BMesh *bm, const char hflag)
+{
+	BMFace *f, *f_next;
+	BMIter iter;
+
+	BM_ITER_MESH_MUTABLE (f, f_next, &iter, bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(f, hflag)) {
+			BM_face_kill(bm, f);
+		}
+	}
+}
+
+static void bm_remove_tagged_edges(BMesh *bm, const char hflag)
+{
+	BMEdge *e, *e_next;
+	BMIter iter;
+
+	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, hflag)) {
+			BM_edge_kill(bm, e);
+		}
+	}
+}
+
+static void bm_remove_tagged_verts(BMesh *bm, const char hflag)
+{
+	BMVert *v, *v_next;
+	BMIter iter;
+
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(v, hflag)) {
+			BM_vert_kill(bm, v);
+		}
+	}
+}
+
+static void bm_remove_tagged_verts_loose(BMesh *bm, const char hflag)
+{
+	BMVert *v, *v_next;
+	BMIter iter;
+
+	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(v, hflag) && (v->e == NULL)) {
+			BM_vert_kill(bm, v);
+		}
+	}
+}
+
+void BM_mesh_delete_hflag_tagged(BMesh *bm, const char hflag, const char htype)
+{
+	if (htype & BM_FACE) {
+		bm_remove_tagged_faces(bm, hflag);
+	}
+	if (htype & BM_EDGE) {
+		bm_remove_tagged_edges(bm, hflag);
+	}
+	if (htype & BM_VERT) {
+		bm_remove_tagged_verts(bm, hflag);
+	}
+}
+
+/**
+ * \warning oflag applies to different types in some contexts,
+ * not just the type being removed.
+ */
+void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
+{
+	BMEdge *e;
+	BMFace *f;
+
+	BMIter eiter;
+	BMIter fiter;
+
+	switch (type) {
+		case DEL_VERTS:
+		{
+			bm_remove_tagged_verts(bm, hflag);
+
+			break;
+		}
+		case DEL_EDGES:
+		{
+			/* flush down to vert */
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e, hflag)) {
+					BM_elem_flag_enable(e->v1, hflag);
+					BM_elem_flag_enable(e->v2, hflag);
+				}
+			}
+			bm_remove_tagged_edges(bm, hflag);
+			bm_remove_tagged_verts_loose(bm, hflag);
+
+			break;
+		}
+		case DEL_EDGESFACES:
+		{
+			bm_remove_tagged_edges(bm, hflag);
+
+			break;
+		}
+		case DEL_ONLYFACES:
+		{
+			bm_remove_tagged_faces(bm, hflag);
+
+			break;
+		}
+		case DEL_ONLYTAGGED:
+		{
+			BM_mesh_delete_hflag_tagged(bm, hflag, BM_ALL_NOLOOP);
+
+			break;
+		}
+		case DEL_FACES:
+		{
+			/* go through and mark all edges and all verts of all faces for delete */
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(f, hflag)) {
+					BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+					BMLoop *l_iter;
+
+					l_iter = l_first;
+					do {
+						BM_elem_flag_enable(l_iter->v, hflag);
+						BM_elem_flag_enable(l_iter->e, hflag);
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+			}
+			/* now go through and mark all remaining faces all edges for keeping */
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(f, hflag)) {
+					BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+					BMLoop *l_iter;
+
+					l_iter = l_first;
+					do {
+						BM_elem_flag_disable(l_iter->v, hflag);
+						BM_elem_flag_disable(l_iter->e, hflag);
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+			}
+			/* also mark all the vertices of remaining edges for keeping */
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(e, hflag)) {
+					BM_elem_flag_disable(e->v1, hflag);
+					BM_elem_flag_disable(e->v2, hflag);
+				}
+			}
+			/* now delete marked face */
+			bm_remove_tagged_faces(bm, hflag);
+			/* delete marked edge */
+			bm_remove_tagged_edges(bm, hflag);
+			/* remove loose vertice */
+			bm_remove_tagged_verts(bm, hflag);
+
+			break;
+		}
+	}
+}
+
+/** \} */

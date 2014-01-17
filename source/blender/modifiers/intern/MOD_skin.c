@@ -311,10 +311,10 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	/* Check if removing triangles above will create wire triangles,
 	 * mark them too */
 	BMO_ITER (e, &oiter, op.slots_out, "geom.out", BM_EDGE) {
-		int is_wire = TRUE;
+		bool is_wire = true;
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
-				is_wire = FALSE;
+				is_wire = false;
 				break;
 			}
 		}
@@ -324,9 +324,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	BMO_op_finish(bm, &op);
 
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-	             "delete geom=%hef context=%i",
-	             BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_ONLYTAGGED);
 
 	return TRUE;
 }
@@ -1426,11 +1424,10 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	BMO_op_callf(so->bm, BMO_FLAG_DEFAULTS,
-	             "delete geom=%hef context=%i",
-	             BM_ELEM_TAG, DEL_ONLYTAGGED);
-
 	BLI_heap_free(heap, NULL);
+
+	BM_mesh_delete_hflag_context(so->bm, BM_ELEM_TAG, DEL_ONLYTAGGED);
+
 }
 
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes, int totvert,
