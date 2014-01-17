@@ -138,7 +138,6 @@ class BakeToKeyframes(Operator):
             # apply transformations as keyframes
             for i, f in enumerate(frames_step):
                 scene.frame_set(f)
-                obj_prev = objects[0]
                 for j, obj in enumerate(objects):
                     mat = bake[i][j]
 
@@ -153,9 +152,8 @@ class BakeToKeyframes(Operator):
                         obj.rotation_axis_angle = (aa[1], ) + aa[0][:]
                     else:  # euler
                         # make sure euler rotation is compatible to previous frame
-                        obj.rotation_euler = mat.to_euler(rot_mode, obj_prev.rotation_euler)
-
-                    obj_prev = obj
+						# NOTE: assume that on first frame, the starting rotation is appropriate
+                        obj.rotation_euler = mat.to_euler(rot_mode, obj.rotation_euler)
 
                 bpy.ops.anim.keyframe_insert(type='BUILTIN_KSI_LocRot', confirm_success=False)
 
