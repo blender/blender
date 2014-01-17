@@ -145,7 +145,13 @@ class BakeToKeyframes(Operator):
 
                     rot_mode = obj.rotation_mode
                     if rot_mode == 'QUATERNION':
-                        obj.rotation_quaternion = mat.to_quaternion()
+                        q1 = obj.rotation_quaternion
+                        q2 = mat.to_quaternion()
+                        # make quaternion compatible with the previous one
+                        if (q1.dot(q2) < 0):
+                            obj.rotation_quaternion = -q2
+                        else:
+                            obj.rotation_quaternion = q2
                     elif rot_mode == 'AXIS_ANGLE':
                         # this is a little roundabout but there's no better way right now
                         aa = mat.to_quaternion().to_axis_angle()
