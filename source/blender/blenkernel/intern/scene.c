@@ -1563,7 +1563,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	DAG_ids_check_recalc(bmain, scene, FALSE);
 
 	/* clear recalc flags */
-	DAG_ids_clear_recalc(bmain, scene);
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* applies changes right away, does all sets too */
@@ -1639,7 +1639,7 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 	DAG_ids_check_recalc(bmain, sce, TRUE);
 
 	/* clear recalc flags */
-	DAG_ids_clear_recalc(bmain, sce);
+	DAG_ids_clear_recalc(bmain);
 
 #ifdef DETAILED_ANALYSIS_OUTPUT
 	fprintf(stderr, "frame update start_time %f duration %f\n", start_time, PIL_check_seconds_timer() - start_time);

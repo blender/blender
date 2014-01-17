@@ -2471,7 +2471,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 
 #define POST_UPDATE_HANDLER_WORKAROUND
 
-void DAG_ids_clear_recalc(Main *bmain, Scene *scene)
+void DAG_ids_clear_recalc(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	bNodeTree *ntree;
@@ -2481,16 +2481,40 @@ void DAG_ids_clear_recalc(Main *bmain, Scene *scene)
 	bool have_updated_objects = false;
 
 	if (DAG_id_type_tagged(bmain, ID_OB)) {
-		DagNode *node;
-		for (node = scene->theDag->DagNode.first; node; node = node->next) {
-			if (node->type == ID_OB) {
-				Object *object = (Object *) node->ob;
-				if (object->recalc & OB_RECALC_ALL) {
-					have_updated_objects = true;
-					break;
+		ListBase listbase;
+		DagSceneLayer *dsl;
+
+		/* We need to check all visible scenes, otherwise resetting
+		 * OB_ID changed flag will only work fine for first scene of
+		 * multiple visible and all the rest will skip update.
+		 *
+		 * This could also lead to wrong behavior scene update handlers
+		 * because of missing ID datablock changed flags.
+		 *
+		 * This is a bit of a bummer to allocate list here, but likely
+		 * it wouldn't become too much bad because it only happens when
+		 * objects were actually changed.
+		 */
+		dag_current_scene_layers(bmain, &listbase);
+
+		for (dsl = listbase.first; dsl; dsl = dsl->next) {
+			Scene *scene = dsl->scene;
+			DagNode *node;
+			for (node = scene->theDag->DagNode.first;
+			     node != NULL && have_updated_objects == false;
+			     node = node->next)
+			{
+				if (node->type == ID_OB) {
+					Object *object = (Object *) node->ob;
+					if (object->recalc & OB_RECALC_ALL) {
+						have_updated_objects = true;
+						break;
+					}
 				}
 			}
 		}
+
+		BLI_freelistN(&listbase);
 	}
 #else
 	(void) scene;  /* Unused. */
