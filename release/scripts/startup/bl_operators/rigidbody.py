@@ -46,6 +46,9 @@ class CopyRigidbodySettings(Operator):
         "linear_damping",
         "angular_damping",
         "collision_groups",
+        "mesh_source",
+        "use_deform",
+        "enabled",
         )
 
     @classmethod
