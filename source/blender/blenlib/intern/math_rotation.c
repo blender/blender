@@ -1048,7 +1048,6 @@ void rotate_eul(float beul[3], const char axis, const float ang)
 	mul_m3_m3m3(totmat, mat2, mat1);
 
 	mat3_to_eul(beul, totmat);
-
 }
 
 /* order independent! */
@@ -1088,9 +1087,6 @@ void compatible_eul(float eul[3], const float oldrot[3])
 		if (deul[2] > 0.0f) eul[2] -= pi_x2;
 		else                eul[2] += pi_x2;
 	}
-
-#undef PI_THRESH
-#undef PI_2F
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
@@ -1116,7 +1112,6 @@ void mat3_to_compatible_eul(float eul[3], const float oldrot[3], float mat[3][3]
 	else {
 		copy_v3_v3(eul, eul1);
 	}
-
 }
 
 /************************** Arbitrary Order Eulers ***************************/
