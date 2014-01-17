@@ -2,6 +2,7 @@
 
 # This script updates icons from the SVG file
 import os
+import sys
 
 def run(cmd):
     print("   ", cmd)
@@ -9,9 +10,16 @@ def run(cmd):
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__)) + os.sep
 
-cmd = 'inkscape "%sblender_icons.svg" --export-dpi=90  --without-gui --export-png="%sblender_icons16.png"' % (BASEDIR, BASEDIR)
+inkscape_path = 'inkscape'
+
+if sys.platform == 'darwin':
+    inkscape_app_path = '/Applications/Inkscape.app/Contents/Resources/script'
+    if os.path.exists(inkscape_app_path):
+        inkscape_path = inkscape_app_path
+
+cmd = inkscape_path + ' "%sblender_icons.svg" --export-dpi=90  --without-gui --export-png="%sblender_icons16.png"' % (BASEDIR, BASEDIR)
 run(cmd)
-cmd = 'inkscape "%sblender_icons.svg" --export-dpi=180 --without-gui --export-png="%sblender_icons32.png"' % (BASEDIR, BASEDIR)
+cmd = inkscape_path + ' "%sblender_icons.svg" --export-dpi=180 --without-gui --export-png="%sblender_icons32.png"' % (BASEDIR, BASEDIR)
 run(cmd)
 
 
