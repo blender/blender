@@ -151,7 +151,7 @@ class BakeToKeyframes(Operator):
                         q1 = obj.rotation_quaternion
                         q2 = mat.to_quaternion()
                         # make quaternion compatible with the previous one
-                        if (q1.dot(q2) < 0):
+                        if q1.dot(q2) < 0.0:
                             obj.rotation_quaternion = -q2
                         else:
                             obj.rotation_quaternion = q2
