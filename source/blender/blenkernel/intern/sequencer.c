@@ -513,6 +513,7 @@ SeqRenderData BKE_sequencer_new_render_data(EvaluationContext *eval_ctx,
 	rval.motion_blur_samples = 0;
 	rval.motion_blur_shutter = 0;
 	rval.eval_ctx = eval_ctx;
+	rval.skip_cache = false;
 
 	return rval;
 }
@@ -1535,6 +1536,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	render_context = BKE_sequencer_new_render_data(bmain->eval_ctx, bmain, context->scene,
 	                                    (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
 	                                    (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 100);
+	render_context.skip_cache = true;
 
 	for (cfra = seq->startdisp + seq->startstill;  cfra < seq->enddisp - seq->endstill; cfra++) {
 		if (context->size_flags & IMB_PROXY_25) {

@@ -229,7 +229,7 @@ void BKE_sequencer_cache_put(SeqRenderData context, Sequence *seq, float cfra, s
 {
 	SeqCacheKey key;
 
-	if (!i) {
+	if (i == NULL || context.skip_cache) {
 		return;
 	}
 

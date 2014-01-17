@@ -98,6 +98,7 @@ typedef struct SeqRenderData {
 	int preview_render_size;
 	int motion_blur_samples;
 	float motion_blur_shutter;
+	bool skip_cache;
 } SeqRenderData;
 
 SeqRenderData BKE_sequencer_new_render_data(struct EvaluationContext *eval_ctx, struct Main *bmain,
