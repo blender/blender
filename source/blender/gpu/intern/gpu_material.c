@@ -1779,7 +1779,7 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 	la = ob->data;
 	gpu_lamp_from_blender(scene, ob, par, la, lamp);
 
-	if ((la->type==LA_SPOT && (la->mode & LA_SHAD_BUF)) || (la->type==LA_SUN && (la->mode & LA_SHAD_RAY))) {
+	if ((la->type==LA_SPOT && (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY))) || (la->type==LA_SUN && (la->mode & LA_SHAD_RAY))) {
 		/* opengl */
 		lamp->fb = GPU_framebuffer_create();
 		if (!lamp->fb) {
