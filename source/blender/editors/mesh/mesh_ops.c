@@ -121,6 +121,7 @@ void ED_operatortypes_mesh(void)
 #endif
 
 	WM_operatortype_append(MESH_OT_delete);
+	WM_operatortype_append(MESH_OT_delete_loose);
 	WM_operatortype_append(MESH_OT_edge_collapse);
 
 	WM_operatortype_append(MESH_OT_separate);

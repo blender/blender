@@ -2301,6 +2301,10 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("mesh.delete_loose")
+
+        layout.separator()
+
         layout.operator("mesh.fill_holes")
         layout.operator("mesh.vert_connect_nonplanar")
 

@@ -382,6 +382,107 @@ void MESH_OT_delete(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 0, "Type", "Method used for deleting mesh data");
 }
 
+
+static bool bm_face_is_loose(BMFace *f)
+{
+	BMLoop *l_iter, *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (!BM_edge_is_boundary(l_iter->e)) {
+			return false;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return true;
+}
+
+static int edbm_delete_loose_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+	BMIter iter;
+
+	const bool use_verts = (RNA_boolean_get(op->ptr, "use_verts") && bm->totvertsel);
+	const bool use_edges = (RNA_boolean_get(op->ptr, "use_edges") && bm->totedgesel);
+	const bool use_faces = (RNA_boolean_get(op->ptr, "use_faces") && bm->totfacesel);
+
+	const int totelem[3] = {bm->totvert, bm->totedge, bm->totface};
+
+
+	BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+
+	if (use_faces) {
+		BMFace *f;
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_elem_flag_set(f, BM_ELEM_TAG, bm_face_is_loose(f));
+			}
+		}
+
+		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
+	}
+
+	if (use_edges) {
+		BMEdge *e;
+
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+				BM_elem_flag_set(e, BM_ELEM_TAG, BM_edge_is_wire(e));
+			}
+		}
+
+		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_EDGES);
+	}
+
+	if (use_verts) {
+		BMVert *v;
+
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				BM_elem_flag_set(v, BM_ELEM_TAG, (v->e == NULL));
+			}
+		}
+
+		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_VERTS);
+	}
+
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	EDBM_update_generic(em, true, true);
+
+	BKE_reportf(op->reports, RPT_INFO,
+	            "Removed: %d vertices, %d edges, %d faces",
+	            totelem[0] - bm->totvert, totelem[1] - bm->totedge, totelem[2] - bm->totface);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_delete_loose(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete Loose";
+	ot->description = "Delete loose vertices, edges or faces";
+	ot->idname = "MESH_OT_delete_loose";
+
+	/* api callbacks */
+	ot->exec = edbm_delete_loose_exec;
+
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "use_verts", true, "Vertices", "Remove loose vertices");
+	RNA_def_boolean(ot->srna, "use_edges", true, "Edges", "Remove loose edges");
+	RNA_def_boolean(ot->srna, "use_faces", false, "Faces", "Remove loose faces");
+}
+
+
 static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
