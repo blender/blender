@@ -427,8 +427,8 @@ void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect
 
 	/* image center as rotation center
 	 *
-	 * Rotation matrix is constructing in a way rotaion happens around image center,
-	 * and it's matter of calculating trasnlation in a way, that applying translation
+	 * Rotation matrix is constructing in a way rotation happens around image center,
+	 * and it's matter of calculating translation in a way, that applying translation
 	 * after rotation would make it so rotation happens around median point of tracks
 	 * used for translation stabilization.
 	 */

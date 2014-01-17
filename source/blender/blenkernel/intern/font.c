@@ -184,7 +184,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 				printf("Font file doesn't exist: %s\n", vfont->name);
 
 				/* DON'T DO THIS
-				 * missing file shouldn't modifty path! - campbell */
+				 * missing file shouldn't modify path! - campbell */
 #if 0
 				strcpy(vfont->name, FO_BUILTIN_NAME);
 #endif

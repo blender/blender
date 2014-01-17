@@ -1197,7 +1197,7 @@ void BKE_mask_get_handle_point_adjacent(MaskSpline *spline, MaskSplinePoint *poi
 	*r_point_next = mask_spline_point_next(spline, points_array, point);
 }
 
-/* calculates the tanget of a point by its previous and next
+/* calculates the tangent of a point by its previous and next
  * (ignoring handles - as if its a poly line) */
 void BKE_mask_calc_tangent_polyline(MaskSpline *spline, MaskSplinePoint *point, float t[2])
 {

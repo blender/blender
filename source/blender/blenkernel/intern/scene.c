@@ -1271,7 +1271,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 		/* We only update object itself here, dupli-group will be updated
 		 * separately from main thread because of we've got no idea about
-		 * dependnecies inside the group.
+		 * dependencies inside the group.
 		 */
 		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world);
 

@@ -956,7 +956,7 @@ typedef enum {
 	UNIFIED_PAINT_ALPHA = (1 << 1),
 	UNIFIED_PAINT_WEIGHT = (1 << 5),
 
-	/* only used if unified size is enabled, mirros the brush flags
+	/* only used if unified size is enabled, mirrors the brush flags
 	 * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
 	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
 	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1 << 3),

@@ -165,7 +165,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		 *
 		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
 		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
-		 * This will lead in prunning of the search tree. */
+		 * This will lead in pruning of the search tree. */
 		if (nearest.index != -1)
 			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else
@@ -467,7 +467,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		 *
 		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
 		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
-		 * This will lead in prunning of the search tree. */
+		 * This will lead in pruning of the search tree. */
 		if (nearest.index != -1)
 			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else

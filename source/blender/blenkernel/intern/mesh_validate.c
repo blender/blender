@@ -450,7 +450,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 #		undef CHECK_FACE_EDGE
 	}
 
-	/* Checking loops and polys is a bit tricky, as they are quite intricated...
+	/* Checking loops and polys is a bit tricky, as they are quite intricate...
 	 *
 	 * Polys must have:
 	 * - a valid loopstart value.

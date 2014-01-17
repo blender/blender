@@ -2229,7 +2229,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
 		/* So if someone tagged object recalc directly,
-		 * id_tag_update biffield stays relevant
+		 * id_tag_update bit-field stays relevant
 		 */
 		if (ob->recalc & OB_RECALC_ALL) {
 			DAG_id_type_tag(bmain, GS(id->name));

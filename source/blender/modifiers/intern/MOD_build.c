@@ -121,7 +121,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	CLAMP(frac, 0.0f, 1.0f);
 	
 	if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
-		frac = 1.0 - frac;
+		frac = 1.0f - frac;
 	}
 	
 	numFaces_dst = numPoly_src * frac;

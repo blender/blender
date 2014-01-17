@@ -1368,7 +1368,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 PyDoc_STRVAR(Matrix_decompose_doc,
 ".. method:: decompose()\n"
 "\n"
-"   Return the location, rotaion and scale components of this matrix.\n"
+"   Return the location, rotation and scale components of this matrix.\n"
 "\n"
 "   :return: loc, rot, scale triple.\n"
 "   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)"

@@ -2728,7 +2728,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	
 	RNA_string_set(op->ptr, "filepath", name);
 
-	/* if we're saving for the first time and prefer relative paths - any existign paths will be absolute,
+	/* if we're saving for the first time and prefer relative paths - any existing paths will be absolute,
 	 * enable the option to remap paths to avoid confusion [#37240] */
 	if ((G.relbase_valid == false) && (U.flag & USER_RELPATHS)) {
 		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
