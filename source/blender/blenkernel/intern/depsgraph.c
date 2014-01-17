@@ -2516,8 +2516,6 @@ void DAG_ids_clear_recalc(Main *bmain)
 
 		BLI_freelistN(&listbase);
 	}
-#else
-	(void) scene;  /* Unused. */
 #endif
 
 	/* loop over all ID types */
