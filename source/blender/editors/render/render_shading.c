@@ -348,6 +348,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			
 			if (ob_iter->totcol == ob->totcol) {
 				ob_iter->actcol = ob->actcol;
+				DAG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_iter);
 			}
 		}
