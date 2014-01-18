@@ -403,7 +403,7 @@ endif()
 # Check for conflicting/unsupported configurations
 
 if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_STANDALONE)
-	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER must be enabled, nothing to do!")
+	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER or WITH_CYCLES_STANDALONE must be enabled, nothing to do!")
 endif()
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
