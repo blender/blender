@@ -1438,6 +1438,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					handled = true;
 				}
 				break;
+			case HKEY:
+				if (t->spacetype == SPACE_NODE) {
+					t->flag ^= T_TOGGLE_HIDDEN;
+					t->redraw |= TREDRAW_HARD;
+					handled = true;
+				}
+				break;
 			default:
 				break;
 		}

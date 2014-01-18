@@ -2375,6 +2375,7 @@ cleanup:
 void flushTransNodes(TransInfo *t)
 {
 	const float dpi_fac = UI_DPI_FAC;
+	bool hidden_state;
 	int a;
 	TransData *td;
 	TransData2D *td2d;
@@ -2393,6 +2394,17 @@ void flushTransNodes(TransInfo *t)
 		node->locx = td2d->loc[0] / dpi_fac;
 		node->locy = td2d->loc[1] / dpi_fac;
 #endif
+		/* update node hidden state with transform data TD_HIDDEN + transformInfo T_TOGGLE_HIDDEN */
+ 		hidden_state = (td->flag & TD_HIDDEN) > 0;
+		if (t->state != TRANS_CANCEL) {
+			hidden_state ^= (t->flag & T_TOGGLE_HIDDEN) > 0;
+		}
+
+		if (hidden_state) {
+			node->flag |= NODE_HIDDEN;
+		} else {
+			node->flag &= ~NODE_HIDDEN;
+		}
 	}
 	
 	/* handle intersection with noodles */
@@ -5987,6 +5999,9 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
 	td->ext = NULL; td->val = NULL;
 
 	td->flag |= TD_SELECTED;
+	if(node->flag & NODE_HIDDEN){
+		td->flag |= TD_HIDDEN;
+	}
 	td->dist = 0.0;
 
 	unit_m3(td->mtx);
@@ -6021,6 +6036,8 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 	/* nodes dont support PET and probably never will */
 	t->flag &= ~T_PROP_EDIT_ALL;
+	/* initial: do not toggle hidden */
+	t->flag &= ~T_TOGGLE_HIDDEN;
 
 	/* set transform flags on nodes */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
