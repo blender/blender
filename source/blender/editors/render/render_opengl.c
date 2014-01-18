@@ -152,7 +152,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		context = BKE_sequencer_new_render_data(oglrender->bmain->eval_ctx, oglrender->bmain,
 		                                        scene, oglrender->sizex, oglrender->sizey, 100.0f);
 
-		ibuf = BKE_sequencer_give_ibuf(context, CFRA, chanshown);
+		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
 
 		if (ibuf) {
 			ImBuf *linear_ibuf;

@@ -77,7 +77,7 @@ typedef struct ModifierThread {
 } ModifierThread;
 
 
-static ImBuf *modifier_mask_get(SequenceModifierData *smd, SeqRenderData context, int cfra, int make_float)
+static ImBuf *modifier_mask_get(SequenceModifierData *smd, const SeqRenderData *context, int cfra, int make_float)
 {
 	return BKE_sequencer_render_mask_input(context, smd->mask_input_type, smd->mask_sequence, smd->mask_id, cfra, make_float);
 }
@@ -649,14 +649,14 @@ SequenceModifierData *BKE_sequence_modifier_find_by_name(Sequence *seq, const ch
 	return BLI_findstring(&(seq->modifiers), name, offsetof(SequenceModifierData, name));
 }
 
-ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, ImBuf *ibuf, int cfra)
+ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context, Sequence *seq, ImBuf *ibuf, int cfra)
 {
 	SequenceModifierData *smd;
 	ImBuf *processed_ibuf = ibuf;
 
 	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
 		processed_ibuf = IMB_dupImBuf(ibuf);
-		BKE_sequencer_imbuf_from_sequencer_space(context.scene, processed_ibuf);
+		BKE_sequencer_imbuf_from_sequencer_space(context->scene, processed_ibuf);
 	}
 
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
@@ -684,7 +684,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 	}
 
 	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
-		BKE_sequencer_imbuf_to_sequencer_space(context.scene, processed_ibuf, FALSE);
+		BKE_sequencer_imbuf_to_sequencer_space(context->scene, processed_ibuf, FALSE);
 	}
 
 	return processed_ibuf;

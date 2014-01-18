@@ -2214,7 +2214,7 @@ static void do_render_seq(Render *re)
 		                                        re->result->rectx, re->result->recty, 100);
 	}
 
-	out = BKE_sequencer_give_ibuf(context, cfra, 0);
+	out = BKE_sequencer_give_ibuf(&context, cfra, 0);
 
 	if (out) {
 		ibuf = IMB_dupImBuf(out);
