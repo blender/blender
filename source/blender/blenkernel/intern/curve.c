@@ -878,7 +878,7 @@ void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_p
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
-static void calcknots(float *knots, const short pnts, const short order, const short flag)
+static void calcknots(float *knots, const int pnts, const short order, const short flag)
 {
 	/* knots: number of pnts NOT corrected for cyclic */
 	const int pnts_order = pnts + order;
@@ -924,7 +924,7 @@ static void calcknots(float *knots, const short pnts, const short order, const s
 	}
 }
 
-static void makecyclicknots(float *knots, short pnts, short order)
+static void makecyclicknots(float *knots, int pnts, short order)
 /* pnts, order: number of pnts NOT corrected for cyclic */
 {
 	int a, b, order2, c;
@@ -1004,7 +1004,7 @@ void BKE_nurb_knot_calc_v(Nurb *nu)
 	makeknots(nu, 2);
 }
 
-static void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
+static void basisNurb(float t, short order, int pnts, float *knots, float *basis, int *start, int *end)
 {
 	float d, e;
 	int i, i1 = 0, i2 = 0, j, orderpluspnts, opp2, o2;
@@ -1146,7 +1146,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	basis = basisv;
 	curv = totv;
 	while (curv--) {
-		basisNurb(v, nu->orderv, (short)(nu->pntsv + cycl), nu->knotsv, basis, jstart + curv, jend + curv);
+		basisNurb(v, nu->orderv, nu->pntsv + cycl, nu->knotsv, basis, jstart + curv, jend + curv);
 		basis += KNOTSV(nu);
 		v += vstep;
 	}
@@ -1159,7 +1159,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	u = ustart;
 	curu = totu;
 	while (curu--) {
-		basisNurb(u, nu->orderu, (short)(nu->pntsu + cycl), nu->knotsu, basisu, &istart, &iend);
+		basisNurb(u, nu->orderu, nu->pntsu + cycl, nu->knotsu, basisu, &istart, &iend);
 
 		basis = basisv;
 		curv = totv;
@@ -1296,7 +1296,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 
 	u = ustart;
 	while (resolu--) {
-		basisNurb(u, nu->orderu, (short)(nu->pntsu + cycl), nu->knotsu, basisu, &istart, &iend);
+		basisNurb(u, nu->orderu, nu->pntsu + cycl, nu->knotsu, basisu, &istart, &iend);
 
 		/* calc sum */
 		sumdiv = 0.0;
@@ -3103,7 +3103,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 static void calchandlesNurb_intern(Nurb *nu, int skip_align)
 {
 	BezTriple *bezt, *prev, *next;
-	short a;
+	int a;
 
 	if (nu->type != CU_BEZIER)
 		return;
@@ -3205,7 +3205,7 @@ void BKE_nurb_bezt_handle_test(BezTriple *bezt, const bool use_handle)
 void BKE_nurb_handles_test(Nurb *nu, const bool use_handle)
 {
 	BezTriple *bezt;
-	short a;
+	int a;
 
 	if (nu->type != CU_BEZIER)
 		return;
@@ -3316,7 +3316,8 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	/* code==6: Clear align, like 3 but no toggle */
 	Nurb *nu;
 	BezTriple *bezt;
-	short a, ok = 0;
+	int a;
+	short ok = 0;
 
 	if (code == 1 || code == 2) {
 		nu = editnurb->first;

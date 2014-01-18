@@ -3791,7 +3791,7 @@ static void rotate_direction_nurb(Nurb *nu)
 	BPoint *bp1, *bp2, *temp;
 	int u, v;
 	
-	SWAP(short, nu->pntsu, nu->pntsv);
+	SWAP(int, nu->pntsu, nu->pntsv);
 	SWAP(short, nu->orderu, nu->orderv);
 	SWAP(short, nu->resolu, nu->resolv);
 	SWAP(short, nu->flagu, nu->flagv);
@@ -5476,7 +5476,8 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	BPoint *bp;
 	BezTriple *bezt;
 	int a;
-	short sel = 0, lastsel = false;
+	int sel = 0;
+	short lastsel = false;
 	
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
