@@ -2877,8 +2877,20 @@ print_info() {
     fi
   fi
 
+  if [ -d $INST/ocio ]; then
+    _1="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+  fi
+
   if [ -d $INST/openexr ]; then
     _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+  fi
+
+  if [ -d $INST/oiio ]; then
+    _1="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
   fi
