@@ -26,8 +26,9 @@
 
 /** \file blender/windowmanager/intern/wm_draw.c
  *  \ingroup wm
+ *
+ * Handle OpenGL buffers for windowing, also paint cursor.
  */
-
 
 #include <stdlib.h>
 #include <string.h>

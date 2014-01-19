@@ -26,6 +26,10 @@
 
 /** \file blender/windowmanager/intern/wm_event_system.c
  *  \ingroup wm
+ *
+ * Handle events and notifiers from GHOST input (mouse, keyboard, tablet, ndof).
+ *
+ * Also some operator reports utility functions.
  */
 
 
@@ -2457,7 +2461,7 @@ wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMa
 	return handler;
 }
 
-wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyMap *keymap, rcti *bblocal, rcti *bbwin)
+wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyMap *keymap, const rcti *bblocal, const rcti *bbwin)
 {
 	wmEventHandler *handler = WM_event_add_keymap_handler(handlers, keymap);
 	

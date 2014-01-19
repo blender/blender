@@ -25,6 +25,8 @@
 
 /** \file blender/blenfont/intern/blf_dir.c
  *  \ingroup blf
+ *
+ * Manage search paths for font files.
  */
 
 

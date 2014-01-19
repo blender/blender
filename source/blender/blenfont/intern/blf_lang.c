@@ -25,6 +25,8 @@
 
 /** \file blender/blenfont/intern/blf_lang.c
  *  \ingroup blf
+ *
+ * Main internationalization functions to set the locale and query available languages.
  */
 
 #include <stdio.h>

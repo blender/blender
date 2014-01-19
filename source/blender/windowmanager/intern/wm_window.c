@@ -26,6 +26,8 @@
 
 /** \file blender/windowmanager/intern/wm_window.c
  *  \ingroup wm
+ *
+ * Window management, wrap GHOST.
  */
 
 #include <math.h>
@@ -482,7 +484,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 /* new window, no screen yet, but we open ghostwindow for it */
 /* also gets the window level handlers */
 /* area-rip calls this */
-wmWindow *WM_window_open(bContext *C, rcti *rect)
+wmWindow *WM_window_open(bContext *C, const rcti *rect)
 {
 	wmWindow *win = wm_window_new(C);
 	

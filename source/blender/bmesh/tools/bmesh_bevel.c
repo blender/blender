@@ -26,6 +26,8 @@
 
 /** \file blender/bmesh/tools/bmesh_bevel.c
  *  \ingroup bmesh
+ *
+ * Main functions for beveling a BMesh (used by the tool and modifier)
  */
 
 #include "MEM_guardedalloc.h"

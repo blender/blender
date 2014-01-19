@@ -26,6 +26,10 @@
 
 /** \file blender/blenfont/intern/blf_font.c
  *  \ingroup blf
+ *
+ * Deals with drawing text to OpenGL or bitmap buffers.
+ *
+ * Also low level functions for managing \a FontBLF.
  */
 
 

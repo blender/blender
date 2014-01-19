@@ -27,8 +27,10 @@
 
 /** \file blender/gpu/intern/gpu_buffers.c
  *  \ingroup gpu
+ *
+ * Mesh drawing using OpenGL VBO (Vertex Buffer Objects),
+ * with fall-back to vertex arrays.
  */
-
 
 #include <limits.h>
 #include <stddef.h>

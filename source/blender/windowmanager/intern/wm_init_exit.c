@@ -26,6 +26,8 @@
 
 /** \file blender/windowmanager/intern/wm_init_exit.c
  *  \ingroup wm
+ *
+ * Manage initializing resources and correctly shutting down.
  */
 
 #include <stdlib.h>

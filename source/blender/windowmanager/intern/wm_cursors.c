@@ -27,8 +27,9 @@
 
 /** \file blender/windowmanager/intern/wm_cursors.c
  *  \ingroup wm
+ *
+ * Cursor pixmap and cursor utility functions to change the cursor.
  */
-
 
 #include <stdio.h>
 #include <string.h>

@@ -26,8 +26,9 @@
 
 /** \file blender/windowmanager/intern/wm_gesture.c
  *  \ingroup wm
+ *
+ * Gestures (cursor motions) creating, evaluating and drawing, shared between operators.
  */
-
 
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
@@ -38,7 +39,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_scanfill.h"   /* lasso tessellation */
 #include "BLI_utildefines.h"
 #include "BLI_lasso.h"
 

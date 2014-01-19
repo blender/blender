@@ -27,6 +27,8 @@
 
 /** \file blender/gpu/intern/gpu_material.c
  *  \ingroup gpu
+ *
+ * Manages materials, lights and textures.
  */
 
 

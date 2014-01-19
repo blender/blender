@@ -26,8 +26,9 @@
 
 /** \file blender/windowmanager/intern/wm_dragdrop.c
  *  \ingroup wm
+ *
+ * Our own drag-and-drop, drag state and drop boxes.
  */
-
 
 #include <string.h>
 

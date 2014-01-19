@@ -26,6 +26,8 @@
 
 /** \file blender/blenfont/intern/blf_glyph.c
  *  \ingroup blf
+ *
+ * Glyph rendering, texturing and caching. Wraps Freetype and OpenGL functions.
  */
 
 

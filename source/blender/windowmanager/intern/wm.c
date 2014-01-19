@@ -26,6 +26,10 @@
 
 /** \file blender/windowmanager/intern/wm.c
  *  \ingroup wm
+ *
+ * Internal functions for managing UI registrable types (operator, UI and menu types)
+ *
+ * Also Blenders main event loop (WM_main)
  */
 
 #include <string.h>

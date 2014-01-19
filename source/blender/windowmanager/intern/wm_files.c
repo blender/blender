@@ -25,6 +25,8 @@
 
 /** \file blender/windowmanager/intern/wm_files.c
  *  \ingroup wm
+ *
+ * User level access for blend file read/write, file-history and userprefs.
  */
 
 
@@ -62,7 +64,6 @@
 #include "BLF_translation.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_ipo_types.h" // XXX old animation system
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -1143,7 +1144,4 @@ void wm_autosave_read(bContext *C, ReportList *reports)
 	wm_autosave_location(filename);
 	WM_file_read(C, filename, reports);
 }
-
-
-
 

@@ -26,6 +26,10 @@
 
 /** \file blender/blenfont/intern/blf.c
  *  \ingroup blf
+ *
+ * Main BlenFont (BLF) API, public functions for font handling.
+ *
+ * Wraps OpenGL and FreeType.
  */
 
 #include <stdio.h>

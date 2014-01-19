@@ -27,9 +27,8 @@
 
 /** \file blender/gpu/intern/gpu_simple_shader.c
  *  \ingroup gpu
- */
-
-/* GLSL shaders to replace fixed function OpenGL materials and lighting. These
+ *
+ * GLSL shaders to replace fixed function OpenGL materials and lighting. These
  * are deprecated in newer OpenGL versions and missing in OpenGL ES 2.0. Also,
  * two sided lighting is no longer natively supported on NVidia cards which
  * results in slow software fallback.

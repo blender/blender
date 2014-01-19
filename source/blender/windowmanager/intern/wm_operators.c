@@ -26,6 +26,9 @@
 
 /** \file blender/windowmanager/intern/wm_operators.c
  *  \ingroup wm
+ *
+ * Functions for dealing with wmOperator, adding, removing, calling
+ * as well as some generic operators and shared operator properties.
  */
 
 

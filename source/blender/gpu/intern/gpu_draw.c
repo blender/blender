@@ -27,8 +27,14 @@
 
 /** \file blender/gpu/intern/gpu_draw.c
  *  \ingroup gpu
+ *
+ * Utility functions for dealing with OpenGL texture & material context,
+ * mipmap generation and light objects.
+ *
+ * These are some obscure rendering functions shared between the
+ * game engine and the blender, in this module to avoid duplication
+ * and abstract them away from the rest a bit.
  */
-
 
 #include <string.h>
 
@@ -73,10 +79,6 @@
 #include "smoke_API.h"
 
 extern Material defmaterial; /* from material.c */
-
-/* These are some obscure rendering functions shared between the
- * game engine and the blender, in this module to avoid duplicaten
- * and abstract them away from the rest a bit */
 
 /* Text Rendering */
 
