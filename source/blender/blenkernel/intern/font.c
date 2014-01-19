@@ -966,8 +966,8 @@ makebreak:
 				}
 				
 			}
-			cucu->flag = oldflag;
 		}
+		cucu->flag = oldflag;
 	}
 
 	if (selboxes) {
