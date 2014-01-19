@@ -38,6 +38,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 
 #include "RNA_access.h"
@@ -45,7 +47,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
 
 #include "ED_screen.h"
 
@@ -663,6 +664,10 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 /* cleanup temp customdata  */
 static void view_zoomstep_exit(wmOperator *op)
 {
+	/* Fonts are stored at each DPI level, without this we can easy load 100's of fonts.
+	 * Not an issue with embedded font, but can use over 500Mo with i18n ones! See T38244. */
+	BLF_cache_clear();
+
 	if (op->customdata) {
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
@@ -894,6 +899,10 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 /* cleanup temp customdata  */
 static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 {
+	/* Fonts are stored at each DPI level, without this we can easy load 100's of fonts.
+	 * Not an issue with embedded font, but can use over 500Mo with i18n ones! See T38244. */
+	BLF_cache_clear();
+
 	if (op->customdata) {
 		v2dViewZoomData *vzd = op->customdata;
 		
