@@ -788,7 +788,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	/* due to idiosyncracy in ray_trace_shadow_tra() */
 	if (is.hit.ob == shi->obi) {
 		copy_v3_v3(shi->co, hitco);
-		last_is->dist -= is.dist;
+		last_is->dist += is.dist;
 		shi->vlr = (VlakRen *)is.hit.face;
 	}
 
