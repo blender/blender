@@ -641,7 +641,7 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 
 static int brush_usesMaterial(DynamicPaintBrushSettings *brush, Scene *scene)
 {
-	return ((brush->flags & MOD_DPAINT_USE_MATERIAL) && (!strcmp(scene->r.engine, "BLENDER_RENDER")));
+	return ((brush->flags & MOD_DPAINT_USE_MATERIAL) && (!BKE_scene_use_new_shading_nodes(scene)));
 }
 
 /* check whether two bounds intersect */
