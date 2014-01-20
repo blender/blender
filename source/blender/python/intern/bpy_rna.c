@@ -6653,6 +6653,11 @@ PyObject *BPY_rna_types(void)
 			return NULL;
 	}
 
+	/* static members for the base class */
+	/* add __name__ since help() expects its */
+	PyDict_SetItem(pyrna_basetype_Type.tp_dict, bpy_intern_str___name__, bpy_intern_str_bpy_types);
+
+
 	self = (BPy_BaseTypeRNA *)PyObject_NEW(BPy_BaseTypeRNA, &pyrna_basetype_Type);
 
 	/* avoid doing this lookup for every getattr */
