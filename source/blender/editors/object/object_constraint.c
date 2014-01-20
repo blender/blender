@@ -1716,7 +1716,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	}
 	else
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob);
