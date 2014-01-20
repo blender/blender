@@ -739,7 +739,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	View3D *v3d = use_viewport ? CTX_wm_view3d(C) : NULL;
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
-	Object *active_object = CTX_data_active_object(C);
 	ScrArea *sa;
 	
 	/* only one render job at a time */

@@ -1086,8 +1086,6 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	wmEventHandler *handler;
 	char filepath[FILE_MAX];
 	
-	Scene *scene = CTX_data_scene(C);
-
 	WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
 	/* if a modal operator is running, don't autosave, but try again in 10 seconds */
@@ -1100,12 +1098,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 		}
 	}
 
-	if (scene) {
-		Object *ob = OBACT;
-
-		if (ob && ob->mode & OB_MODE_SCULPT)
-			multires_force_update(ob);
-	}
+	ED_editors_flush_edits(C, false);
 
 	wm_autosave_location(filepath);
 

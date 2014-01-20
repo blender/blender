@@ -143,7 +143,7 @@ void ED_editors_exit(bContext *C)
 
 /* flush any temp data from object editing to DNA before writing files,
  * rendering, copying, etc. */
-void ED_editors_flush_edits(bContext *C, bool for_render)
+void ED_editors_flush_edits(const bContext *C, bool for_render)
 {
     Object *obact = CTX_data_active_object(C);
     Object *obedit = CTX_data_edit_object(C);
