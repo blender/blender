@@ -606,9 +606,11 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
-//		|| !strcmp(of->oformat->name, "mp4")
-//	    || !strcmp(of->oformat->name, "mov")
-//	    || !strcmp(of->oformat->name, "3gp")
+#if 0
+	    || !strcmp(of->oformat->name, "mp4")
+	    || !strcmp(of->oformat->name, "mov")
+	    || !strcmp(of->oformat->name, "3gp")
+#endif
 	    )
 	{
 		PRINT("Using global header\n");

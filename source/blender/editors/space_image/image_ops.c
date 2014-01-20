@@ -972,7 +972,7 @@ static void image_sequence_get_frames(PointerRNA *ptr, ListBase *frames, char *p
 
 			/* still in the same sequence */
 			if ((STREQLEN(base_head, head, FILE_MAX)) &&
-				(STREQLEN(base_tail, tail, FILE_MAX)))
+			    (STREQLEN(base_tail, tail, FILE_MAX)))
 			{
 				BLI_addtail(frames, frame);
 			}

@@ -2984,12 +2984,17 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 			 * just use the boundary point of the other */
 			if (weld1->profile.super_r == PRO_LINE_R &&
 			    weld2->profile.super_r != PRO_LINE_R)
+			{
 				copy_v3_v3(co, vb);
+			}
 			else if (weld2->profile.super_r == PRO_LINE_R &&
-				 weld1->profile.super_r != PRO_LINE_R)
+			         weld1->profile.super_r != PRO_LINE_R)
+			{
 				copy_v3_v3(co, va);
-			else
+			}
+			else {
 				mid_v3_v3v3(co, va, vb);
+			}
 			copy_v3_v3(mesh_vert(vm, weld1->index, 0, k)->co, co);
 			create_mesh_bmvert(bm, vm, weld1->index, 0, k, bv->v);
 		}

@@ -2395,14 +2395,15 @@ void flushTransNodes(TransInfo *t)
 		node->locy = td2d->loc[1] / dpi_fac;
 #endif
 		/* update node hidden state with transform data TD_HIDDEN + transformInfo T_TOGGLE_HIDDEN */
- 		hidden_state = (td->flag & TD_HIDDEN) > 0;
+		hidden_state = (td->flag & TD_HIDDEN) != 0;
 		if (t->state != TRANS_CANCEL) {
 			hidden_state ^= (t->flag & T_TOGGLE_HIDDEN) > 0;
 		}
 
 		if (hidden_state) {
 			node->flag |= NODE_HIDDEN;
-		} else {
+		}
+		else {
 			node->flag &= ~NODE_HIDDEN;
 		}
 	}
@@ -5999,7 +6000,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
 	td->ext = NULL; td->val = NULL;
 
 	td->flag |= TD_SELECTED;
-	if(node->flag & NODE_HIDDEN){
+	if (node->flag & NODE_HIDDEN) {
 		td->flag |= TD_HIDDEN;
 	}
 	td->dist = 0.0;

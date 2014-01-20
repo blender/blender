@@ -655,7 +655,8 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				nodeClearActiveID(ntree, ID_TE);
 			
 			if (ELEM4(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
-				      SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP)) {
+			          SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP))
+			{
 				bNode *tnode;
 				
 				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
