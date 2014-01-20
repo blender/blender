@@ -111,6 +111,7 @@
 #include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "GPU_draw.h"
 
@@ -398,6 +399,8 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
 
+	UI_view2d_zoom_cache_reset();
+
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesn't exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
@@ -543,6 +546,8 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	BLI_assert((from_memory && custom_file) == 0);
 
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+
+	UI_view2d_zoom_cache_reset();
 
 	G.relbase_valid = 0;
 	if (!from_memory) {
