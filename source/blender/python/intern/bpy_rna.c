@@ -6234,7 +6234,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 		/* subclass equivalents
 		 * - class myClass(myBase):
 		 *     some = 'value' # or ...
-		 * - myClass = type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
+		 * - myClass = type(name='myClass', bases=(myBase,), dict={'__module__': 'bpy.types', '__slots__': ()})
 		 */
 
 		/* Assume RNA_struct_py_type_get(srna) was already checked */
@@ -6257,8 +6257,39 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 		}
 
 		/* always use O not N when calling, N causes refcount errors */
+#if 0
 		newclass = PyObject_CallFunction(metaclass, (char *)"s(O) {sss()}",
 		                                 idname, py_base, "__module__", "bpy.types", "__slots__");
+#else
+		{
+			/* longhand of the call above */
+			PyObject *args, *item, *value;
+			int ok;
+
+			args = PyTuple_New(3);
+
+			/* arg[0] (name=...) */
+			PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(idname));
+
+
+			/* arg[1] (bases=...) */
+			PyTuple_SET_ITEM(args, 1, item = PyTuple_New(1));
+			PyTuple_SET_ITEM(item, 0, py_base);
+
+
+			/* arg[2] (dict=...) */
+			PyTuple_SET_ITEM(args, 2, item = PyDict_New());
+			ok = PyDict_SetItem(item, bpy_intern_str___module__, bpy_intern_str_bpy_types);
+			BLI_assert(ok != -1);
+			ok = PyDict_SetItem(item, bpy_intern_str___slots__, value = PyTuple_New(0)); Py_DECREF(value);
+			BLI_assert(ok != -1);
+
+			newclass = PyObject_CallObject(metaclass, args);
+			Py_DECREF(args);
+
+			(void)ok;
+		}
+#endif
 
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 
