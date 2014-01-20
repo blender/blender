@@ -1590,11 +1590,14 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 }
 
 /** \note caller needs to manage node->id user */
-static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool use_api_free_cb)
+static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdata, bool use_api_free_cb)
 {
 	bNodeSocket *sock, *nextsock;
-	char propname_esc[MAX_IDPROP_NAME * 2];
-	char prefix[MAX_IDPROP_NAME * 2];
+	
+	/* don't remove node animdata if the tree is localized,
+	 * Action is shared with the original tree (T38221)
+	 */
+	remove_animdata &= ntree && !(ntree->flag & NTREE_IS_LOCALIZED);
 	
 	/* extra free callback */
 	if (use_api_free_cb && node->typeinfo->freefunc_api) {
@@ -1614,10 +1617,15 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool use_api_free_c
 		
 		BLI_remlink(&ntree->nodes, node);
 		
-		BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
-		BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
+		if (remove_animdata) {
+			char propname_esc[MAX_IDPROP_NAME * 2];
+			char prefix[MAX_IDPROP_NAME * 2];
 
-		BKE_animdata_fix_paths_remove((ID *)ntree, prefix);
+			BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
+			BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
+
+			BKE_animdata_fix_paths_remove((ID *)ntree, prefix);
+		}
 
 		if (ntree->typeinfo->free_node_cache)
 			ntree->typeinfo->free_node_cache(ntree, node);
@@ -1658,7 +1666,7 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool use_api_free_c
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	node_free_node_ex(ntree, node, true);
+	node_free_node_ex(ntree, node, true, true);
 }
 
 static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock)
@@ -1748,7 +1756,7 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 		(void)do_id_user;
 #endif
 
-		node_free_node_ex(ntree, node, false);
+		node_free_node_ex(ntree, node, false, false);
 	}
 
 	/* free interface sockets */
@@ -2519,7 +2527,7 @@ void BKE_node_clipboard_clear(void)
 	
 	for (node = node_clipboard.nodes.first; node; node = node_next) {
 		node_next = node->next;
-		node_free_node_ex(NULL, node, false);
+		node_free_node_ex(NULL, node, false, false);
 	}
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
 
