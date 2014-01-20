@@ -2620,7 +2620,11 @@ int txt_replace_char(Text *text, unsigned int add)
 	/* Should probably create a new op for this */
 	if (!undoing) {
 		txt_undo_add_charop(text, UNDO_INSERT_1, add);
+		text->curc -= add_size;
+		txt_pop_sel(text);
 		txt_undo_add_charop(text, UNDO_DEL_1, del);
+		text->curc += add_size;
+		txt_pop_sel(text);
 	}
 	return 1;
 }
