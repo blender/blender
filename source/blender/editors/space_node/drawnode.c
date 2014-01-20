@@ -659,6 +659,8 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		Scene *scene = CTX_data_scene(C);
 		ImageUser *iuser = iuserptr->data;
+		Image *ima = imaptr->data;
+
 		char numstr[32];
 		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);
 		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
@@ -773,6 +775,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
 	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
+	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
@@ -798,6 +801,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
 	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
 	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
+	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
@@ -1103,13 +1107,13 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	bNode *node = ptr->data;
 	PointerRNA imaptr, iuserptr;
 	
+	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
+	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
-	
 	if (!node->id) return;
 	
 	imaptr = RNA_pointer_get(ptr, "image");
-	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
-	
+
 	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
 }
 
@@ -1119,6 +1123,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
 	PointerRNA iuserptr;
 
 	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
+	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
 }
 
