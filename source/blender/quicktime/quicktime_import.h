@@ -48,7 +48,10 @@
 #  endif /* __FIXMATH__ */
 #endif /* _WIN32 _ */
 
-char *get_valid_qtname(const char *name);
+/* init/exit */
+
+void quicktime_init(void);
+void quicktime_exit(void);
 
 /* quicktime movie import functions */
 
@@ -56,10 +59,5 @@ int		anim_is_quicktime(const char *name);
 int		startquicktime(struct anim *anim);
 void	free_anim_quicktime(struct anim *anim);
 ImBuf  *qtime_fetchibuf(struct anim *anim, int position);
-
-/* quicktime image import functions */
-
-int		imb_is_a_quicktime(char *name);
-ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags);
 
 #endif  /* __QUICKTIME_IMPORT_H__ */
