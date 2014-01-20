@@ -838,13 +838,17 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 
 	ds = rna_find_def_struct(srna);
 
-	if (!DNA_struct_find_nr(DefRNA.sdna, structname)) {
+	/* there are far too many structs which initialize without valid DNA struct names,
+	 * this can't be checked without adding an option to disable (tested this and it means changes all over - Campbell) */
+#if 0
+	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
 			fprintf(stderr, "%s: %s not found.\n", __func__, structname);
 			DefRNA.error = 1;
 		}
 		return;
 	}
+#endif
 
 	ds->dnaname = structname;
 }
@@ -865,7 +869,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
 		return;
 	}
 
-	if (!DNA_struct_find_nr(DefRNA.sdna, structname)) {
+	if (DNA_struct_find_nr(DefRNA.sdna, structname) == -1) {
 		if (!DefRNA.silent) {
 			fprintf(stderr, "%s: %s not found.\n", __func__, structname);
 			DefRNA.error = 1;

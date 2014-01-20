@@ -1278,7 +1278,7 @@ void *DNA_struct_reconstruct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int 
 	curSDNAnr = DNA_struct_find_nr(newsdna, type);
 
 	/* init data and alloc */
-	if (curSDNAnr >= 0) {
+	if (curSDNAnr != -1) {
 		spc = newsdna->structs[curSDNAnr];
 		curlen = newsdna->typelens[spc[0]];
 	}
@@ -1308,6 +1308,7 @@ int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const ch
 	const int SDNAnr = DNA_struct_find_nr(sdna, stype);
 	const short * const spo = sdna->structs[SDNAnr];
 	char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
+	BLI_assert(SDNAnr != -1);
 	return (int)((intptr_t)cp);
 }
 
@@ -1316,7 +1317,7 @@ bool DNA_struct_elem_find(SDNA *sdna, const char *stype, const char *vartype, co
 	
 	const int SDNAnr = DNA_struct_find_nr(sdna, stype);
 	
-	if (SDNAnr >= 0) {
+	if (SDNAnr != -1) {
 		const short * const spo = sdna->structs[SDNAnr];
 		char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
 		
