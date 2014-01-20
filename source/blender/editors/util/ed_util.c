@@ -51,7 +51,9 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_packedFile.h"
+#include "BKE_paint.h"
 
 #include "ED_armature.h"
 #include "ED_image.h"
@@ -139,6 +141,32 @@ void ED_editors_exit(bContext *C)
 	mesh_mirrtopo_table(NULL, 'e');
 }
 
+/* flush any temp data from object editing to DNA before writing files,
+ * rendering, copying, etc. */
+void ED_editors_flush_edits(bContext *C, bool for_render)
+{
+    Object *obact = CTX_data_active_object(C);
+    Object *obedit = CTX_data_edit_object(C);
+
+    /* get editmode results */
+	if (obedit)
+	    ED_object_editmode_load(CTX_data_edit_object(C));
+
+    if (obact && (obact->mode & OB_MODE_SCULPT)) {
+    	/* flush multires changes (for sculpt) */
+        multires_force_update(obact);
+
+		if (for_render) {
+			/* flush changes from dynamic topology sculpt */
+			sculptsession_bm_to_me_for_render(obact);
+		}
+		else {
+			/* Set reorder=false so that saving the file doesn't reorder
+			 * the BMesh's elements */
+			sculptsession_bm_to_me(obact, FALSE);
+		}
+    }
+}
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
 

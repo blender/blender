@@ -70,6 +70,7 @@
 #include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "RE_pipeline.h"
@@ -772,20 +773,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* handle UI stuff */
 	WM_cursor_wait(1);
 
-	/* flush multires changes (for sculpt) */
-	multires_force_render_update(active_object);
-
-	/* flush changes from dynamic topology sculpt */
-	sculptsession_bm_to_me_for_render(active_object);
+	/* flush sculpt and editmode changes */
+	ED_editors_flush_edits(C, true);
 
 	/* cleanup sequencer caches before starting user triggered render.
 	 * otherwise, invalidated cache entries can make their way into
 	 * the output rendering. We can't put that into RE_BlenderFrame,
 	 * since sequence rendering can call that recursively... (peter) */
 	BKE_sequencer_cache_cleanup();
-
-	/* get editmode results */
-	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render

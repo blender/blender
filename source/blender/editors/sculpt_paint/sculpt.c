@@ -104,19 +104,6 @@
 #include <omp.h>
 #endif
 
-void ED_sculpt_force_update(bContext *C)
-{
-	Object *ob = CTX_data_active_object(C);
-
-	if (ob && (ob->mode & OB_MODE_SCULPT)) {
-		multires_force_update(ob);
-
-		/* Set reorder=false so that saving the file doesn't reorder
-		 * the BMesh's elements */
-		sculptsession_bm_to_me(ob, FALSE);
-	}
-}
-
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 {
 	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {

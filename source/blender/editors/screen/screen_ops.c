@@ -3649,6 +3649,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 			ED_object_single_users(bmain, newscene, false, true);
 		}
 		else if (type == SCE_COPY_FULL) {
+			ED_editors_flush_edits(C, false);
 			ED_object_single_users(bmain, newscene, true, true);
 		}
 	}
