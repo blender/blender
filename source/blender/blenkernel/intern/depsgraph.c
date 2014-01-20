@@ -690,6 +690,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if (ob->type == OB_FONT) {
 				if (cu->textoncurve) {
 					node2 = dag_get_node(dag, cu->textoncurve);
+					/* Text on curve requires path to be evaluated for the target curve. */
+					node2->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Texture On Curve");
 				}
 			}

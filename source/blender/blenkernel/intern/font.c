@@ -865,11 +865,6 @@ makebreak:
 	/* TEXT ON CURVE */
 	/* Note: Only OB_CURVE objects could have a path  */
 	if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
-		Curve *cucu = cu->textoncurve->data;
-		int oldflag = cucu->flag;
-		
-		cucu->flag |= (CU_PATH + CU_FOLLOW);
-
 		BLI_assert(cu->textoncurve->curve_cache != NULL);
 		if (cu->textoncurve->curve_cache->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
@@ -967,7 +962,6 @@ makebreak:
 				
 			}
 		}
-		cucu->flag = oldflag;
 	}
 
 	if (selboxes) {
