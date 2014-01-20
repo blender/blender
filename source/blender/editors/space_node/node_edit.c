@@ -654,11 +654,12 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 			if (node->id && ELEM3(GS(node->id->name), ID_MA, ID_LA, ID_WO))
 				nodeClearActiveID(ntree, ID_TE);
 			
-			if (node->type == SH_NODE_OUTPUT) {
+			if (ELEM4(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
+				      SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP)) {
 				bNode *tnode;
 				
 				for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
-					if (tnode->type == SH_NODE_OUTPUT)
+					if (tnode->type == node->type)
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;

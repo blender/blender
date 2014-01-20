@@ -40,7 +40,7 @@ DefNode( Node,           NODE_GROUP_INPUT,        def_group_input,        "GROUP
 DefNode( Node,           NODE_GROUP_OUTPUT,       def_group_output,       "GROUP_OUTPUT",   GroupOutput,      "Group Output",      ""              )
 DefNode( Node,           NODE_REROUTE,            0,                      "REROUTE",        Reroute,          "Reroute",           ""              )
 
-DefNode( ShaderNode,     SH_NODE_OUTPUT,          0,                      "OUTPUT",         Output,           "Output",            ""              )
+DefNode( ShaderNode,     SH_NODE_OUTPUT,          def_sh_output,          "OUTPUT",         Output,           "Output",            ""              )
 DefNode( ShaderNode,     SH_NODE_MATERIAL,        def_sh_material,        "MATERIAL",       Material,         "Material",          ""              )
 DefNode( ShaderNode,     SH_NODE_RGB,             0,                      "RGB",            RGB,              "RGB",               ""              )
 DefNode( ShaderNode,     SH_NODE_VALUE,           0,                      "VALUE",          Value,            "Value",             ""              )
@@ -66,9 +66,9 @@ DefNode( ShaderNode,     SH_NODE_SEPRGB,          0,                      "SEPRG
 DefNode( ShaderNode,     SH_NODE_COMBRGB,         0,                      "COMBRGB",        CombineRGB,       "Combine RGB",       ""              )
 DefNode( ShaderNode,     SH_NODE_HUE_SAT,         0,                      "HUE_SAT",        HueSaturation,    "Hue/Saturation",    ""              )
 
-DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    0,                      "OUTPUT_MATERIAL",    OutputMaterial,   "Material Output",   ""       )
-DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,        0,                      "OUTPUT_LAMP",        OutputLamp,       "Lamp Output",       ""       )
-DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,       0,                      "OUTPUT_WORLD",       OutputWorld,      "World Output",      ""       )
+DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    def_sh_output,          "OUTPUT_MATERIAL",    OutputMaterial,   "Material Output",   ""       )
+DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,        def_sh_output,          "OUTPUT_LAMP",        OutputLamp,       "Lamp Output",       ""       )
+DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,       def_sh_output,          "OUTPUT_WORLD",       OutputWorld,      "World Output",      ""       )
 DefNode( ShaderNode,     SH_NODE_FRESNEL,            0,                      "FRESNEL",            Fresnel,          "Fresnel",           ""       )
 DefNode( ShaderNode,     SH_NODE_LAYER_WEIGHT,       0,                      "LAYER_WEIGHT",       LayerWeight,      "Layer Weight",       ""       )
 DefNode( ShaderNode,     SH_NODE_MIX_SHADER,         0,                      "MIX_SHADER",         MixShader,        "Mix Shader",        ""       )

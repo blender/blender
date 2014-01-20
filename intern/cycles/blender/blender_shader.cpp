@@ -172,6 +172,13 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 		mapping->max = get_float3(b_mapping.max());
 }
 
+static bool is_output_node(BL::Node b_node)
+{
+	return (b_node.is_a(&RNA_ShaderNodeOutputMaterial)
+		    || b_node.is_a(&RNA_ShaderNodeOutputWorld)
+		    || b_node.is_a(&RNA_ShaderNodeOutputLamp));
+}
+
 static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
@@ -279,12 +286,6 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		get_tex_mapping(&mapping->tex_mapping, b_mapping_node);
 		
 		node = mapping;
-	}
-	/* new nodes */
-	else if (b_node.is_a(&RNA_ShaderNodeOutputMaterial)
-	      || b_node.is_a(&RNA_ShaderNodeOutputWorld)
-	      || b_node.is_a(&RNA_ShaderNodeOutputLamp)) {
-		node = graph->output();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeFresnel)) {
 		node = new FresnelNode();
@@ -667,7 +668,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		node = tangent;
 	}
 
-	if(node && node != graph->output())
+	if(node)
 		graph->add(node);
 
 	return node;
@@ -754,6 +755,26 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	BL::Node::inputs_iterator b_input;
 	BL::Node::outputs_iterator b_output;
 
+	/* find the node to use for output if there are multiple */
+	bool found_active_output = false;
+	BL::ShaderNode output_node(PointerRNA_NULL);
+
+	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
+		if (is_output_node(*b_node)) {
+			BL::ShaderNodeOutputMaterial b_output_node(*b_node);
+
+			if(b_output_node.is_active_output()) {
+				output_node = b_output_node;
+				found_active_output = true;
+				break;
+			}
+			else if(!output_node.ptr.data && !found_active_output) {
+				output_node = b_output_node;
+			}
+		}
+	}
+
+	/* add nodes */
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
 		if (b_node->mute() || b_node->is_a(&RNA_NodeReroute)) {
 			/* replace muted node with internal links */
@@ -833,7 +854,16 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			}
 		}
 		else {
-			ShaderNode *node = add_node(scene, b_data, b_scene, graph, b_ntree, BL::ShaderNode(*b_node));
+			ShaderNode *node = NULL;
+
+			if (is_output_node(*b_node)) {
+				if (b_node->ptr.data == output_node.ptr.data) {
+					node = graph->output();
+				}
+			}
+			else {
+				node = add_node(scene, b_data, b_scene, graph, b_ntree, BL::ShaderNode(*b_node));
+			}
 			
 			if(node) {
 				/* map node sockets for linking */

@@ -3162,6 +3162,16 @@ static void def_texture(StructRNA *srna)
 
 /* -- Shader Nodes ---------------------------------------------------------- */
 
+static void def_sh_output(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "is_active_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
+	RNA_def_property_ui_text(prop, "Active Output", "True if this node is used as the active output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_sh_material(StructRNA *srna)
 {
 	PropertyRNA *prop;
