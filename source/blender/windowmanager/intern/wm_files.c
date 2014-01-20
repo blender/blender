@@ -865,6 +865,25 @@ bool write_crash_blend(void)
 	}
 }
 
+/**
+ * Flush any temp data from object editing to DNA before writing the blend file to disk.
+ */
+static void write_flush_editdata(bContext *C)
+{
+	Object *obedit;
+
+	obedit = CTX_data_edit_object(C);
+
+	if (obedit) {
+		ED_object_editmode_load(obedit);
+	}
+
+	ED_sculpt_force_update(C);
+}
+
+/**
+ * \see #wm_homefile_write_exec wraps #BLO_write_file in a similar way.
+ */
 int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *reports)
 {
 	Library *li;
@@ -916,12 +935,11 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 		packAll(G.main, reports);
 	}
 
-	ED_object_editmode_load(CTX_data_edit_object(C));
-	ED_sculpt_force_update(C);
-
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
 	
+	write_flush_editdata(C);
+
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	/* first time saving */
@@ -976,7 +994,9 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	return 0;
 }
 
-/* operator entry */
+/**
+ * \see #wm_file_write wraps #BLO_write_file in a similar way.
+ */
 int wm_homefile_write_exec(bContext *C, wmOperator *op)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -994,6 +1014,8 @@ int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);
 	
+	write_flush_editdata(C);
+
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN | G_FILE_HISTORY);
 
