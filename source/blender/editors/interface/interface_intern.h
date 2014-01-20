@@ -33,6 +33,7 @@
 #ifndef __INTERFACE_INTERN_H__
 #define __INTERFACE_INTERN_H__
 
+#include "BLI_compiler_attrs.h"
 #include "UI_resources.h"
 #include "RNA_types.h"
 
@@ -366,7 +367,7 @@ extern void ui_delete_linkline(uiLinkLine *line, uiBut *but);
 
 void ui_fontscale(short *points, float aspect);
 
-extern bool ui_block_is_menu(const uiBlock *block);
+extern bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_block_to_window_rctf(const struct ARegion *ar, uiBlock *block, rctf *rct_dst, const rctf *rct_src);
@@ -386,25 +387,25 @@ extern void ui_hsvcircle_pos_from_vals(struct uiBut *but, const rcti *rect, floa
 extern void ui_hsvcube_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp);
 bool ui_hsvcube_use_display_colorspace(struct uiBut *but);
 
-extern void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision);
-extern void ui_get_but_string(uiBut *but, char *str, const size_t maxlen);
-extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
-extern bool ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
-extern bool ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value);
+extern void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision) ATTR_NONNULL();
+extern void ui_get_but_string(uiBut *but, char *str, const size_t maxlen) ATTR_NONNULL();
+extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
+extern bool ui_set_but_string(struct bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
+extern bool ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value) ATTR_NONNULL();
 extern int  ui_get_but_string_max_length(uiBut *but);
 
 extern void ui_set_but_default(struct bContext *C, const bool all, const bool use_afterfunc);
 
 extern void ui_check_but(uiBut *but);
-extern bool ui_is_but_float(const uiBut *but);
-extern bool ui_is_but_bool(const uiBut *but);
-extern bool ui_is_but_unit(const uiBut *but);
-extern bool ui_is_but_rna_valid(uiBut *but);
-extern bool ui_is_but_utf8(const uiBut *but);
-extern bool ui_is_but_search_unlink_visible(const uiBut *but);
+extern bool ui_is_but_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_bool(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_rna_valid(uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_search_unlink_visible(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
-extern int  ui_is_but_push_ex(uiBut *but, double *value);
-extern int  ui_is_but_push(uiBut *but);
+extern int  ui_is_but_push_ex(uiBut *but, double *value) ATTR_WARN_UNUSED_RESULT;
+extern int  ui_is_but_push(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 
 extern void ui_bounds_block(uiBlock *block);
@@ -520,7 +521,7 @@ extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
-extern bool ui_button_is_active(struct ARegion *ar);
+extern bool ui_button_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 extern int ui_button_open_menu_direction(uiBut *but);
 extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 void ui_button_clipboard_free(void);
@@ -562,7 +563,7 @@ void ui_resources_free(void);
 
 /* interface_layout.c */
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
-int ui_but_can_align(uiBut *but);
+bool ui_but_can_align(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
 void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
 void ui_layout_list_set_labels_active(uiLayout *layout);
@@ -578,9 +579,9 @@ void ui_but_anim_copy_driver(struct bContext *C);
 void ui_but_anim_paste_driver(struct bContext *C);
 void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
-int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
-int ui_but_anim_expression_set(uiBut *but, const char *str);
-int ui_but_anim_expression_create(uiBut *but, const char *str);
+bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
+bool ui_but_anim_expression_set(uiBut *but, const char *str);
+bool ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 /* interface_eyedropper.c */

@@ -1362,7 +1362,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 		/* menu item - add some more padding so menus don't feel cramped. it must
 		 * be part of the button so that this area is still clickable */
-		if (but->block && ui_block_is_menu(but->block))
+		if (ui_block_is_menu(but->block))
 			rect->xmin += 0.3f * U.widget_unit;
 
 		widget_draw_icon(but, but->icon + but->iconadd, alpha, rect, show_menu_icon);

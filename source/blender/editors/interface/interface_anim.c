@@ -86,7 +86,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	}
 }
 
-int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
+bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
@@ -99,14 +99,14 @@ int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 
 		if (driver && driver->type == DRIVER_TYPE_PYTHON) {
 			BLI_strncpy(str, driver->expression, maxlen);
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-int ui_but_anim_expression_set(uiBut *but, const char *str)
+bool ui_but_anim_expression_set(uiBut *but, const char *str)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
@@ -121,15 +121,15 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
 			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION | ND_KEYFRAME, NULL);
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /* create new expression for button (i.e. a "scripted driver"), if it can be created... */
-int ui_but_anim_expression_create(uiBut *but, const char *str)
+bool ui_but_anim_expression_create(uiBut *but, const char *str)
 {
 	bContext *C = but->block->evil_C;
 	ID *id;
@@ -141,14 +141,14 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	if (ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
 		if (G.debug & G_DEBUG)
 			printf("ERROR: create expression failed - button has no RNA info attached\n");
-		return 0;
+		return false;
 	}
 	
 	if (RNA_property_array_check(but->rnaprop) != 0) {
 		if (but->rnaindex == -1) {
 			if (G.debug & G_DEBUG)
 				printf("ERROR: create expression failed - can't create expression for entire array\n");
-			return 0;
+			return false;
 		}
 	}
 	
@@ -158,7 +158,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
 		if (G.debug & G_DEBUG)
 			printf("ERROR: create expression failed - invalid id-datablock for adding drivers (%p)\n", id);
-		return 0;
+		return false;
 	}
 	
 	/* get path */

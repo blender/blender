@@ -1185,9 +1185,14 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 /* ************* EVENTS ************* */
 
+/**
+ * Check if the button is pushed, this is only meaningful for some button types.
+ *
+ * \return (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOHING)
+ */
 int ui_is_but_push_ex(uiBut *but, double *value)
 {
-	int is_push = false;  /* (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOHING) */
+	int is_push = false;
 
 	if (but->bit) {
 		const bool state = ELEM3(but->type, TOGN, ICONTOGN, OPTIONN) ? false : true;
@@ -1940,7 +1945,7 @@ bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				PointerRNA ptr, rptr;
 				PropertyRNA *prop;
 
-				if (str == NULL || str[0] == '\0') {
+				if (str[0] == '\0') {
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL);
 					return true;
 				}
@@ -2551,7 +2556,7 @@ void uiBlockEndAlign(uiBlock *block)
 	block->flag &= ~UI_BUT_ALIGN;  /* all 4 flags */
 }
 
-int ui_but_can_align(uiBut *but)
+bool ui_but_can_align(uiBut *but)
 {
 	return !ELEM5(but->type, LABEL, OPTION, OPTIONN, SEPR, SEPRLINE);
 }
