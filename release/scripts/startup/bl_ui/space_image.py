@@ -834,9 +834,6 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         brush = toolsettings.brush
 
         col = layout.column()
-        col.prop(toolsettings, "input_samples")
-
-        col = layout.column()
 
         col.label(text="Stroke Method:")
 
@@ -860,6 +857,18 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         col = layout.column()
         col.separator()
 
+        row = col.row(align=True)
+        if brush.use_relative_jitter:
+            row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
+            row.prop(brush, "jitter", slider=True)
+        else:
+            row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
+            row.prop(brush, "jitter_absolute")
+        row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+
+        col = layout.column()
+        col.separator()
+
         col.prop(brush, "use_smooth_stroke")
 
         sub = col.column()
@@ -869,14 +878,9 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
         col.separator()
 
-        row = col.row(align=True)
-        if brush.use_relative_jitter:
-            row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
-            row.prop(brush, "jitter", slider=True)
-        else:
-            row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
-            row.prop(brush, "jitter_absolute")
-        row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+        col.prop(toolsettings, "input_samples")
+
+        col.separator()
 
         col.prop(brush, "use_wrap")
 
