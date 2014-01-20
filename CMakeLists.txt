@@ -2255,10 +2255,16 @@ endif()
 #-----------------------------------------------------------------------------
 # Libraries
 
-add_subdirectory(source)
-add_subdirectory(intern)
-add_subdirectory(extern)
-
+if(WITH_BLENDER OR WITH_PLAYER)
+	add_subdirectory(source)
+	add_subdirectory(intern)
+	add_subdirectory(extern)
+elseif(WITH_CYCLES_STANDALONE)
+	add_subdirectory(intern/cycles)
+	if(WITH_CYCLES_STANDALONE_GUI)
+		add_subdirectory(extern/glew)
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Blender Application

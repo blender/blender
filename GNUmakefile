@@ -56,6 +56,10 @@ ifneq "$(findstring lite, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_lite
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake"
 endif
+ifneq "$(findstring cycles, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_cycles
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/cycles_standalone.cmake"
+endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_bpy
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake"
@@ -126,6 +130,7 @@ all:
 
 debug: all
 lite: all
+cycles: all
 headless: all
 bpy: all
 
@@ -144,6 +149,7 @@ help:
 	@echo "  * debug     - build a debug binary"
 	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
 	@echo "  * headless  - build without an interface (renderfarm or server automation)"
+	@echo "  * cycles    - build Cycles standalone only, without Blender"
 	@echo "  * bpy       - build as a python module which can be loaded from python directly"
 	@echo ""
 	@echo "  * config    - run cmake configuration tool to set build options"

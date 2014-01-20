@@ -1,6 +1,11 @@
 
-set(CYCLES_INSTALL_PATH "scripts/addons/cycles")
-set(WITH_CYCLES_BLENDER ON)
+# Standalone or with Blender
+if(NOT WITH_BLENDER AND WITH_CYCLES_STANDALONE)
+	set(CYCLES_INSTALL_PATH "")
+else()
+	set(WITH_CYCLES_BLENDER ON)
+	set(CYCLES_INSTALL_PATH "scripts/addons/cycles")
+endif()
 
 # External Libraries
 
@@ -100,4 +105,8 @@ add_subdirectory(kernel)
 add_subdirectory(render)
 add_subdirectory(subd)
 add_subdirectory(util)
+
+if(NOT WITH_BLENDER AND WITH_CYCLES_STANDALONE)
+	delayed_do_install(${CMAKE_BINARY_DIR}/bin)
+endif()
 
