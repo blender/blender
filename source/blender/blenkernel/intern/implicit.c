@@ -776,11 +776,10 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->z = create_lfvector(cloth->numverts);
 	
 	id->S[0].vcount = 0;
+	update_matrixS(verts, cloth->numverts, id->S);
 
 	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
-
-		update_matrixS(verts, cloth->numverts, id->S);
 		
 		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
 	}
