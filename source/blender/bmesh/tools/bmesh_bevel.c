@@ -882,6 +882,8 @@ static void set_profile_params(BevelParams *bp, BoundVert *bndv)
 				/* whole profile is collinear with edge: just interpolate */
 				do_linear_interp = true;
 			}
+			/* signal to weld that this is linear */
+			pro->super_r = PRO_LINE_R;
 		}
 		copy_v3_v3(pro->plane_co, co1);
 	}
@@ -902,7 +904,9 @@ static void move_profile_plane(BoundVert *bndv, EdgeHalf *e1, EdgeHalf *e2)
 {
 	float d1[3], d2[3], no[3], no2[3], dot;
 
-	/* only do this if e1, e2, and proj_dir are not coplanar */
+	/* only do this if projecting, and e1, e2, and proj_dir are not coplanar */
+	if (is_zero_v3(bndv->profile.proj_dir))
+		return;
 	sub_v3_v3v3(d1, e1->e->v1->co, e1->e->v2->co);
 	sub_v3_v3v3(d2, e2->e->v1->co, e2->e->v2->co);
 	cross_v3_v3v3(no, d1, d2);
@@ -921,16 +925,27 @@ static void move_profile_plane(BoundVert *bndv, EdgeHalf *e1, EdgeHalf *e2)
  * The original vertex should form a third point of the desired plane. */
 static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *bndv2)
 {
-	float d1[3], d2[3], no[3], no2[3], dot;
+	float d1[3], d2[3], no[3], no2[3], no3[3], dot1, dot2;
 
-	/* only do this if d1, d2, and proj_dir are not coplanar */
+	/* only do this if projecting, and d1, d2, and proj_dir are not coplanar */
+	if (is_zero_v3(bndv1->profile.proj_dir) || is_zero_v3(bndv2->profile.proj_dir))
+		return;
 	sub_v3_v3v3(d1, bv->v->co, bndv1->nv.co);
 	sub_v3_v3v3(d2, bv->v->co, bndv2->nv.co);
 	cross_v3_v3v3(no, d1, d2);
+	/* "no" is new normal projection plane, but don't move if
+	 * it is coplanar with one or the other of the projection dirs */
 	cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
-	if (normalize_v3(no) > BEVEL_EPSILON && normalize_v3(no2)) {
-		dot = fabsf(dot_v3v3(no, no2));
-		if (fabsf(dot - 1.0f) > BEVEL_EPSILON) {
+	cross_v3_v3v3(no3, d2, bndv2->profile.proj_dir);
+	if (normalize_v3(no) > BEVEL_EPSILON &&
+	    normalize_v3(no2) > BEVEL_EPSILON &&
+	    normalize_v3(no3) > BEVEL_EPSILON)
+	{
+		dot1 = fabsf(dot_v3v3(no, no2));
+		dot2 = fabsf(dot_v3v3(no, no3));
+		if (fabsf(dot1 - 1.0f) > BEVEL_EPSILON &&
+		    fabsf(dot2 - 1.0f) > BEVEL_EPSILON)
+		{
 			copy_v3_v3(bndv1->profile.plane_no, no);
 			copy_v3_v3(bndv2->profile.plane_no, no);
 		}
@@ -1126,9 +1141,14 @@ static void get_profile_point(const Profile *pro, float u, float r_co[3])
 		}
 	}
 	/* project co onto final profile plane */
-	add_v3_v3v3(co2, co, pro->proj_dir);
-	if (!isect_line_plane_v3(r_co, co, co2, pro->plane_co, pro->plane_no)) {
-		/* shouldn't happen */
+	if (!is_zero_v3(pro->proj_dir)) {
+		add_v3_v3v3(co2, co, pro->proj_dir);
+		if (!isect_line_plane_v3(r_co, co, co2, pro->plane_co, pro->plane_no)) {
+			/* shouldn't happen */
+			copy_v3_v3(r_co, co);
+		}
+	}
+	else {
 		copy_v3_v3(r_co, co);
 	}
 }
@@ -2960,7 +2980,16 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 		for (k = 1; k < ns; k++) {
 			va = mesh_vert(vm, weld1->index, 0, k)->co;
 			vb = mesh_vert(vm, weld2->index, 0, ns - k)->co;
-			mid_v3_v3v3(co, va, vb);
+			/* if one of the profiles is on a flat plane,
+			 * just use the boundary point of the other */
+			if (weld1->profile.super_r == PRO_LINE_R &&
+			    weld2->profile.super_r != PRO_LINE_R)
+				copy_v3_v3(co, vb);
+			else if (weld2->profile.super_r == PRO_LINE_R &&
+				 weld1->profile.super_r != PRO_LINE_R)
+				copy_v3_v3(co, va);
+			else
+				mid_v3_v3v3(co, va, vb);
 			copy_v3_v3(mesh_vert(vm, weld1->index, 0, k)->co, co);
 			create_mesh_bmvert(bm, vm, weld1->index, 0, k, bv->v);
 		}
