@@ -283,6 +283,10 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	xml_read_int(&integrator->transparent_max_bounce, node, "transparent_max_bounce");
 	xml_read_bool(&integrator->transparent_shadows, node, "transparent_shadows");
 	
+	/* Volume */
+	xml_read_float(&integrator->volume_step_size, node, "volume_step_size");
+	xml_read_int(&integrator->volume_max_steps, node, "volume_max_steps");
+	
 	/* Various Settings */
 	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
 	xml_read_float(&integrator->filter_glossy, node, "filter_glossy");
