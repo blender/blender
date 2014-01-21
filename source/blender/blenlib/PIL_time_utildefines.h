@@ -72,9 +72,8 @@
 		TIMEIT_END(id);                                                       \
 	} (void)0
 
-#define TIMEIT_BLOCK_INIT(id) \
-	double _timeit_var_##id = 0; \
-	(void) 0
+#define TIMEIT_BLOCK_INIT(id)                                                 \
+	double _timeit_var_##id = 0
 
 #define TIMEIT_BLOCK_START(id)                                                \
 	{                                                                         \
