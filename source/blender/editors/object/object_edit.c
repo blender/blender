@@ -1381,7 +1381,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (linked_data)
-		BKE_report(op->reports, RPT_WARNING, "Can't edit linked mesh or curve data.");
+		BKE_report(op->reports, RPT_WARNING, "Can't edit linked mesh or curve data");
 
 	return (done) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

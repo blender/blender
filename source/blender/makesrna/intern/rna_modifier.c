@@ -3796,7 +3796,7 @@ static void rna_def_modifier_wireframe(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "crease_weight");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 1);
-	RNA_def_property_ui_text(prop, "Weigth", "Crease weight (if active)");
+	RNA_def_property_ui_text(prop, "Weight", "Crease weight (if active)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "material_offset", PROP_INT, PROP_NONE);
