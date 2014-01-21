@@ -369,9 +369,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		}
 		else if(string_iequals(node.name(), "sky_texture")) {
 			SkyTextureNode *sky = new SkyTextureNode();
-
+			
+			xml_read_enum(&sky->type, SkyTextureNode::type_enum, node, "type");
 			xml_read_float3(&sky->sun_direction, node, "sun_direction");
 			xml_read_float(&sky->turbidity, node, "turbidity");
+			xml_read_float(&sky->ground_albedo, node, "ground_albedo");
 			
 			snode = sky;
 		}
@@ -434,6 +436,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "velvet_bsdf")) {
 			snode = new VelvetBsdfNode();
 		}
+		else if(string_iequals(node.name(), "toon_bsdf")) {
+			ToonBsdfNode *toon = new ToonBsdfNode();
+			xml_read_enum(&toon->component, ToonBsdfNode::component_enum, node, "component");
+			snode = toon;
+		}
 		else if(string_iequals(node.name(), "glossy_bsdf")) {
 			GlossyBsdfNode *glossy = new GlossyBsdfNode();
 			xml_read_enum(&glossy->distribution, GlossyBsdfNode::distribution_enum, node, "distribution");
@@ -444,10 +451,18 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_enum(&diel->distribution, GlassBsdfNode::distribution_enum, node, "distribution");
 			snode = diel;
 		}
+		else if(string_iequals(node.name(), "refraction_bsdf")) {
+			RefractionBsdfNode *diel = new RefractionBsdfNode();
+			xml_read_enum(&diel->distribution, RefractionBsdfNode::distribution_enum, node, "distribution");
+			snode = diel;
+		}
 		else if(string_iequals(node.name(), "emission")) {
 			EmissionNode *emission = new EmissionNode();
 			xml_read_bool(&emission->total_power, node, "total_power");
 			snode = emission;
+		}
+		else if(string_iequals(node.name(), "ambient_occlusion")) {
+			snode = new AmbientOcclusionNode();
 		}
 		else if(string_iequals(node.name(), "background")) {
 			snode = new BackgroundNode();
@@ -458,6 +473,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "scatter_volume")) {
 			snode = new ScatterVolumeNode();
 		}
+		else if(string_iequals(node.name(), "subsurface_scattering")) {
+			SubsurfaceScatteringNode *sss = new SubsurfaceScatteringNode();
+			//xml_read_enum(&sss->falloff, SubsurfaceScatteringNode::falloff_enum, node, "falloff");
+			snode = sss;
+		}
 		else if(string_iequals(node.name(), "geometry")) {
 			snode = new GeometryNode();
 		}
@@ -466,6 +486,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		}
 		else if(string_iequals(node.name(), "lightPath")) {
 			snode = new LightPathNode();
+		}
+		else if(string_iequals(node.name(), "lightFalloff")) {
+			snode = new LightFalloffNode();
 		}
 		else if(string_iequals(node.name(), "value")) {
 			ValueNode *value = new ValueNode();
@@ -504,8 +527,20 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "separate_rgb")) {
 			snode = new SeparateRGBNode();
 		}
+		else if(string_iequals(node.name(), "combine_hsv")) {
+			snode = new CombineHSVNode();
+		}
+		else if(string_iequals(node.name(), "separate_hsv")) {
+			snode = new SeparateHSVNode();
+		}
 		else if(string_iequals(node.name(), "hsv")) {
 			snode = new HSVNode();
+		}
+		else if(string_iequals(node.name(), "wavelength")) {
+			snode = new WavelengthNode();
+		}
+		else if(string_iequals(node.name(), "blackbody")) {
+			snode = new BlackbodyNode();
 		}
 		else if(string_iequals(node.name(), "attribute")) {
 			AttributeNode *attr = new AttributeNode();
@@ -517,6 +552,14 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		}
 		else if(string_iequals(node.name(), "fresnel")) {
 			snode = new FresnelNode();
+		}
+		else if(string_iequals(node.name(), "layer_weight")) {
+			snode = new LayerWeightNode();
+		}
+		else if(string_iequals(node.name(), "wireframe")) {
+			WireframeNode *wire = new WireframeNode;
+			xml_read_bool(&wire->use_pixel_size, node, "use_pixel_size");
+			snode = wire;
 		}
 		else if(string_iequals(node.name(), "math")) {
 			MathNode *math = new MathNode();
