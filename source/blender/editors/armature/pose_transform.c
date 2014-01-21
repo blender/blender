@@ -213,7 +213,11 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 		 * new raw-transform components, don't recalc the poses yet, otherwise IK result will 
 		 * change, thus changing the result we may be trying to record.
 		 */
-		copy_m4_m4(delta_mat, pchan->chan_mat);
+		/* XXX For some reason, we can't use pchan->chan_mat here, gives odd rotation/offset (see T38251).
+		 *     Using pchan->pose_mat and bringing it back in bone space seems to work as expected!
+		 */
+		BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, delta_mat);
+		
 		BKE_pchan_apply_mat4(pchan, delta_mat, TRUE);
 	}
 	CTX_DATA_END;
