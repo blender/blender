@@ -82,6 +82,7 @@ struct Material;
 struct MenuType;
 struct Mesh;
 struct MetaBall;
+struct Lattice;
 struct ModifierData;
 struct MovieClip;
 struct MultiresModifierData;
