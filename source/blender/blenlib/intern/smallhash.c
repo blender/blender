@@ -27,6 +27,11 @@
 
 /** \file blender/blenlib/intern/smallhash.c
  *  \ingroup bli
+ *
+ * A light stack-friendly hash library, it uses stack space for smallish hash tables
+ * but falls back to heap memory once the stack limits reached.
+ *
+ * based on a doubling non-chaining approach
  */
 
 #include <string.h>
@@ -35,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_smallhash.h"
+
 #include "BLI_strict_flags.h"
 
 /* SMHASH_CELL_UNUSED means this cell is inside a key series,
@@ -43,7 +49,7 @@
  * no chance of anyone shoving INT32_MAX-2 into a *val pointer, I
  * imagine.  hopefully.
  *
- * note: these have the SMHASH suffix because we may want to make them public.
+ * note: these have the SMHASH prefix because we may want to make them public.
  */
 #define SMHASH_CELL_UNUSED  ((void *)0x7FFFFFFF)
 #define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
@@ -191,7 +197,7 @@ void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 }
 
 
-int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
+bool BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
 	unsigned int h = (unsigned int)(key);
 	unsigned int hoff = 1;
@@ -200,7 +206,7 @@ int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
 	{
 		if (hash->table[h % hash->size].val == SMHASH_CELL_FREE) {
-			return 0;
+			return false;
 		}
 
 		h = SMHASH_NEXT(h, hoff);

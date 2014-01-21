@@ -32,11 +32,6 @@
  *  \ingroup bli
  */
 
-/* a light stack-friendly hash library,
- * (it uses stack space for smallish hash tables) */
-
-/* based on a doubling non-chaining approach */
-
 #include "BLI_compiler_attrs.h"
 
 typedef struct {
@@ -66,7 +61,7 @@ void    BLI_smallhash_release(SmallHash *hash) ATTR_NONNULL(1);
 void    BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item) ATTR_NONNULL(1);
 void    BLI_smallhash_remove(SmallHash *hash, uintptr_t key) ATTR_NONNULL(1);
 void   *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-int     BLI_smallhash_haskey(SmallHash *hash, uintptr_t key) ATTR_NONNULL(1);
+bool    BLI_smallhash_haskey(SmallHash *hash, uintptr_t key) ATTR_NONNULL(1);
 int     BLI_smallhash_count(SmallHash *hash)  ATTR_NONNULL(1);
 void   *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)  ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void   *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;

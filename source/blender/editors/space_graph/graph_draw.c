@@ -308,7 +308,7 @@ static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short
 
 /* Handles ---------------- */
 
-static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
+static bool draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 {
 	/* don't draw handle lines if handles are not to be shown */
 	if (    (sipo->flag & SIPO_NOHANDLES) || /* handles shouldn't be shown anywhere */

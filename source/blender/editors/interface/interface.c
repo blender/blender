@@ -1188,7 +1188,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 /**
  * Check if the button is pushed, this is only meaningful for some button types.
  *
- * \return (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOHING)
+ * \return (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOTHING)
  */
 int ui_is_but_push_ex(uiBut *but, double *value)
 {

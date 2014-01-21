@@ -2103,7 +2103,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
 /********************* pack operator *********************/
 
-static int image_pack_test(bContext *C, wmOperator *op)
+static bool image_pack_test(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
 	int as_png = RNA_boolean_get(op->ptr, "as_png");

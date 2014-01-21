@@ -80,7 +80,7 @@
 
 /* check if we can do partial updates and have them draw realtime
  * (without rebuilding the 'derivedFinal') */
-static int vertex_paint_use_fast_update_check(Object *ob)
+static bool vertex_paint_use_fast_update_check(Object *ob)
 {
 	DerivedMesh *dm = ob->derivedFinal;
 
@@ -97,7 +97,7 @@ static int vertex_paint_use_fast_update_check(Object *ob)
 /* if the polygons from the mesh and the 'derivedFinal' match
  * we can assume that no modifiers are applied and that its worth adding tessellated faces
  * so 'vertex_paint_use_fast_update_check()' returns TRUE */
-static int vertex_paint_use_tessface_check(Object *ob, Mesh *me)
+static bool vertex_paint_use_tessface_check(Object *ob, Mesh *me)
 {
 	DerivedMesh *dm = ob->derivedFinal;
 

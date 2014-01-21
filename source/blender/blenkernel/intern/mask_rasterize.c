@@ -324,10 +324,11 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
  * - if not get the max radius to a corner of the bucket and see how close we
  *   are to any of the triangle edges.
  */
-static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_index,
-                                   const unsigned int bucket_x, const unsigned int bucket_y,
-                                   const float bucket_size_x, const float bucket_size_y,
-                                   const float bucket_max_rad_squared)
+static bool layer_bucket_isect_test(
+        MaskRasterLayer *layer, unsigned int face_index,
+        const unsigned int bucket_x, const unsigned int bucket_y,
+        const float bucket_size_x, const float bucket_size_y,
+        const float bucket_max_rad_squared)
 {
 	unsigned int *face = layer->face_array[face_index];
 	float (*cos)[3] = layer->face_coords;

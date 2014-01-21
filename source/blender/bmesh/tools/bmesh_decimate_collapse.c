@@ -578,7 +578,7 @@ static void bm_edge_tag_disable(BMEdge *e)
 	}
 }
 
-static int bm_edge_tag_test(BMEdge *e)
+static bool bm_edge_tag_test(BMEdge *e)
 {
 	/* is the edge or one of its faces tagged? */
 	return (BM_elem_flag_test(e->v1, BM_ELEM_TAG) ||

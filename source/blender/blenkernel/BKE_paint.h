@@ -103,14 +103,14 @@ void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 /* testing face select mode
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
-int paint_facesel_test(struct Object *ob);
-int paint_vertsel_test(struct Object *ob);
+bool paint_facesel_test(struct Object *ob);
+bool paint_vertsel_test(struct Object *ob);
 
 /* partial visibility */
-int paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
-int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
-                              int gridsize, int x, int y);
-int paint_is_bmesh_face_hidden(struct BMFace *f);
+bool paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
+bool paint_is_grid_face_hidden(const unsigned int *grid_hidden,
+                               int gridsize, int x, int y);
+bool paint_is_bmesh_face_hidden(struct BMFace *f);
 
 /* paint masks */
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,

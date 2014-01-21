@@ -53,10 +53,10 @@ void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 void ED_uvedit_assign_image(struct Main *bmain, struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 bool ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float min[2], float max[2]);
 
-int  ED_object_get_active_image(struct Object *ob, int mat_nr, struct Image **ima, struct ImageUser **iuser, struct bNode **node);
+bool ED_object_get_active_image(struct Object *ob, int mat_nr, struct Image **ima, struct ImageUser **iuser, struct bNode **node);
 void ED_object_assign_active_image(struct Main *bmain, struct Object *ob, int mat_nr, struct Image *ima);
 
-int ED_uvedit_test(struct Object *obedit);
+bool ED_uvedit_test(struct Object *obedit);
 
 /* visibility and selection */
 bool uvedit_face_visible_test(struct Scene *scene, struct Image *ima, struct BMFace *efa, struct MTexPoly *tf);
@@ -88,8 +88,8 @@ void uvedit_uv_select_enable(struct BMEditMesh *em, struct Scene *scene, struct 
 void uvedit_uv_select_disable(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l,
                               const int cd_loop_uv_offset);
 
-int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima,
-                         const float co[2], float r_uv[2]);
+bool ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima,
+                          const float co[2], float r_uv[2]);
 
 /* uvedit_unwrap_ops.c */
 void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);

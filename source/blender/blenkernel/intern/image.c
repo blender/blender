@@ -1912,7 +1912,7 @@ void BKE_imbuf_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field(ibuf, "RenderTime", stamp_data.rendertime);
 }
 
-int BKE_imbuf_alpha_test(ImBuf *ibuf)
+bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
 	int tot;
 	if (ibuf->rect_float) {
@@ -3025,7 +3025,7 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *frame_r, 
 	return ibuf;
 }
 
-BLI_INLINE int image_quick_test(Image *ima, ImageUser *iuser)
+BLI_INLINE bool image_quick_test(Image *ima, ImageUser *iuser)
 {
 	if (ima == NULL)
 		return FALSE;

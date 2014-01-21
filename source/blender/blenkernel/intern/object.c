@@ -3504,7 +3504,7 @@ static Object *obrel_armature_find(Object *ob)
 	return ob_arm;
 }
 
-static int obrel_list_test(Object *ob)
+static bool obrel_list_test(Object *ob)
 {
 	return ob && !(ob->id.flag & LIB_DOIT);
 }

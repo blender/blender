@@ -91,7 +91,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 
 /************************* state testing ************************/
 
-int ED_uvedit_test(Object *obedit)
+bool ED_uvedit_test(Object *obedit)
 {
 	BMEditMesh *em;
 	int ret;
@@ -132,12 +132,12 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh) (bContext *C)
 }
 /**************************** object active image *****************************/
 
-static int is_image_texture_node(bNode *node)
+static bool is_image_texture_node(bNode *node)
 {
 	return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT);
 }
 
-int ED_object_get_active_image(Object *ob, int mat_nr, Image **ima, ImageUser **iuser, bNode **node_r)
+bool ED_object_get_active_image(Object *ob, int mat_nr, Image **ima, ImageUser **iuser, bNode **node_r)
 {
 	Material *ma = give_current_material(ob, mat_nr);
 	bNode *node = (ma && ma->use_nodes) ? nodeGetActiveTexture(ma->nodetree) : NULL;
@@ -866,7 +866,7 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	}
 }
 
-int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float co[2], float r_uv[2])
+bool ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float co[2], float r_uv[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
@@ -875,7 +875,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 	MTexPoly *tf;
 	MLoopUV *luv;
 	float mindist, dist;
-	int found = FALSE;
+	bool found = false;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -896,7 +896,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 				mindist = dist;
 
 				copy_v2_v2(r_uv, luv->uv);
-				found = TRUE;
+				found = true;
 			}
 		}
 	}

@@ -644,7 +644,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int cal
 /* this function is mainly to check that the rules for freeing
  * an operator are kept in sync.
  */
-static int wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
+static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 {
 	return wm && (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
 }
@@ -1745,7 +1745,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 	return action;
 }
 
-static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
+static bool handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 {
 	if (handler->bbwin) {
 		if (handler->bblocal) {

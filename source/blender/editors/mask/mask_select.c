@@ -55,7 +55,7 @@
 #include "mask_intern.h"  /* own include */
 
 /* 'check' select */
-int ED_mask_spline_select_check(MaskSpline *spline)
+bool ED_mask_spline_select_check(MaskSpline *spline)
 {
 	int i;
 
@@ -69,7 +69,7 @@ int ED_mask_spline_select_check(MaskSpline *spline)
 	return FALSE;
 }
 
-int ED_mask_layer_select_check(MaskLayer *masklay)
+bool ED_mask_layer_select_check(MaskLayer *masklay)
 {
 	MaskSpline *spline;
 
@@ -86,7 +86,7 @@ int ED_mask_layer_select_check(MaskLayer *masklay)
 	return FALSE;
 }
 
-int ED_mask_select_check(Mask *mask)
+bool ED_mask_select_check(Mask *mask)
 {
 	MaskLayer *masklay;
 

@@ -1255,7 +1255,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "keep_inputs", 0, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
 
-int ED_node_select_check(ListBase *lb)
+bool ED_node_select_check(ListBase *lb)
 
 
 {

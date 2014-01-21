@@ -265,7 +265,7 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 }
 
 /* are we in vertex paint or weight pain face select mode? */
-int paint_facesel_test(Object *ob)
+bool paint_facesel_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
@@ -276,7 +276,7 @@ int paint_facesel_test(Object *ob)
 }
 
 /* are we in weight paint vertex select mode? */
-int paint_vertsel_test(Object *ob)
+bool paint_vertsel_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
@@ -319,7 +319,7 @@ void BKE_paint_copy(Paint *src, Paint *tar)
 
 /* returns non-zero if any of the face's vertices
  * are hidden, zero otherwise */
-int paint_is_face_hidden(const MFace *f, const MVert *mvert)
+bool paint_is_face_hidden(const MFace *f, const MVert *mvert)
 {
 	return ((mvert[f->v1].flag & ME_HIDE) ||
 	        (mvert[f->v2].flag & ME_HIDE) ||
@@ -330,7 +330,7 @@ int paint_is_face_hidden(const MFace *f, const MVert *mvert)
 /* returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden,
  * zero otherwise */
-int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
+bool paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                               int gridsize, int x, int y)
 {
 	/* skip face if any of its corners are hidden */
@@ -341,7 +341,7 @@ int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
 }
 
 /* Return TRUE if all vertices in the face are visible, FALSE otherwise */
-int paint_is_bmesh_face_hidden(BMFace *f)
+bool paint_is_bmesh_face_hidden(BMFace *f)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;

@@ -176,7 +176,7 @@ int ED_operator_objectmode(bContext *C)
 }
 
 
-static int ed_spacetype_test(bContext *C, int type)
+static bool ed_spacetype_test(bContext *C, int type)
 {
 	if (ED_operator_areaactive(C)) {
 		SpaceLink *sl = (SpaceLink *)CTX_wm_space_data(C);

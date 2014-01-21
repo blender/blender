@@ -153,7 +153,7 @@ enum {
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX    (U.gp_euclideandist)
 
-static int gp_stroke_added_check(tGPsdata *p)
+static bool gp_stroke_added_check(tGPsdata *p)
 {
 	return (p->gpf && p->gpf->strokes.last && p->flags & GP_PAINTFLAG_STROKEADDED);
 }
@@ -196,7 +196,7 @@ static int gpencil_draw_poll(bContext *C)
 }
 
 /* check if projecting strokes into 3d-geometry in the 3D-View */
-static int gpencil_project_check(tGPsdata *p)
+static bool gpencil_project_check(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
 	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & (GP_DATA_DEPTH_VIEW | GP_DATA_DEPTH_STROKE)));
@@ -1791,7 +1791,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 }
 
 /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
-static int gpencil_area_exists(bContext *C, ScrArea *sa_test)
+static bool gpencil_area_exists(bContext *C, ScrArea *sa_test)
 {
 	bScreen *sc = CTX_wm_screen(C);
 	return (BLI_findindex(&sc->areabase, sa_test) != -1);

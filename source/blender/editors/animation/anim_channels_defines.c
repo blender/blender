@@ -149,9 +149,9 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale
 }
 
 /* helper method to test if group colors should be drawn */
-static short acf_show_channel_colors(bAnimContext *ac)
+static bool acf_show_channel_colors(bAnimContext *ac)
 {
-	short showGroupColors = 0;
+	bool showGroupColors = false;
 	
 	if (ac->sl) {
 		switch (ac->spacetype) {
@@ -179,7 +179,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	bActionGroup *grp = NULL;
 	short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
-	short showGroupColors = acf_show_channel_colors(ac);
+	bool showGroupColors = acf_show_channel_colors(ac);
 	
 	if (ale->type == ANIMTYPE_FCURVE) {
 		FCurve *fcu = (FCurve *)ale->data;
@@ -751,7 +751,7 @@ static bAnimChannelType ACF_OBJECT =
 static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
 {
 	bActionGroup *agrp = (bActionGroup *)ale->data;
-	short showGroupColors = acf_show_channel_colors(ac);
+	bool showGroupColors = acf_show_channel_colors(ac);
 	
 	if (showGroupColors && agrp->customCol) {
 		unsigned char cp[3];

@@ -100,7 +100,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 }
 
 /* ********************** Add reroute operator ***************** */
-static int add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int tot, float result[2])
+static bool add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int tot, float result[2])
 {
 	float coord_array[NODE_LINK_RESOL + 1][2];
 	int i, b;
