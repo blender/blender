@@ -125,6 +125,7 @@ set(SRC
 	intern/node.c
 	intern/object.c
 	intern/object_deform.c
+	intern/object_dupli.c
 	intern/ocean.c
 	intern/packedFile.c
 	intern/paint.c
