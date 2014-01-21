@@ -90,11 +90,9 @@ static GSet *erot_gset_new(void)
 }
 
 /* ensure v0 is smaller */
-#define EDGE_ORD(v0, v1) \
-	if (v0 > v1) {       \
-		v0 ^= v1;        \
-		v1 ^= v0;        \
-		v0 ^= v1;        \
+#define EDGE_ORD(v0, v1)   \
+	if (v0 > v1) {         \
+		SWAP(int, v0, v1); \
 	} (void)0
 
 static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])

@@ -59,11 +59,9 @@ static const unsigned int _ehash_hashsizes[] = {
 #endif
 
 /* ensure v0 is smaller */
-#define EDGE_ORD(v0, v1) \
-	if (v0 > v1) {       \
-		v0 ^= v1;        \
-		v1 ^= v0;        \
-		v0 ^= v1;        \
+#define EDGE_ORD(v0, v1)            \
+	if (v0 > v1) {                  \
+		SWAP(unsigned int, v0, v1); \
 	} (void)0
 
 /***/
