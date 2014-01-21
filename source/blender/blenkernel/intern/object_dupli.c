@@ -62,6 +62,8 @@
 #include "BKE_anim.h"
 
 
+#include "BLI_strict_flags.h"
+
 /* Dupli-Geometry */
 
 typedef struct DupliContext {
@@ -73,7 +75,7 @@ typedef struct DupliContext {
 	Scene *scene;
 	Object *object;
 	float space_mat[4][4];
-	int lay;
+	unsigned int lay;
 
 	int persistent_id[MAX_DUPLI_RECUR];
 	int level;
@@ -86,7 +88,7 @@ typedef struct DupliContext {
 } DupliContext;
 
 typedef struct DupliGenerator {
-	int type;				/* dupli type */
+	short type;				/* dupli type */
 	void (*make_duplis)(const DupliContext *ctx);
 } DupliGenerator;
 
@@ -213,7 +215,7 @@ static bool is_child(const Object *ob, const Object *parent)
 }
 
 /* create duplis from every child in scene or group */
-static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChildDuplisFunc make_child_duplis)
+static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChildDuplisFunc make_child_duplis_cb)
 {
 	Object *parent = ctx->object;
 	Object *obedit = ctx->scene->obedit;
@@ -229,7 +231,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				if (ob->type != OB_MBALL)
 					ob->flag |= OB_DONE;  /* doesnt render */
 
-				make_child_duplis(ctx, userdata, ob);
+				make_child_duplis_cb(ctx, userdata, ob);
 			}
 		}
 	}
@@ -244,7 +246,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				if (ob->type != OB_MBALL)
 					ob->flag |= OB_DONE;  /* doesnt render */
 
-				make_child_duplis(ctx, userdata, ob);
+				make_child_duplis_cb(ctx, userdata, ob);
 
 				/* Set proper layer in case of scene looping,
 				 * in case of groups the object layer will be
@@ -267,7 +269,8 @@ static void make_duplis_group(const DupliContext *ctx)
 	Object *ob = ctx->object;
 	Group *group;
 	GroupObject *go;
-	float group_mat[4][4], id;
+	float group_mat[4][4];
+	int id;
 	bool animated, hide;
 
 	if (ob->dup_group == NULL) return;
@@ -345,7 +348,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed = 0;
 
 	for (scene->r.cfra = ob->dupsta; scene->r.cfra <= dupend; scene->r.cfra++) {
-		short ok = 1;
+		int ok = 1;
 
 		/* - dupoff = how often a frames within the range shouldn't be made into duplis
 		 * - dupon = the length of each "skipping" block in frames
@@ -415,10 +418,14 @@ static void get_duplivert_transform(const float co[3], const float nor_f[3], con
 		float nor[3];
 		/* construct rotation matrix from normals */
 		if (nor_f) {
-			nor[0] = -nor_f[0]; nor[1] = -nor_f[1]; nor[2] = -nor_f[2];
+			nor[0] = -nor_f[0];
+			nor[1] = -nor_f[1];
+			nor[2] = -nor_f[2];
 		}
 		else if (nor_s) {
-			nor[0] = -nor_s[0]; nor[1] = -nor_s[1]; nor[2] = -nor_s[2];
+			nor[0] = (float)-nor_s[0];
+			nor[1] = (float)-nor_s[1];
+			nor[2] = (float)-nor_s[2];
 		}
 		vec_to_quat(quat, nor, axis, upflag);
 	}
@@ -435,7 +442,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	Object *inst_ob = vdd->inst_ob;
 	DupliObject *dob;
 	float obmat[4][4], space_mat[4][4];
-	int origlay;
+	unsigned int origlay;
 
 	/* obmat is transform to vertex */
 	get_duplivert_transform(co, nor_f, nor_s, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
@@ -612,7 +619,7 @@ static void make_duplis_font(const DupliContext *ctx)
 	/* advance matching BLI_strncpy_wchar_from_utf8 */
 	for (a = 0; a < text_len; a++, ct++) {
 
-		ob = find_family_object(cu->family, family_len, text[a], family_gh);
+		ob = find_family_object(cu->family, family_len, (unsigned int)text[a], family_gh);
 		if (ob) {
 			vec[0] = fsize * (ct->xof - xof);
 			vec[1] = fsize * (ct->yof - yof);
@@ -849,7 +856,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	totpart = psys->totpart;
 	totchild = psys->totchild;
 
-	BLI_srandom(31415926 + psys->seed);
+	BLI_srandom((unsigned int)(31415926 + psys->seed));
 
 	if ((psys->renderdata || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim = {NULL};
@@ -907,8 +914,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 			/* we also copy the actual objects to restore afterwards, since
 			 * BKE_object_where_is_calc_time will change the object which breaks transform */
-			oblist = MEM_callocN(totgroup * sizeof(Object *), "dupgroup object list");
-			obcopylist = MEM_callocN(totgroup * sizeof(Object), "dupgroup copy list");
+			oblist = MEM_callocN((size_t)totgroup * sizeof(Object *), "dupgroup object list");
+			obcopylist = MEM_callocN((size_t)totgroup * sizeof(Object), "dupgroup copy list");
 
 			if (part->draw & PART_DRAW_COUNT_GR && totgroup) {
 				dw = part->dupliweights.first;
