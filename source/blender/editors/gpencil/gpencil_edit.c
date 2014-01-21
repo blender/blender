@@ -921,6 +921,8 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 		float p1[3], p2[3], p[3], next_p[3];
 		float dt1 = 0.0f, dt2 = 0.0f;
 
+		BLI_assert(gps->prev != NULL);
+
 		prev_bp = NULL;
 		if ((old_nbp > 1) && (gps->prev->totpoints > 1)) {
 			/* Only use last curve segment if previous stroke was not a single-point one! */
@@ -1128,6 +1130,8 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 
 	/* If needed, make the link between both strokes with two zero-radius additional points */
 	if (curnu && old_nbezt) {
+		BLI_assert(gps->prev != NULL);
+
 		/* Update last point's second handle */
 		if (stitch) {
 			bezt = &nu->bezt[old_nbezt - 1];
@@ -1150,7 +1154,7 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 			float dt1 = 0.0f, dt2 = 0.0f;
 
 			prev_bezt = NULL;
-			if (old_nbezt > 1 && gps->prev && gps->prev->totpoints > 1) {
+			if ((old_nbezt > 1) && (gps->prev->totpoints > 1)) {
 				/* Only use last curve segment if previous stroke was not a single-point one! */
 				prev_bezt = &nu->bezt[old_nbezt - 2];
 			}
