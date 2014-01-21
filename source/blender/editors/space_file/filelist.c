@@ -188,15 +188,8 @@ static int compare_name(const void *a1, const void *a2)
 	if (strcmp(entry2->relname, ".") == 0) return (1);
 	if (strcmp(entry1->relname, "..") == 0) return (-1);
 	if (strcmp(entry2->relname, "..") == 0) return (1);
-
-	{
-		int cmp = BLI_natstrcmp(entry1->relname, entry2->relname);
-		if (cmp == 0) {
-			/* when strings are a case insensitive match, we don't want a random order for qsort [#38303] */
-			cmp = strcmp(entry1->relname, entry2->relname);
-		}
-		return cmp;
-	}
+	
+	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
 static int compare_date(const void *a1, const void *a2)	
