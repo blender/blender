@@ -3317,7 +3317,7 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 							BLI_array_append(vv_fix, bmv);
 					}
 				}
-				else if (bp->vertex_only && vm->mesh_kind == M_ADJ_SUBDIV && vm->seg > 1) {
+				else if (vm->mesh_kind == M_ADJ_SUBDIV && vm->seg > 1 && !e->is_bev && !eprev->is_bev) {
 					BLI_assert(v->prev == vend);
 					i = vend->index;
 					for (k = vm->seg - 1; k > 0; k--) {
