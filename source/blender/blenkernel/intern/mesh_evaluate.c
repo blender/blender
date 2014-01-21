@@ -1155,6 +1155,72 @@ void BKE_mesh_loops_to_mface_corners(
 }
 
 /**
+ * Convert all CD layers from loop/poly to tessface data.
+ * @loopindices is an array of an int[4] per tessface, mapping tessface's verts to loops indices.
+ */
+void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData *pdata,
+                                int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
+{
+	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
+	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
+	int findex, i, j;
+	int *pidx;
+	unsigned int (*lidx)[4];
+
+	for (i = 0; i < numTex; i++) {
+		MTFace *texface = CustomData_get_layer_n(fdata, CD_MTFACE, i);
+		MTexPoly *texpoly = CustomData_get_layer_n(pdata, CD_MTEXPOLY, i);
+		MLoopUV *mloopuv = CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
+
+		for (findex = 0, pidx = polyindices, lidx = loopindices;
+		     findex < num_faces;
+		     pidx++, lidx++, findex++, texface++)
+		{
+			ME_MTEXFACE_CPY(texface, &texpoly[*pidx]);
+
+			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+				copy_v2_v2(texface->uv[j], mloopuv[(*lidx)[j]].uv);
+			}
+		}
+	}
+
+	for (i = 0; i < numCol; i++) {
+		MCol (*mcol)[4] = CustomData_get_layer_n(fdata, CD_MCOL, i);
+		MLoopCol *mloopcol = CustomData_get_layer_n(ldata, CD_MLOOPCOL, i);
+
+		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
+			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
+			}
+		}
+	}
+
+	if (hasPCol) {
+		MCol (*mcol)[4] = CustomData_get_layer(fdata, CD_PREVIEW_MCOL);
+		MLoopCol *mloopcol = CustomData_get_layer(ldata, CD_PREVIEW_MLOOPCOL);
+
+		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
+			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
+			}
+		}
+	}
+
+	if (hasOrigSpace) {
+		OrigSpaceFace *of = CustomData_get_layer(fdata, CD_ORIGSPACE);
+		OrigSpaceLoop *lof = CustomData_get_layer(ldata, CD_ORIGSPACE_MLOOP);
+
+		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, of++) {
+			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+				copy_v2_v2(of->uv[j], lof[(*lidx)[j]].uv);
+			}
+		}
+	}
+}
+
+/**
  * Recreate tessellation.
  *
  * use_poly_origindex sets whether or not the tessellation faces' origindex
@@ -1168,10 +1234,8 @@ void BKE_mesh_loops_to_mface_corners(
  *
  * \return number of tessellation faces.
  */
-int BKE_mesh_recalc_tessellation(CustomData *fdata,
-                                 CustomData *ldata, CustomData *pdata,
-                                 MVert *mvert, int totface, int totloop,
-                                 int totpoly,
+int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomData *pdata,
+                                 MVert *mvert, int totface, int totloop, int totpoly,
                                  /* when tessellating to recalculate normals after
                                   * we can skip copying here */
                                  const bool do_face_nor_cpy)
@@ -1182,9 +1246,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #define USE_TESSFACE_SPEEDUP
 #define USE_TESSFACE_QUADS // NEEDS FURTHER TESTING
 
-#define TESSFACE_SCANFILL (1 << 0)
-#define TESSFACE_IS_QUAD  (1 << 1)
-
 	const int looptris_tot = poly_to_tri_count(totpoly, totloop);
 
 	MPoly *mp, *mpoly;
@@ -1192,13 +1253,9 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	MFace *mface, *mf;
 	MemArena *arena = NULL;
 	int *mface_to_poly_map;
-	int lindex[4]; /* only ever use 3 in this case */
-	int poly_index, j, mface_index;
-
-	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
-	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
-	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
-	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
+	unsigned int (*lindices)[4];
+	int poly_index, mface_index;
+	unsigned int j;
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -1208,12 +1265,16 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	/* take care. we are _not_ calloc'ing so be sure to initialize each field */
 	mface_to_poly_map = MEM_mallocN(sizeof(*mface_to_poly_map) * (size_t)looptris_tot, __func__);
 	mface             = MEM_mallocN(sizeof(*mface) *             (size_t)looptris_tot, __func__);
+	lindices          = MEM_mallocN(sizeof(*lindices) *          (size_t)looptris_tot, __func__);
 
 	mface_index = 0;
 	mp = mpoly;
 	for (poly_index = 0; poly_index < totpoly; poly_index++, mp++) {
 		const unsigned int mp_loopstart = (unsigned int)mp->loopstart;
-		if (mp->totloop < 3) {
+		const unsigned int mp_totloop = (unsigned int)mp->totloop;
+		unsigned int l1, l2, l3, l4;
+		unsigned int *lidx;
+		if (mp_totloop < 3) {
 			/* do nothing */
 		}
 
@@ -1222,36 +1283,51 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #define ML_TO_MF(i1, i2, i3)                                                  \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf = &mface[mface_index];                                             \
+		lidx = lindices[mface_index];                                         \
 		/* set loop indices, transformed to vert indices later */             \
-		mf->v1 = mp_loopstart + i1;                                          \
-		mf->v2 = mp_loopstart + i2;                                          \
-		mf->v3 = mp_loopstart + i3;                                          \
+		l1 = mp_loopstart + i1;                                               \
+		l2 = mp_loopstart + i2;                                               \
+		l3 = mp_loopstart + i3;                                               \
+		mf->v1 = mloop[l1].v;                                                 \
+		mf->v2 = mloop[l2].v;                                                 \
+		mf->v3 = mloop[l3].v;                                                 \
 		mf->v4 = 0;                                                           \
+		lidx[0] = l1;                                                         \
+		lidx[1] = l2;                                                         \
+		lidx[2] = l3;                                                         \
+		lidx[3] = 0;                                                          \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
-		mf->edcode = 0;                                                       \
 		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
 #define ML_TO_MF_QUAD()                                                       \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf = &mface[mface_index];                                             \
+		lidx = lindices[mface_index];                                         \
 		/* set loop indices, transformed to vert indices later */             \
-		mf->v1 = mp_loopstart + 0; /* EXCEPTION */                           \
-		mf->v2 = mp_loopstart + 1; /* EXCEPTION */                           \
-		mf->v3 = mp_loopstart + 2; /* EXCEPTION */                           \
-		mf->v4 = mp_loopstart + 3; /* EXCEPTION */                           \
+		l1 = mp_loopstart + 0; /* EXCEPTION */                                \
+		l2 = mp_loopstart + 1; /* EXCEPTION */                                \
+		l3 = mp_loopstart + 2; /* EXCEPTION */                                \
+		l4 = mp_loopstart + 3; /* EXCEPTION */                                \
+		mf->v1 = mloop[l1].v;                                                 \
+		mf->v2 = mloop[l2].v;                                                 \
+		mf->v3 = mloop[l3].v;                                                 \
+		mf->v4 = mloop[l4].v;                                                 \
+		lidx[0] = l1;                                                         \
+		lidx[1] = l2;                                                         \
+		lidx[2] = l3;                                                         \
+		lidx[3] = l4;                                                         \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
-		mf->edcode = TESSFACE_IS_QUAD; /* EXCEPTION */                        \
 		(void)0
 
 
-		else if (mp->totloop == 3) {
+		else if (mp_totloop == 3) {
 			ML_TO_MF(0, 1, 2);
 			mface_index++;
 		}
-		else if (mp->totloop == 4) {
+		else if (mp_totloop == 4) {
 #ifdef USE_TESSFACE_QUADS
 			ML_TO_MF_QUAD();
 			mface_index++;
@@ -1272,22 +1348,21 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			float (*projverts)[2];
 			unsigned int (*tris)[3];
 
-			const unsigned int loopstart = (unsigned int)mp->loopstart;
-			const int totfilltri = mp->totloop - 2;
+			const unsigned int totfilltri = mp_totloop - 2;
 
 			if (UNLIKELY(arena == NULL)) {
 				arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 			}
 
 			tris = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)totfilltri);
-			projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)mp->totloop);
+			projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)mp_totloop);
 
 			zero_v3(normal);
 
 			/* calc normal */
-			ml = mloop + loopstart;
-			co_prev = mvert[ml[mp->totloop - 1].v].co;
-			for (j = 0; j < mp->totloop; j++, ml++) {
+			ml = mloop + mp_loopstart;
+			co_prev = mvert[ml[mp_totloop - 1].v].co;
+			for (j = 0; j < mp_totloop; j++, ml++) {
 				co_curr = mvert[ml->v].co;
 				add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
 				co_prev = co_curr;
@@ -1299,33 +1374,43 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			/* project verts to 2d */
 			axis_dominant_v3_to_m3(axis_mat, normal);
 
-			ml = mloop + loopstart;
-			for (j = 0; j < mp->totloop; j++, ml++) {
+			ml = mloop + mp_loopstart;
+			for (j = 0; j < mp_totloop; j++, ml++) {
 				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, (unsigned int)mp->totloop, tris, arena);
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, tris, arena);
 
 			/* apply fill */
-			ml = mloop + loopstart;
 			for (j = 0; j < totfilltri; j++) {
 				unsigned int *tri = tris[j];
+				lidx = lindices[mface_index];
 
 				mface_to_poly_map[mface_index] = poly_index;
 				mf = &mface[mface_index];
 
 				/* set loop indices, transformed to vert indices later */
-				mf->v1 = loopstart + tri[0];
-				mf->v2 = loopstart + tri[1];
-				mf->v3 = loopstart + tri[2];
+				l1 = mp_loopstart + tri[0];
+				l2 = mp_loopstart + tri[1];
+				l3 = mp_loopstart + tri[2];
+
+				/* sort loop indices to ensure winding is correct */
+				if (l1 > l2) SWAP(unsigned int, l1, l2);
+				if (l2 > l3) SWAP(unsigned int, l2, l3);
+				if (l1 > l2) SWAP(unsigned int, l1, l2);
+
+				mf->v1 = mloop[l1].v;
+				mf->v2 = mloop[l2].v;
+				mf->v3 = mloop[l3].v;
 				mf->v4 = 0;
+
+				lidx[0] = l1;
+				lidx[1] = l2;
+				lidx[2] = l3;
+				lidx[3] = 0;
 
 				mf->mat_nr = mp->mat_nr;
 				mf->flag = mp->flag;
-
-#ifdef USE_TESSFACE_SPEEDUP
-				mf->edcode = TESSFACE_SCANFILL; /* tag for sorting loop indices */
-#endif
 
 				mface_index++;
 			}
@@ -1369,71 +1454,34 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		}
 	}
 
+	BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, mface_to_poly_map, lindices, totface);
+
+	/* XXX Is it really needed to call test_index_face here??? Since we reuse tris/quads as-is, and sort tris generated
+	 *     by scanfill, our indices should always be OK?
+	 */
+#if 0
+#ifdef USE_TESSFACE_QUADS
 	mf = mface;
 	for (mface_index = 0; mface_index < totface; mface_index++, mf++) {
+		const int mf_len = mf->v4 ? 4 : 3;
 
-#ifdef USE_TESSFACE_QUADS
-		const int mf_len = mf->edcode & TESSFACE_IS_QUAD ? 4 : 3;
-#endif
-
-#ifdef USE_TESSFACE_SPEEDUP
-		/* skip sorting when not using ngons */
-		if (UNLIKELY(mf->edcode & TESSFACE_SCANFILL))
-#endif
-		{
-			/* sort loop indices to ensure winding is correct */
-			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
-			if (mf->v2 > mf->v3) SWAP(unsigned int, mf->v2, mf->v3);
-			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
-
-			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
-			if (mf->v2 > mf->v3) SWAP(unsigned int, mf->v2, mf->v3);
-			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
-		}
-
-		/* end abusing the edcode */
-#if defined(USE_TESSFACE_QUADS) || defined(USE_TESSFACE_SPEEDUP)
-		mf->edcode = 0;
-#endif
-
-
-		lindex[0] = (int)mf->v1;
-		lindex[1] = (int)mf->v2;
-		lindex[2] = (int)mf->v3;
-#ifdef USE_TESSFACE_QUADS
-		if (mf_len == 4) lindex[3] = (int)mf->v4;
-#endif
-
-		/*transform loop indices to vert indices*/
-		mf->v1 = mloop[mf->v1].v;
-		mf->v2 = mloop[mf->v2].v;
-		mf->v3 = mloop[mf->v3].v;
-#ifdef USE_TESSFACE_QUADS
-		if (mf_len == 4) mf->v4 = mloop[mf->v4].v;
-#endif
-
-		BKE_mesh_loops_to_mface_corners(fdata, ldata, pdata,
-		                                lindex, mface_index, mface_to_poly_map[mface_index],
-#ifdef USE_TESSFACE_QUADS
-		                                mf_len,
-#else
-		                                3,
-#endif
-		                                numTex, numCol, hasPCol, hasOrigSpace);
-
-
-#ifdef USE_TESSFACE_QUADS
-		test_index_face(mf, fdata, mface_index, mf_len);
-#endif
-
+		if (test_index_face(mf, fdata, mface_index, mf_len) != mf_len)
+			printf("%s: test_index_face had to make changes!!!\n", __func__);
 	}
+#endif
+#endif
+
+	MEM_freeN(lindices);
 
 	return totface;
 
 #undef USE_TESSFACE_SPEEDUP
+#undef USE_TESSFACE_QUADS
+
+#undef ML_TO_MF
+#undef ML_TO_MF_QUAD
 
 }
-
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 

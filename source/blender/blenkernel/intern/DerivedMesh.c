@@ -56,6 +56,7 @@
 #include "BKE_key.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
@@ -431,16 +432,11 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	CustomData *pdata = dm->getPolyDataLayout(dm);
 	CustomData *ldata = dm->getLoopDataLayout(dm);
 
-	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
-	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
-	const int hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
-	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
-
-	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
-
 	const int totface = dm->getNumTessFaces(dm);
 	int mf_idx;
-	int ml_idx[4];
+
+	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
+	unsigned int (*loopindex)[4];
 
 	/* Should never occure, but better abort than segfault! */
 	if (!polyindex)
@@ -448,36 +444,35 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
 
-	for (mf_idx = 0; mf_idx < totface; mf_idx++, mf++) {
-		const int mf_len = mf->v4 ? 4 : 3;
-		int i, not_done;
+	if (CustomData_has_layer(fdata, CD_MTFACE) ||
+	    CustomData_has_layer(fdata, CD_MCOL) ||
+	    CustomData_has_layer(fdata, CD_PREVIEW_MCOL) ||
+	    CustomData_has_layer(fdata, CD_ORIGSPACE))
+	{
+		loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
 
-		/* Find out loop indices. */
-		/* XXX Is there a better way to do this? */
-		/* NOTE: This assumes tessface are valid and in sync with loop/poly... Else, most likely, segfault! */
-		for (i = mp[polyindex[mf_idx]].loopstart, not_done = mf_len; not_done; i++) {
-			MLoop *tml = &ml[i];
-			if (tml->v == mf->v1) {
-				ml_idx[0] = i;
-				not_done--;
+		for (mf_idx = 0; mf_idx < totface; mf_idx++, mf++) {
+			const int mf_len = mf->v4 ? 4 : 3;
+			unsigned int *ml_idx = loopindex[mf_idx];
+			int i, not_done;
+
+			/* Find out loop indices. */
+			/* NOTE: This assumes tessface are valid and in sync with loop/poly... Else, most likely, segfault! */
+			for (i = mp[polyindex[mf_idx]].loopstart, not_done = mf_len; not_done; i++) {
+				const int tf_v = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, ml[i].v);
+				if (tf_v != -1) {
+					ml_idx[tf_v] = i;
+					not_done--;
+				}
 			}
-			else if (tml->v == mf->v2) {
-				ml_idx[1] = i;
-				not_done--;
-			}
-			else if (tml->v == mf->v3) {
-				ml_idx[2] = i;
-				not_done--;
-			}
-			else if (mf_len == 4 && tml->v == mf->v4) {
-				ml_idx[3] = i;
-				not_done--;
+			if (mf_len == 3) {
+				ml_idx[3] = 0;
 			}
 		}
-		BKE_mesh_loops_to_mface_corners(fdata, ldata, pdata,
-		                                ml_idx, mf_idx, polyindex[mf_idx],
-		                                mf_len,
-		                                numTex, numCol, hasPCol, hasOrigSpace);
+
+		BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, polyindex, loopindex, totface);
+
+		MEM_freeN(loopindex);
 	}
 
 	if (G.debug & G_DEBUG)

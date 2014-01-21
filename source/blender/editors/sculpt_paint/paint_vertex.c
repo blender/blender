@@ -2847,15 +2847,6 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	return 1;
 }
 
-BLI_INLINE int mesh_tessface_vertex_index(MFace *tessface, unsigned int v)
-{
-	if (tessface->v1 == v) return 0;
-	if (tessface->v2 == v) return 1;
-	if (tessface->v3 == v) return 2;
-	if (v && (tessface->v4 == v)) return 3;
-	return -1;
-}
-
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
                               const unsigned int index, const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
@@ -2945,7 +2936,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 
 			for (j = 0; j < totloop; j++, ml++, mlc++) {
 				/* search for the loop vertex within the tessface */
-				const int fidx = mesh_tessface_vertex_index(mf, ml->v);
+				const int fidx = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, ml->v);
 				if (fidx != -1) {
 					MESH_MLOOPCOL_TO_MCOL(mlc, mc + fidx);
 					if (mlooptag) {
