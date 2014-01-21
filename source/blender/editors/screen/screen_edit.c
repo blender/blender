@@ -1545,8 +1545,13 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		 */
 		if (oldscene != sc->scene) {
 			BKE_scene_set_background(bmain, sc->scene);
-			DAG_on_visible_update(bmain, FALSE);
 		}
+
+		/* Always do visible update since it's possible new screen will
+		 * have different layers visible in 3D viewpots. This is possible
+		 * because of view3d.lock_camera_and_layers option.
+		 */
+		DAG_on_visible_update(bmain, FALSE);
 	}
 }
 
