@@ -57,7 +57,6 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
@@ -779,16 +778,9 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 		rotmode = ob->rotmode;
 	}
 	else if (ptr->type == &RNA_PoseBone) {
-		Object *ob = (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 		
-		/* Although it is not strictly required for this particular space conversion, 
-		 * arg1 must not be null, as there is a null check for the other conversions to
-		 * be safe. Therefore, the active object is passed here, and in many cases, this
-		 * will be what owns the pose-channel that is getting this anyway.
-		 */
-		copy_m4_m4(tmat, pchan->pose_mat);
-		BKE_constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+		BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, tmat);
 		rotmode = pchan->rotmode;
 		
 		/* Loc code is specific... */
