@@ -6274,7 +6274,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 
 			/* arg[1] (bases=...) */
 			PyTuple_SET_ITEM(args, 1, item = PyTuple_New(1));
-			PyTuple_SET_ITEM(item, 0, py_base);
+			PyTuple_SET_ITEM(item, 0, py_base); Py_INCREF(py_base);
 
 
 			/* arg[2] (dict=...) */
