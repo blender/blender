@@ -547,7 +547,13 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		d1++;
 		d2++;
 	}
-	return tiebreaker;
+
+	if (tiebreaker)
+		return tiebreaker;
+	
+	/* we might still have a different string because of lower/upper case, in
+	 * that case fall back to regular string comparison */
+	return strcmp(s1, s2);
 }
 
 void BLI_timestr(double _time, char *str, size_t maxlen)
