@@ -124,9 +124,6 @@
 #include "transform.h"
 #include "bmesh.h"
 
-/* disabled since it makes absolute snapping not work so nicely */
-// #define USE_NODE_CENTER
-
 /**
  * Transforming around ourselves is no use, fallback to individual origins,
  * useful for curve/armatures.

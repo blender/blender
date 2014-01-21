@@ -433,6 +433,11 @@ typedef struct TransInfo {
 #define	MOD_SNAP_INVERT			0x08
 #define	MOD_CONSTRAINT_PLANE	0x10
 
+/* use node center for transform instead of upper-left corner.
+ * disabled since it makes absolute snapping not work so nicely
+ */
+// #define USE_NODE_CENTER
+
 
 /* ******************************************************************************** */
 

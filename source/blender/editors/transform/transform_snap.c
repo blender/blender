@@ -1051,6 +1051,7 @@ static void TargetSnapOffset(TransInfo *t, TransData *td)
 		float width  = BLI_rctf_size_x(&node->totr);
 		float height = BLI_rctf_size_y(&node->totr);
 		
+#ifdef USE_NODE_CENTER
 		if (border & NODE_LEFT)
 			t->tsnap.snapTarget[0] -= 0.5f * width;
 		if (border & NODE_RIGHT)
@@ -1059,6 +1060,16 @@ static void TargetSnapOffset(TransInfo *t, TransData *td)
 			t->tsnap.snapTarget[1] -= 0.5f * height;
 		if (border & NODE_TOP)
 			t->tsnap.snapTarget[1] += 0.5f * height;
+#else
+		if (border & NODE_LEFT)
+			t->tsnap.snapTarget[0] -= 0.0f;
+		if (border & NODE_RIGHT)
+			t->tsnap.snapTarget[0] += width;
+		if (border & NODE_BOTTOM)
+			t->tsnap.snapTarget[1] -= height;
+		if (border & NODE_TOP)
+			t->tsnap.snapTarget[1] += 0.0f;
+#endif
 	}
 }
 
