@@ -252,34 +252,40 @@ static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 {
 	Integrator *integrator = state.scene->integrator;
-	bool branched = false;
 	
+	/* Branched Path */
+	bool branched = false;
 	xml_read_bool(&branched, node, "branched");
 
-	if(branched)
+	if(branched) {
 		integrator->method = Integrator::BRANCHED_PATH;
-	
-	if(integrator->method == Integrator::BRANCHED_PATH) {
+
 		xml_read_int(&integrator->diffuse_samples, node, "diffuse_samples");
 		xml_read_int(&integrator->glossy_samples, node, "glossy_samples");
 		xml_read_int(&integrator->transmission_samples, node, "transmission_samples");
 		xml_read_int(&integrator->ao_samples, node, "ao_samples");
 		xml_read_int(&integrator->mesh_light_samples, node, "mesh_light_samples");
+		xml_read_int(&integrator->subsurface_samples, node, "subsurface_samples");
+		xml_read_int(&integrator->volume_samples, node, "volume_samples");
 	}
-
+	
+	/* Bounces */
 	xml_read_int(&integrator->min_bounce, node, "min_bounce");
 	xml_read_int(&integrator->max_bounce, node, "max_bounce");
 	
 	xml_read_int(&integrator->max_diffuse_bounce, node, "max_diffuse_bounce");
 	xml_read_int(&integrator->max_glossy_bounce, node, "max_glossy_bounce");
 	xml_read_int(&integrator->max_transmission_bounce, node, "max_transmission_bounce");
+	xml_read_int(&integrator->max_volume_bounce, node, "max_volume_bounce");
 	
+	/* Transparency */
 	xml_read_int(&integrator->transparent_min_bounce, node, "transparent_min_bounce");
 	xml_read_int(&integrator->transparent_max_bounce, node, "transparent_max_bounce");
-	
 	xml_read_bool(&integrator->transparent_shadows, node, "transparent_shadows");
+	
+	/* Various Settings */
 	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
-	xml_read_float(&integrator->filter_glossy, node, "blur_glossy");
+	xml_read_float(&integrator->filter_glossy, node, "filter_glossy");
 	
 	xml_read_int(&integrator->seed, node, "seed");
 	xml_read_float(&integrator->sample_clamp, node, "sample_clamp");
