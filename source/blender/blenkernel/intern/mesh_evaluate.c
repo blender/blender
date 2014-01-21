@@ -1095,7 +1095,7 @@ bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
  */
 void BKE_mesh_loops_to_mface_corners(
         CustomData *fdata, CustomData *ldata,
-        CustomData *pdata, int lindex[4], int findex,
+        CustomData *pdata, unsigned int lindex[4], int findex,
         const int polyindex,
         const int mf_len, /* 3 or 4 */
 
@@ -1120,7 +1120,7 @@ void BKE_mesh_loops_to_mface_corners(
 		ME_MTEXFACE_CPY(texface, texpoly);
 
 		for (j = 0; j < mf_len; j++) {
-			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
+			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, (int)lindex[j], i);
 			copy_v2_v2(texface->uv[j], mloopuv->uv);
 		}
 	}
@@ -1129,7 +1129,7 @@ void BKE_mesh_loops_to_mface_corners(
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
 		for (j = 0; j < mf_len; j++) {
-			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
+			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, (int)lindex[j], i);
 			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
@@ -1138,7 +1138,7 @@ void BKE_mesh_loops_to_mface_corners(
 		mcol = CustomData_get(fdata,  findex, CD_PREVIEW_MCOL);
 
 		for (j = 0; j < mf_len; j++) {
-			mloopcol = CustomData_get(ldata, lindex[j], CD_PREVIEW_MLOOPCOL);
+			mloopcol = CustomData_get(ldata, (int)lindex[j], CD_PREVIEW_MLOOPCOL);
 			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
 		}
 	}
@@ -1148,7 +1148,7 @@ void BKE_mesh_loops_to_mface_corners(
 		OrigSpaceLoop *lof;
 
 		for (j = 0; j < mf_len; j++) {
-			lof = CustomData_get(ldata, lindex[j], CD_ORIGSPACE_MLOOP);
+			lof = CustomData_get(ldata, (int)lindex[j], CD_ORIGSPACE_MLOOP);
 			copy_v2_v2(of->uv[j], lof->uv);
 		}
 	}
@@ -1496,7 +1496,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 {
 	MLoop *mloop;
 
-	int lindex[4];
+	unsigned int lindex[4];
 	int i;
 	int k;
 
@@ -1554,9 +1554,9 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				/* sort loop indices to ensure winding is correct */
 				/* NO SORT - looks like we can skip this */
 
-				lindex[0] = (int)mf->v1;
-				lindex[1] = (int)mf->v2;
-				lindex[2] = (int)mf->v3;
+				lindex[0] = mf->v1;
+				lindex[1] = mf->v2;
+				lindex[2] = mf->v3;
 				lindex[3] = 0; /* unused */
 
 				/* transform loop indices to vert indices */
@@ -1573,10 +1573,10 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				/* sort loop indices to ensure winding is correct */
 				/* NO SORT - looks like we can skip this */
 
-				lindex[0] = (int)mf->v1;
-				lindex[1] = (int)mf->v2;
-				lindex[2] = (int)mf->v3;
-				lindex[3] = (int)mf->v4;
+				lindex[0] = mf->v1;
+				lindex[1] = mf->v2;
+				lindex[2] = mf->v3;
+				lindex[3] = mf->v4;
 
 				/* transform loop indices to vert indices */
 				mf->v1 = mloop[mf->v1].v;

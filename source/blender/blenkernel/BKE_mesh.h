@@ -211,7 +211,7 @@ bool BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 /* tessface */
 void BKE_mesh_loops_to_mface_corners(
         struct CustomData *fdata, struct CustomData *ldata,
-        struct CustomData *pdata, int lindex[4], int findex,
+        struct CustomData *pdata, unsigned int lindex[4], int findex,
         const int polyindex, const int mf_len,
         const int numTex, const int numCol,
         const bool hasPCol, const bool hasOrigSpace);
