@@ -328,6 +328,31 @@ bool ED_vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, co
 	return false;
 }
 
+static bool ed_vgroup_dm_parray_alloc(DerivedMesh *dm, MDeformVert ***dvert_arr, int *dvert_tot)
+{
+	*dvert_tot = 0;
+	*dvert_arr = NULL;
+
+	if (dm) {
+		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+
+		if (dvert) {
+			int i, totvert = dm->getNumVerts(dm);
+
+			*dvert_tot = totvert;
+			*dvert_arr = MEM_mallocN(sizeof(void *) * totvert, "vgroup parray from me");
+
+			for (i = 0; i < totvert; i++) {
+				(*dvert_arr)[i] = dvert + i;
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /**
  * For use with tools that use ED_vgroup_parray_alloc with \a use_vert_sel == true.
  * This finds the unselected mirror deform verts and copys the weights to them from the selected.
@@ -863,7 +888,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
                                       WT_Method method, WT_ReplaceMode replace_mode, wmOperator *op)
 {
 	bDeformGroup *dg_dst;
-	Mesh *me_dst, *me_src;
+	Mesh *me_dst;
 	DerivedMesh *dmesh_src;
 	BVHTreeFromMesh tree_mesh_vertices_src, tree_mesh_faces_src = {NULL};
 	MDeformVert **dv_array_src, **dv_array_dst, **dv_src, **dv_dst;
@@ -884,22 +909,20 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 	}
 
 	/* Get meshes.*/
-	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH);
+	dmesh_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH|CD_MASK_MDEFORMVERT);
 	me_dst = ob_dst->data;
-	me_src = ob_src->data;
 
-	/* Sanity check.*/
-	if (!me_src->dvert) {
+	/* Get vertex group array from source mesh */
+	if (!ed_vgroup_dm_parray_alloc(dmesh_src, &dv_array_src, &dv_tot_src)) {
 		BKE_report(op->reports, RPT_ERROR, "Transfer failed (source mesh does not have any vertex groups)");
 		return false;
 	}
 
 	/* Create data in memory when nothing there.*/
-	if (!me_dst->dvert) ED_vgroup_data_create(ob_dst->data);
+	if (!me_dst->dvert) ED_vgroup_data_create(&me_dst->id);
 
-	/* Get vertex group arrays.*/
-	ED_vgroup_parray_alloc(ob_src->data, &dv_array_src, &dv_tot_src, false);
-	ED_vgroup_parray_alloc(ob_dst->data, &dv_array_dst, &dv_tot_dst, use_vert_sel);
+	/* Get vertex group for destination mesh */
+	ED_vgroup_parray_alloc(&me_dst->id, &dv_array_dst, &dv_tot_dst, use_vert_sel);
 
 	/* Get indexes of vertex groups.*/
 	index_src = BLI_findindex(&ob_src->defbase, dg_src);
