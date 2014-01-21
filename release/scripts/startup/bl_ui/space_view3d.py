@@ -2839,14 +2839,15 @@ class VIEW3D_PT_view3d_shading(Panel):
 
         if not scene.render.use_shading_nodes:
             col.prop(gs, "material_mode", text="")
-            col.prop(view, "show_textured_solid")
 
         if view.viewport_shade == 'SOLID':
+            col.prop(view, "show_textured_solid")
             col.prop(view, "use_matcap")
             if view.use_matcap:
                 col.template_icon_view(view, "matcap_icon")
         elif view.viewport_shade == 'TEXTURED':
-            col.prop(view, "show_textured_shadeless")
+            if scene.render.use_shading_nodes or gs.material_mode != 'GLSL':
+                col.prop(view, "show_textured_shadeless")
 
         col.prop(view, "show_backface_culling")
         if obj and obj.mode == 'EDIT' and view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
