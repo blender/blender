@@ -260,6 +260,7 @@ typedef struct PreviewImage {
 /* runtime */
 #define LIB_ID_RECALC		4096
 #define LIB_ID_RECALC_DATA	8192
+#define LIB_ANIM_NO_RECALC 16384
 
 #ifdef __cplusplus
 }

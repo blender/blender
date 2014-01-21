@@ -1382,8 +1382,13 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			 * be run, it's for e.g. render engines to synchronize data */
 			if (written && new_ptr.id.data) {
 				ID *id = new_ptr.id.data;
-				id->flag |= LIB_ID_RECALC;
-				DAG_id_type_tag(G.main, GS(id->name));
+
+				/* for cases like duplifarmes it's only a temporary so don't
+				 * notify anyone of updates */
+				if (!(id->flag & LIB_ANIM_NO_RECALC)) {
+					id->flag |= LIB_ID_RECALC;
+					DAG_id_type_tag(G.main, GS(id->name));
+				}
 			}
 		}
 		

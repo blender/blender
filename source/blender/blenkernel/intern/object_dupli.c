@@ -29,6 +29,7 @@
  *  \ingroup bke
  */
 
+#include <limits.h>
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -170,8 +171,11 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 	 * dupli object between frames, which is needed for motion blur. last level
 	 * goes first in the array. */
 	dob->persistent_id[0] = index;
-	for (i = 0; i < ctx->level; i++)
-		dob->persistent_id[i + 1] = ctx->persistent_id[ctx->level - 1 - i];
+	for (i = 1; i < ctx->level+1; i++)
+		dob->persistent_id[i] = ctx->persistent_id[ctx->level - i];
+	/* fill rest of values with INT_MAX which index will never have as value */
+	for (; i < MAX_DUPLI_RECUR; i++)
+		dob->persistent_id[i] = INT_MAX;
 
 	if (hide)
 		dob->no_draw = true;
@@ -346,6 +350,10 @@ static void make_duplis_frames(const DupliContext *ctx)
 
 	/* duplicate over the required range */
 	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed = 0;
+
+	/* special flag to avoid setting recalc flags to notify the depsgraph of
+	 * updates, as this is not a permanent change to the object */
+	ob->id.flag |= LIB_ANIM_NO_RECALC;
 
 	for (scene->r.cfra = ob->dupsta; scene->r.cfra <= dupend; scene->r.cfra++) {
 		int ok = 1;
