@@ -659,7 +659,7 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		Scene *scene = CTX_data_scene(C);
 		ImageUser *iuser = iuserptr->data;
-		Image *ima = imaptr->data;
+		/* Image *ima = imaptr->data; */  /* UNUSED */
 
 		char numstr[32];
 		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);

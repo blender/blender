@@ -365,10 +365,10 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
 
 	BLI_assert(l_a != l_b);
 	BLI_assert(f == l_a->f && f == l_b->f);
-	BLI_assert(!BM_loop_is_adjacent(l_a, l_b));
+	BLI_assert(!((n == 0) && BM_loop_is_adjacent(l_a, l_b)));
 
 	/* could be an assert */
-	if (UNLIKELY(BM_loop_is_adjacent(l_a, l_b))) {
+	if (UNLIKELY((n == 0) && BM_loop_is_adjacent(l_a, l_b))) {
 		return NULL;
 	}
 
