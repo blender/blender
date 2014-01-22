@@ -558,7 +558,7 @@ RAS_MeshSlot* RAS_MaterialBucket::CopyMesh(RAS_MeshSlot *ms)
 	return &m_meshSlots.back();
 }
 
-void RAS_MaterialBucket::RemoveMeshSlot(RAS_MeshSlot *ms)
+void RAS_MaterialBucket::RemoveMesh(RAS_MeshSlot* ms)
 {
 	list<RAS_MeshSlot>::iterator it;
 
@@ -566,20 +566,6 @@ void RAS_MaterialBucket::RemoveMeshSlot(RAS_MeshSlot *ms)
 		if (&*it == ms) {
 			m_meshSlots.erase(it);
 			return;
-		}
-	}
-}
-
-void RAS_MaterialBucket::RemoveMesh(RAS_MeshObject *mesh)
-{
-	list<RAS_MeshSlot>::iterator it;
-	it=m_meshSlots.begin();
-	while (it != m_meshSlots.end()) {
-		if ((*it).m_mesh == mesh) {
-			m_meshSlots.erase(it++);
-		}
-		else {
-			++it;
 		}
 	}
 }

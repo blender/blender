@@ -1313,8 +1313,6 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 
 						int size_before = obs->GetCount();
 
-						gameobj->RemoveMeshes();
-
 						/* Eventually calls RemoveNodeDestructObject
 						 * frees m_map_gameobject_to_blender from UnregisterGameObject */
 						scene->RemoveObject(gameobj);

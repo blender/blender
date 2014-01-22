@@ -228,8 +228,7 @@ public:
 
 	class RAS_MeshSlot*	AddMesh(int numverts);
 	class RAS_MeshSlot* CopyMesh(class RAS_MeshSlot *ms);
-	void				RemoveMeshSlot(class RAS_MeshSlot *ms);
-	void				RemoveMesh(class RAS_MeshObject *mesh);
+	void				RemoveMesh(class RAS_MeshSlot* ms);
 	void				Optimize(MT_Scalar distance);
 	void				ActivateMesh(RAS_MeshSlot* slot)
 	{
