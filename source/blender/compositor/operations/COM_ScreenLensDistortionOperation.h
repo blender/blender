@@ -32,16 +32,18 @@ private:
 	 */
 	SocketReader *m_inputProgram;
 	
-	NodeLensDist *m_data;
+	bool m_fit;
+	bool m_jitter;
 	
 	float m_dispersion;
 	float m_distortion;
-	bool m_valuesAvailable;
-	float m_kr, m_kg, m_kb;
-	float m_kr4, m_kg4, m_kb4;
+	bool m_dispersion_const;
+	bool m_distortion_const;
+	bool m_variables_ready;
+	float m_k[3];
+	float m_k4[3];
+	float m_dk4[3];
 	float m_maxk;
-	float m_drg;
-	float m_dgb;
 	float m_sc, m_cx, m_cy;
 public:
 	ScreenLensDistortionOperation();
@@ -62,27 +64,25 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setData(NodeLensDist *data) { this->m_data = data; }
+	void setFit(bool fit) { m_fit = fit; }
+	void setJitter(bool jitter) { m_jitter = jitter; }
+	
+	/** Set constant distortion value */
+	void setDistortion(float distortion);
+	/** Set constant dispersion value */
+	void setDispersion(float dispersion);
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
-	/**
-	 * @brief Set the distortion and dispersion and precalc some values
-	 * @param distortion
-	 * @param dispersion
-	 */
-	void setDistortionAndDispersion(float distortion, float dispersion) {
-		this->m_distortion = distortion;
-		this->m_dispersion = dispersion;
-		updateVariables(distortion, dispersion);
-		this->m_valuesAvailable = true;
-	}
-
 private:
 	void determineUV(float result[6], float x, float y) const;
-	void determineUV(float result[6], float x, float y, float distortion, float dispersion);
-	void updateDispersionAndDistortion();
 	void updateVariables(float distortion, float dispersion);
 
+	void get_uv(const float xy[2], float uv[2]) const;
+	void distort_uv(const float uv[2], float t, float xy[2]) const;
+	bool get_delta(float r_sq, float k4, const float uv[2], float delta[2]) const;
+	void accumulate(MemoryBuffer *buffer, int a, int b,
+	                float r_sq, const float uv[2], const float delta[3][2],
+	                float sum[4], int count[3]) const;
 };
 #endif

@@ -32,8 +32,6 @@ private:
 	 */
 	SocketReader *m_inputProgram;
 	
-	NodeLensDist *m_data;
-	
 	float m_dispersion;
 	bool m_dispersionAvailable;
 	
@@ -56,8 +54,6 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
-	
-	void setData(NodeLensDist *data) { this->m_data = data; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
