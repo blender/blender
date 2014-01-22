@@ -216,7 +216,7 @@ void BKE_mesh_loops_to_mface_corners(
         const int numTex, const int numCol,
         const bool hasPCol, const bool hasOrigSpace);
 void BKE_mesh_loops_to_tessdata(
-        struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
+        struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata, struct MFace *mface,
         int *polyindices, unsigned int (*loopindices)[4], const int num_faces);
 int BKE_mesh_recalc_tessellation(
         struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,

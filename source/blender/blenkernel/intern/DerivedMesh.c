@@ -424,7 +424,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 /* NOTE: Assumes dm has valid tessellated data! */
 void DM_update_tessface_data(DerivedMesh *dm)
 {
-	MFace *mf = dm->getTessFaceArray(dm);
+	MFace *mf, *mface = dm->getTessFaceArray(dm);
 	MPoly *mp = dm->getPolyArray(dm);
 	MLoop *ml = dm->getLoopArray(dm);
 
@@ -451,7 +451,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	{
 		loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
 
-		for (mf_idx = 0; mf_idx < totface; mf_idx++, mf++) {
+		for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
 			const int mf_len = mf->v4 ? 4 : 3;
 			unsigned int *ml_idx = loopindex[mf_idx];
 			int i, not_done;
@@ -465,12 +465,14 @@ void DM_update_tessface_data(DerivedMesh *dm)
 					not_done--;
 				}
 			}
-			if (mf_len == 3) {
-				ml_idx[3] = 0;
-			}
 		}
 
-		BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, polyindex, loopindex, totface);
+		/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
+		 * Here, our tfaces' forth vertex index is never 0 for a quad. However, we know our forth loop index may be
+		 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
+		 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
+		 */
+		BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, mface, polyindex, loopindex, totface);
 
 		MEM_freeN(loopindex);
 	}

@@ -1156,11 +1156,18 @@ void BKE_mesh_loops_to_mface_corners(
 
 /**
  * Convert all CD layers from loop/poly to tessface data.
+ *
  * @loopindices is an array of an int[4] per tessface, mapping tessface's verts to loops indices.
+ *
+ * Note when mface is not NULL, mface[face_index].v4 is used to test quads, else, loopindices[face_index][3] is used.
  */
-void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData *pdata,
+void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData *pdata, MFace *mface,
                                 int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
 {
+	/* Note: performances are sub-optimal when we get a NULL mface, we could be ~25% quicker with dedicated code...
+	 *       Issue is, unless having two different functions with nearly the same code, there's not much ways to solve
+	 *       this. Better imho to live with it for now. :/ --mont29
+	 */
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
@@ -1180,7 +1187,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		{
 			ME_MTEXFACE_CPY(texface, &texpoly[*pidx]);
 
-			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
 				copy_v2_v2(texface->uv[j], mloopuv[(*lidx)[j]].uv);
 			}
 		}
@@ -1191,7 +1198,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		MLoopCol *mloopcol = CustomData_get_layer_n(ldata, CD_MLOOPCOL, i);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
 				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
 			}
 		}
@@ -1202,7 +1209,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		MLoopCol *mloopcol = CustomData_get_layer(ldata, CD_PREVIEW_MLOOPCOL);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
 				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
 			}
 		}
@@ -1213,7 +1220,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		OrigSpaceLoop *lof = CustomData_get_layer(ldata, CD_ORIGSPACE_MLOOP);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, of++) {
-			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
 				copy_v2_v2(of->uv[j], lof[(*lidx)[j]].uv);
 			}
 		}
@@ -1223,28 +1230,21 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 /**
  * Recreate tessellation.
  *
- * use_poly_origindex sets whether or not the tessellation faces' origindex
- * layer should point to original poly indices or real poly indices.
- *
- * use_face_origindex sets the tessellation faces' origindex layer
- * to point to the tessellation faces themselves, not the polys.
- *
- * if both of the above are 0, it'll use the indices of the mpolys of the MPoly
- * data in pdata, and ignore the origindex layer altogether.
+ * @do_face_nor_copy controls whether the normals from the poly are copied to the tessellated faces.
  *
  * \return number of tessellation faces.
  */
 int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomData *pdata,
-                                 MVert *mvert, int totface, int totloop, int totpoly,
-                                 /* when tessellating to recalculate normals after
-                                  * we can skip copying here */
-                                 const bool do_face_nor_cpy)
+                                 MVert *mvert, int totface, int totloop, int totpoly, const bool do_face_nor_cpy)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
 
 #define USE_TESSFACE_SPEEDUP
-#define USE_TESSFACE_QUADS // NEEDS FURTHER TESTING
+#define USE_TESSFACE_QUADS  /* NEEDS FURTHER TESTING */
+
+/* We abuse MFace->edcode to tag quad faces. See below for details. */
+#define TESSFACE_IS_QUAD 1
 
 	const int looptris_tot = poly_to_tri_count(totpoly, totloop);
 
@@ -1298,6 +1298,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomDat
 		lidx[3] = 0;                                                          \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
+		mf->edcode = 0;                                                       \
 		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
@@ -1320,6 +1321,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomDat
 		lidx[3] = l4;                                                         \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
+		mf->edcode = TESSFACE_IS_QUAD;                                        \
 		(void)0
 
 
@@ -1411,6 +1413,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomDat
 
 				mf->mat_nr = mp->mat_nr;
 				mf->flag = mp->flag;
+				mf->edcode = 0;
 
 				mface_index++;
 			}
@@ -1454,21 +1457,27 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomDat
 		}
 	}
 
-	BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, mface_to_poly_map, lindices, totface);
-
-	/* XXX Is it really needed to call test_index_face here??? Since we reuse tris/quads as-is, and sort tris generated
-	 *     by scanfill, our indices should always be OK?
+	/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
+	 * Polygons take care of their loops ordering, hence not of their vertices ordering.
+	 * Currently, our tfaces' forth vertex index might be 0 even for a quad. However, we know our forth loop index is
+	 * never 0 for quads (because they are sorted for polygons, and our quads are still mere copies of their polygons).
+	 * So we pass NULL as MFace pointer, and BKE_mesh_loops_to_tessdata will use the forth loop index as quad test.
+	 * ...
 	 */
-#if 0
+	BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, NULL, mface_to_poly_map, lindices, totface);
+
+	/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
+	 * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
+	 * test_index_face() will check this and rotate the tessellated face if needed.
+	 */
 #ifdef USE_TESSFACE_QUADS
 	mf = mface;
 	for (mface_index = 0; mface_index < totface; mface_index++, mf++) {
-		const int mf_len = mf->v4 ? 4 : 3;
-
-		if (test_index_face(mf, fdata, mface_index, mf_len) != mf_len)
-			printf("%s: test_index_face had to make changes!!!\n", __func__);
+		if (mf->edcode == TESSFACE_IS_QUAD) {
+			test_index_face(mf, fdata, mface_index, 4);
+			mf->edcode = 0;
+		}
 	}
-#endif
 #endif
 
 	MEM_freeN(lindices);
