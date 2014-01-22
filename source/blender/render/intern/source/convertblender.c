@@ -3924,6 +3924,14 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	return go;
 }
 
+static bool is_object_hidden(Render *re, Object *ob)
+{
+	if (re->r.scemode & R_VIEWPORT_PREVIEW)
+		return (ob->restrictflag & OB_RESTRICT_VIEW) != 0;
+	else
+		return (ob->restrictflag & OB_RESTRICT_RENDER) != 0;
+}
+
 /* layflag: allows material group to ignore layerflag */
 static void add_lightgroup(Render *re, Group *group, int exclusive)
 {
@@ -3936,7 +3944,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 	for (go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
 
-		if (go->ob->restrictflag & OB_RESTRICT_RENDER)
+		if (is_object_hidden(re, go->ob))
 			continue;
 		
 		if (go->ob->lay & re->lay) {
@@ -3964,7 +3972,7 @@ static void set_material_lightgroups(Render *re)
 	Material *ma;
 	
 	/* not for preview render */
-	if (re->scene->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))
+	if (re->r.scemode & (R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))
 		return;
 	
 	for (group= re->main->group.first; group; group=group->id.next)
@@ -4961,7 +4969,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		lay= (timeoffset)? renderlay & vectorlay: renderlay;
 
 		/* if the object has been restricted from rendering in the outliner, ignore it */
-		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
+		if (is_object_hidden(re, ob)) continue;
 
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if (ob->flag & OB_DONE) {
@@ -4994,7 +5002,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					if (!(obd->transflag & OB_RENDER_DUPLI) && dob->no_draw)
 						continue;
 
-					if (obd->restrictflag & OB_RESTRICT_RENDER)
+					if (is_object_hidden(re, obd))
 						continue;
 
 					if (obd->type==OB_MBALL)
