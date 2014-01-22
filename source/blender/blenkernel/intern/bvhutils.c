@@ -648,7 +648,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float e
 	BVHTree *tree;
 	MVert *vert;
 	MFace *face;
-	bool vert_allocated, face_allocated;
+	bool vert_allocated = false, face_allocated = false;
 
 	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
 	tree = bvhcache_find(&dm->bvhCache, bvhcache_type);
