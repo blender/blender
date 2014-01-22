@@ -1974,10 +1974,10 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
 		while (ob) {
 			BKE_animsys_evaluate_animdata(sim->scene, &ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
+			BKE_object_where_is_calc_time(sim->scene, ob, pa->time);
 			ob = ob->parent;
 		}
 		ob = sim->ob;
-		BKE_object_where_is_calc_time(sim->scene, ob, pa->time);
 
 		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
@@ -5076,10 +5076,10 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if (psys->flag & PSYS_OB_ANIM_RESTORE) {
 		while (ob) {
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+			BKE_object_where_is_calc_time(scene, ob, cfra);
 			ob = ob->parent;
 		}
 		ob = sim.ob;
-		BKE_object_where_is_calc_time(scene, ob, cfra);
 
 		psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 	}
