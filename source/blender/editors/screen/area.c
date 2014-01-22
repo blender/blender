@@ -1184,7 +1184,12 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 /* used for area initialize below */
 static void region_subwindow(wmWindow *win, ARegion *ar)
 {
-	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
+	bool hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) != 0;
+
+	if ((ar->alignment & RGN_SPLIT_PREV) && ar->prev)
+		hidden = hidden || (ar->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
+
+	if (hidden) {
 		if (ar->swinid)
 			wm_subwindow_close(win, ar->swinid);
 		ar->swinid = 0;
