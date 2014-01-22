@@ -3274,6 +3274,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	/* prevent mem checkers from complaining */
 	fg.pads= 0;
 	memset(fg.filename, 0, sizeof(fg.filename));
+	memset(fg.build_hash, 0, sizeof(fg.build_hash));
 
 	current_screen_compat(mainvar, &screen);
 
