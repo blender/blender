@@ -141,6 +141,7 @@ static int write_audio_frame(void)
 
 #ifdef FFMPEG_HAVE_ENCODE_AUDIO2
 	frame = avcodec_alloc_frame();
+	frame->pts = audio_time / av_q2d(c->time_base);
 	frame->nb_samples = audio_input_samples;
 	frame->format = c->sample_fmt;
 #ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
@@ -188,10 +189,12 @@ static int write_audio_frame(void)
 #endif
 
 	if (got_output) {
-		if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE) {
-			pkt.pts = av_rescale_q(c->coded_frame->pts, c->time_base, audio_stream->time_base);
-			PRINT("Audio Frame PTS: %d\n", (int) pkt.pts);
-		}
+		if (pkt.pts != AV_NOPTS_VALUE)
+			pkt.pts = av_rescale_q(pkt.pts, c->time_base, audio_stream->time_base);
+		if (pkt.dts != AV_NOPTS_VALUE)
+			pkt.dts = av_rescale_q(pkt.dts, c->time_base, audio_stream->time_base);
+		if (pkt.duration > 0)
+			pkt.duration = av_rescale_q(pkt.duration, c->time_base, audio_stream->time_base);
 
 		pkt.stream_index = audio_stream->index;
 
