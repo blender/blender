@@ -2765,7 +2765,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v4= NULL;
 
 						/* to prevent float accuracy issues, we calculate normal in local object space (not world) */
-						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON10) {
+						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON) {
 							normal_tri_v3(tmp, co3, co2, co1);
 							add_v3_v3(n, tmp);
 						}
