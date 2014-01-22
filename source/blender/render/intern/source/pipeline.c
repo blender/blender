@@ -2335,7 +2335,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 	if (camera_override == NULL && scene->camera == NULL)
 		scene->camera = BKE_scene_camera_find(scene);
 
-	if (scene->r.scemode & R_DOSEQ) {
+	if (RE_seq_render_active(scene, &scene->r)) {
 		if (scene->ed) {
 			Sequence *seq = scene->ed->seqbase.first;
 
