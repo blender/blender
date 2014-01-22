@@ -443,7 +443,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 }
 
 /* uv collapse function */
-static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
+static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short oflag)
 {
 	BMIter iter, liter;
 	BMFace *f;
@@ -454,19 +454,14 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	CDBlockBytes min, max;
 	int i, tot, type = bm->ldata.layers[layer].type;
 
-	/* clear all short flags */
-	BMO_mesh_flag_disable_all(bm, op, BM_ALL, (1 << 16) - 1);
-
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
-
 	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
-	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
+	         BMW_MASK_NOP, oflag, BMW_MASK_NOP,
 	         BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
 	         layer);
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
+			if (BMO_elem_flag_test(bm, l->e, oflag)) {
 				/* walk */
 				BLI_array_empty(blocks);
 
@@ -497,12 +492,33 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 
 void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 {
+	const short oflag = EDGE_MARK;
 	int i;
+
+	/* check flags dont change once set */
+#ifndef NDEBUG
+	int tot_test;
+#endif
+
+	if (!CustomData_has_math(&bm->ldata)) {
+		return;
+	}
+
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, oflag);
+
+#ifndef NDEBUG
+	tot_test = BM_iter_mesh_count_flag(BM_EDGES_OF_MESH, bm, oflag, true);
+#endif
 
 	for (i = 0; i < bm->ldata.totlayer; i++) {
 		if (CustomData_layer_has_math(&bm->ldata, i))
-			bmo_collapsecon_do_layer(bm, op, i);
+			bmo_collapsecon_do_layer(bm, i, oflag);
 	}
+
+#ifndef NDEBUG
+	BLI_assert(tot_test == BM_iter_mesh_count_flag(BM_EDGES_OF_MESH, bm, EDGE_MARK, true));
+#endif
+
 }
 
 static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
