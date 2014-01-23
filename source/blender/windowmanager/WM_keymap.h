@@ -51,6 +51,7 @@ void		WM_keyconfig_set_active(struct wmWindowManager *wm, const char *idname);
 
 void		WM_keyconfig_update(struct wmWindowManager *wm);
 void		WM_keyconfig_update_tag(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+void        WM_keyconfig_update_operatortype(void);
 
 /* Keymap */
 

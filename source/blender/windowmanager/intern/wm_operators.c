@@ -477,6 +477,8 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
 
 	BLI_ghash_remove(global_ops_hash, (void *)ot->idname, NULL, NULL);
 
+	WM_keyconfig_update_operatortype();
+
 	MEM_freeN(ot);
 }
 

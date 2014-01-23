@@ -98,6 +98,56 @@ static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
 	WM_operator_properties_sanitize(kmi->ptr, 1);
 }
 
+/**
+ * Similar to #wm_keymap_item_properties_set but checks for the wmOperatorType having changed, see [#38042]
+ */
+static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
+{
+	if (kmi->idname[0] == 0) {
+		BLI_assert(kmi->ptr == NULL);
+		return;
+	}
+
+	if (kmi->ptr == NULL) {
+		wm_keymap_item_properties_set(kmi);
+	}
+	else {
+		wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+		if (ot) {
+			if (ot->srna != kmi->ptr->type) {
+				/* matches wm_keymap_item_properties_set but doesnt alloc new ptr */
+				WM_operator_properties_create_ptr(kmi->ptr, ot);
+				WM_operator_properties_sanitize(kmi->ptr, 1);
+			}
+		}
+		else {
+			/* zombie keymap item */
+			MEM_SAFE_FREE(kmi->ptr);
+		}
+	}
+}
+
+static void wm_keyconfig_properties_update_ot(ListBase *km_lb)
+{
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+
+	for (km = km_lb->first; km; km = km->next) {
+		wmKeyMapDiffItem *kmdi;
+
+		for (kmi = km->items.first; kmi; kmi = kmi->next) {
+			wm_keymap_item_properties_update_ot(kmi);
+		}
+
+		for (kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
+			if (kmdi->add_item)
+				wm_keymap_item_properties_update_ot(kmdi->add_item);
+			if (kmdi->remove_item)
+				wm_keymap_item_properties_update_ot(kmdi->remove_item);
+		}
+	}
+}
+
 static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 {
 	if (strcmp(a->idname, b->idname) != 0)
@@ -1087,17 +1137,30 @@ int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
  * the preset, addon and user preferences keymaps. We also test if the final
  * configuration changed and write the changes to the user preferences. */
 
-static bool WM_KEYMAP_UPDATE = false;
+/* so operator removal can trigger update */
+enum {
+	WM_KEYMAP_UPDATE_RECONFIGURE    = (1 << 0),
+
+	/* ensure all wmKeyMap have their operator types validated after removing an operator */
+	WM_KEYMAP_UPDATE_OPERATORTYPE   = (1 << 1),
+};
+
+static char wm_keymap_update_flag = 0;
 
 void WM_keyconfig_update_tag(wmKeyMap *km, wmKeyMapItem *kmi)
 {
 	/* quick tag to do delayed keymap updates */
-	WM_KEYMAP_UPDATE = true;
+	wm_keymap_update_flag |= WM_KEYMAP_UPDATE_RECONFIGURE;
 
 	if (km)
 		km->flag |= KEYMAP_UPDATE;
 	if (kmi)
 		kmi->flag |= KMI_UPDATE;
+}
+
+void WM_keyconfig_update_operatortype(void)
+{
+	wm_keymap_update_flag |= WM_KEYMAP_UPDATE_OPERATORTYPE;
 }
 
 static int wm_keymap_test_and_clear_update(wmKeyMap *km)
@@ -1137,8 +1200,39 @@ void WM_keyconfig_update(wmWindowManager *wm)
 
 	if (G.background)
 		return;
-	if (!WM_KEYMAP_UPDATE)
+
+	if (wm_keymap_update_flag == 0)
 		return;
+
+	if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_OPERATORTYPE) {
+		/* an operatortype has been removed, this wont happen often
+		 * but when it does we have to check _every_ keymap item */
+		wmKeyConfig *kc;
+
+		ListBase *keymaps_lb[] = {
+		    &U.user_keymaps,
+		    &wm->userconf->keymaps,
+		    &wm->defaultconf->keymaps,
+		    &wm->addonconf->keymaps,
+		    NULL};
+
+		int i;
+
+		for (i = 0; keymaps_lb[i]; i++) {
+			wm_keyconfig_properties_update_ot(keymaps_lb[i]);
+		}
+
+		for (kc = wm->keyconfigs.first; kc; kc = kc->next) {
+			wm_keyconfig_properties_update_ot(&kc->keymaps);
+		}
+
+		wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
+	}
+
+
+	if (wm_keymap_update_flag == 0)
+		return;
+
 	
 	/* update operator properties for non-modal user keymaps */
 	for (km = U.user_keymaps.first; km; km = km->next) {
@@ -1188,9 +1282,12 @@ void WM_keyconfig_update(wmWindowManager *wm)
 
 		/* in case of old non-diff keymaps, force extra update to create diffs */
 		compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
+
 	}
 
-	WM_KEYMAP_UPDATE = false;
+	wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_RECONFIGURE;
+
+	BLI_assert(wm_keymap_update_flag == 0);
 
 	if (compat_update) {
 		WM_keyconfig_update_tag(NULL, NULL);
