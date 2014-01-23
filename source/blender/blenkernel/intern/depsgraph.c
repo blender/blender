@@ -2959,7 +2959,19 @@ const char *DAG_get_node_name(void *node_v)
 
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
 {
-	DagNode *node = dag_find_node(scene->theDag, object);;
+	DagNode *node;
+
+	if (scene->theDag == NULL) {
+		/* Happens when converting objects to mesh from a python script
+		 * after modifying scene graph.
+		 *
+		 * Currently harmless because it's only called for temporary
+		 * objects which are out of the DAG anyway.
+		 */
+		return 0;
+	}
+
+	node = dag_find_node(scene->theDag, object);;
 
 	if (node) {
 		return node->eval_flags;
