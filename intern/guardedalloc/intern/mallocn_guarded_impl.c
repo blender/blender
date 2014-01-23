@@ -545,7 +545,7 @@ void *MEM_guarded_mapallocN(size_t len, const char *str)
 	 * allocating > 4 GB on Windows. the only reason mapalloc exists
 	 * is to get around address space limitations in 32 bit OSes. */
 	if(sizeof(void*) >= 8)
-		return MEM_lockfree_callocN(len, str);
+		return MEM_guarded_callocN(len, str);
 
 	len = SIZET_ALIGN_4(len);
 
