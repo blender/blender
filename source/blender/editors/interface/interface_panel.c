@@ -1440,7 +1440,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	UI_GetThemeColor4ubv(TH_TAB_INACTIVE, theme_col_tab_inactive);
 	UI_GetThemeColor4ubv(TH_TAB_OUTLINE, theme_col_tab_outline);
 
-	blend_color_interpolate_byte(theme_col_tab_divider, theme_col_back, theme_col_text, 0.3f);
+	blend_color_interpolate_byte(theme_col_tab_divider, theme_col_back, theme_col_tab_outline, 0.3f);
 	blend_color_interpolate_byte(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
 	blend_color_interpolate_byte(theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
 
