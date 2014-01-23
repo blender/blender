@@ -1914,6 +1914,7 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 {
 	CustomDataLayer *layer;
 	int i, j;
+	bool changed = false;
 
 	for (i = 0, j = 0; i < data->totlayer; ++i) {
 		layer = &data->layers[i];
@@ -1921,18 +1922,24 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 		if (i != j)
 			data->layers[j] = data->layers[i];
 
-		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY)
+		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY) {
 			customData_free_layer__internal(layer, totelem);
+			changed = true;
+		}
 		else
 			j++;
 	}
 
 	data->totlayer = j;
 
-	if (data->totlayer <= data->maxlayer - CUSTOMDATA_GROW)
+	if (data->totlayer <= data->maxlayer - CUSTOMDATA_GROW) {
 		customData_resize(data, -CUSTOMDATA_GROW);
+		changed = true;
+	}
 
-	customData_update_offsets(data);
+	if (changed) {
+		customData_update_offsets(data);
+	}
 }
 
 void CustomData_set_only_copy(const struct CustomData *data,
