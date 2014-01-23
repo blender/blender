@@ -97,7 +97,7 @@ void GPU_render_text(MTFace *tface, int mode,
 		Image* ima = (Image *)tface->tpage;
 		ImBuf *first_ibuf;
 		const size_t textlen_st = textlen;
-		size_t index, character;
+		size_t index;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 		float advance_tab;
 		
@@ -129,6 +129,7 @@ void GPU_render_text(MTFace *tface, int mode,
 		
 		
 		for (index = 0; index < textlen_st; ) {
+			unsigned int character;
 			float uv[4][2];
 
 			// lets calculate offset stuff
@@ -144,6 +145,10 @@ void GPU_render_text(MTFace *tface, int mode,
 				line_start -= advance_tab; /* so we can go back to the start of the line */
 				continue;
 				
+			}
+			else if (character > USHRT_MAX) {
+				/* not much we can do here bmfonts take ushort */
+				character = '?';
 			}
 			
 			// space starts at offset 1
