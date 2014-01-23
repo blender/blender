@@ -461,14 +461,10 @@ static void wm_operatortype_free_macro(wmOperatorType *ot)
 	BLI_freelistN(&ot->macro);
 }
 
-
-int WM_operatortype_remove(const char *idname)
+void WM_operatortype_remove_ptr(wmOperatorType *ot)
 {
-	wmOperatorType *ot = WM_operatortype_find(idname, 0);
+	BLI_assert(ot == WM_operatortype_find(ot->idname, false));
 
-	if (ot == NULL)
-		return 0;
-	
 	RNA_struct_free(&BLENDER_RNA, ot->srna);
 
 	if (ot->last_properties) {
@@ -482,7 +478,18 @@ int WM_operatortype_remove(const char *idname)
 	BLI_ghash_remove(global_ops_hash, (void *)ot->idname, NULL, NULL);
 
 	MEM_freeN(ot);
-	return 1;
+}
+
+bool WM_operatortype_remove(const char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find(idname, 0);
+
+	if (ot == NULL)
+		return false;
+
+	WM_operatortype_remove_ptr(ot);
+
+	return true;
 }
 
 /* SOME_OT_op -> some.op */

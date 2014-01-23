@@ -887,7 +887,7 @@ static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 	RNA_struct_free_extension(type, &ot->ext);
 
 	idname = ot->idname;
-	WM_operatortype_remove(ot->idname);
+	WM_operatortype_remove_ptr(ot);
 	MEM_freeN((void *)idname);
 
 	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */

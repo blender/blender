@@ -535,7 +535,8 @@ struct GHashIterator *WM_operatortype_iter() {STUB_ASSERT(0); return (struct GHa
 struct wmOperatorType *WM_operatortype_exists(const char *idname) {STUB_ASSERT(0); return (struct wmOperatorType *) NULL;}
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname) {STUB_ASSERT(0); return (struct wmOperatorTypeMacro *) NULL;}
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, short is_undo, struct PointerRNA *properties, struct ReportList *reports) {STUB_ASSERT(0); return 0;}
-int WM_operatortype_remove(const char *idname) {STUB_ASSERT(0); return 0;}
+void WM_operatortype_remove_ptr(struct wmOperatorType *ot) {STUB_ASSERT(0); }
+bool WM_operatortype_remove(const char *idname) {STUB_ASSERT(0); return 0;}
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot) {STUB_ASSERT(0); return 0;}
 int WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context) {STUB_ASSERT(0); return 0;}
 int WM_operator_props_popup(struct bContext *C, struct wmOperator *op, struct wmEvent *event) {STUB_ASSERT(0); return 0;}
