@@ -154,6 +154,7 @@ typedef struct uiGradientColors {
 	char high_gradient[4];
 	int show_grad;
 	int pad2;
+
 } uiGradientColors;
 
 typedef struct ThemeUI {
@@ -196,6 +197,12 @@ typedef struct ThemeSpace {
 	char header_title[4];	/* unused */
 	char header_text[4];
 	char header_text_hi[4];
+
+	/* region tabs */
+	char tab_active[4];
+	char tab_inactive[4];
+	char tab_back[4];
+	char tab_outline[4];
 
 	/* button/tool regions */
 	char button[4];			/* region background */

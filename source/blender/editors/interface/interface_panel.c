@@ -1418,9 +1418,12 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	unsigned char theme_col_text[4];
 	unsigned char theme_col_text_hi[4];
 
-	/* Secondary theme colors */
+	/* Tab colors */
 	unsigned char theme_col_tab_bg[4];
+	unsigned char theme_col_tab_active[4];
 	unsigned char theme_col_tab_inactive[4];
+
+	/* Secondary theme colors */
 	unsigned char theme_col_tab_outline[4];
 	unsigned char theme_col_tab_divider[4];  /* line that divides tabs from the main area */
 	unsigned char theme_col_tab_highlight[4];
@@ -1432,11 +1435,12 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	UI_GetThemeColor4ubv(TH_TEXT, theme_col_text);
 	UI_GetThemeColor4ubv(TH_TEXT_HI, theme_col_text_hi);
 
-	blend_color_interpolate_byte(theme_col_tab_bg, theme_col_back, theme_col_text, 0.2f);
-	blend_color_interpolate_byte(theme_col_tab_inactive, theme_col_back, theme_col_text, 0.10f);
-	blend_color_interpolate_byte(theme_col_tab_outline, theme_col_back, theme_col_text, 0.3f);
-	blend_color_interpolate_byte(theme_col_tab_divider, theme_col_back, theme_col_text, 0.3f);
+	UI_GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
+	UI_GetThemeColor4ubv(TH_TAB_ACTIVE, theme_col_tab_active);
+	UI_GetThemeColor4ubv(TH_TAB_INACTIVE, theme_col_tab_inactive);
+	UI_GetThemeColor4ubv(TH_TAB_OUTLINE, theme_col_tab_outline);
 
+	blend_color_interpolate_byte(theme_col_tab_divider, theme_col_back, theme_col_text, 0.3f);
 	blend_color_interpolate_byte(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
 	blend_color_interpolate_byte(theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
 
@@ -1509,7 +1513,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		if (is_active)
 #endif
 		{
-			glColor3ubv(is_active ? theme_col_back : theme_col_tab_inactive);
+			glColor3ubv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
 			ui_panel_category_draw_tab(GL_POLYGON, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
 			                           tab_curve_radius - px, roundboxtype, true, true, NULL);
 

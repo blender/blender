@@ -246,6 +246,15 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_BUTBACK_TEXT_HI:
 					cp = ts->button_text_hi; break;
 
+				case TH_TAB_ACTIVE:
+					cp = ts->tab_active; break;
+				case TH_TAB_INACTIVE:
+					cp = ts->tab_inactive; break;
+				case TH_TAB_BACK:
+					cp = ts->tab_back; break;
+				case TH_TAB_OUTLINE:
+					cp = ts->tab_outline; break;
+
 				case TH_SHADE1:
 					cp = ts->shade1; break;
 				case TH_SHADE2:
@@ -713,23 +722,30 @@ static void ui_theme_init_boneColorSets(bTheme *btheme)
 /* use this call to init new variables in themespace, if they're same for all */
 static void ui_theme_init_new_do(ThemeSpace *ts)
 {
-	rgba_char_args_test_set(ts->header_text,        0, 0, 0, 255);
-	rgba_char_args_test_set(ts->header_title,   0, 0, 0, 255);
-	rgba_char_args_test_set(ts->header_text_hi, 255, 255, 255, 255);
+	rgba_char_args_set(ts->header_text,    0, 0, 0, 255);
+	rgba_char_args_set(ts->header_title,   0, 0, 0, 255);
+	rgba_char_args_set(ts->header_text_hi, 255, 255, 255, 255);
 
-//	rgba_char_args_test_set(ts->panel_text,     0, 0, 0, 255);
-//	rgba_char_args_test_set(ts->panel_title,        0, 0, 0, 255);
-//	rgba_char_args_test_set(ts->panel_text_hi,  255, 255, 255, 255);
+#if 0
+	rgba_char_args_set(ts->panel_text,     0, 0, 0, 255);
+	rgba_char_args_set(ts->panel_title,        0, 0, 0, 255);
+	rgba_char_args_set(ts->panel_text_hi,  255, 255, 255, 255);
+#endif
 
-	rgba_char_args_test_set(ts->button,         145, 145, 145, 245);
-	rgba_char_args_test_set(ts->button_title,   0, 0, 0, 255);
-	rgba_char_args_test_set(ts->button_text,        0, 0, 0, 255);
-	rgba_char_args_test_set(ts->button_text_hi, 255, 255, 255, 255);
+	rgba_char_args_set(ts->button,         145, 145, 145, 245);
+	rgba_char_args_set(ts->button_title,   0, 0, 0, 255);
+	rgba_char_args_set(ts->button_text,        0, 0, 0, 255);
+	rgba_char_args_set(ts->button_text_hi, 255, 255, 255, 255);
 
-	rgba_char_args_test_set(ts->list,           165, 165, 165, 255);
-	rgba_char_args_test_set(ts->list_title,     0, 0, 0, 255);
-	rgba_char_args_test_set(ts->list_text,      0, 0, 0, 255);
-	rgba_char_args_test_set(ts->list_text_hi,   255, 255, 255, 255);
+	rgba_char_args_set(ts->list,           165, 165, 165, 255);
+	rgba_char_args_set(ts->list_title,     0, 0, 0, 255);
+	rgba_char_args_set(ts->list_text,      0, 0, 0, 255);
+	rgba_char_args_set(ts->list_text_hi,   255, 255, 255, 255);
+
+	rgba_char_args_set(ts->tab_active,     114, 114, 114, 255);
+	rgba_char_args_set(ts->tab_inactive,   100, 100, 100, 255);
+	rgba_char_args_set(ts->tab_back,       70, 70, 70, 255);
+	rgba_char_args_set(ts->tab_outline,    60, 60, 60, 255);
 }
 
 static void ui_theme_init_new(bTheme *btheme)
@@ -2384,6 +2400,20 @@ void init_userdef_do_versions(void)
 		if (U.gpencil_new_layer_col[3] < 0.1f) {
 			/* defaults to black, but must at least be visible! */
 			U.gpencil_new_layer_col[3] = 0.9f;
+		}
+	}
+
+	if (U.versionfile < 269 || (U.versionfile == 269 && U.subversionfile < 10)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			ThemeSpace *ts;
+
+			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
+				rgba_char_args_set(ts->tab_active, 114, 114, 114, 255);
+				rgba_char_args_set(ts->tab_inactive, 100, 100, 100, 255);
+				rgba_char_args_set(ts->tab_back, 70, 70, 70, 255);
+				rgba_char_args_set(ts->tab_outline, 60, 60, 60, 255);
+			}
 		}
 	}
 	
