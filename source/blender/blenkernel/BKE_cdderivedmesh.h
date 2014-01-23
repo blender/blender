@@ -52,10 +52,10 @@ struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces,
  * data to not overwrite the original */
 struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh);
 
-struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, int use_mdisps);
+struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, const bool use_mdisps);
 
 /* creates a CDDerivedMesh from the given BMEditMesh */
-DerivedMesh *CDDM_from_editbmesh(struct BMEditMesh *em, int use_mdisps, int use_tessface);
+DerivedMesh *CDDM_from_editbmesh(struct BMEditMesh *em, const bool use_mdisps, const bool use_tessface);
 
 /* merge verts  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int tot_vtargetmap);
@@ -95,7 +95,7 @@ void CDDM_apply_vert_normals(struct DerivedMesh *cddm, short (*vertNormals)[3]);
 
 /* recalculates vertex and face normals for a CDDerivedMesh
  */
-void CDDM_calc_normals_mapping_ex(struct DerivedMesh *dm, const short only_face_normals);
+void CDDM_calc_normals_mapping_ex(struct DerivedMesh *dm, const bool only_face_normals);
 void CDDM_calc_normals_mapping(struct DerivedMesh *dm);
 void CDDM_calc_normals(struct DerivedMesh *dm);
 void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
@@ -112,7 +112,7 @@ void CDDM_calc_edges(struct DerivedMesh *dm);
 
 /* reconstitute face triangulation */
 void CDDM_recalc_tessellation(struct DerivedMesh *dm);
-void CDDM_recalc_tessellation_ex(struct DerivedMesh *dm, const int do_face_nor_cpy);
+void CDDM_recalc_tessellation_ex(struct DerivedMesh *dm, const bool do_face_nor_cpy);
 
 /* lowers the number of vertices/edges/faces in a CDDerivedMesh
  * the layer data stays the same size

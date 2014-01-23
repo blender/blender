@@ -366,7 +366,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 	/* get DerivedMesh */
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editbmesh(em, FALSE, FALSE);
+		dm = CDDM_from_editbmesh(em, false, false);
 		freeDM = 1;
 	}
 	else {

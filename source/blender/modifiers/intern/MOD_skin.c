@@ -1787,7 +1787,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	if (!bm)
 		return NULL;
 	
-	result = CDDM_from_bmesh(bm, FALSE);
+	result = CDDM_from_bmesh(bm, false);
 	BM_mesh_free(bm);
 
 	CDDM_calc_edges(result);

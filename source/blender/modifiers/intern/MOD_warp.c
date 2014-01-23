@@ -334,7 +334,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *em,
 
 	if (use_dm) {
 		if (!derivedData)
-			dm = CDDM_from_editbmesh(em, FALSE, FALSE);
+			dm = CDDM_from_editbmesh(em, false, false);
 	}
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0);

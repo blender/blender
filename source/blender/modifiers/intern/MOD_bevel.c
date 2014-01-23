@@ -165,7 +165,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup);
 
-	result = CDDM_from_bmesh(bm, TRUE);
+	result = CDDM_from_bmesh(bm, true);
 
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&

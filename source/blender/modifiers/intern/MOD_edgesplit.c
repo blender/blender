@@ -95,7 +95,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 
-	result = CDDM_from_bmesh(bm, TRUE);
+	result = CDDM_from_bmesh(bm, true);
 	BM_mesh_free(bm);
 
 	result->dirty |= DM_DIRTY_NORMALS;

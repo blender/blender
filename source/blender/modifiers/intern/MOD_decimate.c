@@ -191,7 +191,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* update for display only */
 	dmd->face_count = bm->totface;
-	result = CDDM_from_bmesh(bm, FALSE);
+	result = CDDM_from_bmesh(bm, false);
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */

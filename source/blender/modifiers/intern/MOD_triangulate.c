@@ -47,7 +47,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int quad_method, const
 
 	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL);
 
-	result = CDDM_from_bmesh(bm, FALSE);
+	result = CDDM_from_bmesh(bm, false);
 	BM_mesh_free(bm);
 
 	total_edges = result->getNumEdges(result);

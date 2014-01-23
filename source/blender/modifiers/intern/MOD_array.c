@@ -549,7 +549,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* Bump the stack level back down to match the adjustment up above */
 	BMO_pop(bm);
 
-	result = CDDM_from_bmesh(bm, FALSE);
+	result = CDDM_from_bmesh(bm, false);
 
 	if ((dm->dirty & DM_DIRTY_NORMALS) ||
 	    ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)))

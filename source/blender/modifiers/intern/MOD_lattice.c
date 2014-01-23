@@ -128,7 +128,7 @@ static void deformVertsEM(
 {
 	DerivedMesh *dm = derivedData;
 
-	if (!derivedData) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
+	if (!derivedData) dm = CDDM_from_editbmesh(em, false, false);
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
 

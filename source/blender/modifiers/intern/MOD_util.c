@@ -183,7 +183,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm,
 		/* pass */
 	}
 	else if (ob->type == OB_MESH) {
-		if (em) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
+		if (em) dm = CDDM_from_editbmesh(em, false, false);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data));
 
 		if (vertexCos) {
