@@ -159,7 +159,7 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *U
 
 
 PyDoc_STRVAR(bpy_bmlayercollection_is_singleton_doc,
-"This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
+"True if there can exists only one layer of this type (read-only).\n\n:type: boolean"
 );
 static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void *UNUSED(flag))
 {

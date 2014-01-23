@@ -643,13 +643,13 @@ static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
 }
 
 PyDoc_STRVAR(bpy_bmdeformvert_values_doc,
-".. method:: items()\n"
+".. method:: values()\n"
 "\n"
-"   Return (group, weight) pairs for this vertex\n"
-"   (matching pythons dict.items() functionality).\n"
+"   Return the weights of the deform vertex\n"
+"   (matching pythons dict.values() functionality).\n"
 "\n"
-"   :return: (key, value) pairs for each deform weight of this vertex.\n"
-"   :rtype: list of tuples\n"
+"   :return: The weights that influence this vertex\n"
+"   :rtype: list of floats\n"
 );
 static PyObject *bpy_bmdeformvert_values(BPy_BMDeformVert *self)
 {
@@ -666,13 +666,13 @@ static PyObject *bpy_bmdeformvert_values(BPy_BMDeformVert *self)
 }
 
 PyDoc_STRVAR(bpy_bmdeformvert_items_doc,
-".. method:: values()\n"
+".. method:: items()\n"
 "\n"
-"   Return the weights of the deform vertex\n"
-"   (matching pythons dict.values() functionality).\n"
+"   Return (group, weight) pairs for this vertex\n"
+"   (matching pythons dict.items() functionality).\n"
 "\n"
-"   :return: The weights that influence this vertex\n"
-"   :rtype: list of floats\n"
+"   :return: (key, value) pairs for each deform weight of this vertex.\n"
+"   :rtype: list of tuples\n"
 );
 static PyObject *bpy_bmdeformvert_items(BPy_BMDeformVert *self)
 {
