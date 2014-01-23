@@ -56,6 +56,7 @@ EnumPropertyItem region_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_global.h"
+#include "BKE_depsgraph.h"
 
 #include "UI_view2d.h"
 
@@ -140,6 +141,11 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 
 			ED_area_newspace(C, sa, sa->butspacetype);
 			ED_area_tag_redraw(sa);
+
+			/* It is possible that new layers becomes visible. */
+			if (sa->spacetype == SPACE_VIEW3D) {
+				DAG_on_visible_update(CTX_data_main(C), FALSE);
+			}
 
 			CTX_wm_window_set(C, prevwin);
 			CTX_wm_area_set(C, prevsa);
