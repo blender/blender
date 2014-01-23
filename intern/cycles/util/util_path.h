@@ -24,35 +24,45 @@
 
 #include <stdio.h>
 
+#include "util_set.h"
 #include "util_string.h"
 #include "util_types.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
+/* program paths */
 void path_init(const string& path = "", const string& user_path = "");
 string path_get(const string& sub = "");
 string path_user_get(const string& sub = "");
 
+/* path string manipulation */
 string path_filename(const string& path);
 string path_dirname(const string& path);
 string path_join(const string& dir, const string& file);
-
 string path_escape(const string& path);
+
+/* file info */
 bool path_exists(const string& path);
 string path_files_md5_hash(const string& dir);
+uint64_t path_modified_time(const string& path);
 
+/* directory utility */
 void path_create_directories(const string& path);
+
+/* file read/write utilities */
+FILE *path_fopen(const string& path, const string& mode);
+
 bool path_write_binary(const string& path, const vector<uint8_t>& binary);
 bool path_write_text(const string& path, string& text);
 bool path_read_binary(const string& path, vector<uint8_t>& binary);
 bool path_read_text(const string& path, string& text);
 
-uint64_t path_modified_time(const string& path);
-
+/* source code utility */
 string path_source_replace_includes(const string& source, const string& path);
 
-FILE *path_fopen(const string& path, const string& mode);
+/* cache utility */
+void path_cache_clear_except(const string& name, const set<string>& except);
 
 CCL_NAMESPACE_END
 
