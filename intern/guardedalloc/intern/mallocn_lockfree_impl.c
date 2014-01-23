@@ -265,6 +265,12 @@ void *MEM_lockfree_mapallocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
+	/* on 64 bit, simply use calloc instead, as mmap does not support
+	 * allocating > 4 GB on Windows. the only reason mapalloc exists
+	 * is to get around address space limitations in 32 bit OSes. */
+	if(sizeof(void*) >= 8)
+		return MEM_lockfree_callocN(len, str);
+
 	len = SIZET_ALIGN_4(len);
 
 #if defined(WIN32)

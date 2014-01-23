@@ -129,6 +129,7 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 		}
 	}
 
+	/* note len is passed to a 32 bit DWORD, so can't be > 4 GB */
 	maphandle = CreateFileMapping(fhandle, NULL, prot_flags, 0, len, NULL);
 	if (maphandle == 0) {
 		errno = EBADF;
