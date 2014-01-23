@@ -552,8 +552,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 	IMB_colormanagement_transform(buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, ibuf->rect_colorspace->name, true);
 
 	/* convert from float's premul alpha to byte's straight alpha */
-	if (ibuf->channels == 4)
-		IMB_unpremultiply_rect_float(buffer, ibuf->planes, ibuf->x, ibuf->y);
+	IMB_unpremultiply_rect_float(buffer, ibuf->channels, ibuf->x, ibuf->y);
 
 	/* convert float to byte */
 	IMB_buffer_byte_from_float((unsigned char *) ibuf->rect, buffer, ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
@@ -646,7 +645,6 @@ void IMB_float_from_rect(ImBuf *ibuf)
 
 	/* byte buffer is straight alpha, float should always be premul */
 	IMB_premultiply_rect_float(rect_float, ibuf->channels, ibuf->x, ibuf->y);
-
 
 	if (ibuf->rect_float == NULL) {
 		ibuf->rect_float = rect_float;
