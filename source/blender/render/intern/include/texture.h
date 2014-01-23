@@ -33,18 +33,22 @@
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
-#define BRICONT                                                               \
-	texres->tin= (texres->tin-0.5f) * tex->contrast+tex->bright-0.5f;         \
-	if (texres->tin < 0.0f)      texres->tin= 0.0f;                           \
-	else if (texres->tin > 1.0f) texres->tin= 1.0f;                           \
+#define BRICONT                                                           \
+	texres->tin= (texres->tin-0.5f) * tex->contrast+tex->bright-0.5f;     \
+	if(!(tex->flag & TEX_NO_CLAMP)) {                                     \
+		if (texres->tin < 0.0f)      texres->tin= 0.0f;                   \
+		else if (texres->tin > 1.0f) texres->tin= 1.0f;                   \
+	}                                                                     \
 
 #define BRICONTRGB                                                            \
 	texres->tr= tex->rfac*((texres->tr-0.5f)*tex->contrast+tex->bright-0.5f); \
-	if (texres->tr<0.0f) texres->tr= 0.0f;                                    \
 	texres->tg= tex->gfac*((texres->tg-0.5f)*tex->contrast+tex->bright-0.5f); \
-	if (texres->tg<0.0f) texres->tg= 0.0f;                                    \
 	texres->tb= tex->bfac*((texres->tb-0.5f)*tex->contrast+tex->bright-0.5f); \
-	if (texres->tb<0.0f) texres->tb= 0.0f;                                    \
+	if(!(tex->flag & TEX_NO_CLAMP)) {                                         \
+		if (texres->tr < 0.0f) texres->tr= 0.0f;                              \
+		if (texres->tg < 0.0f) texres->tg= 0.0f;                              \
+		if (texres->tb < 0.0f) texres->tb= 0.0f;                              \
+	}                                                                         \
 	if (tex->saturation != 1.0f) {                                            \
 		float _hsv[3];                                                        \
 		rgb_to_hsv(texres->tr, texres->tg, texres->tb,                        \
