@@ -79,7 +79,7 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	/**
 	 * Adds this key-code to the target prop.
 	 */
-	void AddToTargetProp(int keyIndex);
+	void AddToTargetProp(int keyIndex, int unicode);
 
 	/**
 	 * Tests whether shift is pressed.

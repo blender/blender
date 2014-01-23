@@ -108,7 +108,7 @@ void	KX_BlenderMouseDevice::NextFrame()
  * ConvertBlenderEvent translates blender mouse events into ketsji kbd events
  * extra event information is stored, like ramp-mode (just released/pressed)
  */
-bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val)
+bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode)
 {
 	bool result = false;
 	

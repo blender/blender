@@ -91,7 +91,7 @@ void	KX_BlenderKeyboardDevice::NextFrame()
  * ConvertBlenderEvent translates blender keyboard events into ketsji kbd events
  * extra event information is stored, like ramp-mode (just released/pressed)
 */
-bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short val)
+bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode)
 {
 	bool result = false;
 	
@@ -112,6 +112,7 @@ bool KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode, short 
 
 			// todo: convert val ??
 			m_eventStatusTables[m_currentTable][kxevent].m_eventval = val ; //???
+			m_eventStatusTables[m_currentTable][kxevent].m_unicode = unicode;
 
 			switch (m_eventStatusTables[previousTable][kxevent].m_status)
 			{

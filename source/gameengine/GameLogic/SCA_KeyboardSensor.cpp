@@ -40,6 +40,7 @@
 #include "SCA_IInputDevice.h"
 
 extern "C" {
+	#include "BLI_string_utf8.h"
 	#include "BLI_string_cursor_utf8.h"
 }
 
@@ -331,14 +332,15 @@ bool SCA_KeyboardSensor::Evaluate()
 
 }
 
-void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
+void SCA_KeyboardSensor::AddToTargetProp(int keyIndex, int unicode)
 {
 	if (IsPrintable(keyIndex)) {
 		CValue* tprop = GetParent()->GetProperty(m_targetprop);
-		
-		if (tprop) {
-			/* overwrite the old property */
-			if (IsDelete(keyIndex)) {
+
+		if (IsDelete(keyIndex)) {
+			/* Make a new property. Deletes can be ignored. */
+			if (tprop) {
+				/* overwrite the old property */
 				/* strip one char, if possible */
 				STR_String newprop = tprop->GetText();
 				int oldlength = newprop.Length();
@@ -352,26 +354,22 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 					GetParent()->SetProperty(m_targetprop, newstringprop);
 					newstringprop->Release();
 				}
-			} else {
-				/* append */
-				char pchar = ToCharacter(keyIndex, IsShifted());
-				STR_String newprop = tprop->GetText() + pchar;
-				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
-				GetParent()->SetProperty(m_targetprop, newstringprop);
-				newstringprop->Release();
-			}
-		} else {
-			if (!IsDelete(keyIndex)) {
-				/* Make a new property. Deletes can be ignored. */
-				char pchar = ToCharacter(keyIndex, IsShifted());
-				STR_String newprop = pchar;
-				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
-				GetParent()->SetProperty(m_targetprop, newstringprop);
-				newstringprop->Release();
 			}
 		}
+		else {
+			char utf8_buf[7];
+			size_t utf8_len;
+
+			utf8_len = BLI_str_utf8_from_unicode(unicode, utf8_buf);
+			utf8_buf[utf8_len] = '\0';
+
+			STR_String newprop = tprop ? (tprop->GetText() + utf8_buf) : utf8_buf;
+
+			CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
+			GetParent()->SetProperty(m_targetprop, newstringprop);
+			newstringprop->Release();
+		}
 	}
-	
 }
 	
 /**
@@ -416,7 +414,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 			{
 				if (index < num)
 				{
-					AddToTargetProp(i);
+					AddToTargetProp(i, inevent.m_unicode);
 					index++;
 				}
 			}

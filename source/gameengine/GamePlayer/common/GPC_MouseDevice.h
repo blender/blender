@@ -99,7 +99,7 @@ protected:
 	 * \param eventval	Value for this event.
 	 * \return Indication as to whether the event was processed.
 	 */
-	virtual bool ConvertEvent(KX_EnumInputs kxevent, int eventval);
+	virtual bool ConvertEvent(KX_EnumInputs kxevent, int eventval, unsigned int unicode);
 };
 
 #endif  /* __GPC_MOUSEDEVICE_H__ */

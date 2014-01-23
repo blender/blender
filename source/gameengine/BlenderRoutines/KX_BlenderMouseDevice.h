@@ -46,7 +46,7 @@ public:
 
 	virtual bool	IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 //	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode);
-	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
+	virtual bool	ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode);
 	virtual void	NextFrame();
 
 

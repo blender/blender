@@ -951,11 +951,12 @@ bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
 		GHOST_TEventKeyData* keyData = static_cast<GHOST_TEventKeyData*>(eventData);
+		unsigned int unicode = keyData->utf8_buf[0] ? BLI_str_utf8_as_unicode(keyData->utf8_buf) : keyData->ascii;
 
 		if (m_keyboard->ToNative(keyData->key) == KX_KetsjiEngine::GetExitKey() && !m_keyboard->m_hookesc && !m_isEmbedded) {
 			m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 		}
-		m_keyboard->ConvertEvent(keyData->key, isDown);
+		m_keyboard->ConvertEvent(keyData->key, isDown, unicode);
 		handled = true;
 	}
 	return handled;

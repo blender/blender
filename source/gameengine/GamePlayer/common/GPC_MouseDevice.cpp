@@ -97,19 +97,19 @@ bool GPC_MouseDevice::ConvertButtonEvent(TButtonId button, bool isDown)
 	switch (button)
 	{
 	case buttonLeft:
-		result = ConvertEvent(KX_LEFTMOUSE, isDown);
+		result = ConvertEvent(KX_LEFTMOUSE, isDown, 0);
 		break;
 	case buttonMiddle:
-		result = ConvertEvent(KX_MIDDLEMOUSE, isDown);
+		result = ConvertEvent(KX_MIDDLEMOUSE, isDown, 0);
 		break;
 	case buttonRight:
-		result = ConvertEvent(KX_RIGHTMOUSE, isDown);
+		result = ConvertEvent(KX_RIGHTMOUSE, isDown, 0);
 		break;
 	case buttonWheelUp:
-		result = ConvertEvent(KX_WHEELUPMOUSE, isDown);
+		result = ConvertEvent(KX_WHEELUPMOUSE, isDown, 0);
 		break;
 	case buttonWheelDown:
-		result = ConvertEvent(KX_WHEELDOWNMOUSE, isDown);
+		result = ConvertEvent(KX_WHEELDOWNMOUSE, isDown, 0);
 		break;
 	default:
 		// Should not happen!
@@ -144,16 +144,16 @@ bool GPC_MouseDevice::ConvertMoveEvent(int x, int y)
 	bool result;
 
 	// Convert to local coordinates?
-	result = ConvertEvent(KX_MOUSEX, x);
+	result = ConvertEvent(KX_MOUSEX, x, 0);
 	if (result) {
-		result = ConvertEvent(KX_MOUSEY, y);
+		result = ConvertEvent(KX_MOUSEY, y, 0);
 	}
 
 	return result;
 }
 
 
-bool GPC_MouseDevice::ConvertEvent(KX_EnumInputs kxevent, int eventval)
+bool GPC_MouseDevice::ConvertEvent(KX_EnumInputs kxevent, int eventval, unsigned int unicode)
 {
 	bool result = true;
 	

@@ -69,7 +69,7 @@ public:
 
 	virtual bool	IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
 	//	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
-	virtual bool	ConvertBlenderEvent(unsigned short incode,short val)=0;
+	virtual bool	ConvertBlenderEvent(unsigned short incode, short val, unsigned int unicode)=0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
