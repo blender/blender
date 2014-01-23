@@ -859,11 +859,15 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 				Object *ob_iter = dob->ob;
 
 				if (ob_iter->type==OB_LAMP) {
+					float omat[4][4];
+					copy_m4_m4(omat, ob_iter->obmat);
 					copy_m4_m4(ob_iter->obmat, dob->mat);
 
 					lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob_iter, ob);
 					if (lamp)
 						shade_one_light(shi, shr, lamp);
+
+					copy_m4_m4(ob_iter->obmat, omat);
 				}
 			}
 			

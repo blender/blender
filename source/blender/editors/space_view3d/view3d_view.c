@@ -987,7 +987,10 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 						
 						for (dob = lb->first; dob; dob = dob->next) {
+							float omat[4][4];
+							
 							tbase.object = dob->ob;
+							copy_m4_m4(omat, dob->ob->obmat);
 							copy_m4_m4(dob->ob->obmat, dob->mat);
 							
 							/* extra service: draw the duplicator in drawtype of parent */
@@ -1000,7 +1003,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 							tbase.object->dt = dt;
 							tbase.object->dtx = dtx;
 
-							copy_m4_m4(dob->ob->obmat, dob->omat);
+							copy_m4_m4(dob->ob->obmat, omat);
 						}
 						free_object_duplilist(lb);
 					}

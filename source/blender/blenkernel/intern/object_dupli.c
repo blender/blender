@@ -159,7 +159,6 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
 	dob->ob = ob;
 	mul_m4_m4m4(dob->mat, (float (*)[4])ctx->space_mat, mat);
-	copy_m4_m4(dob->omat, ob->obmat);
 	dob->type = ctx->gen->type;
 	dob->animated = animated || ctx->animated; /* object itself or some parent is animated */
 
@@ -378,7 +377,6 @@ static void make_duplis_frames(const DupliContext *ctx)
 			BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 
 			dob = make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false);
-			copy_m4_m4(dob->omat, copyob.obmat);
 		}
 	}
 
@@ -839,7 +837,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
-	float (*obmat)[4], (*oldobmat)[4];
+	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totgroup = 0 /*, pa_num */;
 	int dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
@@ -993,11 +991,9 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				ob = oblist[b];
 				obmat = oblist[b]->obmat;
-				oldobmat = obcopylist[b].obmat;
 			}
 			else {
 				obmat = ob->obmat;
-				oldobmat = obcopy.obmat;
 			}
 
 			if (hair) {
@@ -1045,7 +1041,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					dob = make_dupli(ctx, go->ob, mat, a, false, false);
 					dob->particle_system = psys;
-					copy_m4_m4(dob->omat, obcopylist[b].obmat);
 					if (for_render)
 						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				}
@@ -1095,7 +1090,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				dob = make_dupli(ctx, ob, mat, a, false, false);
 				dob->particle_system = psys;
-				copy_m4_m4(dob->omat, oldobmat);
 				if (for_render)
 					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				/* XXX blender internal needs this to be set to dupligroup to render
@@ -1218,7 +1212,6 @@ void free_object_duplilist(ListBase *lb)
 	 * solution is more complicated */
 	for (dob = lb->last; dob; dob = dob->prev) {
 		dob->ob->lay = dob->origlay;
-		copy_m4_m4(dob->ob->obmat, dob->omat);
 	}
 
 	BLI_freelistN(lb);

@@ -1960,6 +1960,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
 	LodLevel *savedlod;
+	float savedobmat[4][4];
 	DupliObject *dob_prev = NULL, *dob, *dob_next = NULL;
 	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
@@ -1982,6 +1983,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 		/* Make sure lod is updated from dupli's position */
 
+		copy_m4_m4(savedobmat, dob->ob->obmat);
 		copy_m4_m4(dob->ob->obmat, dob->mat);
 		savedlod = dob->ob->currentlod;
 		BKE_object_lod_update(dob->ob, rv3d->viewinv[3]);
@@ -2069,11 +2071,12 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		tbase.object->dtx = dtx;
 		tbase.object->transflag = transflag;
 		tbase.object->currentlod = savedlod;
+		copy_m4_m4(tbase.object->obmat, savedobmat);
 	}
 	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
 	
-	free_object_duplilist(lb);  /* does restore */
+	free_object_duplilist(lb);
 	
 	if (use_displist)
 		glDeleteLists(displist, 1);

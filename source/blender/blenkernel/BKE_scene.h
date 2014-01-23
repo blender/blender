@@ -83,7 +83,8 @@ void         BKE_scene_base_select(struct Scene *sce, struct Base *selbase);
 typedef struct SceneBaseIter {
 	struct ListBase *duplilist;
 	struct DupliObject *dupob;
-	int fase;
+	float omat[4][4];
+	int phase;
 } SceneBaseIter;
 
 int BKE_scene_base_iter_next(struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,

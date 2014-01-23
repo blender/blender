@@ -747,7 +747,7 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 	
 	/* init */
 	if (val == 0) {
-		iter->fase = F_START;
+		iter->phase = F_START;
 		iter->dupob = NULL;
 		iter->duplilist = NULL;
 	}
@@ -757,11 +757,11 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 			run_again = 0;
 
 			/* the first base */
-			if (iter->fase == F_START) {
+			if (iter->phase == F_START) {
 				*base = (*scene)->base.first;
 				if (*base) {
 					*ob = (*base)->object;
-					iter->fase = F_SCENE;
+					iter->phase = F_SCENE;
 				}
 				else {
 					/* exception: empty scene */
@@ -770,20 +770,20 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 						if ((*scene)->base.first) {
 							*base = (*scene)->base.first;
 							*ob = (*base)->object;
-							iter->fase = F_SCENE;
+							iter->phase = F_SCENE;
 							break;
 						}
 					}
 				}
 			}
 			else {
-				if (*base && iter->fase != F_DUPLI) {
+				if (*base && iter->phase != F_DUPLI) {
 					*base = (*base)->next;
 					if (*base) {
 						*ob = (*base)->object;
 					}
 					else {
-						if (iter->fase == F_SCENE) {
+						if (iter->phase == F_SCENE) {
 							/* (*scene) is finished, now do the set */
 							while ((*scene)->set) {
 								(*scene) = (*scene)->set;
@@ -799,10 +799,10 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 			}
 			
 			if (*base == NULL) {
-				iter->fase = F_START;
+				iter->phase = F_START;
 			}
 			else {
-				if (iter->fase != F_DUPLI) {
+				if (iter->phase != F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
 						 * this enters eternal loop because of 
@@ -820,20 +820,21 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 				/* handle dupli's */
 				if (iter->dupob) {
 					
+					copy_m4_m4(iter->omat, iter->dupob->ob->obmat);
 					copy_m4_m4(iter->dupob->ob->obmat, iter->dupob->mat);
 					
 					(*base)->flag |= OB_FROMDUPLI;
 					*ob = iter->dupob->ob;
-					iter->fase = F_DUPLI;
+					iter->phase = F_DUPLI;
 					
 					iter->dupob = iter->dupob->next;
 				}
-				else if (iter->fase == F_DUPLI) {
-					iter->fase = F_SCENE;
+				else if (iter->phase == F_DUPLI) {
+					iter->phase = F_SCENE;
 					(*base)->flag &= ~OB_FROMDUPLI;
 					
 					for (iter->dupob = iter->duplilist->first; iter->dupob; iter->dupob = iter->dupob->next) {
-						copy_m4_m4(iter->dupob->ob->obmat, iter->dupob->omat);
+						copy_m4_m4(iter->dupob->ob->obmat, iter->omat);
 					}
 					
 					free_object_duplilist(iter->duplilist);
@@ -850,7 +851,7 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 	}
 #endif
 
-	return iter->fase;
+	return iter->phase;
 }
 
 Object *BKE_scene_camera_find(Scene *sc)

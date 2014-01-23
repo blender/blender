@@ -4519,7 +4519,7 @@ static ObjectRen *find_dupligroup_dupli(Render *re, Object *ob, int psysindex)
 	return NULL;
 }
 
-static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *dob)
+static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *dob, float omat[4][4])
 {
 	/* For duplis we need to have a matrix that transform the coordinate back
 	 * to it's original position, without the dupli transforms. We also check
@@ -4557,7 +4557,7 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 
 		obi->duplitexmat= BLI_memarena_alloc(re->memArena, sizeof(float)*4*4);
 		invert_m4_m4(imat, dob->mat);
-		mul_serie_m4(obi->duplitexmat, re->viewmat, dob->omat, imat, re->viewinv,
+		mul_serie_m4(obi->duplitexmat, re->viewmat, omat, imat, re->viewinv,
 		             NULL, NULL, NULL, NULL);
 	}
 
@@ -4607,7 +4607,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
+static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, float omat[4][4], int timeoffset)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -4643,7 +4643,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		/* only add instance for objects that have not been used for dupli */
 		if (!(ob->transflag & OB_RENDER_DUPLI)) {
 			obi= RE_addRenderInstance(re, obr, ob, par, index, 0, NULL, ob->lay);
-			if (dob) set_dupli_tex_mat(re, obi, dob);
+			if (dob) set_dupli_tex_mat(re, obi, dob, omat);
 		}
 		else
 			find_dupli_instances(re, obr, dob);
@@ -4677,7 +4677,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			/* only add instance for objects that have not been used for dupli */
 			if (!(ob->transflag & OB_RENDER_DUPLI)) {
 				obi= RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL, ob->lay);
-				if (dob) set_dupli_tex_mat(re, obi, dob);
+				if (dob) set_dupli_tex_mat(re, obi, dob, omat);
 			}
 			else
 				find_dupli_instances(re, obr, dob);
@@ -4687,7 +4687,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
+static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, float omat[4][4], int timeoffset)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4696,7 +4696,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	if (ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if (render_object_type(ob->type))
-		add_render_object(re, ob, par, dob, timeoffset);
+		add_render_object(re, ob, par, dob, omat, timeoffset);
 	else {
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);
@@ -4920,7 +4920,7 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 		if (ob->flag & OB_DONE) {
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, NULL, timeoffset);
+					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
 					if (ob->dup_group)
@@ -4938,13 +4938,12 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	Group *group;
 	ObjectInstanceRen *obi;
 	Scene *sce_iter;
-	float mat[4][4];
 	int lay, vectorlay;
 
 	/* for duplis we need the Object texture mapping to work as if
 	 * untransformed, set_dupli_tex_mat sets the matrix to allow that
 	 * NULL is just for init */
-	set_dupli_tex_mat(NULL, NULL, NULL);
+	set_dupli_tex_mat(NULL, NULL, NULL, NULL);
 
 	/* loop over all objects rather then using SETLOOPER because we may
 	 * reference an mtex-mapped object which isn't rendered or is an
@@ -4953,6 +4952,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
 	 * See bug: [#28744] - campbell */
 	for (ob= re->main->object.first; ob; ob= ob->id.next) {
+		float mat[4][4];
+		
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat_ren, mat);
@@ -4980,7 +4981,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 			 * it still needs to create the ObjectRen containing the data */
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, NULL, timeoffset);
+					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
 			}
@@ -4998,7 +4999,9 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 				for (dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
+					float omat[4][4];
 					
+					copy_m4_m4(omat, obd->obmat);
 					copy_m4_m4(obd->obmat, dob->mat);
 
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
@@ -5031,7 +5034,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], 0, mat, ob->lay); 
 
 							/* fill in instance variables for texturing */
-							set_dupli_tex_mat(re, obi, dob);
+							set_dupli_tex_mat(re, obi, dob, omat);
 							if (dob->type != OB_DUPLIGROUP) {
 								copy_v3_v3(obi->dupliorco, dob->orco);
 								obi->dupliuv[0]= dob->uv[0];
@@ -5057,7 +5060,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 									mul_m4_m4m4(mat, re->viewmat, dob->mat);
 								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], psysindex++, mat, obd->lay);
 
-								set_dupli_tex_mat(re, obi, dob);
+								set_dupli_tex_mat(re, obi, dob, omat);
 								if (dob->type != OB_DUPLIGROUP) {
 									copy_v3_v3(obi->dupliorco, dob->orco);
 									obi->dupliuv[0]= dob->uv[0];
@@ -5073,7 +5076,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 						if (obi==NULL)
 							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, timeoffset);
+							init_render_object(re, obd, ob, dob, omat, timeoffset);
 						
 						if (dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
@@ -5081,17 +5084,19 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob, timeoffset);
+						init_render_object(re, obd, ob, dob, omat, timeoffset);
+					
+					copy_m4_m4(obd->obmat, omat);
 					
 					if (re->test_break(re->tbh)) break;
 				}
 				free_object_duplilist(lb);
 
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, NULL, timeoffset);
+					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
 			}
 			else if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, NULL, timeoffset);
+				init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
 		}
 
 		if (re->test_break(re->tbh)) break;
