@@ -1187,7 +1187,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		{
 			ME_MTEXFACE_CPY(texface, &texpoly[*pidx]);
 
-			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				copy_v2_v2(texface->uv[j], mloopuv[(*lidx)[j]].uv);
 			}
 		}
@@ -1198,7 +1198,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		MLoopCol *mloopcol = CustomData_get_layer_n(ldata, CD_MLOOPCOL, i);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
 			}
 		}
@@ -1209,7 +1209,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		MLoopCol *mloopcol = CustomData_get_layer(ldata, CD_PREVIEW_MLOOPCOL);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
 			}
 		}
@@ -1220,7 +1220,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		OrigSpaceLoop *lof = CustomData_get_layer(ldata, CD_ORIGSPACE_MLOOP);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, of++) {
-			for (j = (mface ? mface[findex].v4 : (*lidx[3])) ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				copy_v2_v2(of->uv[j], lof[(*lidx)[j]].uv);
 			}
 		}
