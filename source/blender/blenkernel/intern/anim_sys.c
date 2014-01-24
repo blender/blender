@@ -1496,8 +1496,11 @@ static bool animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_ind
 	
 	/* get property to write to */
 	if (RNA_path_resolve_property(ptr, path, &new_ptr, &prop)) {
-		/* set value - only for animatable numerical values */
-		if (RNA_property_animateable(&new_ptr, prop)) {
+		/* set value for animatable numerical values only
+		 * HACK: some local F-Curves (e.g. those on NLA Strips) are evaluated
+		 *       without an ID provided, which causes the animateable test to fail!
+		 */
+		if (RNA_property_animateable(&new_ptr, prop) || (ptr->id.data == NULL)) {
 			int array_len = RNA_property_array_length(&new_ptr, prop);
 			bool written = false;
 			

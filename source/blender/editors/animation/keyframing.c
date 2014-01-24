@@ -1707,33 +1707,39 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
-		path = RNA_path_from_ID_to_property(&ptr, prop);
-		
-		if (path) {
-			if (all) {
-				length = RNA_property_array_length(&ptr, prop);
-				
-				if (length) index = 0;
-				else length = 1;
-			}
-			else
-				length = 1;
-			
-			for (a = 0; a < length; a++)
-				success += insert_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, cfra, flag);
-			
-			MEM_freeN(path);
-		}
-		else if (ptr.type == &RNA_NlaStrip) {
-			/* handle special vars for NLA-strips */
+		if (ptr.type == &RNA_NlaStrip) {
+			/* Handle special properties for NLA Strips, whose F-Curves are stored on the
+			 * strips themselves. These are stored separately or else the properties will
+			 * not have any effect.
+			 */
 			NlaStrip *strip = (NlaStrip *)ptr.data;
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), flag);
 			
 			success += insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
-			BKE_report(op->reports, RPT_WARNING, 
-			           "Failed to resolve path to property, try manually specifying this using a Keying Set instead");
+			/* standard properties */
+			path = RNA_path_from_ID_to_property(&ptr, prop);
+			
+			if (path) {
+				if (all) {
+					length = RNA_property_array_length(&ptr, prop);
+					
+					if (length) index = 0;
+					else length = 1;
+				}
+				else
+					length = 1;
+				
+				for (a = 0; a < length; a++)
+					success += insert_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, cfra, flag);
+				
+				MEM_freeN(path);
+			}
+			else {
+				BKE_report(op->reports, RPT_WARNING, 
+						   "Failed to resolve path to property, try manually specifying this using a Keying Set instead");
+			}
 		}
 	}
 	else {
