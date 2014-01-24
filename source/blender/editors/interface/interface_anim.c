@@ -54,13 +54,13 @@
 
 #include "interface_intern.h"
 
-static FCurve *ui_but_get_fcurve(uiBut *but, AnimData **adt, bAction **action, bool *r_driven)
+static FCurve *ui_but_get_fcurve(uiBut *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
 {
 	/* for entire array buttons we check the first component, it's not perfect
 	 * but works well enough in typical cases */
 	int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-	return rna_get_fcurve_context_ui(but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven);
+	return rna_get_fcurve_context_ui(but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven, r_special);
 }
 
 void ui_but_anim_flag(uiBut *but, float cfra)
@@ -69,11 +69,16 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	bAction *act;
 	FCurve *fcu;
 	bool driven;
-
+	bool special;
+	
 	but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
-
-	fcu = ui_but_get_fcurve(but, &adt, &act, &driven);
-
+	
+	/* NOTE: "special" is reserved for special F-Curves stored on the animation data
+	 *        itself (which are used to animate properties of the animation data).
+	 *        We count those as "animated" too for now
+	 */
+	fcu = ui_but_get_fcurve(but, &adt, &act, &driven, &special);
+	
 	if (fcu) {
 		if (!driven) {
 			but->flag |= UI_BUT_ANIMATED;
@@ -98,10 +103,10 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
-	bool driven;
-
-	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven);
-
+	bool driven, special;
+	
+	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven, &special);
+	
 	if (fcu && driven) {
 		driver = fcu->driver;
 
@@ -118,9 +123,9 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;
-	bool driven;
+	bool driven, special;
 
-	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven);
+	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven, &special);
 
 	if (fcu && driven) {
 		driver = fcu->driver;
@@ -215,8 +220,9 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 	bAction *action;
 	FCurve *fcu;
 	bool driven;
+	bool special;
 
-	fcu = ui_but_get_fcurve(but, NULL, &action, &driven);
+	fcu = ui_but_get_fcurve(but, NULL, &action, &driven, &special);
 
 	if (fcu && !driven) {
 		id = but->rnapoin.id.data;

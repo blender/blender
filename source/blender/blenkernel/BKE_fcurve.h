@@ -223,12 +223,12 @@ struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, c
  */
 int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
 
-/* find an f-curve based on an rna property. */
+/* Find an f-curve based on an rna property. */
 struct FCurve *rna_get_fcurve(struct PointerRNA *ptr, struct PropertyRNA *prop, int rnaindex,
-                              struct AnimData **adt, struct bAction **action, bool *r_driven);
+                              struct AnimData **adt, struct bAction **action, bool *r_driven, bool *r_special);
 /* Same as above, but takes a context data, temp hack needed for complex paths like texture ones. */
 struct FCurve *rna_get_fcurve_context_ui(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
-                                         int rnaindex, struct AnimData **adt, struct bAction **action, bool *r_driven);
+                                         int rnaindex, struct AnimData **adt, struct bAction **action, bool *r_driven, bool *r_special);
 
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

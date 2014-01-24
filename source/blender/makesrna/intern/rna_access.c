@@ -1622,7 +1622,7 @@ bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int len = 1, index;
-	bool driven;
+	bool driven, special;
 
 	if (!prop)
 		return false;
@@ -1631,7 +1631,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 		len = RNA_property_array_length(ptr, prop);
 
 	for (index = 0; index < len; index++) {
-		if (rna_get_fcurve(ptr, prop, index, NULL, NULL, &driven))
+		if (rna_get_fcurve(ptr, prop, index, NULL, NULL, &driven, &special))
 			return true;
 	}
 
