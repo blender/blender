@@ -34,6 +34,7 @@ void view_main_loop(const char *title, int width, int height,
 	ViewKeyboardFunc keyboard);
 
 void view_display_info(const char *info);
+void view_display_help();
 void view_redraw();
 
 CCL_NAMESPACE_END

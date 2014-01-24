@@ -74,6 +74,35 @@ void view_display_info(const char *info)
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
 
+void view_display_help()
+{
+	const int w = V.width / 1.15;
+	const int h = V.height / 1.15;
+	
+	const int x1 = (V.width - w) / 2;
+	const int x2 = x1 + w;
+	
+	const int y1 = (V.height - h) / 2;
+	const int y2 = y1 + h;
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.4f, 0.4f, 0.4f, 0.8f);
+	glRectf(x1, y1, x2, y2);
+	glDisable(GL_BLEND);
+	
+	glColor3f(0.8f, 0.8f, 0.8f);
+
+	view_display_text(x1+20, y2-20, "Cycles Renderer");
+	view_display_text(x1+20, y2-40, "(C) 2011-2014 Blender Foundation");
+	view_display_text(x1+20, y2-80, "Help:");
+	view_display_text(x1+20, y2-100, "h:  Toggle this help message");
+	view_display_text(x1+20, y2-120, "r:  Restart the render");
+	view_display_text(x1+20, y2-140, "q:  Quit the program");
+	
+	glColor3f(1.0f, 1.0f, 1.0f);
+}
+
 static void view_display()
 {
 	if(V.first_display) {

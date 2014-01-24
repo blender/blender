@@ -45,7 +45,7 @@ struct Options {
 	int width, height;
 	SceneParams scene_params;
 	SessionParams session_params;
-	bool quiet;
+	bool quiet, show_help;
 } options;
 
 static void session_print(const string& str)
@@ -167,6 +167,9 @@ static void display_info(Progress& progress)
 		latency, sample, total_time, sample_time, status.c_str());
 
 	view_display_info(str.c_str());
+	
+	if(options.show_help)
+		view_display_help();
 }
 
 static void display()
@@ -189,6 +192,8 @@ static void keyboard(unsigned char key)
 {
 	if(key == 'r')
 		options.session->reset(session_buffer_params(), options.session_params.samples);
+	else if(key == 'h')
+		options.show_help = !(options.show_help);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Canceled");
 }
