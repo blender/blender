@@ -2323,7 +2323,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{MOD_BEVEL_WEIGHT, "WEIGHT", 0, "Weight",
 		                   "Use bevel weights to determine how much bevel is applied in edge mode"},
 		{MOD_BEVEL_VGROUP, "VGROUP", 0, "Vertex Group",
-		                   "Use vertex group weights to determine how much bevel is applied in vertex mode"},
+		                   "Use vertex group weights to select whether vertex or edge is beveled"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
