@@ -73,6 +73,7 @@ protected:
 
 	SCA_IObject*		    m_hitObject;
 	class CListValue*		m_colliders;
+	STR_String				m_hitMaterial;
 	
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,

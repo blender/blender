@@ -39,3 +39,9 @@ base class --- :class:`SCA_ISensor`
 
       :type: :class:`CListValue` of :class:`KX_GameObject`
 
+   .. attribute:: hitMaterial
+
+      The material of the object in the face hit by the ray. (read-only).
+
+      :type: string
+

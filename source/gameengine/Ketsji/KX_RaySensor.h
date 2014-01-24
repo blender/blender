@@ -56,6 +56,7 @@ class KX_RaySensor : public SCA_ISensor
 	SCA_IObject*	m_hitObject;
 	float			m_hitNormal[3];
 	float			m_rayDirection[3];
+	STR_String		m_hitMaterial;
 
 public:
 	KX_RaySensor(class SCA_EventManager* eventmgr,
