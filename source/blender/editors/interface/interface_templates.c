@@ -2806,14 +2806,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	ui_list->layout_type = layout_type;
 
 	/* Reset filtering data. */
-	if (dyn_data->items_filter_flags) {
-		MEM_freeN(dyn_data->items_filter_flags);
-		dyn_data->items_filter_flags = NULL;
-	}
-	if (dyn_data->items_filter_neworder) {
-		MEM_freeN(dyn_data->items_filter_neworder);
-		dyn_data->items_filter_neworder = NULL;
-	}
+	MEM_SAFE_FREE(dyn_data->items_filter_flags);
+	MEM_SAFE_FREE(dyn_data->items_filter_neworder);
 	dyn_data->items_len = dyn_data->items_shown = -1;
 
 	/* When active item changed since last draw, scroll to it. */
