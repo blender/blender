@@ -322,6 +322,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 	
 	if (animdata) *animdata = NULL;
 	*r_driven = false;
+	if (action) *action = NULL;
 	
 	/* there must be some RNA-pointer + property combon */
 	if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
@@ -344,8 +345,12 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 				
 				if (path) {
 					/* animation takes priority over drivers */
-					if (adt->action && adt->action->curves.first)
+					if (adt->action && adt->action->curves.first) {
 						fcu = list_find_fcurve(&adt->action->curves, path, rnaindex);
+						
+						if (fcu && action)
+							*action = adt->action;
+					}
 					
 					/* if not animated, check if driven */
 					if (!fcu && (adt->drivers.first)) {
