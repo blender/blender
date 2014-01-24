@@ -282,7 +282,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			}
 			m_bTriggered = true;
 			m_hitObject = gameobj;
-			m_hitMaterial = (client->m_auxilary_info ? (char*)client->m_auxilary_info : "");
+			m_hitMaterial = (client_info->m_auxilary_info ? (char*)client_info->m_auxilary_info : "");
 			//printf("KX_TouchSensor::HandleCollision\n");
 		}
 		
