@@ -231,11 +231,6 @@ static void options_parse(int argc, const char **argv)
 
 	/* shading system */
 	string ssname = "svm";
-	string shadingsystems = "Shading system to use: svm";
-
-#ifdef WITH_OSL
-	shadingsystems += ", osl"; 
-#endif
 
 	/* parse options */
 	ArgParse ap;
@@ -244,7 +239,9 @@ static void options_parse(int argc, const char **argv)
 	ap.options ("Usage: cycles [options] file.xml",
 		"%*", files_parse, "",
 		"--device %s", &devicename, ("Devices to use: " + device_names).c_str(),
+#ifdef WITH_OSL
 		"--shadingsys %s", &ssname, "Shading system to use: svm, osl",
+#endif
 		"--background", &options.session_params.background, "Render in background, without user interface",
 		"--quiet", &options.quiet, "In background mode, don't print progress messages",
 		"--samples %d", &options.session_params.samples, "Number of samples to render",
@@ -313,12 +310,10 @@ static void options_parse(int argc, const char **argv)
 	}
 #ifdef WITH_OSL
 	else if(!(ssname == "osl" || ssname == "svm")) {
-#else
-	else if(!(ssname == "svm")) {
-#endif
 		fprintf(stderr, "Unknown shading system: %s\n", ssname.c_str());
 		exit(EXIT_FAILURE);
 	}
+#endif
 	else if(options.scene_params.shadingsystem == SceneParams::OSL && options.session_params.device.type != DEVICE_CPU) {
 		fprintf(stderr, "OSL shading system only works with CPU device\n");
 		exit(EXIT_FAILURE);
