@@ -870,7 +870,7 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 		return 1;
 	}
 	else {
-		printf("\nError: you must specify a number of threads between 0 and 8 '-t  / --threads'.\n");
+		printf("\nError: you must specify a number of threads between 0 and %d '-t / --threads'.\n", BLENDER_MAX_THREADS);
 		return 0;
 	}
 }
