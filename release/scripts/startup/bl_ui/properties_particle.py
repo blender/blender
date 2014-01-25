@@ -800,6 +800,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
         part = particle_get_settings(context)
 
         row = layout.row()
+        if part.render_type in {'OBJECT', 'GROUP'}:
+            row.enabled = False
         row.prop(part, "material_slot", text="")
         if psys:
             row.prop(psys, "parent")
