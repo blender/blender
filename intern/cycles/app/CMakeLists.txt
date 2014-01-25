@@ -54,6 +54,7 @@ if(WITH_CYCLES_STANDALONE)
 		cycles_xml.h
 	)
 	add_executable(cycles ${SRC})
+	list(APPEND LIBRARIES ${PLATFORM_LINKLIBS})
 	target_link_libraries(cycles ${LIBRARIES} ${CMAKE_DL_LIBS})
 
 	if(UNIX AND NOT APPLE)
