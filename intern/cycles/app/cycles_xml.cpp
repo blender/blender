@@ -223,28 +223,12 @@ static bool xml_read_enum(ustring *str, ShaderEnum& enm, pugi::xml_node node, co
 
 static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 {
-	Camera *cam = state.scene->camera;
+	Film *film = state.scene->film;
+	
+	xml_read_float(&film->exposure, node, "exposure");
 
-	xml_read_int(&cam->width, node, "width");
-	xml_read_int(&cam->height, node, "height");
-
-	float aspect = (float)cam->width/(float)cam->height;
-
-	if(cam->width >= cam->height) {
-		cam->viewplane.left = -aspect;
-		cam->viewplane.right = aspect;
-		cam->viewplane.bottom = -1.0f;
-		cam->viewplane.top = 1.0f;
-	}
-	else {
-		cam->viewplane.left = -1.0f;
-		cam->viewplane.right = 1.0f;
-		cam->viewplane.bottom = -1.0f/aspect;
-		cam->viewplane.top = 1.0f/aspect;
-	}
-
-	cam->need_update = true;
-	cam->update();
+	/* ToDo: Filter Type */
+	xml_read_float(&film->filter_width, node, "filter_width");
 }
 
 /* Integrator */
@@ -300,6 +284,24 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 {
 	Camera *cam = state.scene->camera;
+
+	xml_read_int(&cam->width, node, "width");
+	xml_read_int(&cam->height, node, "height");
+
+	float aspect = (float)cam->width/(float)cam->height;
+
+	if(cam->width >= cam->height) {
+		cam->viewplane.left = -aspect;
+		cam->viewplane.right = aspect;
+		cam->viewplane.bottom = -1.0f;
+		cam->viewplane.top = 1.0f;
+	}
+	else {
+		cam->viewplane.left = -1.0f;
+		cam->viewplane.right = 1.0f;
+		cam->viewplane.bottom = -1.0f/aspect;
+		cam->viewplane.top = 1.0f/aspect;
+	}
 
 	if(xml_read_float(&cam->fov, node, "fov"))
 		cam->fov *= M_PI/180.0f;
