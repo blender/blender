@@ -1570,6 +1570,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 							retval |= 1;
 						}
 					}
+					free_bvhtree_from_mesh(&treeData);
 					break;
 				}
 				case SCE_SNAP_MODE_VERTEX:
