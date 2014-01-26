@@ -1279,19 +1279,20 @@ char *AnimationExporter::extract_transform_name(char *rna_path)
 //find keyframes of all the objects animations
 void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra)
 {
-	FCurve *fcu = (FCurve *)ob->adt->action->curves.first;
+	if (ob->adt && ob->adt->action) {
+		FCurve *fcu = (FCurve *)ob->adt->action->curves.first;
 
-	for (; fcu; fcu = fcu->next) {
-
-		for (unsigned int i = 0; i < fcu->totvert; i++) {
-			float f = fcu->bezt[i].vec[1][0];
-			if (std::find(fra.begin(), fra.end(), f) == fra.end())   
-				fra.push_back(f);
+		for (; fcu; fcu = fcu->next) {
+			for (unsigned int i = 0; i < fcu->totvert; i++) {
+				float f = fcu->bezt[i].vec[1][0];
+				if (std::find(fra.begin(), fra.end(), f) == fra.end())
+					fra.push_back(f);
+			}
 		}
-	}
 
-	// keep the keys in ascending order
-	std::sort(fra.begin(), fra.end());
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
+	}
 }
 
 
@@ -1371,24 +1372,26 @@ void AnimationExporter::find_rotation_frames(Object *ob, std::vector<float> &fra
 
 void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
 {
-	FCurve *fcu = (FCurve *)ob->adt->action->curves.first;
+	if (ob->adt && ob->adt->action) {
+		FCurve *fcu = (FCurve *)ob->adt->action->curves.first;
 
-	for (; fcu; fcu = fcu->next) {
-		if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
-			continue;
+		for (; fcu; fcu = fcu->next) {
+			if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
+				continue;
 
-		char *name = extract_transform_name(fcu->rna_path);
-		if (!strcmp(name, tm_name)) {
-			for (unsigned int i = 0; i < fcu->totvert; i++) {
-				float f = fcu->bezt[i].vec[1][0];
-				if (std::find(fra.begin(), fra.end(), f) == fra.end())   
-					fra.push_back(f);
+			char *name = extract_transform_name(fcu->rna_path);
+			if (!strcmp(name, tm_name)) {
+				for (unsigned int i = 0; i < fcu->totvert; i++) {
+					float f = fcu->bezt[i].vec[1][0];
+					if (std::find(fra.begin(), fra.end(), f) == fra.end())
+						fra.push_back(f);
+				}
 			}
 		}
-	}
 
-	// keep the keys in ascending order
-	std::sort(fra.begin(), fra.end());
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
+	}
 }
 
 void AnimationExporter::write_bone_animation(Object *ob_arm, Bone *bone)
