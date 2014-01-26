@@ -183,6 +183,20 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 				m_input_size = m_codecCtx->frame_size;
 			}
 
+#ifdef FFMPEG_HAVE_ENCODE_AUDIO2
+			m_frame = av_frame_alloc();
+			if (!m_frame)
+				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
+			m_frame->linesize[0]    = m_input_size * samplesize;
+			m_frame->format         = m_codecCtx->sample_fmt;
+#  ifdef FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
+			m_frame->sample_rate    = m_codecCtx->sample_rate;
+#  endif
+#  ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
+			m_frame->channel_layout = m_codecCtx->channel_layout;
+#  endif
+#endif
+
 			try
 			{
 				if(avio_open(&m_formatCtx->pb, filename.c_str(), AVIO_FLAG_WRITE))
@@ -229,6 +243,10 @@ AUD_FFMPEGWriter::~AUD_FFMPEGWriter()
 	av_freep(&m_formatCtx->streams[0]->codec);
 	av_freep(&m_formatCtx->streams[0]);
 
+#ifdef FFMPEG_HAVE_ENCODE_AUDIO2
+	av_frame_free(&m_frame);
+#endif
+
 	avio_close(m_formatCtx->pb);
 	av_free(m_formatCtx);
 }
@@ -245,20 +263,34 @@ AUD_DeviceSpecs AUD_FFMPEGWriter::getSpecs() const
 
 void AUD_FFMPEGWriter::encode(sample_t* data)
 {
-	sample_t* outbuf = m_output_buffer.getBuffer();
-
 	// convert first
 	if(m_input_size)
 		m_convert(reinterpret_cast<data_t*>(data), reinterpret_cast<data_t*>(data), m_input_size * m_specs.channels);
 
-	AVPacket packet;
+	AVPacket packet = { 0 };
 	av_init_packet(&packet);
+
+#ifdef FFMPEG_HAVE_ENCODE_AUDIO2
+	int got_output, ret;
+
+	m_frame->data[0] = reinterpret_cast<uint8_t*>(data);
+	ret = avcodec_encode_audio2(m_codecCtx, &packet, m_frame, &got_output);
+	if (ret < 0)
+		AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
+
+	if (!got_output)
+		return;
+#else
+	sample_t* outbuf = m_output_buffer.getBuffer();
+
 	packet.size = avcodec_encode_audio(m_codecCtx, reinterpret_cast<uint8_t*>(outbuf), m_output_buffer.getSize(), reinterpret_cast<short*>(data));
 	if(m_codecCtx->coded_frame && m_codecCtx->coded_frame->pts != AV_NOPTS_VALUE)
 		packet.pts = av_rescale_q(m_codecCtx->coded_frame->pts, m_codecCtx->time_base, m_stream->time_base);
 	packet.flags |= AV_PKT_FLAG_KEY;
-	packet.stream_index = m_stream->index;
 	packet.data = reinterpret_cast<uint8_t*>(outbuf);
+#endif
+
+	packet.stream_index = m_stream->index;
 
 	if(av_interleaved_write_frame(m_formatCtx, &packet))
 		AUD_THROW(AUD_ERROR_FFMPEG, write_error);

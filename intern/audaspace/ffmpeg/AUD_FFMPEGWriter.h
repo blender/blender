@@ -78,6 +78,11 @@ private:
 	AVStream* m_stream;
 
 	/**
+	 * Frame sent to the encoder.
+	 */
+	AVFrame *m_frame;
+
+	/**
 	 * The input buffer for the format converted data before encoding.
 	 */
 	AUD_Buffer m_input_buffer;

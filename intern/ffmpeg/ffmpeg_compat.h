@@ -90,6 +90,10 @@
 #define FFMPEG_HAVE_DECODE_AUDIO4
 #endif
 
+#if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 13))
+#define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
+#endif
+
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 21))
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
 #define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
@@ -267,6 +271,10 @@ void avcodec_free_frame(AVFrame **frame)
 }
 #endif
 
+#if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 13))
+#define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
+#endif
+
 #if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR == 54 && LIBAVCODEC_VERSION_MINOR >= 13))
 #define FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
 #endif
@@ -394,6 +402,20 @@ void avformat_close_input(AVFormatContext **ctx)
 {
     av_close_input_file(*ctx);
     *ctx = NULL;
+}
+#endif
+
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(52, 8, 0)
+FFMPEG_INLINE
+AVFrame *av_frame_alloc(void)
+{
+    return avcodec_alloc_frame();
+}
+
+FFMPEG_INLINE
+void av_frame_free(AVFrame **frame)
+{
+    av_freep(frame);
 }
 #endif
 
