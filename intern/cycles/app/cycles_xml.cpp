@@ -379,6 +379,32 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 
 			snode = env;
 		}
+		else if(string_iequals(node.name(), "osl_shader")) {
+			OSLScriptNode *osl = new OSLScriptNode();
+
+			/* Source */
+			xml_read_string(&osl->filepath, node, "src");
+			osl->filepath = path_join(state.base, osl->filepath);
+
+			/* Outputs */
+			string output = "", output_type = "";
+			ShaderSocketType type = SHADER_SOCKET_FLOAT;
+
+			xml_read_string(&output, node, "output");
+			xml_read_string(&output_type, node, "output_type");
+			
+			if(output_type == "float")
+				type = SHADER_SOCKET_FLOAT;
+			else if(output_type == "closure color")
+				type = SHADER_SOCKET_CLOSURE;
+			else if(output_type == "color")
+				type = SHADER_SOCKET_COLOR;
+
+			osl->output_names.push_back(ustring(output));
+			osl->add_output(osl->output_names.back().c_str(), type);
+			
+			snode = osl;
+		}
 		else if(string_iequals(node.name(), "sky_texture")) {
 			SkyTextureNode *sky = new SkyTextureNode();
 			
