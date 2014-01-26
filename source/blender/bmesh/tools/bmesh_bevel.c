@@ -1122,7 +1122,7 @@ static void superellipse_co(float u, float r, float r_co[2])
 	if (u <= 0.0f) {
 		r_co[0] = 0.0f;
 		r_co[1] = 1.0f;
- 	}
+	}
 	else if (u >= 2.0f) {
 		r_co[0] = 1.0f;
 		r_co[1] = 0.0f;
@@ -3118,7 +3118,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 				copy_v3_v3(co, vb);
 			}
 			else if (weld2->profile.super_r == PRO_LINE_R &&
-				 weld1->profile.super_r != PRO_LINE_R)
+			         weld1->profile.super_r != PRO_LINE_R)
 			{
 				copy_v3_v3(co, va);
 			}
@@ -3677,7 +3677,7 @@ static void find_even_superellipse_params(int n, float r, float *r_params)
 		/* n is odd, so get one corner-cut chord.
 		 * Solve u == sqrt(2*(1-n2*u)^2) where n2 = floor(n/2) */
 		n2 = n / 2;
-		u = (2.0f * n2 - M_SQRT2) / (2.0f * n2 * n2 - 1);
+		u = (2.0f * n2 - (float)M_SQRT2) / (2.0f * n2 * n2 - 1.0f);
 		for (i = 0; i < n; i++)
 			r_params[i] = i * u;
 		r_params[n] = umax;

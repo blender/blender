@@ -108,7 +108,7 @@ base class --- :class:`SCA_IObject`
       :arg index: polygon number
       :type index: integer
       :return: a polygon object.
-      :rtype: :class:`PolyProxy`
+      :rtype: :class:`KX_PolyProxy`
 
    .. method:: transform(matid, matrix)
 

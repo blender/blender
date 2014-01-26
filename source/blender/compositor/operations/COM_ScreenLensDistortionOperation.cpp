@@ -195,17 +195,17 @@ void ScreenLensDistortionOperation::deinitExecution()
 
 void ScreenLensDistortionOperation::determineUV(float result[6], float x, float y) const
 {
-	float xy[2] = { x, y };
+	const float xy[2] = {x, y};
 	float uv[2];
 	get_uv(xy, uv);
 	float uv_dot = len_squared_v2(uv);
 	
-	copy_v2_v2(result+0, xy);
-	copy_v2_v2(result+2, xy);
-	copy_v2_v2(result+4, xy);
-	get_delta(uv_dot, m_k4[0], uv, result+0);
-	get_delta(uv_dot, m_k4[1], uv, result+2);
-	get_delta(uv_dot, m_k4[2], uv, result+4);
+	copy_v2_v2(result + 0, xy);
+	copy_v2_v2(result + 2, xy);
+	copy_v2_v2(result + 4, xy);
+	get_delta(uv_dot, m_k4[0], uv, result + 0);
+	get_delta(uv_dot, m_k4[1], uv, result + 2);
+	get_delta(uv_dot, m_k4[2], uv, result + 4);
 }
 
 bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

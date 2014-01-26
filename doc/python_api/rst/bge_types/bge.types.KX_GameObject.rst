@@ -720,8 +720,8 @@ base class --- :class:`SCA_IObject`
       :rtype:
 
          * 3-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz))
-         * or 4-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`PolyProxy`)
-         * or 5-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`PolyProxy`, 2-tuple (u, v))
+         * or 4-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`KX_PolyProxy`)
+         * or 5-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`KX_PolyProxy`, 2-tuple (u, v))
 
       .. note::
       

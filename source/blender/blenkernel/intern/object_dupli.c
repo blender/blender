@@ -170,7 +170,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 	 * dupli object between frames, which is needed for motion blur. last level
 	 * goes first in the array. */
 	dob->persistent_id[0] = index;
-	for (i = 1; i < ctx->level+1; i++)
+	for (i = 1; i < ctx->level + 1; i++)
 		dob->persistent_id[i] = ctx->persistent_id[ctx->level - i];
 	/* fill rest of values with INT_MAX which index will never have as value */
 	for (; i < MAX_DUPLI_RECUR; i++)
@@ -367,8 +367,6 @@ static void make_duplis_frames(const DupliContext *ctx)
 		}
 
 		if (ok) {
-			DupliObject *dob;
-
 			/* WARNING: doing animation updates in this way is not terribly accurate, as the dependencies
 			 * and/or other objects which may affect this object's transforms are not updated either.
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
@@ -376,7 +374,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 
-			dob = make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false);
+			make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false);
 		}
 	}
 

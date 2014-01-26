@@ -909,7 +909,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 	}
 
 	/* Get meshes.*/
-	dmesh_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH|CD_MASK_MDEFORMVERT);
+	dmesh_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_MDEFORMVERT);
 	me_dst = ob_dst->data;
 
 	/* Get vertex group array from source mesh */
