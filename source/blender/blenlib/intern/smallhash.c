@@ -89,9 +89,25 @@ void BLI_smallhash_release(SmallHash *hash)
 	}
 }
 
+BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *hash, uintptr_t key)
+{
+	SmallHashEntry *entry;
+	unsigned int h = (unsigned int)key;
+	unsigned int hoff = 1;
+
+	for (entry = &hash->table[h % hash->size];
+		 !ELEM(entry->val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE);
+		 h = SMHASH_NEXT(h, hoff), entry = &hash->table[h % hash->size])
+	{
+		/* Nothing else to do! */
+	}
+
+	return entry;
+}
+
 void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 {
-	unsigned int h, hoff = 1;
+	SmallHashEntry *entry;
 
 	if (hash->size < hash->used * 3) {
 		unsigned int newsize = hashsizes[++hash->curhash];
@@ -119,16 +135,9 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 				continue;
 			}
 
-			h = (unsigned int)(tmp[i].key);
-			hoff = 1;
-			while (!ELEM(hash->table[h % newsize].val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE)) {
-				h = SMHASH_NEXT(h, hoff);
-			}
-
-			h %= newsize;
-
-			hash->table[h].key = tmp[i].key;
-			hash->table[h].val = tmp[i].val;
+			entry = smallhash_lookup_first_free(hash, tmp[i].key);
+			entry->key = tmp[i].key;
+			entry->val = tmp[i].val;
 		}
 
 		if (tmp != hash->stacktable && tmp != hash->copytable) {
@@ -136,83 +145,52 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 		}
 	}
 
-	h = (unsigned int)(key);
-	hoff = 1;
-
-	while (!ELEM(hash->table[h % hash->size].val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE)) {
-		h = SMHASH_NEXT(h, hoff);
-	}
-
-	h %= hash->size;
-	hash->table[h].key = key;
-	hash->table[h].val = item;
+	entry = smallhash_lookup_first_free(hash, key);
+	entry->key = key;
+	entry->val = item;
 
 	hash->used++;
 }
 
-void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
+BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
-	unsigned int h, hoff = 1;
+	SmallHashEntry *entry;
+	unsigned int h = (unsigned int)key;
+	unsigned int hoff = 1;
 
-	h = (unsigned int)(key);
-
-	while ((hash->table[h % hash->size].key != key) ||
-	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
+	for (entry = &hash->table[h % hash->size];
+	     ((entry->key != key) || (entry->val == SMHASH_CELL_UNUSED)) && (entry->val != SMHASH_CELL_FREE);
+	     h = SMHASH_NEXT(h, hoff), entry = &hash->table[h % hash->size])
 	{
-		if (hash->table[h % hash->size].val == SMHASH_CELL_FREE) {
-			return;
-		}
-
-		h = SMHASH_NEXT(h, hoff);
+		/* Nothing else to do! */
 	}
 
-	h %= hash->size;
-	hash->table[h].key = 0;
-	hash->table[h].val = SMHASH_CELL_UNUSED;
+	return entry;
+}
+
+void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
+{
+	SmallHashEntry *entry = smallhash_lookup(hash, key);
+
+	if (entry->val != SMHASH_CELL_FREE) {
+		entry->key = 0;
+		entry->val = SMHASH_CELL_UNUSED;
+	}
 }
 
 void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
-	unsigned int h, hoff = 1;
-	void *v;
+	SmallHashEntry *entry = smallhash_lookup(hash, key);
 
-	h = (unsigned int)(key);
-
-	while ((hash->table[h % hash->size].key != key) ||
-	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
-	{
-		if (hash->table[h % hash->size].val == SMHASH_CELL_FREE) {
-			return NULL;
-		}
-
-		h = SMHASH_NEXT(h, hoff);
-	}
-
-	v = hash->table[h % hash->size].val;
-	if (ELEM(v, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE)) {
-		return NULL;
-	}
-
-	return v;
+	return ELEM(entry->val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE) ? NULL : entry->val;
 }
 
 
 bool BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
-	unsigned int h = (unsigned int)(key);
-	unsigned int hoff = 1;
+	SmallHashEntry *entry = smallhash_lookup(hash, key);
 
-	while ((hash->table[h % hash->size].key != key) ||
-	       (hash->table[h % hash->size].val == SMHASH_CELL_UNUSED))
-	{
-		if (hash->table[h % hash->size].val == SMHASH_CELL_FREE) {
-			return false;
-		}
-
-		h = SMHASH_NEXT(h, hoff);
-	}
-
-	return !ELEM(hash->table[h % hash->size].val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE);
+	return !ELEM(entry->val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE);
 }
 
 int BLI_smallhash_count(SmallHash *hash)
@@ -230,9 +208,7 @@ void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 				*key = iter->hash->table[iter->i].key;
 			}
 
-			iter->i++;
-
-			return iter->hash->table[iter->i - 1].val;
+			return iter->hash->table[iter->i++].val;
 		}
 
 		iter->i++;
