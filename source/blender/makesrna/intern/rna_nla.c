@@ -414,7 +414,7 @@ EnumPropertyItem nla_mode_blend_items[] = {
 	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumulated results"},
 	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract",
 	                         "Weighted result of strip is removed from the accumulated results"},
-	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply",
+	{NLASTRIP_MODE_MULTIPLY, "MULTIPLY", 0, "Multiply",
 	                         "Weighted result of strip is multiplied with the accumulated results"},
 	{0, NULL, 0, NULL, NULL}
 };
