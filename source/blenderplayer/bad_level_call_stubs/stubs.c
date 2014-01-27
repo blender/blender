@@ -140,7 +140,7 @@ struct wmWindowManager;
 
 /* may cause troubles... enable for now so args match for certain */
 #if 1
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__APPLE__)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
 #endif
 
