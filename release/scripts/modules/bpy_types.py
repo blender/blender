@@ -753,6 +753,17 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                        self.preset_operator,
                        filter_ext=lambda ext: ext.lower() in {".py", ".xml"})
 
+    @classmethod
+    def draw_collapsible(cls, context, layout):
+        # helper function for (optionally) collapsed header menus
+        # only usable within headers
+        if context.area.show_menus:
+            cls.draw_menus(layout, context)
+        else:
+            layout.separator()
+            layout.menu(cls.__name__, icon='COLLAPSEMENU')
+            layout.separator()
+
 
 class Region(StructRNA):
     __slots__ = ()

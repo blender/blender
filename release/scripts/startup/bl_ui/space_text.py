@@ -34,21 +34,14 @@ class TEXT_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("TEXT_MT_view")
-            row.menu("TEXT_MT_text")
-
-            if text:
-                row.menu("TEXT_MT_edit")
-                row.menu("TEXT_MT_format")
-
-            row.menu("TEXT_MT_templates")
+        TEXT_MT_editor_menus.draw_collapsible(context, layout)
 
         if text and text.is_modified:
             sub = row.row(align=True)
             sub.alert = True
             sub.operator("text.resolve_conflict", text="", icon='HELP')
 
+        row = layout.row(align=True)
         row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
 
         row = layout.row(align=True)
@@ -82,6 +75,28 @@ class TEXT_HT_header(Header):
                 row.label(text="Text: External"
                           if text.library
                           else "Text: Internal")
+
+
+class TEXT_MT_editor_menus(Menu):
+    bl_idname = "TEXT_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        st = context.space_data
+        text = st.text
+
+        layout.menu("TEXT_MT_view")
+        layout.menu("TEXT_MT_text")
+
+        if text:
+            layout.menu("TEXT_MT_edit")
+            layout.menu("TEXT_MT_format")
+
+        layout.menu("TEXT_MT_templates")
 
 
 class TEXT_PT_properties(Panel):

@@ -3046,9 +3046,9 @@ static int header_toggle_menus_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Show/Hide Header Menus";
+	ot->name = "Expand/Collapse Header Menus";
 	ot->idname = "SCREEN_OT_header_toggle_menus";
-	ot->description = "Show or hide the header pulldown menus";
+	ot->description = "Expand or collapse the header pulldown menus";
 	
 	/* api callbacks */
 	ot->exec = header_toggle_menus_exec;
@@ -3069,10 +3069,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 	else
 		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
 
-	if (sa->flag & HEADER_NO_PULLDOWN)
-		uiItemO(layout, IFACE_("Show Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
-	else
-		uiItemO(layout, IFACE_("Hide Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
+	uiItemO(layout, IFACE_("Collapse Menus"),
+	        (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
+	        "SCREEN_OT_header_toggle_menus");
 
 	uiItemS(layout);
 

@@ -37,47 +37,9 @@ class VIEW3D_HT_header(Header):
 
         row = layout.row(align=True)
         row.template_header()
+        sub = row.row(align=True)
 
-        # Menus
-        if context.area.show_menus:
-            sub = row.row(align=True)
-
-            sub.menu("VIEW3D_MT_view")
-
-            # Select Menu
-            if mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
-                mesh = obj.data
-                if mesh.use_paint_mask:
-                    sub.menu("VIEW3D_MT_select_paint_mask")
-                elif mesh.use_paint_mask_vertex and mode_string == 'PAINT_WEIGHT':
-                    sub.menu("VIEW3D_MT_select_paint_mask_vertex")
-            elif mode_string not in {'SCULPT'}:
-                sub.menu("VIEW3D_MT_select_%s" % mode_string.lower())
-
-            if mode_string == 'OBJECT':
-                sub.menu("INFO_MT_add", text="Add")
-            elif mode_string == 'EDIT_MESH':
-                sub.menu("INFO_MT_mesh_add", text="Add")
-            elif mode_string == 'EDIT_CURVE':
-                sub.menu("INFO_MT_curve_add", text="Add")
-            elif mode_string == 'EDIT_SURFACE':
-                sub.menu("INFO_MT_surface_add", text="Add")
-            elif mode_string == 'EDIT_METABALL':
-                sub.menu("INFO_MT_metaball_add", text="Add")
-            elif mode_string == 'EDIT_ARMATURE':
-                sub.menu("INFO_MT_edit_armature_add", text="Add")
-
-            if edit_object:
-                sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
-            elif obj:
-                if mode_string not in {'PAINT_TEXTURE'}:
-                    sub.menu("VIEW3D_MT_%s" % mode_string.lower())
-                if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
-                    sub.menu("VIEW3D_MT_brush")
-                if mode_string == 'SCULPT':
-                    sub.menu("VIEW3D_MT_hide_mask")
-            else:
-                sub.menu("VIEW3D_MT_object")
+        VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
@@ -141,6 +103,57 @@ class VIEW3D_HT_header(Header):
             row.operator("pose.copy", text="", icon='COPYDOWN')
             row.operator("pose.paste", text="", icon='PASTEDOWN')
             row.operator("pose.paste", text="", icon='PASTEFLIPDOWN').flipped = 1
+
+
+class VIEW3D_MT_editor_menus(Menu):
+    bl_space_type = 'VIEW3D_MT_editor_menus'
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        obj = context.active_object
+        mode_string = context.mode
+        edit_object = context.edit_object
+
+        layout.menu("VIEW3D_MT_view")
+
+        # Select Menu
+        if mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+            mesh = obj.data
+            if mesh.use_paint_mask:
+                layout.menu("VIEW3D_MT_select_paint_mask")
+            elif mesh.use_paint_mask_vertex and mode_string == 'PAINT_WEIGHT':
+                layout.menu("VIEW3D_MT_select_paint_mask_vertex")
+        elif mode_string not in {'EDIT_TEXT', 'SCULPT'}:
+            layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
+
+        if mode_string == 'OBJECT':
+            layout.menu("INFO_MT_add", text="Add")
+        elif mode_string == 'EDIT_MESH':
+            layout.menu("INFO_MT_mesh_add", text="Add")
+        elif mode_string == 'EDIT_CURVE':
+            layout.menu("INFO_MT_curve_add", text="Add")
+        elif mode_string == 'EDIT_SURFACE':
+            layout.menu("INFO_MT_surface_add", text="Add")
+        elif mode_string == 'EDIT_METABALL':
+            layout.menu("INFO_MT_metaball_add", text="Add")
+        elif mode_string == 'EDIT_ARMATURE':
+            layout.menu("INFO_MT_edit_armature_add", text="Add")
+
+        if edit_object:
+            layout.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
+        elif obj:
+            if mode_string not in {'PAINT_TEXTURE'}:
+                layout.menu("VIEW3D_MT_%s" % mode_string.lower())
+            if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
+                layout.menu("VIEW3D_MT_brush")
+            if mode_string == 'SCULPT':
+                layout.menu("VIEW3D_MT_hide_mask")
+        else:
+            layout.menu("VIEW3D_MT_object")
 
 
 # ********** Menu **********

@@ -34,11 +34,7 @@ class TIME_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("TIME_MT_view")
-            row.menu("TIME_MT_marker")
-            row.menu("TIME_MT_frame")
-            row.menu("TIME_MT_playback")
+        TIME_MT_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
@@ -94,6 +90,21 @@ class TIME_HT_header(Header):
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
+
+
+class TIME_MT_editor_menus(Menu):
+    bl_idname = "TIME_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("TIME_MT_view")
+        layout.menu("TIME_MT_marker")
+        layout.menu("TIME_MT_frame")
+        layout.menu("TIME_MT_playback")
 
 
 class TIME_MT_marker(Menu):

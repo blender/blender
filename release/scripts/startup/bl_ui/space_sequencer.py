@@ -63,14 +63,7 @@ class SEQUENCER_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("SEQUENCER_MT_view")
-
-            if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-                row.menu("SEQUENCER_MT_select")
-                row.menu("SEQUENCER_MT_marker")
-                row.menu("SEQUENCER_MT_add")
-                row.menu("SEQUENCER_MT_strip")
+        SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.prop(st, "view_type", expand=True, text="")
 
@@ -110,6 +103,26 @@ class SEQUENCER_HT_header(Header):
         props.sequencer = True
 
         layout.template_running_jobs()
+
+
+class SEQUENCER_MT_editor_menus(Menu):
+    bl_idname = "SEQUENCER_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        st = context.space_data
+
+        layout.menu("SEQUENCER_MT_view")
+
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.menu("SEQUENCER_MT_select")
+            layout.menu("SEQUENCER_MT_marker")
+            layout.menu("SEQUENCER_MT_add")
+            layout.menu("SEQUENCER_MT_strip")
 
 
 class SEQUENCER_MT_view_toggle(Menu):

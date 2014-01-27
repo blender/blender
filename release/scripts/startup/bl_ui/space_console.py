@@ -29,10 +29,21 @@ class CONSOLE_HT_header(Header):
 
         layout.template_header()
 
-        if context.area.show_menus:
-            layout.menu("CONSOLE_MT_console")
+        CONSOLE_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.operator("console.autocomplete", text="Autocomplete")
+
+
+class CONSOLE_MT_editor_menus(Menu):
+    bl_idname = "CONSOLE_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("CONSOLE_MT_console")
 
 
 class CONSOLE_MT_console(Menu):

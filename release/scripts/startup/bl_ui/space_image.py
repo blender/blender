@@ -373,25 +373,7 @@ class IMAGE_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        # menus
-        if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("IMAGE_MT_view")
-
-            if show_uvedit:
-                sub.menu("IMAGE_MT_select")
-            if show_maskedit:
-                sub.menu("MASK_MT_select")
-
-            if ima and ima.is_dirty:
-                sub.menu("IMAGE_MT_image", text="Image*")
-            else:
-                sub.menu("IMAGE_MT_image", text="Image")
-
-            if show_uvedit:
-                sub.menu("IMAGE_MT_uvs")
-            if show_maskedit:
-                sub.menu("MASK_MT_mask")
+        MASK_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
@@ -448,6 +430,40 @@ class IMAGE_HT_header(Header):
 
         if show_uvedit or show_maskedit or mode == 'PAINT':
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
+
+
+class MASK_MT_editor_menus(Menu):
+    bl_idname = "MASK_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        sima = context.space_data
+        ima = sima.image
+
+        show_render = sima.show_render
+        show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
+
+        layout.menu("IMAGE_MT_view")
+
+        if show_uvedit:
+            layout.menu("IMAGE_MT_select")
+        if show_maskedit:
+            layout.menu("MASK_MT_select")
+
+        if ima and ima.is_dirty:
+            layout.menu("IMAGE_MT_image", text="Image*")
+        else:
+            layout.menu("IMAGE_MT_image", text="Image")
+
+        if show_uvedit:
+            layout.menu("IMAGE_MT_uvs")
+        if show_maskedit:
+            layout.menu("MASK_MT_mask")
 
 
 class IMAGE_PT_image_properties(Panel):

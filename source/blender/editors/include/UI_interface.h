@@ -820,7 +820,7 @@ uiLayout *uiLayoutOverlap(uiLayout *layout);
 uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
-void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
+void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
                   const char *newop, const char *openop, const char *unlinkop);
 void uiTemplateIDBrowse(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,

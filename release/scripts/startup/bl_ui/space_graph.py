@@ -35,12 +35,7 @@ class GRAPH_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("GRAPH_MT_view")
-            row.menu("GRAPH_MT_select")
-            row.menu("GRAPH_MT_marker")
-            row.menu("GRAPH_MT_channel")
-            row.menu("GRAPH_MT_key")
+        GRAPH_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.prop(st, "mode", text="")
 
@@ -63,6 +58,22 @@ class GRAPH_HT_header(Header):
             row.operator("graph.ghost_curves_clear", text="", icon='GHOST_DISABLED')
         else:
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
+
+
+class GRAPH_MT_editor_menus(Menu):
+    bl_idname = "GRAPH_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("GRAPH_MT_view")
+        layout.menu("GRAPH_MT_select")
+        layout.menu("GRAPH_MT_marker")
+        layout.menu("GRAPH_MT_channel")
+        layout.menu("GRAPH_MT_key")
 
 
 class GRAPH_MT_view(Menu):

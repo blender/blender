@@ -465,7 +465,7 @@ struct bTheme *UI_GetTheme(void) {STUB_ASSERT(0); return (struct bTheme *) NULL;
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text) {STUB_ASSERT(0);}
 void uiTemplatePathBuilder(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *root_ptr, char *text) {STUB_ASSERT(0);}
-void uiTemplateHeader(struct uiLayout *layout, struct bContext *C, int menus) {STUB_ASSERT(0);}
+void uiTemplateHeader(struct uiLayout *layout, struct bContext *C) {STUB_ASSERT(0);}
 void uiTemplateID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *newop, char *unlinkop) {STUB_ASSERT(0);}
 struct uiLayout *uiTemplateModifier(struct uiLayout *layout, struct PointerRNA *ptr) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}
 struct uiLayout *uiTemplateConstraint(struct uiLayout *layout, struct PointerRNA *ptr) {STUB_ASSERT(0); return (struct uiLayout *) NULL;}

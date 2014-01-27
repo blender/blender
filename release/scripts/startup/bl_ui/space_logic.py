@@ -93,10 +93,20 @@ class LOGIC_HT_header(Header):
 
         layout.template_header()
 
-        if context.area.show_menus:
-            row = layout.row(align=True)
-            row.menu("LOGIC_MT_view")
-            row.menu("LOGIC_MT_logicbricks_add")
+        LOGIC_MT_editor_menus.draw_collapsible(context, layout)
+
+
+class LOGIC_MT_editor_menus(Menu):
+    bl_idname = "LOGIC_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("LOGIC_MT_view")
+        layout.menu("LOGIC_MT_logicbricks_add")
 
 
 class LOGIC_MT_view(Menu):

@@ -48,7 +48,7 @@ class USERPREF_HT_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.template_header(menus=False)
+        layout.template_header()
 
         userpref = context.user_preferences
 
@@ -432,12 +432,12 @@ class USERPREF_PT_system(Panel):
             col.label(text="Might fail for Mesh editing selection!")
             col.separator()
         col.prop(system, "use_region_overlap")
-        
+
         col.separator()
 
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
-        
+
         col.separator()
 
         col.label(text="Textures:")
@@ -917,7 +917,7 @@ class USERPREF_PT_file(Panel):
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
-        
+
         col.separator()
 
         col.label(text="Auto Save:")
@@ -1047,7 +1047,7 @@ class USERPREF_PT_input(Panel):
         sub.row().prop(inputs, "view_rotate_method", expand=True)
 
         sub.separator()
-        
+
         sub.label(text="Zoom Style:")
         sub.row().prop(inputs, "view_zoom_method", text="")
         if inputs.view_zoom_method in {'DOLLY', 'CONTINUE'}:

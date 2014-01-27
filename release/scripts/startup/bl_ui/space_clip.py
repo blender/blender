@@ -51,18 +51,7 @@ class CLIP_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("CLIP_MT_view")
-
-            if sc.view == 'CLIP':
-                if clip:
-                    sub.menu("CLIP_MT_select")
-                    sub.menu("CLIP_MT_clip")
-                    sub.menu("CLIP_MT_track")
-                    sub.menu("CLIP_MT_reconstruction")
-                else:
-                    sub.menu("CLIP_MT_clip")
+        CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
@@ -128,16 +117,7 @@ class CLIP_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("CLIP_MT_view")
-
-            if clip:
-                sub.menu("MASK_MT_select")
-                sub.menu("CLIP_MT_clip")  # XXX - remove?
-                sub.menu("MASK_MT_mask")
-            else:
-                sub.menu("CLIP_MT_clip")  # XXX - remove?
+        CLIP_MT_masking_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
@@ -167,6 +147,52 @@ class CLIP_HT_header(Header):
             self._draw_masking(context)
 
         layout.template_running_jobs()
+
+
+class CLIP_MT_tracking_editor_menus(Menu):
+    bl_idname = "CLIP_MT_tracking_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        layout.menu("CLIP_MT_view")
+
+        if sc.view == 'CLIP':
+            if clip:
+                layout.menu("CLIP_MT_select")
+                layout.menu("CLIP_MT_clip")
+                layout.menu("CLIP_MT_track")
+                layout.menu("CLIP_MT_reconstruction")
+            else:
+                layout.menu("CLIP_MT_clip")
+
+
+class CLIP_MT_masking_editor_menus(Menu):
+
+    bl_idname = "CLIP_MT_masking_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout = self.layout
+
+        layout.menu("CLIP_MT_view")
+
+        if clip:
+            layout.menu("MASK_MT_select")
+            layout.menu("CLIP_MT_clip")  # XXX - remove?
+            layout.menu("MASK_MT_mask")
+        else:
+            layout.menu("CLIP_MT_clip")  # XXX - remove?
 
 
 class CLIP_PT_clip_view_panel:

@@ -35,16 +35,27 @@ class NLA_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("NLA_MT_view")
-            row.menu("NLA_MT_select")
-            row.menu("NLA_MT_marker")
-            row.menu("NLA_MT_edit")
-            row.menu("NLA_MT_add")
+        NLA_MT_editor_menus.draw_collapsible(context, layout)
 
         dopesheet_filter(layout, context)
 
         layout.prop(st, "auto_snap", text="")
+
+
+class NLA_MT_editor_menus(Menu):
+    bl_idname = "NLA_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("NLA_MT_view")
+        layout.menu("NLA_MT_select")
+        layout.menu("NLA_MT_marker")
+        layout.menu("NLA_MT_edit")
+        layout.menu("NLA_MT_add")
 
 
 class NLA_MT_view(Menu):

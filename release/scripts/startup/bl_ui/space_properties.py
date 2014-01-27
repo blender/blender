@@ -30,7 +30,7 @@ class PROPERTIES_HT_header(Header):
         view = context.space_data
 
         row = layout.row()
-        row.template_header(menus=False)
+        row.template_header()
         row.prop(view, "context", expand=True, icon_only=True)
 
 

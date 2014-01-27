@@ -631,7 +631,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	/* templates */
 	func = RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_boolean(func, "menus", true, "", "The header has menus, and should show menu expander");
 
 	func = RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

@@ -36,11 +36,7 @@ class NODE_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        if context.area.show_menus:
-            row.menu("NODE_MT_view")
-            row.menu("NODE_MT_select")
-            row.menu("NODE_MT_add")
-            row.menu("NODE_MT_node")
+        NODE_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.prop(snode, "tree_type", text="", expand=True)
 
@@ -113,6 +109,21 @@ class NODE_HT_header(Header):
         row.operator("node.clipboard_paste", text="", icon='PASTEDOWN')
 
         layout.template_running_jobs()
+
+
+class NODE_MT_editor_menus(Menu):
+    bl_idname = "NODE_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        self.draw_menus(self.layout, context)
+
+    @staticmethod
+    def draw_menus(layout, context):
+        layout.menu("NODE_MT_view")
+        layout.menu("NODE_MT_select")
+        layout.menu("NODE_MT_add")
+        layout.menu("NODE_MT_node")
 
 
 class NODE_MT_add(bpy.types.Menu):
