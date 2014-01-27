@@ -183,7 +183,8 @@ class CLIP_MT_masking_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        layout = self.layout
+        sc = context.space_data
+        clip = sc.clip
 
         layout.menu("CLIP_MT_view")
 
