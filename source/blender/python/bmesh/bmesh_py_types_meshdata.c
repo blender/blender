@@ -57,7 +57,7 @@ typedef struct BPy_BMTexPoly {
 } BPy_BMTexPoly;
 
 extern PyObject *pyrna_id_CreatePyObject(ID *id);
-extern int       pyrna_id_FromPyObject(PyObject *obj, ID **id);
+extern bool      pyrna_id_FromPyObject(PyObject *obj, ID **id);
 
 PyDoc_STRVAR(bpy_bmtexpoly_image_doc,
 "Image or None.\n\n:type: :class:`bpy.types.Image`"
