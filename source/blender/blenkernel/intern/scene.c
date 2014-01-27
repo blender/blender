@@ -451,6 +451,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.blurfac = 0.5;
 	sce->r.frs_sec = 24;
 	sce->r.frs_sec_base = 1;
+	sce->r.edgeint = 10;
 	sce->r.ocres = 128;
 
 	/* OCIO_TODO: for forwards compatibility only, so if no tonecurve are used,

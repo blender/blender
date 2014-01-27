@@ -608,7 +608,7 @@ void RE_parts_init(Render *re, int do_crop)
 			RenderPart *pa = MEM_callocN(sizeof(RenderPart), "new part");
 			
 			/* Non-box filters need 2 pixels extra to work */
-			if (do_crop && re->r.filtertype) {
+			if (do_crop && (re->r.filtertype || (re->r.mode & R_EDGE))) {
 				pa->crop = 2;
 				disprect.xmin -= pa->crop;
 				disprect.ymin -= pa->crop;
