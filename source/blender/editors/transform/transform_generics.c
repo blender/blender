@@ -1667,7 +1667,7 @@ void calculateCenter(TransInfo *t)
 					float center[3];
 					Curve *cu = (Curve *)t->obedit->data;
 
-					if (ED_curve_actSelection(cu, center)) {
+					if (ED_curve_active_center(cu, center)) {
 						copy_v3_v3(t->center, center);
 						calculateCenter2D(t);
 						break;

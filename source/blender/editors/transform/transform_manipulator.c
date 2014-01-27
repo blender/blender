@@ -397,7 +397,7 @@ int calc_manipulator_stats(const bContext *C)
 			Curve *cu = obedit->data;
 			float center[3];
 
-			if (v3d->around == V3D_ACTIVE && ED_curve_actSelection(cu, center)) {
+			if (v3d->around == V3D_ACTIVE && ED_curve_active_center(cu, center)) {
 				calc_tw_center(scene, center);
 				totsel++;
 			}

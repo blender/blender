@@ -705,27 +705,15 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		} /* end editmesh */
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
-			Nurb *nu;
-			BezTriple *bezt;
+			Nurb *nu = NULL;
+			BezTriple *bezt = NULL;
 			int a;
 			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-			if (activeOnly && cu->lastsel) {
-				for (nu = nurbs->first; nu; nu = nu->next) {
-					if (nu->type == CU_BEZIER) {
-						if (ARRAY_HAS_ITEM((BezTriple *)cu->lastsel, nu->bezt, nu->pntsu)) {
-							bezt = cu->lastsel;
-							BKE_nurb_bezt_calc_normal(nu, bezt, normal);
-							BKE_nurb_bezt_calc_plane(nu, bezt, plane);
-							break;
-						}
-					}
-					else {
-						if (ARRAY_HAS_ITEM((BPoint *)cu->lastsel, nu->bp, nu->pntsu)) {
-							/* do nothing */
-							break;
-						}
-					}
+			if (activeOnly && BKE_curve_nurb_vert_active_get(cu, &nu, (void *)&bezt)) {
+				if (nu->type == CU_BEZIER) {
+					BKE_nurb_bezt_calc_normal(nu, bezt, normal);
+					BKE_nurb_bezt_calc_plane(nu, bezt, plane);
 				}
 			}
 			else {

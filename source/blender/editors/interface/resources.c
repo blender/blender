@@ -372,7 +372,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->nurb_sel_vline; break;
 				case TH_ACTIVE_SPLINE:
 					cp = ts->act_spline; break;
-				case TH_LASTSEL_POINT:
+				case TH_ACTIVE_VERT:
 					cp = ts->lastsel_point; break;
 				case TH_HANDLE_FREE:
 					cp = ts->handle_free; break;

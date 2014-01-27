@@ -498,15 +498,17 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 	type = RNA_enum_get(op->ptr, "type");
 
 	if (type == PFIELD_GUIDE) {
+		Curve *cu;
 		ob = ED_object_add_type(C, OB_CURVE, loc, rot, FALSE, layer);
 		if (!ob)
 			return OPERATOR_CANCELLED;
 
 		rename_id(&ob->id, CTX_DATA_(BLF_I18NCONTEXT_ID_OBJECT, "CurveGuide"));
-		((Curve *)ob->data)->flag |= CU_PATH | CU_3D;
+		cu = ob->data;
+		cu->flag |= CU_PATH | CU_3D;
 		ED_object_editmode_enter(C, 0);
 		ED_object_new_primitive_matrix(C, ob, loc, rot, mat, FALSE);
-		BLI_addtail(object_editcurve_get(ob), add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
+		BLI_addtail(&cu->editnurb->nurbs, add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
 		if (!enter_editmode)
 			ED_object_editmode_exit(C, EM_FREEDATA);
 	}

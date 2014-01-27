@@ -1854,7 +1854,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 					if (bp->hide == 0) {
 						/* check for active BPoint and ensure selected */
 						if ((bp == actbp) && (bp->f1 & SELECT)) {
-							UI_ThemeColor(TH_LASTSEL_POINT);
+							UI_ThemeColor(TH_ACTIVE_VERT);
 							bglVertex3fv(dl ? co : bp->vec);
 							UI_ThemeColor(color);
 						}
@@ -5358,7 +5358,7 @@ static void drawhandlesN_active(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, void *lastsel)
+static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const void *vert)
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -5383,8 +5383,8 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, void *
 		a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
-				if (sel == 1 && bezt == lastsel) {
-					UI_ThemeColor(TH_LASTSEL_POINT);
+				if (sel == 1 && bezt == vert) {
+					UI_ThemeColor(TH_ACTIVE_VERT);
 					bglVertex3fv(bezt->vec[1]);
 
 					if (!hide_handles) {
@@ -5411,8 +5411,8 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, void *
 		a = nu->pntsu * nu->pntsv;
 		while (a--) {
 			if (bp->hide == 0) {
-				if (bp == lastsel) {
-					UI_ThemeColor(TH_LASTSEL_POINT);
+				if (bp == vert) {
+					UI_ThemeColor(TH_ACTIVE_VERT);
 					bglVertex3fv(bp->vec);
 					UI_ThemeColor(color);
 				}
@@ -5621,6 +5621,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	Curve *cu = ob->data;
 	Nurb *nu;
 	BevList *bl;
+	const void *vert = BKE_curve_vert_active_get(cu);
 	const bool hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
 	int index;
 	unsigned char wire_col[3];
@@ -5700,7 +5701,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
 	
 	for (nu = nurb; nu; nu = nu->next) {
-		drawvertsN(nu, 1, hide_handles, cu->lastsel);
+		drawvertsN(nu, 1, hide_handles, vert);
 	}
 	
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);

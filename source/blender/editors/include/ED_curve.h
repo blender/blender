@@ -51,10 +51,10 @@ void    ED_operatormacros_curve(void);
 void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
-void ED_curve_transform(struct Curve *cv, float mat[4][4]);
-void CU_deselect_all(struct Object *obedit);
-void CU_select_all(struct Object *obedit);
-void CU_select_swap(struct Object *obedit);
+void ED_curve_transform(struct Curve *cu, float mat[4][4]);
+void ED_curve_deselect_all(struct EditNurb *editnurb);
+void ED_curve_select_all(struct EditNurb *editnurb);
+void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
 
 
 void    undo_push_curve(struct bContext *C, const char *name);
@@ -80,7 +80,7 @@ void    free_editText(struct Object *obedit);
 
 void    ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
 
-int CU_select_nth(struct Object *obedit, int nth);
+bool ED_curve_select_nth(struct Curve *cu, int nth);
 
 void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
@@ -88,10 +88,9 @@ struct Nurb *ED_curve_nurbcpy(struct Nurb *src, int count);
 
 int ED_curve_updateAnimPaths(struct Curve *cu);
 
-int ED_curve_actSelection(struct Curve *cu, float center[3]);
+bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
 /* debug only */
 void printknots(struct Object *obedit);
 
 #endif /* __ED_CURVE_H__ */
-

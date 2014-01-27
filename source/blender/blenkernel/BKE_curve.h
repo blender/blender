@@ -86,7 +86,14 @@ void BKE_curve_translate(struct Curve *cu, float offset[3], int do_keys);
 void BKE_curve_material_index_remove(struct Curve *cu, int index);
 void BKE_curve_material_index_clear(struct Curve *cu);
 
-ListBase *BKE_curve_nurbs_get(struct Curve *cu);
+ListBase    *BKE_curve_nurbs_get(struct Curve *cu);
+
+void         BKE_curve_nurb_active_set(struct Curve *cu, struct Nurb *nu);
+struct Nurb *BKE_curve_nurb_active_get(struct Curve *cu);
+void        *BKE_curve_vert_active_get(struct Curve *cu);
+void         BKE_curve_nurb_vert_active_set(struct Curve *cu, struct Nurb *nu,    void *vert);
+bool         BKE_curve_nurb_vert_active_get(struct Curve *cu, struct Nurb **r_nu, void **r_vert);
+void         BKE_curve_nurb_vert_active_validate(struct Curve *cu);
 
 float (*BKE_curve_nurbs_vertexCos_get(struct ListBase *lb, int *numVerts_r))[3];
 void BK_curve_nurbs_vertexCos_apply(struct ListBase *lb, float (*vertexCos)[3]);

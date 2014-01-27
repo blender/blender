@@ -224,7 +224,6 @@ Curve *BKE_curve_copy(Curve *cu)
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
-	cun->lastsel = NULL;
 
 #if 0   // XXX old animation system
 	/* single user ipo too */
@@ -3931,6 +3930,105 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 	return &cu->nurb;
 }
 
+void BKE_curve_nurb_active_set(Curve *cu, Nurb *nu)
+{
+	if (nu == NULL) {
+		cu->actnu = -1;
+	}
+	else {
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+		cu->actnu = BLI_findindex(nurbs, nu);
+	}
+}
+
+Nurb *BKE_curve_nurb_active_get(Curve *cu)
+{
+	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+	return BLI_findlink(nurbs, cu->actnu);
+}
+
+/* Get active vert for curve */
+void *BKE_curve_vert_active_get(Curve *cu)
+{
+	Nurb *nu = NULL;
+	void *vert = NULL;
+
+	BKE_curve_nurb_vert_active_get(cu, &nu, &vert);
+	return vert;
+}
+
+/* Set active nurb and active vert for curve */
+void BKE_curve_nurb_vert_active_set(Curve *cu, Nurb *nu, void *vert)
+{
+	if (nu) {
+		BKE_curve_nurb_active_set(cu, nu);
+
+		if (nu->type == CU_BEZIER) {
+			BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
+			cu->actvert = (BezTriple *)vert - nu->bezt;
+		}
+		else {
+			BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
+			cu->actvert = (BPoint *)vert - nu->bp;
+		}
+	}
+	else {
+		cu->actnu = cu->actvert = CU_ACT_NONE;
+	}
+}
+
+/* Get points to active active nurb and active vert for curve */
+bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
+{
+	Nurb *nu = NULL;
+	void *vert = NULL;
+
+	if (cu->actvert != CU_ACT_NONE) {
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+		nu = BLI_findlink(nurbs, cu->actnu);
+
+		if (nu) {
+			if (nu->type == CU_BEZIER) {
+				BLI_assert(nu->pntsu > cu->actvert);
+				vert = &nu->bezt[cu->actvert];
+			}
+			else {
+				BLI_assert((nu->pntsu * nu->pntsv) > cu->actvert);
+				vert = &nu->bp[cu->actvert];
+			}
+		}
+		/* get functions should never set! */
+#if 0
+		else {
+			cu->actnu = cu->actvert = CU_ACT_NONE;
+		}
+#endif
+	}
+
+	*r_nu = nu;
+	*r_vert = vert;
+
+	return (*r_vert != NULL);
+}
+
+void BKE_curve_nurb_vert_active_validate(Curve *cu)
+{
+	Nurb *nu;
+	void *vert;
+
+	if (BKE_curve_nurb_vert_active_get(cu, &nu, &vert)) {
+		if (nu->type == CU_BEZIER) {
+			if ((((BezTriple *)vert)->f1 & SELECT) == 0) {
+				cu->actvert = CU_ACT_NONE;
+			}
+		}
+		else {
+			if ((((BPoint *)vert)->f1 & SELECT) == 0) {
+				cu->actvert = CU_ACT_NONE;
+			}
+		}
+	}
+}
 
 /* basic vertex data functions */
 bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])

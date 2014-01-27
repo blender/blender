@@ -3388,7 +3388,6 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	}
 
 	cu->editnurb = NULL;
-	cu->lastsel = NULL;
 	cu->editfont = NULL;
 	
 	for (nu = cu->nurb.first; nu; nu = nu->next) {
