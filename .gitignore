@@ -11,6 +11,9 @@ __pycache__/
 *.swo
 *#
 
+# QtCreator
+CMakeLists.txt.user
+
 # ms-windows
 Thumbs.db
 ehthumbs.db
