@@ -659,6 +659,62 @@ void BKE_text_write(Text *text, const char *str) /* called directly from rna */
 	txt_make_dirty(text);
 }
 
+
+/* returns 0 if file on disk is the same or Text is in memory only
+ * returns 1 if file has been modified on disk since last local edit
+ * returns 2 if file on disk has been deleted
+ * -1 is returned if an error occurs */
+
+int BKE_text_file_modified_check(Text *text)
+{
+	struct stat st;
+	int result;
+	char file[FILE_MAX];
+
+	if (!text || !text->name)
+		return 0;
+
+	BLI_strncpy(file, text->name, FILE_MAX);
+	BLI_path_abs(file, G.main->name);
+
+	if (!BLI_exists(file))
+		return 2;
+
+	result = BLI_stat(file, &st);
+
+	if (result == -1)
+		return -1;
+
+	if ((st.st_mode & S_IFMT) != S_IFREG)
+		return -1;
+
+	if (st.st_mtime > text->mtime)
+		return 1;
+
+	return 0;
+}
+
+void BKE_text_file_modified_ignore(Text *text)
+{
+	struct stat st;
+	int result;
+	char file[FILE_MAX];
+
+	if (!text || !text->name) return;
+
+	BLI_strncpy(file, text->name, FILE_MAX);
+	BLI_path_abs(file, G.main->name);
+
+	if (!BLI_exists(file)) return;
+
+	result = BLI_stat(file, &st);
+
+	if (result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
+		return;
+
+	text->mtime = st.st_mtime;
+}
+
 /*****************************/
 /* Editing utility functions */
 /*****************************/

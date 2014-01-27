@@ -53,11 +53,11 @@ struct Scene;
 /*
  * both return 1 on success, 0 on error
  */
-int collada_import(bContext *C,
+int collada_import(struct bContext *C,
                    const char *filepath,
                    int import_units);
 
-int collada_export(Scene *sce,
+int collada_export(struct Scene *sce,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,

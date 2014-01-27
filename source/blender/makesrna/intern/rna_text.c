@@ -44,8 +44,6 @@
 
 #ifdef RNA_RUNTIME
 
-int text_file_modified(Text *text); /* XXX bad level call */
-
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
 	Text *text = (Text *)ptr->data;
@@ -78,7 +76,7 @@ static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 static int rna_Text_modified_get(PointerRNA *ptr)
 {
 	Text *text = (Text *)ptr->data;
-	return text_file_modified(text);
+	return BKE_text_file_modified_check(text) != 0;
 }
 
 static int rna_Text_current_line_index_get(PointerRNA *ptr)

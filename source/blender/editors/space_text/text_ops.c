@@ -3107,61 +3107,6 @@ static EnumPropertyItem resolution_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* returns 0 if file on disk is the same or Text is in memory only
- * returns 1 if file has been modified on disk since last local edit
- * returns 2 if file on disk has been deleted
- * -1 is returned if an error occurs */
-
-int text_file_modified(Text *text)
-{
-	struct stat st;
-	int result;
-	char file[FILE_MAX];
-
-	if (!text || !text->name)
-		return 0;
-
-	BLI_strncpy(file, text->name, FILE_MAX);
-	BLI_path_abs(file, G.main->name);
-
-	if (!BLI_exists(file))
-		return 2;
-
-	result = BLI_stat(file, &st);
-	
-	if (result == -1)
-		return -1;
-
-	if ((st.st_mode & S_IFMT) != S_IFREG)
-		return -1;
-
-	if (st.st_mtime > text->mtime)
-		return 1;
-
-	return 0;
-}
-
-static void text_ignore_modified(Text *text)
-{
-	struct stat st;
-	int result;
-	char file[FILE_MAX];
-
-	if (!text || !text->name) return;
-
-	BLI_strncpy(file, text->name, FILE_MAX);
-	BLI_path_abs(file, G.main->name);
-
-	if (!BLI_exists(file)) return;
-
-	result = BLI_stat(file, &st);
-	
-	if (result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
-		return;
-
-	text->mtime = st.st_mtime;
-}
-
 static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 {
 	Text *text = CTX_data_edit_text(C);
@@ -3175,7 +3120,7 @@ static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 		case RESOLVE_MAKE_INTERNAL:
 			return text_make_internal_exec(C, op);
 		case RESOLVE_IGNORE:
-			text_ignore_modified(text);
+			BKE_text_file_modified_ignore(text);
 			return OPERATOR_FINISHED;
 	}
 
@@ -3188,7 +3133,7 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEve
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	switch (text_file_modified(text)) {
+	switch (BKE_text_file_modified_check(text)) {
 		case 1:
 			if (text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */

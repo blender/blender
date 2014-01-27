@@ -55,6 +55,8 @@ struct Text    *BKE_text_copy		(struct Text *ta);
 void			BKE_text_unlink		(struct Main *bmain, struct Text *text);
 void			BKE_text_clear      (struct Text *text);
 void			BKE_text_write      (struct Text *text, const char *str);
+int             BKE_text_file_modified_check(struct Text *text);
+void            BKE_text_file_modified_ignore(struct Text *text);
 
 char   *txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
