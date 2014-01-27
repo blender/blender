@@ -102,8 +102,8 @@ optim_defs = defs[:]
 
 cycles_avx = cycles.Clone()
 avx_sources = [path.join('kernel', 'kernel_avx.cpp')]
-if env['OURPLATFORM'] == 'darwin': # always use Apple assembler for avx , gnu-compilers do not support it ( vanilla gcc-4.6 or higher case )
-    cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags)
+if env['OURPLATFORM'] == 'darwin' and env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6': # use Apple assembler for avx , gnu-compilers do not support it ( gnu gcc-4.6 or higher case )
+    cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags, cc_compilerchange='/usr/bin/clang', cxx_compilerchange='/usr/bin/clang++')
 else:
     cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags)
 
