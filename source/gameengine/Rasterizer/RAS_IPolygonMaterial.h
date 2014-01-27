@@ -61,7 +61,8 @@ enum MaterialProps
 	RAS_NORMAL		=256,
 	RAS_DEFMULTI	=512,
 	RAS_BLENDERGLSL =1024,
-	RAS_CASTSHADOW	=2048
+	RAS_CASTSHADOW	=2048,
+	RAS_ONLYSHADOW	=4096,
 };
 
 /**
@@ -174,6 +175,7 @@ public:
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
 	virtual bool		CastsShadows() const;
+	virtual bool		OnlyShadow() const;
 
 	virtual void		Replace_IScene(SCA_IScene *val) {} /* overridden by KX_BlenderMaterial */
 

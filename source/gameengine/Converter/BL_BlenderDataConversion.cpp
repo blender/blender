@@ -611,6 +611,10 @@ static bool ConvertMaterial(
 
 		// cast shadows?
 		material->ras_mode |= ( mat->mode & MA_SHADBUF )?CAST_SHADOW:0;
+
+		// only shadows?
+		material->ras_mode |= ( mat->mode & MA_ONLYCAST )?ONLY_SHADOW:0;
+
 		MTex *mttmp = 0;
 		int valid_index = 0;
 		

@@ -144,7 +144,8 @@ enum BL_ras_mode
 	WIRE=64,
 	CAST_SHADOW=128,
 	TEX=256,
-	TWOSIDED=512
+	TWOSIDED=512,
+	ONLY_SHADOW=1024,
 };
 
 // -------------------------------------

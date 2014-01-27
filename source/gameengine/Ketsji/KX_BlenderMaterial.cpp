@@ -110,6 +110,7 @@ void KX_BlenderMaterial::Initialize(
 	m_flag |= ((mMaterial->ras_mode & USE_LIGHT)!=0)? RAS_MULTILIGHT: 0;
 	m_flag |= (mMaterial->glslmat)? RAS_BLENDERGLSL: 0;
 	m_flag |= ((mMaterial->ras_mode & CAST_SHADOW)!=0)? RAS_CASTSHADOW: 0;
+	m_flag |= ((mMaterial->ras_mode & ONLY_SHADOW)!=0)? RAS_ONLYSHADOW: 0;
 
 	// test the sum of the various modes for equality
 	// so we can ether accept or reject this material

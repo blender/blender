@@ -282,6 +282,11 @@ bool RAS_IPolyMaterial::CastsShadows() const
 	return (m_flag & RAS_CASTSHADOW) != 0;
 }
 
+bool RAS_IPolyMaterial::OnlyShadow() const
+{
+	return (m_flag & RAS_ONLYSHADOW) != 0;
+}
+
 bool RAS_IPolyMaterial::UsesObjectColor() const
 {
 	return !(m_flag & RAS_BLENDERGLSL);
