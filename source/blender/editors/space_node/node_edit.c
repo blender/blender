@@ -329,21 +329,6 @@ int composite_node_editable(bContext *C)
 	return 0;
 }
 
-static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
-{
-	bNode *node;
-	
-	if (ntree == lookup)
-		return 1;
-	
-	for (node = ntree->nodes.first; node; node = node->next)
-		if (node->type == NODE_GROUP && node->id)
-			if (has_nodetree((bNodeTree *)node->id, lookup))
-				return 1;
-	
-	return 0;
-}
-
 void snode_dag_update(bContext *C, SpaceNode *snode)
 {
 	Main *bmain = CTX_data_main(C);
@@ -351,7 +336,7 @@ void snode_dag_update(bContext *C, SpaceNode *snode)
 	/* for groups, update all ID's using this */
 	if (snode->edittree != snode->nodetree) {
 		FOREACH_NODETREE(bmain, tntree, id) {
-			if (has_nodetree(tntree, snode->edittree))
+			if (ntreeHasTree(tntree, snode->edittree))
 				DAG_id_tag_update(id, 0);
 		} FOREACH_NODETREE_END
 	}
@@ -675,7 +660,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				Material *ma;
 
 				for (ma = bmain->mat.first; ma; ma = ma->id.next)
-					if (ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+					if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree))
 						GPU_material_free(ma);
 
 				WM_main_add_notifier(NC_IMAGE, NULL);
@@ -704,7 +689,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				Scene *scene;
 
 				for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-					if (scene->nodetree && scene->use_nodes && has_nodetree(scene->nodetree, ntree)) {
+					if (scene->nodetree && scene->use_nodes && ntreeHasTree(scene->nodetree, ntree)) {
 						if (node->id == NULL || node->id == (ID *)scene) {
 							scene->r.actlay = node->custom1;
 						}

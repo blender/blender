@@ -353,7 +353,8 @@ void              ntreeUserDecrefID(struct bNodeTree *ntree);
 struct bNodeTree *ntreeFromID(struct ID *id);
 
 void              ntreeMakeLocal(struct bNodeTree *ntree);
-int               ntreeHasType(struct bNodeTree *ntree, int type);
+bool              ntreeHasType(const struct bNodeTree *ntree, int type);
+bool              ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void              ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 /* XXX Currently each tree update call does call to ntreeVerifyNodes too.
  * Some day this should be replaced by a decent depsgraph automatism!

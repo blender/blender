@@ -2289,7 +2289,7 @@ void ntreeInterfaceTypeUpdate(bNodeTree *ntree)
 
 /* ************ find stuff *************** */
 
-int ntreeHasType(bNodeTree *ntree, int type)
+bool ntreeHasType(const bNodeTree *ntree, int type)
 {
 	bNode *node;
 	
@@ -2298,6 +2298,21 @@ int ntreeHasType(bNodeTree *ntree, int type)
 			if (node->type == type)
 				return 1;
 	return 0;
+}
+
+bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
+{
+	bNode *node;
+
+	if (ntree == lookup)
+		return true;
+
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->type == NODE_GROUP && node->id)
+			if (ntreeHasTree((bNodeTree *)node->id, lookup))
+				return true;
+
+	return false;
 }
 
 bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
