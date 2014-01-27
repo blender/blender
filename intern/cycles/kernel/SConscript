@@ -96,7 +96,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
 
         if env['BF_CYCLES_CUDA_ENV']:
             MS_SDK = "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
-            command = "\"%s\" & %s -arch=%s %s %s \"%s\" -o \"%s\"" % (MS_SDK, nvcc, arch, nvcc_flags, cuda_arch_flags, kernel_file, cubin_file)
+            command = "\"%s\" & \"%s\" -arch=%s %s %s \"%s\" -o \"%s\"" % (MS_SDK, nvcc, arch, nvcc_flags, cuda_arch_flags, kernel_file, cubin_file)
         else:
             command = "\"%s\" -arch=%s %s %s \"%s\" -o \"%s\"" % (nvcc, arch, nvcc_flags, cuda_arch_flags, kernel_file, cubin_file)
 
