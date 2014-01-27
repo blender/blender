@@ -211,6 +211,9 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, bNodeExecData *execd
 {
 	bNodeTreeExec *exec = execdata->data;
 	
+	if (!node->id)
+		return 0;
+	
 	group_gpu_copy_inputs(node, in, exec->stack);
 #if 0   /* XXX NODE_GROUP_EDIT is deprecated, depends on node space */
 	ntreeExecGPUNodes(exec, mat, (node->flag & NODE_GROUP_EDIT));
