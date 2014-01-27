@@ -92,7 +92,7 @@ typedef struct OGLRender {
 
 	short obcenter_dia_back; /* temp overwrite */
 
-	short is_sequencer;
+	bool is_sequencer;
 	SpaceSeq *sseq;
 
 
@@ -323,7 +323,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		MEM_freeN(rect);
 }
 
-static int screen_opengl_render_init(bContext *C, wmOperator *op)
+static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 {
 	/* new render clears all callbacks */
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -336,36 +336,36 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	GPUOffScreen *ofs;
 	OGLRender *oglrender;
 	int sizex, sizey;
-	short is_view_context = RNA_boolean_get(op->ptr, "view_context");
-	const short is_animation = RNA_boolean_get(op->ptr, "animation");
-	const short is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
-	const short is_write_still = RNA_boolean_get(op->ptr, "write_still");
+	bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
+	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
+	const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
+	const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
 	char err_out[256] = "unknown";
 
 	if (G.background) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot use OpenGL render in background mode (no opengl context)");
-		return 0;
+		return false;
 	}
 
 	/* ensure we have a 3d view */
 
 	if (!ED_view3d_context_activate(C)) {
 		RNA_boolean_set(op->ptr, "view_context", FALSE);
-		is_view_context = 0;
+		is_view_context = false;
 	}
 
 	/* only one render job at a time */
 	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
-		return 0;
+		return false;
 	
 	if (!is_view_context && scene->camera == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Scene has no camera");
-		return 0;
+		return false;
 	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
-		return 0;
+		return false;
 	}
 
 	/* stop all running jobs, except screen one. currently previews frustrate Render */
@@ -380,7 +380,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	if (!ofs) {
 		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
-		return 0;
+		return false;
 	}
 
 	/* allocate opengl render */
@@ -444,7 +444,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->wm = wm;
 	oglrender->win = win;
 
-	return 1;
+	return true;
 }
 
 static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)

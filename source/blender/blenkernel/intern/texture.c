@@ -1121,7 +1121,7 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 	}
 }
 
-int has_current_material_texture(Material *ma)
+bool has_current_material_texture(Material *ma)
 {
 	bNode *node;
 

@@ -37,7 +37,7 @@ struct Main;
 struct World;
 
 void BKE_world_free(struct World *sc);
-void BKE_world_free_ex(struct World *sc, int do_id_user);
+void BKE_world_free_ex(struct World *sc, bool do_id_user);
 struct World *add_world(struct Main *bmian, const char *name);
 struct World *BKE_world_copy(struct World *wrld);
 struct World *localize_world(struct World *wrld);

@@ -1319,7 +1319,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	unsigned int lay, local;
-	/* int is_lamp = FALSE; */ /* UNUSED */
+	/* bool is_lamp = FALSE; */ /* UNUSED */
 	
 	lay = move_to_layer_init(C, op);
 	lay &= 0xFFFFFF;

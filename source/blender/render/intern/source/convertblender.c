@@ -3132,7 +3132,7 @@ static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 	return edge_hash;
 }
 
-static int has_freestyle_edge_mark(EdgeHash *edge_hash, int v1, int v2)
+static bool has_freestyle_edge_mark(EdgeHash *edge_hash, int v1, int v2)
 {
 	MEdge *medge= BLI_edgehash_lookup(edge_hash, v1, v2);
 	return (!medge) ? 0 : 1;

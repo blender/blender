@@ -323,7 +323,7 @@ int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformma
 	int a, numVerts = 0;
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
-	int has_multires = mmd != NULL && mmd->sculptlvl > 0;
+	const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
 	int numleft = 0;
 	VirtualModifierData virtualModifierData;
 

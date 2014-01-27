@@ -2948,7 +2948,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 		}
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			const int is_face_sel = BM_elem_flag_test(efa, BM_ELEM_SELECT);
+			const bool is_face_sel = BM_elem_flag_test_bool(efa, BM_ELEM_SELECT);
 
 			if (is_face_sel || do_moving) {
 				BMIter liter;

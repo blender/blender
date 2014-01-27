@@ -1376,7 +1376,7 @@ static void do_weight_paint_normalize_all_active(MDeformVert *dvert, const int d
 /*
  * See if the current deform vertex has a locked group
  */
-static char has_locked_group(MDeformVert *dvert, const int defbase_tot,
+static bool has_locked_group(MDeformVert *dvert, const int defbase_tot,
                              const bool *bone_groups, const bool *lock_flags)
 {
 	int i;
@@ -1405,8 +1405,8 @@ static bool has_locked_group_selected(int defbase_tot, const bool *defbase_sel, 
 
 
 #if 0 /* UNUSED */
-static int has_unselected_unlocked_bone_group(int defbase_tot, bool *defbase_sel, int selected,
-                                              const bool *lock_flags, const bool *vgroup_validmap)
+static bool has_unselected_unlocked_bone_group(int defbase_tot, bool *defbase_sel, int selected,
+                                               const bool *lock_flags, const bool *vgroup_validmap)
 {
 	int i;
 	if (defbase_tot == selected) {

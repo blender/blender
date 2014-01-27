@@ -113,7 +113,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
 	/* add slash for directories, important for some properties */
 	if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
-		int is_relative = RNA_boolean_get(op->ptr, "relative_path");
+		const bool is_relative = RNA_boolean_get(op->ptr, "relative_path");
 		id = fbo->ptr.id.data;
 
 		BLI_strncpy(path, str, FILE_MAX);

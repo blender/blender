@@ -2475,8 +2475,8 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		int is_sel = FALSE;
-		int is_unsel = FALSE;
+		bool is_sel = false;
+		bool is_unsel = false;
 		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 		if (!uvedit_face_visible_test(scene, ima, efa, tf))

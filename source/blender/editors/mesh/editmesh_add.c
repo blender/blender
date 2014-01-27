@@ -80,7 +80,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 static void make_prim_finish(bContext *C, Object *obedit, bool was_editmode, int enter_editmode)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int exit_editmode = ((was_editmode == true) && (enter_editmode == false));
+	const bool exit_editmode = ((was_editmode == true) && (enter_editmode == false));
 
 	/* Primitive has all verts selected, use vert select flush
 	 * to push this up to edges & faces. */

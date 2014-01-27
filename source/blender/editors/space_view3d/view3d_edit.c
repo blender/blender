@@ -1211,7 +1211,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			const float zoom_sensitivity = 1.f;
 #endif
 			const float pan_sensitivity = 1.f;
-			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
+			const bool has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
 
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);
@@ -1295,7 +1295,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			const float zoom_sensitivity = 1.f;
 
 			const float pan_sensitivity = 1.f;
-			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
+			const bool has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
 
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);

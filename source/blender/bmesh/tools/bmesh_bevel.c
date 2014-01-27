@@ -2144,7 +2144,7 @@ static NewVert *mesh_vert_canon(VMesh *vm, int i, int j, int k)
 	return ans;
 }
 
-static int is_canon(VMesh *vm, int i, int j, int k)
+static bool is_canon(VMesh *vm, int i, int j, int k)
 {
 	int ns2 = vm->seg / 2;
 	if (vm->seg % 2 == 1)

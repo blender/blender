@@ -285,7 +285,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 	float areaf;
 	int i, j;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
-	int has_4_vert;
+	bool has_4_vert;
 	for (i = 0; i < sys->numEdges; i++) {
 		idv1 = sys->medges[i].v1;
 		idv2 = sys->medges[i].v2;
@@ -405,7 +405,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	float *v1, *v2, *v3, *v4;
 	float w2, w3, w4;
 	int i, j;
-	int has_4_vert;
+	bool has_4_vert;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
 
 	for (i = 0; i < sys->numFaces; i++) {

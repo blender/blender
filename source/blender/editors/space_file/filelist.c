@@ -120,7 +120,7 @@ typedef struct FileList {
 	short hide_parent;
 
 	void (*readf)(struct FileList *);
-	int (*filterf)(struct direntry *file, const char *dir, unsigned int filter, short hide_dot);
+	bool (*filterf)(struct direntry *file, const char *dir, unsigned int filter, short hide_dot);
 
 } FileList;
 
@@ -296,9 +296,9 @@ static int compare_extension(const void *a1, const void *a2)
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
 
-static int is_hidden_file(const char *filename, short hide_dot)
+static bool is_hidden_file(const char *filename, short hide_dot)
 {
-	int is_hidden = 0;
+	bool is_hidden = false;
 
 	if (hide_dot) {
 		if (filename[0] == '.' && filename[1] != '.' && filename[1] != 0) {
@@ -322,9 +322,9 @@ static int is_hidden_file(const char *filename, short hide_dot)
 	return is_hidden;
 }
 
-static int is_filtered_file(struct direntry *file, const char *UNUSED(dir), unsigned int filter, short hide_dot)
+static bool is_filtered_file(struct direntry *file, const char *UNUSED(dir), unsigned int filter, short hide_dot)
 {
-	int is_filtered = 0;
+	bool is_filtered = false;
 	if (filter) {
 		if (file->flags & filter) {
 			is_filtered = 1;
@@ -341,9 +341,9 @@ static int is_filtered_file(struct direntry *file, const char *UNUSED(dir), unsi
 	return is_filtered && !is_hidden_file(file->relname, hide_dot);
 }
 
-static int is_filtered_lib(struct direntry *file, const char *dir, unsigned int filter, short hide_dot)
+static bool is_filtered_lib(struct direntry *file, const char *dir, unsigned int filter, short hide_dot)
 {
-	int is_filtered = 0;
+	bool is_filtered = false;
 	char tdir[FILE_MAX], tgroup[GROUP_MAX];
 	if (BLO_is_a_library(dir, tdir, tgroup)) {
 		is_filtered = !is_hidden_file(file->relname, hide_dot);
@@ -354,7 +354,7 @@ static int is_filtered_lib(struct direntry *file, const char *dir, unsigned int 
 	return is_filtered;
 }
 
-static int is_filtered_main(struct direntry *file, const char *UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
+static bool is_filtered_main(struct direntry *file, const char *UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
 {
 	return !is_hidden_file(file->relname, hide_dot);
 }

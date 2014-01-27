@@ -195,7 +195,7 @@ int graphop_active_fcurve_poll(bContext *C)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	ScrArea *sa = CTX_wm_area(C);
-	short has_fcurve = 0;
+	bool has_fcurve = 0;
 	
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?

@@ -339,11 +339,11 @@ void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
 
 /* copy/free funcs, need to manage ID users */
-void              ntreeFreeTree_ex(struct bNodeTree *ntree, const short do_id_user);
+void              ntreeFreeTree_ex(struct bNodeTree *ntree, const bool do_id_user);
 void              ntreeFreeTree(struct bNodeTree *ntree);
-struct bNodeTree *ntreeCopyTree_ex(struct bNodeTree *ntree, const short do_id_user);
+struct bNodeTree *ntreeCopyTree_ex(struct bNodeTree *ntree, const bool do_id_user);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree);
-void              ntreeSwitchID_ex(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to, const short do_id_user);
+void              ntreeSwitchID_ex(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to, const bool do_id_user);
 void              ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
 /* node->id user count */
 void              ntreeUserIncrefID(struct bNodeTree *ntree);
@@ -488,7 +488,7 @@ int             nodeSocketIsHidden(struct bNodeSocket *sock);
 /* Node Clipboard */
 void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
 void                   BKE_node_clipboard_clear(void);
-int                    BKE_node_clipboard_validate(void);
+bool                   BKE_node_clipboard_validate(void);
 void                   BKE_node_clipboard_add_node(struct bNode *node);
 void                   BKE_node_clipboard_add_link(struct bNodeLink *link);
 const struct ListBase *BKE_node_clipboard_get_nodes(void);

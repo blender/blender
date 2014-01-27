@@ -394,8 +394,8 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area = CTX_wm_area(C);
 	ARegion *region = CTX_wm_region(C);
 	ARegion *menu = CTX_wm_menu(C);
-	static int do_wheel_ui = TRUE;
-	int is_wheel = ELEM3(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
+	static bool do_wheel_ui = true;
+	const bool is_wheel = ELEM3(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
 	int retval;
 	
 	/* UI code doesn't handle return values - it just always returns break. 
@@ -405,11 +405,11 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	
 	/* UI is quite aggressive with swallowing events, like scrollwheel */
 	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
-	if (do_wheel_ui == FALSE) {
+	if (do_wheel_ui == false) {
 		if (is_wheel)
 			return WM_HANDLER_CONTINUE;
 		else if (wm_event_always_pass(event) == 0)
-			do_wheel_ui = TRUE;
+			do_wheel_ui = true;
 	}
 	
 	/* we set context to where ui handler came from */
@@ -437,7 +437,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	
 	/* event not handled in UI, if wheel then we temporarily disable it */
 	if (is_wheel)
-		do_wheel_ui = FALSE;
+		do_wheel_ui = false;
 	
 	return WM_HANDLER_CONTINUE;
 }
@@ -985,7 +985,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 	if (WM_operator_poll(C, ot)) {
 		wmWindowManager *wm = CTX_wm_manager(C);
 		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports == NULL, they'll be initialized */
-		const short is_nested_call = (wm->op_undo_depth != 0);
+		const bool is_nested_call = (wm->op_undo_depth != 0);
 		
 		op->flag |= OP_IS_INVOKE;
 
@@ -1254,7 +1254,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
  * - reports can be passed to this function (so python can report them as exceptions)
  */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context,
-                        PointerRNA *properties, ReportList *reports, short is_undo)
+                        PointerRNA *properties, ReportList *reports, const bool is_undo)
 {
 	int retval = OPERATOR_CANCELLED;
 
@@ -2148,7 +2148,7 @@ void wm_event_do_handlers(bContext *C)
 				int is_playing_sound = sound_scene_playing(win->screen->scene);
 				
 				if (is_playing_sound != -1) {
-					int is_playing_screen;
+					bool is_playing_screen;
 					CTX_wm_window_set(C, win);
 					CTX_wm_screen_set(C, win->screen);
 					CTX_data_scene_set(C, scene);

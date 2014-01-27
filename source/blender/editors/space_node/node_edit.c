@@ -613,12 +613,12 @@ void snode_update(SpaceNode *snode, bNode *node)
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 {
-	int was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE);
+	const bool was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE) != 0;
 
 	nodeSetActive(ntree, node);
 	
 	if (node->type != NODE_GROUP) {
-		int was_output = (node->flag & NODE_DO_OUTPUT);
+		const bool was_output = (node->flag & NODE_DO_OUTPUT) != 0;
 		int do_update = 0;
 		
 		/* generic node group output: set node as active output */
@@ -1995,7 +1995,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	bNodeLink *link;
 	int num_nodes;
 	float center[2];
-	int is_clipboard_valid, all_nodes_valid;
+	bool is_clipboard_valid, all_nodes_valid;
 
 	/* validate pointers in the clipboard */
 	is_clipboard_valid = BKE_node_clipboard_validate();

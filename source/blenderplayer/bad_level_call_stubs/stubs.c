@@ -272,7 +272,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct
 float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d) RET_NULL
 void WM_menutype_free(void) RET_NONE
 void WM_menutype_freelink(struct MenuType *mt) RET_NONE
-int WM_menutype_add(struct MenuType *mt) RET_ZERO
+bool WM_menutype_add(struct MenuType *mt) RET_ZERO
 int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width, int height) RET_ZERO
 int WM_operator_confirm(struct bContext *C, struct wmOperator *op, const struct wmEvent *event) RET_ZERO
 struct MenuType *WM_menutype_find(const char *idname, bool quiet) RET_NULL
@@ -294,7 +294,7 @@ void WM_cursor_warp(struct wmWindow *win, int x, int y) RET_NONE
 
 void                WM_uilisttype_init(void) RET_NONE
 struct uiListType  *WM_uilisttype_find(const char *idname, bool quiet) RET_NULL
-int                 WM_uilisttype_add(struct uiListType *ult) RET_ZERO
+bool                WM_uilisttype_add(struct uiListType *ult) RET_ZERO
 void                WM_uilisttype_freelink(struct uiListType *ult) RET_NONE
 void                WM_uilisttype_free(void) RET_NONE
 
@@ -326,9 +326,9 @@ struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *na
 struct ListBase *get_active_constraints (struct Object *ob) RET_NULL
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r) RET_NULL
 
-int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit) RET_ZERO
-int ED_space_image_show_render(struct SpaceImage *sima) RET_ZERO
-int ED_space_image_show_paint(struct SpaceImage *sima) RET_ZERO
+bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit) RET_ZERO
+bool ED_space_image_show_render(struct SpaceImage *sima) RET_ZERO
+bool ED_space_image_show_paint(struct SpaceImage *sima) RET_ZERO
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings) RET_NONE
 void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima) RET_NONE
 void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings) RET_NONE
@@ -469,7 +469,7 @@ intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, const float
 
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
-int ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima) RET_ZERO
+bool ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima) RET_ZERO
 
 bool ED_texture_context_check_world(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_material(const struct bContext *C) RET_ZERO
@@ -595,7 +595,7 @@ void RE_FreePersistentData(void) RET_NONE
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL
 struct GHashIterator *WM_operatortype_iter() RET_NULL
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname) RET_NULL
-int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, short is_undo) RET_ZERO
+int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, const bool is_undo) RET_ZERO
 void WM_operatortype_remove_ptr(struct wmOperatorType *ot) RET_NONE
 bool WM_operatortype_remove(const char *idname) RET_ZERO
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot) RET_ZERO

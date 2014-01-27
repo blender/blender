@@ -215,7 +215,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
                                   BMOpSlot dupe_op_slot_args[BMO_OP_MAX_SLOTS], const char *dupe_slot_name,
                                   BMOperator *weld_op)
 {
-	const int is_input = (dupe_op->slots_in == dupe_op_slot_args);
+	const bool is_input = (dupe_op->slots_in == dupe_op_slot_args);
 	BMVert *v, *v2, *v3;
 	BMIter iter;
 

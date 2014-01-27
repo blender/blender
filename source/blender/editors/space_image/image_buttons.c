@@ -241,7 +241,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 
 }
 
-static int is_preview_allowed(ScrArea *cur)
+static bool is_preview_allowed(ScrArea *cur)
 {
 	SpaceImage *sima = cur->spacedata.first;
 	ScrArea *sa;
@@ -677,13 +677,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
 					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-					int has_alpha = TRUE;
+					bool has_alpha = true;
 
 					if (ibuf) {
 						int imtype = BKE_ftype_to_imtype(ibuf->ftype);
 						char valid_channels = BKE_imtype_valid_channels(imtype);
 
-						has_alpha = valid_channels & IMA_CHAN_FLAG_ALPHA;
+						has_alpha = (valid_channels & IMA_CHAN_FLAG_ALPHA) != 0;
 
 						BKE_image_release_ibuf(ima, ibuf, NULL);
 					}
@@ -764,7 +764,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	PropertyRNA *prop;
 	const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
-	const short is_render_out = (id && GS(id->name) == ID_SCE);
+	const bool is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
 	int show_preview = FALSE;

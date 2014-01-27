@@ -58,7 +58,7 @@ static int pyrna_struct_anim_args_parse(
         PointerRNA *ptr, const char *error_prefix, const char *path,
         const char **path_full, int *index)
 {
-	const int is_idbase = RNA_struct_is_ID(ptr->type);
+	const bool is_idbase = RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
 	PointerRNA r_ptr;
 

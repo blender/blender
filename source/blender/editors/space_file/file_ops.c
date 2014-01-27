@@ -378,7 +378,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	FileSelection sel;
 	int numfiles = filelist_numfiles(sfile->files);
 	int i;
-	int is_selected = 0;
+	bool is_selected = false;
 
 	sel.first = 0; 
 	sel.last = numfiles - 1;
@@ -386,7 +386,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	/* Is any file selected ? */
 	for (i = 0; i < numfiles; ++i) {
 		if (filelist_is_selected(sfile->files, i, CHECK_ALL)) {
-			is_selected = 1;
+			is_selected = true;
 			break;
 		}
 	}

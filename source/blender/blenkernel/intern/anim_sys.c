@@ -2233,7 +2233,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 {
 	NlaTrack *nlt;
 	short track_index = 0;
-	short has_strips = 0;
+	bool has_strips = false;
 	
 	ListBase estrips = {NULL, NULL};
 	NlaEvalStrip *nes;

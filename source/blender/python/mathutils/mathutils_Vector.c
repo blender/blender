@@ -1261,7 +1261,7 @@ static int Vector_len(VectorObject *self)
 	return self->size;
 }
 /* sequence accessor (get): vector[index] */
-static PyObject *vector_item_internal(VectorObject *self, int i, const int is_attr)
+static PyObject *vector_item_internal(VectorObject *self, int i, const bool is_attr)
 {
 	if (i < 0) i = self->size - i;
 
@@ -1289,7 +1289,7 @@ static PyObject *Vector_item(VectorObject *self, int i)
 	return vector_item_internal(self, i, false);
 }
 /* sequence accessor (set): vector[index] = value */
-static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, const int is_attr)
+static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, const bool is_attr)
 {
 	float scalar;
 	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */

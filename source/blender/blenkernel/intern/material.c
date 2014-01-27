@@ -84,7 +84,7 @@ void BKE_material_free(Material *ma)
 }
 
 /* not material itself */
-void BKE_material_free_ex(Material *ma, int do_id_user)
+void BKE_material_free_ex(Material *ma, bool do_id_user)
 {
 	MTex *mtex;
 	int a;

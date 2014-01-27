@@ -292,7 +292,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	return obi->obr->raytree;
 }
 
-static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
+static bool has_special_rayobject(Render *re, ObjectInstanceRen *obi)
 {
 	if ( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) ) {
 		ObjectRen *obr = obi->obr;

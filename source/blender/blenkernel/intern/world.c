@@ -50,7 +50,7 @@
 #include "BKE_node.h"
 #include "BKE_world.h"
 
-void BKE_world_free_ex(World *wrld, int do_id_user)
+void BKE_world_free_ex(World *wrld, bool do_id_user)
 {
 	MTex *mtex;
 	int a;

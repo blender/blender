@@ -591,7 +591,7 @@ static int text_run_script(bContext *C, ReportList *reports)
 {
 #ifdef WITH_PYTHON
 	Text *text = CTX_data_edit_text(C);
-	const short is_live = (reports == NULL);
+	const bool is_live = (reports == NULL);
 
 	/* only for comparison */
 	void *curl_prev = text->curl;

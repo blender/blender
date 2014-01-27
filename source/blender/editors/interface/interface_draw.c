@@ -469,7 +469,7 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 }
 
 static void histogram_draw_one(float r, float g, float b, float alpha,
-                               float x, float y, float w, float h, float *data, int res, const short is_line)
+                               float x, float y, float w, float h, float *data, int res, const bool is_line)
 {
 	int i;
 	
@@ -533,7 +533,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rctf rect;
 	int i;
 	float w, h;
-	const short is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
+	const bool is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
 	//float alpha;
 	GLint scissor[4];
 	

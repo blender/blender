@@ -205,7 +205,7 @@ static void undo_clean_stack(bContext *C)
 	uel = undobase.first;
 	while (uel) {
 		void *editdata = uel->getdata(C);
-		int is_valid = FALSE;
+		bool is_valid = false;
 		next = uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */

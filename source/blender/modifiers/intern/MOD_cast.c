@@ -130,7 +130,7 @@ static void sphere_do(
 	Object *ctrl_ob = NULL;
 
 	int i, defgrp_index;
-	int has_radius = 0;
+	bool has_radius = false;
 	short flag, type;
 	float len = 0.0f;
 	float fac = cmd->fac;
@@ -250,7 +250,7 @@ static void cuboid_do(
 	Object *ctrl_ob = NULL;
 
 	int i, defgrp_index;
-	int has_radius = 0;
+	bool has_radius = false;
 	short flag;
 	float fac = cmd->fac;
 	float facm = 1.0f - fac;

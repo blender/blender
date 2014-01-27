@@ -4501,7 +4501,7 @@ static void freeSeqData(TransInfo *t)
 				}
 
 				if (overlap) {
-					int has_effect = 0;
+					bool has_effect = false;
 					for (seq = seqbasep->first; seq; seq = seq->next)
 						seq->tmp = NULL;
 
@@ -4512,7 +4512,7 @@ static void freeSeqData(TransInfo *t)
 						if ((seq != seq_prev)) {
 							/* check effects strips, we cant change their time */
 							if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-								has_effect = TRUE;
+								has_effect = true;
 							}
 							else {
 								/* Tag seq with a non zero value, used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
@@ -6008,7 +6008,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
 	td->extra = node;
 }
 
-static int is_node_parent_select(bNode *node)
+static bool is_node_parent_select(bNode *node)
 {
 	while ((node = node->parent)) {
 		if (node->flag & NODE_TRANSFORM) {
@@ -6624,7 +6624,7 @@ void flushTransTracking(TransInfo *t)
 /* * masking * */
 
 typedef struct TransDataMasking {
-	int is_handle;
+	bool is_handle;
 
 	float handle[2], orig_handle[2];
 	float vec[3][3];
@@ -6638,8 +6638,8 @@ static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
                                  const int propmode, const float asp[2])
 {
 	BezTriple *bezt = &point->bezt;
-	short is_sel_point = MASKPOINT_ISSEL_KNOT(point);
-	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
+	const bool is_sel_point = MASKPOINT_ISSEL_KNOT(point);
+	const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);
 	float parent_matrix[3][3], parent_inverse_matrix[3][3];
 
 	tdm->point = point;

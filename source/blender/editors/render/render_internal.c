@@ -282,8 +282,8 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Main *mainp = CTX_data_main(C);
 	unsigned int lay_override;
-	const short is_animation = RNA_boolean_get(op->ptr, "animation");
-	const short is_write_still = RNA_boolean_get(op->ptr, "write_still");
+	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
+	const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 
 	/* custom scene and single layer re-render */

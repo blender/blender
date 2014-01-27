@@ -113,7 +113,7 @@ static void gp_ui_layer_down_cb(bContext *C, void *gpd_v, void *gpl_v)
 /* ------- Drawing Code ------- */
 
 /* draw the controls for a given layer */
-static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, const short is_v3d)
+static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, const bool is_v3d)
 {
 	uiLayout *box = NULL, *split = NULL;
 	uiLayout *col = NULL;
@@ -293,7 +293,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	uiLayout *col, *row;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	short v3d_stroke_opts = STROKE_OPTS_NORMAL;
-	const short is_v3d = CTX_wm_view3d(C) != NULL;
+	const bool is_v3d = CTX_wm_view3d(C) != NULL;
 	
 	/* make new PointerRNA for Grease Pencil block */
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);

@@ -162,7 +162,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 
 /* Box select, operator is VIEW3D_OT_select_border, defined in view3d_select.c */
 
-static int is_effected(float planes[4][4], const float co[3])
+static bool is_effected(float planes[4][4], const float co[3])
 {
 	return isect_point_planes_v3(planes, 4, co);
 }

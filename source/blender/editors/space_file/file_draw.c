@@ -461,7 +461,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int offset;
 	int textwidth, textheight;
 	int i;
-	short is_icon;
+	bool is_icon;
 	short align;
 	bool do_drag;
 	int column_space = 0.6f * UI_UNIT_X;

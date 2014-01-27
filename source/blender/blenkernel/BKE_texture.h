@@ -100,7 +100,7 @@ void set_current_material_texture(struct Material *ma, struct Tex *tex);
 void set_current_lamp_texture(struct Lamp *la, struct Tex *tex);
 void set_current_particle_texture(struct ParticleSettings *part, struct Tex *tex);
 
-int has_current_material_texture(struct Material *ma);
+bool has_current_material_texture(struct Material *ma);
 
 struct TexMapping *add_tex_mapping(int type);
 void default_tex_mapping(struct TexMapping *texmap, int type);

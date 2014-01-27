@@ -156,7 +156,7 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 
 		if (label_align != '\0') {
 			PropertyType type = RNA_property_type(prop);
-			int is_boolean = (type == PROP_BOOLEAN && !RNA_property_array_check(prop));
+			const bool is_boolean = (type == PROP_BOOLEAN && !RNA_property_array_check(prop));
 
 			name = RNA_property_ui_name(prop);
 

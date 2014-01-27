@@ -1344,12 +1344,12 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 	if (ibuf) {
 		Image *ima = sima->image;
-		short is_depth_set = FALSE;
+		bool is_depth_set = false;
 
 		if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
 			/* imtype */
 			simopts->im_format = scene->r.im_format;
-			is_depth_set = TRUE;
+			is_depth_set = true;
 		}
 		else {
 			if (ima->source == IMA_SRC_GENERATED) {
@@ -1376,7 +1376,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		}
 
 		/* depth, account for float buffer and format support */
-		if (is_depth_set == FALSE) {
+		if (is_depth_set == false) {
 			simopts->im_format.depth = imtype_best_depth(ibuf, simopts->im_format.imtype);
 		}
 
@@ -2311,12 +2311,12 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
 /* returns color in SRGB */
 /* matching ED_space_node_color_sample() */
-int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
 {
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	float fx, fy;
-	int ret = FALSE;
+	bool ret = false;
 
 	if (ibuf == NULL) {
 		ED_space_image_release_buffer(sima, ibuf, lock);

@@ -141,8 +141,8 @@ static void add_poly(SkinOutput *so,
 
 /***************************** Convex Hull ****************************/
 
-static int is_quad_symmetric(BMVert *quad[4],
-                             const SkinModifierData *smd)
+static bool is_quad_symmetric(BMVert *quad[4],
+                              const SkinModifierData *smd)
 {
 	const float threshold = 0.0001f;
 	const float threshold_squared = threshold * threshold;

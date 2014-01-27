@@ -3906,7 +3906,7 @@ static void rotate_direction_nurb(Nurb *nu)
 	MEM_freeN(temp);
 }
 
-static int is_u_selected(Nurb *nu, int u)
+static bool is_u_selected(Nurb *nu, int u)
 {
 	BPoint *bp;
 	int v;

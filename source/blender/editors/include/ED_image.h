@@ -47,10 +47,10 @@ void          ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, s
 struct Mask  *ED_space_image_get_mask(struct SpaceImage *sima);
 void          ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
-int ED_space_image_color_sample(struct SpaceImage *sima, struct ARegion *ar, int mval[2], float r_col[3]);
+bool ED_space_image_color_sample(struct SpaceImage *sima, struct ARegion *ar, int mval[2], float r_col[3]);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r);
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
-int ED_space_image_has_buffer(struct SpaceImage *sima);
+bool ED_space_image_has_buffer(struct SpaceImage *sima);
 
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height);
 void ED_space_image_get_size_fl(struct SpaceImage *sima, float size[2]);
@@ -66,12 +66,12 @@ void ED_image_mouse_pos(struct SpaceImage *sima, struct ARegion *ar, const int m
 void ED_image_point_pos(struct SpaceImage *sima, struct ARegion *ar, float x, float y, float *xr, float *yr);
 void ED_image_point_pos__reverse(struct SpaceImage *sima, struct ARegion *ar, const float co[2], float r_co[2]);
 
-int ED_space_image_show_render(struct SpaceImage *sima);
-int ED_space_image_show_paint(struct SpaceImage *sima);
-int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
-int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
+bool ED_space_image_show_render(struct SpaceImage *sima);
+bool ED_space_image_show_paint(struct SpaceImage *sima);
+bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
+bool ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
 
-int ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima);
+bool ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima);
 int ED_space_image_maskedit_poll(struct bContext *C);
 int ED_space_image_maskedit_mask_poll(struct bContext *C);
 
