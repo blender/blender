@@ -286,6 +286,10 @@ class MASK_MT_mask(Menu):
         layout.operator("mask.parent_set")
 
         layout.separator()
+        layout.operator("mask.copy_splines")
+        layout.operator("mask.paste_splines")
+
+        layout.separator()
         layout.menu("MASK_MT_visibility")
         layout.menu("MASK_MT_transform")
         layout.menu("MASK_MT_animation")

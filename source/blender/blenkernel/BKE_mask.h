@@ -168,6 +168,12 @@ void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, i
 
 int BKE_mask_get_duration(struct Mask *mask);
 
+/* clipboard */
+void BKE_mask_clipboard_free(void);
+void BKE_mask_clipboard_copy_from_layer(struct MaskLayer *mask_layer);
+bool BKE_mask_clipboard_is_empty(void);
+void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mask_layer);
+
 #define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
 #define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f3) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )

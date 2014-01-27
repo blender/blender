@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
@@ -60,6 +61,11 @@
 #include "BKE_image.h"
 
 #include "NOD_composite.h"
+
+static struct {
+	ListBase splines;
+	struct GHash *id_hash;
+} mask_clipboard = {{NULL}};
 
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
 {
@@ -1934,4 +1940,96 @@ void BKE_mask_layer_shape_changed_remove(MaskLayer *masklay, int index, int coun
 int BKE_mask_get_duration(Mask *mask)
 {
 	return max_ii(1, mask->efra - mask->sfra);
+}
+
+/*********************** clipboard *************************/
+
+static void mask_clipboard_free_ex(bool final_free)
+{
+	BKE_mask_spline_free_list(&mask_clipboard.splines);
+	mask_clipboard.splines.first = mask_clipboard.splines.last = NULL;
+	if (mask_clipboard.id_hash) {
+		if (final_free) {
+			BLI_ghash_free(mask_clipboard.id_hash, NULL, MEM_freeN);
+		}
+		else {
+			BLI_ghash_clear(mask_clipboard.id_hash, NULL, MEM_freeN);
+		}
+	}
+}
+
+/* Free the clipboard. */
+void BKE_mask_clipboard_free(void)
+{
+	mask_clipboard_free_ex(true);
+}
+
+/* Copy selected visible splines from the given layer to clipboard. */
+void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
+{
+	MaskSpline *spline;
+
+	/* Nothing to do if selection if disabled for the given layer. */
+	if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
+		return;
+	}
+
+	mask_clipboard_free_ex(false);
+	if (mask_clipboard.id_hash == NULL) {
+		mask_clipboard.id_hash = BLI_ghash_ptr_new("mask clipboard ID hash");
+	}
+
+	for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+		if (spline->flag & SELECT) {
+			MaskSpline *spline_new = BKE_mask_spline_copy(spline);
+			int i;
+			for (i = 0; i < spline_new->tot_point; i++) {
+				MaskSplinePoint *point = &spline_new->points[i];
+				if (point->parent.id) {
+					if (!BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id)) {
+						int len = strlen(point->parent.id->name);
+						char *name_copy = MEM_mallocN(len + 1, "mask clipboard ID name");
+						strcpy(name_copy, point->parent.id->name);
+						BLI_ghash_insert(mask_clipboard.id_hash,
+						                 point->parent.id,
+						                 name_copy);
+					}
+				}
+			}
+
+			BLI_addtail(&mask_clipboard.splines, spline_new);
+		}
+	}
+}
+
+/* Check clipboard is empty. */
+bool BKE_mask_clipboard_is_empty(void)
+{
+	return mask_clipboard.splines.first == NULL;
+}
+
+/* Paste the contents of clipboard to given mask layer */
+void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
+{
+	MaskSpline *spline;
+
+	for (spline = mask_clipboard.splines.first; spline; spline = spline->next) {
+		MaskSpline *spline_new = BKE_mask_spline_copy(spline);
+		int i;
+
+		for (i = 0; i < spline_new->tot_point; i++) {
+			MaskSplinePoint *point = &spline_new->points[i];
+			if (point->parent.id) {
+				char *id_name = BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id);
+				ListBase *listbase;
+
+				BLI_assert(id_name != NULL);
+
+				listbase = which_libbase(bmain, GS(id_name));
+				point->parent.id = BLI_findstring(listbase, id_name + 2, offsetof(ID, name) + 2);
+			}
+		}
+
+		BLI_addtail(&mask_layer->splines, spline_new);
+	}
 }

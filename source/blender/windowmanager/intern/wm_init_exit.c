@@ -75,6 +75,7 @@
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
 #include "BKE_tracking.h" /* free tracking clipboard */
+#include "BKE_mask.h" /* free mask clipboard */
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"        /* RE_ free stuff */
@@ -449,6 +450,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 	BKE_sequencer_free_clipboard(); /* sequencer.c */
 	BKE_tracking_clipboard_free();
+	BKE_mask_clipboard_free();
 		
 #ifdef WITH_COMPOSITOR
 	COM_deinitialize();

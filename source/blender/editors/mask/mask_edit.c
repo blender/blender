@@ -456,6 +456,10 @@ void ED_operatortypes_mask(void)
 
 	/* duplicate */
 	WM_operatortype_append(MASK_OT_duplicate);
+
+	/* clipboard */
+	WM_operatortype_append(MASK_OT_copy_splines);
+	WM_operatortype_append(MASK_OT_paste_splines);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
