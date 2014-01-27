@@ -859,7 +859,13 @@ macro(data_to_c_simple_icons
 		#COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc_icon ${_path_from_abs} ${_file_from}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${_file_from} ${_file_to}
-		DEPENDS ${_icon_files} datatoc_icon datatoc)
+		DEPENDS
+			${_icon_files}
+			datatoc_icon
+			datatoc
+			# could be an arg but for now we only create icons depending on UI_icons.h
+			${CMAKE_SOURCE_DIR}/source/blender/editors/include/UI_icons.h
+		)
 
 	set_source_files_properties(${_file_from} ${_file_to} PROPERTIES GENERATED TRUE)
 
