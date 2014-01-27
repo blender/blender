@@ -1,0 +1,439 @@
+diff -r e82d852e4fb0 lib/csg_collector.cpp
+--- a/lib/csg_collector.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/csg_collector.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -21,6 +21,7 @@
+ 
+ #include <carve/csg.hpp>
+ #include <iostream>
++#include "csg_collector.hpp"
+ #include "intersect_debug.hpp"
+ 
+ #if defined(CARVE_DEBUG_WRITE_PLY_DATA)
+diff -r e82d852e4fb0 lib/face.cpp
+--- a/lib/face.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/face.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -21,61 +21,69 @@
+ 
+ #include <carve/poly.hpp>
+ 
+-double CALC_X(const carve::geom::plane<3> &p, double y, double z) { return -(p.d + p.N.y * y + p.N.z * z) / p.N.x; }
+-double CALC_Y(const carve::geom::plane<3> &p, double x, double z) { return -(p.d + p.N.x * x + p.N.z * z) / p.N.y; }
+-double CALC_Z(const carve::geom::plane<3> &p, double x, double y) { return -(p.d + p.N.x * x + p.N.y * y) / p.N.z; }
++namespace {
++
++  double CALC_X(const carve::geom::plane<3> &p, double y, double z) { return -(p.d + p.N.y * y + p.N.z * z) / p.N.x; }
++  double CALC_Y(const carve::geom::plane<3> &p, double x, double z) { return -(p.d + p.N.x * x + p.N.z * z) / p.N.y; }
++  double CALC_Z(const carve::geom::plane<3> &p, double x, double y) { return -(p.d + p.N.x * x + p.N.y * y) / p.N.z; }
++
++}  // namespace
+ 
+ namespace carve {
+   namespace poly {
+ 
+-    carve::geom2d::P2 _project_1(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.z, v.y);
+-    }
++    namespace {
+ 
+-    carve::geom2d::P2 _project_2(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.x, v.z);
+-    }
++      carve::geom2d::P2 _project_1(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.z, v.y);
++      }
+ 
+-    carve::geom2d::P2 _project_3(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.y, v.x);
+-    }
++      carve::geom2d::P2 _project_2(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.x, v.z);
++      }
+ 
+-    carve::geom2d::P2 _project_4(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.y, v.z);
+-    }
++      carve::geom2d::P2 _project_3(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.y, v.x);
++      }
+ 
+-    carve::geom2d::P2 _project_5(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.z, v.x);
+-    }
++      carve::geom2d::P2 _project_4(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.y, v.z);
++      }
+ 
+-    carve::geom2d::P2 _project_6(const carve::geom3d::Vector &v) {
+-      return carve::geom::VECTOR(v.x, v.y);
+-    }
++      carve::geom2d::P2 _project_5(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.z, v.x);
++      }
+ 
++      carve::geom2d::P2 _project_6(const carve::geom3d::Vector &v) {
++        return carve::geom::VECTOR(v.x, v.y);
++      }
+ 
+-    carve::geom3d::Vector _unproject_1(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(CALC_X(plane_eqn, p.y, p.x), p.y, p.x);
+-    }
+ 
+-    carve::geom3d::Vector _unproject_2(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(p.x, CALC_Y(plane_eqn, p.x, p.y), p.y);
+-    }
++      carve::geom3d::Vector _unproject_1(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(CALC_X(plane_eqn, p.y, p.x), p.y, p.x);
++      }
+ 
+-    carve::geom3d::Vector _unproject_3(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(p.y, p.x, CALC_Z(plane_eqn, p.y, p.x));
+-    }
++      carve::geom3d::Vector _unproject_2(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(p.x, CALC_Y(plane_eqn, p.x, p.y), p.y);
++      }
+ 
+-    carve::geom3d::Vector _unproject_4(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(CALC_X(plane_eqn, p.x, p.y), p.x, p.y);
+-    }
++      carve::geom3d::Vector _unproject_3(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(p.y, p.x, CALC_Z(plane_eqn, p.y, p.x));
++      }
+ 
+-    carve::geom3d::Vector _unproject_5(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(p.y, CALC_Y(plane_eqn, p.y, p.x), p.x);
+-    }
++      carve::geom3d::Vector _unproject_4(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(CALC_X(plane_eqn, p.x, p.y), p.x, p.y);
++      }
+ 
+-    carve::geom3d::Vector _unproject_6(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+-      return carve::geom::VECTOR(p.x, p.y, CALC_Z(plane_eqn, p.x, p.y));
+-    }
++      carve::geom3d::Vector _unproject_5(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(p.y, CALC_Y(plane_eqn, p.y, p.x), p.x);
++      }
++
++      carve::geom3d::Vector _unproject_6(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
++        return carve::geom::VECTOR(p.x, p.y, CALC_Z(plane_eqn, p.x, p.y));
++      }
++
++    }  // namespace
+ 
+     static carve::geom2d::P2 (*project_tab[2][3])(const carve::geom3d::Vector &) = {
+       { &_project_1, &_project_2, &_project_3 },
+diff -r e82d852e4fb0 lib/geom2d.cpp
+--- a/lib/geom2d.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/geom2d.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -157,9 +157,9 @@
+       return pointInPoly(points, p2_adapt_ident(), p);
+     }
+ 
+-    int lineSegmentPolyIntersections(const P2Vector &points,
+-                                     LineSegment2 line,
+-                                     std::vector<PolyIntersectionInfo> &out) {
++    static int lineSegmentPolyIntersections(const P2Vector &points,
++                                            LineSegment2 line,
++                                            std::vector<PolyIntersectionInfo> &out) {
+       int count = 0;
+ 
+       if (line.v2 < line.v1) { line.flip(); }
+@@ -239,9 +239,9 @@
+       }
+     };
+ 
+-    int sortedLineSegmentPolyIntersections(const P2Vector &points,
+-                                           LineSegment2 line,
+-                                           std::vector<PolyIntersectionInfo> &out) {
++    static int sortedLineSegmentPolyIntersections(const P2Vector &points,
++                                                  LineSegment2 line,
++                                                  std::vector<PolyIntersectionInfo> &out) {
+ 
+       bool swapped = line.v2 < line.v1;
+ 
+diff -r e82d852e4fb0 lib/intersect.cpp
+--- a/lib/intersect.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/intersect.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -1378,9 +1378,9 @@
+  * @param result_list 
+  * @param shared_edge_ptr 
+  */
+-void returnSharedEdges(carve::csg::V2Set &shared_edges, 
+-                       std::list<carve::mesh::MeshSet<3> *> &result_list,
+-                       carve::csg::V2Set *shared_edge_ptr) {
++static void returnSharedEdges(carve::csg::V2Set &shared_edges, 
++                              std::list<carve::mesh::MeshSet<3> *> &result_list,
++                              carve::csg::V2Set *shared_edge_ptr) {
+   // need to convert shared edges to point into result
+   typedef std::map<carve::geom3d::Vector, carve::mesh::MeshSet<3>::vertex_t *> remap_type;
+   remap_type remap;
+diff -r e82d852e4fb0 lib/intersect_face_division.cpp
+--- a/lib/intersect_face_division.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/intersect_face_division.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -1455,7 +1455,7 @@
+     std::vector<carve::mesh::MeshSet<3>::vertex_t *> base_loop;
+     std::list<std::vector<carve::mesh::MeshSet<3>::vertex_t *> > hole_loops;
+ 
+-    bool face_edge_intersected = assembleBaseLoop(face, data, base_loop, hooks);
++    /*bool face_edge_intersected = */assembleBaseLoop(face, data, base_loop, hooks);
+ 
+     detail::FV2SMap::const_iterator fse_iter = data.face_split_edges.find(face);
+ 
+diff -r e82d852e4fb0 lib/math.cpp
+--- a/lib/math.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/math.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -42,20 +42,21 @@
+       Root(double r, int m) : root(r), multiplicity(m) {}
+     };
+ 
+-    void cplx_sqrt(double re, double im,
+-                   double &re_1, double &im_1,
+-                   double &re_2, double &im_2) {
+-      if (re == 0.0 && im == 0.0) {
+-        re_1 = re_2 = re;
+-        im_1 = im_2 = im;
+-      } else {
+-        double d = sqrt(re * re + im * im);
+-        re_1 = sqrt((d + re) / 2.0);
+-        re_2 = re_1;
+-        im_1 = fabs(sqrt((d - re) / 2.0));
+-        im_2 = -im_1;
++    namespace {
++      void cplx_sqrt(double re, double im,
++                     double &re_1, double &im_1,
++                     double &re_2, double &im_2) {
++         if (re == 0.0 && im == 0.0) {
++          re_1 = re_2 = re;
++          im_1 = im_2 = im;
++        } else {
++          double d = sqrt(re * re + im * im);
++          re_1 = sqrt((d + re) / 2.0);
++          re_2 = re_1;
++          im_1 = fabs(sqrt((d - re) / 2.0));
++          im_2 = -im_1;
++        }
+       }
+-    }
+ 
+     void cplx_cbrt(double re, double im,
+                    double &re_1, double &im_1,
+@@ -76,109 +77,110 @@
+       }
+     }
+ 
+-    void add_root(std::vector<Root> &roots, double root) {
+-      for (size_t i = 0; i < roots.size(); ++i) {
+-        if (roots[i].root == root) {
+-          roots[i].multiplicity++;
++      void add_root(std::vector<Root> &roots, double root) {
++        for (size_t i = 0; i < roots.size(); ++i) {
++          if (roots[i].root == root) {
++            roots[i].multiplicity++;
++            return;
++          }
++        }
++        roots.push_back(Root(root));
++      }
++
++      void linear_roots(double c1, double c0, std::vector<Root> &roots) {
++        roots.push_back(Root(c0 / c1));
++      }
++
++      void quadratic_roots(double c2, double c1, double c0, std::vector<Root> &roots) {
++        if (fabs(c2) < EPS) {
++          linear_roots(c1, c0, roots);
+           return;
+         }
+-      }
+-      roots.push_back(Root(root));
+-    }
+ 
+-    void linear_roots(double c1, double c0, std::vector<Root> &roots) {
+-      roots.push_back(Root(c0 / c1));
+-    }
++        double p = 0.5 * c1 / c2;
++        double dis = p * p - c0 / c2;
+ 
+-    void quadratic_roots(double c2, double c1, double c0, std::vector<Root> &roots) {
+-      if (fabs(c2) < EPS) {
+-        linear_roots(c1, c0, roots);
+-        return;
++        if (dis > 0.0) {
++          dis = sqrt(dis);
++          if (-p - dis != -p + dis) {
++            roots.push_back(Root(-p - dis));
++            roots.push_back(Root(-p + dis));
++          } else {
++            roots.push_back(Root(-p, 2));
++          }
++        }
+       }
+ 
+-      double p = 0.5 * c1 / c2;
+-      double dis = p * p - c0 / c2;
++      void cubic_roots(double c3, double c2, double c1, double c0, std::vector<Root> &roots) {
++        int n_sol = 0;
++        double _r[3];
+ 
+-      if (dis > 0.0) {
+-        dis = sqrt(dis);
+-        if (-p - dis != -p + dis) {
+-          roots.push_back(Root(-p - dis));
+-          roots.push_back(Root(-p + dis));
++        if (fabs(c3) < EPS) {
++          quadratic_roots(c2, c1, c0, roots);
++          return;
++        }
++
++        if (fabs(c0) < EPS) {
++          quadratic_roots(c3, c2, c1, roots);
++          add_root(roots, 0.0);
++          return;
++        }
++
++        double xN = -c2 / (3.0 * c3);
++        double yN = c0 + xN * (c1 + xN * (c2 + c3 * xN));
++
++        double delta_sq = (c2 * c2 - 3.0 * c3 * c1) / (9.0 * c3 * c3);
++        double h_sq = 4.0 / 9.0 * (c2 * c2 - 3.0 * c3 * c1) * (delta_sq * delta_sq);
++        double dis = yN * yN - h_sq;
++
++        if (dis > EPS) {
++          // One real root, two complex roots.
++
++          double dis_sqrt = sqrt(dis);
++          double r_p = yN - dis_sqrt;
++          double r_q = yN + dis_sqrt;
++          double p = cbrt(fabs(r_p)/(2.0 * c3));
++          double q = cbrt(fabs(r_q)/(2.0 * c3));
++
++          if (r_p > 0.0) p = -p;
++          if (r_q > 0.0) q = -q;
++
++          _r[0] = xN + p + q;
++          n_sol = 1;
++
++          double re = xN - p * .5 - q * .5;
++          double im = p * M_SQRT_3_4 - q * M_SQRT_3_4;
++
++          // root 2: xN + p * exp(M_2PI_3.i) + q * exp(-M_2PI_3.i);
++          // root 3: complex conjugate of root 2
++
++          if (im < EPS) {
++            _r[1] = _r[2] = re;
++            n_sol += 2;
++          }
++        } else if (dis < -EPS) {
++          // Three distinct real roots.
++          double theta = acos(-yN / sqrt(h_sq)) / 3.0;
++          double delta = sqrt(c2 * c2 - 3.0 * c3 * c1) / (3.0 * c3);
++
++          _r[0] = xN + (2.0 * delta) * cos(theta);
++          _r[1] = xN + (2.0 * delta) * cos(M_2PI_3 - theta);
++          _r[2] = xN + (2.0 * delta) * cos(M_2PI_3 + theta);
++          n_sol = 3;
+         } else {
+-          roots.push_back(Root(-p, 2));
++          // Three real roots (two or three equal).
++          double r = yN / (2.0 * c3);
++          double delta = cbrt(r);
++
++          _r[0] = xN + delta;
++          _r[1] = xN + delta;
++          _r[2] = xN - 2.0 * delta;
++          n_sol = 3;
+         }
+-      }
+-    }
+ 
+-    void cubic_roots(double c3, double c2, double c1, double c0, std::vector<Root> &roots) {
+-      int n_sol = 0;
+-      double _r[3];
+-
+-      if (fabs(c3) < EPS) {
+-        quadratic_roots(c2, c1, c0, roots);
+-        return;
+-      }
+-
+-      if (fabs(c0) < EPS) {
+-        quadratic_roots(c3, c2, c1, roots);
+-        add_root(roots, 0.0);
+-        return;
+-      }
+-
+-      double xN = -c2 / (3.0 * c3);
+-      double yN = c0 + xN * (c1 + xN * (c2 + c3 * xN));
+-
+-      double delta_sq = (c2 * c2 - 3.0 * c3 * c1) / (9.0 * c3 * c3);
+-      double h_sq = 4.0 / 9.0 * (c2 * c2 - 3.0 * c3 * c1) * (delta_sq * delta_sq);
+-      double dis = yN * yN - h_sq;
+-
+-      if (dis > EPS) {
+-        // One real root, two complex roots.
+-
+-        double dis_sqrt = sqrt(dis);
+-        double r_p = yN - dis_sqrt;
+-        double r_q = yN + dis_sqrt;
+-        double p = cbrt(fabs(r_p)/(2.0 * c3));
+-        double q = cbrt(fabs(r_q)/(2.0 * c3));
+-
+-        if (r_p > 0.0) p = -p;
+-        if (r_q > 0.0) q = -q;
+-
+-        _r[0] = xN + p + q;
+-        n_sol = 1;
+-
+-        double re = xN - p * .5 - q * .5;
+-        double im = p * M_SQRT_3_4 - q * M_SQRT_3_4;
+-
+-        // root 2: xN + p * exp(M_2PI_3.i) + q * exp(-M_2PI_3.i);
+-        // root 3: complex conjugate of root 2
+-
+-        if (im < EPS) {
+-          _r[1] = _r[2] = re;
+-          n_sol += 2;
++        for (int i=0; i < n_sol; i++) {
++          add_root(roots, _r[i]);
+         }
+-      } else if (dis < -EPS) {
+-        // Three distinct real roots.
+-        double theta = acos(-yN / sqrt(h_sq)) / 3.0;
+-        double delta = sqrt(c2 * c2 - 3.0 * c3 * c1) / (3.0 * c3);
+-
+-        _r[0] = xN + (2.0 * delta) * cos(theta);
+-        _r[1] = xN + (2.0 * delta) * cos(M_2PI_3 - theta);
+-        _r[2] = xN + (2.0 * delta) * cos(M_2PI_3 + theta);
+-        n_sol = 3;
+-      } else {
+-        // Three real roots (two or three equal).
+-        double r = yN / (2.0 * c3);
+-        double delta = cbrt(r);
+-
+-        _r[0] = xN + delta;
+-        _r[1] = xN + delta;
+-        _r[2] = xN - 2.0 * delta;
+-        n_sol = 3;
+-      }
+-
+-      for (int i=0; i < n_sol; i++) {
+-        add_root(roots, _r[i]);
+       }
+     }
+ 
+diff -r e82d852e4fb0 lib/triangulator.cpp
+--- a/lib/triangulator.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/triangulator.cpp	Mon Jan 27 17:01:46 2014 +0600
+@@ -718,10 +718,10 @@
+ 
+ 
+ 
+-bool testCandidateAttachment(const std::vector<std::vector<carve::geom2d::P2> > &poly,
+-                             std::vector<std::pair<size_t, size_t> > &current_f_loop,
+-                             size_t curr,
+-                             carve::geom2d::P2 hole_min) {
++static bool testCandidateAttachment(const std::vector<std::vector<carve::geom2d::P2> > &poly,
++                                    std::vector<std::pair<size_t, size_t> > &current_f_loop,
++                                    size_t curr,
++                                    carve::geom2d::P2 hole_min) {
+   const size_t SZ = current_f_loop.size();
+ 
+   if (!carve::geom2d::internalToAngle(pvert(poly, current_f_loop[(curr+1) % SZ]),

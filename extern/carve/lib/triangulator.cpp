@@ -735,10 +735,10 @@ bool carve::triangulate::detail::doTriangulate(vertex_info *begin, std::vector<c
 
 
 
-bool testCandidateAttachment(const std::vector<std::vector<carve::geom2d::P2> > &poly,
-                             std::vector<std::pair<size_t, size_t> > &current_f_loop,
-                             size_t curr,
-                             carve::geom2d::P2 hole_min) {
+static bool testCandidateAttachment(const std::vector<std::vector<carve::geom2d::P2> > &poly,
+                                    std::vector<std::pair<size_t, size_t> > &current_f_loop,
+                                    size_t curr,
+                                    carve::geom2d::P2 hole_min) {
   const size_t SZ = current_f_loop.size();
 
   if (!carve::geom2d::internalToAngle(pvert(poly, current_f_loop[(curr+1) % SZ]),

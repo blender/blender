@@ -1045,12 +1045,12 @@ namespace carve {
 
       for (size_t i = 0; i != N; ++i) {
         vout.push_back(*vptr[i]);
-        vmap[vptr[i] - &vertex_storage[0]] = &vout[i];
+        vmap[(size_t)(vptr[i] - &vertex_storage[0])] = &vout[i];
       }
 
       for (face_iter i = faceBegin(); i != faceEnd(); ++i) {
         for (typename face_t::edge_iter_t j = (*i)->begin(); j != (*i)->end(); ++j) {
-          (*j).vert = vmap[(*j).vert - &vertex_storage[0]];
+          (*j).vert = vmap[(size_t)((*j).vert - &vertex_storage[0])];
         }
         (*i)->canonicalize();
       }

@@ -433,11 +433,15 @@ void carve::csg::CSG::Hooks::unregisterHook(Hook *hook) {
 }
 
 void carve::csg::CSG::Hooks::reset() {
+  std::set<Hook *> to_delete;
   for (unsigned i = 0; i < HOOK_MAX; ++i) {
     for (std::list<Hook *>::iterator j = hooks[i].begin(); j != hooks[i].end(); ++j) {
-      delete (*j);
+      to_delete.insert(*j);
     }
     hooks[i].clear();
+  }
+  for (std::set<Hook *>::iterator i = to_delete.begin(); i != to_delete.end(); ++i) {
+    delete *i;
   }
 }
 
@@ -1374,9 +1378,9 @@ void carve::csg::CSG::calc(meshset_t *a,
  * @param result_list 
  * @param shared_edge_ptr 
  */
-void returnSharedEdges(carve::csg::V2Set &shared_edges, 
-                       std::list<carve::mesh::MeshSet<3> *> &result_list,
-                       carve::csg::V2Set *shared_edge_ptr) {
+static void returnSharedEdges(carve::csg::V2Set &shared_edges, 
+                              std::list<carve::mesh::MeshSet<3> *> &result_list,
+                              carve::csg::V2Set *shared_edge_ptr) {
   // need to convert shared edges to point into result
   typedef std::map<carve::geom3d::Vector, carve::mesh::MeshSet<3>::vertex_t *> remap_type;
   remap_type remap;

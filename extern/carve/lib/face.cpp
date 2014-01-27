@@ -21,61 +21,69 @@
 
 #include <carve/poly.hpp>
 
-double CALC_X(const carve::geom::plane<3> &p, double y, double z) { return -(p.d + p.N.y * y + p.N.z * z) / p.N.x; }
-double CALC_Y(const carve::geom::plane<3> &p, double x, double z) { return -(p.d + p.N.x * x + p.N.z * z) / p.N.y; }
-double CALC_Z(const carve::geom::plane<3> &p, double x, double y) { return -(p.d + p.N.x * x + p.N.y * y) / p.N.z; }
+namespace {
+
+  double CALC_X(const carve::geom::plane<3> &p, double y, double z) { return -(p.d + p.N.y * y + p.N.z * z) / p.N.x; }
+  double CALC_Y(const carve::geom::plane<3> &p, double x, double z) { return -(p.d + p.N.x * x + p.N.z * z) / p.N.y; }
+  double CALC_Z(const carve::geom::plane<3> &p, double x, double y) { return -(p.d + p.N.x * x + p.N.y * y) / p.N.z; }
+
+}  // namespace
 
 namespace carve {
   namespace poly {
 
-    carve::geom2d::P2 _project_1(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.z, v.y);
-    }
+    namespace {
 
-    carve::geom2d::P2 _project_2(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.x, v.z);
-    }
+      carve::geom2d::P2 _project_1(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.z, v.y);
+      }
 
-    carve::geom2d::P2 _project_3(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.y, v.x);
-    }
+      carve::geom2d::P2 _project_2(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.x, v.z);
+      }
 
-    carve::geom2d::P2 _project_4(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.y, v.z);
-    }
+      carve::geom2d::P2 _project_3(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.y, v.x);
+      }
 
-    carve::geom2d::P2 _project_5(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.z, v.x);
-    }
+      carve::geom2d::P2 _project_4(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.y, v.z);
+      }
 
-    carve::geom2d::P2 _project_6(const carve::geom3d::Vector &v) {
-      return carve::geom::VECTOR(v.x, v.y);
-    }
+      carve::geom2d::P2 _project_5(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.z, v.x);
+      }
+
+      carve::geom2d::P2 _project_6(const carve::geom3d::Vector &v) {
+        return carve::geom::VECTOR(v.x, v.y);
+      }
 
 
-    carve::geom3d::Vector _unproject_1(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(CALC_X(plane_eqn, p.y, p.x), p.y, p.x);
-    }
+      carve::geom3d::Vector _unproject_1(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(CALC_X(plane_eqn, p.y, p.x), p.y, p.x);
+      }
 
-    carve::geom3d::Vector _unproject_2(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(p.x, CALC_Y(plane_eqn, p.x, p.y), p.y);
-    }
+      carve::geom3d::Vector _unproject_2(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(p.x, CALC_Y(plane_eqn, p.x, p.y), p.y);
+      }
 
-    carve::geom3d::Vector _unproject_3(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(p.y, p.x, CALC_Z(plane_eqn, p.y, p.x));
-    }
+      carve::geom3d::Vector _unproject_3(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(p.y, p.x, CALC_Z(plane_eqn, p.y, p.x));
+      }
 
-    carve::geom3d::Vector _unproject_4(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(CALC_X(plane_eqn, p.x, p.y), p.x, p.y);
-    }
+      carve::geom3d::Vector _unproject_4(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(CALC_X(plane_eqn, p.x, p.y), p.x, p.y);
+      }
 
-    carve::geom3d::Vector _unproject_5(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(p.y, CALC_Y(plane_eqn, p.y, p.x), p.x);
-    }
+      carve::geom3d::Vector _unproject_5(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(p.y, CALC_Y(plane_eqn, p.y, p.x), p.x);
+      }
 
-    carve::geom3d::Vector _unproject_6(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
-      return carve::geom::VECTOR(p.x, p.y, CALC_Z(plane_eqn, p.x, p.y));
-    }
+      carve::geom3d::Vector _unproject_6(const carve::geom2d::P2 &p, const carve::geom3d::Plane &plane_eqn) {
+        return carve::geom::VECTOR(p.x, p.y, CALC_Z(plane_eqn, p.x, p.y));
+      }
+
+    }  // namespace
 
     static carve::geom2d::P2 (*project_tab[2][3])(const carve::geom3d::Vector &) = {
       { &_project_1, &_project_2, &_project_3 },

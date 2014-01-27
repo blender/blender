@@ -29,7 +29,7 @@ namespace carve {
   namespace point {
 
     inline size_t PointSet::vertexToIndex_fast(const Vertex *v) const {
-      return v - &vertices[0];
+      return (size_t)(v - &vertices[0]);
     }
 
   }

@@ -42,20 +42,21 @@ namespace carve {
       Root(double r, int m) : root(r), multiplicity(m) {}
     };
 
-    void cplx_sqrt(double re, double im,
-                   double &re_1, double &im_1,
-                   double &re_2, double &im_2) {
-      if (re == 0.0 && im == 0.0) {
-        re_1 = re_2 = re;
-        im_1 = im_2 = im;
-      } else {
-        double d = sqrt(re * re + im * im);
-        re_1 = sqrt((d + re) / 2.0);
-        re_2 = re_1;
-        im_1 = fabs(sqrt((d - re) / 2.0));
-        im_2 = -im_1;
+    namespace {
+      void cplx_sqrt(double re, double im,
+                     double &re_1, double &im_1,
+                     double &re_2, double &im_2) {
+         if (re == 0.0 && im == 0.0) {
+          re_1 = re_2 = re;
+          im_1 = im_2 = im;
+        } else {
+          double d = sqrt(re * re + im * im);
+          re_1 = sqrt((d + re) / 2.0);
+          re_2 = re_1;
+          im_1 = fabs(sqrt((d - re) / 2.0));
+          im_2 = -im_1;
+        }
       }
-    }
 
     void cplx_cbrt(double re, double im,
                    double &re_1, double &im_1,
@@ -76,109 +77,110 @@ namespace carve {
       }
     }
 
-    void add_root(std::vector<Root> &roots, double root) {
-      for (size_t i = 0; i < roots.size(); ++i) {
-        if (roots[i].root == root) {
-          roots[i].multiplicity++;
+      void add_root(std::vector<Root> &roots, double root) {
+        for (size_t i = 0; i < roots.size(); ++i) {
+          if (roots[i].root == root) {
+            roots[i].multiplicity++;
+            return;
+          }
+        }
+        roots.push_back(Root(root));
+      }
+
+      void linear_roots(double c1, double c0, std::vector<Root> &roots) {
+        roots.push_back(Root(c0 / c1));
+      }
+
+      void quadratic_roots(double c2, double c1, double c0, std::vector<Root> &roots) {
+        if (fabs(c2) < EPS) {
+          linear_roots(c1, c0, roots);
           return;
         }
+
+        double p = 0.5 * c1 / c2;
+        double dis = p * p - c0 / c2;
+
+        if (dis > 0.0) {
+          dis = sqrt(dis);
+          if (-p - dis != -p + dis) {
+            roots.push_back(Root(-p - dis));
+            roots.push_back(Root(-p + dis));
+          } else {
+            roots.push_back(Root(-p, 2));
+          }
+        }
       }
-      roots.push_back(Root(root));
-    }
 
-    void linear_roots(double c1, double c0, std::vector<Root> &roots) {
-      roots.push_back(Root(c0 / c1));
-    }
+      void cubic_roots(double c3, double c2, double c1, double c0, std::vector<Root> &roots) {
+        int n_sol = 0;
+        double _r[3];
 
-    void quadratic_roots(double c2, double c1, double c0, std::vector<Root> &roots) {
-      if (fabs(c2) < EPS) {
-        linear_roots(c1, c0, roots);
-        return;
-      }
+        if (fabs(c3) < EPS) {
+          quadratic_roots(c2, c1, c0, roots);
+          return;
+        }
 
-      double p = 0.5 * c1 / c2;
-      double dis = p * p - c0 / c2;
+        if (fabs(c0) < EPS) {
+          quadratic_roots(c3, c2, c1, roots);
+          add_root(roots, 0.0);
+          return;
+        }
 
-      if (dis > 0.0) {
-        dis = sqrt(dis);
-        if (-p - dis != -p + dis) {
-          roots.push_back(Root(-p - dis));
-          roots.push_back(Root(-p + dis));
+        double xN = -c2 / (3.0 * c3);
+        double yN = c0 + xN * (c1 + xN * (c2 + c3 * xN));
+
+        double delta_sq = (c2 * c2 - 3.0 * c3 * c1) / (9.0 * c3 * c3);
+        double h_sq = 4.0 / 9.0 * (c2 * c2 - 3.0 * c3 * c1) * (delta_sq * delta_sq);
+        double dis = yN * yN - h_sq;
+
+        if (dis > EPS) {
+          // One real root, two complex roots.
+
+          double dis_sqrt = sqrt(dis);
+          double r_p = yN - dis_sqrt;
+          double r_q = yN + dis_sqrt;
+          double p = cbrt(fabs(r_p)/(2.0 * c3));
+          double q = cbrt(fabs(r_q)/(2.0 * c3));
+
+          if (r_p > 0.0) p = -p;
+          if (r_q > 0.0) q = -q;
+
+          _r[0] = xN + p + q;
+          n_sol = 1;
+
+          double re = xN - p * .5 - q * .5;
+          double im = p * M_SQRT_3_4 - q * M_SQRT_3_4;
+
+          // root 2: xN + p * exp(M_2PI_3.i) + q * exp(-M_2PI_3.i);
+          // root 3: complex conjugate of root 2
+
+          if (im < EPS) {
+            _r[1] = _r[2] = re;
+            n_sol += 2;
+          }
+        } else if (dis < -EPS) {
+          // Three distinct real roots.
+          double theta = acos(-yN / sqrt(h_sq)) / 3.0;
+          double delta = sqrt(c2 * c2 - 3.0 * c3 * c1) / (3.0 * c3);
+
+          _r[0] = xN + (2.0 * delta) * cos(theta);
+          _r[1] = xN + (2.0 * delta) * cos(M_2PI_3 - theta);
+          _r[2] = xN + (2.0 * delta) * cos(M_2PI_3 + theta);
+          n_sol = 3;
         } else {
-          roots.push_back(Root(-p, 2));
+          // Three real roots (two or three equal).
+          double r = yN / (2.0 * c3);
+          double delta = cbrt(r);
+
+          _r[0] = xN + delta;
+          _r[1] = xN + delta;
+          _r[2] = xN - 2.0 * delta;
+          n_sol = 3;
         }
-      }
-    }
 
-    void cubic_roots(double c3, double c2, double c1, double c0, std::vector<Root> &roots) {
-      int n_sol = 0;
-      double _r[3];
-
-      if (fabs(c3) < EPS) {
-        quadratic_roots(c2, c1, c0, roots);
-        return;
-      }
-
-      if (fabs(c0) < EPS) {
-        quadratic_roots(c3, c2, c1, roots);
-        add_root(roots, 0.0);
-        return;
-      }
-
-      double xN = -c2 / (3.0 * c3);
-      double yN = c0 + xN * (c1 + xN * (c2 + c3 * xN));
-
-      double delta_sq = (c2 * c2 - 3.0 * c3 * c1) / (9.0 * c3 * c3);
-      double h_sq = 4.0 / 9.0 * (c2 * c2 - 3.0 * c3 * c1) * (delta_sq * delta_sq);
-      double dis = yN * yN - h_sq;
-
-      if (dis > EPS) {
-        // One real root, two complex roots.
-
-        double dis_sqrt = sqrt(dis);
-        double r_p = yN - dis_sqrt;
-        double r_q = yN + dis_sqrt;
-        double p = cbrt(fabs(r_p)/(2.0 * c3));
-        double q = cbrt(fabs(r_q)/(2.0 * c3));
-
-        if (r_p > 0.0) p = -p;
-        if (r_q > 0.0) q = -q;
-
-        _r[0] = xN + p + q;
-        n_sol = 1;
-
-        double re = xN - p * .5 - q * .5;
-        double im = p * M_SQRT_3_4 - q * M_SQRT_3_4;
-
-        // root 2: xN + p * exp(M_2PI_3.i) + q * exp(-M_2PI_3.i);
-        // root 3: complex conjugate of root 2
-
-        if (im < EPS) {
-          _r[1] = _r[2] = re;
-          n_sol += 2;
+        for (int i=0; i < n_sol; i++) {
+          add_root(roots, _r[i]);
         }
-      } else if (dis < -EPS) {
-        // Three distinct real roots.
-        double theta = acos(-yN / sqrt(h_sq)) / 3.0;
-        double delta = sqrt(c2 * c2 - 3.0 * c3 * c1) / (3.0 * c3);
-
-        _r[0] = xN + (2.0 * delta) * cos(theta);
-        _r[1] = xN + (2.0 * delta) * cos(M_2PI_3 - theta);
-        _r[2] = xN + (2.0 * delta) * cos(M_2PI_3 + theta);
-        n_sol = 3;
-      } else {
-        // Three real roots (two or three equal).
-        double r = yN / (2.0 * c3);
-        double delta = cbrt(r);
-
-        _r[0] = xN + delta;
-        _r[1] = xN + delta;
-        _r[2] = xN - 2.0 * delta;
-        n_sol = 3;
-      }
-
-      for (int i=0; i < n_sol; i++) {
-        add_root(roots, _r[i]);
       }
     }
 

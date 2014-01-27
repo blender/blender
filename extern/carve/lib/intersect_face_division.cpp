@@ -1455,7 +1455,7 @@ namespace {
     std::vector<carve::mesh::MeshSet<3>::vertex_t *> base_loop;
     std::list<std::vector<carve::mesh::MeshSet<3>::vertex_t *> > hole_loops;
 
-    bool face_edge_intersected = assembleBaseLoop(face, data, base_loop, hooks);
+    /*bool face_edge_intersected = */assembleBaseLoop(face, data, base_loop, hooks);
 
     detail::FV2SMap::const_iterator fse_iter = data.face_split_edges.find(face);
 

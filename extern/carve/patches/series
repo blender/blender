@@ -4,3 +4,4 @@ mesh_iterator.patch
 mingw.patch
 gcc46.patch
 clang_is_heap_fix.patch
+strict_flags.patch

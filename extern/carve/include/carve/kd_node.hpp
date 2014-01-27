@@ -156,7 +156,7 @@ namespace carve {
             // choose the axis with the second greatest AABB extent.
             double e = -1.0;
             int a = -1;
-            for (unsigned i = 0; i < ndim; ++i) {
+            for (int i = 0; i < ndim; ++i) {
               if (i == splitpos.axis) continue;
               if (e < aabb.extent[i]) { a = i; e = aabb.extent[i]; }
             }

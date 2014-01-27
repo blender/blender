@@ -154,7 +154,7 @@ namespace carve {
     }
 
     inline size_t PolylineSet::vertexToIndex_fast(const Vertex *v) const {
-      return v - &vertices[0];
+      return (size_t)(v - &vertices[0]);
     }
   }
 }

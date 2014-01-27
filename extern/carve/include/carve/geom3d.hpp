@@ -89,7 +89,7 @@ namespace carve {
 #if defined(CARVE_DEBUG)
       if (p.size() > 3) {
         std::cerr << "N-gon with " << p.size() << " vertices: fitted distance:";
-        for (size_t i = 0; i < N; ++i) {
+        for (size_t i = 0; i < p.size(); ++i) {
           std::cerr << " {" << p[i] << "} " << distance(plane, p[i]);
         }
         std::cerr << std::endl;
