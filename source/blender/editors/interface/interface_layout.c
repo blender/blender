@@ -1619,10 +1619,14 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 	h = UI_UNIT_Y;
 
 	if (layout->root->type == UI_LAYOUT_HEADER) { /* ugly .. */
-		if (force_menu)
+		if (force_menu) {
 			w += UI_UNIT_Y;
-		else
-			w -= UI_UNIT_Y / 2;
+		}
+		else {
+			if (name[0]) {
+				w -= UI_UNIT_Y / 2;
+			}
+		}
 	}
 
 	if (name[0] && icon)

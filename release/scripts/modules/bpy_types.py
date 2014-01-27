@@ -760,9 +760,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         if context.area.show_menus:
             cls.draw_menus(layout, context)
         else:
-            layout.separator()
             layout.menu(cls.__name__, icon='COLLAPSEMENU')
-            layout.separator()
 
 
 class Region(StructRNA):
