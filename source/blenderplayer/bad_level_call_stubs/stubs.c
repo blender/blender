@@ -139,8 +139,9 @@ struct wmWindowManager;
 /* Declarations */
 
 /* may cause troubles... enable for now so args match for certain */
+/* all 7 freestyle stubs are not valid prototypes, disabling diagnostic then, Jens */
 #if 1
-#if defined(__GNUC__) && !defined(__APPLE__)
+#if defined(__GNUC__) && !defined(WITH_FREESTYLE)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
 #endif
 
