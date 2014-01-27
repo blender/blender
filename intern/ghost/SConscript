@@ -138,7 +138,7 @@ if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-v
 if window_system in ('win32-vc', 'win64-vc'):
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') )
 
-elif window_system == 'darwin':	 # always use default-Apple-gcc for objC language, for gnu-compilers do not support it fully yet
+elif window_system == 'darwin' and env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6': # always use default-Apple-gcc for objC language, for gnu-compilers do not support it fully yet
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
     print "GHOST COCOA WILL BE COMPILED WITH APPLE GCC"
     if env['WITH_BF_3DMOUSE']:

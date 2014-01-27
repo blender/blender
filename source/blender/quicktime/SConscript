@@ -54,5 +54,7 @@ priorities = [200,235]
 
 defs=['WITH_QUICKTIME']
 
-env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities, cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++') # always use default-Apple-gcc for objC language, gnu-compilers do not support it fully yet
-
+if env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6': # always use default-Apple-gcc for objC language, gnu-compilers do not support it fully yet
+    env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities, cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++')
+else:
+    env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)
