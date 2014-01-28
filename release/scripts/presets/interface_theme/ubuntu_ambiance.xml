@@ -227,6 +227,7 @@
     <view_3d>
       <ThemeView3D grid="#3c3b37"
                    wire="#93237f"
+                   wire_edit="#93237f"
                    lamp="#ffffff34"
                    speaker="#93237f"
                    camera="#159dce"
@@ -290,7 +291,17 @@
                               button="#3c3b3757"
                               button_title="#9c9c9c"
                               button_text="#9c9c9c"
-                              button_text_hi="#ffffff">
+                              button_text_hi="#ffffff"
+                              tab_active="#3c3b37"
+                              tab_inactive="#333333"
+                              tab_back="#2e2e2e"
+                              tab_outline="#000000">
+            <gradients>
+              <ThemeGradientColors show_grad="FALSE"
+                                   gradient="#000000"
+                                   high_gradient="#131311">
+              </ThemeGradientColors>
+            </gradients>
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -298,20 +309,19 @@
                                 show_back="FALSE">
               </ThemePanelColors>
             </panelcolors>
-            <gradients>
-              <ThemeGradientColors show_grad="FALSE"
-                                   gradient="#000000"
-                                   high_gradient="#131311">
-              </ThemeGradientColors>
-            </gradients>
           </ThemeSpaceGradient>
         </space>
       </ThemeView3D>
     </view_3d>
     <graph_editor>
       <ThemeGraphEditor grid="#3c3b37"
+                        frame_current="#f58032"
                         window_sliders="#95948f"
                         channels_region="#707070"
+                        dopesheet_channel="#695c6e"
+                        dopesheet_subchannel="#7c8996"
+                        channel_group="#4f6549"
+                        active_channels_group="#87b17d"
                         vertex="#ffffff"
                         vertex_select="#f49600"
                         vertex_size="4"
@@ -327,14 +337,9 @@
                         handle_auto_clamped="#03aa60"
                         handle_sel_auto_clamped="#f49600"
                         lastsel_point="#fafafa"
-                        frame_current="#f58032"
                         handle_vertex="#bbbbbb"
                         handle_vertex_select="#f49600"
-                        handle_vertex_size="4"
-                        channel_group="#4f6549"
-                        active_channels_group="#87b17d"
-                        dopesheet_channel="#695c6e"
-                        dopesheet_subchannel="#7c8996">
+                        handle_vertex_size="4">
         <space>
           <ThemeSpaceGeneric back="#131311"
                              title="#9c9c9c"
@@ -346,7 +351,11 @@
                              button="#3c3b37ff"
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -382,7 +391,11 @@
                              button="#727272ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -416,6 +429,8 @@
                       sound_strips_selected="#000000"
                       tweak="#000000"
                       tweak_duplicate="#000000"
+                      keyframe_border="#000000ff"
+                      keyframe_border_selected="#000000ff"
                       frame_current="#f58032">
         <space>
           <ThemeSpaceGeneric back="#131311"
@@ -428,7 +443,11 @@
                              button="#3c3b37ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -449,17 +468,27 @@
     </nla_editor>
     <dopesheet_editor>
       <ThemeDopeSheet grid="#525252"
+                      frame_current="#f58032"
                       value_sliders="#000000"
                       view_sliders="#9c9c9c"
+                      dopesheet_channel="#64486e"
+                      dopesheet_subchannel="#877096"
                       channels="#9c9c9c"
                       channels_selected="#6592f5"
                       channel_group="#4f6549"
                       active_channels_group="#a2b15c"
                       long_key="#0c0a0a"
                       long_key_selected="#f47421"
-                      frame_current="#f58032"
-                      dopesheet_channel="#64486e"
-                      dopesheet_subchannel="#877096"
+                      keyframe="#e8e8e8"
+                      keyframe_selected="#ffbe32"
+                      keyframe_extreme="#e8b3cc"
+                      keyframe_extreme_selected="#f28080"
+                      keyframe_breakdown="#b3dbe8"
+                      keyframe_breakdown_selected="#54bfed"
+                      keyframe_jitter="#94e575"
+                      keyframe_jitter_selected="#61c042"
+                      keyframe_border="#000000ff"
+                      keyframe_border_selected="#000000ff"
                       summary="#00000000">
         <space>
           <ThemeSpaceGeneric back="#131311"
@@ -472,7 +501,11 @@
                              button="#3c3b37ff"
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -496,21 +529,23 @@
                         vertex_select="#f47421"
                         vertex_size="3"
                         vertex_unreferenced="#000000"
-                        wire_edit="#C0C0C0"
-                        edge_select="#FF8500"
                         face="#ffffff0a"
                         face_select="#ff85003c"
                         face_dot="#f47421"
                         facedot_size="3"
                         freestyle_face_mark="#7fff7f33"
                         editmesh_active="#ffffff80"
+                        wire_edit="#c0c0c0"
+                        edge_select="#ff8500"
                         scope_back="#3c3b37ff"
                         preview_stitch_face="#1242b026"
                         preview_stitch_edge="#ff8500b2"
                         preview_stitch_vert="#ff85007f"
                         preview_stitch_stitchable="#00ff00ff"
                         preview_stitch_unstitchable="#ff0000ff"
-                        preview_stitch_active="#e1d2c323">
+                        preview_stitch_active="#e1d2c323"
+                        uv_shadow="#707070ff"
+                        uv_others="#606060ff">
         <space>
           <ThemeSpaceGeneric back="#131311"
                              title="#000000"
@@ -522,7 +557,11 @@
                              button="#3c3b37ff"
                              button_title="#b1b1b1"
                              button_text="#b9b9b9"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -560,7 +599,11 @@
                              button="#3c3b3742"
                              button_title="#acacac"
                              button_text="#acacac"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -585,7 +628,11 @@
                              button="#3c3b37ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -620,7 +667,11 @@
                              button="#191919ff"
                              button_title="#64645e"
                              button_text="#95948f"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -646,7 +697,11 @@
                              button="#3c3b37ff"
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -666,22 +721,22 @@
                        selected_text="#7f7070"
                        node_backdrop="#52524ed1"
                        converter_node="#93be00"
+                       color_node="#000000"
+                       group_node="#19b6ee"
+                       group_socket_node="#dfca35"
+                       frame_node="#9a9b9ba0"
+                       matte_node="#977474"
+                       distor_node="#749797"
+                       noodle_curving="5"
                        input_node="#f40051"
                        output_node="#f40051"
-                       color_node="#000000"
                        filter_node="#000000"
                        vector_node="#000000"
                        texture_node="#000000"
                        shader_node="#000000"
                        script_node="#000000"
                        pattern_node="#000000"
-                       layout_node="#000000"
-                       group_node="#19b6ee"
-                       group_socket_node="#dfca35"
-                       frame_node="#9a9b9ba0"
-                       matte_node="#977474"
-                       distor_node="#749797"
-                       noodle_curving="5">
+                       layout_node="#000000">
         <space>
           <ThemeSpaceGeneric back="#29001b"
                              title="#000000"
@@ -693,7 +748,11 @@
                              button="#3534302f"
                              button_title="#acacac"
                              button_text="#acacac"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -725,7 +784,11 @@
                              button="#353430ff"
                              button_title="#7d7d7d"
                              button_text="#acacac"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -751,7 +814,11 @@
                              button="#3c3b37ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#f47421">
+                             button_text_hi="#f47421"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -764,7 +831,16 @@
       </ThemeOutliner>
     </outliner>
     <info>
-      <ThemeInfo>
+      <ThemeInfo info_selected="#6080ff"
+                 info_selected_text="#ffffff"
+                 info_error="#dc0000"
+                 info_error_text="#000000"
+                 info_warning="#dc8060"
+                 info_warning_text="#000000"
+                 info_info="#00aa00"
+                 info_info_text="#000000"
+                 info_debug="#c4c4c4"
+                 info_debug_text="#000000">
         <space>
           <ThemeSpaceGeneric back="#3c3b37"
                              title="#eeedeb"
@@ -776,7 +852,11 @@
                              button="#3c3b37ff"
                              button_title="#eeedeb"
                              button_text="#eeedeb"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -801,7 +881,11 @@
                              button="#696965ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -831,7 +915,11 @@
                              button="#3c3b37ff"
                              button_title="#000000"
                              button_text="#000000"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
@@ -870,7 +958,11 @@
                              button="#3c3b37ff"
                              button_title="#9c9c9c"
                              button_text="#ffffff"
-                             button_text_hi="#ffffff">
+                             button_text_hi="#ffffff"
+                             tab_active="#3c3b37"
+                             tab_inactive="#333333"
+                             tab_back="#2e2e2e"
+                             tab_outline="#000000">
             <panelcolors>
               <ThemePanelColors header="#00000000"
                                 back="#72727280"
