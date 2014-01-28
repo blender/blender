@@ -546,25 +546,6 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
-/* api call */
-static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
-{
-	bScreen *sc = (bScreen *)id;
-
-	ScrArea *sa;
-	ARegion *ar;
-
-	area_region_from_regiondata(sc, rv3d, &sa, &ar);
-
-	if (sa && ar && sa->spacetype == SPACE_VIEW3D) {
-		View3D *v3d;
-
-		v3d = (View3D *)sa->spacedata.first;
-
-		ED_view3d_update_viewmat(sc->scene, v3d, ar, NULL, NULL);
-	}
-}
-
 static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
 	Scene *scene = ((bScreen *)ptr->id.data)->scene;
@@ -2185,14 +2166,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	/* until we have real api call */
-	{
-		FunctionRNA *func;
-
-		func = RNA_def_function(srna, "update", "rna_RegionView3D_update");
-		RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-		RNA_def_function_ui_description(func, "Recalculate the view matrices");
-	}
+	RNA_api_region_view3d(srna);
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
@@ -3348,8 +3322,7 @@ static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_space_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop, *parm;
-	FunctionRNA *func;
+	PropertyRNA *prop;
 
 	static EnumPropertyItem texture_type_items[] = {
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
@@ -3488,13 +3461,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
-	func = RNA_def_function(srna, "cursor_location_from_region", "rna_SpaceNodeEditor_cursor_location_from_region");
-	RNA_def_function_ui_description(func, "Set the cursor location using region coordinates");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_api_space_node(srna);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)

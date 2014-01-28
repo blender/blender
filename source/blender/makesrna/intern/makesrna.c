@@ -3276,7 +3276,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_sensor.c", "rna_sensor_api.c", RNA_def_sensor},
 	{"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
 	{"rna_smoke.c", NULL, RNA_def_smoke},
-	{"rna_space.c", NULL, RNA_def_space},
+	{"rna_space.c", "rna_space_api.c", RNA_def_space},
 	{"rna_speaker.c", NULL, RNA_def_speaker},
 	{"rna_test.c", NULL, RNA_def_test},
 	{"rna_text.c", "rna_text_api.c", RNA_def_text},

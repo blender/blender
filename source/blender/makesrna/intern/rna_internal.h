@@ -284,6 +284,8 @@ void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_window(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
+void RNA_api_space_node(struct StructRNA *srna);
+void RNA_api_region_view3d(struct StructRNA *srna);
 void RNA_api_sensor(struct StructRNA *srna);
 void RNA_api_controller(struct StructRNA *srna);
 void RNA_api_actuator(struct StructRNA *srna);
