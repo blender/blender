@@ -180,8 +180,21 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		MONITORINFO monitor;
 		GHOST_TUns32 tw, th; 
 
-		width += GetSystemMetrics(SM_CXSIZEFRAME) * 2;
-		height += GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION);
+#if !defined(_MSC_VER) || _MSC_VER < 1700
+		int cxsizeframe = GetSystemMetrics(SM_CXSIZEFRAME);
+		int cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
+#else
+		// MSVC 2012+ returns bogus values from GetSystemMetrics, bug in Windows
+		// http://connect.microsoft.com/VisualStudio/feedback/details/753224/regression-getsystemmetrics-delivers-different-values
+		RECT cxrect = {0, 0, 0, 0};
+		AdjustWindowRectEx(&cxrect, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_THICKFRAME | WS_DLGFRAME, FALSE, 0);
+
+		int cxsizeframe = abs(cxrect.bottom);
+		int cysizeframe = abs(cxrect.left);
+#endif
+
+		width += cxsizeframe * 2;
+		height += cysizeframe * 2 + GetSystemMetrics(SM_CYCAPTION);
 
 		rect.left = left;
 		rect.right = left + width;
