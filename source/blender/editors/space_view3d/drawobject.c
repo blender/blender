@@ -6657,7 +6657,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	int i, selstart, selend, empty_object = 0;
 	short dtx;
 	char  dt;
-	short zbufoff = 0;
+	bool zbufoff = false, is_paint = false;
 	const bool is_obact = (ob == OBACT);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	bool particle_skip_object = false;  /* Draw particles but not their emitter object. */
@@ -6761,21 +6761,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if (dt < OB_SOLID) {
 					zbufoff = 1;
 					dt = OB_SOLID;
+					is_paint = true;
 				}
 
 				if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 					dt = OB_PAINT;
+					is_paint = true;
 				}
 
 				glEnable(GL_DEPTH_TEST);
 			}
 		}
-		else {
-			/* matcap check - only when not painting color */
-			if ((v3d->flag2 & V3D_SOLID_MATCAP) && (dt == OB_SOLID)) {
-				draw_object_matcap_check(v3d, ob);
-			}
-		}
+	}
+
+	/* matcap check - only when not painting color */
+	if ((v3d->flag2 & V3D_SOLID_MATCAP) && (dt == OB_SOLID) && (is_paint == false)) {
+		draw_object_matcap_check(v3d, ob);
 	}
 
 	/* draw-extra supported for boundbox drawmode too */
