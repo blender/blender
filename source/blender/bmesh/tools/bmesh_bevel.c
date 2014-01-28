@@ -1240,10 +1240,11 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv)
 	}
 }
 
-/* Snap a direction co to a superellipsoid with parameter super_r */
-static void snap_to_superellipsoid(float co[3], const float super_r)
+/* Snap a direction co to a superellipsoid with parameter super_r.
+ * For square profiles, midline says whether or not to snap to both planes. */
+static void snap_to_superellipsoid(float co[3], const float super_r, bool midline)
 {
-	float a, b, c, x, y, z, r, rinv;
+	float a, b, c, x, y, z, r, rinv, dx, dy;
 
 	r = super_r;
 	if (r == PRO_CIRCLE_R) {
@@ -1254,62 +1255,60 @@ static void snap_to_superellipsoid(float co[3], const float super_r)
 	x = a = max_ff(0.0f, co[0]);
 	y = b = max_ff(0.0f, co[1]);
 	z = c = max_ff(0.0f, co[2]);
-	if (r <= 0.0f)
-		r = 0.1f;
-	rinv = 1.0f / r;
-	if (a == 0.0f) {
-		if (b == 0.0f) {
-			x = 0.0f;
-			y = 0.0f;
-			z = powf(c, rinv);
+	if (r == PRO_SQUARE_R || r == PRO_SQUARE_IN_R) {
+		/* will only be called for 2d profile */
+		BLI_assert(fabsf(z) < BEVEL_EPSILON);
+		z = 0.0f;
+		x = min_ff(1.0f, x);
+		y = min_ff(1.0f, y);
+		if (r == PRO_SQUARE_R) {
+			/* snap to closer of x==1 and y==1 lines, or maybe both */
+			dx = 1.0f - x;
+			dy = 1.0f - y;
+			if (dx < dy) {
+				x = 1.0f;
+				y = midline ? 1.0f : y;
+			}
+			else {
+				y = 1.0f;
+				x = midline ? 1.0f : x;
+			}
 		}
 		else {
-			x = 0.0f;
-			y = powf(1.0f / (1.0f + powf(c / b, r)), rinv);
-			z = c * y / b;
+			/* snap to closer of x==0 and y==0 lines, or maybe both */
+			if (x < y) {
+				x = 0.0f;
+				y = midline ? 0.0f : y;
+			}
+			else {
+				y = 0.0f;
+				x = midline ? 0.0f : x;
+			}
 		}
 	}
 	else {
-		x = powf(1.0f / (1.0f + powf(b / a, r) + powf(c / a, r)), rinv);
-		y = b * x / a;
-		z = c * x / a;
+		rinv = 1.0f / r;
+		if (a == 0.0f) {
+			if (b == 0.0f) {
+				x = 0.0f;
+				y = 0.0f;
+				z = powf(c, rinv);
+			}
+			else {
+				x = 0.0f;
+				y = powf(1.0f / (1.0f + powf(c / b, r)), rinv);
+				z = c * y / b;
+			}
+		}
+		else {
+			x = powf(1.0f / (1.0f + powf(b / a, r) + powf(c / a, r)), rinv);
+			y = b * x / a;
+			z = c * x / a;
+		}
 	}
 	co[0] = x;
 	co[1] = y;
 	co[2] = z;
-}
-
-static void snap_to_profile(BoundVert *bndv, EdgeHalf *e, float co[3])
-{
-	float va[3], vb[3], edir[3], va0[3], vb0[3], vmid0[3];
-	float plane[4], m[4][4], minv[4][4], p[3], snap[3];
-
-	copy_v3_v3(va, bndv->nv.co);
-	copy_v3_v3(vb, bndv->next->nv.co);
-
-	sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
-
-	plane_from_point_normal_v3(plane, co, edir);
-	closest_to_plane_v3(va0, plane, va);
-	closest_to_plane_v3(vb0, plane, vb);
-	closest_to_plane_v3(vmid0, plane, bndv->profile.midco);
-	if (make_unit_square_map(va0, vmid0, vb0, m)) {
-		/* Transform co and project it onto superellipse */
-		if (!invert_m4_m4(minv, m)) {
-			/* shouldn't happen */
-			BLI_assert(!"failed inverse during profile snap");
-			return;
-		}
-		mul_v3_m4v3(p, minv, co);
-		snap_to_superellipsoid(p, bndv->profile.super_r);
-		mul_v3_m4v3(snap, m, p);
-		copy_v3_v3(co, snap);
-	}
-	else {
-		/* planar case: just snap to line va--vb */
-		closest_to_line_segment_v3(p, co, va, vb);
-		copy_v3_v3(co, p);
-	}
 }
 
 /* Set the any_seam property for a BevVert and all its BoundVerts */
@@ -1640,33 +1639,52 @@ static void adjust_offsets(BevelParams *bp)
 }
 
 /* Do the edges at bv form a "pipe"?
- * Current definition: at least three beveled edges,
- * two in line, and sharing a face. */
-static EdgeHalf *pipe_test(BevVert *bv)
+ * Current definition: 3 or 4 beveled edges, 2 in line with each other,
+ * with other edges on opposite sides of the pipe if there are 4.
+ * Also, the vertex boundary should have 3 or 4 vertices in it,
+ * and all of the faces involved should be parallel to the pipe edges.
+ * Return the boundary vert whose ebev is one of the pipe edges, and
+ * whose next boundary vert has a beveled, non-pipe edge. */
+static BoundVert *pipe_test(BevVert *bv)
 {
-	EdgeHalf *e1, *e2, *epipe;
+	EdgeHalf *e, *epipe;
+	VMesh *vm;
+	BoundVert *v1, *v2, *v3;
+	float dir1[3], dir3[3];
 
+	vm = bv->vmesh;
+	if (vm->count < 3 || vm->count > 4 || bv->selcount < 3 || bv->selcount > 4)
+		return NULL;
+
+	/* find v1, v2, v3 all with beveled edges, where v1 and v3 have collinear edges */
 	epipe = NULL;
-	if (bv->selcount > 2) {
-		for (e1 = &bv->edges[0]; epipe == NULL && e1 != &bv->edges[bv->edgecount]; e1++) {
-			if (e1->is_bev) {
-				for (e2 = &bv->edges[0]; e2 != &bv->edges[bv->edgecount]; e2++) {
-					if (e1 != e2 && e2->is_bev) {
-						if ((e1->fnext == e2->fprev) || (e1->fprev == e2->fnext)) {
-							float dir1[3], dir2[3];
-							sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(e1->e, bv->v)->co);
-							sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, bv->v)->co, bv->v->co);
-							if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
-								epipe = e1;
-								break;
-							}
-						}
-					}
-				}
+	v1 = vm->boundstart;
+	do {
+		v2 = v1->next;
+		v3 = v2->next;
+		if (v1->ebev && v2->ebev && v3->ebev) {
+			sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(v1->ebev->e, bv->v)->co);
+			sub_v3_v3v3(dir3, BM_edge_other_vert(v3->ebev->e, bv->v)->co, bv->v->co);
+			normalize_v3(dir1);
+			normalize_v3(dir3);
+			if (angle_v3v3(dir1, dir3) < 100.0f * BEVEL_EPSILON) {
+				epipe =  v1->ebev;
+				break;
 			}
 		}
+	} while ((v1 = v1->next) != vm->boundstart);
+
+	if (!epipe)
+		return NULL;
+
+	/* check face planes: all should have normals perpendicular to epipe */
+	for (e = &bv->edges[0]; e != &bv->edges[bv->edgecount]; e++) {
+		if (e->fnext) {
+			if (dot_v3v3(dir1, e->fnext->no) > BEVEL_EPSILON)
+				return FALSE;
+		}
 	}
-	return epipe;
+	return v1;
 }
 
 static VMesh *new_adj_vmesh(MemArena *mem_arena, int count, int seg, BoundVert *bounds)
@@ -2214,7 +2232,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j <= ns2; j++) {
 			for (k = 0; k <= nseg; k++) {
-				snap_to_superellipsoid(mesh_vert(vm1, i, j, k)->co, r);
+				snap_to_superellipsoid(mesh_vert(vm1, i, j, k)->co, r, false);
 			}
 		}
 	}
@@ -2344,11 +2362,55 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	return vm1;
 }
 
-static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, EdgeHalf *epipe)
+/* Snap co to the closest point on the profile for vpipe projected onto the plane
+ * containing co with normal in the direction of edge vpipe->ebev.
+ * For the square profiles, need to decide whether to snap to just one plane
+ * or to the midpoint of the profile; do so if midline is true. */
+static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
 {
-	int i, j, k, n, ns, ns2;
+	float va[3], vb[3], edir[3], va0[3], vb0[3], vmid0[3];
+	float plane[4], m[4][4], minv[4][4], p[3], snap[3];
+	Profile *pro = &vpipe->profile;
+	EdgeHalf *e = vpipe->ebev;
+
+	copy_v3_v3(va, pro->coa);
+	copy_v3_v3(vb, pro->cob);
+
+	sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
+
+	plane_from_point_normal_v3(plane, co, edir);
+	closest_to_plane_v3(va0, plane, va);
+	closest_to_plane_v3(vb0, plane, vb);
+	closest_to_plane_v3(vmid0, plane, pro->midco);
+	if (make_unit_square_map(va0, vmid0, vb0, m)) {
+		/* Transform co and project it onto superellipse */
+		if (!invert_m4_m4(minv, m)) {
+			/* shouldn't happen */
+			BLI_assert(!"failed inverse during pipe profile snap");
+			return;
+		}
+		mul_v3_m4v3(p, minv, co);
+		snap_to_superellipsoid(p, pro->super_r, midline);
+		mul_v3_m4v3(snap, m, p);
+		copy_v3_v3(co, snap);
+	}
+	else {
+		/* planar case: just snap to line va0--vb0 */
+		closest_to_line_segment_v3(p, co, va0, vb0);
+		copy_v3_v3(co, p);
+	}
+}
+
+/* See pipe_test for conditions that make 'pipe'; vpipe is the return value from that.
+ * We want to make an ADJ mesh but then snap the vertices to the profile in a plane
+ * perpendicular to the pipes.
+ * A tricky case is for the 'square' profiles and an even nseg: we want certain vertices
+ * to snap to the midline on the pipe, not just to one plane or the other. */
+static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
+{
+	int i, j, k, n, ns, ns2, ipipe1, ipipe2;
 	VMesh *vm;
-	BoundVert *bndv;
+	bool even, midline;
 
 	vm = adj_vmesh(bp, bv);
 
@@ -2356,18 +2418,17 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, EdgeHalf *epipe)
 	n = bv->vmesh->count;
 	ns = bv->vmesh->seg;
 	ns2 = ns / 2;
-	bndv = vm->boundstart;
-	for (i = 0; i < n; i++) {
-		if (bndv->ebev == epipe)
-			break;
-		bndv = bndv->next;
-	}
+	even = (ns % 2) == 0;
+	ipipe1 = vpipe->index;
+	ipipe2 = vpipe->next->next->index;
 	for (i = 0; i < n; i++) {
 		for (j = 1; j <= ns2; j++) {
 			for (k = 0; k <= ns2; k++) {
 				if (!is_canon(vm, i, j, k))
 					continue;
-				snap_to_profile(bndv, epipe, mesh_vert(vm, i, j, k)->co);
+				midline = even && k == ns2 &&
+				          ((i == 0 && j == ns2) || (i == ipipe1 || i == ipipe2));
+				snap_to_pipe_profile(vpipe, midline, mesh_vert(vm, i, j, k)->co);
 			}
 		}
 	}
@@ -2386,7 +2447,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 	BoundVert *v;
 	BMVert *bmv1, *bmv2, *bmv3, *bmv4;
 	BMFace *f, *f2, *f23;
-	EdgeHalf *epipe;
+	BoundVert *vpipe;
 
 	n = bv->vmesh->count;
 	ns = bv->vmesh->seg;
@@ -2394,10 +2455,10 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 	odd = ns % 2;
 	BLI_assert(n >= 3 && ns > 1);
 
-	epipe = pipe_test(bv);
+	vpipe = pipe_test(bv);
 
-	if (epipe)
-		vm1 = pipe_adj_vmesh(bp, bv, epipe);
+	if (vpipe)
+		vm1 = pipe_adj_vmesh(bp, bv, vpipe);
 	else if (tri_corner_test(bp, bv))
 		vm1 = tri_corner_adj_vmesh(bp, bv);
 	else
