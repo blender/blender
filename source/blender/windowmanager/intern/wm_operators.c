@@ -2127,6 +2127,27 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 
 /* *************** open file **************** */
 
+/**
+ * Wrap #WM_file_read, shared by file reading operators.
+ */
+static bool wm_file_read_opwrap(bContext *C, const char *filepath, ReportList *reports,
+                                const bool autoexec_init)
+{
+	bool success;
+
+	/* XXX wm in context is not set correctly after WM_file_read -> crash */
+	/* do it before for now, but is this correct with multiple windows? */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	if (autoexec_init) {
+		WM_file_autoexec_init(filepath);
+	}
+
+	success = WM_file_read(C, filepath, reports);
+
+	return success;
+}
+
 /* currently fits in a pointer */
 struct FileRuntime {
 	bool is_untrusted;
@@ -2186,9 +2207,10 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
-	char path[FILE_MAX];
+	char filepath[FILE_MAX];
+	bool success;
 
-	RNA_string_get(op->ptr, "filepath", path);
+	RNA_string_get(op->ptr, "filepath", filepath);
 
 	/* re-use last loaded setting so we can reload a file without changing */
 	open_set_load_ui(op, false);
@@ -2204,20 +2226,17 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	else
 		G.f &= ~G_SCRIPT_AUTOEXEC;
 	
-	/* XXX wm in context is not set correctly after WM_file_read -> crash */
-	/* do it before for now, but is this correct with multiple windows? */
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-	/* autoexec is already set correctly for invoke() for exec() though we need to initialize */
-	if (!RNA_struct_property_is_set(op->ptr, "use_scripts")) {
-		WM_file_autoexec_init(path);
-	}
-	WM_file_read(C, path, op->reports);
+	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
 
 	/* for file open also popup for warnings, not only errors */
 	BKE_report_print_level_set(op->reports, RPT_WARNING);
 
-	return OPERATOR_FINISHED;
+	if (success) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
@@ -2498,20 +2517,14 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 void WM_recover_last_session(bContext *C, ReportList *reports)
 {
-	char filename[FILE_MAX];
+	char filepath[FILE_MAX];
 	
-	BLI_make_file_string("/", filename, BLI_temporary_dir(), BLENDER_QUIT_FILE);
+	BLI_make_file_string("/", filepath, BLI_temporary_dir(), BLENDER_QUIT_FILE);
 	/* if reports==NULL, it's called directly without operator, we add a quick check here */
-	if (reports || BLI_exists(filename)) {
+	if (reports || BLI_exists(filepath)) {
 		G.fileflags |= G_FILE_RECOVER;
 		
-		/* XXX wm in context is not set correctly after WM_file_read -> crash */
-		/* do it before for now, but is this correct with multiple windows? */
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
-		
-		/* load file */
-		WM_file_autoexec_init(filename);
-		WM_file_read(C, filename, reports);
+		wm_file_read_opwrap(C, filepath, reports, true);
 	
 		G.fileflags &= ~G_FILE_RECOVER;
 		
@@ -2545,23 +2558,23 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 
 static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 {
-	char path[FILE_MAX];
+	char filepath[FILE_MAX];
+	bool success;
 
-	RNA_string_get(op->ptr, "filepath", path);
+	RNA_string_get(op->ptr, "filepath", filepath);
 
 	G.fileflags |= G_FILE_RECOVER;
 
-	/* XXX wm in context is not set correctly after WM_file_read -> crash */
-	/* do it before for now, but is this correct with multiple windows? */
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-	/* load file */
-	WM_file_autoexec_init(path);
-	WM_file_read(C, path, op->reports);
+	success = wm_file_read_opwrap(C, filepath, op->reports, true);
 
 	G.fileflags &= ~G_FILE_RECOVER;
 	
-	return OPERATOR_FINISHED;
+	if (success) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

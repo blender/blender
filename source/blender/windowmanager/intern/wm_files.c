@@ -388,8 +388,9 @@ void WM_file_autoexec_init(const char *filepath)
 	}
 }
 
-void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
+bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
+	bool success = false;
 	int retval;
 
 	/* so we can get the error message */
@@ -412,7 +413,7 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		ListBase wmbase;
 
 		/* assume automated tasks with background, don't write recent file list */
-		const int do_history = (G.background == FALSE) && (CTX_wm_manager(C)->op_undo_depth == 0);
+		const bool do_history = (G.background == FALSE) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
@@ -496,6 +497,8 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");  /* save current state */
+
+		success = true;
 	}
 	else if (retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
@@ -515,6 +518,8 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	}
 
 	WM_cursor_wait(0);
+
+	return success;
 
 }
 
