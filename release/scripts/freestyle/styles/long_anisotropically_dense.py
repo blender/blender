@@ -55,6 +55,7 @@ class pyDensityUP1D(UnaryPredicate1D):
         self._integration = integration
         self._func = DensityF1D(self._wsize, self._integration, sampling)
         self._func2 = DensityF1D(self._wsize, IntegrationType.MAX, sampling)
+
     def __call__(self, inter):
         c = self._func(inter)
         m = self._func2(inter)

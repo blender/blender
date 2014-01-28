@@ -53,6 +53,6 @@ shaders_list = [
     ConstantColorShader(0.0, 0.0, 0.0),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
     TextureAssignerShader(-1),
-    pyHLRShader(), ## this shader draws only visible portions
+    pyHLRShader(),  ## this shader draws only visible portions
     ]
 Operators.create(TrueUP1D(), shaders_list)

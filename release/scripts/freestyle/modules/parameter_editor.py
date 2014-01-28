@@ -1133,8 +1133,10 @@ def iter_three_segments(stroke):
             it3.increment()
             it4.increment()
 
+
 def is_tvertex(svertex):
     return type(svertex.viewvertex) is TVertex
+
 
 class StrokeCleaner(StrokeShader):
     def shade(self, stroke):

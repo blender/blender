@@ -54,8 +54,10 @@ class pyChainSilhouetteIterator(ChainingIterator):
     """
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
+
     def init(self):
         pass
+
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
@@ -110,8 +112,10 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 
     def __init__(self, stayInSelection=True, stayInUnvisited=True):
         ChainingIterator.__init__(self, stayInSelection, stayInUnvisited, None, True)
+
     def init(self):
         pass
+
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
@@ -161,9 +165,11 @@ class pyExternalContourChainingIterator(ChainingIterator):
     def __init__(self):
         ChainingIterator.__init__(self, False, True, None, True)
         self._isExternalContour = ExternalContourUP1D()
+
     def init(self):
         self._nEdges = 0
         self._isInSelection = 1
+
     def checkViewEdge(self, ve, orientation):
         if orientation != 0:
             vertex = ve.second_svertex()
@@ -178,6 +184,7 @@ class pyExternalContourChainingIterator(ChainingIterator):
         if bpy.app.debug_freestyle:
             print("pyExternalContourChainingIterator : didn't find next edge")
         return False
+
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
@@ -218,8 +225,10 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
         self._timeStamp = CF.get_time_stamp()+nRounds
         self._nRounds = nRounds
+
     def init(self):
         self._timeStamp = CF.get_time_stamp()+self._nRounds
+
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
@@ -277,8 +286,10 @@ class pySketchyChainingIterator(ChainingIterator):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
         self._timeStamp = CF.get_time_stamp()+nRounds
         self._nRounds = nRounds
+
     def init(self):
         self._timeStamp = CF.get_time_stamp()+self._nRounds
+
     def traverse(self, iter):
         winner = None
         found = False
@@ -316,10 +327,12 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = 0
         self._percent = float(percent)
+
     def init(self):
         # A chain's length should preferably be evaluated only once.
         # Therefore, the chain length is reset here.
         self._length = 0
+
     def traverse(self, iter):
         winner = None
 
@@ -414,8 +427,10 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
     def __init__(self, length):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = float(length)
+
     def init(self):
         pass
+
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
@@ -481,11 +496,13 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0
         self._absLength = l
         self._percent = float(percent)
+
     def init(self):
         # each time we're evaluating a chain length
         # we try to do it once. Thus we reinit
         # the chain length here:
         self._length = 0
+
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
@@ -581,10 +598,12 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0
         self._absLength = l
         self._percent = float(percent)
+
     def init(self):
         # A chain's length should preverably be evaluated only once.
         # Therefore, the chain length is reset here.
         self._length = 0
+
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
@@ -682,8 +701,10 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
+
     def init(self):
         pass
+
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
