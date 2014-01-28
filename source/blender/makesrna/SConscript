@@ -92,7 +92,7 @@ if env['WITH_BF_FRAMESERVER']:
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
-    incs += ' ' + env['BF_FFMPEG_INC']
+    incs += ' ' + env['BF_FFMPEG_INC'] + ' #/intern/ffmpeg'
 
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
