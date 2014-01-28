@@ -234,31 +234,31 @@ static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
-static short gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
+static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 {
 	int dx = abs(mval[0] - pmval[0]);
 	int dy = abs(mval[1] - pmval[1]);
 	
 	/* if buffer is empty, just let this go through (i.e. so that dots will work) */
 	if (p->gpd->sbuffer_size == 0)
-		return 1;
+		return true;
 	
 	/* check if mouse moved at least certain distance on both axes (best case) 
 	 *	- aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
 	 */
 	else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
-		return 1;
+		return true;
 	
 	/* check if the distance since the last point is significant enough 
 	 *	- prevents points being added too densely
 	 *	- distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
 	 */
 	else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX)
-		return 1;
+		return true;
 	
 	/* mouse 'didn't move' */
 	else
-		return 0;
+		return false;
 }
 
 /* convert screen-coordinates to buffer-coordinates */

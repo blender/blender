@@ -347,13 +347,13 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 /* Obtain current anim-data context from Blender Context info.
  * Returns whether the operation was successful. 
  */
-short ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
+bool ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
 /* Obtain current anim-data context (from Animation Editor) given 
  * that Blender Context info has already been set. 
  * Returns whether the operation was successful.
  */
-short ANIM_animdata_context_getdata(bAnimContext *ac);
+bool ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */
@@ -567,7 +567,7 @@ typedef enum eAnimUnitConv_Flags {
 	ANIM_UNITCONV_NORMALIZE_FREEZE  = (1 << 6),
 } eAnimUnitConv_Flags;
 
-/* Normalizatin flags from Space Graph passing to ANIM_unit_mapping_get_factor */
+/* Normalization flags from Space Graph passing to ANIM_unit_mapping_get_factor */
 short ANIM_get_normalization_flags(bAnimContext *ac);
 
 /* Get unit conversion factor for given ID + F-Curve */
