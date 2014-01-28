@@ -54,8 +54,8 @@ class EuclideanIntersectCostFunctor {
     Vec3 projected = R * x + t;
     projected /= projected(2);
 
-    residuals[0] = projected(0) - T(marker_.x);
-    residuals[1] = projected(1) - T(marker_.y);
+    residuals[0] = (projected(0) - T(marker_.x)) * marker_.weight;
+    residuals[1] = (projected(1) - T(marker_.y)) * marker_.weight;
 
     return true;
   }
@@ -102,16 +102,18 @@ bool EuclideanIntersect(const vector<Marker> &markers,
 
   for (int i = 0; i < markers.size(); ++i) {
     const Marker &marker = markers[i];
-    const EuclideanCamera &camera =
-        *reconstruction->CameraForImage(marker.image);
+    if (marker.weight != 0.0) {
+      const EuclideanCamera &camera =
+          *reconstruction->CameraForImage(marker.image);
 
-    problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<
-            EuclideanIntersectCostFunctor,
-            2, /* num_residuals */
-            3>(new EuclideanIntersectCostFunctor(marker, camera)),
-        NULL,
-        &X(0));
+      problem.AddResidualBlock(
+          new ceres::AutoDiffCostFunction<
+              EuclideanIntersectCostFunctor,
+              2, /* num_residuals */
+              3>(new EuclideanIntersectCostFunctor(marker, camera)),
+          NULL,
+          &X(0));
+    }
   }
 
   // Configure the solve.

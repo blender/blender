@@ -277,11 +277,12 @@ double InternalReprojectionError(
   double total_error = 0.0;
   vector<Marker> markers = image_tracks.AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
+    double weight = markers[i].weight;
     const typename PipelineRoutines::Camera *camera =
         reconstruction.CameraForImage(markers[i].image);
     const typename PipelineRoutines::Point *point =
         reconstruction.PointForTrack(markers[i].track);
-    if (!camera || !point) {
+    if (!camera || !point || weight == 0.0) {
       num_skipped++;
       continue;
     }
@@ -289,8 +290,8 @@ double InternalReprojectionError(
 
     Marker reprojected_marker =
         PipelineRoutines::ProjectMarker(*point, *camera, intrinsics);
-    double ex = reprojected_marker.x - markers[i].x;
-    double ey = reprojected_marker.y - markers[i].y;
+    double ex = (reprojected_marker.x - markers[i].x) * weight;
+    double ey = (reprojected_marker.y - markers[i].y) * weight;
 
     const int N = 100;
     char line[N];

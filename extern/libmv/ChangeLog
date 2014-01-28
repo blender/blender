@@ -1,8 +1,34 @@
-commit f71f7c59d4d13574ea4dc3a196cc22eef1c192df
+commit cd7eb3eff2e69ce5e08570ead83ae6d35ee48857
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jan 28 17:23:47 2014 +0600
+
+    Improvements to weighted tracks behavior
+    
+    First thing changed by this commit is making it so
+    Euclidean intersection takes track weight into account
+    when solving minimization problem. This behaves the
+    same exact way as it is for BA step.
+    
+    Second thing is related on how average reprojection error
+    is being calculated. It didn't take track weight into
+    account which could confuse users. Now average reprojection
+    error will give the same result as intersection/BA uses
+    during minimization which gives much more predictable
+    behavior.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    CC: sebastian_k
+    
+    Differential Revision: https://developer.blender.org/D265
+
+commit 6559b36dc14369175bfa0830323146acd3426483
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Jan 28 16:39:14 2014 +0600
 
-    Fixed for keyframe selection
+    Fixes for keyframe selection
     
     Using tracks with constant zero weight used to crash
     keyframe selection since it was trying to use missing
@@ -660,17 +686,3 @@ Date:   Sat Apr 6 18:37:37 2013 +0600
     It is failing at this moment and this is caused because
     of how SampleLinear works - seems it's assumption about
     pixel center is not correct for internal sampling.
-
-commit d449b820fb3352cd981e06d737f2838adb3d36bd
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 16:54:08 2013 +0600
-
-    Tweak to KLT region tracker test
-    
-    KLT is usually used to track relatively small
-    motions, and in this case motion almost equals
-    to half window size. This confuses math and
-    leads to not so much expected result.
-    
-    Further, not actually sure this is nice idea
-    to use KLT in such synthetic case.
