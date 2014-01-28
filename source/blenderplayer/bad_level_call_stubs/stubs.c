@@ -30,14 +30,14 @@
  *  \ingroup blc
  */
 
-
 #ifdef WITH_GAMEENGINE
 
 #define ASSERT_STUBS 0
 #if ASSERT_STUBS
-#define STUB_ASSERT(x) (assert(x))
+#  include <assert.h>
+#  define STUB_ASSERT(x) (assert(x))
 #else
-#define STUB_ASSERT(x)
+#  define STUB_ASSERT(x)
 #endif
 
 
@@ -60,10 +60,6 @@ struct FCurve;
 struct Heap;
 struct HeapNode;
 struct ID;
-#ifdef WITH_FREESTYLE
-struct FreestyleConfig;
-struct FreestyleLineSet;
-#endif
 struct ImBuf;
 struct Image;
 struct ImageUser;
@@ -94,9 +90,6 @@ struct RenderLayer;
 struct RenderResult;
 struct Scene;
 struct Scene;
-#ifdef WITH_FREESTYLE
-struct SceneRenderLayer;
-#endif
 struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
@@ -139,9 +132,8 @@ struct wmWindowManager;
 /* Declarations */
 
 /* may cause troubles... enable for now so args match for certain */
-/* all 7 freestyle stubs are not valid prototypes, disabling diagnostic then, Jens */
 #if 1
-#if defined(__GNUC__) && !defined(WITH_FREESTYLE)
+#if defined(__GNUC__)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
 #endif
 
@@ -663,16 +655,6 @@ struct PyObject *pyrna_id_CreatePyObject(struct ID *id) RET_NULL
 void BPY_context_update(struct bContext *C) RET_NONE;
 const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid) RET_ARG(msgid)
 
-#ifdef WITH_FREESTYLE
-/* Freestyle */
-void FRS_init_freestyle_config(struct FreestyleConfig *config) RET_NONE
-void FRS_free_freestyle_config(struct FreestyleConfig *config) RET_NONE
-void FRS_copy_freestyle_config(struct FreestyleConfig *new_config, struct FreestyleConfig *config) RET_NONE
-struct FreestyleLineSet *FRS_get_active_lineset(struct FreestyleConfig *config) RET_NULL
-short FRS_get_active_lineset_index(struct FreestyleConfig *config) RET_ZERO
-void FRS_set_active_lineset_index(struct FreestyleConfig *config, short index) RET_NONE
-void FRS_unlink_target_object(struct FreestyleConfig *config, struct Object *ob) RET_NONE
-#endif
 /* intern/dualcon */
 
 void *dualcon(const DualConInput *input_mesh,
