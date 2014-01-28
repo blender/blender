@@ -1,3 +1,25 @@
+commit da4607f010bca0b3532cd4444afbb10bc774fc32
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jan 28 18:32:39 2014 +0600
+
+    Implemented scoped_array and use it in detector
+    
+    scoped_array is pretty much the same as scoped_ptr
+    with the only difference that it'll free memory using
+    delete[] operator.
+    
+    It also gives some additional API functions to access
+    array elements.
+    
+    Currently it only used to manage images denoted as byte
+    arrays in detector.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D266
+
 commit cd7eb3eff2e69ce5e08570ead83ae6d35ee48857
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Jan 28 17:23:47 2014 +0600
@@ -676,13 +698,3 @@ Date:   Sat Apr 6 20:49:05 2013 +0600
     Discovered when was doing unit-tests for brute region tracker.
     
     This reverts commit daa354c0735b954b0cd7725626e9a3d67416d46b.
-
-commit 5bd89d9b8fb620e7e88bcbfa74165309b872f529
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 18:37:37 2013 +0600
-
-    Added basic test for brute region tracker
-    
-    It is failing at this moment and this is caused because
-    of how SampleLinear works - seems it's assumption about
-    pixel center is not correct for internal sampling.

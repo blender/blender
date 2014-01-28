@@ -21,6 +21,9 @@
 #ifndef LIBMV_BASE_SCOPED_PTR_H
 #define LIBMV_BASE_SCOPED_PTR_H
 
+#include <cassert>
+#include <cstddef>
+
 namespace libmv {
 
 /**
@@ -53,6 +56,48 @@ class scoped_ptr {
  private:
   // No copying allowed.
   T *resource_;
+};
+
+// Same as scoped_ptr but caller must allocate the data
+// with new[] and the destructor will free the memory
+// using delete[].
+template<typename T>
+class scoped_array {
+ public:
+  scoped_array(T *array) : array_(array) {}
+  ~scoped_array() { reset(NULL); }
+
+  T *get() const { return array_;  }
+
+  T& operator[](std::ptrdiff_t i) const {
+    assert(i >= 0);
+    assert(array_ != NULL);
+    return array_[i];
+  }
+
+  void reset(T *new_array) {
+    if (sizeof(T)) {
+      delete array_;
+    }
+    array_ = new_array;
+  }
+
+  T *release() {
+    T *released_array = array_;
+    array_ = NULL;
+    return released_array;
+  }
+
+ private:
+  T *array_;
+
+  // Forbid comparison of different scoped_array types.
+  template <typename T2> bool operator==(scoped_array<T2> const& p2) const;
+  template <typename T2> bool operator!=(scoped_array<T2> const& p2) const;
+
+  // Disallow evil constructors
+  scoped_array(const scoped_array&);
+  void operator=(const scoped_array&);
 };
 
 }  // namespace libmv

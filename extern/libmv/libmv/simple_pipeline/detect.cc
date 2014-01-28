@@ -99,14 +99,12 @@ void DetectFAST(const FloatImage &grayscale_image,
   const int height = grayscale_image.Width() - 2 * margin;
   const int stride = grayscale_image.Width();
 
-  // TODO(sergey): Use scoped_array to guard de-allocation of the array.
-  // Same goes to `scores` and `all` arrays here.
-  unsigned char *byte_image = FloatImageToUCharArray(grayscale_image);
+  scoped_array<unsigned char> byte_image(FloatImageToUCharArray(grayscale_image));
   const int byte_image_offset = margin * stride + margin;
 
   // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
   int num_features;
-  xy *all = fast9_detect(byte_image + byte_image_offset,
+  xy *all = fast9_detect(byte_image.get() + byte_image_offset,
                          width,
                          height,
                          stride,
@@ -114,10 +112,9 @@ void DetectFAST(const FloatImage &grayscale_image,
                          &num_features);
   if (num_features == 0) {
     free(all);
-    delete [] byte_image;
     return;
   }
-  int *scores = fast9_score(byte_image + byte_image_offset,
+  int *scores = fast9_score(byte_image.get() + byte_image_offset,
                             stride,
                             all,
                             num_features,
@@ -125,7 +122,6 @@ void DetectFAST(const FloatImage &grayscale_image,
   // TODO(MatthiasF): merge with close feature suppression
   xy *nonmax = nonmax_suppression(all, scores, num_features, &num_features);
   free(all);
-  delete [] byte_image;
   // Remove too close features
   // TODO(MatthiasF): A resolution independent parameter would be better than
   // distance e.g. a coefficient going from 0 (no minimal distance) to 1
@@ -181,13 +177,12 @@ void DetectMORAVEC(const FloatImage &grayscale_image,
   const int height = grayscale_image.Width() - 2 * margin;
   const int stride = grayscale_image.Width();
 
-  // TODO(sergey): Use scoped_array to guard de-allocation of the array.
-  unsigned char *byte_image = FloatImageToUCharArray(grayscale_image);
+  scoped_array<unsigned char> byte_image(FloatImageToUCharArray(grayscale_image));
 
   unsigned short histogram[256];
   memset(histogram, 0, sizeof(histogram));
-  ubyte* scores = new ubyte[width*height];
-  memset(scores, 0, width*height);
+  scoped_array<ubyte> scores(new ubyte[width*height]);
+  memset(scores.get(), 0, width*height);
   const int r = 1;  // radius for self similarity comparison
   for (int y = distance; y < height-distance; y++) {
     for (int x = distance; x < width-distance; x++) {
@@ -240,8 +235,6 @@ void DetectMORAVEC(const FloatImage &grayscale_image,
       }
     }
   }
-  delete[] scores;
-  delete[] byte_image;
 }
 
 void DetectHarris(const FloatImage &grayscale_image,
