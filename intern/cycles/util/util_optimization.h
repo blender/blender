@@ -25,8 +25,13 @@
 
 #if defined(i386) || defined(_M_IX86)
 
+#ifdef WITH_KERNEL_SSE2
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+#endif
+
+#ifdef WITH_KERNEL_SSE3
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
+#endif
 
 #endif
 
@@ -40,9 +45,17 @@
 #define __KERNEL_SSE2__
 
 /* no SSE2 kernel on x86-64, part of regular kernel */
+#ifdef WITH_KERNEL_SSE3
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
+#endif
+
+#ifdef WITH_KERNEL_SSE41
 #define WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#endif
+
+#ifdef WITH_KERNEL_AVX
 #define WITH_CYCLES_OPTIMIZED_KERNEL_AVX
+#endif
 
 /* MSVC 2008, no SSE41 (broken blendv intrinsic) and no AVX support */
 #if defined(_MSC_VER) && (_MSC_VER < 1700)

@@ -75,52 +75,55 @@ else:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs.append(env['BF_PTHREADS_INC'])
 
-# optimized kernel
-sse2_cxxflags = Split(env['CXXFLAGS'])
-sse3_cxxflags = Split(env['CXXFLAGS'])
-sse41_cxxflags = Split(env['CXXFLAGS'])
-avx_cxxflags = Split(env['CXXFLAGS'])
+# optimized kernel. we compile the kernel multiple times with different
+# optimization flags, at runtime it will choose the optimal kernel
+kernel_flags = {}
 
 if env['OURPLATFORM'] == 'win32-vc':
     # there is no /arch:SSE3, but intrinsics are available anyway
-    sse2_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    sse3_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    sse41_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    avx_cxxflags.append('/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split()) #/arch:AVX for VC2012 and above
+    kernel_flags['sse2'] = '/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'
+    kernel_flags['sse3'] = kernel_flags['sse2']
+    kernel_flags['sse41'] = kernel_flags['sse3']
+
 elif env['OURPLATFORM'] == 'win64-vc':
-    sse2_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    sse3_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    sse41_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split())
-    avx_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'.split()) #/arch:AVX for VC2012 and above
+    # /arch:AVX only available from visual studio 2012
+    kernel_flags['sse2'] = '-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'
+    kernel_flags['sse3'] = kernel_flags['sse2']
+    kernel_flags['sse41'] = kernel_flags['sse3']
+
+    if env['MSVC_VERSION'] in {'11.0', '12.0'}:
+        kernel_flags['avx'] = kernel_flags['sse41'] + ' /arch:AVX'
 else:
-    sse2_cxxflags.append('-ffast-math -msse -msse2 -mfpmath=sse'.split())
-    sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse'.split())
-    sse41_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse'.split())
-    avx_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mfpmath=sse'.split())
+    # -mavx only available with relatively new gcc/clang
+    kernel_flags['sse2'] = '-ffast-math -msse -msse2 -mfpmath=sse'
+    kernel_flags['sse3'] = kernel_flags['sse2'] + ' -msse3 -mssse3'
+    kernel_flags['sse41'] = kernel_flags['sse3'] + ' -msse4.1'
 
-optim_defs = defs[:]
+    if (env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6') or (env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.1'):
+        kernel_flags['avx'] = kernel_flags['sse41'] + ' -mavx'
 
-cycles_avx = cycles.Clone()
-avx_sources = [path.join('kernel', 'kernel_avx.cpp')]
-if env['OURPLATFORM'] == 'darwin' and env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6': # use Apple assembler for avx , gnu-compilers do not support it ( gnu gcc-4.6 or higher case )
-    cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags, cc_compilerchange='/usr/bin/clang', cxx_compilerchange='/usr/bin/clang++')
-else:
-    cycles_avx.BlenderLib('bf_intern_cycles_avx', avx_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=avx_cxxflags)
+for kernel_type in kernel_flags.keys():
+    defs.append('WITH_KERNEL_' + kernel_type.upper())
 
-cycles_sse41 = cycles.Clone()
-sse41_sources = [path.join('kernel', 'kernel_sse41.cpp')]
-cycles_sse41.BlenderLib('bf_intern_cycles_sse41', sse41_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse41_cxxflags)
+for kernel_type in kernel_flags.keys():
+    kernel_source = path.join('kernel', 'kernel_' + kernel_type + '.cpp')
+    kernel_cxxflags = Split(env['CXXFLAGS'])
+    kernel_cxxflags.append(kernel_flags[kernel_type].split())
+    kernel_defs = defs[:]
+    kernel_env = cycles.Clone()
 
-cycles_sse3 = cycles.Clone()
-sse3_sources = [path.join('kernel', 'kernel_sse3.cpp')]
-cycles_sse3.BlenderLib('bf_intern_cycles_sse3', sse3_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse3_cxxflags)
-
-cycles_sse2 = cycles.Clone()
-sse2_sources = [path.join('kernel', 'kernel_sse2.cpp')]
-cycles_sse2.BlenderLib('bf_intern_cycles_sse2', sse2_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse2_cxxflags)
+    if env['OURPLATFORM'] == 'darwin' and env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6':
+        # use Apple assembler for avx , gnu-compilers do not support it ( gnu gcc-4.6 or higher case )
+        kernel_env.BlenderLib('bf_intern_cycles_' + kernel_type, [kernel_source], incs, kernel_defs,
+            libtype=['intern'], priority=[10], cxx_compileflags=kernel_cxxflags,
+            cc_compilerchange='/usr/bin/clang', cxx_compilerchange='/usr/bin/clang++')
+    else:
+        kernel_env.BlenderLib('bf_intern_cycles_' + kernel_type, [kernel_source], incs, kernel_defs,
+            libtype=['intern'], priority=[10], cxx_compileflags=kernel_cxxflags)
 
 cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], cxx_compileflags=cxxflags)
 
+# OSL shaders
 if env['WITH_BF_CYCLES_OSL']:
     oso_files = SConscript(['kernel/shaders/SConscript'])
     cycles.Depends("kernel/osl/osl_shader.o", oso_files)
