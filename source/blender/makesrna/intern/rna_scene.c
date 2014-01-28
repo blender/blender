@@ -54,17 +54,17 @@
 #include "RE_pipeline.h"
 
 #ifdef WITH_QUICKTIME
-#include "quicktime_export.h"
+#  include "quicktime_export.h"
 #  ifdef WITH_AUDASPACE
 #    include "AUD_Space.h"
 #  endif
 #endif
 
 #ifdef WITH_FFMPEG
-#include "BKE_writeffmpeg.h"
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include "ffmpeg_compat.h"
+#  include "BKE_writeffmpeg.h"
+#  include <libavcodec/avcodec.h>
+#  include <libavformat/avformat.h>
+#  include "ffmpeg_compat.h"
 #endif
 
 #include "ED_render.h"
