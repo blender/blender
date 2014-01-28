@@ -6769,13 +6769,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 				glEnable(GL_DEPTH_TEST);
 			}
-			else {
-				if (dt < OB_SOLID) {
-					dt = OB_SOLID;
-					glEnable(GL_DEPTH_TEST);
-					zbufoff = 1;
-				}
-			}
 		}
 		else {
 			/* matcap check - only when not painting color */
