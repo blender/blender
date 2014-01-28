@@ -649,7 +649,7 @@ static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 	return wm && (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
 }
 
-static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
+static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -683,7 +683,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 }
 
 /* if repeat is true, it doesn't register again, nor does it free */
-static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
+static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, const bool store)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int retval = OPERATOR_CANCELLED;
@@ -714,7 +714,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 		wm_operator_reports(C, op, retval, FALSE);
 	
 	if (retval & OPERATOR_FINISHED) {
-		if (repeat) {
+		if (store) {
 			if (wm->op_undo_depth == 0) { /* not called by py script */
 				WM_operator_last_properties_store(op);
 			}
@@ -743,12 +743,21 @@ static int wm_operator_exec_notest(bContext *C, wmOperator *op)
 	return retval;
 }
 
-/* for running operators with frozen context (modal handlers, menus)
+/**
+ * for running operators with frozen context (modal handlers, menus)
+ *
+ * \param store, Store settings for re-use.
  *
  * warning: do not use this within an operator to call its self! [#29537] */
+int WM_operator_call_ex(bContext *C, wmOperator *op,
+                        const bool store)
+{
+	return wm_operator_exec(C, op, false, store);
+}
+
 int WM_operator_call(bContext *C, wmOperator *op)
 {
-	return wm_operator_exec(C, op, 0);
+	return WM_operator_call_ex(C, op, false);
 }
 
 /* this is intended to be used when an invoke operator wants to call exec on its self
@@ -762,7 +771,7 @@ int WM_operator_call_notest(bContext *C, wmOperator *op)
 /* do this operator again, put here so it can share above code */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
-	return wm_operator_exec(C, op, 1);
+	return wm_operator_exec(C, op, true, true);
 }
 /* TRUE if WM_operator_repeat can run
  * simple check for now but may become more involved.

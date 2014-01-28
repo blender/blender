@@ -1434,7 +1434,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	wmOpPopUp *data = arg1;
 	uiBlock *block = arg2;
 
-	WM_operator_call(C, data->op);
+	WM_operator_call_ex(C, data->op, true);
 
 	/* let execute handle freeing it */
 	//data->free_op = FALSE;
@@ -1548,7 +1548,7 @@ static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
 	wmOperator *op = data->op;
 
 	if (op && retval > 0)
-		WM_operator_call(C, op);
+		WM_operator_call_ex(C, op, true);
 	
 	MEM_freeN(data);
 }
