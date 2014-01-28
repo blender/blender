@@ -31,6 +31,7 @@ subject to the following restrictions:
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 #include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
+#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
 //profiling/timings
 #include "LinearMath/btQuickprof.h"
@@ -1131,6 +1132,8 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::RayTest(PHY_IRayCastFilterCallbac
 
 	// don't collision with sensor object
 	rayCallback.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
+	// use faster (less accurate) ray callback, works better with 0 collision margins
+	rayCallback.m_flags |= btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
 	//, ,filterCallback.m_faceNormal);
 
 	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback);
