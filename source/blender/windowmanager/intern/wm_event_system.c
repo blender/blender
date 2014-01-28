@@ -1446,7 +1446,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 
 /* operator exists */
-static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
+static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event, bool *dbl_click_disabled)
 {
 	/* support for modal keymap in macros */
 	if (op->opm)
@@ -1473,15 +1473,15 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 		 * handling typically swallows all events (OPERATOR_RUNNING_MODAL).
 		 * This bypass just disables support for double clicks in hardcoded modal handlers */
 		if (event->val == KM_DBL_CLICK) {
-			event->prevval = event->val;
 			event->val = KM_PRESS;
+			*dbl_click_disabled = true;
 		}
 	}
 }
 
 /* bad hacking event system... better restore event type for checking of KM_CLICK for example */
 /* XXX modal maps could use different method (ton) */
-static void wm_event_modalmap_end(wmEvent *event)
+static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
 {
 	if (event->type == EVT_MODAL_MAP) {
 		event->type = event->prevtype;
@@ -1489,7 +1489,7 @@ static void wm_event_modalmap_end(wmEvent *event)
 		event->val = event->prevval;
 		event->prevval = 0;
 	}
-	else if (event->prevval == KM_DBL_CLICK)
+	else if (dbl_click_disabled)
 		event->val = KM_DBL_CLICK;
 
 }
@@ -1510,10 +1510,11 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			wmWindowManager *wm = CTX_wm_manager(C);
 			ScrArea *area = CTX_wm_area(C);
 			ARegion *region = CTX_wm_region(C);
-			
+			bool dbl_click_disabled = false;
+
 			wm_handler_op_context(C, handler);
 			wm_region_mouse_co(C, event);
-			wm_event_modalkeymap(C, op, event);
+			wm_event_modalkeymap(C, op, event, &dbl_click_disabled);
 			
 			if (ot->flag & OPTYPE_UNDO)
 				wm->op_undo_depth++;
@@ -1527,7 +1528,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			 * the event, operator etc have all been freed. - campbell */
 			if (CTX_wm_manager(C) == wm) {
 
-				wm_event_modalmap_end(event);
+				wm_event_modalmap_end(event, dbl_click_disabled);
 
 				if (ot->flag & OPTYPE_UNDO)
 					wm->op_undo_depth--;
