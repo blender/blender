@@ -332,7 +332,8 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportLis
 		if (packet.dts != AV_NOPTS_VALUE) {
 			packet.dts = av_rescale_q(packet.dts, c->time_base, video_stream->time_base);
 			PRINT("Video Frame DTS: %d\n", (int)packet.dts);
-		} else {
+		}
+		else {
 			PRINT("Video Frame DTS: not set\n");
 		}
 
@@ -976,7 +977,8 @@ static void flush_ffmpeg(void)
 		if (packet.dts != AV_NOPTS_VALUE) {
 			packet.dts = av_rescale_q(packet.dts, c->time_base, video_stream->time_base);
 			PRINT("Video Frame DTS: %d\n", (int) packet.dts);
-		} else {
+		}
+		else {
 			PRINT("Video Frame DTS: not set\n");
 		}
 

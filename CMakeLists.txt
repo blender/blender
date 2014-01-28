@@ -511,12 +511,12 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Check for valid directories
-# ... svn extern paths can be missing because of svn-git.
+# ... a partial checkout may cause this.
 
 if(WITH_INTERNATIONAL)
 	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
 		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
-						"This is an 'svn external', which are known not to work with bridges to other version "
+						"This is a 'git submodule', which are known not to work with bridges to other version "
 						"control systems, disabling 'WITH_INTERNATIONAL'.")
 		set(WITH_INTERNATIONAL OFF)
 	endif()
@@ -525,7 +525,7 @@ endif()
 if(WITH_PYTHON)
 	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons")
 		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
-						"This is an 'svn external', which are known not to work with bridges to other version "
+						"This is a 'git submodule', which are known not to work with bridges to other version "
 						"control systems: * CONTINUING WITHOUT ADDONS *")
 	endif()
 endif()

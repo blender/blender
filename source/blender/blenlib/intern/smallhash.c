@@ -96,8 +96,8 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *hash, uintptr_
 	unsigned int hoff = 1;
 
 	for (entry = &hash->table[h % hash->size];
-		 !ELEM(entry->val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE);
-		 h = SMHASH_NEXT(h, hoff), entry = &hash->table[h % hash->size])
+	     !ELEM(entry->val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE);
+	     h = SMHASH_NEXT(h, hoff), entry = &hash->table[h % hash->size])
 	{
 		/* Nothing else to do! */
 	}

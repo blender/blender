@@ -58,7 +58,7 @@ def replace_line(f, i, text, keep_indent=True):
 def source_list(path, filename_check=None):
     for dirpath, dirnames, filenames in os.walk(path):
 
-        # skip '.svn'
+        # skip '.git'
         if dirpath.startswith("."):
             continue
 

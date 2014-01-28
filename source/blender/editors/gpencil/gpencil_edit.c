@@ -1031,7 +1031,7 @@ static void gp_stroke_to_path(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curv
 			p[0] += GAP_DFAC;  /* Rather arbitrary... */
 			dt = GAP_DFAC;  /* Rather arbitrary too! */
 		}
-		/* Note bp has alredy been incremented in main loop above, so it points to the right place. */
+		/* Note bp has already been incremented in main loop above, so it points to the right place. */
 		gp_stroke_to_path_add_point(gtd, bp, p, prev_bp->vec, do_gtd, gps->inittime, dt, 0.0f, rad_fac, minmax_weights);
 	}
 
@@ -1297,7 +1297,7 @@ static void gp_stroke_to_bezier(bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cu
 		/* The end point */
 		interp_v3_v3v3(h1, p, prev_bezt->vec[1], BEZT_HANDLE_FAC);
 		interp_v3_v3v3(h2, p, prev_bezt->vec[1], -BEZT_HANDLE_FAC);
-		/* Note bezt has alredy been incremented in main loop above, so it points to the right place. */
+		/* Note bezt has already been incremented in main loop above, so it points to the right place. */
 		gp_stroke_to_bezier_add_point(gtd, bezt, p, h1, h2, prev_bezt->vec[1], do_gtd, gps->inittime, dt,
 		                              0.0f, rad_fac, minmax_weights);
 	}

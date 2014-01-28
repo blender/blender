@@ -116,8 +116,8 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking, ListBase *tr
 		/* In Libmv integer coordinate points to pixel center, in blender
 		 * it's not. Need to add 0.5px offset to center.
 		 */
-		xu = (x + 0.5f) / width;
-		yu = (y + 0.5f) / height;
+		xu = (x + 0.5) / width;
+		yu = (y + 0.5) / height;
 
 		if (layer)
 			ok = check_point_in_layer(layer, xu, yu) != place_outside_layer;
