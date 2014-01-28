@@ -211,6 +211,7 @@ static void tracking_error_segment_point_cb(void *userdata,
 		TrackErrorCurveUserData *data = (TrackErrorCurveUserData *) userdata;
 		float reprojected_position[4], bundle_position[4], marker_position[2], delta[2];
 		float reprojection_error;
+		float weight = BKE_tracking_track_get_weight_for_marker(data->clip, track, marker);
 
 		if (!data->matrix_initialized || data->matrix_frame != scene_framenr) {
 			BKE_tracking_get_projection_matrix(data->tracking, data->tracking_object,
@@ -233,7 +234,7 @@ static void tracking_error_segment_point_cb(void *userdata,
 		marker_position[1] = (marker->pos[1] + track->offset[1]) * data->height * data->aspy;
 
 		sub_v2_v2v2(delta, reprojected_position, marker_position);
-		reprojection_error = len_v2(delta) * track->weight;
+		reprojection_error = len_v2(delta) * weight;
 
 		glVertex2f(scene_framenr, reprojection_error);
 	}
