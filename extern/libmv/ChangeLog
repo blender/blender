@@ -1,6 +1,27 @@
-commit b63b8d6989f460fda7d963a2c8b21e8ffa6f8066
+commit f71f7c59d4d13574ea4dc3a196cc22eef1c192df
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Jan 24 19:32:34 2014 +0600
+Date:   Tue Jan 28 16:39:14 2014 +0600
+
+    Fixed for keyframe selection
+    
+    Using tracks with constant zero weight used to crash
+    keyframe selection since it was trying to use missing
+    parameter blocks for Jacobian evaluation,
+    
+    Also fixed possible issues with wrong camera block being
+    marked as variable. This could technically happen when
+    having zero weighted tracks. Made it so all camera blocks
+    are marked as variable for now.
+
+commit 557d531b061aa69d114e89cbb325c5175389afec
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jan 28 16:10:33 2014 +0600
+
+    Style cleanup: wrong indentation of wrapped line
+
+commit ca15262cf07a873268173965ee1fb84f9729b744
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jan 28 15:21:36 2014 +0600
 
     Rework detector API and implement Harris detector
     
@@ -16,6 +37,8 @@ Date:   Fri Jan 24 19:32:34 2014 +0600
     robust feature points.
     
     Reviewers: keir
+    
+    Reviewed By: keir
     
     Differential Revision: https://developer.blender.org/D258
 
@@ -651,38 +674,3 @@ Date:   Sat Apr 6 16:54:08 2013 +0600
     
     Further, not actually sure this is nice idea
     to use KLT in such synthetic case.
-
-commit 1e54624875284e9532f4880c067e80e474444b2e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 16:40:59 2013 +0600
-
-    Pyramid tracker unit test fix
-    
-    Issue was caused by trackers modifying guessed
-    point location even in case of failure. So made
-    id so both level 0 and level 3 of pyramid are
-    starting from the same initial guessed location.
-    
-    Modifying locations in case tracker returns false
-    is not actually a bug - someone could still want
-    to use that location. False in this case  means
-    more like "returned location is not so much
-    accurate".
-
-commit b46c48e0e1862828df6dca711148c11b1f60777c
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 00:38:40 2013 +0600
-
-    Intersect unit test fix
-    
-    EuclideanIntersect is not aware of camera calibration
-    matrix yet and always assumes it to be an identity.
-    
-    So using non-identity matrix to construct sample case
-    leads to wrong projection results.
-    
-    For now made it so test case uses identity matrix for
-    calibration.
-    
-    Also fixed variable shadowing which lead to wrong
-    markers positions (were either zero or undefined).
