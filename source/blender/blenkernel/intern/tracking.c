@@ -864,6 +864,23 @@ float *BKE_tracking_track_get_mask(int frame_width, int frame_height,
 	return mask;
 }
 
+float BKE_tracking_track_get_weight_for_marker(MovieClip *clip, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+{
+	FCurve *weight_fcurve;
+	float weight = track->weight;
+
+	weight_fcurve = id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack,
+	                                    "weight", 0, NULL);
+
+	if (weight_fcurve) {
+		int scene_framenr =
+			BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
+		weight = evaluate_fcurve(weight_fcurve, scene_framenr);
+	}
+
+	return weight;
+}
+
 /* area - which part of marker should be selected. see TRACK_AREA_* constants */
 void BKE_tracking_track_select(ListBase *tracksbase, MovieTrackingTrack *track, int area, bool extend)
 {

@@ -98,6 +98,8 @@ struct MovieTrackingTrack *BKE_tracking_track_get_active(struct MovieTracking *t
 float *BKE_tracking_track_get_mask(int frame_width, int frame_height, struct MovieTrackingTrack *track,
                                    struct MovieTrackingMarker *marker);
 
+float BKE_tracking_track_get_weight_for_marker(struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+
 /* selection */
 void BKE_tracking_track_select(struct ListBase *tracksbase, struct MovieTrackingTrack *track, int area, bool extend);
 void BKE_tracking_track_deselect(struct MovieTrackingTrack *track, int area);

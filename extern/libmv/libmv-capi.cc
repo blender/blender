@@ -760,18 +760,19 @@ double libmv_reprojectionErrorForTrack(const struct libmv_Reconstruction *libmv_
 	double total_error = 0.0;
 
 	for (int i = 0; i < markers.size(); ++i) {
+		double weight = markers[i].weight;
 		const libmv::EuclideanCamera *camera = reconstruction->CameraForImage(markers[i].image);
 		const libmv::EuclideanPoint *point = reconstruction->PointForTrack(markers[i].track);
 
-		if (!camera || !point) {
+		if (!camera || !point || weight == 0.0) {
 			continue;
 		}
 
 		num_reprojected++;
 
 		libmv::Marker reprojected_marker = ProjectMarker(*point, *camera, *intrinsics);
-		double ex = reprojected_marker.x - markers[i].x;
-		double ey = reprojected_marker.y - markers[i].y;
+		double ex = (reprojected_marker.x - markers[i].x) * weight;
+		double ey = (reprojected_marker.y - markers[i].y) * weight;
 
 		total_error += sqrt(ex * ex + ey * ey);
 	}
