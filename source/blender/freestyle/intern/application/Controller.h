@@ -32,6 +32,7 @@
 
 //#include "ConfigIO.h"
 #include "../geometry/FastGrid.h"
+#include "../scene_graph/SceneHash.h"
 #include "../system/Interpreter.h"
 #include "../system/ProgressBar.h"
 #include "../system/Precision.h"
@@ -96,7 +97,7 @@ public:
 	void Clear();
 	void ClearRootNode();
 	void DeleteWingedEdge();
-	void DeleteViewMap();
+	void DeleteViewMap(bool freeCache = false);
 	void toggleLayer(unsigned index, bool iDisplay);
 	void setModified(unsigned index, bool iMod);
 	void resetModified(bool iMod=false);
@@ -118,6 +119,8 @@ public:
 	void setVisibilityAlgo(int algo);
 	int getVisibilityAlgo();
 
+	void setViewMapCache(bool iBool);
+	bool getViewMapCache() const;
 	void setQuantitativeInvisibility(bool iBool); // if true, we compute quantitativeInvisibility
 	bool getQuantitativeInvisibility() const;
 	void setFaceSmoothness(bool iBool);
@@ -143,6 +146,8 @@ public:
 	string getModelsDir() const;
 	void setModulesDir(const string& dir);
 	string getModulesDir() const;
+
+	bool hitViewMapCache();
 
 	void resetInterpreter();
 
@@ -231,6 +236,7 @@ private:
 	string _help_index;
 	string _browser_cmd;
 
+	bool _EnableViewMapCache;
 	bool _EnableQI;
 	bool _EnableFaceSmoothness;
 	bool _ComputeRidges;
@@ -243,6 +249,9 @@ private:
 	bool _ComputeSteerableViewMap;
 
 	FEdgeXDetector edgeDetector;
+
+	SceneHash sceneHashFunc;
+	real prevSceneHash = -1.0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Controller")

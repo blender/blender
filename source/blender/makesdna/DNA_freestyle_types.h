@@ -50,6 +50,7 @@ struct Text;
 #define FREESTYLE_FACE_SMOOTHNESS_FLAG      (1 << 3)
 #define FREESTYLE_ADVANCED_OPTIONS_FLAG     (1 << 4)
 #define FREESTYLE_CULLING                   (1 << 5)
+#define FREESTYLE_VIEW_MAP_CACHE            (1 << 6)
 
 /* FreestyleConfig::mode */
 #define FREESTYLE_CONTROL_SCRIPT_MODE  1

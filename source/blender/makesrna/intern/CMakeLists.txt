@@ -265,6 +265,9 @@ if(WITH_BULLET)
 endif()
 
 if(WITH_FREESTYLE)
+	list(APPEND INC
+		../../freestyle
+	)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 

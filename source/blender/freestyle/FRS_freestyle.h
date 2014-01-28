@@ -48,6 +48,7 @@ int FRS_is_freestyle_enabled(struct SceneRenderLayer *srl);
 void FRS_init_stroke_rendering(struct Render *re);
 struct Render *FRS_do_stroke_rendering(struct Render *re, struct SceneRenderLayer *srl, int render);
 void FRS_finish_stroke_rendering(struct Render *re);
+void FRS_free_view_map_cache();
 void FRS_composite_result(struct Render *re, struct SceneRenderLayer *srl, struct Render *freestyle_render);
 void FRS_exit(void);
 

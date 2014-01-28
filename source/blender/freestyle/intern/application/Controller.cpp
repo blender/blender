@@ -118,6 +118,7 @@ Controller::Controller()
 	_Canvas = new AppCanvas;
 
 	_inter = new PythonInterpreter();
+	_EnableViewMapCache = false;
 	_EnableQI = true;
 	_EnableFaceSmoothness = false;
 	_ComputeRidges = true;
@@ -212,6 +213,19 @@ void Controller::setContext(bContext *C)
 	py_inter->setContext(C);
 }
 
+bool Controller::hitViewMapCache()
+{
+	if (!_EnableViewMapCache) {
+		return false;
+	}
+	real hashCode = sceneHashFunc.getValue();
+	if (prevSceneHash == hashCode) {
+		return (NULL != _ViewMap);
+	}
+	prevSceneHash = hashCode;
+	return false;
+}
+
 int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 {
 	BlenderFileLoader loader(re, srl);
@@ -242,6 +256,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Scene loaded" << endl;
 		printf("Mesh cleaning    : %lf\n", duration);
+		printf("View map cache   : %s\n", _EnableViewMapCache ? "enabled" : "disabled");
 	}
 	_SceneNumFaces += loader.numFacesRead();
 
@@ -262,6 +277,22 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 
 	if (_pRenderMonitor->testBreak())
 		return 0;
+
+	if (_EnableViewMapCache) {
+		sceneHashFunc.reset();
+		blenderScene->accept(sceneHashFunc);
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("Scene hash       : %.16e\n", sceneHashFunc.getValue());
+		}
+		if (hitViewMapCache()) {
+			ClearRootNode();
+			return 0;
+		}
+		else {
+			delete _ViewMap;
+			_ViewMap = NULL;
+		}
+	}
 
 	_Chrono.start();
 
@@ -357,7 +388,7 @@ void Controller::DeleteWingedEdge()
 	_minEdgeSize = DBL_MAX;
 }
 
-void Controller::DeleteViewMap()
+void Controller::DeleteViewMap(bool freeCache)
 {
 	_pView->DetachSilhouette();
 	if (NULL != _SilhouetteNode) {
@@ -387,14 +418,15 @@ void Controller::DeleteViewMap()
 
 	_pView->DetachDebug();
 	if (NULL != _DebugNode) {
-	int ref = _DebugNode->destroy();
+		int ref = _DebugNode->destroy();
 		if (0 == ref)
 			_DebugNode->addRef();
 	}
 
-	if (NULL != _ViewMap) {
+	if ((freeCache || !_EnableViewMapCache) && NULL != _ViewMap) {
 		delete _ViewMap;
 		_ViewMap = NULL;
+		prevSceneHash = -1.0;
 	}
 }
 
@@ -403,40 +435,7 @@ void Controller::ComputeViewMap()
 	if (!_ListOfModels.size())
 		return;
 
-	if (NULL != _ViewMap) {
-		delete _ViewMap;
-		_ViewMap = NULL;
-	}
-
-	_pView->DetachDebug();
-	if (NULL != _DebugNode) {
-		int ref = _DebugNode->destroy();
-		if (0 == ref)
-			_DebugNode->addRef();
-	}
-
-	_pView->DetachSilhouette();
-	if (NULL != _SilhouetteNode) {
-		int ref = _SilhouetteNode->destroy();
-		if (0 == ref)
-			delete _SilhouetteNode;
-	}
-
-#if 0
-	if (NULL != _ProjectedSilhouette) {
-		int ref = _ProjectedSilhouette->destroy();
-		if (0 == ref)
-			delete _ProjectedSilhouette;
-	}
-
-	if (NULL != _VisibleProjectedSilhouette) {
-		int ref = _VisibleProjectedSilhouette->destroy();
-		if (0 == ref) {
-			delete _VisibleProjectedSilhouette;
-			_VisibleProjectedSilhouette = NULL;
-		}
-	}
-#endif
+	DeleteViewMap(true);
 
 	// retrieve the 3D viewpoint and transformations information
 	//----------------------------------------------------------
@@ -761,6 +760,16 @@ int Controller::getVisibilityAlgo()
 	// ray_casting_adaptive_traditional is the most exact replacement
 	// for legacy code
 	return FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
+}
+
+void Controller::setViewMapCache(bool iBool)
+{
+	_EnableViewMapCache = iBool;
+}
+
+bool Controller::getViewMapCache() const
+{
+	return _EnableViewMapCache;
 }
 
 void Controller::setQuantitativeInvisibility(bool iBool)

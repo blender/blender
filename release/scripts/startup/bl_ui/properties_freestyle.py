@@ -122,7 +122,9 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
 
         layout.active = rl.use_freestyle
 
+        row = layout.row()
         layout.prop(freestyle, "mode", text="Control mode")
+        layout.prop(freestyle, "use_view_map_cache", text="View Map Cache")
         layout.label(text="Edge Detection Options:")
 
         split = layout.split()
