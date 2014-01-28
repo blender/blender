@@ -31,9 +31,9 @@
 
 /* visual studio 2012 does not define inline for C */
 #ifdef _MSC_VER
-#define FFMPEG_INLINE static __inline
+#  define FFMPEG_INLINE static __inline
 #else
-#define FFMPEG_INLINE static inline
+#  define FFMPEG_INLINE static inline
 #endif
 
 #include <libavcodec/avcodec.h>
@@ -42,61 +42,61 @@
 #include <libavutil/mathematics.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
-#define FFMPEG_HAVE_PARSE_UTILS 1
-#include <libavutil/parseutils.h>
+#  define FFMPEG_HAVE_PARSE_UTILS 1
+#  include <libavutil/parseutils.h>
 #endif
 
 #include <libswscale/swscale.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 105))
-#define FFMPEG_HAVE_AVIO 1
+#  define FFMPEG_HAVE_AVIO 1
 #endif
 
 #if (LIBAVCODEC_VERSION_MAJOR > 53) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR > 1)) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR == 1) && (LIBAVCODEC_VERSION_MICRO >= 1)) || ((LIBAVCODEC_VERSION_MAJOR == 52) && (LIBAVCODEC_VERSION_MINOR >= 121))
-#define FFMPEG_HAVE_DEFAULT_VAL_UNION 1
+#  define FFMPEG_HAVE_DEFAULT_VAL_UNION 1
 #endif
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
-#define FFMPEG_HAVE_AV_DUMP_FORMAT 1
+#  define FFMPEG_HAVE_AV_DUMP_FORMAT 1
 #endif
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 45))
-#define FFMPEG_HAVE_AV_GUESS_FORMAT 1
+#  define FFMPEG_HAVE_AV_GUESS_FORMAT 1
 #endif
 
 #if (LIBAVCODEC_VERSION_MAJOR > 52) || ((LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 23))
-#define FFMPEG_HAVE_DECODE_AUDIO3 1
-#define FFMPEG_HAVE_DECODE_VIDEO2 1
+#  define FFMPEG_HAVE_DECODE_AUDIO3 1
+#  define FFMPEG_HAVE_DECODE_VIDEO2 1
 #endif
 
 #if (LIBAVCODEC_VERSION_MAJOR > 52) || ((LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 64))
-#define FFMPEG_HAVE_AVMEDIA_TYPES 1
+#  define FFMPEG_HAVE_AVMEDIA_TYPES 1
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 52) || (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29)) && \
 	((LIBSWSCALE_VERSION_MAJOR > 0) || (LIBSWSCALE_VERSION_MAJOR >= 0) && (LIBSWSCALE_VERSION_MINOR >= 10))
-#define FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
+#  define FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR > 14))
-#define FFMPEG_HAVE_CANON_H264_RESOLUTION_FIX
+#  define FFMPEG_HAVE_CANON_H264_RESOLUTION_FIX
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 53) || (LIBAVCODEC_VERSION_MAJOR >= 53) && (LIBAVCODEC_VERSION_MINOR >= 60))
-#define FFMPEG_HAVE_ENCODE_AUDIO2
+#  define FFMPEG_HAVE_ENCODE_AUDIO2
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 53) || (LIBAVCODEC_VERSION_MAJOR >= 53) && (LIBAVCODEC_VERSION_MINOR >= 42))
-#define FFMPEG_HAVE_DECODE_AUDIO4
+#  define FFMPEG_HAVE_DECODE_AUDIO4
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 13))
-#define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
+#  define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
 #endif
 
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 21))
-#define FFMPEG_FFV1_ALPHA_SUPPORTED
-#define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
+#  define FFMPEG_FFV1_ALPHA_SUPPORTED
+#  define FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
 #else
 
 FFMPEG_INLINE
@@ -192,12 +192,12 @@ int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
 	return rv != NULL;
 }
 
-#define AV_OPT_TYPE_INT     FF_OPT_TYPE_INT
-#define AV_OPT_TYPE_INT64   FF_OPT_TYPE_INT64
-#define AV_OPT_TYPE_STRING  FF_OPT_TYPE_STRING
-#define AV_OPT_TYPE_CONST   FF_OPT_TYPE_CONST
-#define AV_OPT_TYPE_DOUBLE  FF_OPT_TYPE_DOUBLE
-#define AV_OPT_TYPE_FLOAT   FF_OPT_TYPE_FLOAT
+#  define AV_OPT_TYPE_INT     FF_OPT_TYPE_INT
+#  define AV_OPT_TYPE_INT64   FF_OPT_TYPE_INT64
+#  define AV_OPT_TYPE_STRING  FF_OPT_TYPE_STRING
+#  define AV_OPT_TYPE_CONST   FF_OPT_TYPE_CONST
+#  define AV_OPT_TYPE_DOUBLE  FF_OPT_TYPE_DOUBLE
+#  define AV_OPT_TYPE_FLOAT   FF_OPT_TYPE_FLOAT
 #endif
 
 #if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 54))
@@ -211,7 +211,7 @@ enum AVSampleFormat av_get_packed_sample_fmt(enum AVSampleFormat sample_fmt)
 #endif
 
 #if ((LIBAVFORMAT_VERSION_MAJOR < 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24) && (LIBAVFORMAT_VERSION_MICRO < 2)))
-#define avformat_close_input(x) av_close_input_file(*(x))
+#  define avformat_close_input(x) av_close_input_file(*(x))
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR < 53) || (LIBAVCODEC_VERSION_MAJOR == 53 && LIBAVCODEC_VERSION_MINOR < 35))
@@ -272,54 +272,54 @@ void avcodec_free_frame(AVFrame **frame)
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 13))
-#define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
+#  define FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
 #endif
 
 #if ((LIBAVCODEC_VERSION_MAJOR > 54) || (LIBAVCODEC_VERSION_MAJOR == 54 && LIBAVCODEC_VERSION_MINOR >= 13))
-#define FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
+#  define FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
 #endif
 
 #ifndef FFMPEG_HAVE_AVIO
-#define AVIO_FLAG_WRITE URL_WRONLY
-#define avio_open url_fopen
-#define avio_tell url_ftell
-#define avio_close url_fclose
-#define avio_size url_fsize
+#  define AVIO_FLAG_WRITE URL_WRONLY
+#  define avio_open url_fopen
+#  define avio_tell url_ftell
+#  define avio_close url_fclose
+#  define avio_size url_fsize
 #endif
 
 /* there are some version inbetween, which have avio_... functions but no
  * AVIO_FLAG_... */
 #ifndef AVIO_FLAG_WRITE
-#define AVIO_FLAG_WRITE URL_WRONLY
+#  define AVIO_FLAG_WRITE URL_WRONLY
 #endif
 
 #ifndef AV_PKT_FLAG_KEY
-#define AV_PKT_FLAG_KEY PKT_FLAG_KEY
+#  define AV_PKT_FLAG_KEY PKT_FLAG_KEY
 #endif
 
 #ifndef FFMPEG_HAVE_AV_DUMP_FORMAT
-#define av_dump_format dump_format
+#  define av_dump_format dump_format
 #endif
 
 #ifndef FFMPEG_HAVE_AV_GUESS_FORMAT
-#define av_guess_format guess_format
+#  define av_guess_format guess_format
 #endif
 
 #ifndef FFMPEG_HAVE_PARSE_UTILS
-#define av_parse_video_rate av_parse_video_frame_rate
+#  define av_parse_video_rate av_parse_video_frame_rate
 #endif
 
 #ifdef FFMPEG_HAVE_DEFAULT_VAL_UNION
-#define FFMPEG_DEF_OPT_VAL_INT(OPT) OPT->default_val.i64
-#define FFMPEG_DEF_OPT_VAL_DOUBLE(OPT) OPT->default_val.dbl
+#  define FFMPEG_DEF_OPT_VAL_INT(OPT) OPT->default_val.i64
+#  define FFMPEG_DEF_OPT_VAL_DOUBLE(OPT) OPT->default_val.dbl
 #else
-#define FFMPEG_DEF_OPT_VAL_INT(OPT) OPT->default_val
-#define FFMPEG_DEF_OPT_VAL_DOUBLE(OPT) OPT->default_val
+#  define FFMPEG_DEF_OPT_VAL_INT(OPT) OPT->default_val
+#  define FFMPEG_DEF_OPT_VAL_DOUBLE(OPT) OPT->default_val
 #endif
 
 #ifndef FFMPEG_HAVE_AVMEDIA_TYPES
-#define AVMEDIA_TYPE_VIDEO CODEC_TYPE_VIDEO
-#define AVMEDIA_TYPE_AUDIO CODEC_TYPE_AUDIO
+#  define AVMEDIA_TYPE_VIDEO CODEC_TYPE_VIDEO
+#  define AVMEDIA_TYPE_AUDIO CODEC_TYPE_AUDIO
 #endif
 
 #ifndef FFMPEG_HAVE_DECODE_AUDIO3
@@ -362,7 +362,7 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 
 /* obsolete constant formerly defined in FFMpeg libavcodec/avcodec.h */
 #ifndef AVCODEC_MAX_AUDIO_FRAME_SIZE
-# define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+#  define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
 #endif
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 1, 0)
