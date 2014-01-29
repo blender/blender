@@ -1197,6 +1197,7 @@ static void createTransArmatureVerts(TransInfo *t)
 
 					if ((ebo->flag & BONE_ROOTSEL) == 0) {
 						td->extra = ebo;
+						td->ival = ebo->roll;
 					}
 
 					td->ext = NULL;
@@ -1219,6 +1220,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
 					td->extra = ebo; /* to fix roll */
+					td->ival = ebo->roll;
 
 					td->ext = NULL;
 					td->val = NULL;

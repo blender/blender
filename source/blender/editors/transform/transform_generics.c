@@ -806,21 +806,28 @@ static void recalcData_view3d(TransInfo *t)
 						float roll;
 						
 						ebo = td->extra;
-						copy_v3_v3(up_axis, td->axismtx[2]);
-						
-						if (t->mode != TFM_ROTATION) {
-							sub_v3_v3v3(vec, ebo->tail, ebo->head);
-							normalize_v3(vec);
-							rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
-							mul_qt_v3(qrot, up_axis);
+
+						if (t->state == TRANS_CANCEL) {
+							/* restore roll */
+							ebo->roll = td->ival;
 						}
 						else {
-							mul_m3_v3(t->mat, up_axis);
+							copy_v3_v3(up_axis, td->axismtx[2]);
+							
+							if (t->mode != TFM_ROTATION) {
+								sub_v3_v3v3(vec, ebo->tail, ebo->head);
+								normalize_v3(vec);
+								rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+								mul_qt_v3(qrot, up_axis);
+							}
+							else {
+								mul_m3_v3(t->mat, up_axis);
+							}
+							
+							/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
+							roll = ED_rollBoneToVector(ebo, up_axis, false);
+							ebo->roll = angle_compat_rad(roll, ebo->roll);
 						}
-						
-						/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
-						roll = ED_rollBoneToVector(ebo, up_axis, false);
-						ebo->roll = angle_compat_rad(roll, ebo->roll);
 					}
 				}
 			}
