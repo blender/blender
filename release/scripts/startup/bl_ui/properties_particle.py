@@ -799,11 +799,11 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        row = layout.row()
-        if part.render_type in {'OBJECT', 'GROUP'}:
-            row.enabled = False
-        row.prop(part, "material_slot", text="")
         if psys:
+            row = layout.row()
+            if part.render_type in {'OBJECT', 'GROUP'}:
+                row.enabled = False
+            row.prop(part, "material_slot", text="")
             row.prop(psys, "parent")
 
         split = layout.split()

@@ -392,17 +392,17 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 }
 
 
-static EnumPropertyItem *rna_Particule_Material_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+static EnumPropertyItem *rna_Particle_Material_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                       PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = CTX_data_pointer_get(C, "object").data;
 	Material *ma;
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	int totitem = 0;
 	int i;
 
-	if (ob->totcol > 0) {
+	if (ob && ob->totcol > 0) {
 		for (i = 1; i <= ob->totcol; i++) {
 			ma = give_current_material(ob, i);
 			tmp.value = i;
@@ -2413,8 +2413,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material_slot", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "omat");
 	RNA_def_property_enum_items(prop, part_mat_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particule_Material_itemf");
-	RNA_def_property_ui_text(prop, "Material Slot", "Material slot used for rendering particles");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_Material_itemf");
+	RNA_def_property_ui_text(prop, "Material Slot", "Material nlot used for rendering particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
