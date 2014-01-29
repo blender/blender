@@ -1307,7 +1307,7 @@ void BKE_rigidbody_rebuild_world(Scene *scene, float ctime)
 		cache->flag |= PTCACHE_OUTDATED;
 	}
 
-	if (ctime <= startframe + 1 && rbw->ltime == startframe) {
+	if (ctime == startframe + 1 && rbw->ltime == startframe) {
 		if (cache->flag & PTCACHE_OUTDATED) {
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 			rigidbody_update_simulation(scene, rbw, true);
