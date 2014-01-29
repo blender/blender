@@ -167,7 +167,8 @@ typedef struct uiHandleButtonData {
 	wmTimer *autoopentimer;
 
 	/* text selection/editing */
-	int maxlen, selextend, selstartx;
+	int maxlen, selextend;
+	float selstartx;
 
 	/* number editing / dragging */
 	/* coords are Window/uiBlock relative (depends on the button) */
@@ -238,7 +239,7 @@ typedef struct uiAfterFunc {
 
 
 static bool ui_is_but_interactive(const uiBut *but, const bool labeledit);
-static bool ui_but_contains_pt(uiBut *but, int mx, int my);
+static bool ui_but_contains_pt(uiBut *but, float mx, float my);
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static uiBut *ui_but_find_mouse_over_ex(ARegion *ar, int x, int y, bool ctrl);
 static uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event);
@@ -2085,7 +2086,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	data->origstr = BLI_strdupn(data->str, len);
 	data->selextend = 0;
-	data->selstartx = 0;
+	data->selstartx = 0.0f;
 
 	/* set cursor pos to the end of the text */
 	but->editstr = data->str;
@@ -2198,7 +2199,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-	int mx, my, retval = WM_UI_HANDLER_CONTINUE;
+	int retval = WM_UI_HANDLER_CONTINUE;
 	bool changed = false, inbox = false, update = false;
 
 	switch (event->type) {
@@ -2237,9 +2238,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			/* for double click: we do a press again for when you first click on button (selects all text, no cursor pos) */
 			if (event->val == KM_PRESS || event->val == KM_DBL_CLICK) {
+				float mx, my;
+
 				mx = event->x;
 				my = event->y;
-				ui_window_to_block(data->region, block, &mx, &my);
+				ui_window_to_block_fl(data->region, block, &mx, &my);
 
 				if (ui_but_contains_pt(but, mx, my)) {
 					ui_textedit_set_cursor_pos(but, data, mx);
@@ -3138,7 +3141,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	int screen_mx, screen_my; /* mouse location kept at screen pixel coords */
 	int click = 0;
 	int retval = WM_UI_HANDLER_CONTINUE;
-	
+
 	mx = screen_mx = event->x;
 	my = screen_my = event->y;
 
@@ -4590,7 +4593,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData 
 	if (data->dragsel != -1) {
 		CurveMapPoint *cmp_last = NULL;
 		const float mval_factor = ui_mouse_scale_warp_factor(shift);
-		int moved_point = 0;     /* for ctrl grid, can't use orig coords because of sorting */
+		bool moved_point = false;  /* for ctrl grid, can't use orig coords because of sorting */
 
 		fx = (mx - dragx) / zoomx;
 		fy = (my - dragy) / zoomy;
@@ -4608,7 +4611,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData 
 					cmp[a].y = 0.125f * floorf(0.5f + 8.0f * cmp[a].y);
 				}
 				if (cmp[a].x != origx || cmp[a].y != origy)
-					moved_point = 1;
+					moved_point = true;
 
 				cmp_last = &cmp[a];
 			}
@@ -5875,7 +5878,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
 /* ************************ button utilities *********************** */
 
-static bool ui_but_contains_pt(uiBut *but, int mx, int my)
+static bool ui_but_contains_pt(uiBut *but, float mx, float my)
 {
 	return BLI_rctf_isect_pt(&but->rect, mx, my);
 }
@@ -5984,12 +5987,16 @@ static bool ui_mouse_inside_region(ARegion *ar, int x, int y)
 
 static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 {
+	float mx, my;
 	if (!ui_mouse_inside_region(ar, x, y))
 		return false;
 
-	ui_window_to_block(ar, but->block, &x, &y);
+	mx = x;
+	my = y;
 
-	if (!ui_but_contains_pt(but, x, y))
+	ui_window_to_block_fl(ar, but->block, &mx, &my);
+
+	if (!ui_but_contains_pt(but, mx, my))
 		return false;
 	
 	return true;
@@ -6030,7 +6037,7 @@ static uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, c
 {
 	uiBlock *block;
 	uiBut *but, *butover = NULL;
-	int mx, my;
+	float mx, my;
 
 //	if (!win->active)
 //		return NULL;
@@ -6040,12 +6047,13 @@ static uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, c
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		mx = x;
 		my = y;
-		ui_window_to_block(ar, block, &mx, &my);
+		ui_window_to_block_fl(ar, block, &mx, &my);
 
-		for (but = block->buttons.first; but; but = but->next) {
+		for (but = block->buttons.last; but; but = but->prev) {
 			if (ui_is_but_interactive(but, labeledit)) {
 				if (ui_but_contains_pt(but, mx, my)) {
 					butover = but;
+					break;
 				}
 			}
 		}
@@ -6072,7 +6080,7 @@ static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but;
-	int mx, my;
+	float mx, my;
 
 	if (!ui_mouse_inside_region(ar, x, y))
 		return NULL;
@@ -6080,11 +6088,13 @@ static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		mx = x;
 		my = y;
-		ui_window_to_block(ar, block, &mx, &my);
+		ui_window_to_block_fl(ar, block, &mx, &my);
 
-		for (but = block->buttons.last; but; but = but->prev)
-			if (but->type == LISTBOX && ui_but_contains_pt(but, mx, my))
+		for (but = block->buttons.last; but; but = but->prev) {
+			if (but->type == LISTBOX && ui_but_contains_pt(but, mx, my)) {
 				return but;
+			}
+		}
 	}
 
 	return NULL;
