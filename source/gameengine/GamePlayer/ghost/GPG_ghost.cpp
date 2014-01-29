@@ -77,6 +77,7 @@ extern "C"
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"
+#include "IMB_moviecache.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -1071,6 +1072,7 @@ int main(int argc, char** argv)
 	IMB_exit();
 	BKE_images_exit();
 	DAG_exit();
+	IMB_moviecache_destruct();
 
 	SYS_DeleteSystem(syshandle);
 
