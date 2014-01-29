@@ -74,14 +74,15 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
     row.prop(km, "show_expanded_children", text="", emboss=False)
     row.label(text=km.name, text_ctxt=i18n_contexts.id_windowmanager)
 
-    subrow = row.row()
-    subrow.alignment = 'RIGHT'
+    if km.is_user_modified or km.is_modal:
+        subrow = row.row()
+        subrow.alignment = 'RIGHT'
 
-    if km.is_user_modified:
-        subrow.operator("wm.keymap_restore", text="Restore")
-    if km.is_modal:
-        subrow.label(text="", icon='LINKED')
-    del subrow
+        if km.is_user_modified:
+            subrow.operator("wm.keymap_restore", text="Restore")
+        if km.is_modal:
+            subrow.label(text="", icon='LINKED')
+        del subrow
 
     if km.show_expanded_children:
         if children:
