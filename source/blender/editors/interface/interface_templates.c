@@ -1550,6 +1550,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	PointerRNA cptr;
 	RNAUpdateCb *cb;
 	uiBlock *block;
+	ID *id;
 	rctf rect;
 
 	if (!prop || RNA_property_type(prop) != PROP_POINTER)
@@ -1567,7 +1568,13 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	rect.ymin = 0; rect.ymax = 19.5f * UI_UNIT_X;
 
 	block = uiLayoutAbsoluteBlock(layout);
+
+	id = cptr.id.data;
+	uiBlockSetButLock(block, (id && id->lib), ERROR_LIBDATA_MESSAGE);
+
 	colorband_buttons_layout(layout, block, cptr.data, &rect, cb, expand);
+
+	uiBlockClearButLock(block);
 
 	MEM_freeN(cb);
 }
@@ -2174,6 +2181,8 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propn
 	RNAUpdateCb *cb;
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
+	ID *id;
+	uiBlock *block = uiLayoutGetBlock(layout);
 
 	if (!prop) {
 		RNA_warning("curve property not found: %s.%s",
@@ -2195,7 +2204,12 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propn
 	cb->ptr = *ptr;
 	cb->prop = prop;
 
+	id = cptr.id.data;
+	uiBlockSetButLock(block, (id && id->lib), ERROR_LIBDATA_MESSAGE);
+
 	curvemap_buttons_layout(layout, &cptr, type, levels, brush, cb);
+
+	uiBlockClearButLock(block);
 
 	MEM_freeN(cb);
 }
