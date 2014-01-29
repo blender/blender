@@ -69,9 +69,16 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
         row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
 
-        layout.prop(rd, "display_mode", text="Display")
+        split = layout.split(percentage=0.33)
 
-        layout.prop(rd, "use_lock_interface")
+        split.label(text="Display:")
+        row = split.row(align=True)
+        row.prop(rd, "display_mode", text="")
+
+        if rd.use_lock_interface:
+            row.prop(rd, "use_lock_interface", text="", icon='LOCKED')
+        else:
+            row.prop(rd, "use_lock_interface", text="", icon='UNLOCKED')
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
