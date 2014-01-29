@@ -89,7 +89,7 @@ elif env['OURPLATFORM'] == 'win64-vc':
     kernel_flags['sse2'] = '-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'
     kernel_flags['sse3'] = kernel_flags['sse2']
 
-    if env['MSVC_VERSION'] in {'11.0', '12.0'}:
+    if env['MSVC_VERSION'] in ('11.0', '12.0'):
         kernel_flags['sse41'] = kernel_flags['sse3']
         kernel_flags['avx'] = kernel_flags['sse41'] + ' /arch:AVX'
 else:
