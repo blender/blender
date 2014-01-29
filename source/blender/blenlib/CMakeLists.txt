@@ -98,6 +98,7 @@ set(SRC
 	intern/task.c
 	intern/threads.c
 	intern/time.c
+	intern/timecode.c
 	intern/uvproject.c
 	intern/voronoi.c
 	intern/voxel.c
@@ -166,6 +167,7 @@ set(SRC
 	BLI_sys_types.h
 	BLI_task.h
 	BLI_threads.h
+	BLI_timecode.h
 	BLI_utildefines.h
 	BLI_uvproject.h
 	BLI_vfontdata.h

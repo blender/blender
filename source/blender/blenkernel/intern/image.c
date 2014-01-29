@@ -68,6 +68,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_timecode.h"  /* for stamp timecode format */
 #include "BLI_utildefines.h"
 
 #include "BKE_bmfont.h"
@@ -1520,30 +1521,6 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 
 }
 
-static void timecode_simple_string(char *text, size_t text_size, const int cfra, int const frs_sec)
-{
-	int f = (int)(cfra % frs_sec);
-	int s = (int)(cfra / frs_sec);
-	int h = 0;
-	int m = 0;
-
-	if (s) {
-		m = (int)(s / 60);
-		s %= 60;
-
-		if (m) {
-			h = (int)(m / 60);
-			m %= 60;
-		}
-	}
-
-	if (frs_sec < 100) {
-		BLI_snprintf(text, text_size, "%02d:%02d:%02d.%02d", h, m, s, f);
-	}
-	else {
-		BLI_snprintf(text, text_size, "%02d:%02d:%02d.%03d", h, m, s, f);
-	}
-}
 
 #define STAMP_NAME_SIZE ((MAX_ID_NAME - 2) + 16)
 /* could allow access externally - 512 is for long names,
@@ -1607,8 +1584,9 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 
 	if (scene->r.stamp & R_STAMP_TIME) {
-		timecode_simple_string(text, sizeof(text), scene->r.cfra, scene->r.frs_sec);
-		BLI_snprintf(stamp_data->time, sizeof(stamp_data->time), do_prefix ? "Time %s" : "%s", text);
+		const short timecode_style = USER_TIMECODE_SMPTE_FULL;
+		BLI_timecode_string_from_time(text, sizeof(text), 0, FRA2TIME(scene->r.cfra), FPS, timecode_style);
+		BLI_snprintf(stamp_data->time, sizeof(stamp_data->time), do_prefix ? "Timecode %s" : "%s", text);
 	}
 	else {
 		stamp_data->time[0] = '\0';

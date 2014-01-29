@@ -1483,7 +1483,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 
 	/* scrollers */
-	unit = (sseq->flag & SEQ_DRAWFRAMES) ? V2D_UNIT_FRAMES : V2D_UNIT_SECONDSSEQ;
+	unit = (sseq->flag & SEQ_DRAWFRAMES) ? V2D_UNIT_FRAMES : V2D_UNIT_SECONDS;
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);

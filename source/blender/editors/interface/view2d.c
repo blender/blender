@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_timecode.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -1613,7 +1614,13 @@ static void scroll_printstr(Scene *scene, float x, float y, float val, int power
 	}
 	
 	/* get string to print */
-	ANIM_timecode_string_from_frame(timecode_str, scene, power, (unit == V2D_UNIT_SECONDS), val);
+	if (unit == V2D_UNIT_SECONDS) {
+		/* not neces*/
+		BLI_timecode_string_from_time(timecode_str, sizeof(timecode_str), power, val, FPS, U.timecode_style);
+	}
+	else {
+		BLI_timecode_string_from_time_simple(timecode_str, sizeof(timecode_str), power, val);
+	}
 	
 	/* get length of string, and adjust printing location to fit it into the horizontal scrollbar */
 	len = strlen(timecode_str);
@@ -1737,17 +1744,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							scroll_printstr(scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
-						case V2D_UNIT_SECONDSSEQ:   /* seconds with special calculations (only used for sequencer only) */
-						{
-							float time;
-							
-							fac2 = val / (float)FPS;
-							time = (float)floor(fac2);
-							fac2 = fac2 - time;
-							
-							scroll_printstr(scene, fac, h, time + (float)FPS * fac2 / 100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
-							break;
-						}
 						case V2D_UNIT_DEGREES:      /* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
 							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');

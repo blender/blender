@@ -471,9 +471,6 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, st
 /* DRAWING API */
 /* anim_draw.c */
 
-/* Get string representing the given frame number as an appropriately represented frame or timecode */
-void ANIM_timecode_string_from_frame(char *str, struct Scene *scene, int power, short timecodes, float cfra);
-
 /* ---------- Current Frame Drawing ---------------- */
 
 /* flags for Current Frame Drawing */

@@ -78,7 +78,6 @@ enum eView2D_Units {
 	V2D_UNIT_VALUES,
 	V2D_UNIT_DEGREES,
 	V2D_UNIT_TIME,
-	V2D_UNIT_SECONDSSEQ
 };
 
 /* clamping of grid values to whole numbers */
