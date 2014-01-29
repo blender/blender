@@ -234,62 +234,13 @@ class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
         col.label(text="Constraints:")
         col.operator("rigidbody.connect", text="Connect")
 
-# Grease Pencil tools
-class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):
-    bl_category = "Grease Pencil"
-    bl_label = "Grease Pencil"
-
-    def draw(self, context):
-        layout = self.layout
-        draw_gpencil_tools(context, layout)
-
-class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
-    bl_category = "History"
-    bl_context = "objectmode"
-    bl_label = "History"
-
-    def draw(self, context):
-        layout = self.layout     
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("ed.undo")
-        row.operator("ed.redo")
-        col.operator("ed.undo_history")
-        
-        draw_repeat_tools(context, layout)
-        
 
 # ********** default tools for editmode_mesh ****************
 
-class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
-    bl_category = "Create"
+class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
+    bl_category = "Mesh Tools"
     bl_context = "mesh_edit"
-    bl_label = "Add Meshes"
-    
-    def draw (self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        col.label(text="Primitives:")
-        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
-        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
-        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
-        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
-        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
-        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
-        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
-        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
-        
-        col = layout.column(align=True)
-        col.label(text="Special:")
-        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
-        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
-
-class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
-    bl_category = "Basic"
-    bl_context = "mesh_edit"
-    bl_label = "Mesh Tools"
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
@@ -301,6 +252,14 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.operator("transform.resize", text="Scale")
         col.operator("transform.shrink_fatten", text="Shrink/Fatten")
         col.operator("transform.push_pull", text="Push/Pull")
+
+class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
+    bl_category = "Mesh Tools"
+    bl_context = "mesh_edit"
+    bl_label = "Mesh Tools"
+
+    def draw(self, context):
+        layout = self.layout
 
         col = layout.column(align=True)
         col.label(text="Deform:")
@@ -339,16 +298,16 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.operator_menu_enum("mesh.merge", "type")
         col.operator("mesh.remove_doubles")
 
-        col = layout.column(align=True)
-        col.label(text="Normals:")
-        col.operator("mesh.normals_make_consistent", text="Recalculate")
-        col.operator("mesh.flip_normals", text="Flip Direction")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="UV Mapping:")
-        col.menu("VIEW3D_MT_uv_map", text="Unwrap")
-        col.operator("mesh.mark_seam").clear = False
-        col.operator("mesh.mark_seam", text="Clear Seam").clear = True
+
+class VIEW3D_PT_tools_shading(View3DPanel, Panel):
+    bl_category = "Shading / UVs"
+    bl_context = "mesh_edit"
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
 
         col = layout.column(align=True)
         col.label(text="Shading:")
@@ -356,10 +315,49 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         row.operator("mesh.faces_shade_smooth", text="Smooth")
         row.operator("mesh.faces_shade_flat", text="Flat")
 
-        draw_repeat_tools(context, layout)
+        col = layout.column(align=True)
+        col.label(text="Normals:")
+        col.operator("mesh.normals_make_consistent", text="Recalculate")
+        col.operator("mesh.flip_normals", text="Flip Direction")
 
-        draw_gpencil_tools(context, layout)
 
+class VIEW3D_PT_tools_uvs(View3DPanel, Panel):
+    bl_category = "Shading / UVs"
+    bl_context = "mesh_edit"
+    bl_label = "UVs"
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="UV Mapping:")
+        col.menu("VIEW3D_MT_uv_map", text="Unwrap")
+        col.operator("mesh.mark_seam").clear = False
+        col.operator("mesh.mark_seam", text="Clear Seam").clear = True
+
+
+class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "mesh_edit"
+    bl_label = "Add Meshes"
+    
+    def draw (self, context):
+        layout = self.layout
+        
+        col = layout.column(align=True)
+        col.label(text="Primitives:")
+        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
+        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
+        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
+        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
+        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
+        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
+        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
+        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
+        
+        col = layout.column(align=True)
+        col.label(text="Special:")
+        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
@@ -1525,6 +1523,31 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
             sub = col.row(align=True)
             sub.active = pe.use_fade_time
             sub.prop(pe, "fade_frames", slider=True)
+
+# Grease Pencil tools
+class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):
+    bl_category = "Grease Pencil"
+    bl_label = "Grease Pencil"
+
+    def draw(self, context):
+        layout = self.layout
+        draw_gpencil_tools(context, layout)
+
+class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
+    bl_category = "History"
+    bl_context = "objectmode"
+    bl_label = "History"
+
+    def draw(self, context):
+        layout = self.layout     
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("ed.undo")
+        row.operator("ed.redo")
+        col.operator("ed.undo_history")
+        
+        draw_repeat_tools(context, layout)
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
