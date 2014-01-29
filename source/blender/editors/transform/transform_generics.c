@@ -796,8 +796,7 @@ static void recalcData_view3d(TransInfo *t)
 				}
 			}
 			
-			
-			if (t->mode != TFM_BONE_ROLL) {
+			if (!ELEM3(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONESIZE)) {
 				/* fix roll */
 				for (i = 0; i < t->total; i++, td++) {
 					if (td->extra) {
@@ -826,7 +825,7 @@ static void recalcData_view3d(TransInfo *t)
 							
 							/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
 							roll = ED_rollBoneToVector(ebo, up_axis, false);
-							ebo->roll = angle_compat_rad(roll, ebo->roll);
+							ebo->roll = angle_compat_rad(roll, td->ival);
 						}
 					}
 				}
