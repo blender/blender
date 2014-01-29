@@ -432,7 +432,8 @@ typedef struct RenderData {
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
-	short pad7;
+	char use_lock_interface;
+	char pad7;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.

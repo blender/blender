@@ -134,6 +134,7 @@ struct ImBuf;
 								 * and don't make sense to be accessed from the
 								 * search menu, even if poll() returns TRUE.
 								 * currently only used for the search toolbox */
+#define OPTYPE_LOCK_BYPASS		128	/* Allow operator to run when interface is locked */
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */

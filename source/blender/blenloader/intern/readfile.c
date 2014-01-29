@@ -5554,6 +5554,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->winactive = NULL;
 	wm->initialized = 0;
 	wm->op_undo_depth = 0;
+	wm->is_interface_locked = 0;
 }
 
 static void lib_link_windowmanager(FileData *fd, Main *main)

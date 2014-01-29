@@ -71,6 +71,8 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
 
         layout.prop(rd, "display_mode", text="Display")
 
+        layout.prop(rd, "use_lock_interface")
+
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = "Dimensions"

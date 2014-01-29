@@ -290,5 +290,7 @@ struct Scene *RE_GetScene(struct Render *re);
 
 int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
+bool RE_allow_render_generic_object(struct Object *ob);
+
 #endif /* __RE_PIPELINE_H__ */
 

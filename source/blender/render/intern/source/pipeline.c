@@ -1602,6 +1602,18 @@ static bool rlayer_node_uses_alpha(bNodeTree *ntree, bNode *node)
 	return false;
 }
 
+bool RE_allow_render_generic_object(Object *ob)
+{
+	/* override not showing object when duplis are used with particles */
+	if (ob->transflag & OB_DUPLIPARTS) {
+		/* pass */  /* let particle system(s) handle showing vs. not showing */
+	}
+	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
+		return false;
+	}
+	return true;
+}
+
 /* Issue here is that it's possible that object which is used by boolean,
  * array or shrinkwrap modifiers weren't displayed in the viewport before
  * rendering. This leads to situations when apply() of this modifiers
@@ -1619,18 +1631,6 @@ static bool rlayer_node_uses_alpha(bNodeTree *ntree, bNode *node)
 #define DEPSGRAPH_WORKAROUND_HACK
 
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-static bool allow_render_mesh_object(Object *ob)
-{
-	/* override not showing object when duplis are used with particles */
-	if (ob->transflag & OB_DUPLIPARTS) {
-		/* pass */  /* let particle system(s) handle showing vs. not showing */
-	}
-	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
-		return false;
-	}
-	return true;
-}
-
 static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
 {
 	Scene *sce_iter;
@@ -1643,7 +1643,7 @@ static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
 		}
 
 		if (object->type == OB_MESH) {
-			if (allow_render_mesh_object(object)) {
+			if (RE_allow_render_generic_object(object)) {
 				ModifierData *md;
 				VirtualModifierData virtualModifierData;
 

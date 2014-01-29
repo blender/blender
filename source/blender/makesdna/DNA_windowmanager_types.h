@@ -154,6 +154,9 @@ typedef struct wmWindowManager {
 
 	ListBase timers;                  /* active timers */
 	struct wmTimer *autosavetimer;    /* timer for auto save */
+
+	char is_interface_locked;		/* indicates whether interface is locked for user interaction */
+	char par[7];
 } wmWindowManager;
 
 /* wmWindowManager.initialized */

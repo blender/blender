@@ -1488,6 +1488,22 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 	}
 }
 
+/* Check whether operator is allowed to run in case interface is locked,
+ * If interface is unlocked, will always return truth.
+ */
+static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	if (wm->is_interface_locked) {
+		if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 /* bad hacking event system... better restore event type for checking of KM_CLICK for example */
 /* XXX modal maps could use different method (ton) */
 static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
@@ -1514,7 +1530,12 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperator *op = handler->op;
 		wmOperatorType *ot = op->type;
 
-		if (ot->modal) {
+		if (!wm_operator_check_locked_interface(C, ot)) {
+			/* Interface is locked and pperator is not allowed to run,
+			 * nothing to do in this case.
+			 */
+		}
+		else if (ot->modal) {
 			/* we set context to where modal handler came from */
 			wmWindowManager *wm = CTX_wm_manager(C);
 			ScrArea *area = CTX_wm_area(C);
@@ -1587,7 +1608,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
 
 		if (ot) {
-			retval = wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+			if (wm_operator_check_locked_interface(C, ot)) {
+				retval = wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+			}
 		}
 	}
 	/* Finished and pass through flag as handled */
@@ -1793,7 +1816,11 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 	        /* comment this out to flood the console! (if you really want to test) */
 	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
+#    define PRINT if (do_debug_handler) printf
+#else
+#  define PRINT(format, ...)
 #endif
+
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
 	int action = WM_HANDLER_CONTINUE;
@@ -1829,28 +1856,16 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
 				wmKeyMapItem *kmi;
 
-#ifndef NDEBUG
-				if (do_debug_handler) {
-					printf("%s:   checking '%s' ...", __func__, keymap->idname);
-				}
-#endif
+				PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
 
 				if (!keymap->poll || keymap->poll(C)) {
 
-#ifndef NDEBUG
-					if (do_debug_handler) {
-						printf("pass\n");
-					}
-#endif
+					PRINT("pass\n");
 
 					for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
 
-#ifndef NDEBUG
-							if (do_debug_handler) {
-								printf("%s:     item matched '%s'\n", __func__, kmi->idname);
-							}
-#endif
+							PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
 							/* weak, but allows interactive callback to not use rawkey */
 							event->keymap_idname = kmi->idname;
@@ -1869,32 +1884,28 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
 										printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
 								
-#ifndef NDEBUG
-								if (do_debug_handler) {
-									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
-								}
-#endif
+									PRINT("%s:       un-handled '%s'...", __func__, kmi->idname);
 							}
 						}
 					}
 				}
 				else {
-#ifndef NDEBUG
-					if (do_debug_handler) {
-						printf("fail\n");
-					}
-#endif
+					PRINT("fail\n");
 				}
 			}
 			else if (handler->ui_handle) {
-				action |= wm_handler_ui_call(C, handler, event, always_pass);
+				if (!wm->is_interface_locked) {
+					action |= wm_handler_ui_call(C, handler, event, always_pass);
+				}
 			}
 			else if (handler->type == WM_HANDLER_FILESELECT) {
-				/* screen context changes here */
-				action |= wm_handler_fileselect_call(C, handlers, handler, event);
+				if (!wm->is_interface_locked) {
+					/* screen context changes here */
+					action |= wm_handler_fileselect_call(C, handlers, handler, event);
+				}
 			}
 			else if (handler->dropboxes) {
-				if (event->type == EVT_DROP) {
+				if (!wm->is_interface_locked && event->type == EVT_DROP) {
 					wmDropBox *drop = handler->dropboxes->first;
 					for (; drop; drop = drop->next) {
 						/* other drop custom types allowed */
@@ -1959,6 +1970,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 	if (action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL))
 		wm_cursor_arrow_move(CTX_wm_window(C), event);
+
+#undef PRINT
 
 	return action;
 }
@@ -3276,4 +3289,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 #if 0
 	WM_event_print(&event);
 #endif
+}
+
+void WM_set_locked_interface(wmWindowManager *wm, bool lock)
+{
+	/* This will prevent events from being handled while interface is locked
+	 *
+	 * Use a "local" flag for now, because currently no other areas could
+	 * benefit of locked interface anyway (aka using G.is_interface_locked
+	 * wouldn't be useful anywhere outside of window manager, so let's not
+	 * pollute global context with such an information for now).
+	 */
+	wm->is_interface_locked = lock ? 1 : 0;
+
+	/* This will prevent drawing regions which uses non-threadsafe data.
+	 * Currently it'll be just a 3D viewport.
+	 *
+	 * TODO(sergey): Make it different locked states, so different jobs
+	 *               could lock different areas of blender and allow
+	 *               interation with others?
+	 */
+	BKE_spacedata_draw_locks(lock);
 }

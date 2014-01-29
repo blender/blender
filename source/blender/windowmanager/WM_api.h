@@ -428,6 +428,9 @@ void        WM_main_playanim(int argc, const char **argv);
 /* debugging only, convenience function to write on crash */
 bool write_crash_blend(void);
 
+			/* Lock the interface for any communication */
+void        WM_set_locked_interface(struct wmWindowManager *wm, bool lock);
+
 #ifdef __cplusplus
 }
 #endif
