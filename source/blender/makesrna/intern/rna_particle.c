@@ -2414,7 +2414,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "omat");
 	RNA_def_property_enum_items(prop, part_mat_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_Material_itemf");
-	RNA_def_property_ui_text(prop, "Material Slot", "Material nlot used for rendering particles");
+	RNA_def_property_ui_text(prop, "Material Slot", "Material slot used for rendering particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
