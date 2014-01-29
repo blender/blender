@@ -313,6 +313,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--debug-memory");
 	BLI_argsPrintArgDoc(ba, "--debug-jobs");
 	BLI_argsPrintArgDoc(ba, "--debug-python");
+	BLI_argsPrintArgDoc(ba, "--debug-depsgraph");
 
 	BLI_argsPrintArgDoc(ba, "--debug-wm");
 	BLI_argsPrintArgDoc(ba, "--debug-all");
@@ -1406,6 +1407,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	BLI_argsAdd(ba, 1, NULL, "--debug-value", "<value>\n\tSet debug value of <value> on startup\n", set_debug_value, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--debug-jobs",  "\n\tEnable time profiling for background jobs.", debug_mode_generic, (void *)G_DEBUG_JOBS);
+	BLI_argsAdd(ba, 1, NULL, "--debug-depsgraph", "\n\tEnable debug messages from dependency graph", debug_mode_generic, (void *)G_DEBUG_DEPSGRAPH);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", "<verbose>\n\tSet logging verbosity level.", set_verbosity, NULL);
 

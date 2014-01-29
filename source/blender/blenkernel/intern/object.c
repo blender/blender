@@ -2877,7 +2877,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 		/* XXX: should this case be OB_RECALC_OB instead? */
 		if (ob->recalc & OB_RECALC_ALL) {
 			
-			if (G.debug & G_DEBUG)
+			if (G.debug & G_DEBUG_DEPSGRAPH)
 				printf("recalcob %s\n", ob->id.name + 2);
 			
 			/* handle proxy copy for target */
@@ -2904,7 +2904,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 			Key *key;
 			float ctime = BKE_scene_frame_get(scene);
 			
-			if (G.debug & G_DEBUG)
+			if (G.debug & G_DEBUG_DEPSGRAPH)
 				printf("recalcdata %s\n", ob->id.name + 2);
 
 			if (adt) {

@@ -1263,7 +1263,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 
 		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
 
-		if (G.debug & G_DEBUG) {
+		if (G.debug & G_DEBUG_DEPSGRAPH) {
 			start_time = PIL_check_seconds_timer();
 
 			if (object->recalc & OB_RECALC_ALL) {
@@ -1312,7 +1312,7 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
 	int i, tot_thread;
 
-	if ((G.debug & G_DEBUG) == 0) {
+	if ((G.debug & G_DEBUG_DEPSGRAPH) == 0) {
 		return;
 	}
 
@@ -1437,7 +1437,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	state.scene_parent = scene_parent;
 
 	/* Those are only needed when blender is run with --debug argument. */
-	if (G.debug & G_DEBUG) {
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		memset(state.statistics, 0, sizeof(state.statistics));
 		state.has_updated_objects = false;
 		state.base_time = PIL_check_seconds_timer();
@@ -1453,7 +1453,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);
 
-	if (G.debug & G_DEBUG) {
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		print_threads_statistics(&state);
 	}
 
