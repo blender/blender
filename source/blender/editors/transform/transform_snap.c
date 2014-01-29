@@ -1504,21 +1504,19 @@ static bool snapCurve(short snap_mode, ARegion *ar, Object *ob, Curve *cu, float
 }
 
 static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
-                            const float ray_start[3], const float ray_normal[3], const float mval[2],
-                            float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
+                            const float ray_start[3], const float ray_normal[3], const float ray_origin[3],
+                            const float mval[2], float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
 {
 	bool retval = false;
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumTessFaces(dm);
 
 	if (totvert > 0) {
+		BoundBox *bb;
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
-		float ray_start_local[3], ray_normal_local[3];
-		int test = 1;
+		float ray_start_local[3], ray_normal_local[3], len_diff = TRANSFORM_DIST_MAX_RAY;
 
 		invert_m4_m4(imat, obmat);
-
 		copy_m3_m4(timat, imat);
 		transpose_m3(timat);
 		
@@ -1527,149 +1525,157 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 		
 		mul_m4_v3(imat, ray_start_local);
 		mul_mat3_m4_v3(imat, ray_normal_local);
-		
-		
-		/* If number of vert is more than an arbitrary limit, 
-		 * test against boundbox first
-		 * */
-		if (totface > 16) {
-			struct BoundBox *bb = BKE_object_boundbox_get(ob);
-			test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local);
+
+		bb = BKE_object_boundbox_get(ob);
+		if (!BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, &len_diff)) {
+			return retval;
 		}
-		
-		if (test == 1) {
-			
-			switch (snap_mode) {
-				case SCE_SNAP_MODE_FACE:
+
+		switch (snap_mode) {
+			case SCE_SNAP_MODE_FACE:
+			{
+				BVHTreeRayHit hit;
+				BVHTreeFromMesh treeData;
+				float ray_org_local[3], local_scale;
+
+				copy_v3_v3(ray_org_local, ray_origin);
+				mul_m4_v3(imat, ray_org_local);
+
+				/* local scale in normal direction */
+				local_scale = len_v3(ray_normal_local);
+				normalize_v3(ray_normal_local);
+
+				/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
+				 * away ray_start values (as returned in case of ortho view3d), see T38358.
+				 */
+				len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+				madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
+				               len_diff - len_v3v3(ray_start_local, ray_org_local));
+
+				treeData.em_evil = em;
+				bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
+
+				hit.index = -1;
+				hit.dist = *r_depth * (*r_depth == TRANSFORM_DIST_MAX_RAY ? 1.0f : local_scale);
+
+				if (treeData.tree &&
+					BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f,
+					                     &hit, treeData.raycast_callback, &treeData) != -1)
 				{
-					BVHTreeRayHit hit;
-					BVHTreeFromMesh treeData;
+					hit.dist += len_diff;
+					hit.dist /= local_scale;
+					if (hit.dist <= *r_depth) {
+						*r_depth = hit.dist;
+						copy_v3_v3(r_loc, hit.co);
+						copy_v3_v3(r_no, hit.no);
 
-					/* local scale in normal direction */
-					float local_scale = len_v3(ray_normal_local);
+						/* back to worldspace */
+						mul_m4_v3(obmat, r_loc);
+						mul_m3_v3(timat, r_no);
+						normalize_v3(r_no);
 
-					treeData.em_evil = em;
-					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
-
-					hit.index = -1;
-					hit.dist = *r_depth * (*r_depth == TRANSFORM_DIST_MAX_RAY ? 1.0f : local_scale);
-
-					if (treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) {
-						if (hit.dist / local_scale <= *r_depth) {
-							*r_depth = hit.dist / local_scale;
-							copy_v3_v3(r_loc, hit.co);
-							copy_v3_v3(r_no, hit.no);
-
-							/* back to worldspace */
-							mul_m4_v3(obmat, r_loc);
-							copy_v3_v3(r_no, hit.no);
-
-							mul_m3_v3(timat, r_no);
-							normalize_v3(r_no);
-
-							retval |= 1;
-						}
+						retval = true;
 					}
-					free_bvhtree_from_mesh(&treeData);
-					break;
 				}
-				case SCE_SNAP_MODE_VERTEX:
-				{
-					MVert *verts = dm->getVertArray(dm);
-					int *index_array = NULL;
-					int index = 0;
-					int i;
-					
+				free_bvhtree_from_mesh(&treeData);
+				break;
+			}
+			case SCE_SNAP_MODE_VERTEX:
+			{
+				MVert *verts = dm->getVertArray(dm);
+				int *index_array = NULL;
+				int index = 0;
+				int i;
+
+				if (em != NULL) {
+					index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
+					BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+				}
+
+				for (i = 0; i < totvert; i++) {
+					BMVert *eve = NULL;
+					MVert *v = verts + i;
+					bool test = true;
+
 					if (em != NULL) {
-						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-					}
-					
-					for (i = 0; i < totvert; i++) {
-						BMVert *eve = NULL;
-						MVert *v = verts + i;
-						
-						test = 1; /* reset for every vert */
-					
-						if (em != NULL) {
-							if (index_array) {
-								index = index_array[i];
-							}
-							else {
-								index = i;
-							}
-							
-							if (index == ORIGINDEX_NONE) {
-								test = 0;
-							}
-							else {
-								eve = BM_vert_at_index(em->bm, index);
-								
-								if ((BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
-								     BM_elem_flag_test(eve, BM_ELEM_SELECT)))
-								{
-									test = 0;
-								}
-							}
+						if (index_array) {
+							index = index_array[i];
+						}
+						else {
+							index = i;
 						}
 						
-						
-						if (test) {
-							retval |= snapVertex(ar, v->co, v->no, obmat, timat, ray_start, ray_start_local, ray_normal_local, mval, r_loc, r_no, r_dist_px, r_depth);
+						if (index == ORIGINDEX_NONE) {
+							test = false;
+						}
+						else {
+							eve = BM_vert_at_index(em->bm, index);
+							
+							if ((BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
+								 BM_elem_flag_test(eve, BM_ELEM_SELECT)))
+							{
+								test = false;
+							}
 						}
 					}
 
-					break;
+					if (test) {
+						retval |= snapVertex(ar, v->co, v->no, obmat, timat, ray_start, ray_start_local,
+						                     ray_normal_local, mval, r_loc, r_no, r_dist_px, r_depth);
+					}
 				}
-				case SCE_SNAP_MODE_EDGE:
-				{
-					MVert *verts = dm->getVertArray(dm);
-					MEdge *edges = dm->getEdgeArray(dm);
-					int totedge = dm->getNumEdges(dm);
-					int *index_array = NULL;
-					int index = 0;
-					int i;
-					
+
+				break;
+			}
+			case SCE_SNAP_MODE_EDGE:
+			{
+				MVert *verts = dm->getVertArray(dm);
+				MEdge *edges = dm->getEdgeArray(dm);
+				int totedge = dm->getNumEdges(dm);
+				int *index_array = NULL;
+				int index = 0;
+				int i;
+
+				if (em != NULL) {
+					index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
+					BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
+				}
+
+				for (i = 0; i < totedge; i++) {
+					MEdge *e = edges + i;
+					bool test = true;
+
 					if (em != NULL) {
-						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
-					}
-					
-					for (i = 0; i < totedge; i++) {
-						MEdge *e = edges + i;
-						
-						test = 1; /* reset for every vert */
-					
-						if (em != NULL) {
-							if (index_array) {
-								index = index_array[i];
-							}
-							else {
-								index = i;
-							}
-							
-							if (index == ORIGINDEX_NONE) {
-								test = 0;
-							}
-							else {
-								BMEdge *eed = BM_edge_at_index(em->bm, index);
-
-								if ((BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
-								     BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-								     BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
-								{
-									test = 0;
-								}
-							}
+						if (index_array) {
+							index = index_array[i];
+						}
+						else {
+							index = i;
 						}
 
-						if (test) {
-							retval |= snapEdge(ar, verts[e->v1].co, verts[e->v1].no, verts[e->v2].co, verts[e->v2].no, obmat, timat, ray_start, ray_start_local, ray_normal_local, mval, r_loc, r_no, r_dist_px, r_depth);
+						if (index == ORIGINDEX_NONE) {
+							test = false;
+						}
+						else {
+							BMEdge *eed = BM_edge_at_index(em->bm, index);
+
+							if ((BM_elem_flag_test(eed, BM_ELEM_HIDDEN) ||
+								 BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+								 BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
+							{
+								test = false;
+							}
 						}
 					}
 
-					break;
+					if (test) {
+						retval |= snapEdge(ar, verts[e->v1].co, verts[e->v1].no, verts[e->v2].co, verts[e->v2].no,
+						                   obmat, timat, ray_start, ray_start_local, ray_normal_local, mval,
+						                   r_loc, r_no, r_dist_px, r_depth);
+					}
 				}
+
+				break;
 			}
 		}
 	}
@@ -1802,8 +1808,8 @@ static bool snapCamera(short snap_mode, ARegion *ar, Scene *scene, Object *objec
 
 static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, float obmat[4][4], bool use_obedit,
                        Object **r_ob, float r_obmat[4][4],
-                       const float ray_start[3], const float ray_normal[3], const float mval[2],
-                       float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
+                       const float ray_start[3], const float ray_normal[3], const float ray_origin[3],
+                       const float mval[2], float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth)
 {
 	bool retval = false;
 	
@@ -1820,7 +1826,7 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		}
 		
-		retval = snapDerivedMesh(snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_depth);
+		retval = snapDerivedMesh(snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_depth);
 
 		dm->release(dm);
 	}
@@ -1849,7 +1855,8 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 
 static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D *v3d, ARegion *ar, Object *obedit,
                            Object **r_ob, float r_obmat[4][4],
-                           const float ray_start[3], const float ray_normal[3], float *r_ray_dist,
+                           const float ray_start[3], const float ray_normal[3], const float ray_origin[3],
+                           float *r_ray_dist,
                            const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
@@ -1860,7 +1867,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 
 		retval |= snapObject(scene, snap_mode, ar, ob, ob->obmat, true,
 		                     r_ob, r_obmat,
-		                     ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
+		                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 	}
 
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
@@ -1873,7 +1880,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 		Object *ob = base->object;
 		retval |= snapObject(scene, snap_mode, ar, ob, ob->obmat, false,
 		                     r_ob, r_obmat,
-		                     ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
+		                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 	}
 
 	for (base = FIRSTBASE; base != NULL; base = base->next) {
@@ -1892,7 +1899,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					retval |= snapObject(scene, snap_mode, ar, dupli_ob->ob, dupli_ob->mat, false,
 					                     r_ob, r_obmat,
-					                     ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
+					                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 				}
 				
 				free_object_duplilist(lb);
@@ -1900,7 +1907,7 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 			
 			retval |= snapObject(scene, snap_mode, ar, ob, ob->obmat, false,
 			                     r_ob, r_obmat,
-			                     ray_start, ray_normal, mval, r_loc, r_no, r_dist_px, r_ray_dist);
+			                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 		}
 	}
 	
@@ -1910,15 +1917,15 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
                         const float mval[2], float *r_dist_px,
                         float r_loc[3], float r_no[3], float *r_ray_dist, SnapMode mode)
 {
-	float ray_start[3], ray_normal[3];
+	float ray_start[3], ray_normal[3], ray_orgigin[3];
 
-	if (ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal, true) == false) {
+	if (!ED_view3d_win_to_ray_ex(ar, v3d, mval, ray_orgigin, ray_normal, ray_start, true)) {
 		return false;
 	}
 
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
 	                      NULL, NULL,
-	                      ray_start, ray_normal, r_ray_dist,
+	                      ray_start, ray_normal, ray_orgigin, r_ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
@@ -1957,7 +1964,7 @@ bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Ob
 {
 	return snapObjectsRay(scene, snap_mode, base_act, v3d, ar, obedit,
 	                      r_ob, r_obmat,
-	                      ray_start, ray_normal, r_ray_dist,
+	                      ray_start, ray_normal, ray_start, r_ray_dist,
 	                      mval, r_dist_px, r_loc, r_no, mode);
 }
 
@@ -2044,7 +2051,7 @@ static bool peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
 		 * */
 		if (totface > 16) {
 			struct BoundBox *bb = BKE_object_boundbox_get(ob);
-			test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local);
+			test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, NULL);
 		}
 		
 		if (test == 1) {

@@ -302,6 +302,85 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
 	return zfac;
 }
 
+static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const float mval[2],
+                                      float r_ray_co[3], float r_ray_dir[3], float r_ray_start[3], float r_ray_end[3])
+{
+	RegionView3D *rv3d = ar->regiondata;
+	float _ray_co[3], _ray_dir[3], start_offset, end_offset;
+
+	if (!r_ray_co) r_ray_co = _ray_co;
+	if (!r_ray_dir) r_ray_dir = _ray_dir;
+
+	ED_view3d_win_to_vector(ar, mval, r_ray_dir);
+	negate_v3(r_ray_dir);
+
+	if (rv3d->is_persp) {
+		copy_v3_v3(r_ray_co, rv3d->viewinv[3]);
+
+		start_offset = -v3d->near;
+		end_offset = -v3d->far;
+	}
+	else {
+		float vec[4];
+		vec[0] = 2.0f * mval[0] / ar->winx - 1;
+		vec[1] = 2.0f * mval[1] / ar->winy - 1;
+		vec[2] = 0.0f;
+		vec[3] = 1.0f;
+
+		mul_m4_v4(rv3d->persinv, vec);
+		copy_v3_v3(r_ray_co, vec);
+
+		start_offset = -1000.0f;
+		end_offset = 1000.0f;
+	}
+
+	if (r_ray_start) {
+		madd_v3_v3v3fl(r_ray_start, r_ray_co, r_ray_dir, start_offset);
+	}
+	if (r_ray_end) {
+		madd_v3_v3v3fl(r_ray_end, r_ray_co, r_ray_dir, end_offset);
+	}
+}
+
+BLI_INLINE bool view3d_clip_segment(RegionView3D *rv3d, float ray_start[3], float ray_end[3])
+{
+	if ((rv3d->rflag & RV3D_CLIPPING) && !clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6)) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
+ * ray_start is clipped by the view near limit so points in front of it are always in view.
+ * In orthographic view the resulting ray_normal will match the view vector.
+ * This version also returns the ray_co point of the ray on window plane, useful to fix precision
+ * issues esp. with ortho view, where default ray_start is set rather far away.
+ * \param ar The region (used for the window width and height).
+ * \param v3d The 3d viewport (used for near clipping value).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_co The world-space point where the ray intersects the window plane.
+ * \param r_ray_normal The normalized world-space direction of towards mval.
+ * \param r_ray_start The world-space starting point of the ray.
+ * \param do_clip Optionally clip the start of the ray by the view clipping planes.
+ * \return success, false if the ray is totally clipped.
+ */
+bool ED_view3d_win_to_ray_ex(const ARegion *ar, View3D *v3d, const float mval[2],
+                             float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip)
+{
+	float ray_end[3];
+
+	view3d_win_to_ray_segment(ar, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, ray_end);
+
+	/* bounds clipping */
+	if (do_clip) {
+		return view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, ray_end);
+	}
+
+	return true;
+}
+
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
  * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
@@ -310,21 +389,15 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
  * \param ar The region (used for the window width and height).
  * \param v3d The 3d viewport (used for near clipping value).
  * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param r_ray_start The world-space starting point of the segment.
+ * \param r_ray_co The world-space point where the ray intersects the window plane.
  * \param r_ray_normal The normalized world-space direction of towards mval.
- * \param do_clip Optionally clip the ray by the view clipping planes.
- * \return success, false if the segment is totally clipped.
+ * \param do_clip Optionally clip the start of the ray by the view clipping planes.
+ * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray(const ARegion *ar, View3D *v3d, const float mval[2],
                           float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
 {
-	float ray_end[3];
-	bool is_clip;
-	
-	is_clip = ED_view3d_win_to_segment(ar, v3d, mval, r_ray_start, ray_end, do_clip);
-	sub_v3_v3v3(r_ray_normal, ray_end, r_ray_start);
-	normalize_v3(r_ray_normal);
-	return is_clip;
+	return ED_view3d_win_to_ray_ex(ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
 }
 
 /**
@@ -507,34 +580,11 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
 bool ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
                               float r_ray_start[3], float r_ray_end[3], const bool do_clip)
 {
-	RegionView3D *rv3d = ar->regiondata;
-
-	if (rv3d->is_persp) {
-		float vec[3];
-		ED_view3d_win_to_vector(ar, mval, vec);
-
-		copy_v3_v3(r_ray_start, rv3d->viewinv[3]);
-		madd_v3_v3v3fl(r_ray_start, rv3d->viewinv[3], vec, v3d->near);
-		madd_v3_v3v3fl(r_ray_end, rv3d->viewinv[3], vec, v3d->far);
-	}
-	else {
-		float vec[4];
-		vec[0] = 2.0f * mval[0] / ar->winx - 1;
-		vec[1] = 2.0f * mval[1] / ar->winy - 1;
-		vec[2] = 0.0f;
-		vec[3] = 1.0f;
-
-		mul_m4_v4(rv3d->persinv, vec);
-
-		madd_v3_v3v3fl(r_ray_start, vec, rv3d->viewinv[2],  1000.0f);
-		madd_v3_v3v3fl(r_ray_end, vec, rv3d->viewinv[2], -1000.0f);
-	}
+	view3d_win_to_ray_segment(ar, v3d, mval, NULL, NULL, r_ray_start, r_ray_end);
 
 	/* bounds clipping */
-	if (do_clip && (rv3d->rflag & RV3D_CLIPPING)) {
-		if (clip_segment_v3_plane_n(r_ray_start, r_ray_end, rv3d->clip, 6) == false) {
-			return false;
-		}
+	if (do_clip) {
+		return view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, r_ray_end);
 	}
 
 	return true;
