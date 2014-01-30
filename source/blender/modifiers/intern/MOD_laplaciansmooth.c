@@ -534,6 +534,11 @@ static void laplaciansmoothModifier_do(
 	sys->vert_centroid[1] = 0.0f;
 	sys->vert_centroid[2] = 0.0f;
 	memset_laplacian_system(sys, 0);
+
+#ifdef OPENNL_THREADING_HACK
+	modifier_opennl_lock();
+#endif
+
 	nlNewContext();
 	sys->context = nlGetCurrent();
 	nlSolverParameteri(NL_NB_VARIABLES, numVerts);
@@ -618,6 +623,11 @@ static void laplaciansmoothModifier_do(
 	}
 	nlDeleteContext(sys->context);
 	sys->context = NULL;
+
+#ifdef OPENNL_THREADING_HACK
+	modifier_opennl_unlock();
+#endif
+
 	delete_laplacian_system(sys);
 }
 

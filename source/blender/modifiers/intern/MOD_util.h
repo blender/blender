@@ -52,4 +52,21 @@ struct DerivedMesh *get_dm_for_modifier(struct Object *ob, ModifierApplyFlag fla
 void modifier_get_vgroup(struct Object *ob, struct DerivedMesh *dm,
                          const char *name, struct MDeformVert **dvert, int *defgrp_index);
 
+/* XXX workaround for non-threadsafe context in OpenNL (T38403)
+ * OpenNL uses global pointer for "current context", which causes
+ * conflict when multiple modifiers get evaluated in threaded depgraph.
+ * This is just a stupid hack to prevent assert failure / crash,
+ * otherwise we'd have to modify OpenNL on a large scale.
+ * OpenNL should be replaced eventually, there are other options (eigen, ceres).
+ * - lukas_t
+ */
+#ifdef WITH_OPENNL
+#define OPENNL_THREADING_HACK
+#endif
+
+#ifdef OPENNL_THREADING_HACK
+void modifier_opennl_lock(void);
+void modifier_opennl_unlock(void);
+#endif
+
 #endif /* __MOD_UTIL_H__ */
