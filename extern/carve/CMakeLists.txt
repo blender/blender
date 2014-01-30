@@ -35,6 +35,8 @@ set(INC_SYS
 )
 
 set(SRC
+	carve-capi.cc
+	carve-util.cc
 	lib/aabb.cpp
 	lib/carve.cpp
 	lib/convex_hull.cpp
@@ -62,6 +64,8 @@ set(SRC
 	lib/timing.cpp
 	lib/triangulator.cpp
 
+	carve-capi.h
+	carve-util.h
 	lib/csg_collector.hpp
 	lib/csg_data.hpp
 	lib/csg_detail.hpp

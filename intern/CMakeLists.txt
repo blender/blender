@@ -48,10 +48,6 @@ if(WITH_MOD_SMOKE)
 	add_subdirectory(smoke)
 endif()
 
-if(WITH_MOD_BOOLEAN)
-	add_subdirectory(bsp)
-endif()
-
 if(WITH_IK_SOLVER)
 	add_subdirectory(iksolver)
 endif()

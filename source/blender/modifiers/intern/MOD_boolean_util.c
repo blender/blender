@@ -18,531 +18,712 @@
  * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Sergey Sharybin.
  *
  * ***** END GPL LICENSE BLOCK *****
- * CSG operations. 
  */
 
 /** \file blender/modifiers/intern/MOD_boolean_util.c
  *  \ingroup modifiers
  */
 
-
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
+#include "BLI_alloca.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_polyfill2d.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
-
-#include "CSG_BooleanOps.h"
 
 #include "MOD_boolean_util.h"
 
-/**
- * Here's the vertex iterator structure used to walk through
- * the blender vertex structure.
- */
+#include "carve-capi.h"
 
-typedef struct {
+/* Adopted from BM_loop_interp_from_face(),
+ *
+ * Transform matrix is used in cases when target coordinate needs
+ * to be converted to source space (namely when interpolating
+ * boolean result loops from second operand).
+ *
+ * TODO(sergey): Consider making it a generic function in DerivedMesh.c.
+ */
+static void DM_loop_interp_from_poly(DerivedMesh *source_dm,
+                                     MVert *source_mverts,
+                                     MLoop *source_mloops,
+                                     MPoly *source_poly,
+                                     DerivedMesh *target_dm,
+                                     MVert *target_mverts,
+                                     MLoop *target_mloop,
+                                     float transform[4][4],
+                                     int target_loop_index)
+{
+	float (*cos_3d)[3] = BLI_array_alloca(cos_3d, source_poly->totloop);
+	int *source_indices = BLI_array_alloca(source_indices, source_poly->totloop);
+	float *weights = BLI_array_alloca(weights, source_poly->totloop);
+	int i;
+	int target_vert_index = target_mloop[target_loop_index].v;
+	float coord[3];
+
+	for (i = 0; i < source_poly->totloop; ++i) {
+		MLoop *mloop = &source_mloops[source_poly->loopstart + i];
+		source_indices[i] = source_poly->loopstart + i;
+		copy_v3_v3(cos_3d[i], source_mverts[mloop->v].co);
+	}
+
+	if (transform) {
+		mul_v3_m4v3(coord, transform, target_mverts[target_vert_index].co);
+	}
+	else {
+		copy_v3_v3(coord, target_mverts[target_vert_index].co);
+	}
+
+	interp_weights_poly_v3(weights, cos_3d, source_poly->totloop, coord);
+
+	DM_interp_loop_data(source_dm, target_dm, source_indices, weights,
+	                    source_poly->totloop, target_loop_index);
+}
+
+/* **** Importer from derived mesh to Carve ****  */
+
+typedef struct ImportMeshData {
 	DerivedMesh *dm;
-	Object *ob;
-	int pos;
-} VertexIt;
+	float obmat[4][4];
+	MVert *mvert;
+	MEdge *medge;
+	MLoop *mloop;
+	MPoly *mpoly;
+} ImportMeshData;
 
-/**
- * Implementations of local vertex iterator functions.
- * These describe a blender mesh to the CSG module.
- */
-
-static void VertexIt_Destruct(CSG_VertexIteratorDescriptor *iterator)
+/* Get number of vertices. */
+static int importer_GetNumVerts(ImportMeshData *import_data)
 {
-	if (iterator->it) {
-		/* deallocate memory for iterator */
-		MEM_freeN(iterator->it);
-		iterator->it = NULL;
-	}
-	iterator->Done = NULL;
-	iterator->Fill = NULL;
-	iterator->Reset = NULL;
-	iterator->Step = NULL;
-	iterator->num_elements = 0;
-
-}		
-
-static int VertexIt_Done(CSG_IteratorPtr it)
-{
-	VertexIt *iterator = (VertexIt *)it;
-	return(iterator->pos >= iterator->dm->getNumVerts(iterator->dm));
+	DerivedMesh *dm = import_data->dm;
+	return dm->getNumVerts(dm);
 }
 
-static void VertexIt_Fill(CSG_IteratorPtr it, CSG_IVertex *vert)
+/* Get number of edges. */
+static int importer_GetNumEdges(ImportMeshData *import_data)
 {
-	VertexIt *iterator = (VertexIt *)it;
-	MVert *verts = iterator->dm->getVertArray(iterator->dm);
-
-	float global_pos[3];
-
-	/* boolean happens in global space, transform both with obmat */
-	mul_v3_m4v3(
-	    global_pos,
-	    iterator->ob->obmat,
-	    verts[iterator->pos].co
-	    );
-
-	vert->position[0] = global_pos[0];
-	vert->position[1] = global_pos[1];
-	vert->position[2] = global_pos[2];
+	DerivedMesh *dm = import_data->dm;
+	return dm->getNumEdges(dm);
 }
 
-static void VertexIt_Step(CSG_IteratorPtr it)
+/* Get number of loops. */
+static int importer_GetNumLoops(ImportMeshData *import_data)
 {
-	VertexIt *iterator = (VertexIt *)it;
-	iterator->pos++;
-} 
- 
-static void VertexIt_Reset(CSG_IteratorPtr it)
-{
-	VertexIt *iterator = (VertexIt *)it;
-	iterator->pos = 0;
+	DerivedMesh *dm = import_data->dm;
+	return dm->getNumLoops(dm);
 }
 
-static void VertexIt_Construct(CSG_VertexIteratorDescriptor *output, DerivedMesh *dm, Object *ob)
+/* Get number of polys. */
+static int importer_GetNumPolys(ImportMeshData *import_data)
 {
-
-	VertexIt *it;
-	if (output == NULL) return;
-
-	/* allocate some memory for blender iterator */
-	it = (VertexIt *)(MEM_mallocN(sizeof(VertexIt), "Boolean_VIt"));
-	if (it == NULL) {
-		return;
-	}
-	/* assign blender specific variables */
-	it->dm = dm;
-	it->ob = ob; /* needed for obmat transformations */
-
-	it->pos = 0;
-
-	/* assign iterator function pointers. */
-	output->Step = VertexIt_Step;
-	output->Fill = VertexIt_Fill;
-	output->Done = VertexIt_Done;
-	output->Reset = VertexIt_Reset;
-	output->num_elements = it->dm->getNumVerts(it->dm);
-	output->it = it;
+	DerivedMesh *dm = import_data->dm;
+	return dm->getNumPolys(dm);
 }
 
-/**
- * Blender Face iterator
- */
-
-typedef struct {
-	DerivedMesh *dm;
-	int pos;
-	int offset;
-	int flip;
-} FaceIt;
-
-static void FaceIt_Destruct(CSG_FaceIteratorDescriptor *iterator)
+/* Get 3D coordinate of vertex with given index. */
+static void importer_GetVertCoord(ImportMeshData *import_data, int vert_index, float coord[3])
 {
-	MEM_freeN(iterator->it);
-	iterator->Done = NULL;
-	iterator->Fill = NULL;
-	iterator->Reset = NULL;
-	iterator->Step = NULL;
-	iterator->num_elements = 0;
+	MVert *mvert = import_data->mvert;
+
+	BLI_assert(vert_index >= 0 && vert_index < import_data->dm->getNumVerts(import_data->dm));
+
+	mul_v3_m4v3(coord, import_data->obmat, mvert[vert_index].co);
 }
 
-static int FaceIt_Done(CSG_IteratorPtr it)
+/* Get index of vertices which are adjucent to edge specified by it's index. */
+static void importer_GetEdgeVerts(ImportMeshData *import_data, int edge_index, int *v1, int *v2)
 {
-	/* assume CSG_IteratorPtr is of the correct type. */
-	FaceIt *iterator = (FaceIt *)it;
-	return(iterator->pos >= iterator->dm->getNumTessFaces(iterator->dm));
+	MEdge *medge = &import_data->medge[edge_index];
+
+	BLI_assert(edge_index >= 0 && edge_index < import_data->dm->getNumEdges(import_data->dm));
+
+	*v1 = medge->v1;
+	*v2 = medge->v2;
 }
 
-static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
+/* Get number of adjucent vertices to the poly specified by it's index. */
+static int importer_GetPolyNumVerts(ImportMeshData *import_data, int poly_index)
 {
-	/* assume CSG_IteratorPtr is of the correct type. */
-	FaceIt *face_it = (FaceIt *)it;
-	MFace *mfaces = face_it->dm->getTessFaceArray(face_it->dm);
-	MFace *mface = &mfaces[face_it->pos];
+	MPoly *mpoly = import_data->mpoly;
 
-	/* reverse face vertices if necessary */
-	face->vertex_index[1] = mface->v2;
-	if (face_it->flip == 0) {
-		face->vertex_index[0] = mface->v1;
-		face->vertex_index[2] = mface->v3;
-	}
-	else {
-		face->vertex_index[2] = mface->v1;
-		face->vertex_index[0] = mface->v3;
-	}
-	if (mface->v4) {
-		face->vertex_index[3] = mface->v4;
-		face->vertex_number = 4;
-	}
-	else {
-		face->vertex_number = 3;
-	}
+	BLI_assert(poly_index >= 0 && poly_index < import_data->dm->getNumPolys(import_data->dm));
 
-	face->orig_face = face_it->offset + face_it->pos;
+	return mpoly[poly_index].totloop;
 }
 
-static void FaceIt_Step(CSG_IteratorPtr it)
+/* Get list of adjucent vertices to the poly specified by it's index. */
+static void importer_GetPolyVerts(ImportMeshData *import_data, int poly_index, int *verts)
 {
-	FaceIt *face_it = (FaceIt *)it;
-	face_it->pos++;
+	MPoly *mpoly = &import_data->mpoly[poly_index];
+	MLoop *mloop = import_data->mloop + mpoly->loopstart;
+	int i;
+	BLI_assert(poly_index >= 0 && poly_index < import_data->dm->getNumPolys(import_data->dm));
+	for (i = 0; i < mpoly->totloop; i++, mloop++) {
+		verts[i] = mloop->v;
+	}
 }
 
-static void FaceIt_Reset(CSG_IteratorPtr it)
-{
-	FaceIt *face_it = (FaceIt *)it;
-	face_it->pos = 0;
-}	
-
-static void FaceIt_Construct(
-        CSG_FaceIteratorDescriptor *output, DerivedMesh *dm, int offset, Object *ob)
-{
-	FaceIt *it;
-	if (output == NULL) return;
-
-	/* allocate some memory for blender iterator */
-	it = (FaceIt *)(MEM_mallocN(sizeof(FaceIt), "Boolean_FIt"));
-	if (it == NULL) {
-		return;
-	}
-	/* assign blender specific variables */
-	it->dm = dm;
-	it->offset = offset;
-	it->pos = 0;
-
-	/* determine if we will need to reverse order of face vertices */
-	if (ob->size[0] < 0.0f) {
-		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
-			it->flip = 1;
-		}
-		else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
-			it->flip = 1;
-		}
-		else {
-			it->flip = 0;
-		}
-	}
-	else {
-		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
-			it->flip = 0;
-		}
-		else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
-			it->flip = 0;
-		}
-		else {
-			it->flip = 1;
-		}
-	}
-
-	/* assign iterator function pointers. */
-	output->Step = FaceIt_Step;
-	output->Fill = FaceIt_Fill;
-	output->Done = FaceIt_Done;
-	output->Reset = FaceIt_Reset;
-	output->num_elements = it->dm->getNumTessFaces(it->dm);
-	output->it = it;
-}
-
-static void InterpCSGFace(
-        DerivedMesh *dm, DerivedMesh *orig_dm, int index, int orig_index, int nr,
-        float mapmat[4][4])
-{
-	float obco[3], *co[4], *orig_co[4], w[4][4];
-	MFace *mface, *orig_mface;
-	int j;
-
-	mface = CDDM_get_tessface(dm, index);
-	orig_mface = orig_dm->getTessFaceArray(orig_dm) + orig_index;
-
-	/* get the vertex coordinates from the original mesh */
-	orig_co[0] = (orig_dm->getVertArray(orig_dm) + orig_mface->v1)->co;
-	orig_co[1] = (orig_dm->getVertArray(orig_dm) + orig_mface->v2)->co;
-	orig_co[2] = (orig_dm->getVertArray(orig_dm) + orig_mface->v3)->co;
-	orig_co[3] = (orig_mface->v4) ? (orig_dm->getVertArray(orig_dm) + orig_mface->v4)->co : NULL;
-
-	/* get the vertex coordinates from the new derivedmesh */
-	co[0] = CDDM_get_vert(dm, mface->v1)->co;
-	co[1] = CDDM_get_vert(dm, mface->v2)->co;
-	co[2] = CDDM_get_vert(dm, mface->v3)->co;
-	co[3] = (nr == 4) ? CDDM_get_vert(dm, mface->v4)->co : NULL;
-
-	for (j = 0; j < nr; j++) {
-		/* get coordinate into the space of the original mesh */
-		if (mapmat)
-			mul_v3_m4v3(obco, mapmat, co[j]);
-		else
-			copy_v3_v3(obco, co[j]);
-
-		interp_weights_face_v3(w[j], orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco);
-	}
-
-	CustomData_interp(&orig_dm->faceData, &dm->faceData, &orig_index, NULL, (float *)w, 1, index);
-}
-
-/* Iterate over the CSG Output Descriptors and create a new DerivedMesh
- * from them */
-static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
-        CSG_FaceIteratorDescriptor *face_it,
-        CSG_VertexIteratorDescriptor *vertex_it,
-        float parinv[4][4],
-        float mapmat[4][4],
-        Material **mat,
-        int *totmat,
-        DerivedMesh *dm1,
-        Object *ob1,
-        DerivedMesh *dm2,
-        Object *ob2)
-{
-	DerivedMesh *result, *orig_dm;
-	GHash *material_hash = NULL;
-	Mesh *me1 = (Mesh *)ob1->data;
-	Mesh *me2 = (Mesh *)ob2->data;
-	int i, *origindex_layer;
-
-	/* create a new DerivedMesh */
-	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements, 0, 0);
-	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~CD_MASK_ORIGINDEX,
-	                 CD_DEFAULT, face_it->num_elements);
-	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH & ~CD_MASK_ORIGINDEX,
-	                 CD_DEFAULT, face_it->num_elements);
-
-	/* step through the vertex iterators: */
-	for (i = 0; !vertex_it->Done(vertex_it->it); i++) {
-		CSG_IVertex csgvert;
-		MVert *mvert = CDDM_get_vert(result, i);
-
-		/* retrieve a csg vertex from the boolean module */
-		vertex_it->Fill(vertex_it->it, &csgvert);
-		vertex_it->Step(vertex_it->it);
-
-		/* we have to map the vertex coordinates back in the coordinate frame
-		 * of the resulting object, since it was computed in world space */
-		mul_v3_m4v3(mvert->co, parinv, csgvert.position);
-	}
-
-	/* a hash table to remap materials to indices */
-	material_hash = BLI_ghash_ptr_new("CSG_mat gh");
-
-	if (mat)
-		*totmat = 0;
-
-	origindex_layer = result->getTessFaceDataArray(result, CD_ORIGINDEX);
-
-	/* step through the face iterators */
-	for (i = 0; !face_it->Done(face_it->it); i++) {
-		Mesh *orig_me;
-		Object *orig_ob;
-		Material *orig_mat;
-		CSG_IFace csgface;
-		MFace *mface;
-		int orig_index, mat_nr;
-
-		/* retrieve a csg face from the boolean module */
-		face_it->Fill(face_it->it, &csgface);
-		face_it->Step(face_it->it);
-
-		/* find the original mesh and data */
-		orig_ob = (csgface.orig_face < dm1->getNumTessFaces(dm1)) ? ob1 : ob2;
-		orig_dm = (csgface.orig_face < dm1->getNumTessFaces(dm1)) ? dm1 : dm2;
-		orig_me = (orig_ob == ob1) ? me1 : me2;
-		orig_index = (orig_ob == ob1) ? csgface.orig_face : csgface.orig_face - dm1->getNumTessFaces(dm1);
-
-		/* copy all face layers, including mface */
-		CustomData_copy_data(&orig_dm->faceData, &result->faceData, orig_index, i, 1);
-
-		/* set mface */
-		mface = CDDM_get_tessface(result, i);
-		mface->v1 = csgface.vertex_index[0];
-		mface->v2 = csgface.vertex_index[1];
-		mface->v3 = csgface.vertex_index[2];
-		mface->v4 = (csgface.vertex_number == 4) ? csgface.vertex_index[3] : 0;
-
-		/* set material, based on lookup in hash table */
-		orig_mat = give_current_material(orig_ob, mface->mat_nr + 1);
-
-		if (mat && orig_mat) {
-			if (!BLI_ghash_haskey(material_hash, orig_mat)) {
-				mat[*totmat] = orig_mat;
-				mat_nr = mface->mat_nr = (*totmat)++;
-				BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
-			}
-			else
-				mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
-		}
-		else if (orig_mat) {
-			if (orig_ob == ob1) {
-				/* No need to change materian index for faces from left operand */
-			}
-			else {
-				/* for faces from right operand checn if there's needed material in left operand and if it is,
-				 * use index of that material, otherwise fallback to first material (material with index=0) */
-				if (!BLI_ghash_haskey(material_hash, orig_mat)) {
-					int a;
-
-					mat_nr = 0;
-					for (a = 0; a < ob1->totcol; a++) {
-						if (give_current_material(ob1, a + 1) == orig_mat) {
-							mat_nr = a;
-							break;
-						}
-					}
-
-					BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
-
-					mface->mat_nr = mat_nr;
-				}
-				else
-					mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
-			}
-		}
-		else
-			mface->mat_nr = 0;
-
-		InterpCSGFace(result, orig_dm, i, orig_index, csgface.vertex_number,
-		              (orig_me == me2) ? mapmat : NULL);
-
-		test_index_face(mface, &result->faceData, i, csgface.vertex_number);
-
-		if (origindex_layer && orig_ob == ob2)
-			origindex_layer[i] = ORIGINDEX_NONE;
-	}
-
-	if (material_hash)
-		BLI_ghash_free(material_hash, NULL, NULL);
-
-	CDDM_calc_edges_tessface(result);
-
-	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
-
-	/* this fixes shading issues but SHOULD NOT.
-	 * TODO, find out why face normals are wrong & flicker - campbell */
+// Triangulate 2D polygon.
 #if 0
-	DM_debug_print(result);
+static int importer_triangulate2DPoly(ImportMeshData *UNUSED(import_data),
+                                      const float (*vertices)[2], int num_vertices,
+                                      unsigned int (*triangles)[3])
+{
+	// TODO(sergey): Currently import_data is unused but in the future we could
+	// put memory arena there which will reduce amount of allocations happening
+	// over the triangulation period.
+	//
+	// However that's not so much straighforward to do it right now because we
+	// also are tu consider threaded import/export.
 
-	CustomData_free(&result->faceData, result->numTessFaceData);
-	result->numTessFaceData = 0;
-	DM_ensure_tessface(result);
+	BLI_assert(num_vertices > 3);
+
+	BLI_polyfill_calc(vertices, num_vertices, triangles);
+
+	return num_vertices - 2;
+}
 #endif
 
-	result->dirty |= DM_DIRTY_NORMALS;
+static CarveMeshImporter MeshImporter = {
+	importer_GetNumVerts,
+	importer_GetNumEdges,
+	importer_GetNumLoops,
+	importer_GetNumPolys,
+	importer_GetVertCoord,
+	importer_GetEdgeVerts,
+	importer_GetPolyNumVerts,
+	importer_GetPolyVerts,
 
-	return result;
-}
-	
-static void BuildMeshDescriptors(
-        struct DerivedMesh *dm,
-        struct Object *ob,
-        int face_offset,
-        struct CSG_FaceIteratorDescriptor *face_it,
-        struct CSG_VertexIteratorDescriptor *vertex_it)
+	/* TODO(sergey): We don't use BLI_polyfill_calc() because it tends
+	 * to generate degenerated geometry which is fatal for booleans.
+	 *
+	 * For now we stick to Carve's triangulation.
+	 */
+	NULL, /* importer_triangulate2DPoly */
+};
+
+/* **** Exporter from Carve to derived mesh ****  */
+
+typedef struct ExportMeshData {
+	DerivedMesh *dm;
+	float obimat[4][4];
+	MVert *mvert;
+	MEdge *medge;
+	MLoop *mloop;
+	MPoly *mpoly;
+	int *vert_origindex;
+	int *edge_origindex;
+	int *poly_origindex;
+	int *loop_origindex;
+
+	/* Objects and derived meshes of left and right operands.
+	 * Used for custom data merge and interpolation.
+	 */
+	Object *ob_left;
+	Object *ob_right;
+	DerivedMesh *dm_left;
+	DerivedMesh *dm_right;
+	MVert *mvert_left;
+	MLoop *mloop_left;
+	MPoly *mpoly_left;
+	MVert *mvert_right;
+	MLoop *mloop_right;
+	MPoly *mpoly_right;
+
+	float left_to_right_mat[4][4];
+
+	/* Hash to map materials from right object to result. */
+	GHash *material_hash;
+} ExportMeshData;
+
+BLI_INLINE Object *which_object(ExportMeshData *export_data, int which_mesh)
 {
-	VertexIt_Construct(vertex_it, dm, ob);
-	FaceIt_Construct(face_it, dm, face_offset, ob);
+	Object *object = NULL;
+	switch (which_mesh) {
+		case CARVE_MESH_LEFT:
+			object = export_data->ob_left;
+			break;
+		case CARVE_MESH_RIGHT:
+			object = export_data->ob_right;
+			break;
+	}
+	return object;
 }
-	
-static void FreeMeshDescriptors(
-        struct CSG_FaceIteratorDescriptor *face_it,
-        struct CSG_VertexIteratorDescriptor *vertex_it)
+
+BLI_INLINE DerivedMesh *which_dm(ExportMeshData *export_data, int which_mesh)
 {
-	VertexIt_Destruct(vertex_it);
-	FaceIt_Destruct(face_it);
+	DerivedMesh *dm = NULL;
+	switch (which_mesh) {
+		case CARVE_MESH_LEFT:
+			dm = export_data->dm_left;
+			break;
+		case CARVE_MESH_RIGHT:
+			dm = export_data->dm_right;
+			break;
+	}
+	return dm;
 }
 
-DerivedMesh *NewBooleanDerivedMesh(
-        DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-        int int_op_type)
+BLI_INLINE MVert *which_mvert(ExportMeshData *export_data, int which_mesh)
 {
+	MVert *mvert = NULL;
+	switch (which_mesh) {
+		case CARVE_MESH_LEFT:
+			mvert = export_data->mvert_left;
+			break;
+		case CARVE_MESH_RIGHT:
+			mvert = export_data->mvert_right;
+			break;
+	}
+	return mvert;
+}
 
-	float inv_mat[4][4];
-	float map_mat[4][4];
+BLI_INLINE MLoop *which_mloop(ExportMeshData *export_data, int which_mesh)
+{
+	MLoop *mloop = NULL;
+	switch (which_mesh) {
+		case CARVE_MESH_LEFT:
+			mloop = export_data->mloop_left;
+			break;
+		case CARVE_MESH_RIGHT:
+			mloop = export_data->mloop_right;
+			break;
+	}
+	return mloop;
+}
 
-	DerivedMesh *result = NULL;
+BLI_INLINE MPoly *which_mpoly(ExportMeshData *export_data, int which_mesh)
+{
+	MPoly *mpoly = NULL;
+	switch (which_mesh) {
+		case CARVE_MESH_LEFT:
+			mpoly = export_data->mpoly_left;
+			break;
+		case CARVE_MESH_RIGHT:
+			mpoly = export_data->mpoly_right;
+			break;
+	}
+	return mpoly;
+}
 
-	if (dm == NULL || dm_select == NULL) return NULL;
-	if (!dm->getNumTessFaces(dm) || !dm_select->getNumTessFaces(dm_select)) return NULL;
+static void allocate_custom_layers(CustomData *data, int type, int num_elements, int num_layers)
+{
+	int i;
+	for (i = 0; i < num_layers; i++) {
+		CustomData_add_layer(data, type, CD_DEFAULT, NULL, num_elements);
+	}
+}
 
-	/* we map the final object back into ob's local coordinate space. For this
-	 * we need to compute the inverse transform from global to ob (inv_mat),
-	 * and the transform from ob to ob_select for use in interpolation (map_mat) */
-	invert_m4_m4(inv_mat, ob->obmat);
-	mul_m4_m4m4(map_mat, inv_mat, ob_select->obmat);
-	invert_m4_m4(inv_mat, ob_select->obmat);
+/* Create new external mesh */
+static void exporter_InitGeomArrays(ExportMeshData *export_data,
+                                    int num_verts, int num_edges,
+                                    int num_loops, int num_polys)
+{
+	DerivedMesh *dm = CDDM_new(num_verts, num_edges, 0,
+	                           num_loops, num_polys);
+	DerivedMesh *dm_left = export_data->dm_left,
+	            *dm_right = export_data->dm_right;
 
-	{
-		/* interface with the boolean module:
-		 *
-		 * the idea is, we pass the boolean module verts and faces using the
-		 * provided descriptors. once the boolean operation is performed, we
-		 * get back output descriptors, from which we then build a DerivedMesh */
+	/* Mask for custom data layers to be merhed from operands. */
+	CustomDataMask merge_mask = CD_MASK_DERIVEDMESH & ~CD_MASK_ORIGINDEX;
 
-		CSG_VertexIteratorDescriptor vd_1, vd_2;
-		CSG_FaceIteratorDescriptor fd_1, fd_2;
-		CSG_OperationType op_type;
-		CSG_BooleanOperation *bool_op;
+	export_data->dm = dm;
+	export_data->mvert = dm->getVertArray(dm);
+	export_data->medge = dm->getEdgeArray(dm);
+	export_data->mloop = dm->getLoopArray(dm);
+	export_data->mpoly = dm->getPolyArray(dm);
 
-		/* work out the operation they chose and pick the appropriate
-		 * enum from the csg module. */
-		switch (int_op_type) {
-			case 1: op_type = e_csg_intersection; break;
-			case 2: op_type = e_csg_union; break;
-			case 3: op_type = e_csg_difference; break;
-			case 4: op_type = e_csg_classify; break;
-			default: op_type = e_csg_intersection;
-		}
+	/* Allocate layers for UV layers and vertex colors.
+	 * Without this interpolation of those data will not happen.
+	 */
+	allocate_custom_layers(&dm->loopData, CD_MLOOPCOL, num_loops,
+	                       CustomData_number_of_layers(&dm_left->loopData, CD_MLOOPCOL));
+	allocate_custom_layers(&dm->loopData, CD_MLOOPUV, num_loops,
+	                       CustomData_number_of_layers(&dm_left->loopData, CD_MLOOPUV));
 
-		BuildMeshDescriptors(dm_select, ob_select, 0, &fd_1, &vd_1);
-		BuildMeshDescriptors(dm, ob, dm_select->getNumTessFaces(dm_select), &fd_2, &vd_2);
+	/* Merge custom data layers from operands.
+	 *
+	 * Will only create custom data layers for all the layers which appears in
+	 * the operand. Data for those layers will not be allocated or initialized.
+	 */
+	CustomData_merge(&dm_left->polyData, &dm->polyData, merge_mask, CD_DEFAULT, num_polys);
+	CustomData_merge(&dm_right->polyData, &dm->polyData, merge_mask, CD_DEFAULT, num_polys);
 
-		bool_op = CSG_NewBooleanFunction();
+	export_data->vert_origindex = dm->getVertDataArray(dm, CD_ORIGINDEX);
+	export_data->edge_origindex = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
+	export_data->poly_origindex = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	export_data->loop_origindex = dm->getLoopDataArray(dm, CD_ORIGINDEX);
+}
 
-		/* perform the operation */
-		if (CSG_PerformBooleanOperation(bool_op, op_type, fd_1, vd_1, fd_2, vd_2)) {
-			CSG_VertexIteratorDescriptor vd_o;
-			CSG_FaceIteratorDescriptor fd_o;
+/* Set coordinate of vertex with given index. */
+static void exporter_SetVert(ExportMeshData *export_data,
+                             int vert_index, float coord[3],
+                             int which_orig_mesh, int orig_vert_index)
+{
+	DerivedMesh *dm = export_data->dm;
+	DerivedMesh *dm_orig;
+	MVert *mvert = export_data->mvert;
 
-			CSG_OutputFaceDescriptor(bool_op, &fd_o);
-			CSG_OutputVertexDescriptor(bool_op, &vd_o);
+	BLI_assert(vert_index >= 0 && vert_index <= dm->getNumVerts(dm));
 
-			/* iterate through results of operation and insert
-			 * into new object */
-			result = ConvertCSGDescriptorsToDerivedMesh(
-			    &fd_o, &vd_o, inv_mat, map_mat, NULL, NULL, dm_select, ob_select, dm, ob);
-
-			/* free up the memory */
-			CSG_FreeVertexDescriptor(&vd_o);
-			CSG_FreeFaceDescriptor(&fd_o);
-		}
-		else
-			printf("Unknown internal error in boolean\n");
-
-		CSG_FreeBooleanOperation(bool_op);
-
-		FreeMeshDescriptors(&fd_1, &vd_1);
-		FreeMeshDescriptors(&fd_2, &vd_2);
+	dm_orig = which_dm(export_data, which_orig_mesh);
+	if (dm_orig) {
+		BLI_assert(orig_vert_index >= 0 && orig_vert_index < dm_orig->getNumVerts(dm_orig));
+		CustomData_copy_data(&dm_orig->vertData, &dm->vertData, orig_vert_index, vert_index, 1);
 	}
 
-	return result;
+	/* Set original index of the vertex. */
+	if (export_data->vert_origindex) {
+		if (which_orig_mesh == CARVE_MESH_LEFT) {
+			export_data->vert_origindex[vert_index] = orig_vert_index;
+		}
+		else {
+			export_data->vert_origindex[vert_index] = ORIGINDEX_NONE;
+		}
+	}
+
+	mul_v3_m4v3(mvert[vert_index].co, export_data->obimat, coord);
+}
+
+/* Set vertices which are adjucent to the edge specified by it's index. */
+static void exporter_SetEdge(ExportMeshData *export_data,
+                             int edge_index, int v1, int v2,
+                             int which_orig_mesh, int orig_edge_index)
+{
+	DerivedMesh *dm = export_data->dm;
+	MEdge *medge = &export_data->medge[edge_index];
+	DerivedMesh *dm_orig;
+
+	BLI_assert(edge_index >= 0 && edge_index < dm->getNumEdges(dm));
+	BLI_assert(v1 >= 0 && v1 < dm->getNumVerts(dm));
+	BLI_assert(v2 >= 0 && v2 < dm->getNumVerts(dm));
+
+	dm_orig = which_dm(export_data, which_orig_mesh);
+	if (dm_orig) {
+		BLI_assert(orig_edge_index >= 0 && orig_edge_index < dm_orig->getNumEdges(dm_orig));
+
+		/* Copy all edge layers, including mpoly. */
+		CustomData_copy_data(&dm_orig->edgeData, &dm->edgeData, orig_edge_index, edge_index, 1);
+	}
+
+	/* Set original index of the edge. */
+	if (export_data->edge_origindex) {
+		if (which_orig_mesh == CARVE_MESH_LEFT) {
+			export_data->edge_origindex[edge_index] = orig_edge_index;
+		}
+		else {
+			export_data->edge_origindex[edge_index] = ORIGINDEX_NONE;
+		}
+	}
+
+	medge->v1 = v1;
+	medge->v2 = v2;
+
+	medge->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+}
+
+static void setMPolyMaterial(ExportMeshData *export_data,
+                             MPoly *mpoly,
+                             int which_orig_mesh)
+{
+	Object *orig_object;
+	GHash *material_hash;
+	Material *orig_mat;
+
+	if (which_orig_mesh == CARVE_MESH_LEFT) {
+		/* No need to change materian index for faces from left operand */
+		return;
+	}
+
+	material_hash = export_data->material_hash;
+	orig_object = which_object(export_data, which_orig_mesh);
+
+	/* Set material, based on lookup in hash table. */
+	orig_mat = give_current_material(orig_object, mpoly->mat_nr + 1);
+
+	if (orig_mat) {
+		/* For faces from right operand check if there's requested material
+		 * in the left operand. And if it is, use index of that material,
+		 * otherwise fallback to first material (material with index=0).
+		 */
+		if (!BLI_ghash_haskey(material_hash, orig_mat)) {
+			int a, mat_nr;;
+
+			mat_nr = 0;
+			for (a = 0; a < export_data->ob_left->totcol; a++) {
+				if (give_current_material(export_data->ob_left, a + 1) == orig_mat) {
+					mat_nr = a;
+					break;
+				}
+			}
+
+			BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
+
+			mpoly->mat_nr = mat_nr;
+		}
+		else
+			mpoly->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
+	}
+	else {
+		mpoly->mat_nr = 0;
+	}
+}
+
+/* Set list of adjucent loops to the poly specified by it's index. */
+static void exporter_SetPoly(ExportMeshData *export_data,
+                             int poly_index, int start_loop, int num_loops,
+                             int which_orig_mesh, int orig_poly_index)
+{
+	DerivedMesh *dm = export_data->dm;
+	MPoly *mpoly = &export_data->mpoly[poly_index];
+	DerivedMesh *dm_orig;
+	int i;
+
+	/* Poly is always to be either from left or right operand. */
+	dm_orig = which_dm(export_data, which_orig_mesh);
+
+	BLI_assert(poly_index >= 0 && poly_index < dm->getNumPolys(dm));
+	BLI_assert(start_loop >= 0 && start_loop <= dm->getNumLoops(dm) - num_loops);
+	BLI_assert(num_loops >= 3);
+	BLI_assert(dm_orig != NULL);
+	BLI_assert(orig_poly_index >= 0 && orig_poly_index < dm_orig->getNumPolys(dm_orig));
+
+	/* Copy all poly layers, including mpoly. */
+	CustomData_copy_data(&dm_orig->polyData, &dm->polyData, orig_poly_index, poly_index, 1);
+
+	/* Set material of the curren poly.
+	 * This would re-map materials from right operand to materials from the
+	 * left one as well.
+	 */
+	setMPolyMaterial(export_data, mpoly, which_orig_mesh);
+
+	/* Set original index of the poly. */
+	if (export_data->poly_origindex) {
+		if (which_orig_mesh == CARVE_MESH_LEFT) {
+			export_data->poly_origindex[poly_index] = orig_poly_index;
+		}
+		else {
+			export_data->poly_origindex[poly_index] = ORIGINDEX_NONE;
+		}
+	}
+
+	/* Set poly data itself. */
+	mpoly->loopstart = start_loop;
+	mpoly->totloop = num_loops;
+
+	if (which_orig_mesh == CARVE_MESH_RIGHT) {
+		which_orig_mesh = CARVE_MESH_RIGHT;
+	}
+
+	/* Interpolate data for poly loops. */
+	{
+		MVert *source_mverts = which_mvert(export_data, which_orig_mesh);
+		MLoop *source_mloops = which_mloop(export_data, which_orig_mesh);
+		MPoly *source_mpolys = which_mpoly(export_data, which_orig_mesh);
+		MPoly *source_poly = &source_mpolys[orig_poly_index];
+		MVert *target_mverts = export_data->mvert;
+		MLoop *target_mloops = export_data->mloop;
+		float (*transform)[4] = NULL;
+
+		if (which_orig_mesh == CARVE_MESH_RIGHT) {
+			transform = export_data->left_to_right_mat;
+		}
+
+		for (i = 0; i < mpoly->totloop; i++) {
+			DM_loop_interp_from_poly(dm_orig,
+			                         source_mverts,
+			                         source_mloops,
+			                         source_poly,
+			                         dm,
+			                         target_mverts,
+			                         target_mloops,
+			                         transform,
+			                         i + mpoly->loopstart);
+		}
+	}
+}
+
+/* Set list vertex and edge which are adjucent to loop with given index. */
+static void exporter_SetLoop(ExportMeshData *export_data,
+                             int loop_index, int vertex, int edge,
+                             int which_orig_mesh, int orig_loop_index)
+{
+	DerivedMesh *dm = export_data->dm;
+	MLoop *mloop = &export_data->mloop[loop_index];
+	DerivedMesh *dm_orig;
+
+	BLI_assert(loop_index >= 0 && loop_index < dm->getNumLoops(dm));
+	BLI_assert(vertex >= 0 && vertex < dm->getNumVerts(dm));
+	BLI_assert(edge >= 0 && vertex < dm->getNumEdges(dm));
+
+	dm_orig = which_dm(export_data, which_orig_mesh);
+	if (dm_orig) {
+		BLI_assert(orig_loop_index >= 0 && orig_loop_index < dm_orig->getNumLoops(dm_orig));
+
+		/* Copy all loop layers, including mpoly. */
+		CustomData_copy_data(&dm_orig->loopData, &dm->loopData, orig_loop_index, loop_index, 1);
+	}
+
+	/* Set original index of the loop. */
+	if (export_data->loop_origindex) {
+		if (which_orig_mesh == CARVE_MESH_LEFT) {
+			export_data->loop_origindex[loop_index] = orig_loop_index;
+		}
+		else {
+			export_data->loop_origindex[loop_index] = ORIGINDEX_NONE;
+		}
+	}
+
+	mloop->v = vertex;
+	mloop->e = edge;
+}
+
+/* Edge index from a loop index for a given original mesh. */
+static int exporter_MapLoopToEdge(ExportMeshData *export_data,
+                                  int which_mesh, int loop_index)
+{
+	DerivedMesh *dm = which_dm(export_data, which_mesh);
+	MLoop *mloop = which_mloop(export_data, which_mesh);
+
+	(void) dm;  /* Unused in release builds. */
+
+	BLI_assert(dm != NULL);
+	BLI_assert(loop_index >= 0 && loop_index < dm->getNumLoops(dm));
+
+	return mloop[loop_index].e;
+}
+
+static CarveMeshExporter MeshExporter = {
+	exporter_InitGeomArrays,
+	exporter_SetVert,
+	exporter_SetEdge,
+	exporter_SetPoly,
+	exporter_SetLoop,
+	exporter_MapLoopToEdge
+};
+
+static int operation_from_optype(int int_op_type)
+{
+	int operation;
+
+	switch (int_op_type) {
+		case 1:
+			operation = CARVE_OP_INTERSECTION;
+			break;
+		case 2:
+			operation = CARVE_OP_UNION;
+			break;
+		case 3:
+			operation = CARVE_OP_A_MINUS_B;
+			break;
+		default:
+			BLI_assert(!"Should not happen");
+			operation = -1;
+			break;
+	}
+
+	return operation;
+}
+
+static void prepare_import_data(Object *object, DerivedMesh *dm, ImportMeshData *import_data)
+{
+	import_data->dm = dm;
+	copy_m4_m4(import_data->obmat, object->obmat);
+	import_data->mvert = dm->getVertArray(dm);
+	import_data->medge = dm->getEdgeArray(dm);
+	import_data->mloop = dm->getLoopArray(dm);
+	import_data->mpoly = dm->getPolyArray(dm);
+}
+
+static struct CarveMeshDescr *carve_mesh_from_dm(Object *object, DerivedMesh *dm)
+{
+	ImportMeshData import_data;
+	prepare_import_data(object, dm, &import_data);
+	return carve_addMesh(&import_data, &MeshImporter);
+}
+
+static void prepare_export_data(Object *object_left, DerivedMesh *dm_left,
+                                Object *object_right, DerivedMesh *dm_right,
+                                ExportMeshData *export_data)
+{
+	float object_right_imat[4][4];
+
+	invert_m4_m4(export_data->obimat, object_left->obmat);
+
+	export_data->ob_left = object_left;
+	export_data->ob_right = object_right;
+
+	export_data->dm_left = dm_left;
+	export_data->dm_right = dm_right;
+
+	export_data->mvert_left = dm_left->getVertArray(dm_left);
+	export_data->mloop_left = dm_left->getLoopArray(dm_left);
+	export_data->mpoly_left = dm_left->getPolyArray(dm_left);
+	export_data->mvert_right = dm_right->getVertArray(dm_right);
+	export_data->mloop_right = dm_right->getLoopArray(dm_right);
+	export_data->mpoly_right = dm_right->getPolyArray(dm_right);
+
+	export_data->material_hash = BLI_ghash_ptr_new("CSG_mat gh");
+
+	/* Matrix to convert coord from left object's loca; space to
+	 * right object's local space.
+	 */
+	invert_m4_m4(object_right_imat, object_right->obmat);
+	mul_m4_m4m4(export_data->left_to_right_mat, object_left->obmat,
+	            object_right_imat);
+}
+
+DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
+                                   DerivedMesh *dm_select, struct Object *ob_select,
+                                   int int_op_type)
+{
+
+	struct CarveMeshDescr *left, *right, *output = NULL;
+	DerivedMesh *output_dm = NULL;
+	int operation;
+	bool result;
+
+	if (dm == NULL || dm_select == NULL) {
+		return NULL;
+	}
+
+	operation = operation_from_optype(int_op_type);
+	if (operation == -1) {
+		return NULL;
+	}
+
+	left = carve_mesh_from_dm(ob_select, dm_select);
+	right = carve_mesh_from_dm(ob, dm);
+
+	result = carve_performBooleanOperation(left, right, operation, &output);
+
+	carve_deleteMesh(left);
+	carve_deleteMesh(right);
+
+	if (result) {
+		ExportMeshData export_data;
+
+		prepare_export_data(ob_select, dm_select, ob, dm, &export_data);
+
+		carve_exportMesh(output, &MeshExporter, &export_data);
+		output_dm = export_data.dm;
+
+		/* Free memory used by export mesh. */
+		BLI_ghash_free(export_data.material_hash, NULL, NULL);
+
+		output_dm->dirty |= DM_DIRTY_NORMALS;
+		carve_deleteMesh(output);
+	}
+
+	return output_dm;
 }

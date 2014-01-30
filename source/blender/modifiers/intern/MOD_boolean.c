@@ -139,10 +139,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		result = get_quick_derivedMesh(derivedData, dm, bmd->operation);
 
 		if (result == NULL) {
-
-			DM_ensure_tessface(dm);          /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
-			DM_ensure_tessface(derivedData); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
-
 			// TIMEIT_START(NewBooleanDerivedMesh)
 
 			result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,

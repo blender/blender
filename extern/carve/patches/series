@@ -5,3 +5,4 @@ mingw.patch
 gcc46.patch
 clang_is_heap_fix.patch
 strict_flags.patch
+interpolator_reorder.patch

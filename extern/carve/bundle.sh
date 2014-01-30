@@ -70,8 +70,12 @@ set(INC_SYS
 )
 
 set(SRC
+	carve-capi.cc
+	carve-util.cc
 ${sources}
 
+	carve-capi.h
+	carve-util.h
 ${headers}
 
 ${includes}

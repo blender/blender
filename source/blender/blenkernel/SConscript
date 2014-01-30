@@ -47,7 +47,6 @@ incs = [
     '#/extern/bullet2/src',
     '#/extern/glew/include',
     '#/intern/audaspace/intern',
-    '#/intern/bsp/extern',
     '#/intern/elbeem/extern',
     '#/intern/iksolver/extern',
     '#/intern/smoke/extern',

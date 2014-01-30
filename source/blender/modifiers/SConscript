@@ -33,7 +33,6 @@ incs = [
     '.',
     './intern', 
     '#/intern/guardedalloc',
-    '#/intern/bsp/extern',
     '#/intern/elbeem/extern',
     '#/extern/glew/include',
     '#/intern/opennl/extern',

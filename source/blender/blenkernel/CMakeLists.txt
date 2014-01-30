@@ -384,12 +384,6 @@ if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
 
-if(WITH_MOD_BOOLEAN)
-	list(APPEND INC
-		../../../intern/bsp/extern
-	)
-endif()
-
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()

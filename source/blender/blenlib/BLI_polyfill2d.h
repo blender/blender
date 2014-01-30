@@ -21,6 +21,8 @@
 #ifndef __BLI_POLYFILL2D_H__
 #define __BLI_POLYFILL2D_H__
 
+struct MemArena;
+
 void BLI_polyfill_calc_ex(
         const float (*coords)[2],
         const unsigned int count,

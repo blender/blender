@@ -219,7 +219,7 @@ namespace carve {
           interpolator->edgeDivision(csg, orig_edge, orig_edge_idx, v1, v2);
         }
 
-        Hook(Interpolator *_interpolator, const carve::csg::CSG &_csg) : interpolator(_interpolator), csg(_csg) {
+        Hook(Interpolator *_interpolator, const carve::csg::CSG &_csg) : csg(_csg), interpolator(_interpolator) {
         }
 
         virtual ~Hook() {

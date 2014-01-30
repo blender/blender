@@ -114,7 +114,7 @@ if(WITH_MOD_BOOLEAN)
 		intern/MOD_boolean_util.c
 	)
 	list(APPEND INC
-		../../../intern/bsp/extern
+		../../../extern/carve
 	)
 endif()
 
