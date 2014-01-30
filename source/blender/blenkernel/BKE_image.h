@@ -153,6 +153,7 @@ struct ImBuf *BKE_image_pool_acquire_ibuf(struct Image *ima, struct ImageUser *i
 void BKE_image_pool_release_ibuf(struct Image *ima, struct ImBuf *ibuf, struct ImagePool *pool);
 
 /* set an alpha mode based on file extension */
+char  BKE_image_alpha_mode_from_extension_ex(const char *filepath);
 void BKE_image_alpha_mode_from_extension(struct Image *image);
 
 /* returns a new image or NULL if it can't load */

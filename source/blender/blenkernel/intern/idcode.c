@@ -129,6 +129,7 @@ bool BKE_idcode_is_valid(int code)
 bool BKE_idcode_is_linkable(int code)
 {
 	IDType *idt = idtype_from_code(code);
+	BLI_assert(idt);
 	return idt ? ((idt->flags & IDTYPE_FLAGS_ISLINKABLE) != 0) : false;
 }
 
@@ -142,7 +143,7 @@ bool BKE_idcode_is_linkable(int code)
 const char *BKE_idcode_to_name(int code) 
 {
 	IDType *idt = idtype_from_code(code);
-	
+	BLI_assert(idt);
 	return idt ? idt->name : NULL;
 }
 
@@ -155,7 +156,7 @@ const char *BKE_idcode_to_name(int code)
 int BKE_idcode_from_name(const char *name) 
 {
 	IDType *idt = idtype_from_name(name);
-	
+	BLI_assert(idt);
 	return idt ? idt->code : 0;
 }
 
@@ -169,7 +170,7 @@ int BKE_idcode_from_name(const char *name)
 const char *BKE_idcode_to_name_plural(int code) 
 {
 	IDType *idt = idtype_from_code(code);
-	
+	BLI_assert(idt);
 	return idt ? idt->plural : NULL;
 }
 

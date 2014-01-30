@@ -194,12 +194,13 @@ BLO_blendhandle_close(BlendHandle *bh);
 
 #define GROUP_MAX 32
 
-int BLO_has_bfile_extension(const char *str);
+bool BLO_has_bfile_extension(const char *str);
 
-/* return ok when a blenderfile, in dir is the filename,
+/**
+ * return ok when a blenderfile, in dir is the filename,
  * in group the type of libdata
  */
-int BLO_is_a_library(const char *path, char *dir, char *group);
+bool BLO_is_a_library(const char *path, char *dir, char *group);
 
 
 /**

@@ -4165,18 +4165,8 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine)
 void BKE_sequence_alpha_mode_from_extension(Sequence *seq)
 {
 	if (seq->strip && seq->strip->stripdata) {
-		char *name = seq->strip->stripdata->name;
-
-		if (BLI_testextensie(name, ".exr") ||
-		    BLI_testextensie(name, ".cin") ||
-		    BLI_testextensie(name, ".dpx") ||
-		    BLI_testextensie(name, ".hdr"))
-			{
-				seq->alpha_mode = IMA_ALPHA_PREMUL;
-			}
-		else {
-			seq->alpha_mode = IMA_ALPHA_STRAIGHT;
-		}
+		const char *filename = seq->strip->stripdata->name;
+		seq->alpha_mode = BKE_image_alpha_mode_from_extension_ex(filename);
 	}
 }
 

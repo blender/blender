@@ -332,16 +332,9 @@ static int isffmpeg(const char *filename)
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 
-	if (BLI_testextensie(filename, ".swf") ||
-	    BLI_testextensie(filename, ".jpg") ||
-	    BLI_testextensie(filename, ".png") ||
-	    BLI_testextensie(filename, ".dds") ||
-	    BLI_testextensie(filename, ".tga") ||
-	    BLI_testextensie(filename, ".bmp") ||
-	    BLI_testextensie(filename, ".tif") ||
-	    BLI_testextensie(filename, ".exr") ||
-	    BLI_testextensie(filename, ".cin") ||
-	    BLI_testextensie(filename, ".wav"))
+	if (BLI_testextensie_n(
+	        filename,
+	        ".swf", ".jpg", ".png", ".dds", ".tga", ".bmp", ".tif", ".exr", ".cin", ".wav", NULL))
 	{
 		return 0;
 	}

@@ -789,19 +789,10 @@ static int path_extension_type(const char *path)
 	else if (BLI_testextensie(path, ".py")) {
 		return PYSCRIPTFILE;
 	}
-	else if (BLI_testextensie(path, ".txt")  ||
-	         BLI_testextensie(path, ".glsl") ||
-	         BLI_testextensie(path, ".osl")  ||
-	         BLI_testextensie(path, ".data"))
-	{
+	else if (BLI_testextensie_n(path, ".txt", ".glsl", ".osl", ".data", NULL)) {
 		return TEXTFILE;
 	}
-	else if (BLI_testextensie(path, ".ttf") ||
-	         BLI_testextensie(path, ".ttc") ||
-	         BLI_testextensie(path, ".pfb") ||
-	         BLI_testextensie(path, ".otf") ||
-	         BLI_testextensie(path, ".otc"))
-	{
+	else if (BLI_testextensie_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
 		return FTFONTFILE;
 	}
 	else if (BLI_testextensie(path, ".btx")) {

@@ -1543,20 +1543,53 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 	BLI_clean(string);
 }
 
+static bool testextensie_ex(const char *str, const size_t str_len,
+                            const char *ext, const size_t ext_len)
+{
+	BLI_assert(strlen(str) == str_len);
+	BLI_assert(strlen(ext) == ext_len);
+
+	return  (((str_len == 0 || ext_len == 0 || ext_len >= str_len) == 0) &&
+	         (BLI_strcasecmp(ext, str + str_len - ext_len) == 0));
+}
+
 /* does str end with ext. */
 bool BLI_testextensie(const char *str, const char *ext)
 {
-	const size_t a = strlen(str);
-	const size_t b = strlen(ext);
-	return !(a == 0 || b == 0 || b >= a) && (BLI_strcasecmp(ext, str + a - b) == 0);
+	return testextensie_ex(str, strlen(str), ext, strlen(ext));
+}
+
+bool BLI_testextensie_n(const char *str, ...)
+{
+	const size_t str_len = strlen(str);
+
+	va_list args;
+	const char *ext;
+	bool ret = false;
+
+	va_start(args, str);
+
+	while ((ext = (const char *) va_arg(args, void *))) {
+		if (testextensie_ex(str, str_len, ext, strlen(ext))) {
+			ret = true;
+			goto finally;
+		}
+	}
+
+finally:
+	va_end(args);
+
+	return ret;
 }
 
 /* does str end with any of the suffixes in *ext_array. */
 bool BLI_testextensie_array(const char *str, const char **ext_array)
 {
+	const size_t str_len = strlen(str);
 	int i = 0;
+
 	while (ext_array[i]) {
-		if (BLI_testextensie(str, ext_array[i])) {
+		if (testextensie_ex(str, str_len, ext_array[i], strlen(ext_array[i]))) {
 			return true;
 		}
 

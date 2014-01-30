@@ -1151,14 +1151,13 @@ void blo_freefiledata(FileData *fd)
 
 /* ************ DIV ****************** */
 
-int BLO_has_bfile_extension(const char *str)
+bool BLO_has_bfile_extension(const char *str)
 {
-	return (BLI_testextensie(str, ".ble") || 
-	        BLI_testextensie(str, ".blend") || 
-	        BLI_testextensie(str, ".blend.gz"));
+	const char *ext_test[4] = {".blend", ".ble", ".blend.gz", NULL};
+	return BLI_testextensie_array(str, ext_test);
 }
 
-int BLO_is_a_library(const char *path, char *dir, char *group)
+bool BLO_is_a_library(const char *path, char *dir, char *group)
 {
 	/* return ok when a blenderfile, in dir is the filename,
 	 * in group the type of libdata
