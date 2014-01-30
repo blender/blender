@@ -3155,7 +3155,9 @@ bool BKE_boundbox_ray_hit_check(struct BoundBox *bb, const float ray_start[3], c
 		    (!r_lambda || *r_lambda > lambda))
 		{
 			result = true;
-			*r_lambda = lambda;
+			if (r_lambda) {
+				*r_lambda = lambda;
+			}
 		}
 	}
 	
