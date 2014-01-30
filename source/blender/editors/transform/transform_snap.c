@@ -1542,21 +1542,24 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				mul_m4_v3(imat, ray_org_local);
 
 				/* local scale in normal direction */
-				local_scale = len_v3(ray_normal_local);
-				normalize_v3(ray_normal_local);
+				local_scale = normalize_v3(ray_normal_local);
 
 				/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
 				 * away ray_start values (as returned in case of ortho view3d), see T38358.
 				 */
 				len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
 				madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
-				               len_diff - len_v3v3(ray_start_local, ray_org_local));
+				               len_v3v3(ray_start_local, ray_org_local) - len_diff);
 
 				treeData.em_evil = em;
 				bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
 
 				hit.index = -1;
-				hit.dist = *r_depth * (*r_depth == TRANSFORM_DIST_MAX_RAY ? 1.0f : local_scale);
+				hit.dist = *r_depth;
+				if (hit.dist != TRANSFORM_DIST_MAX_RAY) {
+					hit.dist *= local_scale;
+					hit.dist -= len_diff;
+				}
 
 				if (treeData.tree &&
 					BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f,
