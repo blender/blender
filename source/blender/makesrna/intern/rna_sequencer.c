@@ -1404,11 +1404,13 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MUTE);
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, true);
 	RNA_def_property_ui_text(prop, "Mute", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_mute_update");
 
 	prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LOCK);
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
 	RNA_def_property_ui_text(prop, "Lock", "Lock strip so that it can't be transformed");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 

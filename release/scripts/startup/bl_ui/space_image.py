@@ -874,11 +874,10 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         col.separator()
 
         row = col.row(align=True)
+        row.prop(brush, "use_relative_jitter", icon_only=True)
         if brush.use_relative_jitter:
-            row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
             row.prop(brush, "jitter", slider=True)
         else:
-            row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
             row.prop(brush, "jitter_absolute")
         row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 

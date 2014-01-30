@@ -738,10 +738,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row = col.row(align=True)
 
                 if capabilities.has_space_attenuation:
-                    if brush.use_space_attenuation:
-                        row.prop(brush, "use_space_attenuation", toggle=True, text="", icon='LOCKED')
-                    else:
-                        row.prop(brush, "use_space_attenuation", toggle=True, text="", icon='UNLOCKED')
+                    row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
 
                 self.prop_unified_strength(row, context, brush, "strength", text="Strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
@@ -771,10 +768,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.separator()
                 row = col.row(align=True)
 
-                if brush.use_original_normal:
-                    row.prop(brush, "use_original_normal", toggle=True, text="", icon='LOCKED')
-                else:
-                    row.prop(brush, "use_original_normal", toggle=True, text="", icon='UNLOCKED')
+                row.prop(brush, "use_original_normal", toggle=True, icon_only=True)
 
                 row.prop(brush, "sculpt_plane", text="")
 
@@ -1061,11 +1055,10 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 col.separator()
 
                 row = col.row(align=True)
+                row.prop(brush, "use_relative_jitter", icon_only=True)
                 if brush.use_relative_jitter:
-                    row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
                     row.prop(brush, "jitter", slider=True)
                 else:
-                    row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
                     row.prop(brush, "jitter_absolute")
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
@@ -1083,11 +1076,10 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             col.separator()
 
             row = col.row(align=True)
+            row.prop(brush, "use_relative_jitter", icon_only=True)
             if brush.use_relative_jitter:
-                row.prop(brush, "use_relative_jitter", text="", icon='LOCKED')
                 row.prop(brush, "jitter", slider=True)
             else:
-                row.prop(brush, "use_relative_jitter", text="", icon='UNLOCKED')
                 row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 

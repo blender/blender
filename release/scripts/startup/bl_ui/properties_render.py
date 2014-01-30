@@ -74,11 +74,7 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         split.label(text="Display:")
         row = split.row(align=True)
         row.prop(rd, "display_mode", text="")
-
-        if rd.use_lock_interface:
-            row.prop(rd, "use_lock_interface", text="", icon='LOCKED')
-        else:
-            row.prop(rd, "use_lock_interface", text="", icon='UNLOCKED')
+        row.prop(rd, "use_lock_interface", icon_only=True)
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
