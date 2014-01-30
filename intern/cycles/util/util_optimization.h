@@ -19,6 +19,14 @@
 
 #ifndef __KERNEL_GPU__
 
+/* quiet unused define warnings */
+#if defined(__KERNEL_SSE2__)  || \
+	defined(__KERNEL_SSE3__)  || \
+	defined(__KERNEL_SSSE3__) || \
+	defined(__KERNEL_SSE41__)
+	/* do nothing */
+#endif
+
 /* x86
  *
  * Compile a regular, SSE2 and SSE3 kernel. */
