@@ -2951,6 +2951,15 @@ static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 		event_last->type = INBETWEEN_MOUSEMOVE;
 
 	wm_event_add(win, event);
+
+	{
+		wmEvent *event_new = win->queue.last;
+		if (event_last == NULL) {
+			event_last = win->eventstate;
+		}
+
+		copy_v2_v2_int(&event_new->prevx, &event_last->x);
+	}
 }
 
 /* windows store own event queues, no bContext here */
@@ -2968,26 +2977,24 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventCursorMove:
 		{
 			GHOST_TEventCursorData *cd = customdata;
-			
-			evt->x = cd->x;
-			evt->y = cd->y;
-			
-			event.x = evt->x;
-			event.y = evt->y;
 
+			copy_v2_v2_int(&event.x, &cd->x);
 			event.type = MOUSEMOVE;
 			wm_event_add_mousemove(win, &event);
+			copy_v2_v2_int(&evt->x, &event.x);
 			
 			/* also add to other window if event is there, this makes overdraws disappear nicely */
 			/* it remaps mousecoord to other window in event */
 			owin = wm_event_cursor_other_windows(wm, win, &event);
 			if (owin) {
-				wmEvent oevent = *(owin->eventstate);
-				
-				oevent.x = owin->eventstate->x = event.x;
-				oevent.y = owin->eventstate->y = event.y;
+				wmEvent oevent, *oevt = owin->eventstate;
+
+				oevent = *oevt;
+
+				copy_v2_v2_int(&oevent.x, &event.x);
 				oevent.type = MOUSEMOVE;
 				wm_event_add_mousemove(owin, &oevent);
+				copy_v2_v2_int(&oevt->x, &oevent.x);
 			}
 				
 			break;
