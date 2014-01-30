@@ -544,7 +544,7 @@ class IMAGE_PT_view_histogram(Panel):
 
         layout.template_histogram(sima.scopes, "histogram")
         row = layout.row(align=True)
-        row.prop(hist, "mode", icon_only=True, expand=True)
+        row.prop(hist, "mode", expand=True)
         row.prop(hist, "show_line", text="")
 
 

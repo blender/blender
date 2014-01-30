@@ -728,7 +728,7 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 	int w;
 
 	if (!name) {
-		if (ot && ot->srna)
+		if (ot && ot->srna && (flag & UI_ITEM_R_ICON_ONLY) == 0)
 			name = RNA_struct_ui_name(ot->srna);
 		else
 			name = "";
@@ -1159,8 +1159,15 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	len = (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
 	/* set name and icon */
-	if (!name)
-		name = RNA_property_ui_name(prop);
+	if (!name) {
+		if ((flag & UI_ITEM_R_ICON_ONLY) == 0) {
+			name = RNA_property_ui_name(prop);
+		}
+		else {
+			name = "";
+		}
+	}
+
 	if (icon == ICON_NONE)
 		icon = RNA_property_ui_icon(prop);
 	
