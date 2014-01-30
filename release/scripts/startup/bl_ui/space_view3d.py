@@ -59,21 +59,21 @@ class VIEW3D_HT_header(Header):
             # Proportional editing
             if mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
             elif mode == 'OBJECT':
                 row = layout.row(align=True)
-                row.prop(toolsettings, "use_proportional_edit_objects", text="", icon_only=True)
+                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
                 if toolsettings.use_proportional_edit_objects:
-                    row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
         if not obj or mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
             snap_element = toolsettings.snap_element
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap_element", icon_only=True)
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:

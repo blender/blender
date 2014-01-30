@@ -63,7 +63,7 @@ class CLIP_HT_header(Header):
             if sc.view == 'CLIP':
                 layout.prop(sc, "mode", text="")
                 layout.prop(sc, "view", text="", expand=True)
-                layout.prop(sc, "pivot_point", text="", icon_only=True)
+                layout.prop(sc, "pivot_point", icon_only=True)
 
                 r = active_object.reconstruction
 
@@ -127,14 +127,14 @@ class CLIP_HT_header(Header):
         row = layout.row()
         row.template_ID(sc, "mask", new="mask.new")
 
-        layout.prop(sc, "pivot_point", text="", icon_only=True)
+        layout.prop(sc, "pivot_point", icon_only=True)
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_proportional_edit_mask",
-                 text="", icon_only=True)
+                 icon_only=True)
         if toolsettings.use_proportional_edit_mask:
             row.prop(toolsettings, "proportional_edit_falloff",
-                     text="", icon_only=True)
+                     icon_only=True)
 
     def draw(self, context):
         layout = self.layout

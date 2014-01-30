@@ -386,7 +386,7 @@ class IMAGE_HT_header(Header):
             row.template_ID(sima, "mask", new="mask.new")
 
         if show_uvedit or show_maskedit:
-            layout.prop(sima, "pivot_point", text="", icon_only=True)
+            layout.prop(sima, "pivot_point", icon_only=True)
 
         # uv editing
         if show_uvedit:
@@ -398,16 +398,16 @@ class IMAGE_HT_header(Header):
                 layout.template_edit_mode_selection()
             else:
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
-                layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)
+                layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
+            row.prop(toolsettings, "proportional_edit", icon_only=True)
             if toolsettings.proportional_edit != 'DISABLED':
-                row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+                row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_uv_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap_uv_element", icon_only=True)
             if toolsettings.snap_uv_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
 
@@ -429,7 +429,7 @@ class IMAGE_HT_header(Header):
                 row.operator("image.play_composite", icon='PLAY')
 
         if show_uvedit or show_maskedit or mode == 'PAINT':
-            layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
+            layout.prop(sima, "use_realtime_update", icon_only=True, icon='LOCKED')
 
 
 class MASK_MT_editor_menus(Menu):
@@ -566,7 +566,7 @@ class IMAGE_PT_view_waveform(Panel):
         layout.template_waveform(sima, "scopes")
         row = layout.split(percentage=0.75)
         row.prop(sima.scopes, "waveform_alpha")
-        row.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
+        row.prop(sima.scopes, "waveform_mode", icon_only=True)
 
 
 class IMAGE_PT_view_vectorscope(Panel):

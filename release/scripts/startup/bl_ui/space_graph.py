@@ -47,7 +47,7 @@ class GRAPH_HT_header(Header):
         row.prop(st, "use_auto_normalization", text="Auto")
 
         layout.prop(st, "auto_snap", text="")
-        layout.prop(st, "pivot_point", text="", icon_only=True)
+        layout.prop(st, "pivot_point", icon_only=True)
 
         row = layout.row(align=True)
         row.operator("graph.copy", text="", icon='COPYDOWN')

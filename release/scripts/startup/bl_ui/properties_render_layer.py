@@ -64,7 +64,7 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         sub.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
-        col.prop(rd, "use_single_layer", text="", icon_only=True)
+        col.prop(rd, "use_single_layer", icon_only=True)
 
 
 class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
