@@ -353,6 +353,7 @@ PyDoc_STRVAR(M_Noise_seed_set_doc,
 "   Sets the random seed used for random_unit_vector, random_vector and random.\n"
 "\n"
 "   :arg seed: Seed used for the random generator.\n"
+"      When seed is zero, the current time will be used instead.\n"
 "   :type seed: Int\n"
 );
 static PyObject *M_Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
