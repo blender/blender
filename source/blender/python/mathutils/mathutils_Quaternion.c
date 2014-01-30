@@ -583,7 +583,7 @@ static int Quaternion_ass_item(QuaternionObject *self, int i, PyObject *ob)
 	if (scalar == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "quaternion[index] = x: "
-		                "index argument not a number");
+		                "assigned value not a number");
 		return -1;
 	}
 

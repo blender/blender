@@ -550,7 +550,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
 				if (f == -1 && PyErr_Occurred()) { // parsed key not a number
 					PyErr_SetString(PyExc_TypeError,
 					                "BMDeformVert[key] = x: "
-					                "argument not a number");
+					                "assigned value not a number");
 					return -1;
 				}
 

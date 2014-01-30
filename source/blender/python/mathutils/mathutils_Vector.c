@@ -1295,7 +1295,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "vector[index] = x: "
-		                "index argument not a number");
+		                "assigned value not a number");
 		return -1;
 	}
 
