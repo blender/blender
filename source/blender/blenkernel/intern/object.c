@@ -3144,7 +3144,7 @@ bool BKE_boundbox_ray_hit_check(struct BoundBox *bb, const float ray_start[3], c
 
 	bool result = false;
 	int i;
-	
+
 	for (i = 0; i < 12 && (!result || r_lambda); i++) {
 		float lambda;
 		int v1, v2, v3;
@@ -3160,7 +3160,7 @@ bool BKE_boundbox_ray_hit_check(struct BoundBox *bb, const float ray_start[3], c
 			}
 		}
 	}
-	
+
 	return result;
 }
 
