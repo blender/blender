@@ -576,31 +576,12 @@ void BLI_path_rel(char *file, const char *relfile)
 }
 
 /**
- * Cleans path and makes sure it ends with a slash.
- * \return  true if \a path has more than one other path separator in it.
- */
-bool BLI_has_parent(char *path)
-{
-	int len;
-	int slashes = 0;
-	BLI_clean(path);
-	len = BLI_add_slash(path) - 1;
-
-	while (len >= 0) {
-		if ((path[len] == '\\') || (path[len] == '/'))
-			slashes++;
-		len--;
-	}
-	return slashes > 1;
-}
-
-/**
  * Replaces path with the path of its parent directory, returning true if
  * it was able to find a parent directory within the pathname.
  */
 bool BLI_parent_dir(char *path)
 {
-	static char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
+	const char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
 	char tmp[FILE_MAX + 4];
 
 	BLI_join_dirfile(tmp, sizeof(tmp), path, parent_dir);

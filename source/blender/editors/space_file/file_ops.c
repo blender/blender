@@ -849,8 +849,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	
 	if (sfile->params) {
-		if (BLI_has_parent(sfile->params->dir)) {
-			BLI_parent_dir(sfile->params->dir);
+		if (BLI_parent_dir(sfile->params->dir)) {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
 			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
