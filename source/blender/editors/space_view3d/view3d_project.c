@@ -312,7 +312,6 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 	if (!r_ray_dir) r_ray_dir = _ray_dir;
 
 	ED_view3d_win_to_vector(ar, mval, r_ray_dir);
-	negate_v3(r_ray_dir);
 
 	if (rv3d->is_persp) {
 		copy_v3_v3(r_ray_co, rv3d->viewinv[3]);
@@ -558,7 +557,7 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
 		sub_v3_v3(out, rv3d->viewinv[3]);
 	}
 	else {
-		copy_v3_v3(out, rv3d->viewinv[2]);
+		negate_v3_v3(out, rv3d->viewinv[2]);
 	}
 	normalize_v3(out);
 }
