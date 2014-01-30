@@ -353,10 +353,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 							ID *id = BLO_library_append_named_part(mainl, &(self->blo_handle), item_str, idcode);
 							if (id) {
 #ifdef USE_RNA_DATABLOCKS
-								PointerRNA id_ptr;
-								RNA_id_pointer_create(id, &id_ptr);
+								/* swap name for pointer to the id */
 								Py_DECREF(item);
-								item = pyrna_struct_CreatePyObject(&id_ptr);
+								item = PyCapsule_New((void *)id, NULL, NULL);
 #endif
 							}
 							else {
@@ -416,6 +415,38 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		}
 
 		BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
+
+		/* finally swap the capsules for real bpy objects
+		 * important since BLO_library_append_end initializes NodeTree types used by srna->refine */
+		{
+			int idcode_step = 0, idcode;
+			while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
+				if (BKE_idcode_is_linkable(idcode)) {
+					const char *name_plural = BKE_idcode_to_name_plural(idcode);
+					PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
+					if (ls && PyList_Check(ls)) {
+						Py_ssize_t size = PyList_GET_SIZE(ls);
+						Py_ssize_t i;
+						PyObject *item;
+
+						for (i = 0; i < size; i++) {
+							item = PyList_GET_ITEM(ls, i);
+							if (PyCapsule_CheckExact(item)) {
+								PointerRNA id_ptr;
+								ID *id;
+
+								id = PyCapsule_GetPointer(item, NULL);
+								Py_DECREF(item);
+
+								RNA_id_pointer_create(id, &id_ptr);
+								item = pyrna_struct_CreatePyObject(&id_ptr);
+								PyList_SET_ITEM(ls, i, item);
+							}
+						}
+					}
+				}
+			}
+		}
 
 		Py_RETURN_NONE;
 	}
