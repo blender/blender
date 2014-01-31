@@ -68,13 +68,25 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self, PyObject *a
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &StrokeVertexIterator_Type, &brother))
 		return -1;
-	if (!brother)
+    if (!brother) {
 		self->sv_it = new StrokeInternal::StrokeVertexIterator();
-	else
+        self->reversed = false;
+        self->at_start = true;
+    }
+    else {
 		self->sv_it = new StrokeInternal::StrokeVertexIterator(*(((BPy_StrokeVertexIterator *)brother)->sv_it));
+        self->reversed = ((BPy_StrokeVertexIterator *)brother)->reversed;
+        self->at_start = ((BPy_StrokeVertexIterator *)brother)->at_start;
+    }
 	self->py_it.it = self->sv_it;
-	self->reversed = 0;
 	return 0;
+}
+
+static PyObject *StrokeVertexIterator_iter(BPy_StrokeVertexIterator *self)
+{
+    Py_INCREF(self);
+    self->at_start = true;
+    return (PyObject *) self;
 }
 
 static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
@@ -82,21 +94,42 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 	StrokeVertex *sv;
 
 	if (self->reversed) {
-		if (self->sv_it->isBegin()) {
-			PyErr_SetNone(PyExc_StopIteration);
-			return NULL;
-		}
-		self->sv_it->decrement();
-		sv = self->sv_it->operator->();
+        if (self->sv_it->isBegin()) {
+            PyErr_SetNone(PyExc_StopIteration);
+            return NULL;
+        }
+
+        if (self->at_start)
+            self->at_start = false;      
+        else {
+            self->sv_it->increment();
+            if (self->sv_it->isBegin()){
+                PyErr_SetNone(PyExc_StopIteration);
+                return NULL;
+            }
+        }
 	}
+
 	else {
-		if (self->sv_it->isEnd()) {
-			PyErr_SetNone(PyExc_StopIteration);
-			return NULL;
-		}
-		sv = self->sv_it->operator->();
-		self->sv_it->increment();
-	}
+        if (self->sv_it->isEnd()) {
+            PyErr_SetNone(PyExc_StopIteration);
+            return NULL;
+        }
+        /* if at the start of the iterator, only return the object
+         * and don't increment, to keep for-loops in sync */
+        if (self->at_start)
+            self->at_start = false;
+        /* after incrementing, check if the iterator is at its end
+         * exit the loop if it is. not doing so will result in a crash */
+        else {
+            self->sv_it->increment();
+            if (self->sv_it->isEnd()){
+                PyErr_SetNone(PyExc_StopIteration);
+                return NULL;
+            }
+        }
+    }
+    sv = self->sv_it->operator->();
 	return BPy_StrokeVertex_from_StrokeVertex(*sv);
 }
 
@@ -174,8 +207,8 @@ PyTypeObject StrokeVertexIterator_Type = {
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
-	0,                              /* tp_weaklistoffset */
-	PyObject_SelfIter,              /* tp_iter */
+	0,                              /* tp_weaklistoffset */      
+    (getiterfunc)StrokeVertexIterator_iter, /* tp_iter */
 	(iternextfunc)StrokeVertexIterator_iternext, /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */

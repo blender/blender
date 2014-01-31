@@ -45,6 +45,7 @@ extern PyTypeObject AdjacencyIterator_Type;
 typedef struct {
 	BPy_Iterator py_it;
 	AdjacencyIterator *a_it;
+    bool at_start;
 } BPy_AdjacencyIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
