@@ -191,7 +191,7 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 		MovieTrackingObject *object = tracking->objects.first;
 
 		while (object) {
-			if (BLI_findindex(&object->tracks, track)) {
+			if (BLI_findindex(&object->tracks, track) != -1) {
 				tracksbase = &object->tracks;
 				break;
 			}
@@ -289,7 +289,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 		MovieTrackingObject *object = tracking->objects.first;
 
 		while (object) {
-			if (BLI_findindex(&object->plane_tracks, plane_track)) {
+			if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
 				plane_tracks_base = &object->plane_tracks;
 				break;
 			}
