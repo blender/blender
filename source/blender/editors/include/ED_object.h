@@ -187,8 +187,8 @@ enum {
 
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
                                             struct Object *ob, const char *name, int type);
-int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain,
-                              struct Object *ob, struct ModifierData *md);
+bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain,
+                               struct Object *ob, struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
@@ -198,11 +198,11 @@ int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
-int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, const bool include_orig,
-                         int (*callback)(struct Object *ob, void *callback_data),
-                         void *callback_data);
+bool ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, const bool include_orig,
+                          bool (*callback)(struct Object *ob, void *callback_data),
+                          void *callback_data);
 
-int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
+bool ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
 
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);

@@ -228,7 +228,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	prop = RNA_struct_find_property(&ramp_ptr, "elements");                   \
 	if (prop) {                                                               \
 		index = RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr);   \
-		if (index >= 0) {                                                     \
+		if (index != -1) {                                                    \
 			char *texture_path = rna_ColorRamp_path(&ramp_ptr);               \
 			path = BLI_sprintfN("%s.elements[%d]", texture_path, index);      \
 			MEM_freeN(texture_path);                                          \

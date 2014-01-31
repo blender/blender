@@ -178,13 +178,13 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 struct FModifier *add_fmodifier(ListBase *modifiers, int type);
 struct FModifier *copy_fmodifier(struct FModifier *src);
 void copy_fmodifiers(ListBase *dst, ListBase *src);
-int remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
+bool remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 void free_fmodifiers(ListBase *modifiers);
 
 struct FModifier *find_active_fmodifier(ListBase *modifiers);
 void set_active_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 
-short list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
+bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
 
 FModifierStackStorage *evaluate_fmodifiers_storage_new(ListBase *modifiers);
 void evaluate_fmodifiers_storage_free(FModifierStackStorage *storage);

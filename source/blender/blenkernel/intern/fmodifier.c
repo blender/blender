@@ -1165,7 +1165,7 @@ void copy_fmodifiers(ListBase *dst, ListBase *src)
 }
 
 /* Remove and free the given F-Modifier from the given stack  */
-int remove_fmodifier(ListBase *modifiers, FModifier *fcm)
+bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 	
@@ -1252,7 +1252,7 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
  *	- mtype - type of modifier (if 0, doesn't matter)
  *	- acttype - type of action to perform (if -1, doesn't matter)
  */
-short list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
+bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 {
 	FModifier *fcm;
 	

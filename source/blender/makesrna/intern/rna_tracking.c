@@ -148,7 +148,7 @@ static void rna_tracking_active_track_set(PointerRNA *ptr, PointerRNA value)
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	int index = BLI_findindex(tracksbase, track);
 
-	if (index >= 0)
+	if (index != -1)
 		clip->tracking.act_track = track;
 	else
 		clip->tracking.act_track = NULL;
@@ -169,7 +169,7 @@ static void rna_tracking_active_plane_track_set(PointerRNA *ptr, PointerRNA valu
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
 	int index = BLI_findindex(plane_tracks_base, plane_track);
 
-	if (index >= 0)
+	if (index != -1)
 		clip->tracking.act_plane_track = plane_track;
 	else
 		clip->tracking.act_plane_track = NULL;
@@ -187,7 +187,7 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	/* TODO: it's a bit difficult to find list track came from knowing just
 	 *       movie clip ID and MovieTracking structure, so keep this naive
 	 *       search for a while */
-	if (BLI_findindex(tracksbase, track) < 0) {
+	if (BLI_findindex(tracksbase, track) == -1) {
 		MovieTrackingObject *object = tracking->objects.first;
 
 		while (object) {
@@ -285,7 +285,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 	/* TODO: it's a bit difficult to find list track came from knowing just
 	 *       movie clip ID and MovieTracking structure, so keep this naive
 	 *       search for a while */
-	if (BLI_findindex(plane_tracks_base, plane_track) < 0) {
+	if (BLI_findindex(plane_tracks_base, plane_track) == -1) {
 		MovieTrackingObject *object = tracking->objects.first;
 
 		while (object) {
@@ -441,7 +441,7 @@ static void rna_tracking_active_object_set(PointerRNA *ptr, PointerRNA value)
 	MovieTrackingObject *object = (MovieTrackingObject *)value.data;
 	int index = BLI_findindex(&clip->tracking.objects, object);
 
-	if (index >= 0) clip->tracking.objectnr = index;
+	if (index != -1) clip->tracking.objectnr = index;
 	else clip->tracking.objectnr = 0;
 }
 

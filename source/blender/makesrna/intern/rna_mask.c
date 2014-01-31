@@ -232,7 +232,7 @@ static void rna_MaskLayer_active_spline_set(PointerRNA *ptr, PointerRNA value)
 	MaskSpline *spline = (MaskSpline *)value.data;
 	int index = BLI_findindex(&masklay->splines, spline);
 
-	if (index >= 0)
+	if (index != -1)
 		masklay->act_spline = spline;
 	else
 		masklay->act_spline = NULL;

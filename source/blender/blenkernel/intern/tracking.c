@@ -769,7 +769,7 @@ MovieTrackingTrack *BKE_tracking_track_get_active(MovieTracking *tracking)
 	tracksbase = BKE_tracking_get_active_tracks(tracking);
 
 	/* check that active track is in current tracks list */
-	if (BLI_findindex(tracksbase, tracking->act_track) >= 0)
+	if (BLI_findindex(tracksbase, tracking->act_track) != -1)
 		return tracking->act_track;
 
 	return NULL;
@@ -1284,7 +1284,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_get_active(struct MovieTrackin
 	plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 
 	/* Check that active track is in current plane tracks list */
-	if (BLI_findindex(plane_tracks_base, tracking->act_plane_track) >= 0) {
+	if (BLI_findindex(plane_tracks_base, tracking->act_plane_track) != -1) {
 		return tracking->act_plane_track;
 	}
 

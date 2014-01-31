@@ -1251,16 +1251,17 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
 	/* get the deform group number, exit if
 	 * it can't be found
 	 */
-	if (def_nr < 0) return;
+	if (def_nr != -1) {
 
-	/* if there's no deform verts then create some,
-	 */
-	if (ED_vgroup_array_get(ob->data, &dv, &tot) && dv == NULL)
-		ED_vgroup_data_create(ob->data);
+		/* if there's no deform verts then create some,
+		 */
+		if (ED_vgroup_array_get(ob->data, &dv, &tot) && dv == NULL)
+			ED_vgroup_data_create(ob->data);
 
-	/* call another function to do the work
-	 */
-	ED_vgroup_nr_vert_add(ob, def_nr, vertnum, weight, assignmode);
+		/* call another function to do the work
+		 */
+		ED_vgroup_nr_vert_add(ob, def_nr, vertnum, weight, assignmode);
+	}
 }
 
 /* mesh object mode, lattice can be in editmode */
@@ -2778,7 +2779,7 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	int dvert_tot = 0;
 	const int def_nr = BLI_findindex(&ob->defbase, dg);
 
-	assert(def_nr > -1);
+	BLI_assert(def_nr != -1);
 
 	ED_vgroup_array_get(ob->data, &dvert_array, &dvert_tot);
 
@@ -2908,7 +2909,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 	int i;
 	const int dg_index = BLI_findindex(&ob->defbase, dg);
 
-	assert(dg_index > -1);
+	BLI_assert(dg_index != -1);
 
 	/* Make sure that no verts are using this group */
 	if (vgroup_active_remove_verts(ob, true, dg) == false) {

@@ -1557,7 +1557,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 	BLI_SMALLSTACK_DECLARE(pt_stack, PanelType *);
 
-	if (contextnr >= 0)
+	if (contextnr != -1)
 		is_context_new = UI_view2d_tab_set(v2d, contextnr);
 	
 	/* before setting the view */

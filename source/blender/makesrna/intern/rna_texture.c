@@ -304,8 +304,9 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
 			if (prop) {
 				int index = RNA_property_collection_lookup_index(&id_ptr, prop, ptr);
 
-				if (index >= 0)
+				if (index != -1) {
 					return BLI_sprintfN("texture_slots[%d]", index);
+				}
 			}
 		}
 	}

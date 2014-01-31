@@ -177,8 +177,8 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 
 /* Return TRUE if the object has a modifier of type 'type' other than
  * the modifier pointed to be 'exclude', otherwise returns FALSE. */
-static int object_has_modifier(const Object *ob, const ModifierData *exclude,
-                               ModifierType type)
+static bool object_has_modifier(const Object *ob, const ModifierData *exclude,
+                                ModifierType type)
 {
 	ModifierData *md;
 
@@ -198,9 +198,9 @@ static int object_has_modifier(const Object *ob, const ModifierData *exclude,
  * If the callback ever returns TRUE, iteration will stop and the
  * function value will be TRUE. Otherwise the function returns FALSE.
  */
-int ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
-                         int (*callback)(Object *ob, void *callback_data),
-                         void *callback_data)
+bool ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
+                          bool (*callback)(Object *ob, void *callback_data),
+                          void *callback_data)
 {
 	ID *ob_data_id = orig_ob->data;
 	int users = ob_data_id->us;
@@ -233,7 +233,7 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
 	return FALSE;
 }
 
-static int object_has_modifier_cb(Object *ob, void *data)
+static bool object_has_modifier_cb(Object *ob, void *data)
 {
 	ModifierType type = *((ModifierType *)data);
 
@@ -243,7 +243,7 @@ static int object_has_modifier_cb(Object *ob, void *data)
 /* Use with ED_object_iter_other(). Sets the total number of levels
  * for any multires modifiers on the object to the int pointed to by
  * callback_data. */
-int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
+bool ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
 	int totlevel = *((int *)totlevel_v);
@@ -258,17 +258,17 @@ int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 }
 
 /* Return TRUE if no modifier of type 'type' other than 'exclude' */
-static int object_modifier_safe_to_delete(Main *bmain, Object *ob,
-                                          ModifierData *exclude,
-                                          ModifierType type)
+static bool object_modifier_safe_to_delete(Main *bmain, Object *ob,
+                                           ModifierData *exclude,
+                                           ModifierType type)
 {
 	return (!object_has_modifier(ob, exclude, type) &&
 	        !ED_object_iter_other(bmain, ob, FALSE,
 	                              object_has_modifier_cb, &type));
 }
 
-static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
-                                  int *sort_depsgraph)
+static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
+                                   bool *r_sort_depsgraph)
 {
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
@@ -296,10 +296,10 @@ static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 		if (ob->pd)
 			ob->pd->deflect = 0;
 
-		*sort_depsgraph = 1;
+		*r_sort_depsgraph = true;
 	}
 	else if (md->type == eModifierType_Surface) {
-		*sort_depsgraph = 1;
+		*r_sort_depsgraph = true;
 	}
 	else if (md->type == eModifierType_Multires) {
 		/* Delete MDisps layer if not used by another multires modifier */
@@ -324,10 +324,10 @@ static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	return 1;
 }
 
-int ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, ModifierData *md)
+bool ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, ModifierData *md)
 {
-	int sort_depsgraph = 0;
-	int ok;
+	bool sort_depsgraph = false;
+	bool ok;
 
 	ok = object_modifier_remove(bmain, ob, md, &sort_depsgraph);
 
@@ -345,7 +345,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, Modi
 void ED_object_modifier_clear(Main *bmain, Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
-	int sort_depsgraph = 0;
+	bool sort_depsgraph = false;
 
 	if (!md)
 		return;

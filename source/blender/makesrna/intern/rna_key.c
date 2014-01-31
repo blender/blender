@@ -171,7 +171,7 @@ int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
 
 	if (key) {
 		int a = BLI_findindex(&key->block, value.data);
-		if (a >= 0) return a;
+		if (a != -1) return a;
 	}
 	
 	return current;

@@ -2232,7 +2232,7 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	/* detect CrazySpace [tm] */
-	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) >= 0) {
+	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) != -1) {
 		int totleft = -1;
 		if (modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
