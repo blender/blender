@@ -648,6 +648,12 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 			//Add the curves of the current animation to the object
 			for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 				FCurve *fcu = *iter;
+				/* All anim_types whose values are to be converted from Degree to Radians can be ORed here
+				 *XXX What About " rotation " ? */
+				if (BLI_strcaseeq("spot_size", anim_type))	{
+						/* Convert current values to Radians */
+						fcurve_deg_to_rad(fcu);
+				}
 				BLI_addtail(AnimCurves, fcu);
 			}
 		}

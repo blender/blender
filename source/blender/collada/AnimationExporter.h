@@ -140,7 +140,7 @@ protected:
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 	                           COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);
 	
-	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool is_rotation, float *values, int *length);
+	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool is_angle, float *values, int *length);
 	
 	float* get_eul_source_for_quat(Object *ob );
 
