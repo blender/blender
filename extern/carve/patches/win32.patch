@@ -1,7 +1,7 @@
 diff -r e82d852e4fb0 include/carve/win32.h
 --- a/include/carve/win32.h	Wed Jan 15 13:16:14 2014 +1100
-+++ b/include/carve/win32.h	Tue Jan 28 01:35:54 2014 +0600
-@@ -32,14 +32,22 @@
++++ b/include/carve/win32.h	Fri Jan 31 15:32:01 2014 +0600
+@@ -32,17 +32,27 @@
  
  #  if _MSC_VER < 1600
  // stdint.h is not available before VS2010
@@ -23,10 +23,15 @@ diff -r e82d852e4fb0 include/carve/win32.h
 +typedef unsigned __int8  uint8_t;
 +typedef unsigned __int16 uint16_t;
 +typedef unsigned __int32 uint32_t;
-+
-+#  include <BaseTsd.h>
-+typedef SSIZE_T ssize_t;
 +#endif
  typedef __int64 int64_t;
  typedef unsigned __int64 uint64_t;
  #  else
+ #    include <stdint.h>
+ #  endif
+ #endif
++
++#if defined(_MSC_VER)
++#  include <BaseTsd.h>
++typedef SSIZE_T ssize_t;
++#endif
