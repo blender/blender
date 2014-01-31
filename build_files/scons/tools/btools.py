@@ -63,19 +63,8 @@ def get_hash():
     return build_hash
 
 
-# copied from: http://www.scons.org/wiki/AutoconfRecipes
 def checkEndian():
-    import struct
-    array = struct.pack('cccc', '\x01', '\x02', '\x03', '\x04')
-    i = struct.unpack('i', array)
-    # Little Endian
-    if i == struct.unpack('<i', array):
-        return "little"
-    # Big Endian
-    elif i == struct.unpack('>i', array):
-        return "big"
-    else:
-        raise Exception("cant find endian")
+    return sys.byteorder
 
 
 # This is used in creating the local config directories
