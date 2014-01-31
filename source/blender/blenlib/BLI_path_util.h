@@ -117,7 +117,7 @@ bool BLI_testextensie_array(const char *str, const char **ext_array) ATTR_NONNUL
 bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_replace_extension(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
-bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
 void BLI_uniquename(struct ListBase *list, void *vlink, const char *defname, char delim, int name_offs, int len);
 bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
                        void *arg, const char *defname, char delim, char *name, int name_len);
@@ -157,14 +157,14 @@ bool BLI_parent_dir(char *path) ATTR_NONNULL();
  * \a framenum The framenumber to replace the frame code with.
  * \retval Returns true if the path was relative (started with "//").
  */
-bool BLI_path_abs(char *path, const char *basepath);
-bool BLI_path_frame(char *path, int frame, int digits);
-bool BLI_path_frame_range(char *path, int sta, int end, int digits);
-bool BLI_path_frame_check_chars(const char *path);
-bool BLI_path_cwd(char *path);
-void BLI_path_rel(char *file, const char *relfile);
+bool BLI_path_abs(char *path, const char *basepath)  ATTR_NONNULL();
+bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
+bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL();
+bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL();
+bool BLI_path_cwd(char *path) ATTR_NONNULL();
+void BLI_path_rel(char *file, const char *relfile) ATTR_NONNULL();
 
-bool BLI_path_is_rel(const char *path);
+bool BLI_path_is_rel(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 /* path string comparisons: case-insensitive for Windows, case-sensitive otherwise */
 #if defined(WIN32)

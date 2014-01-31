@@ -81,9 +81,6 @@
 
 #include "filelist.h"
 
-/* max length of library group name within filesel */
-#define GROUP_MAX 32
-
 struct FileList;
 
 typedef struct FileImage {
@@ -344,7 +341,7 @@ static bool is_filtered_file(struct direntry *file, const char *UNUSED(dir), uns
 static bool is_filtered_lib(struct direntry *file, const char *dir, unsigned int filter, short hide_dot)
 {
 	bool is_filtered = false;
-	char tdir[FILE_MAX], tgroup[GROUP_MAX];
+	char tdir[FILE_MAX], tgroup[BLO_GROUP_MAX];
 	if (BLO_is_a_library(dir, tdir, tgroup)) {
 		is_filtered = !is_hidden_file(file->relname, hide_dot);
 	}
@@ -1055,7 +1052,7 @@ void filelist_from_library(struct FileList *filelist)
 	struct ImBuf *ima;
 	int ok, i, nprevs, nnames, idcode;
 	char filename[FILE_MAX];
-	char dir[FILE_MAX], group[GROUP_MAX];
+	char dir[FILE_MAX], group[BLO_GROUP_MAX];
 	
 	/* name test */
 	ok = filelist_islibrary(filelist, dir, group);

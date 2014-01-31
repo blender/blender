@@ -2400,7 +2400,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	Main *mainl = NULL;
 	BlendHandle *bh;
 	PropertyRNA *prop;
-	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];
+	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[BLO_GROUP_MAX];
 	int idcode, totfiles = 0;
 	short flag;
 
