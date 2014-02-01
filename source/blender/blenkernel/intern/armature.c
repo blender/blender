@@ -431,21 +431,17 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1 = 0.0f, roll2;
 	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
 	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
-	int a, do_scale = 0;
+	int a;
+	bool do_scale = false;
 
 	length = bone->length;
 
 	if (!rest) {
 		/* check if we need to take non-uniform bone scaling into account */
-		scale[0] = len_v3(pchan->pose_mat[0]);
-		scale[1] = len_v3(pchan->pose_mat[1]);
-		scale[2] = len_v3(pchan->pose_mat[2]);
+		mat4_to_size(scale, pchan->pose_mat);
 
 		if (fabsf(scale[0] - scale[1]) > 1e-6f || fabsf(scale[1] - scale[2]) > 1e-6f) {
-			unit_m4(scalemat);
-			scalemat[0][0] = scale[0];
-			scalemat[1][1] = scale[1];
-			scalemat[2][2] = scale[2];
+			size_to_mat4(scalemat, scale);
 			invert_m4_m4(iscalemat, scalemat);
 
 			length *= scale[1];
