@@ -60,25 +60,25 @@ static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self, PyO
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother))
 		return -1;
-    if (!brother) {
+	if (!brother) {
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
-        self->at_start = true;
-        self->reversed = false;
-    }
-    else {
+		self->at_start = true;
+		self->reversed = false;
+	}
+	else {
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*(((BPy_orientedViewEdgeIterator *)brother)->ove_it));
-        self->at_start = ((BPy_orientedViewEdgeIterator *)brother)->at_start;
-        self->reversed = ((BPy_orientedViewEdgeIterator *)brother)->reversed;
-    }
-    self->py_it.it = self->ove_it;
+		self->at_start = ((BPy_orientedViewEdgeIterator *)brother)->at_start;
+		self->reversed = ((BPy_orientedViewEdgeIterator *)brother)->reversed;
+	}
+	self->py_it.it = self->ove_it;
 	return 0;
 }
 
 static PyObject *orientedViewEdgeIterator_iter(BPy_orientedViewEdgeIterator *self)
 {
-    Py_INCREF(self);
-    self->at_start = true;
-    return (PyObject *) self;
+	Py_INCREF(self);
+	self->at_start = true;
+	return (PyObject *) self;
 }
 
 static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator *self)
@@ -88,33 +88,33 @@ static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator 
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-        if (self->at_start)
-            self->at_start = false;
-        else {
-            self->ove_it->decrement();
-            if (self->ove_it->isBegin()) {
-                PyErr_SetNone(PyExc_StopIteration);
-                return NULL;
-            }
-        }
+		if (self->at_start)
+			self->at_start = false;
+		else {
+			self->ove_it->decrement();
+			if (self->ove_it->isBegin()) {
+				PyErr_SetNone(PyExc_StopIteration);
+				return NULL;
+			}
+		}
 	}
 	else {
 		if (self->ove_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-        if (self->at_start)
-            self->at_start = false;
-        else {
-            self->ove_it->increment();
-            if (self->ove_it->isEnd()) {
-                PyErr_SetNone(PyExc_StopIteration);
-                return NULL;
-            }
-        }
+		if (self->at_start)
+			self->at_start = false;
+		else {
+			self->ove_it->increment();
+			if (self->ove_it->isEnd()) {
+				PyErr_SetNone(PyExc_StopIteration);
+				return NULL;
+			}
+		}
 	}
-    ViewVertex::directedViewEdge *dve = self->ove_it->operator->();
-    return BPy_directedViewEdge_from_directedViewEdge(*dve);
+	ViewVertex::directedViewEdge *dve = self->ove_it->operator->();
+	return BPy_directedViewEdge_from_directedViewEdge(*dve);
 }
 
 /*----------------------orientedViewEdgeIterator get/setters ----------------------------*/
@@ -169,7 +169,7 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
 	0,                              /* tp_weaklistoffset */
-    (getiterfunc)orientedViewEdgeIterator_iter, /* tp_iter */
+	(getiterfunc)orientedViewEdgeIterator_iter, /* tp_iter */
 	(iternextfunc)orientedViewEdgeIterator_iternext, /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */

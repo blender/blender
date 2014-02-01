@@ -45,8 +45,8 @@ extern PyTypeObject Interface0DIterator_Type;
 typedef struct {
 	BPy_Iterator py_it;
 	Interface0DIterator *if0D_it;
-    bool reversed;
-    bool at_start;
+	bool reversed;
+	bool at_start;
 } BPy_Interface0DIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

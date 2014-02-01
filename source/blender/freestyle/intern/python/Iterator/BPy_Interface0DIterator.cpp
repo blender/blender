@@ -76,15 +76,15 @@ static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *arg
 
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "O&", (char **)kwlist_1, convert_nested_it, &nested_it)) {
 		self->if0D_it = new Interface0DIterator(nested_it->copy());
-        self->at_start = true;
-        self->reversed = false;
+		self->at_start = true;
+		self->reversed = false;
 	}
 	else if (PyErr_Clear(),
 	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Interface0DIterator_Type, &brother))
 	{
 		self->if0D_it = new Interface0DIterator(*(((BPy_Interface0DIterator *)brother)->if0D_it));
-        self->at_start = ((BPy_Interface0DIterator *)brother)->at_start;
-        self->reversed = ((BPy_Interface0DIterator *)brother)->reversed;
+		self->at_start = ((BPy_Interface0DIterator *)brother)->at_start;
+		self->reversed = ((BPy_Interface0DIterator *)brother)->reversed;
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -96,9 +96,9 @@ static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *arg
 
 static PyObject *Interface0DIterator_iter(BPy_Interface0DIterator *self)
 {
-    Py_INCREF(self);
-    self->at_start = true;
-    return (PyObject *) self;
+	Py_INCREF(self);
+	self->at_start = true;
+	return (PyObject *) self;
 }
 
 static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
@@ -108,34 +108,32 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-
-        if (self->at_start)
-            self->at_start = false;
-        else {
-            self->if0D_it->decrement();
-            if (self->if0D_it->isBegin()) {
-                PyErr_SetNone(PyExc_StopIteration);
-                return NULL;
-            }
-        }
-
+		if (self->at_start)
+			self->at_start = false;
+		else {
+			self->if0D_it->decrement();
+			if (self->if0D_it->isBegin()) {
+				PyErr_SetNone(PyExc_StopIteration);
+				return NULL;
+			}
+		}
 	}
 	else {
 		if (self->if0D_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-        if (self->at_start)
-            self->at_start = false;
-        else {
-            self->if0D_it->increment();
-            if (self->if0D_it->isEnd()) {
-                PyErr_SetNone(PyExc_StopIteration);
-                return NULL;
-            }
-        }
-    }
-    Interface0D *if0D = self->if0D_it->operator->();
+		if (self->at_start)
+			self->at_start = false;
+		else {
+			self->if0D_it->increment();
+			if (self->if0D_it->isEnd()) {
+				PyErr_SetNone(PyExc_StopIteration);
+				return NULL;
+			}
+		}
+	}
+	Interface0D *if0D = self->if0D_it->operator->();
 	return Any_BPy_Interface0D_from_Interface0D(*if0D);
 }
 
@@ -211,7 +209,7 @@ PyTypeObject Interface0DIterator_Type = {
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
 	0,                              /* tp_weaklistoffset */
-    (getiterfunc)Interface0DIterator_iter, /* tp_iter */
+	(getiterfunc)Interface0DIterator_iter, /* tp_iter */
 	(iternextfunc)Interface0DIterator_iternext, /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */

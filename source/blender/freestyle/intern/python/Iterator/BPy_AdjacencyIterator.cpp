@@ -74,14 +74,14 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
 
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1)) {
-        if (!obj1) {
+		if (!obj1) {
 			self->a_it = new AdjacencyIterator();
-            self->at_start = true;
-        }
-        else {
+			self->at_start = true;
+		}
+		else {
 			self->a_it = new AdjacencyIterator(*(((BPy_AdjacencyIterator *)obj1)->a_it));
-            self->at_start = ((BPy_AdjacencyIterator *)obj1)->at_start;
-        }
+			self->at_start = ((BPy_AdjacencyIterator *)obj1)->at_start;
+		}
 	}
 	else if (PyErr_Clear(), (obj2 = obj3 = 0),
 	         PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!O!", (char **)kwlist_2,
@@ -90,7 +90,7 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
 		bool restrictToSelection = (!obj2) ? true : bool_from_PyBool(obj2);
 		bool restrictToUnvisited = (!obj3) ? true : bool_from_PyBool(obj3);
 		self->a_it = new AdjacencyIterator(((BPy_ViewVertex *)obj1)->vv, restrictToSelection, restrictToUnvisited);
-        self->at_start = ((BPy_AdjacencyIterator *)obj1)->at_start;
+		self->at_start = ((BPy_AdjacencyIterator *)obj1)->at_start;
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -114,17 +114,17 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 		return NULL;
 	}
 
-    if (self->at_start)
-        self->at_start = false;
-    else {
-        self->a_it->increment();
-        if (self->a_it->isEnd()){
-            PyErr_SetNone(PyExc_StopIteration);
-            return NULL;
-        }
-    }
-    ViewEdge *ve = self->a_it->operator->();
-    return BPy_ViewEdge_from_ViewEdge(*ve);
+	if (self->at_start)
+		self->at_start = false;
+	else {
+		self->a_it->increment();
+		if (self->a_it->isEnd()){
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+	}
+	ViewEdge *ve = self->a_it->operator->();
+	return BPy_ViewEdge_from_ViewEdge(*ve);
 }
 
 /*----------------------AdjacencyIterator get/setters ----------------------------*/
@@ -196,7 +196,7 @@ PyTypeObject AdjacencyIterator_Type = {
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
 	0,                              /* tp_weaklistoffset */
-    (getiterfunc)AdjacencyIterator_iter, /* tp_iter */
+	(getiterfunc)AdjacencyIterator_iter, /* tp_iter */
 	(iternextfunc)AdjacencyIterator_iternext, /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */
