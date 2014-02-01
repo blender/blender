@@ -973,7 +973,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 					copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
 
 					/* Rotate about the relative up vec */
-					axis_angle_to_quat(tmp_quat, upvec, x);
+					axis_angle_normalized_to_quat(tmp_quat, upvec, x);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 				}
 			}

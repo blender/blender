@@ -677,19 +677,22 @@ void print_qt(const char *str, const float q[4])
 
 /******************************** Axis Angle *********************************/
 
-/* Axis angle to Quaternions */
+void axis_angle_normalized_to_quat(float q[4], const float axis[3], const float angle)
+{
+	const float phi = 0.5f * angle;
+	const float si = sinf(phi);
+	const float co = cosf(phi);
+	BLI_ASSERT_UNIT_V3(axis);
+	q[0] = co;
+	mul_v3_v3fl(q + 1, axis, si);
+}
+
 void axis_angle_to_quat(float q[4], const float axis[3], const float angle)
 {
 	float nor[3];
 
 	if (LIKELY(normalize_v3_v3(nor, axis) != 0.0f)) {
-		const float phi = angle / 2.0f;
-		float si;
-		si   = sinf(phi);
-		q[0] = cosf(phi);
-		q[1] = nor[0] * si;
-		q[2] = nor[1] * si;
-		q[3] = nor[2] * si;
+		axis_angle_normalized_to_quat(q, nor, angle);
 	}
 	else {
 		unit_qt(q);

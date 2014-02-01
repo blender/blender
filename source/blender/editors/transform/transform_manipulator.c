@@ -162,7 +162,7 @@ static void stats_editbone(RegionView3D *rv3d, EditBone *ebo)
 }
 
 /* could move into BLI_math however this is only useful for display/editing purposes */
-static void axis_angle_to_gimbal_axis(float gmat[3][3], float axis[3], float angle)
+static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
 {
 	/* X/Y are arbitrary axies, most importantly Z is the axis of rotation */
 

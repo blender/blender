@@ -834,7 +834,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		}
 
 		/* Perform the orbital rotation */
-		axis_angle_to_quat(q1, zvec_global, sensitivity * vod->reverse * (x - vod->oldx));
+		axis_angle_normalized_to_quat(q1, zvec_global, sensitivity * vod->reverse * (x - vod->oldx));
 		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
@@ -3562,7 +3562,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				}
 
 				/* z-axis */
-				axis_angle_to_quat(quat_mul, zvec, angle);
+				axis_angle_normalized_to_quat(quat_mul, zvec, angle);
 			}
 			else {
 
@@ -3615,7 +3615,7 @@ static void view_roll_angle(ARegion *ar, float quat[4], const float orig_quat[4]
 	float quat_mul[4];
 
 	/* camera axis */
-	axis_angle_to_quat(quat_mul, dvec, angle);
+	axis_angle_normalized_to_quat(quat_mul, dvec, angle);
 
 	mul_qt_qtqt(quat, orig_quat, quat_mul);
 	rv3d->view = RV3D_VIEW_USER;
