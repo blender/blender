@@ -260,22 +260,22 @@ ccl_device_noinline float perlin(float x, float y, float z)
 	__m128 uvw = fade_sse(&fxyz);
 	__m128 u = broadcast<0>(uvw), v = broadcast<1>(uvw), w = broadcast<2>(uvw);
 
-	__m128i ci[] = {_mm_setr_epi32(1, 1, 1, 1), _mm_setr_epi32(0, 0, 1, 1), _mm_setr_epi32(0, 1, 0, 1)};
-	__m128i vp[] = {broadcast<0>(XYZ), broadcast<1>(XYZ), broadcast<2>(XYZ)};
-	__m128i vd[] = {_mm_add_epi32(vp[0], ci[0]), _mm_add_epi32(vp[1], ci[1]), _mm_add_epi32(vp[2], ci[2])};
+	__m128i XYZ_ofc = _mm_add_epi32(XYZ, _mm_set1_epi32(1));
+	__m128i vdy = shuffle<1, 1, 1, 1>(XYZ, XYZ_ofc);                      // +0, +0, +1, +1
+	__m128i vdz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZ, XYZ_ofc)); // +0, +1, +0, +1
 
-	__m128i h1 = hash_sse(vp[0], vd[1], vd[2]);    // hash directions 000, 001, 010, 011 (vp[0] is not a typo, because vp[0]+0 == vp[0])
-	__m128i h2 = hash_sse(vd[0], vd[1], vd[2]);    // hash directions 100, 101, 110, 111
+	__m128i h1 = hash_sse(broadcast<0>(XYZ),     vdy, vdz);               // hash directions 000, 001, 010, 011
+	__m128i h2 = hash_sse(broadcast<0>(XYZ_ofc), vdy, vdz);               // hash directions 100, 101, 110, 111
 
-	__m128 cf[] = {_mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f), _mm_setr_ps(0.0f, 0.0f, 1.0f, 1.0f), _mm_setr_ps(0.0f, 1.0f, 0.0f, 1.0f)};
-	__m128 vf[] = {broadcast<0>(fxyz), broadcast<1>(fxyz),  broadcast<2>(fxyz)};
-	__m128 vfd[] = {_mm_sub_ps(vf[0], cf[0]), _mm_sub_ps(vf[1], cf[1]), _mm_sub_ps(vf[2], cf[2])};
+	__m128 fxyz_ofc = _mm_sub_ps(fxyz, _mm_set1_ps(1.0f));
+	__m128 vfy = shuffle<1, 1, 1, 1>(fxyz, fxyz_ofc);
+	__m128 vfz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyz, fxyz_ofc));
 
-	__m128 g1 = grad_sse(h1, vf[0],  vfd[1], vfd[2]); // vf is not a typo (same as above)
-	__m128 g2 = grad_sse(h2, vfd[0], vfd[1], vfd[2]);
+	__m128 g1 = grad_sse(h1, broadcast<0>(fxyz),     vfy, vfz);
+	__m128 g2 = grad_sse(h2, broadcast<0>(fxyz_ofc), vfy, vfz);
 	__m128 n1 = nerp_sse(u, g1, g2);
 
-	__m128 n1_half = _mm_movehl_ps(n1, n1);        // extract 2 floats to a separate vector
+	__m128 n1_half = shuffle<2, 3, 2, 3>(n1);      // extract 2 floats to a separate vector
 	__m128 n2 = nerp_sse(v, n1, n1_half);          // process nerp([a, b, _, _], [c, d, _, _]) -> [a', b', _, _]
 
 	__m128 n2_second = broadcast<1>(n2);           // extract b to a separate vector

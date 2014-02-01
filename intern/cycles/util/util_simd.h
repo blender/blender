@@ -79,9 +79,24 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
 
+template<> __forceinline const __m128 shuffle<0, 1, 0, 1>(const __m128& a)
+{
+	return _mm_movelh_ps(a, a);
+}
+
+template<> __forceinline const __m128 shuffle<2, 3, 2, 3>(const __m128& a)
+{
+	return _mm_movehl_ps(a, a);
+}
+
 template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128i shuffle(const __m128i& a)
 {
 	return _mm_shuffle_epi32(a, _MM_SHUFFLE(i3, i2, i1, i0));
+}
+
+template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128i shuffle(const __m128i& a, const __m128i& b)
+{
+	return _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
 
 /* Blend 2 vectors based on mask: (a[i] & mask[i]) | (b[i] & ~mask[i]) */
