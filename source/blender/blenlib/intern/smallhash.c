@@ -38,7 +38,9 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 
 #include "BLI_smallhash.h"
 
@@ -70,7 +72,8 @@ extern const unsigned int hashsizes[];
  */
 BLI_INLINE bool smallhash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
 {
-	return nentries * 3 > nbuckets;
+	/* (approx * 1.5) */
+	return (nentries + (nentries >> 1)) > nbuckets;
 }
 
 BLI_INLINE void smallhash_init_empty(SmallHash *sh)
@@ -127,12 +130,15 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const unsigned int nbuck
 {
 	SmallHashEntry *buckets_old = sh->buckets;
 	const unsigned int nbuckets_old = sh->nbuckets;
+	const bool was_alloc = (buckets_old != sh->buckets_stack);
 	unsigned int i = 0;
 
 	BLI_assert(sh->nbuckets != nbuckets);
+	if (nbuckets <= SMSTACKSIZE) {
+		const size_t size = sizeof(*buckets_old) * nbuckets_old;
+		buckets_old = alloca(size);
+		memcpy(buckets_old, sh->buckets, size);
 
-	if (buckets_old == sh->buckets_stack && nbuckets <= SMSTACKSIZE) {
-		SWAP(SmallHashEntry *, sh->buckets_stack, sh->buckets_copy);
 		sh->buckets = sh->buckets_stack;
 	}
 	else {
@@ -151,7 +157,7 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const unsigned int nbuck
 		}
 	}
 
-	if (buckets_old != sh->buckets_stack && buckets_old != sh->buckets_copy) {
+	if (was_alloc) {
 		MEM_freeN(buckets_old);
 	}
 }
@@ -164,9 +170,7 @@ void BLI_smallhash_init(SmallHash *sh)
 	sh->cursize = 2;
 	sh->nbuckets = hashsizes[sh->cursize];
 
-	sh->buckets         = sh->_buckets_stack;
-	sh->buckets_copy    = sh->_buckets_copy;
-	sh->buckets_stack   = sh->_buckets_stack;
+	sh->buckets         = sh->buckets_stack;
 
 	smallhash_init_empty(sh);
 }
