@@ -546,10 +546,11 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 
 		next = (i + 1) % 4;
 
-		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
+		cur_len = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
 		len = min_ff(cur_len, len);
 	}
+	len = sqrtf(len);
 
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
@@ -913,7 +914,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 					sub_v2_v2(start, data->old_pos);
 
-					if (len_v2(start) > 0.0f) {
+					if (len_squared_v2(start) != 0.0f) {
 						float mval[2];
 
 						if (data->accurate) {
@@ -986,7 +987,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &end[0], &end[1]);
 					sub_v2_v2(end, data->old_pos);
 
-					if (len_v2(start) > 0.0f) {
+					if (len_squared_v2(start) != 0.0f) {
 						scale = len_v2(end) / len_v2(start);
 
 						if (scale < 0.0f) {
@@ -2207,7 +2208,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 		sub_v3_v3(vec, obmat[3]);
 	}
 
-	if (len_v2(vec) < 1e-3f)
+	if (len_squared_v2(vec) < (1e-3f * 1e-3f))
 		return;
 
 	unit_m4(mat);

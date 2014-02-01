@@ -66,13 +66,13 @@ void MASK_OT_normals_make_consistent(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
 
-int ED_mask_feather_find_nearest(
-        const struct bContext *C, struct Mask *mask, float normal_co[2], int threshold,
+bool ED_mask_feather_find_nearest(
+        const struct bContext *C, struct Mask *mask, const float normal_co[2], const float threshold,
         struct MaskLayer **masklay_r, struct MaskSpline **spline_r, struct MaskSplinePoint **point_r,
         struct MaskSplinePointUW **uw_r, float *score);
 
 struct MaskSplinePoint *ED_mask_point_find_nearest(
-        const struct bContext *C, struct Mask *mask, float normal_co[2], int threshold,
+        const struct bContext *C, struct Mask *mask, const float normal_co[2], const float threshold,
         struct MaskLayer **masklay_r, struct MaskSpline **spline_r, int *is_handle_r,
         float *score);
 

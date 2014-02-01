@@ -1178,7 +1178,7 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *poin
 		sub_v3_v3v3(v2, bezt->vec[2], bezt->vec[1]);
 		add_v3_v3v3(vec, v1, v2);
 
-		if (len_v3(vec) > 1e-3) {
+		if (len_squared_v3(vec) > (1e-3f * 1e-3f)) {
 			h[0] = vec[1];
 			h[1] = -vec[0];
 			h[2] = 0.0f;

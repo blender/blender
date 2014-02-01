@@ -4586,7 +4586,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData 
 		d[0] = mx - data->dragstartx;
 		d[1] = my - data->dragstarty;
 
-		if (len_v2(d) < 3.0f)
+		if (len_squared_v2(d) < (3.0f * 3.0f))
 			snap = false;
 	}
 

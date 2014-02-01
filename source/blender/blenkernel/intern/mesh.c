@@ -154,7 +154,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 			int vtot = m1->totvert;
 			
 			for (j = 0; j < vtot; j++, v1++, v2++) {
-				if (len_v3v3(v1->co, v2->co) > thresh)
+				if (len_squared_v3v3(v1->co, v2->co) > thresh_sq)
 					return MESHCMP_VERTCOMISMATCH;
 				/* I don't care about normals, let's just do coodinates */
 			}

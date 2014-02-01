@@ -59,7 +59,7 @@
 
 /******************** utility functions *********************/
 
-MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float normal_co[2], int threshold,
+MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const float normal_co[2], const float threshold,
                                             MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
                                             float *score)
 {
@@ -71,6 +71,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
 	float co[2];
+	const float threshold_sq = threshold * threshold;
 	float len = FLT_MAX, scalex, scaley;
 	int is_handle = FALSE, width, height;
 
@@ -105,7 +106,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 					handle[0] *= scalex;
 					handle[1] *= scaley;
 
-					cur_len = len_v2v2(co, handle);
+					cur_len = len_squared_v2v2(co, handle);
 
 					if (cur_len < len) {
 						point_masklay = masklay;
@@ -116,7 +117,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 					}
 				}
 
-				cur_len = len_v2v2(co, vec);
+				cur_len = len_squared_v2v2(co, vec);
 
 				if (cur_len < len) {
 					point_spline = spline;
@@ -129,7 +130,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 		}
 	}
 
-	if (len < threshold) {
+	if (len < threshold_sq) {
 		if (masklay_r)
 			*masklay_r = point_masklay;
 
@@ -140,7 +141,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 			*is_handle_r = is_handle;
 
 		if (score)
-			*score = len;
+			*score = sqrtf(len);
 
 		return point;
 	}
@@ -157,9 +158,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 	return NULL;
 }
 
-int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[2], int threshold,
-                                 MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
-                                 MaskSplinePointUW **uw_r, float *score)
+bool ED_mask_feather_find_nearest(const bContext *C, Mask *mask, const float normal_co[2], const float threshold,
+                                  MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
+                                  MaskSplinePointUW **uw_r, float *score)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -168,6 +169,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
 	MaskSplinePointUW *uw = NULL;
+	const float threshold_sq = threshold * threshold;
 	float len = FLT_MAX, co[2];
 	float scalex, scaley;
 	int width, height;
@@ -203,7 +205,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 					vec[0] = (*fp)[0] * scalex;
 					vec[1] = (*fp)[1] * scaley;
 
-					cur_len = len_v2v2(vec, co);
+					cur_len = len_squared_v2v2(vec, co);
 
 					if (point == NULL || cur_len < len) {
 						if (j == 0)
@@ -225,7 +227,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 		}
 	}
 
-	if (len < threshold) {
+	if (len < threshold_sq) {
 		if (masklay_r)
 			*masklay_r = point_masklay;
 
@@ -239,7 +241,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 			*uw_r = uw;
 
 		if (score)
-			*score = len;
+			*score = sqrtf(len);
 
 		return TRUE;
 	}

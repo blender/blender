@@ -235,11 +235,12 @@ void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 
 void BLI_removeDoubleNodes(BGraph *graph, float limit)
 {
+	const float limit_sq = limit * limit;
 	BNode *node_src, *node_replaced;
 	
 	for (node_src = graph->nodes.first; node_src; node_src = node_src->next) {
 		for (node_replaced = graph->nodes.first; node_replaced; node_replaced = node_replaced->next) {
-			if (node_replaced != node_src && len_v3v3(node_replaced->p, node_src->p) <= limit) {
+			if (node_replaced != node_src && len_squared_v3v3(node_replaced->p, node_src->p) <= limit_sq) {
 				BLI_replaceNode(graph, node_src, node_replaced);
 			}
 		}
@@ -249,12 +250,13 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 
 BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit)
 {
+	const float limit_sq = limit * limit;
 	BNode *closest_node = NULL, *node;
 	float min_distance = 0.0f;
 	
 	for (node = graph->nodes.first; node; node = node->next) {
-		float distance = len_v3v3(p, node->p); 
-		if (distance <= limit && (closest_node == NULL || distance < min_distance)) {
+		float distance = len_squared_v3v3(p, node->p);
+		if (distance <= limit_sq && (closest_node == NULL || distance < min_distance)) {
 			closest_node = node;
 			min_distance = distance;
 		}
@@ -476,6 +478,7 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 
 static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring, int total, float axis[3], float limit, int group)
 {
+	const float limit_sq = limit * limit;
 	int symmetric = 1;
 	int i;
 	
@@ -525,7 +528,7 @@ static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring,
 		BLI_mirrorAlongAxis(p, root_node->p, normal);
 		
 		/* check if it's within limit before continuing */
-		if (len_v3v3(node1->p, p) > limit) {
+		if (len_squared_v3v3(node1->p, p) > limit_sq) {
 			symmetric = 0;
 		}
 
@@ -707,6 +710,7 @@ static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int 
 
 static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNode *node2, BArc *arc1, BArc *arc2, float axis[3], float limit, int group)
 {
+	const float limit_sq = limit * limit;
 	float nor[3], vec[3], p[3];
 
 	sub_v3_v3v3(p, node1->p, root_node->p);
@@ -733,7 +737,7 @@ static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNo
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 	
 	/* check if it's within limit before continuing */
-	if (len_v3v3(node1->p, p) <= limit) {
+	if (len_squared_v3v3(node1->p, p) <= limit_sq) {
 		/* mark node as symmetric physically */
 		copy_v3_v3(root_node->symmetry_axis, nor);
 		root_node->symmetry_flag |= SYM_PHYSICAL;
