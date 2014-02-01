@@ -316,8 +316,8 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 	if (rv3d->is_persp) {
 		copy_v3_v3(r_ray_co, rv3d->viewinv[3]);
 
-		start_offset = -v3d->near;
-		end_offset = -v3d->far;
+		start_offset = v3d->near;
+		end_offset = v3d->far;
 	}
 	else {
 		float vec[4];
