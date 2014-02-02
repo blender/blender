@@ -438,15 +438,15 @@ class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
         col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
         col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
 
-class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
+class VIEW3D_PT_tools_transform_curve(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "curve_edit"
-    bl_label = "Curve Tools"
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="Transform:")
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
@@ -454,6 +454,14 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.operator("transform.tilt", text="Tilt")
         col.operator("transform.transform", text="Scale Feather").mode = 'CURVE_SHRINKFATTEN'
+
+class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "curve_edit"
+    bl_label = "Curve Tools"
+
+    def draw(self, context):
+        layout = self.layout
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -488,19 +496,26 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
 # ********** default tools for editmode_surface ****************
 
-
-class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
+class VIEW3D_PT_tools_transform_surface(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "surface_edit"
-    bl_label = "Surface Tools"
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="Transform:")
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
+
+class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "surface_edit"
+    bl_label = "Surface Tools"
+
+    def draw(self, context):
+        layout = self.layout
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -522,6 +537,7 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_textedit(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "text_edit"
     bl_label = "Text Tools"
 
@@ -587,6 +603,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "mball_edit"
     bl_label = "Meta Tools"
 
@@ -607,6 +624,7 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "lattice_edit"
     bl_label = "Lattice Tools"
 
@@ -631,6 +649,7 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "posemode"
     bl_label = "Pose Tools"
 
@@ -673,6 +692,7 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
+    bl_category = "Options"
     bl_context = "posemode"
     bl_label = "Pose Options"
 
