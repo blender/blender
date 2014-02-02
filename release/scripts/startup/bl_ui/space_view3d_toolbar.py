@@ -419,25 +419,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
-class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "curve_edit"
-    bl_label = "Add Curves"
-    
-    def draw (self, context):
-        layout = self.layout
-        
-        col = layout.column(align=True)
-        
-        col.label(text="Bezier:")
-        col.operator("curve.primitive_bezier_curve_add", text="Bezier Curve", icon="CURVE_BEZCURVE")
-        col.operator("curve.primitive_bezier_circle_add", text="Bezier Circle", icon="CURVE_BEZCIRCLE")
-        
-        col.label(text="Nurbs:")
-        col.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon="CURVE_NCURVE")
-        col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
-        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
-
 class VIEW3D_PT_tools_transform_curve(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "curve_edit"
@@ -492,6 +473,24 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "curve_edit"
+    bl_label = "Add Curves"
+
+    def draw (self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        col.label(text="Bezier:")
+        col.operator("curve.primitive_bezier_curve_add", text="Bezier Curve", icon="CURVE_BEZCURVE")
+        col.operator("curve.primitive_bezier_circle_add", text="Bezier Circle", icon="CURVE_BEZCIRCLE")
+
+        col.label(text="Nurbs:")
+        col.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon="CURVE_NCURVE")
+        col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
+        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
 
 # ********** default tools for editmode_surface ****************
 
@@ -529,6 +528,24 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
         col.operator("curve.subdivide")
 
         draw_repeat_tools(context, layout)
+
+class VIEW3D_PT_tools_add_surface_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "surface_edit"
+    bl_label = "Add Surfaces"
+
+    def draw (self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        col.operator("surface.primitive_nurbs_surface_curve_add", text="Nurbs Curve", icon="SURFACE_NCURVE")
+        col.operator("surface.primitive_nurbs_surface_circle_add", text="Nurbs Circle", icon="SURFACE_NCIRCLE")
+        col.operator("surface.primitive_nurbs_surface_surface_add", text="Nurbs Surface", icon="SURFACE_NSURFACE")
+        col.operator("surface.primitive_nurbs_surface_cylinder_add", text="Nurbs Cylinder", icon="SURFACE_NCYLINDER")
+        col.operator("surface.primitive_nurbs_surface_sphere_add", text="Nurbs Sphere", icon="SURFACE_NSPHERE")
+        col.operator("surface.primitive_nurbs_surface_torus_add", text="Nurbs Torus", icon="SURFACE_NTORUS")
+
 
 # ********** default tools for editmode_text ****************
 
