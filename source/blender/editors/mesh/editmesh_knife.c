@@ -1293,9 +1293,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	/* First use bvh tree to find faces, knife edges, and knife verts that might
 	 * intersect the cut plane with rays v1-v3 and v2-v4.
 	 * This deduplicates the candidates before doing more expensive intersection tests. */
-	BLI_smallhash_init(&faces);
-	BLI_smallhash_init(&kfes);
-	BLI_smallhash_init(&kfvs);
 
 	tree = BKE_bmbvh_tree_get(kcd->bmbvh);
 	planetree = BLI_bvhtree_new(4, FLT_EPSILON * 4, 8, 8);
@@ -1308,12 +1305,13 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
 	results = BLI_bvhtree_overlap(tree, planetree, &tot);
 	if (!results) {
-		BLI_smallhash_release(&faces);
-		BLI_smallhash_release(&kfes);
-		BLI_smallhash_release(&kfvs);
 		BLI_bvhtree_free(planetree);
 		return;
 	}
+
+	BLI_smallhash_init(&faces);
+	BLI_smallhash_init(&kfes);
+	BLI_smallhash_init(&kfvs);
 
 	for (i = 0, result = results; i < tot; i++, result++) {
 		ls = (BMLoop **)kcd->em->looptris[result->indexA];

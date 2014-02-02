@@ -1971,7 +1971,7 @@ void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 	int i, maxindex;
 	BMLoop *l_new;
 
-	BLI_smallhash_init(&visithash);
+	BLI_smallhash_init_ex(&visithash, v_edgetot);
 
 	STACK_INIT(stack);
 

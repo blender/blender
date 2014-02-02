@@ -105,6 +105,16 @@ BLI_INLINE void smallhash_init_empty(SmallHash *sh)
 	}
 }
 
+/**
+ * Increase initial bucket size to match a reserved amount.
+ */
+BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const unsigned int nentries_reserve)
+{
+	while (smallhash_test_expand_buckets(nentries_reserve, sh->nbuckets)) {
+		sh->nbuckets = hashsizes[++sh->cursize];
+	}
+}
+
 BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
@@ -181,7 +191,8 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const unsigned int nbuck
 	}
 }
 
-void BLI_smallhash_init(SmallHash *sh)
+void BLI_smallhash_init_ex(SmallHash *sh,
+                           const unsigned int nentries_reserve)
 {
 	/* assume 'sh' is uninitialized */
 
@@ -191,7 +202,20 @@ void BLI_smallhash_init(SmallHash *sh)
 
 	sh->buckets = sh->buckets_stack;
 
+	if (nentries_reserve) {
+		smallhash_buckets_reserve(sh, nentries_reserve);
+
+		if (sh->nbuckets > SMSTACKSIZE) {
+			sh->buckets = MEM_mallocN(sizeof(*sh->buckets) * sh->nbuckets, __func__);
+		}
+	}
+
 	smallhash_init_empty(sh);
+}
+
+void BLI_smallhash_init(SmallHash *sh)
+{
+	BLI_smallhash_init_ex(sh, 0);
 }
 
 /*NOTE: does *not* free *sh itself!  only the direct data!*/

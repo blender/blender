@@ -70,7 +70,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	SmallHash hash;
 	float normal[3], *normal_pt;
 
-	BLI_smallhash_init(&hash);
+	BLI_smallhash_init_ex(&hash, BMO_slot_buffer_count(op->slots_in, "edges"));
 
 	BMO_slot_vec_get(op->slots_in, "normal", normal);
 	
