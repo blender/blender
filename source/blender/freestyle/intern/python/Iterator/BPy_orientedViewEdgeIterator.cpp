@@ -40,7 +40,7 @@ PyDoc_STRVAR(orientedViewEdgeIterator_doc,
 "Class representing an iterator over oriented ViewEdges around a\n"
 ":class:`ViewVertex`.  This iterator allows a CCW iteration (in the image\n"
 "plane).  An instance of an orientedViewEdgeIterator can only be\n"
-"obtained from a ViewVertex by calling edgesBegin() or edgesEnd().\n"
+"obtained from a ViewVertex by calling edges_begin() or edges_end().\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -121,7 +121,7 @@ static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator 
 
 PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
 "The oriented ViewEdge (i.e., a tuple of the pointed ViewEdge and a boolean\n"
-"value) currently pointed by this iterator. If the boolean value is true,\n"
+"value) currently pointed to by this iterator. If the boolean value is true,\n"
 "the ViewEdge is incoming.\n"
 "\n"
 ":type: (:class:`directedViewEdge`, bool)");

@@ -140,7 +140,7 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 /*----------------------Interface0DIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(Interface0DIterator_object_doc,
-"The Interface0D object currently pointed by this iterator.\n"
+"The Interface0D object currently pointed to by this iterator.\n"
 "\n"
 ":type: :class:`Interface0D`");
 

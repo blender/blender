@@ -410,7 +410,7 @@ PyObject *BPy_AdjacencyIterator_from_AdjacencyIterator(AdjacencyIterator& a_it)
 	PyObject *py_a_it = AdjacencyIterator_Type.tp_new(&AdjacencyIterator_Type, 0, 0);
 	((BPy_AdjacencyIterator *)py_a_it)->a_it = new AdjacencyIterator(a_it);
 	((BPy_AdjacencyIterator *)py_a_it)->py_it.it = ((BPy_AdjacencyIterator *)py_a_it)->a_it;
-	((BPy_AdjacencyIterator *)py_a_it)->at_start= true;
+	((BPy_AdjacencyIterator *)py_a_it)->at_start = true;
 	return py_a_it;
 }
 
@@ -419,7 +419,7 @@ PyObject *BPy_Interface0DIterator_from_Interface0DIterator(Interface0DIterator& 
 	PyObject *py_if0D_it = Interface0DIterator_Type.tp_new(&Interface0DIterator_Type, 0, 0);
 	((BPy_Interface0DIterator *)py_if0D_it)->if0D_it = new Interface0DIterator(if0D_it);
 	((BPy_Interface0DIterator *)py_if0D_it)->py_it.it = ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it;
-	((BPy_Interface0DIterator *)py_if0D_it)->at_start= true;
+	((BPy_Interface0DIterator *)py_if0D_it)->at_start = true;
 	((BPy_Interface0DIterator *)py_if0D_it)->reversed = reversed;
 	return py_if0D_it;
 }
@@ -437,7 +437,7 @@ PyObject *BPy_StrokeVertexIterator_from_StrokeVertexIterator(StrokeInternal::Str
 	PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new(&StrokeVertexIterator_Type, 0, 0);
 	((BPy_StrokeVertexIterator *)py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator(sv_it);
 	((BPy_StrokeVertexIterator *)py_sv_it)->py_it.it = ((BPy_StrokeVertexIterator *)py_sv_it)->sv_it;
-	((BPy_StrokeVertexIterator *)py_sv_it)->at_start= true;
+	((BPy_StrokeVertexIterator *)py_sv_it)->at_start = true;
 	((BPy_StrokeVertexIterator *)py_sv_it)->reversed = reversed;
 	return py_sv_it;
 }
@@ -455,7 +455,7 @@ PyObject *BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ViewVertexI
 	PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new(&orientedViewEdgeIterator_Type, 0, 0);
 	((BPy_orientedViewEdgeIterator *)py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(ove_it);
 	((BPy_orientedViewEdgeIterator *)py_ove_it)->py_it.it = ((BPy_orientedViewEdgeIterator *)py_ove_it)->ove_it;
-	((BPy_orientedViewEdgeIterator *)py_ove_it)->at_start= true;
+	((BPy_orientedViewEdgeIterator *)py_ove_it)->at_start = true;
 	((BPy_orientedViewEdgeIterator *)py_ove_it)->reversed = reversed;
 	return py_ove_it;
 }

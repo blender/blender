@@ -130,7 +130,7 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 /*----------------------AdjacencyIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(AdjacencyIterator_object_doc,
-"The ViewEdge object currently pointed by this iterator.\n"
+"The ViewEdge object currently pointed to by this iterator.\n"
 "\n"
 ":type: :class:`ViewEdge`");
 

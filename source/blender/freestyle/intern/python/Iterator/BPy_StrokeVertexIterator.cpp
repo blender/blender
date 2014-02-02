@@ -40,15 +40,15 @@ PyDoc_STRVAR(StrokeVertexIterator_doc,
 "\n"
 "Class defining an iterator designed to iterate over the\n"
 ":class:`StrokeVertex` of a :class:`Stroke`.  An instance of a\n"
-"StrokeVertexIterator can only be obtained from a Stroke by calling\n"
-"strokeVerticesBegin() or strokeVerticesEnd().  It is iterating over\n"
-"the same vertices as an :class:`Interface0DIterator`.  The difference\n"
-"resides in the object access.  Indeed, an Interface0DIterator allows\n"
-"only an access to an Interface0D whereas we could need to access the\n"
+"StrokeVertexIterator can be obtained from a Stroke by calling\n"
+"iter(), stroke_vertices_begin() or stroke_vertices_begin().  It is iterating\n"
+"over the same vertices as an :class:`Interface0DIterator`.  The difference\n"
+"resides in the object access: an Interface0DIterator only allows\n"
+"access to an Interface0D while one might need to access the\n"
 "specialized StrokeVertex type.  In this case, one should use a\n"
-"StrokeVertexIterator.  The castToInterface0DIterator() method is\n"
-"useful to get an Interface0DIterator from a StrokeVertexIterator in\n"
-"order to call any functions of the UnaryFunction0D type.\n"
+"StrokeVertexIterator.  To call functions of the UnaryFuntion0D type,\n"
+"a StrokeVertexIterator can be converted to an Interface0DIterator by\n"
+"by calling Interface0DIterator(it)."
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -132,7 +132,7 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 /*----------------------StrokeVertexIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(StrokeVertexIterator_object_doc,
-"The StrokeVertex object currently pointed by this iterator.\n"
+"The StrokeVertex object currently pointed to by this iterator.\n"
 "\n"
 ":type: :class:`StrokeVertex`");
 
