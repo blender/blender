@@ -89,6 +89,11 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 #define __KERNEL_SSE2__
 #endif
 
+/* quiet unused define warnings */
+#if defined(__KERNEL_SSE2__)
+	/* do nothing */
+#endif
+
 /* Path Tracing */
 
 void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
