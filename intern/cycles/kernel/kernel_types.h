@@ -869,14 +869,11 @@ typedef enum CurveFlag {
 
 typedef struct KernelCurves {
 	/* strand intersect and normal parameters - many can be changed to flags */
-	float encasing_ratio;
 	int curveflags;
 	int subdivisions;
-	int pad1;
 
 	float minimum_width;
 	float maximum_width;
-	int pad2, pad3;
 } KernelCurves;
 
 typedef struct KernelBlackbody {

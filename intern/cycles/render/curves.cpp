@@ -85,7 +85,6 @@ CurveSystemManager::CurveSystemManager()
 	resolution = 3;
 	subdivisions = 3;
 
-	encasing_ratio = 1.01f;
 	minimum_width = 0.0f;
 	maximum_width = 0.0f;
 
@@ -133,7 +132,6 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 		if(use_encasing)
 			kcurve->curveflags |= CURVE_KN_ENCLOSEFILTER;
 
-		kcurve->encasing_ratio = encasing_ratio;
 		kcurve->minimum_width = minimum_width;
 		kcurve->maximum_width = maximum_width;
 		kcurve->subdivisions = subdivisions;
@@ -156,7 +154,6 @@ bool CurveSystemManager::modified(const CurveSystemManager& CurveSystemManager)
 		primitive == CurveSystemManager.primitive &&
 		use_encasing == CurveSystemManager.use_encasing &&
 		use_tangent_normal_geometry == CurveSystemManager.use_tangent_normal_geometry &&
-		encasing_ratio == CurveSystemManager.encasing_ratio &&
 		minimum_width == CurveSystemManager.minimum_width &&
 		maximum_width == CurveSystemManager.maximum_width &&
 		use_backfacing == CurveSystemManager.use_backfacing &&

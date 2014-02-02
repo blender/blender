@@ -90,7 +90,6 @@ public:
 	int resolution;
 	int subdivisions;
 
-	float encasing_ratio;
 	float minimum_width;
 	float maximum_width;
 

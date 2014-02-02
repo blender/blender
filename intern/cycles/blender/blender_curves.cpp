@@ -743,8 +743,6 @@ void BlenderSync::sync_curve_settings()
 	curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
 	curve_system_manager->use_backfacing = !get_boolean(csscene, "cull_backfacing");
 
-	curve_system_manager->encasing_ratio = 1.01f;
-
 	if(curve_system_manager->primitive == CURVE_TRIANGLES && curve_system_manager->curve_shape == CURVE_RIBBON) {
 		/* camera facing planes */
 		curve_system_manager->triangle_method = CURVE_CAMERA_TRIANGLES;
