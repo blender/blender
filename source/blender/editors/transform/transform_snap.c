@@ -1542,8 +1542,9 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 
 				/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
 				 * been *inside* boundbox, leading to snap failures (see T38409).
+				 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
 				 */
-				if (!((RegionView3D *)ar->regiondata)->is_persp) {
+				if (ar && !((RegionView3D *)ar->regiondata)->is_persp) {
 					float ray_org_local[3];
 
 					copy_v3_v3(ray_org_local, ray_origin);
