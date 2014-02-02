@@ -630,6 +630,23 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+class VIEW3D_PT_tools_add_mball_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "mball_edit"
+    bl_label = "Add Metaball"
+
+    def draw (self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        col.operator("object.metaball_add", text="Ball", icon="META_BALL").type = 'BALL'
+        col.operator("object.metaball_add", text="Capsule", icon="META_CAPSULE").type = 'CAPSULE'
+        col.operator("object.metaball_add", text="Plane", icon="META_PLANE").type = 'PLANE'
+        col.operator("object.metaball_add", text="Ellipsoid", icon="META_ELLIPSOID").type = 'ELLIPSOID'
+        col.operator("object.metaball_add", text="Cube", icon="META_CUBE").type = 'CUBE'
+
+
 # ********** default tools for editmode_lattice ****************
 
 
