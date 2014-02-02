@@ -3070,38 +3070,38 @@ static int loop_find_region(BMLoop *l, int flag,
 
 static int verg_radial(const void *va, const void *vb)
 {
-	BMEdge *e1 = *((void **)va);
-	BMEdge *e2 = *((void **)vb);
+	BMEdge *e_a = *((BMEdge **)va);
+	BMEdge *e_b = *((BMEdge **)vb);
+
 	int a, b;
+	a = BM_edge_face_count(e_a);
+	b = BM_edge_face_count(e_b);
 	
-	a = BM_edge_face_count(e1);
-	b = BM_edge_face_count(e2);
-	
-	if (a > b)  return -1;
-	if (a == b) return  0;
-	if (a < b)  return  1;
-	
-	return -1;
+	if (a > b) return -1;
+	if (a < b) return  1;
+	return  0;
 }
 
-static int loop_find_regions(BMEditMesh *em, int selbigger)
+static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 {
 	SmallHash visithash;
 	BMIter iter;
-	BMEdge *e, **edges = NULL;
-	BLI_array_declare(edges);
+	const int edges_len = em->bm->totedgesel;
+	BMEdge *e, **edges;
 	BMFace *f;
 	int count = 0, i;
 	
-	BLI_smallhash_init(&visithash);
+	BLI_smallhash_init_ex(&visithash, edges_len);
+	edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
 	
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		BM_elem_flag_disable(f, BM_ELEM_TAG);
 	}
 
+	i = 0;
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BLI_array_append(edges, e);
+			edges[i++] = e;
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 		else {
@@ -3110,9 +3110,9 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 	}
 	
 	/* sort edges by radial cycle length */
-	qsort(edges,  BLI_array_count(edges), sizeof(void *), verg_radial);
+	qsort(edges, edges_len, sizeof(*edges), verg_radial);
 	
-	for (i = 0; i < BLI_array_count(edges); i++) {
+	for (i = 0; i < edges_len; i++) {
 		BMIter liter;
 		BMLoop *l;
 		BMFace **region = NULL, **region_out;
@@ -3161,7 +3161,7 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 		}
 	}
 	
-	BLI_array_free(edges);
+	MEM_freeN(edges);
 	BLI_smallhash_release(&visithash);
 	
 	return count;
