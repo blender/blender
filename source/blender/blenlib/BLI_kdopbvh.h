@@ -56,7 +56,7 @@ typedef struct BVHTreeNearest {
 	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
 	float co[3];        /* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
 	float no[3];        /* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float dist;         /* squared distance to search arround */
+	float dist_sq;      /* squared distance to search arround */
 	int flags;
 } BVHTreeNearest;
 
@@ -81,7 +81,7 @@ typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const fl
 typedef void (*BVHTree_RayCastCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
 /* callback to range search query */
-typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float squared_dist);
+typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float dist_sq);
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);

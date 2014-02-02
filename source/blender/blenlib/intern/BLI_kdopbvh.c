@@ -1135,7 +1135,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 }
 
 /* Determines the nearest point of the given node BV. Returns the squared distance to that point. */
-static float calc_nearest_point(const float proj[3], BVHNode *node, float *nearest)
+static float calc_nearest_point_squared(const float proj[3], BVHNode *node, float *nearest)
 {
 	int i;
 	const float *bv = node->bv;
@@ -1185,7 +1185,7 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 			data->callback(data->userdata, node->index, data->co, &data->nearest);
 		else {
 			data->nearest.index = node->index;
-			data->nearest.dist  = calc_nearest_point(data->proj, node, data->nearest.co);
+			data->nearest.dist_sq = calc_nearest_point_squared(data->proj, node, data->nearest.co);
 		}
 	}
 	else {
@@ -1196,13 +1196,15 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		if (data->proj[node->main_axis] <= node->children[0]->bv[node->main_axis * 2 + 1]) {
 
 			for (i = 0; i != node->totnode; i++) {
-				if (calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
+				if (calc_nearest_point_squared(data->proj, node->children[i], nearest) >= data->nearest.dist_sq)
+					continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
 		else {
 			for (i = node->totnode - 1; i >= 0; i--) {
-				if (calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
+				if (calc_nearest_point_squared(data->proj, node->children[i], nearest) >= data->nearest.dist_sq)
+					continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
@@ -1211,9 +1213,11 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 
 static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 {
-	float nearest[3], sdist;
-	sdist = calc_nearest_point(data->proj, node, nearest);
-	if (sdist >= data->nearest.dist) return;
+	float nearest[3], dist_sq;
+	dist_sq = calc_nearest_point_squared(data->proj, node, nearest);
+	if (dist_sq >= data->nearest.dist_sq) {
+		return;
+	}
 	dfs_find_nearest_dfs(data, node);
 }
 
@@ -1329,7 +1333,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	}
 	else {
 		data.nearest.index = -1;
-		data.nearest.dist = FLT_MAX;
+		data.nearest.dist_sq = FLT_MAX;
 	}
 
 	/* dfs search */
@@ -1568,7 +1572,7 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 typedef struct RangeQueryData {
 	BVHTree *tree;
 	const float *center;
-	float radius;  /* squared radius */
+	float radius_sq;  /* squared radius */
 
 	int hits;
 
@@ -1594,12 +1598,12 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 		int i;
 		for (i = 0; i != node->totnode; i++) {
 			float nearest[3];
-			float dist = calc_nearest_point(data->center, node->children[i], nearest);
-			if (dist < data->radius) {
+			float dist_sq = calc_nearest_point_squared(data->center, node->children[i], nearest);
+			if (dist_sq < data->radius_sq) {
 				/* Its a leaf.. call the callback */
 				if (node->children[i]->totnode == 0) {
 					data->hits++;
-					data->callback(data->userdata, node->children[i]->index, dist);
+					data->callback(data->userdata, node->children[i]->index, dist_sq);
 				}
 				else
 					dfs_range_query(data, node->children[i]);
@@ -1615,7 +1619,7 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 	RangeQueryData data;
 	data.tree = tree;
 	data.center = co;
-	data.radius = radius * radius;
+	data.radius_sq = radius * radius;
 	data.hits = 0;
 
 	data.callback = callback;
@@ -1623,12 +1627,12 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 
 	if (root != NULL) {
 		float nearest[3];
-		float dist = calc_nearest_point(data.center, root, nearest);
-		if (dist < data.radius) {
+		float dist_sq = calc_nearest_point_squared(data.center, root, nearest);
+		if (dist_sq < data.radius_sq) {
 			/* Its a leaf.. call the callback */
 			if (root->totnode == 0) {
 				data.hits++;
-				data.callback(data.userdata, root->index, dist);
+				data.callback(data.userdata, root->index, dist_sq);
 			}
 			else
 				dfs_range_query(&data, root);

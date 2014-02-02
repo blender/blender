@@ -3348,7 +3348,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 					float dist;
 
 					nearest.index = -1;
-					nearest.dist = FLT_MAX;
+					nearest.dist_sq = FLT_MAX;
 
 					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
 						bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);

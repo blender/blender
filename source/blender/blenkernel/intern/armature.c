@@ -663,7 +663,7 @@ static void b_bone_deform(bPoseChanDeform *pdef_info, Bone *bone, float co[3], D
 /* using vec with dist to bone b1 - b2 */
 float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3], float rad1, float rad2, float rdist)
 {
-	float dist = 0.0f;
+	float dist_sq;
 	float bdelta[3];
 	float pdelta[3];
 	float hsqr, a, l, rad;
@@ -678,16 +678,16 @@ float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3
 
 	if (a < 0.0f) {
 		/* If we're past the end of the bone, do a spherical field attenuation thing */
-		dist = len_squared_v3v3(b1, vec);
+		dist_sq = len_squared_v3v3(b1, vec);
 		rad = rad1;
 	}
 	else if (a > l) {
 		/* If we're past the end of the bone, do a spherical field attenuation thing */
-		dist = len_squared_v3v3(b2, vec);
+		dist_sq = len_squared_v3v3(b2, vec);
 		rad = rad2;
 	}
 	else {
-		dist = (hsqr - (a * a));
+		dist_sq = (hsqr - (a * a));
 
 		if (l != 0.0f) {
 			rad = a / l;
@@ -698,15 +698,15 @@ float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3
 	}
 
 	a = rad * rad;
-	if (dist < a)
+	if (dist_sq < a)
 		return 1.0f;
 	else {
 		l = rad + rdist;
 		l *= l;
-		if (rdist == 0.0f || dist >= l)
+		if (rdist == 0.0f || dist_sq >= l)
 			return 0.0f;
 		else {
-			a = sqrtf(dist) - rad;
+			a = sqrtf(dist_sq) - rad;
 			return 1.0f - (a * a) / (rdist * rdist);
 		}
 	}

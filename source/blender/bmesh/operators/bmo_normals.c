@@ -63,7 +63,7 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	int i, f_start_index;
 	const short oflag_flip = oflag | FACE_FLIP;
 
-	float f_len_best;
+	float f_len_best_sq;
 	BMFace *f;
 
 	BLI_LINKSTACK_DECLARE(fstack, BMFace *);
@@ -80,13 +80,13 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 		BLI_assert(BM_face_is_normal_valid(faces[i]));
 	}
 
-	f_len_best = -FLT_MAX;
+	f_len_best_sq = -FLT_MAX;
 
 	for (i = 0; i < faces_len; i++) {
-		float f_len_test;
+		float f_len_test_sq;
 
-		if ((f_len_test = len_squared_v3v3(faces_center[i], cent)) > f_len_best) {
-			f_len_best = f_len_test;
+		if ((f_len_test_sq = len_squared_v3v3(faces_center[i], cent)) > f_len_best_sq) {
+			f_len_best_sq = f_len_test_sq;
 			f_start_index = i;
 		}
 	}

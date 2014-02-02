@@ -53,8 +53,8 @@ struct BMFace  *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const flo
 /* find a face intersecting a segment (but not apart of the segment) */
 struct BMFace  *BKE_bmbvh_find_face_segment(BMBVHTree *tree, const float co_a[3], const float co_b[3],
                                             float *r_fac, float r_hitout[3], float r_cagehit[3]);
-/* find a vert closest to co in a sphere of radius maxdist */
-struct BMVert  *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float maxdist);
+/* find a vert closest to co in a sphere of radius dist_max */
+struct BMVert  *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float dist_max);
 
 /* BKE_bmbvh_new flag parameter */
 enum {

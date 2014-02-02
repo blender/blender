@@ -3814,7 +3814,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	ProjPaintImage *last_projIma = NULL;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 
-	float dist_nosqrt, dist;
+	float dist_sq, dist;
 
 	float falloff;
 	int bucket_index;
@@ -3914,11 +3914,11 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				projPixel = (ProjPixel *)node->link;
 
-				dist_nosqrt = len_squared_v2v2(projPixel->projCoSS, pos);
+				dist_sq = len_squared_v2v2(projPixel->projCoSS, pos);
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
-				if (dist_nosqrt <= brush_radius_sq) {
-					dist = sqrtf(dist_nosqrt);
+				if (dist_sq <= brush_radius_sq) {
+					dist = sqrtf(dist_sq);
 
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, brush_radius);
 

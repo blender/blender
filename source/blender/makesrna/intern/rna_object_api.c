@@ -344,7 +344,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 		BVHTreeNearest nearest;
 
 		nearest.index = -1;
-		nearest.dist = max_dist * max_dist;
+		nearest.dist_sq = max_dist * max_dist;
 
 		if (BLI_bvhtree_find_nearest(treeData.tree, point_co, &nearest, treeData.nearest_callback, &treeData) != -1) {
 			copy_v3_v3(n_location, nearest.co);

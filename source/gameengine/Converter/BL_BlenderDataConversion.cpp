@@ -1238,7 +1238,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	BoundBox *bb;
 	float min[3], max[3];
 	float mloc[3], msize[3];
-	float radius=0.0f, vert_radius, *co;
+	float radius_sq=0.0f, vert_radius_sq, *co;
 	int a;
 	
 	if (me->bb==0) {
@@ -1260,9 +1260,9 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 		
 		/* radius */
 
-		vert_radius = len_squared_v3(co);
-		if (vert_radius > radius)
-			radius = vert_radius;
+		vert_radius_sq = len_squared_v3(co);
+		if (vert_radius_sq > radius_sq)
+			radius_sq = vert_radius_sq;
 	}
 		
 	if (me->totvert) {
@@ -1288,7 +1288,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = loc[2]-size[2];
 	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = loc[2]+size[2];
 
-	return sqrt(radius);
+	return sqrtf_signed(radius_sq);
 }
 
 

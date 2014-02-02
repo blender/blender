@@ -537,7 +537,7 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 	BVHTreeNearest nearest;
 
 	nearest.index = -1;
-	nearest.dist = FLT_MAX;
+	nearest.dist_sq = FLT_MAX;
 
 	BLI_bvhtree_find_nearest(surmd->bvhtree->tree, co, &nearest, surmd->bvhtree->nearest_callback, surmd->bvhtree);
 

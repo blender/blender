@@ -1500,7 +1500,7 @@ static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 		float in_v /*, out_v*/;
 		float workp[3];
 		float dvec[3];
-		float tmp_v, workp_v, max_len, nx, ny, nz, max_dim;
+		float tmp_v, workp_v, max_len_sq, nx, ny, nz, max_dim;
 
 		calc_mballco(ml, in);
 		in_v = process->function(process, in[0], in[1], in[2]);
@@ -1553,7 +1553,7 @@ static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 					/* find "first points" on Implicit Surface of MetaElemnt ml */
 					copy_v3_v3(workp, in);
 					workp_v = in_v;
-					max_len = len_squared_v3v3(out, in);
+					max_len_sq = len_squared_v3v3(out, in);
 
 					nx = fabsf((out[0] - in[0]) / process->size);
 					ny = fabsf((out[1] - in[1]) / process->size);
@@ -1561,13 +1561,13 @@ static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 					
 					max_dim = max_fff(nx, ny, nz);
 					if (max_dim != 0.0f) {
-						float len = 0.0f;
+						float len_sq = 0.0f;
 
 						dvec[0] = (out[0] - in[0]) / max_dim;
 						dvec[1] = (out[1] - in[1]) / max_dim;
 						dvec[2] = (out[2] - in[2]) / max_dim;
 
-						while (len <= max_len) {
+						while (len_sq <= max_len_sq) {
 							add_v3_v3(workp, dvec);
 
 							/* compute value of implicite function */
@@ -1589,7 +1589,7 @@ static void find_first_points(PROCESS *process, MetaBall *mb, int a)
 									add_cube(process, c_i, c_j, c_k, 2);
 								}
 							}
-							len = len_squared_v3v3(workp, in);
+							len_sq = len_squared_v3v3(workp, in);
 							workp_v = tmp_v;
 
 						}

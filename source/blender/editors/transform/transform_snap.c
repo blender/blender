@@ -680,22 +680,22 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
 
 	if (t->tsnap.status & MULTI_POINTS) {
 		TransSnapPoint *p, *closest_p = NULL;
-		float closest_dist = TRANSFORM_SNAP_MAX_PX;
+		float dist_min_sq = TRANSFORM_SNAP_MAX_PX;
 		const float mval_fl[2] = {t->mval[0], t->mval[1]};
 		float screen_loc[2];
 
 		for (p = t->tsnap.points.first; p; p = p->next) {
-			float dist;
+			float dist_sq;
 
 			if (ED_view3d_project_float_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
 				continue;
 			}
 
-			dist = len_squared_v2v2(mval_fl, screen_loc);
+			dist_sq = len_squared_v2v2(mval_fl, screen_loc);
 
-			if (dist < closest_dist) {
+			if (dist_sq < dist_min_sq) {
 				closest_p = p;
-				closest_dist = dist;
+				dist_min_sq = dist_sq;
 			}
 		}
 

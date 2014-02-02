@@ -425,12 +425,12 @@ static DerivedMesh *applyModifier(
 		const float offset_sq = offset * offset;
 
 		if (do_clamp) {
-			vert_lens = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
+			vert_lens = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
 			fill_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
 			for (i = 0; i < numEdges; i++) {
-				const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
-				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len);
-				vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len);
+				const float ed_len_sq = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
+				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len_sq);
+				vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len_sq);
 			}
 		}
 
@@ -578,22 +578,22 @@ static DerivedMesh *applyModifier(
 		}
 
 		if (do_clamp) {
-			float *vert_lens = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
+			float *vert_lens_sq = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
 			const float offset    = fabsf(smd->offset) * smd->offset_clamp;
 			const float offset_sq = offset * offset;
-			fill_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
+			fill_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
 			for (i = 0; i < numEdges; i++) {
 				const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
-				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len);
-				vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len);
+				vert_lens_sq[medge[i].v1] = min_ff(vert_lens_sq[medge[i].v1], ed_len);
+				vert_lens_sq[medge[i].v2] = min_ff(vert_lens_sq[medge[i].v2], ed_len);
 			}
 			for (i = 0; i < numVerts; i++) {
-				if (vert_lens[i] < offset_sq) {
-					float scalar = sqrtf(vert_lens[i]) / offset;
+				if (vert_lens_sq[i] < offset_sq) {
+					float scalar = sqrtf(vert_lens_sq[i]) / offset;
 					vert_angles[i] *= scalar;
 				}
 			}
-			MEM_freeN(vert_lens);
+			MEM_freeN(vert_lens_sq);
 		}
 
 		if (ofs_new) {

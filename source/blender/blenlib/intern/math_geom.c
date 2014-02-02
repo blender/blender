@@ -335,17 +335,17 @@ void closest_to_line_segment_v3(float close_r[3], const float v1[3], const float
  */
 void closest_to_plane_v3(float close_r[3], const float plane[4], const float pt[3])
 {
-	const float length = len_squared_v3(plane);
+	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
-	madd_v3_v3v3fl(close_r, pt, plane, -side / length);
+	madd_v3_v3v3fl(close_r, pt, plane, -side / len_sq);
 }
 
 float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
 {
-	const float length = len_squared_v3(plane);
+	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
-	const float fac = side / length;
-	return copysignf(length * (fac * fac), side);
+	const float fac = side / len_sq;
+	return copysignf(len_sq * (fac * fac), side);
 }
 
 /**
@@ -353,10 +353,10 @@ float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
  */
 float dist_to_plane_v3(const float pt[3], const float plane[4])
 {
-	const float length = len_squared_v3(plane);
+	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
-	const float fac = side / length;
-	return sqrtf(length) * fac;
+	const float fac = side / len_sq;
+	return sqrtf(len_sq) * fac;
 }
 
 /* distance v1 to line-piece l1-l2 in 3D */

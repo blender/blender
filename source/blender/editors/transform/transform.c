@@ -5273,8 +5273,8 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 		int i = 0;
 
 		float v_proj[2];
-		float dist = 0;
-		float min_dist = FLT_MAX;
+		float dist_sq = 0;
+		float dist_min_sq = FLT_MAX;
 
 		if (t->spacetype == SPACE_VIEW3D) {
 			/* background mode support */
@@ -5294,9 +5294,9 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 			sv->edge_len = len_v3v3(sv->dir_a, sv->dir_b);
 
 			ED_view3d_project_float_v2_m4(ar, sv->v->co, v_proj, projectMat);
-			dist = len_squared_v2v2(mval, v_proj);
-			if (dist < min_dist) {
-				min_dist = dist;
+			dist_sq = len_squared_v2v2(mval, v_proj);
+			if (dist_sq < dist_min_sq) {
+				dist_min_sq = dist_sq;
 				sld->curr_sv_index = i;
 			}
 		}
@@ -6249,14 +6249,14 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 	TransDataVertSlideVert *sv;
 
 	/* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
-	float dist = 0.0f;
-	float min_dist = FLT_MAX;
+	float dist_sq = 0.0f;
+	float dist_min_sq = FLT_MAX;
 	int i;
 
 	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
-		dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
-		if (dist < min_dist) {
-			min_dist = dist;
+		dist_sq = len_squared_v2v2(mval_fl, sv->co_orig_2d);
+		if (dist_sq < dist_min_sq) {
+			dist_min_sq = dist_sq;
 			sld->curr_sv_index = i;
 		}
 	}

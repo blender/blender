@@ -917,11 +917,11 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 	                                   co, co_ss,
 	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
-		const float dist_squared = len_squared_v2v2(mval, co_ss);
+		const float dist_sq = len_squared_v2v2(mval, co_ss);
 
-		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
+		if (dist_sq <= brush_size_pressure * brush_size_pressure) {
 			Brush *brush = BKE_paint_brush(&vp->paint);
-			const float dist = sqrtf(dist_squared);
+			const float dist = sqrtf(dist_sq);
 			float factor;
 
 			if (brush->mtex.tex && rgba) {

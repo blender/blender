@@ -675,7 +675,7 @@ static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		key = pa->hair;
 
 		nearest.index = -1;
-		nearest.dist = FLT_MAX;
+		nearest.dist_sq = FLT_MAX;
 
 		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
 

@@ -762,7 +762,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 {
 	int i, next;
-	float len = FLT_MAX;
+	float len_sq = FLT_MAX;
 
 	for (i = 0; i < 4; i++) {
 		float cur_len;
@@ -771,10 +771,10 @@ static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 
 		cur_len = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = min_ff(cur_len, len);
+		len_sq = min_ff(cur_len, len_sq);
 	}
 
-	return sqrtf(len);
+	return sqrtf(len_sq);
 }
 
 static void draw_marker_slide_square(float x, float y, float dx, float dy, int outline, float px[2])

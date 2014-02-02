@@ -1323,10 +1323,10 @@ BMLoop *BM_face_find_shortest_loop(BMFace *f)
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 
 	do {
-		const float len = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
-		if (len <= shortest_len) {
+		const float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+		if (len_sq <= shortest_len) {
 			shortest_loop = l_iter;
-			shortest_len = len;
+			shortest_len = len_sq;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 
@@ -1339,7 +1339,7 @@ BMLoop *BM_face_find_shortest_loop(BMFace *f)
 BMLoop *BM_face_find_longest_loop(BMFace *f)
 {
 	BMLoop *longest_loop = NULL;
-	float longest_len = 0.0f;
+	float len_max_sq = 0.0f;
 
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -1347,10 +1347,10 @@ BMLoop *BM_face_find_longest_loop(BMFace *f)
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 
 	do {
-		const float len = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
-		if (len >= longest_len) {
+		const float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+		if (len_sq >= len_max_sq) {
 			longest_loop = l_iter;
-			longest_len = len;
+			len_max_sq = len_sq;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 

@@ -131,22 +131,22 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		 * This will lead in prunning of the search tree.
 		 */
 		if (dist_v) {
-			nearest_v.dist = nearest_v.index != -1 ? len_squared_v3v3(tmp_co, nearest_v.co) : FLT_MAX;
+			nearest_v.dist_sq = nearest_v.index != -1 ? len_squared_v3v3(tmp_co, nearest_v.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_v.tree, tmp_co, &nearest_v, treeData_v.nearest_callback, &treeData_v);
-			dist_v[i] = sqrtf(nearest_v.dist);
+			dist_v[i] = sqrtf(nearest_v.dist_sq);
 		}
 		if (dist_e) {
-			nearest_e.dist = nearest_e.index != -1 ? len_squared_v3v3(tmp_co, nearest_e.co) : FLT_MAX;
+			nearest_e.dist_sq = nearest_e.index != -1 ? len_squared_v3v3(tmp_co, nearest_e.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_e.tree, tmp_co, &nearest_e, treeData_e.nearest_callback, &treeData_e);
-			dist_e[i] = sqrtf(nearest_e.dist);
+			dist_e[i] = sqrtf(nearest_e.dist_sq);
 		}
 		if (dist_f) {
-			nearest_f.dist = nearest_f.index != -1 ? len_squared_v3v3(tmp_co, nearest_f.co) : FLT_MAX;
+			nearest_f.dist_sq = nearest_f.index != -1 ? len_squared_v3v3(tmp_co, nearest_f.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_f.tree, tmp_co, &nearest_f, treeData_f.nearest_callback, &treeData_f);
-			dist_f[i] = sqrtf(nearest_f.dist);
+			dist_f[i] = sqrtf(nearest_f.dist_sq);
 		}
 	}
 

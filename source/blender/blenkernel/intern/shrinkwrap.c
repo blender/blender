@@ -139,7 +139,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 	/* Setup nearest */
 	nearest.index = -1;
-	nearest.dist = FLT_MAX;
+	nearest.dist_sq = FLT_MAX;
 #ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData, calc) schedule(static)
 #endif
@@ -167,9 +167,9 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
 		 * This will lead in pruning of the search tree. */
 		if (nearest.index != -1)
-			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
+			nearest.dist_sq = len_squared_v3v3(tmp_co, nearest.co);
 		else
-			nearest.dist = FLT_MAX;
+			nearest.dist_sq = FLT_MAX;
 
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
@@ -178,8 +178,8 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		if (nearest.index != -1) {
 			/* Adjusting the vertex weight,
 			 * so that after interpolating it keeps a certain distance from the nearest position */
-			if (nearest.dist > FLT_EPSILON) {
-				const float dist = sqrtf(nearest.dist);
+			if (nearest.dist_sq > FLT_EPSILON) {
+				const float dist = sqrtf(nearest.dist_sq);
 				weight *= (dist - calc->keepDist) / dist;
 			}
 
@@ -441,7 +441,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 	/* Setup nearest */
 	nearest.index = -1;
-	nearest.dist = FLT_MAX;
+	nearest.dist_sq = FLT_MAX;
 
 
 	/* Find the nearest vertex */
@@ -469,9 +469,9 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
 		 * This will lead in pruning of the search tree. */
 		if (nearest.index != -1)
-			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
+			nearest.dist_sq = len_squared_v3v3(tmp_co, nearest.co);
 		else
-			nearest.dist = FLT_MAX;
+			nearest.dist_sq = FLT_MAX;
 
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
@@ -484,7 +484,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 			else {
 				/* Adjusting the vertex weight,
 				 * so that after interpolating it keeps a certain distance from the nearest position */
-				float dist = sasqrt(nearest.dist);
+				const float dist = sasqrt(nearest.dist_sq);
 				if (dist > FLT_EPSILON) {
 					/* linear interpolation */
 					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);

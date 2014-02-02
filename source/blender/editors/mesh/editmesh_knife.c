@@ -1842,7 +1842,7 @@ static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 
 	for (cur = ((Ref *)lst->first)->next; cur; cur = next) {
 		KnifeVert *vcur = cur->ref;
-		const float vcur_fac = len_squared_v3v3(v1co, vcur->co);
+		const float vcur_fac_sq = len_squared_v3v3(v1co, vcur->co);
 
 		next = cur->next;
 		prev = cur->prev;
@@ -1851,7 +1851,7 @@ static void sort_by_frac_along(ListBase *lst, BMEdge *e)
 
 		while (prev) {
 			KnifeVert *vprev = prev->ref;
-			if (len_squared_v3v3(v1co, vprev->co) <= vcur_fac)
+			if (len_squared_v3v3(v1co, vprev->co) <= vcur_fac_sq)
 				break;
 			prev = prev->prev;
 		}
@@ -2057,7 +2057,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 	BMIter iter;
 	int nh, nf, i, j, k, m, ax, ay, sep = 0 /* Quite warnings */, bestsep;
 	int besti[2], bestj[2];
-	float d, bestd;
+	float dist_sq, dist_best_sq;
 
 	nh = BLI_countlist(hole);
 	nf = f->len;
@@ -2110,7 +2110,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 	for (m = 0; m < 2; m++) {
 		besti[m] = -1;
 		bestj[m] = -1;
-		bestd = FLT_MAX;
+		dist_best_sq = FLT_MAX;
 		bestsep = 0;
 		for (i = 0; i < nh; i++) {
 			if (m == 1) {
@@ -2120,15 +2120,15 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 				sep = MIN2(sep, nh - sep);
 				if (sep < bestsep)
 					continue;
-				bestd = FLT_MAX;
+				dist_best_sq = FLT_MAX;
 			}
 			for (j = 0; j < nf; j++) {
 				bool ok;
 
 				if (m == 1 && j == bestj[0])
 					continue;
-				d = len_squared_v2v2(hco[i], fco[j]);
-				if (d > bestd)
+				dist_sq = len_squared_v2v2(hco[i], fco[j]);
+				if (dist_sq > dist_best_sq)
 					continue;
 
 				ok = true;
@@ -2151,7 +2151,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 					bestj[m] = j;
 					if (m == 1)
 						bestsep = sep;
-					bestd = d;
+					dist_best_sq = dist_sq;
 				}
 			}
 		}

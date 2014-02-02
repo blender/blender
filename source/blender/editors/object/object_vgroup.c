@@ -997,7 +997,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 				}
 
 				/* Reset nearest.*/
-				nearest.dist = FLT_MAX;
+				nearest.dist_sq = FLT_MAX;
 				/* It is faster to start searching at the top of the tree instead of previous search result.*/
 				nearest.index = -1;
 
@@ -1037,7 +1037,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 				}
 
 				/* Reset nearest.*/
-				nearest.dist = FLT_MAX;
+				nearest.dist_sq = FLT_MAX;
 				/* It is faster to start searching at the top of the tree instead of previous search result.*/
 				nearest.index = -1;
 
@@ -1098,7 +1098,7 @@ static bool ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGro
 				}
 
 				/* Reset nearest.*/
-				nearest.dist = FLT_MAX;
+				nearest.dist_sq = FLT_MAX;
 				/* It is faster to start searching at the top of the tree instead of previous search result.*/
 				nearest.index = -1;
 

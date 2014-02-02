@@ -542,13 +542,13 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 	float len = FLT_MAX, dx, dy;
 
 	for (i = 0; i < 4; i++) {
-		float cur_len;
+		float cur_len_sq;
 
 		next = (i + 1) % 4;
 
-		cur_len = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
+		cur_len_sq = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = min_ff(cur_len, len);
+		len = min_ff(cur_len_sq, len);
 	}
 	len = sqrtf(len);
 

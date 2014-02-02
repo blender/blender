@@ -358,8 +358,8 @@ void BKE_mask_spline_direction_switch(MaskLayer *masklay, MaskSpline *spline)
 float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
                                  float start_u, const float co[2], const eMaskSign sign)
 {
-	const float proj_eps         = 1e-3;
-	const float proj_eps_squared = proj_eps * proj_eps;
+	const float proj_eps    = 1e-3;
+	const float proj_eps_sq = proj_eps * proj_eps;
 	const int N = 1000;
 	float u = -1.0f, du = 1.0f / N, u1 = start_u, u2 = start_u;
 	float ang = -1.0f;
@@ -381,7 +381,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
 			    ((sign == MASK_PROJ_POS) && (dot_v2v2(v1, n1) >= 0.0f)))
 			{
 
-				if (len_squared_v2(v1) > proj_eps_squared) {
+				if (len_squared_v2(v1) > proj_eps_sq) {
 					ang1 = angle_v2v2(v1, n1);
 					if (ang1 > (float)M_PI / 2.0f)
 						ang1 = (float)M_PI - ang1;
@@ -408,7 +408,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
 			    ((sign == MASK_PROJ_POS) && (dot_v2v2(v2, n2) >= 0.0f)))
 			{
 
-				if (len_squared_v2(v2) > proj_eps_squared) {
+				if (len_squared_v2(v2) > proj_eps_sq) {
 					ang2 = angle_v2v2(v2, n2);
 					if (ang2 > (float)M_PI / 2.0f)
 						ang2 = (float)M_PI - ang2;

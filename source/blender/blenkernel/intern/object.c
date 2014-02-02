@@ -1110,23 +1110,23 @@ static LodLevel *lod_level_select(Object *ob, const float cam_loc[3])
 {
 	LodLevel *current = ob->currentlod;
 	float ob_loc[3], delta[3];
-	float distance2;
+	float dist_sq;
 
 	if (!current) return NULL;
 
 	copy_v3_v3(ob_loc, ob->obmat[3]);
 	sub_v3_v3v3(delta, ob_loc, cam_loc);
-	distance2 = len_squared_v3(delta);
+	dist_sq = len_squared_v3(delta);
 
-	if (distance2 < current->distance * current->distance) {
+	if (dist_sq < current->distance * current->distance) {
 		/* check for higher LoD */
-		while (current->prev && distance2 < (current->distance * current->distance)) {
+		while (current->prev && dist_sq < (current->distance * current->distance)) {
 			current = current->prev;
 		}
 	}
 	else {
 		/* check for lower LoD */
-		while (current->next && distance2 > (current->next->distance * current->next->distance)) {
+		while (current->next && dist_sq > (current->next->distance * current->next->distance)) {
 			current = current->next;
 		}
 	}

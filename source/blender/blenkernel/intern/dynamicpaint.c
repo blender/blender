@@ -2944,13 +2944,13 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
 	t3 = face->v4 ? vert[face->v4].co : NULL;
 
 	do {
-		float nearest_tmp[3], dist;
+		float nearest_tmp[3], dist_sq;
 		int vertex, edge;
 		
-		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
-		if (dist < nearest->dist) {
+		dist_sq = nearest_point_in_tri_surface_squared(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
+		if (dist_sq < nearest->dist_sq) {
 			nearest->index = index;
-			nearest->dist = dist;
+			nearest->dist_sq = dist_sq;
 			copy_v3_v3(nearest->co, nearest_tmp);
 			nearest->no[0] = (quad) ? 1.0f : 0.0f;
 		}
@@ -3405,7 +3405,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							hit.index = -1;
 							hit.dist = 9999;
 							nearest.index = -1;
-							nearest.dist = brush_radius * brush_radius; /* find_nearest uses squared distance */
+							nearest.dist_sq = brush_radius * brush_radius; /* find_nearest uses squared distance */
 
 							/* Check volume collision	*/
 							if (brush->collision == MOD_DPAINT_COL_VOLUME || brush->collision == MOD_DPAINT_COL_VOLDIST)
@@ -3463,7 +3463,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 								/* If pure distance proximity, find the nearest point on the mesh */
 								if (!(brush->flags & MOD_DPAINT_PROX_PROJECT)) {
 									if (BLI_bvhtree_find_nearest(treeData.tree, ray_start, &nearest, mesh_faces_nearest_point_dp, &treeData) != -1) {
-										proxDist = sqrtf(nearest.dist);
+										proxDist = sqrtf(nearest.dist_sq);
 										copy_v3_v3(hitCo, nearest.co);
 										hQuad = (nearest.no[0] == 1.0f);
 										face = nearest.index;

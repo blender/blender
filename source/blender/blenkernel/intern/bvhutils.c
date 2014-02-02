@@ -82,7 +82,9 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
  * Function adapted from David Eberly's distance tools (LGPL)
  * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3])
+float nearest_point_in_tri_surface_squared(
+        const float v0[3], const float v1[3], const float v2[3],
+        const float p[3], int *v, int *e, float nearest[3])
 {
 	float diff[3];
 	float e0[3];
@@ -377,13 +379,13 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 
 	
 	do {
-		float nearest_tmp[3], dist;
+		float nearest_tmp[3], dist_sq;
 		int vertex, edge;
 		
-		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
-		if (dist < nearest->dist) {
+		dist_sq = nearest_point_in_tri_surface_squared(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
+		if (dist_sq < nearest->dist_sq) {
 			nearest->index = index;
-			nearest->dist = dist;
+			nearest->dist_sq = dist_sq;
 			copy_v3_v3(nearest->co, nearest_tmp);
 			normal_tri_v3(nearest->no, t0, t1, t2);
 
@@ -410,13 +412,13 @@ static void editmesh_faces_nearest_point(void *userdata, int index, const float 
 	t2 = ltri[2]->v->co;
 
 	{
-		float nearest_tmp[3], dist;
+		float nearest_tmp[3], dist_sq;
 		int vertex, edge;
 
-		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
-		if (dist < nearest->dist) {
+		dist_sq = nearest_point_in_tri_surface_squared(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
+		if (dist_sq < nearest->dist_sq) {
 			nearest->index = index;
-			nearest->dist = dist;
+			nearest->dist_sq = dist_sq;
 			copy_v3_v3(nearest->co, nearest_tmp);
 			normal_tri_v3(nearest->no, t0, t1, t2);
 		}
@@ -499,18 +501,18 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
 	MVert *vert = data->vert;
 	MEdge *edge = data->edge + index;
-	float nearest_tmp[3], dist;
+	float nearest_tmp[3], dist_sq;
 
 	float *t0, *t1;
 	t0 = vert[edge->v1].co;
 	t1 = vert[edge->v2].co;
 
 	closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
-	dist = len_squared_v3v3(nearest_tmp, co);
+	dist_sq = len_squared_v3v3(nearest_tmp, co);
 	
-	if (dist < nearest->dist) {
+	if (dist_sq < nearest->dist_sq) {
 		nearest->index = index;
-		nearest->dist = dist;
+		nearest->dist_sq = dist_sq;
 		copy_v3_v3(nearest->co, nearest_tmp);
 		sub_v3_v3v3(nearest->no, t0, t1);
 		normalize_v3(nearest->no);

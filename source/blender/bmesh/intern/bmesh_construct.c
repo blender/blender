@@ -394,7 +394,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
 	float far_cross_vec[3];
 	float sign_vec[3]; /* work out if we are pos/neg angle */
 
-	float far_dist, far_best;
+	float far_dist_sq, far_dist_max_sq;
 	float far_cross_dist, far_cross_best = 0.0f;
 
 	/* get the center point and collect vector array since we loop over these a lot */
@@ -405,12 +405,12 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
 
 
 	/* find the far point from cent */
-	far_best = 0.0f;
+	far_dist_max_sq = 0.0f;
 	for (i = 0; i < len; i++) {
-		far_dist = len_squared_v3v3(vert_arr[i]->co, cent);
-		if (far_dist > far_best || far == NULL) {
+		far_dist_sq = len_squared_v3v3(vert_arr[i]->co, cent);
+		if (far_dist_sq > far_dist_max_sq || far == NULL) {
 			far = vert_arr[i]->co;
-			far_best = far_dist;
+			far_dist_max_sq = far_dist_sq;
 		}
 	}
 

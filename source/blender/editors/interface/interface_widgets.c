@@ -1981,9 +1981,9 @@ void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rec
 	const float centy = BLI_rcti_cent_y_fl(rect);
 	const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 	const float m_delta[2] = {mx - centx, my - centy};
-	const float dist_squared = len_squared_v2(m_delta);
+	const float dist_sq = len_squared_v2(m_delta);
 
-	*val_dist = (dist_squared < (radius * radius)) ? sqrtf(dist_squared) / radius : 1.0f;
+	*val_dist = (dist_sq < (radius * radius)) ? sqrtf(dist_sq) / radius : 1.0f;
 	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
