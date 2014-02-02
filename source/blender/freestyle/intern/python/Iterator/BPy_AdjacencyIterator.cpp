@@ -113,7 +113,6 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
-
 	if (self->at_start)
 		self->at_start = false;
 	else {

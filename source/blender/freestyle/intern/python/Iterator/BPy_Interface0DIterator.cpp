@@ -108,15 +108,7 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-		if (self->at_start)
-			self->at_start = false;
-		else {
-			self->if0D_it->decrement();
-			if (self->if0D_it->isBegin()) {
-				PyErr_SetNone(PyExc_StopIteration);
-				return NULL;
-			}
-		}
+		self->if0D_it->decrement();
 	}
 	else {
 		if (self->if0D_it->isEnd()) {

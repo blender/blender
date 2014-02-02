@@ -88,15 +88,7 @@ static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator 
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-		if (self->at_start)
-			self->at_start = false;
-		else {
-			self->ove_it->decrement();
-			if (self->ove_it->isBegin()) {
-				PyErr_SetNone(PyExc_StopIteration);
-				return NULL;
-			}
-		}
+		self->ove_it->decrement();
 	}
 	else {
 		if (self->ove_it->isEnd()) {

@@ -96,15 +96,7 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-		if (self->at_start)
-			self->at_start = false;
-		else {
-			self->sv_it->increment();
-			if (self->sv_it->isBegin()){
-				PyErr_SetNone(PyExc_StopIteration);
-				return NULL;
-			}
-		}
+		self->sv_it->decrement();
 	}
 	else {
 		if (self->sv_it->isEnd()) {
@@ -119,7 +111,7 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 		 * exit the loop if it is. not doing so will result in a crash */
 		else {
 			self->sv_it->increment();
-			if (self->sv_it->isEnd()){
+			if (self->sv_it->isEnd()) {
 				PyErr_SetNone(PyExc_StopIteration);
 				return NULL;
 			}
