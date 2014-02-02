@@ -72,6 +72,72 @@ def draw_gpencil_tools(context, layout):
 
 # ********** default tools for object-mode ****************
 
+class VIEW3D_PT_tools_transform(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "objectmode"
+    bl_label = "Transform"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
+
+        active_object = context.active_object
+        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
+
+            col = layout.column(align=True)
+            col.operator("transform.mirror", text="Mirror")
+
+class VIEW3D_PT_tools_object(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "objectmode"
+    bl_label = "Edit"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.operator("object.duplicate_move", text="Duplicate")
+        col.operator("object.duplicate_move_linked", text="Duplicate Linked")
+
+        active_object = context.active_object
+        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
+            col = layout.column(align=True)
+            col.operator("object.join")
+        col.operator("object.delete")
+
+        col = layout.column(align=True)
+        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
+
+            col = layout.column(align=True)
+            col.operator("object.origin_set", text="Set Origin")
+
+            col = layout.column(align=True)
+            col.label(text="Shading:")
+            row = col.row(align=True)
+            row.operator("object.shade_smooth", text="Smooth")
+            row.operator("object.shade_flat", text="Flat")
+
+class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "objectmode"
+    bl_label = "History"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("ed.undo")
+        row.operator("ed.redo")
+        col.operator("ed.undo_history")
+
+        draw_repeat_tools(context, layout)
+
 class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "objectmode"
@@ -111,46 +177,6 @@ class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
         col.operator("object.add", text="Lattice", icon="OUTLINER_OB_LATTICE").type='LATTICE'
         col.operator("object.empty_add", text="Empty", icon="OUTLINER_OB_EMPTY").type='PLAIN_AXES'
         col.operator("object.camera_add", text="Camera", icon="OUTLINER_OB_CAMERA")
-        
-
-class VIEW3D_PT_tools_basic(View3DPanel, Panel):
-    bl_category = "Basic"
-    bl_context = "objectmode"
-    bl_label = "Object Operations"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Transform:")
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-            
-        active_object = context.active_object
-        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
-
-            col = layout.column(align=True)
-            col.operator("transform.mirror", text="Mirror")
-            
-            col = layout.column(align=True)
-            col.operator("object.origin_set", text="Set Origin")
-
-            col = layout.column(align=True)
-            col.label(text="Operations:")
-            col.operator("object.duplicate_move", text="Duplicate")
-            col.operator("object.duplicate_move_linked", text="Duplicate Linked")
-            
-            col = layout.column(align=True)
-            col.operator("object.join")
-            col.operator("object.delete")
-
-            col = layout.column(align=True)
-            col.label(text="Shading:")
-            row = col.row(align=True)
-            row.operator("object.shade_smooth", text="Smooth")
-            row.operator("object.shade_flat", text="Flat")
-
 
 class VIEW3D_PT_tools_relations(View3DPanel, Panel):
     bl_category = "Relations"
@@ -185,7 +211,6 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
         col.label(text="Linked Objects:")
         col.operator("object.make_local")
         col.operator("object.proxy_make")
-
 
 class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     bl_category = "Animation"
@@ -238,7 +263,7 @@ class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
 # ********** default tools for editmode_mesh ****************
 
 class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
-    bl_category = "Mesh Tools"
+    bl_category = "Tools"
     bl_context = "mesh_edit"
     bl_label = "Transform"
 
@@ -246,7 +271,6 @@ class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="Transform:")
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
@@ -254,7 +278,7 @@ class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
         col.operator("transform.push_pull", text="Push/Pull")
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
-    bl_category = "Mesh Tools"
+    bl_category = "Tools"
     bl_context = "mesh_edit"
     bl_label = "Mesh Tools"
 
@@ -300,6 +324,29 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
+    bl_category = "Create"
+    bl_context = "mesh_edit"
+    bl_label = "Add Meshes"
+
+    def draw (self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="Primitives:")
+        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
+        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
+        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
+        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
+        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
+        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
+        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
+        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")
+
+        col = layout.column(align=True)
+        col.label(text="Special:")
+        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
 class VIEW3D_PT_tools_shading(View3DPanel, Panel):
     bl_category = "Shading / UVs"
@@ -333,31 +380,7 @@ class VIEW3D_PT_tools_uvs(View3DPanel, Panel):
         col.menu("VIEW3D_MT_uv_map", text="Unwrap")
         col.operator("mesh.mark_seam").clear = False
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
-
-
-class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "mesh_edit"
-    bl_label = "Add Meshes"
-    
-    def draw (self, context):
-        layout = self.layout
         
-        col = layout.column(align=True)
-        col.label(text="Primitives:")
-        col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
-        col.operator("mesh.primitive_cube_add", text="Cube", icon="MESH_CUBE")
-        col.operator("mesh.primitive_circle_add", text="Circle", icon="MESH_CIRCLE")
-        col.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon="MESH_UVSPHERE")
-        col.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon="MESH_ICOSPHERE")
-        col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
-        col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
-        col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")   
-        
-        col = layout.column(align=True)
-        col.label(text="Special:")
-        col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
-        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
@@ -1525,21 +1548,6 @@ class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):
         layout = self.layout
         draw_gpencil_tools(context, layout)
 
-class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
-    bl_category = "History"
-    bl_context = "objectmode"
-    bl_label = "History"
-
-    def draw(self, context):
-        layout = self.layout     
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("ed.undo")
-        row.operator("ed.redo")
-        col.operator("ed.undo_history")
-        
-        draw_repeat_tools(context, layout)
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
