@@ -50,7 +50,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <BLI_sys_types.h>
 
 #include "MEM_guardedalloc.h"
 
