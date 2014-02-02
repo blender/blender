@@ -35,7 +35,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 
 # all calls to blender use this
 if(APPLE)
-	set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender.app/Contents/MacOS/blender)
+	set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/Debug/blender.app/Contents/MacOS/blender)
 else()
 	set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender)
 endif()
@@ -66,6 +66,13 @@ add_test(script_run_operators ${TEST_BLENDER_EXE}
 # test running mathutils testing script
 add_test(script_pyapi_mathutils ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_mathutils.py
+)
+
+# ------------------------------------------------------------------------------
+# MODELING TESTS
+add_test(bevel ${TEST_BLENDER_EXE}
+	${TEST_SRC_DIR}/modeling/bevel_regression.blend
+	--python-text run_tests
 )
 
 # ------------------------------------------------------------------------------
