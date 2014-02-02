@@ -492,7 +492,6 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
-        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_surface ****************
 
@@ -530,8 +529,6 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
         col.operator("curve.subdivide")
 
         draw_repeat_tools(context, layout)
-
-        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_text ****************
 
@@ -587,8 +584,6 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
-        draw_gpencil_tools(context, layout)
-
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
     bl_context = "armature_edit"
@@ -618,8 +613,6 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
-        draw_gpencil_tools(context, layout)
-
 # ********** default tools for editmode_lattice ****************
 
 
@@ -641,8 +634,6 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
         col.operator("lattice.make_regular")
 
         draw_repeat_tools(context, layout)
-
-        draw_gpencil_tools(context, layout)
 
 
 # ********** default tools for pose-mode ****************
@@ -687,8 +678,6 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
         row.operator("pose.paths_clear", text="Clear")
 
         draw_repeat_tools(context, layout)
-
-        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
