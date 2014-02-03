@@ -320,6 +320,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			utf8_buf = ascii;
 			break;
 		case PADMINUS:
+		case MINUSKEY:
 			if (event->ctrl) {
 				n->val_flag[idx] ^= NUM_NEGATE;
 				updated = true;
@@ -327,6 +328,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			/* fall-through */
 		case PADSLASHKEY:
+		case SLASHKEY:
 			if (event->ctrl) {
 				n->val_flag[idx] ^= NUM_INVERSE;
 				updated = true;
