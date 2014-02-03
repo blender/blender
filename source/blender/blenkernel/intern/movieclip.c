@@ -807,6 +807,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	}
 	else {
 		cache->postprocessed.undistortion_used = FALSE;
+		postproc_ibuf = IMB_dupImBuf(ibuf);
 	}
 
 	if (postprocess_flag) {
@@ -814,9 +815,6 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 		    disable_green = postprocess_flag & MOVIECLIP_DISABLE_GREEN,
 		    disable_blue  = postprocess_flag & MOVIECLIP_DISABLE_BLUE,
 		    grayscale     = postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE;
-
-		if (!postproc_ibuf)
-			postproc_ibuf = IMB_dupImBuf(ibuf);
 
 		if (disable_red || disable_green || disable_blue || grayscale)
 			BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
