@@ -204,6 +204,7 @@ typedef uint64_t u_int64_t;
 
 /* FreeBSD, Solaris */
 #include <sys/types.h>
+#include <stdint.h>
 
 #endif /* ifdef platform for types */
 
